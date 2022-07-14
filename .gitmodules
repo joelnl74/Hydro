@@ -1,16 +1,16 @@
 [submodule "Hydro/vendor/spdlog"]
-	path = Hazel/vendor/spdlog
+	path = Hydro/vendor/spdlog
 	url = ../../gabime/spdlog.git
 	branch = v1.x
 [submodule "Hydro/vendor/GLFW"]
-	path = Hazel/vendor/GLFW
+	path = Hydro/vendor/GLFW
 	url = ../../TheCherno/glfw.git
 	branch = master
 [submodule "Hydro/vendor/imgui"]
-	path = Hazel/vendor/imgui
+	path = Hydro/vendor/imgui
 	url = ../../TheCherno/imgui.git
 	branch = docking
 [submodule "Hydro/vendor/glm"]
-	path = Hazel/vendor/glm
+	path = Hydro/vendor/glm
 	url = ../../g-truc/glm.git
 	branch = master
