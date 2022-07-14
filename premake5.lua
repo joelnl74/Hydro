@@ -26,6 +26,8 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 group "Dependencies"
 	include "vendor/premake"
+	include "Hazel/vendor/GLFW"
+	include "Hazel/vendor/imgui"
 group ""
 
 include "Hydro"

@@ -1,0 +1,16 @@
+[submodule "Hydro/vendor/spdlog"]
+	path = Hydro/vendor/spdlog
+	url = ../../gabime/spdlog.git
+	branch = v1.x
+[submodule "Hydro/vendor/GLFW"]
+	path = Hydro/vendor/GLFW
+	url = ../../joelnl74/glfw.git
+	branch = master
+[submodule "Hydro/vendor/imgui"]
+	path = Hydro/vendor/imgui
+	url = ../../joelnl74/imgui.git
+	branch = docking
+[submodule "Hydro/vendor/glm"]
+	path = Hydro/vendor/glm
+	url = ../../g-truc/glm.git
+	branch = master
