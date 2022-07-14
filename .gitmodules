@@ -4,11 +4,11 @@
 	branch = v1.x
 [submodule "Hydro/vendor/GLFW"]
 	path = Hydro/vendor/GLFW
-	url = ../../TheCherno/glfw.git
+	url = ../../joelnl74/glfw.git
 	branch = master
 [submodule "Hydro/vendor/imgui"]
 	path = Hydro/vendor/imgui
-	url = ../../TheCherno/imgui.git
+	url = ../../joelnl74/imgui.git
 	branch = docking
 [submodule "Hydro/vendor/glm"]
 	path = Hydro/vendor/glm
