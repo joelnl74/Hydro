@@ -27,13 +27,16 @@ project "Hydro"
 	includedirs
 	{
 		"src",
+		"vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
 	}
 
 	links
 	{
+		"GLFW",
+		"imgui,
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"

@@ -1,5 +1,5 @@
-[submodule "Hydro/vendor/glfw"]
-	path = Hydro/vendor/glfw
+[submodule "Hydro/vendor/GLFW"]
+	path = Hydro/vendor/GLFW
 	url = https://github.com/joelnl74/glfw_stable.git
 [submodule "Hydro/vendor/imgui"]
 	path = Hydro/vendor/imgui
