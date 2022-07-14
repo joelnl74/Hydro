@@ -17,6 +17,8 @@ project "Oxygen"
 	{
 		"%{wks.location}/Hydro/src",
 		"%{wks.location}/Hydro/vendor",
+		"%{wks.location}/Hydro/vendor/spdlog/include",
+		"%{IncludeDir.glm}",
 	}
 
 	links

@@ -14,6 +14,8 @@ project "Hydro"
 	{
 		"src/**.h",
 		"src/**.cpp",
+		"vendor/glm/glm/**.hpp",
+		"vendor/glm/glm/**.inl",
 	}
 
 	defines
@@ -25,6 +27,9 @@ project "Hydro"
 	includedirs
 	{
 		"src",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
 	}
 
 	links
