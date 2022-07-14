@@ -5,7 +5,7 @@ namespace Hydro
 {
 	Application::Application()
 	{
-		Run();
+		std::cout << "Creating hydro engine application.";
 	}
 
 	Application::~Application()

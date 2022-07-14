@@ -12,6 +12,12 @@ namespace Hydro
 
 	private:
 		void Run();
+
+	private:
+		static Application* s_Instance;
+		friend int ::main(int argc, char** argv);
 	};
+
+	Application* CreateApplication();
 }
 

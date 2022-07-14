@@ -6,14 +6,15 @@ namespace Hydro
 	{
 	public:
 		Oxygen()
-			: Application()
+		{
+		}
+		~Oxygen()
 		{
 		}
 	};
 
-	void main()
+	Application* CreateApplication()
 	{
-		Oxygen* oxygenApp = new Oxygen();
-		delete oxygenApp;
+		return new Oxygen();
 	}
 }
