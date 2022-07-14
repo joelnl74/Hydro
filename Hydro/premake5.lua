@@ -36,7 +36,7 @@ project "Hydro"
 	links
 	{
 		"GLFW",
-		"imgui,
+		"ImGui",
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
