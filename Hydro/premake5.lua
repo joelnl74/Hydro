@@ -14,6 +14,8 @@ project "Hydro"
 	{
 		"src/**.h",
 		"src/**.cpp",
+		"vendor/glm/glm/**.hpp",
+		"vendor/glm/glm/**.inl",
 	}
 
 	defines
@@ -25,10 +27,16 @@ project "Hydro"
 	includedirs
 	{
 		"src",
+		"vendor/spdlog/include",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.imgui}",
+		"%{IncludeDir.glm}",
 	}
 
 	links
 	{
+		"GLFW",
+		"ImGui",
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
