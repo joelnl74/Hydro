@@ -3,7 +3,7 @@ include "Dependencies.lua"
 
 workspace "Hydro"
 	architecture "x86_64"
-	startproject "Oxygen-Editor"
+	startproject "Oxygen"
 
 	configurations
 	{
@@ -28,5 +28,5 @@ group "Dependencies"
 	include "vendor/premake"
 group ""
 
-include "Hydro-Engine"
-include "Oxygen-Editor"
+include "Hydro"
+include "Oxygen"

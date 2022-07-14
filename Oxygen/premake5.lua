@@ -1,5 +1,5 @@
-project "Hydro-Engine"
-	kind "StaticLib"
+project "Oxygen"
+	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "off"
@@ -7,63 +7,37 @@ project "Hydro-Engine"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
-	pchheader "hypch.h"
-	pchsource "src/hypch.cpp"
-
 	files
 	{
 		"src/**.h",
-		"src/**.cpp",
-	}
-
-	defines
-	{
-		"_CRT_SECURE_NO_WARNINGS",
-		"GLFW_INCLUDE_NONE"
+		"src/**.cpp"
 	}
 
 	includedirs
 	{
-		"src",
+		"%{wks.location}/Hydro/src",
+		"%{wks.location}/Hydro/vendor",
 	}
 
 	links
 	{
+		"Hydro"
 	}
-
-	filter "files:vendor/ImGuizmo/**.cpp"
-	flags { "NoPCH" }
 
 	filter "system:windows"
 		systemversion "latest"
-
-		defines
-		{
-		}
 
 	filter "configurations:Debug"
 		defines "HY_DEBUG"
 		runtime "Debug"
 		symbols "on"
 
-		links
-		{
-		}
-
 	filter "configurations:Release"
 		defines "HY_RELEASE"
 		runtime "Release"
 		optimize "on"
 
-		links
-		{
-		}
-
-	filter "configurations:Distribution"
+	filter "configurations:Dist"
 		defines "HY_DIST"
 		runtime "Release"
 		optimize "on"
-
-		links
-		{
-		}
