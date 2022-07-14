@@ -1,0 +1,6 @@
+
+-- Hydro Dependencies
+
+IncludeDir = {}
+
+LibraryDir = {}
