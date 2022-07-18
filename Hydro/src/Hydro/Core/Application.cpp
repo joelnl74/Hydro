@@ -46,7 +46,7 @@ namespace Hydro
 		// Handle resize event.
 		if (e.GetEventType() == EventType::WindowResize)
 		{
-			auto receivedEvent = EventDispatcher::GetEvent<WindowResizeEvent&>(e);
+			WindowResizeEvent receivedEvent = EventDispatcher::GetEvent<WindowResizeEvent&>(e);
 
 			std::cout << receivedEvent.width;
 			std::cout << receivedEvent.heigth;
