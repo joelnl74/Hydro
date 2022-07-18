@@ -15,6 +15,7 @@ namespace Hydro
 		virtual ~Application();
 
 		Window& GetWindow() { return *m_Window; }
+		static Application& Get() { return *s_Instance; }
 
 	private:
 		void Run();

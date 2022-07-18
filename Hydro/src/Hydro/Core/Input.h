@@ -33,7 +33,7 @@ namespace Hydro
 	class Input
 	{
 	public:
-		static bool IsKeyPressed(Keycode keycode);
+		static bool IsKeyPressed(KeyCode keycode);
 
 		static bool IsMouseButtonPressed(MouseButton button);
 		static float GetMouseX();

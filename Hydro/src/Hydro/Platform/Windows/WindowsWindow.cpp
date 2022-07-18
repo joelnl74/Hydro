@@ -3,6 +3,8 @@
 #include "Hydro\Platform\Windows\WindowsWindow.h"
 #include "Hydro\Events\EventDispatcher.h"
 #include "Hydro\Events\ApplicationEvents.h"
+#include "Hydro\Events\KeyEvents.h"
+#include "Hydro\Events\MouseEvents.h"
 
 namespace Hydro
 {
@@ -46,27 +48,6 @@ namespace Hydro
 				EventDispatcher::Get().Post(WindowCloseEvent());
 			});
 
-		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-
-				switch (action)
-				{
-				case GLFW_PRESS:
-				{
-					break;
-				}
-				case GLFW_RELEASE:
-				{
-					break;
-				}
-				case GLFW_REPEAT:
-				{
-					break;
-				}
-				}
-			});
-
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int heigth)
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
@@ -76,6 +57,77 @@ namespace Hydro
 				resizeEvent.heigth = heigth;
 
 				EventDispatcher::Get().Post(resizeEvent);
+			});
+
+		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				switch (action)
+				{
+				case GLFW_PRESS:
+				{
+					KeyPressedEvent event((KeyCode)key, 0);
+					EventDispatcher::Get().Post(event);
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					KeyReleasedEvent event((KeyCode)key);
+					EventDispatcher::Get().Post(event);
+					break;
+				}
+				case GLFW_REPEAT:
+				{
+					KeyPressedEvent event((KeyCode)key, 1);
+					EventDispatcher::Get().Post(event);
+					break;
+				}
+				}
+			});
+
+		glfwSetCharCallback(m_Window, [](GLFWwindow* window, uint32_t codepoint)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				KeyTypedEvent event((KeyCode)codepoint);
+				EventDispatcher::Get().Post(event);
+			});
+
+		glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int mods)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				switch (action)
+				{
+				case GLFW_PRESS:
+				{
+					MouseButtonPressedEvent event(button);
+					EventDispatcher::Get().Post(event);
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					MouseButtonReleasedEvent event(button);
+					EventDispatcher::Get().Post(event);
+					break;
+				}
+				}
+			});
+
+		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				MouseScrolledEvent event((float)xOffset, (float)yOffset);
+				EventDispatcher::Get().Post(event);
+			});
+
+		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double x, double y)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+				MouseMovedEvent event((float)x, (float)y);
+				EventDispatcher::Get().Post(event);
 			});
 	}
 
