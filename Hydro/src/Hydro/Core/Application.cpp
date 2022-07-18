@@ -7,6 +7,8 @@ namespace Hydro
 
 	Application::Application()
 	{
+		Log::Init();
+
 		s_Instance = this;
 		m_Window = Window::Create(WindowProps());
 
@@ -22,6 +24,8 @@ namespace Hydro
 		EventDispatcher::Get().Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
 
 		m_Running = true;
+
+		HY_CORE_TRACE("Engine initialized");
 	}
 
 	Application::~Application()
