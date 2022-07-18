@@ -1,5 +1,8 @@
 #pragma once
 #include "Hydro/Core/Window.h"
+#include "Hydro/Core/LayerController.h"
+#include "Hydro/Events/EventDispatcher.h"
+#include "Hydro/Events/ApplicationEvents.h"
 
 int main(int argc, char** argv);
 
@@ -16,9 +19,11 @@ namespace Hydro
 	private:
 		void Run();
 		void ShutDown();
+		void OnEvent(const Event& e);
 
 	private:
 		Scope<Window> m_Window;
+		LayerController m_LayerStack;
 
 		bool m_Running = true;
 		bool m_Minimized = false;

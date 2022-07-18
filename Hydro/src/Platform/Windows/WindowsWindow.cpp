@@ -1,5 +1,8 @@
+#pragma once
 #include "hypch.h"
 #include "Platform/Windows/WindowsWindow.h"
+#include "Hydro\Events\EventDispatcher.h"
+#include "Hydro\Events\ApplicationEvents.h"
 
 namespace Hydro
 {
@@ -32,17 +35,44 @@ namespace Hydro
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
-		{
-#if defined(HY_DEBUG)
-			if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
-				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-#endif
-			m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
-			++s_GLFWWindowCount;
-		}
+		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+		++s_GLFWWindowCount;
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
+
+		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
+			{
+				EventDispatcher::Get().Post(WindowCloseEvent());
+			});
+
+		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+				switch (action)
+				{
+				case GLFW_PRESS:
+				{
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					break;
+				}
+				case GLFW_REPEAT:
+				{
+					break;
+				}
+				}
+			});
+
+		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int heigth)
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				EventDispatcher::Get().Post(WindowResizeEvent());
+
+			});
 	}
 
 	void WindowsWindow::Shutdown()
