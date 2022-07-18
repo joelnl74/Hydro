@@ -13,14 +13,20 @@ namespace Hydro
 	public:
 		Application();
 		virtual ~Application();
+		virtual void OnInit() {}
+		virtual void OnShutdown() {}
+		virtual void OnUpdate() {}
+		virtual void OnEvent(Event& e);
 
-		Window& GetWindow() { return *m_Window; }
-		static Application& Get() { return *s_Instance; }
+		void PushLayer(Layer* layer);
+		void PushOverlay(Layer* layer);
+
+		inline Window& GetWindow() { return *m_Window; }
+		static inline Application& Get() { return *s_Instance; }
 
 	private:
 		void Run();
 		void ShutDown();
-		void OnEvent(Event& e);
 
 	private:
 		Scope<Window> m_Window;

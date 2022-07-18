@@ -21,11 +21,26 @@ namespace Hydro
 	{
 	}
 
+	void Application::PushLayer(Layer* layer)
+	{
+		m_LayerStack.PushLayer(layer);
+		layer->OnAttach();
+	}
+
+	void Application::PushOverlay(Layer* layer)
+	{
+		m_LayerStack.PopOverlay(layer);
+		layer->OnAttach();
+	}
+
 	void Application::Run()
 	{
+		OnInit();
 		while (m_Running)
 		{
 			m_Window->OnUpdate();
+			for (Layer* layer : m_LayerStack)
+				layer->OnUpdate();
 		}
 	}
 
