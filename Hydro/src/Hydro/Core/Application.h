@@ -19,7 +19,7 @@ namespace Hydro
 	private:
 		void Run();
 		void ShutDown();
-		void OnEvent(const Event& e);
+		void OnEvent(Event& e);
 
 	private:
 		Scope<Window> m_Window;

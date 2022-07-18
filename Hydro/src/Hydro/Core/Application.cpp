@@ -35,7 +35,7 @@ namespace Hydro
 	}
 
 	// Handle events.
-	void Application::OnEvent(const Event& e)
+	void Application::OnEvent(Event& e)
 	{
 		// Handle close event.
 		if (e.GetEventType() == EventType::WindowClose)
@@ -46,7 +46,10 @@ namespace Hydro
 		// Handle resize event.
 		if (e.GetEventType() == EventType::WindowResize)
 		{
+			auto receivedEvent = EventDispatcher::GetEvent<WindowResizeEvent&>(e);
 
+			std::cout << receivedEvent.width;
+			std::cout << receivedEvent.heigth;
 		}
 	}
 }

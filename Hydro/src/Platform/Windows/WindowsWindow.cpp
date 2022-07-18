@@ -70,8 +70,12 @@ namespace Hydro
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int heigth)
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-				EventDispatcher::Get().Post(WindowResizeEvent());
 
+				WindowResizeEvent resizeEvent = WindowResizeEvent();
+				resizeEvent.width = width;
+				resizeEvent.heigth = heigth;
+
+				EventDispatcher::Get().Post(resizeEvent);
 			});
 	}
 

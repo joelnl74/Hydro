@@ -16,6 +16,9 @@ namespace Hydro
 	public:
 		WindowResizeEvent() = default;
 
+		int width;
+		int heigth;
+
 		EVENT_CLASS_TYPE(WindowResize)
 	};
 }
