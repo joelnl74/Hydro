@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Hydro/Core/Application.h"
 
 extern Hydro::Application* Hydro::CreateApplication();

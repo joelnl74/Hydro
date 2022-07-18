@@ -1,20 +1,27 @@
+#include <iostream>
+
+#include <Hydro\Core\EntryPoint.h>
 #include "Hydro.h"
 
-namespace Hydro
-{
-	class OxygenEditorApplication : public Application
-	{
-	public:
-		OxygenEditorApplication()
-		{
-		}
-		~OxygenEditorApplication()
-		{
-		}
-	};
+#include "TestLayer.h"
 
-	Application* CreateApplication()
+class OxygenEditorApplication : public Hydro::Application
+{
+public:
+	OxygenEditorApplication() : Application()
 	{
-		return new OxygenEditorApplication();
 	}
+	~OxygenEditorApplication()
+	{
+	}
+
+	virtual void OnInit() override 
+	{
+		PushLayer(new Hydro::TestLayer());
+	}
+};
+
+Hydro::Application* Hydro::CreateApplication()
+{
+	return new OxygenEditorApplication();
 }

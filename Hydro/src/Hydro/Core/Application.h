@@ -1,5 +1,8 @@
 #pragma once
 #include "Hydro/Core/Window.h"
+#include "Hydro/Core/LayerController.h"
+#include "Hydro/Events/EventDispatcher.h"
+#include "Hydro/Events/ApplicationEvents.h"
 
 int main(int argc, char** argv);
 
@@ -10,8 +13,16 @@ namespace Hydro
 	public:
 		Application();
 		virtual ~Application();
+		virtual void OnInit() {}
+		virtual void OnShutdown() {}
+		virtual void OnUpdate() {}
+		virtual void OnEvent(Event& e);
 
-		Window& GetWindow() { return *m_Window; }
+		void PushLayer(Layer* layer);
+		void PushOverlay(Layer* layer);
+
+		inline Window& GetWindow() { return *m_Window; }
+		static inline Application& Get() { return *s_Instance; }
 
 	private:
 		void Run();
@@ -19,6 +30,7 @@ namespace Hydro
 
 	private:
 		Scope<Window> m_Window;
+		LayerController m_LayerStack;
 
 		bool m_Running = true;
 		bool m_Minimized = false;

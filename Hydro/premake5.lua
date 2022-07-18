@@ -8,7 +8,7 @@ project "Hydro"
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "hypch.h"
-	pchsource "src/hypch.cpp"
+	pchsource "hypch.cpp"
 
 	files
 	{
