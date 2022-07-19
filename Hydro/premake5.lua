@@ -31,6 +31,7 @@ project "Hydro"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.VulkanSDK}",
 	}
 
 	links
@@ -56,6 +57,9 @@ project "Hydro"
 
 		links
 		{
+			"%{Library.ShaderC_Debug}",
+			"%{Library.SPIRV_Cross_Debug}",
+			"%{Library.SPIRV_Cross_GLSL_Debug}"
 		}
 
 	filter "configurations:Release"
@@ -65,6 +69,9 @@ project "Hydro"
 
 		links
 		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
 
 	filter "configurations:Distribution"
@@ -74,4 +81,7 @@ project "Hydro"
 
 		links
 		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
