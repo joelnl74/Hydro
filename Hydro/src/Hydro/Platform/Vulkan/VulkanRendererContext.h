@@ -1,6 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
+
 #include "Hydro/Renderer/RendererContext.h"
+#include "Hydro/Platform/Vulkan/VulkanDevice.h"
 
 namespace Hydro
 {
@@ -13,6 +15,7 @@ namespace Hydro
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }
+		static VulkanPhysicalDevice& const GetPhysicalDevice()  { return *s_VulanPhysicalDevice; }
 
 	private:
 		// Debug messaging.
@@ -25,6 +28,8 @@ namespace Hydro
 
 	private:
 		inline static VkInstance s_VulkanInstance;
+		inline static VulkanPhysicalDevice *s_VulanPhysicalDevice;
+
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 	};
 }

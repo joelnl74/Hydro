@@ -95,6 +95,8 @@ namespace Hydro
 		{
 			SetupDebugMessenger();
 		}
+
+		s_VulanPhysicalDevice = new VulkanPhysicalDevice(s_VulkanInstance);
 	}
 
 	VkResult VulkanRendererContext::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
