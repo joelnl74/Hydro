@@ -43,6 +43,11 @@ namespace Hydro
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+		m_rendererContext = RendererContext::Create();
+		m_rendererContext->Init();
+
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
 				EventDispatcher::Get().Post(WindowCloseEvent());

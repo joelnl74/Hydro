@@ -1,5 +1,7 @@
 #pragma once
 #include "Hydro/Core/Window.h"
+#include "Hydro/Renderer/RendererContext.h"
+
 #include <GLFW/glfw3.h>
 
 namespace Hydro
@@ -25,6 +27,7 @@ namespace Hydro
 		virtual void Shutdown();
 	private:
 		GLFWwindow* m_Window;
+		Scope<RendererContext> m_rendererContext;
 
 		struct WindowData
 		{

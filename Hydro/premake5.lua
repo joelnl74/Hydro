@@ -32,12 +32,16 @@ project "Hydro"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.VulkanSDK}",
+		"%{IncludeDir.Vulkan}",
 	}
 
 	links
 	{
 		"GLFW",
 		"ImGui",
+
+		"%{Library.Vulkan}",
+		"%{Library.VulkanUtils}",
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
