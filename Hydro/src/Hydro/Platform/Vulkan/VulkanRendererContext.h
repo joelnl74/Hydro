@@ -15,7 +15,7 @@ namespace Hydro
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }
-		static VulkanPhysicalDevice& const GetPhysicalDevice()  { return *s_VulanPhysicalDevice; }
+		static VulkanDevice& const GetPhysicalDevice()  { return *s_VulkanDevice; }
 
 	private:
 		// Debug messaging.
@@ -28,7 +28,7 @@ namespace Hydro
 
 	private:
 		inline static VkInstance s_VulkanInstance;
-		inline static VulkanPhysicalDevice *s_VulanPhysicalDevice;
+		inline static VulkanDevice *s_VulkanDevice;
 
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 	};
