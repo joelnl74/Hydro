@@ -34,9 +34,11 @@ namespace Hydro
 	{
 	public:
 		VulkanDevice(VkInstance instance);
+		void ShutDown();
 
 	private:
-		VkDevice m_LogicalDevice;
+		static inline VkDevice s_LogicalDevice;
+		
 		VkQueue m_GraphicsQueue;
 		Scope<VulkanPhysicalDevice> m_physicalDevice;
 	};

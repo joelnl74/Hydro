@@ -6,6 +6,8 @@
 #include "Hydro\Events\KeyEvents.h"
 #include "Hydro\Events\MouseEvents.h"
 
+#include "Hydro\Platform\Vulkan\VulkanRendererContext.h"
+
 namespace Hydro
 {
 	static uint8_t s_GLFWWindowCount = 0;
@@ -37,16 +39,16 @@ namespace Hydro
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		++s_GLFWWindowCount;
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
 		m_rendererContext = RendererContext::Create();
-		m_rendererContext->Init();
+		m_rendererContext->Init(*this);
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{

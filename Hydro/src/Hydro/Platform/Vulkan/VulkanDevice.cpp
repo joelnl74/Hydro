@@ -100,14 +100,19 @@ namespace Hydro
 
 		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
-		VkResult result = vkCreateDevice(m_physicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, nullptr, &m_LogicalDevice);
+		VkResult result = vkCreateDevice(m_physicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, nullptr, &s_LogicalDevice);
 
 		if (result != VK_SUCCESS)
 		{
 			HY_CORE_ERROR("Creating logical device failed");
 		}
 
-		vkGetDeviceQueue(m_LogicalDevice, m_physicalDevice->GetQueueFamilyIndices().Graphics, 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(s_LogicalDevice, m_physicalDevice->GetQueueFamilyIndices().Graphics, 0, &m_GraphicsQueue);
+	}
+
+	void VulkanDevice::ShutDown()
+	{
+		vkDestroyDevice(s_LogicalDevice, nullptr);
 	}
 }
 

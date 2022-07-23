@@ -2,6 +2,7 @@
 #include "Hydro/Core/Window.h"
 #include "Hydro/Renderer/RendererContext.h"
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 namespace Hydro

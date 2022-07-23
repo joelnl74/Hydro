@@ -5,7 +5,10 @@
 #include "VulkanRendererContext.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 namespace Hydro
 {
@@ -39,11 +42,25 @@ namespace Hydro
 			DestroyDebugUtilsMessengerEXT(s_VulkanInstance, m_debugMessenger, nullptr);
 		}
 
+		s_VulkanDevice->ShutDown();
+
+		vkDestroySurfaceKHR(s_VulkanInstance, s_vkSurface, nullptr);
 		vkDestroyInstance(s_VulkanInstance, nullptr);
+
+		s_vkSurface = nullptr;
+		s_VulkanDevice = nullptr;
 		s_VulkanInstance = nullptr;
 	}
 
-	void VulkanRendererContext::Init()
+	void VulkanRendererContext::Init(Window& window)
+	{
+		CreateVulkanInstance();
+		CreateVulkanSurface(window);
+
+		s_VulkanDevice = new VulkanDevice(s_VulkanInstance);
+	}
+
+	void VulkanRendererContext::CreateVulkanInstance()
 	{
 		HY_CORE_INFO("Start Creating VulkanContext");
 
@@ -91,12 +108,24 @@ namespace Hydro
 
 		VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &s_VulkanInstance))
 
-		if (validationEnabled)
-		{
-			SetupDebugMessenger();
-		}
+			if (validationEnabled)
+			{
+				SetupDebugMessenger();
+			}
+	}
 
-		s_VulkanDevice = new VulkanDevice(s_VulkanInstance);
+	void VulkanRendererContext::CreateVulkanSurface(Window& window)
+	{
+		auto glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());
+
+		VkWin32SurfaceCreateInfoKHR createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		createInfo.hwnd = glfwGetWin32Window(glfwWindow);
+		createInfo.hinstance = GetModuleHandle(nullptr);
+
+		if (vkCreateWin32SurfaceKHR(s_VulkanInstance, &createInfo, nullptr, &s_vkSurface) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create window surface!");
+		}
 	}
 
 	VkResult VulkanRendererContext::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
