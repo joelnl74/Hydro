@@ -5,14 +5,15 @@ namespace Hydro
 {
 	struct QueueFamilyIndices
 	{
-		int32_t Graphics = -1;
+		int32_t graphics = -1;
+		int32_t present = -1;
 	};
 
 	class VulkanPhysicalDevice
 	{
 	public:
 		VulkanPhysicalDevice(VkInstance instance);
-		VkPhysicalDevice GetVulkanPhysicalDevice() const { return m_PhysicalDevice; }
+		VkPhysicalDevice GetVulkanPhysicalDevice() { return m_PhysicalDevice; }
 		QueueFamilyIndices GetQueueFamilyIndices() { return m_QueueFamilyIndices; }
 
 	private:

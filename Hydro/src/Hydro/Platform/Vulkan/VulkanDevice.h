@@ -8,12 +8,20 @@ namespace Hydro
 	{
 	public:
 		VulkanDevice(VkInstance instance);
+		Ref<VulkanPhysicalDevice> GetPhysicalDevice() { return m_physicalDevice;  }
+		VkDevice GetDevice() { return s_LogicalDevice; }
+
+		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
+		VkQueue GetPresentQueue() { return m_presentQueue; }
+
 		void ShutDown();
 
 	private:
 		static inline VkDevice s_LogicalDevice;
 		
 		VkQueue m_GraphicsQueue;
-		Scope<VulkanPhysicalDevice> m_physicalDevice;
+		VkQueue m_presentQueue;
+
+		Ref<VulkanPhysicalDevice> m_physicalDevice;
 	};
 }

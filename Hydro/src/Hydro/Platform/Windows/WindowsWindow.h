@@ -1,6 +1,7 @@
 #pragma once
 #include "Hydro/Core/Window.h"
 #include "Hydro/Renderer/RendererContext.h"
+#include "Hydro/Platform/Vulkan/VulkanPresentation.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -28,7 +29,9 @@ namespace Hydro
 		virtual void Shutdown();
 	private:
 		GLFWwindow* m_Window;
-		Scope<RendererContext> m_rendererContext;
+		Ref<RendererContext> m_rendererContext;
+
+		VulkanPresentation m_vulkanPresentation;
 
 		struct WindowData
 		{

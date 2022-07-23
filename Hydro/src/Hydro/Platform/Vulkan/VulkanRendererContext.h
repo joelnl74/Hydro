@@ -10,18 +10,18 @@ namespace Hydro
 	class VulkanRendererContext : public RendererContext
 	{
 	public:
+		VulkanRendererContext();
 		virtual ~VulkanRendererContext();
 
-		virtual void Init(Window &window) override;
+		virtual void Init() override;
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }
-		static VulkanDevice& const GetPhysicalDevice()  { return *s_VulkanDevice; }
+		static Ref<VulkanDevice> & const GetVulkanDevice()  { return s_VulkanDevice; }
 
 	private:
 		// Setup
 		void CreateVulkanInstance();
-		void CreateVulkanSurface(Window& window);
 
 		// Debug messaging.
 		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
@@ -33,9 +33,7 @@ namespace Hydro
 
 	private:
 		inline static VkInstance s_VulkanInstance;
-		inline static VkSurfaceKHR s_vkSurface;
-
-		inline static VulkanDevice *s_VulkanDevice;
+		inline static Ref<VulkanDevice> s_VulkanDevice;
 
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 	};

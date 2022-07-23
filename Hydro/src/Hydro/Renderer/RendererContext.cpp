@@ -6,8 +6,8 @@
 
 namespace Hydro
 {
-	Scope<RendererContext> RendererContext::Create()
+	Ref<RendererContext> RendererContext::Create()
 	{
-		return Hydro::CreateScope<VulkanRendererContext>();
+		return Hydro::CreateRef<VulkanRendererContext>();
 	}
 }

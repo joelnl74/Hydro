@@ -10,8 +10,8 @@ namespace Hydro
 		RendererContext() = default;
 		virtual ~RendererContext() = default;
 
-		virtual void Init(Window& window) = 0;
+		virtual void Init() = 0;
 
-		static Scope<RendererContext> Create();
+		static Ref<RendererContext> Create();
 	};
 }

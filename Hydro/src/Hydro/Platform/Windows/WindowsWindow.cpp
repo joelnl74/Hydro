@@ -7,6 +7,7 @@
 #include "Hydro\Events\MouseEvents.h"
 
 #include "Hydro\Platform\Vulkan\VulkanRendererContext.h"
+#include <iostream>
 
 namespace Hydro
 {
@@ -24,6 +25,7 @@ namespace Hydro
 
 	WindowsWindow::~WindowsWindow()
 	{
+		m_vulkanPresentation.ShutDown();
 		Shutdown();
 	}
 
@@ -48,7 +50,13 @@ namespace Hydro
 		SetVSync(true);
 
 		m_rendererContext = RendererContext::Create();
-		m_rendererContext->Init(*this);
+		m_rendererContext->Init();
+
+		Ref<VulkanRendererContext> context = std::dynamic_pointer_cast<VulkanRendererContext>(m_rendererContext);
+
+		m_vulkanPresentation.Init(context->GetInstance(), context->GetVulkanDevice());
+		m_vulkanPresentation.InitSurface(*this);
+		m_vulkanPresentation.CreateSwapChain(*this, true);
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{

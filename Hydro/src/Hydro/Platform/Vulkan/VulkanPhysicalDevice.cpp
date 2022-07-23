@@ -66,7 +66,7 @@ namespace Hydro
 		{
 			if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			{
-				indices.Graphics = i;
+				indices.graphics = i;
 				break;
 			}
 		}

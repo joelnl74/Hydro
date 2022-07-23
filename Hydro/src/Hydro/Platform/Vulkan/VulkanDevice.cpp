@@ -9,7 +9,12 @@ namespace Hydro
 {
 	VulkanDevice::VulkanDevice(VkInstance instance)
 	{
-		m_physicalDevice = CreateScope<VulkanPhysicalDevice>(instance);
+		// Do we need to enable any other extensions (eg. NV_RAYTRACING?)
+		std::vector<const char*> deviceExtensions;
+		// If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
+		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+		m_physicalDevice = CreateRef<VulkanPhysicalDevice>(instance);
 
 		VkDeviceCreateInfo deviceCreateInfo{};
 		VkDeviceQueueCreateInfo queueCreateInfo{};
@@ -17,18 +22,19 @@ namespace Hydro
 
 		// Create Queue Info.
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = m_physicalDevice->GetQueueFamilyIndices().Graphics;
+		queueCreateInfo.queueFamilyIndex = m_physicalDevice->GetQueueFamilyIndices().graphics;
 		queueCreateInfo.queueCount = 1;
 
 		float queuePriority = 1.0f;
 		queueCreateInfo.pQueuePriorities = &queuePriority;
-		//
 
 		// Create Device info.
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
 		deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
 		deviceCreateInfo.queueCreateInfoCount = 1;
+		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
@@ -39,7 +45,7 @@ namespace Hydro
 			HY_CORE_ERROR("Creating logical device failed");
 		}
 
-		vkGetDeviceQueue(s_LogicalDevice, m_physicalDevice->GetQueueFamilyIndices().Graphics, 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(s_LogicalDevice, m_physicalDevice->GetQueueFamilyIndices().graphics, 0, &m_GraphicsQueue);
 	}
 
 	void VulkanDevice::ShutDown()
