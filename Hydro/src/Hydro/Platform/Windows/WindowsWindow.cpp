@@ -57,8 +57,6 @@ namespace Hydro
 		m_vulkanPresentation.Init(context->GetInstance(), context->GetVulkanDevice());
 		m_vulkanPresentation.InitSurface(*this);
 		m_vulkanPresentation.CreateSwapChain(*this, true);
-		m_vulkanPresentation.CreatePresentationLayer();
-
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
@@ -150,6 +148,8 @@ namespace Hydro
 
 	void WindowsWindow::Shutdown()
 	{
+		m_vulkanPresentation.ShutDown();
+
 		glfwDestroyWindow(m_Window);
 		--s_GLFWWindowCount;
 
@@ -162,6 +162,7 @@ namespace Hydro
 	void WindowsWindow::OnUpdate()
 	{
 		glfwPollEvents();
+		m_vulkanPresentation.DrawFrame();
 	}
 
 

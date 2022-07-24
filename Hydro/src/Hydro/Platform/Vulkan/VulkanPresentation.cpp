@@ -121,18 +121,21 @@ namespace Hydro
 
 		CreateImageViews();
 		CreateRenderPass();
-		m_vulkanPipeline.Create(m_SwapChainExtent);
+		CreatePresentationLayer();
+		m_VulkanPipeline.Create(m_SwapChainExtent, m_RenderPass, ShaderStages);
 		CreateFrameBuffer();
 		CreateCommandPool();
+		CreateCommandBuffer();
+		CreateSyncObjects();
 	}
 
 	void VulkanPresentation::CreatePresentationLayer()
 	{
-		m_fragmentShader = CreateRef<VulkanShader>();
-		m_vertShader = CreateRef<VulkanShader>();
+		m_FragmentShader = CreateRef<VulkanShader>();
+		m_VertShader = CreateRef<VulkanShader>();
 
-		auto vertexShader = m_vertShader->Create("vertex.spv");
-		auto fragmentShader = m_fragmentShader->Create("fragment.spv");
+		auto vertexShader = m_VertShader->Create("vertex.spv");
+		auto fragmentShader = m_FragmentShader->Create("fragment.spv");
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -147,7 +150,8 @@ namespace Hydro
 		fragShaderStageInfo.module = fragmentShader;
 		fragShaderStageInfo.pName = "main";
 
-		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+		ShaderStages[0] = vertShaderStageInfo;
+		ShaderStages[1] = fragShaderStageInfo;
 	}
 
 	void VulkanPresentation::CreateRenderPass()
@@ -218,7 +222,7 @@ namespace Hydro
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		poolInfo.queueFamilyIndex = physicalDevice->GetQueueFamilyIndices().graphics;
 
-		if (vkCreateCommandPool(m_Device->GetDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+		if (vkCreateCommandPool(m_Device->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create command pool!");
 		}
@@ -228,26 +232,152 @@ namespace Hydro
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = commandPool;
+		allocInfo.commandPool = m_CommandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = 1;
 
-		if (vkAllocateCommandBuffers(m_Device->GetDevice(), &allocInfo, &commandBuffer) != VK_SUCCESS) 
+		if (vkAllocateCommandBuffers(m_Device->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) 
 		{
 			throw std::runtime_error("failed to allocate command buffers!");
 		}
+	}
+
+	void VulkanPresentation::CreateSyncObjects()
+	{
+		auto device = m_Device->GetDevice();
+
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
+			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
+			vkCreateFence(device, &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create semaphores!");
+		}
+	}
+
+	void VulkanPresentation::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = 0; // Optional
+		beginInfo.pInheritanceInfo = nullptr; // Optional
+
+		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+			throw std::runtime_error("failed to begin recording command buffer!");
+		}
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_RenderPass;
+		renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
+
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = m_SwapChainExtent;
+
+		VkClearValue clearColor = { {{0.0f, 0.0f, 1.0f, 1.0f}} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetPipeLine());
+		vkCmdSetViewport(commandBuffer, 0, 1, &m_VulkanPipeline.GetViewPort());
+		vkCmdSetScissor(commandBuffer, 0, 1, &m_VulkanPipeline.GetRect2D());
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		vkCmdEndRenderPass(commandBuffer);
+
+		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to record command buffer!");
+		}
+	}
+
+	void VulkanPresentation::DrawFrame()
+	{
+		auto device = m_Device->GetDevice();
+
+		vkWaitForFences(device, 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &m_InFlightFence);
+
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(device, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+		vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
+		RecordCommandBuffer(m_CommandBuffer, imageIndex);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffer;
+
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(m_Device->GetGraphicsQueue(), 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+			throw std::runtime_error("failed to submit draw command buffer!");
+		}
+
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+
+		VkSwapchainKHR swapChains[] = { m_SwapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+
+		presentInfo.pImageIndices = &imageIndex;
+
+		vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+	}
+
+	void VulkanPresentation::BeginRenderPass()
+	{
+
+	}
+
+	void VulkanPresentation::EndRenderPass()
+	{
 	}
 
 	void VulkanPresentation::ShutDown()
 	{
 		auto device = m_Device->GetDevice();
 
-		for (auto imageView : m_SwapChainImageViews) 
-		{
+		vkDeviceWaitIdle(device);
+
+		vkDestroySemaphore(device, m_RenderFinishedSemaphore, nullptr);
+		vkDestroySemaphore(device, m_ImageAvailableSemaphore, nullptr);
+		vkDestroyFence(device, m_InFlightFence, nullptr);
+
+		vkDestroyCommandPool(device, m_CommandPool, nullptr);
+
+		for (auto framebuffer : swapChainFramebuffers) {
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
+
+		m_VulkanPipeline.ShutDown();
+		vkDestroyRenderPass(device, m_RenderPass, nullptr);
+
+		for (auto imageView : m_SwapChainImageViews) {
 			vkDestroyImageView(device, imageView, nullptr);
 		}
 
-		vkDestroySwapchainKHR(m_Device->GetDevice(), m_SwapChain, nullptr);
+		vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
+
 		vkDestroySurfaceKHR(m_instance, s_vkSurface, nullptr);
 	}
 

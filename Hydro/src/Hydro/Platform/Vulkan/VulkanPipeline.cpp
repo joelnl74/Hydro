@@ -4,7 +4,7 @@
 #include "VulkanRendererContext.h"
 namespace Hydro
 {
-	void VulkanPipeline::Create(VkExtent2D extents)
+	void VulkanPipeline::Create(VkExtent2D extents, VkRenderPass renderpass, VkPipelineShaderStageCreateInfo stages[])
 	{
 		auto context = std::dynamic_pointer_cast<VulkanRendererContext>(RendererContext::Get());
 
@@ -33,24 +33,22 @@ namespace Hydro
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = (float)extents.width;
-		viewport.height = (float)extents.height;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
+		m_ViewPort.x = 0.0f;
+		m_ViewPort.y = 0.0f;
+		m_ViewPort.width = (float)extents.width;
+		m_ViewPort.height = (float)extents.height;
+		m_ViewPort.minDepth = 0.0f;
+		m_ViewPort.maxDepth = 1.0f;
 
-		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
-		scissor.extent = extents;
+		m_Scissor.offset = { 0, 0 };
+		m_Scissor.extent = extents;
 
 		VkPipelineViewportStateCreateInfo viewportState{};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = 1;
-		viewportState.pViewports = &viewport;
+		viewportState.pViewports = &m_ViewPort;
 		viewportState.scissorCount = 1;
-		viewportState.pScissors = &scissor;
+		viewportState.pScissors = &m_Scissor;
 
 		// Rasterizer
 
@@ -116,9 +114,42 @@ namespace Hydro
 		colorBlending.blendConstants[2] = 0.0f; // Optional
 		colorBlending.blendConstants[3] = 0.0f; // Optional
 
-		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) 
+		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) 
 		{
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
+
+		VkGraphicsPipelineCreateInfo pipelineInfo{};
+		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineInfo.stageCount = 2;
+		pipelineInfo.pStages = stages;
+
+		pipelineInfo.pVertexInputState = &vertexInputInfo;
+		pipelineInfo.pInputAssemblyState = &inputAssembly;
+		pipelineInfo.pViewportState = &viewportState;
+		pipelineInfo.pRasterizationState = &rasterizer;
+		pipelineInfo.pMultisampleState = &multisampling;
+		pipelineInfo.pDepthStencilState = nullptr; // Optional
+		pipelineInfo.pColorBlendState = &colorBlending;
+		pipelineInfo.pDynamicState = &dynamicState;
+
+		pipelineInfo.layout = m_PipelineLayout;
+		pipelineInfo.renderPass = renderpass;
+		pipelineInfo.subpass = 0;
+
+		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
+		pipelineInfo.basePipelineIndex = -1; // Optional
+
+		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create graphics pipeline!");
+		}
+	}
+	void VulkanPipeline::ShutDown()
+	{
+		auto context = std::dynamic_pointer_cast<VulkanRendererContext>(RendererContext::Get());
+		VkDevice device = context->GetVulkanDevice()->GetDevice();
+
+		vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
+		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 	}
 }
