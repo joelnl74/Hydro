@@ -59,6 +59,7 @@ namespace Hydro
 		m_vulkanPresentation.CreateSwapChain(*this, true);
 		m_vulkanPresentation.CreatePresentationLayer();
 
+
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
 				EventDispatcher::Get().Post(WindowCloseEvent());
