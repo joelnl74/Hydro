@@ -12,6 +12,10 @@ namespace Hydro
 
 		virtual void Init() = 0;
 
+		static Ref<RendererContext> Get() { return s_Instance; }
 		static Ref<RendererContext> Create();
+	
+	private:
+		static Ref<RendererContext> s_Instance;
 	};
 }

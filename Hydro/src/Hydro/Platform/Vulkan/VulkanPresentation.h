@@ -4,6 +4,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 #include "VulkanDevice.h"
+#include "VulkanShader.h"
 
 namespace Hydro
 {
@@ -20,6 +21,7 @@ namespace Hydro
 		void Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice);
 		void InitSurface(Window &window);
 		void CreateSwapChain(Window& window ,bool vsync);
+		void CreatePresentationLayer();
 
 		void ShutDown();
 
@@ -47,9 +49,9 @@ namespace Hydro
 		std::vector<VkImage> m_SwapChainImages;
 		std::vector<VkImageView> m_SwapChainImageViews;
 
-
-		int m_Width;
-		int m_Height;
+		// TODO REMOVE
+		Ref<VulkanShader> m_vertShader;
+		Ref<VulkanShader> m_fragmentShader;
 	};
 }
 

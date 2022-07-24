@@ -132,6 +132,30 @@ namespace Hydro
 		CreateImageViews();
 	}
 
+	void VulkanPresentation::CreatePresentationLayer()
+	{
+		m_fragmentShader = CreateRef<VulkanShader>();
+		m_vertShader = CreateRef<VulkanShader>();
+
+		auto vertexShader = m_vertShader->Create("vertex.spv");
+		auto fragmentShader = m_fragmentShader->Create("fragment.spv");
+
+		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+
+		vertShaderStageInfo.module = vertexShader;
+		vertShaderStageInfo.pName = "main";
+
+		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragShaderStageInfo.module = fragmentShader;
+		fragShaderStageInfo.pName = "main";
+
+		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+	}
+
 	void VulkanPresentation::ShutDown()
 	{
 		auto device = m_Device->GetDevice();

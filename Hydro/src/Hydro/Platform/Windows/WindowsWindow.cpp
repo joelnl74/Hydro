@@ -57,6 +57,7 @@ namespace Hydro
 		m_vulkanPresentation.Init(context->GetInstance(), context->GetVulkanDevice());
 		m_vulkanPresentation.InitSurface(*this);
 		m_vulkanPresentation.CreateSwapChain(*this, true);
+		m_vulkanPresentation.CreatePresentationLayer();
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
