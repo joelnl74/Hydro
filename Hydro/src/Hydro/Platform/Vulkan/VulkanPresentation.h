@@ -16,6 +16,8 @@ namespace Hydro
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
+	const int MAX_FRAMES_IN_FLIGHT = 2;
+
 	class VulkanPresentation
 	{
 	public:
@@ -64,11 +66,14 @@ namespace Hydro
 
 		VkRenderPass m_RenderPass;
 		VkCommandPool m_CommandPool;
-		VkCommandBuffer m_CommandBuffer;
+		std::vector <VkCommandBuffer> m_CommandBuffer;
 
-		VkSemaphore m_ImageAvailableSemaphore;
-		VkSemaphore m_RenderFinishedSemaphore;
-		VkFence m_InFlightFence;
+		std::vector <VkSemaphore> m_ImageAvailableSemaphore;
+		std::vector <VkSemaphore> m_RenderFinishedSemaphore;
+		std::vector <VkFence> m_InFlightFence;
+
+		uint32_t m_CurrentFrame = 0;
+		uint32_t imageIndex;
 
 		// TODO REMOVE
 		VulkanPipeline m_VulkanPipeline;
