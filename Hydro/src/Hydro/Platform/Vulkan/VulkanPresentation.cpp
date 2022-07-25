@@ -299,7 +299,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::ResetSwapChain(Window &window, bool vsync)
+	void VulkanPresentation::ResetSwapChain()
 	{
 		auto device = m_Device->GetDevice();
 
@@ -315,9 +315,9 @@ namespace Hydro
 
 		vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
 
-		// CreateSwapChain(nullptr, false);
-		// CreateImageViews();
-		// CreateFrameBuffer();
+		CreateSwapChain(m_window, true);
+		CreateImageViews();
+		CreateFrameBuffer();
 	}
 
 	void VulkanPresentation::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
@@ -400,7 +400,14 @@ namespace Hydro
 
 		presentInfo.pImageIndices = &imageIndex;
 
-		vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+		VkResult result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+			ResetSwapChain();
+		}
+		else if (result != VK_SUCCESS) {
+			throw std::runtime_error("failed to present swap chain image!");
+		}
 
 		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}

@@ -48,16 +48,16 @@ namespace Hydro
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 
-
 		// Setup Vulkan rendering.
 		m_rendererContext = RendererContext::Create();
 		m_rendererContext->Init();
 
 		Ref<VulkanRendererContext> context = std::dynamic_pointer_cast<VulkanRendererContext>(m_rendererContext);
 
-		m_vulkanPresentation.Init(context->GetInstance(), context->GetVulkanDevice());
-		m_vulkanPresentation.InitSurface(*this);
-		m_vulkanPresentation.CreateSwapChain(*this, true);
+		m_vulkanPresentation = CreateRef<VulkanPresentation>(*this);
+		m_vulkanPresentation->Init(context->GetInstance(), context->GetVulkanDevice());
+		m_vulkanPresentation->InitSurface(*this);
+		m_vulkanPresentation->CreateSwapChain(*this, true);
 		// Setup Vulkan rendering.
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
@@ -150,7 +150,7 @@ namespace Hydro
 
 	void WindowsWindow::Shutdown()
 	{
-		m_vulkanPresentation.ShutDown();
+		m_vulkanPresentation->ShutDown();
 		m_rendererContext->ShutDown();
 
 		glfwDestroyWindow(m_Window);
@@ -165,7 +165,7 @@ namespace Hydro
 	void WindowsWindow::OnUpdate()
 	{
 		glfwPollEvents();
-		m_vulkanPresentation.DrawFrame();
+		m_vulkanPresentation->DrawFrame();
 	}
 
 

@@ -21,6 +21,7 @@ namespace Hydro
 	class VulkanPresentation
 	{
 	public:
+		VulkanPresentation(Window& window) : m_window(window) {}
 		void Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice);
 		void InitSurface(Window &window);
 		void CreateSwapChain(Window& window ,bool vsync);
@@ -31,7 +32,7 @@ namespace Hydro
 		void CreateCommandBuffer();
 		void CreateSyncObjects();
 
-		void ResetSwapChain(Window& window, bool vsync);
+		void ResetSwapChain();
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void DrawFrame();
@@ -75,6 +76,8 @@ namespace Hydro
 
 		uint32_t m_CurrentFrame = 0;
 		uint32_t imageIndex;
+
+		Window& m_window;
 
 		// TODO REMOVE
 		VulkanPipeline m_VulkanPipeline;

@@ -73,9 +73,6 @@ namespace Hydro
 		if (e.GetEventType() == EventType::WindowResize)
 		{
 			WindowResizeEvent receivedEvent = EventDispatcher::GetEvent<WindowResizeEvent&>(e);
-
-			std::cout << receivedEvent.width;
-			std::cout << receivedEvent.heigth;
 		}
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )

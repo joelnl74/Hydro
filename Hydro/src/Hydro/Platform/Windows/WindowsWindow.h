@@ -33,7 +33,7 @@ namespace Hydro
 
 		// Rendering stuff.
 		Ref<RendererContext> m_rendererContext;
-		VulkanPresentation m_vulkanPresentation;
+		Ref<VulkanPresentation> m_vulkanPresentation;
 
 		struct WindowData
 		{

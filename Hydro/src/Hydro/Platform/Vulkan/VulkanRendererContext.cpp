@@ -26,9 +26,7 @@ namespace Hydro
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData) {
 
-		HY_CORE_WARN("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", messageType, pCallbackData->pMessage);
-
-		std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+		HY_CORE_ERROR("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", messageType, pCallbackData->pMessage);
 
 		return VK_FALSE;
 	}
