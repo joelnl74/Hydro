@@ -25,7 +25,6 @@ namespace Hydro
 
 	WindowsWindow::~WindowsWindow()
 	{
-		m_vulkanPresentation.ShutDown();
 		Shutdown();
 	}
 
@@ -49,6 +48,8 @@ namespace Hydro
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 
+
+		// Setup Vulkan rendering.
 		m_rendererContext = RendererContext::Create();
 		m_rendererContext->Init();
 
@@ -57,6 +58,7 @@ namespace Hydro
 		m_vulkanPresentation.Init(context->GetInstance(), context->GetVulkanDevice());
 		m_vulkanPresentation.InitSurface(*this);
 		m_vulkanPresentation.CreateSwapChain(*this, true);
+		// Setup Vulkan rendering.
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
@@ -149,6 +151,7 @@ namespace Hydro
 	void WindowsWindow::Shutdown()
 	{
 		m_vulkanPresentation.ShutDown();
+		m_rendererContext->ShutDown();
 
 		glfwDestroyWindow(m_Window);
 		--s_GLFWWindowCount;

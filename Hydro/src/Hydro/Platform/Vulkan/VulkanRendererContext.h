@@ -14,6 +14,7 @@ namespace Hydro
 		virtual ~VulkanRendererContext();
 
 		virtual void Init() override;
+		virtual void ShutDown() override;
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }

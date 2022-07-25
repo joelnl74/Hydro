@@ -16,6 +16,37 @@ namespace Hydro
 		m_Device = vulkanDevice;
 		m_instance = instance;
 	}
+
+	void VulkanPresentation::ShutDown()
+	{
+		auto device = m_Device->GetDevice();
+
+		vkDeviceWaitIdle(device);
+
+		vkDestroyShaderModule(device, m_VertShader->GetModule(), nullptr);
+		vkDestroyShaderModule(device, m_FragmentShader->GetModule(), nullptr);
+
+		vkDestroySemaphore(device, m_RenderFinishedSemaphore, nullptr);
+		vkDestroySemaphore(device, m_ImageAvailableSemaphore, nullptr);
+		vkDestroyFence(device, m_InFlightFence, nullptr);
+
+		vkDestroyCommandPool(device, m_CommandPool, nullptr);
+
+		for (auto framebuffer : swapChainFramebuffers) {
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
+
+		m_VulkanPipeline.ShutDown();
+		vkDestroyRenderPass(device, m_RenderPass, nullptr);
+
+		for (auto imageView : m_SwapChainImageViews) {
+			vkDestroyImageView(device, imageView, nullptr);
+		}
+
+		vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
+		vkDestroySurfaceKHR(m_instance, s_vkSurface, nullptr);
+	}
+
 	void VulkanPresentation::InitSurface(Window& window)
 	{
 		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
@@ -26,10 +57,6 @@ namespace Hydro
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		createInfo.hwnd = glfwGetWin32Window(glfwWindow);
 		createInfo.hinstance = GetModuleHandle(nullptr);
-
-		if (vkCreateWin32SurfaceKHR(m_instance, &createInfo, nullptr, &s_vkSurface) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create window surface!");
-		}
 
 		if (glfwCreateWindowSurface(m_instance, glfwWindow, nullptr, &s_vkSurface) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create window surface!");
@@ -65,6 +92,7 @@ namespace Hydro
 
 		vkGetDeviceQueue(m_Device->GetDevice(), presentFamily, 0, &m_PresentQueue);
 	}
+
 	void VulkanPresentation::CreateSwapChain(Window& window, bool vsync)
 	{
 		VkDevice device = m_Device->GetDevice();
@@ -279,7 +307,7 @@ namespace Hydro
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = m_SwapChainExtent;
 
-		VkClearValue clearColor = { {{0.0f, 0.0f, 1.0f, 1.0f}} };
+		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
@@ -351,34 +379,6 @@ namespace Hydro
 
 	void VulkanPresentation::EndRenderPass()
 	{
-	}
-
-	void VulkanPresentation::ShutDown()
-	{
-		auto device = m_Device->GetDevice();
-
-		vkDeviceWaitIdle(device);
-
-		vkDestroySemaphore(device, m_RenderFinishedSemaphore, nullptr);
-		vkDestroySemaphore(device, m_ImageAvailableSemaphore, nullptr);
-		vkDestroyFence(device, m_InFlightFence, nullptr);
-
-		vkDestroyCommandPool(device, m_CommandPool, nullptr);
-
-		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}
-
-		m_VulkanPipeline.ShutDown();
-		vkDestroyRenderPass(device, m_RenderPass, nullptr);
-
-		for (auto imageView : m_SwapChainImageViews) {
-			vkDestroyImageView(device, imageView, nullptr);
-		}
-
-		vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
-
-		vkDestroySurfaceKHR(m_instance, s_vkSurface, nullptr);
 	}
 
 	SwapChainSupportDetails VulkanPresentation::QuerySwapChainSupport()

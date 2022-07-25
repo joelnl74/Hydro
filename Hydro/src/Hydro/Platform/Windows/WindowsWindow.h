@@ -29,8 +29,10 @@ namespace Hydro
 		virtual void Shutdown();
 	private:
 		GLFWwindow* m_Window;
-		Ref<RendererContext> m_rendererContext;
 
+
+		// Rendering stuff.
+		Ref<RendererContext> m_rendererContext;
 		VulkanPresentation m_vulkanPresentation;
 
 		struct WindowData

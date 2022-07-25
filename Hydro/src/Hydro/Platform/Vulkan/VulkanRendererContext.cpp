@@ -39,17 +39,6 @@ namespace Hydro
 
 	VulkanRendererContext::~VulkanRendererContext()
 	{
-		if (validationEnabled) 
-		{
-			DestroyDebugUtilsMessengerEXT(s_VulkanInstance, m_debugMessenger, nullptr);
-		}
-
-		s_VulkanDevice->ShutDown();
-
-		vkDestroyInstance(s_VulkanInstance, nullptr);
-
-		s_VulkanDevice = nullptr;
-		s_VulkanInstance = nullptr;
 	}
 
 	void VulkanRendererContext::Init()
@@ -57,6 +46,21 @@ namespace Hydro
 		CreateVulkanInstance();
 
 		s_VulkanDevice = CreateRef<VulkanDevice>(s_VulkanInstance);
+	}
+
+	void VulkanRendererContext::ShutDown()
+	{
+		s_VulkanDevice->ShutDown();
+
+		if (validationEnabled)
+		{
+			DestroyDebugUtilsMessengerEXT(s_VulkanInstance, m_debugMessenger, nullptr);
+		}
+
+		vkDestroyInstance(s_VulkanInstance, nullptr);
+
+		s_VulkanDevice = nullptr;
+		s_VulkanInstance = nullptr;
 	}
 
 	void VulkanRendererContext::CreateVulkanInstance()

@@ -19,12 +19,12 @@ namespace Hydro
 		createInfo.codeSize = code.size();
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+		if (vkCreateShaderModule(device, &createInfo, nullptr, &m_ShaderModule) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create shader module!");
 		}
 		
-		return shaderModule;
+		return m_ShaderModule;
 	}
 	std::vector<char> VulkanShader::readFile(const std::string& filePath)
 	{
