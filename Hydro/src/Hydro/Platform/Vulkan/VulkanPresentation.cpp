@@ -14,7 +14,7 @@ namespace Hydro
 	void VulkanPresentation::Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice)
 	{
 		m_Device = vulkanDevice;
-		m_instance = instance;
+		m_Instance = instance;
 	}
 
 	void VulkanPresentation::ShutDown()
@@ -27,14 +27,14 @@ namespace Hydro
 		vkDestroyShaderModule(device, m_FragmentShader->GetModule(), nullptr);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroySemaphore(device, m_RenderFinishedSemaphore[i], nullptr);
-			vkDestroySemaphore(device, m_ImageAvailableSemaphore[i], nullptr);
-			vkDestroyFence(device, m_InFlightFence[i], nullptr);
+			vkDestroySemaphore(device, m_RenderSemaphores[i], nullptr);
+			vkDestroySemaphore(device, m_ImageSemaphores[i], nullptr);
+			vkDestroyFence(device, m_Fences[i], nullptr);
 		}
 
 		vkDestroyCommandPool(device, m_CommandPool, nullptr);
 
-		for (auto framebuffer : swapChainFramebuffers) {
+		for (auto framebuffer : m_SwapChainFramebuffers) {
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
 		}
 
@@ -46,7 +46,7 @@ namespace Hydro
 		}
 
 		vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
-		vkDestroySurfaceKHR(m_instance, s_vkSurface, nullptr);
+		vkDestroySurfaceKHR(m_Instance, s_Surface, nullptr);
 	}
 
 	void VulkanPresentation::InitSurface(Window& window)
@@ -60,7 +60,7 @@ namespace Hydro
 		createInfo.hwnd = glfwGetWin32Window(glfwWindow);
 		createInfo.hinstance = GetModuleHandle(nullptr);
 
-		if (glfwCreateWindowSurface(m_instance, glfwWindow, nullptr, &s_vkSurface) != VK_SUCCESS) {
+		if (glfwCreateWindowSurface(m_Instance, glfwWindow, nullptr, &s_Surface) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create window surface!");
 		}
 
@@ -80,7 +80,7 @@ namespace Hydro
 
 		for (uint32_t i = 0; i < queueCount; i++)
 		{
-			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, s_vkSurface, &supportsPresent[i]);
+			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, s_Surface, &supportsPresent[i]);
 
 			if (supportsPresent[i]) 
 			{
@@ -118,7 +118,7 @@ namespace Hydro
 
 		VkSwapchainCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = s_vkSurface;
+		createInfo.surface = s_Surface;
 
 		createInfo.minImageCount = imageCount;
 		createInfo.imageFormat = surfaceFormat.format;
@@ -219,7 +219,7 @@ namespace Hydro
 
 	void VulkanPresentation::CreateFrameBuffer()
 	{
-		swapChainFramebuffers.resize(m_SwapChainImageViews.size());
+		m_SwapChainFramebuffers.resize(m_SwapChainImageViews.size());
 
 		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) {
 			VkImageView attachments[] = {
@@ -235,12 +235,11 @@ namespace Hydro
 			framebufferInfo.height = m_SwapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(m_Device->GetDevice(), &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
+			if (vkCreateFramebuffer(m_Device->GetDevice(), &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to create framebuffer!");
 			}
 		}
-
 	}
 
 	void VulkanPresentation::CreateCommandPool()
@@ -260,16 +259,16 @@ namespace Hydro
 
 	void VulkanPresentation::CreateCommandBuffer()
 	{
-		m_CommandBuffer.resize(MAX_FRAMES_IN_FLIGHT);
+		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = m_CommandPool;
-		allocInfo.commandBufferCount = (uint32_t)m_CommandBuffer.size();
+		allocInfo.commandBufferCount = (uint32_t)m_CommandBuffers.size();
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
 
-		if (vkAllocateCommandBuffers(m_Device->GetDevice(), &allocInfo, m_CommandBuffer.data()) != VK_SUCCESS) 
+		if (vkAllocateCommandBuffers(m_Device->GetDevice(), &allocInfo, m_CommandBuffers.data()) != VK_SUCCESS) 
 		{
 			throw std::runtime_error("failed to allocate command buffers!");
 		}
@@ -279,9 +278,9 @@ namespace Hydro
 	{
 		auto device = m_Device->GetDevice();
 
-		m_ImageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-		m_RenderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-		m_InFlightFence.resize(MAX_FRAMES_IN_FLIGHT);
+		m_ImageSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		m_RenderSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		m_Fences.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -292,13 +291,33 @@ namespace Hydro
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{
-			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore[i]) != VK_SUCCESS ||
-				vkCreateFence(device, &fenceInfo, nullptr, &m_InFlightFence[i]) != VK_SUCCESS) {
+			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_ImageSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_RenderSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(device, &fenceInfo, nullptr, &m_Fences[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create semaphores!");
 			}
 		}
+	}
 
+	void VulkanPresentation::ResetSwapChain(Window &window, bool vsync)
+	{
+		auto device = m_Device->GetDevice();
+
+		vkDeviceWaitIdle(device);
+
+		for (size_t i = 0; i < m_SwapChainFramebuffers.size(); i++) {
+			vkDestroyFramebuffer(device, m_SwapChainFramebuffers[i], nullptr);
+		}
+
+		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) {
+			vkDestroyImageView(device, m_SwapChainImageViews[i], nullptr);
+		}
+
+		vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
+
+		// CreateSwapChain(nullptr, false);
+		// CreateImageViews();
+		// CreateFrameBuffer();
 	}
 
 	void VulkanPresentation::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
@@ -315,7 +334,7 @@ namespace Hydro
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = m_RenderPass;
-		renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
+		renderPassInfo.framebuffer = m_SwapChainFramebuffers[imageIndex];
 
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = m_SwapChainExtent;
@@ -341,31 +360,31 @@ namespace Hydro
 	{
 		auto device = m_Device->GetDevice();
 
-		vkWaitForFences(device, 1, &m_InFlightFence[m_CurrentFrame], VK_TRUE, UINT64_MAX);
-		vkResetFences(device, 1, &m_InFlightFence[m_CurrentFrame]);
+		vkWaitForFences(device, 1, &m_Fences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &m_Fences[m_CurrentFrame]);
 
-		vkAcquireNextImageKHR(device, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		vkAcquireNextImageKHR(device, m_SwapChain, UINT64_MAX, m_ImageSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
-		vkResetCommandBuffer(m_CommandBuffer[m_CurrentFrame], 0);
-		RecordCommandBuffer(m_CommandBuffer[m_CurrentFrame], imageIndex);
+		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
+		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore[m_CurrentFrame] };
+		VkSemaphore waitSemaphores[] = { m_ImageSemaphores[m_CurrentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_CommandBuffer[m_CurrentFrame];
+		submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
 
-		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore[m_CurrentFrame] };
+		VkSemaphore signalSemaphores[] = { m_RenderSemaphores[m_CurrentFrame] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(m_Device->GetGraphicsQueue(), 1, &submitInfo, m_InFlightFence[m_CurrentFrame]) != VK_SUCCESS) {
+		if (vkQueueSubmit(m_Device->GetGraphicsQueue(), 1, &submitInfo, m_Fences[m_CurrentFrame]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
@@ -400,24 +419,24 @@ namespace Hydro
 		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 		SwapChainSupportDetails details;
 
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, s_vkSurface, &details.capabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, s_Surface, &details.capabilities);
 
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, s_vkSurface, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, s_Surface, &formatCount, nullptr);
 
 		if (formatCount != 0) 
 		{
 			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, s_vkSurface, &formatCount, details.formats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, s_Surface, &formatCount, details.formats.data());
 		}
 
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, s_vkSurface, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, s_Surface, &presentModeCount, nullptr);
 
 		if (presentModeCount != 0)
 		{
 			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, s_vkSurface, &presentModeCount, details.presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, s_Surface, &presentModeCount, details.presentModes.data());
 		}
 
 		return details;

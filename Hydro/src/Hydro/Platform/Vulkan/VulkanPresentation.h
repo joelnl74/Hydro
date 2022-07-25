@@ -31,6 +31,7 @@ namespace Hydro
 		void CreateCommandBuffer();
 		void CreateSyncObjects();
 
+		void ResetSwapChain(Window& window, bool vsync);
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void DrawFrame();
@@ -48,8 +49,8 @@ namespace Hydro
 		void CreateImageViews();
 
 	private:
-		inline static VkSurfaceKHR s_vkSurface;
-		VkInstance m_instance;
+		inline static VkSurfaceKHR s_Surface;
+		VkInstance m_Instance;
 		Ref<VulkanDevice> m_Device;
 
 		VkSwapchainKHR m_SwapChain;
@@ -62,15 +63,15 @@ namespace Hydro
 
 		std::vector<VkImage> m_SwapChainImages;
 		std::vector<VkImageView> m_SwapChainImageViews;
-		std::vector<VkFramebuffer> swapChainFramebuffers;
+		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 
 		VkRenderPass m_RenderPass;
 		VkCommandPool m_CommandPool;
-		std::vector <VkCommandBuffer> m_CommandBuffer;
+		std::vector <VkCommandBuffer> m_CommandBuffers;
 
-		std::vector <VkSemaphore> m_ImageAvailableSemaphore;
-		std::vector <VkSemaphore> m_RenderFinishedSemaphore;
-		std::vector <VkFence> m_InFlightFence;
+		std::vector <VkSemaphore> m_ImageSemaphores;
+		std::vector <VkSemaphore> m_RenderSemaphores;
+		std::vector <VkFence> m_Fences;
 
 		uint32_t m_CurrentFrame = 0;
 		uint32_t imageIndex;
