@@ -2,13 +2,13 @@
 #include "VulkanShader.h"
 
 #include "VulkanRendererContext.h";
-#include "Hydro/Renderer/RendererContext.h"
+#include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
 {
 	VkShaderModule VulkanShader::Create(const std::string& filePath)
 	{
-		auto context = std::dynamic_pointer_cast<VulkanRendererContext>(RendererContext::Get());
+		auto context = Renderer::GetRendererContext();
 
 		VkDevice device = context->GetVulkanDevice()->GetDevice();
 

@@ -1,5 +1,6 @@
 #include "hypch.h"
 #include "Application.h"
+#include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
 {
@@ -7,12 +8,17 @@ namespace Hydro
 
 	Application::Application()
 	{
+		s_Instance = this;
+
+		// Initialize and create engine systems.
 		Log::Init();
 
-		s_Instance = this;
 		m_Window = Window::Create(WindowProps());
 
+		Renderer::Create(*m_Window);
 		EventDispatcher::Create();
+		// End Initialize and create engine systems
+
 		EventDispatcher::Get().Subscribe(EventType::WindowClose, HY_BIND_EVENT_FN(Application::OnEvent));
 		EventDispatcher::Get().Subscribe(EventType::WindowResize, HY_BIND_EVENT_FN(Application::OnEvent));
 		EventDispatcher::Get().Subscribe(EventType::KeyPressed, HY_BIND_EVENT_FN(Application::OnEvent));
@@ -50,9 +56,13 @@ namespace Hydro
 		while (m_Running)
 		{
 			m_Window->OnUpdate();
+			Renderer::RenderFrame();
+
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 		}
+
+		Renderer::Get().ShutDown();
 	}
 
 	void Application::ShutDown()

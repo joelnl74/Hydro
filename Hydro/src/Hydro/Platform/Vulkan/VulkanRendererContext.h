@@ -2,19 +2,18 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 
-#include "Hydro/Renderer/RendererContext.h"
 #include "Hydro/Platform/Vulkan/VulkanDevice.h"
 #include "Hydro/Core/Window.h"
 namespace Hydro
 {
-	class VulkanRendererContext : public RendererContext
+	class VulkanRendererContext
 	{
 	public:
 		VulkanRendererContext();
-		virtual ~VulkanRendererContext();
+		~VulkanRendererContext();
 
-		virtual void Init() override;
-		virtual void ShutDown() override;
+		void Init();
+		void ShutDown();
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }

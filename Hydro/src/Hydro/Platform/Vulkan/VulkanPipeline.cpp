@@ -2,13 +2,14 @@
 #include "VulkanPipeline.h"
 
 #include "VulkanRendererContext.h"
+#include "Hydro/Renderer/Renderer.h"
+
 namespace Hydro
 {
 	void VulkanPipeline::Create(VkExtent2D extents, VkRenderPass renderpass, VkPipelineShaderStageCreateInfo stages[])
 	{
-		auto context = std::dynamic_pointer_cast<VulkanRendererContext>(RendererContext::Get());
-
-		VkDevice device = context->GetVulkanDevice()->GetDevice();
+		Ref<VulkanRendererContext> context = Renderer::GetRendererContext();
+		VkDevice device =  context->GetVulkanDevice()->GetDevice();
 
 		std::vector<VkDynamicState> dynamicStates = 
 		{
@@ -146,7 +147,7 @@ namespace Hydro
 	}
 	void VulkanPipeline::ShutDown()
 	{
-		auto context = std::dynamic_pointer_cast<VulkanRendererContext>(RendererContext::Get());
+		auto context = Renderer::GetRendererContext();
 		VkDevice device = context->GetVulkanDevice()->GetDevice();
 
 		vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
