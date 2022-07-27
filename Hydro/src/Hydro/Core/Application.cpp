@@ -1,6 +1,8 @@
 #include "hypch.h"
 #include "Application.h"
+
 #include "Hydro/Renderer/Renderer.h"
+#include "Hydro/Renderer/Renderer2D.h"
 
 namespace Hydro
 {
@@ -16,6 +18,7 @@ namespace Hydro
 		m_Window = Window::Create(WindowProps());
 
 		Renderer::Create(*m_Window);
+		Renderer2D::Init();
 		EventDispatcher::Create();
 		// End Initialize and create engine systems
 

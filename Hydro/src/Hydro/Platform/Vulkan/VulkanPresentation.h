@@ -5,7 +5,6 @@
 #include <vulkan/vulkan.h>
 #include "VulkanDevice.h"
 #include "VulkanShader.h"
-#include "VulkanPipeline.h"
 
 namespace Hydro
 {
@@ -31,6 +30,11 @@ namespace Hydro
 		void CreateCommandPool();
 		void CreateCommandBuffer();
 		void CreateSyncObjects();
+
+		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffers[m_CurrentFrame]; }
+		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
+		VkRenderPass& GetRenderPass() { return m_RenderPass; }
+		std::vector<VkPipelineShaderStageCreateInfo> & GetShaderInfo() { return ShaderStages;  }
 
 		void ResetSwapChain();
 
@@ -80,10 +84,9 @@ namespace Hydro
 		Window& m_window;
 
 		// TODO REMOVE
-		VulkanPipeline m_VulkanPipeline;
 		Ref<VulkanShader> m_VertShader;
 		Ref<VulkanShader> m_FragmentShader;
-		VkPipelineShaderStageCreateInfo ShaderStages[2];
+		std::vector<VkPipelineShaderStageCreateInfo> ShaderStages;
 	};
 }
 

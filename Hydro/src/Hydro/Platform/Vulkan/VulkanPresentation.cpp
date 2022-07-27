@@ -8,6 +8,7 @@
 #include <GLFW/glfw3native.h>
 
 #include "VulkanUtils.h"
+#include "Hydro/Renderer/Renderer2D.h"
 
 namespace Hydro
 {
@@ -38,7 +39,6 @@ namespace Hydro
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
 		}
 
-		m_VulkanPipeline.ShutDown();
 		vkDestroyRenderPass(device, m_RenderPass, nullptr);
 
 		for (auto imageView : m_SwapChainImageViews) {
@@ -152,7 +152,6 @@ namespace Hydro
 		CreateImageViews();
 		CreateRenderPass();
 		CreatePresentationLayer();
-		m_VulkanPipeline.Create(m_SwapChainExtent, m_RenderPass, ShaderStages);
 		CreateFrameBuffer();
 		CreateCommandPool();
 		CreateCommandBuffer();
@@ -180,8 +179,8 @@ namespace Hydro
 		fragShaderStageInfo.module = fragmentShader;
 		fragShaderStageInfo.pName = "main";
 
-		ShaderStages[0] = vertShaderStageInfo;
-		ShaderStages[1] = fragShaderStageInfo;
+		ShaderStages.push_back(vertShaderStageInfo);
+		ShaderStages.push_back(fragShaderStageInfo);
 	}
 
 	void VulkanPresentation::CreateRenderPass()
@@ -345,9 +344,8 @@ namespace Hydro
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetPipeLine());
-		vkCmdSetViewport(commandBuffer, 0, 1, &m_VulkanPipeline.GetViewPort());
-		vkCmdSetScissor(commandBuffer, 0, 1, &m_VulkanPipeline.GetRect2D());
+		Renderer2D::Begin();
+
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);
 

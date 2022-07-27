@@ -1,13 +1,37 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include "VulkanVertexBuffer.h"
 
 namespace Hydro
 {
+	enum class PrimitiveTopology
+	{
+		None = 0,
+		Points,
+		Lines,
+		Triangles,
+	};
+
+	struct PipelineSpecification
+	{
+		// Ref<Shader> Shader;
+		VertexBufferLayout Layout;
+		// Ref<RenderPass> RenderPass;
+		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
+		bool BackfaceCulling = true;
+		bool DepthTest = true;
+		bool DepthWrite = true;
+		bool Wireframe = false;
+		float LineWidth = 1.0f;
+	};
+
 	class VulkanPipeline
 	{
 	public:
-		void Create(VkExtent2D extents, VkRenderPass renderpass, VkPipelineShaderStageCreateInfo stages[]);
+		VulkanPipeline(const PipelineSpecification& spec);
 		void ShutDown();
+
+		void Bind();
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }

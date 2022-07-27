@@ -6,12 +6,31 @@
 
 namespace Hydro
 {
-	void VulkanPipeline::Create(VkExtent2D extents, VkRenderPass renderpass, VkPipelineShaderStageCreateInfo stages[])
+	static VkFormat ShaderDataTypeToVulkanFormat(ShaderDataType type)
+	{
+		switch (type)
+		{
+		case ShaderDataType::Float:     return VK_FORMAT_R32_SFLOAT;
+		case ShaderDataType::Float2:    return VK_FORMAT_R32G32_SFLOAT;
+		case ShaderDataType::Float3:    return VK_FORMAT_R32G32B32_SFLOAT;
+		case ShaderDataType::Float4:    return VK_FORMAT_R32G32B32A32_SFLOAT;
+		}
+
+		return VK_FORMAT_UNDEFINED;
+	}
+
+	VulkanPipeline::VulkanPipeline(const PipelineSpecification& spec)
 	{
 		Ref<VulkanRendererContext> context = Renderer::GetRendererContext();
-		VkDevice device =  context->GetVulkanDevice()->GetDevice();
+		VkDevice device = context->GetVulkanDevice()->GetDevice();
 
-		std::vector<VkDynamicState> dynamicStates = 
+		auto extents = Renderer::GetVulkanPresentation()->GetExtend();
+		auto renderpass = Renderer::GetVulkanPresentation()->GetRenderPass();
+		auto shader = Renderer::GetVulkanPresentation()->GetShaderInfo();
+
+		VkPipelineShaderStageCreateInfo stages[2] =  { shader[0], shader[1]};
+
+		std::vector<VkDynamicState> dynamicStates =
 		{
 			VK_DYNAMIC_STATE_VIEWPORT,
 			VK_DYNAMIC_STATE_SCISSOR
@@ -115,10 +134,38 @@ namespace Hydro
 		colorBlending.blendConstants[2] = 0.0f; // Optional
 		colorBlending.blendConstants[3] = 0.0f; // Optional
 
-		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) 
+		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
+
+		// Setup vertex data.
+		VkVertexInputBindingDescription vertexInputBinding = {};
+		vertexInputBinding.binding = 0;
+		vertexInputBinding.stride = spec.Layout.GetStride();
+		vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		// Inpute attribute bindings describe shader attribute locations and memory layouts
+		std::vector<VkVertexInputAttributeDescription> vertexInputAttributs(spec.Layout.GetElementCount());
+
+		uint32_t location = 0;
+		for (auto element : spec.Layout)
+		{
+			vertexInputAttributs[location].binding = 0;
+			vertexInputAttributs[location].location = location;
+			vertexInputAttributs[location].format = ShaderDataTypeToVulkanFormat(element.Type);
+			vertexInputAttributs[location].offset = element.Offset;
+
+			location++;
+		}
+
+		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputState.vertexBindingDescriptionCount = 1;
+		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
+		vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributs.size();
+		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
+		// End setup vertex data.
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -145,6 +192,7 @@ namespace Hydro
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
 	}
+
 	void VulkanPipeline::ShutDown()
 	{
 		auto context = Renderer::GetRendererContext();
@@ -152,5 +200,14 @@ namespace Hydro
 
 		vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
+	}
+
+	void VulkanPipeline::Bind()
+	{
+		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
+		vkCmdSetViewport(commandBuffer, 0, 1, &GetViewPort());
+		vkCmdSetScissor(commandBuffer, 0, 1, &GetRect2D());
 	}
 }
