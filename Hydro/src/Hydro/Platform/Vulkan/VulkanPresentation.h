@@ -32,6 +32,8 @@ namespace Hydro
 		void CreateSyncObjects();
 
 		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffers[m_CurrentFrame]; }
+		VkCommandPool& GetCommandPool() { return m_CommandPool; }
+
 		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
 		std::vector<VkPipelineShaderStageCreateInfo> & GetShaderInfo() { return ShaderStages;  }

@@ -345,8 +345,9 @@ namespace Hydro
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		Renderer2D::Begin();
+		Renderer2D::DrawQuad();
+		Renderer2D::End();
 
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {

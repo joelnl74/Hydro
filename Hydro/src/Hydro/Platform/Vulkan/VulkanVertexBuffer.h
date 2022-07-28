@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <vulkan/vulkan.h>
+#include "VulkanBuffer.h"
 
 namespace Hydro
 {
@@ -79,12 +79,14 @@ namespace Hydro
 		uint32_t m_Stride = 0;
 	};
 
-	class VulkanVertexBuffer
+	class VulkanVertexBuffer : public VulkanBuffer
 	{
 	public:
-		VulkanVertexBuffer(uint32_t size);
+		VulkanVertexBuffer(void* data, uint32_t size);
+		void Bind();
 	private:
 		VkBuffer m_VertexBuffer;
+		VkDeviceMemory m_VertexBufferMemory;
 
 	};
 }

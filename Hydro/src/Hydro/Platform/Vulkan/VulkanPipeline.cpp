@@ -30,6 +30,42 @@ namespace Hydro
 
 		VkPipelineShaderStageCreateInfo stages[2] =  { shader[0], shader[1]};
 
+		// Setup vertex data.
+		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+		VkVertexInputBindingDescription vertexInputBinding = {};
+		vertexInputBinding.binding = 0;
+		vertexInputBinding.stride = spec.Layout.GetStride();
+		vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		// Inpute attribute bindings describe shader attribute locations and memory layouts
+		std::vector<VkVertexInputAttributeDescription> vertexInputAttributs(spec.Layout.GetElementCount());
+
+		uint32_t location = 0;
+		for (auto element : spec.Layout)
+		{
+			vertexInputAttributs[location].binding = 0;
+			vertexInputAttributs[location].location = location;
+			vertexInputAttributs[location].format = ShaderDataTypeToVulkanFormat(element.Type);
+			vertexInputAttributs[location].offset = element.Offset;
+
+			location++;
+		}
+
+		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputState.vertexBindingDescriptionCount = 1;
+		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
+		vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributs.size();
+		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
+
+		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributs.size());
+		vertexInputInfo.pVertexBindingDescriptions = &vertexInputBinding;
+		vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributs.data();
+		// End setup vertex data.
+
 		std::vector<VkDynamicState> dynamicStates =
 		{
 			VK_DYNAMIC_STATE_VIEWPORT,
@@ -40,13 +76,6 @@ namespace Hydro
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 		dynamicState.pDynamicStates = dynamicStates.data();
-
-		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 0;
-		vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-		vertexInputInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -138,34 +167,6 @@ namespace Hydro
 		{
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
-
-		// Setup vertex data.
-		VkVertexInputBindingDescription vertexInputBinding = {};
-		vertexInputBinding.binding = 0;
-		vertexInputBinding.stride = spec.Layout.GetStride();
-		vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		// Inpute attribute bindings describe shader attribute locations and memory layouts
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributs(spec.Layout.GetElementCount());
-
-		uint32_t location = 0;
-		for (auto element : spec.Layout)
-		{
-			vertexInputAttributs[location].binding = 0;
-			vertexInputAttributs[location].location = location;
-			vertexInputAttributs[location].format = ShaderDataTypeToVulkanFormat(element.Type);
-			vertexInputAttributs[location].offset = element.Offset;
-
-			location++;
-		}
-
-		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
-		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputState.vertexBindingDescriptionCount = 1;
-		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
-		vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributs.size();
-		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
-		// End setup vertex data.
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
