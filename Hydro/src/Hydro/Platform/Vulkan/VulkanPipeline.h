@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "VulkanVertexBuffer.h"
+#include "VulkanShader.h"
 
 namespace Hydro
 {
@@ -14,7 +15,10 @@ namespace Hydro
 
 	struct PipelineSpecification
 	{
-		// Ref<Shader> Shader;
+		// Make this a vector of Ref shader.
+		Ref<VulkanShader> VertexShader;
+		Ref<VulkanShader> FragmentShader;
+
 		VertexBufferLayout Layout;
 		// Ref<RenderPass> RenderPass;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
@@ -37,12 +41,18 @@ namespace Hydro
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }
 		VkViewport GetViewPort() { return m_ViewPort; }
 		VkRect2D GetRect2D() { return m_Scissor; }
+
 	private:
-		VkPipelineLayout m_PipelineLayout;
+		void CreateShaderDescriptorSetLayout(VkDevice& device);
+	private:
 		VkViewport m_ViewPort;
 		VkRect2D m_Scissor;
-		VkPipeline m_GraphicsPipeline;
 
+		VkDescriptorSetLayout m_DescriptorSetLayout;
+
+		PipelineSpecification m_Spec;
+		VkPipelineLayout m_PipelineLayout;
+		VkPipeline m_GraphicsPipeline;
 	};
 }
 

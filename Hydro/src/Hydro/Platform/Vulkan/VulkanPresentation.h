@@ -24,7 +24,6 @@ namespace Hydro
 		void Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice);
 		void InitSurface(Window &window);
 		void CreateSwapChain(Window& window ,bool vsync);
-		void CreatePresentationLayer();
 		void CreateRenderPass();
 		void CreateFrameBuffer();
 		void CreateCommandPool();
@@ -36,7 +35,6 @@ namespace Hydro
 
 		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
-		std::vector<VkPipelineShaderStageCreateInfo> & GetShaderInfo() { return ShaderStages;  }
 
 		void ResetSwapChain();
 

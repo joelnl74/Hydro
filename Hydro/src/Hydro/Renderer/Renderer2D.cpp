@@ -4,6 +4,8 @@
 #include "Renderer2D.h"
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
 #include "Hydro/Platform/Vulkan/VulkanIndexBuffer.h"
+#include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
+#include "Hydro/Platform/Vulkan/VulkanShader.h"
 
 #include "Hydro/Renderer/Renderer.h"
 
@@ -28,9 +30,18 @@ namespace Hydro
 			0, 1, 2, 2, 3, 0
 		};
 
+		struct UniformBufferObject {
+			glm::mat4 viewProjectionMatrix;
+		};
+
 		Ref<VulkanPipeline> QuadPipeline;
 		Ref<VulkanVertexBuffer> QuadVertexBuffer;
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;
+		Ref<VulkanUniformBuffer> QuadUniformBuffer;
+		Ref<VulkanShader> VertexShader;
+		Ref<VulkanShader> FragmentShader;
+
+		UniformBufferObject UBOdata;
 	};
 
 	static Renderer2DData* s_Data = nullptr;
@@ -46,9 +57,27 @@ namespace Hydro
 			{ ShaderDataType::Float3, "a_Color" },
 		};
 
-		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
+		s_Data->VertexShader = CreateRef<VulkanShader>();
+		s_Data->FragmentShader = CreateRef<VulkanShader>();
+
+		auto vertexShader = s_Data->VertexShader->Create("vertex.spv", VK_SHADER_STAGE_VERTEX_BIT);
+		auto fragmentShader = s_Data->FragmentShader->Create("fragment.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+
 		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(QuadVertex));
 		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(uint16_t));
+		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>(sizeof(s_Data->UBOdata));
+
+		specification.VertexShader = s_Data->VertexShader;
+		specification.FragmentShader = s_Data->FragmentShader;
+
+		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
+
+
+	}
+
+	void Renderer2D::ShutDown()
+	{
+		// TODO Clean up.
 	}
 
 	void Renderer2D::Begin()
@@ -66,6 +95,8 @@ namespace Hydro
 	{
 		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
 
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);
 	}
 }

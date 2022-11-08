@@ -21,14 +21,15 @@ namespace Hydro
 
 	VulkanPipeline::VulkanPipeline(const PipelineSpecification& spec)
 	{
+		m_Spec = spec;
+
 		Ref<VulkanRendererContext> context = Renderer::GetRendererContext();
-		VkDevice device = context->GetVulkanDevice()->GetDevice();
+		VkDevice & device = context->GetVulkanDevice()->GetDevice();
 
 		auto extents = Renderer::GetVulkanPresentation()->GetExtend();
 		auto renderpass = Renderer::GetVulkanPresentation()->GetRenderPass();
-		auto shader = Renderer::GetVulkanPresentation()->GetShaderInfo();
 
-		VkPipelineShaderStageCreateInfo stages[2] =  { shader[0], shader[1]};
+		VkPipelineShaderStageCreateInfo stages[2] =  { m_Spec.VertexShader->GetPipelineShaderStageInfo(), m_Spec.FragmentShader->GetPipelineShaderStageInfo()};
 
 		// Setup vertex data.
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -92,6 +93,8 @@ namespace Hydro
 		m_Scissor.offset = { 0, 0 };
 		m_Scissor.extent = extents;
 
+		CreateShaderDescriptorSetLayout(device);
+
 		VkPipelineViewportStateCreateInfo viewportState{};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = 1;
@@ -100,13 +103,12 @@ namespace Hydro
 		viewportState.pScissors = &m_Scissor;
 
 		// Rasterizer
-
 		VkPipelineRasterizationStateCreateInfo rasterizer{};
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizer.depthClampEnable = VK_FALSE;
 
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
-		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+		rasterizer.polygonMode = spec.Wireframe ? VK_POLYGON_MODE_LINE :  VK_POLYGON_MODE_FILL;
 
 		rasterizer.lineWidth = 1.0f;
 
@@ -120,8 +122,8 @@ namespace Hydro
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+		pipelineLayoutInfo.setLayoutCount = 1; // Optional
+		pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayout; // Optional
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
@@ -163,10 +165,7 @@ namespace Hydro
 		colorBlending.blendConstants[2] = 0.0f; // Optional
 		colorBlending.blendConstants[3] = 0.0f; // Optional
 
-		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create pipeline layout!");
-		}
+		VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout));
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -189,9 +188,7 @@ namespace Hydro
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
-		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create graphics pipeline!");
-		}
+		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline));
 	}
 
 	void VulkanPipeline::ShutDown()
@@ -199,6 +196,7 @@ namespace Hydro
 		auto context = Renderer::GetRendererContext();
 		VkDevice device = context->GetVulkanDevice()->GetDevice();
 
+		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
 		vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 	}
@@ -210,5 +208,15 @@ namespace Hydro
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 		vkCmdSetViewport(commandBuffer, 0, 1, &GetViewPort());
 		vkCmdSetScissor(commandBuffer, 0, 1, &GetRect2D());
+	}
+
+	void VulkanPipeline::CreateShaderDescriptorSetLayout(VkDevice &device)
+	{
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = 1;
+		layoutInfo.pBindings = &m_Spec.VertexShader->GetDescriptorSetLayoutBinding();
+
+		VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayout));
 	}
 }

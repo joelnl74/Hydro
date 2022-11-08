@@ -151,36 +151,10 @@ namespace Hydro
 
 		CreateImageViews();
 		CreateRenderPass();
-		CreatePresentationLayer();
 		CreateFrameBuffer();
 		CreateCommandPool();
 		CreateCommandBuffer();
 		CreateSyncObjects();
-	}
-
-	void VulkanPresentation::CreatePresentationLayer()
-	{
-		m_FragmentShader = CreateRef<VulkanShader>();
-		m_VertShader = CreateRef<VulkanShader>();
-
-		auto vertexShader = m_VertShader->Create("vertex.spv");
-		auto fragmentShader = m_FragmentShader->Create("fragment.spv");
-
-		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-
-		vertShaderStageInfo.module = vertexShader;
-		vertShaderStageInfo.pName = "main";
-
-		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragShaderStageInfo.module = fragmentShader;
-		fragShaderStageInfo.pName = "main";
-
-		ShaderStages.push_back(vertShaderStageInfo);
-		ShaderStages.push_back(fragShaderStageInfo);
 	}
 
 	void VulkanPresentation::CreateRenderPass()

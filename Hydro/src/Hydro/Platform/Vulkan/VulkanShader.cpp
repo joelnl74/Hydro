@@ -6,7 +6,7 @@
 
 namespace Hydro
 {
-	VkShaderModule VulkanShader::Create(const std::string& filePath)
+	VkShaderModule VulkanShader::Create(const std::string& filePath, VkShaderStageFlagBits bit)
 	{
 		auto context = Renderer::GetRendererContext();
 
@@ -23,6 +23,20 @@ namespace Hydro
 		{
 			throw std::runtime_error("failed to create shader module!");
 		}
+
+		//////////////////////////////////////////////////////////////////////
+		// Descriptor Set Layout
+		//////////////////////////////////////////////////////////////////////
+		m_UBOLayoutBinding.binding = 0;
+		m_UBOLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		m_UBOLayoutBinding.descriptorCount = 1;
+		m_UBOLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		m_UBOLayoutBinding.pImmutableSamplers = nullptr; // Optional
+
+		m_PipelineShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		m_PipelineShaderInfo.stage = bit;
+		m_PipelineShaderInfo.module = m_ShaderModule;
+		m_PipelineShaderInfo.pName = "main";
 		
 		return m_ShaderModule;
 	}

@@ -9,14 +9,14 @@ namespace Hydro
 {
 	VulkanVertexBuffer::VulkanVertexBuffer(void* sourceData, uint32_t size)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto &device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
 		VkDeviceSize bufferSize = size;
 		void* data;
 
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
 		memcpy(data, sourceData, (size_t)bufferSize);

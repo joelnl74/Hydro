@@ -50,9 +50,11 @@ namespace Hydro
 
 	void VulkanBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto & rendererContext = Renderer::GetRendererContext();
+
+		auto device = rendererContext->GetVulkanDevice()->GetDevice();
 		auto & commandPool = Renderer::GetVulkanPresentation()->GetCommandPool();
-		auto graphicsQueue = Renderer::GetRendererContext()->GetVulkanDevice()->GetGraphicsQueue();
+		auto graphicsQueue = rendererContext->GetVulkanDevice()->GetGraphicsQueue();
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

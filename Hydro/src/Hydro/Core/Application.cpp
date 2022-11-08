@@ -15,12 +15,15 @@ namespace Hydro
 		// Initialize and create engine systems.
 		Log::Init();
 
+		// Create engine systems.
 		m_Window = Window::Create(WindowProps());
-
 		Renderer::Create(*m_Window);
-		Renderer2D::Init();
 		EventDispatcher::Create();
-		// End Initialize and create engine systems
+
+		// Init Engine Systems.
+		Renderer2D::Init();
+
+		// Setup events for application.
 
 		EventDispatcher::Get().Subscribe(EventType::WindowClose, HY_BIND_EVENT_FN(Application::OnEvent));
 		EventDispatcher::Get().Subscribe(EventType::WindowResize, HY_BIND_EVENT_FN(Application::OnEvent));
