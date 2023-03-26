@@ -4,7 +4,6 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 #include "VulkanDevice.h"
-#include "VulkanShader.h"
 
 namespace Hydro
 {
@@ -17,14 +16,13 @@ namespace Hydro
 
 	const int MAX_FRAMES_IN_FLIGHT = 2;
 
-	class VulkanPresentation
+	class VulkanSwapChain
 	{
 	public:
-		VulkanPresentation(Window& window) : m_window(window) {}
+		VulkanSwapChain(Window& window) : m_window(window) {}
 		void Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice);
 		void InitSurface(Window &window);
 		void CreateSwapChain(Window& window ,bool vsync);
-		void CreatePresentationLayer();
 		void CreateRenderPass();
 		void CreateFrameBuffer();
 		void CreateCommandPool();
@@ -36,7 +34,6 @@ namespace Hydro
 
 		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
-		std::vector<VkPipelineShaderStageCreateInfo> & GetShaderInfo() { return ShaderStages;  }
 
 		void ResetSwapChain();
 
@@ -84,11 +81,6 @@ namespace Hydro
 		uint32_t imageIndex;
 
 		Window& m_window;
-
-		// TODO REMOVE
-		Ref<VulkanShader> m_VertShader;
-		Ref<VulkanShader> m_FragmentShader;
-		std::vector<VkPipelineShaderStageCreateInfo> ShaderStages;
 	};
 }
 

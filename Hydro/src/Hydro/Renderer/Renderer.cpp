@@ -22,7 +22,7 @@ namespace Hydro
 	void Renderer::Init(Window& window)
 	{
 		m_rendererContext = CreateRef<VulkanRendererContext>();
-		m_vulkanPresentation = CreateRef<VulkanPresentation>(window);
+		m_vulkanPresentation = CreateRef<VulkanSwapChain>(window);
 
 		m_rendererContext->Init();
 		m_vulkanPresentation->Init(m_rendererContext->GetInstance(), m_rendererContext->GetVulkanDevice());

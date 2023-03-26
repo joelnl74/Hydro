@@ -1,5 +1,5 @@
 #include "hypch.h"
-#include "VulkanPresentation.h"
+#include "VulkanSwapChain.h"
 #include <set>
 
 #define GLFW_INCLUDE_VULKAN
@@ -12,20 +12,17 @@
 
 namespace Hydro
 {
-	void VulkanPresentation::Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice)
+	void VulkanSwapChain::Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice)
 	{
 		m_Device = vulkanDevice;
 		m_Instance = instance;
 	}
 
-	void VulkanPresentation::ShutDown()
+	void VulkanSwapChain::ShutDown()
 	{
 		auto device = m_Device->GetDevice();
 
 		vkDeviceWaitIdle(device);
-
-		vkDestroyShaderModule(device, m_VertShader->GetModule(), nullptr);
-		vkDestroyShaderModule(device, m_FragmentShader->GetModule(), nullptr);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			vkDestroySemaphore(device, m_RenderSemaphores[i], nullptr);
@@ -49,7 +46,7 @@ namespace Hydro
 		vkDestroySurfaceKHR(m_Instance, s_Surface, nullptr);
 	}
 
-	void VulkanPresentation::InitSurface(Window& window)
+	void VulkanSwapChain::InitSurface(Window& window)
 	{
 		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 
@@ -95,7 +92,7 @@ namespace Hydro
 		vkGetDeviceQueue(m_Device->GetDevice(), presentFamily, 0, &m_PresentQueue);
 	}
 
-	void VulkanPresentation::CreateSwapChain(Window& window, bool vsync)
+	void VulkanSwapChain::CreateSwapChain(Window& window, bool vsync)
 	{
 		VkDevice device = m_Device->GetDevice();
 		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
@@ -151,39 +148,13 @@ namespace Hydro
 
 		CreateImageViews();
 		CreateRenderPass();
-		CreatePresentationLayer();
 		CreateFrameBuffer();
 		CreateCommandPool();
 		CreateCommandBuffer();
 		CreateSyncObjects();
 	}
 
-	void VulkanPresentation::CreatePresentationLayer()
-	{
-		m_FragmentShader = CreateRef<VulkanShader>();
-		m_VertShader = CreateRef<VulkanShader>();
-
-		auto vertexShader = m_VertShader->Create("vertex.spv");
-		auto fragmentShader = m_FragmentShader->Create("fragment.spv");
-
-		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-
-		vertShaderStageInfo.module = vertexShader;
-		vertShaderStageInfo.pName = "main";
-
-		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragShaderStageInfo.module = fragmentShader;
-		fragShaderStageInfo.pName = "main";
-
-		ShaderStages.push_back(vertShaderStageInfo);
-		ShaderStages.push_back(fragShaderStageInfo);
-	}
-
-	void VulkanPresentation::CreateRenderPass()
+	void VulkanSwapChain::CreateRenderPass()
 	{
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = m_SwapChainImageFormat;
@@ -216,7 +187,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::CreateFrameBuffer()
+	void VulkanSwapChain::CreateFrameBuffer()
 	{
 		m_SwapChainFramebuffers.resize(m_SwapChainImageViews.size());
 
@@ -241,7 +212,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::CreateCommandPool()
+	void VulkanSwapChain::CreateCommandPool()
 	{
 		auto physicalDevice = m_Device->GetPhysicalDevice();
 
@@ -256,7 +227,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::CreateCommandBuffer()
+	void VulkanSwapChain::CreateCommandBuffer()
 	{
 		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -273,7 +244,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::CreateSyncObjects()
+	void VulkanSwapChain::CreateSyncObjects()
 	{
 		auto device = m_Device->GetDevice();
 
@@ -298,7 +269,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::ResetSwapChain()
+	void VulkanSwapChain::ResetSwapChain()
 	{
 		auto device = m_Device->GetDevice();
 
@@ -319,7 +290,7 @@ namespace Hydro
 		CreateFrameBuffer();
 	}
 
-	void VulkanPresentation::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	void VulkanSwapChain::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -355,7 +326,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::DrawFrame()
+	void VulkanSwapChain::DrawFrame()
 	{
 		auto device = m_Device->GetDevice();
 
@@ -411,16 +382,16 @@ namespace Hydro
 		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
-	void VulkanPresentation::BeginRenderPass()
+	void VulkanSwapChain::BeginRenderPass()
 	{
 
 	}
 
-	void VulkanPresentation::EndRenderPass()
+	void VulkanSwapChain::EndRenderPass()
 	{
 	}
 
-	SwapChainSupportDetails VulkanPresentation::QuerySwapChainSupport()
+	SwapChainSupportDetails VulkanSwapChain::QuerySwapChainSupport()
 	{
 		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 		SwapChainSupportDetails details;
@@ -447,7 +418,7 @@ namespace Hydro
 
 		return details;
 	}
-	VkSurfaceFormatKHR VulkanPresentation::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+	VkSurfaceFormatKHR VulkanSwapChain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 	{
 		for (const auto& availableFormat : availableFormats) {
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -458,7 +429,7 @@ namespace Hydro
 		return availableFormats[0];
 	}
 
-	VkPresentModeKHR VulkanPresentation::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
+	VkPresentModeKHR VulkanSwapChain::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
 	{
 		if (vsync)
 		{
@@ -474,7 +445,7 @@ namespace Hydro
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
-	VkExtent2D VulkanPresentation::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, Window& window)
+	VkExtent2D VulkanSwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, Window& window)
 	{
 		auto glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());
 
@@ -498,7 +469,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPresentation::CreateImageViews()
+	void VulkanSwapChain::CreateImageViews()
 	{
 		auto device = m_Device->GetDevice();
 

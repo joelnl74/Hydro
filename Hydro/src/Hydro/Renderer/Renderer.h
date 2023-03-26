@@ -1,5 +1,5 @@
 #include "Hydro/Platform/Vulkan/VulkanRendererContext.h"
-#include "Hydro/Platform/Vulkan/VulkanPresentation.h"
+#include "Hydro/Platform/Vulkan/VulkanSwapChain.h"
 
 #include "Hydro/Core/Window.h"
 
@@ -14,7 +14,7 @@ namespace Hydro
 		static void RenderFrame() { Get().m_vulkanPresentation->DrawFrame(); }
 
 		static Ref<VulkanRendererContext> GetRendererContext() { return Get().m_rendererContext; }
-		static Ref<VulkanPresentation> GetVulkanPresentation() { return Get().m_vulkanPresentation; }
+		static Ref<VulkanSwapChain> GetVulkanPresentation() { return Get().m_vulkanPresentation; }
 
 		void Init(Window& window);
 		void ShutDown();
@@ -23,7 +23,7 @@ namespace Hydro
 		static Renderer *s_Instance;
 
 		Ref<VulkanRendererContext> m_rendererContext;
-		Ref<VulkanPresentation> m_vulkanPresentation;
+		Ref<VulkanSwapChain> m_vulkanPresentation;
 	};
 
 }

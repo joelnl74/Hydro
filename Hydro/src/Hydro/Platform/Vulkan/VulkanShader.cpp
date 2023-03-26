@@ -26,6 +26,34 @@ namespace Hydro
 		
 		return m_ShaderModule;
 	}
+
+	void VulkanShader::Destory()
+	{
+		auto context = Renderer::GetRendererContext();
+		VkDevice device = context->GetVulkanDevice()->GetDevice();
+
+		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
+	}
+
+	void VulkanShader::CreateDescriptorSetLayout()
+	{
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+
+		VkDescriptorSetLayoutBinding uboLayoutBinding{};
+		uboLayoutBinding.binding = 0;
+		uboLayoutBinding.descriptorCount = 1;
+		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		uboLayoutBinding.pImmutableSamplers = nullptr;
+		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = 1;
+		layoutInfo.pBindings = &uboLayoutBinding;
+
+		VK_SUCCESS(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayout));
+	}
+
 	std::vector<char> VulkanShader::readFile(const std::string& filePath)
 	{
 		std::ifstream file(filePath, std::ios::ate | std::ios::binary);

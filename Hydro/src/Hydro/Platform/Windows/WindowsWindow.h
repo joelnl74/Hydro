@@ -1,6 +1,6 @@
 #pragma once
 #include "Hydro/Core/Window.h"
-#include "Hydro/Platform/Vulkan/VulkanPresentation.h"
+#include "Hydro/Platform/Vulkan/VulkanSwapChain.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>

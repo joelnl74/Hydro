@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "VulkanVertexBuffer.h"
+#include "VulkanShader.h"
 
 namespace Hydro
 {
@@ -14,7 +15,9 @@ namespace Hydro
 
 	struct PipelineSpecification
 	{
-		// Ref<Shader> Shader;
+		Ref<VulkanShader> vertex;
+		Ref<VulkanShader> fragment;
+
 		VertexBufferLayout Layout;
 		// Ref<RenderPass> RenderPass;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
@@ -33,6 +36,7 @@ namespace Hydro
 
 		void Bind();
 
+		std::vector<VkPipelineShaderStageCreateInfo>& GetShaderInfo() { return m_ShaderStages; }
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }
 		VkViewport GetViewPort() { return m_ViewPort; }
@@ -42,7 +46,8 @@ namespace Hydro
 		VkViewport m_ViewPort;
 		VkRect2D m_Scissor;
 		VkPipeline m_GraphicsPipeline;
-
+		PipelineSpecification m_pipelineSpecification;
+		std::vector<VkPipelineShaderStageCreateInfo> m_ShaderStages;
 	};
 }
 
