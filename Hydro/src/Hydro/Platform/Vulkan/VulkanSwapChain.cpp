@@ -328,7 +328,6 @@ namespace Hydro
 
 		vkWaitForFences(device, 1, &m_Fences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
-		uint32_t imageIndex;
 		VkResult result = vkAcquireNextImageKHR(device, m_SwapChain, UINT64_MAX, m_ImageSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {

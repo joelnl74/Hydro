@@ -25,7 +25,7 @@ namespace Hydro
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		VkDeviceSize bufferSize = (size_t)size;
+		VkDeviceSize bufferSize = (uint32_t)size;
 
 		m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -40,7 +40,7 @@ namespace Hydro
 
 	void VulkanUniformBuffer::Update(uint32_t currentImage, void *data, uint32_t size)
 	{
-		memcpy(m_uniformBuffersMapped[currentImage], &data, (size_t)size);
+		memcpy(m_uniformBuffersMapped[currentImage], &data, (uint32_t)size);
 	}
 
 }

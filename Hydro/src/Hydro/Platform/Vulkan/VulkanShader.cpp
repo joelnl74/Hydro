@@ -16,7 +16,7 @@ namespace Hydro
 
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = code.size();
+		createInfo.codeSize = (uint32_t)code.size();
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 		if (vkCreateShaderModule(device, &createInfo, nullptr, &m_ShaderModule) != VK_SUCCESS)
@@ -96,7 +96,7 @@ namespace Hydro
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = buffers[i];
 			bufferInfo.offset = 0;
-			bufferInfo.range = (size_t)size;
+			bufferInfo.range = (uint32_t)size;
 
 			VkWriteDescriptorSet descriptorWrite{};
 			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

@@ -50,7 +50,7 @@ namespace Hydro
 
 		VkVertexInputBindingDescription vertexInputBinding = {};
 		vertexInputBinding.binding = 0;
-		vertexInputBinding.stride = spec.Layout.GetStride();
+		vertexInputBinding.stride = (uint32_t)spec.Layout.GetStride();
 		vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 		// Inpute attribute bindings describe shader attribute locations and memory layouts
@@ -62,13 +62,13 @@ namespace Hydro
 			vertexInputAttributs[location].binding = 0;
 			vertexInputAttributs[location].location = location;
 			vertexInputAttributs[location].format = ShaderDataTypeToVulkanFormat(element.Type);
-			vertexInputAttributs[location].offset = element.Offset;
+			vertexInputAttributs[location].offset = (uint32_t)element.Offset;
 
 			location++;
 		}
 
 		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.vertexAttributeDescriptionCount = vertexInputAttributs.size();
+		vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributs.size();
 		vertexInputInfo.pVertexBindingDescriptions = &vertexInputBinding;
 		vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
@@ -76,7 +76,7 @@ namespace Hydro
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputState.vertexBindingDescriptionCount = 1;
 		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
-		vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributs.size();
+		vertexInputState.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributs.size();
 		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
 		// End setup vertex data.
@@ -121,7 +121,7 @@ namespace Hydro
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_NONE;
+		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 

@@ -36,6 +36,7 @@ namespace Hydro
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
 
 		uint32_t GetRenderFrame() { return m_CurrentFrame; }
+		uint32_t GetRenderImage() { return imageIndex; }
 
 		void ResetSwapChain();
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
