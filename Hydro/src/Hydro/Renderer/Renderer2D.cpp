@@ -10,6 +10,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Hydro
 {
@@ -62,25 +63,25 @@ namespace Hydro
 		s_Data->QuadVertexShader->Create("vertex.spv");
 		s_Data->QuadFragmentShader->Create("fragment.spv");
 
-		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(QuadVertex));
-		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(uint16_t));
-		s_Data->QuadUniformBuffer->Create(sizeof(UniformBufferObject));
-
-		s_Data->QuadVertexShader->CreateDescriptorSetLayout();
-		s_Data->QuadVertexShader->CreateDescriptorPool();
-		s_Data->QuadVertexShader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject));
-
 		PipelineSpecification specification;
 		specification.Layout =
 		{
-			{ ShaderDataType::Float2, "a_Position" },
-			{ ShaderDataType::Float3, "a_Color" },
+			{ ShaderDataType::Float2, "inPosition" },
+			{ ShaderDataType::Float3, "inColor" },
 		};
 
 		specification.vertex = s_Data->QuadVertexShader;
 		specification.fragment = s_Data->QuadFragmentShader;
 
+		s_Data->QuadVertexShader->CreateDescriptorSetLayout();
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
+
+		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
+		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
+		s_Data->QuadUniformBuffer->Create(sizeof(UniformBufferObject));
+
+		s_Data->QuadVertexShader->CreateDescriptorPool();
+		s_Data->QuadVertexShader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject));
 	}
 
 	void Renderer2D::Begin()
@@ -93,10 +94,15 @@ namespace Hydro
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-		s_Data->ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		s_Data->ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		s_Data->ubo.proj = glm::perspective(glm::radians(45.0f), 800 / (float)600, 0.1f, 10.0f);
-		s_Data->ubo.proj[1][1] *= -1;
+		s_Data->ubo.model = glm::mat4(1);
+		s_Data->ubo.view = glm::mat4(1);
+		s_Data->ubo.proj = glm::mat4(1.0f);
+
+		// s_Data->ubo.view = glm::translate(s_Data->ubo.view, glm::vec3(0.0f, 0.0f, -3.0f));
+		// s_Data->ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		// s_Data->ubo.proj[1][1] *= -1;
+
+
 
 		s_Data->QuadUniformBuffer->Update(currentImage, &s_Data->ubo, sizeof(UniformBufferObject));
 	}
@@ -107,11 +113,10 @@ namespace Hydro
 
 	void Renderer2D::DrawQuad()
 	{
-		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
-
 		s_Data->QuadPipeline->Bind();
 		s_Data->QuadVertexBuffer->Bind();
 		s_Data->QuadIndexBuffer->Bind();
+		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
 
 		s_Data->QuadPipeline->UpdateBuffers();
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);

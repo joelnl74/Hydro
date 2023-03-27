@@ -9,7 +9,7 @@ namespace Hydro
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		VkDeviceSize bufferSize = size;
+		VkDeviceSize bufferSize = (size_t)size;
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;

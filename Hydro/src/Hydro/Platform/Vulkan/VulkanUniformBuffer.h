@@ -9,7 +9,7 @@ namespace Hydro
 		VulkanUniformBuffer() {};
 		~VulkanUniformBuffer();
 
-		void Create(unsigned int size);
+		void Create(uint32_t size);
 		void Update(uint32_t currentImage, void* data, uint32_t size);
 		std::vector<VkBuffer>& GetVKBuffers() { return m_uniformBuffers; };
 	private:

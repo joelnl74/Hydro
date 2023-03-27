@@ -67,6 +67,11 @@ namespace Hydro
 			location++;
 		}
 
+		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.vertexAttributeDescriptionCount = vertexInputAttributs.size();
+		vertexInputInfo.pVertexBindingDescriptions = &vertexInputBinding;
+		vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributs.data();
+
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputState.vertexBindingDescriptionCount = 1;
@@ -74,10 +79,6 @@ namespace Hydro
 		vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributs.size();
 		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributs.size());
-		vertexInputInfo.pVertexBindingDescriptions = &vertexInputBinding;
-		vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributs.data();
 		// End setup vertex data.
 
 		std::vector<VkDynamicState> dynamicStates =
@@ -120,8 +121,8 @@ namespace Hydro
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizer.cullMode = VK_CULL_MODE_NONE;
+		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -168,7 +169,9 @@ namespace Hydro
 		pipelineInfo.layout = m_PipelineLayout;
 		pipelineInfo.renderPass = renderpass;
 		pipelineInfo.subpass = 0;
-		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+		pipelineInfo.pDepthStencilState = nullptr; // Optional
+		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
+		pipelineInfo.basePipelineIndex = -1; // Optional
 
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
@@ -201,7 +204,5 @@ namespace Hydro
 		auto descriptorSet = m_pipelineSpecification.vertex->GetDescriptorSets()[currentImage];
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-
 	}
-
 }
