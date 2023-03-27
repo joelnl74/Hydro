@@ -92,14 +92,17 @@ namespace Hydro
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-		s_Data->ubo.mvp = glm::mat4(1);
+		glm::mat4 model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800/ (float)600, 0.1f, 10.0f);
+		proj[1][1] *= -1;
 
-		//s_Data->ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		//s_Data->ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		//s_Data->ubo.proj = glm::perspective(glm::radians(45.0f), 800/ (float)600, 0.1f, 10.0f);
-		//s_Data->ubo.proj[1][1] *= -1;
+		s_Data->ubo.mvp = proj * view * model;
 
-		s_Data->QuadUniformBuffer->Update(currentImage, &s_Data->ubo.mvp, (uint32_t)sizeof(UniformBufferObject));
+		void* data = s_Data->QuadUniformBuffer->GetMappedMemory()[currentImage];
+		memcpy(data, &s_Data->ubo.mvp, (sizeof(UniformBufferObject)));
+
+		// s_Data->QuadUniformBuffer->Update(currentImage, &s_Data->ubo.mvp, (uint32_t)sizeof(UniformBufferObject));
 	}
 
 	void Renderer2D::End()
