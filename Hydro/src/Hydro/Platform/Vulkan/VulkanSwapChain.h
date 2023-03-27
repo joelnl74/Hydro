@@ -35,8 +35,9 @@ namespace Hydro
 		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
 
-		void ResetSwapChain();
+		uint32_t GetRenderFrame() { return m_CurrentFrame; }
 
+		void ResetSwapChain();
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void DrawFrame();
 		void BeginRenderPass();

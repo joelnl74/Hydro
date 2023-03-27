@@ -11,6 +11,7 @@ namespace Hydro
 
 		void Create(unsigned int size);
 		void Update(uint32_t currentImage, void* data, uint32_t size);
+		std::vector<VkBuffer>& GetVKBuffers() { return m_uniformBuffers; };
 	private:
 		std::vector<VkBuffer> m_uniformBuffers;
 		std::vector<VkDeviceMemory> m_uniformBuffersMemory;

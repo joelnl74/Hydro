@@ -16,18 +16,16 @@ namespace Hydro
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			// vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
-			// vkFreeMemory(device, m_uniformBuffers[i], nullptr);
+			vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
+			vkFreeMemory(device, m_uniformBuffersMemory[i], nullptr);
 		}
-
-		// vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 	}
 
-	void VulkanUniformBuffer::Create(unsigned int size)
+	void VulkanUniformBuffer::Create(uint32_t size)
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		VkDeviceSize bufferSize = size;
+		VkDeviceSize bufferSize = (size_t)size;
 
 		m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -42,7 +40,7 @@ namespace Hydro
 
 	void VulkanUniformBuffer::Update(uint32_t currentImage, void *data, uint32_t size)
 	{
-		memcpy(m_uniformBuffersMapped[currentImage], &data, size);
+		memcpy(m_uniformBuffersMapped[currentImage], &data, (size_t)size);
 	}
 
 }
