@@ -40,7 +40,8 @@ namespace Hydro
 
 	void VulkanUniformBuffer::Update(uint32_t currentImage, void *data, uint32_t size)
 	{
-		memcpy(m_uniformBuffersMapped[currentImage], &data, (uint32_t)size);
+		void* mappedData = m_uniformBuffersMapped[currentImage];
+		memcpy(mappedData, &data, (uint32_t)size);
 	}
 
 }

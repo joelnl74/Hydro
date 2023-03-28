@@ -16,8 +16,8 @@ namespace Hydro
 {
 	struct QuadVertex
 	{
-		alignas(8) glm::vec2 Position;
-		alignas(8) glm::vec2 Color;
+		glm::vec2 Position;
+		glm::vec3 Color;
 	};
 
 	struct UniformBufferObject 
@@ -28,10 +28,10 @@ namespace Hydro
 	struct Renderer2DData
 	{
 		const std::vector<QuadVertex> vertices = {
-			{{-0.5f, -0.5f}, {1.0f, 0.0f}},
-			{{0.5f, -0.5f}, {1.0f, 0.0f}},
-			{{0.5f, 0.5f}, {1.0f, 0.0,}},
-			{{-0.5f, 0.5f}, {1.0f, 0.0f}}
+			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, -0.5f}, {1.0f, 0.0f,  0.0f}},
+			{{0.5f, 0.5f}, {1.0f, 0.0, 0.0f}},
+			{{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}
 		};
 
 		const std::vector<uint16_t> indices = {
@@ -65,7 +65,7 @@ namespace Hydro
 		specification.Layout =
 		{
 			{ ShaderDataType::Float2, "inPosition" },
-			{ ShaderDataType::Float2, "inColor" },
+			{ ShaderDataType::Float3, "inColor" },
 		};
 
 		specification.vertex = s_Data->QuadVertexShader;
@@ -102,7 +102,7 @@ namespace Hydro
 		void* data = s_Data->QuadUniformBuffer->GetMappedMemory()[currentImage];
 		memcpy(data, &s_Data->ubo.mvp, (sizeof(UniformBufferObject)));
 
-		// s_Data->QuadUniformBuffer->Update(currentImage, &s_Data->ubo.mvp, (uint32_t)sizeof(UniformBufferObject));
+		// s_Data->QuadUniformBuffer->Update(currentImage, &s_Data->ubo.mvp, sizeof(UniformBufferObject));
 	}
 
 	void Renderer2D::End()
