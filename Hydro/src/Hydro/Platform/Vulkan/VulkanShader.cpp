@@ -32,7 +32,7 @@ namespace Hydro
 		auto context = Renderer::GetRendererContext();
 		VkDevice device = context->GetVulkanDevice()->GetDevice();
 
-		// TODO clean up all.
+		// TODO clean up all created buffers, descriptor pools and descriptor layouts.
 		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
 	}
 
