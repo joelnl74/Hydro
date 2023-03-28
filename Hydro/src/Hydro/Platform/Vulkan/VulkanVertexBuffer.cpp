@@ -9,7 +9,7 @@ namespace Hydro
 {
 	VulkanVertexBuffer::VulkanVertexBuffer(void* sourceData, uint32_t size)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto &device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;

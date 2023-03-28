@@ -21,6 +21,8 @@ namespace Hydro
 		void CreateDescriptorPool();
 		void CreateDescriptorSet(std::vector<VkBuffer>& buffers, uint32_t size);
 
+		VkDescriptorSetLayoutBinding const & GetDescriptorSetLayoutBinding() { return m_UBOLayoutBinding;  }
+
 	private:
 		std::vector<char> readFile(const std::string& filePath);
 
@@ -30,6 +32,7 @@ namespace Hydro
 		VkDescriptorPool m_DescriptorPool;
 		std::vector<VkDescriptorSet> m_DescriptorSets;
 		VkShaderModule m_ShaderModule;
+		VkDescriptorSetLayoutBinding m_UBOLayoutBinding;
 	};
 }
 

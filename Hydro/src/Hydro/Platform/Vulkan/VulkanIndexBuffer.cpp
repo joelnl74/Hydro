@@ -7,7 +7,7 @@ namespace Hydro
 {
 	VulkanIndexBuffer::VulkanIndexBuffer(void *sourceData, uint32_t size)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto& device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
 		VkDeviceSize bufferSize = (uint32_t)size;
 
