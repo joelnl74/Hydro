@@ -1,5 +1,6 @@
 #include "Hydro/Platform/Vulkan/VulkanRendererContext.h"
 #include "Hydro/Platform/Vulkan/VulkanSwapChain.h"
+#include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 
 #include "Hydro/Core/Window.h"
 

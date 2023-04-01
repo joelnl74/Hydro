@@ -1,8 +1,6 @@
 #include "hypch.h"
-#include "VulkanAllocator.h"
 
 #include "VulkanAllocator.h"
-
 #include "VulkanRendererContext.h"
 
 namespace Hydro {
@@ -140,7 +138,7 @@ namespace Hydro {
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
 		allocatorInfo.physicalDevice = device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 		allocatorInfo.device = device->GetDevice();
-		// allocatorInfo.instance = VulkanContext::GetInstance();
+		allocatorInfo.instance = VulkanRendererContext::GetInstance();
 
 		vmaCreateAllocator(&allocatorInfo, &s_Data->Allocator);
 	}

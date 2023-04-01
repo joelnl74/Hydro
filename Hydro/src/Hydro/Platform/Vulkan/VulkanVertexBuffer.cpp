@@ -10,24 +10,18 @@ namespace Hydro
 	VulkanVertexBuffer::VulkanVertexBuffer(void* sourceData, uint32_t size)
 	{
 		auto &device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VulkanAllocator allocator("VertexBuffer");
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		VkDeviceSize bufferSize = size;
-		void* data;
+		VkBufferCreateInfo vertexBufferCreateInfo = {};
+		vertexBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		vertexBufferCreateInfo.size = size;
+		vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		auto bufferAlloc = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_VertexBuffer);
 
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, sourceData, (uint32_t)bufferSize);
-		vkUnmapMemory(device, stagingBufferMemory);
-
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_VertexBuffer, m_VertexBufferMemory);
-
-		CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
-
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
+		void* dstBuffer = allocator.MapMemory<void>(bufferAlloc);
+		memcpy(dstBuffer, sourceData, size);
+		allocator.UnmapMemory(bufferAlloc);
 	}
 
 	void VulkanVertexBuffer::Bind()

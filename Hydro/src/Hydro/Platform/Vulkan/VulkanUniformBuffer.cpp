@@ -2,7 +2,6 @@
 #include "VulkanUniformBuffer.h"
 
 #include "Hydro/Renderer/Renderer.h"
-
 namespace Hydro
 {
 
@@ -16,8 +15,8 @@ namespace Hydro
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
-			vkFreeMemory(device, m_uniformBuffersMemory[i], nullptr);
+			// vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
+			// vkFreeMemory(device, m_uniformBuffersMemory[i], nullptr);
 		}
 	}
 
@@ -25,23 +24,32 @@ namespace Hydro
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		VkDeviceSize bufferSize = (uint32_t)size;
-
 		m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-		m_uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+		m_vmaAllocation.resize(MAX_FRAMES_IN_FLIGHT);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+			VkMemoryAllocateInfo allocInfo = {};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			allocInfo.pNext = nullptr;
+			allocInfo.allocationSize = 0;
+			allocInfo.memoryTypeIndex = 0;
 
-			vkMapMemory(device, m_uniformBuffersMemory[i], 0, bufferSize, 0, &m_uniformBuffersMapped[i]);
+			VkBufferCreateInfo bufferInfo = {};
+			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+			bufferInfo.size = size;
+
+			VulkanAllocator allocator("UniformBuffer");
+			m_vmaAllocation[i] = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, m_uniformBuffers[i]);
 		}
 	}
 
-	void VulkanUniformBuffer::Update(uint32_t currentImage, void *data, uint32_t size)
+	void VulkanUniformBuffer::Update(const void* data, uint32_t currentImage, uint32_t size)
 	{
-		void* mappedData = m_uniformBuffersMapped[currentImage];
-		memcpy(mappedData, &data, (uint32_t)size);
+		VulkanAllocator allocator("VulkanUniformBuffer");
+		uint8_t* pData = allocator.MapMemory<uint8_t>(m_vmaAllocation[currentImage]);
+		memcpy(pData, (uint8_t*)data, size);
+		allocator.UnmapMemory(m_vmaAllocation[currentImage]);
 	}
 
 }

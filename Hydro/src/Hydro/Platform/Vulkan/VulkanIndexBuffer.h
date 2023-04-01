@@ -13,6 +13,5 @@ namespace Hydro
 
 	private:
 		VkBuffer m_Buffer;
-		VkDeviceMemory indexBufferMemory;
 	};
 }

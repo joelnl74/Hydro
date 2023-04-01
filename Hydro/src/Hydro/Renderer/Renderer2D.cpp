@@ -17,7 +17,7 @@ namespace Hydro
 	struct QuadVertex
 	{
 		glm::vec2 Position;
-		glm::vec3 Color;
+		glm::vec4 Color;
 	};
 
 	struct UniformBufferObject 
@@ -28,10 +28,10 @@ namespace Hydro
 	struct Renderer2DData
 	{
 		const std::vector<QuadVertex> vertices = {
-			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, -0.5f}, {1.0f, 0.0f,  0.0f}},
-			{{0.5f, 0.5f}, {1.0f, 0.0, 0.0f}},
-			{{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}
+			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f, 1}},
+			{{0.5f, -0.5f}, {1.0f, 0.0f,  0.0f, 1}},
+			{{0.5f, 0.5f}, {1.0f, 0.0, 0.0f, 1}},
+			{{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1}}
 		};
 
 		const std::vector<uint16_t> indices = {
@@ -65,7 +65,7 @@ namespace Hydro
 		specification.Layout =
 		{
 			{ ShaderDataType::Float2, "inPosition" },
-			{ ShaderDataType::Float3, "inColor" },
+			{ ShaderDataType::Float4, "inColor" },
 		};
 
 		specification.vertex = s_Data->QuadVertexShader;
@@ -76,7 +76,7 @@ namespace Hydro
 
 		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
 		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
-		s_Data->QuadUniformBuffer->Create(sizeof(UniformBufferObject));
+		s_Data->QuadUniformBuffer->Create((uint8_t)sizeof(UniformBufferObject));
 
 		s_Data->QuadVertexShader->CreateDescriptorPool();
 		s_Data->QuadVertexShader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject));
@@ -94,15 +94,10 @@ namespace Hydro
 
 		glm::mat4 model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800/ (float)600, 0.1f, 10.0f);
-		proj[1][1] *= -1;
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800 / (float)600, 0.1f, 10.0f);
 
 		s_Data->ubo.mvp = proj * view * model;
-
-		void* data = s_Data->QuadUniformBuffer->GetMappedMemory()[currentImage];
-		memcpy(data, &s_Data->ubo.mvp, (sizeof(UniformBufferObject)));
-
-		// s_Data->QuadUniformBuffer->Update(currentImage, &s_Data->ubo.mvp, sizeof(UniformBufferObject));
+		s_Data->QuadUniformBuffer->Update(&s_Data->ubo.mvp, currentImage, (uint8_t)sizeof(UniformBufferObject));
 	}
 
 	void Renderer2D::End()

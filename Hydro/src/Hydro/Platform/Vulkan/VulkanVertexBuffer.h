@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "VulkanBuffer.h"
+#include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
 
 namespace Hydro
 {
@@ -87,6 +88,6 @@ namespace Hydro
 	private:
 		VkBuffer m_VertexBuffer;
 		VkDeviceMemory m_VertexBufferMemory;
-
+		VmaAllocation m_MemoryAllocation;
 	};
 }

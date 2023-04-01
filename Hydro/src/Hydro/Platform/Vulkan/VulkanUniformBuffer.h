@@ -1,5 +1,6 @@
 #pragma once
 #include "VulkanBuffer.h"
+#include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
 
 namespace Hydro
 {
@@ -10,14 +11,15 @@ namespace Hydro
 		~VulkanUniformBuffer();
 
 		void Create(uint32_t size);
-		void Update(uint32_t currentImage, void* data, uint32_t size);
+		void Update(const void* data, uint32_t currentImage, uint32_t size);
 
-		std::vector<void*>& GetMappedMemory() { return m_uniformBuffersMapped; };
 		std::vector<VkBuffer>& GetVKBuffers() { return m_uniformBuffers; };
 	private:
+		Ref<VulkanUniformBuffer> instance = nullptr;
+
 		std::vector<VkBuffer> m_uniformBuffers;
-		std::vector<VkDeviceMemory> m_uniformBuffersMemory;
-		std::vector<void*> m_uniformBuffersMapped;
+		std::vector<VmaAllocation> m_vmaAllocation;
+		std::vector<VmaAllocationInfo> allocInfo;
 	};
 }
 
