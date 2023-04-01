@@ -1,16 +1,14 @@
 #pragma once
-#include "VulkanBuffer.h"
 #include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
 
 namespace Hydro
 {
-	class VulkanUniformBuffer : public VulkanBuffer
+	class VulkanUniformBuffer
 	{
 	public:
-		VulkanUniformBuffer() {};
+		VulkanUniformBuffer(uint32_t size);
 		~VulkanUniformBuffer();
 
-		void Create(uint32_t size);
 		void Update(const void* data, uint32_t currentImage, uint32_t size);
 
 		std::vector<VkBuffer>& GetVKBuffers() { return m_uniformBuffers; };

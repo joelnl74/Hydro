@@ -56,7 +56,6 @@ namespace Hydro
 
 		s_Data->QuadVertexShader = CreateRef<VulkanShader>();
 		s_Data->QuadFragmentShader = CreateRef<VulkanShader>();
-		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>();
 
 		s_Data->QuadVertexShader->Create("vertex.spv");
 		s_Data->QuadFragmentShader->Create("fragment.spv");
@@ -76,7 +75,7 @@ namespace Hydro
 
 		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
 		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
-		s_Data->QuadUniformBuffer->Create((uint8_t)sizeof(UniformBufferObject));
+		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint8_t)sizeof(UniformBufferObject));
 
 		s_Data->QuadVertexShader->CreateDescriptorPool();
 		s_Data->QuadVertexShader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject));

@@ -5,22 +5,7 @@
 namespace Hydro
 {
 
-	VulkanUniformBuffer::~VulkanUniformBuffer()
-	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-
-		if (device == nullptr && m_uniformBuffers.size() <= 0)
-		{
-			return;
-		}
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			// vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
-			// vkFreeMemory(device, m_uniformBuffersMemory[i], nullptr);
-		}
-	}
-
-	void VulkanUniformBuffer::Create(uint32_t size)
+	VulkanUniformBuffer::VulkanUniformBuffer(uint32_t size)
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
@@ -41,6 +26,21 @@ namespace Hydro
 
 			VulkanAllocator allocator("UniformBuffer");
 			m_vmaAllocation[i] = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, m_uniformBuffers[i]);
+		}
+	}
+
+	VulkanUniformBuffer::~VulkanUniformBuffer()
+	{
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+
+		if (device == nullptr && m_uniformBuffers.size() <= 0)
+		{
+			return;
+		}
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			// vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
+			// vkFreeMemory(device, m_uniformBuffersMemory[i], nullptr);
 		}
 	}
 
