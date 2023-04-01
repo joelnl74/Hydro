@@ -15,8 +15,7 @@ namespace Hydro
 
 	struct PipelineSpecification
 	{
-		Ref<VulkanShader> vertex;
-		Ref<VulkanShader> fragment;
+		Ref<VulkanShader> shader;
 
 		VertexBufferLayout Layout;
 		// Ref<RenderPass> RenderPass;
@@ -37,18 +36,17 @@ namespace Hydro
 		void Bind();
 		void BindDescriptorSets();
 
-		std::vector<VkPipelineShaderStageCreateInfo>& GetShaderInfo() { return m_ShaderStages; }
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }
 		VkViewport GetViewPort() { return m_ViewPort; }
 		VkRect2D GetRect2D() { return m_Scissor; }
+
 	private:
 		VkPipelineLayout m_PipelineLayout;
 		VkViewport m_ViewPort;
 		VkRect2D m_Scissor;
 		VkPipeline m_GraphicsPipeline;
 		PipelineSpecification m_pipelineSpecification;
-		std::vector<VkPipelineShaderStageCreateInfo> m_ShaderStages;
 	};
 }
 

@@ -20,6 +20,9 @@ namespace Hydro
 		VkDeviceQueueCreateInfo queueCreateInfo{};
 		VkPhysicalDeviceFeatures deviceFeatures{};
 
+		// Device features
+		deviceFeatures.samplerAnisotropy = VK_TRUE;
+
 		// Create Queue Info.
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		queueCreateInfo.queueFamilyIndex = m_physicalDevice->GetQueueFamilyIndices().graphics;
@@ -35,7 +38,6 @@ namespace Hydro
 		deviceCreateInfo.queueCreateInfoCount = 1;
 		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
 		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
 		VkResult result = vkCreateDevice(m_physicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, nullptr, &s_LogicalDevice);

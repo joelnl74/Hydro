@@ -6,25 +6,39 @@
 
 namespace Hydro
 {
-	VkShaderModule VulkanShader::Create(const std::string& filePath)
+	VulkanShader::VulkanShader(ShaderSpecification spec)
 	{
-		auto context = Renderer::GetRendererContext();
+		for (auto& shaderInfo : spec.shaderInformation)
+		{
+			Create(shaderInfo);
+		}
+	}
 
-		VkDevice device = context->GetVulkanDevice()->GetDevice();
-
-		auto code = readFile(filePath);
+	void VulkanShader::Create(const ShaderInformation& info)
+	{
+		auto &context = Renderer::GetRendererContext();
+		auto &device = context->GetVulkanDevice()->GetDevice();
+		auto &code = readFile(info.path);
+		VkShaderModule shaderModule = nullptr;
 
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = (uint32_t)code.size();
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-		if (vkCreateShaderModule(device, &createInfo, nullptr, &m_ShaderModule) != VK_SUCCESS)
+		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create shader module!");
 		}
-		
-		return m_ShaderModule;
+
+		VkPipelineShaderStageCreateInfo shaderStageInfo{};
+		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		shaderStageInfo.stage = info.shaderStage;
+		shaderStageInfo.module = shaderModule;
+		shaderStageInfo.pName = "main";
+
+		m_ShaderModules.insert({(uint32_t)info.shaderType, shaderModule });
+		m_ShaderStages.push_back(shaderStageInfo);
 	}
 
 	void VulkanShader::Destory()

@@ -7,6 +7,7 @@
 #include "VulkanImage.h"
 #include "VulkanAllocator.h"
 #include "Hydro/Renderer/Renderer.h"
+#include "VulkanUtils.h"
 
 namespace Hydro
 {
@@ -58,5 +59,37 @@ namespace Hydro
 		}
 
 		allocator.AllocateImage(imageInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_image);
+
+		VkImageViewCreateInfo imageViewCreateInfo = {};
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.format = spec.format;
+		imageViewCreateInfo.flags = 0;
+		imageViewCreateInfo.subresourceRange = {};
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		imageViewCreateInfo.subresourceRange.levelCount = 1;
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewCreateInfo.subresourceRange.layerCount = 1;
+		imageViewCreateInfo.image = m_image;
+		
+		VK_CHECK_RESULT(vkCreateImageView(device, &imageViewCreateInfo, nullptr, &m_imageView));
+
+		VkSamplerCreateInfo samplerCreateInfo = {};
+		samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerCreateInfo.maxAnisotropy = 1.0f;
+		samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+		samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+		samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerCreateInfo.addressModeV = samplerCreateInfo.addressModeU;
+		samplerCreateInfo.addressModeW = samplerCreateInfo.addressModeU;
+		samplerCreateInfo.mipLodBias = 0.0f;
+		samplerCreateInfo.maxAnisotropy = 1.0f;
+		samplerCreateInfo.minLod = 0.0f;
+		samplerCreateInfo.maxLod = 1.0f;
+		samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+		VK_CHECK_RESULT(vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_sampler));
 	}
 }

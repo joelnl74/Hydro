@@ -19,6 +19,7 @@ namespace Hydro
 	{
 		glm::vec3 Position;
 		glm::vec4 Color;
+		glm::vec2 texCoord;
 	};
 
 	struct UniformBufferObject 
@@ -30,10 +31,10 @@ namespace Hydro
 	{
 		const std::vector<QuadVertex> vertices = 
 		{
-			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
-			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}
+			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
+			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 		};
 
 		const std::vector<uint16_t> indices = 
@@ -43,8 +44,7 @@ namespace Hydro
 
 		UniformBufferObject ubo;
 
-		Ref<VulkanShader> QuadVertexShader;
-		Ref<VulkanShader> QuadFragmentShader;
+		Ref<VulkanShader> Shader;
 		Ref<VulkanPipeline> QuadPipeline;
 		Ref<VulkanVertexBuffer> QuadVertexBuffer;
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;
@@ -57,31 +57,46 @@ namespace Hydro
 	{
 		s_Data = new Renderer2DData();
 
-		s_Data->QuadVertexShader = CreateRef<VulkanShader>();
-		s_Data->QuadFragmentShader = CreateRef<VulkanShader>();
+		/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
+		ShaderInformation vertexInformation;
+		vertexInformation.path = "vertex.spv";
+		vertexInformation.shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
+		vertexInformation.shaderType = ShaderType::Vertex;
 
-		s_Data->QuadVertexShader->Create("vertex.spv");
-		s_Data->QuadFragmentShader->Create("fragment.spv");
+		ShaderInformation fragmentInformation;
+		fragmentInformation.path = "fragment.spv";
+		fragmentInformation.shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragmentInformation.shaderType = ShaderType::Fragment;
+
+		ShaderSpecification shaderSpecification;
+		shaderSpecification.shaderInformation =
+		{
+			vertexInformation,
+			fragmentInformation,
+		};
+
+		s_Data->Shader = CreateRef<VulkanShader>(shaderSpecification);
+		/// END BLOCK!
 
 		PipelineSpecification specification;
 		specification.Layout =
 		{
 			{ ShaderDataType::Float3, "inPosition" },
 			{ ShaderDataType::Float4, "inColor" },
+			{ ShaderDataType::Float2, "inTexCoord" },
 		};
 
-		specification.vertex = s_Data->QuadVertexShader;
-		specification.fragment = s_Data->QuadFragmentShader;
+		specification.shader = s_Data->Shader;
 
-		s_Data->QuadVertexShader->CreateDescriptorSetLayout();
+		s_Data->Shader->CreateDescriptorSetLayout();
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
 
 		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
 		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
 		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint8_t)sizeof(UniformBufferObject));
 
-		s_Data->QuadVertexShader->CreateDescriptorPool();
-		s_Data->QuadVertexShader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject));
+		s_Data->Shader->CreateDescriptorPool();
+		s_Data->Shader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject));
 	}
 
 	void Renderer2D::Begin()
