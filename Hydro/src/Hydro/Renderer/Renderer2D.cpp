@@ -8,6 +8,7 @@
 
 #include "Hydro/Renderer/Renderer.h"
 
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -16,7 +17,7 @@ namespace Hydro
 {
 	struct QuadVertex
 	{
-		glm::vec2 Position;
+		glm::vec3 Position;
 		glm::vec4 Color;
 	};
 
@@ -27,14 +28,16 @@ namespace Hydro
 
 	struct Renderer2DData
 	{
-		const std::vector<QuadVertex> vertices = {
-			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f, 1}},
-			{{0.5f, -0.5f}, {1.0f, 0.0f,  0.0f, 1}},
-			{{0.5f, 0.5f}, {1.0f, 0.0, 0.0f, 1}},
-			{{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1}}
+		const std::vector<QuadVertex> vertices = 
+		{
+			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
+			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}
 		};
 
-		const std::vector<uint16_t> indices = {
+		const std::vector<uint16_t> indices = 
+		{
 			0, 1, 2, 2, 3, 0
 		};
 
@@ -63,7 +66,7 @@ namespace Hydro
 		PipelineSpecification specification;
 		specification.Layout =
 		{
-			{ ShaderDataType::Float2, "inPosition" },
+			{ ShaderDataType::Float3, "inPosition" },
 			{ ShaderDataType::Float4, "inColor" },
 		};
 
@@ -84,7 +87,7 @@ namespace Hydro
 	void Renderer2D::Begin()
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();
-		auto extent = Renderer::GetVulkanPresentation()->GetExtend();
+		auto& extent = Renderer::GetVulkanPresentation()->GetExtend();
 
 		static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -93,7 +96,8 @@ namespace Hydro
 
 		glm::mat4 model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800 / (float)600, 0.1f, 10.0f);
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), extent.width / (float)extent.height, 0.1f, 10.0f);
+		proj[1][1] *= -1;
 
 		s_Data->ubo.mvp = proj * view * model;
 		s_Data->QuadUniformBuffer->Update(&s_Data->ubo.mvp, currentImage, (uint8_t)sizeof(UniformBufferObject));
