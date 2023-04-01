@@ -9,7 +9,7 @@ namespace Hydro
 	public:
 		VulkanDevice(VkInstance instance);
 		Ref<VulkanPhysicalDevice> GetPhysicalDevice() { return m_physicalDevice;  }
-		VkDevice GetDevice() { return s_LogicalDevice; }
+		VkDevice & GetDevice() { return s_LogicalDevice; }
 
 		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
 		VkQueue GetPresentQueue() { return m_presentQueue; }

@@ -294,8 +294,6 @@ namespace Hydro
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = 0; // Optional
-		beginInfo.pInheritanceInfo = nullptr; // Optional
 
 		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
 			throw std::runtime_error("failed to begin recording command buffer!");
@@ -305,7 +303,6 @@ namespace Hydro
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = m_RenderPass;
 		renderPassInfo.framebuffer = m_SwapChainFramebuffers[imageIndex];
-
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = m_SwapChainExtent;
 
@@ -315,9 +312,8 @@ namespace Hydro
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		Renderer2D::Begin();
-		Renderer2D::DrawQuad();
-		Renderer2D::End();
+			Renderer2D::DrawQuad();
+			Renderer2D::End();
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -331,11 +327,22 @@ namespace Hydro
 		auto device = m_Device->GetDevice();
 
 		vkWaitForFences(device, 1, &m_Fences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+
+		VkResult result = vkAcquireNextImageKHR(device, m_SwapChain, UINT64_MAX, m_ImageSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			ResetSwapChain();
+			return;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+
+		Renderer2D::Begin();
+
 		vkResetFences(device, 1, &m_Fences[m_CurrentFrame]);
 
-		vkAcquireNextImageKHR(device, m_SwapChain, UINT64_MAX, m_ImageSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
-
-		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
+		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], /*VkCommandBufferResetFlagBits*/ 0);
 		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
 
 		VkSubmitInfo submitInfo{};
@@ -370,7 +377,7 @@ namespace Hydro
 
 		presentInfo.pImageIndices = &imageIndex;
 
-		VkResult result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+		result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
 			ResetSwapChain();
@@ -431,11 +438,6 @@ namespace Hydro
 
 	VkPresentModeKHR VulkanSwapChain::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
 	{
-		if (vsync)
-		{
-			return VK_PRESENT_MODE_FIFO_KHR;
-		}
-
 		for (const auto& availablePresentMode : availablePresentModes) {
 			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
 				return availablePresentMode;

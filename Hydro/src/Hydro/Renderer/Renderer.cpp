@@ -28,5 +28,7 @@ namespace Hydro
 		m_vulkanPresentation->Init(m_rendererContext->GetInstance(), m_rendererContext->GetVulkanDevice());
 		m_vulkanPresentation->InitSurface(window);
 		m_vulkanPresentation->CreateSwapChain(window, true);
+
+		VulkanAllocator::Init(m_rendererContext->GetVulkanDevice());
 	}
 }

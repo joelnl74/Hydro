@@ -1,9 +1,9 @@
 #pragma once
-#include "VulkanBuffer.h"
+#include "VulkanAllocator.h"
 
 namespace Hydro
 {
-	class VulkanIndexBuffer : public VulkanBuffer
+	class VulkanIndexBuffer
 	{
 	public:
 		VulkanIndexBuffer(void *data, uint32_t size);
@@ -11,7 +11,6 @@ namespace Hydro
 		void Bind();
 
 	private:
-		VkBuffer indexBuffer;
-		VkDeviceMemory indexBufferMemory;
+		VkBuffer m_Buffer;
 	};
 }

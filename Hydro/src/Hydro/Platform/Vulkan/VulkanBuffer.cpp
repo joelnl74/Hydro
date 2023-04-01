@@ -7,11 +7,11 @@ namespace Hydro
 {
 	void VulkanBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto &device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = size;
+		bufferInfo.size = (uint32_t)size;
 		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -50,9 +50,11 @@ namespace Hydro
 
 	void VulkanBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-		auto & commandPool = Renderer::GetVulkanPresentation()->GetCommandPool();
-		auto graphicsQueue = Renderer::GetRendererContext()->GetVulkanDevice()->GetGraphicsQueue();
+		auto &rendererContext = Renderer::GetRendererContext();
+
+		auto device = rendererContext->GetVulkanDevice()->GetDevice();
+		auto &commandPool = Renderer::GetVulkanPresentation()->GetCommandPool();
+		auto graphicsQueue = rendererContext->GetVulkanDevice()->GetGraphicsQueue();
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -70,7 +72,7 @@ namespace Hydro
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
 		VkBufferCopy copyRegion{};
-		copyRegion.size = size;
+		copyRegion.size = (uint32_t)size;
 		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
 		vkEndCommandBuffer(commandBuffer);
