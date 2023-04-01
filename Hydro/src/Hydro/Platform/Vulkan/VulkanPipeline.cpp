@@ -196,7 +196,7 @@ namespace Hydro
 		vkCmdSetScissor(commandBuffer, 0, 1, &GetRect2D());
 	}
 
-	void VulkanPipeline::UpdateBuffers()
+	void VulkanPipeline::BindDescriptorSets()
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();
 

@@ -35,7 +35,7 @@ namespace Hydro
 		void ShutDown();
 
 		void Bind();
-		void UpdateBuffers();
+		void BindDescriptorSets();
 
 		std::vector<VkPipelineShaderStageCreateInfo>& GetShaderInfo() { return m_ShaderStages; }
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }

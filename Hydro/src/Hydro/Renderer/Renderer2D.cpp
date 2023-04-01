@@ -114,7 +114,7 @@ namespace Hydro
 		s_Data->QuadPipeline->Bind();
 		s_Data->QuadVertexBuffer->Bind();
 		s_Data->QuadIndexBuffer->Bind();
-		s_Data->QuadPipeline->UpdateBuffers();
+		s_Data->QuadPipeline->BindDescriptorSets();
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);
 	}
 }
