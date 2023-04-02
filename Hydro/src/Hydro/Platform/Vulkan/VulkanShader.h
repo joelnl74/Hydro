@@ -56,8 +56,9 @@ namespace Hydro
 	private:
 		// TODO Make it a ref.
 		VkDescriptorSetLayout m_DescriptorSetLayout;
-		VkDescriptorPool m_DescriptorPool;
 		VkDescriptorSetLayoutBinding m_UBOLayoutBinding;
+
+		VkDescriptorPool m_DescriptorPool;
 
 		std::vector<VkDescriptorSet> m_DescriptorSets;
 		std::vector<VkPipelineShaderStageCreateInfo> m_ShaderStages;

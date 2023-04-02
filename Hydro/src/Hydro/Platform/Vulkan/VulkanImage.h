@@ -1,4 +1,5 @@
 #pragma once
+#include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
 
 namespace Hydro
 {
@@ -14,6 +15,7 @@ namespace Hydro
 	{
 	public:
 		VulkanImage(const std::string &filePath, VulkanImageSpecification spec);
+		void Bind();
 	private:
 		int m_width, m_heigth, m_texChannels;
 

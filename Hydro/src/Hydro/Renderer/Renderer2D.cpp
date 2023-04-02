@@ -59,12 +59,12 @@ namespace Hydro
 
 		/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
 		ShaderInformation vertexInformation;
-		vertexInformation.path = "vertex.spv";
+		vertexInformation.path = "assets/shaders/vertex.spv";
 		vertexInformation.shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
 		vertexInformation.shaderType = ShaderType::Vertex;
 
 		ShaderInformation fragmentInformation;
-		fragmentInformation.path = "fragment.spv";
+		fragmentInformation.path = "assets/shaders/fragment.spv";
 		fragmentInformation.shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
 		fragmentInformation.shaderType = ShaderType::Fragment;
 

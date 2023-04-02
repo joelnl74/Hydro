@@ -47,7 +47,7 @@ namespace Hydro
 		VkDevice device = context->GetVulkanDevice()->GetDevice();
 
 		// TODO clean up all created buffers, descriptor pools and descriptor layouts.
-		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
+		// vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
 	}
 
 	void VulkanShader::CreateDescriptorSetLayout()
@@ -111,16 +111,20 @@ namespace Hydro
 			bufferInfo.offset = 0;
 			bufferInfo.range = (uint32_t)size;
 
-			VkWriteDescriptorSet descriptorWrite{};
-			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = m_DescriptorSets[i];
-			descriptorWrite.dstBinding = 0;
-			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrite.descriptorCount = 1;
-			descriptorWrite.pBufferInfo = &bufferInfo;
+			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 
-			vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+			for (uint32_t j = 0; j < descriptorWrites.size(); j++)
+			{
+				descriptorWrites[j].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptorWrites[j].dstSet = m_DescriptorSets[i];
+				descriptorWrites[j].dstBinding = j;
+				descriptorWrites[j].dstArrayElement = 0;
+				descriptorWrites[j].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				descriptorWrites[j].descriptorCount = 1;
+				descriptorWrites[j].pBufferInfo = &bufferInfo;
+			}
+
+			vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 	}
 

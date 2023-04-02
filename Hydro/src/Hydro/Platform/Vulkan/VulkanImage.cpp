@@ -2,7 +2,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <vendor/stb/include/stb_image.h>
-#include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
 
 #include "VulkanImage.h"
 #include "VulkanAllocator.h"
@@ -91,5 +90,10 @@ namespace Hydro
 		samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
 		VK_CHECK_RESULT(vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_sampler));
+	}
+
+	void VulkanImage::Bind()
+	{
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 	}
 }
