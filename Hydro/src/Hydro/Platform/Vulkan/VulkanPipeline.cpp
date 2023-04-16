@@ -25,8 +25,8 @@ namespace Hydro
 
 		Ref<VulkanRendererContext> context = Renderer::GetRendererContext();
 		auto &device = context->GetVulkanDevice()->GetDevice();
-		auto &extents = Renderer::GetVulkanPresentation()->GetExtend();
-		auto &renderpass = Renderer::GetVulkanPresentation()->GetRenderPass();
+		auto &extents = Renderer::GetVulkanSwapChain()->GetExtend();
+		auto &renderpass = Renderer::GetVulkanSwapChain()->GetRenderPass();
 
 		// Setup vertex data.
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -173,7 +173,7 @@ namespace Hydro
 
 	void VulkanPipeline::Bind()
 	{
-		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
+		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 		vkCmdSetViewport(commandBuffer, 0, 1, &GetViewPort());
@@ -184,7 +184,7 @@ namespace Hydro
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();
 
-		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
+		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 		auto descriptorSet = m_pipelineSpecification.shader->GetDescriptorSets()[currentImage];
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);

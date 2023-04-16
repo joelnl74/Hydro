@@ -10,12 +10,14 @@
 
 namespace Hydro
 {
-	VulkanImage::VulkanImage(const std::string& filePath, VulkanImageSpecification spec)
+	VulkanImage::VulkanImage(const std::string& filePath, ImageSpecification spec)
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		stbi_uc* imagePixels = stbi_load("textures/texture.jpg", &m_width, &m_heigth, &m_texChannels, STBI_rgb_alpha);
-		VkDeviceSize imageSize = m_width * m_heigth * 4;
+		stbi_uc* imagePixels = stbi_load(filePath.c_str(), &m_width, &m_heigth, &m_texChannels, STBI_rgb_alpha);
+
+		m_vulkanImageInfo.size = m_width * m_heigth * 4;
+		VkDeviceSize imageSize = m_vulkanImageInfo.size;
 
 		// TODO assert.
 		if (imagePixels == false)
@@ -30,13 +32,15 @@ namespace Hydro
 		vertexBufferCreateInfo.size = imageSize;
 		vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-		auto bufferAlloc = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_VertexBuffer);
+		auto bufferAlloc = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_ImageData);
 
 		void* dstBuffer = allocator.MapMemory<void>(bufferAlloc);
 		memcpy(dstBuffer, imagePixels, imageSize);
 		allocator.UnmapMemory(bufferAlloc);
 
 		stbi_image_free(imagePixels);
+
+		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -46,23 +50,19 @@ namespace Hydro
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
-		imageInfo.format = spec.format;
-		imageInfo.tiling = spec.tiling;
+		imageInfo.format = GetImageFormat(spec.Format);
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = spec.usage;
+		imageInfo.usage = usage;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		if (vkCreateImage(device, &imageInfo, nullptr, &m_image) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create image!");
-		}
-
-		allocator.AllocateImage(imageInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_image);
+		m_vulkanImageInfo.MemoryAlloc = allocator.AllocateImage(imageInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_vulkanImageInfo.Image);
 
 		VkImageViewCreateInfo imageViewCreateInfo = {};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = spec.format;
+		imageViewCreateInfo.format = GetImageFormat(spec.Format);
 		imageViewCreateInfo.flags = 0;
 		imageViewCreateInfo.subresourceRange = {};
 		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -70,9 +70,9 @@ namespace Hydro
 		imageViewCreateInfo.subresourceRange.levelCount = 1;
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
-		imageViewCreateInfo.image = m_image;
+		imageViewCreateInfo.image = m_vulkanImageInfo.Image;
 		
-		VK_CHECK_RESULT(vkCreateImageView(device, &imageViewCreateInfo, nullptr, &m_imageView));
+		VK_CHECK_RESULT(vkCreateImageView(device, &imageViewCreateInfo, nullptr, &m_vulkanImageInfo.ImageView));
 
 		VkSamplerCreateInfo samplerCreateInfo = {};
 		samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -89,11 +89,22 @@ namespace Hydro
 		samplerCreateInfo.maxLod = 1.0f;
 		samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
-		VK_CHECK_RESULT(vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_sampler));
+		VK_CHECK_RESULT(vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_vulkanImageInfo.Sampler));
+
+		// vkBindImageMemory(device, m_vulkanImageInfo.Image, m_vulkanImageInfo.MemoryAlloc->GetMemory(), 0);
 	}
 
 	void VulkanImage::Bind()
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+	}
+
+	VkFormat VulkanImage::GetImageFormat(ImageFormat imageformat)
+	{
+		switch (imageformat)
+		{
+			case Hydro::ImageFormat::RGBA:		return VK_FORMAT_R8G8B8A8_UNORM;
+			case Hydro::ImageFormat::RGBA32F:	return VK_FORMAT_R32G32B32A32_SFLOAT;
+			case Hydro::ImageFormat::DEPTH32F:	return VK_FORMAT_D32_SFLOAT;
+		}
 	}
 }

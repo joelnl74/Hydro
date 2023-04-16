@@ -25,7 +25,7 @@ namespace Hydro
 
 	void VulkanIndexBuffer::Bind()
 	{
-		auto& commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
+		auto& commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 
 		vkCmdBindIndexBuffer(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT16);
 	}

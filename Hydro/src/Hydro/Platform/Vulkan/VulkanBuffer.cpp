@@ -53,7 +53,7 @@ namespace Hydro
 		auto &rendererContext = Renderer::GetRendererContext();
 
 		auto device = rendererContext->GetVulkanDevice()->GetDevice();
-		auto &commandPool = Renderer::GetVulkanPresentation()->GetCommandPool();
+		auto &commandPool = Renderer::GetVulkanSwapChain()->GetCommandPool();
 		auto graphicsQueue = rendererContext->GetVulkanDevice()->GetGraphicsQueue();
 
 		VkCommandBufferAllocateInfo allocInfo{};

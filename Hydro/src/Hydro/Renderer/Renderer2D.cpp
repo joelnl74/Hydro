@@ -5,6 +5,7 @@
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
 #include "Hydro/Platform/Vulkan/VulkanIndexBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
+#include "Hydro/Platform/Vulkan/VullkanTexture.h"
 
 #include "Hydro/Renderer/Renderer.h"
 
@@ -33,7 +34,7 @@ namespace Hydro
 		{
 			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
 			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
-			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
 			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 		};
 
@@ -49,6 +50,7 @@ namespace Hydro
 		Ref<VulkanVertexBuffer> QuadVertexBuffer;
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;
 		Ref<VulkanUniformBuffer> QuadUniformBuffer;
+		Ref<VullkanTexture> VulkanTexture;
 	};
 
 	static Renderer2DData* s_Data = nullptr;
@@ -88,6 +90,10 @@ namespace Hydro
 
 		specification.shader = s_Data->Shader;
 
+		VulkanTextureSpecification textureProperties;
+
+		s_Data->VulkanTexture = CreateRef<VullkanTexture>("assets/textures/qfvtptgu_4k_diffuse.png", textureProperties);
+
 		s_Data->Shader->CreateDescriptorSetLayout();
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
 
@@ -96,13 +102,13 @@ namespace Hydro
 		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint8_t)sizeof(UniformBufferObject));
 
 		s_Data->Shader->CreateDescriptorPool();
-		s_Data->Shader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject));
+		s_Data->Shader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), s_Data->VulkanTexture, sizeof(UniformBufferObject));
 	}
 
 	void Renderer2D::Begin()
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();
-		auto& extent = Renderer::GetVulkanPresentation()->GetExtend();
+		auto& extent = Renderer::GetVulkanSwapChain()->GetExtend();
 
 		static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -124,7 +130,7 @@ namespace Hydro
 
 	void Renderer2D::DrawQuad()
 	{
-		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
+		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 
 		s_Data->QuadPipeline->Bind();
 		s_Data->QuadVertexBuffer->Bind();

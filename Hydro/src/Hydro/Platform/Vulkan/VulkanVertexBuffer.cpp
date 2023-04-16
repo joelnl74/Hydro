@@ -26,7 +26,7 @@ namespace Hydro
 
 	void VulkanVertexBuffer::Bind()
 	{
-		auto& commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
+		auto& commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 
 		VkBuffer vertexBuffers[] = { m_VertexBuffer };
 		VkDeviceSize offsets[] = { 0 };

@@ -1,31 +1,33 @@
 #pragma once
 #include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
+#include "Hydro/Renderer/Image.h"
 
 namespace Hydro
 {
-	struct VulkanImageSpecification
+	struct VulkanImageInfo
 	{
-		VkFormat format; 
-		VkImageTiling tiling; 
-		VkImageUsageFlags usage; 
-		VkMemoryPropertyFlags properties;
+		VkImage Image;
+		VkImageView ImageView;
+		VkSampler Sampler;
+		VmaAllocation MemoryAlloc = nullptr;
+		uint32_t size;
 	};
 
 	class VulkanImage
 	{
 	public:
-		VulkanImage(const std::string &filePath, VulkanImageSpecification spec);
+		VulkanImage(const std::string &filePath, ImageSpecification spec);
+		const VulkanImageInfo &GetVulkanImageInfo() { return m_vulkanImageInfo; };
+
+		VkBuffer& GetBuffer() { return m_ImageData; };
+
 		void Bind();
 	private:
+		VkFormat GetImageFormat(ImageFormat imageformat);
+	private:
 		int m_width, m_heigth, m_texChannels;
-
-		VkImage m_image;
-		VkImageView m_imageView;
-		VkSampler m_sampler;
-
-		VkBuffer m_VertexBuffer;
-		VkDeviceMemory m_VertexBufferMemory;
-		VmaAllocation m_MemoryAllocation;
+		VulkanImageInfo m_vulkanImageInfo;
+		VkBuffer m_ImageData;
 	};
 }
 

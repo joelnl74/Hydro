@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "Hydro/Core/Base.h"
+#include "VullkanTexture.h"
 #include <map>
 namespace Hydro
 {
@@ -46,7 +47,7 @@ namespace Hydro
 		// Create methods
 		void CreateDescriptorSetLayout();
 		void CreateDescriptorPool();
-		void CreateDescriptorSet(std::vector<VkBuffer>& buffers, uint32_t size);
+		void CreateDescriptorSet(std::vector<VkBuffer>& buffers, Ref<VullkanTexture> &VullkanTexture, uint32_t size);
 
 		VkDescriptorSetLayoutBinding const & GetDescriptorSetLayoutBinding() { return m_UBOLayoutBinding;  }
 

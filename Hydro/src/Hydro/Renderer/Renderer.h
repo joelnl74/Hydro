@@ -16,7 +16,7 @@ namespace Hydro
 
 		static uint32_t GetRenderFrame() { return Get().m_vulkanPresentation->GetRenderFrame(); }
 		static Ref<VulkanRendererContext> GetRendererContext() { return Get().m_rendererContext; }
-		static Ref<VulkanSwapChain> GetVulkanPresentation() { return Get().m_vulkanPresentation; }
+		static Ref<VulkanSwapChain> GetVulkanSwapChain() { return Get().m_vulkanPresentation; }
 
 		void Init(Window& window);
 		void ShutDown();
