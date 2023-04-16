@@ -43,7 +43,6 @@ namespace Hydro
 		const std::vector<VkDescriptorSet>& GetDescriptorSets() { return m_DescriptorSets; };
 		const std::vector<VkPipelineShaderStageCreateInfo>& GetShaderStageInformation() { return m_ShaderStages; };
 		const VkDescriptorSetLayout& GetDescriptorSetLayout() { return m_DescriptorSetLayout; };
-		
 		// Create methods
 		void CreateDescriptorSetLayout();
 		void CreateDescriptorPool();
