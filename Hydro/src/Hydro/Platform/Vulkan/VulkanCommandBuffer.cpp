@@ -48,6 +48,5 @@ namespace Hydro
 
 		vkFreeCommandBuffers(device->GetDevice(), commandPool, 1, &m_commandBuffer);
 	}
-
 }
 
