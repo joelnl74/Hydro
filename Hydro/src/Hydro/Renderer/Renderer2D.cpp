@@ -46,10 +46,13 @@ namespace Hydro
 		UniformBufferObject ubo;
 
 		Ref<VulkanShader> Shader;
+
 		Ref<VulkanPipeline> QuadPipeline;
 		Ref<VulkanVertexBuffer> QuadVertexBuffer;
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;
 		Ref<VulkanUniformBuffer> QuadUniformBuffer;
+		Ref<VulkanDescriptorBuilder> QuadDescriptorSet;
+		
 		Ref<VullkanTexture> VulkanTexture;
 	};
 
@@ -80,6 +83,20 @@ namespace Hydro
 		s_Data->Shader = CreateRef<VulkanShader>(shaderSpecification);
 		/// END BLOCK!
 
+		VulkanTextureSpecification textureProperties;
+
+		s_Data->VulkanTexture = CreateRef<VullkanTexture>("assets/textures/qfvtptgu_4k_diffuse.png", textureProperties);
+
+		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
+		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
+		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint8_t)sizeof(UniformBufferObject));
+
+		s_Data->QuadDescriptorSet = CreateRef<VulkanDescriptorBuilder>();
+		s_Data->QuadDescriptorSet->Begin();
+		s_Data->QuadDescriptorSet->BindBuffer(0, s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+		s_Data->QuadDescriptorSet->BindImage(1, s_Data->VulkanTexture, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+		s_Data->QuadDescriptorSet->Build();
+
 		PipelineSpecification specification;
 		specification.Layout =
 		{
@@ -88,21 +105,10 @@ namespace Hydro
 			{ ShaderDataType::Float2, "inTexCoord" },
 		};
 
+		specification.descriptorSet = s_Data->QuadDescriptorSet;
 		specification.shader = s_Data->Shader;
 
-		VulkanTextureSpecification textureProperties;
-
-		s_Data->VulkanTexture = CreateRef<VullkanTexture>("assets/textures/qfvtptgu_4k_diffuse.png", textureProperties);
-
-		s_Data->Shader->CreateDescriptorSetLayout();
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
-
-		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
-		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
-		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint8_t)sizeof(UniformBufferObject));
-
-		s_Data->Shader->CreateDescriptorPool();
-		s_Data->Shader->CreateDescriptorSet(s_Data->QuadUniformBuffer->GetVKBuffers(), s_Data->VulkanTexture, sizeof(UniformBufferObject));
 	}
 
 	void Renderer2D::Begin()

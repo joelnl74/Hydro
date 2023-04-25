@@ -112,7 +112,7 @@ namespace Hydro
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1; // Optional
-		pipelineLayoutInfo.pSetLayouts = &m_pipelineSpecification.shader->GetDescriptorSetLayout(); // Optional
+		pipelineLayoutInfo.pSetLayouts = &m_pipelineSpecification.descriptorSet->GetDescriptorSetLayout(); // Optional
 
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -185,7 +185,7 @@ namespace Hydro
 		uint32_t currentImage = Renderer::GetRenderFrame();
 
 		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
-		auto descriptorSet = m_pipelineSpecification.shader->GetDescriptorSets()[currentImage];
+		auto descriptorSet = m_pipelineSpecification.descriptorSet->GetDescriptorSet(currentImage);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 	}
