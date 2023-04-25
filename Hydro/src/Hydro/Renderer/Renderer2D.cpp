@@ -93,7 +93,7 @@ namespace Hydro
 
 		s_Data->QuadDescriptorSet = CreateRef<VulkanDescriptorBuilder>();
 		s_Data->QuadDescriptorSet->Begin();
-		s_Data->QuadDescriptorSet->BindBuffer(0, s_Data->QuadUniformBuffer->GetVKBuffers(), sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+		s_Data->QuadDescriptorSet->BindBuffer(0, s_Data->QuadUniformBuffer, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
 		s_Data->QuadDescriptorSet->BindImage(1, s_Data->VulkanTexture, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
 		s_Data->QuadDescriptorSet->Build();
 

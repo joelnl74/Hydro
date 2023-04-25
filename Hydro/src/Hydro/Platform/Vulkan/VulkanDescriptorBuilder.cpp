@@ -10,7 +10,7 @@ namespace Hydro
 		m_writeDescriptorSets.emplace(1, std::vector<VkWriteDescriptorSet>());
 	}
 
-	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, std::vector<VkBuffer>& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, Ref<VulkanUniformBuffer> &buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
 	{
 		VkDescriptorPoolSize poolSize;
 		poolSize.type = type;
@@ -29,10 +29,11 @@ namespace Hydro
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = buffers[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = (uint32_t)size;
+			VkDescriptorBufferInfo *bufferInfo = new VkDescriptorBufferInfo();
+			bufferInfo->buffer = buffer->GetVKBuffers()[i];
+			bufferInfo->offset = 0;
+			bufferInfo->range = (uint32_t)size;
+			m_info.push_back(bufferInfo);
 
 			VkWriteDescriptorSet writeDescriptorSet{};
 			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -40,7 +41,7 @@ namespace Hydro
 			writeDescriptorSet.dstArrayElement = 0;
 			writeDescriptorSet.descriptorType = type;
 			writeDescriptorSet.descriptorCount = 1;
-			writeDescriptorSet.pBufferInfo = &bufferInfo;
+			writeDescriptorSet.pBufferInfo = bufferInfo;
 			m_writeDescriptorSets[i].push_back(writeDescriptorSet);
 		}
 	}
@@ -62,10 +63,10 @@ namespace Hydro
 
 		m_layoutBinding.push_back(samplerLayoutBinding);
 
-		VkDescriptorImageInfo imageInfo {};
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = vulkanTexture->GetImageView();
-		imageInfo.sampler = vulkanTexture->GetImageSampler();
+		VkDescriptorImageInfo *imageInfo  = new VkDescriptorImageInfo();
+		imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo->imageView = vulkanTexture->GetImageView();
+		imageInfo->sampler = vulkanTexture->GetImageSampler();
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -75,7 +76,7 @@ namespace Hydro
 			writeDescriptorSet.dstArrayElement = 0;
 			writeDescriptorSet.descriptorType = type;
 			writeDescriptorSet.descriptorCount = 1;
-			writeDescriptorSet.pImageInfo = &imageInfo;
+			writeDescriptorSet.pImageInfo = imageInfo;
 			m_writeDescriptorSets[i].push_back(writeDescriptorSet);
 		}
 	}
@@ -120,10 +121,13 @@ namespace Hydro
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_writeDescriptorSets[i][0].dstSet = m_DescriptorSets[0];
-			m_writeDescriptorSets[i][1].dstSet = m_DescriptorSets[1];
+			for (auto &x : m_writeDescriptorSets[i])
+			{
+				x.dstSet = m_DescriptorSets[i];
+				x.dstSet = m_DescriptorSets[i];
+			}
 
-			vkUpdateDescriptorSets(device, 2, m_writeDescriptorSets[i].data(), 0, nullptr);
+			vkUpdateDescriptorSets(device, (uint32_t)m_writeDescriptorSets[i].size(), m_writeDescriptorSets[i].data(), 0, nullptr);
 		}
 
 		return true;

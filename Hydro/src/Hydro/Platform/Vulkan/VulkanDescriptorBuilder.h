@@ -1,6 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
+
 #include "VullkanTexture.h"
+#include "VulkanUniformBuffer.h"
 
 #include <vector>
 #include <map>
@@ -13,7 +15,7 @@ namespace Hydro
 
 		// Creation methods.
 		void Begin();
-		void BindBuffer(uint32_t binding, std::vector<VkBuffer>& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		void BindBuffer(uint32_t binding, Ref<VulkanUniformBuffer>& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		void BindImage(uint32_t binding, Ref<VullkanTexture> &vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		bool Build();
 
@@ -25,6 +27,7 @@ namespace Hydro
 		std::map<uint32_t, std::vector<VkWriteDescriptorSet>> m_writeDescriptorSets;
 		std::vector<VkDescriptorSetLayoutBinding> m_layoutBinding;
 		std::vector<VkDescriptorPoolSize> m_poolSizes;
+		std::vector<VkDescriptorBufferInfo*> m_info;
 		VkDescriptorPool m_DescriptorPool;
 		VkDescriptorSetLayout m_DescriptorSetLayout;
 	};
