@@ -14,7 +14,7 @@ namespace Hydro
 
 		using SlotType = std::function< void(Event&) >;
 
-		void EventDispatcher::Subscribe(EventType eventType, SlotType&& slot)
+		void Subscribe(EventType eventType, SlotType&& slot)
 		{
 			m_Observers[eventType].push_back(slot);
 		}
@@ -32,8 +32,6 @@ namespace Hydro
 			for (auto&& observer : observers)
 				observer(postEvent);
 		}
-
-
 
 	public:
 		static EventDispatcher& Get() { return *s_Instance; }

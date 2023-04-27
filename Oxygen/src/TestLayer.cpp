@@ -26,6 +26,9 @@ namespace Hydro
 			std::cout << "A" << std::endl;
 		}
 	}
+	void TestLayer::OnEvent(Event& e)
+	{
+	}
 }
 
 

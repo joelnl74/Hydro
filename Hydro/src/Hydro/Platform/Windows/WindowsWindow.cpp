@@ -6,6 +6,8 @@
 #include "Hydro\Events\KeyEvents.h"
 #include "Hydro\Events\MouseEvents.h"
 
+#include <iostream>
+
 namespace Hydro
 {
 	static uint8_t s_GLFWWindowCount = 0;
@@ -36,6 +38,8 @@ namespace Hydro
 			int success = glfwInit();
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
+
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		++s_GLFWWindowCount;

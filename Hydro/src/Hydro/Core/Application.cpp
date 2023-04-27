@@ -1,6 +1,9 @@
 #include "hypch.h"
 #include "Application.h"
 
+#include "Hydro/Renderer/Renderer.h"
+#include "Hydro/Renderer/Renderer2D.h"
+
 namespace Hydro
 {
 	Application* Application::s_Instance = nullptr;
@@ -8,13 +11,29 @@ namespace Hydro
 	Application::Application()
 	{
 		s_Instance = this;
-		m_Window = Window::Create(WindowProps());
 
+		// Initialize and create engine systems.
+		Log::Init();
+
+		// Create engine systems.
+		m_Window = Window::Create(WindowProps());
+		Renderer::Create(*m_Window);
 		EventDispatcher::Create();
+
+		// Setup events for application.
 		EventDispatcher::Get().Subscribe(EventType::WindowClose, HY_BIND_EVENT_FN(Application::OnEvent));
 		EventDispatcher::Get().Subscribe(EventType::WindowResize, HY_BIND_EVENT_FN(Application::OnEvent));
+		EventDispatcher::Get().Subscribe(EventType::KeyPressed, HY_BIND_EVENT_FN(Application::OnEvent));
+		EventDispatcher::Get().Subscribe(EventType::KeyReleased, HY_BIND_EVENT_FN(Application::OnEvent));
+		EventDispatcher::Get().Subscribe(EventType::KeyTyped, HY_BIND_EVENT_FN(Application::OnEvent));
+		EventDispatcher::Get().Subscribe(EventType::MouseButtonPressed, HY_BIND_EVENT_FN(Application::OnEvent));
+		EventDispatcher::Get().Subscribe(EventType::MouseButtonReleased, HY_BIND_EVENT_FN(Application::OnEvent));
+		EventDispatcher::Get().Subscribe(EventType::MouseMoved, HY_BIND_EVENT_FN(Application::OnEvent));
+		EventDispatcher::Get().Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
 
 		m_Running = true;
+
+		HY_CORE_TRACE("Engine initialized");
 	}
 
 	Application::~Application()
@@ -39,9 +58,13 @@ namespace Hydro
 		while (m_Running)
 		{
 			m_Window->OnUpdate();
+			Renderer::RenderFrame();
+
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 		}
+
+		Renderer::ShutDown();
 	}
 
 	void Application::ShutDown()
@@ -62,9 +85,11 @@ namespace Hydro
 		if (e.GetEventType() == EventType::WindowResize)
 		{
 			WindowResizeEvent receivedEvent = EventDispatcher::GetEvent<WindowResizeEvent&>(e);
+		}
 
-			std::cout << receivedEvent.width;
-			std::cout << receivedEvent.heigth;
+		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
+		{
+			(*--it)->OnEvent(e);
 		}
 	}
 }

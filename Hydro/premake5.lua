@@ -8,7 +8,7 @@ project "Hydro"
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "hypch.h"
-	pchsource "hypch.cpp"
+	pchsource "src/hypch.cpp"
 
 	files
 	{
@@ -16,6 +16,10 @@ project "Hydro"
 		"src/**.cpp",
 		"vendor/glm/glm/**.hpp",
 		"vendor/glm/glm/**.inl",
+		"vendor/VulkanMemoryAllocator/**.h",
+		"vendor/VulkanMemoryAllocator/**.cpp",
+		"vendor/stb_image/**.h",
+		"vendor/stb_image/**.cpp"
 	}
 
 	defines
@@ -31,12 +35,18 @@ project "Hydro"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.VulkanSDK}",
+		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.stb}",
 	}
 
 	links
 	{
 		"GLFW",
 		"ImGui",
+
+		"%{Library.Vulkan}",
+		"%{Library.VulkanUtils}",
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
@@ -56,6 +66,9 @@ project "Hydro"
 
 		links
 		{
+			"%{Library.ShaderC_Debug}",
+			"%{Library.SPIRV_Cross_Debug}",
+			"%{Library.SPIRV_Cross_GLSL_Debug}"
 		}
 
 	filter "configurations:Release"
@@ -65,6 +78,9 @@ project "Hydro"
 
 		links
 		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
 
 	filter "configurations:Distribution"
@@ -74,4 +90,7 @@ project "Hydro"
 
 		links
 		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
