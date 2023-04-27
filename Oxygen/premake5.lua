@@ -15,10 +15,12 @@ project "Oxygen"
 
 	includedirs
 	{
+		"%{prj.name}/src",
 		"%{wks.location}/Hydro/src",
 		"%{wks.location}/Hydro/vendor",
 		"%{wks.location}/Hydro/vendor/spdlog/include",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.Vulkan}",
 	}
 
 	links
@@ -34,12 +36,24 @@ project "Oxygen"
 		runtime "Debug"
 		symbols "on"
 
+		postbuildcommands 
+		{
+		}
+
 	filter "configurations:Release"
 		defines "HY_RELEASE"
 		runtime "Release"
 		optimize "on"
 
+		postbuildcommands 
+		{
+		}
+
 	filter "configurations:Dist"
 		defines "HY_DIST"
 		runtime "Release"
 		optimize "on"
+
+		postbuildcommands 
+		{
+		}

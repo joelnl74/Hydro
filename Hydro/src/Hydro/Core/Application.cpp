@@ -1,18 +1,26 @@
 #include "hypch.h"
 #include "Application.h"
 
+#include "Hydro/Renderer/Renderer.h"
+#include "Hydro/Renderer/Renderer2D.h"
+
 namespace Hydro
 {
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application()
 	{
+		s_Instance = this;
+
+		// Initialize and create engine systems.
 		Log::Init();
 
-		s_Instance = this;
+		// Create engine systems.
 		m_Window = Window::Create(WindowProps());
-
+		Renderer::Create(*m_Window);
 		EventDispatcher::Create();
+
+		// Setup events for application.
 		EventDispatcher::Get().Subscribe(EventType::WindowClose, HY_BIND_EVENT_FN(Application::OnEvent));
 		EventDispatcher::Get().Subscribe(EventType::WindowResize, HY_BIND_EVENT_FN(Application::OnEvent));
 		EventDispatcher::Get().Subscribe(EventType::KeyPressed, HY_BIND_EVENT_FN(Application::OnEvent));
@@ -50,9 +58,13 @@ namespace Hydro
 		while (m_Running)
 		{
 			m_Window->OnUpdate();
+			Renderer::RenderFrame();
+
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 		}
+
+		Renderer::ShutDown();
 	}
 
 	void Application::ShutDown()
@@ -73,9 +85,6 @@ namespace Hydro
 		if (e.GetEventType() == EventType::WindowResize)
 		{
 			WindowResizeEvent receivedEvent = EventDispatcher::GetEvent<WindowResizeEvent&>(e);
-
-			std::cout << receivedEvent.width;
-			std::cout << receivedEvent.heigth;
 		}
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
