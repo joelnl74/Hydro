@@ -20,9 +20,6 @@ namespace Hydro
 		Renderer::Create(*m_Window);
 		EventDispatcher::Create();
 
-		// Init Engine Systems.
-		Renderer2D::Init();
-
 		// Setup events for application.
 		EventDispatcher::Get().Subscribe(EventType::WindowClose, HY_BIND_EVENT_FN(Application::OnEvent));
 		EventDispatcher::Get().Subscribe(EventType::WindowResize, HY_BIND_EVENT_FN(Application::OnEvent));
@@ -67,7 +64,7 @@ namespace Hydro
 				layer->OnUpdate();
 		}
 
-		Renderer::Get().ShutDown();
+		Renderer::ShutDown();
 	}
 
 	void Application::ShutDown()

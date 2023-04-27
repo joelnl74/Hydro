@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.h>
 #include "Hydro/Core/Base.h"
 #include "VullkanTexture.h"
+#include "VulkanDescriptorBuilder.h"
+
 #include <map>
 namespace Hydro
 {
@@ -22,6 +24,7 @@ namespace Hydro
 	struct ShaderSpecification
 	{
 		std::vector<ShaderInformation> shaderInformation;
+		VulkanDescriptorBuilder descriptorBuilder;
 	};
 
 	class VulkanShader
@@ -40,27 +43,13 @@ namespace Hydro
 		}
 
 		// Get methods
-		const std::vector<VkDescriptorSet>& GetDescriptorSets() { return m_DescriptorSets; };
 		const std::vector<VkPipelineShaderStageCreateInfo>& GetShaderStageInformation() { return m_ShaderStages; };
-		const VkDescriptorSetLayout& GetDescriptorSetLayout() { return m_DescriptorSetLayout; };
-		// Create methods
-		void CreateDescriptorSetLayout();
-		void CreateDescriptorPool();
-		void CreateDescriptorSet(std::vector<VkBuffer>& buffers, Ref<VullkanTexture> &VullkanTexture, uint32_t size);
-
-		VkDescriptorSetLayoutBinding const & GetDescriptorSetLayoutBinding() { return m_UBOLayoutBinding;  }
-
+		
 	private:
 		std::vector<char> readFile(const std::string& filePath);
 
 	private:
 		// TODO Make it a ref.
-		VkDescriptorSetLayout m_DescriptorSetLayout;
-		VkDescriptorSetLayoutBinding m_UBOLayoutBinding;
-
-		VkDescriptorPool m_DescriptorPool;
-
-		std::vector<VkDescriptorSet> m_DescriptorSets;
 		std::vector<VkPipelineShaderStageCreateInfo> m_ShaderStages;
 		std::map<uint32_t, VkShaderModule> m_ShaderModules;
 	};

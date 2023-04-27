@@ -1,6 +1,7 @@
 #include <hypch.h>
 
 #include "Renderer.h"
+#include "Renderer2D.h"
 
 namespace Hydro
 {
@@ -15,20 +16,27 @@ namespace Hydro
 
 	void Renderer::ShutDown()
 	{
-		m_vulkanPresentation->ShutDown();
-		m_rendererContext->ShutDown();
+		s_Instance->m_vulkanPresentation->StartShutDown();
+
+		Renderer2D::ShutDown();
+		VulkanAllocator::Shutdown();
+		s_Instance->m_vulkanPresentation->ShutDown();
+		s_Instance->m_rendererContext->ShutDown();
+
+		delete s_Instance;
 	}
 
 	void Renderer::Init(Window& window)
 	{
-		m_rendererContext = CreateRef<VulkanRendererContext>();
-		m_vulkanPresentation = CreateRef<VulkanSwapChain>(window);
+		s_Instance->m_rendererContext = CreateRef<VulkanRendererContext>();
+		s_Instance->m_vulkanPresentation = CreateRef<VulkanSwapChain>(window);
 
-		m_rendererContext->Init();
-		m_vulkanPresentation->Init(m_rendererContext->GetInstance(), m_rendererContext->GetVulkanDevice());
-		m_vulkanPresentation->InitSurface(window);
-		m_vulkanPresentation->CreateSwapChain(window, true);
+		s_Instance->m_rendererContext->Init();
+		s_Instance->m_vulkanPresentation->Init(s_Instance->m_rendererContext->GetInstance(), s_Instance->m_rendererContext->GetVulkanDevice());
+		s_Instance->m_vulkanPresentation->InitSurface(window);
+		s_Instance->m_vulkanPresentation->CreateSwapChain(window, true);
 
-		VulkanAllocator::Init(m_rendererContext->GetVulkanDevice());
+		VulkanAllocator::Init(s_Instance->m_rendererContext->GetVulkanDevice());
+		Renderer2D::Init();
 	}
 }

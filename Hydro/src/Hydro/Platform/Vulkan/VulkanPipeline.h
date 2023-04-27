@@ -16,6 +16,7 @@ namespace Hydro
 	struct PipelineSpecification
 	{
 		Ref<VulkanShader> shader;
+		Ref<VulkanDescriptorBuilder> descriptorSet;
 
 		VertexBufferLayout Layout;
 		// Ref<RenderPass> RenderPass;

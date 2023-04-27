@@ -17,11 +17,17 @@ namespace Hydro
 		vertexBufferCreateInfo.size = size;
 		vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-		auto bufferAlloc = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_VertexBuffer);
+		m_MemoryAllocation = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_VertexBuffer);
 
-		void* dstBuffer = allocator.MapMemory<void>(bufferAlloc);
+		void* dstBuffer = allocator.MapMemory<void>(m_MemoryAllocation);
 		memcpy(dstBuffer, sourceData, size);
-		allocator.UnmapMemory(bufferAlloc);
+		allocator.UnmapMemory(m_MemoryAllocation);
+	}
+
+	void VulkanVertexBuffer::Destory()
+	{
+		VulkanAllocator allocator("VertexBuffer");
+		allocator.DestroyBuffer(m_VertexBuffer, m_MemoryAllocation);
 	}
 
 	void VulkanVertexBuffer::Bind()
