@@ -39,8 +39,8 @@ namespace Hydro
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			// vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
-			// vkFreeMemory(device, m_uniformBuffersMemory[i], nullptr);
+			vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
+			// VulkanAllocator::Free(m_vmaAllocation[i]);
 		}
 	}
 
@@ -50,6 +50,16 @@ namespace Hydro
 		uint8_t* pData = allocator.MapMemory<uint8_t>(m_vmaAllocation[currentImage]);
 		memcpy(pData, (uint8_t*)data, size);
 		allocator.UnmapMemory(m_vmaAllocation[currentImage]);
+	}
+
+	void VulkanUniformBuffer::Destory()
+	{
+		VulkanAllocator allocator("VulkanUniformBuffer");
+
+		for (uint32_t i = 0; i < m_uniformBuffers.size(); i++)
+		{
+			allocator.DestroyBuffer(m_uniformBuffers[i], m_vmaAllocation[i]);
+		}
 	}
 
 }

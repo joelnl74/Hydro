@@ -24,25 +24,9 @@ namespace Hydro
 		m_pipelineSpecification = spec;
 
 		Ref<VulkanRendererContext> context = Renderer::GetRendererContext();
-		VkDevice device = context->GetVulkanDevice()->GetDevice();
-
-		auto extents = Renderer::GetVulkanPresentation()->GetExtend();
-		auto renderpass = Renderer::GetVulkanPresentation()->GetRenderPass();
-
-		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertShaderStageInfo.module = m_pipelineSpecification.vertex->GetModule();
-		vertShaderStageInfo.pName = "main";
-
-		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragShaderStageInfo.module = m_pipelineSpecification.fragment->GetModule();
-		fragShaderStageInfo.pName = "main";
-
-		m_ShaderStages.push_back(vertShaderStageInfo);
-		m_ShaderStages.push_back(fragShaderStageInfo);
+		auto &device = context->GetVulkanDevice()->GetDevice();
+		auto &extents = Renderer::GetVulkanSwapChain()->GetExtend();
+		auto &renderpass = Renderer::GetVulkanSwapChain()->GetRenderPass();
 
 		// Setup vertex data.
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -128,7 +112,7 @@ namespace Hydro
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1; // Optional
-		pipelineLayoutInfo.pSetLayouts = &m_pipelineSpecification.vertex->GetDescriptorSetLayout(); // Optional
+		pipelineLayoutInfo.pSetLayouts = &m_pipelineSpecification.descriptorSet->GetDescriptorSetLayout(); // Optional
 
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -158,7 +142,7 @@ namespace Hydro
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.stageCount = 2;
-		pipelineInfo.pStages = m_ShaderStages.data();
+		pipelineInfo.pStages = spec.shader->GetShaderStageInformation().data();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
 		pipelineInfo.pViewportState = &viewportState;
@@ -189,19 +173,19 @@ namespace Hydro
 
 	void VulkanPipeline::Bind()
 	{
-		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
+		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 		vkCmdSetViewport(commandBuffer, 0, 1, &GetViewPort());
 		vkCmdSetScissor(commandBuffer, 0, 1, &GetRect2D());
 	}
 
-	void VulkanPipeline::UpdateBuffers()
+	void VulkanPipeline::BindDescriptorSets()
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();
 
-		auto commandBuffer = Renderer::GetVulkanPresentation()->GetCommandBuffer();
-		auto descriptorSet = m_pipelineSpecification.vertex->GetDescriptorSets()[currentImage];
+		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
+		auto descriptorSet = m_pipelineSpecification.descriptorSet->GetDescriptorSet(currentImage);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 	}

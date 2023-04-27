@@ -44,6 +44,7 @@ namespace Hydro
 		void BeginRenderPass();
 		void EndRenderPass();
 
+		void StartShutDown();
 		void ShutDown();
 
 	private:

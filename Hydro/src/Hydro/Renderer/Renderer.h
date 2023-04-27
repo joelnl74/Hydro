@@ -10,16 +10,15 @@ namespace Hydro
 	class Renderer
 	{
 	public:
-		static Renderer& Get() { return *s_Instance; }
 		static void Create(Window &window);
-		static void RenderFrame() { Get().m_vulkanPresentation->DrawFrame(); }
+		static void RenderFrame() { s_Instance->m_vulkanPresentation->DrawFrame(); }
 
-		static uint32_t GetRenderFrame() { return Get().m_vulkanPresentation->GetRenderFrame(); }
-		static Ref<VulkanRendererContext> GetRendererContext() { return Get().m_rendererContext; }
-		static Ref<VulkanSwapChain> GetVulkanPresentation() { return Get().m_vulkanPresentation; }
+		static uint32_t GetRenderFrame() { return s_Instance->m_vulkanPresentation->GetRenderFrame(); }
+		static Ref<VulkanRendererContext> GetRendererContext() { return s_Instance->m_rendererContext; }
+		static Ref<VulkanSwapChain> GetVulkanSwapChain() { return s_Instance->m_vulkanPresentation; }
 
-		void Init(Window& window);
-		void ShutDown();
+		static void Init(Window& window);
+		static void ShutDown();
 
 	private:
 		static Renderer *s_Instance;
