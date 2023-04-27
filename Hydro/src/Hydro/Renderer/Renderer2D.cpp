@@ -111,6 +111,19 @@ namespace Hydro
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
 	}
 
+	void Renderer2D::ShutDown()
+	{
+		s_Data->QuadDescriptorSet->Destory();
+		s_Data->VulkanTexture->Destory();
+		s_Data->Shader->Destory();
+		s_Data->QuadPipeline->ShutDown();
+		s_Data->QuadUniformBuffer->Destory();
+		s_Data->QuadIndexBuffer->Destory();
+		s_Data->QuadVertexBuffer->Destory();
+
+		s_Data = nullptr;
+	}
+
 	void Renderer2D::Begin()
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();

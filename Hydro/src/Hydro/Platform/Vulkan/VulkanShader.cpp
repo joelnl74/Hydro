@@ -46,8 +46,10 @@ namespace Hydro
 		auto context = Renderer::GetRendererContext();
 		VkDevice device = context->GetVulkanDevice()->GetDevice();
 
-		// TODO clean up all created buffers, descriptor pools and descriptor layouts.
-		// vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
+		for (auto &x : m_ShaderModules)
+		{
+			vkDestroyShaderModule(device, x.second, nullptr);
+		}
 	}
 
 	std::vector<char> VulkanShader::readFile(const std::string& filePath)

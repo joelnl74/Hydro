@@ -18,11 +18,16 @@ namespace Hydro
 		m_Instance = instance;
 	}
 
-	void VulkanSwapChain::ShutDown()
+	void VulkanSwapChain::StartShutDown()
 	{
 		auto device = m_Device->GetDevice();
 
 		vkDeviceWaitIdle(device);
+	}
+
+	void VulkanSwapChain::ShutDown()
+	{
+		auto device = m_Device->GetDevice();
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			vkDestroySemaphore(device, m_RenderSemaphores[i], nullptr);

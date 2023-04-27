@@ -82,6 +82,7 @@ namespace Hydro
 	{
 	public:
 		VulkanVertexBuffer(void* data, uint32_t size);
+		void Destory();
 		void Bind();
 	private:
 		VkBuffer m_VertexBuffer;

@@ -14,13 +14,11 @@ namespace Hydro
 		indexbufferCreateInfo.size = size;
 		indexbufferCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 
-		auto bufferAlloc = allocator.AllocateBuffer(indexbufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffer);
+		m_memory = allocator.AllocateBuffer(indexbufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffer);
 
-		void* dstBuffer = allocator.MapMemory<void>(bufferAlloc);
+		void* dstBuffer = allocator.MapMemory<void>(m_memory);
 		memcpy(dstBuffer, sourceData, size);
-		allocator.UnmapMemory(bufferAlloc);
-
-		auto& device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		allocator.UnmapMemory(m_memory);
 	}
 
 	void VulkanIndexBuffer::Bind()
@@ -28,6 +26,12 @@ namespace Hydro
 		auto& commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 
 		vkCmdBindIndexBuffer(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT16);
+	}
+
+	void VulkanIndexBuffer::Destory()
+	{
+		VulkanAllocator allocator("IndexBuffer");
+		allocator.DestroyBuffer(m_Buffer, m_memory);
 	}
 
 }

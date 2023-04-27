@@ -91,6 +91,16 @@ namespace Hydro
 		}
 	}
 
+	void VullkanTexture::Destory()
+	{
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+
+		vkDestroyImageView(device, m_textureImageView, nullptr);
+		vkDestroySampler(device, m_sampler, nullptr);
+		vkDestroyImage(device, m_image, nullptr);
+		vkFreeMemory(device, m_textureImageMemory, nullptr);
+	}
+
 	void VullkanTexture::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();

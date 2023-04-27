@@ -33,7 +33,7 @@ namespace Hydro
 			bufferInfo->buffer = buffer->GetVKBuffers()[i];
 			bufferInfo->offset = 0;
 			bufferInfo->range = (uint32_t)size;
-			m_info.push_back(bufferInfo);
+			m_bufferInfo.push_back(bufferInfo);
 
 			VkWriteDescriptorSet writeDescriptorSet{};
 			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -67,6 +67,7 @@ namespace Hydro
 		imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo->imageView = vulkanTexture->GetImageView();
 		imageInfo->sampler = vulkanTexture->GetImageSampler();
+		m_imageInfo.push_back(imageInfo);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -133,4 +134,21 @@ namespace Hydro
 		return true;
 	}
 
+	void VulkanDescriptorBuilder::Destory()
+	{
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+
+		for (auto info : m_bufferInfo)
+		{
+			delete info;
+		}
+
+		for (auto info : m_imageInfo)
+		{
+			delete info;
+		}
+
+		vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
+		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
+	}
 }
