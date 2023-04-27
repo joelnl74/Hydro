@@ -15,6 +15,5 @@ namespace Hydro
 	private:
 		VkCommandBuffer m_commandBuffer;
 	};
-
 }
 

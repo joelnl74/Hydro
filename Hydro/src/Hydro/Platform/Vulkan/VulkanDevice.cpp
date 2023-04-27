@@ -20,7 +20,7 @@ namespace Hydro
 		VkDeviceQueueCreateInfo queueCreateInfo{};
 		VkPhysicalDeviceFeatures deviceFeatures{};
 
-		// Device features
+		// Device features.
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 		// Create Queue Info.
