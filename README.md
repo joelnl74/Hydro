@@ -17,3 +17,14 @@ If the repository was cloned non-recursively previously, use git submodule updat
 - After installation, run the Setup.bat file again. If the Vulkan SDK is installed properly, it will then download the Vulkan SDK Debug libraries. (This may take a longer amount of time)
 - After downloading and unzipping the files, the Win-GenProjects.bat script file will get executed automatically, which will then generate a Visual Studio solution file for user's usage.
 - If changes are made, or if you want to regenerate project files, rerun the Win-GenProjects.bat script file found in scripts folder.
+
+## Main features to come:
+- Fast 2D rendering (UI, particles, sprites, etc.)
+- High-fidelity Physically-Based 3D rendering
+- Native rendering API support Vulkan
+- Fully featured viewer and editor applications
+- Fully scripted interaction and behavior
+- Integrated 3rd party 2D and 3D physics engine
+- Procedural terrain and world generation
+- Artificial Intelligence
+- Audio system
