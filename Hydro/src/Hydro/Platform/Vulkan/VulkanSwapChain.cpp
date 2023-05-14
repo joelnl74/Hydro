@@ -327,6 +327,8 @@ namespace Hydro
 
 			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
 			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
 
 		vkCmdEndRenderPass(commandBuffer);
 

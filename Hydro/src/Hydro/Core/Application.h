@@ -22,6 +22,7 @@ namespace Hydro
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
+		void Quit();
 
 		inline Window& GetWindow() { return *m_Window; }
 		static inline Application& Get() { return *s_Instance; }

@@ -55,6 +55,11 @@ namespace Hydro
 		layer->OnAttach();
 	}
 
+	void Application::Quit()
+	{
+		m_Running = false;
+	}
+
 	void Application::Run()
 	{
 		OnInit();

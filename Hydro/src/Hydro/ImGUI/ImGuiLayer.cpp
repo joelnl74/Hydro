@@ -67,11 +67,21 @@ namespace Hydro
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls.
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls.
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking.
-		// io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows.
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows.
 
 		// Initializes imgui for GLFW.
 		auto& window = Application::Get().GetWindow();
 		auto glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());
+
+		ImGui::StyleColorsDark();
+		ImGuiStyle& style = ImGui::GetStyle();
+		
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+
 
 		ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
 
@@ -91,8 +101,9 @@ namespace Hydro
 		//execute a gpu command to upload imgui font textures
 		VulkanCommandBuffer cmd;
 		auto commandBuffer = cmd.Create();
+		
 		cmd.Begin();
-		ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+			ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
 		cmd.End();
 
 		//clear font textures from cpu data
