@@ -10,6 +10,11 @@
 #include "VulkanUtils.h"
 #include "Hydro/Renderer/Renderer2D.h"
 
+
+// TODO Renderer submit queue?
+#include "Hydro/Platform/Vulkan/imgui_impl_vulkan.h"
+#include <imgui.h>
+
 namespace Hydro
 {
 	void VulkanSwapChain::Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice)
@@ -319,6 +324,9 @@ namespace Hydro
 
 			Renderer2D::DrawQuad();
 			Renderer2D::End();
+
+			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
+			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
 		vkCmdEndRenderPass(commandBuffer);
 

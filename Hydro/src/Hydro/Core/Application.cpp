@@ -33,6 +33,9 @@ namespace Hydro
 
 		m_Running = true;
 
+		m_imGuiLayer = new ImGuiLayer();
+		PushLayer(m_imGuiLayer);
+
 		HY_CORE_TRACE("Engine initialized");
 	}
 
@@ -58,6 +61,11 @@ namespace Hydro
 		while (m_Running)
 		{
 			m_Window->OnUpdate();
+
+			m_imGuiLayer->Begin();
+			m_imGuiLayer->OnImGuiRender();
+			m_imGuiLayer->End();
+
 			Renderer::RenderFrame();
 
 			for (Layer* layer : m_LayerStack)
