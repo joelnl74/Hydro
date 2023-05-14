@@ -63,7 +63,10 @@ namespace Hydro
 			m_Window->OnUpdate();
 
 			m_imGuiLayer->Begin();
-			m_imGuiLayer->OnImGuiRender();
+			for (Layer* layer : m_LayerStack)
+			{
+				layer->OnImGuiRender();
+			}
 			m_imGuiLayer->End();
 
 			Renderer::RenderFrame();

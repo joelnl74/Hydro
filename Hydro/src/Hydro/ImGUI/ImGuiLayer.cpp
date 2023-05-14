@@ -110,10 +110,7 @@ namespace Hydro
 //	});
 	}
 
-	void ImGuiLayer::OnImGuiRender()
-	{
-		ImGui::ShowDemoWindow();
-	}
+	void ImGuiLayer::OnImGuiRender() {}
 
 	void ImGuiLayer::Begin()
 	{
