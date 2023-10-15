@@ -85,7 +85,7 @@ namespace Hydro
 
 		VulkanTextureSpecification textureProperties;
 
-		s_Data->VulkanTexture = CreateRef<VullkanTexture>("assets/textures/qfvtptgu_4k_diffuse.png", textureProperties);
+		s_Data->VulkanTexture = CreateRef<VullkanTexture>("assets/textures/risitas.png", textureProperties);
 
 		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
 		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
