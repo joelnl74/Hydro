@@ -2,6 +2,7 @@
 
 #include "Renderer.h"
 #include "Renderer2D.h"
+#include "Renderer3D.h"
 
 namespace Hydro
 {
@@ -37,6 +38,7 @@ namespace Hydro
 		s_Instance->m_vulkanPresentation->CreateSwapChain(window, true);
 
 		VulkanAllocator::Init(s_Instance->m_rendererContext->GetVulkanDevice());
-		Renderer2D::Init();
+		// Renderer2D::Init();
+		Renderer3D::Init();
 	}
 }

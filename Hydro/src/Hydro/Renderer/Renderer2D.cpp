@@ -1,6 +1,5 @@
 #include <hypch.h>
 
-#include <hypch.h>
 #include "Renderer2D.h"
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
 #include "Hydro/Platform/Vulkan/VulkanIndexBuffer.h"
@@ -155,6 +154,7 @@ namespace Hydro
 		s_Data->QuadVertexBuffer->Bind();
 		s_Data->QuadIndexBuffer->Bind();
 		s_Data->QuadPipeline->BindDescriptorSets();
+
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);
 	}
 }
