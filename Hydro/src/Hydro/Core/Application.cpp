@@ -3,6 +3,7 @@
 
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/Renderer2D.h"
+#include "Hydro/Renderer/Renderer3D.h"
 
 namespace Hydro
 {

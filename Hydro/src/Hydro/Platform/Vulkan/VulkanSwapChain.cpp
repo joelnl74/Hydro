@@ -9,6 +9,7 @@
 
 #include "VulkanUtils.h"
 #include "Hydro/Renderer/Renderer2D.h"
+#include "Hydro/Renderer/Renderer3D.h"
 
 
 // TODO Renderer submit queue?
@@ -322,8 +323,8 @@ namespace Hydro
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-			Renderer2D::DrawQuad();
-			Renderer2D::End();
+			Renderer3D::DrawMesh();
+			Renderer3D::End();
 
 			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
 			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
@@ -353,7 +354,7 @@ namespace Hydro
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
 
-		Renderer2D::Begin();
+		Renderer3D::Begin();
 
 		vkResetFences(device, 1, &m_Fences[m_CurrentFrame]);
 
