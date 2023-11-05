@@ -21,7 +21,7 @@ namespace Hydro
 
 		static void Begin();
 		static void End();
-		static void DrawQuad();
+		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
 	};
 
 }
