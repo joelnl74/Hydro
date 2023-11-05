@@ -42,7 +42,7 @@ namespace Hydro
 		vkCmdBindIndexBuffer(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
 
-	void VulkanIndexBuffer::Destory()
+	void VulkanIndexBuffer::Destroy()
 	{
 		VulkanAllocator allocator("IndexBuffer");
 		allocator.DestroyBuffer(m_Buffer, m_memory);

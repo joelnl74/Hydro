@@ -324,15 +324,15 @@ namespace Hydro
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+			glm::mat4 transform2 = glm::mat4(1);
+			transform2 = glm::translate(transform2, glm::vec3(200, 200, 0));
+			transform2 = glm::scale(transform2, glm::vec3(64, 64, 0));
+			Renderer2D::DrawQuad(transform2, glm::vec4(1, 1, 1, 1));
+			
 			glm::mat4 transform = glm::mat4(1);
 			transform = glm::translate(transform, glm::vec3(400, 300, 0));
 			transform = glm::scale(transform, glm::vec3(64, 64, 0));
 			Renderer2D::DrawQuad(transform, glm::vec4(1, 1, 1, 1));
-
-			glm::mat4 transform2 = glm::mat4(1);
-			transform2 = glm::translate(transform2, glm::vec3(464, 364, 0));
-			transform2 = glm::scale(transform2, glm::vec3(64, 64, 0));
-			Renderer2D::DrawQuad(transform2, glm::vec4(1, 1, 1, 1));
 			
 			Renderer2D::End();
 

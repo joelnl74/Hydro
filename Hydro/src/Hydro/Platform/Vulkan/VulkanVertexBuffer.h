@@ -84,7 +84,7 @@ namespace Hydro
 		VulkanVertexBuffer(void* data, uint32_t size);
 		VulkanVertexBuffer(uint32_t size);
 
-		void Destory();
+		void Destroy();
 		void SetData(void* data, uint32_t size);
 		void Bind();
 	private:

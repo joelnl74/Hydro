@@ -154,13 +154,13 @@ namespace Hydro
 
 	void Renderer2D::ShutDown()
 	{
-		s_Data->QuadDescriptorSet->Destory();
-		s_Data->VulkanTexture->Destory();
-		s_Data->Shader->Destory();
-		s_Data->QuadPipeline->ShutDown();
-		s_Data->QuadUniformBuffer->Destory();
-		s_Data->QuadIndexBuffer->Destory();
-		s_Data->QuadVertexBuffer->Destory();
+		s_Data->QuadDescriptorSet->Destroy();
+		s_Data->VulkanTexture->Destroy();
+		s_Data->Shader->Destroy();
+		s_Data->QuadPipeline->Destroy();
+		s_Data->QuadUniformBuffer->Destroy();
+		s_Data->QuadIndexBuffer->Destroy();
+		s_Data->QuadVertexBuffer->Destroy();
 
 		s_Data = nullptr;
 	}
@@ -186,7 +186,7 @@ namespace Hydro
 		uint32_t dataSize = (uint8_t*)s_Data->QuadVertexBufferPtr - (uint8_t*)s_Data->QuadVertexBufferBase;
 		s_Data->QuadVertexBuffer->SetData(s_Data->QuadVertexBufferBase, dataSize);
 
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->QuadIndexCount), 1, 0, 0, 0);
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)

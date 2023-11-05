@@ -34,7 +34,7 @@ namespace Hydro
 		m_MemoryAllocation = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_VertexBuffer);
 	}
 
-	void VulkanVertexBuffer::Destory()
+	void VulkanVertexBuffer::Destroy()
 	{
 		VulkanAllocator allocator("VertexBuffer");
 		allocator.DestroyBuffer(m_VertexBuffer, m_MemoryAllocation);

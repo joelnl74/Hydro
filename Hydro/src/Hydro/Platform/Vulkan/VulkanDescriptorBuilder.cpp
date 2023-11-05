@@ -134,7 +134,7 @@ namespace Hydro
 		return true;
 	}
 
-	void VulkanDescriptorBuilder::Destory()
+	void VulkanDescriptorBuilder::Destroy()
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 

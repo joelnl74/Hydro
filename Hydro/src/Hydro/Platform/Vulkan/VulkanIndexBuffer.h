@@ -10,7 +10,7 @@ namespace Hydro
 		VulkanIndexBuffer(uint32_t size);
 
 		void Bind();
-		void Destory();
+		void Destroy();
 		void SetData(void* data, uint32_t size);
 
 	private:
