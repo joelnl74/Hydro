@@ -2,6 +2,8 @@
 #include <iostream>
 
 #include <imgui/imgui.h>
+#include <string>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Hydro
 {
@@ -15,6 +17,22 @@ namespace Hydro
 
 	void TestLayer::OnAttach()
 	{
+		m_Scene = new Scene("Scene", false);
+
+		for (int i = 0; i < 15; i++)
+		{
+			for (int j = 0; j < 15; j++)
+			{
+				SpriteComponent sprite;
+				glm::mat4 transform = glm::mat4(1);
+				transform = glm::translate(transform, glm::vec3(i * 64, j * 64, 0));
+				transform = glm::scale(transform, glm::vec3(64, 64, 0));
+				sprite.Color = glm::vec4(1, 1, 1, 1);
+				sprite.Position = transform;
+
+				m_Scene->m_spriteComponents.push_back(sprite);
+			}
+		}
 	}
 
 	void TestLayer::OnDetach()
@@ -23,6 +41,8 @@ namespace Hydro
 
 	void TestLayer::OnUpdate()
 	{
+		m_Scene->OnRender();
+
 		if (Input::IsKeyPressed(KeyCode::A))
 		{
 			std::cout << "A" << std::endl;

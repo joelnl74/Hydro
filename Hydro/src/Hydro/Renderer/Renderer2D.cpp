@@ -21,6 +21,7 @@ namespace Hydro
 		glm::vec3 Position;
 		glm::vec4 Color;
 		glm::vec2 texCoord;
+		float TexIndex;
 	};
 
 	struct UniformBufferObject 
@@ -66,7 +67,7 @@ namespace Hydro
 		Ref<VulkanUniformBuffer> QuadUniformBuffer;
 		Ref<VulkanDescriptorBuilder> QuadDescriptorSet;
 		
-		Ref<VullkanTexture> VulkanTexture;
+		std::array<Ref<VullkanTexture>, MaxTextureSlots> TextureSlots;
 	};
 
 	static Renderer2DData* s_Data = nullptr;
@@ -106,7 +107,7 @@ namespace Hydro
 
 		VulkanTextureSpecification textureProperties;
 
-		s_Data->VulkanTexture = CreateRef<VullkanTexture>("assets/textures/risitas.png", textureProperties);
+		s_Data->TextureSlots[0] = CreateRef<VullkanTexture>("assets/textures/risitas.png", textureProperties);
 
 		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>(s_Data->MaxVertices * sizeof(s_Data->vertices[0]));
 		s_Data->QuadVertexBufferBase = new QuadVertex[s_Data->MaxVertices];
@@ -135,7 +136,8 @@ namespace Hydro
 		s_Data->QuadDescriptorSet = CreateRef<VulkanDescriptorBuilder>();
 		s_Data->QuadDescriptorSet->Begin();
 		s_Data->QuadDescriptorSet->BindBuffer(0, s_Data->QuadUniformBuffer, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
-		s_Data->QuadDescriptorSet->BindImage(1, s_Data->VulkanTexture, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+		
+		s_Data->QuadDescriptorSet->BindImage(1, s_Data->TextureSlots[0], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
 		s_Data->QuadDescriptorSet->Build();
 
 		PipelineSpecification specification;
@@ -144,18 +146,28 @@ namespace Hydro
 			{ ShaderDataType::Float3, "inPosition" },
 			{ ShaderDataType::Float4, "inColor" },
 			{ ShaderDataType::Float2, "inTexCoord" },
+			{ ShaderDataType::Float, "inTexIndex" },
 		};
 
 		specification.descriptorSet = s_Data->QuadDescriptorSet;
 		specification.shader = s_Data->Shader;
 
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
+		s_Data->QuadIndexCount = 0;
+		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
 	}
 
 	void Renderer2D::ShutDown()
 	{
+		for (int i = 0; i < s_Data->TextureSlots.size(); i++)
+		{
+			if (s_Data->TextureSlots[i])
+			{
+				s_Data->TextureSlots[i]->Destroy();
+			}
+		}
+
 		s_Data->QuadDescriptorSet->Destroy();
-		s_Data->VulkanTexture->Destroy();
 		s_Data->Shader->Destroy();
 		s_Data->QuadPipeline->Destroy();
 		s_Data->QuadUniformBuffer->Destroy();
@@ -167,9 +179,6 @@ namespace Hydro
 
 	void Renderer2D::Begin()
 	{
-		s_Data->QuadIndexCount = 0;
-		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
-
 		uint32_t currentImage = Renderer::GetRenderFrame();
 
 		s_Data->QuadUniformBuffer->Update(&s_Data->camera->GetViewProjectMatrix(), currentImage, (uint8_t)sizeof(UniformBufferObject));
@@ -187,6 +196,9 @@ namespace Hydro
 		s_Data->QuadVertexBuffer->SetData(s_Data->QuadVertexBufferBase, dataSize);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->QuadIndexCount), 1, 0, 0, 0);
+		
+		s_Data->QuadIndexCount = 0;
+		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
@@ -204,7 +216,7 @@ namespace Hydro
 			s_Data->QuadVertexBufferPtr->Position = transform * s_Data->QuadVertexPositions[i];
 			s_Data->QuadVertexBufferPtr->Color = color;
 			s_Data->QuadVertexBufferPtr->texCoord = textureCoords[i];
-			// s_Data->QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_Data->QuadVertexBufferPtr->TexIndex = textureIndex;
 			// s_Data->QuadVertexBufferPtr->TilingFactor = tilingFactor;
 			s_Data->QuadVertexBufferPtr++;
 		}

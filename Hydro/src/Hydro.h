@@ -11,3 +11,5 @@
 #include "Hydro/Events/MouseEvents.h"
 #include "Hydro/Events/EventDispatcher.h"
 #include "Hydro/ImGUI/ImGuiLayer.h"
+
+#include "Hydro/Scene/Scene.h"

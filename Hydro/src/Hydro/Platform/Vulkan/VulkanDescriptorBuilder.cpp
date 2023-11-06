@@ -56,18 +56,24 @@ namespace Hydro
 
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 		samplerLayoutBinding.binding = binding;
-		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.descriptorCount = 32;
 		samplerLayoutBinding.descriptorType = type;
 		samplerLayoutBinding.pImmutableSamplers = nullptr;
 		samplerLayoutBinding.stageFlags = stageFlags;
 
 		m_layoutBinding.push_back(samplerLayoutBinding);
 
-		VkDescriptorImageInfo *imageInfo  = new VkDescriptorImageInfo();
-		imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo->imageView = vulkanTexture->GetImageView();
-		imageInfo->sampler = vulkanTexture->GetImageSampler();
-		m_imageInfo.push_back(imageInfo);
+
+		VkDescriptorImageInfo* imageInfo[32];
+		
+		for (int i = 0; i < 32; i++)
+		{
+			imageInfo[i] = new VkDescriptorImageInfo();
+
+			imageInfo[i]->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[i]->imageView = vulkanTexture->GetImageView();
+			imageInfo[i]->sampler = vulkanTexture->GetImageSampler();
+		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -77,7 +83,7 @@ namespace Hydro
 			writeDescriptorSet.dstArrayElement = 0;
 			writeDescriptorSet.descriptorType = type;
 			writeDescriptorSet.descriptorCount = 1;
-			writeDescriptorSet.pImageInfo = imageInfo;
+			writeDescriptorSet.pImageInfo = imageInfo[0];
 			m_writeDescriptorSets[i].push_back(writeDescriptorSet);
 		}
 	}

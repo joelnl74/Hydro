@@ -166,6 +166,11 @@ namespace Hydro
 	
 	void Renderer3D::ShutDown()
 	{
+		if (s_Data == nullptr)
+		{
+			return;
+		}
+
 		s_Data->QuadDescriptorSet->Destroy();
 		s_Data->VulkanTexture->Destroy();
 		s_Data->Shader->Destroy();
