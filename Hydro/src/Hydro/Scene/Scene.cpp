@@ -25,7 +25,7 @@ namespace Hydro
 	{
 		for (int i = 0; i < m_spriteComponents.size(); i++)
 		{
-			Renderer2D::DrawQuad(m_spriteComponents[i].Position, m_spriteComponents[i].Color);
+			Renderer2D::DrawQuad(m_spriteComponents[i]->Position, m_spriteComponents[i]->Color);
 		}
 	}
 }

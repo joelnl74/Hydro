@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro.h"
+#include "Game.h"
 
 namespace Hydro
 {
@@ -17,6 +18,7 @@ namespace Hydro
 
 	private:
 		Scene* m_Scene;
+		Game* game;
 	};
 }
 

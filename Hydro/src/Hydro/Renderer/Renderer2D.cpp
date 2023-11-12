@@ -31,7 +31,7 @@ namespace Hydro
 
 	struct Renderer2DData
 	{
-		static const uint32_t MaxQuads = 20000;
+		static const uint32_t MaxQuads = 200000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = 32; // TODO QUERY FROM GPU
@@ -49,7 +49,6 @@ namespace Hydro
 			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
 			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 		};
-
 
 		const std::vector<uint16_t> indices = 
 		{
@@ -107,7 +106,7 @@ namespace Hydro
 
 		VulkanTextureSpecification textureProperties;
 
-		s_Data->TextureSlots[0] = CreateRef<VullkanTexture>("assets/textures/risitas.png", textureProperties);
+		s_Data->TextureSlots[0] = CreateRef<VullkanTexture>("assets/textures/white.png", textureProperties);
 
 		s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>(s_Data->MaxVertices * sizeof(s_Data->vertices[0]));
 		s_Data->QuadVertexBufferBase = new QuadVertex[s_Data->MaxVertices];
@@ -208,8 +207,8 @@ namespace Hydro
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
-		// if (s_Data->QuadIndexCount >= Renderer2DData::MaxIndices)
-			// FlushAndReset();
+		if (s_Data->QuadIndexCount >= Renderer2DData::MaxIndices)
+			FlushAndReset();
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -222,5 +221,13 @@ namespace Hydro
 		}
 
 		s_Data->QuadIndexCount += 6;
+	}
+	
+	void Renderer2D::FlushAndReset()
+	{
+		End();
+
+		s_Data->QuadIndexCount = 0;
+		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
 	}
 }

@@ -18,6 +18,6 @@ namespace Hydro
 		void OnRender();
 
 	public:
-		std::vector<SpriteComponent> m_spriteComponents;
+		std::vector<SpriteComponent*> m_spriteComponents;
 	};
 }
