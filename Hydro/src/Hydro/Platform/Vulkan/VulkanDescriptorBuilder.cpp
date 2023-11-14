@@ -27,7 +27,7 @@ namespace Hydro
 
 		m_layoutBinding.push_back(uboLayoutBinding);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			VkDescriptorBufferInfo *bufferInfo = new VkDescriptorBufferInfo();
 			bufferInfo->buffer = buffer->GetVKBuffers()[i];
@@ -66,7 +66,7 @@ namespace Hydro
 
 		VkDescriptorImageInfo* imageInfo[32];
 		
-		for (int i = 0; i < 32; i++)
+		for (unsigned int i = 0; i < 32; i++)
 		{
 			imageInfo[i] = new VkDescriptorImageInfo();
 
@@ -75,7 +75,7 @@ namespace Hydro
 			imageInfo[i]->sampler = vulkanTexture->GetImageSampler();
 		}
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			VkWriteDescriptorSet writeDescriptorSet{};
 			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -126,7 +126,7 @@ namespace Hydro
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			for (auto &x : m_writeDescriptorSets[i])
 			{
