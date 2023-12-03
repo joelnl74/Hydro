@@ -1,5 +1,5 @@
 # Hydro Engine Oxygen Editor
-Hydro is primarily an early-stage interactive application and rendering engine for Windows using vulkan. Currently not much is implemented.
+Hydro is primarily an early-stage interactive application and rendering engine for Windows using Vulkan. Check out the development branch for the latest in development features.
 
 ## Getting Started
 Visual Studio 2022 or 2019 is recommended, Hydro is officially untested on other development environments whilst we focus on a Windows build.
