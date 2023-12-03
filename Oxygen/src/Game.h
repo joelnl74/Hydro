@@ -40,7 +40,6 @@ namespace Hydro
 		std::vector<PlayerPart> parts;
 	};
 
-
 	struct Food
 	{
 		glm::vec2 position;
