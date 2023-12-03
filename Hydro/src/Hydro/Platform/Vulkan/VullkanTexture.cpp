@@ -91,7 +91,7 @@ namespace Hydro
 		}
 	}
 
-	void VullkanTexture::Destory()
+	void VullkanTexture::Destroy()
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 

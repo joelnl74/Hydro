@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <imgui/imgui.h>
+#include <string>
 
 namespace Hydro
 {
@@ -13,8 +14,12 @@ namespace Hydro
 	{
 	}
 
+
 	void TestLayer::OnAttach()
 	{
+		m_Scene = new Scene("Scene", false);
+		game = new Game();
+		game->Start(*m_Scene);
 	}
 
 	void TestLayer::OnDetach()
@@ -23,10 +28,8 @@ namespace Hydro
 
 	void TestLayer::OnUpdate()
 	{
-		if (Input::IsKeyPressed(KeyCode::A))
-		{
-			std::cout << "A" << std::endl;
-		}
+		game->Update();
+		m_Scene->OnRender();
 	}
 
 	void TestLayer::OnImGuiRender()

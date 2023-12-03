@@ -52,7 +52,7 @@ namespace Hydro
 		allocator.UnmapMemory(m_vmaAllocation[currentImage]);
 	}
 
-	void VulkanUniformBuffer::Destory()
+	void VulkanUniformBuffer::Destroy()
 	{
 		VulkanAllocator allocator("VulkanUniformBuffer");
 

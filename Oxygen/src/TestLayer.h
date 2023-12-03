@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro.h"
+#include "Game.h"
 
 namespace Hydro
 {
@@ -14,6 +15,10 @@ namespace Hydro
 		virtual void OnUpdate() override;
 		virtual void OnImGuiRender() override;
 		virtual void OnEvent(Event& e) override;
+
+	private:
+		Scene* m_Scene;
+		Game* game;
 	};
 }
 
