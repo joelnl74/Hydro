@@ -10,8 +10,8 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 VULKAN_SDK = os.environ.get('VULKAN_SDK')
-VULKAN_SDK_INSTALLER_URL = 'https://sdk.lunarg.com/sdk/download/1.3.216.0/windows/vulkan_sdk.exe'
-HYDRO_VULKAN_VERSION = '1.3.216.0'
+VULKAN_SDK_INSTALLER_URL = 'https://sdk.lunarg.com/sdk/download/1.3.296.0/windows/vulkan_sdk.exe'
+HYDRO_VULKAN_VERSION = '1.3.296.0'
 VULKAN_SDK_EXE_PATH = 'Hydro/vendor/VulkanSDK/VulkanSDK.exe'
 
 def InstallVulkanSDK():
