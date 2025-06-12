@@ -47,7 +47,6 @@ project "Hydro"
 		"ImGui",
 
 		"%{Library.Vulkan}",
-		"%{Library.VulkanUtils}",
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
