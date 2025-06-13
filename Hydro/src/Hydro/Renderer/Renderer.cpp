@@ -2,6 +2,7 @@
 
 #include "Renderer.h"
 #include "Renderer2D.h"
+#include "Renderer3D.h"
 
 namespace Hydro
 {
@@ -19,6 +20,7 @@ namespace Hydro
 		s_Instance->m_vulkanPresentation->StartShutDown();
 
 		Renderer2D::ShutDown();
+		Renderer3D::ShutDown();
 		VulkanAllocator::Shutdown();
 		s_Instance->m_vulkanPresentation->ShutDown();
 		s_Instance->m_rendererContext->ShutDown();
@@ -38,5 +40,6 @@ namespace Hydro
 
 		VulkanAllocator::Init(s_Instance->m_rendererContext->GetVulkanDevice());
 		Renderer2D::Init();
+		Renderer3D::Init();
 	}
 }

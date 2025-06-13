@@ -41,7 +41,7 @@ namespace Hydro
 		m_ShaderStages.push_back(shaderStageInfo);
 	}
 
-	void VulkanShader::Destory()
+	void VulkanShader::Destroy()
 	{
 		auto context = Renderer::GetRendererContext();
 		VkDevice device = context->GetVulkanDevice()->GetDevice();

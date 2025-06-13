@@ -162,7 +162,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPipeline::ShutDown()
+	void VulkanPipeline::Destroy()
 	{
 		auto context = Renderer::GetRendererContext();
 		VkDevice device = context->GetVulkanDevice()->GetDevice();

@@ -81,7 +81,7 @@ namespace Hydro
 		std::vector <VkFence> m_Fences;
 
 		uint32_t m_CurrentFrame = 0;
-		uint32_t imageIndex;
+		uint32_t imageIndex = 0;
 
 		Window& m_window;
 	};

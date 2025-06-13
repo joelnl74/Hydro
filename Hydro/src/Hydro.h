@@ -9,4 +9,7 @@
 #include "Hydro/Events/ApplicationEvents.h"
 #include "Hydro/Events/KeyEvents.h"
 #include "Hydro/Events/MouseEvents.h"
-#include "Hydro/Events\EventDispatcher.h"
+#include "Hydro/Events/EventDispatcher.h"
+#include "Hydro/ImGUI/ImGuiLayer.h"
+
+#include "Hydro/Scene/Scene.h"

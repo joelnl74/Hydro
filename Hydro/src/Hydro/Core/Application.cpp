@@ -3,6 +3,7 @@
 
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/Renderer2D.h"
+#include "Hydro/Renderer/Renderer3D.h"
 
 namespace Hydro
 {
@@ -33,6 +34,9 @@ namespace Hydro
 
 		m_Running = true;
 
+		m_imGuiLayer = new ImGuiLayer();
+		PushLayer(m_imGuiLayer);
+
 		HY_CORE_TRACE("Engine initialized");
 	}
 
@@ -52,16 +56,29 @@ namespace Hydro
 		layer->OnAttach();
 	}
 
+	void Application::Quit()
+	{
+		m_Running = false;
+	}
+
 	void Application::Run()
 	{
 		OnInit();
 		while (m_Running)
 		{
 			m_Window->OnUpdate();
-			Renderer::RenderFrame();
+
+			m_imGuiLayer->Begin();
+			for (Layer* layer : m_LayerStack)
+			{
+				layer->OnImGuiRender();
+			}
+			m_imGuiLayer->End();
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
+
+			Renderer::RenderFrame();
 		}
 
 		Renderer::ShutDown();

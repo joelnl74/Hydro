@@ -105,6 +105,7 @@ namespace Hydro
 			case Hydro::ImageFormat::RGBA:		return VK_FORMAT_R8G8B8A8_UNORM;
 			case Hydro::ImageFormat::RGBA32F:	return VK_FORMAT_R32G32B32A32_SFLOAT;
 			case Hydro::ImageFormat::DEPTH32F:	return VK_FORMAT_D32_SFLOAT;
+			default: return VK_FORMAT_R8G8B8A8_UNORM;
 		}
 	}
 }

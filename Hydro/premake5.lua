@@ -32,8 +32,9 @@ project "Hydro"
 	{
 		"src",
 		"vendor/spdlog/include",
+		"vendor/ImGui/backends",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.imgui}",
+		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.Vulkan}",

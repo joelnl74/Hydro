@@ -9,6 +9,13 @@
 
 #include "VulkanUtils.h"
 #include "Hydro/Renderer/Renderer2D.h"
+#include "Hydro/Renderer/Renderer3D.h"
+
+
+// TODO Renderer submit queue?
+#include <glm/gtc/matrix_transform.hpp>
+#include "Hydro/Platform/Vulkan/imgui_impl_vulkan.h"
+#include <imgui.h>
 
 namespace Hydro
 {
@@ -316,9 +323,13 @@ namespace Hydro
 		renderPassInfo.pClearValues = &clearColor;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-			Renderer2D::DrawQuad();
+			
 			Renderer2D::End();
+
+			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
+			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
 
 		vkCmdEndRenderPass(commandBuffer);
 

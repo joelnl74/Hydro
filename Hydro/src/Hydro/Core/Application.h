@@ -4,6 +4,8 @@
 #include "Hydro/Events/EventDispatcher.h"
 #include "Hydro/Events/ApplicationEvents.h"
 
+#include "Hydro/ImGUI/ImGuiLayer.h"
+
 int main(int argc, char** argv);
 
 namespace Hydro
@@ -20,6 +22,7 @@ namespace Hydro
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
+		void Quit();
 
 		inline Window& GetWindow() { return *m_Window; }
 		static inline Application& Get() { return *s_Instance; }
@@ -37,6 +40,7 @@ namespace Hydro
 
 	private:
 		static Application* s_Instance;
+		ImGuiLayer *m_imGuiLayer;
 		friend int ::main(int argc, char** argv);
 	};
 
