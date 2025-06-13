@@ -32,7 +32,7 @@ namespace Hydro
 	{
 	public:
 		VulkanPipeline(const PipelineSpecification& spec);
-		void ShutDown();
+		void Destroy();
 
 		void Bind();
 		void BindDescriptorSets();

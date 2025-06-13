@@ -13,6 +13,7 @@
 
 
 // TODO Renderer submit queue?
+#include <glm/gtc/matrix_transform.hpp>
 #include "Hydro/Platform/Vulkan/imgui_impl_vulkan.h"
 #include <imgui.h>
 
@@ -322,9 +323,8 @@ namespace Hydro
 		renderPassInfo.pClearValues = &clearColor;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-			Renderer3D::DrawMesh();
-			Renderer3D::End();
+			
+			Renderer2D::End();
 
 			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
 			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
@@ -354,7 +354,7 @@ namespace Hydro
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
 
-		Renderer3D::Begin();
+		Renderer2D::Begin();
 
 		vkResetFences(device, 1, &m_Fences[m_CurrentFrame]);
 

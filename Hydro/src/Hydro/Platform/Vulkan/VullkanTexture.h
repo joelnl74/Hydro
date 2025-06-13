@@ -11,7 +11,7 @@ namespace Hydro
 	{
 	public:
 		VullkanTexture(const std::string &filePath, VulkanTextureSpecification specfication);
-		void Destory();
+		void Destroy();
 
 		VkSampler& GetImageSampler() { return m_sampler; };
 		VkImageView& GetImageView() { return m_textureImageView;  }

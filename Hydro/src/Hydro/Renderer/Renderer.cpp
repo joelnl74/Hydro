@@ -20,6 +20,7 @@ namespace Hydro
 		s_Instance->m_vulkanPresentation->StartShutDown();
 
 		Renderer2D::ShutDown();
+		Renderer3D::ShutDown();
 		VulkanAllocator::Shutdown();
 		s_Instance->m_vulkanPresentation->ShutDown();
 		s_Instance->m_rendererContext->ShutDown();

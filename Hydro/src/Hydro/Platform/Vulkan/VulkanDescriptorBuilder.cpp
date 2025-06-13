@@ -27,7 +27,7 @@ namespace Hydro
 
 		m_layoutBinding.push_back(uboLayoutBinding);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			VkDescriptorBufferInfo *bufferInfo = new VkDescriptorBufferInfo();
 			bufferInfo->buffer = buffer->GetVKBuffers()[i];
@@ -56,20 +56,26 @@ namespace Hydro
 
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 		samplerLayoutBinding.binding = binding;
-		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.descriptorCount = 32;
 		samplerLayoutBinding.descriptorType = type;
 		samplerLayoutBinding.pImmutableSamplers = nullptr;
 		samplerLayoutBinding.stageFlags = stageFlags;
 
 		m_layoutBinding.push_back(samplerLayoutBinding);
 
-		VkDescriptorImageInfo *imageInfo  = new VkDescriptorImageInfo();
-		imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo->imageView = vulkanTexture->GetImageView();
-		imageInfo->sampler = vulkanTexture->GetImageSampler();
-		m_imageInfo.push_back(imageInfo);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		VkDescriptorImageInfo* imageInfo[32];
+		
+		for (unsigned int i = 0; i < 32; i++)
+		{
+			imageInfo[i] = new VkDescriptorImageInfo();
+
+			imageInfo[i]->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[i]->imageView = vulkanTexture->GetImageView();
+			imageInfo[i]->sampler = vulkanTexture->GetImageSampler();
+		}
+
+		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			VkWriteDescriptorSet writeDescriptorSet{};
 			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -77,7 +83,7 @@ namespace Hydro
 			writeDescriptorSet.dstArrayElement = 0;
 			writeDescriptorSet.descriptorType = type;
 			writeDescriptorSet.descriptorCount = 1;
-			writeDescriptorSet.pImageInfo = imageInfo;
+			writeDescriptorSet.pImageInfo = imageInfo[0];
 			m_writeDescriptorSets[i].push_back(writeDescriptorSet);
 		}
 	}
@@ -120,7 +126,7 @@ namespace Hydro
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			for (auto &x : m_writeDescriptorSets[i])
 			{
@@ -134,7 +140,7 @@ namespace Hydro
 		return true;
 	}
 
-	void VulkanDescriptorBuilder::Destory()
+	void VulkanDescriptorBuilder::Destroy()
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 

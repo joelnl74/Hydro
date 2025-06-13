@@ -75,10 +75,10 @@ namespace Hydro
 			}
 			m_imGuiLayer->End();
 
-			Renderer::RenderFrame();
-
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
+
+			Renderer::RenderFrame();
 		}
 
 		Renderer::ShutDown();
