@@ -40,6 +40,6 @@ namespace Hydro
 
 		VulkanAllocator::Init(s_Instance->m_rendererContext->GetVulkanDevice());
 		Renderer2D::Init();
-		// Renderer3D::Init();
+		Renderer3D::Init();
 	}
 }
