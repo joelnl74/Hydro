@@ -308,7 +308,7 @@ namespace Hydro
 		ImGui::Begin("Vulkan Texture Test");
 		if (m_DescriptorSets.size() <= imageIndex)
 		{
-			VkDescriptorSet x = ImGui_ImplVulkan_AddTexture(m_SwapChainSampler, m_SwapChainImageViews[imageIndex], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			VkDescriptorSet x = ImGui_ImplVulkan_AddTexture(m_SwapChainSampler, Renderer2D::GetCompositeImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			m_DescriptorSets.push_back(x);
 		}
 		
@@ -339,6 +339,8 @@ namespace Hydro
 
 	void VulkanSwapChain::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
+		Renderer2D::Begin();
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -357,9 +359,7 @@ namespace Hydro
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-			
-			Renderer2D::End();
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);			
 
 			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
 			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
@@ -388,10 +388,6 @@ namespace Hydro
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
-
-		// CUSTOM CODE
-		Renderer2D::Begin();
-		// END CUSTOM CODE
 
 		vkResetFences(device, 1, &m_Fences[m_CurrentFrame]);
 

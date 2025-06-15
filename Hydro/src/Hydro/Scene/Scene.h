@@ -18,6 +18,7 @@ namespace Hydro
 		void OnRender();
 
 	public:
+		// TODO: Get components from components pools.
 		std::vector<SpriteComponent*> m_spriteComponents;
 	};
 }

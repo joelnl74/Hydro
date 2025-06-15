@@ -13,6 +13,8 @@ namespace Hydro
 
 		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
 		VkQueue GetPresentQueue() { return m_presentQueue; }
+		void VulkanDevice::LockQueue(bool compute);
+		void VulkanDevice::UnlockQueue(bool compute);
 
 		void ShutDown();
 

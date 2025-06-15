@@ -209,10 +209,10 @@ namespace Hydro
 	{
 		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 
-		s_Data->QuadPipeline->Bind();
-		s_Data->QuadVertexBuffer->Bind();
-		s_Data->QuadIndexBuffer->Bind();
-		s_Data->QuadPipeline->BindDescriptorSets();
+		s_Data->QuadPipeline->Bind(commandBuffer);
+		s_Data->QuadVertexBuffer->Bind(commandBuffer);
+		s_Data->QuadIndexBuffer->Bind(commandBuffer);
+		s_Data->QuadPipeline->BindDescriptorSets(commandBuffer);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->indices.size()), 1, 0, 0, 0);
 	}

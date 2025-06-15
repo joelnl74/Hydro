@@ -86,7 +86,7 @@ namespace Hydro
 
 		void Destroy();
 		void SetData(void* data, uint32_t size);
-		void Bind();
+		void Bind(VkCommandBuffer commandBuffer);
 	private:
 		VkBuffer m_VertexBuffer;
 		VkDeviceMemory m_VertexBufferMemory;

@@ -34,8 +34,8 @@ namespace Hydro
 		VulkanPipeline(const PipelineSpecification& spec);
 		void Destroy();
 
-		void Bind();
-		void BindDescriptorSets();
+		void Bind(VkCommandBuffer commandBuffer);
+		void BindDescriptorSets(VkCommandBuffer commandBuffer);
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }

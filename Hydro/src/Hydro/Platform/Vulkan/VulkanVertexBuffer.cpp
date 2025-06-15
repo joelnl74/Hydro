@@ -48,10 +48,8 @@ namespace Hydro
 		allocator.UnmapMemory(m_MemoryAllocation);
 	}
 
-	void VulkanVertexBuffer::Bind()
+	void VulkanVertexBuffer::Bind(VkCommandBuffer commandBuffer)
 	{
-		auto& commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
-
 		VkBuffer vertexBuffers[] = { m_VertexBuffer };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
