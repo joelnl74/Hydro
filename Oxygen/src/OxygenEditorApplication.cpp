@@ -3,7 +3,7 @@
 #include <Hydro\Core\EntryPoint.h>
 #include "Hydro.h"
 
-#include "TestLayer.h"
+#include "EditorLayer.h"
 
 class OxygenEditorApplication : public Hydro::Application
 {
@@ -17,7 +17,7 @@ public:
 
 	virtual void OnInit() override 
 	{
-		PushLayer(new Hydro::TestLayer());
+		PushLayer(new Hydro::EditorLayer());
 	}
 };
 

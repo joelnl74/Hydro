@@ -28,6 +28,8 @@ namespace Hydro
 		void CreateCommandPool();
 		void CreateCommandBuffer();
 		void CreateSyncObjects();
+		void CreateImageSampler();
+
 
 		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffers[m_CurrentFrame]; }
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
@@ -38,11 +40,11 @@ namespace Hydro
 		uint32_t GetRenderFrame() { return m_CurrentFrame; }
 		uint32_t GetRenderImage() { return imageIndex; }
 
+		void CreateVulkanComposeImage();
+
 		void ResetSwapChain();
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void DrawFrame();
-		void BeginRenderPass();
-		void EndRenderPass();
 
 		void StartShutDown();
 		void ShutDown();
@@ -71,10 +73,12 @@ namespace Hydro
 		std::vector<VkImage> m_SwapChainImages;
 		std::vector<VkImageView> m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
+		VkSampler m_SwapChainSampler;	
 
 		VkRenderPass m_RenderPass;
 		VkCommandPool m_CommandPool;
 		std::vector <VkCommandBuffer> m_CommandBuffers;
+		std::vector <VkDescriptorSet> m_DescriptorSets;
 
 		std::vector <VkSemaphore> m_ImageSemaphores;
 		std::vector <VkSemaphore> m_RenderSemaphores;

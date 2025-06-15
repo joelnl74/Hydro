@@ -1,4 +1,5 @@
-#include "TestLayer.h"
+#include "EditorLayer.h"
+// #include "../../Hydro/src/Hydro/Renderer/Renderer.h"
 #include <iostream>
 
 #include <imgui/imgui.h>
@@ -6,33 +7,20 @@
 
 namespace Hydro
 {
-	TestLayer::TestLayer()
-	{
-	}
-
-	TestLayer::~TestLayer()
-	{
-	}
-
-
-	void TestLayer::OnAttach()
+	void EditorLayer::OnAttach()
 	{
 		m_Scene = new Scene("Scene", false);
-		game = new Game();
-		game->Start(*m_Scene);
 	}
 
-	void TestLayer::OnDetach()
+	void EditorLayer::OnDetach()
 	{
 	}
 
-	void TestLayer::OnUpdate()
+	void EditorLayer::OnUpdate()
 	{
-		game->Update();
-		m_Scene->OnRender();
 	}
 
-	void TestLayer::OnImGuiRender()
+	void EditorLayer::OnImGuiRender()
 	{
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -105,9 +93,12 @@ namespace Hydro
 		}
 
 		ImGui::End();
+
+
+
 	}
 
-	void TestLayer::OnEvent(Event& e)
+	void EditorLayer::OnEvent(Event& e)
 	{
 	}
 }

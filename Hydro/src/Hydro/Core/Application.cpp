@@ -4,6 +4,7 @@
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/Renderer2D.h"
 #include "Hydro/Renderer/Renderer3D.h"
+#include <glm/ext/matrix_transform.hpp>
 
 namespace Hydro
 {
@@ -69,10 +70,17 @@ namespace Hydro
 			m_Window->OnUpdate();
 
 			m_imGuiLayer->Begin();
+
+			glm::mat4 transform = glm::mat4(1);
+
+			transform = glm::translate(transform, glm::vec3(300, 400, 0));
+			transform = glm::scale(transform, glm::vec3(400, 300, 0));
+			Renderer2D::DrawQuad(transform, glm::vec4(1, 0, 0, 1));
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->OnImGuiRender();
 			}
+			Renderer::GetVulkanSwapChain()->CreateVulkanComposeImage();
 			m_imGuiLayer->End();
 
 			for (Layer* layer : m_LayerStack)
