@@ -96,7 +96,7 @@ namespace Hydro
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		m_vulkanImageInfo.size = m_width * m_heigth * 4;
+		m_vulkanImageInfo.size = spec.Width * spec.Height * 4;
 		VkDeviceSize imageSize = m_vulkanImageInfo.size;
 
 		VulkanAllocator allocator("VulkanImageBuffer");

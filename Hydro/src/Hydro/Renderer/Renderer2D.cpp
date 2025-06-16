@@ -197,9 +197,9 @@ namespace Hydro
 		renderPassInfo.renderPass = s_Data->RenderPass->GetRenderPass();
 		renderPassInfo.framebuffer = s_Data->RenderPass->GetFramebuffer();
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = extent;
+		renderPassInfo.renderArea.extent = { 800, 600 };
 
-		VkClearValue clearColor = { {{1.0f, 0.0f, 0.0f, 1.0f}} };
+		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 

@@ -50,9 +50,7 @@ namespace Hydro
 
 		for (size_t i = 0; i <MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			ImageSpecification spec
-			{
-			};
+			ImageSpecification spec {};
 
 			spec.Width = size.width;
 			spec.Height = size.height;

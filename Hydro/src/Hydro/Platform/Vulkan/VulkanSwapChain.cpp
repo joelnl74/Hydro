@@ -305,15 +305,19 @@ namespace Hydro
 
 	void VulkanSwapChain::CreateVulkanComposeImage()
 	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("Vulkan Texture Test");
+		ImVec2 viewPortSize = ImGui::GetContentRegionAvail();
+
 		if (m_DescriptorSets.size() <= imageIndex)
 		{
 			VkDescriptorSet x = ImGui_ImplVulkan_AddTexture(m_SwapChainSampler, Renderer2D::GetCompositeImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			m_DescriptorSets.push_back(x);
 		}
 		
-		ImGui::Image(m_DescriptorSets[imageIndex], {400, 400}, {0, 1}, {1, 0});
+		ImGui::Image(m_DescriptorSets[imageIndex], { viewPortSize.x, viewPortSize.y}, {0, 1}, {1, 0});
 		ImGui::End();
+		ImGui::PopStyleVar();
 	}
 
 	void VulkanSwapChain::ResetSwapChain()
