@@ -106,7 +106,7 @@ namespace Hydro
 		vertexBufferCreateInfo.size = imageSize;
 		vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+		VkImageUsageFlags usage = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -116,9 +116,9 @@ namespace Hydro
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
-		imageInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		imageInfo.format = VK_FORMAT_B8G8R8A8_SRGB;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.usage = usage;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -128,10 +128,10 @@ namespace Hydro
 		VkImageViewCreateInfo imageViewCreateInfo = {};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		imageViewCreateInfo.format = VK_FORMAT_B8G8R8A8_SRGB;
 		imageViewCreateInfo.flags = 0;
 		imageViewCreateInfo.subresourceRange = {};
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		imageViewCreateInfo.subresourceRange.levelCount = 1;
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;

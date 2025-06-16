@@ -256,7 +256,7 @@ namespace Hydro
 	
 	void Renderer2D::FlushAndReset()
 	{
-		End();
+		Begin();
 
 		s_Data->QuadIndexCount = 0;
 		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
