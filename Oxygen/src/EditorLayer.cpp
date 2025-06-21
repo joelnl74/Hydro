@@ -9,8 +9,9 @@ namespace Hydro
 {
 	void EditorLayer::OnAttach()
 	{
-		m_Scene = new Scene("Scene", false);
-		m_SceneRenderer = new SceneRenderer();
+		m_Scene = CreateRef<Scene>("Scene", false);
+		m_SceneRenderer = new SceneRenderer(m_Scene);
+		m_Scene->Init();
 	}
 
 	void EditorLayer::OnDetach()

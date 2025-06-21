@@ -16,7 +16,7 @@ namespace Hydro
 		virtual void OnEvent(Event& e) override;
 
 	private:
-		Scene* m_Scene;
+		Hydro::Ref<Scene> m_Scene;
 		SceneRenderer* m_SceneRenderer;
 	};
 }

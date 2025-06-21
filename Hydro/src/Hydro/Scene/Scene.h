@@ -1,11 +1,13 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "../../../vendor/entt/entt.hpp"
 
-#include "Components/SpriteComponent.h"
+#include "../Core/UUID.h"
 
 namespace Hydro
 {
+	class Entity;
 	class Scene
 	{
 	public:
@@ -17,8 +19,19 @@ namespace Hydro
 		void OnUpdate();
 		void OnRender();
 
-	public:
-		// TODO: Get components from components pools.
-		std::vector<SpriteComponent*> m_spriteComponents;
+		Entity CreateEntity(const std::string& name = std::string());
+		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
+
+		template<typename... Components>
+		auto GetAllEntitiesWith()
+		{
+			return m_Registry.view<Components...>();
+		}
+
+	private:
+		entt::registry m_Registry;
+
+		friend class Entity;
+		friend class SceneRenderer;
 	};
 }

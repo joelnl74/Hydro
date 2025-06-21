@@ -21,6 +21,7 @@ project "Oxygen"
 		"%{wks.location}/Hydro/vendor/spdlog/include",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.entt}",
 	}
 
 	links
