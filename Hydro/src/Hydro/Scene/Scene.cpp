@@ -1,11 +1,8 @@
 #include <hypch.h>
 #include "Scene.h"
 #include "Entity.h"
-#include "ScriptableEntity.h"
 
 #include "../Renderer/Renderer2D.h"
-
-#include "Components/Components.h"
 
 namespace Hydro
 {
@@ -34,8 +31,11 @@ namespace Hydro
 		auto player = CreateEntity("Sprite");
 		player.AddComponent<TransformComponent>(glm::vec3(700, 450, 0), glm::vec3(64, 64, 0));
 		player.AddComponent<SpriteRendererComponent>(glm::vec4(1, 0, 0, 1));
-		// player.AddComponent<NativeScriptComponent>().Bind<MovementComponent>();
-		player.AddComponent<NativeScriptComponent>().Bind<PlayerComponent>();
+		auto& a = player.AddComponent<MovementComponent>();
+		auto& b = player.AddComponent<PlayerComponent>();
+		
+		m_scripts.push_back(&a);
+		m_scripts.push_back(&b);
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)
@@ -59,16 +59,11 @@ namespace Hydro
 	void Scene::OnUpdate()
 	{
 		{
-			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& script)
+			for (size_t i = 0; i < m_scripts.size(); i++)
 			{
-				if (script.Instance == nullptr)
-				{
-					script.OnInstantiateFunction();
-					script.Instance->OnCreate();
-				}
+				m_scripts[i]->OnUpdate(0.0f);
 
-				script.Instance->OnUpdate(0.0f);
-			});
+			}
 		}
 
 	}

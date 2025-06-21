@@ -6,7 +6,6 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include "../ScriptableEntity.h"
 
 namespace Hydro
 {
@@ -65,63 +64,57 @@ namespace Hydro
 		}
 	};
 
-	// class SciptableEntity;
-
-
-	struct NativeScriptComponent 
+	class NativeScriptComponent 
 	{
-		SciptableEntity* Instance = nullptr;
+	public:
+		virtual void OnCreate() const = 0;
+		virtual void OnUpdate(float deltaTime) const = 0;
+		virtual void OnDestroy() const = 0;
 
-		std::function<void()> OnInstantiateFunction;
-		std::function<void()> OnDestoryNativeFunction;
-
-		template<typename T>
-		void Bind()
-		{
-			OnInstantiateFunction = [&]() { Instance = new T(); };
-			OnDestoryNativeFunction = [&]() { delete (T*)Instance; };
-		}
+	private:
+		// Entity* m_entity;
+		// friend class Scene;
 	};
 
-	class MovementComponent : public SciptableEntity
+	class MovementComponent : public NativeScriptComponent
 	{
 	public:
 		MovementComponent() = default;
 		MovementComponent(const MovementComponent&) = default;
 
-		void OnCreate() override
+		void OnCreate() const override
 		{
 			HY_CORE_INFO("MovementComponent::OnCreate() called");
 		}
 
-		void OnUpdate(float ts) override
+		void OnUpdate(float ts) const override
 		{
 			HY_CORE_INFO("MovementComponent::OnUpdate() called");
 		}
 
-		void OnDestory()
+		void OnDestroy() const override
 		{
 		}
 	};
 
-	class PlayerComponent : public SciptableEntity
+	class PlayerComponent : public NativeScriptComponent
 	{
 	public:
 		PlayerComponent() = default;
 		PlayerComponent(const PlayerComponent&) = default;
 
 
-		void OnCreate() override
+		void OnCreate() const override
 		{
 			HY_CORE_INFO("PlayerComponent::OnCreate() called");
 		}
 
-		void OnUpdate(float ts) override
+		void OnUpdate(float ts) const override
 		{
 			HY_CORE_INFO("PlayerComponent::OnUpdate() called");
 		}
 
-		void OnDestory()
+		void OnDestroy() const override
 		{
 		}
 	};
