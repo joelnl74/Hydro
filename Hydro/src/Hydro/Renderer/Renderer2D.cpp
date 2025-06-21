@@ -5,6 +5,12 @@
 #include "Hydro/Platform/Vulkan/VulkanIndexBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
 #include "Hydro/Platform/Vulkan/VullkanTexture.h"
+#include "Hydro/Platform/Vulkan/VulkanRenderCommandBuffer.h"
+#include "Hydro/Platform/Vulkan/VulkanRenderPass.h"
+
+// SHOULD BE IN IMGUI EXTENSION.
+#include <Hydro/Platform/Vulkan/imgui_impl_vulkan.h>
+// SHOULD BE A IMGUI EXTENSION END BLOCK.
 
 #include "Hydro/Renderer/Renderer.h"
 
@@ -65,8 +71,14 @@ namespace Hydro
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;
 		Ref<VulkanUniformBuffer> QuadUniformBuffer;
 		Ref<VulkanDescriptorBuilder> QuadDescriptorSet;
-		
+
+		Ref<VulkanRenderCommandBuffer> CommandBuffer;;
+		Ref<VulkanRenderPass> RenderPass;;
+
 		std::array<Ref<VullkanTexture>, MaxTextureSlots> TextureSlots;
+
+		// THIS IS A HACK! We need to store the descriptor sets for the pipeline.
+		std::vector <VkDescriptorSet> m_DescriptorSets;
 	};
 
 	static Renderer2DData* s_Data = nullptr;
@@ -154,6 +166,10 @@ namespace Hydro
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
 		s_Data->QuadIndexCount = 0;
 		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
+
+		// Command Buffer and FrameBuffer rendere target for renderer 2D.
+		s_Data->CommandBuffer = CreateRef<VulkanRenderCommandBuffer>(2, "2DRenderer");
+		s_Data->RenderPass = CreateRef<VulkanRenderPass>();
 	}
 
 	void Renderer2D::ShutDown()
@@ -178,23 +194,43 @@ namespace Hydro
 
 	void Renderer2D::Begin()
 	{
-		uint32_t currentImage = Renderer::GetRenderFrame();
+		auto& extent = Renderer::GetVulkanSwapChain()->GetExtend();
 
-		s_Data->QuadUniformBuffer->Update(&s_Data->camera->GetViewProjectMatrix(), currentImage, (uint8_t)sizeof(UniformBufferObject));
+		s_Data->CommandBuffer->Begin();
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = s_Data->RenderPass->GetRenderPass();
+		renderPassInfo.framebuffer = s_Data->RenderPass->GetFramebuffer();
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = { extent.width, extent.height };
+
+		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(s_Data->CommandBuffer->GetActiveCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		uint32_t currentImage = Renderer::GetRenderFrame();
+		s_Data->QuadUniformBuffer->Update(&s_Data->camera->GetViewProjectMatrix(), currentImage, (uint8_t)sizeof(UniformBufferObject));		
+		Renderer2D::End();
+
+		vkCmdEndRenderPass(s_Data->CommandBuffer->GetActiveCommandBuffer());
+		s_Data->CommandBuffer->End();
+		s_Data->CommandBuffer->Submit();
 	}
 
 	void Renderer2D::End()
 	{
-		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
-		s_Data->QuadPipeline->Bind();
-		s_Data->QuadVertexBuffer->Bind();
-		s_Data->QuadIndexBuffer->Bind();
-		s_Data->QuadPipeline->BindDescriptorSets();
+		s_Data->QuadPipeline->Bind(s_Data->CommandBuffer->GetActiveCommandBuffer());
+		s_Data->QuadVertexBuffer->Bind(s_Data->CommandBuffer->GetActiveCommandBuffer());
+		s_Data->QuadIndexBuffer->Bind(s_Data->CommandBuffer->GetActiveCommandBuffer());
+		s_Data->QuadPipeline->BindDescriptorSets(s_Data->CommandBuffer->GetActiveCommandBuffer());
 
 		uint32_t dataSize = (uint8_t*)s_Data->QuadVertexBufferPtr - (uint8_t*)s_Data->QuadVertexBufferBase;
 		s_Data->QuadVertexBuffer->SetData(s_Data->QuadVertexBufferBase, dataSize);
 
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(s_Data->QuadIndexCount), 1, 0, 0, 0);
+		vkCmdDrawIndexed(s_Data->CommandBuffer->GetActiveCommandBuffer(), static_cast<uint32_t>(s_Data->QuadIndexCount), 1, 0, 0, 0);
 		
 		s_Data->QuadIndexCount = 0;
 		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
@@ -225,9 +261,28 @@ namespace Hydro
 	
 	void Renderer2D::FlushAndReset()
 	{
-		End();
+		Begin();
 
 		s_Data->QuadIndexCount = 0;
 		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
+	}
+	
+	void Renderer2D::CreateCompositeImageView()
+	{
+		uint32_t currentImage = Renderer::GetRenderFrame();
+		auto sampler = Renderer::GetVulkanSwapChain()->GetImageSampler();
+
+		if (s_Data->m_DescriptorSets.size() <= currentImage)
+		{
+			VkDescriptorSet x = ImGui_ImplVulkan_AddTexture(sampler, s_Data->RenderPass->GetImage().GetVulkanImageInfo().ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			s_Data->m_DescriptorSets.push_back(x);
+		}
+	}
+	
+	VkDescriptorSet Renderer2D::GetCompositeDescriptorSet()
+	{
+		CreateCompositeImageView();
+		uint32_t currentImage = Renderer::GetRenderFrame();
+		return s_Data->m_DescriptorSets[currentImage];
 	}
 }

@@ -35,10 +35,8 @@ namespace Hydro
 		m_memory = allocator.AllocateBuffer(indexbufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffer);
 	}
 
-	void VulkanIndexBuffer::Bind()
+	void VulkanIndexBuffer::Bind(VkCommandBuffer commandBuffer)
 	{
-		auto& commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
-
 		vkCmdBindIndexBuffer(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
 

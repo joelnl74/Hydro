@@ -4,6 +4,7 @@
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/Renderer2D.h"
 #include "Hydro/Renderer/Renderer3D.h"
+#include <glm/ext/matrix_transform.hpp>
 
 namespace Hydro
 {
@@ -69,15 +70,18 @@ namespace Hydro
 			m_Window->OnUpdate();
 
 			m_imGuiLayer->Begin();
+
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->OnImGuiRender();
 			}
+			
 			m_imGuiLayer->End();
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 
+			Renderer2D::Begin();
 			Renderer::RenderFrame();
 		}
 

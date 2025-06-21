@@ -8,14 +8,10 @@
 #include <GLFW/glfw3native.h>
 
 #include "VulkanUtils.h"
-#include "Hydro/Renderer/Renderer2D.h"
-#include "Hydro/Renderer/Renderer3D.h"
-
 
 // TODO Renderer submit queue?
 #include <glm/gtc/matrix_transform.hpp>
 #include "Hydro/Platform/Vulkan/imgui_impl_vulkan.h"
-#include <imgui.h>
 
 namespace Hydro
 {
@@ -134,7 +130,7 @@ namespace Hydro
 		createInfo.imageColorSpace = surfaceFormat.colorSpace;
 		createInfo.imageExtent = extent;
 		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 		// TODO Check this with the queue family.
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -281,6 +277,28 @@ namespace Hydro
 		}
 	}
 
+	void VulkanSwapChain::CreateImageSampler()
+	{
+		auto device = m_Device->GetDevice();
+
+		VkSamplerCreateInfo samplerCreateInfo = {};
+		samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerCreateInfo.maxAnisotropy = 1.0f;
+		samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+		samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+		samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerCreateInfo.addressModeV = samplerCreateInfo.addressModeU;
+		samplerCreateInfo.addressModeW = samplerCreateInfo.addressModeU;
+		samplerCreateInfo.mipLodBias = 0.0f;
+		samplerCreateInfo.maxAnisotropy = 1.0f;
+		samplerCreateInfo.minLod = 0.0f;
+		samplerCreateInfo.maxLod = 1.0f;
+		samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+		vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_SwapChainSampler);
+	}
+
 	void VulkanSwapChain::ResetSwapChain()
 	{
 		auto device = m_Device->GetDevice();
@@ -322,9 +340,7 @@ namespace Hydro
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-			
-			Renderer2D::End();
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);			
 
 			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
 			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
@@ -353,8 +369,6 @@ namespace Hydro
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
-
-		Renderer2D::Begin();
 
 		vkResetFences(device, 1, &m_Fences[m_CurrentFrame]);
 
@@ -403,15 +417,6 @@ namespace Hydro
 		}
 
 		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-	}
-
-	void VulkanSwapChain::BeginRenderPass()
-	{
-
-	}
-
-	void VulkanSwapChain::EndRenderPass()
-	{
 	}
 
 	SwapChainSupportDetails VulkanSwapChain::QuerySwapChainSupport()
@@ -513,5 +518,7 @@ namespace Hydro
 
 			VK_CHECK_RESULT(vkCreateImageView(device, &createInfo, nullptr, &m_SwapChainImageViews[i]));
 		}
+
+		CreateImageSampler();
 	}
 }

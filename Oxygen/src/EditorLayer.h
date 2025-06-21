@@ -1,14 +1,13 @@
 #pragma once
 #include "Hydro.h"
-#include "Game.h"
 
 namespace Hydro
 {
-	class TestLayer : public Layer
+	class EditorLayer : public Layer
 	{
 	public:
-		TestLayer();
-		virtual ~TestLayer();
+		EditorLayer() {};
+		virtual ~EditorLayer() {};
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;
@@ -18,7 +17,7 @@ namespace Hydro
 
 	private:
 		Scene* m_Scene;
-		Game* game;
+		SceneRenderer* m_SceneRenderer;
 	};
 }
 

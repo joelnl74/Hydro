@@ -50,6 +50,11 @@ namespace Hydro
 		vkGetDeviceQueue(s_LogicalDevice, m_physicalDevice->GetQueueFamilyIndices().graphics, 0, &m_GraphicsQueue);
 	}
 
+	void VulkanDevice::LockQueue(bool compute)
+	{
+
+	}
+
 	void VulkanDevice::ShutDown()
 	{
 		vkDestroyDevice(s_LogicalDevice, nullptr);

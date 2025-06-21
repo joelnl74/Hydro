@@ -1,4 +1,5 @@
-#include "TestLayer.h"
+#include "EditorLayer.h"
+// #include "../../Hydro/src/Hydro/Renderer/Renderer.h"
 #include <iostream>
 
 #include <imgui/imgui.h>
@@ -6,33 +7,22 @@
 
 namespace Hydro
 {
-	TestLayer::TestLayer()
-	{
-	}
-
-	TestLayer::~TestLayer()
-	{
-	}
-
-
-	void TestLayer::OnAttach()
+	void EditorLayer::OnAttach()
 	{
 		m_Scene = new Scene("Scene", false);
-		game = new Game();
-		game->Start(*m_Scene);
+		m_SceneRenderer = new SceneRenderer();
 	}
 
-	void TestLayer::OnDetach()
+	void EditorLayer::OnDetach()
 	{
 	}
 
-	void TestLayer::OnUpdate()
+	void EditorLayer::OnUpdate()
 	{
-		game->Update();
-		m_Scene->OnRender();
+		m_SceneRenderer->RenderScene();
 	}
 
-	void TestLayer::OnImGuiRender()
+	void EditorLayer::OnImGuiRender()
 	{
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -104,10 +94,44 @@ namespace Hydro
 			ImGui::EndMenuBar();
 		}
 
+		ImGui::Begin("Hierachy");
+		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
+		if (ImGui::TreeNodeEx("Root", flag))
+		{
+			ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf;
+			bool opened1 = ImGui::TreeNodeEx("Square_Green", child, "Square_Green");
+			if (opened1)
+			{
+				ImGui::TreePop();
+			}
+
+			bool opened2 = ImGui::TreeNodeEx("Square_Red", child, "Square_Red");
+			if (opened2)
+			{
+				ImGui::TreePop();
+			}
+			ImGui::TreePop();
+		}
 		ImGui::End();
+
+		ImGui::Begin("Project");
+		ImGui::End();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::Begin("ViewPort");
+		ImVec2 viewPortSize = ImGui::GetContentRegionAvail();
+		m_SceneRenderer->RenderCompositeImage(viewPortSize.x, viewPortSize.y);
+		ImGui::End();
+		ImGui::PopStyleVar();
+
+
+		ImGui::End();
+
+
+
 	}
 
-	void TestLayer::OnEvent(Event& e)
+	void EditorLayer::OnEvent(Event& e)
 	{
 	}
 }
