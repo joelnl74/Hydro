@@ -20,6 +20,7 @@ namespace Hydro
 
 	void EditorLayer::OnUpdate()
 	{
+		m_Scene->OnUpdate();
 		m_SceneRenderer->RenderScene();
 	}
 

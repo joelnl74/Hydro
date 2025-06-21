@@ -6,6 +6,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include "../ScriptableEntity.h"
 
 namespace Hydro
 {
@@ -61,6 +62,67 @@ namespace Hydro
 			return glm::translate(glm::mat4(1.0f), Translation)
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
+		}
+	};
+
+	// class SciptableEntity;
+
+
+	struct NativeScriptComponent 
+	{
+		SciptableEntity* Instance = nullptr;
+
+		std::function<void()> OnInstantiateFunction;
+		std::function<void()> OnDestoryNativeFunction;
+
+		template<typename T>
+		void Bind()
+		{
+			OnInstantiateFunction = [&]() { Instance = new T(); };
+			OnDestoryNativeFunction = [&]() { delete (T*)Instance; };
+		}
+	};
+
+	class MovementComponent : public SciptableEntity
+	{
+	public:
+		MovementComponent() = default;
+		MovementComponent(const MovementComponent&) = default;
+
+		void OnCreate() override
+		{
+			HY_CORE_INFO("MovementComponent::OnCreate() called");
+		}
+
+		void OnUpdate(float ts) override
+		{
+			HY_CORE_INFO("MovementComponent::OnUpdate() called");
+		}
+
+		void OnDestory()
+		{
+		}
+	};
+
+	class PlayerComponent : public SciptableEntity
+	{
+	public:
+		PlayerComponent() = default;
+		PlayerComponent(const PlayerComponent&) = default;
+
+
+		void OnCreate() override
+		{
+			HY_CORE_INFO("PlayerComponent::OnCreate() called");
+		}
+
+		void OnUpdate(float ts) override
+		{
+			HY_CORE_INFO("PlayerComponent::OnUpdate() called");
+		}
+
+		void OnDestory()
+		{
 		}
 	};
 }

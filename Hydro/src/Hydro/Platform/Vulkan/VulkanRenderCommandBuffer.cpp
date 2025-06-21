@@ -95,8 +95,6 @@ namespace Hydro
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_ActiveCommandBuffer;
 
-		HY_CORE_TRACE("Renderer", "Submitting Render Command Buffer {}", m_DebugName);
-
 		VK_CHECK_RESULT(vkQueueSubmit(device->GetGraphicsQueue(), 1, &submitInfo, m_WaitFences[commandBufferIndex]));
 		m_ActiveCommandBuffer = nullptr;
 	}
