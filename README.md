@@ -28,3 +28,7 @@ If the repository was cloned non-recursively previously, use git submodule updat
 - Procedural terrain and world generation
 - Artificial Intelligence
 - Audio system
+
+Example image 2d renderer and editor view
+
+![Screenshot 2025-06-21 170850](https://github.com/user-attachments/assets/c386af4f-75c5-4269-9c79-4825cd5647e6)
