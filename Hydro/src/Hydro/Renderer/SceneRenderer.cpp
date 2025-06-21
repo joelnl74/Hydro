@@ -3,25 +3,24 @@
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 
-
 #include "SceneRenderer.h"
 #include "Renderer2D.h"
 #include <glm/ext/matrix_transform.hpp>
+
+#include "../Scene/Components//Components.h"
+#include "../Scene/Entity.h"
 
 namespace Hydro
 {
 	void SceneRenderer::RenderScene()
 	{
-
-		for (size_t i = 0; i < 24; i++)
 		{
-			for (size_t j = 0; j < 24; j++)
+			auto group = m_Scene->m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+			for (auto entity : group)
 			{
-				glm::mat4 transform = glm::mat4(1);
-				transform = glm::translate(transform, glm::vec3(j * 64, i * 64, 0));
-				transform = glm::scale(transform, glm::vec3(64, 64, 0));
+				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
-				Renderer2D::DrawQuad(transform, glm::vec4(j * 0.05, i * 0.05, 1, 1));
+				Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
 			}
 		}
 	}

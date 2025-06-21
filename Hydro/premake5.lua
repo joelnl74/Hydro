@@ -19,7 +19,8 @@ project "Hydro"
 		"vendor/VulkanMemoryAllocator/**.h",
 		"vendor/VulkanMemoryAllocator/**.cpp",
 		"vendor/stb_image/**.h",
-		"vendor/stb_image/**.cpp"
+		"vendor/stb_image/**.cpp",
+		"vendor/entt/**.hpp"
 	}
 
 	defines
@@ -39,6 +40,7 @@ project "Hydro"
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.stb}",
+		"%{IncludeDir.entt}",
 	}
 
 	links
