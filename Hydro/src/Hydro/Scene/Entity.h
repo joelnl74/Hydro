@@ -29,6 +29,12 @@ namespace Hydro
 		}
 
 		template<typename T>
+		void RemoveComponent()
+		{
+			return m_Scene->m_Registry.remove<T>(m_EntityHandle)
+		}
+		
+		template<typename T>
 		bool HasComponent()
 		{
 			return m_Scene->m_Registry.has<T>(m_EntityHandle);
