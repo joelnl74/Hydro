@@ -1,6 +1,8 @@
 [submodule "Hydro/vendor/GLFW"]
-	path = Hydro/vendor/GLFW
+	path = Hydro/vendor/glfw
 	url = https://github.com/joelnl74/glfw_stable.git
+	ignore = dirty
+	shallow = true
 [submodule "Hydro/vendor/imgui"]
 	path = Hydro/vendor/imgui
 	url = https://github.com/joelnl74/imgui.git
