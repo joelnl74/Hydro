@@ -28,12 +28,15 @@ namespace Hydro
 		void CreateCommandPool();
 		void CreateCommandBuffer();
 		void CreateSyncObjects();
+		void CreateImageSampler();
+
 
 		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffers[m_CurrentFrame]; }
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
 
 		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
+		VkSampler& GetImageSampler() { return m_SwapChainSampler; } 
 
 		uint32_t GetRenderFrame() { return m_CurrentFrame; }
 		uint32_t GetRenderImage() { return imageIndex; }
@@ -41,8 +44,6 @@ namespace Hydro
 		void ResetSwapChain();
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void DrawFrame();
-		void BeginRenderPass();
-		void EndRenderPass();
 
 		void StartShutDown();
 		void ShutDown();
@@ -71,6 +72,7 @@ namespace Hydro
 		std::vector<VkImage> m_SwapChainImages;
 		std::vector<VkImageView> m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
+		VkSampler m_SwapChainSampler;	
 
 		VkRenderPass m_RenderPass;
 		VkCommandPool m_CommandPool;
@@ -81,7 +83,7 @@ namespace Hydro
 		std::vector <VkFence> m_Fences;
 
 		uint32_t m_CurrentFrame = 0;
-		uint32_t imageIndex;
+		uint32_t imageIndex = 0;
 
 		Window& m_window;
 	};

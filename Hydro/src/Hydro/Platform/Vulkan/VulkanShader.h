@@ -34,7 +34,7 @@ namespace Hydro
 		void Create(const ShaderInformation &info);
 		
 		// Replace with destructor;
-		void Destory();
+		void Destroy();
 
 		VkShaderModule &GetModule(ShaderType type) 
 		{

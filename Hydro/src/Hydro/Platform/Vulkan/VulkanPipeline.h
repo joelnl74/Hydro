@@ -32,10 +32,10 @@ namespace Hydro
 	{
 	public:
 		VulkanPipeline(const PipelineSpecification& spec);
-		void ShutDown();
+		void Destroy();
 
-		void Bind();
-		void BindDescriptorSets();
+		void Bind(VkCommandBuffer commandBuffer);
+		void BindDescriptorSets(VkCommandBuffer commandBuffer);
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }

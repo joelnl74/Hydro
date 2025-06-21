@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <vulkan/vulkan.h>
 namespace Hydro
 {
 	// Stats
@@ -21,7 +22,11 @@ namespace Hydro
 
 		static void Begin();
 		static void End();
-		static void DrawQuad();
+		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
+		static void CreateCompositeImageView();
+		static VkDescriptorSet GetCompositeDescriptorSet();
+
+		static void FlushAndReset();
 	};
 
 }

@@ -162,7 +162,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanPipeline::ShutDown()
+	void VulkanPipeline::Destroy()
 	{
 		auto context = Renderer::GetRendererContext();
 		VkDevice device = context->GetVulkanDevice()->GetDevice();
@@ -171,20 +171,16 @@ namespace Hydro
 		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 	}
 
-	void VulkanPipeline::Bind()
+	void VulkanPipeline::Bind(VkCommandBuffer commandBuffer)
 	{
-		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
-
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 		vkCmdSetViewport(commandBuffer, 0, 1, &GetViewPort());
 		vkCmdSetScissor(commandBuffer, 0, 1, &GetRect2D());
 	}
 
-	void VulkanPipeline::BindDescriptorSets()
+	void VulkanPipeline::BindDescriptorSets(VkCommandBuffer commandBuffer)
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();
-
-		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
 		auto descriptorSet = m_pipelineSpecification.descriptorSet->GetDescriptorSet(currentImage);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);

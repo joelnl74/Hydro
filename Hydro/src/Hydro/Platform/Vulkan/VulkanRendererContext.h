@@ -17,7 +17,7 @@ namespace Hydro
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }
-		static Ref<VulkanDevice> & const GetVulkanDevice()  { return s_VulkanDevice; }
+		static Ref<VulkanDevice> const GetVulkanDevice()  { return s_VulkanDevice; }
 
 	private:
 		// Setup

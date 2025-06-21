@@ -18,7 +18,7 @@ namespace Hydro
 		void BindBuffer(uint32_t binding, Ref<VulkanUniformBuffer>& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		void BindImage(uint32_t binding, Ref<VullkanTexture> &vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		bool Build();
-		void Destory();
+		void Destroy();
 
 		// Get methods.
 		VkDescriptorSetLayout& GetDescriptorSetLayout() { return m_DescriptorSetLayout; };

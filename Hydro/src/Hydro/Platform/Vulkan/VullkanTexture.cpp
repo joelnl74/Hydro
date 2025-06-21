@@ -4,7 +4,6 @@
 #include "VulkanCommandBuffer.h"
 
 #include "Hydro/Renderer/Renderer.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <vendor/stb/include/stb_image.h>
 
@@ -91,7 +90,7 @@ namespace Hydro
 		}
 	}
 
-	void VullkanTexture::Destory()
+	void VullkanTexture::Destroy()
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
