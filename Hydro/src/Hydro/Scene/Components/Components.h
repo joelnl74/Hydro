@@ -50,6 +50,9 @@ namespace Hydro
 		TransformComponent(const glm::vec3& translation, const glm::vec3 scale)
 			: Translation(translation), Scale(scale) {
 		}
+		TransformComponent(const glm::vec3& translation, const glm::vec3 scale, const glm::vec3 rotation)
+			: Translation(translation), Scale(scale), Rotation(rotation) {
+		}
 
 		glm::mat4 GetTransform() const
 		{

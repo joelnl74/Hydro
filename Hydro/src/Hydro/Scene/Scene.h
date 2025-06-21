@@ -22,12 +22,6 @@ namespace Hydro
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 
-		template<typename... Components>
-		auto GetAllEntitiesWith()
-		{
-			return m_Registry.view<Components...>();
-		}
-
 	private:
 		entt::registry m_Registry;
 
