@@ -72,7 +72,6 @@ namespace Hydro
 		Ref<VulkanUniformBuffer> QuadUniformBuffer;
 		Ref<VulkanDescriptorBuilder> QuadDescriptorSet;
 
-
 		Ref<VulkanRenderCommandBuffer> CommandBuffer;;
 		Ref<VulkanRenderPass> RenderPass;;
 
