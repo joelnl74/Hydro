@@ -8,14 +8,10 @@
 #include <GLFW/glfw3native.h>
 
 #include "VulkanUtils.h"
-#include "Hydro/Renderer/Renderer2D.h"
-#include "Hydro/Renderer/Renderer3D.h"
-
 
 // TODO Renderer submit queue?
 #include <glm/gtc/matrix_transform.hpp>
 #include "Hydro/Platform/Vulkan/imgui_impl_vulkan.h"
-#include <imgui.h>
 
 namespace Hydro
 {
@@ -303,23 +299,6 @@ namespace Hydro
 		vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_SwapChainSampler);
 	}
 
-	void VulkanSwapChain::CreateVulkanComposeImage()
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::Begin("Vulkan Texture Test");
-		ImVec2 viewPortSize = ImGui::GetContentRegionAvail();
-
-		if (m_DescriptorSets.size() <= imageIndex)
-		{
-			VkDescriptorSet x = ImGui_ImplVulkan_AddTexture(m_SwapChainSampler, Renderer2D::GetCompositeImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			m_DescriptorSets.push_back(x);
-		}
-		
-		ImGui::Image(m_DescriptorSets[imageIndex], { viewPortSize.x, viewPortSize.y}, {0, 1}, {1, 0});
-		ImGui::End();
-		ImGui::PopStyleVar();
-	}
-
 	void VulkanSwapChain::ResetSwapChain()
 	{
 		auto device = m_Device->GetDevice();
@@ -343,8 +322,6 @@ namespace Hydro
 
 	void VulkanSwapChain::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
-		Renderer2D::Begin();
-
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 

@@ -155,6 +155,7 @@ namespace Hydro
 				{ ShaderDataType::Float3, "inPosition" },
 				{ ShaderDataType::Float4, "inColor" },
 				{ ShaderDataType::Float2, "inTexCoord" },
+				{ ShaderDataType::Float, "inTexIndex" },
 			};
 
 			specification.descriptorSet = s_Data->QuadDescriptorSet;

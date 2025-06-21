@@ -8,6 +8,10 @@
 #include "Hydro/Platform/Vulkan/VulkanRenderCommandBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderPass.h"
 
+// SHOULD BE IN IMGUI EXTENSION.
+#include <Hydro/Platform/Vulkan/imgui_impl_vulkan.h>
+// SHOULD BE A IMGUI EXTENSION END BLOCK.
+
 #include "Hydro/Renderer/Renderer.h"
 
 #define GLM_FORCE_RADIANS
@@ -73,6 +77,9 @@ namespace Hydro
 		Ref<VulkanRenderPass> RenderPass;;
 
 		std::array<Ref<VullkanTexture>, MaxTextureSlots> TextureSlots;
+
+		// THIS IS A HACK! We need to store the descriptor sets for the pipeline.
+		std::vector <VkDescriptorSet> m_DescriptorSets;
 	};
 
 	static Renderer2DData* s_Data = nullptr;
@@ -197,7 +204,7 @@ namespace Hydro
 		renderPassInfo.renderPass = s_Data->RenderPass->GetRenderPass();
 		renderPassInfo.framebuffer = s_Data->RenderPass->GetFramebuffer();
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = { 800, 600 };
+		renderPassInfo.renderArea.extent = { extent.width, extent.height };
 
 		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
@@ -212,7 +219,6 @@ namespace Hydro
 		vkCmdEndRenderPass(s_Data->CommandBuffer->GetActiveCommandBuffer());
 		s_Data->CommandBuffer->End();
 		s_Data->CommandBuffer->Submit();
-
 	}
 
 	void Renderer2D::End()
@@ -262,8 +268,22 @@ namespace Hydro
 		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
 	}
 	
-	VkImageView Renderer2D::GetCompositeImageView()
+	void Renderer2D::CreateCompositeImageView()
 	{
-		return s_Data->RenderPass->GetImage().GetVulkanImageInfo().ImageView;
+		uint32_t currentImage = Renderer::GetRenderFrame();
+		auto sampler = Renderer::GetVulkanSwapChain()->GetImageSampler();
+
+		if (s_Data->m_DescriptorSets.size() <= currentImage)
+		{
+			VkDescriptorSet x = ImGui_ImplVulkan_AddTexture(sampler, s_Data->RenderPass->GetImage().GetVulkanImageInfo().ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			s_Data->m_DescriptorSets.push_back(x);
+		}
+	}
+	
+	VkDescriptorSet Renderer2D::GetCompositeDescriptorSet()
+	{
+		CreateCompositeImageView();
+		uint32_t currentImage = Renderer::GetRenderFrame();
+		return s_Data->m_DescriptorSets[currentImage];
 	}
 }

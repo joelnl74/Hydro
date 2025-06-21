@@ -63,7 +63,7 @@ namespace Hydro
 		imageViewCreateInfo.format = GetImageFormat(spec.Format);
 		imageViewCreateInfo.flags = 0;
 		imageViewCreateInfo.subresourceRange = {};
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
 		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		imageViewCreateInfo.subresourceRange.levelCount = 1;
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -88,8 +88,6 @@ namespace Hydro
 		samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
 		VK_CHECK_RESULT(vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_vulkanImageInfo.Sampler));
-
-		// vkBindImageMemory(device, m_vulkanImageInfo.Image, m_vulkanImageInfo.MemoryAlloc->GetMemory(), 0);
 	}
 
 	VulkanImage::VulkanImage(ImageSpecification spec)
@@ -118,7 +116,7 @@ namespace Hydro
 		imageInfo.arrayLayers = 1;
 		imageInfo.format = VK_FORMAT_B8G8R8A8_SRGB;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.usage = usage;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;

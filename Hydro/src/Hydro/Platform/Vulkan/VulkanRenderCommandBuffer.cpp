@@ -15,6 +15,9 @@ namespace Hydro
 			count = 2;
 		}
 
+		m_WaitFences.resize(count);
+		m_CommandBuffers.resize(count);
+
 		VkCommandPoolCreateInfo cmdPoolInfo = {};
 		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		cmdPoolInfo.queueFamilyIndex = device->GetPhysicalDevice()->GetQueueFamilyIndices().graphics;
@@ -26,14 +29,12 @@ namespace Hydro
 		commandBufferAllocateInfo.commandPool = m_CommandPool;
 		commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		commandBufferAllocateInfo.commandBufferCount = count;
-		m_CommandBuffers.resize(count);
 		
 		VK_CHECK_RESULT(vkAllocateCommandBuffers(device->GetDevice(), &commandBufferAllocateInfo, m_CommandBuffers.data()));
 
 		VkFenceCreateInfo fenceCreateInfo{};
 		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		m_WaitFences.resize(count);
 		for (size_t i = 0; i < m_WaitFences.size(); ++i)
 		{
 			VK_CHECK_RESULT(vkCreateFence(device->GetDevice(), &fenceCreateInfo, nullptr, &m_WaitFences[i]));
@@ -46,7 +47,11 @@ namespace Hydro
 
 	void VulkanRenderCommandBuffer::Begin()
 	{
-		uint32_t commandBufferIndex = Renderer::GetRenderFrame() % m_CommandBuffers.size();
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice();
+		uint32_t commandBufferIndex = Renderer::GetRenderFrame();
+
+		VK_CHECK_RESULT(vkWaitForFences(device->GetDevice(), 1, &m_WaitFences[commandBufferIndex], VK_TRUE, UINT64_MAX));
+		VK_CHECK_RESULT(vkResetFences(device->GetDevice(), 1, &m_WaitFences[commandBufferIndex]));
 
 		VkCommandBufferBeginInfo cmdBufInfo = {};
 		cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -61,44 +66,38 @@ namespace Hydro
 		}
 		else
 		{
-			commandBufferIndex %= m_CommandBuffers.size();
 			commandBuffer = m_CommandBuffers[commandBufferIndex];
 		}
 		
 		m_ActiveCommandBuffer = commandBuffer;
-		vkResetCommandBuffer(m_ActiveCommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
+
+		vkResetCommandBuffer(m_ActiveCommandBuffer, /*VkCommandBufferResetFlagBits*/ 0x00000001);
 		VK_CHECK_RESULT(vkBeginCommandBuffer(m_ActiveCommandBuffer, &cmdBufInfo));
 	}
 
 	void VulkanRenderCommandBuffer::End()
 	{
-		uint32_t commandBufferIndex = Renderer::GetRenderFrame() % m_CommandBuffers.size();
+		uint32_t commandBufferIndex = Renderer::GetRenderFrame();
 		if (m_OwnedBySwapChain)
 			commandBufferIndex %= m_CommandBuffers.size();
 
-		VkCommandBuffer commandBuffer = m_ActiveCommandBuffer;
-		VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
-
-		m_ActiveCommandBuffer = nullptr;
+		VK_CHECK_RESULT(vkEndCommandBuffer(m_ActiveCommandBuffer));
 	}
 
 	void VulkanRenderCommandBuffer::Submit()
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice();
 
-		uint32_t commandBufferIndex = Renderer::GetRenderFrame() % m_CommandBuffers.size();
+		uint32_t commandBufferIndex = Renderer::GetRenderFrame();
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
-		VkCommandBuffer commandBuffer = m_CommandBuffers[commandBufferIndex];
-		submitInfo.pCommandBuffers = &commandBuffer;
-
-		VK_CHECK_RESULT(vkWaitForFences(device->GetDevice(), 1, &m_WaitFences[commandBufferIndex], VK_TRUE, UINT64_MAX));
-		VK_CHECK_RESULT(vkResetFences(device->GetDevice(), 1, &m_WaitFences[commandBufferIndex]));
+		submitInfo.pCommandBuffers = &m_ActiveCommandBuffer;
 
 		HY_CORE_TRACE("Renderer", "Submitting Render Command Buffer {}", m_DebugName);
 
 		VK_CHECK_RESULT(vkQueueSubmit(device->GetGraphicsQueue(), 1, &submitInfo, m_WaitFences[commandBufferIndex]));
+		m_ActiveCommandBuffer = nullptr;
 	}
 }

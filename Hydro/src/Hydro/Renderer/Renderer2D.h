@@ -23,7 +23,8 @@ namespace Hydro
 		static void Begin();
 		static void End();
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
-		static VkImageView GetCompositeImageView();
+		static void CreateCompositeImageView();
+		static VkDescriptorSet GetCompositeDescriptorSet();
 
 		static void FlushAndReset();
 	};

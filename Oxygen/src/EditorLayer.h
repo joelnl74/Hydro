@@ -17,6 +17,7 @@ namespace Hydro
 
 	private:
 		Scene* m_Scene;
+		SceneRenderer* m_SceneRenderer;
 	};
 }
 

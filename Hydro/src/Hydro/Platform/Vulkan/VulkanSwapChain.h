@@ -36,11 +36,10 @@ namespace Hydro
 
 		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
+		VkSampler& GetImageSampler() { return m_SwapChainSampler; } 
 
 		uint32_t GetRenderFrame() { return m_CurrentFrame; }
 		uint32_t GetRenderImage() { return imageIndex; }
-
-		void CreateVulkanComposeImage();
 
 		void ResetSwapChain();
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
@@ -78,7 +77,6 @@ namespace Hydro
 		VkRenderPass m_RenderPass;
 		VkCommandPool m_CommandPool;
 		std::vector <VkCommandBuffer> m_CommandBuffers;
-		std::vector <VkDescriptorSet> m_DescriptorSets;
 
 		std::vector <VkSemaphore> m_ImageSemaphores;
 		std::vector <VkSemaphore> m_RenderSemaphores;

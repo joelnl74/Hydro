@@ -71,27 +71,17 @@ namespace Hydro
 
 			m_imGuiLayer->Begin();
 
-			glm::mat4 transform = glm::mat4(1);
-			glm::mat4 transform1 = glm::mat4(1);
-
-			transform = glm::translate(transform, glm::vec3(800, 600, 0));
-			transform = glm::scale(transform, glm::vec3(400, 300, 0));
-			Renderer2D::DrawQuad(transform, glm::vec4(1, 0, 0, 1));
-
-			transform1 = glm::translate(transform1, glm::vec3(0, 0, 0));
-			transform1 = glm::scale(transform1, glm::vec3(100, 100, 0));
-			Renderer2D::DrawQuad(transform1, glm::vec4(0, 1, 0, 1));
-
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->OnImGuiRender();
 			}
-			Renderer::GetVulkanSwapChain()->CreateVulkanComposeImage();
+			
 			m_imGuiLayer->End();
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 
+			Renderer2D::Begin();
 			Renderer::RenderFrame();
 		}
 
