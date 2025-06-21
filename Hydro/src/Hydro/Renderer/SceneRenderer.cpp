@@ -17,8 +17,6 @@ namespace Hydro
 		{
 			for (size_t j = 0; j < 24; j++)
 			{
-
-
 				glm::mat4 transform = glm::mat4(1);
 				transform = glm::translate(transform, glm::vec3(j * 64, i * 64, 0));
 				transform = glm::scale(transform, glm::vec3(64, 64, 0));
