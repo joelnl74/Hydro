@@ -5,7 +5,6 @@
 #include "Hydro/Renderer/Renderer.h"
 #include "VulkanUtils.h"
 
-
 namespace Hydro
 {
 	VulkanImage::VulkanImage(const std::string& filePath, ImageSpecification spec)
