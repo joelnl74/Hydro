@@ -68,11 +68,23 @@ namespace Hydro
 	class NativeScriptComponent 
 	{
 	public:
-		virtual void OnCreate() {}
-		virtual void OnUpdate(float deltaTime) {}
-		virtual void OnDestroy() {}
+		virtual ~NativeScriptComponent() = default;
 
-	private:
+		virtual void OnUpdate(float deltaTime) {}
+		virtual void OnCreate() {}
+
+		void Bind(Entity* entity) 
+		{
+			m_entity = entity; 
+			OnCreate();
+		}
+
+		template<typename T>
+		T& GetComponent()
+		{
+			return m_Scene->m_Registry.get<T>(m_EntityHandle);
+		}
+
 		Entity* m_entity;
 		friend class Scene;
 	};
@@ -83,18 +95,9 @@ namespace Hydro
 		MovementComponent() = default;
 		MovementComponent(const MovementComponent&) = default;
 
-		void OnCreate() override
-		{
-			HY_CORE_INFO("MovementComponent::OnCreate() called");
-		}
-
 		void OnUpdate(float ts) override
 		{
 			HY_CORE_INFO("MovementComponent::OnUpdate() called");
-		}
-
-		void OnDestroy() override
-		{
 		}
 	};
 
@@ -104,19 +107,9 @@ namespace Hydro
 		PlayerComponent() = default;
 		PlayerComponent(const PlayerComponent&) = default;
 
-
-		void OnCreate() override
-		{
-			HY_CORE_INFO("PlayerComponent::OnCreate() called");
-		}
-
 		void OnUpdate(float ts) override
 		{
 			HY_CORE_INFO("PlayerComponent::OnUpdate() called");
-		}
-
-		void OnDestroy() override
-		{
 		}
 	};
 }

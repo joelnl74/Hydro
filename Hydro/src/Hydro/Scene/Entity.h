@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../../vendor/entt/entt.hpp"
 #include"Scene.h"
 
 #include "../Core/UUID.h"

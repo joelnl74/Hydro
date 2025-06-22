@@ -20,9 +20,7 @@ namespace Hydro
 			for (auto entity : group)
 			{
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-				auto z = transform.Rotation.z;
-				transform.Rotation = glm::vec3(0.0f, 0.0f, z += 1);
-			Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+				Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
 			}
 	
 		}
