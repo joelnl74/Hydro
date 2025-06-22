@@ -22,13 +22,13 @@ namespace Hydro
 		{
 			for (size_t j = 0; j < 24; j++)
 			{
-				auto Sprite = CreateEntity("Sprite");
+				auto Sprite = CreateEntity("Entity" + std::to_string(i + j * i));
 				Sprite.AddComponent<TransformComponent>(glm::vec3(j * 64, i * 64, 0), glm::vec3(64, 64, 0));
 				Sprite.AddComponent<SpriteRendererComponent>(glm::vec4(j * 0.05, i * 0.05, 1, 1));
 			}
 		}
 
-		auto player = CreateEntity("Sprite");
+		auto player = CreateEntity("Player Entity");
 		player.AddComponent<TransformComponent>(glm::vec3(700, 450, 0), glm::vec3(64, 64, 0));
 		player.AddComponent<SpriteRendererComponent>(glm::vec4(1, 0, 0, 1));
 		auto& a = player.AddComponent<MovementComponent>();
@@ -36,6 +36,12 @@ namespace Hydro
 		
 		m_scripts.push_back(&a);
 		m_scripts.push_back(&b);
+
+		for (size_t i = 0; i < m_scripts.size(); i++)
+		{
+			m_scripts[i]->OnCreate();
+
+		}
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)
@@ -46,10 +52,9 @@ namespace Hydro
 	Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		// entity.AddComponent<IDComponent>(uuid);
 		// entity.AddComponent<TransformComponent>();
-		// auto& tag = entity.AddComponent<TagComponent>();
-		// tag.Tag = name.empty() ? "Entity" : name;
+		auto& tag = entity.AddComponent<TagComponent>();
+		tag.Tag = name.empty() ? "Entity" : name;
 
 		// m_EntityMap[uuid] = entity;
 

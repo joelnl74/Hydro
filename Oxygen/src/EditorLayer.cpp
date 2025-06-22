@@ -12,6 +12,7 @@ namespace Hydro
 		m_Scene = CreateRef<Scene>("Scene", false);
 		m_SceneRenderer = new SceneRenderer(m_Scene);
 		m_Scene->Init();
+		m_HierarchyWindow = CreateRef<HierachyWindow>();
 	}
 
 	void EditorLayer::OnDetach()
@@ -96,25 +97,7 @@ namespace Hydro
 			ImGui::EndMenuBar();
 		}
 
-		ImGui::Begin("Hierachy");
-		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
-		if (ImGui::TreeNodeEx("Root", flag))
-		{
-			ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf;
-			bool opened1 = ImGui::TreeNodeEx("Square_Green", child, "Square_Green");
-			if (opened1)
-			{
-				ImGui::TreePop();
-			}
-
-			bool opened2 = ImGui::TreeNodeEx("Square_Red", child, "Square_Red");
-			if (opened2)
-			{
-				ImGui::TreePop();
-			}
-			ImGui::TreePop();
-		}
-		ImGui::End();
+		m_HierarchyWindow->OnImguiRender(m_Scene);
 
 		ImGui::Begin("Project");
 		ImGui::End();

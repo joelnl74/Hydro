@@ -64,16 +64,17 @@ namespace Hydro
 		}
 	};
 
+	class Entity;
 	class NativeScriptComponent 
 	{
 	public:
-		virtual void OnCreate() const = 0;
-		virtual void OnUpdate(float deltaTime) const = 0;
-		virtual void OnDestroy() const = 0;
+		virtual void OnCreate() {}
+		virtual void OnUpdate(float deltaTime) {}
+		virtual void OnDestroy() {}
 
 	private:
-		// Entity* m_entity;
-		// friend class Scene;
+		Entity* m_entity;
+		friend class Scene;
 	};
 
 	class MovementComponent : public NativeScriptComponent
@@ -82,17 +83,17 @@ namespace Hydro
 		MovementComponent() = default;
 		MovementComponent(const MovementComponent&) = default;
 
-		void OnCreate() const override
+		void OnCreate() override
 		{
 			HY_CORE_INFO("MovementComponent::OnCreate() called");
 		}
 
-		void OnUpdate(float ts) const override
+		void OnUpdate(float ts) override
 		{
 			HY_CORE_INFO("MovementComponent::OnUpdate() called");
 		}
 
-		void OnDestroy() const override
+		void OnDestroy() override
 		{
 		}
 	};
@@ -104,17 +105,17 @@ namespace Hydro
 		PlayerComponent(const PlayerComponent&) = default;
 
 
-		void OnCreate() const override
+		void OnCreate() override
 		{
 			HY_CORE_INFO("PlayerComponent::OnCreate() called");
 		}
 
-		void OnUpdate(float ts) const override
+		void OnUpdate(float ts) override
 		{
 			HY_CORE_INFO("PlayerComponent::OnUpdate() called");
 		}
 
-		void OnDestroy() const override
+		void OnDestroy() override
 		{
 		}
 	};

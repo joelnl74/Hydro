@@ -24,8 +24,11 @@ namespace Hydro
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 
-	private:
+	public:
+		// THIS SHOULD BE PRIVATE AND EXPOSE A METHOD TO GET COMPONENTS/ENTITIES FROM REGISTRY.
 		entt::registry m_Registry;
+
+	private:
 		std::vector<NativeScriptComponent*> m_scripts;
 
 		friend class Entity;
