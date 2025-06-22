@@ -40,7 +40,6 @@ namespace Hydro
 			for (size_t i = 0; i < m_scripts.size(); i++)
 			{
 				m_scripts[i]->OnUpdate(0.0f);
-
 			}
 		}
 

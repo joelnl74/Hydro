@@ -65,6 +65,8 @@ namespace Hydro
 	};
 
 	class Entity;
+	class Scene;
+
 	class NativeScriptComponent 
 	{
 	public:
@@ -73,9 +75,12 @@ namespace Hydro
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnCreate() {}
 
-		void Bind(Entity* entity) 
+		template<typename T>
+		void Bind(Entity* entity)
 		{
 			m_entity = entity;
+			m_entity->GetScene()->m_scripts.push_back(this);
+
 			OnCreate();
 		}
 
@@ -86,7 +91,6 @@ namespace Hydro
 		}
 
 		Entity* m_entity;
-		friend class Scene;
 	};
 
 	class MovementComponent : public NativeScriptComponent
