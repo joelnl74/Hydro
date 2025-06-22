@@ -17,25 +17,7 @@ namespace Hydro
 	
 	void Scene::Init()
 	{
-		auto player = CreateEntity("Player Entity");
-		player.AddComponent<TransformComponent>(glm::vec3(700, 450, 0), glm::vec3(128, 128, 0));
-		player.AddComponent<SpriteRendererComponent>(glm::vec4(1, 0, 0, 1));
-		auto& a = player.AddComponent<MovementComponent>();
-		auto& b = player.AddComponent<PlayerComponent>();
 
-		m_scripts.push_back(&a);
-		m_scripts.push_back(&b);
-
-
-		for (size_t i = 0; i < 24; i++)
-		{
-			for (size_t j = 0; j < 24; j++)
-			{
-				auto Sprite = CreateEntity("Entity" + std::to_string(i + j * i));
-				Sprite.AddComponent<TransformComponent>(glm::vec3(j * 64, i * 64, 0), glm::vec3(64, 64, 0));
-				Sprite.AddComponent<SpriteRendererComponent>(glm::vec4(j * 0.05, i * 0.05, 1, 1));
-			}
-		}
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)

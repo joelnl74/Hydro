@@ -13,6 +13,29 @@ namespace Hydro
 		m_SceneRenderer = new SceneRenderer(m_Scene);
 		m_Scene->Init();
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
+
+		auto player = m_Scene->CreateEntity("Player Entity");
+		player.AddComponent<TransformComponent>(glm::vec3(700, 450, 0), glm::vec3(128, 128, 0));
+		player.AddComponent<SpriteRendererComponent>(glm::vec4(1, 0, 0, 1));
+		auto& movementComponent = player.AddComponent<MovementComponent>();
+		auto& playerComponent = player.AddComponent<PlayerComponent>();
+		movementComponent.Bind(&player);
+		playerComponent.Bind(&player);
+
+		//TODO Should be moved to the creation method of the NativeScriptComponent.
+		m_Scene->m_scripts.push_back(&movementComponent);
+		m_Scene->m_scripts.push_back(&playerComponent);
+
+
+		for (size_t i = 0; i < 24; i++)
+		{
+			for (size_t j = 0; j < 24; j++)
+			{
+				auto Sprite = m_Scene->CreateEntity("Entity" + std::to_string(i + j * i));
+				Sprite.AddComponent<TransformComponent>(glm::vec3(j * 64, i * 64, 0), glm::vec3(64, 64, 0));
+				Sprite.AddComponent<SpriteRendererComponent>(glm::vec4(j * 0.05, i * 0.05, 1, 1));
+			}
+		}
 	}
 
 	void EditorLayer::OnDetach()

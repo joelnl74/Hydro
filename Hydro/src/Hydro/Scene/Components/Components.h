@@ -75,7 +75,7 @@ namespace Hydro
 
 		void Bind(Entity* entity) 
 		{
-			m_entity = entity; 
+			m_entity = entity;
 			OnCreate();
 		}
 

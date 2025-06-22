@@ -22,7 +22,6 @@ namespace Hydro
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 				Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
 			}
-	
 		}
 
 		// TODO MESH RENDERING
