@@ -9,8 +9,27 @@ namespace Hydro
 {
 	void EditorLayer::OnAttach()
 	{
-		m_Scene = new Scene("Scene", false);
-		m_SceneRenderer = new SceneRenderer();
+		m_Scene = CreateRef<Scene>("Scene", false);
+		m_SceneRenderer = new SceneRenderer(m_Scene);
+		m_Scene->Init();
+		m_HierarchyWindow = CreateRef<HierachyWindow>();
+
+		Entity player = m_Scene->CreateEntity("Player Entity");
+		player.AddComponent<TransformComponent>(glm::vec3(700, 450, 0), glm::vec3(128, 128, 0));
+		player.AddComponent<SpriteRendererComponent>(glm::vec4(1, 0, 0, 1));
+		player.AddComponent<MovementComponent>().Bind<MovementComponent>(&player);
+		player.AddComponent<PlayerComponent>().Bind<PlayerComponent>(&player);
+
+
+		for (size_t i = 0; i < 24; i++)
+		{
+			for (size_t j = 0; j < 24; j++)
+			{
+				auto Sprite = m_Scene->CreateEntity("Entity");
+				Sprite.AddComponent<TransformComponent>(glm::vec3(j * 64, i * 64, 0), glm::vec3(64, 64, 0));
+				Sprite.AddComponent<SpriteRendererComponent>(glm::vec4(j * 0.05, i * 0.05, 1, 1));
+			}
+		}
 	}
 
 	void EditorLayer::OnDetach()
@@ -19,6 +38,7 @@ namespace Hydro
 
 	void EditorLayer::OnUpdate()
 	{
+		m_Scene->OnUpdate();
 		m_SceneRenderer->RenderScene();
 	}
 
@@ -94,25 +114,7 @@ namespace Hydro
 			ImGui::EndMenuBar();
 		}
 
-		ImGui::Begin("Hierachy");
-		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
-		if (ImGui::TreeNodeEx("Root", flag))
-		{
-			ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf;
-			bool opened1 = ImGui::TreeNodeEx("Square_Green", child, "Square_Green");
-			if (opened1)
-			{
-				ImGui::TreePop();
-			}
-
-			bool opened2 = ImGui::TreeNodeEx("Square_Red", child, "Square_Red");
-			if (opened2)
-			{
-				ImGui::TreePop();
-			}
-			ImGui::TreePop();
-		}
-		ImGui::End();
+		m_HierarchyWindow->OnImguiRender(m_Scene);
 
 		ImGui::Begin("Project");
 		ImGui::End();

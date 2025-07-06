@@ -1,6 +1,6 @@
 #pragma once
 #include "Hydro.h"
-
+#include "EditorWindows/HierachyWindow.h"
 namespace Hydro
 {
 	class EditorLayer : public Layer
@@ -16,8 +16,11 @@ namespace Hydro
 		virtual void OnEvent(Event& e) override;
 
 	private:
-		Scene* m_Scene;
+		Hydro::Ref<Scene> m_Scene;
 		SceneRenderer* m_SceneRenderer;
+
+		// Editor Windows.
+		Hydro::Ref<HierachyWindow> m_HierarchyWindow;
 	};
 }
 

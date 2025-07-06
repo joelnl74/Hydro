@@ -1,11 +1,16 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "../../../vendor/entt/entt.hpp"
 
-#include "Components/SpriteComponent.h"
+#include "Components/Components.h"
 
 namespace Hydro
 {
+	class NativeScriptComponent;
+	class Entity;
+	class UUID;
+
 	class Scene
 	{
 	public:
@@ -17,8 +22,17 @@ namespace Hydro
 		void OnUpdate();
 		void OnRender();
 
+		Entity CreateEntity(const std::string& name = std::string());
+		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
+
 	public:
-		// TODO: Get components from components pools.
-		std::vector<SpriteComponent*> m_spriteComponents;
+		// THIS SHOULD BE PRIVATE AND EXPOSE A METHOD TO GET COMPONENTS/ENTITIES FROM REGISTRY.
+		entt::registry m_Registry;
+		std::vector<NativeScriptComponent*> m_scripts;
+
+	private:
+
+		friend class Entity;
+		friend class SceneRenderer;
 	};
 }
