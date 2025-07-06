@@ -3,13 +3,14 @@
 #include <vector>
 #include "../../../vendor/entt/entt.hpp"
 
-#include "../Core/UUID.h"
 #include "Components/Components.h"
 
 namespace Hydro
 {
 	class NativeScriptComponent;
 	class Entity;
+	class UUID;
+
 	class Scene
 	{
 	public:

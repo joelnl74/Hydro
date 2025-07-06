@@ -25,7 +25,7 @@ namespace Hydro
 		{
 			for (size_t j = 0; j < 24; j++)
 			{
-				auto Sprite = m_Scene->CreateEntity("Entity" + std::to_string(i + j * i));
+				auto Sprite = m_Scene->CreateEntity("Entity");
 				Sprite.AddComponent<TransformComponent>(glm::vec3(j * 64, i * 64, 0), glm::vec3(64, 64, 0));
 				Sprite.AddComponent<SpriteRendererComponent>(glm::vec4(j * 0.05, i * 0.05, 1, 1));
 			}

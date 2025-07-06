@@ -9,8 +9,9 @@ namespace Hydro
 		UUID(long uuid);
 		UUID(const UUID&) = default;
 
-		operator long() const { return m_UUID; }
+		operator uint64_t () { return m_UUID; }
+		operator const uint64_t() const { return m_UUID; }
 	private:
-		long m_UUID;
+		uint64_t m_UUID;
 	};
 }

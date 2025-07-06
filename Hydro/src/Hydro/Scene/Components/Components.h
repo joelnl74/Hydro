@@ -5,10 +5,15 @@
 #include <iostream>
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <Hydro/Core/UUID.h>
 #include <glm/gtx/quaternion.hpp>
 
 namespace Hydro
 {
+	class Entity;
+	class Scene;
+	class UUID;
+
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -34,6 +39,11 @@ namespace Hydro
 
 		operator std::string& () { return Tag; }
 		operator const std::string& () const { return Tag; }
+	};
+
+	struct IDComponent
+	{
+		UUID Id = {};
 	};
 
 	struct TransformComponent
@@ -63,9 +73,6 @@ namespace Hydro
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
 	};
-
-	class Entity;
-	class Scene;
 
 	class NativeScriptComponent 
 	{
