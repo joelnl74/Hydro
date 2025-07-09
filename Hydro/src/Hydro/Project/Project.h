@@ -2,8 +2,6 @@
 #include <string>
 #include <filesystem>
 
-#include "Hydro/Core/Base.h"
-
 namespace Hydro
 {
 	struct ProjectConfig
@@ -24,7 +22,7 @@ namespace Hydro
 		static Ref<Project> New();
 		static Ref<Project> Load(const std::filesystem::path& path);
 		static bool Save(const std::filesystem::path& path);
-	
+
 	private:
 		ProjectConfig m_Config;
 		std::filesystem::path m_ProjectDirectory;

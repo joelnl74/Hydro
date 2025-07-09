@@ -6,6 +6,8 @@
 #include "Hydro/Renderer/Renderer3D.h"
 #include <glm/ext/matrix_transform.hpp>
 
+#include "Hydro/Utils/PlatformUtils.h"
+
 namespace Hydro
 {
 	Application* Application::s_Instance = nullptr;

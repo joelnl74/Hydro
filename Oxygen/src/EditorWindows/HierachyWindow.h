@@ -1,6 +1,7 @@
 
 #pragma once
-#include "Hydro.h"
+#include "Hydro/Scene/Scene.h"
+#include "Hydro/Core/Base.h"
 
 namespace Hydro
 {

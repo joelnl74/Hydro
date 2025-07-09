@@ -1,9 +1,10 @@
 #include "EditorLayer.h"
-// #include "../../Hydro/src/Hydro/Renderer/Renderer.h"
 #include <iostream>
 
 #include <imgui/imgui.h>
 #include <string>
+
+#include "Hydro/Utils/PlatformUtils.h"
 
 namespace Hydro
 {
@@ -97,7 +98,10 @@ namespace Hydro
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("Open Project...", "Ctrl+O")) {}
+				if (ImGui::MenuItem("Open Project...", "Ctrl+O")) 
+				{
+					OpenProject();
+				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("New Scene", "Ctrl+N")) {}
 				if (ImGui::MenuItem("Save Scene", "Ctrl+S")) {}
@@ -128,12 +132,33 @@ namespace Hydro
 
 
 		ImGui::End();
-
-
-
 	}
 
 	void EditorLayer::OnEvent(Event& e)
+	{
+	}
+	
+	void EditorLayer::NewProject()
+	{
+	}
+
+	bool EditorLayer::OpenProject()
+	{
+		std::string filepath = FileDialogs::OpenFile("Hydro Project (*.hproj)\0*.hproj\0");
+		
+		if (filepath.empty())
+			return false;
+
+		// OpenProject(filepath);
+		
+		return true;
+	}
+	
+	// void EditorLayer::OpenProject(const std::filesystem::path& path)
+	// {
+	// }
+	
+	void EditorLayer::SaveProject()
 	{
 	}
 }

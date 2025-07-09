@@ -1,6 +1,6 @@
-#pragma once
+// Platform detection using predefined macros
 #ifdef _WIN32
-/* Windows x64/x86 */
+	/* Windows x64/x86 */
 #ifdef _WIN64
 	/* Windows x64  */
 #define HY_PLATFORM_WINDOWS
@@ -35,6 +35,6 @@
 #define HY_PLATFORM_LINUX
 #error "Linux is not supported!"
 #else
-/* Unknown compiler/platform */
+	/* Unknown compiler/platform */
 #error "Unknown platform!"
 #endif // End of platform detection
