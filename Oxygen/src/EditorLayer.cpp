@@ -98,6 +98,10 @@ namespace Hydro
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("New Project...", "Ctrl+O"))
+				{
+					NewProject();
+				}
 				if (ImGui::MenuItem("Open Project...", "Ctrl+O")) 
 				{
 					OpenProject();
@@ -140,6 +144,13 @@ namespace Hydro
 	
 	void EditorLayer::NewProject()
 	{
+		std::string filepath = FileDialogs::OpenFile("");
+
+		if (filepath.empty())
+			return;
+
+		Project::New();
+		Project::Save(filepath);
 	}
 
 	bool EditorLayer::OpenProject()
@@ -149,17 +160,18 @@ namespace Hydro
 		if (filepath.empty())
 			return false;
 
-		// OpenProject(filepath);
+		OpenProject(filepath);
 		
 		return true;
 	}
 	
-	// void EditorLayer::OpenProject(const std::filesystem::path& path)
-	// {
-	// }
+	void EditorLayer::OpenProject(const std::filesystem::path& path)
+	{
+	}
 	
 	void EditorLayer::SaveProject()
 	{
+		Project::Save(Project::GetActive()->GetConfig().AssetDirectory);
 	}
 }
 

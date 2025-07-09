@@ -19,7 +19,7 @@ namespace Hydro
 	private:
 		void NewProject();
 		bool OpenProject();
-		// void OpenProject(const std::filesystem::path& path);
+		void OpenProject(const std::filesystem::path& path);
 		void SaveProject();
 
 	private:
