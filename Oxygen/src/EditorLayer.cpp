@@ -144,7 +144,7 @@ namespace Hydro
 	
 	void EditorLayer::NewProject()
 	{
-		std::string filepath = FileDialogs::OpenFile("");
+		std::string filepath = FileDialogs::OpenDirectory();
 
 		if (filepath.empty())
 			return;
