@@ -4,6 +4,7 @@
 #include "Renderer2D.h"
 #include "Renderer3D.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
+#include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Core/Time.h"
 
 namespace Hydro

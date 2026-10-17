@@ -7,6 +7,7 @@ IncludeDir["GLFW"] = "%{wks.location}/Hydro/vendor/GLFW/include"
 IncludeDir["ImGui"] = "%{wks.location}/Hydro/vendor/ImGui"
 IncludeDir["glm"] = "%{wks.location}/Hydro/vendor/glm"
 IncludeDir["yaml_cpp"] = "%{wks.location}/Hydro/vendor/yaml-cpp/include"
+IncludeDir["VMA"] = "%{wks.location}/Hydro/vendor/VulkanMemoryAllocator"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 
 LibraryDir = {}

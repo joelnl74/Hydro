@@ -47,6 +47,7 @@ project "Hydro"
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.VMA}",
 	}
 
 	links

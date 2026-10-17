@@ -2,6 +2,7 @@
 #include "VulkanUniformBuffer.h"
 
 #include "Hydro/Renderer/Renderer.h"
+#include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 namespace Hydro
 {
 

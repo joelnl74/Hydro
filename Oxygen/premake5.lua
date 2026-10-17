@@ -31,6 +31,7 @@ project "Oxygen"
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.VMA}",
 	}
 
 	defines

@@ -6,6 +6,7 @@
 #include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
 #include "Hydro/Platform/Vulkan/VullkanTexture.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderPass.h"
+#include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 
 // SHOULD BE IN IMGUI EXTENSION.
 #include <Hydro/Platform/Vulkan/imgui_impl_vulkan.h>
