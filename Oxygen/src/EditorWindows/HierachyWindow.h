@@ -16,6 +16,7 @@ namespace Hydro
 
 		Entity GetSelectedEntity() const { return m_SelectedEntity; }
 		void ClearSelection() { m_SelectedEntity = {}; }
+		void SetSelectedEntity(Entity entity) { m_SelectedEntity = entity; }
 
 	private:
 		void SaveAsPrefab(Entity entity);

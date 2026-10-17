@@ -24,6 +24,10 @@ namespace Hydro
 		// Returns an invalid Entity ({}) on failure.
 		static Entity Instantiate(Scene& scene, const std::filesystem::path& filepath);
 
+		// Same as Instantiate, but without logging. For tools that read prefabs often,
+		// such as the editor's project window building preview thumbnails.
+		static Entity Load(Scene& scene, const std::filesystem::path& filepath);
+
 		static constexpr const char* FileExtension = ".hyprefab";
 	};
 }

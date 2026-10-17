@@ -1,5 +1,6 @@
 #include "HierachyWindow.h"
 #include "../EditorPaths.h"
+#include "AssetDragDrop.h"
 
 #include <imgui/imgui.h>
 #include <Hydro/Core/UUID.h>
@@ -28,7 +29,22 @@ namespace Hydro
 
 		ImGui::Begin("Hierachy");
 		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
-		if (ImGui::TreeNodeEx("Root", flag))
+		const bool rootOpen = ImGui::TreeNodeEx("Root", flag);
+
+		// Drop a prefab from the project window onto "Root" to instantiate it.
+		if (ImGui::BeginDragDropTarget())
+		{
+			std::filesystem::path droppedPath;
+			if (AssetDragDrop::AcceptPayload(droppedPath) && droppedPath.extension().string() == PrefabSerializer::FileExtension)
+			{
+				if (Entity instance = PrefabSerializer::Instantiate(*scene, droppedPath))
+					m_SelectedEntity = instance;
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		if (rootOpen)
 		{
 			scene->m_Registry.each([&](auto entityHandle)
 			{

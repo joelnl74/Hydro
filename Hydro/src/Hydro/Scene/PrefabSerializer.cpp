@@ -37,6 +37,15 @@ namespace Hydro
 
 	Entity PrefabSerializer::Instantiate(Scene& scene, const std::filesystem::path& filepath)
 	{
+		Entity entity = Load(scene, filepath);
+		if (entity)
+			HY_CORE_INFO("Instantiated prefab '{}' from {}", entity.GetName(), filepath.string());
+
+		return entity;
+	}
+
+	Entity PrefabSerializer::Load(Scene& scene, const std::filesystem::path& filepath)
+	{
 		try
 		{
 			YAML::Node data = YAML::LoadFile(filepath.string());
@@ -47,9 +56,7 @@ namespace Hydro
 				return {};
 			}
 
-			Entity entity = EntitySerializer::Deserialize(data["Entity"], scene, false);
-			HY_CORE_INFO("Instantiated prefab '{}' from {}", entity.GetName(), filepath.string());
-			return entity;
+			return EntitySerializer::Deserialize(data["Entity"], scene, false);
 		}
 		catch (const YAML::Exception& e)
 		{

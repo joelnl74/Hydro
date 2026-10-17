@@ -6,6 +6,7 @@
 
 #include "Hydro/Utils/PlatformUtils.h"
 #include "EditorPaths.h"
+#include "EditorWindows/AssetDragDrop.h"
 
 #include <algorithm>
 #include <cmath>
@@ -52,6 +53,9 @@ namespace Hydro
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
 		m_InspectorWindow = CreateRef<InspectorWindow>();
+		m_ProjectWindow = CreateRef<ProjectWindow>();
+		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
+		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
 
 		CreateGalaxy();
 	}
@@ -255,8 +259,7 @@ namespace Hydro
 		m_InspectorWindow->OnImguiRender(m_HierarchyWindow->GetSelectedEntity());
 		m_StatsWindow->OnImguiRender(m_Scene);
 
-		ImGui::Begin("Project");
-		ImGui::End();
+		m_ProjectWindow->OnImguiRender(m_Scene);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("ViewPort");
@@ -264,6 +267,16 @@ namespace Hydro
 		if (viewPortSize.x >= 1.0f && viewPortSize.y >= 1.0f)
 			m_ViewportSize = { viewPortSize.x, viewPortSize.y };
 		m_SceneRenderer->RenderCompositeImage(viewPortSize.x, viewPortSize.y);
+
+		// Drop prefabs / scenes from the project window onto the viewport.
+		if (ImGui::BeginDragDropTarget())
+		{
+			std::filesystem::path droppedPath;
+			if (AssetDragDrop::AcceptPayload(droppedPath))
+				OnAssetDropped(droppedPath);
+
+			ImGui::EndDragDropTarget();
+		}
 		ImGui::End();
 		ImGui::PopStyleVar();
 
@@ -378,5 +391,20 @@ namespace Hydro
 		SceneSerializer serializer(m_Scene);
 		if (serializer.Serialize(path))
 			m_EditorScenePath = path;
+	}
+
+	void EditorLayer::OnAssetDropped(const std::filesystem::path& path)
+	{
+		const std::string extension = path.extension().string();
+
+		if (extension == PrefabSerializer::FileExtension)
+		{
+			if (Entity entity = PrefabSerializer::Instantiate(*m_Scene, path))
+				m_HierarchyWindow->SetSelectedEntity(entity);
+		}
+		else if (extension == SceneSerializer::FileExtension)
+		{
+			OpenScene(path);
+		}
 	}
 }
