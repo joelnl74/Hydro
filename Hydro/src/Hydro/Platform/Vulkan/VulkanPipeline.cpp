@@ -276,4 +276,10 @@ namespace Hydro
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 	}
+
+	void VulkanPipeline::BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VulkanDescriptorBuilder& descriptorSet)
+	{
+		VkDescriptorSet set = descriptorSet.GetDescriptorSet(Renderer::GetRenderFrame());
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, setIndex, 1, &set, 0, nullptr);
+	}
 }

@@ -12,7 +12,7 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
 | Components | `Scene/Components/Components.h` | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `CameraComponent`, `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
-| `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D` through a camera: `RenderEditor(editorCamera)` or `RenderRuntime()` (primary camera) |
+| `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h` | Per-entity C++ behaviour, run by the script system |
 | Serialization | `Scene/SceneSerializer.h`, `Scene/PrefabSerializer.h`, `Scene/EntitySerializer.h` | Saves scenes (`.hyscene`) and prefabs (`.hyprefab`) as YAML |
 
@@ -49,7 +49,7 @@ void UpdateSpin(entt::registry& registry, float deltaTime)
 A scene is updated one of two ways:
 
 - `Scene::OnUpdateRuntime(dt)` — the game is running: native scripts, then the engine systems.
-- `Scene::OnUpdateEditor(dt)` — editing: the engine systems only, no scripts. Oxygen always edits (there's no play mode yet), so it calls this one.
+- `Scene::OnUpdateEditor(dt)` — editing: the engine systems only, no scripts. Oxygen calls this one except in play mode (see [Play mode](#play-mode)).
 
 | Order | System | Runs in | Reads → writes |
 | --- | --- | --- | --- |
@@ -63,18 +63,33 @@ New engine systems go into `Scene::OnUpdateEditor` when they must also run while
 
 ## Cameras
 
-A scene is drawn through exactly one camera per frame (there is one 2D pass, so the last `Renderer2D::BeginScene` of the frame wins).
+A scene can be drawn through several cameras in one frame, each into its own `RenderView` (see [Architecture](Architecture.md#render-views)).
 
 | Camera | Where | Used by |
 | --- | --- | --- |
 | `CameraComponent` (holds a `SceneCamera`) | `Scene/Components/Components.h`, `Renderer/SceneCamera.h` | The game: `SceneRenderer::RenderRuntime` draws through the first camera with `Primary` set |
-| `EditorCamera` | `Renderer/EditorCamera.h` | The editor viewport: `SceneRenderer::RenderEditor(camera)`. Not part of the scene and not saved |
+| `EditorCamera` | `Renderer/EditorCamera.h` | Oxygen's **Editor** window: `SceneRenderer::RenderEditor(view, camera)`. Not part of the scene and not saved |
 
-- **Data only.** `SceneCamera` is the projection settings (perspective FOV/near/far, orthographic size/near/far, default orthographic with 10 units visible vertically). The camera's position and rotation come from the entity's `TransformComponent` (scale is ignored); its aspect ratio comes from the scene's viewport, set by `Scene::OnViewportResize` (`SceneRenderer::SetViewportSize` calls it). Nothing has to be kept in sync by hand.
+- **Data only.** `SceneCamera` is the projection settings (perspective FOV/near/far, orthographic size/near/far, default orthographic with 10 units visible vertically). The camera's position and rotation come from the entity's `TransformComponent` (scale is ignored); its aspect ratio comes from the scene's viewport, set by `Scene::OnViewportResize` (Oxygen's Game window calls it with its size). Nothing has to be kept in sync by hand.
 - **One primary camera.** `Scene::GetPrimaryCameraEntity` returns the first `CameraComponent` with `Primary` set. The editor unticks the others when you tick one. Without a primary camera, `RenderRuntime` draws nothing and returns `false`.
 - **Clip space is handled once**, in `Camera` (`Renderer/Camera.h`): every projection is built by `Camera::Perspective` / `Camera::Orthographic`, which use GLM's zero-to-one depth (`*_ZO`) and flip Y for Vulkan. World +Y is up on screen, geometry is counter-clockwise (`VulkanPipeline` front face), and the rendered image is shown without flipping its UVs. Never build a projection with `glm::perspective`/`glm::ortho` directly.
 - **World units, not pixels.** Sprites are sized in world units (a default sprite is 1×1). The editor's galaxy fits the default 10-unit view.
-- **Editor camera controls** (Oxygen viewport, **Camera** menu): Alt + left drag orbits (perspective), middle drag pans, Alt + right drag or the wheel zooms. **2D (Orthographic)** looks straight down −Z; **Scene Camera (Primary)** shows the view the game will have.
+- **Editor camera controls** (Oxygen's Editor window, **Camera** menu): Alt + left drag orbits (perspective), middle drag pans, Alt + right drag or the wheel zooms. **2D (Orthographic)** looks straight down −Z. The **Game** window always shows the primary camera.
+
+## Play mode
+
+Oxygen edits one scene and plays a copy of it, so nothing that happens while playing changes what is saved.
+
+| Button (top bar) | What happens |
+| --- | --- |
+| **Play** | `Scene::Copy(editorScene)` makes the runtime scene; it becomes the active scene. Each frame: `OnUpdateRuntime` (scripts + engine systems), then the application's systems |
+| **Pause** / **Resume** | Stops/continues updating the runtime scene; it is still drawn (`OnUpdateEditor` runs instead) |
+| **Step** (while paused) | Runs one runtime frame |
+| **Stop** | Throws the runtime scene away (its scripts get `OnDestroy`); the editor scene becomes active again |
+
+- `Scene::Copy` copies every entity made with `CreateEntity` (same UUIDs), the components in `CopyableComponents` (`Components.h`: add new copyable components there), the native script bindings (fresh instances on the first runtime update), the name and the viewport size. Raw registry entities without an `IDComponent` are not copied; an application copies its own (the editor copies its galaxy stars).
+- The hierarchy, inspector and both windows show the active scene, so the runtime scene can be inspected and tweaked while playing; those changes are lost on Stop. Saving always writes the editor scene, and opening or creating a scene stops play first.
+- Application systems are gameplay: Oxygen's galaxy only moves while playing.
 
 ## Scripts
 
@@ -125,6 +140,6 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 ## Known gaps
 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
-- There is no play mode yet (S5), so scripts never run in the editor; a runtime application calls `OnUpdateRuntime` and `RenderRuntime`.
+- The selection is cleared on Play and Stop (there's no `GetEntityByUUID` yet to carry it over, S1).
 - Native scripts aren't serialized ([#43](https://github.com/joelnl74/Hydro/issues/43)).
 - There is no parent/child hierarchy yet.

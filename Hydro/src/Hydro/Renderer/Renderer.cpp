@@ -55,13 +55,8 @@ namespace Hydro
 		// 4. GPU memory allocator.
 		VulkanAllocator::Init(device);
 
-		// Offscreen targets need a non-zero size even if the window starts minimised.
-		VkExtent2D extent = renderer.m_SwapChain->GetExtent();
-		uint32_t targetWidth = extent.width > 0 ? extent.width : std::max(renderer.m_Width, 1u);
-		uint32_t targetHeight = extent.height > 0 ? extent.height : std::max(renderer.m_Height, 1u);
-
-		// 5. Sub-renderers.
-		Renderer2D::Init(targetWidth, targetHeight);
+		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
+		Renderer2D::Init();
 		Renderer3D::Init();
 	}
 
@@ -210,8 +205,8 @@ namespace Hydro
 		if (m_SwapChain->Recreate(m_Width, m_Height) == false)
 			return false;
 
-		// Renderer2D's offscreen target is sized by the editor viewport, not the window, so it is
-		// not touched here.
+		// RenderViews are sized by whoever shows them (the editor's windows), not the window, so they
+		// are not touched here.
 		m_SwapChainDirty = false;
 		return true;
 	}

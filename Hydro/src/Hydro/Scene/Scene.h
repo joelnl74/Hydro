@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "../../../vendor/entt/entt.hpp"
 
+#include "Hydro/Core/Base.h"
 #include "Components/Components.h"
 
 namespace Hydro
@@ -18,6 +19,12 @@ namespace Hydro
 		~Scene();
 
 		void Init();
+
+		// A copy of `source` to run (play mode): every entity made with CreateEntity, with the same
+		// UUIDs, its CopyableComponents, and its native scripts' bindings (the script instances are
+		// created fresh on the copy's first OnUpdateRuntime). Raw registry entities without an
+		// IDComponent are not copied. Also copies the name and the viewport size.
+		static Ref<Scene> Copy(const Ref<Scene>& source);
 
 		// Runtime (the game is running): native scripts, then the other engine systems.
 		void OnUpdateRuntime(float deltaTime);

@@ -28,6 +28,8 @@
 #include "Hydro/Renderer/Camera.h"
 #include "Hydro/Renderer/SceneCamera.h"
 #include "Hydro/Renderer/EditorCamera.h"
+#include "Hydro/Renderer/RenderView.h"
+#include "Hydro/Renderer/Renderer2D.h"
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/RendererSettings.h"
 

@@ -93,4 +93,13 @@ namespace Hydro
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};
+
+	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
+	// (every entity has those). Scene::Copy copies these; add new copyable components here.
+	template<typename... Component>
+	struct ComponentGroup
+	{
+	};
+
+	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent>;
 }

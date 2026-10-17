@@ -51,6 +51,9 @@ namespace Hydro
 		void Bind(VkCommandBuffer commandBuffer, VkExtent2D extent);
 		// Binds this frame's set of every DescriptorSets entry. Does nothing when there are none.
 		void BindDescriptorSets(VkCommandBuffer commandBuffer);
+		// Binds this frame's set of `descriptorSet` at set index `setIndex` instead of the one in the
+		// specification. Its layout must be defined identically to that entry's (e.g. built the same way).
+		void BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VulkanDescriptorBuilder& descriptorSet);
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }

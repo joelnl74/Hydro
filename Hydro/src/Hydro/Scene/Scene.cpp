@@ -5,6 +5,8 @@
 
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/UUID.h>
+
+#include <unordered_map>
 namespace Hydro
 {
 	Scene::Scene(const std::string& debugName, bool isEditorScene)
@@ -31,6 +33,74 @@ namespace Hydro
 	void Scene::Init()
 	{
 
+	}
+
+	namespace
+	{
+		template<typename... Component>
+		void CopyComponents(ComponentGroup<Component...>, entt::registry& destination, const entt::registry& source,
+			const std::unordered_map<entt::entity, entt::entity>& entityMap)
+		{
+			([&]()
+			{
+				auto view = source.view<const Component>();
+				for (auto sourceEntity : view)
+				{
+					auto it = entityMap.find(sourceEntity);
+					if (it != entityMap.end())
+						destination.emplace_or_replace<Component>(it->second, view.template get<const Component>(sourceEntity));
+				}
+			}(), ...);
+		}
+	}
+
+	Ref<Scene> Scene::Copy(const Ref<Scene>& source)
+	{
+		Ref<Scene> copy = CreateRef<Scene>(source->GetName());
+		copy->m_ViewportWidth = source->m_ViewportWidth;
+		copy->m_ViewportHeight = source->m_ViewportHeight;
+
+		const entt::registry& sourceRegistry = source->m_Registry;
+
+		// Same order as the source (entt iterates newest first), so the copy lists entities the same way.
+		std::vector<entt::entity> entities;
+		sourceRegistry.each([&](auto entityHandle)
+		{
+			if (sourceRegistry.has<IDComponent>(entityHandle))
+				entities.push_back(entityHandle);
+		});
+
+		std::unordered_map<entt::entity, entt::entity> entityMap;
+		for (auto it = entities.rbegin(); it != entities.rend(); ++it)
+		{
+			const UUID uuid = sourceRegistry.get<IDComponent>(*it).Id;
+			std::string name;
+			if (sourceRegistry.has<TagComponent>(*it))
+				name = sourceRegistry.get<TagComponent>(*it).Tag;
+
+			entityMap[*it] = copy->CreateEntityWithUUID(uuid, name);
+		}
+
+		CopyComponents(CopyableComponents{}, copy->m_Registry, sourceRegistry, entityMap);
+
+		// Native scripts: copy the bindings, not the instances (those belong to the source scene).
+		auto scripts = sourceRegistry.view<const NativeScriptComponent>();
+		for (auto sourceEntity : scripts)
+		{
+			auto it = entityMap.find(sourceEntity);
+			if (it == entityMap.end())
+				continue;
+
+			NativeScriptComponent& copied = copy->m_Registry.emplace<NativeScriptComponent>(it->second);
+			for (const auto& script : scripts.get<const NativeScriptComponent>(sourceEntity).Scripts)
+			{
+				NativeScriptComponent::Script binding;
+				binding.Instantiate = script.Instantiate;
+				copied.Scripts.push_back(std::move(binding));
+			}
+		}
+
+		return copy;
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)

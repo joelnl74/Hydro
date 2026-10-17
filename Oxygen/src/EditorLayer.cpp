@@ -50,9 +50,19 @@ namespace Hydro
 {
 	void EditorLayer::OnAttach()
 	{
-		m_Scene = CreateRef<Scene>("Scene", false);
-		m_SceneRenderer = CreateScope<SceneRenderer>(m_Scene);
-		m_Scene->Init();
+		m_EditorScene = CreateRef<Scene>("Scene", false);
+		m_EditorScene->Init();
+		m_ActiveScene = m_EditorScene;
+		m_SceneRenderer = CreateScope<SceneRenderer>(m_ActiveScene);
+
+		RenderViewSpecification editorViewSpecification;
+		editorViewSpecification.DebugName = "Editor";
+		m_EditorView = CreateScope<RenderView>(editorViewSpecification);
+
+		RenderViewSpecification gameViewSpecification;
+		gameViewSpecification.DebugName = "Game";
+		m_GameView = CreateScope<RenderView>(gameViewSpecification);
+
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
 		m_InspectorWindow = CreateRef<InspectorWindow>();
@@ -76,9 +86,9 @@ namespace Hydro
 		// One tagged entity so the galaxy shows up in the hierarchy. The stars themselves get
 		// no Tag/ID: the hierarchy window builds a tree node for every tagged entity each frame,
 		// which would be far too slow for 50k entities.
-		m_Scene->CreateEntity("Galaxy (" + std::to_string(GalaxyStarCount) + " stars)");
+		m_EditorScene->CreateEntity("Galaxy (" + std::to_string(GalaxyStarCount) + " stars)");
 
-		entt::registry& registry = m_Scene->m_Registry;
+		entt::registry& registry = m_EditorScene->m_Registry;
 
 		std::mt19937 rng(1337);
 		std::uniform_real_distribution<float> uniform(0.0f, 1.0f);
@@ -120,15 +130,33 @@ namespace Hydro
 			registry.emplace<SpriteRendererComponent>(entity, glm::vec4(star.BaseColor, 1.0f));
 			registry.emplace<GalaxyStar>(entity, star);
 		}
+
+		// Place the stars without advancing them: the galaxy only moves while playing.
+		UpdateGalaxy(*m_EditorScene, 0.0f);
 	}
 
-	void EditorLayer::UpdateGalaxy(float deltaTime)
+	void EditorLayer::CopyGalaxyStars(Scene& source, Scene& destination)
+	{
+		entt::registry& from = source.m_Registry;
+		entt::registry& to = destination.m_Registry;
+
+		auto view = from.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
+		for (auto entity : view)
+		{
+			entt::entity copy = to.create();
+			to.emplace<TransformComponent>(copy, view.get<TransformComponent>(entity));
+			to.emplace<SpriteRendererComponent>(copy, view.get<SpriteRendererComponent>(entity));
+			to.emplace<GalaxyStar>(copy, view.get<GalaxyStar>(entity));
+		}
+	}
+
+	void EditorLayer::UpdateGalaxy(Scene& scene, float deltaTime)
 	{
 		m_Time += deltaTime;
 
 		// Centred on the origin; Y is squashed a little so it reads as a tilted disc.
 
-		auto view = m_Scene->m_Registry.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
+		auto view = scene.m_Registry.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
 		for (auto entity : view)
 		{
 			GalaxyStar& star = view.get<GalaxyStar>(entity);
@@ -160,7 +188,12 @@ namespace Hydro
 		m_StatsWindow = nullptr;
 		m_HierarchyWindow = nullptr;
 		m_SceneRenderer.reset();
-		m_Scene = nullptr;
+		m_RuntimeScene = nullptr;
+		m_ActiveScene = nullptr;
+		m_EditorScene = nullptr;
+		// The GPU is idle here (Application waits before detaching layers), so the views can go.
+		m_GameView.reset();
+		m_EditorView.reset();
 
 		// The editor opened the project, so it closes it.
 		Project::Close();
@@ -169,21 +202,31 @@ namespace Hydro
 	void EditorLayer::OnUpdate(float deltaTime)
 	{
 		// deltaTime comes from the Time subsystem (Time::GetDeltaTime()), passed in by Application::Run.
-		// 1. Engine systems. The editor is always editing (there's no play mode yet), so scripts don't run.
-		m_Scene->OnUpdateEditor(deltaTime);
-		// 2. Application systems.
-		UpdateGalaxy(deltaTime);
-
-		// 3. Render submission, through the camera the viewport looks through.
-		if (m_ViewportCamera == ViewportCamera::Editor)
+		// 1-3. The scene runs only in play mode (and not while paused, except for a Step).
+		const bool runGame = IsPlaying() && (m_Paused == false || m_StepFrames > 0);
+		if (runGame)
 		{
-			m_EditorCamera.Update(m_ViewportHovered);
-			m_SceneRenderer->RenderEditor(m_EditorCamera);
+			// Scripts and engine systems, then the application's systems.
+			m_ActiveScene->OnUpdateRuntime(deltaTime);
+			UpdateGalaxy(*m_ActiveScene, deltaTime);
+
+			if (m_StepFrames > 0)
+				m_StepFrames--;
 		}
 		else
 		{
-			m_SceneHasCamera = m_SceneRenderer->RenderRuntime();
+			m_ActiveScene->OnUpdateEditor(deltaTime);
 		}
+
+		// 4. Render submission: one view per visible window. The editor camera is updated every frame
+		// so a drag never jumps, but only takes new input over the Editor window.
+		m_EditorCamera.Update(m_EditorViewVisible && m_EditorViewHovered);
+
+		if (m_EditorViewVisible)
+			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera);
+
+		if (m_GameViewVisible)
+			m_SceneHasCamera = m_SceneRenderer->RenderRuntime(*m_GameView);
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -287,63 +330,144 @@ namespace Hydro
 				ImGui::EndMenu();
 			}
 
+			DrawPlayControls();
+
 			ImGui::EndMenuBar();
 		}
 
-		m_HierarchyWindow->OnImguiRender(m_Scene);
+		m_HierarchyWindow->OnImguiRender(m_ActiveScene);
 		m_InspectorWindow->OnImguiRender(m_HierarchyWindow->GetSelectedEntity());
-		m_StatsWindow->OnImguiRender(m_Scene);
+		m_StatsWindow->OnImguiRender(m_ActiveScene);
 		m_RenderSettingsWindow->OnImguiRender();
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
 
-		m_ProjectWindow->OnImguiRender(m_Scene);
+		m_ProjectWindow->OnImguiRender(m_ActiveScene);
 
-		DrawViewport();
+		DrawEditorWindow();
+		DrawGameWindow();
 
 		ImGui::End();
 	}
 
-	void EditorLayer::DrawViewport()
+	void EditorLayer::DrawPlayControls()
+	{
+		const ImGuiStyle& style = ImGui::GetStyle();
+		const float buttonWidth = 64.0f;
+		const float totalWidth = 3.0f * buttonWidth + 2.0f * style.ItemSpacing.x;
+		const float centre = (ImGui::GetWindowWidth() - totalWidth) * 0.5f;
+		if (centre > ImGui::GetCursorPosX())
+			ImGui::SetCursorPosX(centre);
+
+		// Play turns into Stop (highlighted) while the game runs.
+		const bool playing = IsPlaying();
+		if (playing)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.55f, 0.25f, 1.0f));
+		if (ImGui::Button(playing ? "Stop" : "Play", { buttonWidth, 0.0f }))
+		{
+			if (playing)
+				StopScene();
+			else
+				PlayScene();
+		}
+		if (playing)
+			ImGui::PopStyleColor();
+
+		ImGui::BeginDisabled(IsPlaying() == false);
+
+		const bool paused = m_Paused;
+		if (paused)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.50f, 0.15f, 1.0f));
+		if (ImGui::Button(paused ? "Resume" : "Pause", { buttonWidth, 0.0f }))
+			m_Paused = m_Paused == false;
+		if (paused)
+			ImGui::PopStyleColor();
+
+		ImGui::BeginDisabled(m_Paused == false);
+		if (ImGui::Button("Step", { buttonWidth, 0.0f }))
+			m_StepFrames++;
+		ImGui::EndDisabled();
+
+		ImGui::EndDisabled();
+	}
+
+	void EditorLayer::DrawEditorWindow()
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::Begin("ViewPort", nullptr, ImGuiWindowFlags_MenuBar);
+		m_EditorViewVisible = ImGui::Begin("Editor", nullptr, ImGuiWindowFlags_MenuBar);
+		m_EditorViewHovered = false;
 
-		if (ImGui::BeginMenuBar())
+		if (m_EditorViewVisible)
 		{
-			if (ImGui::BeginMenu("Camera"))
+			if (ImGui::BeginMenuBar())
 			{
-				if (ImGui::MenuItem("Editor Camera", nullptr, m_ViewportCamera == ViewportCamera::Editor))
-					m_ViewportCamera = ViewportCamera::Editor;
-				if (ImGui::MenuItem("Scene Camera (Primary)", nullptr, m_ViewportCamera == ViewportCamera::Scene))
-					m_ViewportCamera = ViewportCamera::Scene;
+				if (ImGui::BeginMenu("Camera"))
+				{
+					const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
+					if (ImGui::MenuItem("2D (Orthographic)", nullptr, orthographic))
+						m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
+					if (ImGui::MenuItem("Reset View"))
+						m_EditorCamera.Reset();
 
-				ImGui::Separator();
+					ImGui::Separator();
+					ImGui::TextDisabled("Alt+LMB orbit, MMB pan, Alt+RMB / wheel zoom");
 
-				const bool editorCamera = m_ViewportCamera == ViewportCamera::Editor;
-				const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
-				if (ImGui::MenuItem("2D (Orthographic)", nullptr, orthographic, editorCamera))
-					m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
-				if (ImGui::MenuItem("Reset View", nullptr, false, editorCamera))
-					m_EditorCamera.Reset();
+					ImGui::EndMenu();
+				}
 
-				ImGui::Separator();
-				ImGui::TextDisabled("Alt+LMB orbit, MMB pan, Alt+RMB / wheel zoom");
-
-				ImGui::EndMenu();
+				ImGui::EndMenuBar();
 			}
 
-			ImGui::EndMenuBar();
+			const ImVec2 size = ImGui::GetContentRegionAvail();
+			if (size.x >= 1.0f && size.y >= 1.0f)
+			{
+				m_EditorView->SetSize((uint32_t)size.x, (uint32_t)size.y);
+				m_EditorCamera.SetViewportSize(size.x, size.y);
+			}
+
+			// Camera projections flip Y for Vulkan, so the image is shown the right way up as is.
+			ImGui::Image((ImTextureID)m_EditorView->GetImGuiTexture(), size);
+			m_EditorViewHovered = ImGui::IsItemHovered();
+			AcceptAssetDrop();
 		}
 
-		ImVec2 viewPortSize = ImGui::GetContentRegionAvail();
-		if (viewPortSize.x >= 1.0f && viewPortSize.y >= 1.0f)
-			m_EditorCamera.SetViewportSize(viewPortSize.x, viewPortSize.y);
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
 
-		const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
-		m_SceneRenderer->RenderCompositeImage(viewPortSize.x, viewPortSize.y);
-		m_ViewportHovered = ImGui::IsItemHovered();
+	void EditorLayer::DrawGameWindow()
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		m_GameViewVisible = ImGui::Begin("Game");
 
-		// Drop prefabs / scenes from the project window onto the viewport.
+		if (m_GameViewVisible)
+		{
+			const ImVec2 size = ImGui::GetContentRegionAvail();
+			if (size.x >= 1.0f && size.y >= 1.0f)
+			{
+				// The game's cameras take their aspect ratio from the scene's viewport.
+				m_GameView->SetSize((uint32_t)size.x, (uint32_t)size.y);
+				m_ActiveScene->OnViewportResize((uint32_t)size.x, (uint32_t)size.y);
+			}
+
+			const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
+			ImGui::Image((ImTextureID)m_GameView->GetImGuiTexture(), size);
+			AcceptAssetDrop();
+
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			const ImVec2 textPosition = { imagePosition.x + 8.0f, imagePosition.y + 8.0f };
+			if (m_SceneHasCamera == false)
+				drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255), "No primary camera in the scene. Add a Camera component and tick Primary.");
+			else if (IsPlaying() && m_Paused)
+				drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255), "Paused");
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::AcceptAssetDrop()
+	{
+		// Drop prefabs / scenes from the project window onto the image.
 		if (ImGui::BeginDragDropTarget())
 		{
 			std::filesystem::path droppedPath;
@@ -352,26 +476,53 @@ namespace Hydro
 
 			ImGui::EndDragDropTarget();
 		}
-
-		if (m_ViewportCamera == ViewportCamera::Scene && m_SceneHasCamera == false)
-		{
-			ImGui::GetWindowDrawList()->AddText({ imagePosition.x + 8.0f, imagePosition.y + 8.0f }, IM_COL32(255, 200, 80, 255),
-				"No primary camera in the scene. Add a Camera component and tick Primary.");
-		}
-
-		ImGui::End();
-		ImGui::PopStyleVar();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
 	{
-		if (e.GetEventType() == EventType::MouseScrolled && m_ViewportHovered && m_ViewportCamera == ViewportCamera::Editor)
+		if (e.GetEventType() == EventType::MouseScrolled && m_EditorViewVisible && m_EditorViewHovered)
 		{
 			m_EditorCamera.Zoom(static_cast<MouseScrolledEvent&>(e).GetYOffset());
 			e.Handled = true;
 		}
 	}
-	
+
+	void EditorLayer::PlayScene()
+	{
+		if (IsPlaying())
+			return;
+
+		m_RuntimeScene = Scene::Copy(m_EditorScene);
+		m_RuntimeScene->Init();
+		CopyGalaxyStars(*m_EditorScene, *m_RuntimeScene);
+
+		m_ActiveScene = m_RuntimeScene;
+		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_SceneState = SceneState::Play;
+		m_Paused = false;
+		m_StepFrames = 0;
+
+		// The selection belongs to the editor scene.
+		m_HierarchyWindow->ClearSelection();
+	}
+
+	void EditorLayer::StopScene()
+	{
+		if (IsPlaying() == false)
+			return;
+
+		m_SceneState = SceneState::Edit;
+		m_Paused = false;
+		m_StepFrames = 0;
+
+		m_ActiveScene = m_EditorScene;
+		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_HierarchyWindow->ClearSelection();
+
+		// Destroying the copy runs its scripts' OnDestroy; the editor scene is as it was before Play.
+		m_RuntimeScene = nullptr;
+	}
+
 	void EditorLayer::NewProject()
 	{
 		std::string directory = FileDialogs::OpenDirectory();
@@ -456,24 +607,28 @@ namespace Hydro
 		HY_INFO("No project found in {}; started an unsaved one", directory.string());
 	}
 
-	void EditorLayer::SetActiveScene(const Ref<Scene>& scene)
+	void EditorLayer::SetEditorScene(const Ref<Scene>& scene)
 	{
-		m_Scene = scene;
-		m_Scene->Init();
-		m_SceneRenderer->SetScene(m_Scene);
+		StopScene();
+
+		m_EditorScene = scene;
+		m_EditorScene->Init();
+		m_EditorScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
+		m_ActiveScene = m_EditorScene;
+		m_SceneRenderer->SetScene(m_ActiveScene);
 		m_HierarchyWindow->ClearSelection();
 	}
 
 	void EditorLayer::NewScene()
 	{
-		SetActiveScene(CreateRef<Scene>("Untitled", true));
+		SetEditorScene(CreateRef<Scene>("Untitled", true));
 		CreateDefaultCamera();
 		m_EditorScenePath.clear();
 	}
 
 	void EditorLayer::CreateDefaultCamera()
 	{
-		Entity camera = m_Scene->CreateEntity("Camera");
+		Entity camera = m_EditorScene->CreateEntity("Camera");
 		camera.AddComponent<TransformComponent>();
 		camera.AddComponent<CameraComponent>();
 	}
@@ -502,7 +657,7 @@ namespace Hydro
 		if (serializer.Deserialize(path) == false)
 			return;
 
-		SetActiveScene(newScene);
+		SetEditorScene(newScene);
 		m_EditorScenePath = path;
 	}
 
@@ -510,9 +665,10 @@ namespace Hydro
 	{
 		// First save of a new scene goes to <project>/Assets/Scenes/<SceneName>.hyscene.
 		if (m_EditorScenePath.empty())
-			m_EditorScenePath = EditorPaths::GetScenesDirectory() / (EditorPaths::ToFileName(m_Scene->GetName()) + SceneSerializer::FileExtension);
+			m_EditorScenePath = EditorPaths::GetScenesDirectory() / (EditorPaths::ToFileName(m_EditorScene->GetName()) + SceneSerializer::FileExtension);
 
-		SceneSerializer serializer(m_Scene);
+		// Always the editor scene: what happens while playing is not saved.
+		SceneSerializer serializer(m_EditorScene);
 		serializer.Serialize(m_EditorScenePath);
 	}
 
@@ -528,9 +684,9 @@ namespace Hydro
 			path += SceneSerializer::FileExtension;
 
 		// Name the scene after its file.
-		m_Scene->SetName(path.stem().string());
+		m_EditorScene->SetName(path.stem().string());
 
-		SceneSerializer serializer(m_Scene);
+		SceneSerializer serializer(m_EditorScene);
 		if (serializer.Serialize(path))
 			m_EditorScenePath = path;
 	}
@@ -541,7 +697,7 @@ namespace Hydro
 
 		if (extension == PrefabSerializer::FileExtension)
 		{
-			if (Entity entity = PrefabSerializer::Instantiate(*m_Scene, path))
+			if (Entity entity = PrefabSerializer::Instantiate(*m_ActiveScene, path))
 				m_HierarchyWindow->SetSelectedEntity(entity);
 		}
 		else if (extension == SceneSerializer::FileExtension)

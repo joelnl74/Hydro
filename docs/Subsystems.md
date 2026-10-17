@@ -120,6 +120,7 @@ Every current name was checked against the table. Only one changed:
 | `ImGuiLayer` | Keep | A layer, named `<What>Layer` |
 | `Project` | Keep | Data the application opens and closes (`Load`/`New`, `Close`), not a subsystem |
 | `SceneRenderer` | Keep | Per-scene counterpart of `Renderer` |
+| `RenderView` | New, a resource | One picture of a scene (target + camera + quads) that `Renderer2D` draws into; not a subsystem or part, the application creates as many as it shows |
 | `Camera`, `SceneCamera`, `EditorCamera` | New, not subsystems | `Camera` is a projection value (and where clip-space conventions live); `SceneCamera` is the per-scene camera data held by `CameraComponent` (`Scene...` prefix); `EditorCamera` is an editor tool the application owns |
 
 ### Current and planned subsystems

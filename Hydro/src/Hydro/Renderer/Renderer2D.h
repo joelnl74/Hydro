@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "Hydro/Renderer/Camera.h"
+#include "Hydro/Renderer/RenderView.h"
 
 namespace Hydro
 {
@@ -30,7 +31,8 @@ namespace Hydro
 		const char* GPUName = "";
 
 		// Frame / target.
-		uint32_t ViewportWidth = 0;
+		uint32_t ViewCount = 0;      // views rendered this frame
+		uint32_t ViewportWidth = 0;  // size of the first view rendered this frame
 		uint32_t ViewportHeight = 0;
 		uint32_t FramesInFlight = 0;
 		uint32_t FrameIndex = 0;
@@ -40,45 +42,44 @@ namespace Hydro
 		uint32_t GetTriangleCount() const { return QuadCount * 2; }
 	};
 
+	// Draws batched quads into RenderViews. A part of Renderer: Renderer::Init / Shutdown start and
+	// stop it, and Renderer::RenderFrame calls Render once per frame.
 	class Renderer2D
 	{
 	public:
-		static void Init(uint32_t width, uint32_t height);
+		static void Init();
 		static void Shutdown();
 
-		// The camera this frame's quads are seen through. Call before submitting; it applies to the whole
-		// frame (there is one 2D pass), and stays set until the next BeginScene. Projections must come
-		// from Camera (Camera::Perspective / Camera::Orthographic), which handles Vulkan's clip space.
-		static void BeginScene(const glm::mat4& viewProjection);
+		// Starts queuing quads for `view`, seen through viewProjection. Projections must come from
+		// Camera (Camera::Perspective / Camera::Orthographic), which handles Vulkan's clip space.
+		// Each view begun this frame gets its own 2D pass in Render, in the order they were begun.
+		// Beginning the same view again in a frame adds to its quads and replaces its camera.
+		static void BeginScene(RenderView& view, const glm::mat4& viewProjection);
 		// cameraTransform is the camera's world transform (position and rotation, no scale).
-		static void BeginScene(const Camera& camera, const glm::mat4& cameraTransform);
+		static void BeginScene(RenderView& view, const Camera& camera, const glm::mat4& cameraTransform);
+		static void EndScene();
 
-		// Queue a quad for this frame. Only writes CPU-side vertex data, so it can be
-		// called any time before Render(). When the current batch is full a new batch
-		// is started automatically - there is no hard limit on quads per frame.
+		// Queue a quad for the view between BeginScene and EndScene. Only writes CPU-side vertex
+		// data. When the current batch is full a new batch is started automatically - there is no
+		// hard limit on quads per frame.
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
 
-		// Records the whole 2D frame (ONE render pass, one vkCmdDrawIndexed per batch) into the
-		// frame's command buffer. Called once per frame by Renderer::RenderFrame.
+		// Records one render pass per view begun this frame (one vkCmdDrawIndexed per batch) into
+		// the frame's command buffer. Called once per frame by Renderer::RenderFrame.
 		static void Render(VkCommandBuffer commandBuffer);
 
 		// Throw away this frame's quads without rendering (e.g. while the window is minimized).
 		static void DiscardFrame();
 
-		// Size of the offscreen image the scene is rendered into (e.g. the editor viewport
-		// panel). Applied at the start of the next Render(); 0 is ignored.
-		static void SetViewportSize(uint32_t width, uint32_t height);
-
-		static VkDescriptorSet GetCompositeDescriptorSet();
-
-		// Stats from the last frame that was rendered.
+		// Stats from the last frame that was rendered (all views together).
 		static Statistics GetStats();
 
 	private:
-		static void AllocateBatch();
-		static void NextBatch();
-		static void ResetBatches();
-		static void ApplyViewportResize();
+		static void AllocateBatch(RenderViewData& view);
+		static void NextBatch(RenderViewData& view);
+		static void ResetBatches(RenderViewData& view);
+		static void ApplyViewResize(RenderViewData& view);
+		static void RecordView(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
 		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad
 		// shader when a source file changed (only with RendererSettings::ShaderHotReload).
 		static void ApplySettings();
@@ -86,6 +87,7 @@ namespace Hydro
 		// Builds a new quad pipeline (optionally with a new shader) and swaps it in once the GPU is
 		// idle. On failure the current one keeps drawing and false is returned.
 		static bool RebuildQuadPipeline(bool recompileShader, bool wireframe);
-	};
 
+		friend class Hydro::RenderView;
+	};
 }
