@@ -185,6 +185,8 @@ namespace Hydro
 	{
 		bool removeTransform = false;
 		bool removeSprite = false;
+		bool removeCamera = false;
+		bool makePrimary = false;
 
 		DrawComponent<TransformComponent>("Transform", entity, removeTransform, [](TransformComponent& transform)
 		{
@@ -204,11 +206,52 @@ namespace Hydro
 			DrawPropertyRow("Tiling", [&]() { ImGui::DragFloat("##Tiling", &sprite.TilingFactor, 0.1f, 0.0f, 100.0f, "%.2f"); });
 		});
 
+		DrawComponent<CameraComponent>("Camera", entity, removeCamera, [&](CameraComponent& cameraComponent)
+		{
+			SceneCamera& camera = cameraComponent.Camera;
+
+			DrawPropertyRow("Primary", [&]() { makePrimary = ImGui::Checkbox("##Primary", &cameraComponent.Primary) && cameraComponent.Primary; });
+
+			const char* projectionNames[] = { "Perspective", "Orthographic" };
+			int projection = (int)camera.Projection;
+			DrawPropertyRow("Projection", [&]()
+			{
+				if (ImGui::Combo("##Projection", &projection, projectionNames, 2))
+					camera.Projection = (ProjectionType)projection;
+			});
+
+			if (camera.Projection == ProjectionType::Perspective)
+			{
+				DrawPropertyRow("Vertical FOV", [&]() { ImGui::DragFloat("##FOV", &camera.PerspectiveFOV, 0.5f, 1.0f, 179.0f, "%.1f deg"); });
+				DrawPropertyRow("Near", [&]() { ImGui::DragFloat("##Near", &camera.PerspectiveNear, 0.01f, 0.001f, camera.PerspectiveFar, "%.3f"); });
+				DrawPropertyRow("Far", [&]() { ImGui::DragFloat("##Far", &camera.PerspectiveFar, 1.0f, camera.PerspectiveNear, 100000.0f, "%.1f"); });
+			}
+			else
+			{
+				DrawPropertyRow("Size", [&]() { ImGui::DragFloat("##Size", &camera.OrthographicSize, 0.1f, 0.01f, 10000.0f, "%.2f"); });
+				DrawPropertyRow("Near", [&]() { ImGui::DragFloat("##Near", &camera.OrthographicNear, 0.1f, -10000.0f, camera.OrthographicFar, "%.2f"); });
+				DrawPropertyRow("Far", [&]() { ImGui::DragFloat("##Far", &camera.OrthographicFar, 0.1f, camera.OrthographicNear, 10000.0f, "%.2f"); });
+			}
+		});
+
+		// Only one primary camera: ticking Primary here unticks it everywhere else.
+		if (makePrimary)
+		{
+			auto cameras = entity.GetScene()->m_Registry.view<CameraComponent>();
+			for (auto other : cameras)
+			{
+				if (other != (entt::entity)entity)
+					cameras.get<CameraComponent>(other).Primary = false;
+			}
+		}
+
 		// Apply removals after drawing, when no component references are alive.
 		if (removeTransform)
 			entity.RemoveComponent<TransformComponent>();
 		if (removeSprite)
 			entity.RemoveComponent<SpriteRendererComponent>();
+		if (removeCamera)
+			entity.RemoveComponent<CameraComponent>();
 	}
 
 	void InspectorWindow::DrawAddComponentButton(Entity entity)
@@ -222,6 +265,7 @@ namespace Hydro
 		{
 			const bool hasTransform = entity.HasComponent<TransformComponent>();
 			const bool hasSprite = entity.HasComponent<SpriteRendererComponent>();
+			const bool hasCamera = entity.HasComponent<CameraComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -230,12 +274,22 @@ namespace Hydro
 			{
 				entity.AddComponent<SpriteRendererComponent>();
 
-				// A sprite needs a transform to be drawn (SceneRenderer groups on both).
+				// A sprite needs a transform to be drawn (SceneRenderer views both).
 				if (entity.HasComponent<TransformComponent>() == false)
-					entity.AddComponent<TransformComponent>(glm::vec3(200.0f, 200.0f, 0.0f), glm::vec3(100.0f, 100.0f, 1.0f));
+					entity.AddComponent<TransformComponent>();
 			}
 
-			if (hasTransform && hasSprite)
+			if (ImGui::MenuItem("Camera", nullptr, false, hasCamera == false))
+			{
+				// Only the first camera in a scene is primary by default.
+				const bool firstCamera = (bool)entity.GetScene()->GetPrimaryCameraEntity() == false;
+				entity.AddComponent<CameraComponent>().Primary = firstCamera;
+
+				if (entity.HasComponent<TransformComponent>() == false)
+					entity.AddComponent<TransformComponent>();
+			}
+
+			if (hasTransform && hasSprite && hasCamera)
 				ImGui::TextDisabled("All components added");
 
 			ImGui::EndPopup();

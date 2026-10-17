@@ -26,6 +26,8 @@
 // RENDERING.
 #include "Hydro/Renderer/SceneRenderer.h"
 #include "Hydro/Renderer/Camera.h"
+#include "Hydro/Renderer/SceneCamera.h"
+#include "Hydro/Renderer/EditorCamera.h"
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/RendererSettings.h"
 

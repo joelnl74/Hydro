@@ -7,9 +7,25 @@ Entities:
     TagComponent:
       Tag: Sprite
     TransformComponent:
-      Translation: [206.800003, 200, 0]
+      Translation: [-1.5, 1, 0]
       Rotation: [0.0698131695, 0, 0]
-      Scale: [100, 100, 1]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [0.617579162, 0.39648214, 0.647058845, 1]
       TilingFactor: 1
+  - Entity: 7311045212487213061
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Orthographic
+      PerspectiveFOV: 45
+      PerspectiveNear: 0.00999999978
+      PerspectiveFar: 1000
+      OrthographicSize: 10
+      OrthographicNear: -1
+      OrthographicFar: 1

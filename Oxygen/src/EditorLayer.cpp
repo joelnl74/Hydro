@@ -27,6 +27,9 @@ namespace
 
 	// 20k quads per batch -> 50k stars = 3 batches / 3 draw calls (20k + 20k + 10k).
 	constexpr uint32_t GalaxyStarCount = 50000;
+	// World units: the galaxy fits the default 10-unit-high camera view.
+	constexpr float GalaxyRadius = 4.0f;
+	constexpr float StarSizeScale = 0.012f;
 	constexpr int GalaxyArms = 4;
 	constexpr float Pi = 3.14159265f;
 
@@ -62,6 +65,7 @@ namespace Hydro
 		m_ProjectSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 
 		CreateGalaxy();
+		CreateDefaultCamera();
 
 		// After the demo scene: a project with a start scene replaces it.
 		OpenDefaultProject();
@@ -100,7 +104,7 @@ namespace Hydro
 			}
 
 			const bool bright = uniform(rng) < 0.01f;
-			const float size = bright ? 4.0f + uniform(rng) * 3.0f : 1.5f + uniform(rng) * 2.0f;
+			const float size = StarSizeScale * (bright ? 4.0f + uniform(rng) * 3.0f : 1.5f + uniform(rng) * 2.0f);
 			const glm::vec3 color = GalaxyColor(radius) * (0.55f + 0.45f * uniform(rng));
 
 			GalaxyStar star;
@@ -122,10 +126,7 @@ namespace Hydro
 	{
 		m_Time += deltaTime;
 
-		// Centre the galaxy in the viewport and fit it to the smaller side; squash Y a little
-		// so it reads as a tilted disc.
-		const glm::vec2 center = m_ViewportSize * 0.5f;
-		const float scale = 0.47f * std::min(m_ViewportSize.x, m_ViewportSize.y);
+		// Centred on the origin; Y is squashed a little so it reads as a tilted disc.
 
 		auto view = m_Scene->m_Registry.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
 		for (auto entity : view)
@@ -135,9 +136,9 @@ namespace Hydro
 
 			star.Angle += star.AngularSpeed * deltaTime;
 
-			const float r = star.Radius * scale;
-			transform.Translation.x = center.x + std::cos(star.Angle) * r;
-			transform.Translation.y = center.y + std::sin(star.Angle) * r * 0.78f;
+			const float r = star.Radius * GalaxyRadius;
+			transform.Translation.x = std::cos(star.Angle) * r;
+			transform.Translation.y = std::sin(star.Angle) * r * 0.78f;
 
 			if (star.Bright)
 			{
@@ -168,9 +169,21 @@ namespace Hydro
 	void EditorLayer::OnUpdate(float deltaTime)
 	{
 		// deltaTime comes from the Time subsystem (Time::GetDeltaTime()), passed in by Application::Run.
-		m_Scene->OnUpdate(deltaTime);
+		// 1. Engine systems. The editor is always editing (there's no play mode yet), so scripts don't run.
+		m_Scene->OnUpdateEditor(deltaTime);
+		// 2. Application systems.
 		UpdateGalaxy(deltaTime);
-		m_SceneRenderer->RenderScene();
+
+		// 3. Render submission, through the camera the viewport looks through.
+		if (m_ViewportCamera == ViewportCamera::Editor)
+		{
+			m_EditorCamera.Update(m_ViewportHovered);
+			m_SceneRenderer->RenderEditor(m_EditorCamera);
+		}
+		else
+		{
+			m_SceneHasCamera = m_SceneRenderer->RenderRuntime();
+		}
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -285,12 +298,50 @@ namespace Hydro
 
 		m_ProjectWindow->OnImguiRender(m_Scene);
 
+		DrawViewport();
+
+		ImGui::End();
+	}
+
+	void EditorLayer::DrawViewport()
+	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::Begin("ViewPort");
+		ImGui::Begin("ViewPort", nullptr, ImGuiWindowFlags_MenuBar);
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("Camera"))
+			{
+				if (ImGui::MenuItem("Editor Camera", nullptr, m_ViewportCamera == ViewportCamera::Editor))
+					m_ViewportCamera = ViewportCamera::Editor;
+				if (ImGui::MenuItem("Scene Camera (Primary)", nullptr, m_ViewportCamera == ViewportCamera::Scene))
+					m_ViewportCamera = ViewportCamera::Scene;
+
+				ImGui::Separator();
+
+				const bool editorCamera = m_ViewportCamera == ViewportCamera::Editor;
+				const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
+				if (ImGui::MenuItem("2D (Orthographic)", nullptr, orthographic, editorCamera))
+					m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
+				if (ImGui::MenuItem("Reset View", nullptr, false, editorCamera))
+					m_EditorCamera.Reset();
+
+				ImGui::Separator();
+				ImGui::TextDisabled("Alt+LMB orbit, MMB pan, Alt+RMB / wheel zoom");
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
+		}
+
 		ImVec2 viewPortSize = ImGui::GetContentRegionAvail();
 		if (viewPortSize.x >= 1.0f && viewPortSize.y >= 1.0f)
-			m_ViewportSize = { viewPortSize.x, viewPortSize.y };
+			m_EditorCamera.SetViewportSize(viewPortSize.x, viewPortSize.y);
+
+		const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
 		m_SceneRenderer->RenderCompositeImage(viewPortSize.x, viewPortSize.y);
+		m_ViewportHovered = ImGui::IsItemHovered();
 
 		// Drop prefabs / scenes from the project window onto the viewport.
 		if (ImGui::BeginDragDropTarget())
@@ -301,15 +352,24 @@ namespace Hydro
 
 			ImGui::EndDragDropTarget();
 		}
+
+		if (m_ViewportCamera == ViewportCamera::Scene && m_SceneHasCamera == false)
+		{
+			ImGui::GetWindowDrawList()->AddText({ imagePosition.x + 8.0f, imagePosition.y + 8.0f }, IM_COL32(255, 200, 80, 255),
+				"No primary camera in the scene. Add a Camera component and tick Primary.");
+		}
+
 		ImGui::End();
 		ImGui::PopStyleVar();
-
-
-		ImGui::End();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
 	{
+		if (e.GetEventType() == EventType::MouseScrolled && m_ViewportHovered && m_ViewportCamera == ViewportCamera::Editor)
+		{
+			m_EditorCamera.Zoom(static_cast<MouseScrolledEvent&>(e).GetYOffset());
+			e.Handled = true;
+		}
 	}
 	
 	void EditorLayer::NewProject()
@@ -407,7 +467,15 @@ namespace Hydro
 	void EditorLayer::NewScene()
 	{
 		SetActiveScene(CreateRef<Scene>("Untitled", true));
+		CreateDefaultCamera();
 		m_EditorScenePath.clear();
+	}
+
+	void EditorLayer::CreateDefaultCamera()
+	{
+		Entity camera = m_Scene->CreateEntity("Camera");
+		camera.AddComponent<TransformComponent>();
+		camera.AddComponent<CameraComponent>();
 	}
 
 	void EditorLayer::OpenScene()

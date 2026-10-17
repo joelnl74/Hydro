@@ -67,10 +67,9 @@ namespace Hydro
 		m_Registry.destroy(entity);
 	}
 	
-	void Scene::OnUpdate(float deltaTime)
+	void Scene::OnUpdateRuntime(float deltaTime)
 	{
-		// Native scripts. Instances are created lazily on their first update.
-		// TODO: pass a real delta time once the application loop measures it.
+		// 1. Native scripts. Instances are created lazily on their first update.
 		auto view = m_Registry.view<NativeScriptComponent>();
 		for (auto entityHandle : view)
 		{
@@ -88,6 +87,35 @@ namespace Hydro
 			}
 		}
 
+		// 2. Engine systems shared with the editor.
+		OnUpdateEditor(deltaTime);
+	}
+
+	void Scene::OnUpdateEditor(float deltaTime)
+	{
+		// Engine systems that run while editing as well as at runtime (e.g. transform propagation,
+		// once there is a hierarchy) go here. None yet.
+	}
+
+	void Scene::OnViewportResize(uint32_t width, uint32_t height)
+	{
+		if (width == 0 || height == 0)
+			return;
+
+		m_ViewportWidth = width;
+		m_ViewportHeight = height;
+	}
+
+	Entity Scene::GetPrimaryCameraEntity()
+	{
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entityHandle : view)
+		{
+			if (view.get<CameraComponent>(entityHandle).Primary)
+				return Entity{ entityHandle, this };
+		}
+
+		return {};
 	}
 	
 	void Scene::OnRender()

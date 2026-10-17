@@ -92,8 +92,16 @@ namespace Hydro
 			if (ImGui::MenuItem("Create Sprite"))
 			{
 				m_SelectedEntity = scene->CreateEntity("Sprite");
-				m_SelectedEntity.AddComponent<TransformComponent>(glm::vec3(200.0f, 200.0f, 0.0f), glm::vec3(100.0f, 100.0f, 1.0f));
+				m_SelectedEntity.AddComponent<TransformComponent>();
 				m_SelectedEntity.AddComponent<SpriteRendererComponent>(glm::vec4(0.9f, 0.4f, 0.2f, 1.0f));
+			}
+
+			if (ImGui::MenuItem("Create Camera"))
+			{
+				m_SelectedEntity = scene->CreateEntity("Camera");
+				m_SelectedEntity.AddComponent<TransformComponent>();
+				// Only the first camera in a scene is primary by default.
+				m_SelectedEntity.AddComponent<CameraComponent>().Primary = (bool)scene->GetPrimaryCameraEntity() == false;
 			}
 
 			ImGui::Separator();

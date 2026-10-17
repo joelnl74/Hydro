@@ -8,10 +8,11 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 
 | Piece | Where | What it is |
 | --- | --- | --- |
-| `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdate` |
+| `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdateRuntime` / `OnUpdateEditor`; knows its viewport size (`OnViewportResize`) and primary camera (`GetPrimaryCameraEntity`) |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
-| Components | `Scene/Components/Components.h` | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `NativeScriptComponent` |
-| Systems | `Scene::OnUpdate`, `SceneRenderer`, application layers | Functions over registry views |
+| Components | `Scene/Components/Components.h` | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `CameraComponent`, `NativeScriptComponent` |
+| Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
+| `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D` through a camera: `RenderEditor(editorCamera)` or `RenderRuntime()` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h` | Per-entity C++ behaviour, run by the script system |
 | Serialization | `Scene/SceneSerializer.h`, `Scene/PrefabSerializer.h`, `Scene/EntitySerializer.h` | Saves scenes (`.hyscene`) and prefabs (`.hyprefab`) as YAML |
 
@@ -45,14 +46,35 @@ void UpdateSpin(entt::registry& registry, float deltaTime)
 
 ## Frame order
 
+A scene is updated one of two ways:
+
+- `Scene::OnUpdateRuntime(dt)` — the game is running: native scripts, then the engine systems.
+- `Scene::OnUpdateEditor(dt)` — editing: the engine systems only, no scripts. Oxygen always edits (there's no play mode yet), so it calls this one.
+
 | Order | System | Runs in | Reads → writes |
 | --- | --- | --- | --- |
-| 1 | Native scripts | `Scene::OnUpdate` | `NativeScriptComponent` → whatever scripts touch |
-| 2 | Application systems | The layer, after `Scene::OnUpdate` | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
-| 3 | Sprite submission | `SceneRenderer::RenderScene` | `TransformComponent` + `SpriteRendererComponent` → `Renderer2D` |
+| 1 | Native scripts (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
+| 2 | Engine systems | `Scene::OnUpdateEditor` (also called by `OnUpdateRuntime`) | None yet; transform propagation goes here |
+| 3 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
+| 4 | Sprite submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad` |
 | — | GPU | `Renderer::RenderFrame` (application loop) | Records and presents everything submitted |
 
-New engine systems go into `Scene::OnUpdate` in a deliberate position. Gameplay systems belong to the application and run after it.
+New engine systems go into `Scene::OnUpdateEditor` when they must also run while editing, or into `Scene::OnUpdateRuntime` (after the scripts) when they are game-only, in a deliberate position. Gameplay systems belong to the application and run after it.
+
+## Cameras
+
+A scene is drawn through exactly one camera per frame (there is one 2D pass, so the last `Renderer2D::BeginScene` of the frame wins).
+
+| Camera | Where | Used by |
+| --- | --- | --- |
+| `CameraComponent` (holds a `SceneCamera`) | `Scene/Components/Components.h`, `Renderer/SceneCamera.h` | The game: `SceneRenderer::RenderRuntime` draws through the first camera with `Primary` set |
+| `EditorCamera` | `Renderer/EditorCamera.h` | The editor viewport: `SceneRenderer::RenderEditor(camera)`. Not part of the scene and not saved |
+
+- **Data only.** `SceneCamera` is the projection settings (perspective FOV/near/far, orthographic size/near/far, default orthographic with 10 units visible vertically). The camera's position and rotation come from the entity's `TransformComponent` (scale is ignored); its aspect ratio comes from the scene's viewport, set by `Scene::OnViewportResize` (`SceneRenderer::SetViewportSize` calls it). Nothing has to be kept in sync by hand.
+- **One primary camera.** `Scene::GetPrimaryCameraEntity` returns the first `CameraComponent` with `Primary` set. The editor unticks the others when you tick one. Without a primary camera, `RenderRuntime` draws nothing and returns `false`.
+- **Clip space is handled once**, in `Camera` (`Renderer/Camera.h`): every projection is built by `Camera::Perspective` / `Camera::Orthographic`, which use GLM's zero-to-one depth (`*_ZO`) and flip Y for Vulkan. World +Y is up on screen, geometry is counter-clockwise (`VulkanPipeline` front face), and the rendered image is shown without flipping its UVs. Never build a projection with `glm::perspective`/`glm::ortho` directly.
+- **World units, not pixels.** Sprites are sized in world units (a default sprite is 1×1). The editor's galaxy fits the default 10-unit view.
+- **Editor camera controls** (Oxygen viewport, **Camera** menu): Alt + left drag orbits (perspective), middle drag pans, Alt + right drag or the wheel zooms. **2D (Orthographic)** looks straight down −Z; **Scene Camera (Primary)** shows the view the game will have.
 
 ## Scripts
 
@@ -95,14 +117,14 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 ## Adding a feature
 
 1. **Component**: add a plain struct to `Components.h` (engine) or to your application (game-only data, like `GalaxyStar`).
-2. **System**: write a function over a view. Engine systems are called from `Scene::OnUpdate`; application systems from your layer's `OnUpdate`.
+2. **System**: write a function over a view. Engine systems are called from `Scene::OnUpdateEditor` or `Scene::OnUpdateRuntime`; application systems from your layer's `OnUpdate`.
 3. **Rendering**: submit through `Renderer2D` from a render system; never record Vulkan commands in a system.
 4. **Saving**: if the component should persist, add it to `EntitySerializer` (both directions).
 5. **Editor**: show and edit the component in the inspector window.
 
 ## Known gaps
 
-- Scripts get a delta time of `0.0f`; the application loop doesn't pass frame time to `Scene::OnUpdate` yet ([#37](https://github.com/joelnl74/Hydro/issues/37)).
-- `SceneRenderer::RenderScene` uses an owning group, not a view, and `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
+- `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
+- There is no play mode yet (S5), so scripts never run in the editor; a runtime application calls `OnUpdateRuntime` and `RenderRuntime`.
 - Native scripts aren't serialized ([#43](https://github.com/joelnl74/Hydro/issues/43)).
 - There is no parent/child hierarchy yet.

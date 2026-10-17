@@ -44,6 +44,11 @@ namespace Hydro
 		// Prefab / scene dropped from the project window onto the viewport.
 		void OnAssetDropped(const std::filesystem::path& path);
 
+		// Viewport: the camera menu, and the image the scene is rendered into.
+		void DrawViewport();
+		// A new scene starts with a primary camera framing the origin.
+		void CreateDefaultCamera();
+
 		// Demo scene: animated spiral galaxy, big enough to need several batches.
 		void CreateGalaxy();
 		void UpdateGalaxy(float deltaTime);
@@ -61,7 +66,13 @@ namespace Hydro
 		Hydro::Ref<RenderSettingsWindow> m_RenderSettingsWindow;
 		Hydro::Ref<ProjectSettingsWindow> m_ProjectSettingsWindow;
 
-		glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
+		// What the viewport looks through: the editor's free camera, or the scene's primary camera
+		// (the view the game will have).
+		enum class ViewportCamera { Editor, Scene };
+		ViewportCamera m_ViewportCamera = ViewportCamera::Editor;
+		EditorCamera m_EditorCamera;
+		bool m_ViewportHovered = false;
+		bool m_SceneHasCamera = true; // false when the scene view found no primary camera last frame
 		float m_Time = 0.0f;
 	};
 }

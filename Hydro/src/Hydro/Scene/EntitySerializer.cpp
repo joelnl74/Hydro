@@ -41,6 +41,24 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<CameraComponent>())
+		{
+			auto& cameraComponent = entity.GetComponent<CameraComponent>();
+			const SceneCamera& camera = cameraComponent.Camera;
+
+			out << YAML::Key << "CameraComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
+			out << YAML::Key << "Projection" << YAML::Value << (camera.Projection == ProjectionType::Perspective ? "Perspective" : "Orthographic");
+			out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.PerspectiveFOV;
+			out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.PerspectiveNear;
+			out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.PerspectiveFar;
+			out << YAML::Key << "OrthographicSize" << YAML::Value << camera.OrthographicSize;
+			out << YAML::Key << "OrthographicNear" << YAML::Value << camera.OrthographicNear;
+			out << YAML::Key << "OrthographicFar" << YAML::Value << camera.OrthographicFar;
+			out << YAML::EndMap;
+		}
+
 		// NOTE: NativeScriptComponent is not serialized yet. Scripts are bound with a
 		// function pointer, so they need a name -> factory registry before they can be saved.
 
@@ -73,6 +91,21 @@ namespace Hydro
 			auto& sprite = entity.AddComponent<SpriteRendererComponent>();
 			sprite.Color = spriteNode["Color"].as<glm::vec4>(sprite.Color);
 			sprite.TilingFactor = spriteNode["TilingFactor"].as<float>(sprite.TilingFactor);
+		}
+
+		if (auto cameraNode = entityNode["CameraComponent"])
+		{
+			auto& cameraComponent = entity.AddComponent<CameraComponent>();
+			SceneCamera& camera = cameraComponent.Camera;
+
+			cameraComponent.Primary = cameraNode["Primary"].as<bool>(cameraComponent.Primary);
+			camera.Projection = cameraNode["Projection"].as<std::string>("Orthographic") == "Perspective" ? ProjectionType::Perspective : ProjectionType::Orthographic;
+			camera.PerspectiveFOV = cameraNode["PerspectiveFOV"].as<float>(camera.PerspectiveFOV);
+			camera.PerspectiveNear = cameraNode["PerspectiveNear"].as<float>(camera.PerspectiveNear);
+			camera.PerspectiveFar = cameraNode["PerspectiveFar"].as<float>(camera.PerspectiveFar);
+			camera.OrthographicSize = cameraNode["OrthographicSize"].as<float>(camera.OrthographicSize);
+			camera.OrthographicNear = cameraNode["OrthographicNear"].as<float>(camera.OrthographicNear);
+			camera.OrthographicFar = cameraNode["OrthographicFar"].as<float>(camera.OrthographicFar);
 		}
 
 		return entity;

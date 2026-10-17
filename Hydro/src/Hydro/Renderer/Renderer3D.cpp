@@ -6,6 +6,7 @@
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
 #include "Hydro/Platform/Vulkan/VulkanIndexBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
+#include "Hydro/Renderer/Camera.h"
 #include "Hydro/Platform/Vulkan/VullkanTexture.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -159,8 +160,8 @@ namespace Hydro
 
 		glm::mat4 model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::mat4 proj = glm::perspective(glm::radians(45.0f), extent.width / (float)extent.height, 0.1f, 10.0f);
-		proj[1][1] *= -1;
+		// Camera::Perspective handles the Vulkan depth range and Y flip.
+		glm::mat4 proj = Camera::Perspective(glm::radians(45.0f), extent.width / (float)extent.height, 0.1f, 10.0f);
 
 		s_Data->ubo.mvp = proj * view * model;
 		s_Data->QuadUniformBuffer->Update(&s_Data->ubo.mvp, currentImage, (uint32_t)sizeof(UniformBufferObject));

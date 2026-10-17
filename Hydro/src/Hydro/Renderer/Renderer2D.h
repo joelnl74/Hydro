@@ -3,6 +3,8 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
+#include "Hydro/Renderer/Camera.h"
+
 namespace Hydro
 {
 	// Stats
@@ -43,6 +45,13 @@ namespace Hydro
 	public:
 		static void Init(uint32_t width, uint32_t height);
 		static void Shutdown();
+
+		// The camera this frame's quads are seen through. Call before submitting; it applies to the whole
+		// frame (there is one 2D pass), and stays set until the next BeginScene. Projections must come
+		// from Camera (Camera::Perspective / Camera::Orthographic), which handles Vulkan's clip space.
+		static void BeginScene(const glm::mat4& viewProjection);
+		// cameraTransform is the camera's world transform (position and rotation, no scale).
+		static void BeginScene(const Camera& camera, const glm::mat4& cameraTransform);
 
 		// Queue a quad for this frame. Only writes CPU-side vertex data, so it can be
 		// called any time before Render(). When the current batch is full a new batch

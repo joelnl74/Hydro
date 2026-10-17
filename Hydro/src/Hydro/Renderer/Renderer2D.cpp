@@ -18,7 +18,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "../Renderer/Camera.h"
 
 #include <array>
 #include <chrono>
@@ -65,8 +64,8 @@ namespace Hydro
 
 		glm::vec4 QuadVertexPositions[4];
 
-		Ref<Camera> camera;
-		UniformBufferObject ubo;
+		// Set by BeginScene; uploaded to this frame's uniform buffer in Render().
+		glm::mat4 ViewProjection{ 1.0f };
 
 		Ref<VulkanShader> Shader;
 		// Shader hot reload: the shader's source files, checked every ShaderPollInterval.
@@ -107,7 +106,6 @@ namespace Hydro
 	void Renderer2D::Init(uint32_t width, uint32_t height)
 	{
 		s_Data = new Renderer2DData();
-		s_Data->camera = CreateRef<Camera>(0, (float)width, 0, (float)height);
 
 		// Offscreen target. Created first: the pipeline is built against this render pass.
 		// It starts at the window size; the editor resizes it to the viewport panel (SetViewportSize).
@@ -322,7 +320,9 @@ namespace Hydro
 			vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, s_Data->TimestampPool, firstQuery);
 		}
 
-		s_Data->QuadUniformBuffer->Update(&s_Data->camera->GetViewProjectMatrix(), frame, (uint32_t)sizeof(UniformBufferObject));
+		UniformBufferObject ubo;
+		ubo.mvp = s_Data->ViewProjection;
+		s_Data->QuadUniformBuffer->Update(&ubo, frame, (uint32_t)sizeof(UniformBufferObject));
 
 		// One render pass per frame => the target is cleared exactly once. Its subpass dependencies
 		// make the result visible to the ImGui viewport, which samples it later in this command buffer.
@@ -384,6 +384,16 @@ namespace Hydro
 	{
 		s_Data->Stats = {};
 		ResetBatches();
+	}
+
+	void Renderer2D::BeginScene(const glm::mat4& viewProjection)
+	{
+		s_Data->ViewProjection = viewProjection;
+	}
+
+	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& cameraTransform)
+	{
+		s_Data->ViewProjection = camera.GetProjection() * glm::inverse(cameraTransform);
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
@@ -457,9 +467,6 @@ namespace Hydro
 		vkDeviceWaitIdle(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice());
 
 		s_Data->RenderPass->Resize(width, height);
-
-		// Keep 1 unit = 1 pixel, so things don't stretch when the viewport changes shape.
-		s_Data->camera->SetProjection(0.0f, (float)width, 0.0f, (float)height);
 
 		// Point the existing ImGui texture handles at the new image views. Updating in place
 		// (instead of AddTexture again) means no descriptor sets leak from ImGui's pool, and the
