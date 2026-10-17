@@ -41,7 +41,7 @@ namespace Hydro
 		++s_GLFWWindowCount;
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(specification.VSync);
+		// VSync is a swapchain setting (RendererSettings::VSync), not a window one: there is no GL context.
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
@@ -154,19 +154,4 @@ namespace Hydro
 		glfwPollEvents();
 	}
 
-
-	void WindowsWindow::SetVSync(bool enabled)
-	{
-		if (enabled)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(0);
-
-		m_Data.VSync = enabled;
-	}
-
-	bool WindowsWindow::IsVSync() const
-	{
-		return m_Data.VSync;
-	}
 }

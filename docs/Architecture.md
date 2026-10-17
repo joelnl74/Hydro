@@ -54,16 +54,37 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 
 | Folder | Responsibility | May depend on |
 | --- | --- | --- |
-| `Core` | Application, layers, window interface, logging (`Log`), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
+| `Core` | Application, `LayerStack` and layers, window interface, logging (`Log`), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core |
-| `Renderer` | Engine-facing rendering API (`Renderer`, `Renderer2D`, `SceneRenderer`, `Camera`, `Image.h`) | Core, Platform/Vulkan |
-| `Scene` | Scene, entities, components, scripts, scene and prefab saving (yaml-cpp) | Core, Renderer (submission only) |
-| `Project` | Project file and settings | Core |
+| `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `SceneRenderer`, `Camera`, `Image.h`) | Core, Platform/Vulkan |
+| `Scene` | Scene, entities, components, scripts, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission only) |
+| `Project` | Project file (`.hyproj`, YAML) and settings | Core, Utils, Renderer (`RendererSettings` only) |
+| `Utils` | Platform file dialogs, shared YAML conversions for glm types | Core |
 | `ImGUI` | ImGui layer | Core, Renderer |
 
 Applications include `Hydro.h` and should not include `Platform/Vulkan` headers directly.
+
+## Projects and settings
+
+A project is a folder with a `.hyproj` file (YAML, like scenes) and an asset folder. `ProjectSerializer` reads and writes it; keys missing from the file keep their defaults, so old projects load after settings are added.
+
+```yaml
+Project:
+  Name: Sandbox
+  AssetDirectory: Assets              # relative to the .hyproj folder
+  StartScene: Scenes/Scene.hyscene    # relative to AssetDirectory; empty = none
+Renderer:
+  ClearColor: [0, 0, 0, 1]
+  VSync: true
+  Wireframe: false
+  ShaderHotReload: true
+```
+
+- `Project::Load(file)` / `Project::New(file)` make a project active; `Project::SaveActive()` writes it; `Project::Close()` releases it. `Project` doesn't call other subsystems: whoever opens a project applies its settings (`Renderer::SetSettings(config.Renderer)`) and, when saving, copies the live settings back (`config.Renderer = Renderer::GetSettings()`).
+- `RendererSettings` are live: `Renderer::SetSettings` applies them from the next frame. Clear colour and hot reload are read every frame, wireframe rebuilds the 2D pipeline, and vsync recreates the swapchain. `Renderer::GetCapabilities()` says what the GPU supports (wireframe, wide lines).
+- Oxygen opens the first `.hyproj` in its `project` folder at startup (`Oxygen/project/Sandbox.hyproj`). **View > Render Settings** edits the renderer settings live and **View > Project Settings** edits the name and start scene; **File > Save Project** (or the Save buttons) writes both.
 
 ## The frame
 
@@ -74,7 +95,7 @@ Applications include `Hydro.h` and should not include `Platform/Vulkan` headers 
 3. **Update**: every layer's `OnUpdate(Time::GetDeltaTime())`. A layer updates its scene here (scripts, its own systems) and submits draw calls (`SceneRenderer::RenderScene` → `Renderer2D::DrawQuad`). Nothing touches the GPU yet.
 4. **Render**: `Renderer::RenderFrame` records and submits the whole frame in **one** command buffer:
    1. wait for this frame-in-flight's fence, acquire a swapchain image;
-   2. `Renderer2D::Render` — the offscreen 2D pass (batched quads). Before recording it applies a pending viewport resize and, when hot reload is on, rebuilds its shader and pipeline if a shader source changed (see [Shaders](#shaders));
+   2. `Renderer2D::Render` — the offscreen 2D pass (batched quads), cleared to `RendererSettings::ClearColor`. Before recording it applies a pending viewport resize, rebuilds its pipeline if `Wireframe` changed and, when hot reload is on, rebuilds its shader and pipeline if a shader source changed (see [Shaders](#shaders));
    3. the swapchain pass — ImGui draws the editor UI, including the viewport that samples the 2D image;
    4. submit, present.
 
@@ -106,7 +127,7 @@ Rules that follow from this:
 Shaders live as GLSL in the application's `assets/shaders` folder and are referenced by their source path (`assets/shaders/vertex.vert`). `VulkanShader` compiles them with shaderc when it is created, so there is no separate compile step to run.
 
 - **Build-time check.** Oxygen's project also runs `glslc` on every shader as a Visual Studio build step, so syntax errors show up in the Error List. The `.spv` files it writes are not used at runtime yet; they are there for shipping precompiled shaders later.
-- **Hot reload.** `Renderer::SetShaderHotReload(bool)` (on by default, off in Dist). `Renderer2D` watches its shader's sources and `#include`d files with a `FileWatcher` (polled every 250 ms). On a change it compiles a new `VulkanShader` and `VulkanPipeline` from the old specifications, waits for the GPU (`Renderer::WaitIdle`), then swaps them in. If compilation fails, the error is logged and the old shader keeps drawing.
+- **Hot reload.** `RendererSettings::ShaderHotReload` (on by default, off in Dist; toggle it in **Render Settings**). `Renderer2D` watches its shader's sources and `#include`d files with a `FileWatcher` (polled every 250 ms). On a change it compiles a new `VulkanShader` and `VulkanPipeline` from the old specifications, waits for the GPU (`Renderer::WaitIdle`), then swaps them in. If compilation fails, the error is logged and the old shader keeps drawing.
 - **Runtime dependency.** shaderc is a DLL: Oxygen's post-build step copies `shaderc_shared.dll` from `$(VULKAN_SDK)\Bin` next to the executable. Debug builds link the release shaderc library on purpose (it is only used through its C API).
 
 ## Code conventions

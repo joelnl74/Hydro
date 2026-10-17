@@ -10,7 +10,6 @@ namespace Hydro
 		std::string Title = "Hydro Engine";
 		uint32_t Width = 1280;
 		uint32_t Height = 720;
-		bool VSync = true;
 	};
 
 	// Window subsystem. Window::Create only picks the platform implementation; nothing is opened
@@ -27,10 +26,6 @@ namespace Hydro
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
-
-		// Window attributes
-		virtual void SetVSync(bool enabled) = 0;
-		virtual bool IsVSync() const = 0;
 
 		virtual void* GetNativeWindow() const = 0;
 

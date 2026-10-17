@@ -27,7 +27,9 @@ The suffix says what role the struct plays.
 | `Specification` | **What** the resource is: size, format, usage, inputs | In, to the constructor | `ImageSpecification`, `PipelineSpecification`, `ShaderSpecification` |
 | `Properties` | **How** it behaves when used: sampling, wrapping, mips | In, to the constructor | `TextureProperties` |
 | `Info` | Handles and facts **produced** by creation | Out, read-only | `VulkanImageInfo` |
-| `Config` | Settings that are **saved** to disk and edited by users | In/out, serialized | `ProjectConfig` |
+| `Settings` | **Live** options of a subsystem, changed while running; applied from the next frame | In, through `Set<...>Settings` | `RendererSettings` |
+| `Capabilities` | What the hardware supports, found at `Init` | Out, read-only | `RendererCapabilities` |
+| `Config` | Settings that are **saved** to disk and edited by users | In/out, serialized | `ProjectConfig` (holds a `RendererSettings`) |
 
 For example, `ImageSpecification` describes the image resource, while `TextureProperties` describes how a texture made from it is sampled.
 
@@ -62,7 +64,9 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 | `VulkanImageInfo` | `VulkanImage` | Output |
 | `WindowSpecification` (`Core/Window.h`) | `Window::Init` | In use (was `WindowProps`) |
 | `ApplicationSpecification` (`Core/Application.h`) | `Application` constructor | In use: application name and main window |
-| `ProjectConfig` | `Project` | In use |
+| `ProjectConfig` | `Project`, saved by `ProjectSerializer` (`.hyproj`) | In use: name, asset directory, start scene, `RendererSettings` |
+| `RendererSettings` (`Renderer/RendererSettings.h`) | `Renderer::SetSettings` | In use: clear colour, vsync, wireframe, shader hot reload |
+| `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output |
 
 ## Adding a new resource
 

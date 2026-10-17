@@ -10,11 +10,7 @@ namespace Hydro
 {
 	Renderer* Renderer::s_Instance = nullptr;
 
-#ifdef HY_DIST
-	bool Renderer::s_ShaderHotReload = false;
-#else
-	bool Renderer::s_ShaderHotReload = true;
-#endif
+	RendererSettings Renderer::s_Settings;
 
 	void Renderer::Init(Window& window)
 	{
@@ -34,10 +30,22 @@ namespace Hydro
 
 		// 2. Swapchain.
 		renderer.m_SwapChain = CreateRef<VulkanSwapChain>(device, renderer.m_RendererContext->GetSurface());
-		if (renderer.m_SwapChain->Create(renderer.m_Width, renderer.m_Height, true) == false)
+		if (renderer.m_SwapChain->Create(renderer.m_Width, renderer.m_Height, s_Settings.VSync) == false)
 		{
 			// Started minimised: build it on the first frame the window has a size.
 			renderer.m_SwapChainDirty = true;
+		}
+
+		// What the GPU supports, for settings UI.
+		{
+			VkPhysicalDeviceProperties properties{};
+			vkGetPhysicalDeviceProperties(device->GetPhysicalDevice()->GetVulkanPhysicalDevice(), &properties);
+			memcpy(renderer.m_GPUName, properties.deviceName, sizeof(renderer.m_GPUName));
+
+			renderer.m_Capabilities.GPUName = renderer.m_GPUName;
+			renderer.m_Capabilities.Wireframe = device->IsFillModeNonSolidEnabled();
+			renderer.m_Capabilities.WideLines = device->IsWideLinesEnabled();
+			renderer.m_Capabilities.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
 		}
 
 		// 3. Per-frame command buffers and sync objects.
@@ -76,6 +84,23 @@ namespace Hydro
 
 		delete s_Instance;
 		s_Instance = nullptr;
+	}
+
+	void Renderer::SetSettings(const RendererSettings& settings)
+	{
+		const bool vsyncChanged = settings.VSync != s_Settings.VSync;
+		s_Settings = settings;
+
+		if (s_Instance == nullptr)
+			return; // Init picks them up.
+
+		// Present mode is fixed per swapchain: rebuild it at the start of the next frame.
+		// Clear colour, wireframe and hot reload are read by Renderer2D every frame.
+		if (vsyncChanged)
+		{
+			s_Instance->m_SwapChain->SetVSync(settings.VSync);
+			s_Instance->m_SwapChainDirty = true;
+		}
 	}
 
 	void Renderer::WaitIdle()

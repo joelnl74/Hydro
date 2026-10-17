@@ -294,7 +294,7 @@ namespace Hydro
 	void Renderer2D::Render(VkCommandBuffer commandBuffer)
 	{
 		ApplyViewportResize();
-		ReloadShadersIfChanged();
+		ApplySettings();
 
 		const uint32_t frame = Renderer::GetRenderFrame();
 		const uint32_t width = s_Data->RenderPass->GetWidth();
@@ -325,7 +325,7 @@ namespace Hydro
 
 		// One render pass per frame => the target is cleared exactly once. Its subpass dependencies
 		// make the result visible to the ImGui viewport, which samples it later in this command buffer.
-		s_Data->RenderPass->Begin(commandBuffer, frame);
+		s_Data->RenderPass->Begin(commandBuffer, frame, Renderer::GetSettings().ClearColor);
 
 		// State shared by every batch: bind once. Viewport/scissor follow the current target size.
 		s_Data->QuadPipeline->Bind(commandBuffer, { width, height });
@@ -473,9 +473,22 @@ namespace Hydro
 		}
 	}
 
+	void Renderer2D::ApplySettings()
+	{
+		const RendererSettings& settings = Renderer::GetSettings();
+
+		// The wireframe flag is baked into the pipeline, so a change means a rebuild.
+		// Only rebuild when the GPU can do it; otherwise VulkanPipeline would warn every frame.
+		const bool wireframe = settings.Wireframe && Renderer::GetCapabilities().Wireframe;
+		if (wireframe != s_Data->QuadPipeline->GetSpecification().Wireframe)
+			RebuildQuadPipeline(false, wireframe);
+
+		ReloadShadersIfChanged();
+	}
+
 	void Renderer2D::ReloadShadersIfChanged()
 	{
-		if (Renderer::IsShaderHotReloadEnabled() == false)
+		if (Renderer::GetSettings().ShaderHotReload == false)
 			return;
 
 		// A few checks per second is instant enough and keeps file-system calls off most frames.
@@ -487,24 +500,32 @@ namespace Hydro
 		if (s_Data->ShaderWatcher.Poll() == false)
 			return;
 
-		// Build the replacements first, so a shader that doesn't compile leaves the old one drawing.
 		// Poll() has already taken the new file times, so a broken shader is retried on the next save,
 		// not every poll.
-		Ref<VulkanShader> shader;
+		if (RebuildQuadPipeline(true, s_Data->QuadPipeline->GetSpecification().Wireframe))
+			HY_CORE_INFO("Shaders reloaded.");
+	}
+
+	bool Renderer2D::RebuildQuadPipeline(bool recompileShader, bool wireframe)
+	{
+		// Build the replacements first, so a shader that doesn't compile leaves the old one drawing.
+		Ref<VulkanShader> shader = s_Data->Shader;
 		Ref<VulkanPipeline> pipeline;
 		try
 		{
-			shader = CreateRef<VulkanShader>(s_Data->Shader->GetSpecification());
+			if (recompileShader)
+				shader = CreateRef<VulkanShader>(s_Data->Shader->GetSpecification());
 
 			PipelineSpecification specification = s_Data->QuadPipeline->GetSpecification();
 			specification.shader = shader;
+			specification.Wireframe = wireframe;
 			pipeline = CreateRef<VulkanPipeline>(specification);
 		}
 		catch (const std::exception&)
 		{
 			// VulkanShader already logged the compiler output.
-			HY_CORE_WARN("Shader reload failed; still using the previous shader.");
-			return;
+			HY_CORE_WARN("Quad pipeline rebuild failed; still using the previous one.");
+			return false;
 		}
 
 		// Both frames in flight may still be using the old pipeline (same as ApplyViewportResize).
@@ -512,10 +533,13 @@ namespace Hydro
 
 		s_Data->QuadPipeline->Destroy();
 		s_Data->QuadPipeline = pipeline;
-		s_Data->Shader = shader;
-		s_Data->ShaderWatcher = FileWatcher(shader->GetSourceFiles());
+		if (recompileShader)
+		{
+			s_Data->Shader = shader;
+			s_Data->ShaderWatcher = FileWatcher(shader->GetSourceFiles());
+		}
 
-		HY_CORE_INFO("Shaders reloaded.");
+		return true;
 	}
 
 	VkDescriptorSet Renderer2D::GetCompositeDescriptorSet()

@@ -5,6 +5,7 @@
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 
 #include "Hydro/Core/Window.h"
+#include "Hydro/Renderer/RendererSettings.h"
 
 #include <functional>
 
@@ -28,10 +29,13 @@ namespace Hydro
 		static void OnWindowResize(uint32_t width, uint32_t height);
 		static void WaitIdle();
 
-		// Rebuild shaders when their source files change (checked a few times per second).
-		// On by default, except in Dist builds. Can be set before Init().
-		static void SetShaderHotReload(bool enabled) { s_ShaderHotReload = enabled; }
-		static bool IsShaderHotReloadEnabled() { return s_ShaderHotReload; }
+		// Live options (clear colour, vsync, wireframe, shader hot reload). May be called before Init;
+		// after Init, changes apply from the next frame (a vsync change recreates the swapchain).
+		static const RendererSettings& GetSettings() { return s_Settings; }
+		static void SetSettings(const RendererSettings& settings);
+
+		// What the GPU supports. Valid after Init.
+		static const RendererCapabilities& GetCapabilities() { return s_Instance->m_Capabilities; }
 
 		// Called inside the swapchain render pass every frame (the ImGui layer draws the UI here).
 		static void SetPresentPassCallback(PresentPassCallback callback) { s_Instance->m_PresentPassCallback = std::move(callback); }
@@ -50,13 +54,15 @@ namespace Hydro
 
 	private:
 		static Renderer* s_Instance;
-		static bool s_ShaderHotReload;
+		static RendererSettings s_Settings;
 
 		Ref<VulkanRendererContext> m_RendererContext;
 		Ref<VulkanSwapChain> m_SwapChain;
 		VulkanFrameContext m_Frames;
 
 		PresentPassCallback m_PresentPassCallback;
+		RendererCapabilities m_Capabilities;
+		char m_GPUName[256] = {};
 
 		uint32_t m_Width = 0;
 		uint32_t m_Height = 0;

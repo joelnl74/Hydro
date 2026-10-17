@@ -20,10 +20,6 @@ namespace Hydro
 		unsigned int GetWidth() const override { return m_Data.Width; }
 		unsigned int GetHeight() const override { return m_Data.Height; }
 
-		// Window attributes
-		void SetVSync(bool enabled) override;
-		bool IsVSync() const override;
-
 		virtual void* GetNativeWindow() const { return m_Window; }
 		virtual GLFWwindow* GetGLFWWindow() const { return m_Window; }
 
@@ -34,7 +30,6 @@ namespace Hydro
 		{
 			std::string Title;
 			unsigned int Width = 0, Height = 0;
-			bool VSync = true;
 		};
 
 		WindowData m_Data;

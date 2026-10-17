@@ -1,6 +1,6 @@
 #pragma once
 #include "Hydro/Core/Window.h"
-#include "Hydro/Core/LayerController.h"
+#include "Hydro/Core/LayerStack.h"
 #include "Hydro/Events/EventDispatcher.h"
 #include "Hydro/Events/ApplicationEvents.h"
 
@@ -50,7 +50,7 @@ namespace Hydro
 		ApplicationSpecification m_Specification;
 
 		Scope<Window> m_Window;
-		LayerController m_LayerStack;
+		LayerStack m_LayerStack;
 		ImGuiLayer* m_ImGuiLayer = nullptr; // owned by m_LayerStack
 
 		bool m_Running = false;

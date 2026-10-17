@@ -70,9 +70,13 @@ namespace Hydro
 		static void NextBatch();
 		static void ResetBatches();
 		static void ApplyViewportResize();
-		// Recompiles the quad shader and rebuilds its pipeline when a source file changed
-		// (only when Renderer::IsShaderHotReloadEnabled()).
+		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad
+		// shader when a source file changed (only with RendererSettings::ShaderHotReload).
+		static void ApplySettings();
 		static void ReloadShadersIfChanged();
+		// Builds a new quad pipeline (optionally with a new shader) and swaps it in once the GPU is
+		// idle. On failure the current one keeps drawing and false is returned.
+		static bool RebuildQuadPipeline(bool recompileShader, bool wireframe);
 	};
 
 }

@@ -132,10 +132,10 @@ namespace Hydro
 		m_Images.clear(); // VulkanImage destructors free the images, views and samplers.
 	}
 
-	void VulkanRenderPass::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex)
+	void VulkanRenderPass::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex, const glm::vec4& color)
 	{
 		VkClearValue clearColor{};
-		clearColor.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+		clearColor.color = { { color.r, color.g, color.b, color.a } };
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

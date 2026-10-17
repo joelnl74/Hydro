@@ -102,8 +102,24 @@ And:
 
 - **Never `System`** (reserved for ECS systems). Not `Service`, `Handler`, `Helper`, `Controller` or `Module` either: they say nothing about the job.
 - **Platform implementations** are `<Platform><Name>`: `WindowsWindow`, `VulkanRendererContext`, `VulkanAllocator`. Engine code talks to the platform-free name.
-- **Configuration** follows [Resource creation](ResourceCreation.md#naming): `<Name>Specification` passed to `Init` (`WindowSpecification`, `ApplicationSpecification`), `<Name>Config` only for settings saved to disk.
+- **Configuration** follows [Resource creation](ResourceCreation.md#naming): `<Name>Specification` passed to `Init` (`WindowSpecification`, `ApplicationSpecification`) and fixed for the subsystem's lifetime; `<Name>Settings` for live options changed while running through `Get<...>Settings` / `Set<...>Settings` (`RendererSettings`); `<Name>Config` only for what is saved to disk (`ProjectConfig`, which holds a `RendererSettings`).
+- **Capabilities** a subsystem discovers at `Init` (what the hardware supports) are `<Name>Capabilities` (`RendererCapabilities`), read-only.
 - **Per-scene counterparts** of a subsystem take the `Scene` prefix or suffix (`SceneRenderer` submits one scene to the `Renderer`; a future `PhysicsScene` would be one scene's world inside the `PhysicsEngine`). They are owned by a layer or scene, not by `Application`.
+
+### Names we checked
+
+Every current name was checked against the table. Only one changed:
+
+| Name | Verdict | Why |
+| --- | --- | --- |
+| `Renderer` | Keep (not `RenderEngine`) | It is a doer: layers submit draw calls and it renders them. `Engine` is for things that step a simulation or host a foreign runtime (audio mixer, script VM, physics world). `Renderer` is also the name every engine and every reader expects |
+| `Renderer2D`, `Renderer3D` | Keep | Parts of `Renderer`, named for the kind of drawing they do |
+| `EventDispatcher` | Keep | A doer: dispatches posted events to subscribers |
+| `Log`, `Time`, `Window`, `Input` | Keep | Domain facades |
+| `LayerController` | **Renamed `LayerStack`** | `Controller` says nothing; it is the stack of layers, and the code and docs already called it that |
+| `ImGuiLayer` | Keep | A layer, named `<What>Layer` |
+| `Project` | Keep | Data the application opens and closes (`Load`/`New`, `Close`), not a subsystem |
+| `SceneRenderer` | Keep | Per-scene counterpart of `Renderer` |
 
 ### Current and planned subsystems
 
@@ -133,5 +149,5 @@ And:
 
 - `VulkanDevice` creates the logical device in its constructor, and `VulkanSwapChain` uses its constructor plus `Create` instead of `Init`. Move them to `Init` when you touch them.
 - `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).
-- `Project::s_ActiveProject` is a static `Ref` released during static destruction. It's data rather than a subsystem today, but it should get an explicit `Project::Close()` once projects own assets.
 - `Core/DeltaTime.h` is unused since `Time` exists. Delete it.
+- `Core/LayerController.h` / `.cpp` are forwarding stubs left by the rename to `LayerStack`. Delete them.

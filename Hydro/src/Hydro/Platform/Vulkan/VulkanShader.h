@@ -55,7 +55,7 @@ namespace Hydro
 		const ShaderSpecification& GetSpecification() const { return m_Specification; }
 
 		// Every file this shader was built from: each stage's source plus the files it #includes.
-		// Watch these to know when the shader needs rebuilding (see Renderer::SetShaderHotReload).
+		// Watch these to know when the shader needs rebuilding (see RendererSettings::ShaderHotReload).
 		const std::vector<std::filesystem::path>& GetSourceFiles() const { return m_SourceFiles; }
 
 	private:
