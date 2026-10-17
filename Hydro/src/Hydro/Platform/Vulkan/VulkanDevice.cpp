@@ -1,63 +1,79 @@
 #include "hypch.h"
 
-#include <optional>
-
 #include "VulkanDevice.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 
+#include <set>
+
 namespace Hydro
 {
-	VulkanDevice::VulkanDevice(VkInstance instance)
+	VulkanDevice::VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice)
+		: m_PhysicalDevice(physicalDevice)
 	{
-		// Do we need to enable any other extensions (eg. NV_RAYTRACING?)
-		std::vector<const char*> deviceExtensions;
-		// If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
-		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		const QueueFamilyIndices& indices = m_PhysicalDevice->GetQueueFamilyIndices();
 
-		m_physicalDevice = CreateRef<VulkanPhysicalDevice>(instance);
-
-		VkDeviceCreateInfo deviceCreateInfo{};
-		VkDeviceQueueCreateInfo queueCreateInfo{};
-		VkPhysicalDeviceFeatures deviceFeatures{};
-
-		// Device features.
-		deviceFeatures.samplerAnisotropy = VK_TRUE;
-
-		// Create Queue Info.
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = m_physicalDevice->GetQueueFamilyIndices().graphics;
-		queueCreateInfo.queueCount = 1;
+		// One queue per unique family: graphics and present are often, but not always, the same family.
+		std::set<uint32_t> uniqueFamilies = { (uint32_t)indices.graphics, (uint32_t)indices.present };
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
 		float queuePriority = 1.0f;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
+		for (uint32_t family : uniqueFamilies)
+		{
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = family;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
-		// Create Device info.
+		// Only enable features the GPU actually has.
+		VkPhysicalDeviceFeatures deviceFeatures{};
+		m_SamplerAnisotropyEnabled = m_PhysicalDevice->GetFeatures().samplerAnisotropy == VK_TRUE;
+		deviceFeatures.samplerAnisotropy = m_SamplerAnisotropyEnabled ? VK_TRUE : VK_FALSE;
+
+		const std::vector<const char*>& deviceExtensions = VulkanPhysicalDevice::GetRequiredExtensions();
+
+		VkDeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-		deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-		deviceCreateInfo.queueCreateInfoCount = 1;
-		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+		deviceCreateInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
+		deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
 		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
-		VkResult result = vkCreateDevice(m_physicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, nullptr, &s_LogicalDevice);
-
+		VkResult result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, nullptr, &m_LogicalDevice);
 		if (result != VK_SUCCESS)
 		{
-			HY_CORE_ERROR("Creating logical device failed");
+			throw std::runtime_error("Creating logical device failed.");
 		}
 
-		vkGetDeviceQueue(s_LogicalDevice, m_physicalDevice->GetQueueFamilyIndices().graphics, 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_LogicalDevice, (uint32_t)indices.graphics, 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_LogicalDevice, (uint32_t)indices.present, 0, &m_PresentQueue);
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		poolInfo.queueFamilyIndex = (uint32_t)indices.graphics;
+
+		VK_CHECK_RESULT(vkCreateCommandPool(m_LogicalDevice, &poolInfo, nullptr, &m_UploadCommandPool));
 	}
 
-	void VulkanDevice::LockQueue(bool compute)
+	void VulkanDevice::WaitIdle() const
 	{
-
+		if (m_LogicalDevice != VK_NULL_HANDLE)
+			vkDeviceWaitIdle(m_LogicalDevice);
 	}
 
 	void VulkanDevice::ShutDown()
 	{
-		vkDestroyDevice(s_LogicalDevice, nullptr);
+		if (m_LogicalDevice == VK_NULL_HANDLE)
+			return;
+
+		vkDestroyCommandPool(m_LogicalDevice, m_UploadCommandPool, nullptr);
+		m_UploadCommandPool = VK_NULL_HANDLE;
+
+		vkDestroyDevice(m_LogicalDevice, nullptr);
+		m_LogicalDevice = VK_NULL_HANDLE;
 	}
 }
-

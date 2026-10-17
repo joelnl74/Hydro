@@ -1,10 +1,9 @@
-#pragma once
 #include "hypch.h"
-#include "Hydro\Platform\Windows\WindowsWindow.h"
-#include "Hydro\Events\EventDispatcher.h"
-#include "Hydro\Events\ApplicationEvents.h"
-#include "Hydro\Events\KeyEvents.h"
-#include "Hydro\Events\MouseEvents.h"
+#include "Hydro/Platform/Windows/WindowsWindow.h"
+#include "Hydro/Events/EventDispatcher.h"
+#include "Hydro/Events/ApplicationEvents.h"
+#include "Hydro/Events/KeyEvents.h"
+#include "Hydro/Events/MouseEvents.h"
 
 #include <iostream>
 
@@ -27,7 +26,7 @@ namespace Hydro
 		Shutdown();
 	}
 
-	void Hydro::WindowsWindow::Init(const WindowProps& props)
+	void WindowsWindow::Init(const WindowProps& props)
 	{
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
@@ -49,7 +48,8 @@ namespace Hydro
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
-				EventDispatcher::Get().Post(WindowCloseEvent());
+				WindowCloseEvent closeEvent;
+				EventDispatcher::Get().Post(closeEvent);
 			});
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int heigth)

@@ -1,0 +1,12 @@
+Prefab: Sprite
+Entity:
+  Entity: 10412049402770000570
+  TagComponent:
+    Tag: Sprite
+  TransformComponent:
+    Translation: [299.899994, 200, 0]
+    Rotation: [0, 0, 0]
+    Scale: [100, 100, 1]
+  SpriteRendererComponent:
+    Color: [0.40196079, 0.354108304, 0.334967315, 1]
+    TilingFactor: 1

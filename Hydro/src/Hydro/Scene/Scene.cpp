@@ -1,18 +1,31 @@
 #include <hypch.h>
 #include "Scene.h"
 #include "Entity.h"
+#include "ScriptableEntity.h"
 
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/UUID.h>
 namespace Hydro
 {
 	Scene::Scene(const std::string& debugName, bool isEditorScene)
+		: m_Name(debugName)
 	{
 
 	}
 
 	Scene::~Scene()
 	{
+		// Give scripts a chance to clean up while the registry and their entities still exist.
+		auto view = m_Registry.view<NativeScriptComponent>();
+		for (auto entityHandle : view)
+		{
+			auto& scriptComponent = view.get<NativeScriptComponent>(entityHandle);
+			for (auto& script : scriptComponent.Scripts)
+			{
+				if (script.Instance != nullptr)
+					script.Instance->OnDestroy();
+			}
+		}
 	}
 	
 	void Scene::Init()
@@ -29,19 +42,49 @@ namespace Hydro
 	{
 		Entity entity = { m_Registry.create(), this };
 		auto& tag = entity.AddComponent<TagComponent>();
-		auto& id = entity.AddComponent<IDComponent>();
+		entity.AddComponent<IDComponent>(uuid);
 		
 		tag.Tag = name.empty() ? "Entity" : name;
 
 		return entity;
 	}
+
+	void Scene::DestroyEntity(Entity entity)
+	{
+		if ((bool)entity == false || m_Registry.valid(entity) == false)
+			return;
+
+		// Let native scripts clean up before their entity disappears.
+		if (entity.HasComponent<NativeScriptComponent>())
+		{
+			for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+			{
+				if (script.Instance != nullptr)
+					script.Instance->OnDestroy();
+			}
+		}
+
+		m_Registry.destroy(entity);
+	}
 	
 	void Scene::OnUpdate()
 	{
+		// Native scripts. Instances are created lazily on their first update.
+		// TODO: pass a real delta time once the application loop measures it.
+		auto view = m_Registry.view<NativeScriptComponent>();
+		for (auto entityHandle : view)
 		{
-			for (size_t i = 0; i < m_scripts.size(); i++)
+			auto& scriptComponent = view.get<NativeScriptComponent>(entityHandle);
+			for (auto& script : scriptComponent.Scripts)
 			{
-				m_scripts[i]->OnUpdate(0.0f);
+				if (script.Instance == nullptr)
+				{
+					script.Instance.reset(script.Instantiate());
+					script.Instance->m_Entity = Entity{ entityHandle, this };
+					script.Instance->OnCreate();
+				}
+
+				script.Instance->OnUpdate(0.0f);
 			}
 		}
 

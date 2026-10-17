@@ -17,6 +17,9 @@ namespace Hydro
 	public:
 		ProjectConfig& GetConfig() { return m_Config; }
 
+		const std::filesystem::path& GetProjectDirectory() const { return m_ProjectDirectory; }
+		void SetProjectDirectory(const std::filesystem::path& directory) { m_ProjectDirectory = directory; }
+
 		static Ref<Project> GetActive() { return s_ActiveProject; }
 
 		static Ref<Project> New();

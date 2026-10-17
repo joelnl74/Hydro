@@ -1,35 +1,42 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+#include <vector>
+
 namespace Hydro
 {
 	struct QueueFamilyIndices
 	{
 		int32_t graphics = -1;
 		int32_t present = -1;
+
+		bool IsComplete() const { return graphics >= 0 && present >= 0; }
 	};
 
 	class VulkanPhysicalDevice
 	{
 	public:
-		VulkanPhysicalDevice(VkInstance instance);
-		VkPhysicalDevice GetVulkanPhysicalDevice() { return m_PhysicalDevice; }
-		QueueFamilyIndices GetQueueFamilyIndices() { return m_QueueFamilyIndices; }
+		// Picks the best GPU that can render and present to the given surface.
+		VulkanPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
+
+		VkPhysicalDevice GetVulkanPhysicalDevice() const { return m_PhysicalDevice; }
+		const QueueFamilyIndices& GetQueueFamilyIndices() const { return m_QueueFamilyIndices; }
+		const VkPhysicalDeviceProperties& GetProperties() const { return m_Properties; }
+		const VkPhysicalDeviceFeatures& GetFeatures() const { return m_Features; }
+
+		static const std::vector<const char*>& GetRequiredExtensions();
 
 	private:
-		bool IsDeviceSuitable(VkPhysicalDevice device);
-		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+		static QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
+		static bool SupportsRequiredExtensions(VkPhysicalDevice device);
+		static bool SupportsSurface(VkPhysicalDevice device, VkSurfaceKHR surface);
+		static int ScoreDevice(VkPhysicalDevice device, VkSurfaceKHR surface);
 
 	private:
-		VkPhysicalDevice m_PhysicalDevice = nullptr;
-		VkPhysicalDeviceProperties m_Properties;
-		VkPhysicalDeviceFeatures m_Features;
-		VkPhysicalDeviceMemoryProperties m_MemoryProperties;
+		VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
+		VkPhysicalDeviceProperties m_Properties{};
+		VkPhysicalDeviceFeatures m_Features{};
 
 		QueueFamilyIndices m_QueueFamilyIndices;
-
-		uint32_t deviceCount = 0;
 	};
 }
-
-

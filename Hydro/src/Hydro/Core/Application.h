@@ -16,8 +16,8 @@ namespace Hydro
 		float EventsMs = 0.0f;          // window/OS event polling
 		float ImGuiMs = 0.0f;           // building the editor UI (layers' OnImGuiRender)
 		float UpdateMs = 0.0f;          // game/scene logic (layers' OnUpdate)
-		float RenderMs = 0.0f;          // Renderer2D: batch upload + record + submit (includes fence wait)
-		float PresentMs = 0.0f;         // swapchain acquire/submit/present (includes GPU / vsync wait)
+		float RenderMs = 0.0f;          // frame fence wait + acquire + recording (Renderer2D batches, ImGui)
+		float PresentMs = 0.0f;         // queue submit + present (includes vsync wait)
 		float PlatformWindowsMs = 0.0f; // ImGui windows dragged outside the main window
 		float FrameMs = 0.0f;           // whole loop iteration
 		uint64_t FrameCount = 0;

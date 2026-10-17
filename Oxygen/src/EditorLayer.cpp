@@ -5,6 +5,8 @@
 #include <string>
 
 #include "Hydro/Utils/PlatformUtils.h"
+#include "EditorPaths.h"
+#include "EditorWindows/AssetDragDrop.h"
 
 #include <algorithm>
 #include <cmath>
@@ -50,6 +52,10 @@ namespace Hydro
 		m_Scene->Init();
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
+		m_InspectorWindow = CreateRef<InspectorWindow>();
+		m_ProjectWindow = CreateRef<ProjectWindow>();
+		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
+		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
 
 		CreateGalaxy();
 	}
@@ -215,9 +221,22 @@ namespace Hydro
 					OpenProject();
 				}
 				ImGui::Separator();
-				if (ImGui::MenuItem("New Scene", "Ctrl+N")) {}
-				if (ImGui::MenuItem("Save Scene", "Ctrl+S")) {}
-				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S")) {}
+				if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+				{
+					NewScene();
+				}
+				if (ImGui::MenuItem("Open Scene..."))
+				{
+					OpenScene();
+				}
+				if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+				{
+					SaveScene();
+				}
+				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
+				{
+					SaveSceneAs();
+				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit")) 
 				{
@@ -237,10 +256,10 @@ namespace Hydro
 		}
 
 		m_HierarchyWindow->OnImguiRender(m_Scene);
+		m_InspectorWindow->OnImguiRender(m_HierarchyWindow->GetSelectedEntity());
 		m_StatsWindow->OnImguiRender(m_Scene);
 
-		ImGui::Begin("Project");
-		ImGui::End();
+		m_ProjectWindow->OnImguiRender(m_Scene);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("ViewPort");
@@ -248,6 +267,16 @@ namespace Hydro
 		if (viewPortSize.x >= 1.0f && viewPortSize.y >= 1.0f)
 			m_ViewportSize = { viewPortSize.x, viewPortSize.y };
 		m_SceneRenderer->RenderCompositeImage(viewPortSize.x, viewPortSize.y);
+
+		// Drop prefabs / scenes from the project window onto the viewport.
+		if (ImGui::BeginDragDropTarget())
+		{
+			std::filesystem::path droppedPath;
+			if (AssetDragDrop::AcceptPayload(droppedPath))
+				OnAssetDropped(droppedPath);
+
+			ImGui::EndDragDropTarget();
+		}
 		ImGui::End();
 		ImGui::PopStyleVar();
 
@@ -266,7 +295,7 @@ namespace Hydro
 		if (filepath.empty())
 			return;
 
-		Project::New();
+		Project::New()->SetProjectDirectory(filepath);
 		Project::Save(filepath);
 	}
 
@@ -284,12 +313,98 @@ namespace Hydro
 	
 	void EditorLayer::OpenProject(const std::filesystem::path& path)
 	{
+		Ref<Project> project = Project::Load(path);
+		project->SetProjectDirectory(path.parent_path());
 	}
 	
 	void EditorLayer::SaveProject()
 	{
 		Project::Save(Project::GetActive()->GetConfig().AssetDirectory);
 	}
+
+	void EditorLayer::SetActiveScene(const Ref<Scene>& scene)
+	{
+		m_Scene = scene;
+		m_Scene->Init();
+		m_SceneRenderer->SetScene(m_Scene);
+		m_HierarchyWindow->ClearSelection();
+	}
+
+	void EditorLayer::NewScene()
+	{
+		SetActiveScene(CreateRef<Scene>("Untitled", true));
+		m_EditorScenePath.clear();
+	}
+
+	void EditorLayer::OpenScene()
+	{
+		std::string filepath = FileDialogs::OpenFile("Hydro Scene (*.hyscene)\0*.hyscene\0");
+
+		if (filepath.empty())
+			return;
+
+		OpenScene(filepath);
+	}
+
+	void EditorLayer::OpenScene(const std::filesystem::path& path)
+	{
+		if (path.extension().string() != SceneSerializer::FileExtension)
+		{
+			HY_WARN("Could not load {} - not a scene file", path.filename().string());
+			return;
+		}
+
+		// Load into a fresh scene and only swap it in when loading succeeded.
+		Ref<Scene> newScene = CreateRef<Scene>("Untitled", true);
+		SceneSerializer serializer(newScene);
+		if (serializer.Deserialize(path) == false)
+			return;
+
+		SetActiveScene(newScene);
+		m_EditorScenePath = path;
+	}
+
+	void EditorLayer::SaveScene()
+	{
+		// First save of a new scene goes to <project>/Assets/Scenes/<SceneName>.hyscene.
+		if (m_EditorScenePath.empty())
+			m_EditorScenePath = EditorPaths::GetScenesDirectory() / (EditorPaths::ToFileName(m_Scene->GetName()) + SceneSerializer::FileExtension);
+
+		SceneSerializer serializer(m_Scene);
+		serializer.Serialize(m_EditorScenePath);
+	}
+
+	void EditorLayer::SaveSceneAs()
+	{
+		std::string filepath = FileDialogs::SaveFile("Hydro Scene (*.hyscene)\0*.hyscene\0");
+
+		if (filepath.empty())
+			return;
+
+		std::filesystem::path path = filepath;
+		if (path.extension().string() != SceneSerializer::FileExtension)
+			path += SceneSerializer::FileExtension;
+
+		// Name the scene after its file.
+		m_Scene->SetName(path.stem().string());
+
+		SceneSerializer serializer(m_Scene);
+		if (serializer.Serialize(path))
+			m_EditorScenePath = path;
+	}
+
+	void EditorLayer::OnAssetDropped(const std::filesystem::path& path)
+	{
+		const std::string extension = path.extension().string();
+
+		if (extension == PrefabSerializer::FileExtension)
+		{
+			if (Entity entity = PrefabSerializer::Instantiate(*m_Scene, path))
+				m_HierarchyWindow->SetSelectedEntity(entity);
+		}
+		else if (extension == SceneSerializer::FileExtension)
+		{
+			OpenScene(path);
+		}
+	}
 }
-
-

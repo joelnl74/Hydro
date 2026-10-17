@@ -28,6 +28,7 @@ group "Dependencies"
 	include "vendor/premake"
 	include "Hydro/vendor/GLFW"
 	include "Hydro/vendor/imgui"
+	include "Hydro/vendor/yaml-cpp"
 group ""
 
 include "Hydro"

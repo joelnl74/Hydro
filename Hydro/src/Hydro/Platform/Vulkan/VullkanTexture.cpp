@@ -77,8 +77,10 @@ namespace Hydro
 		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+		// Anisotropy is only legal when the device feature was enabled at device creation.
+		bool anisotropy = Renderer::GetRendererContext()->GetVulkanDevice()->IsSamplerAnisotropyEnabled();
+		samplerInfo.anisotropyEnable = anisotropy ? VK_TRUE : VK_FALSE;
+		samplerInfo.maxAnisotropy = anisotropy ? properties.limits.maxSamplerAnisotropy : 1.0f;
 		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
 		samplerInfo.compareEnable = VK_FALSE;

@@ -11,6 +11,8 @@ namespace Hydro
 			: m_Scene(scene) {
 		}
 		
+		void SetScene(const Ref<Scene>& scene) { m_Scene = scene; }
+
 		void RenderScene();
 		void RenderCompositeImage(float x, float y);
 

@@ -1,4 +1,8 @@
+#pragma once
 #include <stdint.h>
+#include <string>
+#include <vector>
+#include <initializer_list>
 #include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
 
 namespace Hydro

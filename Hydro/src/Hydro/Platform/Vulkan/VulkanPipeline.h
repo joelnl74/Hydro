@@ -19,7 +19,7 @@ namespace Hydro
 		Ref<VulkanDescriptorBuilder> descriptorSet;
 
 		VertexBufferLayout Layout;
-		// Render pass this pipeline is used in. VK_NULL_HANDLE = the swapchain's render pass.
+		// Render pass the pipeline draws into. VK_NULL_HANDLE = the swapchain's present pass.
 		VkRenderPass RenderPass = VK_NULL_HANDLE;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
 		bool BackfaceCulling = true;
@@ -35,19 +35,16 @@ namespace Hydro
 		VulkanPipeline(const PipelineSpecification& spec);
 		void Destroy();
 
-		void Bind(VkCommandBuffer commandBuffer);
+		// Binds the pipeline and sets viewport/scissor to cover `extent` (the current render target).
+		void Bind(VkCommandBuffer commandBuffer, VkExtent2D extent);
 		void BindDescriptorSets(VkCommandBuffer commandBuffer);
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }
-		VkViewport GetViewPort() { return m_ViewPort; }
-		VkRect2D GetRect2D() { return m_Scissor; }
 
 	private:
-		VkPipelineLayout m_PipelineLayout;
-		VkViewport m_ViewPort;
-		VkRect2D m_Scissor;
-		VkPipeline m_GraphicsPipeline;
+		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
+		VkPipeline m_GraphicsPipeline = VK_NULL_HANDLE;
 		PipelineSpecification m_pipelineSpecification;
 	};
 }

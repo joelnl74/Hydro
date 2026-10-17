@@ -41,8 +41,9 @@ namespace Hydro
 
 		m_Running = true;
 
+		// ImGui sits on top of every application layer.
 		m_imGuiLayer = new ImGuiLayer();
-		PushLayer(m_imGuiLayer);
+		PushOverlay(m_imGuiLayer);
 
 		HY_CORE_TRACE("Engine initialized");
 	}
@@ -59,7 +60,7 @@ namespace Hydro
 
 	void Application::PushOverlay(Layer* layer)
 	{
-		m_LayerStack.PopOverlay(layer);
+		m_LayerStack.PushOverlay(layer);
 		layer->OnAttach();
 	}
 
@@ -99,17 +100,16 @@ namespace Hydro
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 			const Clock::time_point afterUpdate = Clock::now();
-			Clock::time_point afterRender = afterUpdate;
-			Clock::time_point afterPresent = afterUpdate;
+			bool rendered = false;
 
 			// A minimized window has a 0x0 framebuffer: nothing can be presented, so skip
 			// rendering (and don't spin the CPU) until it is restored.
-			if (!m_Minimized)
+			if (m_Minimized == false)
 			{
-				Renderer2D::Render(); // records + submits all 2D batches for this frame
-				afterRender = Clock::now();
+				// One command buffer for the frame: Renderer2D's offscreen pass, then the
+				// swapchain pass with ImGui, then submit + present.
 				Renderer::RenderFrame();
-				afterPresent = Clock::now();
+				rendered = true;
 			}
 			else
 			{
@@ -131,8 +131,8 @@ namespace Hydro
 			timings.EventsMs = Ms(frameStart, afterEvents);
 			timings.ImGuiMs = Ms(afterEvents, afterImGui);
 			timings.UpdateMs = Ms(afterImGui, afterUpdate);
-			timings.RenderMs = Ms(afterUpdate, afterRender);
-			timings.PresentMs = Ms(afterRender, afterPresent);
+			timings.RenderMs = rendered ? Renderer::GetLastRecordMs() : 0.0f;   // fence wait + acquire + record
+			timings.PresentMs = rendered ? Renderer::GetLastPresentMs() : 0.0f; // submit + present
 			timings.PlatformWindowsMs = Ms(beforePlatform, frameEnd);
 			timings.FrameMs = Ms(frameStart, frameEnd);
 			timings.FrameCount = m_FrameTimings.FrameCount + 1;
@@ -140,12 +140,21 @@ namespace Hydro
 			m_FrameTimings = timings;
 		}
 
-		Renderer::ShutDown();
+		ShutDown();
 	}
 
 	void Application::ShutDown()
 	{
 		m_Running = false;
+
+		OnShutdown();
+
+		// Layers (ImGui included) own GPU objects, so detach them while the device still exists.
+		Renderer::WaitIdle();
+		m_LayerStack.Clear();
+		m_imGuiLayer = nullptr;
+
+		Renderer::ShutDown();
 	}
 
 	// Handle events.
@@ -154,17 +163,17 @@ namespace Hydro
 		// Handle close event.
 		if (e.GetEventType() == EventType::WindowClose)
 		{
-			ShutDown();
+			// Only stop the loop here: Run() tears everything down once the current frame is done.
+			Quit();
 		}
 
 		// Handle resize event.
 		if (e.GetEventType() == EventType::WindowResize)
 		{
-			WindowResizeEvent receivedEvent = EventDispatcher::GetEvent<WindowResizeEvent&>(e);
+			WindowResizeEvent& resizeEvent = static_cast<WindowResizeEvent&>(e);
 
-			m_Minimized = receivedEvent.width == 0 || receivedEvent.heigth == 0;
-			if (!m_Minimized)
-				Renderer::GetVulkanSwapChain()->OnResize();
+			m_Minimized = resizeEvent.width == 0 || resizeEvent.heigth == 0;
+			Renderer::OnWindowResize((uint32_t)resizeEvent.width, (uint32_t)resizeEvent.heigth);
 		}
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )

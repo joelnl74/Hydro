@@ -5,11 +5,19 @@ namespace Hydro
 {
 	LayerController::~LayerController()
 	{
-		for (auto layer : m_Layers)
+		Clear();
+	}
+
+	void LayerController::Clear()
+	{
+		for (auto it = m_Layers.rbegin(); it != m_Layers.rend(); ++it)
 		{
-			layer->OnDetach();
-			delete layer;
+			(*it)->OnDetach();
+			delete *it;
 		}
+
+		m_Layers.clear();
+		m_LayerInsertIndex = 0;
 	}
 
 	void LayerController::PushLayer(Layer* layer)

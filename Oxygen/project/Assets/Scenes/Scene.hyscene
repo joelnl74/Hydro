@@ -1,0 +1,15 @@
+Scene: Scene
+Entities:
+  - Entity: 2188614227914461069
+    TagComponent:
+      Tag: Galaxy (50000 stars)
+  - Entity: 12395699807780970988
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Translation: [206.800003, 200, 0]
+      Rotation: [0.0698131695, 0, 0]
+      Scale: [100, 100, 1]
+    SpriteRendererComponent:
+      Color: [0.617579162, 0.39648214, 0.647058845, 1]
+      TilingFactor: 1

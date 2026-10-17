@@ -1,7 +1,11 @@
 #include "HierachyWindow.h"
+#include "../EditorPaths.h"
+#include "AssetDragDrop.h"
 
 #include <imgui/imgui.h>
 #include <Hydro/Core/UUID.h>
+#include <Hydro/Scene/PrefabSerializer.h>
+#include <Hydro/Utils/PlatformUtils.h>
 
 namespace Hydro
 {
@@ -16,33 +20,110 @@ namespace Hydro
 	}
 	void HierachyWindow::OnImguiRender(Ref<Scene> scene)
 	{
+		// Drop a selection that belongs to a scene that was replaced or an entity that was destroyed.
+		if (m_SelectedEntity && (m_SelectedEntity.GetScene() != scene.get() || scene->m_Registry.valid(m_SelectedEntity) == false))
+			m_SelectedEntity = {};
+
+		// Destroying while iterating the registry is unsafe, so it happens after the loop.
+		Entity entityToDelete;
+
 		ImGui::Begin("Hierachy");
 		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
-		if (ImGui::TreeNodeEx("Root", flag))
-		{
-			scene->m_Registry.each([&](auto entity)
-			{
-				if (scene->m_Registry.has<TagComponent>(entity))
-				{
-					TagComponent& name = scene->m_Registry.get<TagComponent>(entity);
-					IDComponent& id = scene->m_Registry.get<IDComponent>(entity);
-					
-					std::string x = std::to_string(id.Id);
-					auto& tag = name.Tag + x;
+		const bool rootOpen = ImGui::TreeNodeEx("Root", flag);
 
-					
-					ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf;
-					bool opened1 = ImGui::TreeNodeEx(tag.c_str(), child, tag.c_str());
-					if (opened1)
-					{
-						ImGui::TreePop();
-					}
-				};
-			});
-		
-		ImGui::TreePop();
+		// Drop a prefab from the project window onto "Root" to instantiate it.
+		if (ImGui::BeginDragDropTarget())
+		{
+			std::filesystem::path droppedPath;
+			if (AssetDragDrop::AcceptPayload(droppedPath) && droppedPath.extension().string() == PrefabSerializer::FileExtension)
+			{
+				if (Entity instance = PrefabSerializer::Instantiate(*scene, droppedPath))
+					m_SelectedEntity = instance;
+			}
+
+			ImGui::EndDragDropTarget();
 		}
+
+		if (rootOpen)
+		{
+			scene->m_Registry.each([&](auto entityHandle)
+			{
+				if (scene->m_Registry.has<TagComponent>(entityHandle) == false || scene->m_Registry.has<IDComponent>(entityHandle) == false)
+					return;
+
+				Entity entity{ entityHandle, scene.get() };
+				const std::string& tag = entity.GetName();
+				const uint64_t id = entity.GetUUID();
+
+				ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth;
+				if (m_SelectedEntity == entity)
+					child |= ImGuiTreeNodeFlags_Selected;
+
+				bool opened = ImGui::TreeNodeEx((void*)id, child, "%s", tag.c_str());
+				if (ImGui::IsItemClicked())
+					m_SelectedEntity = entity;
+
+				if (ImGui::BeginPopupContextItem())
+				{
+					if (ImGui::MenuItem("Save as Prefab"))
+						SaveAsPrefab(entity);
+					if (ImGui::MenuItem("Delete Entity"))
+						entityToDelete = entity;
+
+					ImGui::EndPopup();
+				}
+
+				if (opened)
+					ImGui::TreePop();
+			});
+
+			ImGui::TreePop();
+		}
+
+		// Right-click on empty space in the window.
+		if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("Create Empty Entity"))
+			{
+				m_SelectedEntity = scene->CreateEntity("Empty Entity");
+				m_SelectedEntity.AddComponent<TransformComponent>();
+			}
+
+			if (ImGui::MenuItem("Create Sprite"))
+			{
+				m_SelectedEntity = scene->CreateEntity("Sprite");
+				m_SelectedEntity.AddComponent<TransformComponent>(glm::vec3(200.0f, 200.0f, 0.0f), glm::vec3(100.0f, 100.0f, 1.0f));
+				m_SelectedEntity.AddComponent<SpriteRendererComponent>(glm::vec4(0.9f, 0.4f, 0.2f, 1.0f));
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::MenuItem("Instantiate Prefab..."))
+			{
+				std::string filepath = FileDialogs::OpenFile("Hydro Prefab (*.hyprefab)\0*.hyprefab\0");
+				if (filepath.empty() == false)
+				{
+					if (Entity instance = PrefabSerializer::Instantiate(*scene, filepath))
+						m_SelectedEntity = instance;
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+
 		ImGui::End();
+
+		if (entityToDelete)
+		{
+			if (m_SelectedEntity == entityToDelete)
+				m_SelectedEntity = {};
+
+			scene->DestroyEntity(entityToDelete);
+		}
 	}
 
+	void HierachyWindow::SaveAsPrefab(Entity entity)
+	{
+		PrefabSerializer::Save(entity, EditorPaths::GetPrefabPath(entity.GetName()));
+	}
 }
