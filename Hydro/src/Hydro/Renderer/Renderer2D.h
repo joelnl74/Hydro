@@ -70,6 +70,9 @@ namespace Hydro
 		static void NextBatch();
 		static void ResetBatches();
 		static void ApplyViewportResize();
+		// Recompiles the quad shader and rebuilds its pipeline when a source file changed
+		// (only when Renderer::IsShaderHotReloadEnabled()).
+		static void ReloadShadersIfChanged();
 	};
 
 }

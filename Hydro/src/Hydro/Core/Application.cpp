@@ -98,7 +98,7 @@ namespace Hydro
 			const Clock::time_point afterImGui = Clock::now();
 
 			for (Layer* layer : m_LayerStack)
-				layer->OnUpdate();
+				layer->OnUpdate(m_FrameTimings.FrameMs / 1000.0f);
 			const Clock::time_point afterUpdate = Clock::now();
 			bool rendered = false;
 

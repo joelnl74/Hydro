@@ -18,7 +18,7 @@ namespace Hydro
 
 		void Init();
 
-		void OnUpdate();
+		void OnUpdate(float deltaTime);
 		void OnRender();
 
 		Entity CreateEntity(const std::string& name = std::string());

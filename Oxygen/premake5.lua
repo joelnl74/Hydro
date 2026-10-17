@@ -10,12 +10,20 @@ project "Oxygen"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+
+		-- GLSL sources, compiled to SPIR-V by Visual Studio as part of the build (see filter below).
+		"assets/shaders/**.vert",
+		"assets/shaders/**.frag",
+		"assets/shaders/**.comp",
+		"assets/shaders/**.geom",
+		"assets/shaders/**.tesc",
+		"assets/shaders/**.tese"
 	}
 
 	includedirs
 	{
-		"%{prj.name}/src",
+		"src",
 		"%{wks.location}/Hydro/src",
 		"%{wks.location}/Hydro/vendor",
 		"%{wks.location}/Hydro/vendor/spdlog/include",
@@ -33,6 +41,24 @@ project "Oxygen"
 	links
 	{
 		"Hydro"
+	}
+
+	-- Shader compilation: each shader is a custom build item, so it is only
+	-- recompiled when its source changes. Output: <name>.<stage>.spv next to the source,
+	-- e.g. assets/shaders/vertex.vert -> assets/shaders/vertex.vert.spv
+	filter "files:assets/shaders/**.vert or assets/shaders/**.frag or assets/shaders/**.comp or assets/shaders/**.geom or assets/shaders/**.tesc or assets/shaders/**.tese"
+		buildmessage "Compiling shader %{file.relpath}"
+		buildcommands
+		{
+			'"$(VULKAN_SDK)\\Bin\\glslc.exe" "%{file.relpath}" -o "%{file.relpath}.spv"'
+		}
+		buildoutputs { "%{file.relpath}.spv" }
+
+	-- Hydro compiles GLSL at runtime with shaderc: put its DLL next to the executable.
+	filter {}
+	postbuildcommands
+	{
+		'copy /B /Y "$(VULKAN_SDK)\\Bin\\shaderc_shared.dll" "$(OutDir)" > nul'
 	}
 
 	filter "system:windows"

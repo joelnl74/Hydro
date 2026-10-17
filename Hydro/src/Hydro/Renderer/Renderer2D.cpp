@@ -12,6 +12,7 @@
 // SHOULD BE A IMGUI EXTENSION END BLOCK.
 
 #include "Hydro/Renderer/Renderer.h"
+#include "Hydro/Core/FileWatcher.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,6 +20,7 @@
 #include "../Renderer/Camera.h"
 
 #include <array>
+#include <chrono>
 
 namespace Hydro
 {
@@ -66,6 +68,10 @@ namespace Hydro
 		UniformBufferObject ubo;
 
 		Ref<VulkanShader> Shader;
+		// Shader hot reload: the shader's source files, checked every ShaderPollInterval.
+		FileWatcher ShaderWatcher;
+		std::chrono::steady_clock::time_point NextShaderPoll{};
+		static constexpr std::chrono::milliseconds ShaderPollInterval{ 250 };
 
 		Ref<VulkanPipeline> QuadPipeline;
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;      // shared by all batches (every batch starts at vertex 0)
@@ -110,12 +116,12 @@ namespace Hydro
 
 		/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
 		ShaderInformation vertexInformation;
-		vertexInformation.path = "assets/shaders/vertex.spv";
+		vertexInformation.path = "assets/shaders/vertex.vert";
 		vertexInformation.shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
 		vertexInformation.shaderType = ShaderType::Vertex;
 
 		ShaderInformation fragmentInformation;
-		fragmentInformation.path = "assets/shaders/fragment.spv";
+		fragmentInformation.path = "assets/shaders/fragment.frag";
 		fragmentInformation.shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
 		fragmentInformation.shaderType = ShaderType::Fragment;
 
@@ -133,6 +139,7 @@ namespace Hydro
 		s_Data->QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 		s_Data->Shader = CreateRef<VulkanShader>(shaderSpecification);
+		s_Data->ShaderWatcher = FileWatcher(s_Data->Shader->GetSourceFiles());
 		/// END BLOCK!
 
 		VulkanTextureSpecification textureProperties;
@@ -183,9 +190,14 @@ namespace Hydro
 			{ "inTexIndex", ShaderDataType::Float, },
 		};
 
-		specification.descriptorSet = s_Data->QuadDescriptorSet;
+		specification.DescriptorSets = { s_Data->QuadDescriptorSet };
 		specification.shader = s_Data->Shader;
 		specification.RenderPass = s_Data->RenderPass->GetRenderPass();
+		// Sprites: alpha blended, drawn in submission order, visible from both sides (negative scale flips them).
+		specification.Blend = BlendMode::Alpha;
+		specification.BackfaceCulling = false;
+		specification.DepthTest = false;
+		specification.DepthWrite = false;
 
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
 
@@ -230,7 +242,6 @@ namespace Hydro
 			delete[] base;
 
 		s_Data->QuadDescriptorSet->Destroy();
-		s_Data->Shader->Destroy();
 		s_Data->QuadPipeline->Destroy();
 		s_Data->QuadUniformBuffer->Destroy();
 		s_Data->QuadIndexBuffer->Destroy();
@@ -283,6 +294,7 @@ namespace Hydro
 	void Renderer2D::Render(VkCommandBuffer commandBuffer)
 	{
 		ApplyViewportResize();
+		ReloadShadersIfChanged();
 
 		const uint32_t frame = Renderer::GetRenderFrame();
 		const uint32_t width = s_Data->RenderPass->GetWidth();
@@ -459,6 +471,51 @@ namespace Hydro
 				WriteCompositeDescriptor(s_Data->CompositeDescriptorSets[i], image.ImageView, image.Sampler);
 			}
 		}
+	}
+
+	void Renderer2D::ReloadShadersIfChanged()
+	{
+		if (Renderer::IsShaderHotReloadEnabled() == false)
+			return;
+
+		// A few checks per second is instant enough and keeps file-system calls off most frames.
+		const auto now = std::chrono::steady_clock::now();
+		if (now < s_Data->NextShaderPoll)
+			return;
+
+		s_Data->NextShaderPoll = now + Renderer2DData::ShaderPollInterval;
+		if (s_Data->ShaderWatcher.Poll() == false)
+			return;
+
+		// Build the replacements first, so a shader that doesn't compile leaves the old one drawing.
+		// Poll() has already taken the new file times, so a broken shader is retried on the next save,
+		// not every poll.
+		Ref<VulkanShader> shader;
+		Ref<VulkanPipeline> pipeline;
+		try
+		{
+			shader = CreateRef<VulkanShader>(s_Data->Shader->GetSpecification());
+
+			PipelineSpecification specification = s_Data->QuadPipeline->GetSpecification();
+			specification.shader = shader;
+			pipeline = CreateRef<VulkanPipeline>(specification);
+		}
+		catch (const std::exception&)
+		{
+			// VulkanShader already logged the compiler output.
+			HY_CORE_WARN("Shader reload failed; still using the previous shader.");
+			return;
+		}
+
+		// Both frames in flight may still be using the old pipeline (same as ApplyViewportResize).
+		Renderer::WaitIdle();
+
+		s_Data->QuadPipeline->Destroy();
+		s_Data->QuadPipeline = pipeline;
+		s_Data->Shader = shader;
+		s_Data->ShaderWatcher = FileWatcher(shader->GetSourceFiles());
+
+		HY_CORE_INFO("Shaders reloaded.");
 	}
 
 	VkDescriptorSet Renderer2D::GetCompositeDescriptorSet()

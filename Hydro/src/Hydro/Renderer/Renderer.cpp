@@ -11,6 +11,12 @@ namespace Hydro
 {
 	Renderer* Renderer::s_Instance = nullptr;
 
+#ifdef HY_DIST
+	bool Renderer::s_ShaderHotReload = false;
+#else
+	bool Renderer::s_ShaderHotReload = true;
+#endif
+
 	void Renderer::Create(Window& window)
 	{
 		s_Instance = new Renderer();

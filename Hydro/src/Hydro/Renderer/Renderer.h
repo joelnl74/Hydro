@@ -24,6 +24,11 @@ namespace Hydro
 		static void OnWindowResize(uint32_t width, uint32_t height);
 		static void WaitIdle();
 
+		// Rebuild shaders when their source files change (checked a few times per second).
+		// On by default, except in Dist builds. Can be set before Create().
+		static void SetShaderHotReload(bool enabled) { s_ShaderHotReload = enabled; }
+		static bool IsShaderHotReloadEnabled() { return s_ShaderHotReload; }
+
 		// Called inside the swapchain render pass every frame (the ImGui layer draws the UI here).
 		static void SetPresentPassCallback(PresentPassCallback callback) { s_Instance->m_PresentPassCallback = std::move(callback); }
 
@@ -46,6 +51,7 @@ namespace Hydro
 
 	private:
 		static Renderer* s_Instance;
+		static bool s_ShaderHotReload;
 
 		Ref<VulkanRendererContext> m_RendererContext;
 		Ref<VulkanSwapChain> m_SwapChain;

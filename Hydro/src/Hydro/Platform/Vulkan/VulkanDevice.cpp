@@ -31,6 +31,11 @@ namespace Hydro
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		m_SamplerAnisotropyEnabled = m_PhysicalDevice->GetFeatures().samplerAnisotropy == VK_TRUE;
 		deviceFeatures.samplerAnisotropy = m_SamplerAnisotropyEnabled ? VK_TRUE : VK_FALSE;
+		// Needed by PipelineSpecification::Wireframe and ::LineWidth != 1.
+		m_FillModeNonSolidEnabled = m_PhysicalDevice->GetFeatures().fillModeNonSolid == VK_TRUE;
+		deviceFeatures.fillModeNonSolid = m_FillModeNonSolidEnabled ? VK_TRUE : VK_FALSE;
+		m_WideLinesEnabled = m_PhysicalDevice->GetFeatures().wideLines == VK_TRUE;
+		deviceFeatures.wideLines = m_WideLinesEnabled ? VK_TRUE : VK_FALSE;
 
 		const std::vector<const char*>& deviceExtensions = VulkanPhysicalDevice::GetRequiredExtensions();
 

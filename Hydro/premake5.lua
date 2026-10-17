@@ -7,6 +7,10 @@ project "Hydro"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
+	-- Runs the "Premake" utility project first, so new/removed source files
+	-- are picked up automatically on build (no need to run Win-GenProjects.bat).
+	dependson { "Premake" }
+
 	pchheader "hypch.h"
 	pchsource "src/hypch.cpp"
 
@@ -71,7 +75,10 @@ project "Hydro"
 
 		links
 		{
-			"%{Library.ShaderC_Debug}",
+			-- shaderc is used through its C API, so the release DLL is safe with the debug CRT.
+			-- The debug shaderc build comes from a separate (older) SDK download; avoiding it means
+			-- only shaderc_shared.dll from the installed SDK is needed at runtime.
+			"%{Library.ShaderC_Release}",
 			"%{Library.SPIRV_Cross_Debug}",
 			"%{Library.SPIRV_Cross_GLSL_Debug}"
 		}
@@ -88,7 +95,7 @@ project "Hydro"
 			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
 
-	filter "configurations:Distribution"
+	filter "configurations:Dist"
 		defines "HY_DIST"
 		runtime "Release"
 		optimize "on"

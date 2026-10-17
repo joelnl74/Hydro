@@ -145,14 +145,11 @@ namespace Hydro
 	{
 	}
 
-	void EditorLayer::OnUpdate()
+	void EditorLayer::OnUpdate(float deltaTime)
 	{
 		auto now = std::chrono::steady_clock::now();
-		float deltaTime = std::chrono::duration<float>(now - m_LastFrameTime).count();
-		m_LastFrameTime = now;
-		deltaTime = std::min(deltaTime, 0.1f); // don't jump after a stall (e.g. resize / minimize)
 
-		m_Scene->OnUpdate();
+		m_Scene->OnUpdate(deltaTime);
 		UpdateGalaxy(deltaTime);
 		m_SceneRenderer->RenderScene();
 	}

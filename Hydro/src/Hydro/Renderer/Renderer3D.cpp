@@ -24,9 +24,10 @@ struct Vertex
 	glm::vec3 Position;
 	glm::vec4 Color;
 	glm::vec2 texCoord;
+	float textureIndex;
 
 	bool operator==(const Vertex& other) const {
-		return Position == other.Position && Color == other.Color && texCoord == other.texCoord;
+		return Position == other.Position && Color == other.Color && texCoord == other.texCoord && textureIndex == other.textureIndex;
 	}
 };
 
@@ -42,8 +43,6 @@ namespace std {
 
 namespace Hydro
 {
-
-
 	struct UniformBufferObject
 	{
 		alignas(16) glm::mat4 mvp;
@@ -73,54 +72,17 @@ namespace Hydro
 
 	void Renderer3D::Init()
 	{
-		s_Data = new Mesh();
-
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string warn, err;
-
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-		if (tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "assets/meshes/viking.obj") == false) {
-			throw std::runtime_error(warn + err);
-		}
-
-		for (const auto& shape : shapes) {
-			for (const auto& index : shape.mesh.indices) {
-				Vertex vertex{};
-
-				vertex.Position = {
-					attrib.vertices[3 * index.vertex_index + 0],
-					attrib.vertices[3 * index.vertex_index + 1],
-					attrib.vertices[3 * index.vertex_index + 2]
-				};
-
-				vertex.texCoord = {
-					attrib.texcoords[2 * index.texcoord_index + 0],
-					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-				};
-
-				vertex.Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-				if (uniqueVertices.count(vertex) == 0) {
-					uniqueVertices[vertex] = static_cast<uint32_t>(s_Data->vertices.size());
-					s_Data->vertices.push_back(vertex);
-				}
-
-				s_Data->indices.push_back(uniqueVertices[vertex]);
-			}
-		}
+		return;
 
 		{
 			/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
 			ShaderInformation vertexInformation;
-			vertexInformation.path = "assets/shaders/vertex.spv";
+			vertexInformation.path = "assets/shaders/vertex.vert";
 			vertexInformation.shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
 			vertexInformation.shaderType = ShaderType::Vertex;
 
 			ShaderInformation fragmentInformation;
-			fragmentInformation.path = "assets/shaders/fragment.spv";
+			fragmentInformation.path = "assets/shaders/fragment.frag";
 			fragmentInformation.shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
 			fragmentInformation.shaderType = ShaderType::Fragment;
 
@@ -158,8 +120,10 @@ namespace Hydro
 				{ "inTexIndex", ShaderDataType::Float },
 			};
 
-			specification.descriptorSet = s_Data->QuadDescriptorSet;
+			specification.DescriptorSets = { s_Data->QuadDescriptorSet };
 			specification.shader = s_Data->Shader;
+			// Matches the previous hard-coded state; enable once the mesh winding is checked against VK_FRONT_FACE_CLOCKWISE.
+			specification.BackfaceCulling = false;
 
 			s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
 		}
@@ -174,7 +138,6 @@ namespace Hydro
 
 		s_Data->QuadDescriptorSet->Destroy();
 		s_Data->VulkanTexture->Destroy();
-		s_Data->Shader->Destroy();
 		s_Data->QuadPipeline->Destroy();
 		s_Data->QuadUniformBuffer->Destroy();
 		s_Data->QuadIndexBuffer->Destroy();

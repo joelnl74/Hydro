@@ -1,90 +1,103 @@
 #include "hypch.h"
 #include "VulkanDescriptorBuilder.h"
+#include "VulkanUtils.h"
 #include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
 {
 	void VulkanDescriptorBuilder::Begin()
 	{
-		m_writeDescriptorSets.emplace(0, std::vector<VkWriteDescriptorSet>());
-		m_writeDescriptorSets.emplace(1, std::vector<VkWriteDescriptorSet>());
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			m_writeDescriptorSets.emplace(i, std::vector<PendingWrite>());
+		}
 	}
 
 	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, Ref<VulkanUniformBuffer> &buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
 	{
-		VkDescriptorPoolSize poolSize;
+		const uint32_t descriptorCount = 1;
+
+		// One descriptor per set, one set per frame in flight.
+		VkDescriptorPoolSize poolSize{};
 		poolSize.type = type;
-		poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolSize.descriptorCount = descriptorCount * static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
 		m_poolSizes.push_back(poolSize);
 
 		VkDescriptorSetLayoutBinding uboLayoutBinding{};
 		uboLayoutBinding.binding = binding;
-		uboLayoutBinding.descriptorCount = 1;
+		uboLayoutBinding.descriptorCount = descriptorCount;
 		uboLayoutBinding.descriptorType = type;
 		uboLayoutBinding.pImmutableSamplers = nullptr;
 		uboLayoutBinding.stageFlags = stageFlags;
 
 		m_layoutBinding.push_back(uboLayoutBinding);
 
-		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			VkDescriptorBufferInfo *bufferInfo = new VkDescriptorBufferInfo();
-			bufferInfo->buffer = buffer->GetVKBuffers()[i];
-			bufferInfo->offset = 0;
-			bufferInfo->range = (uint32_t)size;
+			VkDescriptorBufferInfo bufferInfo{};
+			bufferInfo.buffer = buffer->GetVKBuffers()[i];
+			bufferInfo.offset = 0;
+			bufferInfo.range = (VkDeviceSize)size;
+
+			PendingWrite pending;
+			pending.InfoOffset = m_bufferInfo.size();
+			pending.IsImage = false;
 			m_bufferInfo.push_back(bufferInfo);
 
-			VkWriteDescriptorSet writeDescriptorSet{};
-			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeDescriptorSet.dstBinding = binding;
-			writeDescriptorSet.dstArrayElement = 0;
-			writeDescriptorSet.descriptorType = type;
-			writeDescriptorSet.descriptorCount = 1;
-			writeDescriptorSet.pBufferInfo = bufferInfo;
-			m_writeDescriptorSets[i].push_back(writeDescriptorSet);
+			pending.Write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			pending.Write.dstBinding = binding;
+			pending.Write.dstArrayElement = 0;
+			pending.Write.descriptorType = type;
+			pending.Write.descriptorCount = descriptorCount;
+			m_writeDescriptorSets[i].push_back(pending);
 		}
 	}
 
 	void VulkanDescriptorBuilder::BindImage(uint32_t binding, Ref<VullkanTexture>& vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags)
 	{
-		VkDescriptorPoolSize poolSize;
+		const uint32_t descriptorCount = MaxImageArraySize;
+
+		// The binding is an array, so the pool needs the whole array for every frame's set.
+		VkDescriptorPoolSize poolSize{};
 		poolSize.type = type;
-		poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolSize.descriptorCount = descriptorCount * static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
 		m_poolSizes.push_back(poolSize);
 
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 		samplerLayoutBinding.binding = binding;
-		samplerLayoutBinding.descriptorCount = 32;
+		samplerLayoutBinding.descriptorCount = descriptorCount;
 		samplerLayoutBinding.descriptorType = type;
 		samplerLayoutBinding.pImmutableSamplers = nullptr;
 		samplerLayoutBinding.stageFlags = stageFlags;
 
 		m_layoutBinding.push_back(samplerLayoutBinding);
 
-
-		VkDescriptorImageInfo* imageInfo[32];
-		
-		for (unsigned int i = 0; i < 32; i++)
+		// Fill every slot, so the shader never reads an unwritten descriptor whatever index it uses.
+		const size_t infoOffset = m_imageInfo.size();
+		for (uint32_t i = 0; i < descriptorCount; i++)
 		{
-			imageInfo[i] = new VkDescriptorImageInfo();
-
-			imageInfo[i]->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo[i]->imageView = vulkanTexture->GetImageView();
-			imageInfo[i]->sampler = vulkanTexture->GetImageSampler();
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = vulkanTexture->GetImageView();
+			imageInfo.sampler = vulkanTexture->GetImageSampler();
+			m_imageInfo.push_back(imageInfo);
 		}
 
-		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		// The image infos don't change per frame, so every frame's write points at the same array.
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			VkWriteDescriptorSet writeDescriptorSet{};
-			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeDescriptorSet.dstBinding = binding;
-			writeDescriptorSet.dstArrayElement = 0;
-			writeDescriptorSet.descriptorType = type;
-			writeDescriptorSet.descriptorCount = 1;
-			writeDescriptorSet.pImageInfo = imageInfo[0];
-			m_writeDescriptorSets[i].push_back(writeDescriptorSet);
+			PendingWrite pending;
+			pending.InfoOffset = infoOffset;
+			pending.IsImage = true;
+
+			pending.Write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			pending.Write.dstBinding = binding;
+			pending.Write.dstArrayElement = 0;
+			pending.Write.descriptorType = type;
+			pending.Write.descriptorCount = descriptorCount;
+			m_writeDescriptorSets[i].push_back(pending);
 		}
 	}
 
@@ -97,10 +110,7 @@ namespace Hydro
 		layoutInfo.bindingCount = static_cast<uint32_t>(m_layoutBinding.size());
 		layoutInfo.pBindings = m_layoutBinding.data();
 
-		if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayout) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create descriptor set layout!");
-		}
+		VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayout));
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -108,10 +118,7 @@ namespace Hydro
 		poolInfo.pPoolSizes = m_poolSizes.data();
 		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create descriptor pool!");
-		}
+		VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool));
 
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
 		VkDescriptorSetAllocateInfo allocInfo{};
@@ -121,20 +128,32 @@ namespace Hydro
 		allocInfo.pSetLayouts = layouts.data();
 
 		m_DescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-		if (vkAllocateDescriptorSets(device, &allocInfo, m_DescriptorSets.data()) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
+		VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, m_DescriptorSets.data()));
 
-		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		// All Bind* calls are done, so the info vectors no longer move: resolve the pointers now.
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			for (auto &x : m_writeDescriptorSets[i])
+			std::vector<VkWriteDescriptorSet> writes;
+			writes.reserve(m_writeDescriptorSets[i].size());
+
+			for (auto& pending : m_writeDescriptorSets[i])
 			{
-				x.dstSet = m_DescriptorSets[i];
-				x.dstSet = m_DescriptorSets[i];
+				VkWriteDescriptorSet write = pending.Write;
+				write.dstSet = m_DescriptorSets[i];
+
+				if (pending.IsImage)
+				{
+					write.pImageInfo = &m_imageInfo[pending.InfoOffset];
+				}
+				else
+				{
+					write.pBufferInfo = &m_bufferInfo[pending.InfoOffset];
+				}
+
+				writes.push_back(write);
 			}
 
-			vkUpdateDescriptorSets(device, (uint32_t)m_writeDescriptorSets[i].size(), m_writeDescriptorSets[i].data(), 0, nullptr);
+			vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
 		}
 
 		return true;
@@ -144,17 +163,13 @@ namespace Hydro
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		for (auto info : m_bufferInfo)
-		{
-			delete info;
-		}
-
-		for (auto info : m_imageInfo)
-		{
-			delete info;
-		}
+		m_bufferInfo.clear();
+		m_imageInfo.clear();
+		m_writeDescriptorSets.clear();
 
 		vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
+		m_DescriptorPool = VK_NULL_HANDLE;
+		m_DescriptorSetLayout = VK_NULL_HANDLE;
 	}
 }
