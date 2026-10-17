@@ -82,7 +82,7 @@ namespace Hydro
 
 		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "assets/meshes/viking.obj")) {
+		if (tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "assets/meshes/viking.obj") == false) {
 			throw std::runtime_error(warn + err);
 		}
 

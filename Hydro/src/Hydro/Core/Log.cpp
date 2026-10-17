@@ -15,7 +15,7 @@ namespace Hydro
 	{
 		// Create "logs" directory if doesn't exist
 		std::string logsDirectory = "logs";
-		if (!std::filesystem::exists(logsDirectory))
+		if (std::filesystem::exists(logsDirectory) == false)
 			std::filesystem::create_directories(logsDirectory);
 
 		std::vector<spdlog::sink_ptr> HydroSinks =
