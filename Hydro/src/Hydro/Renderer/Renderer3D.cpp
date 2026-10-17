@@ -152,10 +152,10 @@ namespace Hydro
 			PipelineSpecification specification;
 			specification.Layout =
 			{
-				{ ShaderDataType::Float3, "inPosition" },
-				{ ShaderDataType::Float4, "inColor" },
-				{ ShaderDataType::Float2, "inTexCoord" },
-				{ ShaderDataType::Float, "inTexIndex" },
+				{ "inPosition", ShaderDataType::Float3 },
+				{ "inColor", ShaderDataType::Float4 },
+				{ "inTexCoord", ShaderDataType::Float2 },
+				{ "inTexIndex", ShaderDataType::Float },
 			};
 
 			specification.descriptorSet = s_Data->QuadDescriptorSet;

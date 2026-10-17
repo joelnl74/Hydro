@@ -13,7 +13,7 @@ namespace Hydro
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		// HZ_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
+		HY_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
 	}
 
 	WindowsWindow::WindowsWindow(const WindowProps& props)
@@ -34,7 +34,7 @@ namespace Hydro
 
 		if (s_GLFWWindowCount == 0)
 		{
-			int success = glfwInit();
+			glfwInit();
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
