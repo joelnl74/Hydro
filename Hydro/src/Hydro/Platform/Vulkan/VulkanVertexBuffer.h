@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <initializer_list>
-#include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
+#include <vk_mem_alloc.h>
 
 namespace Hydro
 {
@@ -40,7 +40,7 @@ namespace Hydro
 		ShaderDataType Type;
 		std::string Name;
 
-		VertexBufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
+		VertexBufferElement(const std::string& name, ShaderDataType type, bool normalized = false)
 			: Name(name), Type(type), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized)
 		{
 		}

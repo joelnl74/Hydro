@@ -42,7 +42,7 @@ namespace Hydro
 	{
 	public:
 		static void Init(uint32_t width, uint32_t height);
-		static void ShutDown();
+		static void Shutdown();
 
 		// Queue a quad for this frame. Only writes CPU-side vertex data, so it can be
 		// called any time before Render(). When the current batch is full a new batch
@@ -70,6 +70,13 @@ namespace Hydro
 		static void NextBatch();
 		static void ResetBatches();
 		static void ApplyViewportResize();
+		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad
+		// shader when a source file changed (only with RendererSettings::ShaderHotReload).
+		static void ApplySettings();
+		static void ReloadShadersIfChanged();
+		// Builds a new quad pipeline (optionally with a new shader) and swaps it in once the GPU is
+		// idle. On failure the current one keeps drawing and false is returned.
+		static bool RebuildQuadPipeline(bool recompileShader, bool wireframe);
 	};
 
 }

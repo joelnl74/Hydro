@@ -4,6 +4,8 @@
 #include "Hydro/Core/Base.h"
 #include "VulkanImage.h"
 
+#include <glm/glm.hpp>
+
 #include <vector>
 
 namespace Hydro
@@ -24,7 +26,8 @@ namespace Hydro
 		// The caller must make sure the GPU is no longer using the old images.
 		void Resize(uint32_t width, uint32_t height);
 
-		void Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex);
+		// Clears the target to `clearColor` (linear RGBA) at the start of the pass.
+		void Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex, const glm::vec4& clearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
 		void End(VkCommandBuffer commandBuffer);
 
 		VkRenderPass GetRenderPass() const { return m_renderPass; }

@@ -7,6 +7,8 @@
 
 namespace Hydro
 {
+	// Event subsystem: observers subscribe per EventType; the window posts into it.
+	// Explicit lifetime: Application calls Init() before the window exists and Shutdown() after it is gone.
 	class EventDispatcher
 	{
 	public:
@@ -34,9 +36,9 @@ namespace Hydro
 		}
 
 	public:
+		static void Init();
+		static void Shutdown();
 		static EventDispatcher& Get() { return *s_Instance; }
-		static void Create();
-		static EventDispatcher *s_Instance;
 
 		// [TODO] Should probally do this once and then send derrived class to all observers.
 		template<typename T>
@@ -47,6 +49,8 @@ namespace Hydro
 
 	private:
 		std::map<EventType, std::vector<SlotType>> m_Observers;
+
+		static EventDispatcher* s_Instance;
 	};
 }
 

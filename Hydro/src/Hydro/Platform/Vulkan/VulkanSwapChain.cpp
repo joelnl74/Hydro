@@ -56,7 +56,7 @@ namespace Hydro
 		return created;
 	}
 
-	void VulkanSwapChain::ShutDown()
+	void VulkanSwapChain::Shutdown()
 	{
 		DestroySwapChainResources();
 

@@ -40,7 +40,7 @@ namespace Hydro
 		}
 	}
 
-	void VulkanFrameContext::ShutDown()
+	void VulkanFrameContext::Shutdown()
 	{
 		if (m_Device == nullptr)
 			return;

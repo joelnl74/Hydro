@@ -1,5 +1,5 @@
 #pragma once
-#include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
+#include <vk_mem_alloc.h>
 #include <string>
 #include <vulkan/vulkan.h>
 #include "VulkanDevice.h"
@@ -46,5 +46,3 @@ namespace Hydro
 		std::string m_Tag;
 	};
 }
-
-

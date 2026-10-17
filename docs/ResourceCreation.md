@@ -27,11 +27,11 @@ The suffix says what role the struct plays.
 | `Specification` | **What** the resource is: size, format, usage, inputs | In, to the constructor | `ImageSpecification`, `PipelineSpecification`, `ShaderSpecification` |
 | `Properties` | **How** it behaves when used: sampling, wrapping, mips | In, to the constructor | `TextureProperties` |
 | `Info` | Handles and facts **produced** by creation | Out, read-only | `VulkanImageInfo` |
-| `Config` | Settings that are **saved** to disk and edited by users | In/out, serialized | `ProjectConfig` |
+| `Settings` | **Live** options of a subsystem, changed while running; applied from the next frame | In, through `Set<...>Settings` | `RendererSettings` |
+| `Capabilities` | What the hardware supports, found at `Init` | Out, read-only | `RendererCapabilities` |
+| `Config` | Settings that are **saved** to disk and edited by users | In/out, serialized | `ProjectConfig` (holds a `RendererSettings`) |
 
 For example, `ImageSpecification` describes the image resource, while `TextureProperties` describes how a texture made from it is sampled.
-
-`WindowProps` predates this table; it is a `Specification` in role. New types follow the table.
 
 ## Rules
 
@@ -49,7 +49,9 @@ The object created from a spec owns its GPU handles:
 - Its destructor frees them, and it is non-copyable (copy constructor and copy assignment deleted). Hold it in a `Scope<T>`, or a `Ref<T>` when it's shared.
 - Destroy it only after the GPU is done with it: wait on the frame fence or call `Renderer::WaitIdle()`.
 
-`VulkanImage` and `VulkanRenderPass` follow this. Older wrappers (`VulkanPipeline`, `VulkanShader`, buffers, `VullkanTexture`) still use a manual `Destroy()`. Move them over when you change them.
+`VulkanImage`, `VulkanRenderPass` and `VulkanShader` follow this. Older wrappers (`VulkanPipeline`, buffers, `VullkanTexture`) still use a manual `Destroy()`. Move them over when you change them.
+
+This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `VulkanRendererContext`, `VulkanFrameContext`, ...) are started and stopped explicitly with `Init` / `Shutdown` instead; see [Subsystems](Subsystems.md).
 
 ## Current inventory
 
@@ -57,11 +59,14 @@ The object created from a spec owns its GPU handles:
 | --- | --- | --- |
 | `ImageSpecification` (`Renderer/Image.h`) | `VulkanImage` | In use |
 | `TextureProperties` (`Renderer/Image.h`) | — | Defined, not consumed yet. `VullkanTexture` takes an empty `VulkanTextureSpecification` and hard-codes its sampler. Next step: textures take `ImageSpecification` + `TextureProperties` ([#34](https://github.com/joelnl74/Hydro/issues/34)). |
-| `ShaderSpecification`, `ShaderInformation` | `VulkanShader` | In use |
-| `PipelineSpecification` | `VulkanPipeline` | In use; `Topology`, culling, depth and wireframe fields are not applied yet ([#32](https://github.com/joelnl74/Hydro/issues/32)) |
+| `ShaderSpecification`, `ShaderInformation` | `VulkanShader` | In use. `path` is GLSL source (compiled with shaderc on creation, `#include` relative to the file) or a `.spv` file. Throws with the compiler output when a stage fails. Owns its modules (destructor). |
+| `PipelineSpecification` | `VulkanPipeline` | In use. All fields are applied, including `Blend` (`BlendMode`). `DescriptorSets` is an optional list in set-index order. `Wireframe` and `LineWidth` != 1 fall back with a warning when the GPU lacks `fillModeNonSolid` / `wideLines`. Depth state has no effect until a render pass has a depth attachment. |
 | `VulkanImageInfo` | `VulkanImage` | Output |
-| `WindowProps` | `Window::Create` | In use |
-| `ProjectConfig` | `Project` | In use |
+| `WindowSpecification` (`Core/Window.h`) | `Window::Init` | In use (was `WindowProps`) |
+| `ApplicationSpecification` (`Core/Application.h`) | `Application` constructor | In use: application name and main window |
+| `ProjectConfig` | `Project`, saved by `ProjectSerializer` (`.hyproj`) | In use: name, asset directory, start scene, `RendererSettings` |
+| `RendererSettings` (`Renderer/RendererSettings.h`) | `Renderer::SetSettings` | In use: clear colour, vsync, wireframe, shader hot reload |
+| `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output |
 
 ## Adding a new resource
 

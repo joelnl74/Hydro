@@ -7,14 +7,12 @@
 
 namespace Hydro
 {
-	Scope<Window> Window::Create(const WindowProps& props)
+	Scope<Window> Window::Create()
 	{
 #ifdef HY_PLATFORM_WINDOWS
-		return CreateScope<WindowsWindow>(props);
+		return CreateScope<WindowsWindow>();
 #else
 		return nullptr;
 #endif
 	}
 }
-
-

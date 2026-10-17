@@ -17,7 +17,7 @@ namespace Hydro
 	{
 	public:
 		void Init(Ref<VulkanDevice> device);
-		void ShutDown();
+		void Shutdown();
 
 		// Blocks until the GPU has finished the last submission that used the current frame's resources.
 		void WaitForFrame();

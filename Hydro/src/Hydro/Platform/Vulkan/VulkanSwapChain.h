@@ -28,7 +28,7 @@ namespace Hydro
 		bool Create(uint32_t width, uint32_t height, bool vsync);
 		// Rebuilds only what depends on the swapchain images. The caller must make sure the GPU is idle.
 		bool Recreate(uint32_t width, uint32_t height);
-		void ShutDown();
+		void Shutdown();
 
 		void SetVSync(bool vsync) { m_VSync = vsync; }
 		bool IsVSync() const { return m_VSync; }

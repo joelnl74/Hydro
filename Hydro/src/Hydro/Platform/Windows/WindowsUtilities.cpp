@@ -12,11 +12,6 @@
 
 namespace Hydro {
 
-	float Time::GetTime()
-	{
-		return glfwGetTime();
-	}
-
 	static int CALLBACK BrowseFolderCallback(
 		HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
 	{

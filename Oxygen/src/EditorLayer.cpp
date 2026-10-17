@@ -48,7 +48,7 @@ namespace Hydro
 	void EditorLayer::OnAttach()
 	{
 		m_Scene = CreateRef<Scene>("Scene", false);
-		m_SceneRenderer = new SceneRenderer(m_Scene);
+		m_SceneRenderer = CreateScope<SceneRenderer>(m_Scene);
 		m_Scene->Init();
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
@@ -56,8 +56,15 @@ namespace Hydro
 		m_ProjectWindow = CreateRef<ProjectWindow>();
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
 		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
+		m_RenderSettingsWindow = CreateRef<RenderSettingsWindow>();
+		m_RenderSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
+		m_ProjectSettingsWindow = CreateRef<ProjectSettingsWindow>();
+		m_ProjectSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 
 		CreateGalaxy();
+
+		// After the demo scene: a project with a start scene replaces it.
+		OpenDefaultProject();
 	}
 
 	void EditorLayer::CreateGalaxy()
@@ -143,16 +150,25 @@ namespace Hydro
 
 	void EditorLayer::OnDetach()
 	{
+		// Release everything OnAttach created, here rather than in the destructor:
+		// Application::Shutdown detaches layers while the renderer is still alive.
+		m_ProjectSettingsWindow = nullptr;
+		m_RenderSettingsWindow = nullptr;
+		m_ProjectWindow = nullptr;
+		m_InspectorWindow = nullptr;
+		m_StatsWindow = nullptr;
+		m_HierarchyWindow = nullptr;
+		m_SceneRenderer.reset();
+		m_Scene = nullptr;
+
+		// The editor opened the project, so it closes it.
+		Project::Close();
 	}
 
-	void EditorLayer::OnUpdate()
+	void EditorLayer::OnUpdate(float deltaTime)
 	{
-		auto now = std::chrono::steady_clock::now();
-		float deltaTime = std::chrono::duration<float>(now - m_LastFrameTime).count();
-		m_LastFrameTime = now;
-		deltaTime = std::min(deltaTime, 0.1f); // don't jump after a stall (e.g. resize / minimize)
-
-		m_Scene->OnUpdate();
+		// deltaTime comes from the Time subsystem (Time::GetDeltaTime()), passed in by Application::Run.
+		m_Scene->OnUpdate(deltaTime);
 		UpdateGalaxy(deltaTime);
 		m_SceneRenderer->RenderScene();
 	}
@@ -212,13 +228,17 @@ namespace Hydro
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("New Project...", "Ctrl+O"))
+				if (ImGui::MenuItem("New Project..."))
 				{
 					NewProject();
 				}
-				if (ImGui::MenuItem("Open Project...", "Ctrl+O")) 
+				if (ImGui::MenuItem("Open Project..."))
 				{
 					OpenProject();
+				}
+				if (ImGui::MenuItem("Save Project", nullptr, false, Project::GetActive() != nullptr))
+				{
+					SaveProject();
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("New Scene", "Ctrl+N"))
@@ -249,6 +269,8 @@ namespace Hydro
 			if (ImGui::BeginMenu("View"))
 			{
 				ImGui::MenuItem("Stats", nullptr, &m_StatsWindow->IsOpen());
+				ImGui::MenuItem("Render Settings", nullptr, &m_RenderSettingsWindow->IsOpen());
+				ImGui::MenuItem("Project Settings", nullptr, &m_ProjectSettingsWindow->IsOpen());
 				ImGui::EndMenu();
 			}
 
@@ -258,6 +280,8 @@ namespace Hydro
 		m_HierarchyWindow->OnImguiRender(m_Scene);
 		m_InspectorWindow->OnImguiRender(m_HierarchyWindow->GetSelectedEntity());
 		m_StatsWindow->OnImguiRender(m_Scene);
+		m_RenderSettingsWindow->OnImguiRender();
+		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
 
 		m_ProjectWindow->OnImguiRender(m_Scene);
 
@@ -290,13 +314,24 @@ namespace Hydro
 	
 	void EditorLayer::NewProject()
 	{
-		std::string filepath = FileDialogs::OpenDirectory();
+		std::string directory = FileDialogs::OpenDirectory();
 
-		if (filepath.empty())
+		if (directory.empty())
 			return;
 
-		Project::New()->SetProjectDirectory(filepath);
-		Project::Save(filepath);
+		// <directory>/<directory name>.hyproj, with the standard asset folders.
+		const std::filesystem::path projectDirectory = directory;
+		const std::string name = EditorPaths::ToFileName(projectDirectory.filename().string());
+		Ref<Project> project = Project::New(projectDirectory / (name + Project::FileExtension));
+
+		std::error_code ec;
+		std::filesystem::create_directories(project->GetAssetDirectory() / "Scenes", ec);
+		std::filesystem::create_directories(project->GetAssetDirectory() / "Prefabs", ec);
+
+		// A new project starts from the default render settings.
+		Renderer::SetSettings(project->GetConfig().Renderer);
+		SaveProject();
+		NewScene();
 	}
 
 	bool EditorLayer::OpenProject()
@@ -314,12 +349,51 @@ namespace Hydro
 	void EditorLayer::OpenProject(const std::filesystem::path& path)
 	{
 		Ref<Project> project = Project::Load(path);
-		project->SetProjectDirectory(path.parent_path());
+		if (project == nullptr)
+			return; // Already logged; the current project stays open.
+
+		Renderer::SetSettings(project->GetConfig().Renderer);
+
+		const std::filesystem::path startScene = project->GetStartScenePath();
+		if (startScene.empty())
+			return;
+
+		std::error_code ec;
+		if (std::filesystem::exists(startScene, ec))
+			OpenScene(startScene);
+		else
+			HY_WARN("Project start scene {} does not exist", startScene.string());
 	}
 	
 	void EditorLayer::SaveProject()
 	{
-		Project::Save(Project::GetActive()->GetConfig().AssetDirectory);
+		Ref<Project> project = Project::GetActive();
+		if (project == nullptr)
+			return;
+
+		project->GetConfig().Renderer = Renderer::GetSettings();
+		Project::SaveActive();
+	}
+
+	void EditorLayer::OpenDefaultProject()
+	{
+		const std::filesystem::path directory = EditorPaths::GetDefaultProjectDirectory();
+
+		std::error_code ec;
+		for (const auto& entry : std::filesystem::directory_iterator(directory, ec))
+		{
+			if (entry.is_regular_file() && entry.path().extension().string() == Project::FileExtension)
+			{
+				OpenProject(entry.path());
+				if (Project::GetActive() != nullptr)
+					return;
+			}
+		}
+
+		// None found (or it failed to load): an unsaved project in the default folder, so the editor
+		// always has one. File > Save Project writes it.
+		Project::New(directory / "Sandbox.hyproj");
+		HY_INFO("No project found in {}; started an unsaved one", directory.string());
 	}
 
 	void EditorLayer::SetActiveScene(const Ref<Scene>& scene)

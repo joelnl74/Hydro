@@ -2,7 +2,7 @@
 #include "StatsUI.h"
 
 #include <imgui/imgui.h>
-#include <Hydro/Core/Application.h>
+#include <Hydro/Core/Time.h>
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Scene/Scene.h>
 #include <Hydro/Scene/ScriptableEntity.h>
@@ -39,7 +39,7 @@ namespace Hydro
 	void StatsWindow::OnImguiRender(const Ref<Scene>& scene)
 	{
 		// Keep sampling while the window is closed so the history is ready when reopened.
-		const float frameMs = ImGui::GetIO().DeltaTime * 1000.0f;
+		const float frameMs = Time::GetFrameTimings().DeltaMs;
 		if (m_Paused == false && frameMs > 0.0f)
 			RecordFrame(frameMs);
 
@@ -107,7 +107,7 @@ namespace Hydro
 			StatsUI::Row("Best / worst FPS", "%.0f / %.0f", m_MinMs > 0 ? 1000.0f / m_MinMs : 0.0f, m_MaxMs > 0 ? 1000.0f / m_MaxMs : 0.0f);
 			StatsUI::Row("1% low", "%.0f FPS", m_OnePercentLowFps);
 
-			const FrameTimings& timings = Application::Get().GetFrameTimings();
+			const FrameTimings& timings = Time::GetFrameTimings();
 			const int seconds = (int)timings.UptimeSeconds;
 			StatsUI::Row("Uptime", "%02d:%02d:%02d  (%llu frames)", seconds / 3600, (seconds / 60) % 60, seconds % 60,
 				(unsigned long long)timings.FrameCount);
@@ -134,7 +134,7 @@ namespace Hydro
 
 	void StatsWindow::DrawFrameTab()
 	{
-		const FrameTimings& t = Application::Get().GetFrameTimings();
+		const FrameTimings& t = Time::GetFrameTimings();
 		const float frame = t.FrameMs > 0.0f ? t.FrameMs : 1.0f;
 
 		ImGui::TextDisabled("CPU time per phase (last frame)");
@@ -147,12 +147,12 @@ namespace Hydro
 				StatsUI::BarRow(label, ms / frame, text);
 			};
 
-			phase("Events", t.EventsMs);
-			phase("UI build (ImGui)", t.ImGuiMs);
-			phase("Update (scene)", t.UpdateMs);
-			phase("Render 2D (CPU)", t.RenderMs);
-			phase("Present", t.PresentMs);
-			phase("Extra ImGui windows", t.PlatformWindowsMs);
+			phase("Events", t.GetPhaseMs(FramePhase::Events));
+			phase("UI build (ImGui)", t.GetPhaseMs(FramePhase::ImGui));
+			phase("Update (scene)", t.GetPhaseMs(FramePhase::Update));
+			phase("Render 2D (CPU)", t.GetPhaseMs(FramePhase::Render));
+			phase("Present", t.GetPhaseMs(FramePhase::Present));
+			phase("Extra ImGui windows", t.GetPhaseMs(FramePhase::PlatformWindows));
 			StatsUI::Row("Total", "%.3f ms", t.FrameMs);
 			ImGui::EndTable();
 		}
@@ -172,7 +172,7 @@ namespace Hydro
 		// Rough bottleneck hint: Present blocks on the swapchain fence / vsync, so when it
 		// dominates the frame the CPU is waiting on the GPU or the display, not the other way around.
 		ImGui::Spacing();
-		const bool waitingOnPresent = t.PresentMs > 0.5f * frame;
+		const bool waitingOnPresent = t.GetPhaseMs(FramePhase::Present) > 0.5f * frame;
 		ImGui::TextWrapped("Limited by: %s", waitingOnPresent
 			? "GPU or VSync (most of the frame is spent waiting in Present)"
 			: "CPU (Update / UI / Render 2D take most of the frame)");

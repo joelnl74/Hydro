@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <Hydro/Core/EntryPoint.h>
 #include "Hydro.h"
 
@@ -8,14 +6,13 @@
 class OxygenEditorApplication : public Hydro::Application
 {
 public:
-	OxygenEditorApplication() : Application()
-	{
-	}
-	~OxygenEditorApplication()
+	OxygenEditorApplication(const Hydro::ApplicationSpecification& specification)
+		: Application(specification)
 	{
 	}
 
-	virtual void OnInit() override 
+	// Engine subsystems are up when this runs; layers pushed here are detached in Application::Shutdown.
+	virtual void OnInit() override
 	{
 		PushLayer(new Hydro::EditorLayer());
 	}
@@ -23,5 +20,9 @@ public:
 
 Hydro::Application* Hydro::CreateApplication()
 {
-	return new OxygenEditorApplication();
+	Hydro::ApplicationSpecification specification;
+	specification.Name = "Oxygen";
+	specification.MainWindow.Title = "Oxygen";
+
+	return new OxygenEditorApplication(specification);
 }

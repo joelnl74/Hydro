@@ -21,9 +21,11 @@ namespace Hydro
 		VkCommandPool GetUploadCommandPool() const { return m_UploadCommandPool; }
 
 		bool IsSamplerAnisotropyEnabled() const { return m_SamplerAnisotropyEnabled; }
+		bool IsFillModeNonSolidEnabled() const { return m_FillModeNonSolidEnabled; }
+		bool IsWideLinesEnabled() const { return m_WideLinesEnabled; }
 
 		void WaitIdle() const;
-		void ShutDown();
+		void Shutdown();
 
 	private:
 		VkDevice m_LogicalDevice = VK_NULL_HANDLE;
@@ -33,6 +35,8 @@ namespace Hydro
 
 		VkCommandPool m_UploadCommandPool = VK_NULL_HANDLE;
 		bool m_SamplerAnisotropyEnabled = false;
+		bool m_FillModeNonSolidEnabled = false;
+		bool m_WideLinesEnabled = false;
 
 		Ref<VulkanPhysicalDevice> m_PhysicalDevice;
 	};

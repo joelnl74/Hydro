@@ -2,7 +2,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Hydro/Renderer/Image.h"
-#include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
+#include <vk_mem_alloc.h>
 
 #include <string>
 

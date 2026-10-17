@@ -1,12 +1,9 @@
 #include "hypch.h"
 #include "Application.h"
 
+#include "Hydro/Core/Time.h"
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/Renderer2D.h"
-#include "Hydro/Renderer/Renderer3D.h"
-#include <glm/ext/matrix_transform.hpp>
-
-#include "Hydro/Utils/PlatformUtils.h"
 
 #include <imgui.h>
 #include <thread>
@@ -16,40 +13,94 @@ namespace Hydro
 {
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application()
+	Application::Application(const ApplicationSpecification& specification)
+		: m_Specification(specification)
 	{
+		// No engine work here: subsystems start in Init(), which main() calls next.
 		s_Instance = this;
-
-		// Initialize and create engine systems.
-		Log::Init();
-
-		// Create engine systems.
-		m_Window = Window::Create(WindowProps());
-		Renderer::Create(*m_Window);
-		EventDispatcher::Create();
-
-		// Setup events for application.
-		EventDispatcher::Get().Subscribe(EventType::WindowClose, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::WindowResize, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::KeyPressed, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::KeyReleased, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::KeyTyped, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::MouseButtonPressed, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::MouseButtonReleased, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::MouseMoved, HY_BIND_EVENT_FN(Application::OnEvent));
-		EventDispatcher::Get().Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
-
-		m_Running = true;
-
-		// ImGui sits on top of every application layer.
-		m_imGuiLayer = new ImGuiLayer();
-		PushOverlay(m_imGuiLayer);
-
-		HY_CORE_TRACE("Engine initialized");
 	}
 
 	Application::~Application()
 	{
+		// No engine work here either: everything was stopped in Shutdown().
+		s_Instance = nullptr;
+	}
+
+	// ---- Startup ------------------------------------------------------------------
+	// Order matters: each subsystem may only use the ones started before it.
+	void Application::Init()
+	{
+		// 1. Log: everything after this may log.
+		Log::Init();
+		HY_CORE_INFO("Starting {0}", m_Specification.Name);
+
+		// 2. Time: the frame clock.
+		Time::Init();
+
+		// 3. Events: must exist before the window, whose callbacks post into it.
+		EventDispatcher::Init();
+
+		// 4. Window: OS window + input.
+		m_Window = Window::Create();
+		m_Window->Init(m_Specification.MainWindow);
+
+		// 5. Renderer: Vulkan context, swapchain, frames, allocator, Renderer2D/3D (needs the window).
+		Renderer::Init(*m_Window);
+
+		// The application listens to the events it handles itself and forwards them to layers.
+		EventDispatcher& events = EventDispatcher::Get();
+		events.Subscribe(EventType::WindowClose, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::WindowResize, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::KeyPressed, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::KeyReleased, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::KeyTyped, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::MouseButtonPressed, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::MouseButtonReleased, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::MouseMoved, HY_BIND_EVENT_FN(Application::OnEvent));
+		events.Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
+
+		// 6. ImGui: an overlay, so it sits on top of every application layer.
+		m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);
+
+		HY_CORE_INFO("Engine initialized");
+		m_Running = true;
+
+		// 7. The client application: pushes its layers (and may already call Quit()).
+		OnInit();
+	}
+
+	// ---- Shutdown -----------------------------------------------------------------
+	// Exactly the reverse of Init.
+	void Application::Shutdown()
+	{
+		m_Running = false;
+
+		// 7. The client application, while everything is still alive.
+		OnShutdown();
+
+		// 6. Layers (ImGui included) own GPU objects: detach them once the GPU is idle,
+		//    while the device still exists.
+		Renderer::WaitIdle();
+		m_LayerStack.Clear();
+		m_ImGuiLayer = nullptr;
+
+		// 5. Renderer.
+		Renderer::Shutdown();
+
+		// 4. Window.
+		m_Window->Shutdown();
+		m_Window.reset();
+
+		// 3. Events.
+		EventDispatcher::Shutdown();
+
+		// 2. Time.
+		Time::Shutdown();
+
+		// 1. Log, last, so every step above can still log.
+		HY_CORE_INFO("Engine shut down");
+		Log::Shutdown();
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -71,45 +122,35 @@ namespace Hydro
 
 	void Application::Run()
 	{
-		using Clock = std::chrono::steady_clock;
-		auto Ms = [](Clock::time_point a, Clock::time_point b) { return std::chrono::duration<float, std::milli>(b - a).count(); };
-
-		OnInit();
-		const Clock::time_point startTime = Clock::now();
-
 		while (m_Running)
 		{
-			// Timings are written at the end of the frame, so whatever reads them
-			// (e.g. the editor's stats window) always sees the previous complete frame.
-			FrameTimings timings;
-			const Clock::time_point frameStart = Clock::now();
+			Time::BeginFrame();
 
+			Time::BeginPhase(FramePhase::Events);
 			m_Window->OnUpdate();
-			const Clock::time_point afterEvents = Clock::now();
+			Time::EndPhase(FramePhase::Events);
 
-			m_imGuiLayer->Begin();
-
+			Time::BeginPhase(FramePhase::ImGui);
+			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack)
-			{
 				layer->OnImGuiRender();
-			}
-			
-			m_imGuiLayer->End();
-			const Clock::time_point afterImGui = Clock::now();
+			m_ImGuiLayer->End();
+			Time::EndPhase(FramePhase::ImGui);
 
+			Time::BeginPhase(FramePhase::Update);
+			const float deltaTime = Time::GetDeltaTime();
 			for (Layer* layer : m_LayerStack)
-				layer->OnUpdate();
-			const Clock::time_point afterUpdate = Clock::now();
-			bool rendered = false;
+				layer->OnUpdate(deltaTime);
+			Time::EndPhase(FramePhase::Update);
 
 			// A minimized window has a 0x0 framebuffer: nothing can be presented, so skip
 			// rendering (and don't spin the CPU) until it is restored.
 			if (m_Minimized == false)
 			{
 				// One command buffer for the frame: Renderer2D's offscreen pass, then the
-				// swapchain pass with ImGui, then submit + present.
+				// swapchain pass with ImGui, then submit + present. The renderer reports the
+				// Render and Present phases to Time itself.
 				Renderer::RenderFrame();
-				rendered = true;
 			}
 			else
 			{
@@ -117,57 +158,28 @@ namespace Hydro
 				std::this_thread::sleep_for(std::chrono::milliseconds(16));
 			}
 
-			// Extra ImGui windows dragged outside the main window. ImGui requires this every
-			// frame; it used to run inside the swapchain's command-buffer recording, so it was
-			// skipped whenever DrawFrame() returned early on a resize -> ImGui assert/crash.
-			const Clock::time_point beforePlatform = Clock::now();
+			// Extra ImGui windows dragged outside the main window. ImGui requires this every frame,
+			// including frames where the renderer skipped drawing (resize, minimise).
+			Time::BeginPhase(FramePhase::PlatformWindows);
 			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 			{
 				ImGui::UpdatePlatformWindows();
 				ImGui::RenderPlatformWindowsDefault();
 			}
-			const Clock::time_point frameEnd = Clock::now();
+			Time::EndPhase(FramePhase::PlatformWindows);
 
-			timings.EventsMs = Ms(frameStart, afterEvents);
-			timings.ImGuiMs = Ms(afterEvents, afterImGui);
-			timings.UpdateMs = Ms(afterImGui, afterUpdate);
-			timings.RenderMs = rendered ? Renderer::GetLastRecordMs() : 0.0f;   // fence wait + acquire + record
-			timings.PresentMs = rendered ? Renderer::GetLastPresentMs() : 0.0f; // submit + present
-			timings.PlatformWindowsMs = Ms(beforePlatform, frameEnd);
-			timings.FrameMs = Ms(frameStart, frameEnd);
-			timings.FrameCount = m_FrameTimings.FrameCount + 1;
-			timings.UptimeSeconds = std::chrono::duration<double>(frameEnd - startTime).count();
-			m_FrameTimings = timings;
+			Time::EndFrame();
 		}
-
-		ShutDown();
 	}
 
-	void Application::ShutDown()
-	{
-		m_Running = false;
-
-		OnShutdown();
-
-		// Layers (ImGui included) own GPU objects, so detach them while the device still exists.
-		Renderer::WaitIdle();
-		m_LayerStack.Clear();
-		m_imGuiLayer = nullptr;
-
-		Renderer::ShutDown();
-	}
-
-	// Handle events.
 	void Application::OnEvent(Event& e)
 	{
-		// Handle close event.
 		if (e.GetEventType() == EventType::WindowClose)
 		{
-			// Only stop the loop here: Run() tears everything down once the current frame is done.
+			// Only stop the loop here: main() calls Shutdown() once the current frame is done.
 			Quit();
 		}
 
-		// Handle resize event.
 		if (e.GetEventType() == EventType::WindowResize)
 		{
 			WindowResizeEvent& resizeEvent = static_cast<WindowResizeEvent&>(e);

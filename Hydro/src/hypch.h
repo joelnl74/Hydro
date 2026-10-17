@@ -25,3 +25,4 @@
 #include <unordered_set>
 
 #include <Hydro/Core/Log.h>
+#include <Hydro/Core/Assert.h>

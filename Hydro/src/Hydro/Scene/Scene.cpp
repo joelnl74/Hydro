@@ -67,7 +67,7 @@ namespace Hydro
 		m_Registry.destroy(entity);
 	}
 	
-	void Scene::OnUpdate()
+	void Scene::OnUpdate(float deltaTime)
 	{
 		// Native scripts. Instances are created lazily on their first update.
 		// TODO: pass a real delta time once the application loop measures it.
@@ -84,7 +84,7 @@ namespace Hydro
 					script.Instance->OnCreate();
 				}
 
-				script.Instance->OnUpdate(0.0f);
+				script.Instance->OnUpdate(deltaTime);
 			}
 		}
 

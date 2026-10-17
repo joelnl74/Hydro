@@ -2,6 +2,7 @@
 #include "VulkanPipeline.h"
 
 #include "VulkanRendererContext.h"
+#include "VulkanUtils.h"
 #include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
@@ -19,11 +20,59 @@ namespace Hydro
 		return VK_FORMAT_UNDEFINED;
 	}
 
+	static VkPrimitiveTopology PrimitiveTopologyToVulkan(PrimitiveTopology topology)
+	{
+		switch (topology)
+		{
+		case PrimitiveTopology::Points:     return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+		case PrimitiveTopology::Lines:      return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+		case PrimitiveTopology::Triangles:  return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		case PrimitiveTopology::None:       break;
+		}
+
+		HY_CORE_WARN("PipelineSpecification::Topology is None; using a triangle list.");
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	}
+
+	static VkPipelineColorBlendAttachmentState BlendModeToVulkan(BlendMode mode)
+	{
+		VkPipelineColorBlendAttachmentState state{};
+		state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+		switch (mode)
+		{
+		case BlendMode::None:
+			state.blendEnable = VK_FALSE;
+			break;
+		case BlendMode::Alpha:
+			state.blendEnable = VK_TRUE;
+			state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			state.colorBlendOp = VK_BLEND_OP_ADD;
+			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			state.alphaBlendOp = VK_BLEND_OP_ADD;
+			break;
+		case BlendMode::Additive:
+			state.blendEnable = VK_TRUE;
+			state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.colorBlendOp = VK_BLEND_OP_ADD;
+			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.alphaBlendOp = VK_BLEND_OP_ADD;
+			break;
+		}
+
+		return state;
+	}
+
 	VulkanPipeline::VulkanPipeline(const PipelineSpecification& spec)
 	{
 		m_pipelineSpecification = spec;
 
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto vulkanDevice = Renderer::GetRendererContext()->GetVulkanDevice();
+		VkDevice device = vulkanDevice->GetDevice();
 		VkRenderPass renderpass = spec.RenderPass != VK_NULL_HANDLE ? spec.RenderPass : Renderer::GetVulkanSwapChain()->GetRenderPass();
 
 		// Setup vertex data.
@@ -76,7 +125,7 @@ namespace Hydro
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.topology = PrimitiveTopologyToVulkan(spec.Topology);
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		// Viewport and scissor are dynamic state, set in Bind() from the current target size.
@@ -91,24 +140,59 @@ namespace Hydro
 		rasterizer.depthClampEnable = VK_FALSE;
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+		if (spec.Wireframe)
+		{
+			if (vulkanDevice->IsFillModeNonSolidEnabled())
+				rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
+			else
+				HY_CORE_WARN("Wireframe pipelines need the fillModeNonSolid GPU feature; drawing filled.");
+		}
+
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_NONE;
+		if (spec.LineWidth != 1.0f)
+		{
+			if (vulkanDevice->IsWideLinesEnabled())
+				rasterizer.lineWidth = spec.LineWidth;
+			else
+				HY_CORE_WARN("LineWidth {0} needs the wideLines GPU feature; using 1.", spec.LineWidth);
+		}
+
+		rasterizer.cullMode = spec.BackfaceCulling ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 1; // Optional
-		pipelineLayoutInfo.pSetLayouts = &m_pipelineSpecification.descriptorSet->GetDescriptorSetLayout(); // Optional
+		std::vector<VkDescriptorSetLayout> setLayouts;
+		setLayouts.reserve(spec.DescriptorSets.size());
+		for (const auto& descriptorSet : spec.DescriptorSets)
+		{
+			if (descriptorSet == nullptr)
+			{
+				throw std::runtime_error("PipelineSpecification::DescriptorSets contains a null entry.");
+			}
+
+			setLayouts.push_back(descriptorSet->GetDescriptorSetLayout());
+		}
+
+		pipelineLayoutInfo.setLayoutCount = (uint32_t)setLayouts.size();
+		pipelineLayoutInfo.pSetLayouts = setLayouts.empty() ? nullptr : setLayouts.data();
 
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
 		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		colorBlendAttachment.blendEnable = VK_FALSE;
+		// Ignored by Vulkan when the render pass has no depth attachment.
+		VkPipelineDepthStencilStateCreateInfo depthStencil{};
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = spec.DepthTest ? VK_TRUE : VK_FALSE;
+		depthStencil.depthWriteEnable = spec.DepthWrite ? VK_TRUE : VK_FALSE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		depthStencil.depthBoundsTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = VK_FALSE;
+
+		VkPipelineColorBlendAttachmentState colorBlendAttachment = BlendModeToVulkan(spec.Blend);
 
 		VkPipelineColorBlendStateCreateInfo colorBlending{};
 		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -121,10 +205,7 @@ namespace Hydro
 		colorBlending.blendConstants[2] = 0.0f;
 		colorBlending.blendConstants[3] = 0.0f;
 
-		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create pipeline layout!");
-		}
+		VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout));
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -140,13 +221,11 @@ namespace Hydro
 		pipelineInfo.layout = m_PipelineLayout;
 		pipelineInfo.renderPass = renderpass;
 		pipelineInfo.subpass = 0;
-		pipelineInfo.pDepthStencilState = nullptr; // Optional
+		pipelineInfo.pDepthStencilState = &depthStencil;
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
-		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create graphics pipeline!");
-		}
+		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline));
 	}
 
 	void VulkanPipeline::Destroy()
@@ -179,9 +258,20 @@ namespace Hydro
 
 	void VulkanPipeline::BindDescriptorSets(VkCommandBuffer commandBuffer)
 	{
-		uint32_t currentImage = Renderer::GetRenderFrame();
-		auto descriptorSet = m_pipelineSpecification.descriptorSet->GetDescriptorSet(currentImage);
+		if (m_pipelineSpecification.DescriptorSets.empty())
+		{
+			return;
+		}
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+		uint32_t currentFrame = Renderer::GetRenderFrame();
+
+		std::vector<VkDescriptorSet> descriptorSets;
+		descriptorSets.reserve(m_pipelineSpecification.DescriptorSets.size());
+		for (const auto& descriptorSet : m_pipelineSpecification.DescriptorSets)
+		{
+			descriptorSets.push_back(descriptorSet->GetDescriptorSet(currentFrame));
+		}
+
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 	}
 }

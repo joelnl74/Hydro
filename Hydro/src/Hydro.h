@@ -3,6 +3,7 @@
 // CORE
 #include "Hydro/Core/Application.h"
 #include "Hydro/Core/Input.h"
+#include "Hydro/Core/Time.h"
 #include "Hydro/Core/Layer.h"
 
 // EVENTS.
@@ -25,7 +26,10 @@
 // RENDERING.
 #include "Hydro/Renderer/SceneRenderer.h"
 #include "Hydro/Renderer/Camera.h"
+#include "Hydro/Renderer/Renderer.h"
+#include "Hydro/Renderer/RendererSettings.h"
 
 // PROJECT.
 #include "Hydro/Project/Project.h"
+#include "Hydro/Project/ProjectSerializer.h"
 
