@@ -25,7 +25,7 @@ namespace Hydro::StatsUI
 	// Two-column "label | value" table. Call ImGui::EndTable() when it returns true.
 	inline bool BeginStatTable(const char* id)
 	{
-		if (!ImGui::BeginTable(id, 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV))
+		if (ImGui::BeginTable(id, 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV) == false)
 			return false;
 		ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthStretch, 0.45f);
 		ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch, 0.55f);

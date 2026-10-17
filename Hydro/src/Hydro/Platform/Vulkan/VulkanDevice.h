@@ -1,29 +1,39 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "Hydro/Platform//Vulkan/VulkanPhysicalDevice.h"
+
+#include "Hydro/Core/Base.h"
+#include "Hydro/Platform/Vulkan/VulkanPhysicalDevice.h"
 
 namespace Hydro
 {
 	class VulkanDevice
 	{
 	public:
-		VulkanDevice(VkInstance instance);
-		Ref<VulkanPhysicalDevice> GetPhysicalDevice() { return m_physicalDevice;  }
-		VkDevice & GetDevice() { return s_LogicalDevice; }
+		VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice);
 
-		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
-		VkQueue GetPresentQueue() { return m_presentQueue; }
-		void VulkanDevice::LockQueue(bool compute);
-		void VulkanDevice::UnlockQueue(bool compute);
+		Ref<VulkanPhysicalDevice> GetPhysicalDevice() const { return m_PhysicalDevice; }
+		VkDevice GetDevice() const { return m_LogicalDevice; }
 
+		VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
+		VkQueue GetPresentQueue() const { return m_PresentQueue; }
+
+		// Pool for short-lived, one-time-submit command buffers (uploads, layout transitions).
+		VkCommandPool GetUploadCommandPool() const { return m_UploadCommandPool; }
+
+		bool IsSamplerAnisotropyEnabled() const { return m_SamplerAnisotropyEnabled; }
+
+		void WaitIdle() const;
 		void ShutDown();
 
 	private:
-		static inline VkDevice s_LogicalDevice;
-		
-		VkQueue m_GraphicsQueue;
-		VkQueue m_presentQueue;
+		VkDevice m_LogicalDevice = VK_NULL_HANDLE;
 
-		Ref<VulkanPhysicalDevice> m_physicalDevice;
+		VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
+		VkQueue m_PresentQueue = VK_NULL_HANDLE;
+
+		VkCommandPool m_UploadCommandPool = VK_NULL_HANDLE;
+		bool m_SamplerAnisotropyEnabled = false;
+
+		Ref<VulkanPhysicalDevice> m_PhysicalDevice;
 	};
 }

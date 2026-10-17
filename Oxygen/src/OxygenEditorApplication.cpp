@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <Hydro\Core\EntryPoint.h>
+#include <Hydro/Core/EntryPoint.h>
 #include "Hydro.h"
 
 #include "EditorLayer.h"

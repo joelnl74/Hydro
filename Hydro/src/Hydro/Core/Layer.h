@@ -1,5 +1,5 @@
 #pragma once
-#include "Hydro\Events\Event.h"
+#include "Hydro/Events/Event.h"
 
 namespace Hydro
 {

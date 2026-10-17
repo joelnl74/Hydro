@@ -1,5 +1,7 @@
 #pragma once
 #include "VulkanCommandBuffer.h"
+
+#include <string>
 namespace Hydro
 {
 	struct VulkanTextureSpecification

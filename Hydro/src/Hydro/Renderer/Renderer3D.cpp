@@ -141,7 +141,7 @@ namespace Hydro
 
 			s_Data->QuadVertexBuffer = CreateRef<VulkanVertexBuffer>((void*)s_Data->vertices.data(), s_Data->vertices.size() * sizeof(s_Data->vertices[0]));
 			s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>((void*)s_Data->indices.data(), s_Data->indices.size() * sizeof(s_Data->indices[0]));
-			s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint8_t)sizeof(UniformBufferObject));
+			s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
 
 			s_Data->QuadDescriptorSet = CreateRef<VulkanDescriptorBuilder>();
 			s_Data->QuadDescriptorSet->Begin();
@@ -180,13 +180,14 @@ namespace Hydro
 		s_Data->QuadIndexBuffer->Destroy();
 		s_Data->QuadVertexBuffer->Destroy();
 
+		delete s_Data;
 		s_Data = nullptr;
 	}
 	
 	void Renderer3D::Begin()
 	{
 		uint32_t currentImage = Renderer::GetRenderFrame();
-		auto& extent = Renderer::GetVulkanSwapChain()->GetExtend();
+		VkExtent2D extent = Renderer::GetVulkanSwapChain()->GetExtent();
 
 		static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -199,7 +200,7 @@ namespace Hydro
 		proj[1][1] *= -1;
 
 		s_Data->ubo.mvp = proj * view * model;
-		s_Data->QuadUniformBuffer->Update(&s_Data->ubo.mvp, currentImage, (uint8_t)sizeof(UniformBufferObject));
+		s_Data->QuadUniformBuffer->Update(&s_Data->ubo.mvp, currentImage, (uint32_t)sizeof(UniformBufferObject));
 	}
 	
 	void Renderer3D::End()
@@ -208,9 +209,10 @@ namespace Hydro
 	
 	void Renderer3D::DrawMesh()
 	{
-		auto commandBuffer = Renderer::GetVulkanSwapChain()->GetCommandBuffer();
+		// Must be called while the swapchain render pass is active (this pipeline targets it).
+		VkCommandBuffer commandBuffer = Renderer::GetCurrentCommandBuffer();
 
-		s_Data->QuadPipeline->Bind(commandBuffer);
+		s_Data->QuadPipeline->Bind(commandBuffer, Renderer::GetVulkanSwapChain()->GetExtent());
 		s_Data->QuadVertexBuffer->Bind(commandBuffer);
 		s_Data->QuadIndexBuffer->Bind(commandBuffer);
 		s_Data->QuadPipeline->BindDescriptorSets(commandBuffer);

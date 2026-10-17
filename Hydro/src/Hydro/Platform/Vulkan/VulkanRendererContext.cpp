@@ -1,73 +1,77 @@
 #include "hypch.h"
 
-#include <iostream>
-
 #include "VulkanRendererContext.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <cstring>
+
 namespace Hydro
 {
-#define VK_KHR_WIN32_SURFACE_EXTENSION_NAME "VK_KHR_win32_surface"
-
 #ifdef HY_DEBUG
-	const bool validationEnabled = true;
+	static constexpr bool s_ValidationRequested = true;
 #else
-	const bool validationEnabled = false;
+	static constexpr bool s_ValidationRequested = false;
 #endif
 
-	const char* validationLayerName = "VK_LAYER_KHRONOS_validation";
+	static const char* s_ValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData) {
-
-		HY_CORE_ERROR("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", messageType, pCallbackData->pMessage);
+		void* pUserData)
+	{
+		if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+			HY_CORE_ERROR("Vulkan [type {0}]: {1}", messageType, pCallbackData->pMessage);
+		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+			HY_CORE_WARN("Vulkan [type {0}]: {1}", messageType, pCallbackData->pMessage);
+		else
+			HY_CORE_TRACE("Vulkan [type {0}]: {1}", messageType, pCallbackData->pMessage);
 
 		return VK_FALSE;
 	}
 
-	VulkanRendererContext::VulkanRendererContext()
-	{
-	}
-
-	VulkanRendererContext::~VulkanRendererContext()
-	{
-	}
-
-	void VulkanRendererContext::Init()
+	void VulkanRendererContext::Init(Window& window)
 	{
 		CreateVulkanInstance();
+		CreateSurface(window);
 
-		s_VulkanDevice = CreateRef<VulkanDevice>(s_VulkanInstance);
+		// The surface must exist before the GPU is picked, so we only pick GPUs that can present to it.
+		Ref<VulkanPhysicalDevice> physicalDevice = CreateRef<VulkanPhysicalDevice>(s_VulkanInstance, m_Surface);
+		s_VulkanDevice = CreateRef<VulkanDevice>(physicalDevice);
 	}
 
 	void VulkanRendererContext::ShutDown()
 	{
-		s_VulkanDevice->ShutDown();
-
-		if (validationEnabled)
+		if (s_VulkanDevice)
 		{
-			DestroyDebugUtilsMessengerEXT(s_VulkanInstance, m_debugMessenger, nullptr);
+			s_VulkanDevice->ShutDown();
+			s_VulkanDevice = nullptr;
 		}
 
-		vkDestroyInstance(s_VulkanInstance, nullptr);
+		if (m_Surface != VK_NULL_HANDLE)
+		{
+			vkDestroySurfaceKHR(s_VulkanInstance, m_Surface, nullptr);
+			m_Surface = VK_NULL_HANDLE;
+		}
 
-		s_VulkanDevice = nullptr;
-		s_VulkanInstance = nullptr;
+		DestroyDebugMessenger();
+
+		vkDestroyInstance(s_VulkanInstance, nullptr);
+		s_VulkanInstance = VK_NULL_HANDLE;
 	}
 
 	void VulkanRendererContext::CreateVulkanInstance()
 	{
-		HY_CORE_INFO("Start Creating VulkanContext");
+		HY_CORE_INFO("Creating Vulkan instance");
 
-		bool supportVulkan = glfwVulkanSupported();
-
-		HY_CORE_INFO("VULKAN SUPPORT {}", supportVulkan);
+		if (glfwVulkanSupported() == GLFW_FALSE)
+		{
+			throw std::runtime_error("GLFW reports that Vulkan is not supported on this system.");
+		}
 
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -75,12 +79,24 @@ namespace Hydro
 		appInfo.pEngineName = "Hydro";
 		appInfo.apiVersion = VK_API_VERSION_1_2;
 
-		std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME };
-		if (validationEnabled)
+		// Start from what GLFW needs for the window surface (VK_KHR_surface + the platform surface),
+		// then add the debug-utils extension when validation is on.
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		std::vector<const char*> instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+		m_ValidationActive = false;
+		if (s_ValidationRequested)
 		{
-			instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-			instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-			instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+			if (CheckValidationLayerSupport())
+			{
+				m_ValidationActive = true;
+				instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+			}
+			else
+			{
+				HY_CORE_WARN("Validation layer {0} not present, validation is disabled", s_ValidationLayerName);
+			}
 		}
 
 		VkInstanceCreateInfo instanceCreateInfo{};
@@ -89,95 +105,94 @@ namespace Hydro
 		instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-		instanceCreateInfo.enabledExtensionCount = glfwExtensionCount;
-		instanceCreateInfo.ppEnabledExtensionNames = glfwExtensions;
-
-		if (CheckValidationLayerSupport())
+		// Chaining a messenger create-info also reports problems inside vkCreateInstance/vkDestroyInstance.
+		VkDebugUtilsMessengerCreateInfoEXT instanceDebugInfo = MakeDebugMessengerCreateInfo();
+		if (m_ValidationActive)
 		{
-			instanceCreateInfo.ppEnabledLayerNames = &validationLayerName;
 			instanceCreateInfo.enabledLayerCount = 1;
-		}
-		else
-		{
-			HY_CORE_ERROR("Validation layer VK_LAYER_LUNARG_standard_validation not present, validation is disabled");
+			instanceCreateInfo.ppEnabledLayerNames = &s_ValidationLayerName;
+			instanceCreateInfo.pNext = &instanceDebugInfo;
 		}
 
-		VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &s_VulkanInstance))
-
-			if (validationEnabled)
-			{
-				SetupDebugMessenger();
-			}
-	}
-
-	VkResult VulkanRendererContext::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
-	{
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-		if (func != nullptr) 
+		VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &s_VulkanInstance);
+		if (result != VK_SUCCESS)
 		{
-			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+			HY_CORE_ERROR("vkCreateInstance failed: {0}", VKResultToString(result));
+			throw std::runtime_error("Failed to create Vulkan instance.");
 		}
-		else 
+
+		if (m_ValidationActive)
 		{
-			return VK_ERROR_EXTENSION_NOT_PRESENT;
+			SetupDebugMessenger();
 		}
 	}
 
-	void VulkanRendererContext::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+	void VulkanRendererContext::CreateSurface(Window& window)
 	{
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-		if (func != nullptr) 
+		GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());
+
+		VkResult result = glfwCreateWindowSurface(s_VulkanInstance, glfwWindow, nullptr, &m_Surface);
+		if (result != VK_SUCCESS)
 		{
-			func(instance, debugMessenger, pAllocator);
+			HY_CORE_ERROR("glfwCreateWindowSurface failed: {0}", VKResultToString(result));
+			throw std::runtime_error("Failed to create window surface.");
 		}
 	}
 
-	bool VulkanRendererContext::CheckValidationLayerSupport()
+	VkDebugUtilsMessengerCreateInfoEXT VulkanRendererContext::MakeDebugMessengerCreateInfo()
 	{
-		// Check if this layer is available at instance level
-		uint32_t instanceLayerCount;
-		bool validationLayerPresent = false;
-
-		vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr);
-		
-		std::vector<VkLayerProperties> instanceLayerProperties(instanceLayerCount);
-		vkEnumerateInstanceLayerProperties(&instanceLayerCount, instanceLayerProperties.data());
-
-		HY_CORE_TRACE("Vulkan Instance Layers:");
-		
-		for (const VkLayerProperties& layer : instanceLayerProperties)
-		{
-			HY_CORE_TRACE("  {0}", layer.layerName);
-			if (strcmp(layer.layerName, validationLayerName) == 0)
-			{
-				validationLayerPresent = true;
-				break;
-			}
-		}
-
-		return validationLayerPresent;
-	}
-
-	bool VulkanRendererContext::SetupDebugMessenger()
-	{
-		HY_CORE_INFO("Created Vulkan Context Succesfully");
-
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		createInfo.pfnUserCallback = debugCallback;
-		createInfo.pUserData = nullptr; // Optional
+		createInfo.pfnUserCallback = DebugCallback;
+		createInfo.pUserData = nullptr;
+		return createInfo;
+	}
 
-		VK_SUCCESS(CreateDebugUtilsMessengerEXT(s_VulkanInstance, &createInfo, nullptr, &m_debugMessenger));
+	void VulkanRendererContext::SetupDebugMessenger()
+	{
+		auto createFunc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_VulkanInstance, "vkCreateDebugUtilsMessengerEXT");
+		if (createFunc == nullptr)
+		{
+			HY_CORE_WARN("vkCreateDebugUtilsMessengerEXT not available, validation messages will not be logged");
+			return;
+		}
 
-		HY_CORE_INFO("VULKAN Debug messenger setup correctly");
+		VkDebugUtilsMessengerCreateInfoEXT createInfo = MakeDebugMessengerCreateInfo();
+		VK_CHECK_RESULT(createFunc(s_VulkanInstance, &createInfo, nullptr, &m_DebugMessenger));
 
-		return true;
+		HY_CORE_INFO("Vulkan debug messenger set up");
+	}
+
+	void VulkanRendererContext::DestroyDebugMessenger()
+	{
+		if (m_DebugMessenger == VK_NULL_HANDLE)
+			return;
+
+		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_VulkanInstance, "vkDestroyDebugUtilsMessengerEXT");
+		if (destroyFunc != nullptr)
+		{
+			destroyFunc(s_VulkanInstance, m_DebugMessenger, nullptr);
+		}
+
+		m_DebugMessenger = VK_NULL_HANDLE;
+	}
+
+	bool VulkanRendererContext::CheckValidationLayerSupport()
+	{
+		uint32_t instanceLayerCount = 0;
+		vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr);
+
+		std::vector<VkLayerProperties> instanceLayerProperties(instanceLayerCount);
+		vkEnumerateInstanceLayerProperties(&instanceLayerCount, instanceLayerProperties.data());
+
+		for (const VkLayerProperties& layer : instanceLayerProperties)
+		{
+			if (strcmp(layer.layerName, s_ValidationLayerName) == 0)
+				return true;
+		}
+
+		return false;
 	}
 }

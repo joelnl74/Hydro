@@ -41,7 +41,7 @@ namespace Hydro
 	class Renderer2D
 	{
 	public:
-		static void Init();
+		static void Init(uint32_t width, uint32_t height);
 		static void ShutDown();
 
 		// Queue a quad for this frame. Only writes CPU-side vertex data, so it can be
@@ -49,9 +49,9 @@ namespace Hydro
 		// is started automatically - there is no hard limit on quads per frame.
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
 
-		// Records ONE command buffer with ONE render pass for the whole frame and issues
-		// one vkCmdDrawIndexed per batch, then submits. Call exactly once per frame.
-		static void Render();
+		// Records the whole 2D frame (ONE render pass, one vkCmdDrawIndexed per batch) into the
+		// frame's command buffer. Called once per frame by Renderer::RenderFrame.
+		static void Render(VkCommandBuffer commandBuffer);
 
 		// Throw away this frame's quads without rendering (e.g. while the window is minimized).
 		static void DiscardFrame();

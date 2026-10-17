@@ -9,7 +9,6 @@ namespace Hydro
 {
 	VulkanVertexBuffer::VulkanVertexBuffer(void* sourceData, uint32_t size)
 	{
-		auto &device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 		VulkanAllocator allocator("VertexBuffer");
 
 		VkBufferCreateInfo vertexBufferCreateInfo = {};
@@ -23,7 +22,6 @@ namespace Hydro
 
 	VulkanVertexBuffer::VulkanVertexBuffer(uint32_t size)
 	{
-		auto& device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 		VulkanAllocator allocator("VertexBuffer");
 
 		VkBufferCreateInfo vertexBufferCreateInfo = {};

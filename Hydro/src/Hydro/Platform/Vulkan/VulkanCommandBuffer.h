@@ -13,7 +13,7 @@ namespace Hydro
 		void End();
 
 	private:
-		VkCommandBuffer m_commandBuffer;
+		VkCommandBuffer m_commandBuffer = VK_NULL_HANDLE;
 	};
 }
 

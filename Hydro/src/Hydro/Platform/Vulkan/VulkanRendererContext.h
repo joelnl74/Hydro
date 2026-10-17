@@ -4,38 +4,42 @@
 
 #include "Hydro/Platform/Vulkan/VulkanDevice.h"
 #include "Hydro/Core/Window.h"
+
 namespace Hydro
 {
+	// Owns the Vulkan instance, debug messenger, window surface and device.
 	class VulkanRendererContext
 	{
 	public:
-		VulkanRendererContext();
-		~VulkanRendererContext();
+		VulkanRendererContext() = default;
+		~VulkanRendererContext() = default;
 
-		void Init();
+		void Init(Window& window);
 		void ShutDown();
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }
-		static Ref<VulkanDevice> const GetVulkanDevice()  { return s_VulkanDevice; }
+		static Ref<VulkanDevice> GetVulkanDevice() { return s_VulkanDevice; }
+		VkSurfaceKHR GetSurface() const { return m_Surface; }
 
 	private:
-		// Setup
 		void CreateVulkanInstance();
+		void CreateSurface(Window& window);
 
 		// Debug messaging.
-		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
-		void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
-		bool SetupDebugMessenger();
+		static VkDebugUtilsMessengerCreateInfoEXT MakeDebugMessengerCreateInfo();
+		void SetupDebugMessenger();
+		void DestroyDebugMessenger();
 
-		// Validation Layers.
-		bool CheckValidationLayerSupport();
+		// Validation layers.
+		static bool CheckValidationLayerSupport();
 
 	private:
-		inline static VkInstance s_VulkanInstance;
+		inline static VkInstance s_VulkanInstance = VK_NULL_HANDLE;
 		inline static Ref<VulkanDevice> s_VulkanDevice;
 
-		VkDebugUtilsMessengerEXT m_debugMessenger;
+		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
+		VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
+		bool m_ValidationActive = false;
 	};
 }
-

@@ -7,8 +7,6 @@ namespace Hydro
 
 	VulkanUniformBuffer::VulkanUniformBuffer(uint32_t size)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-
 		m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_vmaAllocation.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -31,17 +29,8 @@ namespace Hydro
 
 	VulkanUniformBuffer::~VulkanUniformBuffer()
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-
-		if (device == nullptr && m_uniformBuffers.size() <= 0)
-		{
-			return;
-		}
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
-			// VulkanAllocator::Free(m_vmaAllocation[i]);
-		}
+		// Safe to call after an explicit Destroy(): it clears the handles.
+		Destroy();
 	}
 
 	void VulkanUniformBuffer::Update(const void* data, uint32_t currentImage, uint32_t size)
@@ -54,13 +43,18 @@ namespace Hydro
 
 	void VulkanUniformBuffer::Destroy()
 	{
+		if (m_uniformBuffers.empty())
+			return;
+
 		VulkanAllocator allocator("VulkanUniformBuffer");
 
 		for (uint32_t i = 0; i < m_uniformBuffers.size(); i++)
 		{
 			allocator.DestroyBuffer(m_uniformBuffers[i], m_vmaAllocation[i]);
 		}
+
+		m_uniformBuffers.clear();
+		m_vmaAllocation.clear();
 	}
 
 }
-

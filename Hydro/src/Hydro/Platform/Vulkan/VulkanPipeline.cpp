@@ -23,9 +23,7 @@ namespace Hydro
 	{
 		m_pipelineSpecification = spec;
 
-		Ref<VulkanRendererContext> context = Renderer::GetRendererContext();
-		auto &device = context->GetVulkanDevice()->GetDevice();
-		auto &extents = Renderer::GetVulkanSwapChain()->GetExtend();
+		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 		VkRenderPass renderpass = spec.RenderPass != VK_NULL_HANDLE ? spec.RenderPass : Renderer::GetVulkanSwapChain()->GetRenderPass();
 
 		// Setup vertex data.
@@ -81,22 +79,11 @@ namespace Hydro
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-		m_ViewPort.x = 0.0f;
-		m_ViewPort.y = 0.0f;
-		m_ViewPort.width = (float)extents.width;
-		m_ViewPort.height = (float)extents.height;
-		m_ViewPort.minDepth = 0.0f;
-		m_ViewPort.maxDepth = 1.0f;
-
-		m_Scissor.offset = { 0, 0 };
-		m_Scissor.extent = extents;
-
+		// Viewport and scissor are dynamic state, set in Bind() from the current target size.
 		VkPipelineViewportStateCreateInfo viewportState{};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = 1;
-		viewportState.pViewports = &m_ViewPort;
 		viewportState.scissorCount = 1;
-		viewportState.pScissors = &m_Scissor;
 
 		// Rasterizer
 		VkPipelineRasterizationStateCreateInfo rasterizer{};
@@ -171,11 +158,23 @@ namespace Hydro
 		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 	}
 
-	void VulkanPipeline::Bind(VkCommandBuffer commandBuffer)
+	void VulkanPipeline::Bind(VkCommandBuffer commandBuffer, VkExtent2D extent)
 	{
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
-		vkCmdSetViewport(commandBuffer, 0, 1, &GetViewPort());
-		vkCmdSetScissor(commandBuffer, 0, 1, &GetRect2D());
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)extent.width;
+		viewport.height = (float)extent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = extent;
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 
 	void VulkanPipeline::BindDescriptorSets(VkCommandBuffer commandBuffer)

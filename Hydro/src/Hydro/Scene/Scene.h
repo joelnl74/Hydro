@@ -7,7 +7,6 @@
 
 namespace Hydro
 {
-	class NativeScriptComponent;
 	class Entity;
 	class UUID;
 
@@ -28,7 +27,6 @@ namespace Hydro
 	public:
 		// THIS SHOULD BE PRIVATE AND EXPOSE A METHOD TO GET COMPONENTS/ENTITIES FROM REGISTRY.
 		entt::registry m_Registry;
-		std::vector<NativeScriptComponent*> m_scripts;
 
 	private:
 

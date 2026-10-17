@@ -29,7 +29,7 @@ namespace Hydro
 		template<typename T>
 		void RemoveComponent()
 		{
-			return m_Scene->m_Registry.remove<T>(m_EntityHandle)
+			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
 		
 		template<typename T>

@@ -1,5 +1,8 @@
 #pragma once
 #include "Hydro/Core/Layer.h"
+
+#include <vulkan/vulkan.h>
+
 namespace Hydro
 {
 	class ImGuiLayer : public Layer
@@ -13,6 +16,8 @@ namespace Hydro
 
 		void Begin();
 		void End();
+
 	private:
+		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
 	};
 }

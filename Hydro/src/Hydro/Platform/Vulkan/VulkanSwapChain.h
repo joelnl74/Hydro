@@ -1,100 +1,83 @@
 #pragma once
-#include "Hydro/Core/Window.h"
-
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
+
+#include "Hydro/Core/Base.h"
 #include "VulkanDevice.h"
+
+#include <vector>
 
 namespace Hydro
 {
-	struct SwapChainSupportDetails 
+	struct SwapChainSupportDetails
 	{
-		VkSurfaceCapabilitiesKHR capabilities;
+		VkSurfaceCapabilitiesKHR capabilities{};
 		std::vector<VkSurfaceFormatKHR> formats;
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
-	const int MAX_FRAMES_IN_FLIGHT = 2;
-
+	// Presentation only: the swapchain images, their views and framebuffers, the render pass that
+	// draws into them, and acquire/present. Per-frame command buffers and fences live in
+	// VulkanFrameContext; the surface lives in VulkanRendererContext.
 	class VulkanSwapChain
 	{
 	public:
-		VulkanSwapChain(Window& window) : m_window(window) {}
-		void Init(VkInstance instance, Ref<VulkanDevice> vulkanDevice);
-		void InitSurface(Window &window);
-		void CreateSwapChain(Window& window ,bool vsync);
-		void CreateRenderPass();
-		void CreateFrameBuffer();
-		void CreateCommandPool();
-		void CreateCommandBuffer();
-		void CreateSyncObjects();
-		void CreateImageSampler();
+		VulkanSwapChain(Ref<VulkanDevice> device, VkSurfaceKHR surface);
 
-
-		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffers[m_CurrentFrame]; }
-		VkCommandPool& GetCommandPool() { return m_CommandPool; }
-
-		VkExtent2D& GetExtend() { return m_SwapChainExtent; }
-		VkRenderPass& GetRenderPass() { return m_RenderPass; }
-		VkSampler& GetImageSampler() { return m_SwapChainSampler; } 
-
-		uint32_t GetRenderFrame() { return m_CurrentFrame; }
-		uint32_t GetRenderImage() { return imageIndex; }
-
-		void ResetSwapChain();
-
-		// Called when the window reports a new size. Some drivers never return
-		// VK_ERROR_OUT_OF_DATE_KHR on resize, so we recreate on this flag as well.
-		void OnResize() { m_FramebufferResized = true; }
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void DrawFrame();
-
-		void StartShutDown();
+		// Returns false when the surface is currently 0x0 (minimised); call Recreate later.
+		bool Create(uint32_t width, uint32_t height, bool vsync);
+		// Rebuilds only what depends on the swapchain images. The caller must make sure the GPU is idle.
+		bool Recreate(uint32_t width, uint32_t height);
 		void ShutDown();
 
-	private:
-		SwapChainSupportDetails QuerySwapChainSupport();
-		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync);
-		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, Window& window);
+		void SetVSync(bool vsync) { m_VSync = vsync; }
+		bool IsVSync() const { return m_VSync; }
 
-		void CreateImageViews();
-		void CreateSwapChainHandle(Window& window, bool vsync, VkSwapchainKHR oldSwapchain);
-		void DestroySwapChainTargets();
+		VkResult AcquireNextImage(VkSemaphore imageAvailable, uint32_t& outImageIndex);
+		VkResult Present(uint32_t imageIndex);
+
+		void BeginRenderPass(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void EndRenderPass(VkCommandBuffer commandBuffer);
+
+		bool IsValid() const { return m_SwapChain != VK_NULL_HANDLE; }
+
+		VkRenderPass GetRenderPass() const { return m_RenderPass; }
+		VkExtent2D GetExtent() const { return m_Extent; }
+		VkFormat GetImageFormat() const { return m_SurfaceFormat.format; }
+		uint32_t GetImageCount() const { return (uint32_t)m_Images.size(); }
+		uint32_t GetMinImageCount() const { return m_MinImageCount; }
+
+		// One per swapchain image: the presentation engine may still hold an image's semaphore
+		// while other frames are being recorded, so these must not be shared per frame in flight.
+		VkSemaphore GetRenderFinishedSemaphore(uint32_t imageIndex) const { return m_RenderFinishedSemaphores[imageIndex]; }
 
 	private:
-		inline static VkSurfaceKHR s_Surface;
-		VkInstance m_Instance;
+		bool CreateSwapChainResources(uint32_t width, uint32_t height, VkSwapchainKHR oldSwapChain);
+		void DestroySwapChainResources();
+		void CreateRenderPass();
+
+		SwapChainSupportDetails QuerySwapChainSupport() const;
+		static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		static VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync);
+		static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, uint32_t width, uint32_t height);
+
+	private:
 		Ref<VulkanDevice> m_Device;
+		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 
-		VkSwapchainKHR m_SwapChain;
-		VkQueue m_PresentQueue;
-
-		VkFormat m_SwapChainImageFormat;
-		VkExtent2D m_SwapChainExtent;
-
-		SwapChainSupportDetails m_SwapChainSupportDetails;
-
-		std::vector<VkImage> m_SwapChainImages;
-		std::vector<VkImageView> m_SwapChainImageViews;
-		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
-		VkSampler m_SwapChainSampler;	
-
-		VkRenderPass m_RenderPass;
-		VkCommandPool m_CommandPool;
-		std::vector <VkCommandBuffer> m_CommandBuffers;
-
-		std::vector <VkSemaphore> m_ImageSemaphores;
-		std::vector <VkSemaphore> m_RenderSemaphores;
-		std::vector <VkFence> m_Fences;
-
-		uint32_t m_CurrentFrame = 0;
-		uint32_t imageIndex = 0;
-
+		VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
+		VkSurfaceFormatKHR m_SurfaceFormat{};
+		VkExtent2D m_Extent{ 0, 0 };
+		uint32_t m_MinImageCount = 0;
 		bool m_VSync = true;
-		bool m_FramebufferResized = false;
 
-		Window& m_window;
+		// Created once; only depends on the surface format.
+		VkRenderPass m_RenderPass = VK_NULL_HANDLE;
+
+		// Rebuilt on every Recreate.
+		std::vector<VkImage> m_Images;
+		std::vector<VkImageView> m_ImageViews;
+		std::vector<VkFramebuffer> m_Framebuffers;
+		std::vector<VkSemaphore> m_RenderFinishedSemaphores;
 	};
 }
-

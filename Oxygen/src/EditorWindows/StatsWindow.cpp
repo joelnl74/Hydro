@@ -5,6 +5,7 @@
 #include <Hydro/Core/Application.h>
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Scene/Scene.h>
+#include <Hydro/Scene/ScriptableEntity.h>
 
 #include <algorithm>
 #include <cstdio>
@@ -39,14 +40,14 @@ namespace Hydro
 	{
 		// Keep sampling while the window is closed so the history is ready when reopened.
 		const float frameMs = ImGui::GetIO().DeltaTime * 1000.0f;
-		if (!m_Paused && frameMs > 0.0f)
+		if (m_Paused == false && frameMs > 0.0f)
 			RecordFrame(frameMs);
 
-		if (!m_Open)
+		if (m_Open == false)
 			return;
 
 		ImGui::SetNextWindowSize(ImVec2(380.0f, 560.0f), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin("Stats", &m_Open))
+		if (ImGui::Begin("Stats", &m_Open) == false)
 		{
 			ImGui::End();
 			return;
@@ -179,7 +180,7 @@ namespace Hydro
 
 	void StatsWindow::DrawSceneTab(const Ref<Scene>& scene)
 	{
-		if (!scene)
+		if (scene == nullptr)
 		{
 			ImGui::TextDisabled("No scene loaded.");
 			return;
@@ -191,7 +192,11 @@ namespace Hydro
 			StatsUI::Row("Entities", "%zu", (size_t)registry.alive());
 			StatsUI::Row("Sprites", "%zu", (size_t)registry.view<SpriteRendererComponent>().size());
 			StatsUI::Row("Transforms", "%zu", (size_t)registry.view<TransformComponent>().size());
-			StatsUI::Row("Native scripts", "%zu", scene->m_scripts.size());
+			size_t scriptCount = 0;
+			auto scripts = registry.view<NativeScriptComponent>();
+			for (auto entity : scripts)
+				scriptCount += scripts.get<NativeScriptComponent>(entity).Scripts.size();
+			StatsUI::Row("Native scripts", "%zu", scriptCount);
 			ImGui::EndTable();
 		}
 	}

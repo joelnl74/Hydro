@@ -1,23 +1,46 @@
 #include "hypch.h"
 #include "VulkanRenderPass.h"
-#include "../../Renderer/Renderer.h"
+#include "Hydro/Renderer/Renderer.h"
 #include "VulkanUtils.h"
 
 namespace Hydro
 {
-	VulkanRenderPass::VulkanRenderPass(uint32_t width, uint32_t height)
-		: m_Width(width), m_Height(height)
+	VulkanRenderPass::VulkanRenderPass(uint32_t width, uint32_t height, ImageFormat format)
+		: m_Format(format), m_Width(width), m_Height(height)
 	{
 		CreateRenderPass();
 		CreateTargets();
 	}
 
+	VulkanRenderPass::~VulkanRenderPass()
+	{
+		DestroyTargets();
+
+		if (m_renderPass != VK_NULL_HANDLE)
+		{
+			VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+			vkDestroyRenderPass(device, m_renderPass, nullptr);
+		}
+	}
+
+	void VulkanRenderPass::Resize(uint32_t width, uint32_t height)
+	{
+		if (width == 0 || height == 0 || (width == m_Width && height == m_Height))
+			return;
+
+		m_Width = width;
+		m_Height = height;
+
+		DestroyTargets();
+		CreateTargets();
+	}
+
 	void VulkanRenderPass::CreateRenderPass()
 	{
-		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
+		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = VK_FORMAT_B8G8R8A8_SRGB;
+		colorAttachment.format = VulkanImage::GetImageFormat(m_Format);
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -35,22 +58,23 @@ namespace Hydro
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 
-		// The image is written here and sampled by the ImGui pass (fragment shader).
-		// [0]: wait for earlier fragment-shader reads of this image before writing it again.
-		// [1]: make our writes visible to the ImGui pass that samples it afterwards.
 		VkSubpassDependency dependencies[2]{};
+
+		// Before: earlier fragment-shader reads of this image must finish before we overwrite it.
 		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[0].dstSubpass = 0;
 		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[0].srcAccessMask = 0;
 		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+		// After: our colour writes must be visible to fragment shaders that sample the image
+		// later in the same submission (the ImGui viewport in the present pass).
 		dependencies[1].srcSubpass = 0;
 		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 		VkRenderPassCreateInfo renderPassInfo{};
@@ -62,82 +86,71 @@ namespace Hydro
 		renderPassInfo.dependencyCount = 2;
 		renderPassInfo.pDependencies = dependencies;
 
-		if (vkCreateRenderPass(device->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create render pass!");
-		}
+		VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_renderPass));
 	}
 
 	void VulkanRenderPass::CreateTargets()
 	{
-		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
+		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		m_images.clear();
+		m_Images.resize(MAX_FRAMES_IN_FLIGHT);
 		m_Framebuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			ImageSpecification spec{};
 			spec.Width = m_Width;
 			spec.Height = m_Height;
-			m_images.push_back(VulkanImage(spec));
-		}
+			spec.Format = m_Format;
+			spec.Usage = ImageUsage::Attachment;
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			VkImageView attachments[] = {
-				m_images[i].GetVulkanImageInfo().ImageView
-			};
+			m_Images[i] = CreateScope<VulkanImage>(spec);
+
+			VkImageView attachment = m_Images[i]->GetVulkanImageInfo().ImageView;
 
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			framebufferInfo.renderPass = m_renderPass;
 			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = attachments;
+			framebufferInfo.pAttachments = &attachment;
 			framebufferInfo.width = m_Width;
 			framebufferInfo.height = m_Height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(device->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create framebuffer!");
-			}
+			VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_Framebuffers[i]));
 		}
 	}
 
 	void VulkanRenderPass::DestroyTargets()
 	{
-		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
+		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
 		for (VkFramebuffer framebuffer : m_Framebuffers)
-		{
-			if (framebuffer)
-				vkDestroyFramebuffer(device->GetDevice(), framebuffer, nullptr);
-		}
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
+
 		m_Framebuffers.clear();
-
-		for (VulkanImage& image : m_images)
-			image.Destroy();
-		m_images.clear();
+		m_Images.clear(); // VulkanImage destructors free the images, views and samplers.
 	}
 
-	void VulkanRenderPass::Resize(uint32_t width, uint32_t height)
+	void VulkanRenderPass::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex)
 	{
-		if (width == 0 || height == 0 || (width == m_Width && height == m_Height))
-			return;
+		VkClearValue clearColor{};
+		clearColor.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 
-		DestroyTargets();
-		m_Width = width;
-		m_Height = height;
-		CreateTargets();
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_renderPass;
+		renderPassInfo.framebuffer = m_Framebuffers[frameIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = { m_Width, m_Height };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
-	void VulkanRenderPass::Destroy()
+	void VulkanRenderPass::End(VkCommandBuffer commandBuffer)
 	{
-		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
-
-		DestroyTargets();
-		if (m_renderPass)
-			vkDestroyRenderPass(device->GetDevice(), m_renderPass, nullptr);
-		m_renderPass = VK_NULL_HANDLE;
+		vkCmdEndRenderPass(commandBuffer);
 	}
 }

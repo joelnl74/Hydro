@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
+#include <string>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <Hydro/Core/UUID.h>
@@ -44,6 +45,12 @@ namespace Hydro
 	struct IDComponent
 	{
 		UUID Id = {};
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+		IDComponent(const UUID& id)
+			: Id(id) {
+		}
 	};
 
 	struct TransformComponent
@@ -71,56 +78,6 @@ namespace Hydro
 			return glm::translate(glm::mat4(1.0f), Translation)
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
-		}
-	};
-
-	class NativeScriptComponent 
-	{
-	public:
-		virtual ~NativeScriptComponent() = default;
-
-		virtual void OnUpdate(float deltaTime) {}
-		virtual void OnCreate() {}
-
-		template<typename T>
-		void Bind(Entity* entity)
-		{
-			m_entity = entity;
-			m_entity->GetScene()->m_scripts.push_back(this);
-
-			OnCreate();
-		}
-
-		template<typename T>
-		T& GetComponent()
-		{
-			return m_Scene->m_Registry.get<T>(m_EntityHandle);
-		}
-
-		Entity* m_entity;
-	};
-
-	class MovementComponent : public NativeScriptComponent
-	{
-	public:
-		MovementComponent() = default;
-		MovementComponent(const MovementComponent&) = default;
-
-		void OnUpdate(float ts) override
-		{
-			// HY_CORE_INFO("MovementComponent::OnUpdate() called");
-		}
-	};
-
-	class PlayerComponent : public NativeScriptComponent
-	{
-	public:
-		PlayerComponent() = default;
-		PlayerComponent(const PlayerComponent&) = default;
-
-		void OnUpdate(float ts) override
-		{
-			// HY_CORE_INFO("PlayerComponent::OnUpdate() called");
 		}
 	};
 }

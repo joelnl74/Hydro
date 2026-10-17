@@ -24,7 +24,6 @@ namespace Hydro
 {
 	ImGuiLayer::ImGuiLayer()
 	{
-
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -49,15 +48,13 @@ namespace Hydro
 		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 		pool_info.maxSets = 100;
-		pool_info.poolSizeCount = std::size(pool_sizes);
+		pool_info.poolSizeCount = (uint32_t)std::size(pool_sizes);
 		pool_info.pPoolSizes = pool_sizes;
 
-		VkDescriptorPool imguiPool;
+		Ref<VulkanDevice> device = Renderer::GetRendererContext()->GetVulkanDevice();
+		Ref<VulkanSwapChain> swapChain = Renderer::GetVulkanSwapChain();
 
-		auto rendererContext = Renderer::GetRendererContext();
-		auto& device = rendererContext->GetVulkanDevice();
-
-		VK_CHECK_RESULT(vkCreateDescriptorPool(device->GetDevice(), &pool_info, nullptr, &imguiPool));
+		VK_CHECK_RESULT(vkCreateDescriptorPool(device->GetDevice(), &pool_info, nullptr, &m_DescriptorPool));
 
 		// Create context.
 		IMGUI_CHECKVERSION();
@@ -75,50 +72,67 @@ namespace Hydro
 
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();
-		
+
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			style.WindowRounding = 0.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
-
 		ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
 
 		// Initializes imgui for Vulkan.
+		uint32_t minImageCount = std::max(swapChain->GetMinImageCount(), 2u);
+		uint32_t imageCount = std::max(swapChain->GetImageCount(), minImageCount);
+
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = rendererContext->GetInstance();
+		init_info.Instance = Renderer::GetRendererContext()->GetInstance();
 		init_info.PhysicalDevice = device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 		init_info.Device = device->GetDevice();
+		init_info.QueueFamily = (uint32_t)device->GetPhysicalDevice()->GetQueueFamilyIndices().graphics;
 		init_info.Queue = device->GetGraphicsQueue();
-		init_info.DescriptorPool = imguiPool;
-		init_info.MinImageCount = 3;
-		init_info.ImageCount = 3;
+		init_info.DescriptorPool = m_DescriptorPool;
+		init_info.MinImageCount = minImageCount;
+		init_info.ImageCount = imageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-		ImGui_ImplVulkan_Init(&init_info, Renderer::GetVulkanSwapChain()->GetRenderPass());
+		ImGui_ImplVulkan_Init(&init_info, swapChain->GetRenderPass());
 
 		//execute a gpu command to upload imgui font textures
 		VulkanCommandBuffer cmd;
 		auto commandBuffer = cmd.Create();
-		
+
 		cmd.Begin();
 			ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
 		cmd.End();
 
 		//clear font textures from cpu data
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
-	}
 
+		// The renderer calls this inside the swapchain render pass every frame.
+		Renderer::SetPresentPassCallback([](VkCommandBuffer frameCommandBuffer)
+		{
+			ImDrawData* drawData = ImGui::GetDrawData();
+			if (drawData != nullptr)
+				ImGui_ImplVulkan_RenderDrawData(drawData, frameCommandBuffer);
+		});
+	}
 
 	void ImGuiLayer::OnDetach()
 	{
-		//add the destroy the imgui created structures
-// _mainDeletionQueue.push_function([=]() {
-//
-//	vkDestroyDescriptorPool(_device, imguiPool, nullptr);
-//	ImGui_ImplVulkan_Shutdown();
-//	});
+		// The GPU must be done with ImGui's buffers and descriptor sets before they are destroyed.
+		Renderer::WaitIdle();
+		Renderer::SetPresentPassCallback(nullptr);
+
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+
+		if (m_DescriptorPool != VK_NULL_HANDLE)
+		{
+			vkDestroyDescriptorPool(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice(), m_DescriptorPool, nullptr);
+			m_DescriptorPool = VK_NULL_HANDLE;
+		}
 	}
 
 	void ImGuiLayer::OnImGuiRender() {}
@@ -129,7 +143,6 @@ namespace Hydro
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
-
 
 	void ImGuiLayer::End()
 	{

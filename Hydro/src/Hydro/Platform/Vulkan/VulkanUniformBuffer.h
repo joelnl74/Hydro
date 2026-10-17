@@ -1,6 +1,8 @@
 #pragma once
 #include "vendor/VulkanMemoryAllocator/vk_mem_alloc.h"
 
+#include <vector>
+
 namespace Hydro
 {
 	class VulkanUniformBuffer
@@ -14,11 +16,8 @@ namespace Hydro
 
 		std::vector<VkBuffer>& GetVKBuffers() { return m_uniformBuffers; };
 	private:
-		Ref<VulkanUniformBuffer> instance = nullptr;
-
 		std::vector<VkBuffer> m_uniformBuffers;
 		std::vector<VmaAllocation> m_vmaAllocation;
-		std::vector<VmaAllocationInfo> allocInfo;
 	};
 }
 

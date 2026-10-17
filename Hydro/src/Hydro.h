@@ -18,6 +18,7 @@
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Scene.h"
+#include "Hydro/Scene/ScriptableEntity.h"
 
 // RENDERING.
 #include "Hydro/Renderer/SceneRenderer.h"

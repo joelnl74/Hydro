@@ -1,22 +1,22 @@
 #include "hypch.h"
 #include "VulkanCommandBuffer.h"
+#include "VulkanUtils.h"
 #include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
 {
+	// One-time-submit command buffer for uploads and layout transitions. End() submits and waits.
 	VkCommandBuffer VulkanCommandBuffer::Create()
 	{
-		auto context = Renderer::GetRendererContext();
-		auto device = context->GetVulkanDevice()->GetDevice();
-		auto commandPool = Renderer::GetVulkanSwapChain()->GetCommandPool();
+		Ref<VulkanDevice> device = Renderer::GetRendererContext()->GetVulkanDevice();
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = commandPool;
+		allocInfo.commandPool = device->GetUploadCommandPool();
 		allocInfo.commandBufferCount = 1;
 
-		vkAllocateCommandBuffers(device, &allocInfo, &m_commandBuffer);
+		VK_CHECK_RESULT(vkAllocateCommandBuffers(device->GetDevice(), &allocInfo, &m_commandBuffer));
 
 		return m_commandBuffer;
 	}
@@ -27,26 +27,24 @@ namespace Hydro
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-		vkBeginCommandBuffer(m_commandBuffer, &beginInfo);
+		VK_CHECK_RESULT(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
 	}
 
 	void VulkanCommandBuffer::End()
 	{
-		auto context = Renderer::GetRendererContext();
-		auto& device = context->GetVulkanDevice();
-		auto commandPool = Renderer::GetVulkanSwapChain()->GetCommandPool();
+		Ref<VulkanDevice> device = Renderer::GetRendererContext()->GetVulkanDevice();
 
-		vkEndCommandBuffer(m_commandBuffer);
+		VK_CHECK_RESULT(vkEndCommandBuffer(m_commandBuffer));
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_commandBuffer;
 
-		vkQueueSubmit(device->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(device->GetGraphicsQueue());
+		VK_CHECK_RESULT(vkQueueSubmit(device->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+		VK_CHECK_RESULT(vkQueueWaitIdle(device->GetGraphicsQueue()));
 
-		vkFreeCommandBuffers(device->GetDevice(), commandPool, 1, &m_commandBuffer);
+		vkFreeCommandBuffers(device->GetDevice(), device->GetUploadCommandPool(), 1, &m_commandBuffer);
+		m_commandBuffer = VK_NULL_HANDLE;
 	}
 }
-

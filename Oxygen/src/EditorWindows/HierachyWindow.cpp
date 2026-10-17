@@ -28,7 +28,7 @@ namespace Hydro
 					IDComponent& id = scene->m_Registry.get<IDComponent>(entity);
 					
 					std::string x = std::to_string(id.Id);
-					auto& tag = name.Tag + x;
+					std::string tag = name.Tag + x;
 
 					
 					ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf;

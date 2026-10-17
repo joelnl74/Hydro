@@ -2,6 +2,9 @@
 #include <vulkan/vulkan.h>
 #include <Hydro/Core/Log.h>
 
+#include <chrono>
+#include <thread>
+
 namespace Hydro {
 
 	inline const char* VKResultToString(VkResult result)
@@ -48,14 +51,14 @@ namespace Hydro {
 		case VK_PIPELINE_COMPILE_REQUIRED_EXT: return "VK_PIPELINE_COMPILE_REQUIRED_EXT";
 		}
 
-		return nullptr;
+		return "VK_UNKNOWN_RESULT";
 	}
 
-	inline void VulkanCheckResult(VkResult result)
+	inline void VulkanCheckResult(VkResult result, const char* file, int line)
 	{
 		if (result != VK_SUCCESS)
 		{
-			HY_CORE_ERROR("VkResult is '{0}' in {1}:{2}", ::Hydro::VKResultToString(result), __FILE__, __LINE__);
+			HY_CORE_ERROR("VkResult is '{0}' in {1}:{2}", ::Hydro::VKResultToString(result), file, line);
 			if (result == VK_ERROR_DEVICE_LOST)
 			{
 				using namespace std::chrono_literals;
@@ -67,8 +70,9 @@ namespace Hydro {
 	}
 }
 
+// Reports the file and line of the call site, not of this header.
 #define VK_CHECK_RESULT(f)\
 {\
 	VkResult res = (f);\
-	::Hydro::VulkanCheckResult(res);\
+	::Hydro::VulkanCheckResult(res, __FILE__, __LINE__);\
 }

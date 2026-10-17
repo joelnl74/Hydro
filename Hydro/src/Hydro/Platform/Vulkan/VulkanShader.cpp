@@ -1,7 +1,7 @@
 #include "hypch.h"
 #include "VulkanShader.h"
 
-#include "VulkanRendererContext.h";
+#include "VulkanRendererContext.h"
 #include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
@@ -16,9 +16,8 @@ namespace Hydro
 
 	void VulkanShader::Create(const ShaderInformation& info)
 	{
-		auto &context = Renderer::GetRendererContext();
-		auto &device = context->GetVulkanDevice()->GetDevice();
-		auto &code = readFile(info.path);
+		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		std::vector<char> code = readFile(info.path);
 		VkShaderModule shaderModule = nullptr;
 
 		VkShaderModuleCreateInfo createInfo{};
