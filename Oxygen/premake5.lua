@@ -20,7 +20,7 @@ project "Oxygen"
 		"%{wks.location}/Hydro/vendor",
 		"%{wks.location}/Hydro/vendor/spdlog/include",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.entt}",
 	}
 

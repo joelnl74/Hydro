@@ -14,6 +14,7 @@ namespace Hydro
 		m_SceneRenderer = new SceneRenderer(m_Scene);
 		m_Scene->Init();
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
+		m_RendererStatsWindow = CreateRef<RendererStatsWindow>();
 
 		Entity player = m_Scene->CreateEntity("Player Entity");
 		player.AddComponent<TransformComponent>(glm::vec3(700, 450, 0), glm::vec3(128, 128, 0));
@@ -123,6 +124,7 @@ namespace Hydro
 		}
 
 		m_HierarchyWindow->OnImguiRender(m_Scene);
+		m_RendererStatsWindow->OnImguiRender();
 
 		ImGui::Begin("Project");
 		ImGui::End();
@@ -155,7 +157,7 @@ namespace Hydro
 
 	bool EditorLayer::OpenProject()
 	{
-		std::string filepath = FileDialogs::OpenFile("Hydro Project (*.hproj)\0*.hproj\0");
+		std::string filepath = FileDialogs::OpenFile("Hydro Project (*.hyproj)\0*.hyproj\0");
 		
 		if (filepath.empty())
 			return false;

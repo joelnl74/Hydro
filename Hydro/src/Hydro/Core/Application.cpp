@@ -83,7 +83,7 @@ namespace Hydro
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 
-			Renderer2D::Begin();
+			Renderer2D::Render(); // records + submits all 2D batches for this frame
 			Renderer::RenderFrame();
 		}
 

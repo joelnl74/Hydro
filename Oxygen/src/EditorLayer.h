@@ -1,6 +1,7 @@
 #pragma once
 #include "Hydro.h"
 #include "EditorWindows/HierachyWindow.h"
+#include "EditorWindows/RendererStatsWindow.h"
 
 namespace Hydro
 {
@@ -28,6 +29,7 @@ namespace Hydro
 
 		// Editor Windows.
 		Hydro::Ref<HierachyWindow> m_HierarchyWindow;
+		Hydro::Ref<RendererStatsWindow> m_RendererStatsWindow;
 	};
 }
 
