@@ -6,7 +6,7 @@ namespace Hydro
 {
 	bool PrefabSerializer::Save(Entity entity, const std::filesystem::path& filepath)
 	{
-		if (!entity || !entity.HasComponent<IDComponent>())
+		if ((bool)entity == false || entity.HasComponent<IDComponent>() == false)
 		{
 			HY_CORE_ERROR("PrefabSerializer: can only save entities created with Scene::CreateEntity");
 			return false;
@@ -24,7 +24,7 @@ namespace Hydro
 			std::filesystem::create_directories(filepath.parent_path(), ec);
 
 		std::ofstream fout(filepath);
-		if (!fout)
+		if (fout.is_open() == false)
 		{
 			HY_CORE_ERROR("PrefabSerializer: could not open '{}' for writing", filepath.string());
 			return false;
@@ -41,7 +41,7 @@ namespace Hydro
 		{
 			YAML::Node data = YAML::LoadFile(filepath.string());
 
-			if (!data["Prefab"] || !data["Entity"])
+			if (data["Prefab"].IsDefined() == false || data["Entity"].IsDefined() == false)
 			{
 				HY_CORE_ERROR("PrefabSerializer: '{}' is not a Hydro prefab file", filepath.string());
 				return {};

@@ -37,7 +37,7 @@ namespace Hydro
 			std::filesystem::create_directories(filepath.parent_path(), ec);
 
 		std::ofstream fout(filepath);
-		if (!fout)
+		if (fout.is_open() == false)
 		{
 			HY_CORE_ERROR("SceneSerializer: could not open '{}' for writing", filepath.string());
 			return false;
@@ -61,7 +61,7 @@ namespace Hydro
 			return false;
 		}
 
-		if (!data["Scene"])
+		if (data["Scene"].IsDefined() == false)
 		{
 			HY_CORE_ERROR("SceneSerializer: '{}' is not a Hydro scene file", filepath.string());
 			return false;

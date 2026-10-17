@@ -13,7 +13,7 @@ namespace Hydro
 	{
 		inline std::filesystem::path GetProjectDirectory()
 		{
-			if (auto project = Project::GetActive(); project && !project->GetProjectDirectory().empty())
+			if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
 				return project->GetProjectDirectory();
 
 			return std::filesystem::current_path() / "project";
@@ -35,6 +35,12 @@ namespace Hydro
 			}
 
 			return result.empty() ? "Untitled" : result;
+		}
+
+		// <project>/Assets/Prefabs/<name>.hyprefab
+		inline std::filesystem::path GetPrefabPath(const std::string& name)
+		{
+			return GetPrefabsDirectory() / (ToFileName(name) + PrefabSerializer::FileExtension);
 		}
 	}
 }

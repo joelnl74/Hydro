@@ -2,6 +2,7 @@
 #include "Hydro.h"
 #include "EditorWindows/HierachyWindow.h"
 #include "EditorWindows/StatsWindow.h"
+#include "EditorWindows/InspectorWindow.h"
 
 #include <chrono>
 #include <glm/glm.hpp>
@@ -46,6 +47,7 @@ namespace Hydro
 		// Editor Windows.
 		Hydro::Ref<HierachyWindow> m_HierarchyWindow;
 		Hydro::Ref<StatsWindow> m_StatsWindow;
+		Hydro::Ref<InspectorWindow> m_InspectorWindow;
 
 		glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
 		std::chrono::steady_clock::time_point m_LastFrameTime = std::chrono::steady_clock::now();

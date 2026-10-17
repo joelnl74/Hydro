@@ -51,6 +51,7 @@ namespace Hydro
 		m_Scene->Init();
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
+		m_InspectorWindow = CreateRef<InspectorWindow>();
 
 		CreateGalaxy();
 	}
@@ -251,6 +252,7 @@ namespace Hydro
 		}
 
 		m_HierarchyWindow->OnImguiRender(m_Scene);
+		m_InspectorWindow->OnImguiRender(m_HierarchyWindow->GetSelectedEntity());
 		m_StatsWindow->OnImguiRender(m_Scene);
 
 		ImGui::Begin("Project");
@@ -342,7 +344,7 @@ namespace Hydro
 		// Load into a fresh scene and only swap it in when loading succeeded.
 		Ref<Scene> newScene = CreateRef<Scene>("Untitled", true);
 		SceneSerializer serializer(newScene);
-		if (!serializer.Deserialize(path))
+		if (serializer.Deserialize(path) == false)
 			return;
 
 		SetActiveScene(newScene);

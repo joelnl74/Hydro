@@ -20,7 +20,7 @@ namespace Hydro
 	void HierachyWindow::OnImguiRender(Ref<Scene> scene)
 	{
 		// Drop a selection that belongs to a scene that was replaced or an entity that was destroyed.
-		if (m_SelectedEntity && (m_SelectedEntity.GetScene() != scene.get() || !scene->m_Registry.valid(m_SelectedEntity)))
+		if (m_SelectedEntity && (m_SelectedEntity.GetScene() != scene.get() || scene->m_Registry.valid(m_SelectedEntity) == false))
 			m_SelectedEntity = {};
 
 		// Destroying while iterating the registry is unsafe, so it happens after the loop.
@@ -32,7 +32,7 @@ namespace Hydro
 		{
 			scene->m_Registry.each([&](auto entityHandle)
 			{
-				if (!scene->m_Registry.has<TagComponent>(entityHandle) || !scene->m_Registry.has<IDComponent>(entityHandle))
+				if (scene->m_Registry.has<TagComponent>(entityHandle) == false || scene->m_Registry.has<IDComponent>(entityHandle) == false)
 					return;
 
 				Entity entity{ entityHandle, scene.get() };
@@ -85,7 +85,7 @@ namespace Hydro
 			if (ImGui::MenuItem("Instantiate Prefab..."))
 			{
 				std::string filepath = FileDialogs::OpenFile("Hydro Prefab (*.hyprefab)\0*.hyprefab\0");
-				if (!filepath.empty())
+				if (filepath.empty() == false)
 				{
 					if (Entity instance = PrefabSerializer::Instantiate(*scene, filepath))
 						m_SelectedEntity = instance;
@@ -108,7 +108,6 @@ namespace Hydro
 
 	void HierachyWindow::SaveAsPrefab(Entity entity)
 	{
-		std::filesystem::path path = EditorPaths::GetPrefabsDirectory() / (EditorPaths::ToFileName(entity.GetName()) + PrefabSerializer::FileExtension);
-		PrefabSerializer::Save(entity, path);
+		PrefabSerializer::Save(entity, EditorPaths::GetPrefabPath(entity.GetName()));
 	}
 }

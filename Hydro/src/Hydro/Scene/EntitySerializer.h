@@ -24,7 +24,7 @@ namespace YAML
 
 		static bool decode(const Node& node, glm::vec2& rhs)
 		{
-			if (!node.IsSequence() || node.size() != 2)
+			if (node.IsSequence() == false || node.size() != 2)
 				return false;
 
 			rhs.x = node[0].as<float>();
@@ -48,7 +48,7 @@ namespace YAML
 
 		static bool decode(const Node& node, glm::vec3& rhs)
 		{
-			if (!node.IsSequence() || node.size() != 3)
+			if (node.IsSequence() == false || node.size() != 3)
 				return false;
 
 			rhs.x = node[0].as<float>();
@@ -74,7 +74,7 @@ namespace YAML
 
 		static bool decode(const Node& node, glm::vec4& rhs)
 		{
-			if (!node.IsSequence() || node.size() != 4)
+			if (node.IsSequence() == false || node.size() != 4)
 				return false;
 
 			rhs.x = node[0].as<float>();

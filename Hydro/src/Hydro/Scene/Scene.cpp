@@ -51,7 +51,7 @@ namespace Hydro
 
 	void Scene::DestroyEntity(Entity entity)
 	{
-		if (!entity || !m_Registry.valid(entity))
+		if ((bool)entity == false || m_Registry.valid(entity) == false)
 			return;
 
 		// Let native scripts clean up before their entity disappears.
