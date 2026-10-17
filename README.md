@@ -18,6 +18,11 @@ If the repository was cloned non-recursively previously, use git submodule updat
 - After downloading and unzipping the files, the Win-GenProjects.bat script file will get executed automatically, which will then generate a Visual Studio solution file for user's usage.
 - If changes are made, or if you want to regenerate project files, rerun the Win-GenProjects.bat script file found in scripts folder.
 
+## Documentation
+- [Architecture](docs/Architecture.md): projects, source layout, the frame, Vulkan ownership, conventions
+- [Resource creation](docs/ResourceCreation.md): how resources are described and created (Parameter Object pattern)
+- [Scene, ECS and systems](docs/SceneAndECS.md): entities, components, systems and scripts
+
 ## Main features to come:
 - Fast 2D rendering (UI, particles, sprites, etc.)
 - High-fidelity Physically-Based 3D rendering
