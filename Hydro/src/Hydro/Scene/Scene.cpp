@@ -8,6 +8,7 @@
 namespace Hydro
 {
 	Scene::Scene(const std::string& debugName, bool isEditorScene)
+		: m_Name(debugName)
 	{
 
 	}
@@ -46,6 +47,24 @@ namespace Hydro
 		tag.Tag = name.empty() ? "Entity" : name;
 
 		return entity;
+	}
+
+	void Scene::DestroyEntity(Entity entity)
+	{
+		if (!entity || !m_Registry.valid(entity))
+			return;
+
+		// Let native scripts clean up before their entity disappears.
+		if (entity.HasComponent<NativeScriptComponent>())
+		{
+			for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+			{
+				if (script.Instance != nullptr)
+					script.Instance->OnDestroy();
+			}
+		}
+
+		m_Registry.destroy(entity);
 	}
 	
 	void Scene::OnUpdate()

@@ -22,6 +22,12 @@ project "Oxygen"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.entt}",
+		"%{IncludeDir.yaml_cpp}",
+	}
+
+	defines
+	{
+		"YAML_CPP_STATIC_DEFINE"
 	}
 
 	links

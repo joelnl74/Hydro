@@ -19,6 +19,8 @@
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/ScriptableEntity.h"
+#include "Hydro/Scene/SceneSerializer.h"
+#include "Hydro/Scene/PrefabSerializer.h"
 
 // RENDERING.
 #include "Hydro/Renderer/SceneRenderer.h"

@@ -1,6 +1,7 @@
 
 #pragma once
 #include "Hydro/Scene/Scene.h"
+#include "Hydro/Scene/Entity.h"
 #include "Hydro/Core/Base.h"
 
 namespace Hydro
@@ -12,5 +13,14 @@ namespace Hydro
 		~HierachyWindow();
 		void OnImguiAttach();
 		void OnImguiRender(Ref<Scene> scene);
+
+		Entity GetSelectedEntity() const { return m_SelectedEntity; }
+		void ClearSelection() { m_SelectedEntity = {}; }
+
+	private:
+		void SaveAsPrefab(Entity entity);
+
+	private:
+		Entity m_SelectedEntity;
 	};
 }

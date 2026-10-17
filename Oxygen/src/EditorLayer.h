@@ -26,6 +26,14 @@ namespace Hydro
 		void OpenProject(const std::filesystem::path& path);
 		void SaveProject();
 
+		// Scenes (.hyscene, YAML).
+		void NewScene();
+		void OpenScene();
+		void OpenScene(const std::filesystem::path& path);
+		void SaveScene();
+		void SaveSceneAs();
+		void SetActiveScene(const Ref<Scene>& scene);
+
 		// Demo scene: animated spiral galaxy, big enough to need several batches.
 		void CreateGalaxy();
 		void UpdateGalaxy(float deltaTime);
@@ -33,6 +41,7 @@ namespace Hydro
 	private:
 		Hydro::Ref<Scene> m_Scene;
 		Hydro::SceneRenderer* m_SceneRenderer;
+		std::filesystem::path m_EditorScenePath; // empty until the scene is saved / opened
 
 		// Editor Windows.
 		Hydro::Ref<HierachyWindow> m_HierarchyWindow;

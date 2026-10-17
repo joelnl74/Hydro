@@ -23,12 +23,17 @@ namespace Hydro
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
+		void DestroyEntity(Entity entity);
+
+		const std::string& GetName() const { return m_Name; }
+		void SetName(const std::string& name) { m_Name = name; }
 
 	public:
 		// THIS SHOULD BE PRIVATE AND EXPOSE A METHOD TO GET COMPONENTS/ENTITIES FROM REGISTRY.
 		entt::registry m_Registry;
 
 	private:
+		std::string m_Name;
 
 		friend class Entity;
 		friend class SceneRenderer;

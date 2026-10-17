@@ -1,0 +1,40 @@
+#pragma once
+#include "Hydro.h"
+
+#include <filesystem>
+#include <string>
+
+namespace Hydro
+{
+	// Where the editor saves scenes and prefabs.
+	// Uses the active project's directory when one is set, otherwise the "project" folder
+	// next to the editor's working directory (Oxygen/project when running from Visual Studio).
+	namespace EditorPaths
+	{
+		inline std::filesystem::path GetProjectDirectory()
+		{
+			if (auto project = Project::GetActive(); project && !project->GetProjectDirectory().empty())
+				return project->GetProjectDirectory();
+
+			return std::filesystem::current_path() / "project";
+		}
+
+		inline std::filesystem::path GetAssetsDirectory() { return GetProjectDirectory() / "Assets"; }
+		inline std::filesystem::path GetScenesDirectory() { return GetAssetsDirectory() / "Scenes"; }
+		inline std::filesystem::path GetPrefabsDirectory() { return GetAssetsDirectory() / "Prefabs"; }
+
+		// Turns an entity / scene name into something safe to use as a file name.
+		inline std::string ToFileName(const std::string& name)
+		{
+			std::string result;
+			for (char c : name)
+			{
+				const bool invalid = c == '<' || c == '>' || c == ':' || c == '"' || c == '/' ||
+					c == '\\' || c == '|' || c == '?' || c == '*' || (unsigned char)c < 32;
+				result += invalid ? '_' : c;
+			}
+
+			return result.empty() ? "Untitled" : result;
+		}
+	}
+}
