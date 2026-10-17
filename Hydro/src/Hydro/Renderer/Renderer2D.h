@@ -23,6 +23,10 @@ namespace Hydro
 		uint64_t GPUMemoryUsed = 0;
 		uint64_t GPUMemoryFree = 0;
 
+		// GPU time of the 2D render pass (timestamp queries; a couple of frames old). -1 = unsupported.
+		float GPUTimeMs = -1.0f;
+		const char* GPUName = "";
+
 		// Frame / target.
 		uint32_t ViewportWidth = 0;
 		uint32_t ViewportHeight = 0;
@@ -49,7 +53,13 @@ namespace Hydro
 		// one vkCmdDrawIndexed per batch, then submits. Call exactly once per frame.
 		static void Render();
 
-		static void CreateCompositeImageView();
+		// Throw away this frame's quads without rendering (e.g. while the window is minimized).
+		static void DiscardFrame();
+
+		// Size of the offscreen image the scene is rendered into (e.g. the editor viewport
+		// panel). Applied at the start of the next Render(); 0 is ignored.
+		static void SetViewportSize(uint32_t width, uint32_t height);
+
 		static VkDescriptorSet GetCompositeDescriptorSet();
 
 		// Stats from the last frame that was rendered.
@@ -59,6 +69,7 @@ namespace Hydro
 		static void AllocateBatch();
 		static void NextBatch();
 		static void ResetBatches();
+		static void ApplyViewportResize();
 	};
 
 }

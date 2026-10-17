@@ -133,9 +133,9 @@ namespace Hydro
 
 	void ImGuiLayer::End()
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		Application& app = Application::Get();
-		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+		// DisplaySize is set by ImGui_ImplGlfw_NewFrame() from the real window size.
+		// (It used to be overwritten here with the window size from startup, which
+		// never changed, so after a resize ImGui laid out and clipped for the old size.)
 
 		// Rendering
 		ImGui::Render();

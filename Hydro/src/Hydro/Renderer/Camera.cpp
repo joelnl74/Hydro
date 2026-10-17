@@ -16,6 +16,12 @@ namespace Hydro
 		m_position = position;
 	}
 	
+	void Camera::SetProjection(float left, float right, float bottom, float top)
+	{
+		m_projectionMatrix = glm::ortho(left, right, bottom, top, -10.0f, 1.0f);
+		m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
+	}
+
 	void Camera::SetRotation(float rotation)
 	{
 		m_rotation = rotation;

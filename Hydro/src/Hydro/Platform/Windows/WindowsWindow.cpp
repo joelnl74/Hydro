@@ -55,6 +55,8 @@ namespace Hydro
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int heigth)
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.Width = (unsigned int)width;
+				data.Height = (unsigned int)heigth;
 
 				WindowResizeEvent resizeEvent = WindowResizeEvent();
 				resizeEvent.width = width;

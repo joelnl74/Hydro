@@ -9,6 +9,7 @@ namespace Hydro
 		Camera(float left, float right, float bottom, float top);
 		void SetPosition(const glm::vec3& position);
 		void SetRotation(float rotation);
+		void SetProjection(float left, float right, float bottom, float top);
 		const glm::mat4& GetViewProjectMatrix() const { return m_viewProjectionMatrix; };
 	private:
 		void RecalculateViewProjectionMatrix();

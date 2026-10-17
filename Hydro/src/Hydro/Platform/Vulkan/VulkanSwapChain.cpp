@@ -39,6 +39,7 @@ namespace Hydro
 		}
 
 		vkDestroyCommandPool(device, m_CommandPool, nullptr);
+		vkDestroySampler(device, m_SwapChainSampler, nullptr);
 
 		for (auto framebuffer : m_SwapChainFramebuffers) {
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -102,13 +103,26 @@ namespace Hydro
 
 	void VulkanSwapChain::CreateSwapChain(Window& window, bool vsync)
 	{
+		// One-time setup. Everything that depends on the window size lives in
+		// CreateSwapChainHandle / CreateImageViews / CreateFrameBuffer so ResetSwapChain
+		// can recreate just those.
+		m_VSync = vsync;
+
+		CreateSwapChainHandle(window, vsync, VK_NULL_HANDLE);
+		CreateImageViews();
+		CreateImageSampler();
+		CreateRenderPass();
+		CreateFrameBuffer();
+		CreateCommandPool();
+		CreateCommandBuffer();
+		CreateSyncObjects();
+	}
+
+	void VulkanSwapChain::CreateSwapChainHandle(Window& window, bool vsync, VkSwapchainKHR oldSwapchain)
+	{
 		VkDevice device = m_Device->GetDevice();
-		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 
 		m_SwapChainSupportDetails = QuerySwapChainSupport();
-
-		bool swapChainAdequate = false;
-		swapChainAdequate = !m_SwapChainSupportDetails.formats.empty() && !m_SwapChainSupportDetails.presentModes.empty();
 
 		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(m_SwapChainSupportDetails.formats);
 		VkPresentModeKHR presentMode = ChooseSwapPresentMode(m_SwapChainSupportDetails.presentModes, vsync);
@@ -130,7 +144,7 @@ namespace Hydro
 		createInfo.imageColorSpace = surfaceFormat.colorSpace;
 		createInfo.imageExtent = extent;
 		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
 		// TODO Check this with the queue family.
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -139,8 +153,7 @@ namespace Hydro
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.presentMode = presentMode;
 		createInfo.clipped = VK_TRUE;
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
-
+		createInfo.oldSwapchain = oldSwapchain;
 
 		if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &m_SwapChain) != VK_SUCCESS)
 		{
@@ -153,13 +166,6 @@ namespace Hydro
 
 		m_SwapChainImageFormat = surfaceFormat.format;
 		m_SwapChainExtent = extent;
-
-		CreateImageViews();
-		CreateRenderPass();
-		CreateFrameBuffer();
-		CreateCommandPool();
-		CreateCommandBuffer();
-		CreateSyncObjects();
 	}
 
 	void VulkanSwapChain::CreateRenderPass()
@@ -183,12 +189,23 @@ namespace Hydro
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 
+		// Don't write the swapchain image until the acquire semaphore says it's free.
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = 1;
 		renderPassInfo.pAttachments = &colorAttachment;
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
 
 		if (vkCreateRenderPass(m_Device->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
@@ -299,25 +316,49 @@ namespace Hydro
 		vkCreateSampler(device, &samplerCreateInfo, nullptr, &m_SwapChainSampler);
 	}
 
-	void VulkanSwapChain::ResetSwapChain()
+	void VulkanSwapChain::DestroySwapChainTargets()
 	{
 		auto device = m_Device->GetDevice();
 
+		for (size_t i = 0; i < m_SwapChainFramebuffers.size(); i++)
+			vkDestroyFramebuffer(device, m_SwapChainFramebuffers[i], nullptr);
+		m_SwapChainFramebuffers.clear();
+
+		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++)
+			vkDestroyImageView(device, m_SwapChainImageViews[i], nullptr);
+		m_SwapChainImageViews.clear();
+	}
+
+	void VulkanSwapChain::ResetSwapChain()
+	{
+		auto device = m_Device->GetDevice();
+		auto glfwWindow = static_cast<GLFWwindow*>(m_window.GetNativeWindow());
+
+		// While minimized the framebuffer is 0x0 and a 0x0 swapchain is invalid
+		// (vkCreateSwapchainKHR fails -> the old code threw). Wait until it has a size again.
+		int width = 0, height = 0;
+		glfwGetFramebufferSize(glfwWindow, &width, &height);
+		while (width == 0 || height == 0)
+		{
+			glfwWaitEvents();
+			glfwGetFramebufferSize(glfwWindow, &width, &height);
+		}
+
 		vkDeviceWaitIdle(device);
 
-		for (size_t i = 0; i < m_SwapChainFramebuffers.size(); i++) {
-			vkDestroyFramebuffer(device, m_SwapChainFramebuffers[i], nullptr);
-		}
+		// Only the size-dependent objects are recreated. The old code called CreateSwapChain()
+		// here, which also re-created the render pass, command pool/buffers, fences, semaphores
+		// and sampler every resize (all leaked), then created the views/framebuffers a second time.
+		DestroySwapChainTargets();
 
-		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) {
-			vkDestroyImageView(device, m_SwapChainImageViews[i], nullptr);
-		}
+		VkSwapchainKHR oldSwapChain = m_SwapChain;
+		CreateSwapChainHandle(m_window, m_VSync, oldSwapChain);
+		vkDestroySwapchainKHR(device, oldSwapChain, nullptr);
 
-		vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
-
-		CreateSwapChain(m_window, true);
 		CreateImageViews();
 		CreateFrameBuffer();
+
+		m_FramebufferResized = false;
 	}
 
 	void VulkanSwapChain::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
@@ -344,8 +385,6 @@ namespace Hydro
 
 			// TEMP TODO REMOVE THIS AND MAKE A RENDERER QUEUE.
 			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -409,7 +448,7 @@ namespace Hydro
 
 		result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FramebufferResized) {
 			ResetSwapChain();
 		}
 		else if (result != VK_SUCCESS) {
@@ -518,7 +557,5 @@ namespace Hydro
 
 			VK_CHECK_RESULT(vkCreateImageView(device, &createInfo, nullptr, &m_SwapChainImageViews[i]));
 		}
-
-		CreateImageSampler();
 	}
 }

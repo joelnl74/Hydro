@@ -77,13 +77,25 @@ namespace Hydro
 		Ref<VulkanRenderCommandBuffer> CommandBuffer;
 		Ref<VulkanRenderPass> RenderPass;
 
+		// Requested offscreen size (from SetViewportSize). Applied in Render().
+		uint32_t RequestedWidth = 0;
+		uint32_t RequestedHeight = 0;
+
 		std::array<Ref<VullkanTexture>, MaxTextureSlots> TextureSlots;
+
+		// GPU timestamps: 2 queries (begin/end of the pass) per frame in flight.
+		VkQueryPool TimestampPool = VK_NULL_HANDLE;
+		float TimestampPeriodNs = 0.0f;  // ns per timestamp tick
+		std::array<bool, MAX_FRAMES_IN_FLIGHT> TimestampsWritten{};
+		float LastGPUTimeMs = -1.0f;
+		char GPUName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE] = {};
 
 		Statistics Stats;          // being accumulated this frame
 		Statistics LastFrameStats; // what GetStats() returns
 
-		// THIS IS A HACK! We need to store the descriptor sets for the pipeline.
-		std::vector <VkDescriptorSet> m_DescriptorSets;
+		// ImGui texture handles for the offscreen image of each frame in flight.
+		// Created lazily (ImGui isn't initialised yet in Init) and rewritten on resize.
+		std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CompositeDescriptorSets{};
 	};
 
 	static Renderer2DData* s_Data = nullptr;
@@ -93,7 +105,12 @@ namespace Hydro
 		auto& extent = Renderer::GetVulkanSwapChain()->GetExtend();
 
 		s_Data = new Renderer2DData();
-		s_Data->camera = CreateRef<Camera>(0, extent.width, 0, extent.height);
+		s_Data->camera = CreateRef<Camera>(0, (float)extent.width, 0, (float)extent.height);
+
+		// Offscreen target. Created first: the pipeline is built against this render pass.
+		s_Data->RenderPass = CreateRef<VulkanRenderPass>(extent.width, extent.height);
+		s_Data->RequestedWidth = extent.width;
+		s_Data->RequestedHeight = extent.height;
 
 		/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
 		ShaderInformation vertexInformation;
@@ -172,12 +189,31 @@ namespace Hydro
 
 		specification.descriptorSet = s_Data->QuadDescriptorSet;
 		specification.shader = s_Data->Shader;
+		specification.RenderPass = s_Data->RenderPass->GetRenderPass();
 
 		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
 
-		// Command Buffer and FrameBuffer render target for renderer 2D.
+		// Command buffer for renderer 2D.
 		s_Data->CommandBuffer = CreateRef<VulkanRenderCommandBuffer>(MAX_FRAMES_IN_FLIGHT, "2DRenderer");
-		s_Data->RenderPass = CreateRef<VulkanRenderPass>();
+
+		// GPU timing.
+		{
+			auto device = Renderer::GetRendererContext()->GetVulkanDevice();
+			VkPhysicalDeviceProperties properties{};
+			vkGetPhysicalDeviceProperties(device->GetPhysicalDevice()->GetVulkanPhysicalDevice(), &properties);
+			memcpy(s_Data->GPUName, properties.deviceName, sizeof(s_Data->GPUName));
+
+			if (properties.limits.timestampComputeAndGraphics)
+			{
+				s_Data->TimestampPeriodNs = properties.limits.timestampPeriod;
+
+				VkQueryPoolCreateInfo queryPoolInfo{};
+				queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+				queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+				queryPoolInfo.queryCount = 2 * MAX_FRAMES_IN_FLIGHT;
+				vkCreateQueryPool(device->GetDevice(), &queryPoolInfo, nullptr, &s_Data->TimestampPool);
+			}
+		}
 	}
 
 	void Renderer2D::ShutDown()
@@ -202,6 +238,9 @@ namespace Hydro
 		s_Data->QuadPipeline->Destroy();
 		s_Data->QuadUniformBuffer->Destroy();
 		s_Data->QuadIndexBuffer->Destroy();
+		s_Data->RenderPass->Destroy();
+		if (s_Data->TimestampPool)
+			vkDestroyQueryPool(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice(), s_Data->TimestampPool, nullptr);
 
 		// NOTE: s_Data is intentionally not deleted yet: ~VulkanUniformBuffer calls
 		// vkDestroyBuffer on buffers Destroy() already freed (double free). Fix that
@@ -247,13 +286,34 @@ namespace Hydro
 
 	void Renderer2D::Render()
 	{
-		auto& extent = Renderer::GetVulkanSwapChain()->GetExtend();
+		ApplyViewportResize();
+
 		const uint32_t frame = Renderer::GetRenderFrame();
+		const uint32_t width = s_Data->RenderPass->GetWidth();
+		const uint32_t height = s_Data->RenderPass->GetHeight();
 
 		// Waits on this frame-in-flight's fence, so after this the GPU is done with
 		// QuadVertexBuffers[*][frame] and the uniform buffer for `frame`; safe to overwrite.
 		s_Data->CommandBuffer->Begin();
 		VkCommandBuffer commandBuffer = s_Data->CommandBuffer->GetActiveCommandBuffer();
+
+		// The fence for this frame index was just waited on, so the timestamps this command
+		// buffer wrote last time are available: read them, then reset and write new ones.
+		const uint32_t firstQuery = frame * 2;
+		if (s_Data->TimestampPool)
+		{
+			if (s_Data->TimestampsWritten[frame])
+			{
+				uint64_t timestamps[2] = {};
+				VkResult result = vkGetQueryPoolResults(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice(),
+					s_Data->TimestampPool, firstQuery, 2, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
+				if (result == VK_SUCCESS && timestamps[1] >= timestamps[0])
+					s_Data->LastGPUTimeMs = (float)((double)(timestamps[1] - timestamps[0]) * s_Data->TimestampPeriodNs / 1.0e6);
+			}
+
+			vkCmdResetQueryPool(commandBuffer, s_Data->TimestampPool, firstQuery, 2);
+			vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, s_Data->TimestampPool, firstQuery);
+		}
 
 		s_Data->QuadUniformBuffer->Update(&s_Data->camera->GetViewProjectMatrix(), frame, (uint32_t)sizeof(UniformBufferObject));
 
@@ -261,9 +321,9 @@ namespace Hydro
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = s_Data->RenderPass->GetRenderPass();
-		renderPassInfo.framebuffer = s_Data->RenderPass->GetFramebuffer();
+		renderPassInfo.framebuffer = s_Data->RenderPass->GetFramebuffer(frame);
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = { extent.width, extent.height };
+		renderPassInfo.renderArea.extent = { width, height }; // must fit the framebuffer
 
 		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
@@ -273,6 +333,13 @@ namespace Hydro
 
 		// State shared by every batch: bind once.
 		s_Data->QuadPipeline->Bind(commandBuffer);
+
+		// The pipeline's stored viewport is the startup size; use the current target size.
+		VkViewport viewport{ 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
+		VkRect2D scissor{ { 0, 0 }, { width, height } };
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
 		s_Data->QuadIndexBuffer->Bind(commandBuffer);
 		s_Data->QuadPipeline->BindDescriptorSets(commandBuffer);
 
@@ -297,6 +364,13 @@ namespace Hydro
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
+
+		if (s_Data->TimestampPool)
+		{
+			vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, s_Data->TimestampPool, firstQuery + 1);
+			s_Data->TimestampsWritten[frame] = true;
+		}
+
 		s_Data->CommandBuffer->End();
 		s_Data->CommandBuffer->Submit();
 
@@ -306,12 +380,20 @@ namespace Hydro
 		s_Data->Stats.GPUMemoryFree = memory.Free;
 		s_Data->Stats.BatchesAllocated = (uint32_t)s_Data->QuadVertexBufferBases.size();
 		s_Data->Stats.MaxQuadsPerBatch = Renderer2DData::MaxQuads;
-		s_Data->Stats.ViewportWidth = extent.width;
-		s_Data->Stats.ViewportHeight = extent.height;
+		s_Data->Stats.ViewportWidth = width;
+		s_Data->Stats.ViewportHeight = height;
 		s_Data->Stats.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
 		s_Data->Stats.FrameIndex = frame;
+		s_Data->Stats.GPUTimeMs = s_Data->LastGPUTimeMs;
+		s_Data->Stats.GPUName = s_Data->GPUName;
 
 		s_Data->LastFrameStats = s_Data->Stats;
+		s_Data->Stats = {};
+		ResetBatches();
+	}
+
+	void Renderer2D::DiscardFrame()
+	{
 		s_Data->Stats = {};
 		ResetBatches();
 	}
@@ -344,22 +426,76 @@ namespace Hydro
 		return s_Data->LastFrameStats;
 	}
 
-	void Renderer2D::CreateCompositeImageView()
+	static void WriteCompositeDescriptor(VkDescriptorSet set, VkImageView view, VkSampler sampler)
 	{
-		uint32_t currentImage = Renderer::GetRenderFrame();
-		auto sampler = Renderer::GetVulkanSwapChain()->GetImageSampler();
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
-		if (s_Data->m_DescriptorSets.size() <= currentImage)
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.sampler = sampler;
+		imageInfo.imageView = view;
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		// Binding 0 / combined image sampler is the layout ImGui_ImplVulkan_AddTexture uses.
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = set;
+		write.dstBinding = 0;
+		write.descriptorCount = 1;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		write.pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+	}
+
+	void Renderer2D::SetViewportSize(uint32_t width, uint32_t height)
+	{
+		if (width == 0 || height == 0)
+			return;
+
+		s_Data->RequestedWidth = width;
+		s_Data->RequestedHeight = height;
+	}
+
+	void Renderer2D::ApplyViewportResize()
+	{
+		const uint32_t width = s_Data->RequestedWidth;
+		const uint32_t height = s_Data->RequestedHeight;
+
+		if (width == s_Data->RenderPass->GetWidth() && height == s_Data->RenderPass->GetHeight())
+			return;
+
+		// Both frames in flight may still be using the old images; wait before destroying them.
+		// (Only happens on frames where the size actually changed.)
+		vkDeviceWaitIdle(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice());
+
+		s_Data->RenderPass->Resize(width, height);
+
+		// Keep 1 unit = 1 pixel, so things don't stretch when the viewport changes shape.
+		s_Data->camera->SetProjection(0.0f, (float)width, 0.0f, (float)height);
+
+		// Point the existing ImGui texture handles at the new image views. Updating in place
+		// (instead of AddTexture again) means no descriptor sets leak from ImGui's pool, and the
+		// handle ImGui already queued for this frame shows the new image.
+		VkSampler sampler = Renderer::GetVulkanSwapChain()->GetImageSampler();
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			VkDescriptorSet x = ImGui_ImplVulkan_AddTexture(sampler, s_Data->RenderPass->GetImage().GetVulkanImageInfo().ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			s_Data->m_DescriptorSets.push_back(x);
+			if (s_Data->CompositeDescriptorSets[i] != VK_NULL_HANDLE)
+				WriteCompositeDescriptor(s_Data->CompositeDescriptorSets[i], s_Data->RenderPass->GetImage(i).GetVulkanImageInfo().ImageView, sampler);
 		}
 	}
 
 	VkDescriptorSet Renderer2D::GetCompositeDescriptorSet()
 	{
-		CreateCompositeImageView();
-		uint32_t currentImage = Renderer::GetRenderFrame();
-		return s_Data->m_DescriptorSets[currentImage];
+		const uint32_t frame = Renderer::GetRenderFrame();
+		VkDescriptorSet& set = s_Data->CompositeDescriptorSets[frame];
+
+		if (set == VK_NULL_HANDLE)
+		{
+			VkSampler sampler = Renderer::GetVulkanSwapChain()->GetImageSampler();
+			VkImageView view = s_Data->RenderPass->GetImage(frame).GetVulkanImageInfo().ImageView;
+			set = ImGui_ImplVulkan_AddTexture(sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		}
+
+		return set;
 	}
 }
