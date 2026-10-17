@@ -1,6 +1,11 @@
 #pragma once
 #include "Hydro.h"
 #include "EditorWindows/HierachyWindow.h"
+#include "EditorWindows/StatsWindow.h"
+
+#include <chrono>
+#include <glm/glm.hpp>
+
 namespace Hydro
 {
 	class EditorLayer : public Layer
@@ -16,11 +21,26 @@ namespace Hydro
 		virtual void OnEvent(Event& e) override;
 
 	private:
+		void NewProject();
+		bool OpenProject();
+		void OpenProject(const std::filesystem::path& path);
+		void SaveProject();
+
+		// Demo scene: animated spiral galaxy, big enough to need several batches.
+		void CreateGalaxy();
+		void UpdateGalaxy(float deltaTime);
+
+	private:
 		Hydro::Ref<Scene> m_Scene;
-		SceneRenderer* m_SceneRenderer;
+		Hydro::SceneRenderer* m_SceneRenderer;
 
 		// Editor Windows.
 		Hydro::Ref<HierachyWindow> m_HierarchyWindow;
+		Hydro::Ref<StatsWindow> m_StatsWindow;
+
+		glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
+		std::chrono::steady_clock::time_point m_LastFrameTime = std::chrono::steady_clock::now();
+		float m_Time = 0.0f;
 	};
 }
 

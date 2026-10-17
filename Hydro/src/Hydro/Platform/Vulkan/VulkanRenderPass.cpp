@@ -5,7 +5,14 @@
 
 namespace Hydro
 {
-	VulkanRenderPass::VulkanRenderPass()
+	VulkanRenderPass::VulkanRenderPass(uint32_t width, uint32_t height)
+		: m_Width(width), m_Height(height)
+	{
+		CreateRenderPass();
+		CreateTargets();
+	}
+
+	void VulkanRenderPass::CreateRenderPass()
 	{
 		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
 
@@ -28,70 +35,57 @@ namespace Hydro
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 
+		// The image is written here and sampled by the ImGui pass (fragment shader).
+		// [0]: wait for earlier fragment-shader reads of this image before writing it again.
+		// [1]: make our writes visible to the ImGui pass that samples it afterwards.
+		VkSubpassDependency dependencies[2]{};
+		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[0].dstSubpass = 0;
+		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		dependencies[1].srcSubpass = 0;
+		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = 1;
 		renderPassInfo.pAttachments = &colorAttachment;
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 2;
+		renderPassInfo.pDependencies = dependencies;
 
 		if (vkCreateRenderPass(device->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
 		}
-
-		CreateImage();
-		CreateFrameBuffer();
 	}
 
-	void VulkanRenderPass::CreateImage()
+	void VulkanRenderPass::CreateTargets()
 	{
 		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
-		auto& size = Renderer::GetVulkanSwapChain()->GetExtend();
 
-		for (size_t i = 0; i <MAX_FRAMES_IN_FLIGHT; i++)
+		m_images.clear();
+		m_Framebuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			ImageSpecification spec {};
-
-			spec.Width = size.width;
-			spec.Height = size.height;
-
-			m_image.push_back(VulkanImage(spec));
+			ImageSpecification spec{};
+			spec.Width = m_Width;
+			spec.Height = m_Height;
+			m_images.push_back(VulkanImage(spec));
 		}
 
-		/*
-		for (size_t i = 0; i < m_image.size(); i++)
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			VkImageViewCreateInfo createInfo{};
-			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.image = m_image[i].GetVulkanImageInfo().Image;
-			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
-			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			createInfo.subresourceRange.baseMipLevel = 0;
-			createInfo.subresourceRange.levelCount = 1;
-			createInfo.subresourceRange.baseArrayLayer = 0;
-			createInfo.subresourceRange.layerCount = 1;
-
-			VK_CHECK_RESULT(vkCreateImageView(device->GetDevice(), &createInfo, nullptr, &m_imageViews[i]));
-		}
-		*/
-	}
-
-	void VulkanRenderPass::CreateFrameBuffer()
-	{
-		auto& size = Renderer::GetVulkanSwapChain()->GetExtend();
-		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
-
-		m_Framebuffer.resize(MAX_FRAMES_IN_FLIGHT);
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			VkImageView attachments[] = {
-				m_image[i].GetVulkanImageInfo().ImageView
+				m_images[i].GetVulkanImageInfo().ImageView
 			};
 
 			VkFramebufferCreateInfo framebufferInfo{};
@@ -99,15 +93,51 @@ namespace Hydro
 			framebufferInfo.renderPass = m_renderPass;
 			framebufferInfo.attachmentCount = 1;
 			framebufferInfo.pAttachments = attachments;
-			framebufferInfo.width = size.width;
-			framebufferInfo.height = size.height;
+			framebufferInfo.width = m_Width;
+			framebufferInfo.height = m_Height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(device->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer[i]) != VK_SUCCESS)
+			if (vkCreateFramebuffer(device->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to create framebuffer!");
 			}
 		}
 	}
-}
 
+	void VulkanRenderPass::DestroyTargets()
+	{
+		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
+
+		for (VkFramebuffer framebuffer : m_Framebuffers)
+		{
+			if (framebuffer)
+				vkDestroyFramebuffer(device->GetDevice(), framebuffer, nullptr);
+		}
+		m_Framebuffers.clear();
+
+		for (VulkanImage& image : m_images)
+			image.Destroy();
+		m_images.clear();
+	}
+
+	void VulkanRenderPass::Resize(uint32_t width, uint32_t height)
+	{
+		if (width == 0 || height == 0 || (width == m_Width && height == m_Height))
+			return;
+
+		DestroyTargets();
+		m_Width = width;
+		m_Height = height;
+		CreateTargets();
+	}
+
+	void VulkanRenderPass::Destroy()
+	{
+		auto& device = Renderer::GetRendererContext()->GetVulkanDevice();
+
+		DestroyTargets();
+		if (m_renderPass)
+			vkDestroyRenderPass(device->GetDevice(), m_renderPass, nullptr);
+		m_renderPass = VK_NULL_HANDLE;
+	}
+}

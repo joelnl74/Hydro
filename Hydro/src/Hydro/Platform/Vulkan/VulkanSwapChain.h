@@ -42,6 +42,10 @@ namespace Hydro
 		uint32_t GetRenderImage() { return imageIndex; }
 
 		void ResetSwapChain();
+
+		// Called when the window reports a new size. Some drivers never return
+		// VK_ERROR_OUT_OF_DATE_KHR on resize, so we recreate on this flag as well.
+		void OnResize() { m_FramebufferResized = true; }
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void DrawFrame();
 
@@ -55,6 +59,8 @@ namespace Hydro
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, Window& window);
 
 		void CreateImageViews();
+		void CreateSwapChainHandle(Window& window, bool vsync, VkSwapchainKHR oldSwapchain);
+		void DestroySwapChainTargets();
 
 	private:
 		inline static VkSurfaceKHR s_Surface;
@@ -84,6 +90,9 @@ namespace Hydro
 
 		uint32_t m_CurrentFrame = 0;
 		uint32_t imageIndex = 0;
+
+		bool m_VSync = true;
+		bool m_FramebufferResized = false;
 
 		Window& m_window;
 	};

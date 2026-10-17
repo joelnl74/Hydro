@@ -10,6 +10,20 @@ int main(int argc, char** argv);
 
 namespace Hydro
 {
+	// CPU time spent in each phase of the last frame, in milliseconds.
+	struct FrameTimings
+	{
+		float EventsMs = 0.0f;          // window/OS event polling
+		float ImGuiMs = 0.0f;           // building the editor UI (layers' OnImGuiRender)
+		float UpdateMs = 0.0f;          // game/scene logic (layers' OnUpdate)
+		float RenderMs = 0.0f;          // Renderer2D: batch upload + record + submit (includes fence wait)
+		float PresentMs = 0.0f;         // swapchain acquire/submit/present (includes GPU / vsync wait)
+		float PlatformWindowsMs = 0.0f; // ImGui windows dragged outside the main window
+		float FrameMs = 0.0f;           // whole loop iteration
+		uint64_t FrameCount = 0;
+		double UptimeSeconds = 0.0;
+	};
+
 	class Application
 	{
 	public:
@@ -25,6 +39,7 @@ namespace Hydro
 		void Quit();
 
 		inline Window& GetWindow() { return *m_Window; }
+		const FrameTimings& GetFrameTimings() const { return m_FrameTimings; }
 		static inline Application& Get() { return *s_Instance; }
 
 	private:
@@ -37,6 +52,8 @@ namespace Hydro
 
 		bool m_Running = true;
 		bool m_Minimized = false;
+		float m_LastFrameTime = 0.0f;
+		FrameTimings m_FrameTimings;
 
 	private:
 		static Application* s_Instance;

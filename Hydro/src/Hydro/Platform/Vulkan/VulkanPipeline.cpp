@@ -26,7 +26,7 @@ namespace Hydro
 		Ref<VulkanRendererContext> context = Renderer::GetRendererContext();
 		auto &device = context->GetVulkanDevice()->GetDevice();
 		auto &extents = Renderer::GetVulkanSwapChain()->GetExtend();
-		auto &renderpass = Renderer::GetVulkanSwapChain()->GetRenderPass();
+		VkRenderPass renderpass = spec.RenderPass != VK_NULL_HANDLE ? spec.RenderPass : Renderer::GetVulkanSwapChain()->GetRenderPass();
 
 		// Setup vertex data.
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};

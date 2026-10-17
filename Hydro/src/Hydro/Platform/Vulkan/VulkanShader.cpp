@@ -56,7 +56,7 @@ namespace Hydro
 	{
 		std::ifstream file(filePath, std::ios::ate | std::ios::binary);
 
-		if (!file.is_open()) 
+		if (file.is_open() == false) 
 		{
 			throw std::runtime_error("failed to open file!");
 		}

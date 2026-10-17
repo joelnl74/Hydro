@@ -17,7 +17,7 @@ namespace Hydro
 		stbi_uc* pixels = stbi_load(filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		VkDeviceSize imageSize = texWidth * texHeight * 4;
 
-		if (!pixels) {
+		if (pixels == nullptr) {
 			throw std::runtime_error("failed to load texture image!");
 		}
 

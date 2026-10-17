@@ -62,7 +62,7 @@ namespace Hydro
 		imageViewCreateInfo.format = GetImageFormat(spec.Format);
 		imageViewCreateInfo.flags = 0;
 		imageViewCreateInfo.subresourceRange = {};
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		imageViewCreateInfo.subresourceRange.levelCount = 1;
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -103,7 +103,7 @@ namespace Hydro
 		vertexBufferCreateInfo.size = imageSize;
 		vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-		VkImageUsageFlags usage = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -128,7 +128,7 @@ namespace Hydro
 		imageViewCreateInfo.format = VK_FORMAT_B8G8R8A8_SRGB;
 		imageViewCreateInfo.flags = 0;
 		imageViewCreateInfo.subresourceRange = {};
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		imageViewCreateInfo.subresourceRange.levelCount = 1;
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -158,6 +158,24 @@ namespace Hydro
 	void VulkanImage::Bind()
 	{
 
+	}
+
+	void VulkanImage::Destroy()
+	{
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VulkanAllocator allocator("VulkanImage");
+
+		if (m_vulkanImageInfo.Sampler)
+			vkDestroySampler(device, m_vulkanImageInfo.Sampler, nullptr);
+		if (m_vulkanImageInfo.ImageView)
+			vkDestroyImageView(device, m_vulkanImageInfo.ImageView, nullptr);
+		if (m_vulkanImageInfo.Image)
+			allocator.DestroyImage(m_vulkanImageInfo.Image, m_vulkanImageInfo.MemoryAlloc);
+
+		m_vulkanImageInfo.Sampler = VK_NULL_HANDLE;
+		m_vulkanImageInfo.ImageView = VK_NULL_HANDLE;
+		m_vulkanImageInfo.Image = VK_NULL_HANDLE;
+		m_vulkanImageInfo.MemoryAlloc = nullptr;
 	}
 
 	VkFormat VulkanImage::GetImageFormat(ImageFormat imageformat)

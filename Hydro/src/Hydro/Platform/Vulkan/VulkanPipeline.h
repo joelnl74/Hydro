@@ -19,7 +19,8 @@ namespace Hydro
 		Ref<VulkanDescriptorBuilder> descriptorSet;
 
 		VertexBufferLayout Layout;
-		// Ref<RenderPass> RenderPass;
+		// Render pass this pipeline is used in. VK_NULL_HANDLE = the swapchain's render pass.
+		VkRenderPass RenderPass = VK_NULL_HANDLE;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
 		bool BackfaceCulling = true;
 		bool DepthTest = true;

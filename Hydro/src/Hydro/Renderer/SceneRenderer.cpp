@@ -30,6 +30,11 @@ namespace Hydro
 	
 	void SceneRenderer::RenderCompositeImage(float x, float y)
 	{
+		// Render the scene at the panel's size (applied next Render()), so the image is
+		// never stretched and the framebuffer always matches what's displayed.
+		if (x >= 1.0f && y >= 1.0f)
+			Renderer2D::SetViewportSize((uint32_t)x, (uint32_t)y);
+
 		auto image = Renderer2D::GetCompositeDescriptorSet();
 		ImGui::Image(image, {x, y }, { 0, 1 }, { 1, 0 });
 	}

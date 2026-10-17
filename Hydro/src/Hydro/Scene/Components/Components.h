@@ -108,7 +108,7 @@ namespace Hydro
 
 		void OnUpdate(float ts) override
 		{
-			HY_CORE_INFO("MovementComponent::OnUpdate() called");
+			// HY_CORE_INFO("MovementComponent::OnUpdate() called");
 		}
 	};
 
@@ -120,7 +120,7 @@ namespace Hydro
 
 		void OnUpdate(float ts) override
 		{
-			HY_CORE_INFO("PlayerComponent::OnUpdate() called");
+			// HY_CORE_INFO("PlayerComponent::OnUpdate() called");
 		}
 	};
 }
