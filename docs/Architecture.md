@@ -35,7 +35,7 @@ Hydro::Application* Hydro::CreateApplication() { return new MyApp(); }
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core |
 | `Renderer` | Engine-facing rendering API (`Renderer`, `Renderer2D`, `SceneRenderer`, `Camera`, `Image.h`) | Core, Platform/Vulkan |
-| `Scene` | Scene, entities, components, scripts | Core, Renderer (submission only) |
+| `Scene` | Scene, entities, components, scripts, scene and prefab saving (yaml-cpp) | Core, Renderer (submission only) |
 | `Project` | Project file and settings | Core |
 | `ImGUI` | ImGui layer | Core, Renderer |
 
@@ -85,9 +85,9 @@ Rules that follow from this:
 
 ## Known gaps
 
-These are where the code does not yet match the rules above. Fix them when you touch the area rather than copying the pattern.
+These are where the code does not yet match the rules above. Fix them when you touch the area rather than copying the pattern. Every open problem is a [GitHub issue](https://github.com/joelnl74/Hydro/issues).
 
 - `Renderer2D` includes `imgui_impl_vulkan.h` to hand the viewport image to ImGui.
-- `Scene::m_Registry` is public; the editor reads it directly.
+- `Scene::m_Registry` is public; the editor reads it directly ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - Most Vulkan wrappers still have a manual `Destroy()` instead of a destructor (see [Resource creation](ResourceCreation.md#ownership)).
-- `VkInstance` and the device are `static` members of `VulkanRendererContext`.
+- `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).

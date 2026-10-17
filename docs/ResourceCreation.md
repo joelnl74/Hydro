@@ -56,9 +56,9 @@ The object created from a spec owns its GPU handles:
 | Struct | Used by | Status |
 | --- | --- | --- |
 | `ImageSpecification` (`Renderer/Image.h`) | `VulkanImage` | In use |
-| `TextureProperties` (`Renderer/Image.h`) | — | Defined, not consumed yet. `VullkanTexture` takes an empty `VulkanTextureSpecification` and hard-codes its sampler. Next step: textures take `ImageSpecification` + `TextureProperties`. |
+| `TextureProperties` (`Renderer/Image.h`) | — | Defined, not consumed yet. `VullkanTexture` takes an empty `VulkanTextureSpecification` and hard-codes its sampler. Next step: textures take `ImageSpecification` + `TextureProperties` ([#34](https://github.com/joelnl74/Hydro/issues/34)). |
 | `ShaderSpecification`, `ShaderInformation` | `VulkanShader` | In use |
-| `PipelineSpecification` | `VulkanPipeline` | In use; `Topology`, culling, depth and wireframe fields are not applied yet |
+| `PipelineSpecification` | `VulkanPipeline` | In use; `Topology`, culling, depth and wireframe fields are not applied yet ([#32](https://github.com/joelnl74/Hydro/issues/32)) |
 | `VulkanImageInfo` | `VulkanImage` | Output |
 | `WindowProps` | `Window::Create` | In use |
 | `ProjectConfig` | `Project` | In use |
