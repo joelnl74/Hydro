@@ -6,11 +6,12 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 
 | Piece | Where | What it is |
 | --- | --- | --- |
-| `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates entities; runs the scene's systems in `OnUpdate` |
+| `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdate` |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
 | Components | `Scene/Components/Components.h` | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `NativeScriptComponent` |
 | Systems | `Scene::OnUpdate`, `SceneRenderer`, application layers | Functions over registry views |
 | Scripts | `Scene/ScriptableEntity.h` | Per-entity C++ behaviour, run by the script system |
+| Serialization | `Scene/SceneSerializer.h`, `Scene/PrefabSerializer.h`, `Scene/EntitySerializer.h` | Saves scenes (`.hyscene`) and prefabs (`.hyprefab`) as YAML |
 
 Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name) and an `IDComponent` (a 64-bit `UUID` that stays the same across saves).
 
@@ -71,18 +72,35 @@ entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
 ```
 
 - `NativeScriptComponent` is data: a list of factories plus the instances they made. Instances are created on the scene's next update, live on the heap, and hold their `Entity` by value.
-- Don't add or remove `NativeScriptComponent`s from inside a script's `OnCreate`/`OnUpdate`. The script system is iterating over them at that point.
+- Don't add or remove `NativeScriptComponent`s from inside a script's `OnCreate`/`OnUpdate`. The script system is iterating over them at that point ([#40](https://github.com/joelnl74/Hydro/issues/40)).
+- `Scene::DestroyEntity` calls `OnDestroy` on the entity's scripts before removing it.
+
+## Saving scenes and prefabs
+
+Scenes and prefabs are YAML files written with yaml-cpp.
+
+| File | Written by | Holds |
+| --- | --- | --- |
+| `.hyscene` | `SceneSerializer` | The scene name and every entity that has an `IDComponent` |
+| `.hyprefab` | `PrefabSerializer` | One entity and its components, to spawn copies of |
+
+- **One place per component.** `EntitySerializer` writes and reads every component for both file types. A new component that should be saved goes into `EntitySerializer::Serialize` and `EntitySerializer::Deserialize`, and nowhere else.
+- **Only entities made with `CreateEntity` are saved.** Raw registry entities without an `IDComponent`, such as the editor's galaxy stars, are runtime-only.
+- **UUIDs.** Loading a scene keeps the saved UUIDs. Instantiating a prefab gives each copy a new UUID, so copies never clash.
+- **Missing fields keep their defaults**, so older files still load after a component gains a field.
+- Native scripts aren't saved yet ([#43](https://github.com/joelnl74/Hydro/issues/43)).
 
 ## Adding a feature
 
 1. **Component**: add a plain struct to `Components.h` (engine) or to your application (game-only data, like `GalaxyStar`).
 2. **System**: write a function over a view. Engine systems are called from `Scene::OnUpdate`; application systems from your layer's `OnUpdate`.
 3. **Rendering**: submit through `Renderer2D` from a render system; never record Vulkan commands in a system.
-4. **Editor**: show or edit the component in an editor window.
+4. **Saving**: if the component should persist, add it to `EntitySerializer` (both directions).
+5. **Editor**: show and edit the component in the inspector window.
 
 ## Known gaps
 
-- Scripts get a delta time of `0.0f`; the application loop doesn't pass frame time to `Scene::OnUpdate` yet.
-- `SceneRenderer::RenderScene` uses an owning group, not a view.
-- `Scene::m_Registry` is public.
-- There is no `DestroyEntity`, no parent/child hierarchy and no scene serialization yet.
+- Scripts get a delta time of `0.0f`; the application loop doesn't pass frame time to `Scene::OnUpdate` yet ([#37](https://github.com/joelnl74/Hydro/issues/37)).
+- `SceneRenderer::RenderScene` uses an owning group, not a view, and `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
+- Native scripts aren't serialized ([#43](https://github.com/joelnl74/Hydro/issues/43)).
+- There is no parent/child hierarchy yet.
