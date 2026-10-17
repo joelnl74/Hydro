@@ -48,7 +48,7 @@ namespace Hydro
 	void EditorLayer::OnAttach()
 	{
 		m_Scene = CreateRef<Scene>("Scene", false);
-		m_SceneRenderer = new SceneRenderer(m_Scene);
+		m_SceneRenderer = CreateScope<SceneRenderer>(m_Scene);
 		m_Scene->Init();
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
@@ -143,12 +143,19 @@ namespace Hydro
 
 	void EditorLayer::OnDetach()
 	{
+		// Release everything OnAttach created, here rather than in the destructor:
+		// Application::Shutdown detaches layers while the renderer is still alive.
+		m_ProjectWindow = nullptr;
+		m_InspectorWindow = nullptr;
+		m_StatsWindow = nullptr;
+		m_HierarchyWindow = nullptr;
+		m_SceneRenderer.reset();
+		m_Scene = nullptr;
 	}
 
 	void EditorLayer::OnUpdate(float deltaTime)
 	{
-		auto now = std::chrono::steady_clock::now();
-
+		// deltaTime comes from the Time subsystem (Time::GetDeltaTime()), passed in by Application::Run.
 		m_Scene->OnUpdate(deltaTime);
 		UpdateGalaxy(deltaTime);
 		m_SceneRenderer->RenderScene();

@@ -10,22 +10,26 @@
 
 namespace Hydro
 {
-	// Owns the GPU context, the swapchain and the per-frame resources, and runs one frame:
-	// acquire -> record (scene passes, then the present pass) -> submit -> present.
+	// Renderer subsystem. Owns the GPU context, the swapchain and the per-frame resources, and runs
+	// one frame: acquire -> record (scene passes, then the present pass) -> submit -> present.
+	//
+	// Explicit lifetime: Application calls Init after the window and Shutdown before it. Init starts
+	// the renderer's parts in order (context, swapchain, frames, allocator, Renderer2D, Renderer3D)
+	// and Shutdown stops them in reverse.
 	class Renderer
 	{
 	public:
 		using PresentPassCallback = std::function<void(VkCommandBuffer)>;
 
-		static void Create(Window& window);
-		static void ShutDown();
+		static void Init(Window& window);
+		static void Shutdown();
 
 		static void RenderFrame();
 		static void OnWindowResize(uint32_t width, uint32_t height);
 		static void WaitIdle();
 
 		// Rebuild shaders when their source files change (checked a few times per second).
-		// On by default, except in Dist builds. Can be set before Create().
+		// On by default, except in Dist builds. Can be set before Init().
 		static void SetShaderHotReload(bool enabled) { s_ShaderHotReload = enabled; }
 		static bool IsShaderHotReloadEnabled() { return s_ShaderHotReload; }
 
@@ -36,15 +40,10 @@ namespace Hydro
 		static uint32_t GetRenderFrame() { return s_Instance->m_Frames.GetFrameIndex(); }
 		static VkCommandBuffer GetCurrentCommandBuffer() { return s_Instance->m_Frames.GetCommandBuffer(); }
 
-		// CPU time of the last RenderFrame: fence wait + acquire + recording, and submit + present.
-		static float GetLastRecordMs() { return s_Instance->m_LastRecordMs; }
-		static float GetLastPresentMs() { return s_Instance->m_LastPresentMs; }
-
 		static Ref<VulkanRendererContext> GetRendererContext() { return s_Instance->m_RendererContext; }
 		static Ref<VulkanSwapChain> GetVulkanSwapChain() { return s_Instance->m_SwapChain; }
 
 	private:
-		void Init(Window& window);
 		bool BeginFrame(uint32_t& outImageIndex);
 		void EndFrame(uint32_t imageIndex);
 		bool RecreateSwapChain();
@@ -62,8 +61,5 @@ namespace Hydro
 		uint32_t m_Width = 0;
 		uint32_t m_Height = 0;
 		bool m_SwapChainDirty = false;
-
-		float m_LastRecordMs = 0.0f;
-		float m_LastPresentMs = 0.0f;
 	};
 }

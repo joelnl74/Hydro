@@ -1,27 +1,27 @@
 #pragma once
 #include "Hydro/Core/Base.h"
-#include <sstream>
+
+#include <string>
 
 namespace Hydro
 {
-	struct WindowProps
+	struct WindowSpecification
 	{
-		std::string Title;
-		uint32_t Width;
-		uint32_t Height;
-
-		WindowProps(const std::string& title = "Hydro Engine",
-			uint32_t width = 1280,
-			uint32_t height = 720)
-			: Title(title), Width(width), Height(height)
-		{
-		}
+		std::string Title = "Hydro Engine";
+		uint32_t Width = 1280;
+		uint32_t Height = 720;
+		bool VSync = true;
 	};
 
+	// Window subsystem. Window::Create only picks the platform implementation; nothing is opened
+	// until Init, and everything is released in Shutdown (never in the destructor).
 	class Window
 	{
 	public:
 		virtual ~Window() = default;
+
+		virtual void Init(const WindowSpecification& specification) = 0;
+		virtual void Shutdown() = 0;
 
 		virtual void OnUpdate() = 0;
 
@@ -34,9 +34,6 @@ namespace Hydro
 
 		virtual void* GetNativeWindow() const = 0;
 
-		static Scope<Window> Create(const WindowProps& props = WindowProps());
+		static Scope<Window> Create();
 	};
 }
-
-
-

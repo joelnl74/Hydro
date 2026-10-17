@@ -3,6 +3,7 @@
 // CORE
 #include "Hydro/Core/Application.h"
 #include "Hydro/Core/Input.h"
+#include "Hydro/Core/Time.h"
 #include "Hydro/Core/Layer.h"
 
 // EVENTS.

@@ -6,6 +6,7 @@ Read this first, then:
 
 - [Resource creation](ResourceCreation.md) — how GPU and engine objects are described and created (Parameter Object pattern).
 - [Scene, ECS and systems](SceneAndECS.md) — how scenes, entities, components and systems fit together.
+- [Subsystems](Subsystems.md) — startup and shutdown order, the lifecycle rules, and how engine services are named.
 
 ## Projects
 
@@ -20,17 +21,40 @@ An application defines `Hydro::CreateApplication()`, includes `Hydro/Core/EntryP
 class MyApp : public Hydro::Application
 {
 public:
+    MyApp(const Hydro::ApplicationSpecification& spec) : Application(spec) {}
     void OnInit() override { PushLayer(new MyGameLayer()); }
 };
 
-Hydro::Application* Hydro::CreateApplication() { return new MyApp(); }
+Hydro::Application* Hydro::CreateApplication()
+{
+    Hydro::ApplicationSpecification spec;
+    spec.Name = "My Game";
+    spec.MainWindow.Title = "My Game";
+    return new MyApp(spec);
+}
 ```
+
+## Startup and shutdown
+
+Everything is started and stopped explicitly; constructors and destructors do no engine work. `main` calls `Init` → `Run` → `Shutdown` on the application, and the application starts its **subsystems** in a fixed order and stops them in exactly the reverse order:
+
+| Init | Shutdown |
+| --- | --- |
+| 1. `Log` | 7. client `OnShutdown` |
+| 2. `Time` | 6. wait for the GPU, detach layers (ImGui included) |
+| 3. `EventDispatcher` | 5. `Renderer` |
+| 4. `Window` | 4. `Window` |
+| 5. `Renderer` (context, swapchain, frames, allocator, `Renderer2D`, `Renderer3D`) | 3. `EventDispatcher` |
+| 6. `ImGuiLayer` overlay | 2. `Time` |
+| 7. client `OnInit` (pushes layers) | 1. `Log` |
+
+The rules, the vocabulary (subsystem, part, layer, system, resource) and how to name new subsystems are in [Subsystems](Subsystems.md).
 
 ## Source layout (`Hydro/src/Hydro`)
 
 | Folder | Responsibility | May depend on |
 | --- | --- | --- |
-| `Core` | Application, layers, window interface, logging, input, UUID, `FileWatcher` | — |
+| `Core` | Application, layers, window interface, logging (`Log`), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core |
@@ -43,16 +67,18 @@ Applications include `Hydro.h` and should not include `Platform/Vulkan` headers 
 
 ## The frame
 
-`Application::Run` does the same steps every frame:
+`Application::Run` does the same steps every frame, each timed by the `Time` subsystem as a `FramePhase`:
 
 1. **Events**: `Window::OnUpdate` polls GLFW; events go to the application, then to layers from the top down.
 2. **UI**: `ImGuiLayer::Begin`, every layer's `OnImGuiRender`, then `ImGuiLayer::End`.
-3. **Update**: every layer's `OnUpdate`. A layer updates its scene here (scripts, its own systems) and submits draw calls (`SceneRenderer::RenderScene` → `Renderer2D::DrawQuad`). Nothing touches the GPU yet.
+3. **Update**: every layer's `OnUpdate(Time::GetDeltaTime())`. A layer updates its scene here (scripts, its own systems) and submits draw calls (`SceneRenderer::RenderScene` → `Renderer2D::DrawQuad`). Nothing touches the GPU yet.
 4. **Render**: `Renderer::RenderFrame` records and submits the whole frame in **one** command buffer:
    1. wait for this frame-in-flight's fence, acquire a swapchain image;
    2. `Renderer2D::Render` — the offscreen 2D pass (batched quads). Before recording it applies a pending viewport resize and, when hot reload is on, rebuilds its shader and pipeline if a shader source changed (see [Shaders](#shaders));
    3. the swapchain pass — ImGui draws the editor UI, including the viewport that samples the 2D image;
    4. submit, present.
+
+   The renderer reports steps 1–3 to `Time` as the `Render` phase and step 4 as `Present`.
 5. **Platform windows**: ImGui windows dragged outside the main window are drawn.
 
 While the window is minimised, step 4 is skipped and the queued quads are discarded.
@@ -89,6 +115,8 @@ Shaders live as GLSL in the application's `assets/shaders` folder and are refere
 - Members `m_Name`, statics `s_Name`, types and methods `PascalCase`.
 - No logical-not operator: write `== false` for booleans and `== nullptr` for pointers.
 - Check Vulkan results with `VK_CHECK_RESULT(...)`.
+- Subsystems and their parts have `Init` / `Shutdown` (never `Create` / `ShutDown` / `Destroy`); hooks the engine calls on client code start with `On`. See [Subsystems](Subsystems.md).
+- Debug checks use `HY_CORE_ASSERT(condition, message)` from `Core/Assert.h`.
 - Includes use forward slashes (`#include "Hydro/Core/Base.h"`), and every header has `#pragma once`.
 
 ## Known gaps
@@ -100,3 +128,4 @@ These are where the code does not yet match the rules above. Fix them when you t
 - Most Vulkan wrappers still have a manual `Destroy()` instead of a destructor (see [Resource creation](ResourceCreation.md#ownership)).
 - Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s quad shader is watched; there is no shader library yet.
 - `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).
+- `VulkanDevice` and `VulkanSwapChain` still do their setup in the constructor (+ `Create`) instead of `Init` (see [Subsystems](Subsystems.md#known-gaps)).

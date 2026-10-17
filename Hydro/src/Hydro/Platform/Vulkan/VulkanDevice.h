@@ -25,7 +25,7 @@ namespace Hydro
 		bool IsWideLinesEnabled() const { return m_WideLinesEnabled; }
 
 		void WaitIdle() const;
-		void ShutDown();
+		void Shutdown();
 
 	private:
 		VkDevice m_LogicalDevice = VK_NULL_HANDLE;

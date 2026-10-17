@@ -6,7 +6,7 @@ namespace Hydro
 	{
 	public:
 		static void Init();
-		static void ShutDown();
+		static void Shutdown();
 
 		static void Begin();
 		static void End();

@@ -4,8 +4,7 @@
 #include "Renderer2D.h"
 #include "Renderer3D.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
-
-#include <chrono>
+#include "Hydro/Core/Time.h"
 
 namespace Hydro
 {
@@ -17,57 +16,63 @@ namespace Hydro
 	bool Renderer::s_ShaderHotReload = true;
 #endif
 
-	void Renderer::Create(Window& window)
-	{
-		s_Instance = new Renderer();
-		s_Instance->Init(window);
-	}
-
 	void Renderer::Init(Window& window)
 	{
-		m_Width = window.GetWidth();
-		m_Height = window.GetHeight();
+		HY_CORE_ASSERT(s_Instance == nullptr, "Renderer::Init called twice");
 
-		m_RendererContext = CreateRef<VulkanRendererContext>();
-		m_RendererContext->Init(window);
+		s_Instance = new Renderer();
+		Renderer& renderer = *s_Instance;
 
-		Ref<VulkanDevice> device = m_RendererContext->GetVulkanDevice();
+		renderer.m_Width = window.GetWidth();
+		renderer.m_Height = window.GetHeight();
 
-		m_SwapChain = CreateRef<VulkanSwapChain>(device, m_RendererContext->GetSurface());
-		if (m_SwapChain->Create(m_Width, m_Height, true) == false)
+		// 1. Instance, surface, device.
+		renderer.m_RendererContext = CreateRef<VulkanRendererContext>();
+		renderer.m_RendererContext->Init(window);
+
+		Ref<VulkanDevice> device = renderer.m_RendererContext->GetVulkanDevice();
+
+		// 2. Swapchain.
+		renderer.m_SwapChain = CreateRef<VulkanSwapChain>(device, renderer.m_RendererContext->GetSurface());
+		if (renderer.m_SwapChain->Create(renderer.m_Width, renderer.m_Height, true) == false)
 		{
 			// Started minimised: build it on the first frame the window has a size.
-			m_SwapChainDirty = true;
+			renderer.m_SwapChainDirty = true;
 		}
 
-		m_Frames.Init(device);
+		// 3. Per-frame command buffers and sync objects.
+		renderer.m_Frames.Init(device);
 
+		// 4. GPU memory allocator.
 		VulkanAllocator::Init(device);
 
 		// Offscreen targets need a non-zero size even if the window starts minimised.
-		VkExtent2D extent = m_SwapChain->GetExtent();
-		uint32_t targetWidth = extent.width > 0 ? extent.width : std::max(m_Width, 1u);
-		uint32_t targetHeight = extent.height > 0 ? extent.height : std::max(m_Height, 1u);
+		VkExtent2D extent = renderer.m_SwapChain->GetExtent();
+		uint32_t targetWidth = extent.width > 0 ? extent.width : std::max(renderer.m_Width, 1u);
+		uint32_t targetHeight = extent.height > 0 ? extent.height : std::max(renderer.m_Height, 1u);
 
+		// 5. Sub-renderers.
 		Renderer2D::Init(targetWidth, targetHeight);
 		Renderer3D::Init();
 	}
 
-	void Renderer::ShutDown()
+	void Renderer::Shutdown()
 	{
 		if (s_Instance == nullptr)
 			return;
 
 		WaitIdle();
 
-		Renderer2D::ShutDown();
-		Renderer3D::ShutDown();
+		// Exactly the reverse of Init.
+		Renderer3D::Shutdown();
+		Renderer2D::Shutdown();
 		VulkanAllocator::Shutdown();
 
-		s_Instance->m_Frames.ShutDown();
-		s_Instance->m_SwapChain->ShutDown();
+		s_Instance->m_Frames.Shutdown();
+		s_Instance->m_SwapChain->Shutdown();
 		s_Instance->m_SwapChain = nullptr;
-		s_Instance->m_RendererContext->ShutDown();
+		s_Instance->m_RendererContext->Shutdown();
+		s_Instance->m_RendererContext = nullptr;
 
 		delete s_Instance;
 		s_Instance = nullptr;
@@ -88,19 +93,17 @@ namespace Hydro
 
 	void Renderer::RenderFrame()
 	{
-		using Clock = std::chrono::steady_clock;
-		auto Ms = [](Clock::time_point a, Clock::time_point b) { return std::chrono::duration<float, std::milli>(b - a).count(); };
-
 		Renderer* renderer = s_Instance;
-		const Clock::time_point frameStart = Clock::now();
-		renderer->m_LastRecordMs = 0.0f;
-		renderer->m_LastPresentMs = 0.0f;
+
+		// Render = fence wait + acquire + recording; Present = submit + present (includes vsync).
+		Time::BeginPhase(FramePhase::Render);
 
 		uint32_t imageIndex = 0;
 		if (renderer->BeginFrame(imageIndex) == false)
 		{
 			// Nothing will be drawn this frame; drop what was queued so it does not pile up.
 			Renderer2D::DiscardFrame();
+			Time::EndPhase(FramePhase::Render);
 			return;
 		}
 
@@ -116,12 +119,11 @@ namespace Hydro
 		renderer->m_SwapChain->EndRenderPass(commandBuffer);
 
 		renderer->m_Frames.EndCommandBuffer();
-		const Clock::time_point afterRecord = Clock::now();
+		Time::EndPhase(FramePhase::Render);
 
+		Time::BeginPhase(FramePhase::Present);
 		renderer->EndFrame(imageIndex);
-
-		renderer->m_LastRecordMs = Ms(frameStart, afterRecord);
-		renderer->m_LastPresentMs = Ms(afterRecord, Clock::now());
+		Time::EndPhase(FramePhase::Present);
 	}
 
 	bool Renderer::BeginFrame(uint32_t& outImageIndex)

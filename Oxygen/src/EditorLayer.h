@@ -45,7 +45,7 @@ namespace Hydro
 
 	private:
 		Hydro::Ref<Scene> m_Scene;
-		Hydro::SceneRenderer* m_SceneRenderer;
+		Hydro::Scope<SceneRenderer> m_SceneRenderer;
 		std::filesystem::path m_EditorScenePath; // empty until the scene is saved / opened
 
 		// Editor Windows.
@@ -55,7 +55,6 @@ namespace Hydro
 		Hydro::Ref<ProjectWindow> m_ProjectWindow;
 
 		glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
-		std::chrono::steady_clock::time_point m_LastFrameTime = std::chrono::steady_clock::now();
 		float m_Time = 0.0f;
 	};
 }

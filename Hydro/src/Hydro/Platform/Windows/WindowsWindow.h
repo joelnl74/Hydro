@@ -9,8 +9,11 @@ namespace Hydro
 	class WindowsWindow : public Window
 	{
 	public:
-		WindowsWindow(const WindowProps& props);
+		WindowsWindow() = default;
 		virtual ~WindowsWindow();
+
+		void Init(const WindowSpecification& specification) override;
+		void Shutdown() override;
 
 		void OnUpdate() override;
 
@@ -25,16 +28,13 @@ namespace Hydro
 		virtual GLFWwindow* GetGLFWWindow() const { return m_Window; }
 
 	private:
-		virtual void Init(const WindowProps& props);
-		virtual void Shutdown();
-	private:
-		GLFWwindow* m_Window;
+		GLFWwindow* m_Window = nullptr;
 
 		struct WindowData
 		{
 			std::string Title;
-			unsigned int Width, Height;
-			bool VSync;
+			unsigned int Width = 0, Height = 0;
+			bool VSync = true;
 		};
 
 		WindowData m_Data;

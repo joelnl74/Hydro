@@ -10,28 +10,27 @@ int main(int argc, char** argv);
 
 namespace Hydro
 {
-	// CPU time spent in each phase of the last frame, in milliseconds.
-	struct FrameTimings
+	struct ApplicationSpecification
 	{
-		float EventsMs = 0.0f;          // window/OS event polling
-		float ImGuiMs = 0.0f;           // building the editor UI (layers' OnImGuiRender)
-		float UpdateMs = 0.0f;          // game/scene logic (layers' OnUpdate)
-		float RenderMs = 0.0f;          // frame fence wait + acquire + recording (Renderer2D batches, ImGui)
-		float PresentMs = 0.0f;         // queue submit + present (includes vsync wait)
-		float PlatformWindowsMs = 0.0f; // ImGui windows dragged outside the main window
-		float FrameMs = 0.0f;           // whole loop iteration
-		uint64_t FrameCount = 0;
-		double UptimeSeconds = 0.0;
+		std::string Name = "Hydro Application";
+		WindowSpecification MainWindow;
 	};
 
+	// Owns the subsystems and runs the loop. Its lifetime is three explicit steps, called by main()
+	// (EntryPoint.h): Init() -> Run() -> Shutdown(). The constructor and destructor do no work.
+	//
+	// Init starts the subsystems in a fixed order and Shutdown stops them in exactly the reverse
+	// order; see docs/Architecture.md "Startup and shutdown".
 	class Application
 	{
 	public:
-		Application();
+		Application(const ApplicationSpecification& specification = ApplicationSpecification());
 		virtual ~Application();
+
+		// Hooks for the client application. OnInit runs after every engine subsystem is up;
+		// OnShutdown runs first thing in Shutdown, while everything is still alive.
 		virtual void OnInit() {}
 		virtual void OnShutdown() {}
-		virtual void OnUpdate() {}
 		virtual void OnEvent(Event& e);
 
 		void PushLayer(Layer* layer);
@@ -39,28 +38,28 @@ namespace Hydro
 		void Quit();
 
 		inline Window& GetWindow() { return *m_Window; }
-		const FrameTimings& GetFrameTimings() const { return m_FrameTimings; }
+		const ApplicationSpecification& GetSpecification() const { return m_Specification; }
 		static inline Application& Get() { return *s_Instance; }
 
 	private:
+		void Init();
 		void Run();
-		void ShutDown();
+		void Shutdown();
 
 	private:
+		ApplicationSpecification m_Specification;
+
 		Scope<Window> m_Window;
 		LayerController m_LayerStack;
+		ImGuiLayer* m_ImGuiLayer = nullptr; // owned by m_LayerStack
 
-		bool m_Running = true;
+		bool m_Running = false;
 		bool m_Minimized = false;
-		float m_LastFrameTime = 0.0f;
-		FrameTimings m_FrameTimings;
 
 	private:
 		static Application* s_Instance;
-		ImGuiLayer *m_imGuiLayer;
 		friend int ::main(int argc, char** argv);
 	};
 
 	Application* CreateApplication();
 }
-

@@ -42,7 +42,7 @@ namespace Hydro
 	{
 	public:
 		static void Init(uint32_t width, uint32_t height);
-		static void ShutDown();
+		static void Shutdown();
 
 		// Queue a quad for this frame. Only writes CPU-side vertex data, so it can be
 		// called any time before Render(). When the current batch is full a new batch

@@ -44,11 +44,11 @@ namespace Hydro
 		s_VulkanDevice = CreateRef<VulkanDevice>(physicalDevice);
 	}
 
-	void VulkanRendererContext::ShutDown()
+	void VulkanRendererContext::Shutdown()
 	{
 		if (s_VulkanDevice)
 		{
-			s_VulkanDevice->ShutDown();
+			s_VulkanDevice->Shutdown();
 			s_VulkanDevice = nullptr;
 		}
 

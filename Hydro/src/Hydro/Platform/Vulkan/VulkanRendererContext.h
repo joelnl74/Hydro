@@ -15,7 +15,7 @@ namespace Hydro
 		~VulkanRendererContext() = default;
 
 		void Init(Window& window);
-		void ShutDown();
+		void Shutdown();
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }

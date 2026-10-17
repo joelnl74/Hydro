@@ -129,7 +129,7 @@ namespace Hydro
 		}
 	}
 	
-	void Renderer3D::ShutDown()
+	void Renderer3D::Shutdown()
 	{
 		if (s_Data == nullptr)
 		{

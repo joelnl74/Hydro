@@ -16,21 +16,18 @@ namespace Hydro
 		HY_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
 	}
 
-	WindowsWindow::WindowsWindow(const WindowProps& props)
-	{
-		Init(props);
-	}
-
 	WindowsWindow::~WindowsWindow()
 	{
-		Shutdown();
+		HY_CORE_ASSERT(m_Window == nullptr, "WindowsWindow destroyed without Shutdown()");
 	}
 
-	void WindowsWindow::Init(const WindowProps& props)
+	void WindowsWindow::Init(const WindowSpecification& specification)
 	{
-		m_Data.Title = props.Title;
-		m_Data.Width = props.Width;
-		m_Data.Height = props.Height;
+		HY_CORE_ASSERT(m_Window == nullptr, "WindowsWindow::Init called twice");
+
+		m_Data.Title = specification.Title;
+		m_Data.Width = specification.Width;
+		m_Data.Height = specification.Height;
 
 		if (s_GLFWWindowCount == 0)
 		{
@@ -40,11 +37,11 @@ namespace Hydro
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+		m_Window = glfwCreateWindow((int)specification.Width, (int)specification.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		++s_GLFWWindowCount;
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(true);
+		SetVSync(specification.VSync);
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
@@ -139,7 +136,11 @@ namespace Hydro
 
 	void WindowsWindow::Shutdown()
 	{
+		if (m_Window == nullptr)
+			return;
+
 		glfwDestroyWindow(m_Window);
+		m_Window = nullptr;
 		--s_GLFWWindowCount;
 
 		if (s_GLFWWindowCount == 0)

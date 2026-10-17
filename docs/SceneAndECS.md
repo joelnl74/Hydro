@@ -2,6 +2,8 @@
 
 A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are IDs, components are plain data, and behaviour lives in **systems**: functions that run over every entity with a given set of components, in a fixed order, each frame.
 
+"System" in Hydro always means an ECS system like this. Engine-wide services with a lifetime (`Renderer`, `Log`, `Time`, ...) are **subsystems**; see [Subsystems](Subsystems.md). Systems get the frame's delta time as a parameter; it comes from `Time::GetDeltaTime()`.
+
 ## The pieces
 
 | Piece | Where | What it is |

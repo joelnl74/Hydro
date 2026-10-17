@@ -221,7 +221,7 @@ namespace Hydro
 		}
 	}
 
-	void Renderer2D::ShutDown()
+	void Renderer2D::Shutdown()
 	{
 		if (s_Data == nullptr)
 			return;

@@ -31,8 +31,6 @@ The suffix says what role the struct plays.
 
 For example, `ImageSpecification` describes the image resource, while `TextureProperties` describes how a texture made from it is sampled.
 
-`WindowProps` predates this table; it is a `Specification` in role. New types follow the table.
-
 ## Rules
 
 1. **Plain aggregate.** Public fields with default values, no logic, no constructors beyond what aggregate initialisation gives you. A default-constructed spec must create something valid.
@@ -51,6 +49,8 @@ The object created from a spec owns its GPU handles:
 
 `VulkanImage`, `VulkanRenderPass` and `VulkanShader` follow this. Older wrappers (`VulkanPipeline`, buffers, `VullkanTexture`) still use a manual `Destroy()`. Move them over when you change them.
 
+This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `VulkanRendererContext`, `VulkanFrameContext`, ...) are started and stopped explicitly with `Init` / `Shutdown` instead; see [Subsystems](Subsystems.md).
+
 ## Current inventory
 
 | Struct | Used by | Status |
@@ -60,7 +60,8 @@ The object created from a spec owns its GPU handles:
 | `ShaderSpecification`, `ShaderInformation` | `VulkanShader` | In use. `path` is GLSL source (compiled with shaderc on creation, `#include` relative to the file) or a `.spv` file. Throws with the compiler output when a stage fails. Owns its modules (destructor). |
 | `PipelineSpecification` | `VulkanPipeline` | In use. All fields are applied, including `Blend` (`BlendMode`). `DescriptorSets` is an optional list in set-index order. `Wireframe` and `LineWidth` != 1 fall back with a warning when the GPU lacks `fillModeNonSolid` / `wideLines`. Depth state has no effect until a render pass has a depth attachment. |
 | `VulkanImageInfo` | `VulkanImage` | Output |
-| `WindowProps` | `Window::Create` | In use |
+| `WindowSpecification` (`Core/Window.h`) | `Window::Init` | In use (was `WindowProps`) |
+| `ApplicationSpecification` (`Core/Application.h`) | `Application` constructor | In use: application name and main window |
 | `ProjectConfig` | `Project` | In use |
 
 ## Adding a new resource

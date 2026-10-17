@@ -5,7 +5,7 @@ namespace Hydro
 {
 	LayerController::~LayerController()
 	{
-		Clear();
+		HY_CORE_ASSERT(m_Layers.empty(), "LayerController destroyed with layers still attached; call Clear() first");
 	}
 
 	void LayerController::Clear()

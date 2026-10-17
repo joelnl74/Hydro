@@ -70,7 +70,7 @@ namespace Hydro
 			vkDeviceWaitIdle(m_LogicalDevice);
 	}
 
-	void VulkanDevice::ShutDown()
+	void VulkanDevice::Shutdown()
 	{
 		if (m_LogicalDevice == VK_NULL_HANDLE)
 			return;

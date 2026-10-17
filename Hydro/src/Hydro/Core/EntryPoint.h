@@ -5,12 +5,12 @@ extern Hydro::Application* Hydro::CreateApplication();
 
 int main(int argc, char** argv)
 {
-	// Create application.
-	auto app = Hydro::CreateApplication();
+	// The application's lifetime is explicit: construction and destruction do no engine work.
+	Hydro::Application* app = Hydro::CreateApplication();
 
-	// Run application.
-	app->Run();
+	app->Init();     // start subsystems in order, then the client's OnInit
+	app->Run();      // the frame loop, until Quit() or the window closes
+	app->Shutdown(); // client's OnShutdown, then subsystems in reverse order
 
-	// Clean application after run.
 	delete app;
 }
