@@ -123,7 +123,7 @@ namespace Hydro
 
 			specification.DescriptorSets = { s_Data->QuadDescriptorSet };
 			specification.shader = s_Data->Shader;
-			// Matches the previous hard-coded state; enable once the mesh winding is checked against VK_FRONT_FACE_CLOCKWISE.
+			// Enable once the mesh winding is checked: the front face is counter-clockwise (see Camera.h).
 			specification.BackfaceCulling = false;
 
 			s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);

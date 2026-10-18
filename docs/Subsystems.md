@@ -12,7 +12,7 @@ Use these words, in code, comments, docs and pull requests, with these meanings 
 | **Subsystem** | An engine-wide service. One per application, usually a static facade | `Init` / `Shutdown`, called by `Application` in a fixed order | `Log`, `Time`, `EventDispatcher`, `Window`, `Renderer` |
 | **Part** | A piece a subsystem owns and starts itself | `Init` / `Shutdown`, called by its owning subsystem | `VulkanRendererContext`, `VulkanFrameContext`, `VulkanAllocator`, `Renderer2D`, `Renderer3D` |
 | **Layer** | An application feature in the layer stack | `OnAttach` / `OnDetach`, called by the layer stack | `EditorLayer`, `ImGuiLayer` |
-| **System** | An ECS function over a `registry.view<...>()`, run every frame. No state, no lifetime | none | `UpdateSpin`, the script system in `Scene::OnUpdate` |
+| **System** | An ECS function over a `registry.view<...>()`, run every frame. No state, no lifetime | none | `UpdateSpin`, the script system in `Scene::OnUpdateRuntime` |
 | **Resource** | A GPU or engine object made from a `Specification` | constructor / destructor (RAII), see [Resource creation](ResourceCreation.md) | `VulkanImage`, `VulkanPipeline`, `VulkanTexture` |
 | **Hook** | A virtual the engine calls on client code. Named `On...` | called by its owner | `Application::OnInit`, `Layer::OnUpdate` |
 
@@ -64,7 +64,7 @@ Inside `Renderer::Init`, and reversed in `Renderer::Shutdown`:
 | 2 | `VulkanSwapChain` (constructor + `Create`) | Swapchain, present render pass |
 | 3 | `VulkanFrameContext::Init` | Per-frame command buffers, fences, semaphores |
 | 4 | `VulkanAllocator::Init` | VMA allocator |
-| 5 | `Renderer2D::Init` | 2D pipeline, batches, offscreen target |
+| 5 | `Renderer2D::Init` | Quad pipeline, shader + hot reload, shared index buffer, white texture, timestamps. Targets, cameras and batches belong to `RenderView`s, which the application creates |
 | 6 | `Renderer3D::Init` | 3D pipeline |
 
 Shutdown waits for the GPU to be idle before anything GPU-side is released (`Renderer::WaitIdle()` before the layers are detached, and again at the start of `Renderer::Shutdown`).
@@ -128,7 +128,7 @@ Every current name was checked against the table. Only one changed:
 
 | Area | Name | Status | Where it goes in the order |
 | --- | --- | --- | --- |
-| Logging | `Log` | Done | 1 |
+| Logging | `Log` (engine + client loggers, terminal, `logs/*.log`, in-memory history for the editor Console) | Done | 1 |
 | Frame clock and timings | `Time` | Done | 2 |
 | Events | `EventDispatcher` | Done | 3 |
 | Window and OS input | `Window` (`WindowsWindow`) | Done | 4 |

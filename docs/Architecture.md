@@ -13,7 +13,7 @@ Read this first, then:
 | Project | Kind | What it is |
 | --- | --- | --- |
 | `Hydro` | Static library | The engine: core, events, platform, renderer, scene, project |
-| `Oxygen` | Executable | The editor. An `Application` subclass that pushes an `EditorLayer` |
+| `Oxygen` | Executable | The editor. An `Application` subclass that registers its example scripts and pushes an `EditorLayer` (see [The editor](#the-editor-oxygen)) |
 
 An application defines `Hydro::CreateApplication()`, includes `Hydro/Core/EntryPoint.h` once, and adds its features as `Layer`s:
 
@@ -59,7 +59,7 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core |
 | `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `RenderView`, `SceneRenderer`, `Camera`, `SceneCamera`, `EditorCamera`, `Image.h`) | Core, Platform/Vulkan |
-| `Scene` | Scene, entities, components, scripts, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission only) |
+| `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission only) |
 | `Project` | Project file (`.hyproj`, YAML) and settings | Core, Utils, Renderer (`RendererSettings` only) |
 | `Utils` | Platform file dialogs, shared YAML conversions for glm types | Core |
 | `ImGUI` | ImGui layer | Core, Renderer |
@@ -96,7 +96,7 @@ Renderer:
 4. **Render**: `Renderer::RenderFrame` records and submits the whole frame in **one** command buffer:
    1. wait for this frame-in-flight's fence, acquire a swapchain image;
    2. `Renderer2D::Render` — one offscreen 2D pass per `RenderView` begun this frame (its batched quads, seen through its camera), each cleared to `RendererSettings::ClearColor`. It applies each view's pending resize before its pass, and first rebuilds its pipeline if `Wireframe` changed and, when hot reload is on, rebuilds its shader and pipeline if a shader source changed (see [Shaders](#shaders));
-   3. the swapchain pass — ImGui draws the editor UI, including the viewport that samples the 2D image;
+   3. the swapchain pass — ImGui draws the editor UI, including the Editor and Game windows, which sample their views' images;
    4. submit, present.
 
    The renderer reports steps 1–3 to `Time` as the `Render` phase and step 4 as `Present`.
@@ -124,6 +124,23 @@ Renderer2D::EndScene();
 - Views are resources: the application creates them after `Renderer::Init` and destroys them while the renderer is alive (Oxygen does it in `OnDetach`).
 
 Scenes are drawn through a `CameraComponent` at runtime or the `EditorCamera` in the editor; see [Scene, ECS and systems](SceneAndECS.md#cameras).
+
+## The editor (Oxygen)
+
+`EditorLayer` owns the editor scene, the play copy, two `RenderView`s, the `EditorCamera` and the editor windows. Windows are `<Name>Window` classes in `Oxygen/src/EditorWindows`, listed under **View**.
+
+| Window | What it does |
+| --- | --- |
+| **Editor** | The active scene through the editor camera (Camera menu: 2D/orthographic, reset). Mouse input reaches the camera only while it is hovered |
+| **Game** | The active scene through its primary `CameraComponent`; its size is the scene's viewport |
+| Top bar | **Play / Stop**, **Pause / Resume**, **Step** (see [Play mode](SceneAndECS.md#play-mode)) |
+| **Hierarchy** | Entities with a Tag and ID; create, delete, save as prefab, drop prefabs |
+| **Inspector** | The selected entity's components, edited with typed input fields; Add Component (including registered scripts) |
+| **Project** | The project's asset folder; open scenes, drag prefabs into the scene |
+| **Console** | The `Log` history (engine and client), with level toggles, a text filter and auto-scroll |
+| **Stats**, **Render Settings**, **Project Settings** | Frame timings and renderer stats; live `RendererSettings`; project name and start scene |
+
+Only visible windows are rendered: a hidden Editor or Game tab doesn't begin its view that frame.
 
 ## Vulkan ownership
 

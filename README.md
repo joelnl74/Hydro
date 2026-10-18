@@ -21,7 +21,15 @@ If the repository was cloned non-recursively previously, use git submodule updat
 ## Documentation
 - [Architecture](docs/Architecture.md): projects, source layout, the frame, Vulkan ownership, conventions
 - [Resource creation](docs/ResourceCreation.md): how resources are described and created (Parameter Object pattern)
-- [Scene, ECS and systems](docs/SceneAndECS.md): entities, components, systems and scripts
+- [Scene, ECS and systems](docs/SceneAndECS.md): entities, components, systems, cameras, play mode and scripts
+- [Subsystems](docs/Subsystems.md): startup and shutdown order, lifecycle rules, naming
+- The [wiki](https://github.com/joelnl74/Hydro/wiki) mirrors these and adds the component reference, known issues and the roadmap
+
+## What works today
+- Vulkan 2D renderer: batched quads, several render views per frame, shader hot reload, wireframe, GPU timings
+- Scenes with an ECS (EnTT): transforms, sprites, cameras, C++ native scripts; saved as YAML scenes and prefabs
+- Oxygen editor: Editor and Game views, play / pause / step / stop, hierarchy, inspector, project browser, console, stats and settings windows
+- Projects (`.hyproj`) with their own render settings and start scene
 
 ## Main features to come:
 - Fast 2D rendering (UI, particles, sprites, etc.)

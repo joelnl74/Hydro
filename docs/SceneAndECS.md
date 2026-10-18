@@ -10,7 +10,7 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | --- | --- | --- |
 | `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdateRuntime` / `OnUpdateEditor`; knows its viewport size (`OnViewportResize`) and primary camera (`GetPrimaryCameraEntity`) |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
-| Components | `Scene/Components/Components.h` | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `CameraComponent`, `NativeScriptComponent` |
+| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `CameraComponent`, `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
 | `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
@@ -103,7 +103,7 @@ protected:
     void OnUpdate(float deltaTime) override
     {
         auto& transform = GetComponent<TransformComponent>();
-        transform.Translation.x += 100.0f * deltaTime;
+        transform.Translation.x += 2.0f * deltaTime; // world units per second
     }
 };
 
@@ -141,7 +141,8 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 2. **System**: write a function over a view. Engine systems are called from `Scene::OnUpdateEditor` or `Scene::OnUpdateRuntime`; application systems from your layer's `OnUpdate`.
 3. **Rendering**: submit through `Renderer2D` from a render system; never record Vulkan commands in a system.
 4. **Saving**: if the component should persist, add it to `EntitySerializer` (both directions).
-5. **Editor**: show and edit the component in the inspector window.
+5. **Play mode**: if it should be in the play copy, add it to `CopyableComponents` in `Components.h`.
+6. **Editor**: show and edit the component in the inspector window.
 
 ## Known gaps
 
