@@ -65,6 +65,7 @@ namespace Hydro
 
 		m_HierarchyWindow = CreateRef<HierachyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
+		m_ConsoleWindow = CreateRef<ConsoleWindow>();
 		m_InspectorWindow = CreateRef<InspectorWindow>();
 		m_ProjectWindow = CreateRef<ProjectWindow>();
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
@@ -185,6 +186,7 @@ namespace Hydro
 		m_RenderSettingsWindow = nullptr;
 		m_ProjectWindow = nullptr;
 		m_InspectorWindow = nullptr;
+		m_ConsoleWindow = nullptr;
 		m_StatsWindow = nullptr;
 		m_HierarchyWindow = nullptr;
 		m_SceneRenderer.reset();
@@ -324,6 +326,7 @@ namespace Hydro
 
 			if (ImGui::BeginMenu("View"))
 			{
+				ImGui::MenuItem("Console", nullptr, &m_ConsoleWindow->IsOpen());
 				ImGui::MenuItem("Stats", nullptr, &m_StatsWindow->IsOpen());
 				ImGui::MenuItem("Render Settings", nullptr, &m_RenderSettingsWindow->IsOpen());
 				ImGui::MenuItem("Project Settings", nullptr, &m_ProjectSettingsWindow->IsOpen());
@@ -342,6 +345,8 @@ namespace Hydro
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
 
 		m_ProjectWindow->OnImguiRender(m_ActiveScene);
+		// After the Project window, which it docks next to the first time.
+		m_ConsoleWindow->OnImguiRender();
 
 		DrawEditorWindow();
 		DrawGameWindow();

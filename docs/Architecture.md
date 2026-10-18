@@ -54,7 +54,7 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 
 | Folder | Responsibility | May depend on |
 | --- | --- | --- |
-| `Core` | Application, `LayerStack` and layers, window interface, logging (`Log`), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
+| `Core` | Application, `LayerStack` and layers, window interface, logging (`Log`, which also keeps the last 5000 messages in memory for `Log::GetMessagesSince`; Oxygen's **Console** window shows them), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core |

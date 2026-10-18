@@ -2,6 +2,7 @@
 #include "Hydro.h"
 #include "EditorWindows/HierachyWindow.h"
 #include "EditorWindows/StatsWindow.h"
+#include "EditorWindows/ConsoleWindow.h"
 #include "EditorWindows/InspectorWindow.h"
 #include "EditorWindows/ProjectWindow.h"
 #include "EditorWindows/RenderSettingsWindow.h"
@@ -82,6 +83,7 @@ namespace Hydro
 		// Editor Windows.
 		Hydro::Ref<HierachyWindow> m_HierarchyWindow;
 		Hydro::Ref<StatsWindow> m_StatsWindow;
+		Hydro::Ref<ConsoleWindow> m_ConsoleWindow;
 		Hydro::Ref<InspectorWindow> m_InspectorWindow;
 		Hydro::Ref<ProjectWindow> m_ProjectWindow;
 		Hydro::Ref<RenderSettingsWindow> m_RenderSettingsWindow;
