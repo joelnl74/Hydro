@@ -2,6 +2,7 @@
 #include "Hydro.h"
 
 #include "EditorLayer.h"
+#include "Scripts/ExampleScripts.h"
 
 class OxygenEditorApplication : public Hydro::Application
 {
@@ -14,6 +15,9 @@ public:
 	// Engine subsystems are up when this runs; layers pushed here are detached in Application::Shutdown.
 	virtual void OnInit() override
 	{
+		// Scripts must be registered before the editor opens a scene that uses them.
+		Oxygen::RegisterExampleScripts();
+
 		PushLayer(new Hydro::EditorLayer());
 	}
 };

@@ -45,6 +45,11 @@ namespace Hydro
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
 
+		// Removes one of the entity's native scripts (or its whole NativeScriptComponent), calling
+		// OnDestroy on scripts that are running. Don't call these from inside a script callback.
+		void RemoveScript(Entity entity, size_t index);
+		void RemoveScripts(Entity entity);
+
 		const std::string& GetName() const { return m_Name; }
 		void SetName(const std::string& name) { m_Name = name; }
 

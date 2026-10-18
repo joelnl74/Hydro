@@ -95,6 +95,7 @@ namespace Hydro
 			for (const auto& script : scripts.get<const NativeScriptComponent>(sourceEntity).Scripts)
 			{
 				NativeScriptComponent::Script binding;
+				binding.Name = script.Name;
 				binding.Instantiate = script.Instantiate;
 				copied.Scripts.push_back(std::move(binding));
 			}
@@ -137,6 +138,35 @@ namespace Hydro
 		m_Registry.destroy(entity);
 	}
 	
+	void Scene::RemoveScript(Entity entity, size_t index)
+	{
+		if (entity.HasComponent<NativeScriptComponent>() == false)
+			return;
+
+		auto& scripts = entity.GetComponent<NativeScriptComponent>().Scripts;
+		if (index >= scripts.size())
+			return;
+
+		if (scripts[index].Instance != nullptr)
+			scripts[index].Instance->OnDestroy();
+
+		scripts.erase(scripts.begin() + index);
+	}
+
+	void Scene::RemoveScripts(Entity entity)
+	{
+		if (entity.HasComponent<NativeScriptComponent>() == false)
+			return;
+
+		for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+		{
+			if (script.Instance != nullptr)
+				script.Instance->OnDestroy();
+		}
+
+		entity.RemoveComponent<NativeScriptComponent>();
+	}
+
 	void Scene::OnUpdateRuntime(float deltaTime)
 	{
 		// 1. Native scripts. Instances are created lazily on their first update.
@@ -146,6 +176,10 @@ namespace Hydro
 			auto& scriptComponent = view.get<NativeScriptComponent>(entityHandle);
 			for (auto& script : scriptComponent.Scripts)
 			{
+				// Unknown script (not registered): kept so the scene saves it back, but it can't run.
+				if (script.Instantiate == nullptr)
+					continue;
+
 				if (script.Instance == nullptr)
 				{
 					script.Instance.reset(script.Instantiate());

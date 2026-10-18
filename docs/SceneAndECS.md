@@ -13,7 +13,7 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | Components | `Scene/Components/Components.h` | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `CameraComponent`, `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
 | `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
-| Scripts | `Scene/ScriptableEntity.h` | Per-entity C++ behaviour, run by the script system |
+| Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
 | Serialization | `Scene/SceneSerializer.h`, `Scene/PrefabSerializer.h`, `Scene/EntitySerializer.h` | Saves scenes (`.hyscene`) and prefabs (`.hyprefab`) as YAML |
 
 Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name) and an `IDComponent` (a 64-bit `UUID` that stays the same across saves).
@@ -107,10 +107,16 @@ protected:
     }
 };
 
-entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
+// Once, before any scene is loaded (Application::OnInit):
+Hydro::ScriptRegistry::Register<PlayerController>("PlayerController");
+
+// Then bind by type in code, or by name (what loading a scene and the editor do):
+entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>().Bind("Health");
 ```
 
-- `NativeScriptComponent` is data: a list of factories plus the instances they made. Instances are created on the scene's next update, live on the heap, and hold their `Entity` by value.
+- `NativeScriptComponent` is data: a list of scripts (name, factory, instance). An entity has one `NativeScriptComponent` but any number of scripts in it. Instances are created on the scene's next runtime update, live on the heap, and hold their `Entity` by value.
+- **`ScriptRegistry`** maps a name to a script's factory. Scenes and prefabs save the names (`NativeScriptComponent: { Scripts: [Spin, Bob] }`) and loading binds them again by name. Register every script before a scene that uses it is loaded; names must stay stable once saved. A script bound in code but not registered still runs, but isn't saved. A saved name that isn't registered is kept (so the file saves back unchanged) but doesn't run, and the editor shows it in red.
+- Remove scripts with `Scene::RemoveScript(entity, index)` / `Scene::RemoveScripts(entity)`, which call `OnDestroy` on running ones. Oxygen's inspector lists an entity's scripts, removes them, and adds registered ones (**Add Component > Script** or **Add Script**).
 - Don't add or remove `NativeScriptComponent`s from inside a script's `OnCreate`/`OnUpdate`. The script system is iterating over them at that point ([#40](https://github.com/joelnl74/Hydro/issues/40)).
 - `Scene::DestroyEntity` calls `OnDestroy` on the entity's scripts before removing it.
 
@@ -127,7 +133,7 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - **Only entities made with `CreateEntity` are saved.** Raw registry entities without an `IDComponent`, such as the editor's galaxy stars, are runtime-only.
 - **UUIDs.** Loading a scene keeps the saved UUIDs. Instantiating a prefab gives each copy a new UUID, so copies never clash.
 - **Missing fields keep their defaults**, so older files still load after a component gains a field.
-- Native scripts aren't saved yet ([#43](https://github.com/joelnl74/Hydro/issues/43)).
+- Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
 
 ## Adding a feature
 
@@ -141,5 +147,5 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - The selection is cleared on Play and Stop (there's no `GetEntityByUUID` yet to carry it over, S1).
-- Native scripts aren't serialized ([#43](https://github.com/joelnl74/Hydro/issues/43)).
+- Scripts must be compiled into the application and registered in code: there's no separate game module or hot reload, and scripts can't expose fields to the inspector yet.
 - There is no parent/child hierarchy yet.
