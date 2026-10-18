@@ -58,6 +58,7 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 | Struct | Used by | Status |
 | --- | --- | --- |
 | `ImageSpecification` (`Renderer/Image.h`) | `VulkanImage` | In use |
+| `RenderViewSpecification` (`Renderer/RenderView.h`) | `RenderView` | In use: initial size and a debug name. Resized with `RenderView::SetSize`, applied at its next render |
 | `TextureProperties` (`Renderer/Image.h`) | — | Defined, not consumed yet. `VullkanTexture` takes an empty `VulkanTextureSpecification` and hard-codes its sampler. Next step: textures take `ImageSpecification` + `TextureProperties` ([#34](https://github.com/joelnl74/Hydro/issues/34)). |
 | `ShaderSpecification`, `ShaderInformation` | `VulkanShader` | In use. `path` is GLSL source (compiled with shaderc on creation, `#include` relative to the file) or a `.spv` file. Throws with the compiler output when a stage fails. Owns its modules (destructor). |
 | `PipelineSpecification` | `VulkanPipeline` | In use. All fields are applied, including `Blend` (`BlendMode`). `DescriptorSets` is an optional list in set-index order. `Wireframe` and `LineWidth` != 1 fall back with a warning when the GPU lacks `fillModeNonSolid` / `wideLines`. Depth state has no effect until a render pass has a depth attachment. |

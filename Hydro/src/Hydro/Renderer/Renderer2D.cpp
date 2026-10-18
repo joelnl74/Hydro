@@ -18,7 +18,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "../Renderer/Camera.h"
 
 #include <array>
 #include <chrono>
@@ -43,6 +42,38 @@ namespace Hydro
 	// the GPU is using.
 	using PerFrameVertexBuffers = std::array<Ref<VulkanVertexBuffer>, MAX_FRAMES_IN_FLIGHT>;
 
+	// Everything one RenderView needs: its target, its camera and its quads.
+	struct RenderViewData
+	{
+		std::string DebugName;
+
+		// ---- Target ------------------------------------------------------------------
+		Scope<VulkanRenderPass> Target;
+		// Requested size (RenderView::SetSize). Applied at the start of the view's next render.
+		uint32_t RequestedWidth = 0;
+		uint32_t RequestedHeight = 0;
+		// ImGui texture handles for the image of each frame in flight. Created lazily (ImGui may not be
+		// initialised when the view is) and rewritten on resize.
+		std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> ImGuiTextures{};
+
+		// ---- Camera ------------------------------------------------------------------
+		glm::mat4 ViewProjection{ 1.0f };
+		Ref<VulkanUniformBuffer> UniformBuffer;     // one buffer per frame in flight
+		Ref<VulkanDescriptorBuilder> DescriptorSet; // set 0: camera + textures, laid out like the pipeline's
+
+		// ---- Batches -----------------------------------------------------------------
+		// Index i in each vector belongs to batch i. Batches are never freed, only
+		// reused, so after the first heavy frame there are no more allocations.
+		std::vector<QuadVertex*> QuadVertexBufferBases;        // CPU staging, [batch]
+		std::vector<PerFrameVertexBuffers> QuadVertexBuffers;  // GPU,         [batch][frame]
+		std::vector<uint32_t> QuadIndexCounts;                 // indices used, [batch]
+
+		uint32_t BatchIndex = 0;                     // batch currently being filled
+		QuadVertex* QuadVertexBufferPtr = nullptr;   // write cursor into current batch
+
+		bool Queued = false; // begun this frame, so Render() records it
+	};
+
 	struct Renderer2DData
 	{
 		// Quads per batch (= per draw call). 20k quads * 4 verts * 40 bytes = ~3.2 MB per buffer.
@@ -52,21 +83,7 @@ namespace Hydro
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = 32; // TODO QUERY FROM GPU
 
-		// ---- Batches -------------------------------------------------------------
-		// Index i in each vector belongs to batch i. Batches are never freed, only
-		// reused, so after the first heavy frame there are no more allocations.
-		std::vector<QuadVertex*> QuadVertexBufferBases;        // CPU staging, [batch]
-		std::vector<PerFrameVertexBuffers> QuadVertexBuffers;  // GPU,         [batch][frame]
-		std::vector<uint32_t> QuadIndexCounts;                 // indices used, [batch]
-
-		uint32_t BatchIndex = 0;                     // batch currently being filled
-		QuadVertex* QuadVertexBufferPtr = nullptr;   // write cursor into current batch
-		// ---------------------------------------------------------------------------
-
 		glm::vec4 QuadVertexPositions[4];
-
-		Ref<Camera> camera;
-		UniformBufferObject ubo;
 
 		Ref<VulkanShader> Shader;
 		// Shader hot reload: the shader's source files, checked every ShaderPollInterval.
@@ -75,19 +92,22 @@ namespace Hydro
 		static constexpr std::chrono::milliseconds ShaderPollInterval{ 250 };
 
 		Ref<VulkanPipeline> QuadPipeline;
-		Ref<VulkanIndexBuffer> QuadIndexBuffer;      // shared by all batches (every batch starts at vertex 0)
-		Ref<VulkanUniformBuffer> QuadUniformBuffer;
-		Ref<VulkanDescriptorBuilder> QuadDescriptorSet;
+		Ref<VulkanIndexBuffer> QuadIndexBuffer;      // shared by all batches of all views (every batch starts at vertex 0)
 
-		Scope<VulkanRenderPass> RenderPass;
-
-		// Requested offscreen size (from SetViewportSize). Applied in Render().
-		uint32_t RequestedWidth = 0;
-		uint32_t RequestedHeight = 0;
+		// The pipeline is built against these. Every view's target uses the same attachment format,
+		// so its render pass is compatible with PipelineRenderPass, and its descriptor set is built
+		// exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so it can be bound in its place.
+		Scope<VulkanRenderPass> PipelineRenderPass;  // 1x1, never drawn into
+		Ref<VulkanUniformBuffer> LayoutUniformBuffer;
+		Ref<VulkanDescriptorBuilder> LayoutDescriptorSet;
 
 		std::array<Ref<VullkanTexture>, MaxTextureSlots> TextureSlots;
 
-		// GPU timestamps: 2 queries (begin/end of the pass) per frame in flight.
+		// Views begun this frame, in BeginScene order, and the one DrawQuad writes to.
+		std::vector<RenderViewData*> QueuedViews;
+		RenderViewData* CurrentView = nullptr;
+
+		// GPU timestamps: 2 queries (begin/end of all 2D passes) per frame in flight.
 		VkQueryPool TimestampPool = VK_NULL_HANDLE;
 		float TimestampPeriodNs = 0.0f;  // ns per timestamp tick
 		std::array<bool, MAX_FRAMES_IN_FLIGHT> TimestampsWritten{};
@@ -96,24 +116,28 @@ namespace Hydro
 
 		Statistics Stats;          // being accumulated this frame
 		Statistics LastFrameStats; // what GetStats() returns
-
-		// ImGui texture handles for the offscreen image of each frame in flight.
-		// Created lazily (ImGui isn't initialised yet in Init) and rewritten on resize.
-		std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CompositeDescriptorSets{};
 	};
 
 	static Renderer2DData* s_Data = nullptr;
 
-	void Renderer2D::Init(uint32_t width, uint32_t height)
+	// Set 0 of the quad shader: binding 0 = camera (vertex), binding 1 = texture array (fragment).
+	static Ref<VulkanDescriptorBuilder> BuildViewDescriptorSet(Ref<VulkanUniformBuffer>& uniformBuffer)
 	{
-		s_Data = new Renderer2DData();
-		s_Data->camera = CreateRef<Camera>(0, (float)width, 0, (float)height);
+		Ref<VulkanDescriptorBuilder> descriptorSet = CreateRef<VulkanDescriptorBuilder>();
+		descriptorSet->Begin();
+		descriptorSet->BindBuffer(0, uniformBuffer, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+		descriptorSet->BindImage(1, s_Data->TextureSlots[0], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+		descriptorSet->Build();
+		return descriptorSet;
+	}
 
-		// Offscreen target. Created first: the pipeline is built against this render pass.
-		// It starts at the window size; the editor resizes it to the viewport panel (SetViewportSize).
-		s_Data->RenderPass = CreateScope<VulkanRenderPass>(width, height);
-		s_Data->RequestedWidth = width;
-		s_Data->RequestedHeight = height;
+	void Renderer2D::Init()
+	{
+		HY_CORE_ASSERT(s_Data == nullptr, "Renderer2D::Init called twice");
+		s_Data = new Renderer2DData();
+
+		// Created first: the pipeline is built against this render pass (see PipelineRenderPass).
+		s_Data->PipelineRenderPass = CreateScope<VulkanRenderPass>(1, 1);
 
 		/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
 		ShaderInformation vertexInformation;
@@ -169,18 +193,8 @@ namespace Hydro
 		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>(quadIndices, Renderer2DData::MaxIndices * (uint32_t)sizeof(uint32_t));
 		delete[] quadIndices;
 
-		// First batch. More are created by NextBatch() when a frame needs them.
-		AllocateBatch();
-		ResetBatches();
-
-		s_Data->QuadUniformBuffer = CreateRef<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
-
-		s_Data->QuadDescriptorSet = CreateRef<VulkanDescriptorBuilder>();
-		s_Data->QuadDescriptorSet->Begin();
-		s_Data->QuadDescriptorSet->BindBuffer(0, s_Data->QuadUniformBuffer, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
-
-		s_Data->QuadDescriptorSet->BindImage(1, s_Data->TextureSlots[0], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
-		s_Data->QuadDescriptorSet->Build();
+		s_Data->LayoutUniformBuffer = CreateRef<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
+		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(s_Data->LayoutUniformBuffer);
 
 		PipelineSpecification specification;
 		specification.Layout =
@@ -191,9 +205,9 @@ namespace Hydro
 			{ "inTexIndex", ShaderDataType::Float, },
 		};
 
-		specification.DescriptorSets = { s_Data->QuadDescriptorSet };
+		specification.DescriptorSets = { s_Data->LayoutDescriptorSet };
 		specification.shader = s_Data->Shader;
-		specification.RenderPass = s_Data->RenderPass->GetRenderPass();
+		specification.RenderPass = s_Data->PipelineRenderPass->GetRenderPass();
 		// Sprites: alpha blended, drawn in submission order, visible from both sides (negative scale flips them).
 		specification.Blend = BlendMode::Alpha;
 		specification.BackfaceCulling = false;
@@ -227,6 +241,9 @@ namespace Hydro
 		if (s_Data == nullptr)
 			return;
 
+		// Views belong to the application and must be gone by now (layers release them in OnDetach).
+		HY_CORE_ASSERT(s_Data->QueuedViews.empty(), "A RenderView is still queued at Renderer2D::Shutdown");
+
 		for (size_t i = 0; i < s_Data->TextureSlots.size(); i++)
 		{
 			if (s_Data->TextureSlots[i])
@@ -235,74 +252,207 @@ namespace Hydro
 			}
 		}
 
-		for (auto& perFrame : s_Data->QuadVertexBuffers)
-			for (auto& vertexBuffer : perFrame)
-				vertexBuffer->Destroy();
-
-		for (QuadVertex* base : s_Data->QuadVertexBufferBases)
-			delete[] base;
-
-		s_Data->QuadDescriptorSet->Destroy();
+		s_Data->LayoutDescriptorSet->Destroy();
 		s_Data->QuadPipeline->Destroy();
-		s_Data->QuadUniformBuffer->Destroy();
+		s_Data->LayoutUniformBuffer->Destroy();
 		s_Data->QuadIndexBuffer->Destroy();
-		s_Data->RenderPass.reset();
+		s_Data->PipelineRenderPass.reset();
 		if (s_Data->TimestampPool)
 			vkDestroyQueryPool(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice(), s_Data->TimestampPool, nullptr);
 
-		// The composite descriptor sets belong to ImGui's descriptor pool, which the ImGui layer frees.
-		// ~VulkanUniformBuffer is now safe after Destroy(), so the data can be freed.
 		delete s_Data;
 		s_Data = nullptr;
 	}
 
+	// ---- RenderView -------------------------------------------------------------
+
+	RenderView::RenderView(const RenderViewSpecification& specification)
+		: m_Specification(specification), m_Data(CreateScope<RenderViewData>())
+	{
+		HY_CORE_ASSERT(s_Data != nullptr, "Create RenderViews after Renderer::Init");
+
+		const uint32_t width = specification.Width > 0 ? specification.Width : 1;
+		const uint32_t height = specification.Height > 0 ? specification.Height : 1;
+
+		RenderViewData& view = *m_Data;
+		view.DebugName = specification.DebugName;
+		view.Target = CreateScope<VulkanRenderPass>(width, height);
+		view.RequestedWidth = width;
+		view.RequestedHeight = height;
+
+		view.UniformBuffer = CreateRef<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
+		view.DescriptorSet = BuildViewDescriptorSet(view.UniformBuffer);
+
+		// First batch. More are created by NextBatch() when a frame needs them.
+		Renderer2D::AllocateBatch(view);
+		Renderer2D::ResetBatches(view);
+	}
+
+	RenderView::~RenderView()
+	{
+		RenderViewData& view = *m_Data;
+
+		// Never leave a dangling pointer in this frame's queue.
+		if (s_Data != nullptr)
+		{
+			auto& queued = s_Data->QueuedViews;
+			queued.erase(std::remove(queued.begin(), queued.end(), &view), queued.end());
+			if (s_Data->CurrentView == &view)
+				s_Data->CurrentView = nullptr;
+		}
+
+		for (auto& perFrame : view.QuadVertexBuffers)
+			for (auto& vertexBuffer : perFrame)
+				vertexBuffer->Destroy();
+
+		for (QuadVertex* base : view.QuadVertexBufferBases)
+			delete[] base;
+
+		view.DescriptorSet->Destroy();
+		view.UniformBuffer->Destroy();
+		view.Target.reset();
+
+		// The ImGui texture handles belong to ImGui's descriptor pool, which the ImGui layer frees
+		// (this ImGui version has no RemoveTexture).
+	}
+
+	void RenderView::SetSize(uint32_t width, uint32_t height)
+	{
+		if (width == 0 || height == 0)
+			return;
+
+		m_Data->RequestedWidth = width;
+		m_Data->RequestedHeight = height;
+	}
+
+	uint32_t RenderView::GetWidth() const
+	{
+		return m_Data->RequestedWidth;
+	}
+
+	uint32_t RenderView::GetHeight() const
+	{
+		return m_Data->RequestedHeight;
+	}
+
+	VkDescriptorSet RenderView::GetImGuiTexture()
+	{
+		const uint32_t frame = Renderer::GetRenderFrame();
+		VkDescriptorSet& set = m_Data->ImGuiTextures[frame];
+
+		if (set == VK_NULL_HANDLE)
+		{
+			const VulkanImageInfo& image = m_Data->Target->GetImage(frame).GetVulkanImageInfo();
+			set = ImGui_ImplVulkan_AddTexture(image.Sampler, image.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		}
+
+		return set;
+	}
+
 	// ---- Batching ---------------------------------------------------------------
 
-	void Renderer2D::AllocateBatch()
+	void Renderer2D::AllocateBatch(RenderViewData& view)
 	{
-		s_Data->QuadVertexBufferBases.push_back(new QuadVertex[Renderer2DData::MaxVertices]);
+		view.QuadVertexBufferBases.push_back(new QuadVertex[Renderer2DData::MaxVertices]);
 
 		PerFrameVertexBuffers buffers;
 		for (auto& vertexBuffer : buffers)
 			vertexBuffer = CreateRef<VulkanVertexBuffer>(Renderer2DData::MaxVertices * (uint32_t)sizeof(QuadVertex));
-		s_Data->QuadVertexBuffers.push_back(buffers);
+		view.QuadVertexBuffers.push_back(buffers);
 
-		s_Data->QuadIndexCounts.push_back(0);
+		view.QuadIndexCounts.push_back(0);
 	}
 
-	void Renderer2D::NextBatch()
+	void Renderer2D::NextBatch(RenderViewData& view)
 	{
 		// Current batch is full: move on to the next one, creating it the first time we need it.
-		s_Data->BatchIndex++;
-		if (s_Data->BatchIndex >= s_Data->QuadVertexBufferBases.size())
-			AllocateBatch();
+		view.BatchIndex++;
+		if (view.BatchIndex >= view.QuadVertexBufferBases.size())
+			AllocateBatch(view);
 
-		s_Data->QuadIndexCounts[s_Data->BatchIndex] = 0;
-		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBases[s_Data->BatchIndex];
+		view.QuadIndexCounts[view.BatchIndex] = 0;
+		view.QuadVertexBufferPtr = view.QuadVertexBufferBases[view.BatchIndex];
 	}
 
-	void Renderer2D::ResetBatches()
+	void Renderer2D::ResetBatches(RenderViewData& view)
 	{
-		for (uint32_t& count : s_Data->QuadIndexCounts)
+		for (uint32_t& count : view.QuadIndexCounts)
 			count = 0;
 
-		s_Data->BatchIndex = 0;
-		s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBases[0];
+		view.BatchIndex = 0;
+		view.QuadVertexBufferPtr = view.QuadVertexBufferBases[0];
+	}
+
+	// ---- Scenes -----------------------------------------------------------------
+
+	void Renderer2D::BeginScene(RenderView& view, const glm::mat4& viewProjection)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView == nullptr, "Renderer2D::BeginScene without EndScene");
+
+		RenderViewData& data = *view.m_Data;
+		data.ViewProjection = viewProjection;
+
+		if (data.Queued == false)
+		{
+			data.Queued = true;
+			s_Data->QueuedViews.push_back(&data);
+		}
+
+		s_Data->CurrentView = &data;
+	}
+
+	void Renderer2D::BeginScene(RenderView& view, const Camera& camera, const glm::mat4& cameraTransform)
+	{
+		BeginScene(view, camera.GetProjection() * glm::inverse(cameraTransform));
+	}
+
+	void Renderer2D::EndScene()
+	{
+		s_Data->CurrentView = nullptr;
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawQuad outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+			return;
+
+		RenderViewData& view = *s_Data->CurrentView;
+
+		constexpr size_t quadVertexCount = 4;
+		const float textureIndex = 0.0f; // White Texture
+		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+
+		// Batch full? Start a new one instead of overflowing (or flushing mid-frame).
+		if (view.QuadIndexCounts[view.BatchIndex] >= Renderer2DData::MaxIndices)
+			NextBatch(view);
+
+		for (size_t i = 0; i < quadVertexCount; i++)
+		{
+			view.QuadVertexBufferPtr->Position = transform * s_Data->QuadVertexPositions[i];
+			view.QuadVertexBufferPtr->Color = color;
+			view.QuadVertexBufferPtr->texCoord = textureCoords[i];
+			view.QuadVertexBufferPtr->TexIndex = textureIndex;
+			view.QuadVertexBufferPtr++;
+		}
+
+		view.QuadIndexCounts[view.BatchIndex] += 6;
+		s_Data->Stats.QuadCount++;
 	}
 
 	// ---- Frame ------------------------------------------------------------------
 
 	void Renderer2D::Render(VkCommandBuffer commandBuffer)
 	{
-		ApplyViewportResize();
+		HY_CORE_ASSERT(s_Data->CurrentView == nullptr, "Renderer2D::Render inside BeginScene/EndScene");
+		s_Data->CurrentView = nullptr;
+
 		ApplySettings();
 
 		const uint32_t frame = Renderer::GetRenderFrame();
-		const uint32_t width = s_Data->RenderPass->GetWidth();
-		const uint32_t height = s_Data->RenderPass->GetHeight();
 
 		// Renderer::RenderFrame already waited on this frame-in-flight's fence, so the GPU is done
-		// with QuadVertexBuffers[*][frame] and the uniform buffer for `frame`; safe to overwrite.
+		// with every view's buffers for `frame`; safe to overwrite.
 
 		// The fence for this frame index was just waited on, so the timestamps this command
 		// buffer wrote last time are available: read them, then reset and write new ones.
@@ -322,39 +472,11 @@ namespace Hydro
 			vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, s_Data->TimestampPool, firstQuery);
 		}
 
-		s_Data->QuadUniformBuffer->Update(&s_Data->camera->GetViewProjectMatrix(), frame, (uint32_t)sizeof(UniformBufferObject));
-
-		// One render pass per frame => the target is cleared exactly once. Its subpass dependencies
-		// make the result visible to the ImGui viewport, which samples it later in this command buffer.
-		s_Data->RenderPass->Begin(commandBuffer, frame, Renderer::GetSettings().ClearColor);
-
-		// State shared by every batch: bind once. Viewport/scissor follow the current target size.
-		s_Data->QuadPipeline->Bind(commandBuffer, { width, height });
-
-		s_Data->QuadIndexBuffer->Bind(commandBuffer);
-		s_Data->QuadPipeline->BindDescriptorSets(commandBuffer);
-
-		// One draw call per batch. Each batch has its own vertex buffer, so uploading
-		// batch i+1 never overwrites vertices that batch i's draw still has to read.
-		for (uint32_t i = 0; i <= s_Data->BatchIndex; i++)
+		for (RenderViewData* view : s_Data->QueuedViews)
 		{
-			const uint32_t indexCount = s_Data->QuadIndexCounts[i];
-			if (indexCount == 0)
-				continue;
-
-			const uint32_t vertexCount = (indexCount / 6) * 4;
-			auto& vertexBuffer = s_Data->QuadVertexBuffers[i][frame];
-
-			vertexBuffer->SetData(s_Data->QuadVertexBufferBases[i], vertexCount * (uint32_t)sizeof(QuadVertex));
-			vertexBuffer->Bind(commandBuffer);
-
-			vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
-			s_Data->Stats.DrawCalls++;
-			s_Data->Stats.BatchCount++;
-			s_Data->Stats.VertexBytesUploaded += (uint64_t)vertexCount * sizeof(QuadVertex);
+			RecordView(commandBuffer, *view, frame);
+			s_Data->Stats.ViewCount++;
 		}
-
-		s_Data->RenderPass->End(commandBuffer);
 
 		if (s_Data->TimestampPool)
 		{
@@ -366,47 +488,78 @@ namespace Hydro
 		GPUMemoryStats memory = VulkanAllocator::GetStats();
 		s_Data->Stats.GPUMemoryUsed = memory.Used;
 		s_Data->Stats.GPUMemoryFree = memory.Free;
-		s_Data->Stats.BatchesAllocated = (uint32_t)s_Data->QuadVertexBufferBases.size();
 		s_Data->Stats.MaxQuadsPerBatch = Renderer2DData::MaxQuads;
-		s_Data->Stats.ViewportWidth = width;
-		s_Data->Stats.ViewportHeight = height;
 		s_Data->Stats.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
 		s_Data->Stats.FrameIndex = frame;
 		s_Data->Stats.GPUTimeMs = s_Data->LastGPUTimeMs;
 		s_Data->Stats.GPUName = s_Data->GPUName;
+		if (s_Data->QueuedViews.empty() == false)
+		{
+			s_Data->Stats.ViewportWidth = s_Data->QueuedViews.front()->Target->GetWidth();
+			s_Data->Stats.ViewportHeight = s_Data->QueuedViews.front()->Target->GetHeight();
+		}
 
 		s_Data->LastFrameStats = s_Data->Stats;
 		s_Data->Stats = {};
-		ResetBatches();
+		DiscardFrame();
+	}
+
+	void Renderer2D::RecordView(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
+	{
+		ApplyViewResize(view);
+
+		const uint32_t width = view.Target->GetWidth();
+		const uint32_t height = view.Target->GetHeight();
+
+		UniformBufferObject ubo;
+		ubo.mvp = view.ViewProjection;
+		view.UniformBuffer->Update(&ubo, frame, (uint32_t)sizeof(UniformBufferObject));
+
+		// One render pass per view per frame => its target is cleared exactly once. Its subpass
+		// dependencies make the result visible to ImGui, which samples it later in this command buffer.
+		view.Target->Begin(commandBuffer, frame, Renderer::GetSettings().ClearColor);
+
+		// State shared by every batch: bind once. Viewport/scissor follow the view's size.
+		s_Data->QuadPipeline->Bind(commandBuffer, { width, height });
+		s_Data->QuadIndexBuffer->Bind(commandBuffer);
+		s_Data->QuadPipeline->BindDescriptorSet(commandBuffer, 0, *view.DescriptorSet);
+
+		// One draw call per batch. Each batch has its own vertex buffer, so uploading
+		// batch i+1 never overwrites vertices that batch i's draw still has to read.
+		for (uint32_t i = 0; i <= view.BatchIndex; i++)
+		{
+			const uint32_t indexCount = view.QuadIndexCounts[i];
+			if (indexCount == 0)
+				continue;
+
+			const uint32_t vertexCount = (indexCount / 6) * 4;
+			auto& vertexBuffer = view.QuadVertexBuffers[i][frame];
+
+			vertexBuffer->SetData(view.QuadVertexBufferBases[i], vertexCount * (uint32_t)sizeof(QuadVertex));
+			vertexBuffer->Bind(commandBuffer);
+
+			vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+			s_Data->Stats.DrawCalls++;
+			s_Data->Stats.BatchCount++;
+			s_Data->Stats.VertexBytesUploaded += (uint64_t)vertexCount * sizeof(QuadVertex);
+		}
+
+		s_Data->Stats.BatchesAllocated += (uint32_t)view.QuadVertexBufferBases.size();
+
+		view.Target->End(commandBuffer);
 	}
 
 	void Renderer2D::DiscardFrame()
 	{
-		s_Data->Stats = {};
-		ResetBatches();
-	}
-
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
-	{
-		constexpr size_t quadVertexCount = 4;
-		const float textureIndex = 0.0f; // White Texture
-		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-
-		// Batch full? Start a new one instead of overflowing (or flushing mid-frame).
-		if (s_Data->QuadIndexCounts[s_Data->BatchIndex] >= Renderer2DData::MaxIndices)
-			NextBatch();
-
-		for (size_t i = 0; i < quadVertexCount; i++)
+		for (RenderViewData* view : s_Data->QueuedViews)
 		{
-			s_Data->QuadVertexBufferPtr->Position = transform * s_Data->QuadVertexPositions[i];
-			s_Data->QuadVertexBufferPtr->Color = color;
-			s_Data->QuadVertexBufferPtr->texCoord = textureCoords[i];
-			s_Data->QuadVertexBufferPtr->TexIndex = textureIndex;
-			s_Data->QuadVertexBufferPtr++;
+			view->Queued = false;
+			ResetBatches(*view);
 		}
 
-		s_Data->QuadIndexCounts[s_Data->BatchIndex] += 6;
-		s_Data->Stats.QuadCount++;
+		s_Data->QueuedViews.clear();
+		s_Data->CurrentView = nullptr;
+		s_Data->Stats = {};
 	}
 
 	Statistics Renderer2D::GetStats()
@@ -414,7 +567,7 @@ namespace Hydro
 		return s_Data->LastFrameStats;
 	}
 
-	static void WriteCompositeDescriptor(VkDescriptorSet set, VkImageView view, VkSampler sampler)
+	static void WriteImGuiTexture(VkDescriptorSet set, VkImageView view, VkSampler sampler)
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
@@ -435,41 +588,29 @@ namespace Hydro
 		vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 	}
 
-	void Renderer2D::SetViewportSize(uint32_t width, uint32_t height)
+	void Renderer2D::ApplyViewResize(RenderViewData& view)
 	{
-		if (width == 0 || height == 0)
-			return;
+		const uint32_t width = view.RequestedWidth;
+		const uint32_t height = view.RequestedHeight;
 
-		s_Data->RequestedWidth = width;
-		s_Data->RequestedHeight = height;
-	}
-
-	void Renderer2D::ApplyViewportResize()
-	{
-		const uint32_t width = s_Data->RequestedWidth;
-		const uint32_t height = s_Data->RequestedHeight;
-
-		if (width == s_Data->RenderPass->GetWidth() && height == s_Data->RenderPass->GetHeight())
+		if (width == view.Target->GetWidth() && height == view.Target->GetHeight())
 			return;
 
 		// Both frames in flight may still be using the old images; wait before destroying them.
 		// (Only happens on frames where the size actually changed.)
-		vkDeviceWaitIdle(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice());
+		Renderer::WaitIdle();
 
-		s_Data->RenderPass->Resize(width, height);
-
-		// Keep 1 unit = 1 pixel, so things don't stretch when the viewport changes shape.
-		s_Data->camera->SetProjection(0.0f, (float)width, 0.0f, (float)height);
+		view.Target->Resize(width, height);
 
 		// Point the existing ImGui texture handles at the new image views. Updating in place
 		// (instead of AddTexture again) means no descriptor sets leak from ImGui's pool, and the
 		// handle ImGui already queued for this frame shows the new image.
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			if (s_Data->CompositeDescriptorSets[i] != VK_NULL_HANDLE)
+			if (view.ImGuiTextures[i] != VK_NULL_HANDLE)
 			{
-				const VulkanImageInfo& image = s_Data->RenderPass->GetImage(i).GetVulkanImageInfo();
-				WriteCompositeDescriptor(s_Data->CompositeDescriptorSets[i], image.ImageView, image.Sampler);
+				const VulkanImageInfo& image = view.Target->GetImage(i).GetVulkanImageInfo();
+				WriteImGuiTexture(view.ImGuiTextures[i], image.ImageView, image.Sampler);
 			}
 		}
 	}
@@ -529,7 +670,7 @@ namespace Hydro
 			return false;
 		}
 
-		// Both frames in flight may still be using the old pipeline (same as ApplyViewportResize).
+		// Both frames in flight may still be using the old pipeline (same as ApplyViewResize).
 		Renderer::WaitIdle();
 
 		s_Data->QuadPipeline->Destroy();
@@ -541,19 +682,5 @@ namespace Hydro
 		}
 
 		return true;
-	}
-
-	VkDescriptorSet Renderer2D::GetCompositeDescriptorSet()
-	{
-		const uint32_t frame = Renderer::GetRenderFrame();
-		VkDescriptorSet& set = s_Data->CompositeDescriptorSets[frame];
-
-		if (set == VK_NULL_HANDLE)
-		{
-			const VulkanImageInfo& image = s_Data->RenderPass->GetImage(frame).GetVulkanImageInfo();
-			set = ImGui_ImplVulkan_AddTexture(image.Sampler, image.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		}
-
-		return set;
 	}
 }

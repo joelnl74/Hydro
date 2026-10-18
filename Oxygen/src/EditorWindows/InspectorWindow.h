@@ -17,6 +17,9 @@ namespace Hydro
 		void DrawEntityHeader(Entity entity);
 		void DrawComponents(Entity entity);
 		void DrawAddComponentButton(Entity entity);
+		// One menu item per registered script; picking one binds it to the entity (adding its
+		// NativeScriptComponent if needed).
+		void DrawScriptMenuItems(Entity entity);
 		void DrawPrefabButton(Entity entity);
 	};
 }

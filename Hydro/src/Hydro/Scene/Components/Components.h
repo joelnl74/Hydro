@@ -7,6 +7,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <Hydro/Core/UUID.h>
+#include <Hydro/Renderer/SceneCamera.h>
 #include <glm/gtx/quaternion.hpp>
 
 namespace Hydro
@@ -80,4 +81,25 @@ namespace Hydro
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
 	};
+
+	// A camera the scene can be viewed through. Its position and rotation come from the entity's
+	// TransformComponent (scale is ignored), and its aspect ratio from the scene's viewport.
+	// SceneRenderer::RenderRuntime draws the scene from the first camera with Primary set.
+	struct CameraComponent
+	{
+		SceneCamera Camera;
+		bool Primary = true;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
+	};
+
+	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
+	// (every entity has those). Scene::Copy copies these; add new copyable components here.
+	template<typename... Component>
+	struct ComponentGroup
+	{
+	};
+
+	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent>;
 }

@@ -158,7 +158,9 @@ namespace Hydro
 		}
 
 		rasterizer.cullMode = spec.BackfaceCulling ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
-		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		// Geometry is counter-clockwise in world space. Camera projections flip Y for Vulkan (Camera.h),
+		// which keeps that winding counter-clockwise on screen.
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -273,5 +275,11 @@ namespace Hydro
 		}
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+	}
+
+	void VulkanPipeline::BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VulkanDescriptorBuilder& descriptorSet)
+	{
+		VkDescriptorSet set = descriptorSet.GetDescriptorSet(Renderer::GetRenderFrame());
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, setIndex, 1, &set, 0, nullptr);
 	}
 }

@@ -5,7 +5,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Hydro/Scene/PrefabSerializer.h>
+#include <Hydro/Scene/ScriptableEntity.h>
 
+#include <algorithm>
+#include <cfloat>
 #include <cstdio>
 #include <string>
 
@@ -15,9 +18,27 @@ namespace Hydro
 	{
 		constexpr float LabelColumnWidth = 100.0f;
 
-		// One row: label on the left, X/Y/Z fields on the right. Clicking an axis button
+		// A number you type into (click, type, Enter or click away). The value updates as you type;
+		// it is clamped to [min, max] once you leave the field, so a half-typed number is never
+		// clamped out from under you. Returns true when the value changed.
+		bool InputFloatField(const char* id, float& value, const char* format = "%.3f",
+			float min = -FLT_MAX, float max = FLT_MAX)
+		{
+			bool changed = ImGui::InputFloat(id, &value, 0.0f, 0.0f, format);
+
+			if (ImGui::IsItemDeactivatedAfterEdit())
+			{
+				const float clamped = std::clamp(value, min, max);
+				changed |= clamped != value;
+				value = clamped;
+			}
+
+			return changed;
+		}
+
+		// One row: label on the left, X/Y/Z input fields on the right. Clicking an axis button
 		// resets that axis. Returns true when a value changed.
-		bool DrawVec3Control(const char* label, glm::vec3& values, float resetValue = 0.0f, float speed = 0.1f)
+		bool DrawVec3Control(const char* label, glm::vec3& values, float resetValue = 0.0f)
 		{
 			bool changed = false;
 
@@ -64,7 +85,7 @@ namespace Hydro
 					ImGui::SameLine();
 					ImGui::SetNextItemWidth(fieldWidth);
 					ImGui::PushID(i);
-					changed |= ImGui::DragFloat("##value", &values[i], speed, 0.0f, 0.0f, "%.2f");
+					changed |= InputFloatField("##value", values[i], "%.3f");
 					ImGui::PopID();
 
 					if (i < 2)
@@ -185,6 +206,9 @@ namespace Hydro
 	{
 		bool removeTransform = false;
 		bool removeSprite = false;
+		bool removeCamera = false;
+		bool removeScripts = false;
+		bool makePrimary = false;
 
 		DrawComponent<TransformComponent>("Transform", entity, removeTransform, [](TransformComponent& transform)
 		{
@@ -192,7 +216,7 @@ namespace Hydro
 
 			// Stored in radians, edited in degrees.
 			glm::vec3 rotation = glm::degrees(transform.Rotation);
-			if (DrawVec3Control("Rotation", rotation, 0.0f, 1.0f))
+			if (DrawVec3Control("Rotation", rotation, 0.0f))
 				transform.Rotation = glm::radians(rotation);
 
 			DrawVec3Control("Scale", transform.Scale, 1.0f);
@@ -201,14 +225,97 @@ namespace Hydro
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, removeSprite, [](SpriteRendererComponent& sprite)
 		{
 			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##Color", glm::value_ptr(sprite.Color)); });
-			DrawPropertyRow("Tiling", [&]() { ImGui::DragFloat("##Tiling", &sprite.TilingFactor, 0.1f, 0.0f, 100.0f, "%.2f"); });
+			DrawPropertyRow("Tiling", [&]() { InputFloatField("##Tiling", sprite.TilingFactor, "%.2f", 0.0f, 100.0f); });
 		});
+
+		DrawComponent<CameraComponent>("Camera", entity, removeCamera, [&](CameraComponent& cameraComponent)
+		{
+			SceneCamera& camera = cameraComponent.Camera;
+
+			DrawPropertyRow("Primary", [&]() { makePrimary = ImGui::Checkbox("##Primary", &cameraComponent.Primary) && cameraComponent.Primary; });
+
+			const char* projectionNames[] = { "Perspective", "Orthographic" };
+			int projection = (int)camera.Projection;
+			DrawPropertyRow("Projection", [&]()
+			{
+				if (ImGui::Combo("##Projection", &projection, projectionNames, 2))
+					camera.Projection = (ProjectionType)projection;
+			});
+
+			if (camera.Projection == ProjectionType::Perspective)
+			{
+				DrawPropertyRow("Vertical FOV", [&]() { InputFloatField("##FOV", camera.PerspectiveFOV, "%.1f deg", 1.0f, 179.0f); });
+				DrawPropertyRow("Near", [&]() { InputFloatField("##Near", camera.PerspectiveNear, "%.3f", 0.001f, camera.PerspectiveFar); });
+				DrawPropertyRow("Far", [&]() { InputFloatField("##Far", camera.PerspectiveFar, "%.1f", camera.PerspectiveNear, 100000.0f); });
+			}
+			else
+			{
+				DrawPropertyRow("Size", [&]() { InputFloatField("##Size", camera.OrthographicSize, "%.2f", 0.01f, 10000.0f); });
+				DrawPropertyRow("Near", [&]() { InputFloatField("##Near", camera.OrthographicNear, "%.2f", -10000.0f, camera.OrthographicFar); });
+				DrawPropertyRow("Far", [&]() { InputFloatField("##Far", camera.OrthographicFar, "%.2f", camera.OrthographicNear, 10000.0f); });
+			}
+		});
+
+		int scriptToRemove = -1;
+		DrawComponent<NativeScriptComponent>("Scripts", entity, removeScripts, [&](NativeScriptComponent& scripts)
+		{
+			for (int i = 0; i < (int)scripts.Scripts.size(); i++)
+			{
+				const NativeScriptComponent::Script& script = scripts.Scripts[i];
+				ImGui::PushID(i);
+
+				ImGui::AlignTextToFramePadding();
+				if (script.Name.empty())
+					ImGui::TextDisabled("(bound in code, not saved)");
+				else if (script.Instantiate == nullptr)
+					ImGui::TextColored({ 1.0f, 0.45f, 0.35f, 1.0f }, "%s (not registered)", script.Name.c_str());
+				else
+					ImGui::TextUnformatted(script.Name.c_str());
+
+				if (ImGui::IsItemHovered() && script.Instantiate == nullptr && script.Name.empty() == false)
+					ImGui::SetTooltip("No script is registered under this name. It is kept in the scene but doesn't run.");
+
+				ImGui::SameLine(ImGui::GetContentRegionAvail().x + ImGui::GetCursorPosX() - ImGui::GetFrameHeight());
+				if (ImGui::Button("X", { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }))
+					scriptToRemove = i;
+
+				ImGui::PopID();
+			}
+
+			if (ImGui::Button("Add Script", { ImGui::GetContentRegionAvail().x, 0.0f }))
+				ImGui::OpenPopup("AddScript");
+
+			if (ImGui::BeginPopup("AddScript"))
+			{
+				DrawScriptMenuItems(entity);
+				ImGui::EndPopup();
+			}
+		});
+
+		// Only one primary camera: ticking Primary here unticks it everywhere else.
+		if (makePrimary)
+		{
+			auto cameras = entity.GetScene()->m_Registry.view<CameraComponent>();
+			for (auto other : cameras)
+			{
+				if (other != (entt::entity)entity)
+					cameras.get<CameraComponent>(other).Primary = false;
+			}
+		}
 
 		// Apply removals after drawing, when no component references are alive.
 		if (removeTransform)
 			entity.RemoveComponent<TransformComponent>();
 		if (removeSprite)
 			entity.RemoveComponent<SpriteRendererComponent>();
+		if (removeCamera)
+			entity.RemoveComponent<CameraComponent>();
+
+		// Scripts that are running (play mode) get OnDestroy before they go.
+		if (removeScripts)
+			entity.GetScene()->RemoveScripts(entity);
+		else if (scriptToRemove >= 0)
+			entity.GetScene()->RemoveScript(entity, (size_t)scriptToRemove);
 	}
 
 	void InspectorWindow::DrawAddComponentButton(Entity entity)
@@ -222,6 +329,7 @@ namespace Hydro
 		{
 			const bool hasTransform = entity.HasComponent<TransformComponent>();
 			const bool hasSprite = entity.HasComponent<SpriteRendererComponent>();
+			const bool hasCamera = entity.HasComponent<CameraComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -230,15 +338,55 @@ namespace Hydro
 			{
 				entity.AddComponent<SpriteRendererComponent>();
 
-				// A sprite needs a transform to be drawn (SceneRenderer groups on both).
+				// A sprite needs a transform to be drawn (SceneRenderer views both).
 				if (entity.HasComponent<TransformComponent>() == false)
-					entity.AddComponent<TransformComponent>(glm::vec3(200.0f, 200.0f, 0.0f), glm::vec3(100.0f, 100.0f, 1.0f));
+					entity.AddComponent<TransformComponent>();
 			}
 
-			if (hasTransform && hasSprite)
-				ImGui::TextDisabled("All components added");
+			if (ImGui::MenuItem("Camera", nullptr, false, hasCamera == false))
+			{
+				// Only the first camera in a scene is primary by default.
+				const bool firstCamera = (bool)entity.GetScene()->GetPrimaryCameraEntity() == false;
+				entity.AddComponent<CameraComponent>().Primary = firstCamera;
+
+				if (entity.HasComponent<TransformComponent>() == false)
+					entity.AddComponent<TransformComponent>();
+			}
+
+			if (ImGui::BeginMenu("Script"))
+			{
+				DrawScriptMenuItems(entity);
+				ImGui::EndMenu();
+			}
 
 			ImGui::EndPopup();
+		}
+	}
+
+	void InspectorWindow::DrawScriptMenuItems(Entity entity)
+	{
+		const std::vector<std::string> names = ScriptRegistry::GetNames();
+		if (names.empty())
+		{
+			ImGui::TextDisabled("No scripts registered");
+			ImGui::TextDisabled("Register them with ScriptRegistry::Register<T>(\"Name\")");
+			return;
+		}
+
+		// A script runs once per entity, so ones already added are greyed out. The component is only
+		// added when a script is picked.
+		const bool hasScripts = entity.HasComponent<NativeScriptComponent>();
+		for (const std::string& name : names)
+		{
+			const bool added = hasScripts && entity.GetComponent<NativeScriptComponent>().Has(name);
+			if (ImGui::MenuItem(name.c_str(), nullptr, false, added == false))
+			{
+				if (hasScripts)
+					entity.GetComponent<NativeScriptComponent>().Bind(name);
+				else
+					entity.AddComponent<NativeScriptComponent>().Bind(name);
+				return;
+			}
 		}
 	}
 

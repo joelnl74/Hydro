@@ -5,6 +5,8 @@
 
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/UUID.h>
+
+#include <unordered_map>
 namespace Hydro
 {
 	Scene::Scene(const std::string& debugName, bool isEditorScene)
@@ -31,6 +33,75 @@ namespace Hydro
 	void Scene::Init()
 	{
 
+	}
+
+	namespace
+	{
+		template<typename... Component>
+		void CopyComponents(ComponentGroup<Component...>, entt::registry& destination, const entt::registry& source,
+			const std::unordered_map<entt::entity, entt::entity>& entityMap)
+		{
+			([&]()
+			{
+				auto view = source.view<const Component>();
+				for (auto sourceEntity : view)
+				{
+					auto it = entityMap.find(sourceEntity);
+					if (it != entityMap.end())
+						destination.emplace_or_replace<Component>(it->second, view.template get<const Component>(sourceEntity));
+				}
+			}(), ...);
+		}
+	}
+
+	Ref<Scene> Scene::Copy(const Ref<Scene>& source)
+	{
+		Ref<Scene> copy = CreateRef<Scene>(source->GetName());
+		copy->m_ViewportWidth = source->m_ViewportWidth;
+		copy->m_ViewportHeight = source->m_ViewportHeight;
+
+		const entt::registry& sourceRegistry = source->m_Registry;
+
+		// Same order as the source (entt iterates newest first), so the copy lists entities the same way.
+		std::vector<entt::entity> entities;
+		sourceRegistry.each([&](auto entityHandle)
+		{
+			if (sourceRegistry.has<IDComponent>(entityHandle))
+				entities.push_back(entityHandle);
+		});
+
+		std::unordered_map<entt::entity, entt::entity> entityMap;
+		for (auto it = entities.rbegin(); it != entities.rend(); ++it)
+		{
+			const UUID uuid = sourceRegistry.get<IDComponent>(*it).Id;
+			std::string name;
+			if (sourceRegistry.has<TagComponent>(*it))
+				name = sourceRegistry.get<TagComponent>(*it).Tag;
+
+			entityMap[*it] = copy->CreateEntityWithUUID(uuid, name);
+		}
+
+		CopyComponents(CopyableComponents{}, copy->m_Registry, sourceRegistry, entityMap);
+
+		// Native scripts: copy the bindings, not the instances (those belong to the source scene).
+		auto scripts = sourceRegistry.view<const NativeScriptComponent>();
+		for (auto sourceEntity : scripts)
+		{
+			auto it = entityMap.find(sourceEntity);
+			if (it == entityMap.end())
+				continue;
+
+			NativeScriptComponent& copied = copy->m_Registry.emplace<NativeScriptComponent>(it->second);
+			for (const auto& script : scripts.get<const NativeScriptComponent>(sourceEntity).Scripts)
+			{
+				NativeScriptComponent::Script binding;
+				binding.Name = script.Name;
+				binding.Instantiate = script.Instantiate;
+				copied.Scripts.push_back(std::move(binding));
+			}
+		}
+
+		return copy;
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)
@@ -67,16 +138,48 @@ namespace Hydro
 		m_Registry.destroy(entity);
 	}
 	
-	void Scene::OnUpdate(float deltaTime)
+	void Scene::RemoveScript(Entity entity, size_t index)
 	{
-		// Native scripts. Instances are created lazily on their first update.
-		// TODO: pass a real delta time once the application loop measures it.
+		if (entity.HasComponent<NativeScriptComponent>() == false)
+			return;
+
+		auto& scripts = entity.GetComponent<NativeScriptComponent>().Scripts;
+		if (index >= scripts.size())
+			return;
+
+		if (scripts[index].Instance != nullptr)
+			scripts[index].Instance->OnDestroy();
+
+		scripts.erase(scripts.begin() + index);
+	}
+
+	void Scene::RemoveScripts(Entity entity)
+	{
+		if (entity.HasComponent<NativeScriptComponent>() == false)
+			return;
+
+		for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+		{
+			if (script.Instance != nullptr)
+				script.Instance->OnDestroy();
+		}
+
+		entity.RemoveComponent<NativeScriptComponent>();
+	}
+
+	void Scene::OnUpdateRuntime(float deltaTime)
+	{
+		// 1. Native scripts. Instances are created lazily on their first update.
 		auto view = m_Registry.view<NativeScriptComponent>();
 		for (auto entityHandle : view)
 		{
 			auto& scriptComponent = view.get<NativeScriptComponent>(entityHandle);
 			for (auto& script : scriptComponent.Scripts)
 			{
+				// Unknown script (not registered): kept so the scene saves it back, but it can't run.
+				if (script.Instantiate == nullptr)
+					continue;
+
 				if (script.Instance == nullptr)
 				{
 					script.Instance.reset(script.Instantiate());
@@ -88,6 +191,35 @@ namespace Hydro
 			}
 		}
 
+		// 2. Engine systems shared with the editor.
+		OnUpdateEditor(deltaTime);
+	}
+
+	void Scene::OnUpdateEditor(float deltaTime)
+	{
+		// Engine systems that run while editing as well as at runtime (e.g. transform propagation,
+		// once there is a hierarchy) go here. None yet.
+	}
+
+	void Scene::OnViewportResize(uint32_t width, uint32_t height)
+	{
+		if (width == 0 || height == 0)
+			return;
+
+		m_ViewportWidth = width;
+		m_ViewportHeight = height;
+	}
+
+	Entity Scene::GetPrimaryCameraEntity()
+	{
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entityHandle : view)
+		{
+			if (view.get<CameraComponent>(entityHandle).Primary)
+				return Entity{ entityHandle, this };
+		}
+
+		return {};
 	}
 	
 	void Scene::OnRender()
