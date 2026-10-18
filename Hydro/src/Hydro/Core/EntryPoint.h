@@ -3,7 +3,8 @@
 
 extern Hydro::Application* Hydro::CreateApplication();
 
-int main(int argc, char** argv)
+// argc/argv: command-line options (--project, --scene) are planned (Roadmap C8).
+int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
 {
 	// The application's lifetime is explicit: construction and destruction do no engine work.
 	Hydro::Application* app = Hydro::CreateApplication();

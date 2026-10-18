@@ -14,46 +14,43 @@
 
 namespace Hydro
 {
-	namespace
+	constexpr double RescanInterval = 1.0; // seconds; picks up files saved from other windows / Explorer
+
+	static ImU32 ToColor(float r, float g, float b, float a = 1.0f)
 	{
-		constexpr double RescanInterval = 1.0; // seconds; picks up files saved from other windows / Explorer
+		return ImGui::ColorConvertFloat4ToU32({ r, g, b, a });
+	}
 
-		ImU32 ToColor(float r, float g, float b, float a = 1.0f)
+	static std::string ToLower(std::string text)
+	{
+		std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+		return text;
+	}
+
+	// Point inside a square tile, in 0..1 tile units.
+	static ImVec2 TilePoint(const glm::vec2& min, float size, float u, float v)
+	{
+		return { min.x + u * size, min.y + v * size };
+	}
+
+	static void DrawCheckerboard(ImDrawList* drawList, const ImVec2& min, const ImVec2& max, float cell)
+	{
+		drawList->AddRectFilled(min, max, ToColor(0.30f, 0.30f, 0.32f));
+		drawList->PushClipRect(min, max, true);
+
+		const ImU32 dark = ToColor(0.22f, 0.22f, 0.24f);
+		int row = 0;
+		for (float y = min.y; y < max.y; y += cell, row++)
 		{
-			return ImGui::ColorConvertFloat4ToU32({ r, g, b, a });
-		}
-
-		std::string ToLower(std::string text)
-		{
-			std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) { return (char)std::tolower(c); });
-			return text;
-		}
-
-		// Point inside a square tile, in 0..1 tile units.
-		ImVec2 TilePoint(const glm::vec2& min, float size, float u, float v)
-		{
-			return { min.x + u * size, min.y + v * size };
-		}
-
-		void DrawCheckerboard(ImDrawList* drawList, const ImVec2& min, const ImVec2& max, float cell)
-		{
-			drawList->AddRectFilled(min, max, ToColor(0.30f, 0.30f, 0.32f));
-			drawList->PushClipRect(min, max, true);
-
-			const ImU32 dark = ToColor(0.22f, 0.22f, 0.24f);
-			int row = 0;
-			for (float y = min.y; y < max.y; y += cell, row++)
+			int column = 0;
+			for (float x = min.x; x < max.x; x += cell, column++)
 			{
-				int column = 0;
-				for (float x = min.x; x < max.x; x += cell, column++)
-				{
-					if ((row + column) % 2 == 0)
-						drawList->AddRectFilled({ x, y }, { x + cell, y + cell }, dark);
-				}
+				if ((row + column) % 2 == 0)
+					drawList->AddRectFilled({ x, y }, { x + cell, y + cell }, dark);
 			}
-
-			drawList->PopClipRect();
 		}
+
+		drawList->PopClipRect();
 	}
 
 	void ProjectWindow::OnImguiRender(const Ref<Scene>& scene)

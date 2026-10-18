@@ -12,7 +12,7 @@
 #include <cmath>
 #include <random>
 
-namespace
+namespace Hydro
 {
 	// Per-star animation data for the demo galaxy (plain entt component).
 	struct GalaxyStar
@@ -33,10 +33,10 @@ namespace
 	constexpr int GalaxyArms = 4;
 	constexpr float Pi = 3.14159265f;
 
-	glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t) { return a + (b - a) * t; }
+	static glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t) { return a + (b - a) * t; }
 
 	// Warm core -> pink mid -> blue rim.
-	glm::vec3 GalaxyColor(float radius)
+	static glm::vec3 GalaxyColor(float radius)
 	{
 		const glm::vec3 core(1.00f, 0.88f, 0.62f);
 		const glm::vec3 mid(0.92f, 0.45f, 0.85f);
@@ -44,10 +44,7 @@ namespace
 		return radius < 0.35f ? Lerp(core, mid, radius / 0.35f)
 		                      : Lerp(mid, rim, std::min((radius - 0.35f) / 0.65f, 1.0f));
 	}
-}
 
-namespace Hydro
-{
 	void EditorLayer::OnAttach()
 	{
 		m_EditorScene = CreateRef<Scene>("Scene", false);
@@ -74,6 +71,13 @@ namespace Hydro
 		m_RenderSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 		m_ProjectSettingsWindow = CreateRef<ProjectSettingsWindow>();
 		m_ProjectSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
+		m_EditorSettingsWindow = CreateRef<EditorSettingsWindow>();
+		m_EditorSettingsWindow->OnSave = [this]() { SaveEditorSettings(); };
+		m_EditorSettingsWindow->OnRevert = [this]() { LoadEditorSettings(); };
+
+		// The ImGui layer is attached before the client's layers, so its context exists here and the
+		// editor's style replaces the engine's default one.
+		LoadEditorSettings();
 
 		CreateGalaxy();
 		CreateDefaultCamera();
@@ -182,6 +186,7 @@ namespace Hydro
 	{
 		// Release everything OnAttach created, here rather than in the destructor:
 		// Application::Shutdown detaches layers while the renderer is still alive.
+		m_EditorSettingsWindow = nullptr;
 		m_ProjectSettingsWindow = nullptr;
 		m_RenderSettingsWindow = nullptr;
 		m_ProjectWindow = nullptr;
@@ -330,6 +335,7 @@ namespace Hydro
 				ImGui::MenuItem("Stats", nullptr, &m_StatsWindow->IsOpen());
 				ImGui::MenuItem("Render Settings", nullptr, &m_RenderSettingsWindow->IsOpen());
 				ImGui::MenuItem("Project Settings", nullptr, &m_ProjectSettingsWindow->IsOpen());
+				ImGui::MenuItem("Editor Settings", nullptr, &m_EditorSettingsWindow->IsOpen());
 				ImGui::EndMenu();
 			}
 
@@ -343,6 +349,7 @@ namespace Hydro
 		m_StatsWindow->OnImguiRender(m_ActiveScene);
 		m_RenderSettingsWindow->OnImguiRender();
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
+		m_EditorSettingsWindow->OnImguiRender(m_EditorSettings);
 
 		m_ProjectWindow->OnImguiRender(m_ActiveScene);
 		// After the Project window, which it docks next to the first time.
@@ -589,6 +596,22 @@ namespace Hydro
 
 		project->GetConfig().Renderer = Renderer::GetSettings();
 		Project::SaveActive();
+	}
+
+	void EditorLayer::LoadEditorSettings()
+	{
+		// No file yet (first run) or an unreadable one: the defaults (Hydro theme).
+		EditorSettings settings;
+		if (EditorSettingsSerializer::Load(EditorPaths::GetEditorSettingsPath(), settings) == false)
+			HY_INFO("No editor settings at {}; using the defaults", EditorPaths::GetEditorSettingsPath().string());
+
+		m_EditorSettings = settings;
+		m_EditorSettings.Style.Apply();
+	}
+
+	void EditorLayer::SaveEditorSettings()
+	{
+		EditorSettingsSerializer::Save(m_EditorSettings, EditorPaths::GetEditorSettingsPath());
 	}
 
 	void EditorLayer::OpenDefaultProject()

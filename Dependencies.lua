@@ -8,7 +8,48 @@ IncludeDir["ImGui"] = "%{wks.location}/Hydro/vendor/ImGui"
 IncludeDir["glm"] = "%{wks.location}/Hydro/vendor/glm"
 IncludeDir["yaml_cpp"] = "%{wks.location}/Hydro/vendor/yaml-cpp/include"
 IncludeDir["VMA"] = "%{wks.location}/Hydro/vendor/VulkanMemoryAllocator"
+IncludeDir["entt"] = "%{wks.location}/Hydro/vendor/entt"
+IncludeDir["spdlog"] = "%{wks.location}/Hydro/vendor/spdlog/include"
+IncludeDir["stb"] = "%{wks.location}/Hydro/vendor/stb/include"
+IncludeDir["tinyobjloader"] = "%{wks.location}/Hydro/vendor/Obj-loader"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
+
+-- Vendored include directories: searched like includedirs, but the compiler reports no warnings
+-- from headers inside them. Premake 5.0.0-beta2 and newer have externalincludedirs/externalwarnings;
+-- the bundled premake (5.0.0-beta1) doesn't, so there the same is done with MSVC's own options:
+-- /external:I marks a directory as external and /external:W0 silences warnings from it.
+-- Expands %{IncludeDir.X}, %{VULKAN_SDK} and %{wks.location} now, into an absolute Windows path, so
+-- /external:I names the same directory the compiler finds through the include path.
+function ResolveIncludeDir(dir)
+	local resolved = dir
+	for _ = 1, 4 do
+		resolved = resolved:gsub("%%{IncludeDir%.([%w_]+)}", function(name) return IncludeDir[name] end)
+		resolved = resolved:gsub("%%{VULKAN_SDK}", function() return VULKAN_SDK or "" end)
+		resolved = resolved:gsub("%%{wks%.location}", function() return _MAIN_SCRIPT_DIR end)
+	end
+	return path.translate(path.normalize(resolved), "\\")
+end
+
+function ExternalIncludeDirs(dirs)
+	if externalincludedirs ~= nil then
+		externalincludedirs(dirs)
+		externalwarnings "Off"
+	else
+		includedirs(dirs)
+		local options = { "/external:W0" }
+		for _, dir in ipairs(dirs) do
+			table.insert(options, '/external:I"' .. ResolveIncludeDir(dir) .. '"')
+		end
+		buildoptions(options)
+	end
+end
+
+-- Warnings as errors (/WX) when FatalWarnings is set in the root premake5.lua.
+function FatalWarningsIfEnabled()
+	if FatalWarnings then
+		flags { "FatalCompileWarnings" }
+	end
+end
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"

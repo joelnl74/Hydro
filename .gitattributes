@@ -1,0 +1,37 @@
+# Text files are stored with LF in git and checked out with CRLF on every machine
+# (matches .editorconfig). After adding this file once: git add --renormalize .
+* text=auto
+
+*.h      text eol=crlf
+*.hpp    text eol=crlf
+*.cpp    text eol=crlf
+*.inl    text eol=crlf
+*.lua    text eol=crlf
+*.md     text eol=crlf
+*.yaml   text eol=crlf
+*.yml    text eol=crlf
+*.hyscene  text eol=crlf
+*.hyprefab text eol=crlf
+*.hyproj   text eol=crlf
+*.vert   text eol=crlf
+*.frag   text eol=crlf
+*.comp   text eol=crlf
+*.glsl   text eol=crlf
+*.bat    text eol=crlf
+.clang-format  text eol=crlf
+.editorconfig  text eol=crlf
+.gitattributes text eol=crlf
+
+# Shell scripts must stay LF to run.
+*.sh     text eol=lf
+
+# Binary assets.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.ttf    binary
+*.otf    binary
+*.spv    binary
+*.dll    binary
+*.lib    binary
+*.exe    binary

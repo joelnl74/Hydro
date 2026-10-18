@@ -7,6 +7,8 @@
 #include "EditorWindows/ProjectWindow.h"
 #include "EditorWindows/RenderSettingsWindow.h"
 #include "EditorWindows/ProjectSettingsWindow.h"
+#include "EditorWindows/EditorSettingsWindow.h"
+#include "EditorSettings.h"
 
 #include <glm/glm.hpp>
 
@@ -33,6 +35,10 @@ namespace Hydro
 		void SaveProject();
 		// Opens the first .hyproj in EditorPaths::GetDefaultProjectDirectory(), or starts an unsaved one there.
 		void OpenDefaultProject();
+
+		// Editor settings (EditorSettings.yaml): loading applies them to ImGui.
+		void LoadEditorSettings();
+		void SaveEditorSettings();
 
 		// Scenes (.hyscene, YAML). These always work on the editor scene and stop play mode first.
 		void NewScene();
@@ -88,6 +94,10 @@ namespace Hydro
 		Hydro::Ref<ProjectWindow> m_ProjectWindow;
 		Hydro::Ref<RenderSettingsWindow> m_RenderSettingsWindow;
 		Hydro::Ref<ProjectSettingsWindow> m_ProjectSettingsWindow;
+		Hydro::Ref<EditorSettingsWindow> m_EditorSettingsWindow;
+
+		// How the editor looks; loaded from EditorSettings.yaml in OnAttach.
+		EditorSettings m_EditorSettings;
 
 		// The two pictures of the scene. Only windows that are visible are rendered.
 		Hydro::Scope<RenderView> m_EditorView;

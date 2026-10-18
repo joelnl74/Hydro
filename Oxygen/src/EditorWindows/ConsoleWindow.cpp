@@ -6,24 +6,21 @@
 
 namespace Hydro
 {
-	namespace
+	struct LevelStyle
 	{
-		struct LevelStyle
-		{
-			const char* Name;
-			ImVec4 Color;
-		};
+		const char* Name;
+		ImVec4 Color;
+	};
 
-		// Indexed by LogLevel.
-		const LevelStyle LevelStyles[5] =
-		{
-			{ "Trace", { 0.60f, 0.60f, 0.60f, 1.0f } },
-			{ "Info",  { 0.85f, 0.85f, 0.85f, 1.0f } },
-			{ "Warn",  { 1.00f, 0.80f, 0.30f, 1.0f } },
-			{ "Error", { 1.00f, 0.40f, 0.35f, 1.0f } },
-			{ "Fatal", { 1.00f, 0.20f, 0.60f, 1.0f } },
-		};
-	}
+	// Indexed by LogLevel.
+	const LevelStyle LevelStyles[5] =
+	{
+		{ "Trace", { 0.60f, 0.60f, 0.60f, 1.0f } },
+		{ "Info",  { 0.85f, 0.85f, 0.85f, 1.0f } },
+		{ "Warn",  { 1.00f, 0.80f, 0.30f, 1.0f } },
+		{ "Error", { 1.00f, 0.40f, 0.35f, 1.0f } },
+		{ "Fatal", { 1.00f, 0.20f, 0.60f, 1.0f } },
+	};
 
 	void ConsoleWindow::Clear()
 	{

@@ -27,7 +27,7 @@ namespace Hydro
 	protected:
 		virtual void OnCreate() {}
 		virtual void OnDestroy() {}
-		virtual void OnUpdate(float deltaTime) {}
+		virtual void OnUpdate([[maybe_unused]] float deltaTime) {}
 
 	private:
 		// Held by value: an Entity is just a handle + scene pointer, so it never dangles

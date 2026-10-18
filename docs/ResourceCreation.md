@@ -46,10 +46,13 @@ For example, `ImageSpecification` describes the image resource, while `TexturePr
 
 The object created from a spec owns its GPU handles:
 
-- Its destructor frees them, and it is non-copyable (copy constructor and copy assignment deleted). Hold it in a `Scope<T>`, or a `Ref<T>` when it's shared.
+- Its destructor frees them, and it is non-copyable (copy constructor and copy assignment deleted).
+- Its single owner holds it in a `Scope<T>` and hands it to users as `T&` / `const T&`. Use `Ref<T>` only when several objects really share it (later: a texture asset used by many sprites). Don't take a `Ref<T>` by value or by non-const reference to use it; take `const Ref<T>&` only when you keep a copy.
 - Destroy it only after the GPU is done with it: wait on the frame fence or call `Renderer::WaitIdle()`.
 
-`VulkanImage`, `VulkanRenderPass` and `VulkanShader` follow this. Older wrappers (`VulkanPipeline`, buffers, `VullkanTexture`) still use a manual `Destroy()`. Move them over when you change them.
+`VulkanImage`, `VulkanRenderPass` and `VulkanShader` follow this. Six older wrappers still use a manual `Destroy()`: `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline` and `VullkanTexture`. Most owners also hold their GPU objects in a `Ref<T>` today.
+
+**Planned: per-frame deletion queue** (Roadmap A3, A4). `Renderer::SubmitResourceFree(std::function<void()>)` stores a free function with the current frame in flight and runs it once that frame's fence has signalled (at the start of the same frame index, `MAX_FRAMES_IN_FLIGHT` frames later) and at `Renderer::Shutdown`. Destructors of GPU objects hand their handles to it, so releasing an object mid-frame is safe and shader hot reload and resizes no longer call `Renderer::WaitIdle`. Migration order: buffers, then pipeline and descriptors, then textures (together with moving them to VMA, [#34](https://github.com/joelnl74/Hydro/issues/34)). Change `Ref` members to `Scope` in the same pass.
 
 This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `VulkanRendererContext`, `VulkanFrameContext`, ...) are started and stopped explicitly with `Init` / `Shutdown` instead; see [Subsystems](Subsystems.md).
 
@@ -74,6 +77,6 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 1. Add `FooSpecification` (and `FooProperties` if it has usage settings) next to the engine-facing API. Default every field.
 2. Add the backend class under `Platform/Vulkan/` with `explicit VulkanFoo(const FooSpecification& spec)`.
 3. Convert engine enums to Vulkan in one static helper.
-4. Give it a destructor, delete its copy operations, and free everything in reverse creation order.
+4. Give it a destructor, delete its copy operations, and free everything in reverse creation order. Its owner holds it in a `Scope<T>`.
 5. If it is written every frame, create one per frame in flight.
 6. Add it to the inventory above.

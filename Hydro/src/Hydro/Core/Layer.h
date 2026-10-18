@@ -9,10 +9,10 @@ namespace Hydro
 		Layer();
 		virtual ~Layer();
 
-		virtual void OnAttach() {};
-		virtual void OnDetach() {};
-		virtual void OnUpdate(float deltaTime) {};
+		virtual void OnAttach() {}
+		virtual void OnDetach() {}
+		virtual void OnUpdate([[maybe_unused]] float deltaTime) {}
 		virtual void OnImGuiRender() {}
-		virtual void OnEvent(Event& event) {}
+		virtual void OnEvent([[maybe_unused]] Event& event) {}
 	};
 }

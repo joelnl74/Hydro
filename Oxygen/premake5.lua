@@ -24,15 +24,24 @@ project "Oxygen"
 	includedirs
 	{
 		"src",
-		"%{wks.location}/Hydro/src",
+		"%{wks.location}/Hydro/src"
+	}
+
+	-- Vendored headers: no warnings from these (see ExternalIncludeDirs in Dependencies.lua).
+	ExternalIncludeDirs
+	{
 		"%{wks.location}/Hydro/vendor",
-		"%{wks.location}/Hydro/vendor/spdlog/include",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.VMA}",
+		"%{IncludeDir.VMA}"
 	}
+
+	warnings "Extra"
+	FatalWarningsIfEnabled()
 
 	defines
 	{

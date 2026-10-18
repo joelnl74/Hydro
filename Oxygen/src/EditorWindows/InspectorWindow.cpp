@@ -14,149 +14,146 @@
 
 namespace Hydro
 {
-	namespace
+	constexpr float LabelColumnWidth = 100.0f;
+
+	// A number you type into (click, type, Enter or click away). The value updates as you type;
+	// it is clamped to [min, max] once you leave the field, so a half-typed number is never
+	// clamped out from under you. Returns true when the value changed.
+	static bool InputFloatField(const char* id, float& value, const char* format = "%.3f",
+		float min = -FLT_MAX, float max = FLT_MAX)
 	{
-		constexpr float LabelColumnWidth = 100.0f;
+		bool changed = ImGui::InputFloat(id, &value, 0.0f, 0.0f, format);
 
-		// A number you type into (click, type, Enter or click away). The value updates as you type;
-		// it is clamped to [min, max] once you leave the field, so a half-typed number is never
-		// clamped out from under you. Returns true when the value changed.
-		bool InputFloatField(const char* id, float& value, const char* format = "%.3f",
-			float min = -FLT_MAX, float max = FLT_MAX)
+		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
-			bool changed = ImGui::InputFloat(id, &value, 0.0f, 0.0f, format);
-
-			if (ImGui::IsItemDeactivatedAfterEdit())
-			{
-				const float clamped = std::clamp(value, min, max);
-				changed |= clamped != value;
-				value = clamped;
-			}
-
-			return changed;
+			const float clamped = std::clamp(value, min, max);
+			changed |= clamped != value;
+			value = clamped;
 		}
 
-		// One row: label on the left, X/Y/Z input fields on the right. Clicking an axis button
-		// resets that axis. Returns true when a value changed.
-		bool DrawVec3Control(const char* label, glm::vec3& values, float resetValue = 0.0f)
+		return changed;
+	}
+
+	// One row: label on the left, X/Y/Z input fields on the right. Clicking an axis button
+	// resets that axis. Returns true when a value changed.
+	static bool DrawVec3Control(const char* label, glm::vec3& values, float resetValue = 0.0f)
+	{
+		bool changed = false;
+
+		ImGui::PushID(label);
+
+		if (ImGui::BeginTable("##vec3", 2, ImGuiTableFlags_None))
 		{
-			bool changed = false;
+			ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, LabelColumnWidth);
+			ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableNextRow();
 
-			ImGui::PushID(label);
+			ImGui::TableSetColumnIndex(0);
+			ImGui::AlignTextToFramePadding();
+			ImGui::TextUnformatted(label);
 
-			if (ImGui::BeginTable("##vec3", 2, ImGuiTableFlags_None))
+			ImGui::TableSetColumnIndex(1);
+
+			const ImGuiStyle& style = ImGui::GetStyle();
+			const float lineHeight = ImGui::GetFrameHeight();
+			const ImVec2 buttonSize = { lineHeight, lineHeight };
+			const float fieldWidth = (ImGui::GetContentRegionAvail().x - 3.0f * buttonSize.x - 2.0f * style.ItemSpacing.x) / 3.0f;
+
+			struct Axis { const char* Name; ImVec4 Color; ImVec4 Hovered; };
+			const Axis axes[3] =
 			{
-				ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, LabelColumnWidth);
-				ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
-				ImGui::TableNextRow();
+				{ "X", { 0.80f, 0.10f, 0.15f, 1.0f }, { 0.90f, 0.20f, 0.20f, 1.0f } },
+				{ "Y", { 0.20f, 0.70f, 0.20f, 1.0f }, { 0.30f, 0.80f, 0.30f, 1.0f } },
+				{ "Z", { 0.10f, 0.25f, 0.80f, 1.0f }, { 0.20f, 0.35f, 0.90f, 1.0f } },
+			};
 
-				ImGui::TableSetColumnIndex(0);
-				ImGui::AlignTextToFramePadding();
-				ImGui::TextUnformatted(label);
-
-				ImGui::TableSetColumnIndex(1);
-
-				const ImGuiStyle& style = ImGui::GetStyle();
-				const float lineHeight = ImGui::GetFrameHeight();
-				const ImVec2 buttonSize = { lineHeight, lineHeight };
-				const float fieldWidth = (ImGui::GetContentRegionAvail().x - 3.0f * buttonSize.x - 2.0f * style.ItemSpacing.x) / 3.0f;
-
-				struct Axis { const char* Name; ImVec4 Color; ImVec4 Hovered; };
-				const Axis axes[3] =
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, style.ItemSpacing.y });
+			for (int i = 0; i < 3; i++)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button, axes[i].Color);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, axes[i].Hovered);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, axes[i].Color);
+				if (ImGui::Button(axes[i].Name, buttonSize))
 				{
-					{ "X", { 0.80f, 0.10f, 0.15f, 1.0f }, { 0.90f, 0.20f, 0.20f, 1.0f } },
-					{ "Y", { 0.20f, 0.70f, 0.20f, 1.0f }, { 0.30f, 0.80f, 0.30f, 1.0f } },
-					{ "Z", { 0.10f, 0.25f, 0.80f, 1.0f }, { 0.20f, 0.35f, 0.90f, 1.0f } },
-				};
-
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, style.ItemSpacing.y });
-				for (int i = 0; i < 3; i++)
-				{
-					ImGui::PushStyleColor(ImGuiCol_Button, axes[i].Color);
-					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, axes[i].Hovered);
-					ImGui::PushStyleColor(ImGuiCol_ButtonActive, axes[i].Color);
-					if (ImGui::Button(axes[i].Name, buttonSize))
-					{
-						values[i] = resetValue;
-						changed = true;
-					}
-					ImGui::PopStyleColor(3);
-
-					ImGui::SameLine();
-					ImGui::SetNextItemWidth(fieldWidth);
-					ImGui::PushID(i);
-					changed |= InputFloatField("##value", values[i], "%.3f");
-					ImGui::PopID();
-
-					if (i < 2)
-					{
-						ImGui::SameLine(0.0f, style.ItemSpacing.x);
-					}
+					values[i] = resetValue;
+					changed = true;
 				}
-				ImGui::PopStyleVar();
+				ImGui::PopStyleColor(3);
 
-				ImGui::EndTable();
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(fieldWidth);
+				ImGui::PushID(i);
+				changed |= InputFloatField("##value", values[i], "%.3f");
+				ImGui::PopID();
+
+				if (i < 2)
+				{
+					ImGui::SameLine(0.0f, style.ItemSpacing.x);
+				}
 			}
+			ImGui::PopStyleVar();
 
-			ImGui::PopID();
-			return changed;
+			ImGui::EndTable();
 		}
 
-		// A label column + one widget, matching the Vec3 rows.
-		template<typename WidgetFunction>
-		void DrawPropertyRow(const char* label, WidgetFunction widget)
+		ImGui::PopID();
+		return changed;
+	}
+
+	// A label column + one widget, matching the Vec3 rows.
+	template<typename WidgetFunction>
+	static void DrawPropertyRow(const char* label, WidgetFunction widget)
+	{
+		ImGui::PushID(label);
+		if (ImGui::BeginTable("##property", 2, ImGuiTableFlags_None))
 		{
-			ImGui::PushID(label);
-			if (ImGui::BeginTable("##property", 2, ImGuiTableFlags_None))
-			{
-				ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, LabelColumnWidth);
-				ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
-				ImGui::TableNextRow();
+			ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, LabelColumnWidth);
+			ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableNextRow();
 
-				ImGui::TableSetColumnIndex(0);
-				ImGui::AlignTextToFramePadding();
-				ImGui::TextUnformatted(label);
+			ImGui::TableSetColumnIndex(0);
+			ImGui::AlignTextToFramePadding();
+			ImGui::TextUnformatted(label);
 
-				ImGui::TableSetColumnIndex(1);
-				ImGui::SetNextItemWidth(-1.0f);
-				widget();
+			ImGui::TableSetColumnIndex(1);
+			ImGui::SetNextItemWidth(-1.0f);
+			widget();
 
-				ImGui::EndTable();
-			}
-			ImGui::PopID();
+			ImGui::EndTable();
 		}
+		ImGui::PopID();
+	}
 
-		// Collapsible section for one component type. Right-click the header to remove it.
-		// Removal is only *requested* here; the caller applies it after drawing, so no
-		// component reference is held while EnTT storage changes.
-		template<typename T, typename UIFunction>
-		void DrawComponent(const char* name, Entity entity, bool& removeRequested, UIFunction uiFunction)
+	// Collapsible section for one component type. Right-click the header to remove it.
+	// Removal is only *requested* here; the caller applies it after drawing, so no
+	// component reference is held while EnTT storage changes.
+	template<typename T, typename UIFunction>
+	static void DrawComponent(const char* name, Entity entity, bool& removeRequested, UIFunction uiFunction)
+	{
+		if (entity.HasComponent<T>() == false)
+			return;
+
+		const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed |
+			ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
+
+		ImGui::PushID(name);
+		ImGui::Spacing();
+		bool open = ImGui::TreeNodeEx("##component", flags, "%s", name);
+
+		if (ImGui::BeginPopupContextItem("ComponentSettings"))
 		{
-			if (entity.HasComponent<T>() == false)
-				return;
+			if (ImGui::MenuItem("Remove Component"))
+				removeRequested = true;
 
-			const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed |
-				ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
-
-			ImGui::PushID(name);
-			ImGui::Spacing();
-			bool open = ImGui::TreeNodeEx("##component", flags, "%s", name);
-
-			if (ImGui::BeginPopupContextItem("ComponentSettings"))
-			{
-				if (ImGui::MenuItem("Remove Component"))
-					removeRequested = true;
-
-				ImGui::EndPopup();
-			}
-
-			if (open)
-			{
-				uiFunction(entity.GetComponent<T>());
-				ImGui::TreePop();
-			}
-			ImGui::PopID();
+			ImGui::EndPopup();
 		}
+
+		if (open)
+		{
+			uiFunction(entity.GetComponent<T>());
+			ImGui::TreePop();
+		}
+		ImGui::PopID();
 	}
 
 	void InspectorWindow::OnImguiRender(Entity entity)

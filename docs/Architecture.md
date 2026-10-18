@@ -139,8 +139,11 @@ Scenes are drawn through a `CameraComponent` at runtime or the `EditorCamera` in
 | **Project** | The project's asset folder; open scenes, drag prefabs into the scene |
 | **Console** | The `Log` history (engine and client), with level toggles, a text filter and auto-scroll |
 | **Stats**, **Render Settings**, **Project Settings** | Frame timings and renderer stats; live `RendererSettings`; project name and start scene |
+| **Editor Settings** | How the editor looks: theme (Hydro, Dark, Light, Classic), every ImGui colour, rounding/border/spacing sizes and font scale. Applied live; **Save** writes `EditorSettings.yaml` next to `imgui.ini` (per user, not per project) |
 
 Only visible windows are rendered: a hidden Editor or Game tab doesn't begin its view that frame.
+
+The editor's look is editor-only: `EditorStyle` and `EditorSettings` (with `EditorSettingsSerializer`) live in Oxygen, and the engine never reads them. The engine's `ImGuiLayer` sets ImGui's dark defaults; `EditorLayer::OnAttach` loads `EditorSettings.yaml` and applies the saved style on top. Missing keys keep the theme's values, so the file still loads after a setting is added.
 
 ## Vulkan ownership
 
@@ -173,11 +176,47 @@ Shaders live as GLSL in the application's `assets/shaders` folder and are refere
 
 - `Ref<T>` (shared) and `Scope<T>` (unique) from `Core/Base.h`; create with `CreateRef` / `CreateScope`.
 - Members `m_Name`, statics `s_Name`, types and methods `PascalCase`.
+- **Namespaces.** All engine and editor code lives in `namespace Hydro`: no other namespaces, no nested ones (`Hydro::Something`), and no anonymous `namespace { }`. File-local helpers are `static` functions (and `const`/`constexpr` variables) inside `Hydro`; a group of related helpers is a class with static functions (`EditorPaths`, `AssetDragDrop`, `StatsUI`, like `Input` or `Renderer2D`). The only exceptions are specializations a library requires in its own namespace: `std::hash<>` (`namespace std`) and `YAML::convert<>` (`namespace YAML`).
 - No logical-not operator: write `== false` for booleans and `== nullptr` for pointers.
 - Check Vulkan results with `VK_CHECK_RESULT(...)`.
 - Subsystems and their parts have `Init` / `Shutdown` (never `Create` / `ShutDown` / `Destroy`); hooks the engine calls on client code start with `On`. See [Subsystems](Subsystems.md).
 - Debug checks use `HY_CORE_ASSERT(condition, message)` from `Core/Assert.h`.
-- Includes use forward slashes (`#include "Hydro/Core/Base.h"`), and every header has `#pragma once`.
+- Includes use forward slashes and every header has `#pragma once`. Engine headers are included from `src` (`#include "Hydro/Core/Base.h"`), never with `../` (`"../Scene/Entity.h"`); a header next to the file may use its bare name (`"VulkanUtils.h"`). Vendored libraries are included through their include directory (`<entt.hpp>`, `<stb_image.h>`, `<tiny_obj_loader.h>`), never by a path into `vendor/`.
+- **Naming.** Members are `m_PascalCase` (`m_RenderPass`, not `m_renderPass`); fields of specs and other plain structs are `PascalCase` (`PipelineSpecification::Shader`, not `shader`). Enums are `enum class Name : type`, never `typedef enum class`. Spell names right (`VullkanTexture`, `HierachyWindow`, `heigth` and `GetPipeLine` are being renamed).
+- **Signatures.** Take shared pointers you don't keep as `const Ref<T>&`; take objects you only use as `T&` / `const T&`. Constructors with one argument are `explicit`. Getters have `const` overloads (`Entity::GetComponent`, `HasComponent`).
+- **Ownership.** An object that creates a GPU resource and is its only owner holds it in a `Scope<T>`; `Ref<T>` is only for objects that really are shared. See [Resource creation](ResourceCreation.md#ownership).
+- Mark parameters a function must accept but doesn't use `[[maybe_unused]]` (`virtual void OnUpdate([[maybe_unused]] float deltaTime) {}`) instead of removing their names.
+
+## Tooling
+
+The repository root has the files that keep code consistent; Visual Studio reads all of them.
+
+| File | What it does |
+| --- | --- |
+| `.clang-format` | Tabs (4 wide), Allman braces, indented `namespace Hydro`, `public:` at class level, `Type* name`, no column limit (lines aren't rewrapped), sorted includes. Format the file you're editing with Ctrl+K, Ctrl+D; don't reformat the whole repository in a commit that also changes behaviour. Needs clang-format 17 or newer (Visual Studio 2022 17.8+). `Hydro/vendor` and `vendor` have a `.clang-format` that turns formatting off |
+| `.editorconfig` | UTF-8, CRLF, tabs (4), final newline, no trailing whitespace. YAML and the files Hydro writes as YAML (`.hyscene`, `.hyprefab`, `.hyproj`) use 2 spaces. Vendored code is left alone |
+| `.gitattributes` | Text files are stored as LF and checked out as CRLF; images, fonts and `.spv` are binary. After adding it once: `git add --renormalize .` |
+| Compiler warnings | `Hydro` and `Oxygen` build at `/W4` (premake `warnings "Extra"`). Vendored headers are listed with `ExternalIncludeDirs { ... }` (`Dependencies.lua`): on the include path, and marked external with warnings off (`externalincludedirs` on premake 5.0.0-beta2+, `/external:I` + `/external:W0` on the bundled beta1). Vendored sources (including the `imgui_impl_*` copies in `Platform/Vulkan`) compile with warnings off. `FatalWarnings` in the root `premake5.lua` turns on `/WX`: set it to `true` once a Debug build has no warnings |
+
+Planned: a test project and a GitHub Actions build (Roadmap A2).
+
+## Agreed changes
+
+Agreed on October 19, 2026 after reviewing the engine and editor code against these rules. Each is a task list on the [Roadmap](https://github.com/joelnl74/Hydro/wiki/Roadmap#architecture-and-code-quality); suggested order: tooling and CI (A1, A2), then the deletion queue and RAII (A3, A4), then `SystemContext` (A5) before physics starts.
+
+| ID | Change | Details |
+| --- | --- | --- |
+| A1 | Tooling: `.clang-format`, `.editorconfig`, `.gitattributes`, `/W4`, warnings as errors once clean | [Tooling](#tooling). Partly done |
+| A2 | Tests and CI: a doctest project and a GitHub Actions build | Tests for `UUID`, scene and prefab round trips, `Scene::Copy`, `ScriptRegistry`, `EditorSettings` load; `windows-latest` with the Vulkan SDK, Debug build, run the tests |
+| A3 | RAII for the six wrappers that still have `Destroy()`, and a per-frame deletion queue | `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline`, `VullkanTexture`. `Renderer::SubmitResourceFree(std::function<void()>)` frees once the frame's fence has signalled, so hot reload and resizes no longer need `Renderer::WaitIdle` mid-frame. Order: buffers, then pipeline and descriptors, then textures (with VMA, [#34](https://github.com/joelnl74/Hydro/issues/34)). See [Resource creation](ResourceCreation.md#ownership) |
+| A4 | `Scope` instead of `Ref` for owned GPU objects | 17 `Ref<Vulkan...>` members today. Users get `T&` |
+| A5 | `SystemContext` and an ordered list of stages in `Scene` | Finishes E5. See [Scene, ECS and systems](SceneAndECS.md#planned-system-context-and-stages) |
+| A6 | One component registry | Name, save/load and inspector drawing per component, so saving, the play copy and the inspector loop over one list (E4). See [Scene, ECS and systems](SceneAndECS.md#planned-component-registry) |
+| A7 | No Vulkan in `Renderer/` headers | `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h`. `RenderView` returns an opaque `ImTextureID` |
+| A8 | No asset paths in the engine | `Renderer2D` loads `assets/shaders/vertex.vert` and `assets/textures/white.png` from the application. Create the white texture in code; engine shaders come from an engine resources folder or a shader library. Needed by the Runtime (RT1) |
+| A9 | Smaller fixes | `LayerStack` owns layers as `Scope<Layer>` (no raw `new`/`delete`); `VK_CHECK_RESULT` asserts in Debug ([#35](https://github.com/joelnl74/Hydro/issues/35)); typed event dispatch and `Handled` ([#38](https://github.com/joelnl74/Hydro/issues/38)); `Entity` asserts (E6) |
+| A10 | Naming | `m_PascalCase` members (`m_uniformBuffers`, `m_format`, `m_renderPass`, `m_commandBuffer`, `m_vmaAllocation`, `m_memory`, `m_layoutBinding`, `m_poolSizes`); PascalCase spec fields (`PipelineSpecification::shader`, `ShaderInformation::path`; drop the duplicate `shaderStage`/`shaderType`); `VullkanTexture`, `HierachyWindow`, `heigth`, `GetPipeLine`; `enum class` instead of `typedef enum class` (`KeyCodes.h`, `Input.h`) |
+| A11 | Const and ownership in signatures | `const Ref<T>&` parameters (`VulkanDescriptorBuilder::BindBuffer`/`BindImage` take `Ref&`), `explicit` single-argument constructors, `const` overloads of `Entity::GetComponent`/`HasComponent`, `"Hydro/..."` include paths instead of `"../Scene/..."` |
 
 ## Known gaps
 
@@ -187,7 +226,11 @@ These are where the code does not yet match the rules above. Fix them when you t
 - Each `RenderView` has its own quads, so a scene shown in two windows is submitted (and its vertices uploaded) twice.
 - A `RenderView`'s ImGui textures stay in ImGui's descriptor pool until ImGui shuts down; the vendored ImGui has no `ImGui_ImplVulkan_RemoveTexture`.
 - `Scene::m_Registry` is public; the editor reads it directly ([#42](https://github.com/joelnl74/Hydro/issues/42)).
-- Most Vulkan wrappers still have a manual `Destroy()` instead of a destructor (see [Resource creation](ResourceCreation.md#ownership)).
+- Six Vulkan wrappers still have a manual `Destroy()` instead of a destructor, and objects that are freed while frames are in flight wait for the GPU with `Renderer::WaitIdle` (A3; see [Resource creation](ResourceCreation.md#ownership)).
+- Owned GPU objects are held in `Ref<T>` (17 members), so ownership isn't visible in the type (A4).
+- `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h` (A7).
+- `Renderer2D` loads its shader and white texture from the application's `assets/` folder (A8).
+- `LayerStack` owns layers through raw pointers (A9); some members and spec fields don't follow the naming rules (A10).
 - Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s quad shader is watched; there is no shader library yet.
 - `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).
 - `VulkanDevice` and `VulkanSwapChain` still do their setup in the constructor (+ `Create`) instead of `Init` (see [Subsystems](Subsystems.md#known-gaps)).

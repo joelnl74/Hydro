@@ -36,19 +36,27 @@ project "Hydro"
 
 	includedirs
 	{
-		"src",
-		"vendor/spdlog/include",
-		"vendor/ImGui/backends",
-		"%{IncludeDir.GLFW}",
+		"src"
+	}
+
+	-- Vendored headers: no warnings from these (see ExternalIncludeDirs in Dependencies.lua).
+	ExternalIncludeDirs
+	{
+		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.ImGui}/backends",
+		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.VulkanSDK}",
-		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.stb}",
+		"%{IncludeDir.tinyobjloader}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.VMA}",
+		"%{IncludeDir.VMA}"
 	}
+
+	warnings "Extra"
+	FatalWarningsIfEnabled()
 
 	links
 	{
@@ -60,7 +68,11 @@ project "Hydro"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
-	flags { "NoPCH" }
+		flags { "NoPCH" }
+
+	-- Vendored sources compiled into Hydro, including the ImGui backend copies in Platform/Vulkan.
+	filter { "files:vendor/** or src/Hydro/Platform/Vulkan/imgui_impl_*.cpp" }
+		warnings "Off"
 
 	filter "system:windows"
 		systemversion "latest"

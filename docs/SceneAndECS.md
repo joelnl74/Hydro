@@ -135,6 +135,28 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - **Missing fields keep their defaults**, so older files still load after a component gains a field.
 - Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
 
+## Planned: system context and stages
+
+Roadmap A5 (finishes E5). Every system gets the same small struct instead of a growing parameter list, and `Scene` runs its systems from one ordered list, so the frame order above is in code rather than only in this page:
+
+```cpp
+struct SystemContext
+{
+    float DeltaTime = 0.0f;       // variable step: Time::GetDeltaTime()
+    float FixedDeltaTime = 0.0f;  // fixed step for physics
+    uint64_t FrameIndex = 0;
+    bool IsPlaying = false;       // false in the editor
+};
+
+void UpdatePhysics(Scene& scene, const SystemContext& context);
+```
+
+Stages run in this order: **Scripts** (play mode only) → **Physics** → **Transforms** (world-transform propagation, S3) → **Render submission**. `OnUpdateRuntime` and `OnUpdateEditor` build the context and run the stages; a stage that only runs in play mode checks `context.IsPlaying`. Do this before physics (P1) adds the first engine system with its own timestep.
+
+## Planned: component registry
+
+Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` (both directions), `CopyableComponents`, the inspector and the "Add Component" menu. One registry replaces them: per component a display name, save and load functions and an inspector draw function, registered once. Saving, loading, the play copy and the inspector loop over that list, and adding a component becomes one registration.
+
 ## Adding a feature
 
 1. **Component**: add a plain struct to `Components.h` (engine) or to your application (game-only data, like `GalaxyStar`).
@@ -150,3 +172,6 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - The selection is cleared on Play and Stop (there's no `GetEntityByUUID` yet to carry it over, S1).
 - Scripts must be compiled into the application and registered in code: there's no separate game module or hot reload, and scripts can't expose fields to the inspector yet.
 - There is no parent/child hierarchy yet.
+- Systems take loose parameters (`registry`, `deltaTime`) and the order lives in `OnUpdateRuntime` / `OnUpdateEditor` code, not a list (A5).
+- Each component is listed separately in the serializer, `CopyableComponents` and the inspector (A6).
+- `Entity::GetComponent` doesn't assert the component exists and has no `const` overload (E6, A11).

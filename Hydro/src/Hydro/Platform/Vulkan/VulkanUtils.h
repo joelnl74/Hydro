@@ -49,6 +49,7 @@ namespace Hydro {
 		case VK_OPERATION_DEFERRED_KHR: return "VK_OPERATION_DEFERRED_KHR";
 		case VK_OPERATION_NOT_DEFERRED_KHR: return "VK_OPERATION_NOT_DEFERRED_KHR";
 		case VK_PIPELINE_COMPILE_REQUIRED_EXT: return "VK_PIPELINE_COMPILE_REQUIRED_EXT";
+		default: break; // newer result codes: shown as unknown with their number by the caller
 		}
 
 		return "VK_UNKNOWN_RESULT";
@@ -58,7 +59,7 @@ namespace Hydro {
 	{
 		if (result != VK_SUCCESS)
 		{
-			HY_CORE_ERROR("VkResult is '{0}' in {1}:{2}", ::Hydro::VKResultToString(result), file, line);
+			HY_CORE_ERROR("VkResult is '{0}' ({1}) in {2}:{3}", ::Hydro::VKResultToString(result), (int)result, file, line);
 			if (result == VK_ERROR_DEVICE_LOST)
 			{
 				using namespace std::chrono_literals;

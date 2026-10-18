@@ -5,20 +5,17 @@
 
 namespace Hydro
 {
-	namespace
+	struct ScriptRegistryData
 	{
-		struct ScriptRegistryData
-		{
-			std::map<std::string, ScriptFactory> Factories;   // sorted, so GetNames is too
-			std::unordered_map<std::type_index, std::string> Names;
-		};
+		std::map<std::string, ScriptFactory> Factories;   // sorted, so GetNames is too
+		std::unordered_map<std::type_index, std::string> Names;
+	};
 
-		// Created on first use, so registering from anywhere (even another static) is safe.
-		ScriptRegistryData& GetData()
-		{
-			static ScriptRegistryData data;
-			return data;
-		}
+	// Created on first use, so registering from anywhere (even another static) is safe.
+	static ScriptRegistryData& GetData()
+	{
+		static ScriptRegistryData data;
+		return data;
 	}
 
 	void ScriptRegistry::Register(const std::string& name, std::type_index type, ScriptFactory factory)

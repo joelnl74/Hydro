@@ -5,15 +5,12 @@
 
 namespace Hydro
 {
-	namespace
+	// Vulkan clip space has +Y pointing down. Flipping here (and nowhere else) keeps world +Y up
+	// on screen and lets every image be shown without flipping its UVs.
+	static glm::mat4 FlipY(glm::mat4 projection)
 	{
-		// Vulkan clip space has +Y pointing down. Flipping here (and nowhere else) keeps world +Y up
-		// on screen and lets every image be shown without flipping its UVs.
-		glm::mat4 FlipY(glm::mat4 projection)
-		{
-			projection[1][1] *= -1.0f;
-			return projection;
-		}
+		projection[1][1] *= -1.0f;
+		return projection;
 	}
 
 	glm::mat4 Camera::Perspective(float verticalFOV, float aspectRatio, float nearClip, float farClip)

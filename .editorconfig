@@ -1,8 +1,30 @@
-# top-most EditorConfig file
+# Hydro editor settings (docs/Architecture.md, "Tooling"). Visual Studio reads this file natively.
+# Line endings in the working copy are CRLF; .gitattributes keeps them consistent in git.
 root = true
 
-# Unix-style newlines with a newline ending every file
 [*]
-end_of_line = lf
-insert_final_newline = true
+charset = utf-8
+end_of_line = crlf
 indent_style = tab
+indent_size = 4
+tab_width = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown: two trailing spaces are a line break.
+[*.md]
+trim_trailing_whitespace = false
+
+# YAML and the files Hydro writes as YAML (scenes, prefabs, projects, editor settings): spaces only.
+[*.{yaml,yml,hyscene,hyprefab,hyproj}]
+indent_style = space
+indent_size = 2
+
+# Vendored code keeps its own style.
+[{Hydro/vendor/**,vendor/**}]
+charset = unset
+end_of_line = unset
+indent_style = unset
+indent_size = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset

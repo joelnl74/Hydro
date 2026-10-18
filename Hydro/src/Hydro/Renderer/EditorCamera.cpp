@@ -10,19 +10,16 @@
 
 namespace Hydro
 {
-	namespace
-	{
-		constexpr float RotationSpeed = 0.005f;   // radians per pixel
-		constexpr float DragZoomSpeed = 0.005f;   // per pixel, exponential
-		constexpr float ScrollZoomFactor = 0.85f; // distance multiplier per wheel step
-		constexpr float MinDistance = 0.01f;
-		constexpr float MaxDistance = 100000.0f;
-		constexpr float MaxPitch = 1.55f;         // just under 90 degrees, so the view never flips
+	constexpr float RotationSpeed = 0.005f;   // radians per pixel
+	constexpr float DragZoomSpeed = 0.005f;   // per pixel, exponential
+	constexpr float ScrollZoomFactor = 0.85f; // distance multiplier per wheel step
+	constexpr float MinDistance = 0.01f;
+	constexpr float MaxDistance = 100000.0f;
+	constexpr float MaxPitch = 1.55f;         // just under 90 degrees, so the view never flips
 
-		bool IsAltPressed()
-		{
-			return Input::IsKeyPressed(KeyCode::LeftAlt) || Input::IsKeyPressed(KeyCode::RightAlt);
-		}
+	static bool IsAltPressed()
+	{
+		return Input::IsKeyPressed(KeyCode::LeftAlt) || Input::IsKeyPressed(KeyCode::RightAlt);
 	}
 
 	EditorCamera::EditorCamera()

@@ -15,8 +15,17 @@ namespace Hydro
 		case ShaderDataType::Float2:    return VK_FORMAT_R32G32_SFLOAT;
 		case ShaderDataType::Float3:    return VK_FORMAT_R32G32B32_SFLOAT;
 		case ShaderDataType::Float4:    return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case ShaderDataType::Int:       return VK_FORMAT_R32_SINT;
+		case ShaderDataType::Int2:      return VK_FORMAT_R32G32_SINT;
+		case ShaderDataType::Int3:      return VK_FORMAT_R32G32B32_SINT;
+		case ShaderDataType::Int4:      return VK_FORMAT_R32G32B32A32_SINT;
+		case ShaderDataType::Bool:      return VK_FORMAT_R8_UINT;
+		case ShaderDataType::Mat3:      // A matrix takes one attribute location per column: not supported yet.
+		case ShaderDataType::Mat4:
+		case ShaderDataType::None:      break;
 		}
 
+		HY_CORE_WARN("Vertex attribute type {} has no Vulkan format; using VK_FORMAT_UNDEFINED.", (int)type);
 		return VK_FORMAT_UNDEFINED;
 	}
 
@@ -103,12 +112,6 @@ namespace Hydro
 		vertexInputInfo.pVertexBindingDescriptions = &vertexInputBinding;
 		vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
-		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
-		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputState.vertexBindingDescriptionCount = 1;
-		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
-		vertexInputState.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributs.size();
-		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
 		// End setup vertex data.
 

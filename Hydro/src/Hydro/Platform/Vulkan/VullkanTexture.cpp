@@ -5,11 +5,11 @@
 
 #include "Hydro/Renderer/Renderer.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include <vendor/stb/include/stb_image.h>
+#include <stb_image.h>
 
 namespace Hydro
 {
-	VullkanTexture::VullkanTexture(const std::string& filePath, VulkanTextureSpecification specfication)
+	VullkanTexture::VullkanTexture(const std::string& filePath, [[maybe_unused]] VulkanTextureSpecification specfication)
 	{
 		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
@@ -22,11 +22,6 @@ namespace Hydro
 		}
 
 		VulkanAllocator allocator("imageBuffer");
-
-		VkBufferCreateInfo bufferCreateInfo = {};
-		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferCreateInfo.size = imageSize;
-		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
@@ -140,7 +135,7 @@ namespace Hydro
 		vkBindImageMemory(device, image, imageMemory, 0);
 	}
 
-	void VullkanTexture::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+	void VullkanTexture::TransitionImageLayout(VkImage image, [[maybe_unused]] VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 	{
 		VulkanCommandBuffer commandBuffer;
 		auto cmdBuffer = commandBuffer.Create();

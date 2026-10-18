@@ -1,0 +1,76 @@
+# Hydro code style (docs/Architecture.md, "Code conventions"; wiki Coding-Conventions).
+# Visual Studio picks this file up automatically (Tools > Options > Text Editor > C/C++ >
+# Code Style > Formatting: "Enable ClangFormat support"). Format the file you are editing
+# (Ctrl+K, Ctrl+D); don't reformat the whole repository in a commit that also changes behaviour.
+# Vendored code has its own .clang-format with DisableFormat (Hydro/vendor, vendor).
+Language: Cpp
+Standard: c++17
+
+# Tabs, 4 wide.
+UseTab: AlignWithSpaces
+IndentWidth: 4
+TabWidth: 4
+ContinuationIndentWidth: 4
+
+# Allman braces: every brace on its own line.
+BreakBeforeBraces: Allman
+
+# Everything inside namespace Hydro is indented one level; public:/private: sit at the class's level.
+NamespaceIndentation: All
+AccessModifierOffset: -4
+IndentCaseLabels: false
+IndentPPDirectives: None
+
+# Line breaks are left as written (no column limit), so formatting doesn't rewrap existing code.
+ColumnLimit: 0
+
+# Short forms the code already uses.
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+# Needs clang-format 17+ (Visual Studio 2022 17.8 or newer).
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+  AlignCaseColons: false
+AllowShortLambdasOnASingleLine: Empty
+LambdaBodyIndentation: OuterScope
+AllowShortEnumsOnASingleLine: false
+
+# Spacing and alignment.
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeParens: ControlStatements
+Cpp11BracedListStyle: false
+AlignAfterOpenBracket: DontAlign
+AlignTrailingComments: true
+AlignOperands: false
+FixNamespaceComments: false
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: true
+BreakConstructorInitializers: BeforeColon
+PackConstructorInitializers: Never
+EmptyLineBeforeAccessModifier: LogicalBlock
+
+# Includes: groups stay as written (blank line between groups); each group is sorted:
+#   hypch.h  ->  the file's own header  ->  engine headers ("Hydro/...", "...")
+#   ->  vendored libraries (<glm/...>, <imgui.h>, <entt.hpp>)  ->  the standard library (<vector>)
+SortIncludes: CaseSensitive
+IncludeBlocks: Preserve
+IncludeIsMainRegex: '$'
+IncludeCategories:
+  - Regex: '^[<"]hypch\.h[">]$'
+    Priority: -1
+  - Regex: '^"'
+    Priority: 1
+  - Regex: '^<Hydro'
+    Priority: 2
+  - Regex: '^<[a-z_]+>$'
+    Priority: 4
+  - Regex: '^<'
+    Priority: 3

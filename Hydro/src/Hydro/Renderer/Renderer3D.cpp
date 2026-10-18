@@ -1,4 +1,4 @@
-#include <hypch.h>
+#include "hypch.h"
 #include <unordered_map>
 
 #include "Renderer3D.h"
@@ -10,7 +10,7 @@
 #include "Hydro/Platform/Vulkan/VullkanTexture.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "Vendor/Obj-loader/tiny_obj_loader.h"
+#include <tiny_obj_loader.h>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>

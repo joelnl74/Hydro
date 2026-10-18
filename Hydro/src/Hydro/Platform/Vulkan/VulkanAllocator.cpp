@@ -114,8 +114,9 @@ namespace Hydro {
 		VmaStats stats;
 		vmaCalculateStats(s_Data->Allocator, &stats);
 
-		uint64_t usedMemory = stats.memoryHeap[0].usedBytes;
-		uint64_t freeMemory = stats.memoryHeap[0].unusedBytes;
+		const uint64_t usedMemory = stats.memoryHeap[0].usedBytes;
+		const uint64_t freeMemory = stats.memoryHeap[0].unusedBytes;
+		HY_CORE_INFO("GPU memory (heap 0): {} bytes used, {} bytes free", usedMemory, freeMemory);
 	}
 
 	GPUMemoryStats VulkanAllocator::GetStats()

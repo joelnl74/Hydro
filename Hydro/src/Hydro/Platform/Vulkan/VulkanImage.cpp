@@ -6,7 +6,7 @@
 #include "Hydro/Renderer/Renderer.h"
 #include "VulkanUtils.h"
 
-#include <vendor/stb/include/stb_image.h>
+#include <stb_image.h>
 
 namespace Hydro
 {

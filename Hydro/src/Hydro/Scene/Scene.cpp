@@ -9,7 +9,7 @@
 #include <unordered_map>
 namespace Hydro
 {
-	Scene::Scene(const std::string& debugName, bool isEditorScene)
+	Scene::Scene(const std::string& debugName, [[maybe_unused]] bool isEditorScene)
 		: m_Name(debugName)
 	{
 
@@ -35,23 +35,20 @@ namespace Hydro
 
 	}
 
-	namespace
+	template<typename... Component>
+	static void CopyComponents(ComponentGroup<Component...>, entt::registry& destination, const entt::registry& source,
+		const std::unordered_map<entt::entity, entt::entity>& entityMap)
 	{
-		template<typename... Component>
-		void CopyComponents(ComponentGroup<Component...>, entt::registry& destination, const entt::registry& source,
-			const std::unordered_map<entt::entity, entt::entity>& entityMap)
+		([&]()
 		{
-			([&]()
+			auto view = source.view<const Component>();
+			for (auto sourceEntity : view)
 			{
-				auto view = source.view<const Component>();
-				for (auto sourceEntity : view)
-				{
-					auto it = entityMap.find(sourceEntity);
-					if (it != entityMap.end())
-						destination.emplace_or_replace<Component>(it->second, view.template get<const Component>(sourceEntity));
-				}
-			}(), ...);
-		}
+				auto it = entityMap.find(sourceEntity);
+				if (it != entityMap.end())
+					destination.emplace_or_replace<Component>(it->second, view.template get<const Component>(sourceEntity));
+			}
+		}(), ...);
 	}
 
 	Ref<Scene> Scene::Copy(const Ref<Scene>& source)
@@ -195,7 +192,7 @@ namespace Hydro
 		OnUpdateEditor(deltaTime);
 	}
 
-	void Scene::OnUpdateEditor(float deltaTime)
+	void Scene::OnUpdateEditor([[maybe_unused]] float deltaTime)
 	{
 		// Engine systems that run while editing as well as at runtime (e.g. transform propagation,
 		// once there is a hierarchy) go here. None yet.

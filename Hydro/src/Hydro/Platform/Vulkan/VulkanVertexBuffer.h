@@ -27,6 +27,7 @@ namespace Hydro
 		case ShaderDataType::Int3:     return 4 * 3;
 		case ShaderDataType::Int4:     return 4 * 4;
 		case ShaderDataType::Bool:     return 1;
+		case ShaderDataType::None:     break;
 		}
 
 		return 0;
@@ -41,7 +42,7 @@ namespace Hydro
 		std::string Name;
 
 		VertexBufferElement(const std::string& name, ShaderDataType type, bool normalized = false)
-			: Name(name), Type(type), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized)
+			: Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized), Type(type), Name(name)
 		{
 		}
 	};

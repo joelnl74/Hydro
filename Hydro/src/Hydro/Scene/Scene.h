@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include "../../../vendor/entt/entt.hpp"
+#include <entt.hpp>
 
 #include "Hydro/Core/Base.h"
 #include "Components/Components.h"
