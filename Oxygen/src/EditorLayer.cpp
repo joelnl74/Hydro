@@ -7,6 +7,7 @@
 #include "Hydro/Utils/PlatformUtils.h"
 #include "EditorPaths.h"
 #include "EditorWindows/AssetDragDrop.h"
+#include "EditorWindows/EditorChrome.h"
 
 #include <algorithm>
 #include <cmath>
@@ -73,17 +74,18 @@ namespace Hydro
 		m_ProjectSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 		m_EditorSettingsWindow = CreateRef<EditorSettingsWindow>();
 		m_EditorSettingsWindow->OnSave = [this]() { SaveEditorSettings(); };
-		m_EditorSettingsWindow->OnRevert = [this]() { LoadEditorSettings(); };
+		m_EditorSettingsWindow->OnRevert = [this]() { RevertEditorSettings(); };
 
 		// The ImGui layer is attached before the client's layers, so its context exists here and the
 		// editor's style replaces the engine's default one.
 		LoadEditorSettings();
+		m_EditorCamera.SetProjectionType(m_EditorSettings.CameraStartsIn2D ? ProjectionType::Orthographic : ProjectionType::Perspective);
 
 		CreateGalaxy();
 		CreateDefaultCamera();
 
 		// After the demo scene: a project with a start scene replaces it.
-		OpenDefaultProject();
+		OpenStartupProject();
 	}
 
 	void EditorLayer::CreateGalaxy()
@@ -202,6 +204,9 @@ namespace Hydro
 		m_GameView.reset();
 		m_EditorView.reset();
 
+		// Remember what was open for the next start (only the session part of the file changes).
+		EditorSettingsSerializer::SaveSession(m_EditorSettings.Session, EditorPaths::GetEditorSettingsPath());
+
 		// The editor opened the project, so it closes it.
 		Project::Close();
 	}
@@ -225,8 +230,12 @@ namespace Hydro
 			m_ActiveScene->OnUpdateEditor(deltaTime);
 		}
 
+		UpdateAutosave(deltaTime);
+
 		// 4. Render submission: one view per visible window. The editor camera is updated every frame
-		// so a drag never jumps, but only takes new input over the Editor window.
+		// so a drag never jumps, but only takes new input over the Editor window. Its settings may
+		// have changed in the Editor Settings window (SetSettings does nothing when they didn't).
+		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
 		m_EditorCamera.Update(m_EditorViewVisible && m_EditorViewHovered);
 
 		if (m_EditorViewVisible)
@@ -257,6 +266,9 @@ namespace Hydro
 			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		}
+
+		// While playing, every window drawn this frame takes on the play-mode tint (popped after End below).
+		EditorChrome::PushPlayModeTint(m_EditorSettings.PlayMode, IsPlaying());
 
 		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
 		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
@@ -289,6 +301,8 @@ namespace Hydro
 
 		if (ImGui::BeginMenuBar())
 		{
+			EditorChrome::DrawBrand(m_EditorSettings.Style.GetHighlightColor());
+
 			if (ImGui::BeginMenu("File"))
 			{
 				if (ImGui::MenuItem("New Project..."))
@@ -341,6 +355,10 @@ namespace Hydro
 
 			DrawPlayControls();
 
+			// The waterline: the accent while editing, the play-mode tint while playing.
+			const bool tinted = IsPlaying() && m_EditorSettings.PlayMode.Tint;
+			EditorChrome::DrawMenuBarWaterline(tinted ? m_EditorSettings.PlayMode.TintColor : m_EditorSettings.Style.GetHighlightColor());
+
 			ImGui::EndMenuBar();
 		}
 
@@ -353,49 +371,47 @@ namespace Hydro
 
 		m_ProjectWindow->OnImguiRender(m_ActiveScene);
 		// After the Project window, which it docks next to the first time.
-		m_ConsoleWindow->OnImguiRender();
+		m_ConsoleWindow->OnImguiRender(m_EditorSettings.Console);
 
 		DrawEditorWindow();
 		DrawGameWindow();
 
 		ImGui::End();
+
+		EditorChrome::PopPlayModeTint();
 	}
 
 	void EditorLayer::DrawPlayControls()
 	{
 		const ImGuiStyle& style = ImGui::GetStyle();
-		const float buttonWidth = 64.0f;
-		const float totalWidth = 3.0f * buttonWidth + 2.0f * style.ItemSpacing.x;
+		const float buttonSize = ImGui::GetFrameHeight() * 1.4f;
+		const float totalWidth = 3.0f * buttonSize + 2.0f * style.ItemSpacing.x;
 		const float centre = (ImGui::GetWindowWidth() - totalWidth) * 0.5f;
 		if (centre > ImGui::GetCursorPosX())
 			ImGui::SetCursorPosX(centre);
 
-		// Play turns into Stop (highlighted) while the game runs.
+		const ImVec4 accent = m_EditorSettings.Style.GetHighlightColor();
+		const ImVec4 playColor = m_EditorSettings.PlayMode.Tint ? m_EditorSettings.PlayMode.TintColor : accent;
+
+		// Play turns into Stop (in the play-mode colour) while the game runs.
 		const bool playing = IsPlaying();
-		if (playing)
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.55f, 0.25f, 1.0f));
-		if (ImGui::Button(playing ? "Stop" : "Play", { buttonWidth, 0.0f }))
+		if (EditorChrome::IconButton("##PlayStop", playing ? ToolbarIcon::Stop : ToolbarIcon::Play, buttonSize, playing, playColor,
+			playing ? "Stop (back to the editor scene)" : "Play (runs a copy of the scene)"))
 		{
 			if (playing)
 				StopScene();
 			else
 				PlayScene();
 		}
-		if (playing)
-			ImGui::PopStyleColor();
 
-		ImGui::BeginDisabled(IsPlaying() == false);
+		ImGui::BeginDisabled(playing == false);
 
-		const bool paused = m_Paused;
-		if (paused)
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.50f, 0.15f, 1.0f));
-		if (ImGui::Button(paused ? "Resume" : "Pause", { buttonWidth, 0.0f }))
+		if (EditorChrome::IconButton("##Pause", m_Paused ? ToolbarIcon::Play : ToolbarIcon::Pause, buttonSize, m_Paused, accent,
+			m_Paused ? "Resume" : "Pause"))
 			m_Paused = m_Paused == false;
-		if (paused)
-			ImGui::PopStyleColor();
 
 		ImGui::BeginDisabled(m_Paused == false);
-		if (ImGui::Button("Step", { buttonWidth, 0.0f }))
+		if (EditorChrome::IconButton("##Step", ToolbarIcon::Step, buttonSize, false, accent, "Step one frame"))
 			m_StepFrames++;
 		ImGui::EndDisabled();
 
@@ -463,6 +479,8 @@ namespace Hydro
 
 			const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
 			ImGui::Image((ImTextureID)m_GameView->GetImGuiTexture(), size);
+			if (IsPlaying() && m_EditorSettings.PlayMode.Tint)
+				EditorChrome::OutlineLastItem(m_EditorSettings.PlayMode.TintColor, 2.0f);
 			AcceptAssetDrop();
 
 			ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -546,6 +564,7 @@ namespace Hydro
 		const std::filesystem::path projectDirectory = directory;
 		const std::string name = EditorPaths::ToFileName(projectDirectory.filename().string());
 		Ref<Project> project = Project::New(projectDirectory / (name + Project::FileExtension));
+		m_EditorSettings.Session.LastProject = projectDirectory / (name + Project::FileExtension);
 
 		std::error_code ec;
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Scenes", ec);
@@ -575,6 +594,8 @@ namespace Hydro
 		if (project == nullptr)
 			return; // Already logged; the current project stays open.
 
+		std::error_code pathError;
+		m_EditorSettings.Session.LastProject = std::filesystem::absolute(path, pathError);
 		Renderer::SetSettings(project->GetConfig().Renderer);
 
 		const std::filesystem::path startScene = project->GetStartScenePath();
@@ -607,6 +628,51 @@ namespace Hydro
 
 		m_EditorSettings = settings;
 		m_EditorSettings.Style.Apply();
+		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
+	}
+
+	void EditorLayer::RevertEditorSettings()
+	{
+		const EditorSession session = m_EditorSettings.Session;
+		LoadEditorSettings();
+		m_EditorSettings.Session = session;
+	}
+
+	void EditorLayer::UpdateAutosave(float deltaTime)
+	{
+		const AutosaveSettings& autosave = m_EditorSettings.Autosave;
+		if (autosave.Enabled == false || IsPlaying() || m_EditorScenePath.empty())
+		{
+			m_AutosaveTimer = 0.0f;
+			return;
+		}
+
+		m_AutosaveTimer += deltaTime;
+		if (m_AutosaveTimer < autosave.IntervalMinutes * 60.0f)
+			return;
+
+		m_AutosaveTimer = 0.0f;
+		SaveScene();
+		HY_INFO("Autosaved {}", m_EditorScenePath.filename().string());
+	}
+
+	void EditorLayer::OpenStartupProject()
+	{
+		const EditorStartupSettings& startup = m_EditorSettings.Startup;
+		// Copy: opening a project or scene updates the session.
+		const EditorSession session = m_EditorSettings.Session;
+
+		std::error_code ec;
+		if (startup.ReopenLastProject && session.LastProject.empty() == false && std::filesystem::exists(session.LastProject, ec))
+			OpenProject(session.LastProject);
+
+		if (Project::GetActive() == nullptr)
+			OpenDefaultProject();
+
+		// The project opened its start scene; the last scene replaces it if it was another one.
+		if (startup.ReopenLastScene && session.LastScene.empty() == false && session.LastScene != m_EditorScenePath &&
+			std::filesystem::exists(session.LastScene, ec))
+			OpenScene(session.LastScene);
 	}
 
 	void EditorLayer::SaveEditorSettings()
@@ -652,6 +718,7 @@ namespace Hydro
 		SetEditorScene(CreateRef<Scene>("Untitled", true));
 		CreateDefaultCamera();
 		m_EditorScenePath.clear();
+		m_EditorSettings.Session.LastScene.clear();
 	}
 
 	void EditorLayer::CreateDefaultCamera()
@@ -687,6 +754,9 @@ namespace Hydro
 
 		SetEditorScene(newScene);
 		m_EditorScenePath = path;
+
+		std::error_code ec;
+		m_EditorSettings.Session.LastScene = std::filesystem::absolute(path, ec);
 	}
 
 	void EditorLayer::SaveScene()
@@ -697,7 +767,11 @@ namespace Hydro
 
 		// Always the editor scene: what happens while playing is not saved.
 		SceneSerializer serializer(m_EditorScene);
-		serializer.Serialize(m_EditorScenePath);
+		if (serializer.Serialize(m_EditorScenePath))
+		{
+			std::error_code ec;
+			m_EditorSettings.Session.LastScene = std::filesystem::absolute(m_EditorScenePath, ec);
+		}
 	}
 
 	void EditorLayer::SaveSceneAs()
@@ -716,7 +790,12 @@ namespace Hydro
 
 		SceneSerializer serializer(m_EditorScene);
 		if (serializer.Serialize(path))
+		{
 			m_EditorScenePath = path;
+
+			std::error_code ec;
+			m_EditorSettings.Session.LastScene = std::filesystem::absolute(path, ec);
+		}
 	}
 
 	void EditorLayer::OnAssetDropped(const std::filesystem::path& path)

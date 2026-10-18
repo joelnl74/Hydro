@@ -6,21 +6,26 @@
 
 namespace Hydro
 {
-	struct LevelStyle
-	{
-		const char* Name;
-		ImVec4 Color;
-	};
-
 	// Indexed by LogLevel.
-	const LevelStyle LevelStyles[5] =
+	static const char* const LevelNames[5] = { "Trace", "Info", "Warn", "Error", "Fatal" };
+
+	// Trace and Info follow the theme's text colours; warnings and errors are darker on a light theme
+	// so they stay readable.
+	static ImVec4 GetLevelColor(int level)
 	{
-		{ "Trace", { 0.60f, 0.60f, 0.60f, 1.0f } },
-		{ "Info",  { 0.85f, 0.85f, 0.85f, 1.0f } },
-		{ "Warn",  { 1.00f, 0.80f, 0.30f, 1.0f } },
-		{ "Error", { 1.00f, 0.40f, 0.35f, 1.0f } },
-		{ "Fatal", { 1.00f, 0.20f, 0.60f, 1.0f } },
-	};
+		const ImGuiStyle& style = ImGui::GetStyle();
+		const ImVec4& background = style.Colors[ImGuiCol_WindowBg];
+		const bool light = 0.2126f * background.x + 0.7152f * background.y + 0.0722f * background.z > 0.5f;
+
+		switch (level)
+		{
+		case 0: return style.Colors[ImGuiCol_TextDisabled];
+		case 1: return style.Colors[ImGuiCol_Text];
+		case 2: return light ? ImVec4(0.70f, 0.45f, 0.00f, 1.0f) : ImVec4(1.00f, 0.80f, 0.30f, 1.0f);
+		case 3: return light ? ImVec4(0.80f, 0.15f, 0.12f, 1.0f) : ImVec4(1.00f, 0.42f, 0.38f, 1.0f);
+		default: return light ? ImVec4(0.75f, 0.05f, 0.45f, 1.0f) : ImVec4(1.00f, 0.25f, 0.62f, 1.0f);
+		}
+	}
 
 	void ConsoleWindow::Clear()
 	{
@@ -53,7 +58,7 @@ namespace Hydro
 		return m_TextFilter.PassFilter(message.Text.c_str()) || m_TextFilter.PassFilter(message.Source.c_str());
 	}
 
-	void ConsoleWindow::OnImguiRender()
+	void ConsoleWindow::OnImguiRender(ConsoleSettings& settings)
 	{
 		// Keep collecting while closed, so nothing is missed (the history only keeps the newest messages).
 		PullNewMessages();
@@ -79,7 +84,7 @@ namespace Hydro
 			Clear();
 
 		ImGui::SameLine();
-		ImGui::Checkbox("Auto-scroll", &m_AutoScroll);
+		ImGui::Checkbox("Auto-scroll", &settings.AutoScroll);
 
 		// Level toggles with counts.
 		uint32_t counts[5] = {};
@@ -89,10 +94,10 @@ namespace Hydro
 		for (int level = 0; level < 5; level++)
 		{
 			char label[32];
-			std::snprintf(label, sizeof(label), "%s (%u)", LevelStyles[level].Name, counts[level]);
+			std::snprintf(label, sizeof(label), "%s (%u)", LevelNames[level], counts[level]);
 
 			ImGui::SameLine();
-			ImGui::PushStyleColor(ImGuiCol_Text, LevelStyles[level].Color);
+			ImGui::PushStyleColor(ImGuiCol_Text, GetLevelColor(level));
 			ImGui::Checkbox(label, &m_ShowLevel[level]);
 			ImGui::PopStyleColor();
 		}
@@ -124,14 +129,21 @@ namespace Hydro
 			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 			{
 				const LogMessage& message = *visible[i];
-				const LevelStyle& style = LevelStyles[(int)message.Level];
+				const ImVec4 color = GetLevelColor((int)message.Level);
+				const char* levelName = LevelNames[(int)message.Level];
 
 				ImGui::PushID(i);
-				ImGui::TextDisabled("%s", message.Time.c_str());
+				if (settings.ShowTimestamps)
+				{
+					ImGui::TextDisabled("%s", message.Time.c_str());
+					ImGui::SameLine();
+				}
+				if (settings.ShowSource)
+					ImGui::TextColored(color, "%-5s %s:", levelName, message.Source.c_str());
+				else
+					ImGui::TextColored(color, "%-5s", levelName);
 				ImGui::SameLine();
-				ImGui::TextColored(style.Color, "%-5s %s:", style.Name, message.Source.c_str());
-				ImGui::SameLine();
-				ImGui::PushStyleColor(ImGuiCol_Text, style.Color);
+				ImGui::PushStyleColor(ImGuiCol_Text, color);
 				ImGui::TextUnformatted(message.Text.c_str());
 				ImGui::PopStyleColor();
 
@@ -149,7 +161,7 @@ namespace Hydro
 		ImGui::PopStyleVar();
 
 		// Follow new messages while scrolled to the bottom; scrolling up to read stops following.
-		if (m_AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+		if (settings.AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 			ImGui::SetScrollHereY(1.0f);
 
 		ImGui::EndChild();

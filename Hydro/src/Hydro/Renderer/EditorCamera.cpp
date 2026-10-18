@@ -34,7 +34,7 @@ namespace Hydro
 		m_Yaw = 0.0f;
 
 		// 10 units visible vertically, the same as a default SceneCamera.
-		m_Distance = 5.0f / std::tan(glm::radians(m_VerticalFOV) * 0.5f);
+		m_Distance = 5.0f / std::tan(glm::radians(m_Settings.VerticalFOV) * 0.5f);
 
 		UpdateView();
 		UpdateProjection();
@@ -56,6 +56,29 @@ namespace Hydro
 
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
+		UpdateProjection();
+	}
+
+	void EditorCamera::SetSettings(const EditorCameraSettings& settings)
+	{
+		const EditorCameraSettings& current = m_Settings;
+		const bool unchanged = settings.VerticalFOV == current.VerticalFOV && settings.NearClip == current.NearClip &&
+			settings.FarClip == current.FarClip && settings.OrbitSpeed == current.OrbitSpeed &&
+			settings.PanSpeed == current.PanSpeed && settings.ZoomSpeed == current.ZoomSpeed;
+		if (unchanged)
+			return;
+
+		EditorCameraSettings clamped = settings;
+		clamped.VerticalFOV = std::clamp(clamped.VerticalFOV, 5.0f, 150.0f);
+		clamped.NearClip = std::max(clamped.NearClip, 0.0001f);
+		clamped.FarClip = std::max(clamped.FarClip, clamped.NearClip * 2.0f);
+
+		// Same view height at the focal point with the new field of view, so changing it doesn't zoom.
+		const float viewHeight = GetViewHeight();
+		m_Settings = clamped;
+		m_Distance = std::clamp(viewHeight * 0.5f / std::tan(glm::radians(m_Settings.VerticalFOV) * 0.5f), MinDistance, MaxDistance);
+
+		UpdateView();
 		UpdateProjection();
 	}
 
@@ -119,19 +142,20 @@ namespace Hydro
 		{
 			// The scene follows the cursor: screen Y points down, world Y up.
 			const float unitsPerPixel = GetWorldUnitsPerPixel();
-			m_FocalPoint += (-GetRight() * delta.x + GetUp() * delta.y) * unitsPerPixel;
+			m_FocalPoint += (-GetRight() * delta.x + GetUp() * delta.y) * unitsPerPixel * m_Settings.PanSpeed;
 			break;
 		}
 		case DragMode::Orbit:
 		{
-			m_Yaw += delta.x * RotationSpeed;
-			m_Pitch = std::clamp(m_Pitch + delta.y * RotationSpeed, -MaxPitch, MaxPitch);
+			const float speed = RotationSpeed * m_Settings.OrbitSpeed;
+			m_Yaw += delta.x * speed;
+			m_Pitch = std::clamp(m_Pitch + delta.y * speed, -MaxPitch, MaxPitch);
 			break;
 		}
 		case DragMode::Zoom:
 		{
 			// Drag up or right to zoom in.
-			m_Distance = std::clamp(m_Distance * std::exp((delta.y - delta.x) * DragZoomSpeed), MinDistance, MaxDistance);
+			m_Distance = std::clamp(m_Distance * std::exp((delta.y - delta.x) * DragZoomSpeed * m_Settings.ZoomSpeed), MinDistance, MaxDistance);
 			UpdateProjection();
 			break;
 		}
@@ -144,7 +168,7 @@ namespace Hydro
 
 	void EditorCamera::Zoom(float scrollDelta)
 	{
-		m_Distance = std::clamp(m_Distance * std::pow(ScrollZoomFactor, scrollDelta), MinDistance, MaxDistance);
+		m_Distance = std::clamp(m_Distance * std::pow(ScrollZoomFactor, scrollDelta * m_Settings.ZoomSpeed), MinDistance, MaxDistance);
 		UpdateView();
 		UpdateProjection();
 	}
@@ -160,9 +184,9 @@ namespace Hydro
 		const float aspectRatio = m_ViewportWidth / m_ViewportHeight;
 
 		if (m_ProjectionType == ProjectionType::Perspective)
-			m_Projection = Camera::Perspective(glm::radians(m_VerticalFOV), aspectRatio, m_NearClip, m_FarClip);
+			m_Projection = Camera::Perspective(glm::radians(m_Settings.VerticalFOV), aspectRatio, m_Settings.NearClip, m_Settings.FarClip);
 		else
-			m_Projection = Camera::Orthographic(GetViewHeight(), aspectRatio, -m_FarClip, m_FarClip);
+			m_Projection = Camera::Orthographic(GetViewHeight(), aspectRatio, -m_Settings.FarClip, m_Settings.FarClip);
 	}
 
 	glm::quat EditorCamera::GetOrientation() const
@@ -192,7 +216,7 @@ namespace Hydro
 
 	float EditorCamera::GetViewHeight() const
 	{
-		return 2.0f * m_Distance * std::tan(glm::radians(m_VerticalFOV) * 0.5f);
+		return 2.0f * m_Distance * std::tan(glm::radians(m_Settings.VerticalFOV) * 0.5f);
 	}
 
 	float EditorCamera::GetWorldUnitsPerPixel() const

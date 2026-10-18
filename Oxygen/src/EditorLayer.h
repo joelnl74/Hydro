@@ -35,10 +35,16 @@ namespace Hydro
 		void SaveProject();
 		// Opens the first .hyproj in EditorPaths::GetDefaultProjectDirectory(), or starts an unsaved one there.
 		void OpenDefaultProject();
+		// At startup: the last project and scene (Editor Settings > Startup), else the default project.
+		void OpenStartupProject();
 
-		// Editor settings (EditorSettings.yaml): loading applies them to ImGui.
+		// Editor settings (EditorSettings.yaml): loading applies them to ImGui and the editor camera.
 		void LoadEditorSettings();
 		void SaveEditorSettings();
+		// Revert in the Editor Settings window: reload the file, but keep what is open now.
+		void RevertEditorSettings();
+		// Saves the open scene every Autosave.IntervalMinutes while editing.
+		void UpdateAutosave(float deltaTime);
 
 		// Scenes (.hyscene, YAML). These always work on the editor scene and stop play mode first.
 		void NewScene();
@@ -96,8 +102,10 @@ namespace Hydro
 		Hydro::Ref<ProjectSettingsWindow> m_ProjectSettingsWindow;
 		Hydro::Ref<EditorSettingsWindow> m_EditorSettingsWindow;
 
-		// How the editor looks; loaded from EditorSettings.yaml in OnAttach.
+		// How the editor looks and behaves; loaded from EditorSettings.yaml in OnAttach. The session
+		// part (last project / scene) is kept up to date here and written on close.
 		EditorSettings m_EditorSettings;
+		float m_AutosaveTimer = 0.0f; // seconds since the last save
 
 		// The two pictures of the scene. Only windows that are visible are rendered.
 		Hydro::Scope<RenderView> m_EditorView;

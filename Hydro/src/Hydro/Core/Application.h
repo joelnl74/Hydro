@@ -14,6 +14,8 @@ namespace Hydro
 	{
 		std::string Name = "Hydro Application";
 		WindowSpecification MainWindow;
+		// Fonts for the ImGui layer (the application's own font files).
+		ImGuiLayerSpecification ImGui;
 	};
 
 	// Owns the subsystems and runs the loop. Its lifetime is three explicit steps, called by main()

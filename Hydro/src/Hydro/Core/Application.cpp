@@ -60,7 +60,7 @@ namespace Hydro
 		events.Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
 
 		// 6. ImGui: an overlay, so it sits on top of every application layer.
-		m_ImGuiLayer = new ImGuiLayer();
+		m_ImGuiLayer = new ImGuiLayer(m_Specification.ImGui);
 		PushOverlay(m_ImGuiLayer);
 
 		HY_CORE_INFO("Engine initialized");

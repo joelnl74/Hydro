@@ -10,6 +10,8 @@
 #include "Hydro/Platform/Vulkan/VulkanCommandBuffer.h"
 
 // Libs
+#include <cstdio>
+#include <cstring>
 #include <vector>
 
 #include "vulkan/vulkan.h"
@@ -22,8 +24,50 @@
 
 namespace Hydro
 {
-	ImGuiLayer::ImGuiLayer()
+	ImGuiLayer::ImGuiLayer(const ImGuiLayerSpecification& specification)
+		: m_Specification(specification)
 	{
+	}
+
+	void ImGuiLayer::LoadFonts()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		for (const ImGuiFontSpecification& font : m_Specification.Fonts)
+		{
+			std::error_code ec;
+			if (std::filesystem::exists(font.Path, ec) == false)
+			{
+				HY_CORE_WARN("ImGui font '{}' not found: {}", font.Name, font.Path.string());
+				continue;
+			}
+
+			ImFontConfig config;
+			config.OversampleH = 3;
+			config.OversampleV = 1;
+			std::snprintf(config.Name, sizeof(config.Name), "%s", font.Name.c_str());
+
+			if (io.Fonts->AddFontFromFileTTF(font.Path.string().c_str(), font.Size, &config) == nullptr)
+				HY_CORE_WARN("ImGui font '{}' could not be loaded from {}", font.Name, font.Path.string());
+		}
+
+		// The first font added is ImGui's default; with none, ImGui uses its built-in one.
+		if (io.Fonts->Fonts.empty() == false)
+			io.FontDefault = io.Fonts->Fonts[0];
+	}
+
+	ImFont* ImGuiLayer::GetFont(const std::string& name)
+	{
+		if (ImGui::GetCurrentContext() == nullptr)
+			return nullptr;
+
+		for (ImFont* font : ImGui::GetIO().Fonts->Fonts)
+		{
+			if (font->ConfigData != nullptr && std::strcmp(font->ConfigData->Name, name.c_str()) == 0)
+				return font;
+		}
+
+		return nullptr;
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -69,6 +113,9 @@ namespace Hydro
 		// Initializes imgui for GLFW.
 		auto& window = Application::Get().GetWindow();
 		auto glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());
+
+		// Fonts go into the atlas before its texture is uploaded below.
+		LoadFonts();
 
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();

@@ -67,7 +67,9 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 | `PipelineSpecification` | `VulkanPipeline` | In use. All fields are applied, including `Blend` (`BlendMode`). `DescriptorSets` is an optional list in set-index order. `Wireframe` and `LineWidth` != 1 fall back with a warning when the GPU lacks `fillModeNonSolid` / `wideLines`. Depth state has no effect until a render pass has a depth attachment. |
 | `VulkanImageInfo` | `VulkanImage` | Output |
 | `WindowSpecification` (`Core/Window.h`) | `Window::Init` | In use (was `WindowProps`) |
-| `ApplicationSpecification` (`Core/Application.h`) | `Application` constructor | In use: application name and main window |
+| `ApplicationSpecification` (`Core/Application.h`) | `Application` constructor | In use: application name, main window and the ImGui layer's fonts |
+| `ImGuiLayerSpecification`, `ImGuiFontSpecification` (`ImGUI/ImGuiLayer.h`) | `ImGuiLayer` constructor (from `ApplicationSpecification::ImGui`) | In use: fonts loaded into the atlas at startup (name, file, pixel size); the first is the default. Missing files are logged and skipped |
+| `EditorCameraSettings` (`Renderer/EditorCamera.h`) | `EditorCamera::SetSettings` | In use: field of view, clip planes, orbit/pan/zoom speed multipliers. Live; Oxygen saves them in its editor settings |
 | `ProjectConfig` | `Project`, saved by `ProjectSerializer` (`.hyproj`) | In use: name, asset directory, start scene, `RendererSettings` |
 | `RendererSettings` (`Renderer/RendererSettings.h`) | `Renderer::SetSettings` | In use: clear colour, vsync, wireframe, shader hot reload |
 | `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output |

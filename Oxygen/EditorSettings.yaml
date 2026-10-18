@@ -1,79 +1,109 @@
 EditorSettings:
+  Version: 2
   Style:
     Theme: Hydro
+    Accent: [0.129999995, 0.75999999, 0.850000024, 1]
     FontScale: 1
     WindowRounding: 0
-    ChildRounding: 0
-    FrameRounding: 3
-    PopupRounding: 3
-    ScrollbarRounding: 6
-    GrabRounding: 3
-    TabRounding: 3
+    ChildRounding: 4
+    FrameRounding: 4
+    PopupRounding: 6
+    ScrollbarRounding: 12
+    GrabRounding: 4
+    TabRounding: 5
     WindowBorderSize: 1
     ChildBorderSize: 1
     FrameBorderSize: 0
     PopupBorderSize: 1
     TabBorderSize: 0
-    WindowPadding: [8, 8]
-    FramePadding: [6, 4]
-    ItemSpacing: [8, 5]
-    ItemInnerSpacing: [4, 4]
-    IndentSpacing: 18
-    ScrollbarSize: 14
+    WindowPadding: [10, 8]
+    FramePadding: [8, 5]
+    CellPadding: [6, 3]
+    ItemSpacing: [8, 6]
+    ItemInnerSpacing: [6, 4]
+    IndentSpacing: 16
+    ScrollbarSize: 11
     GrabMinSize: 10
     Colors:
-      Text: [0.870588243, 0.87843138, 0.894117653, 1]
-      TextDisabled: [0.501960814, 0.513725519, 0.541176498, 1]
-      WindowBg: [0.117647059, 0.121568628, 0.13333334, 1]
+      Text: [0.835294127, 0.882352948, 0.925490201, 1]
+      TextDisabled: [0.36470589, 0.435294122, 0.517647088, 1]
+      WindowBg: [0.0627451017, 0.0862745121, 0.117647059, 1]
       ChildBg: [0, 0, 0, 0]
-      PopupBg: [0.13333334, 0.137254909, 0.152941182, 0.980000019]
-      Border: [0.215686277, 0.223529413, 0.243137255, 1]
+      PopupBg: [0.0745098069, 0.105882354, 0.145098045, 0.980000019]
+      Border: [0.137254909, 0.188235298, 0.254901975, 1]
       BorderShadow: [0, 0, 0, 0]
-      FrameBg: [0.188235298, 0.196078435, 0.215686277, 1]
-      FrameBgHovered: [0.235294119, 0.247058824, 0.270588249, 1]
-      FrameBgActive: [0.274509817, 0.290196091, 0.321568638, 1]
-      TitleBg: [0.0941176489, 0.0980392173, 0.105882354, 1]
-      TitleBgActive: [0.109803922, 0.113725491, 0.125490203, 1]
-      TitleBgCollapsed: [0.0941176489, 0.0980392173, 0.105882354, 1]
-      MenuBarBg: [0.101960786, 0.105882354, 0.117647059, 1]
-      ScrollbarBg: [0.101960786, 0.105882354, 0.117647059, 1]
-      ScrollbarGrab: [0.258823544, 0.270588249, 0.298039228, 1]
-      ScrollbarGrabHovered: [0.329411775, 0.345098048, 0.376470596, 1]
-      ScrollbarGrabActive: [0.392156869, 0.407843143, 0.447058827, 1]
-      CheckMark: [0.258823544, 0.529411793, 0.960784316, 1]
-      SliderGrab: [0.258823544, 0.529411793, 0.960784316, 1]
-      SliderGrabActive: [0.188235298, 0.43921569, 0.862745106, 1]
-      Button: [0.188235298, 0.196078435, 0.215686277, 1]
-      ButtonHovered: [0.235294119, 0.247058824, 0.270588249, 1]
-      ButtonActive: [0.274509817, 0.290196091, 0.321568638, 1]
-      Header: [0.203921571, 0.215686277, 0.239215687, 1]
-      HeaderHovered: [0.243137255, 0.258823544, 0.290196091, 1]
-      HeaderActive: [0.282352954, 0.301960796, 0.337254912, 1]
-      Separator: [0.215686277, 0.223529413, 0.243137255, 1]
-      SeparatorHovered: [0.360784322, 0.603921592, 0.980392158, 1]
-      SeparatorActive: [0.258823544, 0.529411793, 0.960784316, 1]
-      ResizeGrip: [0.258823544, 0.529411793, 0.960784316, 0.200000003]
-      ResizeGripHovered: [0.258823544, 0.529411793, 0.960784316, 0.600000024]
-      ResizeGripActive: [0.258823544, 0.529411793, 0.960784316, 0.899999976]
-      Tab: [0.145098045, 0.149019614, 0.164705887, 1]
-      TabHovered: [0.235294119, 0.247058824, 0.270588249, 1]
-      TabActive: [0.196078435, 0.20784314, 0.23137255, 1]
-      TabUnfocused: [0.117647059, 0.121568628, 0.13333334, 1]
-      TabUnfocusedActive: [0.164705887, 0.172549024, 0.192156866, 1]
-      DockingPreview: [0.258823544, 0.529411793, 0.960784316, 0.699999988]
-      DockingEmptyBg: [0.0784313753, 0.0823529437, 0.0901960805, 1]
-      PlotLines: [0.588235319, 0.607843161, 0.647058845, 1]
-      PlotLinesHovered: [0.360784322, 0.603921592, 0.980392158, 1]
-      PlotHistogram: [0.258823544, 0.529411793, 0.960784316, 1]
-      PlotHistogramHovered: [0.360784322, 0.603921592, 0.980392158, 1]
-      TableHeaderBg: [0.156862751, 0.164705887, 0.180392161, 1]
-      TableBorderStrong: [0.215686277, 0.223529413, 0.243137255, 1]
-      TableBorderLight: [0.176470593, 0.184313729, 0.203921571, 1]
+      FrameBg: [0.0980392173, 0.13333334, 0.180392161, 1]
+      FrameBgHovered: [0.102513723, 0.221066684, 0.274137259, 1]
+      FrameBgActive: [0.106349021, 0.296266675, 0.354490221, 1]
+      TitleBg: [0.0392156877, 0.0588235296, 0.0823529437, 1]
+      TitleBgActive: [0.0482941195, 0.128941178, 0.159117654, 1]
+      TitleBgCollapsed: [0.0392156877, 0.0588235296, 0.0823529437, 0.75]
+      MenuBarBg: [0.0392156877, 0.0588235296, 0.0823529437, 1]
+      ScrollbarBg: [0.0392156877, 0.0588235296, 0.0823529437, 0.349999994]
+      ScrollbarGrab: [0.207215697, 0.250823528, 0.304313719, 1]
+      ScrollbarGrabHovered: [0.172468632, 0.479952931, 0.549872518, 1]
+      ScrollbarGrabActive: [0.129999995, 0.75999999, 0.850000024, 1]
+      CheckMark: [0.129999995, 0.75999999, 0.850000024, 1]
+      SliderGrab: [0.129999995, 0.75999999, 0.850000024, 1]
+      SliderGrabActive: [0.286599994, 0.803200006, 0.877000034, 1]
+      Button: [0.121568628, 0.164705887, 0.219607845, 1]
+      ButtonHovered: [0.12409804, 0.343294144, 0.4087255, 1]
+      ButtonActive: [0.125784308, 0.462352931, 0.534803927, 1]
+      Header: [0.123254903, 0.28376472, 0.345686287, 1]
+      HeaderHovered: [0.124435291, 0.367105901, 0.433941185, 1]
+      HeaderActive: [0.125615686, 0.450447083, 0.522196114, 1]
+      Separator: [0.137254909, 0.188235298, 0.254901975, 1]
+      SeparatorHovered: [0.129999995, 0.75999999, 0.850000024, 0.699999988]
+      SeparatorActive: [0.129999995, 0.75999999, 0.850000024, 1]
+      ResizeGrip: [0.129999995, 0.75999999, 0.850000024, 0.150000006]
+      ResizeGripHovered: [0.129999995, 0.75999999, 0.850000024, 0.550000012]
+      ResizeGripActive: [0.129999995, 0.75999999, 0.850000024, 0.899999976]
+      Tab: [0.0392156877, 0.0588235296, 0.0823529437, 1]
+      TabHovered: [0.082921572, 0.288392156, 0.337352961, 1]
+      TabActive: [0.105070591, 0.271200001, 0.32770589, 1]
+      TabUnfocused: [0.0392156877, 0.0588235296, 0.0823529437, 1]
+      TabUnfocusedActive: [0.0627451017, 0.0862745121, 0.117647059, 1]
+      DockingPreview: [0.129999995, 0.75999999, 0.850000024, 0.550000012]
+      DockingEmptyBg: [0.0392156877, 0.0588235296, 0.0823529437, 1]
+      PlotLines: [0.588441193, 0.839529395, 0.899068654, 1]
+      PlotLinesHovered: [0.286599994, 0.803200006, 0.877000034, 1]
+      PlotHistogram: [0.129999995, 0.75999999, 0.850000024, 1]
+      PlotHistogramHovered: [0.286599994, 0.803200006, 0.877000034, 1]
+      TableHeaderBg: [0.121568628, 0.164705887, 0.219607845, 1]
+      TableBorderStrong: [0.137254909, 0.188235298, 0.254901975, 1]
+      TableBorderLight: [0.100000009, 0.137254909, 0.186274514, 1]
       TableRowBg: [0, 0, 0, 0]
-      TableRowBgAlt: [1, 1, 1, 0.0299999993]
-      TextSelectedBg: [0.258823544, 0.529411793, 0.960784316, 0.349999994]
-      DragDropTarget: [0.360784322, 0.603921592, 0.980392158, 1]
-      NavHighlight: [0.258823544, 0.529411793, 0.960784316, 1]
+      TableRowBgAlt: [1, 1, 1, 0.0250000004]
+      TextSelectedBg: [0.129999995, 0.75999999, 0.850000024, 0.300000012]
+      DragDropTarget: [0.286599994, 0.803200006, 0.877000034, 1]
+      NavHighlight: [0.129999995, 0.75999999, 0.850000024, 1]
       NavWindowingHighlight: [1, 1, 1, 0.699999988]
-      NavWindowingDimBg: [0, 0, 0, 0.400000006]
-      ModalWindowDimBg: [0, 0, 0, 0.5]
+      NavWindowingDimBg: [0.0392156877, 0.0588235296, 0.0823529437, 0.449999988]
+      ModalWindowDimBg: [0.0392156877, 0.0588235296, 0.0823529437, 0.649999976]
+  Font:
+    Size: 17
+  PlayMode:
+    Tint: true
+    TintColor: [1, 0.550000012, 0.239999995, 1]
+    TintStrength: 0.119999997
+  EditorCamera:
+    StartsIn2D: true
+    VerticalFOV: 45
+    NearClip: 0.00999999978
+    FarClip: 1000
+    OrbitSpeed: 1
+    PanSpeed: 1
+    ZoomSpeed: 1
+  Console:
+    AutoScroll: true
+    ShowTimestamps: true
+    ShowSource: true
+  Startup:
+    ReopenLastProject: true
+    ReopenLastScene: true
+  Autosave:
+    Enabled: false
+    IntervalMinutes: 5
+  Session:
+    LastProject: C:/Users/joeln/Hydro/Oxygen/project/Sandbox.hyproj
+    LastScene: C:/Users/joeln/Hydro/Oxygen/project/Assets/Scenes/Untitled.hyscene

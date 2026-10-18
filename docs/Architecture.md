@@ -133,17 +133,23 @@ Scenes are drawn through a `CameraComponent` at runtime or the `EditorCamera` in
 | --- | --- |
 | **Editor** | The active scene through the editor camera (Camera menu: 2D/orthographic, reset). Mouse input reaches the camera only while it is hovered |
 | **Game** | The active scene through its primary `CameraComponent`; its size is the scene's viewport |
-| Top bar | **Play / Stop**, **Pause / Resume**, **Step** (see [Play mode](SceneAndECS.md#play-mode)) |
+| Top bar | The Hydro droplet, the menus and icon buttons for **Play / Stop**, **Pause / Resume**, **Step** (see [Play mode](SceneAndECS.md#play-mode)). A thin accent "waterline" runs under it |
 | **Hierarchy** | Entities with a Tag and ID; create, delete, save as prefab, drop prefabs |
 | **Inspector** | The selected entity's components, edited with typed input fields; Add Component (including registered scripts) |
 | **Project** | The project's asset folder; open scenes, drag prefabs into the scene |
-| **Console** | The `Log` history (engine and client), with level toggles, a text filter and auto-scroll |
+| **Console** | The `Log` history (engine and client), with level toggles, a text filter and auto-scroll; time and source columns follow Editor Settings |
 | **Stats**, **Render Settings**, **Project Settings** | Frame timings and renderer stats; live `RendererSettings`; project name and start scene |
-| **Editor Settings** | How the editor looks: theme (Hydro, Dark, Light, Classic), every ImGui colour, rounding/border/spacing sizes and font scale. Applied live; **Save** writes `EditorSettings.yaml` next to `imgui.ini` (per user, not per project) |
+| **Editor Settings** | Pages: **Appearance** (theme, accent colour, text scale, font size), **Play Mode** (tint), **Layout** (rounding, borders, spacing), **Colors** (every ImGui colour), **Editor Camera** (start in 2D, field of view, clip planes, orbit/pan/zoom speed), **Console**, **Startup** (reopen last project and scene, autosave). Applied live; **Save** writes `EditorSettings.yaml` next to `imgui.ini` (per user, not per project); **Revert** reloads it; **Defaults** resets everything |
 
 Only visible windows are rendered: a hidden Editor or Game tab doesn't begin its view that frame.
 
-The editor's look is editor-only: `EditorStyle` and `EditorSettings` (with `EditorSettingsSerializer`) live in Oxygen, and the engine never reads them. The engine's `ImGuiLayer` sets ImGui's dark defaults; `EditorLayer::OnAttach` loads `EditorSettings.yaml` and applies the saved style on top. Missing keys keep the theme's values, so the file still loads after a setting is added.
+The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorSettingsSerializer`) and `EditorChrome` live in Oxygen, and the engine never reads them. The engine's `ImGuiLayer` sets ImGui's dark defaults; `EditorLayer::OnAttach` loads `EditorSettings.yaml` and applies the saved style on top. Missing keys keep the theme's values, so the file still loads after a setting is added. The file has a `Version`; a file from an older version keeps its theme and font scale, and its colours and sizes are rebuilt from the theme.
+
+- **Themes.** **Hydro** (deep ocean blues, the default), **Abyss** (darker) and **Glacier** (light) are built from one accent colour (presets Aqua, Lagoon, Tide, Orchid, Coral, Amber, or any colour): selection, checkmarks, sliders, tabs, focus and the waterline all follow it. **Dark**, **Light** and **Classic** are ImGui's presets.
+- **Chrome.** `EditorChrome` draws what a theme can't: the droplet and name at the start of the menu bar, the waterline, the play-control icons and the play-mode tint. While playing, windows, title bars, tabs and the menu bar blend towards the tint colour, the waterline takes the tint colour and the Game window gets an outline.
+- **Fonts.** Oxygen loads Open Sans (`Oxygen/assets/Fonts/opensans`, Regular and Bold) through `ApplicationSpecification::ImGui` (an `ImGuiLayerSpecification`). The engine loads only the fonts the application lists; `ImGuiLayer::GetFont("Bold")` finds one by name. The font atlas is built once at startup, so **Font size** applies after a restart (it is read in `CreateApplication`, before the log exists); **Scale** applies at once.
+- **Editor camera.** `EditorCameraSettings` (engine, `Renderer/EditorCamera.h`) are live options passed in with `EditorCamera::SetSettings` every frame; changing the field of view keeps the framing at the focal point.
+- **Session.** The last project and scene are remembered in the same file. On close, `EditorSettingsSerializer::SaveSession` rewrites only that part, so unsaved edits in the window aren't written by accident.
 
 ## Vulkan ownership
 

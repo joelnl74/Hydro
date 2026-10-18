@@ -6,6 +6,20 @@
 
 namespace Hydro
 {
+	// Live options of an EditorCamera. The editor keeps them in its own settings and passes them in
+	// with EditorCamera::SetSettings; they apply immediately.
+	struct EditorCameraSettings
+	{
+		float VerticalFOV = 45.0f; // degrees (perspective)
+		float NearClip = 0.01f;
+		float FarClip = 1000.0f;
+
+		// Multipliers on the default mouse speeds.
+		float OrbitSpeed = 1.0f;
+		float PanSpeed = 1.0f;   // 1: the scene follows the cursor exactly
+		float ZoomSpeed = 1.0f;
+	};
+
 	// Free camera for looking at a scene in an editor viewport. Not part of the scene: the editor
 	// owns one and passes it to SceneRenderer::RenderEditor.
 	//
@@ -27,6 +41,9 @@ namespace Hydro
 		void Zoom(float scrollDelta);
 
 		void SetViewportSize(float width, float height);
+		// Keeps what is framed at the focal point when the field of view changes.
+		void SetSettings(const EditorCameraSettings& settings);
+		const EditorCameraSettings& GetSettings() const { return m_Settings; }
 		void SetProjectionType(ProjectionType type);
 		ProjectionType GetProjectionType() const { return m_ProjectionType; }
 
@@ -58,9 +75,7 @@ namespace Hydro
 
 	private:
 		ProjectionType m_ProjectionType = ProjectionType::Orthographic;
-		float m_VerticalFOV = 45.0f; // degrees
-		float m_NearClip = 0.01f;
-		float m_FarClip = 1000.0f;
+		EditorCameraSettings m_Settings;
 
 		glm::mat4 m_View{ 1.0f };
 		glm::vec3 m_FocalPoint{ 0.0f };
