@@ -1,44 +1,53 @@
-# Qwen Code + local Ollama: Hydro / Oxygen project setup
+# Qwen Code + local Ollama: Hydro / Oxygen setup
 
-This archive is a **project overlay**. It does not modify Ollama, install a model, or change Claude Code.
+These files give Qwen Code (with a local Ollama model) the same rules Claude uses in this repository, sized for small local models. They don't change Ollama, a model or Claude.
 
-## Install inside your Visual Studio solution
+## What's here
 
-1. Extract this archive into the directory containing the Hydro/Oxygen `.sln` file, keeping the `.qwen` directory structure.
-2. If `QWEN.md` does not already exist, rename `QWEN.hydro-example.md` to `QWEN.md`. If it exists, **merge the example** rather than overwriting the original.
-3. Keep the project's real `docs/` documentation available. The skill refers to `docs/Architecture.md`, `docs/Subsystems.md`, `docs/ResourceCreation.md`, and `docs/SceneAndECS.md`, as well as `Hydro.wiki`. Those are **not bundled here**.
-4. In Windows Command Prompt, use `cd /d "C:\path\to\your\solution"` and then run `qwen`, configured to your **local** Ollama model.
-5. In Qwen Code type `/skills` to verify `hydro-engine-architecture` is discoverable, or run it directly using `/hydro-engine-architecture`.
-6. Test: `Use hydro-engine-architecture to review this VulkanImage class for ownership and style violations. Read relevant docs first. Do not edit files.`
+| File | What it is | When it loads |
+| --- | --- | --- |
+| `QWEN.md` | Project instructions: what Qwen is used for (lightweight tasks) and which skill to pick | Always |
+| `.qwen/rules/hydro-cpp-conventions.md` | The C++ rules in short form (namespace, naming, no `!`, ownership, includes, YAML, format) | When Qwen reads or edits `.h` / `.hpp` / `.inl` / `.cpp` files |
+| `.qwen/skills/hydro-quick-edit/SKILL.md` | Small-task skill: what counts as small, the rules, recipes (component field, editor setting, YAML, UI colours), a checklist | When invoked (`/hydro-quick-edit`) or picked by the model |
+| `.qwen/skills/hydro-engine-architecture/SKILL.md` | The full architecture skill, the same text as Claude's `hydro-engine-architecture` skill | When invoked (`/hydro-engine-architecture`) or picked by the model |
 
-## Included files
+The full skill is large (about 27 KB). On small models prefer `hydro-quick-edit` and only load the full skill for architecture questions.
 
-- `.qwen/skills/hydro-engine-architecture/SKILL.md` -- verbatim copy of your Claude skill, compatible with Qwen's Agent Skills format.
-- `.qwen/rules/hydro-cpp-conventions.md` -- concise path-gated C++ coding rules that activate when Qwen reads/edits matching source files.
-- `QWEN.hydro-example.md` -- optional always-loaded project instructions. Rename/merge into `QWEN.md`.
+## Install
 
-## Alternative: share the original Claude skill without copies
+Qwen Code looks for `.qwen/` and `QWEN.md` in the folder it starts in, so copy them next to `Hydro.sln` (this folder keeps the master copy):
 
-Qwen Code also supports `skills.directories` in `.qwen/settings.json`. If the skill already lives in `<solution>/.claude/skills/hydro-engine-architecture/SKILL.md`, you can point Qwen at that **existing parent folder**, using an absolute Windows path in this setting instead of installing the duplicate `.qwen/skills/...` copy:
+```bat
+cd /d C:\Users\joeln\Hydro
+xcopy /E /I /Y "QWEN Skills\.qwen" .qwen
+copy /Y "QWEN Skills\QWEN.md" QWEN.md
+qwen
+```
+
+If `.qwen\settings.json` already exists, keep it; the copy only adds `rules\` and `skills\`. Instead of copying, you can point Qwen at this folder in `.qwen/settings.json`:
 
 ```json
 {
   "skills": {
-    "directories": ["C:/path/to/solution/.claude/skills"]
+    "directories": ["C:/Users/joeln/Hydro/QWEN Skills/.qwen/skills"]
   }
 }
 ```
 
-Do **not** overwrite an existing `.qwen/settings.json`; merge the `skills.directories` entry. Choose either the copied skill or the shared skill path to avoid duplicate registrations.
+Use either the copy or the setting, not both (the skills would be registered twice).
+
+In Qwen Code, `/skills` should list `hydro-quick-edit` and `hydro-engine-architecture`. Quick test:
+
+```
+Use hydro-quick-edit: add an int SortOrder field (default 0) to SpriteRendererComponent, save/load it and show it in the inspector. Show the diff, don't build.
+```
+
+## Keeping it in sync
+
+The full skill is a copy of the Claude skill. When the Claude skill or `docs/` change, update `.qwen/skills/hydro-engine-architecture/SKILL.md` with the same text and adjust the short rules and the quick-edit skill if a rule changed. Last synced: October 19, 2026 (agreed changes A1–A12, tooling, editor look and settings, YAML reading rule).
 
 ## Notes
 
-- A skill supplies instructions at inference time; it does not retrain the model.
-- The full skill only gets loaded when invoked; rules have separate conditional activation. This can save context compared to copying everything into `QWEN.md`.
-- Small local models may still fail to follow a rule: review diffs, use `.clang-format` if present, and compile/run tests.
-- These files have been structurally validated; they have not been exercised against your actual Hydro source repository, which was not provided.
-
-Official Qwen Code references:
-- https://qwenlm.github.io/qwen-code-docs/en/users/features/skills/
-- https://qwenlm.github.io/qwen-code-docs/en/users/features/rules/
-- https://qwenlm.github.io/qwen-code-docs/en/users/configuration/settings/
+- Skills and rules are instructions read at run time; they don't retrain the model.
+- Small local models still miss rules sometimes: review the diff, format with `.clang-format`, and build with `/W4` before committing.
+- References: Qwen Code skills (https://qwenlm.github.io/qwen-code-docs/en/users/features/skills/), rules (https://qwenlm.github.io/qwen-code-docs/en/users/features/rules/), settings (https://qwenlm.github.io/qwen-code-docs/en/users/configuration/settings/).
