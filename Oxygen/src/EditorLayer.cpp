@@ -6,8 +6,8 @@
 
 #include "Hydro/Utils/PlatformUtils.h"
 #include "EditorPaths.h"
-#include "EditorWindows/AssetDragDrop.h"
-#include "EditorWindows/EditorChrome.h"
+#include "Utilities/AssetDragDrop.h"
+#include "Utilities/EditorChrome.h"
 
 #include <algorithm>
 #include <cmath>

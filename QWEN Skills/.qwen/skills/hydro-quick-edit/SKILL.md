@@ -17,13 +17,23 @@ Use this for small changes that touch a few files and don't change how the engin
 
 1. **Namespace.** Everything is in `namespace Hydro`. No other, nested or anonymous namespaces. File-local helpers are `static` functions; a group of helpers is a class with static functions.
 2. **No `!`.** Write `== false` for booleans and `== nullptr` for pointers.
-3. **Names.** Types, methods and struct/spec fields `PascalCase`; members `m_PascalCase`; statics `s_PascalCase`; `enum class Name : type` (never `typedef enum class`). Lifecycle is `Init` / `Shutdown`; engine hooks start with `On`.
-4. **Signatures.** One-argument constructors are `explicit`. Pass objects you only use as `T&` / `const T&`; a `Ref<T>` you don't keep as `const Ref<T>&`. Unused but required parameters get `[[maybe_unused]]`.
-5. **Ownership.** `Scope<T>` for an object with one owner (`CreateScope`), `Ref<T>` only when shared (`CreateRef`). No new manual `Destroy()` methods.
-6. **Includes.** Forward slashes. Engine headers from `src`: `#include "Hydro/Scene/Entity.h"` (never `../`); same-folder headers by bare name. Vendored libraries by their own name: `<entt.hpp>`, `<imgui.h>`, `<glm/glm.hpp>`. Headers have `#pragma once` and never include `hypch.h`.
-7. **Checks.** `VK_CHECK_RESULT(...)` around Vulkan calls that return `VkResult`; `HY_CORE_ASSERT(condition, "message")` for debug checks.
-8. **Layering.** Engine code never includes Oxygen code. Applications include `Hydro.h`, not `Platform/Vulkan` headers. Headers under `Renderer/` don't include Vulkan. Components are plain data (no virtual functions, no logic, no pointers to other entities).
-9. **Format.** Tabs, braces on their own line, CRLF line endings; follow `.clang-format` / `.editorconfig`. Only reformat lines you change. No new compiler warnings (`/W4`).
+3. **Always braces.** Every `if` / `else` / `else if` / `for` / `while` / `do` body is in `{ }`, each brace on its own line, even for one statement:
+
+   ```cpp
+   if (pixels == nullptr)
+   {
+       return;
+   }
+   ```
+
+   Never `if (x) return;`. Only `case X: return Y;` in a `switch` may stay on one line.
+4. **Names.** Types, methods and struct/spec fields `PascalCase`; members `m_PascalCase`; statics `s_PascalCase`; `enum class Name : type` (never `typedef enum class`). Lifecycle is `Init` / `Shutdown`; engine hooks start with `On`.
+5. **Signatures.** One-argument constructors are `explicit`. Pass objects you only use as `T&` / `const T&`; a `Ref<T>` you don't keep as `const Ref<T>&`. Unused but required parameters get `[[maybe_unused]]`.
+6. **Ownership.** `Scope<T>` for an object with one owner (`CreateScope`), `Ref<T>` only when shared (`CreateRef`). No new manual `Destroy()` methods.
+7. **Includes.** Forward slashes. Engine headers from `src`: `#include "Hydro/Scene/Entity.h"` (never `../`); same-folder headers by bare name. Vendored libraries by their own name: `<entt.hpp>`, `<imgui.h>`, `<glm/glm.hpp>`. Headers have `#pragma once` and never include `hypch.h`.
+8. **Checks.** `VK_CHECK_RESULT(...)` around Vulkan calls that return `VkResult`; `HY_CORE_ASSERT(condition, "message")` for debug checks.
+9. **Layering.** Engine code never includes Oxygen code. Applications include `Hydro.h`, not `Platform/Vulkan` headers. Headers under `Renderer/` don't include Vulkan. Components are plain data (no virtual functions, no logic, no pointers to other entities).
+10. **Format.** Tabs, braces on their own line, CRLF line endings; follow `.clang-format` / `.editorconfig`. Only reformat lines you change. No new compiler warnings (`/W4`).
 
 ## Recipes
 
@@ -45,7 +55,7 @@ Use this for small changes that touch a few files and don't change how the engin
 
 ## Before you finish
 
-- [ ] Every rule above holds in the lines you changed
+- [ ] Every rule above holds in the lines you changed (no `!`, every `if`/loop body in `{ }`)
 - [ ] Only the files the task needs were changed; line endings unchanged (CRLF)
 - [ ] Nothing invented: every function, field and file you used exists (search before you call it)
 - [ ] If a component, setting, spec or behaviour changed: the matching `docs/` page or wiki row is updated

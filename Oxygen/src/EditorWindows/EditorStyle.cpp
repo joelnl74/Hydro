@@ -242,7 +242,9 @@ namespace Hydro
 	void EditorStyle::RecolorFromAccent()
 	{
 		if (UsesAccent(Theme))
+		{
 			BuildHydroColors(GetSurfaces(Theme), Accent, Colors);
+		}
 	}
 
 	ImVec4 EditorStyle::GetHighlightColor() const
@@ -274,6 +276,7 @@ namespace Hydro
 				return true;
 			}
 		}
+
 		return false;
 	}
 

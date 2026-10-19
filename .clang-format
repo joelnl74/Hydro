@@ -27,6 +27,8 @@ ColumnLimit: 0
 # Short forms the code already uses.
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: Never
+# Every if / else / for / while / do body gets { }, even a single line (Hydro rule).
+InsertBraces: true
 AllowShortLoopsOnASingleLine: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: true

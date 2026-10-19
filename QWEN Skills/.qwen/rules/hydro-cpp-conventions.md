@@ -11,6 +11,7 @@ paths:
 - Small, contained change: follow the `hydro-quick-edit` skill. Architecture work (new subsystem, resource, pass, component type or system; Vulkan lifetimes; frame or startup order): follow `hydro-engine-architecture` and read the matching `docs/` file first. The repository docs are the authority; if one is missing, ask.
 - Everything lives in `namespace Hydro`: no other, nested or anonymous namespaces. File-local helpers are `static` functions; helper groups are classes with static functions. Only `std::hash<>` and `YAML::convert<>` specializations live elsewhere.
 - No unary `!`: write `== false` for booleans and `== nullptr` for pointers.
+- Always braces: every `if`, `else`, `else if`, `for`, `while` and `do` body is in `{ }` on their own lines, even a single statement. Never `if (x) return;` or a brace-less loop. Only `case X: return Y;` in a `switch` may stay on one line.
 - Names: PascalCase types, methods and struct/spec fields; `m_PascalCase` members; `s_PascalCase` statics; `enum class` (never `typedef enum class`). Subsystems use `Init` / `Shutdown`; layers `OnAttach` / `OnDetach`; engine hooks start with `On`. Never name an engine service `...System` (that word means an ECS function over a view).
 - `explicit` one-argument constructors; `const T&` / `T&` for objects you only use; `const Ref<T>&` for a shared pointer you don't keep; `[[maybe_unused]]` for required-but-unused parameters.
 - Ownership: `Scope<T>` for single-owner GPU objects, `Ref<T>` only when shared; RAII destructors, no new `Destroy()` methods.

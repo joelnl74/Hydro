@@ -1,5 +1,5 @@
 #include "EditorSettingsWindow.h"
-#include "EditorChrome.h"
+#include "Utilities/EditorChrome.h"
 #include "../EditorPaths.h"
 
 #include <algorithm>

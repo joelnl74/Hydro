@@ -184,6 +184,19 @@ Shaders live as GLSL in the application's `assets/shaders` folder and are refere
 - Members `m_Name`, statics `s_Name`, types and methods `PascalCase`.
 - **Namespaces.** All engine and editor code lives in `namespace Hydro`: no other namespaces, no nested ones (`Hydro::Something`), and no anonymous `namespace { }`. File-local helpers are `static` functions (and `const`/`constexpr` variables) inside `Hydro`; a group of related helpers is a class with static functions (`EditorPaths`, `AssetDragDrop`, `StatsUI`, like `Input` or `Renderer2D`). The only exceptions are specializations a library requires in its own namespace: `std::hash<>` (`namespace std`) and `YAML::convert<>` (`namespace YAML`).
 - No logical-not operator: write `== false` for booleans and `== nullptr` for pointers.
+- **Braces, always.** Every `if`, `else`, `for`, `while` and `do` body is in `{ }`, even when it is one line (`else if` chains too). Braces go on their own lines (Allman). Only `case X: return Y;` lines in a `switch` may stay on one line. `.clang-format` adds missing braces (`InsertBraces`); older code without them is fixed when you touch it.
+
+  ```cpp
+  if (pixels == nullptr)
+  {
+      return false;
+  }
+
+  for (auto entity : view)
+  {
+      Update(entity);
+  }
+  ```
 - Check Vulkan results with `VK_CHECK_RESULT(...)`.
 - Subsystems and their parts have `Init` / `Shutdown` (never `Create` / `ShutDown` / `Destroy`); hooks the engine calls on client code start with `On`. See [Subsystems](Subsystems.md).
 - Debug checks use `HY_CORE_ASSERT(condition, message)` from `Core/Assert.h`.

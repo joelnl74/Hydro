@@ -18,6 +18,8 @@ Read the doc for the area you are changing before writing code. If what you are 
 
 The wiki (`Hydro.wiki`) mirrors `docs/` (Architecture, Subsystems, Resource-Creation, Scene-and-ECS) and also has pages that live only there (Components, Coding-Conventions, Known-Issues, Roadmap, Getting-Started). When you change a doc, regenerate its wiki page from the doc (keep the "Mirrors docs/..." banner; links `X.md` -> wiki page names: `Subsystems`, `Resource-Creation`, `Scene-and-ECS`, `Architecture`). When you add or change a component, update the wiki's Components page. When you fix something, remove its row from Known-Issues (add it under "Recently fixed"), update its Roadmap status, and close or comment on its GitHub issue.
 
+`QWEN Skills/` in the repository holds the same rules for Qwen Code on a local model: a copy of this skill, a short C++ rules file and a `hydro-quick-edit` skill for small tasks. When a rule here changes, update those copies too (see `QWEN Skills/INSTALL.md`).
+
 ## 0. Vocabulary
 
 | Term | What it is | Lifetime |
@@ -181,6 +183,7 @@ void UpdateSpin(entt::registry& registry, float deltaTime)
 
 - **Namespaces.** All engine and editor code lives in `namespace Hydro`. Don't create other namespaces, nested namespaces (`Hydro::Something`) or anonymous `namespace { }` blocks. File-local helpers are `static` functions (and `const` / `constexpr` variables) inside `Hydro`. A group of related helpers is a class with static functions (`EditorPaths`, `AssetDragDrop`, `StatsUI`, like `Input` or `Renderer2D`). The only exceptions are specializations a library requires in its own namespace: `std::hash<>` in `namespace std` and `YAML::convert<>` in `namespace YAML`. Example code and scripts in Oxygen are in `Hydro` too.
 - No logical-not operator anywhere: `== false` for booleans, `== nullptr` for pointers. This includes new code and code you edit.
+- **Always braces.** Every `if`, `else`, `else if`, `for`, `while` and `do` body is in `{ }`, each brace on its own line, even for a single statement (`if (x) return;` is not allowed). Only `case X: return Y;` lines in a `switch` may stay on one line. `.clang-format` has `InsertBraces: true`. Add braces to older code when you edit it.
 - `Ref<T>`/`Scope<T>` with `CreateRef`/`CreateScope`.
 - **Naming.** Members `m_PascalCase` (never `m_camelCase`: `m_renderPass`, `m_format` are being fixed, A10), statics `s_PascalCase`, `PascalCase` types, methods and spec/plain-struct fields (`PipelineSpecification::Shader`, not `shader`). `enum class Name : type`, never `typedef enum class`. Check spelling (`VullkanTexture`, `HierachyWindow`, `heigth`, `GetPipeLine` are known misspellings being renamed; don't copy them into new names).
 - **Signatures.** One-argument constructors are `explicit`. Take a `Ref<T>` you don't keep as `const Ref<T>&` (never non-const `Ref<T>&`); prefer `T&` when you only use the object. Getters get `const` overloads. Mark parameters that must exist but aren't used `[[maybe_unused]]` instead of deleting their names.
@@ -205,7 +208,7 @@ Check the change against this list:
 - [ ] Components stay plain data, with no pointers to other components or entities; new ones are saved, in `CopyableComponents`, and in the inspector
 - [ ] Projections come from `Camera::Perspective` / `Camera::Orthographic`
 - [ ] GPU work is recorded in the frame's command buffer; per-frame resources exist per frame in flight
-- [ ] No `!` operators; forward-slash includes from `src` (no `../`, no `vendor/` paths); `#pragma once`
+- [ ] No `!` operators; every `if` / `else` / loop body in `{ }`; forward-slash includes from `src` (no `../`, no `vendor/` paths); `#pragma once`
 - [ ] Names follow the rules (`m_PascalCase`, PascalCase fields, `enum class`, `explicit`, `const` getters, `[[maybe_unused]]`); no new warnings at `/W4`; formatted with `.clang-format`
 - [ ] `docs/` and the mirrored wiki pages updated if the change adds a subsystem, setting, spec, component, system or pass, or changes ownership, startup/shutdown or frame order. Wiki-only pages (Components, Coding-Conventions, Known-Issues, Roadmap) updated too; tick the Roadmap task boxes the change completes. If it fixes something under "Known gaps" or in Known-Issues, remove it there, update the Roadmap status, and close or comment on the GitHub issue.
 
