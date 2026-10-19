@@ -44,4 +44,5 @@ If the repository was cloned non-recursively previously, use git submodule updat
 
 Example image 2d renderer and editor view
 
-<img width="1917" height="1029" alt="Screenshot 2026-10-18 084744" src="https://github.com/user-attachments/assets/5da33b73-aa21-4846-b774-2dd84483a27c" />
+<img width="1918" height="1026" alt="Screenshot 2026-10-20 000205" src="https://github.com/user-attachments/assets/b58f0bf9-0ad8-4fef-a4db-531a8177d873" />
+
