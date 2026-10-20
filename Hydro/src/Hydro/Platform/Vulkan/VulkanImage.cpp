@@ -75,19 +75,32 @@ namespace Hydro
 
 	VulkanImage::~VulkanImage()
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-
-		if (m_vulkanImageInfo.Sampler != VK_NULL_HANDLE)
-			vkDestroySampler(device, m_vulkanImageInfo.Sampler, nullptr);
-
-		if (m_vulkanImageInfo.ImageView != VK_NULL_HANDLE)
-			vkDestroyImageView(device, m_vulkanImageInfo.ImageView, nullptr);
-
-		if (m_vulkanImageInfo.Image != VK_NULL_HANDLE)
+		if (m_vulkanImageInfo.Image == VK_NULL_HANDLE && m_vulkanImageInfo.ImageView == VK_NULL_HANDLE && m_vulkanImageInfo.Sampler == VK_NULL_HANDLE)
 		{
-			VulkanAllocator allocator("VulkanImage");
-			allocator.DestroyImage(m_vulkanImageInfo.Image, m_vulkanImageInfo.MemoryAlloc);
+			return;
 		}
+
+		// Frames in flight may still sample or render to it (a sprite's texture dropped mid-frame, a
+		// render target replaced on resize): free it once they are done.
+		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		Renderer::SubmitResourceFree([device, info = m_vulkanImageInfo]()
+		{
+			if (info.Sampler != VK_NULL_HANDLE)
+			{
+				vkDestroySampler(device, info.Sampler, nullptr);
+			}
+
+			if (info.ImageView != VK_NULL_HANDLE)
+			{
+				vkDestroyImageView(device, info.ImageView, nullptr);
+			}
+
+			if (info.Image != VK_NULL_HANDLE)
+			{
+				VulkanAllocator allocator("VulkanImage");
+				allocator.DestroyImage(info.Image, info.MemoryAlloc);
+			}
+		});
 	}
 
 	void VulkanImage::CreateImage(VkImageUsageFlags usage)
@@ -113,7 +126,7 @@ namespace Hydro
 
 	void VulkanImage::CreateViewAndSampler(VkImageAspectFlags aspect, const TextureProperties& properties)
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
 
 		VkImageViewCreateInfo imageViewCreateInfo{};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

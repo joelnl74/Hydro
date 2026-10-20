@@ -95,7 +95,7 @@ Renderer:
 2. **UI**: `ImGuiLayer::Begin`, every layer's `OnImGuiRender`, then `ImGuiLayer::End`.
 3. **Update**: every layer's `OnUpdate(Time::GetDeltaTime())`. A layer updates its scene here (`Scene::OnUpdateRuntime` or `OnUpdateEditor`, then its own systems) and submits draw calls into a `RenderView` through a camera (`SceneRenderer::RenderRuntime` or `RenderEditor` → `Renderer2D::BeginScene(view, ...)` + `DrawQuad` + `EndScene`). Nothing touches the GPU yet.
 4. **Render**: `Renderer::RenderFrame` records and submits the whole frame in **one** command buffer:
-   1. wait for this frame-in-flight's fence, acquire a swapchain image;
+   1. wait for this frame-in-flight's fence, run the deletion queue's frees whose frames are now finished (`Renderer::SubmitResourceFree`, see [Vulkan ownership](#vulkan-ownership)), acquire a swapchain image;
    2. `Renderer2D::Render` — one offscreen 2D pass per `RenderView` begun this frame (its batched quads, seen through its camera), each cleared to `RendererSettings::ClearColor`. It applies each view's pending resize before its pass, and first rebuilds its pipeline if `Wireframe` changed and, when hot reload is on, rebuilds its shader and pipeline if a shader source changed (see [Shaders](#shaders));
    3. the swapchain pass — ImGui draws the editor UI, including the Editor and Game windows, which sample their views' images;
    4. submit, present.
@@ -121,7 +121,7 @@ Renderer2D::EndScene();
 ```
 
 - Each view begun in a frame gets its own pass in `Renderer2D::Render`, in `BeginScene` order. A view not begun in a frame isn't rendered (Oxygen skips hidden windows).
-- `view.SetSize(w, h)` resizes it from the next render (the editor follows its window sizes).
+- `view.SetSize(w, h)` resizes it from the next render (the editor follows its window sizes). The old images go through the deletion queue, so a resize doesn't wait for the GPU; each frame index's ImGui texture handle is pointed at its new image when that index is recorded next.
 - The quad pipeline is built once, against a 1×1 compatibility render pass and a layout-only descriptor set. Every view's target has the same format and its set 0 (camera + textures) is built the same way, so `VulkanPipeline::BindDescriptorSet` binds the view's own set.
 - Views are resources: the application creates them after `Renderer::Init` and destroys them while the renderer is alive (Oxygen does it in `OnDetach`).
 
@@ -135,7 +135,7 @@ A view's quads are recorded as a list of **draws** (one `vkCmdDrawIndexed` each)
 - **Texture sets** hold up to 32 textures (`Renderer2D::GetMaxTextureSlots()`; slot 0 is a 1×1 white texture made in code, so untextured quads need no file) and set 0's descriptor sets (camera + texture array, one per frame in flight). `DrawQuad` looks the texture up in the current set and adds it to a free slot.
 - A new draw starts when the batch is full or when a quad needs a 33rd texture (a **texture flush**: the next set is used, with fresh slots). A flush costs one more draw call, not a new vertex buffer, and earlier draws are recorded first, so draw order is kept. There is no limit on quads or textures per frame. Batches and sets are reused every frame; nothing is allocated once a scene has been drawn.
 - `RecordView` writes each used set's texture array into that frame's descriptor set before the pass (the frame's fence has signalled, so the GPU is done with it), uploads the batches, then binds vertex buffer and descriptor set only when they change between draws.
-- **Lifetime.** Every texture a frame's command buffer samples is kept in `TexturesInFlight[frame]` until that frame index is recorded again. So dropping the last `Ref` to a texture mid-frame (changing a sprite's texture, deleting an entity) is safe without `Renderer::WaitIdle`.
+- **Lifetime.** A texture set holds `Ref`s to its textures only while the frame is being built. When the last `Ref` goes, the texture's `VulkanImage` hands its handles to the deletion queue, which frees them after the frames in flight that may sample it. So dropping a texture mid-frame (changing a sprite's texture, deleting an entity) is safe without `Renderer::WaitIdle`.
 - The quad shader picks the texture with a `switch` over constant indices (`textureGrad` with derivatives taken before it), because indexing the sampler array with a per-quad value needs descriptor indexing, which the device doesn't enable. `texIndex` is `flat`. The vertex colour multiplies the texture, alpha included.
 - Texture coordinates run `v = 1` at the quad's bottom to `v = 0` at its top (Vulkan's first image row is the top), times the tiling factor; samplers repeat by default.
 - **Stats** (Oxygen's Stats window): slots per draw, slots used, texture flushes.
@@ -172,14 +172,17 @@ The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorS
 
 | Object | Owns |
 | --- | --- |
-| `VulkanRendererContext` | Instance, debug messenger (Debug builds), window surface, device |
-| `VulkanDevice` | Logical device, graphics + present queues, upload command pool |
+| `VulkanRendererContext` | Instance, debug messenger (Debug builds), window surface, device (`Scope<VulkanDevice>`, handed out as `VulkanDevice&`) |
+| `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`), logical device, graphics + present queues, upload command pool |
 | `VulkanSwapChain` | Swapchain images, views, framebuffers, present render pass, render-finished semaphores; acquire/present; `Recreate` |
 | `VulkanFrameContext` | Per frame in flight (`MAX_FRAMES_IN_FLIGHT = 2`): command pool + buffer, fence, image-acquired semaphore |
-| `Renderer` | The above, and runs the frame |
+| `Renderer` | The above (`Scope`s; `GetRendererContext()` and `GetVulkanSwapChain()` return references), the **deletion queue**, and runs the frame |
 | `VulkanRenderPass` | An offscreen colour target: one image + framebuffer per frame in flight. Each `RenderView` owns one |
-| `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures) |
-| `Texture2D` | One `VulkanImage` (image, view, sampler; VMA). Shared through `Ref<Texture2D>`; `Renderer2D` keeps the ones a frame samples alive until that frame's fence |
+| `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures), all in `Scope`s |
+| `Renderer2D` | The quad shader, pipeline, index buffer, the 1×1 compatibility render pass with its layout descriptor set, and the white texture |
+| `Texture2D` | One `VulkanImage` (image, view, sampler; VMA). Shared through `Ref<Texture2D>` |
+
+GPU resources (`VulkanImage`, `VulkanRenderPass`, `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline`, `VulkanShader`) free their handles in their destructor and are non-copyable; their single owner holds them in a `Scope<T>` (see [Resource creation](ResourceCreation.md#ownership)). A destructor doesn't destroy the handles itself: it hands a function that does to the **deletion queue**, `Renderer::SubmitResourceFree(std::function<void()>)`. The renderer tags it with the current frame number and runs it at the start of the frame `MAX_FRAMES_IN_FLIGHT` frames later, once that frame slot's fence says the GPU is done with every frame that could have used the resource. It also runs everything queued after a swapchain rebuild (the device is idle then) and at `Renderer::Shutdown`, before the allocator and device go. Frees run in the order they were queued. `VulkanShader` is the exception: shader modules aren't used after a pipeline is created, so it frees them at once.
 
 Rules that follow from this:
 
@@ -187,13 +190,14 @@ Rules that follow from this:
 - **Record into the frame's command buffer** (`Renderer::GetCurrentCommandBuffer()` or the one passed to you). Don't create a separate submit for per-frame work.
 - **Window resize rebuilds only the swapchain.** Render views follow the windows that show them (`RenderView::SetSize`; the Game window also calls `Scene::OnViewportResize` for camera aspect ratios).
 - **One-off uploads** (textures, static buffers) use `VulkanCommandBuffer`, which takes the device's upload pool and waits for completion.
+- **Never wait for the GPU to release something.** Drop the `Scope` (or the last `Ref`) and the deletion queue does the rest. `Renderer::WaitIdle()` is only for shutdown and swapchain rebuilds.
 
 ## Shaders
 
 Shaders live as GLSL in the application's `assets/shaders` folder and are referenced by their source path (`assets/shaders/vertex.vert`). `VulkanShader` compiles them with shaderc when it is created, so there is no separate compile step to run. The quad shader's `sampler2D inTextures[32]` and its `switch` must match `Renderer2D`'s texture slot count (`VulkanDescriptorBuilder::MaxImageArraySize`, checked by a `static_assert`).
 
 - **Build-time check.** Oxygen's project also runs `glslc` on every shader as a Visual Studio build step, so syntax errors show up in the Error List. The `.spv` files it writes are not used at runtime yet; they are there for shipping precompiled shaders later.
-- **Hot reload.** `RendererSettings::ShaderHotReload` (on by default, off in Dist; toggle it in **Render Settings**). `Renderer2D` watches its shader's sources and `#include`d files with a `FileWatcher` (polled every 250 ms). On a change it compiles a new `VulkanShader` and `VulkanPipeline` from the old specifications, waits for the GPU (`Renderer::WaitIdle`), then swaps them in. If compilation fails, the error is logged and the old shader keeps drawing.
+- **Hot reload.** `RendererSettings::ShaderHotReload` (on by default, off in Dist; toggle it in **Render Settings**). `Renderer2D` watches its shader's sources and `#include`d files with a `FileWatcher` (polled every 250 ms). On a change it compiles a new `VulkanShader` and `VulkanPipeline` from the old specifications and swaps them in; the old pipeline is freed through the deletion queue, so nothing waits for the GPU. If compilation fails, the error is logged and the old shader keeps drawing.
 - **Runtime dependency.** shaderc is a DLL: Oxygen's post-build step copies `shaderc_shared.dll` from `$(VULKAN_SDK)\Bin` next to the executable. Debug builds link the release shaderc library on purpose (it is only used through its C API).
 
 ## Code conventions
@@ -219,7 +223,7 @@ Shaders live as GLSL in the application's `assets/shaders` folder and are refere
 - Subsystems and their parts have `Init` / `Shutdown` (never `Create` / `ShutDown` / `Destroy`); hooks the engine calls on client code start with `On`. See [Subsystems](Subsystems.md).
 - Debug checks use `HY_CORE_ASSERT(condition, message)` from `Core/Assert.h`.
 - Includes use forward slashes and every header has `#pragma once`. Engine headers are included from `src` (`#include "Hydro/Core/Base.h"`), never with `../` (`"../Scene/Entity.h"`); a header next to the file may use its bare name (`"VulkanUtils.h"`). Vendored libraries are included through their include directory (`<entt.hpp>`, `<stb_image.h>`, `<tiny_obj_loader.h>`), never by a path into `vendor/`.
-- **Naming.** Members are `m_PascalCase` (`m_RenderPass`, not `m_renderPass`); fields of specs and other plain structs are `PascalCase` (`PipelineSpecification::Shader`, not `shader`). Enums are `enum class Name : type`, never `typedef enum class`. Spell names right (`VullkanTexture`, `HierachyWindow`, `heigth` and `GetPipeLine` are being renamed).
+- **Naming.** Members are `m_PascalCase` (`m_RenderPass`, not `m_renderPass`); fields of specs and other plain structs are `PascalCase` (`PipelineSpecification::Shader`; `ShaderInformation::path` is still being renamed). Enums are `enum class Name : type`, never `typedef enum class`. Spell names right (`VullkanTexture`, `HierachyWindow`, `heigth` and `GetPipeLine` are being renamed).
 - **Signatures.** Take shared pointers you don't keep as `const Ref<T>&`; take objects you only use as `T&` / `const T&`. Constructors with one argument are `explicit`. Getters have `const` overloads (`Entity::GetComponent`, `HasComponent`).
 - **Ownership.** An object that creates a GPU resource and is its only owner holds it in a `Scope<T>`; `Ref<T>` is only for objects that really are shared. See [Resource creation](ResourceCreation.md#ownership).
 - Mark parameters a function must accept but doesn't use `[[maybe_unused]]` (`virtual void OnUpdate([[maybe_unused]] float deltaTime) {}`) instead of removing their names.
@@ -245,15 +249,15 @@ Agreed on October 19, 2026 after reviewing the engine and editor code against th
 | --- | --- | --- |
 | A1 | Tooling: `.clang-format`, `.editorconfig`, `.gitattributes`, `/W4`, warnings as errors once clean | [Tooling](#tooling). Partly done |
 | A2 | Tests and CI: a doctest project and a GitHub Actions build | Tests for `UUID`, scene and prefab round trips, `Scene::Copy`, `ScriptRegistry`, `EditorSettings` load; `windows-latest` with the Vulkan SDK, Debug build, run the tests |
-| A3 | RAII for the six wrappers that still have `Destroy()`, and a per-frame deletion queue | `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline`, `VullkanTexture`. `Renderer::SubmitResourceFree(std::function<void()>)` frees once the frame's fence has signalled, so hot reload and resizes no longer need `Renderer::WaitIdle` mid-frame. Order: buffers, then pipeline and descriptors, then textures (with VMA, [#34](https://github.com/joelnl74/Hydro/issues/34)). See [Resource creation](ResourceCreation.md#ownership) |
-| A4 | `Scope` instead of `Ref` for owned GPU objects | 17 `Ref<Vulkan...>` members today. Users get `T&` |
+| A3 | RAII for the six wrappers that still have `Destroy()`, and a per-frame deletion queue | **Done (Oct 20, 2026).** `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder` and `VulkanPipeline` free themselves in their destructor; `VullkanTexture` was deleted (textures are `Texture2D` on `VulkanImage`, VMA). `Renderer::SubmitResourceFree` frees after the frames in flight, so hot reload and resizes no longer call `Renderer::WaitIdle`. See [Vulkan ownership](#vulkan-ownership) |
+| A4 | `Scope` instead of `Ref` for owned GPU objects | **Done (Oct 20, 2026).** No `Ref<Vulkan...>` members are left: owners hold `Scope<T>`, users get `T&` (`Renderer::GetRendererContext()`, `GetVulkanDevice()`, `GetPhysicalDevice()`, `GetVulkanSwapChain()` return references); `PipelineSpecification` points at its shader and descriptor sets without owning them |
 | A5 | `SystemContext` and an ordered list of stages in `Scene` | Finishes E5. See [Scene, ECS and systems](SceneAndECS.md#planned-system-context-and-stages) |
 | A6 | One component registry | Name, save/load and inspector drawing per component, so saving, the play copy and the inspector loop over one list (E4). See [Scene, ECS and systems](SceneAndECS.md#planned-component-registry) |
 | A7 | No Vulkan in `Renderer/` headers | `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h`. `RenderView` returns an opaque `ImTextureID` |
 | A8 | No asset paths in the engine | Partly (Oct 20, 2026): the white texture is made in code. `Renderer2D` still loads `assets/shaders/vertex.vert` and `fragment.frag` from the application; engine shaders come from an engine resources folder or a shader library. Needed by the Runtime (RT1) |
 | A9 | Smaller fixes | `LayerStack` owns layers as `Scope<Layer>` (no raw `new`/`delete`); `VK_CHECK_RESULT` asserts in Debug ([#35](https://github.com/joelnl74/Hydro/issues/35)); typed event dispatch and `Handled` ([#38](https://github.com/joelnl74/Hydro/issues/38)); `Entity` asserts (E6) |
-| A10 | Naming | `m_PascalCase` members (`m_uniformBuffers`, `m_format`, `m_renderPass`, `m_commandBuffer`, `m_vmaAllocation`, `m_memory`, `m_layoutBinding`, `m_poolSizes`); PascalCase spec fields (`PipelineSpecification::shader`, `ShaderInformation::path`; drop the duplicate `shaderStage`/`shaderType`); `VullkanTexture`, `HierachyWindow`, `heigth`, `GetPipeLine`; `enum class` instead of `typedef enum class` (`KeyCodes.h`, `Input.h`) |
-| A11 | Const and ownership in signatures | `const Ref<T>&` parameters (`VulkanDescriptorBuilder::BindBuffer`/`BindImage` take `Ref&`), `explicit` single-argument constructors, `const` overloads of `Entity::GetComponent`/`HasComponent`, `"Hydro/..."` include paths instead of `"../Scene/..."` |
+| A10 | Naming | `m_PascalCase` members (`m_uniformBuffers`, `m_format`, `m_renderPass`, `m_commandBuffer`, `m_vmaAllocation`, `m_memory`, `m_layoutBinding`, `m_poolSizes`); PascalCase spec fields (`ShaderInformation::path`; drop the duplicate `shaderStage`/`shaderType`; `PipelineSpecification::Shader` is done); `HierachyWindow`, `heigth`, `GetPipeLine` (`VullkanTexture` is gone); `enum class` instead of `typedef enum class` (`KeyCodes.h`, `Input.h`) |
+| A11 | Const and ownership in signatures | `const Ref<T>&` parameters (`VulkanDescriptorBuilder::BindBuffer` takes `const VulkanUniformBuffer&` since Oct 20, 2026), `explicit` single-argument constructors, `const` overloads of `Entity::GetComponent`/`HasComponent`, `"Hydro/..."` include paths instead of `"../Scene/..."` |
 
 ## Planned: asset system
 
@@ -277,8 +281,7 @@ These are where the code does not yet match the rules above. Fix them when you t
 - Each `RenderView` has its own quads, so a scene shown in two windows is submitted (and its vertices uploaded) twice.
 - A `RenderView`'s ImGui textures stay in ImGui's descriptor pool until ImGui shuts down; the vendored ImGui has no `ImGui_ImplVulkan_RemoveTexture`.
 - `Scene::m_Registry` is public; the editor reads it directly ([#42](https://github.com/joelnl74/Hydro/issues/42)).
-- Six Vulkan wrappers still have a manual `Destroy()` instead of a destructor, and objects that are freed while frames are in flight wait for the GPU with `Renderer::WaitIdle` (A3; see [Resource creation](ResourceCreation.md#ownership)).
-- Owned GPU objects are held in `Ref<T>` (17 members), so ownership isn't visible in the type (A4).
+- The deletion queue only knows the main frame's fence. ImGui windows dragged outside the main window are submitted separately by ImGui (`RenderPlatformWindowsDefault`), so a view image freed or rewritten after a resize could in theory still be sampled by such a window's previous submission. Not seen in practice; fixed properly when the ImGui upgrade lets those windows render through `Renderer`.
 - `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h` (A7).
 - `Renderer2D` loads its shaders from the application's `assets/` folder (A8).
 - Sprites reference textures directly (`Ref<Texture2D>`) and scenes save the file path; `EntitySerializer` loads textures and reads `Project` for the asset folder. A texture file that is missing when a scene loads is logged and the sprite draws untextured; saving the scene then drops the reference. Sampling options (`TextureProperties`) aren't saved per texture yet (always linear + repeat). All of this moves to the asset system ([Planned: asset system](#planned-asset-system)).

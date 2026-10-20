@@ -7,8 +7,8 @@
 
 namespace Hydro
 {
-	VulkanDevice::VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice)
-		: m_PhysicalDevice(physicalDevice)
+	VulkanDevice::VulkanDevice(Scope<VulkanPhysicalDevice> physicalDevice)
+		: m_PhysicalDevice(std::move(physicalDevice))
 	{
 		const QueueFamilyIndices& indices = m_PhysicalDevice->GetQueueFamilyIndices();
 

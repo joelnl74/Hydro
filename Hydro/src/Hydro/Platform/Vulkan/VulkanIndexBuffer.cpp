@@ -6,34 +6,37 @@
 
 namespace Hydro
 {
-	VulkanIndexBuffer::VulkanIndexBuffer(void *sourceData, uint32_t size)
+	VulkanIndexBuffer::VulkanIndexBuffer(const void* data, uint32_t size)
+		: VulkanIndexBuffer(size)
 	{
-		m_size = size;
-
-		VulkanAllocator allocator("IndexBuffer");
-
-		VkBufferCreateInfo indexbufferCreateInfo = {};
-		indexbufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		indexbufferCreateInfo.size = size;
-		indexbufferCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-
-		m_memory = allocator.AllocateBuffer(indexbufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffer);
-
-		SetData(sourceData, size);
+		SetData(data, size);
 	}
 
 	VulkanIndexBuffer::VulkanIndexBuffer(uint32_t size)
+		: m_Size(size)
 	{
-		m_size = size;
-
 		VulkanAllocator allocator("IndexBuffer");
 
-		VkBufferCreateInfo indexbufferCreateInfo = {};
-		indexbufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		indexbufferCreateInfo.size = size;
-		indexbufferCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		VkBufferCreateInfo indexBufferCreateInfo = {};
+		indexBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		indexBufferCreateInfo.size = size;
+		indexBufferCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 
-		m_memory = allocator.AllocateBuffer(indexbufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffer);
+		m_Memory = allocator.AllocateBuffer(indexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffer);
+	}
+
+	VulkanIndexBuffer::~VulkanIndexBuffer()
+	{
+		if (m_Buffer == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		Renderer::SubmitResourceFree([buffer = m_Buffer, memory = m_Memory]()
+		{
+			VulkanAllocator allocator("IndexBuffer");
+			allocator.DestroyBuffer(buffer, memory);
+		});
 	}
 
 	void VulkanIndexBuffer::Bind(VkCommandBuffer commandBuffer)
@@ -41,18 +44,13 @@ namespace Hydro
 		vkCmdBindIndexBuffer(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
 
-	void VulkanIndexBuffer::Destroy()
+	void VulkanIndexBuffer::SetData(const void* data, uint32_t size)
 	{
-		VulkanAllocator allocator("IndexBuffer");
-		allocator.DestroyBuffer(m_Buffer, m_memory);
-	}
+		HY_CORE_ASSERT(size <= m_Size, "VulkanIndexBuffer::SetData: more data than the buffer holds");
 
-	void VulkanIndexBuffer::SetData(void* data, uint32_t size)
-	{
 		VulkanAllocator allocator("IndexBuffer");
-		void* dstBuffer = allocator.MapMemory<void>(m_memory);
+		void* dstBuffer = allocator.MapMemory<void>(m_Memory);
 		memcpy(dstBuffer, data, size);
-		allocator.UnmapMemory(m_memory);
+		allocator.UnmapMemory(m_Memory);
 	}
-
 }

@@ -8,15 +8,15 @@ namespace Hydro
 	// One-time-submit command buffer for uploads and layout transitions. End() submits and waits.
 	VkCommandBuffer VulkanCommandBuffer::Create()
 	{
-		Ref<VulkanDevice> device = Renderer::GetRendererContext()->GetVulkanDevice();
+		VulkanDevice& device = Renderer::GetRendererContext().GetVulkanDevice();
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = device->GetUploadCommandPool();
+		allocInfo.commandPool = device.GetUploadCommandPool();
 		allocInfo.commandBufferCount = 1;
 
-		VK_CHECK_RESULT(vkAllocateCommandBuffers(device->GetDevice(), &allocInfo, &m_commandBuffer));
+		VK_CHECK_RESULT(vkAllocateCommandBuffers(device.GetDevice(), &allocInfo, &m_commandBuffer));
 
 		return m_commandBuffer;
 	}
@@ -32,7 +32,7 @@ namespace Hydro
 
 	void VulkanCommandBuffer::End()
 	{
-		Ref<VulkanDevice> device = Renderer::GetRendererContext()->GetVulkanDevice();
+		VulkanDevice& device = Renderer::GetRendererContext().GetVulkanDevice();
 
 		VK_CHECK_RESULT(vkEndCommandBuffer(m_commandBuffer));
 
@@ -41,10 +41,10 @@ namespace Hydro
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_commandBuffer;
 
-		VK_CHECK_RESULT(vkQueueSubmit(device->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-		VK_CHECK_RESULT(vkQueueWaitIdle(device->GetGraphicsQueue()));
+		VK_CHECK_RESULT(vkQueueSubmit(device.GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+		VK_CHECK_RESULT(vkQueueWaitIdle(device.GetGraphicsQueue()));
 
-		vkFreeCommandBuffers(device->GetDevice(), device->GetUploadCommandPool(), 1, &m_commandBuffer);
+		vkFreeCommandBuffers(device.GetDevice(), device.GetUploadCommandPool(), 1, &m_commandBuffer);
 		m_commandBuffer = VK_NULL_HANDLE;
 	}
 }

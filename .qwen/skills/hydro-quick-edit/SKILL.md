@@ -19,7 +19,7 @@ Use this for small changes that touch a few files and don't change how the engin
 2. **No `!`.** Write `== false` for booleans and `== nullptr` for pointers.
 3. **Names.** Types, methods and struct/spec fields `PascalCase`; members `m_PascalCase`; statics `s_PascalCase`; `enum class Name : type` (never `typedef enum class`). Lifecycle is `Init` / `Shutdown`; engine hooks start with `On`.
 4. **Signatures.** One-argument constructors are `explicit`. Pass objects you only use as `T&` / `const T&`; a `Ref<T>` you don't keep as `const Ref<T>&`. Unused but required parameters get `[[maybe_unused]]`.
-5. **Ownership.** `Scope<T>` for an object with one owner (`CreateScope`), `Ref<T>` only when shared (`CreateRef`). No new manual `Destroy()` methods.
+5. **Ownership.** `Scope<T>` for an object with one owner (`CreateScope`), `Ref<T>` only when shared (`CreateRef`). No manual `Destroy()` methods: a GPU resource's destructor hands its handles to `Renderer::SubmitResourceFree`; never `Renderer::WaitIdle()` to free something.
 6. **Includes.** Forward slashes. Engine headers from `src`: `#include "Hydro/Scene/Entity.h"` (never `../`); same-folder headers by bare name. Vendored libraries by their own name: `<entt.hpp>`, `<imgui.h>`, `<glm/glm.hpp>`. Headers have `#pragma once` and never include `hypch.h`.
 7. **Checks.** `VK_CHECK_RESULT(...)` around Vulkan calls that return `VkResult`; `HY_CORE_ASSERT(condition, "message")` for debug checks.
 8. **Layering.** Engine code never includes Oxygen code. Applications include `Hydro.h`, not `Platform/Vulkan` headers. Headers under `Renderer/` don't include Vulkan. Components are plain data (no virtual functions, no logic, no pointers to other entities).

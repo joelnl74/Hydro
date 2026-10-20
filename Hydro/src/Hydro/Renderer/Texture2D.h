@@ -14,8 +14,9 @@ namespace Hydro
 	//
 	// A resource: made from an ImageSpecification (what it is: size, RGBA or SRGB) and TextureProperties
 	// (how it is sampled: filter, wrap), immutable afterwards, and non-copyable. Textures are shared by
-	// many sprites, so they are held in a Ref<Texture2D>. Renderer2D keeps every texture it drew with
-	// alive until the GPU has finished that frame, so dropping the last Ref at any time is safe.
+	// many sprites, so they are held in a Ref<Texture2D>. Its image is freed through the renderer's
+	// deletion queue (Renderer::SubmitResourceFree) after the frames in flight that may sample it, so
+	// dropping the last Ref at any time is safe.
 	//
 	// TODO(assets): sprites reference textures directly and scenes save the file path. Once the
 	// AssetManager exists (Roadmap "Asset system"), components hold an AssetHandle instead and

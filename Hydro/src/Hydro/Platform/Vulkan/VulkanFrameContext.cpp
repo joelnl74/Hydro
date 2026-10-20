@@ -5,13 +5,14 @@
 
 namespace Hydro
 {
-	void VulkanFrameContext::Init(Ref<VulkanDevice> device)
+	void VulkanFrameContext::Init(VulkanDevice& device)
 	{
-		m_Device = device;
+		HY_CORE_ASSERT(m_Device == nullptr, "VulkanFrameContext::Init called twice");
+		m_Device = &device;
 		m_FrameIndex = 0;
 
 		VkDevice vkDevice = m_Device->GetDevice();
-		uint32_t graphicsFamily = (uint32_t)m_Device->GetPhysicalDevice()->GetQueueFamilyIndices().graphics;
+		uint32_t graphicsFamily = (uint32_t)m_Device->GetPhysicalDevice().GetQueueFamilyIndices().graphics;
 
 		for (FrameData& frame : m_Frames)
 		{
@@ -43,7 +44,9 @@ namespace Hydro
 	void VulkanFrameContext::Shutdown()
 	{
 		if (m_Device == nullptr)
+		{
 			return;
+		}
 
 		VkDevice vkDevice = m_Device->GetDevice();
 

@@ -18,15 +18,20 @@ namespace Hydro
 
 		if (m_renderPass != VK_NULL_HANDLE)
 		{
-			VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-			vkDestroyRenderPass(device, m_renderPass, nullptr);
+			VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+			Renderer::SubmitResourceFree([device, renderPass = m_renderPass]()
+			{
+				vkDestroyRenderPass(device, renderPass, nullptr);
+			});
 		}
 	}
 
 	void VulkanRenderPass::Resize(uint32_t width, uint32_t height)
 	{
 		if (width == 0 || height == 0 || (width == m_Width && height == m_Height))
+		{
 			return;
+		}
 
 		m_Width = width;
 		m_Height = height;
@@ -37,7 +42,7 @@ namespace Hydro
 
 	void VulkanRenderPass::CreateRenderPass()
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
 
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = VulkanImage::GetImageFormat(m_Format);
@@ -91,7 +96,7 @@ namespace Hydro
 
 	void VulkanRenderPass::CreateTargets()
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
 
 		m_Images.resize(MAX_FRAMES_IN_FLIGHT);
 		m_Framebuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -123,13 +128,21 @@ namespace Hydro
 
 	void VulkanRenderPass::DestroyTargets()
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-
-		for (VkFramebuffer framebuffer : m_Framebuffers)
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		// Framebuffers first, then the images they point at (frees run in the order they are queued).
+		if (m_Framebuffers.empty() == false)
+		{
+			VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+			Renderer::SubmitResourceFree([device, framebuffers = m_Framebuffers]()
+			{
+				for (VkFramebuffer framebuffer : framebuffers)
+				{
+					vkDestroyFramebuffer(device, framebuffer, nullptr);
+				}
+			});
+		}
 
 		m_Framebuffers.clear();
-		m_Images.clear(); // VulkanImage destructors free the images, views and samplers.
+		m_Images.clear(); // VulkanImage destructors queue the images, views and samplers.
 	}
 
 	void VulkanRenderPass::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex, const glm::vec4& color)

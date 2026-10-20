@@ -1,14 +1,2 @@
 #pragma once
-#include "VulkanUtils.h"
-#include <vulkan/vulkan.h>
-
-namespace Hydro
-{
-	class VulkanBuffer
-	{
-	public:
-		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	};
-}
+// Emptied on Oct 20, 2026 (RAII and deletion queue, Roadmap A3/A4): nothing uses this file. Delete it.

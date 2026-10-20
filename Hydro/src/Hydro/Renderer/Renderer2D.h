@@ -103,13 +103,17 @@ namespace Hydro
 		static void StartDraw(RenderViewData& view);
 		static void SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& color);
 		static void ApplyViewResize(RenderViewData& view);
+		// Points the ImGui texture handles of frame index `frame` that a resize left outdated at the
+		// view's new images (every view, or one).
+		static void UpdateImGuiTextures(uint32_t frame);
+		static void UpdateImGuiTextures(RenderViewData& view, uint32_t frame);
 		static void RecordView(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
 		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad
 		// shader when a source file changed (only with RendererSettings::ShaderHotReload).
 		static void ApplySettings();
 		static void ReloadShadersIfChanged();
-		// Builds a new quad pipeline (optionally with a new shader) and swaps it in once the GPU is
-		// idle. On failure the current one keeps drawing and false is returned.
+		// Builds a new quad pipeline (optionally with a new shader) and swaps it in; the old one is
+		// freed through the deletion queue. On failure the current one keeps drawing and false is returned.
 		static bool RebuildQuadPipeline(bool recompileShader, bool wireframe);
 
 		friend class Hydro::RenderView;

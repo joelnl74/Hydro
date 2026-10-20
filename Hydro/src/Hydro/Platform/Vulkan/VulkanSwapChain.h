@@ -22,7 +22,8 @@ namespace Hydro
 	class VulkanSwapChain
 	{
 	public:
-		VulkanSwapChain(Ref<VulkanDevice> device, VkSurfaceKHR surface);
+		// `device` must outlive the swapchain (both belong to Renderer, which shuts this down first).
+		VulkanSwapChain(VulkanDevice& device, VkSurfaceKHR surface);
 
 		// Returns false when the surface is currently 0x0 (minimised); call Recreate later.
 		bool Create(uint32_t width, uint32_t height, bool vsync);
@@ -62,7 +63,7 @@ namespace Hydro
 		static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, uint32_t width, uint32_t height);
 
 	private:
-		Ref<VulkanDevice> m_Device;
+		VulkanDevice* m_Device = nullptr; // not owned
 		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 
 		VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;

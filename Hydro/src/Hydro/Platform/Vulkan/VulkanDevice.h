@@ -9,9 +9,13 @@ namespace Hydro
 	class VulkanDevice
 	{
 	public:
-		VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice);
+		// Takes ownership of the GPU it was created for.
+		explicit VulkanDevice(Scope<VulkanPhysicalDevice> physicalDevice);
 
-		Ref<VulkanPhysicalDevice> GetPhysicalDevice() const { return m_PhysicalDevice; }
+		VulkanDevice(const VulkanDevice&) = delete;
+		VulkanDevice& operator=(const VulkanDevice&) = delete;
+
+		const VulkanPhysicalDevice& GetPhysicalDevice() const { return *m_PhysicalDevice; }
 		VkDevice GetDevice() const { return m_LogicalDevice; }
 
 		VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
@@ -38,6 +42,6 @@ namespace Hydro
 		bool m_FillModeNonSolidEnabled = false;
 		bool m_WideLinesEnabled = false;
 
-		Ref<VulkanPhysicalDevice> m_PhysicalDevice;
+		Scope<VulkanPhysicalDevice> m_PhysicalDevice;
 	};
 }

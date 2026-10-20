@@ -40,16 +40,15 @@ namespace Hydro
 		CreateSurface(window);
 
 		// The surface must exist before the GPU is picked, so we only pick GPUs that can present to it.
-		Ref<VulkanPhysicalDevice> physicalDevice = CreateRef<VulkanPhysicalDevice>(s_VulkanInstance, m_Surface);
-		s_VulkanDevice = CreateRef<VulkanDevice>(physicalDevice);
+		s_VulkanDevice = CreateScope<VulkanDevice>(CreateScope<VulkanPhysicalDevice>(s_VulkanInstance, m_Surface));
 	}
 
 	void VulkanRendererContext::Shutdown()
 	{
-		if (s_VulkanDevice)
+		if (s_VulkanDevice != nullptr)
 		{
 			s_VulkanDevice->Shutdown();
-			s_VulkanDevice = nullptr;
+			s_VulkanDevice.reset();
 		}
 
 		if (m_Surface != VK_NULL_HANDLE)

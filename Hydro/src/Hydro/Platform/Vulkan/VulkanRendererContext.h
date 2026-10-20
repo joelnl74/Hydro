@@ -19,7 +19,9 @@ namespace Hydro
 
 	public:
 		static VkInstance GetInstance() { return s_VulkanInstance; }
-		static Ref<VulkanDevice> GetVulkanDevice() { return s_VulkanDevice; }
+		// Valid between Init and Shutdown.
+		static VulkanDevice& GetVulkanDevice() { return *s_VulkanDevice; }
+		static bool HasVulkanDevice() { return s_VulkanDevice != nullptr; }
 		VkSurfaceKHR GetSurface() const { return m_Surface; }
 
 	private:
@@ -36,7 +38,7 @@ namespace Hydro
 
 	private:
 		inline static VkInstance s_VulkanInstance = VK_NULL_HANDLE;
-		inline static Ref<VulkanDevice> s_VulkanDevice;
+		inline static Scope<VulkanDevice> s_VulkanDevice;
 
 		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
