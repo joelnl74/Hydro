@@ -7,7 +7,9 @@
 
 namespace Hydro
 {
-	// Owns the Vulkan instance, debug messenger, window surface and device.
+	// Owns the Vulkan instance, debug messenger, window surface and device. A part of the Renderer,
+	// which starts and stops it; reach it with Renderer::GetRendererContext(), and the device with
+	// Renderer::GetVulkanDevice().
 	class VulkanRendererContext
 	{
 	public:
@@ -18,10 +20,11 @@ namespace Hydro
 		void Shutdown();
 
 	public:
-		static VkInstance GetInstance() { return s_VulkanInstance; }
+		VkInstance GetInstance() const { return m_Instance; }
 		// Valid between Init and Shutdown.
-		static VulkanDevice& GetVulkanDevice() { return *s_VulkanDevice; }
-		static bool HasVulkanDevice() { return s_VulkanDevice != nullptr; }
+		VulkanDevice& GetVulkanDevice() { return *m_Device; }
+		const VulkanDevice& GetVulkanDevice() const { return *m_Device; }
+		bool HasVulkanDevice() const { return m_Device != nullptr; }
 		VkSurfaceKHR GetSurface() const { return m_Surface; }
 
 	private:
@@ -37,9 +40,8 @@ namespace Hydro
 		static bool CheckValidationLayerSupport();
 
 	private:
-		inline static VkInstance s_VulkanInstance = VK_NULL_HANDLE;
-		inline static Scope<VulkanDevice> s_VulkanDevice;
-
+		VkInstance m_Instance = VK_NULL_HANDLE;
+		Scope<VulkanDevice> m_Device;
 		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
 		bool m_ValidationActive = false;

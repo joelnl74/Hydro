@@ -7,7 +7,6 @@
 #include "Hydro/Core/Application.h"
 
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
-#include "Hydro/Platform/Vulkan/VulkanCommandBuffer.h"
 
 // Libs
 #include <cstdio>
@@ -95,7 +94,7 @@ namespace Hydro
 		pool_info.poolSizeCount = (uint32_t)std::size(pool_sizes);
 		pool_info.pPoolSizes = pool_sizes;
 
-		VulkanDevice& device = Renderer::GetRendererContext().GetVulkanDevice();
+		VulkanDevice& device = Renderer::GetVulkanDevice();
 		VulkanSwapChain& swapChain = Renderer::GetVulkanSwapChain();
 
 		VK_CHECK_RESULT(vkCreateDescriptorPool(device.GetDevice(), &pool_info, nullptr, &m_DescriptorPool));
@@ -133,7 +132,7 @@ namespace Hydro
 		uint32_t imageCount = std::max(swapChain.GetImageCount(), minImageCount);
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = VulkanRendererContext::GetInstance();
+		init_info.Instance = Renderer::GetRendererContext().GetInstance();
 		init_info.PhysicalDevice = device.GetPhysicalDevice().GetVulkanPhysicalDevice();
 		init_info.Device = device.GetDevice();
 		init_info.QueueFamily = (uint32_t)device.GetPhysicalDevice().GetQueueFamilyIndices().graphics;
@@ -145,15 +144,12 @@ namespace Hydro
 
 		ImGui_ImplVulkan_Init(&init_info, swapChain.GetRenderPass());
 
-		//execute a gpu command to upload imgui font textures
-		VulkanCommandBuffer cmd;
-		auto commandBuffer = cmd.Create();
-
-		cmd.Begin();
+		// Upload the font atlas (submits and waits), then free ImGui's staging buffer.
+		device.SubmitImmediate([](VkCommandBuffer commandBuffer)
+		{
 			ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-		cmd.End();
+		});
 
-		//clear font textures from cpu data
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 
 		// The renderer calls this inside the swapchain render pass every frame.
@@ -177,7 +173,7 @@ namespace Hydro
 
 		if (m_DescriptorPool != VK_NULL_HANDLE)
 		{
-			vkDestroyDescriptorPool(Renderer::GetRendererContext().GetVulkanDevice().GetDevice(), m_DescriptorPool, nullptr);
+			vkDestroyDescriptorPool(Renderer::GetVulkanDevice().GetDevice(), m_DescriptorPool, nullptr);
 			m_DescriptorPool = VK_NULL_HANDLE;
 		}
 	}

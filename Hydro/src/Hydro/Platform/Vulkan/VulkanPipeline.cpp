@@ -85,7 +85,7 @@ namespace Hydro
 			throw std::runtime_error("PipelineSpecification::Shader is null.");
 		}
 
-		VulkanDevice& vulkanDevice = Renderer::GetRendererContext().GetVulkanDevice();
+		VulkanDevice& vulkanDevice = Renderer::GetVulkanDevice();
 		VkDevice device = vulkanDevice.GetDevice();
 		VkRenderPass renderpass = spec.RenderPass != VK_NULL_HANDLE ? spec.RenderPass : Renderer::GetVulkanSwapChain().GetRenderPass();
 
@@ -257,7 +257,7 @@ namespace Hydro
 		}
 
 		// Frames in flight may still have it bound: free it once they are done.
-		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		Renderer::SubmitResourceFree([device, pipeline = m_GraphicsPipeline, layout = m_PipelineLayout]()
 		{
 			vkDestroyPipeline(device, pipeline, nullptr);

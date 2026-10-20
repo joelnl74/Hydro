@@ -54,6 +54,10 @@ namespace Hydro
 		static uint32_t GetRenderFrame() { return s_Instance->m_Frames.GetFrameIndex(); }
 		static VkCommandBuffer GetCurrentCommandBuffer() { return s_Instance->m_Frames.GetCommandBuffer(); }
 
+		// Backend access (Platform/Vulkan, Renderer2D, ImGuiLayer). Valid between Init and Shutdown.
+		// The device is the common case (handles, queues, SubmitImmediate); the context is only for the
+		// instance and surface.
+		static VulkanDevice& GetVulkanDevice() { return s_Instance->m_RendererContext->GetVulkanDevice(); }
 		static VulkanRendererContext& GetRendererContext() { return *s_Instance->m_RendererContext; }
 		static VulkanSwapChain& GetVulkanSwapChain() { return *s_Instance->m_SwapChain; }
 

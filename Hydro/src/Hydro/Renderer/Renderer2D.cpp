@@ -285,9 +285,8 @@ namespace Hydro
 
 		// GPU timing and limits.
 		{
-			VulkanDevice& device = Renderer::GetRendererContext().GetVulkanDevice();
-			VkPhysicalDeviceProperties properties{};
-			vkGetPhysicalDeviceProperties(device.GetPhysicalDevice().GetVulkanPhysicalDevice(), &properties);
+			VulkanDevice& device = Renderer::GetVulkanDevice();
+			const VkPhysicalDeviceProperties& properties = device.GetPhysicalDevice().GetProperties();
 			memcpy(s_Data->GPUName, properties.deviceName, sizeof(s_Data->GPUName));
 
 			// The texture array is a fixed size in the shader. Vulkan guarantees only 16 samplers per
@@ -325,7 +324,7 @@ namespace Hydro
 		// Released in the reverse order of Init.
 		if (s_Data->TimestampPool != VK_NULL_HANDLE)
 		{
-			VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+			VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 			Renderer::SubmitResourceFree([device, pool = s_Data->TimestampPool]()
 			{
 				vkDestroyQueryPool(device, pool, nullptr);
@@ -670,7 +669,7 @@ namespace Hydro
 			if (s_Data->TimestampsWritten[frame])
 			{
 				uint64_t timestamps[2] = {};
-				VkResult result = vkGetQueryPoolResults(Renderer::GetRendererContext().GetVulkanDevice().GetDevice(),
+				VkResult result = vkGetQueryPoolResults(Renderer::GetVulkanDevice().GetDevice(),
 					s_Data->TimestampPool, firstQuery, 2, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
 				if (result == VK_SUCCESS && timestamps[1] >= timestamps[0])
 				{
@@ -820,7 +819,7 @@ namespace Hydro
 
 	static void WriteImGuiTexture(VkDescriptorSet set, VkImageView view, VkSampler sampler)
 	{
-		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.sampler = sampler;

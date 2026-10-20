@@ -58,7 +58,7 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 | `Core` | Application, `LayerStack` and layers, window interface, logging (`Log`, which also keeps the last 5000 messages in memory for `Log::GetMessagesSince`; Oxygen's **Console** window shows them), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
-| `Platform/Vulkan` | Everything that talks to Vulkan | Core |
+| `Platform/Vulkan` | Everything that talks to Vulkan | Core; `Renderer.h` for the device (`Renderer::GetVulkanDevice()`), the deletion queue and the frame index |
 | `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `RenderView`, `Texture2D`, `SceneRenderer`, `Camera`, `SceneCamera`, `EditorCamera`, `Image.h`) | Core, Platform/Vulkan |
 | `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission, and `Texture2D` for sprites). Until the asset system, `EntitySerializer` also loads sprite textures and reads `Project` for the asset folder (see [Planned: asset system](#planned-asset-system)) |
 | `Project` | Project file (`.hyproj`, YAML) and settings | Core, Utils, Renderer (`RendererSettings` only) |
@@ -172,11 +172,11 @@ The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorS
 
 | Object | Owns |
 | --- | --- |
-| `VulkanRendererContext` | Instance, debug messenger (Debug builds), window surface, device (`Scope<VulkanDevice>`, handed out as `VulkanDevice&`) |
-| `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`), logical device, graphics + present queues, upload command pool |
+| `VulkanRendererContext` | Instance, debug messenger (Debug builds), window surface, device (`Scope<VulkanDevice>`, handed out as `VulkanDevice&`). All members: nothing in it is `static` |
+| `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`, whose properties and features are read once), logical device, graphics + present queues, the upload command pool (private: only `SubmitImmediate` uses it) |
 | `VulkanSwapChain` | Swapchain images, views, framebuffers, present render pass, render-finished semaphores; acquire/present; `Recreate` |
 | `VulkanFrameContext` | Per frame in flight (`MAX_FRAMES_IN_FLIGHT = 2`): command pool + buffer, fence, image-acquired semaphore |
-| `Renderer` | The above (`Scope`s; `GetRendererContext()` and `GetVulkanSwapChain()` return references), the **deletion queue**, and runs the frame |
+| `Renderer` | The above (`Scope`s; `GetVulkanDevice()`, `GetRendererContext()` and `GetVulkanSwapChain()` return references), the **deletion queue**, and runs the frame |
 | `VulkanRenderPass` | An offscreen colour target: one image + framebuffer per frame in flight. Each `RenderView` owns one |
 | `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures), all in `Scope`s |
 | `Renderer2D` | The quad shader, pipeline, index buffer, the 1×1 compatibility render pass with its layout descriptor set, and the white texture |
@@ -189,7 +189,8 @@ Rules that follow from this:
 - **Anything the CPU writes per frame exists once per frame in flight** (vertex buffers, uniform buffers, offscreen images). Index it with `Renderer::GetRenderFrame()`.
 - **Record into the frame's command buffer** (`Renderer::GetCurrentCommandBuffer()` or the one passed to you). Don't create a separate submit for per-frame work.
 - **Window resize rebuilds only the swapchain.** Render views follow the windows that show them (`RenderView::SetSize`; the Game window also calls `Scene::OnViewportResize` for camera aspect ratios).
-- **One-off uploads** (textures, static buffers) use `VulkanCommandBuffer`, which takes the device's upload pool and waits for completion.
+- **Reaching the device.** Backend code (`Platform/Vulkan`, `Renderer2D`, `ImGuiLayer`) calls `Renderer::GetVulkanDevice()`; `Renderer::GetRendererContext()` is only for the instance and surface. Take one `VulkanDevice& device = Renderer::GetVulkanDevice();` at the top of a function rather than repeating the chain. Parts that are started with a device take it as a parameter instead (`VulkanSwapChain`, `VulkanFrameContext::Init(device)`, `VulkanAllocator::Init(instance, device)`). GPU limits and names come from `device.GetPhysicalDevice().GetProperties()` / `GetFeatures()`, not from calling `vkGetPhysicalDeviceProperties` again.
+- **Tell the device, don't take its parts.** Work that needs the device's internals is a `VulkanDevice` function, so callers don't fetch pools and queues to do it themselves. **One-off uploads** (texture pixels, the ImGui font atlas) go through `VulkanDevice::SubmitImmediate([&](VkCommandBuffer cmd) { ... })`: it records your commands into a one-time command buffer from the upload pool, submits it and waits on a fence of its own, so staging memory can be freed right after. Frames in flight keep running (no queue-wide wait), but the CPU blocks, so it is for loading, never for per-frame work.
 - **Never wait for the GPU to release something.** Drop the `Scope` (or the last `Ref`) and the deletion queue does the rest. `Renderer::WaitIdle()` is only for shutdown and swapchain rebuilds.
 
 ## Shaders
@@ -250,7 +251,7 @@ Agreed on October 19, 2026 after reviewing the engine and editor code against th
 | A1 | Tooling: `.clang-format`, `.editorconfig`, `.gitattributes`, `/W4`, warnings as errors once clean | [Tooling](#tooling). Partly done |
 | A2 | Tests and CI: a doctest project and a GitHub Actions build | Tests for `UUID`, scene and prefab round trips, `Scene::Copy`, `ScriptRegistry`, `EditorSettings` load; `windows-latest` with the Vulkan SDK, Debug build, run the tests |
 | A3 | RAII for the six wrappers that still have `Destroy()`, and a per-frame deletion queue | **Done (Oct 20, 2026).** `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder` and `VulkanPipeline` free themselves in their destructor; `VullkanTexture` was deleted (textures are `Texture2D` on `VulkanImage`, VMA). `Renderer::SubmitResourceFree` frees after the frames in flight, so hot reload and resizes no longer call `Renderer::WaitIdle`. See [Vulkan ownership](#vulkan-ownership) |
-| A4 | `Scope` instead of `Ref` for owned GPU objects | **Done (Oct 20, 2026).** No `Ref<Vulkan...>` members are left: owners hold `Scope<T>`, users get `T&` (`Renderer::GetRendererContext()`, `GetVulkanDevice()`, `GetPhysicalDevice()`, `GetVulkanSwapChain()` return references); `PipelineSpecification` points at its shader and descriptor sets without owning them |
+| A4 | `Scope` instead of `Ref` for owned GPU objects | **Done (Oct 20, 2026).** No `Ref<Vulkan...>` members are left: owners hold `Scope<T>`, users get `T&` (`Renderer::GetVulkanDevice()`, `GetRendererContext()`, `GetPhysicalDevice()`, `GetVulkanSwapChain()` return references); `PipelineSpecification` points at its shader and descriptor sets without owning them |
 | A5 | `SystemContext` and an ordered list of stages in `Scene` | Finishes E5. See [Scene, ECS and systems](SceneAndECS.md#planned-system-context-and-stages) |
 | A6 | One component registry | Name, save/load and inspector drawing per component, so saving, the play copy and the inspector loop over one list (E4). See [Scene, ECS and systems](SceneAndECS.md#planned-component-registry) |
 | A7 | No Vulkan in `Renderer/` headers | `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h`. `RenderView` returns an opaque `ImTextureID` |
@@ -289,5 +290,5 @@ These are where the code does not yet match the rules above. Fix them when you t
 - Textures load synchronously on the main thread (stb_image decode + one upload that waits for the GPU).
 - `LayerStack` owns layers through raw pointers (A9); some members and spec fields don't follow the naming rules (A10).
 - Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s quad shader is watched; there is no shader library yet.
-- `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).
+- `Platform/Vulkan/VulkanCommandBuffer.h` and `.cpp` are empty since one-off uploads moved to `VulkanDevice::SubmitImmediate` (Oct 20, 2026); delete them and regenerate the projects.
 - `VulkanDevice` and `VulkanSwapChain` still do their setup in the constructor (+ `Create`) instead of `Init` (see [Subsystems](Subsystems.md#known-gaps)).

@@ -38,7 +38,7 @@ namespace Hydro
 		static void DumpStats();
 		static GPUMemoryStats GetStats();
 
-		static void Init(VulkanDevice& device);
+		static void Init(VkInstance instance, VulkanDevice& device);
 		static void Shutdown();
 
 		static VmaAllocator& GetVMAAllocator();

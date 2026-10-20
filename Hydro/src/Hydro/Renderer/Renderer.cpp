@@ -39,8 +39,7 @@ namespace Hydro
 
 		// What the GPU supports, for settings UI.
 		{
-			VkPhysicalDeviceProperties properties{};
-			vkGetPhysicalDeviceProperties(device.GetPhysicalDevice().GetVulkanPhysicalDevice(), &properties);
+			const VkPhysicalDeviceProperties& properties = device.GetPhysicalDevice().GetProperties();
 			memcpy(renderer.m_GPUName, properties.deviceName, sizeof(renderer.m_GPUName));
 
 			renderer.m_Capabilities.GPUName = renderer.m_GPUName;
@@ -53,7 +52,7 @@ namespace Hydro
 		renderer.m_Frames.Init(device);
 
 		// 4. GPU memory allocator.
-		VulkanAllocator::Init(device);
+		VulkanAllocator::Init(renderer.m_RendererContext->GetInstance(), device);
 
 		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
 		Renderer2D::Init();

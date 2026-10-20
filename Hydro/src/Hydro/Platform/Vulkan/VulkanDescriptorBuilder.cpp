@@ -21,7 +21,7 @@ namespace Hydro
 		}
 
 		// Frames in flight may still have the sets bound. Destroying the pool frees its sets.
-		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		Renderer::SubmitResourceFree([device, pool = m_DescriptorPool, layout = m_DescriptorSetLayout]()
 		{
 			vkDestroyDescriptorPool(device, pool, nullptr);
@@ -119,7 +119,7 @@ namespace Hydro
 
 	bool VulkanDescriptorBuilder::Build()
 	{
-		auto device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		auto device = Renderer::GetVulkanDevice().GetDevice();
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -193,7 +193,7 @@ namespace Hydro
 		write.descriptorCount = count;
 		write.pImageInfo = images;
 
-		auto device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		auto device = Renderer::GetVulkanDevice().GetDevice();
 		vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 	}
 }

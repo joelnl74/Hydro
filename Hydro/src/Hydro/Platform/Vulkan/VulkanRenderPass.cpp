@@ -18,7 +18,7 @@ namespace Hydro
 
 		if (m_renderPass != VK_NULL_HANDLE)
 		{
-			VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+			VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 			Renderer::SubmitResourceFree([device, renderPass = m_renderPass]()
 			{
 				vkDestroyRenderPass(device, renderPass, nullptr);
@@ -42,7 +42,7 @@ namespace Hydro
 
 	void VulkanRenderPass::CreateRenderPass()
 	{
-		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = VulkanImage::GetImageFormat(m_Format);
@@ -96,7 +96,7 @@ namespace Hydro
 
 	void VulkanRenderPass::CreateTargets()
 	{
-		VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 
 		m_Images.resize(MAX_FRAMES_IN_FLIGHT);
 		m_Framebuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -131,7 +131,7 @@ namespace Hydro
 		// Framebuffers first, then the images they point at (frees run in the order they are queued).
 		if (m_Framebuffers.empty() == false)
 		{
-			VkDevice device = Renderer::GetRendererContext().GetVulkanDevice().GetDevice();
+			VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 			Renderer::SubmitResourceFree([device, framebuffers = m_Framebuffers]()
 			{
 				for (VkFramebuffer framebuffer : framebuffers)

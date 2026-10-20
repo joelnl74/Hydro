@@ -31,7 +31,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/Camera.*`, `SceneCamera.h`, `EditorCamera.*` | Projections (`*_ZO`, Y flip), per-scene camera data, editor orbit camera + `EditorCameraSettings` |
 | `Renderer/Renderer3D.*` | Placeholder part for the 3D path (R9): `Init` / `Shutdown` only |
 | **Platform/Vulkan** (backend; applications never include these) | |
-| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance, surface, device, queues, upload pool, enabled features |
+| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance, surface, device (reached with `Renderer::GetVulkanDevice()`), queues, enabled features, `SubmitImmediate` for one-off uploads |
 | `VulkanSwapChain.*`, `VulkanFrameContext.*` | Swapchain + present pass; per-frame command buffer, fence, semaphores (`MAX_FRAMES_IN_FLIGHT = 2`) |
 | `VulkanAllocator.*` | VMA wrapper, GPU memory stats |
 | `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |
@@ -41,7 +41,6 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
 | `VulkanDescriptorBuilder.*` | Layout + pool + one set per frame; `BindBuffer`/`BindImage`/`WriteImages` |
 | `VulkanVertexBuffer.*`, `VulkanIndexBuffer.*`, `VulkanUniformBuffer.*` | Buffers; vertex layout types live in `VulkanVertexBuffer.h` |
-| `VulkanCommandBuffer.*` | One-off upload command buffer (submit + wait) |
 | `VulkanUtils.h` | `VK_CHECK_RESULT` |
 | **Scene** | |
 | `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor`, `Copy` (play mode), scripts, primary camera |

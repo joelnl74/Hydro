@@ -153,6 +153,5 @@ Every current name was checked against the table. Only one changed:
 ## Known gaps
 
 - `VulkanDevice` creates the logical device in its constructor, and `VulkanSwapChain` uses its constructor plus `Create` instead of `Init`. Move them to `Init` when you touch them.
-- `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).
 - `Core/DeltaTime.h` is unused since `Time` exists. Delete it.
 - `Core/LayerController.h` / `.cpp` are forwarding stubs left by the rename to `LayerStack`. Delete them.
