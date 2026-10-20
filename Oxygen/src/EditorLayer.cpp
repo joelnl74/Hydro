@@ -68,6 +68,7 @@ namespace Hydro
 		m_ProjectWindow = CreateRef<ProjectWindow>();
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
 		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
+		m_ProjectWindow->OnPathRenamed = [this](const std::filesystem::path& from, const std::filesystem::path& to) { OnPathRenamed(from, to); };
 		m_RenderSettingsWindow = CreateRef<RenderSettingsWindow>();
 		m_RenderSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 		m_ProjectSettingsWindow = CreateRef<ProjectSettingsWindow>();
@@ -752,6 +753,8 @@ namespace Hydro
 		if (serializer.Deserialize(path) == false)
 			return;
 
+		// The file name is the scene's name, so a scene renamed on disk shows its new name.
+		newScene->SetName(path.stem().string());
 		SetEditorScene(newScene);
 		m_EditorScenePath = path;
 
@@ -761,9 +764,23 @@ namespace Hydro
 
 	void EditorLayer::SaveScene()
 	{
-		// First save of a new scene goes to <project>/Assets/Scenes/<SceneName>.hyscene.
+		// First save of a new scene goes to <project>/Assets/Scenes/<SceneName>.hyscene, numbered
+		// ("Untitled 2") so it never overwrites another scene. Rename it in the Project window.
 		if (m_EditorScenePath.empty())
-			m_EditorScenePath = EditorPaths::GetScenesDirectory() / (EditorPaths::ToFileName(m_EditorScene->GetName()) + SceneSerializer::FileExtension);
+		{
+			const std::filesystem::path directory = EditorPaths::GetScenesDirectory();
+			const std::string baseName = EditorPaths::ToFileName(m_EditorScene->GetName());
+			std::string name = baseName;
+			std::error_code ec;
+			for (int i = 2; std::filesystem::exists(directory / (name + SceneSerializer::FileExtension), ec); i++)
+			{
+				name = baseName + " " + std::to_string(i);
+			}
+
+			std::filesystem::create_directories(directory, ec);
+			m_EditorScene->SetName(name);
+			m_EditorScenePath = directory / (name + SceneSerializer::FileExtension);
+		}
 
 		// Always the editor scene: what happens while playing is not saved.
 		SceneSerializer serializer(m_EditorScene);
@@ -795,6 +812,55 @@ namespace Hydro
 
 			std::error_code ec;
 			m_EditorSettings.Session.LastScene = std::filesystem::absolute(path, ec);
+		}
+	}
+
+	// If `path` is `from` or inside it, points it at the same place under `to` and returns true.
+	static bool FollowRename(std::filesystem::path& path, const std::filesystem::path& from, const std::filesystem::path& to)
+	{
+		if (path.empty())
+		{
+			return false;
+		}
+
+		std::error_code ec;
+		const std::filesystem::path absolutePath = std::filesystem::absolute(path, ec).lexically_normal();
+		const std::filesystem::path absoluteFrom = std::filesystem::absolute(from, ec).lexically_normal();
+		const std::filesystem::path relative = absolutePath.lexically_relative(absoluteFrom);
+		if (relative.empty() || *relative.begin() == "..")
+		{
+			return false;
+		}
+
+		const std::filesystem::path absoluteTo = std::filesystem::absolute(to, ec).lexically_normal();
+		path = relative == "." ? absoluteTo : (absoluteTo / relative).lexically_normal();
+		return true;
+	}
+
+	void EditorLayer::OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to)
+	{
+		// Scenes are only referenced by these paths, so a scene (or a folder of scenes) rename is complete.
+		// TODO(assets): textures are referenced by path from sprites and don't follow.
+		if (FollowRename(m_EditorScenePath, from, to))
+		{
+			m_EditorScene->SetName(m_EditorScenePath.stem().string());
+		}
+		FollowRename(m_EditorSettings.Session.LastScene, from, to);
+
+		Ref<Project> project = Project::GetActive();
+		if (project == nullptr)
+		{
+			return;
+		}
+
+		std::filesystem::path startScene = project->GetStartScenePath();
+		if (FollowRename(startScene, from, to))
+		{
+			std::error_code ec;
+			const std::filesystem::path assetDirectory = std::filesystem::absolute(project->GetAssetDirectory(), ec).lexically_normal();
+			project->GetConfig().StartScene = startScene.lexically_relative(assetDirectory);
+			SaveProject();
+			HY_INFO("Start scene is now {}", project->GetConfig().StartScene.generic_string());
 		}
 	}
 

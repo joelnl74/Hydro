@@ -62,6 +62,9 @@ namespace Hydro
 
 		// Prefab / scene dropped from the project window onto the editor or game window.
 		void OnAssetDropped(const std::filesystem::path& path);
+		// A folder or scene was renamed in the project window: moves the open scene's path (and its
+		// name), the last session scene and the project's start scene if they were at or inside it.
+		void OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to);
 		void AcceptAssetDrop();
 
 		// The Play / Pause / Step buttons, centred in the main menu bar.

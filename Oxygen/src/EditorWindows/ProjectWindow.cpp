@@ -68,7 +68,7 @@ namespace Hydro
 		ImGui::Separator();
 		DrawGrid(scene);
 		DrawDeletePopup();
-		DrawFolderNamePopup();
+		DrawNamePopup();
 
 		ImGui::End();
 
@@ -227,12 +227,11 @@ namespace Hydro
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsAnyItemHovered() == false)
 			m_SelectedPath.clear();
 
-		// F2 renames the selected folder.
-		std::error_code ec;
+		// F2 renames the selected folder or scene.
 		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_F2, false) &&
-			m_SelectedPath.empty() == false && std::filesystem::is_directory(m_SelectedPath, ec))
+			m_SelectedPath.empty() == false && CanRename(GetAssetType(m_SelectedPath)))
 		{
-			BeginRenameFolder(m_SelectedPath);
+			BeginRename(m_SelectedPath);
 		}
 
 		if (ImGui::BeginPopupContextWindow("##ProjectContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
@@ -300,9 +299,9 @@ namespace Hydro
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
 			if (item.Type == AssetType::Folder && ImGui::MenuItem("Open Folder"))
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
-			if (item.Type == AssetType::Folder && ImGui::MenuItem("Rename...", "F2"))
+			if (CanRename(item.Type) && ImGui::MenuItem("Rename...", "F2"))
 			{
-				BeginRenameFolder(item.Path);
+				BeginRename(item.Path);
 			}
 
 			ImGui::Separator();
@@ -566,18 +565,24 @@ namespace Hydro
 		}
 
 		m_RenamePath.clear();
-		std::snprintf(m_FolderNameBuffer, sizeof(m_FolderNameBuffer), "%s", name.c_str());
-		m_RequestFolderNamePopup = true;
+		m_RenameExtension.clear();
+		std::snprintf(m_NameBuffer, sizeof(m_NameBuffer), "%s", name.c_str());
+		m_RequestNamePopup = true;
 	}
 
-	void ProjectWindow::BeginRenameFolder(const std::filesystem::path& folder)
+	void ProjectWindow::BeginRename(const std::filesystem::path& path)
 	{
-		m_RenamePath = folder;
-		std::snprintf(m_FolderNameBuffer, sizeof(m_FolderNameBuffer), "%s", folder.filename().u8string().c_str());
-		m_RequestFolderNamePopup = true;
+		// Folders: the whole name. Files: the name without the extension, which stays as it is.
+		std::error_code ec;
+		const bool isFolder = std::filesystem::is_directory(path, ec);
+		m_RenamePath = path;
+		m_RenameExtension = isFolder ? std::string() : path.extension().u8string();
+		const std::string name = isFolder ? path.filename().u8string() : path.stem().u8string();
+		std::snprintf(m_NameBuffer, sizeof(m_NameBuffer), "%s", name.c_str());
+		m_RequestNamePopup = true;
 	}
 
-	std::string ProjectWindow::ValidateFolderName(const std::string& name, const std::filesystem::path& parent, const std::filesystem::path& ignore)
+	std::string ProjectWindow::ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore)
 	{
 		if (name.empty())
 		{
@@ -600,7 +605,7 @@ namespace Hydro
 		}
 
 		// Windows file names aren't case sensitive, so "textures" clashes with "Textures".
-		const std::filesystem::path target = parent / std::filesystem::u8path(name);
+		const std::filesystem::path target = parent / std::filesystem::u8path(name + extension);
 		std::error_code ec;
 		if (std::filesystem::exists(target, ec) && (ignore.empty() || std::filesystem::equivalent(target, ignore, ec) == false))
 		{
@@ -610,21 +615,22 @@ namespace Hydro
 		return {};
 	}
 
-	void ProjectWindow::DrawFolderNamePopup()
+	void ProjectWindow::DrawNamePopup()
 	{
-		const char* popupId = "Folder Name";
-		if (m_RequestFolderNamePopup)
+		const char* popupId = "Name";
+		if (m_RequestNamePopup)
 		{
 			ImGui::OpenPopup(popupId);
-			m_RequestFolderNamePopup = false;
+			m_RequestNamePopup = false;
 		}
 
 		if (ImGui::BeginPopupModal(popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const bool renaming = m_RenamePath.empty() == false;
+			const bool renamingFile = renaming && m_RenameExtension.empty() == false;
 			const std::filesystem::path parent = renaming ? m_RenamePath.parent_path() : m_CurrentDirectory;
 
-			ImGui::TextUnformatted(renaming ? "Rename folder" : "New folder");
+			ImGui::TextUnformatted(renaming == false ? "New folder" : (renamingFile ? "Rename scene" : "Rename folder"));
 
 			// Focus the field (with its text selected) when the popup opens.
 			if (ImGui::IsWindowAppearing())
@@ -632,19 +638,25 @@ namespace Hydro
 				ImGui::SetKeyboardFocusHere();
 			}
 			ImGui::SetNextItemWidth(300.0f);
-			const bool entered = ImGui::InputText("##FolderName", m_FolderNameBuffer, sizeof(m_FolderNameBuffer),
+			const bool entered = ImGui::InputText("##Name", m_NameBuffer, sizeof(m_NameBuffer),
 				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+			if (renamingFile)
+			{
+				ImGui::SameLine();
+				ImGui::TextDisabled("%s", m_RenameExtension.c_str());
+			}
 
-			const std::string name = m_FolderNameBuffer;
-			const std::string problem = ValidateFolderName(name, parent, m_RenamePath);
+			const std::string name = m_NameBuffer;
+			const std::string problem = ValidateName(name, m_RenameExtension, parent, m_RenamePath);
 			if (problem.empty() == false)
 			{
 				ImGui::TextColored({ 0.9f, 0.6f, 0.3f, 1.0f }, "%s", problem.c_str());
 			}
-			else if (renaming)
+			else if (renaming && renamingFile == false)
 			{
 				// TODO(assets): references by path don't follow a rename until the asset registry exists.
-				ImGui::TextDisabled("Scenes that use files in this folder by path (textures, start scene) won't follow.");
+				// The open scene and the start scene do follow (OnPathRenamed); textures don't.
+				ImGui::TextDisabled("Sprites that use textures in this folder by path won't follow.");
 			}
 
 			ImGui::Spacing();
@@ -657,7 +669,7 @@ namespace Hydro
 
 			if (confirm && problem.empty())
 			{
-				const std::filesystem::path target = parent / std::filesystem::u8path(name);
+				const std::filesystem::path target = parent / std::filesystem::u8path(name + m_RenameExtension);
 				std::error_code ec;
 				if (renaming)
 				{
@@ -670,7 +682,7 @@ namespace Hydro
 
 				if (ec)
 				{
-					HY_ERROR("Could not {} folder {}: {}", renaming ? "rename" : "create", target.u8string(), ec.message());
+					HY_ERROR("Could not {} {}: {}", renaming ? "rename" : "create", target.u8string(), ec.message());
 				}
 				else
 				{
@@ -681,15 +693,23 @@ namespace Hydro
 						m_CurrentDirectory = (target / relative).lexically_normal();
 					}
 					m_SelectedPath = target;
+
+					if (renaming && OnPathRenamed)
+					{
+						const std::filesystem::path from = m_RenamePath;
+						m_DeferredActions.push_back([this, from, target]() { OnPathRenamed(from, target); });
+					}
 				}
 
 				m_RenamePath.clear();
+				m_RenameExtension.clear();
 				m_NeedsRescan = true;
 				ImGui::CloseCurrentPopup();
 			}
 			else if (cancel)
 			{
 				m_RenamePath.clear();
+				m_RenameExtension.clear();
 				ImGui::CloseCurrentPopup();
 			}
 

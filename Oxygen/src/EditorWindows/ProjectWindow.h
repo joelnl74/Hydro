@@ -24,6 +24,9 @@ namespace Hydro
 		// Set by the editor layer. Called after the window has finished drawing.
 		std::function<void(const std::filesystem::path&)> OnOpenScene;
 		std::function<void(Entity)> OnEntityCreated;
+		// A folder or scene was renamed on disk: from -> to. The editor layer moves the paths it
+		// holds (open scene, start scene, last session) that point at or into it.
+		std::function<void(const std::filesystem::path&, const std::filesystem::path&)> OnPathRenamed;
 
 		void OnImguiRender(const Ref<Scene>& scene);
 
@@ -62,16 +65,19 @@ namespace Hydro
 		void DrawItemTooltip(const AssetItem& item);
 		void DrawDeletePopup();
 		// "New Folder" and "Rename" both ask for a name in this popup.
-		void DrawFolderNamePopup();
+		void DrawNamePopup();
 
 		void ActivateItem(const AssetItem& item, const Ref<Scene>& scene);
 		void InstantiatePrefab(const std::filesystem::path& path, const Ref<Scene>& scene);
-		// Opens the name popup to create a folder in the current folder, or to rename `folder`.
+		// Opens the name popup to create a folder in the current folder, or to rename `path`.
 		void BeginCreateFolder();
-		void BeginRenameFolder(const std::filesystem::path& folder);
-		// Empty when `name` is a valid new folder name in `parent`, otherwise why it isn't.
-		// `ignore` is the folder being renamed (keeping its own name is allowed).
-		static std::string ValidateFolderName(const std::string& name, const std::filesystem::path& parent, const std::filesystem::path& ignore);
+		void BeginRename(const std::filesystem::path& path);
+		// Folders and scenes. TODO(assets): prefabs, textures and other files once references go
+		// through asset IDs; today a texture rename would break every sprite that uses it by path.
+		static bool CanRename(AssetType type) { return type == AssetType::Folder || type == AssetType::Scene; }
+		// Empty when `name` + `extension` is a valid new file / folder name in `parent`, otherwise why
+		// it isn't. `ignore` is the item being renamed (keeping its own name is allowed).
+		static std::string ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore);
 
 		const PrefabPreview& GetPrefabPreview(const std::filesystem::path& path);
 		static AssetType GetAssetType(const std::filesystem::path& path);
@@ -87,10 +93,12 @@ namespace Hydro
 
 		bool m_RequestDeletePopup = false;
 
-		// Folder name popup: create a folder (m_RenamePath empty) or rename m_RenamePath.
+		// Name popup: create a folder (m_RenamePath empty) or rename m_RenamePath. Files keep their
+		// extension (m_RenameExtension); only the name in front of it is edited.
 		std::filesystem::path m_RenamePath;
-		char m_FolderNameBuffer[256] = {};
-		bool m_RequestFolderNamePopup = false;
+		std::string m_RenameExtension;
+		char m_NameBuffer[256] = {};
+		bool m_RequestNamePopup = false;
 		bool m_NeedsRescan = true;
 		double m_LastScanTime = 0.0;
 		float m_ThumbnailSize = 88.0f;
