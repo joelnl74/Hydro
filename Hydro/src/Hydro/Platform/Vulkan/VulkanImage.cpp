@@ -2,7 +2,6 @@
 
 #include "VulkanImage.h"
 #include "VulkanAllocator.h"
-#include "VulkanCommandBuffer.h"
 #include "Hydro/Renderer/Renderer.h"
 #include "VulkanUtils.h"
 
@@ -75,19 +74,32 @@ namespace Hydro
 
 	VulkanImage::~VulkanImage()
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-
-		if (m_vulkanImageInfo.Sampler != VK_NULL_HANDLE)
-			vkDestroySampler(device, m_vulkanImageInfo.Sampler, nullptr);
-
-		if (m_vulkanImageInfo.ImageView != VK_NULL_HANDLE)
-			vkDestroyImageView(device, m_vulkanImageInfo.ImageView, nullptr);
-
-		if (m_vulkanImageInfo.Image != VK_NULL_HANDLE)
+		if (m_vulkanImageInfo.Image == VK_NULL_HANDLE && m_vulkanImageInfo.ImageView == VK_NULL_HANDLE && m_vulkanImageInfo.Sampler == VK_NULL_HANDLE)
 		{
-			VulkanAllocator allocator("VulkanImage");
-			allocator.DestroyImage(m_vulkanImageInfo.Image, m_vulkanImageInfo.MemoryAlloc);
+			return;
 		}
+
+		// Frames in flight may still sample or render to it (a sprite's texture dropped mid-frame, a
+		// render target replaced on resize): free it once they are done.
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
+		Renderer::SubmitResourceFree([device, info = m_vulkanImageInfo]()
+		{
+			if (info.Sampler != VK_NULL_HANDLE)
+			{
+				vkDestroySampler(device, info.Sampler, nullptr);
+			}
+
+			if (info.ImageView != VK_NULL_HANDLE)
+			{
+				vkDestroyImageView(device, info.ImageView, nullptr);
+			}
+
+			if (info.Image != VK_NULL_HANDLE)
+			{
+				VulkanAllocator allocator("VulkanImage");
+				allocator.DestroyImage(info.Image, info.MemoryAlloc);
+			}
+		});
 	}
 
 	void VulkanImage::CreateImage(VkImageUsageFlags usage)
@@ -113,7 +125,7 @@ namespace Hydro
 
 	void VulkanImage::CreateViewAndSampler(VkImageAspectFlags aspect, const TextureProperties& properties)
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 
 		VkImageViewCreateInfo imageViewCreateInfo{};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -175,33 +187,34 @@ namespace Hydro
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = 1;
 
-		VulkanCommandBuffer upload;
-		VkCommandBuffer commandBuffer = upload.Create();
-		upload.Begin();
-
-		// UNDEFINED -> TRANSFER_DST
-		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-
 		VkBufferImageCopy region{};
 		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		region.imageSubresource.mipLevel = 0;
 		region.imageSubresource.baseArrayLayer = 0;
 		region.imageSubresource.layerCount = 1;
 		region.imageExtent = { m_width, m_height, 1 };
-		vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_vulkanImageInfo.Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-		// TRANSFER_DST -> SHADER_READ_ONLY
-		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		const VkImage image = m_vulkanImageInfo.Image;
 
-		upload.End(); // Submits and waits, so the staging buffer can be freed right after.
+		// Submits and waits, so the staging buffer can be freed right after.
+		Renderer::GetVulkanDevice().SubmitImmediate([&](VkCommandBuffer commandBuffer)
+		{
+			// UNDEFINED -> TRANSFER_DST
+			barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+			vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+			// TRANSFER_DST -> SHADER_READ_ONLY
+			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		});
 
 		allocator.DestroyBuffer(stagingBuffer, stagingAlloc);
 	}

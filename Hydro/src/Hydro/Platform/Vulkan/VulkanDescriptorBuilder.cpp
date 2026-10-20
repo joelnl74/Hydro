@@ -13,7 +13,23 @@ namespace Hydro
 		}
 	}
 
-	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, Ref<VulkanUniformBuffer> &buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	VulkanDescriptorBuilder::~VulkanDescriptorBuilder()
+	{
+		if (m_DescriptorPool == VK_NULL_HANDLE && m_DescriptorSetLayout == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		// Frames in flight may still have the sets bound. Destroying the pool frees its sets.
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
+		Renderer::SubmitResourceFree([device, pool = m_DescriptorPool, layout = m_DescriptorSetLayout]()
+		{
+			vkDestroyDescriptorPool(device, pool, nullptr);
+			vkDestroyDescriptorSetLayout(device, layout, nullptr);
+		});
+	}
+
+	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, const VulkanUniformBuffer& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
 	{
 		const uint32_t descriptorCount = 1;
 
@@ -36,7 +52,7 @@ namespace Hydro
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = buffer->GetVKBuffers()[i];
+			bufferInfo.buffer = buffer.GetVKBuffers()[i];
 			bufferInfo.offset = 0;
 			bufferInfo.range = (VkDeviceSize)size;
 
@@ -52,11 +68,6 @@ namespace Hydro
 			pending.Write.descriptorCount = descriptorCount;
 			m_writeDescriptorSets[i].push_back(pending);
 		}
-	}
-
-	void VulkanDescriptorBuilder::BindImage(uint32_t binding, const Ref<VullkanTexture>& vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags)
-	{
-		BindImage(binding, vulkanTexture->GetImageView(), vulkanTexture->GetImageSampler(), type, stageFlags);
 	}
 
 	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags)
@@ -108,7 +119,7 @@ namespace Hydro
 
 	bool VulkanDescriptorBuilder::Build()
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto device = Renderer::GetVulkanDevice().GetDevice();
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -182,21 +193,7 @@ namespace Hydro
 		write.descriptorCount = count;
 		write.pImageInfo = images;
 
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		auto device = Renderer::GetVulkanDevice().GetDevice();
 		vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
-	}
-
-	void VulkanDescriptorBuilder::Destroy()
-	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
-
-		m_bufferInfo.clear();
-		m_imageInfo.clear();
-		m_writeDescriptorSets.clear();
-
-		vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
-		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
-		m_DescriptorPool = VK_NULL_HANDLE;
-		m_DescriptorSetLayout = VK_NULL_HANDLE;
 	}
 }

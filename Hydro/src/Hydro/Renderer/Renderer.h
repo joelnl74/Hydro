@@ -6,6 +6,7 @@
 #include "Hydro/Core/Window.h"
 #include "Hydro/Renderer/RendererSettings.h"
 
+#include <deque>
 #include <functional>
 
 namespace Hydro
@@ -20,6 +21,7 @@ namespace Hydro
 	{
 	public:
 		using PresentPassCallback = std::function<void(VkCommandBuffer)>;
+		using ResourceFreeFunction = std::function<void()>;
 
 		static void Init(Window& window);
 		static void Shutdown();
@@ -27,6 +29,15 @@ namespace Hydro
 		static void RenderFrame();
 		static void OnWindowResize(uint32_t width, uint32_t height);
 		static void WaitIdle();
+
+		// Deletion queue. Runs `freeFunction` once the GPU has finished every frame that may still use
+		// what it frees: frames already submitted and the one being recorded. That is at the start of
+		// the frame MAX_FRAMES_IN_FLIGHT frames later (after its fence wait), after a swapchain rebuild
+		// (the device is idle then) or at Renderer::Shutdown, whichever comes first.
+		// Destructors of GPU resources hand their handles to it, so a resource can be released at any
+		// point in the frame without Renderer::WaitIdle. The function must only capture handles, never
+		// the object being destroyed.
+		static void SubmitResourceFree(ResourceFreeFunction freeFunction);
 
 		// Live options (clear colour, vsync, wireframe, shader hot reload). May be called before Init;
 		// after Init, changes apply from the next frame (a vsync change recreates the swapchain).
@@ -43,21 +54,40 @@ namespace Hydro
 		static uint32_t GetRenderFrame() { return s_Instance->m_Frames.GetFrameIndex(); }
 		static VkCommandBuffer GetCurrentCommandBuffer() { return s_Instance->m_Frames.GetCommandBuffer(); }
 
-		static Ref<VulkanRendererContext> GetRendererContext() { return s_Instance->m_RendererContext; }
-		static Ref<VulkanSwapChain> GetVulkanSwapChain() { return s_Instance->m_SwapChain; }
+		// Backend access (Platform/Vulkan, Renderer2D, ImGuiLayer). Valid between Init and Shutdown.
+		// The device is the common case (handles, queues, SubmitImmediate); the context is only for the
+		// instance and surface.
+		static VulkanDevice& GetVulkanDevice() { return s_Instance->m_RendererContext->GetVulkanDevice(); }
+		static VulkanRendererContext& GetRendererContext() { return *s_Instance->m_RendererContext; }
+		static VulkanSwapChain& GetVulkanSwapChain() { return *s_Instance->m_SwapChain; }
 
 	private:
 		bool BeginFrame(uint32_t& outImageIndex);
 		void EndFrame(uint32_t imageIndex);
 		bool RecreateSwapChain();
 
+		// Runs the queued frees whose frames the GPU has finished (all of them when `all` is true;
+		// only call that when the device is idle).
+		void FlushResourceFrees(bool all);
+
+	private:
+		struct PendingResourceFree
+		{
+			uint64_t Frame = 0; // the last frame that may use the resource
+			ResourceFreeFunction Free;
+		};
+
 	private:
 		static Renderer* s_Instance;
 		static RendererSettings s_Settings;
 
-		Ref<VulkanRendererContext> m_RendererContext;
-		Ref<VulkanSwapChain> m_SwapChain;
+		Scope<VulkanRendererContext> m_RendererContext;
+		Scope<VulkanSwapChain> m_SwapChain;
 		VulkanFrameContext m_Frames;
+
+		// Frames submitted so far, which is also the number of the frame being (or about to be) recorded.
+		uint64_t m_FrameNumber = 0;
+		std::deque<PendingResourceFree> m_ResourceFreeQueue; // in submission order, so sorted by Frame
 
 		PresentPassCallback m_PresentPassCallback;
 		RendererCapabilities m_Capabilities;

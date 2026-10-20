@@ -65,9 +65,9 @@ Inside `Renderer::Init`, and reversed in `Renderer::Shutdown`:
 | 3 | `VulkanFrameContext::Init` | Per-frame command buffers, fences, semaphores |
 | 4 | `VulkanAllocator::Init` | VMA allocator |
 | 5 | `Renderer2D::Init` | Quad pipeline, shader + hot reload, shared index buffer, white texture, timestamps. Targets, cameras and batches belong to `RenderView`s, which the application creates |
-| 6 | `Renderer3D::Init` | 3D pipeline |
+| 6 | `Renderer3D::Init` | Nothing yet: a placeholder for the 3D path (Roadmap R9) |
 
-Shutdown waits for the GPU to be idle before anything GPU-side is released (`Renderer::WaitIdle()` before the layers are detached, and again at the start of `Renderer::Shutdown`).
+Shutdown waits for the GPU to be idle before anything GPU-side is released (`Renderer::WaitIdle()` before the layers are detached, and again at the start of `Renderer::Shutdown`). GPU resources released along the way (render views and textures in `OnDetach`, `Renderer2D`'s pipeline and buffers) hand their handles to the renderer's deletion queue; `Renderer::Shutdown` runs it after the layers are gone and again after `Renderer2D` / `Renderer3D` shut down, before the allocator and the device are destroyed. A GPU resource must not outlive `Renderer::Shutdown`.
 
 ## The Time subsystem
 
@@ -153,6 +153,5 @@ Every current name was checked against the table. Only one changed:
 ## Known gaps
 
 - `VulkanDevice` creates the logical device in its constructor, and `VulkanSwapChain` uses its constructor plus `Create` instead of `Init`. Move them to `Init` when you touch them.
-- `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).
 - `Core/DeltaTime.h` is unused since `Time` exists. Delete it.
 - `Core/LayerController.h` / `.cpp` are forwarding stubs left by the rename to `LayerStack`. Delete them.

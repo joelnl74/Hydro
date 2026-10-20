@@ -4,21 +4,30 @@
 #include "Hydro/Core/Base.h"
 #include "Hydro/Platform/Vulkan/VulkanPhysicalDevice.h"
 
+#include <functional>
+
 namespace Hydro
 {
 	class VulkanDevice
 	{
 	public:
-		VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice);
+		// Takes ownership of the GPU it was created for.
+		explicit VulkanDevice(Scope<VulkanPhysicalDevice> physicalDevice);
 
-		Ref<VulkanPhysicalDevice> GetPhysicalDevice() const { return m_PhysicalDevice; }
+		VulkanDevice(const VulkanDevice&) = delete;
+		VulkanDevice& operator=(const VulkanDevice&) = delete;
+
+		const VulkanPhysicalDevice& GetPhysicalDevice() const { return *m_PhysicalDevice; }
 		VkDevice GetDevice() const { return m_LogicalDevice; }
 
 		VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
 		VkQueue GetPresentQueue() const { return m_PresentQueue; }
 
-		// Pool for short-lived, one-time-submit command buffers (uploads, layout transitions).
-		VkCommandPool GetUploadCommandPool() const { return m_UploadCommandPool; }
+		// One-off GPU work outside the frame (uploads, layout transitions): records `record` into a
+		// one-time command buffer from the device's upload pool, submits it to the graphics queue and
+		// waits for it, so staging memory can be freed right after. Blocks: never use it for per-frame
+		// work (record that into Renderer::GetCurrentCommandBuffer()). Main thread only.
+		void SubmitImmediate(const std::function<void(VkCommandBuffer)>& record);
 
 		bool IsSamplerAnisotropyEnabled() const { return m_SamplerAnisotropyEnabled; }
 		bool IsFillModeNonSolidEnabled() const { return m_FillModeNonSolidEnabled; }
@@ -38,6 +47,6 @@ namespace Hydro
 		bool m_FillModeNonSolidEnabled = false;
 		bool m_WideLinesEnabled = false;
 
-		Ref<VulkanPhysicalDevice> m_PhysicalDevice;
+		Scope<VulkanPhysicalDevice> m_PhysicalDevice;
 	};
 }

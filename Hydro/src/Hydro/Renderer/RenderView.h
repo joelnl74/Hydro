@@ -22,8 +22,9 @@ namespace Hydro
 	// fills it, and Renderer2D::Render records one 2D pass per view that was begun this frame.
 	// The editor has two (Editor and Game windows); each is shown with ImGui::Image.
 	//
-	// A resource: create it after Renderer::Init and destroy it while the renderer is still alive,
-	// once the GPU is done with it (layers do this in OnDetach, after Application waits for the GPU).
+	// A resource: create it after Renderer::Init and destroy it before Renderer::Shutdown (layers do
+	// this in OnDetach). Its GPU objects are freed through the deletion queue, so it can be destroyed
+	// at any point in a frame.
 	// Its contents belong to Renderer2D, which implements it (Renderer2D.cpp).
 	class RenderView
 	{

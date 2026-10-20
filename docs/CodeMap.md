@@ -21,27 +21,26 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `ImGUI/ImGuiLayer.*` | ImGui init/shutdown, fonts (`ImGuiLayerSpecification`), present-pass callback |
 | `Platform/Windows/*` | `WindowsWindow` (GLFW), `WindowsInput`, `WindowsUtilities` (`FileDialogs`) |
 | **Renderer** (engine-facing, no Vulkan types in new headers) | |
-| `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; `Get/SetSettings`, `GetCapabilities` |
+| `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
 | `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`), `RendererCapabilities` |
 | `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; also implements `RenderView` |
 | `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches) |
-| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `LoadFromFile` (shared by file) |
+| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `LoadFromFile` (shared by file); compiles stb_image's implementation (`STB_IMAGE_IMPLEMENTATION`) for the engine |
 | `Renderer/Image.h` | `ImageSpecification`, `TextureProperties`, image/texture enums |
 | `Renderer/SceneRenderer.*` | Submits a `Scene`'s sprites through the editor camera or the primary camera |
 | `Renderer/Camera.*`, `SceneCamera.h`, `EditorCamera.*` | Projections (`*_ZO`, Y flip), per-scene camera data, editor orbit camera + `EditorCameraSettings` |
-| `Renderer/Renderer3D.*` | Stub: `Init` returns at once (dead code after it) |
+| `Renderer/Renderer3D.*` | Placeholder part for the 3D path (R9): `Init` / `Shutdown` only |
 | **Platform/Vulkan** (backend; applications never include these) | |
-| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance, surface, device, queues, upload pool, enabled features |
+| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance, surface, device (reached with `Renderer::GetVulkanDevice()`), queues, enabled features, `SubmitImmediate` for one-off uploads |
 | `VulkanSwapChain.*`, `VulkanFrameContext.*` | Swapchain + present pass; per-frame command buffer, fence, semaphores (`MAX_FRAMES_IN_FLIGHT = 2`) |
 | `VulkanAllocator.*` | VMA wrapper, GPU memory stats |
-| `VulkanImage.*` | RAII image + view + sampler (render targets, textures from pixels) |
+| `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |
 | `VulkanTexture2DData.h` | Backend half of `Texture2D` (`GetTexture2DData`) |
 | `VulkanRenderPass.*` | Offscreen colour target, one image + framebuffer per frame in flight, `Resize` |
-| `VulkanPipeline.*` | Pipeline from `PipelineSpecification`; `BindDescriptorSet` |
+| `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned); `BindDescriptorSet` |
 | `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
-| `VulkanDescriptorBuilder.*` | Layout + pool + one set per frame; `BindBuffer`/`BindImage`/`WriteImages` (old `Destroy()` style) |
-| `VulkanVertexBuffer.*`, `VulkanIndexBuffer.*`, `VulkanUniformBuffer.*` | Buffers (old `Destroy()` style); vertex layout types live in `VulkanVertexBuffer.h` |
-| `VulkanCommandBuffer.*` | One-off upload command buffer (submit + wait) |
+| `VulkanDescriptorBuilder.*` | Layout + pool + one set per frame; `BindBuffer`/`BindImage`/`WriteImages` |
+| `VulkanVertexBuffer.*`, `VulkanIndexBuffer.*`, `VulkanUniformBuffer.*` | Buffers; vertex layout types live in `VulkanVertexBuffer.h` |
 | `VulkanUtils.h` | `VK_CHECK_RESULT` |
 | **Scene** | |
 | `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor`, `Copy` (play mode), scripts, primary camera |
@@ -75,7 +74,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `assets/shaders/vertex.vert`, `fragment.frag` | The quad shader (`inTextures[32]` must match `Renderer2D`) |
 | `project/` | The Sandbox project Oxygen opens at startup |
 
-Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*`, `Platform/Vulkan/VulkanRenderCommandBuffer.*`, `Platform/Vulkan/VulkanBuffer.*`, `Oxygen/src/EditorWindows/ContentWindow.h`, `VullkanTexture.*` (only `Renderer3D`'s dead code uses it).
+Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*`, `Oxygen/src/EditorWindows/ContentWindow.h`. Also `Platform/Vulkan/VullkanTexture.*`, `VulkanBuffer.*` and `VulkanRenderCommandBuffer.*`: emptied on Oct 20, 2026, the files themselves still need deleting.
 
 ## Recipes: which files a change touches
 
@@ -87,7 +86,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | New renderer setting | `RendererSettings.h`, read in `Renderer2D.cpp`/`Renderer.cpp` (or applied in `Renderer::SetSettings`), `ProjectSerializer.cpp`, `RenderSettingsWindow.cpp`, docs inventory |
 | New editor preference | `EditorSettings.h`, `EditorSettings.cpp` (serializer, default on missing key), `EditorSettingsWindow.cpp` |
 | New editor window | `EditorWindows/<Name>Window.*`, member + View menu entry in `EditorLayer.*`; callbacks for anything that saves |
-| New resource / spec | Spec next to the API (`Renderer/`), backend in `Platform/Vulkan/`, inventory in `docs/ResourceCreation.md` |
+| New resource / spec | Spec next to the API (`Renderer/`), backend in `Platform/Vulkan/` (destructor frees through `Renderer::SubmitResourceFree`, owner holds a `Scope`), inventory in `docs/ResourceCreation.md` |
 | New subsystem | Class + `Init`/`Shutdown`, `Application.cpp` (mirrored positions), tables in `docs/Subsystems.md` |
 | 2D drawing / batching | `Renderer2D.*`, shaders in `Oxygen/assets/shaders`, `RendererStatsWindow.cpp` for new stats |
 | Textures | `Texture2D.*`, `VulkanImage.*`, `VulkanTexture2DData.h`; sprites: `SceneRenderer.cpp`, `EntitySerializer.cpp`, `InspectorWindow.cpp` |

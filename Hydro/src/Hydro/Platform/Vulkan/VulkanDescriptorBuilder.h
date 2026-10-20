@@ -1,7 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include "VullkanTexture.h"
 #include "VulkanUniformBuffer.h"
 
 #include <vector>
@@ -9,21 +8,29 @@
 
 namespace Hydro
 {
+	// A descriptor set layout, a pool and one descriptor set per frame in flight, described with
+	// Begin -> Bind... -> Build. A resource: owns the layout and pool (freed through
+	// Renderer::SubmitResourceFree when it is destroyed) and is non-copyable; hold it in a Scope.
 	class VulkanDescriptorBuilder
 	{
 	public:
 		// Size of an image array binding (must match the sampler array in the shader).
 		static constexpr uint32_t MaxImageArraySize = 32;
 
+		VulkanDescriptorBuilder() = default;
+		~VulkanDescriptorBuilder();
+
+		VulkanDescriptorBuilder(const VulkanDescriptorBuilder&) = delete;
+		VulkanDescriptorBuilder& operator=(const VulkanDescriptorBuilder&) = delete;
+
 		// Creation methods.
 		void Begin();
-		void BindBuffer(uint32_t binding, Ref<VulkanUniformBuffer>& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		// Each frame's set points at that frame's buffer. `buffer` must outlive the descriptor sets' use.
+		void BindBuffer(uint32_t binding, const VulkanUniformBuffer& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		// Binds an array of MaxImageArraySize images. Every slot is written with the given image,
 		// so a shader that indexes any slot always reads a valid descriptor.
-		void BindImage(uint32_t binding, const Ref<VullkanTexture>& vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		bool Build();
-		void Destroy();
 
 		// After Build: rewrites `count` (<= MaxImageArraySize) elements, starting at element 0, of the
 		// image array at `binding` in the set of frame `frameIndex`. Only call it once the GPU is done

@@ -25,9 +25,13 @@ namespace Hydro
 
 	struct PipelineSpecification
 	{
-		Ref<VulkanShader> shader;
+		// Not owned. Only read while the pipeline is created (shader modules aren't needed after that),
+		// so the shader may be destroyed or replaced afterwards.
+		VulkanShader* Shader = nullptr;
 		// Descriptor sets in set-index order (element 0 is set = 0). Empty = the pipeline uses none.
-		std::vector<Ref<VulkanDescriptorBuilder>> DescriptorSets;
+		// Not owned: their layouts are read at creation; BindDescriptorSets binds them, so they must
+		// outlive the pipeline when that is used.
+		std::vector<VulkanDescriptorBuilder*> DescriptorSets;
 
 		VertexBufferLayout Layout;
 		// Render pass the pipeline draws into. VK_NULL_HANDLE = the swapchain's present pass.
@@ -41,11 +45,17 @@ namespace Hydro
 		BlendMode Blend = BlendMode::None;
 	};
 
+	// A graphics pipeline and its layout. A resource: owns both (freed through
+	// Renderer::SubmitResourceFree when it is destroyed, so a pipeline can be replaced mid-frame
+	// without waiting for the GPU) and is non-copyable; hold it in a Scope.
 	class VulkanPipeline
 	{
 	public:
-		VulkanPipeline(const PipelineSpecification& spec);
-		void Destroy();
+		explicit VulkanPipeline(const PipelineSpecification& spec);
+		~VulkanPipeline();
+
+		VulkanPipeline(const VulkanPipeline&) = delete;
+		VulkanPipeline& operator=(const VulkanPipeline&) = delete;
 
 		// Binds the pipeline and sets viewport/scissor to cover `extent` (the current render target).
 		void Bind(VkCommandBuffer commandBuffer, VkExtent2D extent);
@@ -57,6 +67,8 @@ namespace Hydro
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }
+		// Shader is null here: it is only used while the pipeline is created. Set it again before
+		// building a new pipeline from a copy of this specification.
 		const PipelineSpecification& GetSpecification() const { return m_pipelineSpecification; }
 
 	private:

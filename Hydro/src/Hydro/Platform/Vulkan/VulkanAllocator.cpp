@@ -1,7 +1,6 @@
 #include "hypch.h"
 
 #include "VulkanAllocator.h"
-#include "VulkanRendererContext.h"
 
 namespace Hydro {
 
@@ -39,7 +38,7 @@ namespace Hydro {
 		VkMemoryAllocateInfo memAlloc = {};
 		memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		memAlloc.allocationSize = requirements.size;
-		memAlloc.memoryTypeIndex = m_Device->GetPhysicalDevice()->GetMemoryTypeIndex(requirements.memoryTypeBits, flags);
+		memAlloc.memoryTypeIndex = m_Device->GetPhysicalDevice().GetMemoryTypeIndex(requirements.memoryTypeBits, flags);
 		VK_CHECK_RESULT(vkAllocateMemory(m_Device->GetVulkanDevice(), &memAlloc, nullptr, dest));
 	}
 #endif
@@ -130,16 +129,16 @@ namespace Hydro {
 		return { usedMemory, freeMemory };
 	}
 
-	void VulkanAllocator::Init(Ref<VulkanDevice> device)
+	void VulkanAllocator::Init(VkInstance instance, VulkanDevice& device)
 	{
 		s_Data = new VulkanAllocatorData();
 
 		// Initialize VulkanMemoryAllocator
 		VmaAllocatorCreateInfo allocatorInfo = {};
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
-		allocatorInfo.physicalDevice = device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
-		allocatorInfo.device = device->GetDevice();
-		allocatorInfo.instance = VulkanRendererContext::GetInstance();
+		allocatorInfo.physicalDevice = device.GetPhysicalDevice().GetVulkanPhysicalDevice();
+		allocatorInfo.device = device.GetDevice();
+		allocatorInfo.instance = instance;
 
 		vmaCreateAllocator(&allocatorInfo, &s_Data->Allocator);
 	}

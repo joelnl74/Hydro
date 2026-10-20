@@ -1,8 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "Hydro/Core/Base.h"
-#include "VullkanTexture.h"
-#include "VulkanDescriptorBuilder.h"
 
 #include <filesystem>
 #include <map>
@@ -30,7 +28,6 @@ namespace Hydro
 	struct ShaderSpecification
 	{
 		std::vector<ShaderInformation> shaderInformation;
-		VulkanDescriptorBuilder descriptorBuilder;
 	};
 
 	// Owns one VkShaderModule per stage. Throws std::runtime_error (with the compiler's

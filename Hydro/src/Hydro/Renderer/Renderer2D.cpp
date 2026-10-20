@@ -7,6 +7,7 @@
 #include "Hydro/Platform/Vulkan/VulkanRenderPass.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanTexture2DData.h"
+#include "Hydro/Platform/Vulkan/VulkanUtils.h"
 
 // SHOULD BE IN IMGUI EXTENSION.
 #include <Hydro/Platform/Vulkan/imgui_impl_vulkan.h>
@@ -45,7 +46,7 @@ namespace Hydro
 	// One GPU vertex buffer per frame in flight. While frame N is still being read by
 	// the GPU, frame N+1 writes into its own buffer, so the CPU never overwrites data
 	// the GPU is using.
-	using PerFrameVertexBuffers = std::array<Ref<VulkanVertexBuffer>, MAX_FRAMES_IN_FLIGHT>;
+	using PerFrameVertexBuffers = std::array<Scope<VulkanVertexBuffer>, MAX_FRAMES_IN_FLIGHT>;
 
 	// Up to MaxTextureSlots textures that one or more draws sample from, and the set 0 descriptor sets
 	// (camera + texture array, one per frame in flight) that bind them. Slot 0 is always the white texture.
@@ -53,7 +54,7 @@ namespace Hydro
 	{
 		std::array<Ref<Texture2D>, MaxTextureSlots> Slots;
 		uint32_t SlotCount = 1;
-		Ref<VulkanDescriptorBuilder> DescriptorSet;
+		Scope<VulkanDescriptorBuilder> DescriptorSet;
 	};
 
 	// One vkCmdDrawIndexed: a run of quads in one vertex batch that use one texture set.
@@ -76,12 +77,14 @@ namespace Hydro
 		uint32_t RequestedWidth = 0;
 		uint32_t RequestedHeight = 0;
 		// ImGui texture handles for the image of each frame in flight. Created lazily (ImGui may not be
-		// initialised when the view is) and rewritten on resize.
+		// initialised when the view is). After a resize each one is pointed at its new image when its
+		// frame index is recorded next (a frame still in flight may be drawing with the old one).
 		std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> ImGuiTextures{};
+		std::array<bool, MAX_FRAMES_IN_FLIGHT> ImGuiTexturesOutdated{};
 
 		// ---- Camera ------------------------------------------------------------------
 		glm::mat4 ViewProjection{ 1.0f };
-		Ref<VulkanUniformBuffer> UniformBuffer;     // one buffer per frame in flight
+		Scope<VulkanUniformBuffer> UniformBuffer;   // one buffer per frame in flight
 
 		// ---- Batches -----------------------------------------------------------------
 		// Vertex storage. Index i in each vector belongs to batch i. Batches are never freed, only
@@ -114,29 +117,27 @@ namespace Hydro
 
 		glm::vec4 QuadVertexPositions[4];
 
-		Ref<VulkanShader> Shader;
+		Scope<VulkanShader> Shader;
 		// Shader hot reload: the shader's source files, checked every ShaderPollInterval.
 		FileWatcher ShaderWatcher;
 		std::chrono::steady_clock::time_point NextShaderPoll{};
 		static constexpr std::chrono::milliseconds ShaderPollInterval{ 250 };
 
-		Ref<VulkanPipeline> QuadPipeline;
-		Ref<VulkanIndexBuffer> QuadIndexBuffer;      // shared by all batches of all views (every batch starts at vertex 0)
+		Scope<VulkanPipeline> QuadPipeline;
+		Scope<VulkanIndexBuffer> QuadIndexBuffer;    // shared by all batches of all views (every batch starts at vertex 0)
 
 		// The pipeline is built against these. Every view's target uses the same attachment format,
 		// so its render pass is compatible with PipelineRenderPass, and its descriptor sets are built
 		// exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so they can be bound in its place.
 		Scope<VulkanRenderPass> PipelineRenderPass;  // 1x1, never drawn into
-		Ref<VulkanUniformBuffer> LayoutUniformBuffer;
-		Ref<VulkanDescriptorBuilder> LayoutDescriptorSet;
+		Scope<VulkanUniformBuffer> LayoutUniformBuffer;
+		Scope<VulkanDescriptorBuilder> LayoutDescriptorSet;
 
 		// Slot 0 of every texture set; made in code (no file).
 		Ref<Texture2D> WhiteTexture;
 
-		// Every texture the command buffer of each frame in flight samples. Released when that frame
-		// index is recorded again (its fence has signalled by then), so a texture whose last Ref is
-		// dropped mid-frame is only destroyed once the GPU is done with it.
-		std::array<std::vector<Ref<Texture2D>>, MAX_FRAMES_IN_FLIGHT> TexturesInFlight;
+		// Every RenderView that exists (they register themselves).
+		std::vector<RenderViewData*> Views;
 
 		// Views begun this frame, in BeginScene order, and the one DrawQuad writes to.
 		std::vector<RenderViewData*> QueuedViews;
@@ -162,11 +163,11 @@ namespace Hydro
 
 	// Set 0 of the quad shader: binding 0 = camera (vertex), binding 1 = texture array (fragment).
 	// Every texture slot starts as the white texture; RecordView writes the real ones each frame.
-	static Ref<VulkanDescriptorBuilder> BuildViewDescriptorSet(Ref<VulkanUniformBuffer>& uniformBuffer)
+	static Scope<VulkanDescriptorBuilder> BuildViewDescriptorSet(const VulkanUniformBuffer& uniformBuffer)
 	{
 		const VulkanImageInfo& white = GetImageInfo(*s_Data->WhiteTexture);
 
-		Ref<VulkanDescriptorBuilder> descriptorSet = CreateRef<VulkanDescriptorBuilder>();
+		Scope<VulkanDescriptorBuilder> descriptorSet = CreateScope<VulkanDescriptorBuilder>();
 		descriptorSet->Begin();
 		descriptorSet->BindBuffer(0, uniformBuffer, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
 		descriptorSet->BindImage(1, white.ImageView, white.Sampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -223,7 +224,7 @@ namespace Hydro
 		s_Data->QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
 		s_Data->QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
-		s_Data->Shader = CreateRef<VulkanShader>(shaderSpecification);
+		s_Data->Shader = CreateScope<VulkanShader>(shaderSpecification);
 		s_Data->ShaderWatcher = FileWatcher(s_Data->Shader->GetSourceFiles());
 		/// END BLOCK!
 
@@ -256,11 +257,11 @@ namespace Hydro
 			offset += 4;
 		}
 
-		s_Data->QuadIndexBuffer = CreateRef<VulkanIndexBuffer>(quadIndices, Renderer2DData::MaxIndices * (uint32_t)sizeof(uint32_t));
+		s_Data->QuadIndexBuffer = CreateScope<VulkanIndexBuffer>(quadIndices, Renderer2DData::MaxIndices * (uint32_t)sizeof(uint32_t));
 		delete[] quadIndices;
 
-		s_Data->LayoutUniformBuffer = CreateRef<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
-		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(s_Data->LayoutUniformBuffer);
+		s_Data->LayoutUniformBuffer = CreateScope<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
+		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(*s_Data->LayoutUniformBuffer);
 
 		PipelineSpecification specification;
 		specification.Layout =
@@ -271,8 +272,8 @@ namespace Hydro
 			{ "inTexIndex", ShaderDataType::Float, },
 		};
 
-		specification.DescriptorSets = { s_Data->LayoutDescriptorSet };
-		specification.shader = s_Data->Shader;
+		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
+		specification.Shader = s_Data->Shader.get();
 		specification.RenderPass = s_Data->PipelineRenderPass->GetRenderPass();
 		// Sprites: alpha blended, drawn in submission order, visible from both sides (negative scale flips them).
 		specification.Blend = BlendMode::Alpha;
@@ -280,13 +281,12 @@ namespace Hydro
 		specification.DepthTest = false;
 		specification.DepthWrite = false;
 
-		s_Data->QuadPipeline = CreateRef<VulkanPipeline>(specification);
+		s_Data->QuadPipeline = CreateScope<VulkanPipeline>(specification);
 
 		// GPU timing and limits.
 		{
-			auto device = Renderer::GetRendererContext()->GetVulkanDevice();
-			VkPhysicalDeviceProperties properties{};
-			vkGetPhysicalDeviceProperties(device->GetPhysicalDevice()->GetVulkanPhysicalDevice(), &properties);
+			VulkanDevice& device = Renderer::GetVulkanDevice();
+			const VkPhysicalDeviceProperties& properties = device.GetPhysicalDevice().GetProperties();
 			memcpy(s_Data->GPUName, properties.deviceName, sizeof(s_Data->GPUName));
 
 			// The texture array is a fixed size in the shader. Vulkan guarantees only 16 samplers per
@@ -305,7 +305,7 @@ namespace Hydro
 				queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
 				queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
 				queryPoolInfo.queryCount = 2 * MAX_FRAMES_IN_FLIGHT;
-				vkCreateQueryPool(device->GetDevice(), &queryPoolInfo, nullptr, &s_Data->TimestampPool);
+				VK_CHECK_RESULT(vkCreateQueryPool(device.GetDevice(), &queryPoolInfo, nullptr, &s_Data->TimestampPool));
 			}
 		}
 	}
@@ -318,24 +318,26 @@ namespace Hydro
 		}
 
 		// Views belong to the application and must be gone by now (layers release them in OnDetach).
-		HY_CORE_ASSERT(s_Data->QueuedViews.empty(), "A RenderView is still queued at Renderer2D::Shutdown");
+		HY_CORE_ASSERT(s_Data->Views.empty(), "A RenderView still exists at Renderer2D::Shutdown");
 
-		// Renderer::Shutdown has waited for the GPU, so nothing samples these any more.
-		for (auto& textures : s_Data->TexturesInFlight)
+		// Resources free themselves through the deletion queue, which Renderer::Shutdown flushes next.
+		// Released in the reverse order of Init.
+		if (s_Data->TimestampPool != VK_NULL_HANDLE)
 		{
-			textures.clear();
+			VkDevice device = Renderer::GetVulkanDevice().GetDevice();
+			Renderer::SubmitResourceFree([device, pool = s_Data->TimestampPool]()
+			{
+				vkDestroyQueryPool(device, pool, nullptr);
+			});
 		}
 
-		s_Data->LayoutDescriptorSet->Destroy();
-		s_Data->QuadPipeline->Destroy();
-		s_Data->LayoutUniformBuffer->Destroy();
-		s_Data->QuadIndexBuffer->Destroy();
+		s_Data->QuadPipeline.reset();
+		s_Data->LayoutDescriptorSet.reset();
+		s_Data->LayoutUniformBuffer.reset();
+		s_Data->QuadIndexBuffer.reset();
 		s_Data->WhiteTexture.reset();
+		s_Data->Shader.reset();
 		s_Data->PipelineRenderPass.reset();
-		if (s_Data->TimestampPool)
-		{
-			vkDestroyQueryPool(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice(), s_Data->TimestampPool, nullptr);
-		}
 
 		delete s_Data;
 		s_Data = nullptr;
@@ -357,21 +359,26 @@ namespace Hydro
 		view.RequestedWidth = width;
 		view.RequestedHeight = height;
 
-		view.UniformBuffer = CreateRef<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
+		view.UniformBuffer = CreateScope<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
 
 		// First batch and texture set. More are created when a frame needs them.
 		Renderer2D::AllocateBatch(view);
 		Renderer2D::AllocateTextureSet(view);
 		Renderer2D::ResetBatches(view);
+
+		s_Data->Views.push_back(&view);
 	}
 
 	RenderView::~RenderView()
 	{
 		RenderViewData& view = *m_Data;
 
-		// Never leave a dangling pointer in this frame's queue.
+		// Never leave a dangling pointer in the view list or this frame's queue.
 		if (s_Data != nullptr)
 		{
+			auto& views = s_Data->Views;
+			views.erase(std::remove(views.begin(), views.end(), &view), views.end());
+
 			auto& queued = s_Data->QueuedViews;
 			queued.erase(std::remove(queued.begin(), queued.end(), &view), queued.end());
 			if (s_Data->CurrentView == &view)
@@ -380,28 +387,13 @@ namespace Hydro
 			}
 		}
 
-		for (auto& perFrame : view.QuadVertexBuffers)
-		{
-			for (auto& vertexBuffer : perFrame)
-			{
-				vertexBuffer->Destroy();
-			}
-		}
-
 		for (QuadVertex* base : view.QuadVertexBufferBases)
 		{
 			delete[] base;
 		}
 
-		// Textures the GPU may still read stay alive in TexturesInFlight; only the sets go here.
-		for (TextureSet& set : view.TextureSets)
-		{
-			set.DescriptorSet->Destroy();
-		}
-
-		view.UniformBuffer->Destroy();
-		view.Target.reset();
-
+		// The GPU objects (vertex and uniform buffers, descriptor sets, target) free themselves when
+		// m_Data goes, through the deletion queue, so frames in flight can still finish with them.
 		// The ImGui texture handles belong to ImGui's descriptor pool, which the ImGui layer frees
 		// (this ImGui version has no RemoveTexture).
 	}
@@ -450,9 +442,9 @@ namespace Hydro
 		PerFrameVertexBuffers buffers;
 		for (auto& vertexBuffer : buffers)
 		{
-			vertexBuffer = CreateRef<VulkanVertexBuffer>(Renderer2DData::MaxVertices * (uint32_t)sizeof(QuadVertex));
+			vertexBuffer = CreateScope<VulkanVertexBuffer>(Renderer2DData::MaxVertices * (uint32_t)sizeof(QuadVertex));
 		}
-		view.QuadVertexBuffers.push_back(buffers);
+		view.QuadVertexBuffers.push_back(std::move(buffers));
 
 		view.QuadIndexCounts.push_back(0);
 	}
@@ -478,7 +470,7 @@ namespace Hydro
 		TextureSet set;
 		set.Slots[0] = s_Data->WhiteTexture;
 		set.SlotCount = 1;
-		set.DescriptorSet = BuildViewDescriptorSet(view.UniformBuffer);
+		set.DescriptorSet = BuildViewDescriptorSet(*view.UniformBuffer);
 		view.TextureSets.push_back(std::move(set));
 	}
 
@@ -561,7 +553,8 @@ namespace Hydro
 		view.BatchIndex = 0;
 		view.QuadVertexBufferPtr = view.QuadVertexBufferBases[0];
 
-		// Release the textures this frame used (TexturesInFlight keeps the ones the GPU still reads).
+		// Drop this frame's references to its textures. A texture whose last Ref this was is freed
+		// through the deletion queue, after the frames that sample it.
 		for (uint32_t s = 0; s <= view.TextureSetIndex && s < view.TextureSets.size(); s++)
 		{
 			TextureSet& set = view.TextureSets[s];
@@ -665,9 +658,8 @@ namespace Hydro
 		const uint32_t frame = Renderer::GetRenderFrame();
 
 		// Renderer::RenderFrame already waited on this frame-in-flight's fence, so the GPU is done
-		// with every view's buffers and descriptor sets for `frame`, and with the textures that frame
-		// sampled last time; safe to overwrite and release.
-		s_Data->TexturesInFlight[frame].clear();
+		// with every view's buffers and descriptor sets for `frame`: safe to overwrite.
+		UpdateImGuiTextures(frame);
 
 		// The fence for this frame index was just waited on, so the timestamps this command
 		// buffer wrote last time are available: read them, then reset and write new ones.
@@ -677,7 +669,7 @@ namespace Hydro
 			if (s_Data->TimestampsWritten[frame])
 			{
 				uint64_t timestamps[2] = {};
-				VkResult result = vkGetQueryPoolResults(Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice(),
+				VkResult result = vkGetQueryPoolResults(Renderer::GetVulkanDevice().GetDevice(),
 					s_Data->TimestampPool, firstQuery, 2, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
 				if (result == VK_SUCCESS && timestamps[1] >= timestamps[0])
 				{
@@ -735,17 +727,12 @@ namespace Hydro
 
 		// Point this frame's descriptor set of every texture set used at its textures. Descriptor
 		// sets can't change once bound in a command buffer, so this happens before the pass.
-		// The textures are kept alive until this frame index comes round again.
-		std::vector<Ref<Texture2D>>& texturesInFlight = s_Data->TexturesInFlight[frame];
+		// A texture released while this frame is in flight is freed through the deletion queue
+		// after it, so the GPU never samples a destroyed image.
 		for (uint32_t s = 0; s <= view.TextureSetIndex; s++)
 		{
 			TextureSet& set = view.TextureSets[s];
 			WriteTextureSet(set, frame);
-
-			for (uint32_t i = 1; i < set.SlotCount; i++)
-			{
-				texturesInFlight.push_back(set.Slots[i]);
-			}
 			s_Data->Stats.TextureSlotsUsed += set.SlotCount;
 		}
 
@@ -832,7 +819,7 @@ namespace Hydro
 
 	static void WriteImGuiTexture(VkDescriptorSet set, VkImageView view, VkSampler sampler)
 	{
-		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.sampler = sampler;
@@ -861,22 +848,44 @@ namespace Hydro
 			return;
 		}
 
-		// Both frames in flight may still be using the old images; wait before destroying them.
-		// (Only happens on frames where the size actually changed.)
-		Renderer::WaitIdle();
-
+		// The old images and framebuffers go through the deletion queue: the other frame in flight
+		// may still be drawing into or sampling them, so there is no need to wait for the GPU.
 		view.Target->Resize(width, height);
 
-		// Point the existing ImGui texture handles at the new image views. Updating in place
-		// (instead of AddTexture again) means no descriptor sets leak from ImGui's pool, and the
-		// handle ImGui already queued for this frame shows the new image.
+		// Each frame index's ImGui texture handle still points at that index's old image, which the
+		// frame in flight may be drawing with. Point it at the new one when that index is recorded
+		// next (UpdateImGuiTextures); this frame's index now. Updating in place (instead of
+		// AddTexture again) means no descriptor sets leak from ImGui's pool.
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			if (view.ImGuiTextures[i] != VK_NULL_HANDLE)
-			{
-				const VulkanImageInfo& image = view.Target->GetImage(i).GetVulkanImageInfo();
-				WriteImGuiTexture(view.ImGuiTextures[i], image.ImageView, image.Sampler);
-			}
+			view.ImGuiTexturesOutdated[i] = true;
+		}
+		UpdateImGuiTextures(view, Renderer::GetRenderFrame());
+	}
+
+	void Renderer2D::UpdateImGuiTextures(uint32_t frame)
+	{
+		// Every view, not just the ones begun this frame: ImGui may show a view that isn't drawn.
+		for (RenderViewData* view : s_Data->Views)
+		{
+			UpdateImGuiTextures(*view, frame);
+		}
+	}
+
+	void Renderer2D::UpdateImGuiTextures(RenderViewData& view, uint32_t frame)
+	{
+		// Only call this after `frame`'s fence and before the present pass is recorded: the handle
+		// must not be in use by a command buffer that is pending or being recorded.
+		if (view.ImGuiTexturesOutdated[frame] == false)
+		{
+			return;
+		}
+
+		view.ImGuiTexturesOutdated[frame] = false;
+		if (view.ImGuiTextures[frame] != VK_NULL_HANDLE)
+		{
+			const VulkanImageInfo& image = view.Target->GetImage(frame).GetVulkanImageInfo();
+			WriteImGuiTexture(view.ImGuiTextures[frame], image.ImageView, image.Sampler);
 		}
 	}
 
@@ -926,19 +935,19 @@ namespace Hydro
 	bool Renderer2D::RebuildQuadPipeline(bool recompileShader, bool wireframe)
 	{
 		// Build the replacements first, so a shader that doesn't compile leaves the old one drawing.
-		Ref<VulkanShader> shader = s_Data->Shader;
-		Ref<VulkanPipeline> pipeline;
+		Scope<VulkanShader> newShader;
+		Scope<VulkanPipeline> pipeline;
 		try
 		{
 			if (recompileShader)
 			{
-				shader = CreateRef<VulkanShader>(s_Data->Shader->GetSpecification());
+				newShader = CreateScope<VulkanShader>(s_Data->Shader->GetSpecification());
 			}
 
 			PipelineSpecification specification = s_Data->QuadPipeline->GetSpecification();
-			specification.shader = shader;
+			specification.Shader = recompileShader ? newShader.get() : s_Data->Shader.get();
 			specification.Wireframe = wireframe;
-			pipeline = CreateRef<VulkanPipeline>(specification);
+			pipeline = CreateScope<VulkanPipeline>(specification);
 		}
 		catch (const std::exception&)
 		{
@@ -947,15 +956,14 @@ namespace Hydro
 			return false;
 		}
 
-		// Both frames in flight may still be using the old pipeline (same as ApplyViewResize).
-		Renderer::WaitIdle();
-
-		s_Data->QuadPipeline->Destroy();
-		s_Data->QuadPipeline = pipeline;
+		// No need to wait for the GPU: the old pipeline frees itself through the deletion queue once
+		// the frames in flight that bound it are done. Shader modules aren't used after a pipeline is
+		// created, so the old shader can go at once.
+		s_Data->QuadPipeline = std::move(pipeline);
 		if (recompileShader)
 		{
-			s_Data->Shader = shader;
-			s_Data->ShaderWatcher = FileWatcher(shader->GetSourceFiles());
+			s_Data->Shader = std::move(newShader);
+			s_Data->ShaderWatcher = FileWatcher(s_Data->Shader->GetSourceFiles());
 		}
 
 		return true;

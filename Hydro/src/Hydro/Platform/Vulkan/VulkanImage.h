@@ -17,7 +17,8 @@ namespace Hydro
 		uint32_t size = 0;
 	};
 
-	// Owns a GPU image, its view and a sampler. Non-copyable: copies would double-destroy the handles.
+	// Owns a GPU image, its view and a sampler, freed through Renderer::SubmitResourceFree when it is
+	// destroyed. Non-copyable: copies would double-destroy the handles.
 	class VulkanImage
 	{
 	public:

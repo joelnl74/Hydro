@@ -23,7 +23,8 @@ namespace Hydro
 		VulkanRenderPass& operator=(const VulkanRenderPass&) = delete;
 
 		// Rebuilds the images and framebuffers; the VkRenderPass (and pipelines made with it) stay valid.
-		// The caller must make sure the GPU is no longer using the old images.
+		// The old ones are freed through Renderer::SubmitResourceFree, so frames in flight can finish
+		// with them; anything that refers to them (an ImGui texture) must be pointed at the new ones.
 		void Resize(uint32_t width, uint32_t height);
 
 		// Clears the target to `clearColor` (linear RGBA) at the start of the pass.

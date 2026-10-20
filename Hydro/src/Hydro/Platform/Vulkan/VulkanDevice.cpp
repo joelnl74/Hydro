@@ -7,8 +7,8 @@
 
 namespace Hydro
 {
-	VulkanDevice::VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice)
-		: m_PhysicalDevice(physicalDevice)
+	VulkanDevice::VulkanDevice(Scope<VulkanPhysicalDevice> physicalDevice)
+		: m_PhysicalDevice(std::move(physicalDevice))
 	{
 		const QueueFamilyIndices& indices = m_PhysicalDevice->GetQueueFamilyIndices();
 
@@ -64,16 +64,59 @@ namespace Hydro
 		VK_CHECK_RESULT(vkCreateCommandPool(m_LogicalDevice, &poolInfo, nullptr, &m_UploadCommandPool));
 	}
 
+	void VulkanDevice::SubmitImmediate(const std::function<void(VkCommandBuffer)>& record)
+	{
+		HY_CORE_ASSERT(m_LogicalDevice != VK_NULL_HANDLE, "VulkanDevice::SubmitImmediate after Shutdown");
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = m_UploadCommandPool;
+		allocInfo.commandBufferCount = 1;
+
+		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+		VK_CHECK_RESULT(vkAllocateCommandBuffers(m_LogicalDevice, &allocInfo, &commandBuffer));
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+		record(commandBuffer);
+
+		VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
+
+		// Wait on a fence for this submit only, not the whole queue: frames in flight keep running.
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		VkFence fence = VK_NULL_HANDLE;
+		VK_CHECK_RESULT(vkCreateFence(m_LogicalDevice, &fenceInfo, nullptr, &fence));
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+		VK_CHECK_RESULT(vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, fence));
+		VK_CHECK_RESULT(vkWaitForFences(m_LogicalDevice, 1, &fence, VK_TRUE, UINT64_MAX));
+
+		vkDestroyFence(m_LogicalDevice, fence, nullptr);
+		vkFreeCommandBuffers(m_LogicalDevice, m_UploadCommandPool, 1, &commandBuffer);
+	}
+
 	void VulkanDevice::WaitIdle() const
 	{
 		if (m_LogicalDevice != VK_NULL_HANDLE)
+		{
 			vkDeviceWaitIdle(m_LogicalDevice);
+		}
 	}
 
 	void VulkanDevice::Shutdown()
 	{
 		if (m_LogicalDevice == VK_NULL_HANDLE)
+		{
 			return;
+		}
 
 		vkDestroyCommandPool(m_LogicalDevice, m_UploadCommandPool, nullptr);
 		m_UploadCommandPool = VK_NULL_HANDLE;

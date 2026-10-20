@@ -80,9 +80,14 @@ namespace Hydro
 	{
 		m_pipelineSpecification = spec;
 
-		auto vulkanDevice = Renderer::GetRendererContext()->GetVulkanDevice();
-		VkDevice device = vulkanDevice->GetDevice();
-		VkRenderPass renderpass = spec.RenderPass != VK_NULL_HANDLE ? spec.RenderPass : Renderer::GetVulkanSwapChain()->GetRenderPass();
+		if (spec.Shader == nullptr)
+		{
+			throw std::runtime_error("PipelineSpecification::Shader is null.");
+		}
+
+		VulkanDevice& vulkanDevice = Renderer::GetVulkanDevice();
+		VkDevice device = vulkanDevice.GetDevice();
+		VkRenderPass renderpass = spec.RenderPass != VK_NULL_HANDLE ? spec.RenderPass : Renderer::GetVulkanSwapChain().GetRenderPass();
 
 		// Setup vertex data.
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -145,19 +150,27 @@ namespace Hydro
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		if (spec.Wireframe)
 		{
-			if (vulkanDevice->IsFillModeNonSolidEnabled())
+			if (vulkanDevice.IsFillModeNonSolidEnabled())
+			{
 				rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
+			}
 			else
+			{
 				HY_CORE_WARN("Wireframe pipelines need the fillModeNonSolid GPU feature; drawing filled.");
+			}
 		}
 
 		rasterizer.lineWidth = 1.0f;
 		if (spec.LineWidth != 1.0f)
 		{
-			if (vulkanDevice->IsWideLinesEnabled())
+			if (vulkanDevice.IsWideLinesEnabled())
+			{
 				rasterizer.lineWidth = spec.LineWidth;
+			}
 			else
+			{
 				HY_CORE_WARN("LineWidth {0} needs the wideLines GPU feature; using 1.", spec.LineWidth);
+			}
 		}
 
 		rasterizer.cullMode = spec.BackfaceCulling ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
@@ -170,7 +183,7 @@ namespace Hydro
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		std::vector<VkDescriptorSetLayout> setLayouts;
 		setLayouts.reserve(spec.DescriptorSets.size());
-		for (const auto& descriptorSet : spec.DescriptorSets)
+		for (VulkanDescriptorBuilder* descriptorSet : spec.DescriptorSets)
 		{
 			if (descriptorSet == nullptr)
 			{
@@ -215,7 +228,7 @@ namespace Hydro
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.stageCount = 2;
-		pipelineInfo.pStages = spec.shader->GetShaderStageInformation().data();
+		pipelineInfo.pStages = spec.Shader->GetShaderStageInformation().data();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
 		pipelineInfo.pViewportState = &viewportState;
@@ -231,15 +244,25 @@ namespace Hydro
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline));
+
+		// The shader is only needed above.
+		m_pipelineSpecification.Shader = nullptr;
 	}
 
-	void VulkanPipeline::Destroy()
+	VulkanPipeline::~VulkanPipeline()
 	{
-		auto context = Renderer::GetRendererContext();
-		VkDevice device = context->GetVulkanDevice()->GetDevice();
+		if (m_GraphicsPipeline == VK_NULL_HANDLE && m_PipelineLayout == VK_NULL_HANDLE)
+		{
+			return;
+		}
 
-		vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
-		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
+		// Frames in flight may still have it bound: free it once they are done.
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
+		Renderer::SubmitResourceFree([device, pipeline = m_GraphicsPipeline, layout = m_PipelineLayout]()
+		{
+			vkDestroyPipeline(device, pipeline, nullptr);
+			vkDestroyPipelineLayout(device, layout, nullptr);
+		});
 	}
 
 	void VulkanPipeline::Bind(VkCommandBuffer commandBuffer, VkExtent2D extent)
@@ -272,7 +295,7 @@ namespace Hydro
 
 		std::vector<VkDescriptorSet> descriptorSets;
 		descriptorSets.reserve(m_pipelineSpecification.DescriptorSets.size());
-		for (const auto& descriptorSet : m_pipelineSpecification.DescriptorSets)
+		for (VulkanDescriptorBuilder* descriptorSet : m_pipelineSpecification.DescriptorSets)
 		{
 			descriptorSets.push_back(descriptorSet->GetDescriptorSet(currentFrame));
 		}

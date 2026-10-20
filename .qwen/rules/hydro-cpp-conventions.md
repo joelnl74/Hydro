@@ -13,7 +13,7 @@ paths:
 - No unary `!`: write `== false` for booleans and `== nullptr` for pointers.
 - Names: PascalCase types, methods and struct/spec fields; `m_PascalCase` members; `s_PascalCase` statics; `enum class` (never `typedef enum class`). Subsystems use `Init` / `Shutdown`; layers `OnAttach` / `OnDetach`; engine hooks start with `On`. Never name an engine service `...System` (that word means an ECS function over a view).
 - `explicit` one-argument constructors; `const T&` / `T&` for objects you only use; `const Ref<T>&` for a shared pointer you don't keep; `[[maybe_unused]]` for required-but-unused parameters.
-- Ownership: `Scope<T>` for single-owner GPU objects, `Ref<T>` only when shared; RAII destructors, no new `Destroy()` methods.
+- Ownership: `Scope<T>` for single-owner GPU objects, `Ref<T>` only when shared; RAII destructors that free through `Renderer::SubmitResourceFree`, no `Destroy()` methods.
 - Resources take a `Specification` (and optional `Properties`) struct; no Vulkan types in specs or headers under `Renderer/`. Components are plain data.
 - `VK_CHECK_RESULT(...)` for Vulkan results; `HY_CORE_ASSERT(...)` for debug checks.
 - Includes: forward slashes; engine headers as `"Hydro/..."` from `src` (no `../`); vendored headers by name (`<entt.hpp>`, `<imgui.h>`); `#pragma once`; headers never include `hypch.h`.

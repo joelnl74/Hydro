@@ -113,7 +113,7 @@ namespace Hydro
 
 	void VulkanShader::CreateStage(const ShaderInformation& info)
 	{
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 
 		m_SourceFiles.push_back(std::filesystem::path(info.path).lexically_normal());
 
@@ -202,7 +202,7 @@ namespace Hydro
 		if (m_ShaderModules.empty())
 			return;
 
-		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		for (auto& module : m_ShaderModules)
 		{
 			vkDestroyShaderModule(device, module.second, nullptr);

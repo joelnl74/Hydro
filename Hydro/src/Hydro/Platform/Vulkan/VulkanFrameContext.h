@@ -16,7 +16,8 @@ namespace Hydro
 	class VulkanFrameContext
 	{
 	public:
-		void Init(Ref<VulkanDevice> device);
+		// `device` must stay alive until Shutdown.
+		void Init(VulkanDevice& device);
 		void Shutdown();
 
 		// Blocks until the GPU has finished the last submission that used the current frame's resources.
@@ -48,6 +49,6 @@ namespace Hydro
 		std::array<FrameData, MAX_FRAMES_IN_FLIGHT> m_Frames{};
 		uint32_t m_FrameIndex = 0;
 
-		Ref<VulkanDevice> m_Device;
+		VulkanDevice* m_Device = nullptr; // not owned
 	};
 }

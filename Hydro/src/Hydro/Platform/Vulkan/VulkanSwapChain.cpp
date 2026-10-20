@@ -7,8 +7,8 @@
 
 namespace Hydro
 {
-	VulkanSwapChain::VulkanSwapChain(Ref<VulkanDevice> device, VkSurfaceKHR surface)
-		: m_Device(device), m_Surface(surface)
+	VulkanSwapChain::VulkanSwapChain(VulkanDevice& device, VkSurfaceKHR surface)
+		: m_Device(&device), m_Surface(surface)
 	{
 	}
 
@@ -96,7 +96,7 @@ namespace Hydro
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-		const QueueFamilyIndices& families = m_Device->GetPhysicalDevice()->GetQueueFamilyIndices();
+		const QueueFamilyIndices& families = m_Device->GetPhysicalDevice().GetQueueFamilyIndices();
 		uint32_t familyIndices[] = { (uint32_t)families.graphics, (uint32_t)families.present };
 
 		if (families.graphics != families.present)
@@ -275,7 +275,7 @@ namespace Hydro
 
 	SwapChainSupportDetails VulkanSwapChain::QuerySwapChainSupport() const
 	{
-		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice();
+		VkPhysicalDevice physicalDevice = m_Device->GetPhysicalDevice().GetVulkanPhysicalDevice();
 		SwapChainSupportDetails details;
 
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, m_Surface, &details.capabilities);

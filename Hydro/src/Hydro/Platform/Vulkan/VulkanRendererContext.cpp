@@ -25,43 +25,55 @@ namespace Hydro
 		void* pUserData)
 	{
 		if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+		{
 			HY_CORE_ERROR("Vulkan [type {0}]: {1}", messageType, pCallbackData->pMessage);
+		}
 		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+		{
 			HY_CORE_WARN("Vulkan [type {0}]: {1}", messageType, pCallbackData->pMessage);
+		}
 		else
+		{
 			HY_CORE_TRACE("Vulkan [type {0}]: {1}", messageType, pCallbackData->pMessage);
+		}
 
 		return VK_FALSE;
 	}
 
 	void VulkanRendererContext::Init(Window& window)
 	{
+		HY_CORE_ASSERT(m_Instance == VK_NULL_HANDLE, "VulkanRendererContext::Init called twice");
+
 		CreateVulkanInstance();
 		CreateSurface(window);
 
 		// The surface must exist before the GPU is picked, so we only pick GPUs that can present to it.
-		Ref<VulkanPhysicalDevice> physicalDevice = CreateRef<VulkanPhysicalDevice>(s_VulkanInstance, m_Surface);
-		s_VulkanDevice = CreateRef<VulkanDevice>(physicalDevice);
+		m_Device = CreateScope<VulkanDevice>(CreateScope<VulkanPhysicalDevice>(m_Instance, m_Surface));
 	}
 
 	void VulkanRendererContext::Shutdown()
 	{
-		if (s_VulkanDevice)
+		if (m_Instance == VK_NULL_HANDLE)
 		{
-			s_VulkanDevice->Shutdown();
-			s_VulkanDevice = nullptr;
+			return;
+		}
+
+		if (m_Device != nullptr)
+		{
+			m_Device->Shutdown();
+			m_Device.reset();
 		}
 
 		if (m_Surface != VK_NULL_HANDLE)
 		{
-			vkDestroySurfaceKHR(s_VulkanInstance, m_Surface, nullptr);
+			vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
 			m_Surface = VK_NULL_HANDLE;
 		}
 
 		DestroyDebugMessenger();
 
-		vkDestroyInstance(s_VulkanInstance, nullptr);
-		s_VulkanInstance = VK_NULL_HANDLE;
+		vkDestroyInstance(m_Instance, nullptr);
+		m_Instance = VK_NULL_HANDLE;
 	}
 
 	void VulkanRendererContext::CreateVulkanInstance()
@@ -114,7 +126,7 @@ namespace Hydro
 			instanceCreateInfo.pNext = &instanceDebugInfo;
 		}
 
-		VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &s_VulkanInstance);
+		VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
 		if (result != VK_SUCCESS)
 		{
 			HY_CORE_ERROR("vkCreateInstance failed: {0}", VKResultToString(result));
@@ -131,7 +143,7 @@ namespace Hydro
 	{
 		GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());
 
-		VkResult result = glfwCreateWindowSurface(s_VulkanInstance, glfwWindow, nullptr, &m_Surface);
+		VkResult result = glfwCreateWindowSurface(m_Instance, glfwWindow, nullptr, &m_Surface);
 		if (result != VK_SUCCESS)
 		{
 			HY_CORE_ERROR("glfwCreateWindowSurface failed: {0}", VKResultToString(result));
@@ -152,7 +164,7 @@ namespace Hydro
 
 	void VulkanRendererContext::SetupDebugMessenger()
 	{
-		auto createFunc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_VulkanInstance, "vkCreateDebugUtilsMessengerEXT");
+		auto createFunc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_Instance, "vkCreateDebugUtilsMessengerEXT");
 		if (createFunc == nullptr)
 		{
 			HY_CORE_WARN("vkCreateDebugUtilsMessengerEXT not available, validation messages will not be logged");
@@ -160,7 +172,7 @@ namespace Hydro
 		}
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = MakeDebugMessengerCreateInfo();
-		VK_CHECK_RESULT(createFunc(s_VulkanInstance, &createInfo, nullptr, &m_DebugMessenger));
+		VK_CHECK_RESULT(createFunc(m_Instance, &createInfo, nullptr, &m_DebugMessenger));
 
 		HY_CORE_INFO("Vulkan debug messenger set up");
 	}
@@ -168,12 +180,14 @@ namespace Hydro
 	void VulkanRendererContext::DestroyDebugMessenger()
 	{
 		if (m_DebugMessenger == VK_NULL_HANDLE)
+		{
 			return;
+		}
 
-		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_VulkanInstance, "vkDestroyDebugUtilsMessengerEXT");
+		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_Instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (destroyFunc != nullptr)
 		{
-			destroyFunc(s_VulkanInstance, m_DebugMessenger, nullptr);
+			destroyFunc(m_Instance, m_DebugMessenger, nullptr);
 		}
 
 		m_DebugMessenger = VK_NULL_HANDLE;
@@ -190,7 +204,9 @@ namespace Hydro
 		for (const VkLayerProperties& layer : instanceLayerProperties)
 		{
 			if (strcmp(layer.layerName, s_ValidationLayerName) == 0)
+			{
 				return true;
+			}
 		}
 
 		return false;

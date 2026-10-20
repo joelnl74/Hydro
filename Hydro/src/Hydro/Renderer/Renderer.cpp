@@ -24,13 +24,13 @@ namespace Hydro
 		renderer.m_Height = window.GetHeight();
 
 		// 1. Instance, surface, device.
-		renderer.m_RendererContext = CreateRef<VulkanRendererContext>();
+		renderer.m_RendererContext = CreateScope<VulkanRendererContext>();
 		renderer.m_RendererContext->Init(window);
 
-		Ref<VulkanDevice> device = renderer.m_RendererContext->GetVulkanDevice();
+		VulkanDevice& device = renderer.m_RendererContext->GetVulkanDevice();
 
 		// 2. Swapchain.
-		renderer.m_SwapChain = CreateRef<VulkanSwapChain>(device, renderer.m_RendererContext->GetSurface());
+		renderer.m_SwapChain = CreateScope<VulkanSwapChain>(device, renderer.m_RendererContext->GetSurface());
 		if (renderer.m_SwapChain->Create(renderer.m_Width, renderer.m_Height, s_Settings.VSync) == false)
 		{
 			// Started minimised: build it on the first frame the window has a size.
@@ -39,13 +39,12 @@ namespace Hydro
 
 		// What the GPU supports, for settings UI.
 		{
-			VkPhysicalDeviceProperties properties{};
-			vkGetPhysicalDeviceProperties(device->GetPhysicalDevice()->GetVulkanPhysicalDevice(), &properties);
+			const VkPhysicalDeviceProperties& properties = device.GetPhysicalDevice().GetProperties();
 			memcpy(renderer.m_GPUName, properties.deviceName, sizeof(renderer.m_GPUName));
 
 			renderer.m_Capabilities.GPUName = renderer.m_GPUName;
-			renderer.m_Capabilities.Wireframe = device->IsFillModeNonSolidEnabled();
-			renderer.m_Capabilities.WideLines = device->IsWideLinesEnabled();
+			renderer.m_Capabilities.Wireframe = device.IsFillModeNonSolidEnabled();
+			renderer.m_Capabilities.WideLines = device.IsWideLinesEnabled();
 			renderer.m_Capabilities.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
 		}
 
@@ -53,7 +52,7 @@ namespace Hydro
 		renderer.m_Frames.Init(device);
 
 		// 4. GPU memory allocator.
-		VulkanAllocator::Init(device);
+		VulkanAllocator::Init(renderer.m_RendererContext->GetInstance(), device);
 
 		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
 		Renderer2D::Init();
@@ -63,20 +62,26 @@ namespace Hydro
 	void Renderer::Shutdown()
 	{
 		if (s_Instance == nullptr)
+		{
 			return;
+		}
 
 		WaitIdle();
+		// What the layers released (render views, scenes and their textures) is freed now.
+		s_Instance->FlushResourceFrees(true);
 
 		// Exactly the reverse of Init.
 		Renderer3D::Shutdown();
 		Renderer2D::Shutdown();
+		// The sub-renderers' resources went into the queue: free them while the allocator and device exist.
+		s_Instance->FlushResourceFrees(true);
 		VulkanAllocator::Shutdown();
 
 		s_Instance->m_Frames.Shutdown();
 		s_Instance->m_SwapChain->Shutdown();
-		s_Instance->m_SwapChain = nullptr;
+		s_Instance->m_SwapChain.reset();
 		s_Instance->m_RendererContext->Shutdown();
-		s_Instance->m_RendererContext = nullptr;
+		s_Instance->m_RendererContext.reset();
 
 		delete s_Instance;
 		s_Instance = nullptr;
@@ -88,7 +93,9 @@ namespace Hydro
 		s_Settings = settings;
 
 		if (s_Instance == nullptr)
+		{
 			return; // Init picks them up.
+		}
 
 		// Present mode is fixed per swapchain: rebuild it at the start of the next frame.
 		// Clear colour, wireframe and hot reload are read by Renderer2D every frame.
@@ -101,8 +108,48 @@ namespace Hydro
 
 	void Renderer::WaitIdle()
 	{
-		if (s_Instance && s_Instance->m_RendererContext && s_Instance->m_RendererContext->GetVulkanDevice())
-			s_Instance->m_RendererContext->GetVulkanDevice()->WaitIdle();
+		if (s_Instance != nullptr && s_Instance->m_RendererContext != nullptr && s_Instance->m_RendererContext->HasVulkanDevice())
+		{
+			s_Instance->m_RendererContext->GetVulkanDevice().WaitIdle();
+		}
+	}
+
+	void Renderer::SubmitResourceFree(ResourceFreeFunction freeFunction)
+	{
+		HY_CORE_ASSERT(s_Instance != nullptr, "Renderer::SubmitResourceFree after Renderer::Shutdown: a GPU resource outlived the renderer");
+		if (s_Instance == nullptr)
+		{
+			// The device is gone, so there is nothing left to free it with. Never happens when every
+			// owner releases its resources before Renderer::Shutdown (layers do it in OnDetach).
+			HY_CORE_ERROR("A GPU resource was released after Renderer::Shutdown; its handles are leaked.");
+			return;
+		}
+
+		PendingResourceFree pending;
+		pending.Frame = s_Instance->m_FrameNumber;
+		pending.Free = std::move(freeFunction);
+		s_Instance->m_ResourceFreeQueue.push_back(std::move(pending));
+	}
+
+	void Renderer::FlushResourceFrees(bool all)
+	{
+		// BeginFrame has just waited for the fence of frame m_FrameNumber - MAX_FRAMES_IN_FLIGHT (the
+		// last frame that used this slot), so that frame and every frame before it are finished.
+		// Frees run in the order they were queued, so an owner that queues "children first"
+		// (framebuffers before their images) keeps that order.
+		while (m_ResourceFreeQueue.empty() == false)
+		{
+			PendingResourceFree& pending = m_ResourceFreeQueue.front();
+			if (all == false && pending.Frame + MAX_FRAMES_IN_FLIGHT > m_FrameNumber)
+			{
+				break;
+			}
+
+			// Move it out first: a free function may release more resources (which queue more frees).
+			ResourceFreeFunction freeResource = std::move(pending.Free);
+			m_ResourceFreeQueue.pop_front();
+			freeResource();
+		}
 	}
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
@@ -136,7 +183,9 @@ namespace Hydro
 
 		renderer->m_SwapChain->BeginRenderPass(commandBuffer, imageIndex);
 		if (renderer->m_PresentPassCallback)
+		{
 			renderer->m_PresentPassCallback(commandBuffer);
+		}
 		renderer->m_SwapChain->EndRenderPass(commandBuffer);
 
 		renderer->m_Frames.EndCommandBuffer();
@@ -152,10 +201,14 @@ namespace Hydro
 		if (m_SwapChainDirty)
 		{
 			if (RecreateSwapChain() == false)
+			{
 				return false;
+			}
 		}
 
 		m_Frames.WaitForFrame();
+		// The frame that used this slot before is done, and so is every frame before it.
+		FlushResourceFrees(false);
 
 		VkResult result = m_SwapChain->AcquireNextImage(m_Frames.GetImageAvailableSemaphore(), outImageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -177,9 +230,10 @@ namespace Hydro
 
 	void Renderer::EndFrame(uint32_t imageIndex)
 	{
-		Ref<VulkanDevice> device = m_RendererContext->GetVulkanDevice();
+		VulkanDevice& device = m_RendererContext->GetVulkanDevice();
 
-		m_Frames.Submit(device->GetGraphicsQueue(), m_SwapChain->GetRenderFinishedSemaphore(imageIndex));
+		m_Frames.Submit(device.GetGraphicsQueue(), m_SwapChain->GetRenderFinishedSemaphore(imageIndex));
+		m_FrameNumber++;
 
 		VkResult result = m_SwapChain->Present(imageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
@@ -197,13 +251,19 @@ namespace Hydro
 	bool Renderer::RecreateSwapChain()
 	{
 		if (m_Width == 0 || m_Height == 0)
+		{
 			return false; // Minimised.
+		}
 
-		m_RendererContext->GetVulkanDevice()->WaitIdle();
+		m_RendererContext->GetVulkanDevice().WaitIdle();
+		// The device is idle anyway: free everything that was waiting for a frame to finish.
+		FlushResourceFrees(true);
 
 		// Recreate also covers the case where the swapchain was never created (started minimised).
 		if (m_SwapChain->Recreate(m_Width, m_Height) == false)
+		{
 			return false;
+		}
 
 		// RenderViews are sized by whoever shows them (the editor's windows), not the window, so they
 		// are not touched here.
