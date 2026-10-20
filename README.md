@@ -1,25 +1,37 @@
 # Hydro Engine Oxygen Editor
-Hydro is primarily an early-stage interactive application and rendering engine for Windows using Vulkan. Check out the development branch for the latest in development features.
+Hydro is an early-stage interactive application and rendering engine using Vulkan, for Windows and macOS. Check out the development branch for the latest in development features.
 
 ## Getting Started
-Visual Studio 2022 or 2019 is recommended, Hydro is officially untested on other development environments whilst we focus on a Windows build.
 
-1. Downloading the repository:
+| | Windows | macOS (Apple Silicon) |
+| --- | --- | --- |
+| Tools | Visual Studio 2022, Python 3, git | Xcode command line tools (`xcode-select --install`), Python 3, git |
+| Vulkan SDK | Installed by the setup script (1.3 or newer) | [LunarG macOS SDK](https://vulkan.lunarg.com/sdk/home#mac) (1.4 recommended), installed by you |
+| Setup | `scripts\Setup.bat` | `scripts/Setup.sh` |
+| Project files | `scripts\Win-GenProjects.bat` → `Hydro.sln` | `scripts/Mac-GenProjects.sh` → Makefiles (`--xcode` for an Xcode project too) |
+| Build and run | Open `Hydro.sln`, build, run Oxygen | `scripts/Build.sh` then `scripts/Run.sh` (both take `Debug`, `Release` or `Dist`) |
 
-Start by cloning the repository with git clone --recursive https://github.com/joelnl74/Hydro.
+Start by cloning the repository with `git clone --recursive https://github.com/joelnl74/Hydro`. If it was cloned non-recursively, run `git submodule update --init`.
 
-If the repository was cloned non-recursively previously, use git submodule update --init to clone the necessary submodules.
+### Windows
 
-2. Configuring the dependencies:
+1. Run `scripts\Setup.bat`. It downloads premake and, if it is missing, the Vulkan SDK installer; install the SDK and run `Setup.bat` again.
+2. The setup ends by running `scripts\Win-GenProjects.bat`, which generates `Hydro.sln`. Rerun that script after adding or removing files (building also does it, through the Premake project).
+3. Open `Hydro.sln`, build, and run **Oxygen**.
 
-- Run the Setup.bat file found in scripts folder. This will download the required prerequisites for the project if they are not present yet.
-- One prerequisite is the Vulkan SDK. If it is not installed, the script will execute the VulkanSDK.exe file, and will prompt the user to install the SDK.
-- After installation, run the Setup.bat file again. If the Vulkan SDK is installed properly, it will then download the Vulkan SDK Debug libraries. (This may take a longer amount of time)
-- After downloading and unzipping the files, the Win-GenProjects.bat script file will get executed automatically, which will then generate a Visual Studio solution file for user's usage.
-- If changes are made, or if you want to regenerate project files, rerun the Win-GenProjects.bat script file found in scripts folder.
+### macOS
+
+1. Install the Xcode command line tools: `xcode-select --install`.
+2. Install the Vulkan SDK for macOS from [LunarG](https://vulkan.lunarg.com/sdk/home#mac) (default folder `~/VulkanSDK/<version>`). It contains MoltenVK and KosmicKrisp, which run Vulkan on Metal.
+3. Make the SDK available in every terminal: add `source ~/VulkanSDK/<version>/setup-env.sh` to `~/.zshrc` and open a new terminal (`echo $VULKAN_SDK` should print the SDK's `macOS` folder).
+4. Run `scripts/Setup.sh`. It downloads premake for macOS, checks the SDK, updates the submodules and generates the Makefiles.
+5. `scripts/Build.sh` builds Debug (`scripts/Build.sh Release` for Release), and `scripts/Run.sh` starts Oxygen from the `Oxygen/` folder, where its assets are.
+6. After adding or removing source files, run `scripts/Mac-GenProjects.sh` again. `scripts/Mac-GenProjects.sh --xcode` also writes an Xcode project; in Xcode, set the run scheme's working directory to `Oxygen/`.
+
+Linux builds and runs the same way (`scripts/Setup.sh`, `scripts/Build.sh`, `scripts/Run.sh`) and is used for checks, but isn't a supported target yet.
 
 ## Documentation
-- [Architecture](docs/Architecture.md): projects, source layout, the frame, Vulkan ownership, conventions
+- [Architecture](docs/Architecture.md): projects, platforms, source layout, the frame, Vulkan ownership, conventions
 - [Resource creation](docs/ResourceCreation.md): how resources are described and created (Parameter Object pattern)
 - [Scene, ECS and systems](docs/SceneAndECS.md): entities, components, systems, cameras, play mode and scripts
 - [Subsystems](docs/Subsystems.md): startup and shutdown order, lifecycle rules, naming

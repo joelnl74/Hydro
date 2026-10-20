@@ -1,6 +1,9 @@
 import sys
 import os
-import winreg
+import tarfile
+
+if sys.platform == "win32":
+    import winreg
 
 import requests
 import time
@@ -125,3 +128,10 @@ def UnzipFile(filepath, deleteZipFile=True):
 
     if deleteZipFile:
         os.remove(zipFilePath) # delete zip file
+
+def UntarFile(filepath, deleteTarFile=True):
+    tarFilePath = os.path.abspath(filepath)
+    with tarfile.open(tarFilePath, "r:gz") as archive:
+        archive.extractall(path=os.path.dirname(tarFilePath))
+    if deleteTarFile:
+        os.remove(tarFilePath)

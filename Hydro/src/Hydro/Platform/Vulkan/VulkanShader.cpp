@@ -176,6 +176,10 @@ namespace Hydro
 		// Matches the instance's apiVersion (VulkanRendererContext).
 		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
 		options.SetIncluder(std::make_unique<ShaderIncluder>(&m_SourceFiles));
+		for (const auto& [name, value] : m_Specification.Defines)
+		{
+			options.AddMacroDefinition(name, value);
+		}
 #ifdef HY_DEBUG
 		// Keeps names and line info so RenderDoc / validation messages point at the GLSL.
 		options.SetGenerateDebugInfo();

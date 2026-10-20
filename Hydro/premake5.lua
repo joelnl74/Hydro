@@ -7,9 +7,12 @@ project "Hydro"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
-	-- Runs the "Premake" utility project first, so new/removed source files
-	-- are picked up automatically on build (no need to run Win-GenProjects.bat).
-	dependson { "Premake" }
+	-- Visual Studio: runs the "Premake" utility project first, so new/removed source files are
+	-- picked up automatically on build (no need to run Win-GenProjects.bat). Makefiles and Xcode
+	-- projects are regenerated with scripts/Mac-GenProjects.sh instead.
+	if os.target() == "windows" then
+		dependson { "Premake" }
+	end
 
 	pchheader "hypch.h"
 	pchsource "src/hypch.cpp"
@@ -62,60 +65,49 @@ project "Hydro"
 	{
 		"GLFW",
 		"ImGui",
-		"yaml-cpp",
-
-		"%{Library.Vulkan}",
+		"yaml-cpp"
 	}
 
-	filter "files:vendor/ImGuizmo/**.cpp"
-		flags { "NoPCH" }
-
-	-- Vendored sources compiled into Hydro, including the ImGui backend copies in Platform/Vulkan.
-	filter { "files:vendor/** or src/Hydro/Platform/Vulkan/imgui_impl_*.cpp" }
+	-- Vendored sources compiled into Hydro, including the ImGui backend copies in Platform/.
+	filter { "files:vendor/** or src/Hydro/Platform/**/imgui_impl_*.cpp" }
 		warnings "Off"
+
+	-- One folder per OS under Platform/ (Windows, MacOS, Linux); only the target's own is built.
+	-- Platform/GLFW (window, input) and Platform/Vulkan are shared by all of them.
+	filter "system:not windows"
+		removefiles { "src/Hydro/Platform/Windows/**" }
+
+	filter "system:not macosx"
+		removefiles { "src/Hydro/Platform/MacOS/**" }
+
+	filter "system:not linux"
+		removefiles { "src/Hydro/Platform/Linux/**" }
 
 	filter "system:windows"
 		systemversion "latest"
 
-		defines
+		-- shaderc is used through its C API, so the release DLL is safe with the debug CRT, and only
+		-- shaderc_shared.dll from the installed SDK is needed at runtime (Oxygen copies it).
+		links
 		{
+			"%{Library.Vulkan}",
+			"%{Library.ShaderC_Release}"
 		}
+
+	filter "system:linux"
+		pic "On"
 
 	filter "configurations:Debug"
 		defines "HY_DEBUG"
 		runtime "Debug"
 		symbols "on"
 
-		links
-		{
-			-- shaderc is used through its C API, so the release DLL is safe with the debug CRT.
-			-- The debug shaderc build comes from a separate (older) SDK download; avoiding it means
-			-- only shaderc_shared.dll from the installed SDK is needed at runtime.
-			"%{Library.ShaderC_Release}",
-			"%{Library.SPIRV_Cross_Debug}",
-			"%{Library.SPIRV_Cross_GLSL_Debug}"
-		}
-
 	filter "configurations:Release"
 		defines "HY_RELEASE"
 		runtime "Release"
 		optimize "on"
 
-		links
-		{
-			"%{Library.ShaderC_Release}",
-			"%{Library.SPIRV_Cross_Release}",
-			"%{Library.SPIRV_Cross_GLSL_Release}"
-		}
-
 	filter "configurations:Dist"
 		defines "HY_DIST"
 		runtime "Release"
 		optimize "on"
-
-		links
-		{
-			"%{Library.ShaderC_Release}",
-			"%{Library.SPIRV_Cross_Release}",
-			"%{Library.SPIRV_Cross_GLSL_Release}"
-		}

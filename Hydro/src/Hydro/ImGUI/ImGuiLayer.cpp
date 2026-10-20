@@ -18,7 +18,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include "Hydro/Platform/Vulkan/imgui_impl_glfw.h"
+#include "Hydro/Platform/GLFW/imgui_impl_glfw.h"
 #include "Hydro/Platform/Vulkan/imgui_impl_vulkan.h"
 
 namespace Hydro

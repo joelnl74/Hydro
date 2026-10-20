@@ -1,8 +1,14 @@
 #version 450
 
-// Must match Renderer2D's MaxTextureSlots (= VulkanDescriptorBuilder::MaxImageArraySize).
-// Slot 0 is always a 1x1 white texture, so untextured quads are drawn with their colour alone.
-layout(binding = 1) uniform sampler2D inTextures[32];
+// Renderer2D compiles this shader with HY_TEXTURE_SLOTS = its texture slots per draw: 32, or 16 on
+// a GPU that allows fewer than 32 samplers per stage (some macOS Metal drivers). Built on its own
+// (glslc at build time) it uses 32. Slot 0 is always a 1x1 white texture, so untextured quads are
+// drawn with their colour alone.
+#ifndef HY_TEXTURE_SLOTS
+#define HY_TEXTURE_SLOTS 32
+#endif
+
+layout(binding = 1) uniform sampler2D inTextures[HY_TEXTURE_SLOTS];
 
 layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
@@ -37,6 +43,7 @@ vec4 SampleTexture(int index, vec2 uv)
 		case 13: return textureGrad(inTextures[13], uv, dx, dy);
 		case 14: return textureGrad(inTextures[14], uv, dx, dy);
 		case 15: return textureGrad(inTextures[15], uv, dx, dy);
+#if HY_TEXTURE_SLOTS > 16
 		case 16: return textureGrad(inTextures[16], uv, dx, dy);
 		case 17: return textureGrad(inTextures[17], uv, dx, dy);
 		case 18: return textureGrad(inTextures[18], uv, dx, dy);
@@ -53,6 +60,7 @@ vec4 SampleTexture(int index, vec2 uv)
 		case 29: return textureGrad(inTextures[29], uv, dx, dy);
 		case 30: return textureGrad(inTextures[30], uv, dx, dy);
 		case 31: return textureGrad(inTextures[31], uv, dx, dy);
+#endif
 	}
 
 	return textureGrad(inTextures[0], uv, dx, dy);

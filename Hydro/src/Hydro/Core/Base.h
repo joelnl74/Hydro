@@ -7,6 +7,8 @@
 #ifdef HY_DEBUG
 #if defined(HY_PLATFORM_WINDOWS)
 #define HY_DEBUGBREAK() __debugbreak()
+#elif defined(HY_PLATFORM_MACOS)
+#define HY_DEBUGBREAK() __builtin_debugtrap()
 #elif defined(HY_PLATFORM_LINUX)
 #include <signal.h>
 #define HY_DEBUGBREAK() raise(SIGTRAP)

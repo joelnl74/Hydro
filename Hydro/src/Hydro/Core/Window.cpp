@@ -1,18 +1,13 @@
 #include "hypch.h"
 #include "Window.h"
 
-#ifdef HY_PLATFORM_WINDOWS
-#include "Hydro/Platform/Windows/WindowsWindow.h"
-#endif
+#include "Hydro/Platform/GLFW/GlfwWindow.h"
 
 namespace Hydro
 {
 	Scope<Window> Window::Create()
 	{
-#ifdef HY_PLATFORM_WINDOWS
-		return CreateScope<WindowsWindow>();
-#else
-		return nullptr;
-#endif
+		// Every desktop platform (Windows, macOS, Linux) uses the GLFW window.
+		return CreateScope<GlfwWindow>();
 	}
 }

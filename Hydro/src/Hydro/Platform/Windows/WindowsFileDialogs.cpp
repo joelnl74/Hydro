@@ -1,4 +1,3 @@
-#pragma once
 #include "hypch.h"
 #include "Hydro/Utils/PlatformUtils.h"
 #include "Hydro/Core/Application.h"

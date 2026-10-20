@@ -10,6 +10,7 @@ namespace Hydro
 		UUID();
 		UUID(uint64_t uuid);
 		UUID(const UUID&) = default;
+		UUID& operator=(const UUID&) = default;
 
 		operator uint64_t() const { return m_UUID; }
 	private:

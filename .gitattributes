@@ -35,3 +35,6 @@
 *.dll    binary
 *.lib    binary
 *.exe    binary
+
+# Shell scripts run on macOS and Linux: always LF.
+*.sh     text eol=lf

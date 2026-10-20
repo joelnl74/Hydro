@@ -1,10 +1,30 @@
 
--- Hydro Dependencies
+-- Hydro dependencies: include directories and libraries for every platform.
+--
+-- The Vulkan SDK comes from the VULKAN_SDK environment variable on every platform:
+--   Windows  C:\VulkanSDK\<version>          (set by the installer; Include, Lib, Bin)
+--   macOS    ~/VulkanSDK/<version>/macOS     (set by `source ~/VulkanSDK/<version>/setup-env.sh`; include, lib, bin)
+--   Linux    <sdk>/x86_64 or /usr            (include, lib, bin)
+-- See docs/Architecture.md, "Platforms", and the Getting started page.
 VULKAN_SDK = os.getenv("VULKAN_SDK")
+if VULKAN_SDK == nil or VULKAN_SDK == "" then
+	if os.target() == "linux" and os.isfile("/usr/include/vulkan/vulkan.h") then
+		VULKAN_SDK = "/usr"
+	else
+		error("VULKAN_SDK is not set. Install the Vulkan SDK (macOS: run `source ~/VulkanSDK/<version>/setup-env.sh` first).")
+	end
+end
+
+-- The Windows SDK capitalises its folders; the macOS and Linux SDKs don't.
+local sdkInclude = os.target() == "windows" and "Include" or "include"
+local sdkLib = os.target() == "windows" and "Lib" or "lib"
+local sdkBin = os.target() == "windows" and "Bin" or "bin"
+VULKAN_SDK_BIN = VULKAN_SDK .. "/" .. sdkBin
 
 IncludeDir = {}
-IncludeDir["GLFW"] = "%{wks.location}/Hydro/vendor/GLFW/include"
-IncludeDir["ImGui"] = "%{wks.location}/Hydro/vendor/ImGui"
+-- Folder names match the submodules exactly (lower case): macOS and Linux file systems can be case-sensitive.
+IncludeDir["GLFW"] = "%{wks.location}/Hydro/vendor/glfw/include"
+IncludeDir["ImGui"] = "%{wks.location}/Hydro/vendor/imgui"
 IncludeDir["glm"] = "%{wks.location}/Hydro/vendor/glm"
 IncludeDir["yaml_cpp"] = "%{wks.location}/Hydro/vendor/yaml-cpp/include"
 IncludeDir["VMA"] = "%{wks.location}/Hydro/vendor/VulkanMemoryAllocator"
@@ -12,7 +32,7 @@ IncludeDir["entt"] = "%{wks.location}/Hydro/vendor/entt"
 IncludeDir["spdlog"] = "%{wks.location}/Hydro/vendor/spdlog/include"
 IncludeDir["stb"] = "%{wks.location}/Hydro/vendor/stb/include"
 IncludeDir["tinyobjloader"] = "%{wks.location}/Hydro/vendor/Obj-loader"
-IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
+IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/" .. sdkInclude
 
 -- Vendored include directories: searched like includedirs, but the compiler reports no warnings
 -- from headers inside them. Premake 5.0.0-beta2 and newer have externalincludedirs/externalwarnings;
@@ -52,17 +72,48 @@ function FatalWarningsIfEnabled()
 end
 
 LibraryDir = {}
-LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
+LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/" .. sdkLib
 
+-- Windows: import libraries from the SDK. Hydro links them (MSVC puts them into Hydro.lib).
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
-Library["VulkanUtils"] = "%{LibraryDir.VulkanSDK}/VkLayer_utils.lib"
-
-Library["ShaderC_Debug"] = "%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib"
-Library["SPIRV_Cross_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib"
-Library["SPIRV_Cross_GLSL_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsld.lib"
-Library["SPIRV_Tools_Debug"] = "%{LibraryDir.VulkanSDK}/SPIRV-Toolsd.lib"
-
 Library["ShaderC_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_shared.lib"
-Library["SPIRV_Cross_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-core.lib"
-Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.lib"
+
+-- macOS and Linux: a static library doesn't carry its link dependencies (and premake's Makefiles
+-- don't pass Hydro's GLFW / ImGui / yaml-cpp on, unlike Visual Studio), so every application that
+-- links Hydro (Oxygen, later the Runtime) calls this in its project, after links { "Hydro" }.
+--   GLFW, ImGui, yaml-cpp  Hydro's vendored libraries, after Hydro so the linker resolves them
+--   Vulkan  the loader (libvulkan); on macOS it finds the Metal driver (MoltenVK or KosmicKrisp)
+--           through the SDK's ICD files, see setup-env.sh
+--   shaderc static (libshaderc_combined.a) when the SDK has it, otherwise the shared library,
+--           found at run time through the rpath below
+function LinkHydroDependencies()
+	filter "system:macosx or linux"
+		links { "GLFW", "ImGui", "yaml-cpp" }
+		libdirs { "%{LibraryDir.VulkanSDK}" }
+		-- The Vulkan loader and shaderc are found next to the SDK at run time, without DYLD_/LD_LIBRARY_PATH.
+		linkoptions { "-Wl,-rpath," .. VULKAN_SDK .. "/" .. sdkLib }
+
+	filter "system:macosx"
+		links
+		{
+			"vulkan",
+			os.isfile(VULKAN_SDK .. "/lib/libshaderc_combined.a") and "shaderc_combined" or "shaderc_shared",
+			-- GLFW (Cocoa) needs these.
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreFoundation.framework",
+			"QuartzCore.framework"
+		}
+
+	filter "system:linux"
+		links
+		{
+			"vulkan",
+			os.isfile(VULKAN_SDK .. "/lib/libshaderc_combined.a") and "shaderc_combined" or "shaderc_shared",
+			"pthread",
+			"dl"
+		}
+
+	filter {}
+end

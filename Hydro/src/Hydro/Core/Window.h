@@ -24,6 +24,7 @@ namespace Hydro
 
 		virtual void OnUpdate() = 0;
 
+		// Framebuffer size in pixels (larger than the window's size in points on a Retina display).
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
 

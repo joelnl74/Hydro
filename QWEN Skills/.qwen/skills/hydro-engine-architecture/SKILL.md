@@ -79,7 +79,7 @@ Layers release what `OnAttach` created in `OnDetach`, not in their destructor (s
 
 - Never `...System` (reserved for ECS). Not `Service`, `Handler`, `Helper`, `Controller`, `Module`.
 - `Renderer` stays `Renderer` (a doer, not `RenderEngine`). `LayerController` was renamed `LayerStack`. The full verdict list is in `docs/Subsystems.md` "Names we checked"; add a row when you name or rename something.
-- Platform implementations: `<Platform><Name>` (`WindowsWindow`, `VulkanRendererContext`). Per-scene counterparts: `Scene...`/`...Scene` (`SceneRenderer`, `SceneCamera`, a future `PhysicsScene`).
+- Platform implementations: `<Platform><Name>` (`GlfwWindow`, `VulkanRendererContext`; per-OS files in `Platform/<OS>/` named `<OS><Name>`, e.g. `MacOSFileDialogs.cpp`). Per-scene counterparts: `Scene...`/`...Scene` (`SceneRenderer`, `SceneCamera`, a future `PhysicsScene`).
 - Planned positions: `JobScheduler` after `Time`; `AssetManager` after `Renderer`; `AudioEngine`, `ScriptEngine` after `AssetManager`; `PhysicsEngine` after `ScriptEngine`; all before the client's `OnInit`.
 - Renaming a file: update every include and delete the old file in the same change. Don't leave forwarding stubs; if you can't delete a file yourself, list it under Known gaps and tell the user to delete it.
 

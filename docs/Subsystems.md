@@ -101,14 +101,14 @@ A subsystem is named after the job it does, as a noun, with the suffix chosen by
 And:
 
 - **Never `System`** (reserved for ECS systems). Not `Service`, `Handler`, `Helper`, `Controller` or `Module` either: they say nothing about the job.
-- **Platform implementations** are `<Platform><Name>`: `WindowsWindow`, `VulkanRendererContext`, `VulkanAllocator`. Engine code talks to the platform-free name.
+- **Platform implementations** are `<Platform><Name>`: `GlfwWindow`, `VulkanRendererContext`, `VulkanAllocator`; per-OS files `<OS><Name>` (`MacOSFileDialogs.cpp`). Engine code talks to the platform-free name.
 - **Configuration** follows [Resource creation](ResourceCreation.md#naming): `<Name>Specification` passed to `Init` (`WindowSpecification`, `ApplicationSpecification`) and fixed for the subsystem's lifetime; `<Name>Settings` for live options changed while running through `Get<...>Settings` / `Set<...>Settings` (`RendererSettings`); `<Name>Config` only for what is saved to disk (`ProjectConfig`, which holds a `RendererSettings`).
 - **Capabilities** a subsystem discovers at `Init` (what the hardware supports) are `<Name>Capabilities` (`RendererCapabilities`), read-only.
 - **Per-scene counterparts** of a subsystem take the `Scene` prefix or suffix (`SceneRenderer` submits one scene to the `Renderer`; a future `PhysicsScene` would be one scene's world inside the `PhysicsEngine`). They are owned by a layer or scene, not by `Application`.
 
 ### Names we checked
 
-Every current name was checked against the table. Only one changed:
+Every current name was checked against the table. Two changed:
 
 | Name | Verdict | Why |
 | --- | --- | --- |
@@ -124,6 +124,7 @@ Every current name was checked against the table. Only one changed:
 | `Texture2D` | New, a resource (Oct 20, 2026) | A texture sprites are drawn with, made from `ImageSpecification` + `TextureProperties`; `LoadFromFile` shares textures by file until the `AssetManager` takes that over. Named for what it is, like `RenderView` |
 | `AssetHandle` | Planned, a value | A `UUID` naming an asset in the project's asset registry; components will hold one instead of a `Ref<Texture2D>` |
 | `RenderView` | New, a resource | One picture of a scene (target + camera + quads) that `Renderer2D` draws into; not a subsystem or part, the application creates as many as it shows |
+| `GlfwWindow` | **Renamed from `WindowsWindow`** (Oct 20, 2026) | It is GLFW's window on every desktop OS, not a Windows one; `Glfw` rather than `GLFW` so it doesn't read like GLFW's own `GLFWwindow` type |
 | `Camera`, `SceneCamera`, `EditorCamera` | New, not subsystems | `Camera` is a projection value (and where clip-space conventions live); `SceneCamera` is the per-scene camera data held by `CameraComponent` (`Scene...` prefix); `EditorCamera` is an editor tool the application owns |
 
 ### Current and planned subsystems
@@ -133,7 +134,7 @@ Every current name was checked against the table. Only one changed:
 | Logging | `Log` (engine + client loggers, terminal, `logs/*.log`, in-memory history for the editor Console) | Done | 1 |
 | Frame clock and timings | `Time` | Done | 2 |
 | Events | `EventDispatcher` | Done | 3 |
-| Window and OS input | `Window` (`WindowsWindow`) | Done | 4 |
+| Window and OS input | `Window` (`GlfwWindow`, every desktop OS) | Done | 4 |
 | Input queries | `Input` | Stateless today, no lifecycle. Becomes a subsystem (after `Window`) when it gains state such as gamepads or action maps | after 4 |
 | Rendering | `Renderer` (parts: `Renderer2D`, `Renderer3D`, `Vulkan*`) | Done | 5 |
 | Jobs / threads | `JobScheduler` | Planned | after 2: others may submit jobs from their `Init` |
@@ -154,4 +155,3 @@ Every current name was checked against the table. Only one changed:
 
 - `VulkanDevice` creates the logical device in its constructor, and `VulkanSwapChain` uses its constructor plus `Create` instead of `Init`. Move them to `Init` when you touch them.
 - `Core/DeltaTime.h` is unused since `Time` exists. Delete it.
-- `Core/LayerController.h` / `.cpp` are forwarding stubs left by the rename to `LayerStack`. Delete them.

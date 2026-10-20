@@ -16,3 +16,11 @@ bin-int/
 Hazel/vendor/VulkanSDK
 Hazelnut/assets/cache
 scripts/__pycache__
+
+# premake gmake / xcode4 output (macOS, Linux)
+Makefile
+*.make
+*.xcodeproj/
+*.xcworkspace/
+.DS_Store
+compile_commands.json

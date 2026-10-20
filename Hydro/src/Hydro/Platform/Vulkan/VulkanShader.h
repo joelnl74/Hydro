@@ -28,6 +28,8 @@ namespace Hydro
 	struct ShaderSpecification
 	{
 		std::vector<ShaderInformation> shaderInformation;
+		// Preprocessor macros for GLSL stages ("HY_TEXTURE_SLOTS" -> "16"), as if #defined before line 1.
+		std::map<std::string, std::string> Defines;
 	};
 
 	// Owns one VkShaderModule per stage. Throws std::runtime_error (with the compiler's

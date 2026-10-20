@@ -12,7 +12,7 @@ project "Oxygen"
 		"src/**.h",
 		"src/**.cpp",
 
-		-- GLSL sources, compiled to SPIR-V by Visual Studio as part of the build (see filter below).
+		-- GLSL sources, compiled to SPIR-V with glslc as part of the build (see the filters below).
 		"assets/shaders/**.vert",
 		"assets/shaders/**.frag",
 		"assets/shaders/**.comp",
@@ -53,50 +53,50 @@ project "Oxygen"
 		"Hydro"
 	}
 
-	-- Shader compilation: each shader is a custom build item, so it is only
-	-- recompiled when its source changes. Output: <name>.<stage>.spv next to the source,
-	-- e.g. assets/shaders/vertex.vert -> assets/shaders/vertex.vert.spv
+	-- macOS / Linux: the Vulkan loader, shaderc and the system libraries Hydro needs (Dependencies.lua).
+	LinkHydroDependencies()
+
+	-- Run from Oxygen/, where assets/ is (Visual Studio and Xcode; scripts/Run.sh does the same).
+	debugdir "%{prj.location}"
+
+	-- Shader compilation: each shader is a custom build item, so it is only recompiled when its source
+	-- changes, and a syntax error fails the build. Output: <name>.<stage>.spv next to the source, e.g.
+	-- assets/shaders/vertex.vert -> assets/shaders/vertex.vert.spv (not used at runtime yet: Hydro
+	-- compiles the GLSL itself with shaderc).
 	filter "files:assets/shaders/**.vert or assets/shaders/**.frag or assets/shaders/**.comp or assets/shaders/**.geom or assets/shaders/**.tesc or assets/shaders/**.tese"
 		buildmessage "Compiling shader %{file.relpath}"
-		buildcommands
-		{
-			'"$(VULKAN_SDK)\\Bin\\glslc.exe" "%{file.relpath}" -o "%{file.relpath}.spv"'
-		}
 		buildoutputs { "%{file.relpath}.spv" }
 
-	-- Hydro compiles GLSL at runtime with shaderc: put its DLL next to the executable.
-	filter {}
-	postbuildcommands
-	{
-		'copy /B /Y "$(VULKAN_SDK)\\Bin\\shaderc_shared.dll" "$(OutDir)" > nul'
-	}
+	filter { "system:windows", "files:assets/shaders/**.vert or assets/shaders/**.frag or assets/shaders/**.comp or assets/shaders/**.geom or assets/shaders/**.tesc or assets/shaders/**.tese" }
+		buildcommands { '"$(VULKAN_SDK)\\Bin\\glslc.exe" "%{file.relpath}" -o "%{file.relpath}.spv"' }
 
+	filter { "system:macosx or linux", "files:assets/shaders/**.vert or assets/shaders/**.frag or assets/shaders/**.comp or assets/shaders/**.geom or assets/shaders/**.tesc or assets/shaders/**.tese" }
+		buildcommands { '"' .. VULKAN_SDK_BIN .. '/glslc" "%{file.relpath}" -o "%{file.relpath}.spv"' }
+
+	-- Windows: Hydro compiles GLSL at runtime with shaderc, so its DLL goes next to the executable.
+	-- (macOS and Linux link shaderc statically or find it through the rpath.)
 	filter "system:windows"
 		systemversion "latest"
+		postbuildcommands
+		{
+			'copy /B /Y "$(VULKAN_SDK)\\Bin\\shaderc_shared.dll" "$(OutDir)" > nul'
+		}
+
+	-- Linux links position-independent executables by default; the static libraries are -fPIC too.
+	filter "system:linux"
+		pic "On"
 
 	filter "configurations:Debug"
 		defines "HY_DEBUG"
 		runtime "Debug"
 		symbols "on"
 
-		postbuildcommands 
-		{
-		}
-
 	filter "configurations:Release"
 		defines "HY_RELEASE"
 		runtime "Release"
 		optimize "on"
 
-		postbuildcommands 
-		{
-		}
-
 	filter "configurations:Dist"
 		defines "HY_DIST"
 		runtime "Release"
 		optimize "on"
-
-		postbuildcommands 
-		{
-		}

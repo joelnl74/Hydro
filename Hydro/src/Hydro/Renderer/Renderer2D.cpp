@@ -38,9 +38,12 @@ namespace Hydro
 		alignas(16) glm::mat4 mvp;
 	};
 
-	// Textures one draw call can sample. The quad shader declares `sampler2D inTextures[32]` and the
-	// descriptor set's image array has VulkanDescriptorBuilder::MaxImageArraySize elements; all three agree.
+	// Most textures one draw call can sample. The slots actually used (Renderer2DData::TextureSlots)
+	// are 32, or 16 on a GPU that allows fewer than 32 samplers per shader stage (Vulkan guarantees 16;
+	// some Metal drivers on macOS stop there). The quad shader gets the same number as HY_TEXTURE_SLOTS
+	// and sizes `inTextures[]` and its switch with it; the descriptor set's image array matches.
 	static constexpr uint32_t MaxTextureSlots = VulkanDescriptorBuilder::MaxImageArraySize;
+	static constexpr uint32_t MinTextureSlots = 16;
 	static_assert(MaxTextureSlots == 32, "Change inTextures[] and SampleTexture in fragment.frag too");
 
 	// One GPU vertex buffer per frame in flight. While frame N is still being read by
@@ -118,6 +121,8 @@ namespace Hydro
 		glm::vec4 QuadVertexPositions[4];
 
 		Scope<VulkanShader> Shader;
+		// Texture slots per draw on this GPU: MaxTextureSlots or MinTextureSlots (see above).
+		uint32_t TextureSlots = MaxTextureSlots;
 		// Shader hot reload: the shader's source files, checked every ShaderPollInterval.
 		FileWatcher ShaderWatcher;
 		std::chrono::steady_clock::time_point NextShaderPoll{};
@@ -170,7 +175,7 @@ namespace Hydro
 		Scope<VulkanDescriptorBuilder> descriptorSet = CreateScope<VulkanDescriptorBuilder>();
 		descriptorSet->Begin();
 		descriptorSet->BindBuffer(0, uniformBuffer, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
-		descriptorSet->BindImage(1, white.ImageView, white.Sampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+		descriptorSet->BindImage(1, white.ImageView, white.Sampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, s_Data->TextureSlots);
 		descriptorSet->Build();
 		return descriptorSet;
 	}
@@ -180,8 +185,9 @@ namespace Hydro
 	{
 		const VulkanImageInfo& white = GetImageInfo(*s_Data->WhiteTexture);
 
+		const uint32_t slotCount = s_Data->TextureSlots;
 		std::array<VkDescriptorImageInfo, MaxTextureSlots> images{};
-		for (uint32_t i = 0; i < MaxTextureSlots; i++)
+		for (uint32_t i = 0; i < slotCount; i++)
 		{
 			const VulkanImageInfo& image = (i < set.SlotCount && set.Slots[i] != nullptr) ? GetImageInfo(*set.Slots[i]) : white;
 			images[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -189,13 +195,24 @@ namespace Hydro
 			images[i].sampler = image.Sampler;
 		}
 
-		set.DescriptorSet->WriteImages(frame, 1, images.data(), MaxTextureSlots, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		set.DescriptorSet->WriteImages(frame, 1, images.data(), slotCount, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 	}
 
 	void Renderer2D::Init()
 	{
 		HY_CORE_ASSERT(s_Data == nullptr, "Renderer2D::Init called twice");
 		s_Data = new Renderer2DData();
+
+		// How many textures one draw can sample on this GPU decides the shader and descriptor layout.
+		{
+			const VkPhysicalDeviceLimits& limits = Renderer::GetVulkanDevice().GetPhysicalDevice().GetProperties().limits;
+			const uint32_t samplerLimit = std::min(limits.maxPerStageDescriptorSamplers, limits.maxPerStageDescriptorSampledImages);
+			s_Data->TextureSlots = samplerLimit >= MaxTextureSlots ? MaxTextureSlots : MinTextureSlots;
+			if (s_Data->TextureSlots < MaxTextureSlots)
+			{
+				HY_CORE_WARN("Renderer2D: the GPU allows {} textures per shader stage, so a draw uses {} texture slots instead of {}", samplerLimit, s_Data->TextureSlots, MaxTextureSlots);
+			}
+		}
 
 		// Created first: the pipeline is built against this render pass (see PipelineRenderPass).
 		s_Data->PipelineRenderPass = CreateScope<VulkanRenderPass>(1, 1);
@@ -217,6 +234,7 @@ namespace Hydro
 			vertexInformation,
 			fragmentInformation,
 		};
+		shaderSpecification.Defines["HY_TEXTURE_SLOTS"] = std::to_string(s_Data->TextureSlots);
 
 		// Counter-clockwise starting bottom-left, matching the texture coords in SubmitQuad.
 		s_Data->QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
@@ -288,14 +306,6 @@ namespace Hydro
 			VulkanDevice& device = Renderer::GetVulkanDevice();
 			const VkPhysicalDeviceProperties& properties = device.GetPhysicalDevice().GetProperties();
 			memcpy(s_Data->GPUName, properties.deviceName, sizeof(s_Data->GPUName));
-
-			// The texture array is a fixed size in the shader. Vulkan guarantees only 16 samplers per
-			// stage, but every desktop GPU has far more; say so clearly if this one doesn't.
-			const uint32_t samplerLimit = std::min(properties.limits.maxPerStageDescriptorSamplers, properties.limits.maxPerStageDescriptorSampledImages);
-			if (samplerLimit < MaxTextureSlots)
-			{
-				HY_CORE_ERROR("Renderer2D: the GPU allows {} textures per shader stage, the quad shader needs {}", samplerLimit, MaxTextureSlots);
-			}
 
 			if (properties.limits.timestampComputeAndGraphics)
 			{
@@ -513,7 +523,7 @@ namespace Hydro
 			}
 		}
 
-		if (set->SlotCount == MaxTextureSlots)
+		if (set->SlotCount == s_Data->TextureSlots)
 		{
 			NextTextureSet(view);
 			set = &view.TextureSets[view.TextureSetIndex];
@@ -698,7 +708,7 @@ namespace Hydro
 		s_Data->Stats.GPUMemoryUsed = memory.Used;
 		s_Data->Stats.GPUMemoryFree = memory.Free;
 		s_Data->Stats.MaxQuadsPerBatch = Renderer2DData::MaxQuads;
-		s_Data->Stats.MaxTextureSlots = MaxTextureSlots;
+		s_Data->Stats.MaxTextureSlots = s_Data->TextureSlots;
 		s_Data->Stats.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
 		s_Data->Stats.FrameIndex = frame;
 		s_Data->Stats.GPUTimeMs = s_Data->LastGPUTimeMs;
@@ -814,7 +824,7 @@ namespace Hydro
 
 	uint32_t Renderer2D::GetMaxTextureSlots()
 	{
-		return MaxTextureSlots;
+		return s_Data != nullptr ? s_Data->TextureSlots : MaxTextureSlots;
 	}
 
 	static void WriteImGuiTexture(VkDescriptorSet set, VkImageView view, VkSampler sampler)

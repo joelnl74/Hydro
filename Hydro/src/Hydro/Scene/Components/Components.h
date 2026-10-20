@@ -35,6 +35,7 @@ namespace Hydro
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
+		SpriteRendererComponent& operator=(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {
 		}
@@ -45,7 +46,8 @@ namespace Hydro
 		std::string Tag;
 
 		TagComponent() = default;
-		TagComponent(const TagComponent& other) = default;
+		TagComponent(const TagComponent&) = default;
+		TagComponent& operator=(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
 			: Tag(tag) {
 		}
@@ -60,6 +62,7 @@ namespace Hydro
 
 		IDComponent() = default;
 		IDComponent(const IDComponent&) = default;
+		IDComponent& operator=(const IDComponent&) = default;
 		IDComponent(const UUID& id)
 			: Id(id) {
 		}
@@ -73,6 +76,7 @@ namespace Hydro
 
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
+		TransformComponent& operator=(const TransformComponent&) = default;
 		TransformComponent(const glm::vec3& translation)
 			: Translation(translation) {
 		}
@@ -103,6 +107,7 @@ namespace Hydro
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
+		CameraComponent& operator=(const CameraComponent&) = default;
 	};
 
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent

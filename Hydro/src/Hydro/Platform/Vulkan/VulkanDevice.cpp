@@ -37,7 +37,16 @@ namespace Hydro
 		m_WideLinesEnabled = m_PhysicalDevice->GetFeatures().wideLines == VK_TRUE;
 		deviceFeatures.wideLines = m_WideLinesEnabled ? VK_TRUE : VK_FALSE;
 
-		const std::vector<const char*>& deviceExtensions = VulkanPhysicalDevice::GetRequiredExtensions();
+		std::vector<const char*> deviceExtensions = VulkanPhysicalDevice::GetRequiredExtensions();
+
+		// A portability driver (MoltenVK or KosmicKrisp on macOS) reports VK_KHR_portability_subset, and
+		// the spec requires enabling it when it is offered. The name is spelled out because the macro is
+		// in vulkan_beta.h.
+		if (m_PhysicalDevice->SupportsExtension("VK_KHR_portability_subset"))
+		{
+			deviceExtensions.push_back("VK_KHR_portability_subset");
+			HY_CORE_INFO("Portability driver: VK_KHR_portability_subset enabled");
+		}
 
 		VkDeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

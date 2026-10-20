@@ -50,7 +50,25 @@ namespace Hydro
 		vkGetPhysicalDeviceFeatures(m_PhysicalDevice, &m_Features);
 		m_QueueFamilyIndices = FindQueueFamilies(m_PhysicalDevice, surface);
 
+		uint32_t extensionCount = 0;
+		vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extensionCount, nullptr);
+		m_Extensions.resize(extensionCount);
+		vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extensionCount, m_Extensions.data());
+
 		HY_CORE_INFO("Physical device selected: {0}", m_Properties.deviceName);
+	}
+
+	bool VulkanPhysicalDevice::SupportsExtension(const char* name) const
+	{
+		for (const VkExtensionProperties& extension : m_Extensions)
+		{
+			if (strcmp(extension.extensionName, name) == 0)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	int VulkanPhysicalDevice::ScoreDevice(VkPhysicalDevice device, VkSurfaceKHR surface)

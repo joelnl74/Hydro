@@ -1,5 +1,4 @@
 #pragma once
-#define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 
 #include "Hydro/Platform/Vulkan/VulkanDevice.h"
@@ -36,8 +35,9 @@ namespace Hydro
 		void SetupDebugMessenger();
 		void DestroyDebugMessenger();
 
-		// Validation layers.
+		// Validation layers and instance extensions.
 		static bool CheckValidationLayerSupport();
+		static bool HasInstanceExtension(const char* name);
 
 	private:
 		VkInstance m_Instance = VK_NULL_HANDLE;

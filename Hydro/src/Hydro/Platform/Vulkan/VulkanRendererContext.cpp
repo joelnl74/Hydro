@@ -22,7 +22,7 @@ namespace Hydro
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData)
+		[[maybe_unused]] void* pUserData)
 	{
 		if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 		{
@@ -111,8 +111,20 @@ namespace Hydro
 			}
 		}
 
+		// macOS: Vulkan runs on Metal through a portability driver (MoltenVK or KosmicKrisp), which the
+		// loader only lists when the instance asks for portability devices. Harmless elsewhere.
+		const bool portabilityEnumeration = HasInstanceExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+		if (portabilityEnumeration)
+		{
+			instanceExtensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+		}
+
 		VkInstanceCreateInfo instanceCreateInfo{};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		if (portabilityEnumeration)
+		{
+			instanceCreateInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+		}
 		instanceCreateInfo.pApplicationInfo = &appInfo;
 		instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
@@ -191,6 +203,25 @@ namespace Hydro
 		}
 
 		m_DebugMessenger = VK_NULL_HANDLE;
+	}
+
+	bool VulkanRendererContext::HasInstanceExtension(const char* name)
+	{
+		uint32_t extensionCount = 0;
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+		std::vector<VkExtensionProperties> extensions(extensionCount);
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+
+		for (const VkExtensionProperties& extension : extensions)
+		{
+			if (strcmp(extension.extensionName, name) == 0)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	bool VulkanRendererContext::CheckValidationLayerSupport()

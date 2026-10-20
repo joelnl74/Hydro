@@ -9,6 +9,8 @@ Read this first, then:
 - [Scene, ECS and systems](SceneAndECS.md) — how scenes, entities, components and systems fit together.
 - [Subsystems](Subsystems.md) — startup and shutdown order, the lifecycle rules, and how engine services are named.
 
+It builds on Windows and macOS (see [Platforms](#platforms)).
+
 ## Projects
 
 | Project | Kind | What it is |
@@ -35,6 +37,32 @@ Hydro::Application* Hydro::CreateApplication()
 }
 ```
 
+## Platforms
+
+| Platform | Status | Project files | Build | Vulkan driver |
+| --- | --- | --- | --- | --- |
+| Windows x64 | Supported | `scripts/Win-GenProjects.bat` → Visual Studio 2022 (`Hydro.sln`) | Visual Studio (MSVC) | The GPU vendor's |
+| macOS, Apple Silicon | Supported (see Known gaps) | `scripts/Mac-GenProjects.sh` → Makefiles; `--xcode` adds an Xcode project | `scripts/Build.sh`, run with `scripts/Run.sh` (Apple Clang) | MoltenVK or KosmicKrisp from the Vulkan SDK (Vulkan on Metal) |
+| Linux x64 | Builds and runs, for checks only; not a supported target | `scripts/Linux-GenProjects.sh` → Makefiles | `scripts/Build.sh`, `scripts/Run.sh` (GCC) | Any (Mesa, SwiftShader) |
+
+Setup is `scripts/Setup.bat` on Windows and `scripts/Setup.sh` on macOS and Linux: both run `Setup.py`, which checks Python, downloads premake for the host, checks the Vulkan SDK, updates the submodules and generates the project files. Step-by-step instructions are in the README.
+
+**Where platform code lives.** Only `Platform/` knows which OS it runs on:
+
+- `Platform/GLFW`: the window (`GlfwWindow`), input and ImGui's GLFW backend, shared by every desktop platform. GLFW picks Win32, Cocoa or X11.
+- `Platform/Vulkan`: the renderer backend, the same on every platform.
+- `Platform/Windows`, `Platform/MacOS`, `Platform/Linux`: what GLFW doesn't cover, today the file dialogs (`FileDialogs`: Win32 dialogs, AppleScript `choose file` (the system's open and save panels), zenity). premake builds only the target's folder; files there are named `<OS><Name>` (`MacOSFileDialogs.cpp`).
+- `Core/PlatformDetection.h` defines `HY_PLATFORM_WINDOWS`, `HY_PLATFORM_MACOS` or `HY_PLATFORM_LINUX`. Code outside `Platform/` shouldn't need them (`HY_DEBUGBREAK` in `Core/Base.h` is the exception).
+
+**Build files.** `premake5.lua` sets the architecture per OS (x86_64; ARM64 on macOS) and includes `Hydro/vendor/GLFW.lua` and `Hydro/vendor/ImGui.lua` (the GLFW and ImGui projects live in the repository, not in the submodules, so the per-OS file lists can change). `Dependencies.lua` finds the Vulkan SDK through `VULKAN_SDK` on every platform (`Include`/`Lib`/`Bin` on Windows, `include`/`lib`/`bin` elsewhere). On Windows, `Hydro` links `vulkan-1.lib` and `shaderc_shared.lib` and Oxygen copies `shaderc_shared.dll` next to itself. On macOS and Linux a static library doesn't carry its link dependencies, so each application calls `LinkHydroDependencies()`: the Vulkan loader, shaderc (static `shaderc_combined` when the SDK has it), the GLFW frameworks on macOS (Cocoa, IOKit, CoreFoundation, QuartzCore) and an rpath to the SDK's `lib` folder, so no `DYLD_LIBRARY_PATH` is needed.
+
+**macOS specifics.**
+
+- Vulkan runs on Metal through a portability driver. The instance enables `VK_KHR_portability_enumeration` with `VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR` when the loader offers it (the loader hides portability drivers otherwise), and the device enables `VK_KHR_portability_subset` when the GPU offers it, as the spec requires (`VulkanRendererContext`, `VulkanDevice`). Neither does anything on Windows.
+- `source ~/VulkanSDK/<version>/setup-env.sh` sets `VULKAN_SDK` and tells the loader where the driver is; generate, build and run from a terminal where it has run (or put it in `~/.zshrc`).
+- Window sizes are framebuffer pixels: `Window::GetWidth()` and the resize event come from GLFW's framebuffer size, which on a Retina display is twice the window size in points.
+- Metal has no wide lines (`RendererCapabilities::WideLines` is false), and some drivers allow fewer than 32 samplers per shader stage, so `Renderer2D` may use 16 texture slots (see [Textures and batching](#textures-and-batching)).
+
 ## Startup and shutdown
 
 Everything is started and stopped explicitly; constructors and destructors do no engine work. `main` calls `Init` → `Run` → `Shutdown` on the application, and the application starts its **subsystems** in a fixed order and stops them in exactly the reverse order:
@@ -57,7 +85,8 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 | --- | --- | --- |
 | `Core` | Application, `LayerStack` and layers, window interface, logging (`Log`, which also keeps the last 5000 messages in memory for `Log::GetMessagesSince`; Oxygen's **Console** window shows them), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
 | `Events` | Event types and the dispatcher | Core |
-| `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
+| `Platform/GLFW` | Window (`GlfwWindow`), input, ImGui's GLFW backend: every desktop platform | Core, Events |
+| `Platform/Windows`, `Platform/MacOS`, `Platform/Linux` | Per-OS code GLFW doesn't cover: file dialogs (`FileDialogs`). Only the target's folder is built | Core |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core; `Renderer.h` for the device (`Renderer::GetVulkanDevice()`), the deletion queue and the frame index |
 | `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `RenderView`, `Texture2D`, `SceneRenderer`, `Camera`, `SceneCamera`, `EditorCamera`, `Image.h`) | Core, Platform/Vulkan |
 | `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission, and `Texture2D` for sprites). Until the asset system, `EntitySerializer` also loads sprite textures and reads `Project` for the asset folder (see [Planned: asset system](#planned-asset-system)) |
@@ -132,8 +161,8 @@ Renderer2D::EndScene();
 A view's quads are recorded as a list of **draws** (one `vkCmdDrawIndexed` each), in submission order:
 
 - **Batches** hold vertices: up to 20,000 quads per vertex buffer (one per frame in flight). When one is full the next is used, allocated the first time a frame needs it.
-- **Texture sets** hold up to 32 textures (`Renderer2D::GetMaxTextureSlots()`; slot 0 is a 1×1 white texture made in code, so untextured quads need no file) and set 0's descriptor sets (camera + texture array, one per frame in flight). `DrawQuad` looks the texture up in the current set and adds it to a free slot.
-- A new draw starts when the batch is full or when a quad needs a 33rd texture (a **texture flush**: the next set is used, with fresh slots). A flush costs one more draw call, not a new vertex buffer, and earlier draws are recorded first, so draw order is kept. There is no limit on quads or textures per frame. Batches and sets are reused every frame; nothing is allocated once a scene has been drawn.
+- **Texture sets** hold up to 32 textures (`Renderer2D::GetMaxTextureSlots()`; slot 0 is a 1×1 white texture made in code, so untextured quads need no file). On a GPU that allows fewer than 32 samplers per shader stage (Vulkan guarantees 16; some Metal drivers stop there) `Renderer2D::Init` uses 16 slots instead and logs a warning: the quad shader is compiled with `HY_TEXTURE_SLOTS` set to the slot count, and the descriptor array has the same size and set 0's descriptor sets (camera + texture array, one per frame in flight). `DrawQuad` looks the texture up in the current set and adds it to a free slot.
+- A new draw starts when the batch is full or when a quad needs one texture more than the slots (a **texture flush**: the next set is used, with fresh slots). A flush costs one more draw call, not a new vertex buffer, and earlier draws are recorded first, so draw order is kept. There is no limit on quads or textures per frame. Batches and sets are reused every frame; nothing is allocated once a scene has been drawn.
 - `RecordView` writes each used set's texture array into that frame's descriptor set before the pass (the frame's fence has signalled, so the GPU is done with it), uploads the batches, then binds vertex buffer and descriptor set only when they change between draws.
 - **Lifetime.** A texture set holds `Ref`s to its textures only while the frame is being built. When the last `Ref` goes, the texture's `VulkanImage` hands its handles to the deletion queue, which frees them after the frames in flight that may sample it. So dropping a texture mid-frame (changing a sprite's texture, deleting an entity) is safe without `Renderer::WaitIdle`.
 - The quad shader picks the texture with a `switch` over constant indices (`textureGrad` with derivatives taken before it), because indexing the sampler array with a per-quad value needs descriptor indexing, which the device doesn't enable. `texIndex` is `flat`. The vertex colour multiplies the texture, alpha included.
@@ -195,11 +224,11 @@ Rules that follow from this:
 
 ## Shaders
 
-Shaders live as GLSL in the application's `assets/shaders` folder and are referenced by their source path (`assets/shaders/vertex.vert`). `VulkanShader` compiles them with shaderc when it is created, so there is no separate compile step to run. The quad shader's `sampler2D inTextures[32]` and its `switch` must match `Renderer2D`'s texture slot count (`VulkanDescriptorBuilder::MaxImageArraySize`, checked by a `static_assert`).
+Shaders live as GLSL in the application's `assets/shaders` folder and are referenced by their source path (`assets/shaders/vertex.vert`). `VulkanShader` compiles them with shaderc when it is created, so there is no separate compile step to run. `ShaderSpecification::Defines` passes preprocessor macros to the GLSL stages: `Renderer2D` sets `HY_TEXTURE_SLOTS` (32 or 16), which sizes the quad shader's `sampler2D inTextures[]` and its `switch` (cases 16–31 are under `#if HY_TEXTURE_SLOTS > 16`). The largest array is `VulkanDescriptorBuilder::MaxImageArraySize` (32, checked by a `static_assert`).
 
-- **Build-time check.** Oxygen's project also runs `glslc` on every shader as a Visual Studio build step, so syntax errors show up in the Error List. The `.spv` files it writes are not used at runtime yet; they are there for shipping precompiled shaders later.
+- **Build-time check.** Oxygen's project also runs `glslc` from the Vulkan SDK on every shader as a build step (Visual Studio, Makefiles and Xcode), so syntax errors fail the build. The `.spv` files it writes are not used at runtime yet; they are there for shipping precompiled shaders later.
 - **Hot reload.** `RendererSettings::ShaderHotReload` (on by default, off in Dist; toggle it in **Render Settings**). `Renderer2D` watches its shader's sources and `#include`d files with a `FileWatcher` (polled every 250 ms). On a change it compiles a new `VulkanShader` and `VulkanPipeline` from the old specifications and swaps them in; the old pipeline is freed through the deletion queue, so nothing waits for the GPU. If compilation fails, the error is logged and the old shader keeps drawing.
-- **Runtime dependency.** shaderc is a DLL: Oxygen's post-build step copies `shaderc_shared.dll` from `$(VULKAN_SDK)\Bin` next to the executable. Debug builds link the release shaderc library on purpose (it is only used through its C API).
+- **Runtime dependency.** On Windows shaderc is a DLL: Oxygen's post-build step copies `shaderc_shared.dll` from `$(VULKAN_SDK)\Bin` next to the executable, and Debug builds link the release shaderc library on purpose (it is only used through its C API). On macOS and Linux shaderc is linked statically when the SDK has `libshaderc_combined.a`, otherwise found through the rpath.
 
 ## Code conventions
 
@@ -237,8 +266,9 @@ The repository root has the files that keep code consistent; Visual Studio reads
 | --- | --- |
 | `.clang-format` | Tabs (4 wide), Allman braces, indented `namespace Hydro`, `public:` at class level, `Type* name`, no column limit (lines aren't rewrapped), sorted includes. Format the file you're editing with Ctrl+K, Ctrl+D; don't reformat the whole repository in a commit that also changes behaviour. Needs clang-format 17 or newer (Visual Studio 2022 17.8+). `Hydro/vendor` and `vendor` have a `.clang-format` that turns formatting off |
 | `.editorconfig` | UTF-8, CRLF, tabs (4), final newline, no trailing whitespace. YAML and the files Hydro writes as YAML (`.hyscene`, `.hyprefab`, `.hyproj`) use 2 spaces. Vendored code is left alone |
-| `.gitattributes` | Text files are stored as LF and checked out as CRLF; images, fonts and `.spv` are binary. After adding it once: `git add --renormalize .` |
-| Compiler warnings | `Hydro` and `Oxygen` build at `/W4` (premake `warnings "Extra"`). Vendored headers are listed with `ExternalIncludeDirs { ... }` (`Dependencies.lua`): on the include path, and marked external with warnings off (`externalincludedirs` on premake 5.0.0-beta2+, `/external:I` + `/external:W0` on the bundled beta1). Vendored sources (including the `imgui_impl_*` copies in `Platform/Vulkan`) compile with warnings off. `FatalWarnings` in the root `premake5.lua` turns on `/WX`: set it to `true` once a Debug build has no warnings |
+| `.gitattributes` | Text files are stored as LF and checked out as CRLF, except shell scripts (`*.sh`, always LF so they run on macOS and Linux); images, fonts and `.spv` are binary. After adding it once: `git add --renormalize .` |
+| Compiler warnings | `Hydro` and `Oxygen` build at `/W4` (premake `warnings "Extra"`). Vendored headers are listed with `ExternalIncludeDirs { ... }` (`Dependencies.lua`): on the include path, and marked external with warnings off (`externalincludedirs` on premake 5.0.0-beta2+, `/external:I` + `/external:W0` on the bundled beta1). Vendored sources (including the `imgui_impl_*` copies in `Platform/GLFW` and `Platform/Vulkan`) compile with warnings off. `FatalWarnings` in the root `premake5.lua` turns on `/WX`: set it to `true` once a Debug build has no warnings |
+| `scripts/` | Per platform: `Setup.bat` / `Setup.sh` (first setup), `Win-GenProjects.bat`, `Mac-GenProjects.sh`, `Linux-GenProjects.sh` (project files), `Build.sh` and `Run.sh` (macOS and Linux). `check.sh` is a quick syntax check without a build (Linux) |
 
 Planned: a test project and a GitHub Actions build (Roadmap A2).
 
@@ -286,9 +316,10 @@ These are where the code does not yet match the rules above. Fix them when you t
 - `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h` (A7).
 - `Renderer2D` loads its shaders from the application's `assets/` folder (A8).
 - Sprites reference textures directly (`Ref<Texture2D>`) and scenes save the file path; `EntitySerializer` loads textures and reads `Project` for the asset folder. A texture file that is missing when a scene loads is logged and the sprite draws untextured; saving the scene then drops the reference. Sampling options (`TextureProperties`) aren't saved per texture yet (always linear + repeat). All of this moves to the asset system ([Planned: asset system](#planned-asset-system)).
-- The 32 texture slots are fixed (shader array size). `Renderer2D::Init` logs an error if the GPU allows fewer samplers per stage (Vulkan guarantees 16; desktop GPUs have far more).
+- Texture slots are 32 or 16 (shader array size, chosen at `Renderer2D::Init`); a GPU with fewer than 16 samplers per stage isn't possible in Vulkan, but bindless textures (Roadmap RA3) would remove the limit and the `switch`.
 - Textures load synchronously on the main thread (stb_image decode + one upload that waits for the GPU).
 - `LayerStack` owns layers through raw pointers (A9); some members and spec fields don't follow the naming rules (A10).
 - Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s quad shader is watched; there is no shader library yet.
-- `Platform/Vulkan/VulkanCommandBuffer.h` and `.cpp` are empty since one-off uploads moved to `VulkanDevice::SubmitImmediate` (Oct 20, 2026); delete them and regenerate the projects.
+- **macOS.** The Makefile build is verified by building and running the same scripts on Linux (SwiftShader); the first build and run on a Mac is still to be done. The Xcode project (`Mac-GenProjects.sh --xcode`) is generated but untested. Text is rasterised at 1x on Retina displays (slightly soft): the vendored ImGui (1.89 WIP) has no `ImFontConfig::RasterizerDensity`. File dialogs go through AppleScript, so their filters show extensions, not the description. There is no app bundle (`.app`) yet: Oxygen is run from a terminal with `scripts/Run.sh`.
+- **Linux** is not a supported target: it builds and runs for checks. File dialogs need `zenity`.
 - `VulkanDevice` and `VulkanSwapChain` still do their setup in the constructor (+ `Create`) instead of `Init` (see [Subsystems](Subsystems.md#known-gaps)).

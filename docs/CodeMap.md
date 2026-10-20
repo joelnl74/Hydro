@@ -19,7 +19,8 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Core/UUID.*`, `Core/FileWatcher.*` | 64-bit IDs; file change polling (shader hot reload) |
 | `Events/*` | Event types, `EventDispatcher` subsystem |
 | `ImGUI/ImGuiLayer.*` | ImGui init/shutdown, fonts (`ImGuiLayerSpecification`), present-pass callback |
-| `Platform/Windows/*` | `WindowsWindow` (GLFW), `WindowsInput`, `WindowsUtilities` (`FileDialogs`) |
+| `Platform/GLFW/*` | `GlfwWindow` (every desktop OS; sizes in framebuffer pixels), `GlfwInput` (`Input`), ImGui's GLFW backend (`imgui_impl_glfw.*`, vendored) |
+| `Platform/Windows/WindowsFileDialogs.cpp`, `Platform/MacOS/MacOSFileDialogs.cpp`, `Platform/Linux/LinuxFileDialogs.cpp` | `FileDialogs` per OS (Win32, AppleScript, zenity); premake builds only the target's folder |
 | **Renderer** (engine-facing, no Vulkan types in new headers) | |
 | `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
 | `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`), `RendererCapabilities` |
@@ -31,14 +32,14 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/Camera.*`, `SceneCamera.h`, `EditorCamera.*` | Projections (`*_ZO`, Y flip), per-scene camera data, editor orbit camera + `EditorCameraSettings` |
 | `Renderer/Renderer3D.*` | Placeholder part for the 3D path (R9): `Init` / `Shutdown` only |
 | **Platform/Vulkan** (backend; applications never include these) | |
-| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance, surface, device (reached with `Renderer::GetVulkanDevice()`), queues, enabled features, `SubmitImmediate` for one-off uploads |
+| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance (portability enumeration for macOS), surface, device (reached with `Renderer::GetVulkanDevice()`; portability subset when offered), queues, enabled features, `SubmitImmediate` for one-off uploads |
 | `VulkanSwapChain.*`, `VulkanFrameContext.*` | Swapchain + present pass; per-frame command buffer, fence, semaphores (`MAX_FRAMES_IN_FLIGHT = 2`) |
 | `VulkanAllocator.*` | VMA wrapper, GPU memory stats |
 | `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |
 | `VulkanTexture2DData.h` | Backend half of `Texture2D` (`GetTexture2DData`) |
 | `VulkanRenderPass.*` | Offscreen colour target, one image + framebuffer per frame in flight, `Resize` |
 | `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned); `BindDescriptorSet` |
-| `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
+| `VulkanShader.*` | shaderc compile from GLSL, `#include`, `Defines` (macros), source list for hot reload |
 | `VulkanDescriptorBuilder.*` | Layout + pool + one set per frame; `BindBuffer`/`BindImage`/`WriteImages` |
 | `VulkanVertexBuffer.*`, `VulkanIndexBuffer.*`, `VulkanUniformBuffer.*` | Buffers; vertex layout types live in `VulkanVertexBuffer.h` |
 | `VulkanUtils.h` | `VK_CHECK_RESULT` |
@@ -51,7 +52,8 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Scene/SceneSerializer.*`, `PrefabSerializer.*` | `.hyscene` / `.hyprefab` files |
 | **Project, Utils** | |
 | `Project/Project.*`, `ProjectSerializer.*` | Active project, `ProjectConfig` (`.hyproj`) |
-| `Utils/YAMLConversions.*`, `Utils/PlatformUtils.h` | glm ↔ YAML; `FileDialogs` |
+| `Utils/YAMLConversions.*`, `Utils/PlatformUtils.*` | glm ↔ YAML; `FileDialogs` interface and its filter parsing (the dialogs are in `Platform/<OS>`) |
+| `Core/PlatformDetection.h` | `HY_PLATFORM_WINDOWS` / `HY_PLATFORM_MACOS` / `HY_PLATFORM_LINUX` |
 | `Hydro.h` | What applications include |
 
 ## Editor: `Oxygen/src`
@@ -71,10 +73,23 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `EditorWindows/EditorStyle.*`, `Utilities/EditorChrome.*` | Themes from one accent colour; droplet, waterline, icon buttons, play tint |
 | `Utilities/AssetDragDrop.h` | Drag & drop payload (file path) |
 | `Scripts/ExampleScripts.h` | `SpinScript`, `BobScript` |
-| `assets/shaders/vertex.vert`, `fragment.frag` | The quad shader (`inTextures[32]` must match `Renderer2D`) |
+| `assets/shaders/vertex.vert`, `fragment.frag` | The quad shader (`inTextures[HY_TEXTURE_SLOTS]`, 32 or 16, set by `Renderer2D`) |
 | `project/` | The Sandbox project Oxygen opens at startup |
 
-Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*`, `Oxygen/src/EditorWindows/ContentWindow.h`. Also `Platform/Vulkan/VullkanTexture.*`, `VulkanBuffer.*` and `VulkanRenderCommandBuffer.*`: emptied on Oct 20, 2026, the files themselves still need deleting.
+Dead files (delete when convenient): `Core/DeltaTime.h`, `Oxygen/src/EditorWindows/ContentWindow.h`.
+
+## Build files and scripts
+
+| File | Owns / does |
+| --- | --- |
+| `premake5.lua` | Workspace, configurations, architecture per OS (ARM64 on macOS), includes every project |
+| `Dependencies.lua` | Include dirs and libraries per OS (Vulkan SDK from `VULKAN_SDK`), `ExternalIncludeDirs`, `LinkHydroDependencies()` for applications on macOS/Linux |
+| `Hydro/premake5.lua`, `Oxygen/premake5.lua` | The engine and editor projects; per-OS filters (`Platform/<OS>` folders, links, shader build step, shaderc DLL copy on Windows) |
+| `Hydro/vendor/GLFW.lua`, `Hydro/vendor/ImGui.lua`, `Hydro/vendor/yaml-cpp/premake5.lua` | Vendored library projects (GLFW and ImGui are submodules, so their projects live next to them) |
+| `scripts/Setup.bat`, `scripts/Setup.sh` → `Setup.py` | First setup (Windows / macOS + Linux): premake download, Vulkan SDK check, submodules, project files |
+| `scripts/Win-GenProjects.bat`, `Mac-GenProjects.sh`, `Linux-GenProjects.sh` | Regenerate project files (Visual Studio; Makefiles and optionally Xcode; Makefiles) |
+| `scripts/Build.sh`, `scripts/Run.sh` | macOS/Linux: build a configuration with make; run Oxygen from `Oxygen/` |
+| `scripts/check.sh`, `scripts/regen_wiki.py` | Syntax and shader check without a build; mirror `docs/` to the wiki |
 
 ## Recipes: which files a change touches
 
@@ -91,6 +106,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | 2D drawing / batching | `Renderer2D.*`, shaders in `Oxygen/assets/shaders`, `RendererStatsWindow.cpp` for new stats |
 | Textures | `Texture2D.*`, `VulkanImage.*`, `VulkanTexture2DData.h`; sprites: `SceneRenderer.cpp`, `EntitySerializer.cpp`, `InspectorWindow.cpp` |
 | Docs | Edit `docs/`, then `python scripts/regen_wiki.py`; wiki-only pages (Components, Roadmap, Known-Issues) by hand |
+| OS-specific code | `Platform/<OS>/<OS><Name>.cpp` for each OS (Windows, MacOS, Linux) behind a platform-free interface; shared desktop code in `Platform/GLFW`; per-OS build settings in the `filter "system:..."` blocks of the premake files; `docs/Architecture.md#platforms` |
 
 ## Gotchas
 
@@ -102,4 +118,6 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 
 ## Checking without Windows
 
-`scripts/check.sh [files...]`: g++ `-fsyntax-only -Wall -Wextra` over the engine and editor sources (Windows-only files skipped) and glslang over the shaders. Linux/WSL; downloads Vulkan-Headers, shaderc headers and builds glslang once into `/tmp/hydro-check`. Not a substitute for an MSVC `/W4` build.
+`scripts/check.sh [files...]`: g++ `-fsyntax-only -Wall -Wextra` over the engine and editor sources (`Platform/Windows` skipped) and glslang over the shaders. Linux/WSL; downloads Vulkan-Headers, shaderc headers and builds glslang once into `/tmp/hydro-check`. Not a substitute for an MSVC `/W4` build.
+
+A real build on macOS or Linux: `scripts/Mac-GenProjects.sh` (or `Linux-GenProjects.sh`), then `scripts/Build.sh` and `scripts/Run.sh` (see [Platforms](Architecture.md#platforms)).

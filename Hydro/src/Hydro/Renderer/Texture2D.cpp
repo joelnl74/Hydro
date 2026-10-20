@@ -9,6 +9,12 @@
 	#pragma warning(push, 0)
 #endif
 #define STB_IMAGE_IMPLEMENTATION
+// GCC rejects this stb_image version's SSE2 byte shifts ("the last argument must be an 8-bit
+// immediate"). The SIMD path only speeds up JPEG decoding; MSVC keeps it, and Apple Silicon has
+// none anyway (stb's NEON path is opt-in).
+#if defined(__GNUC__) && !defined(__clang__)
+#define STBI_NO_SIMD
+#endif
 #include <stb_image.h>
 #if defined(_MSC_VER)
 	#pragma warning(pop)

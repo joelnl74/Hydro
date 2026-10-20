@@ -2,12 +2,14 @@
 # Quick checks that don't need Windows, MSVC or a GPU (for Linux, WSL or a CI/agent container):
 #   1. syntax check of engine and editor sources with g++ -fsyntax-only -Wall -Wextra
 #   2. compile every shader in Oxygen/assets/shaders to SPIR-V with glslang
-# It is not a build: nothing links and Windows-only files are skipped. MSVC /W4 stays the real check.
+# It is not a build: nothing links and Windows-only files are skipped. MSVC /W4 stays the real check
+# on Windows; on macOS and Linux, scripts/Build.sh is a real build.
 #
 # Usage:
 #   scripts/check.sh                 # all sources + shaders
 #   scripts/check.sh <file.cpp>...   # only these sources (+ shaders)
 #   scripts/check.sh --shaders       # only shaders
+#   CXX=clang++ scripts/check.sh     # with Clang (closest to Apple Clang on macOS)
 #
 # Needs: git, g++ (C++17), cmake + a C++ compiler for glslang (built once).
 # Downloads (once, into $HYDRO_CHECK_CACHE, default /tmp/hydro-check): Vulkan-Headers, shaderc
@@ -72,13 +74,12 @@ if [ "${1:-}" = "--shaders" ]; then
 fi
 
 # ---- Sources ------------------------------------------------------------------
-# The engine refuses to compile on Linux (PlatformDetection.h #error), so check a copy of the
-# sources with that one line turned into a define. The copy is refreshed every run.
+# Checked in place: Linux builds (HY_PLATFORM_LINUX), so the macOS and Linux platform files are
+# checked too; only Platform/Windows is skipped. For a real build and run, see scripts/Build.sh.
 SRC="$CACHE/src"
 rm -rf "$SRC"; mkdir -p "$SRC"
-cp -r "$ROOT/Hydro/src" "$SRC/Hydro"
-cp -r "$ROOT/Oxygen/src" "$SRC/Oxygen"
-sed -i 's/#error "Linux is not supported!"/#define HY_PLATFORM_LINUX/' "$SRC/Hydro/Hydro/Core/PlatformDetection.h"
+ln -s "$ROOT/Hydro/src" "$SRC/Hydro"
+ln -s "$ROOT/Oxygen/src" "$SRC/Oxygen"
 
 V="$ROOT/Hydro/vendor"
 COMMON=(-std=c++17 -fsyntax-only -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFINE -DGLFW_INCLUDE_NONE
@@ -117,7 +118,7 @@ check_one() {
 		*) echo "skip  $rel (not under Hydro/src or Oxygen/src)"; return 0 ;;
 	esac
 	# shellcheck disable=SC2086
-	local out; out="$(g++ $flags "$copy" 2>&1 | grep -E 'error|warning' | grep -v '/vendor/\|Vulkan-Headers' || true)"
+	local out; out="$(${CXX:-g++} $flags "$copy" 2>&1 | grep -E 'error|warning' | grep -v '/vendor/\|Vulkan-Headers' || true)"
 	if [ -z "$out" ]; then echo "ok    $rel"; else echo "FAIL  $rel"; echo "$out" | sed "s|$SRC/Hydro/|Hydro/src/|; s|$SRC/Oxygen/|Oxygen/src/|; s/^/      /" | head -20; fi
 }
 export -f check_one
