@@ -25,7 +25,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`), `RendererCapabilities` |
 | `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; also implements `RenderView` |
 | `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches) |
-| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `LoadFromFile` (shared by file) |
+| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `LoadFromFile` (shared by file); compiles stb_image's implementation (`STB_IMAGE_IMPLEMENTATION`) for the engine |
 | `Renderer/Image.h` | `ImageSpecification`, `TextureProperties`, image/texture enums |
 | `Renderer/SceneRenderer.*` | Submits a `Scene`'s sprites through the editor camera or the primary camera |
 | `Renderer/Camera.*`, `SceneCamera.h`, `EditorCamera.*` | Projections (`*_ZO`, Y flip), per-scene camera data, editor orbit camera + `EditorCameraSettings` |
