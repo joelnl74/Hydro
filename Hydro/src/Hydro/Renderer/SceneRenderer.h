@@ -4,6 +4,9 @@
 #include "Hydro/Renderer/EditorCamera.h"
 #include "Hydro/Renderer/RenderView.h"
 
+#include <cstdint>
+#include <vector>
+
 namespace Hydro
 {
 	// Submits a scene to Renderer2D (render submission, step 4 of the frame order), into a RenderView
@@ -26,9 +29,21 @@ namespace Hydro
 		bool RenderRuntime(RenderView& view);
 
 	private:
+		// Sorts the scene's sprites (SpriteRendererComponent::SortOrder, then Z, then storage order)
+		// and submits them back to front.
 		void SubmitSprites();
 
 	private:
+		struct SpriteDrawItem
+		{
+			int32_t SortOrder = 0;
+			float Z = 0.0f;
+			uint32_t Index = 0; // storage order, so equal keys keep a stable order
+			entt::entity Entity = entt::null;
+		};
+
 		Ref<Scene> m_Scene;
+		// Reused every frame (capacity kept), so sorting allocates nothing once the scene is drawn.
+		std::vector<SpriteDrawItem> m_SpriteQueue;
 	};
 }

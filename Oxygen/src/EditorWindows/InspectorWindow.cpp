@@ -289,6 +289,18 @@ namespace Hydro
 			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##Color", glm::value_ptr(sprite.Color)); });
 			DrawPropertyRow("Texture", [&]() { DrawTextureField(sprite); });
 			DrawPropertyRow("Tiling", [&]() { InputFloatField("##Tiling", sprite.TilingFactor, "%.2f", 0.0f, 100.0f); });
+			DrawPropertyRow("Sort Order", [&]()
+			{
+				int sortOrder = (int)sprite.SortOrder;
+				if (ImGui::InputInt("##SortOrder", &sortOrder))
+				{
+					sprite.SortOrder = (int32_t)sortOrder;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Higher values are drawn on top. Equal values: lower Z first.");
+				}
+			});
 		});
 
 		DrawComponent<CameraComponent>("Camera", entity, removeCamera, [&](CameraComponent& cameraComponent)

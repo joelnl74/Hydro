@@ -61,10 +61,17 @@ namespace Hydro
 		void DrawThumbnail(const AssetItem& item, const glm::vec2& min, float size, bool hovered, bool selected);
 		void DrawItemTooltip(const AssetItem& item);
 		void DrawDeletePopup();
+		// "New Folder" and "Rename" both ask for a name in this popup.
+		void DrawFolderNamePopup();
 
 		void ActivateItem(const AssetItem& item, const Ref<Scene>& scene);
 		void InstantiatePrefab(const std::filesystem::path& path, const Ref<Scene>& scene);
-		void CreateFolder();
+		// Opens the name popup to create a folder in the current folder, or to rename `folder`.
+		void BeginCreateFolder();
+		void BeginRenameFolder(const std::filesystem::path& folder);
+		// Empty when `name` is a valid new folder name in `parent`, otherwise why it isn't.
+		// `ignore` is the folder being renamed (keeping its own name is allowed).
+		static std::string ValidateFolderName(const std::string& name, const std::filesystem::path& parent, const std::filesystem::path& ignore);
 
 		const PrefabPreview& GetPrefabPreview(const std::filesystem::path& path);
 		static AssetType GetAssetType(const std::filesystem::path& path);
@@ -79,6 +86,11 @@ namespace Hydro
 		std::unordered_map<std::string, PrefabPreview> m_PrefabPreviews;
 
 		bool m_RequestDeletePopup = false;
+
+		// Folder name popup: create a folder (m_RenamePath empty) or rename m_RenamePath.
+		std::filesystem::path m_RenamePath;
+		char m_FolderNameBuffer[256] = {};
+		bool m_RequestFolderNamePopup = false;
 		bool m_NeedsRescan = true;
 		double m_LastScanTime = 0.0;
 		float m_ThumbnailSize = 88.0f;

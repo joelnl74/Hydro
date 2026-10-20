@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <cstdint>
 #include <iostream>
 #include <string>
 
@@ -28,6 +29,9 @@ namespace Hydro
 		// TODO(assets): becomes an AssetHandle once the AssetManager exists (Roadmap "Asset system").
 		Ref<Texture2D> Texture;
 		float TilingFactor = 1.0f;
+		// Draw order: sprites are drawn from low to high SortOrder, so higher values end up on top.
+		// Equal values: lower Translation.z first, then the order the scene stores them in.
+		int32_t SortOrder = 0;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstdio>
 #include <system_error>
 
 namespace Hydro
@@ -67,6 +68,7 @@ namespace Hydro
 		ImGui::Separator();
 		DrawGrid(scene);
 		DrawDeletePopup();
+		DrawFolderNamePopup();
 
 		ImGui::End();
 
@@ -225,10 +227,20 @@ namespace Hydro
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsAnyItemHovered() == false)
 			m_SelectedPath.clear();
 
+		// F2 renames the selected folder.
+		std::error_code ec;
+		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_F2, false) &&
+			m_SelectedPath.empty() == false && std::filesystem::is_directory(m_SelectedPath, ec))
+		{
+			BeginRenameFolder(m_SelectedPath);
+		}
+
 		if (ImGui::BeginPopupContextWindow("##ProjectContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
-			if (ImGui::MenuItem("New Folder"))
-				m_DeferredActions.push_back([this]() { CreateFolder(); });
+			if (ImGui::MenuItem("New Folder..."))
+			{
+				BeginCreateFolder();
+			}
 			if (ImGui::MenuItem("Refresh"))
 				m_NeedsRescan = true;
 
@@ -288,6 +300,10 @@ namespace Hydro
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
 			if (item.Type == AssetType::Folder && ImGui::MenuItem("Open Folder"))
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
+			if (item.Type == AssetType::Folder && ImGui::MenuItem("Rename...", "F2"))
+			{
+				BeginRenameFolder(item.Path);
+			}
 
 			ImGui::Separator();
 			if (ImGui::MenuItem("Delete..."))
@@ -539,19 +555,146 @@ namespace Hydro
 			OnEntityCreated(entity);
 	}
 
-	void ProjectWindow::CreateFolder()
+	void ProjectWindow::BeginCreateFolder()
 	{
+		// Suggest a name that doesn't exist yet; the user can type over it.
 		std::error_code ec;
-		std::filesystem::path path = m_CurrentDirectory / "New Folder";
-		for (int i = 2; std::filesystem::exists(path, ec); i++)
-			path = m_CurrentDirectory / ("New Folder " + std::to_string(i));
+		std::string name = "New Folder";
+		for (int i = 2; std::filesystem::exists(m_CurrentDirectory / std::filesystem::u8path(name), ec); i++)
+		{
+			name = "New Folder " + std::to_string(i);
+		}
 
-		if (std::filesystem::create_directory(path, ec))
-			m_SelectedPath = path;
-		else
-			HY_ERROR("Could not create folder {}: {}", path.u8string(), ec.message());
+		m_RenamePath.clear();
+		std::snprintf(m_FolderNameBuffer, sizeof(m_FolderNameBuffer), "%s", name.c_str());
+		m_RequestFolderNamePopup = true;
+	}
 
-		m_NeedsRescan = true;
+	void ProjectWindow::BeginRenameFolder(const std::filesystem::path& folder)
+	{
+		m_RenamePath = folder;
+		std::snprintf(m_FolderNameBuffer, sizeof(m_FolderNameBuffer), "%s", folder.filename().u8string().c_str());
+		m_RequestFolderNamePopup = true;
+	}
+
+	std::string ProjectWindow::ValidateFolderName(const std::string& name, const std::filesystem::path& parent, const std::filesystem::path& ignore)
+	{
+		if (name.empty())
+		{
+			return "Enter a name.";
+		}
+		if (name == "." || name == "..")
+		{
+			return "That name is reserved.";
+		}
+		if (name.front() == ' ' || name.back() == ' ' || name.back() == '.')
+		{
+			return "Names can't start or end with a space, or end with a dot.";
+		}
+		for (char c : name)
+		{
+			if (c == '<' || c == '>' || c == ':' || c == '"' || c == '/' || c == '\\' || c == '|' || c == '?' || c == '*' || (unsigned char)c < 32)
+			{
+				return "Names can't contain < > : \" / \\ | ? *";
+			}
+		}
+
+		// Windows file names aren't case sensitive, so "textures" clashes with "Textures".
+		const std::filesystem::path target = parent / std::filesystem::u8path(name);
+		std::error_code ec;
+		if (std::filesystem::exists(target, ec) && (ignore.empty() || std::filesystem::equivalent(target, ignore, ec) == false))
+		{
+			return "Something with that name already exists here.";
+		}
+
+		return {};
+	}
+
+	void ProjectWindow::DrawFolderNamePopup()
+	{
+		const char* popupId = "Folder Name";
+		if (m_RequestFolderNamePopup)
+		{
+			ImGui::OpenPopup(popupId);
+			m_RequestFolderNamePopup = false;
+		}
+
+		if (ImGui::BeginPopupModal(popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			const bool renaming = m_RenamePath.empty() == false;
+			const std::filesystem::path parent = renaming ? m_RenamePath.parent_path() : m_CurrentDirectory;
+
+			ImGui::TextUnformatted(renaming ? "Rename folder" : "New folder");
+
+			// Focus the field (with its text selected) when the popup opens.
+			if (ImGui::IsWindowAppearing())
+			{
+				ImGui::SetKeyboardFocusHere();
+			}
+			ImGui::SetNextItemWidth(300.0f);
+			const bool entered = ImGui::InputText("##FolderName", m_FolderNameBuffer, sizeof(m_FolderNameBuffer),
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+
+			const std::string name = m_FolderNameBuffer;
+			const std::string problem = ValidateFolderName(name, parent, m_RenamePath);
+			if (problem.empty() == false)
+			{
+				ImGui::TextColored({ 0.9f, 0.6f, 0.3f, 1.0f }, "%s", problem.c_str());
+			}
+			else if (renaming)
+			{
+				// TODO(assets): references by path don't follow a rename until the asset registry exists.
+				ImGui::TextDisabled("Scenes that use files in this folder by path (textures, start scene) won't follow.");
+			}
+
+			ImGui::Spacing();
+			ImGui::BeginDisabled(problem.empty() == false);
+			const bool confirm = ImGui::Button(renaming ? "Rename" : "Create", { 120.0f, 0.0f }) || (entered && problem.empty());
+			ImGui::EndDisabled();
+
+			ImGui::SameLine();
+			const bool cancel = ImGui::Button("Cancel", { 120.0f, 0.0f }) || ImGui::IsKeyPressed(ImGuiKey_Escape, false);
+
+			if (confirm && problem.empty())
+			{
+				const std::filesystem::path target = parent / std::filesystem::u8path(name);
+				std::error_code ec;
+				if (renaming)
+				{
+					std::filesystem::rename(m_RenamePath, target, ec);
+				}
+				else
+				{
+					std::filesystem::create_directory(target, ec);
+				}
+
+				if (ec)
+				{
+					HY_ERROR("Could not {} folder {}: {}", renaming ? "rename" : "create", target.u8string(), ec.message());
+				}
+				else
+				{
+					// Keep the browser where it was: follow the folder if we were inside it.
+					const std::filesystem::path relative = m_CurrentDirectory.lexically_relative(m_RenamePath);
+					if (renaming && relative.empty() == false && *relative.begin() != "..")
+					{
+						m_CurrentDirectory = (target / relative).lexically_normal();
+					}
+					m_SelectedPath = target;
+				}
+
+				m_RenamePath.clear();
+				m_NeedsRescan = true;
+				ImGui::CloseCurrentPopup();
+			}
+			else if (cancel)
+			{
+				m_RenamePath.clear();
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
 	}
 
 	const ProjectWindow::PrefabPreview& ProjectWindow::GetPrefabPreview(const std::filesystem::path& path)

@@ -78,6 +78,7 @@ namespace Hydro
 			out << YAML::BeginMap;
 			out << YAML::Key << "Color" << YAML::Value << sprite.Color;
 			out << YAML::Key << "TilingFactor" << YAML::Value << sprite.TilingFactor;
+			out << YAML::Key << "SortOrder" << YAML::Value << sprite.SortOrder;
 			// Textures made in code have no file and aren't saved.
 			if (sprite.Texture != nullptr && sprite.Texture->GetPath().empty() == false)
 			{
@@ -153,6 +154,7 @@ namespace Hydro
 			auto& sprite = entity.AddComponent<SpriteRendererComponent>();
 			sprite.Color = spriteNode["Color"].as<glm::vec4>(sprite.Color);
 			sprite.TilingFactor = spriteNode["TilingFactor"].as<float>(sprite.TilingFactor);
+			sprite.SortOrder = spriteNode["SortOrder"].as<int32_t>(sprite.SortOrder);
 
 			// A texture that can't be loaded is logged by LoadFromFile; the sprite is drawn untextured.
 			if (auto textureNode = spriteNode["Texture"])
