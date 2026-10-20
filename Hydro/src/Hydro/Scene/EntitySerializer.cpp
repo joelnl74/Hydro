@@ -2,8 +2,47 @@
 #include "EntitySerializer.h"
 #include "ScriptableEntity.h"
 
+#include "Hydro/Project/Project.h"
+#include "Hydro/Renderer/Texture2D.h"
+
+#include <filesystem>
+
 namespace Hydro
 {
+	// TODO(assets): sprites save their texture's file path for now. Once the AssetManager exists they
+	// save an AssetHandle, and these two helpers (and the Project include) go away.
+
+	// Relative to the active project's asset folder when the file is inside it (so projects can move),
+	// otherwise absolute. Forward slashes either way.
+	static std::string ToSavedAssetPath(const std::filesystem::path& path)
+	{
+		if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
+		{
+			std::error_code error;
+			const std::filesystem::path relative = std::filesystem::relative(path, project->GetAssetDirectory(), error);
+			if (error.value() == 0 && relative.empty() == false && *relative.begin() != "..")
+			{
+				return relative.generic_u8string();
+			}
+		}
+
+		return path.generic_u8string();
+	}
+
+	static std::filesystem::path FromSavedAssetPath(const std::string& saved)
+	{
+		std::filesystem::path path = std::filesystem::u8path(saved);
+		if (path.is_relative())
+		{
+			if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
+			{
+				return project->GetAssetDirectory() / path;
+			}
+		}
+
+		return path;
+	}
+
 	void EntitySerializer::Serialize(YAML::Emitter& out, Entity entity)
 	{
 		out << YAML::BeginMap; // Entity
@@ -39,6 +78,11 @@ namespace Hydro
 			out << YAML::BeginMap;
 			out << YAML::Key << "Color" << YAML::Value << sprite.Color;
 			out << YAML::Key << "TilingFactor" << YAML::Value << sprite.TilingFactor;
+			// Textures made in code have no file and aren't saved.
+			if (sprite.Texture != nullptr && sprite.Texture->GetPath().empty() == false)
+			{
+				out << YAML::Key << "Texture" << YAML::Value << ToSavedAssetPath(sprite.Texture->GetPath());
+			}
 			out << YAML::EndMap;
 		}
 
@@ -109,6 +153,16 @@ namespace Hydro
 			auto& sprite = entity.AddComponent<SpriteRendererComponent>();
 			sprite.Color = spriteNode["Color"].as<glm::vec4>(sprite.Color);
 			sprite.TilingFactor = spriteNode["TilingFactor"].as<float>(sprite.TilingFactor);
+
+			// A texture that can't be loaded is logged by LoadFromFile; the sprite is drawn untextured.
+			if (auto textureNode = spriteNode["Texture"])
+			{
+				const std::string savedPath = textureNode.as<std::string>("");
+				if (savedPath.empty() == false)
+				{
+					sprite.Texture = Texture2D::LoadFromFile(FromSavedAssetPath(savedPath));
+				}
+			}
 		}
 
 		if (auto cameraNode = entityNode["CameraComponent"])

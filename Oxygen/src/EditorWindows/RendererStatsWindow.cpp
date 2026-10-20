@@ -44,6 +44,15 @@ namespace Hydro
 			ImGui::EndTable();
 		}
 
+		// ---- Textures ----------------------------------------------------------
+		if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##textures"))
+		{
+			StatsUI::Row("Slots per draw", "%u (slot 0 = white)", stats.MaxTextureSlots);
+			StatsUI::Row("Slots used", "%u", stats.TextureSlotsUsed);
+			StatsUI::Row("Texture flushes", "%u", stats.TextureFlushes);
+			ImGui::EndTable();
+		}
+
 		// ---- GPU ---------------------------------------------------------------
 		if (ImGui::CollapsingHeader("GPU", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##gpu"))
 		{

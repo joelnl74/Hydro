@@ -22,6 +22,7 @@ Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name)
 
 - Public fields with defaults, plus small pure helpers (`TransformComponent::GetTransform()`). No virtual functions, and no update logic.
 - No raw pointers or references to other components or entities. Refer to other entities by `Entity` or `UUID`.
+- A shared engine resource is fine: `SpriteRendererComponent::Texture` is a `Ref<Texture2D>` (copied with the component, so the play copy shares it). It becomes an `AssetHandle` with the asset system ([Architecture](Architecture.md#planned-asset-system)).
 - Don't keep a `T&` from `GetComponent<T>()` across a call that adds or removes components. EnTT moves its storage, so the reference can dangle.
 
 ## Systems are functions
@@ -56,7 +57,7 @@ A scene is updated one of two ways:
 | 1 | Native scripts (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
 | 2 | Engine systems | `Scene::OnUpdateEditor` (also called by `OnUpdateRuntime`) | None yet; transform propagation goes here |
 | 3 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
-| 4 | Sprite submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad` |
+| 4 | Sprite submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling, colour)` |
 | — | GPU | `Renderer::RenderFrame` (application loop) | Records and presents everything submitted |
 
 New engine systems go into `Scene::OnUpdateEditor` when they must also run while editing, or into `Scene::OnUpdateRuntime` (after the scripts) when they are game-only, in a deliberate position. Gameplay systems belong to the application and run after it.
@@ -134,6 +135,7 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - **UUIDs.** Loading a scene keeps the saved UUIDs. Instantiating a prefab gives each copy a new UUID, so copies never clash.
 - **Missing fields keep their defaults**, so older files still load after a component gains a field.
 - Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
+- **Sprite textures** are saved as `Texture: <path>`, relative to the project's asset folder when the file is inside it (otherwise absolute, forward slashes), and loaded with `Texture2D::LoadFromFile`, so sprites using one file share one texture. Textures made in code aren't saved. TODO(assets): saved as an `AssetHandle`; the loader will keep reading `Texture:` paths so old scenes still load.
 
 ## Planned: system context and stages
 
@@ -174,4 +176,5 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 - There is no parent/child hierarchy yet.
 - Systems take loose parameters (`registry`, `deltaTime`) and the order lives in `OnUpdateRuntime` / `OnUpdateEditor` code, not a list (A5).
 - Each component is listed separately in the serializer, `CopyableComponents` and the inspector (A6).
+- Sprite textures are referenced by path until the asset system: `EntitySerializer` loads them and reads `Project` for the asset folder, a texture whose file is missing at load is dropped when the scene is saved again, and sampling options aren't saved (see [Architecture](Architecture.md#planned-asset-system)).
 - `Entity::GetComponent` doesn't assert the component exists and has no `const` overload (E6, A11).

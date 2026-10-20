@@ -18,11 +18,17 @@ namespace Hydro
 		// Creation methods.
 		void Begin();
 		void BindBuffer(uint32_t binding, Ref<VulkanUniformBuffer>& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
-		// Binds an array of MaxImageArraySize images. Every slot is written with `vulkanTexture`,
+		// Binds an array of MaxImageArraySize images. Every slot is written with the given image,
 		// so a shader that indexes any slot always reads a valid descriptor.
-		void BindImage(uint32_t binding, Ref<VullkanTexture> &vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		void BindImage(uint32_t binding, const Ref<VullkanTexture>& vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		bool Build();
 		void Destroy();
+
+		// After Build: rewrites `count` (<= MaxImageArraySize) elements, starting at element 0, of the
+		// image array at `binding` in the set of frame `frameIndex`. Only call it once the GPU is done
+		// with that frame's set (after the frame's fence) and before the set is bound this frame.
+		void WriteImages(uint32_t frameIndex, uint32_t binding, const VkDescriptorImageInfo* images, uint32_t count, VkDescriptorType type);
 
 		// Get methods.
 		VkDescriptorSetLayout& GetDescriptorSetLayout() { return m_DescriptorSetLayout; };

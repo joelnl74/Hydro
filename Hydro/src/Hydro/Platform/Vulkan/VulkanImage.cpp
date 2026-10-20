@@ -10,7 +10,7 @@
 
 namespace Hydro
 {
-	VulkanImage::VulkanImage(const std::string& filePath, ImageSpecification spec)
+	VulkanImage::VulkanImage(const std::string& filePath, ImageSpecification spec, const TextureProperties& properties)
 	{
 		int width = 0, height = 0, channels = 0;
 		stbi_uc* imagePixels = stbi_load(filePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -30,7 +30,23 @@ namespace Hydro
 		UploadPixels(imagePixels, m_vulkanImageInfo.size);
 		stbi_image_free(imagePixels);
 
-		CreateViewAndSampler(VK_IMAGE_ASPECT_COLOR_BIT);
+		CreateViewAndSampler(VK_IMAGE_ASPECT_COLOR_BIT, properties);
+	}
+
+	VulkanImage::VulkanImage(const ImageSpecification& spec, const void* pixels, const TextureProperties& properties)
+	{
+		HY_CORE_ASSERT(spec.Width > 0 && spec.Height > 0, "VulkanImage: a texture needs a size");
+		HY_CORE_ASSERT(spec.Format == ImageFormat::RGBA || spec.Format == ImageFormat::SRGB, "VulkanImage: pixel uploads are RGBA8 (RGBA or SRGB)");
+		HY_CORE_ASSERT(pixels != nullptr, "VulkanImage: no pixels");
+
+		m_width = spec.Width;
+		m_height = spec.Height;
+		m_format = GetImageFormat(spec.Format);
+		m_vulkanImageInfo.size = m_width * m_height * 4;
+
+		CreateImage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+		UploadPixels(pixels, m_vulkanImageInfo.size);
+		CreateViewAndSampler(VK_IMAGE_ASPECT_COLOR_BIT, properties);
 	}
 
 	VulkanImage::VulkanImage(ImageSpecification spec)
@@ -49,7 +65,12 @@ namespace Hydro
 			usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 		CreateImage(usage);
-		CreateViewAndSampler(isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
+
+		// Render targets are shown 1:1 (ImGui::Image), so clamp them.
+		TextureProperties properties;
+		properties.SamplerWrap = TextureWrap::Clamp;
+		properties.SamplerFilter = TextureFilter::Linear;
+		CreateViewAndSampler(isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT, properties);
 	}
 
 	VulkanImage::~VulkanImage()
@@ -90,7 +111,7 @@ namespace Hydro
 		m_vulkanImageInfo.MemoryAlloc = allocator.AllocateImage(imageInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_vulkanImageInfo.Image);
 	}
 
-	void VulkanImage::CreateViewAndSampler(VkImageAspectFlags aspect)
+	void VulkanImage::CreateViewAndSampler(VkImageAspectFlags aspect, const TextureProperties& properties)
 	{
 		VkDevice device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
 
@@ -109,12 +130,14 @@ namespace Hydro
 
 		VkSamplerCreateInfo samplerCreateInfo{};
 		samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-		samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-		samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		const VkFilter filter = GetFilter(properties.SamplerFilter);
+		const VkSamplerAddressMode addressMode = GetAddressMode(properties.SamplerWrap);
+		samplerCreateInfo.magFilter = filter;
+		samplerCreateInfo.minFilter = filter;
+		samplerCreateInfo.mipmapMode = filter == VK_FILTER_NEAREST ? VK_SAMPLER_MIPMAP_MODE_NEAREST : VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerCreateInfo.addressModeU = addressMode;
+		samplerCreateInfo.addressModeV = addressMode;
+		samplerCreateInfo.addressModeW = addressMode;
 		samplerCreateInfo.mipLodBias = 0.0f;
 		samplerCreateInfo.maxAnisotropy = 1.0f;
 		samplerCreateInfo.minLod = 0.0f;
@@ -201,5 +224,23 @@ namespace Hydro
 	bool VulkanImage::IsDepthFormat(ImageFormat imageformat)
 	{
 		return imageformat == ImageFormat::DEPTH32F || imageformat == ImageFormat::DEPTH24STENCIL8;
+	}
+
+	VkFilter VulkanImage::GetFilter(TextureFilter filter)
+	{
+		switch (filter)
+		{
+			case TextureFilter::Nearest: return VK_FILTER_NEAREST;
+			default:                     return VK_FILTER_LINEAR;
+		}
+	}
+
+	VkSamplerAddressMode VulkanImage::GetAddressMode(TextureWrap wrap)
+	{
+		switch (wrap)
+		{
+			case TextureWrap::Clamp: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			default:                 return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		}
 	}
 }

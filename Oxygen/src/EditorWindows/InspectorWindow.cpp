@@ -1,11 +1,14 @@
 #include "InspectorWindow.h"
 #include "../EditorPaths.h"
+#include "Utilities/AssetDragDrop.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/ScriptableEntity.h>
+#include <Hydro/Utils/PlatformUtils.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -124,6 +127,68 @@ namespace Hydro
 		ImGui::PopID();
 	}
 
+	// The sprite's texture: click to pick a file, drop an image from the Project window, X to clear.
+	// TODO(assets): pick from the AssetManager's textures (with a thumbnail) once it exists.
+	static void DrawTextureField(SpriteRendererComponent& sprite)
+	{
+		const float clearWidth = ImGui::GetFrameHeight();
+		const float spacing = ImGui::GetStyle().ItemSpacing.x;
+		const bool hasTexture = sprite.Texture != nullptr;
+
+		std::string label = "None";
+		if (hasTexture)
+		{
+			label = sprite.Texture->GetPath().empty() ? "(made in code)" : sprite.Texture->GetPath().filename().u8string();
+		}
+
+		Ref<Texture2D> picked;
+		if (ImGui::Button(label.c_str(), { ImGui::GetContentRegionAvail().x - clearWidth - spacing, 0.0f }))
+		{
+			const std::string file = FileDialogs::OpenFile("Image (*.png;*.jpg;*.jpeg;*.tga;*.bmp)\0*.png;*.jpg;*.jpeg;*.tga;*.bmp\0");
+			if (file.empty() == false)
+			{
+				picked = Texture2D::LoadFromFile(file);
+			}
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			if (hasTexture)
+			{
+				ImGui::SetTooltip("%s\n%u x %u\nClick to pick another image, or drop one from the Project window.",
+					sprite.Texture->GetPath().u8string().c_str(), sprite.Texture->GetWidth(), sprite.Texture->GetHeight());
+			}
+			else
+			{
+				ImGui::SetTooltip("Click to pick an image, or drop one from the Project window.");
+			}
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			std::filesystem::path droppedPath;
+			if (AssetDragDrop::AcceptPayload(droppedPath) && Texture2D::IsSupportedFile(droppedPath))
+			{
+				picked = Texture2D::LoadFromFile(droppedPath);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		// LoadFromFile logs why a file couldn't be loaded; the old texture is kept then.
+		if (picked != nullptr)
+		{
+			sprite.Texture = picked;
+		}
+
+		ImGui::SameLine(0.0f, spacing);
+		ImGui::BeginDisabled(hasTexture == false);
+		if (ImGui::Button("X", { clearWidth, 0.0f }))
+		{
+			sprite.Texture = nullptr;
+		}
+		ImGui::EndDisabled();
+	}
+
 	// Collapsible section for one component type. Right-click the header to remove it.
 	// Removal is only *requested* here; the caller applies it after drawing, so no
 	// component reference is held while EnTT storage changes.
@@ -222,6 +287,7 @@ namespace Hydro
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, removeSprite, [](SpriteRendererComponent& sprite)
 		{
 			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##Color", glm::value_ptr(sprite.Color)); });
+			DrawPropertyRow("Texture", [&]() { DrawTextureField(sprite); });
 			DrawPropertyRow("Tiling", [&]() { InputFloatField("##Tiling", sprite.TilingFactor, "%.2f", 0.0f, 100.0f); });
 		});
 

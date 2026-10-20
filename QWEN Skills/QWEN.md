@@ -4,6 +4,7 @@ This repository is the Hydro Vulkan game engine (static library `Hydro`) and its
 
 You are used for **lightweight tasks**: small, contained edits, warning fixes, renames, adding a field or an editor setting, explaining code, reviewing a short diff, updating a doc row. Bigger work (new subsystems, resources, render passes, component types or systems, Vulkan lifetimes, frame/startup order, multi-file refactors) is done with Claude; for those, describe the plan and stop instead of editing.
 
+- Find files with `docs/CodeMap.md` (one line per file, and which files each kind of change touches) before opening the larger docs.
 - Small edits: use the `hydro-quick-edit` skill.
 - Architecture questions or reviews: use the `hydro-engine-architecture` skill and read the matching `docs/` file first.
 - C++ rules (namespace, naming, no `!`, ownership, includes) are in `.qwen/rules/hydro-cpp-conventions.md` and load automatically for source files.

@@ -11,7 +11,8 @@ layout(binding = 0) uniform UniformBufferObject {
 
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
-layout(location = 2) out float texIndex;
+// Same for all four corners of a quad; flat so it is never interpolated.
+layout(location = 2) flat out float texIndex;
 
 void main() {
     gl_Position = ubo.mvp * vec4(inPosition, 1.0);

@@ -47,10 +47,10 @@ For example, `ImageSpecification` describes the image resource, while `TexturePr
 The object created from a spec owns its GPU handles:
 
 - Its destructor frees them, and it is non-copyable (copy constructor and copy assignment deleted).
-- Its single owner holds it in a `Scope<T>` and hands it to users as `T&` / `const T&`. Use `Ref<T>` only when several objects really share it (later: a texture asset used by many sprites). Don't take a `Ref<T>` by value or by non-const reference to use it; take `const Ref<T>&` only when you keep a copy.
+- Its single owner holds it in a `Scope<T>` and hands it to users as `T&` / `const T&`. Use `Ref<T>` only when several objects really share it (a `Texture2D` used by many sprites). Don't take a `Ref<T>` by value or by non-const reference to use it; take `const Ref<T>&` only when you keep a copy.
 - Destroy it only after the GPU is done with it: wait on the frame fence or call `Renderer::WaitIdle()`.
 
-`VulkanImage`, `VulkanRenderPass` and `VulkanShader` follow this. Six older wrappers still use a manual `Destroy()`: `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline` and `VullkanTexture`. Most owners also hold their GPU objects in a `Ref<T>` today.
+`VulkanImage`, `VulkanRenderPass`, `VulkanShader` and `Texture2D` follow this. Six older wrappers still use a manual `Destroy()`: `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline` and `VullkanTexture`. Most owners also hold their GPU objects in a `Ref<T>` today.
 
 **Planned: per-frame deletion queue** (Roadmap A3, A4). `Renderer::SubmitResourceFree(std::function<void()>)` stores a free function with the current frame in flight and runs it once that frame's fence has signalled (at the start of the same frame index, `MAX_FRAMES_IN_FLIGHT` frames later) and at `Renderer::Shutdown`. Destructors of GPU objects hand their handles to it, so releasing an object mid-frame is safe and shader hot reload and resizes no longer call `Renderer::WaitIdle`. Migration order: buffers, then pipeline and descriptors, then textures (together with moving them to VMA, [#34](https://github.com/joelnl74/Hydro/issues/34)). Change `Ref` members to `Scope` in the same pass.
 
@@ -60,9 +60,10 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 
 | Struct | Used by | Status |
 | --- | --- | --- |
-| `ImageSpecification` (`Renderer/Image.h`) | `VulkanImage` | In use |
+| `ImageSpecification` (`Renderer/Image.h`) | `VulkanImage`, `Texture2D` | In use. `Mips` and `Layers` are ignored for textures (one level, one layer) |
 | `RenderViewSpecification` (`Renderer/RenderView.h`) | `RenderView` | In use: initial size and a debug name. Resized with `RenderView::SetSize`, applied at its next render |
-| `TextureProperties` (`Renderer/Image.h`) | — | Defined, not consumed yet. `VullkanTexture` takes an empty `VulkanTextureSpecification` and hard-codes its sampler. Next step: textures take `ImageSpecification` + `TextureProperties` ([#34](https://github.com/joelnl74/Hydro/issues/34)). |
+| `TextureProperties` (`Renderer/Image.h`) | `Texture2D`, `VulkanImage` (texture constructors) | In use (Oct 20, 2026): `SamplerFilter` and `SamplerWrap` build the sampler (`VulkanImage::GetFilter` / `GetAddressMode`). `GenerateMips` isn't applied yet (one mip level). sRGB is the image's `Format`, not a property. Render targets use clamp + linear. `VullkanTexture` (only in `Renderer3D`'s unreachable code) still takes an empty `VulkanTextureSpecification` |
+| `Texture2D` (`Renderer/Texture2D.h`) | Sprites, `Renderer2D::DrawQuad` | In use: `Texture2D(ImageSpecification, pixels, TextureProperties)` or `Texture2D::LoadFromFile(path, properties, format)` (shared while alive, `nullptr` on failure). RGBA8 only. Shared through `Ref<Texture2D>`. TODO(assets): loaded through the `AssetManager` by handle |
 | `ShaderSpecification`, `ShaderInformation` | `VulkanShader` | In use. `path` is GLSL source (compiled with shaderc on creation, `#include` relative to the file) or a `.spv` file. Throws with the compiler output when a stage fails. Owns its modules (destructor). |
 | `PipelineSpecification` | `VulkanPipeline` | In use. All fields are applied, including `Blend` (`BlendMode`). `DescriptorSets` is an optional list in set-index order. `Wireframe` and `LineWidth` != 1 fall back with a warning when the GPU lacks `fillModeNonSolid` / `wideLines`. Depth state has no effect until a render pass has a depth attachment. |
 | `VulkanImageInfo` | `VulkanImage` | Output |

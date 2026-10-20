@@ -4,6 +4,7 @@ Hydro is a Vulkan game engine built as a static library (`Hydro`) that applicati
 
 Read this first, then:
 
+- [Code map](CodeMap.md) — every source file in one line, and which files each kind of change touches. Start here to find things.
 - [Resource creation](ResourceCreation.md) — how GPU and engine objects are described and created (Parameter Object pattern).
 - [Scene, ECS and systems](SceneAndECS.md) — how scenes, entities, components and systems fit together.
 - [Subsystems](Subsystems.md) — startup and shutdown order, the lifecycle rules, and how engine services are named.
@@ -58,8 +59,8 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core |
-| `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `RenderView`, `SceneRenderer`, `Camera`, `SceneCamera`, `EditorCamera`, `Image.h`) | Core, Platform/Vulkan |
-| `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission only) |
+| `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `RenderView`, `Texture2D`, `SceneRenderer`, `Camera`, `SceneCamera`, `EditorCamera`, `Image.h`) | Core, Platform/Vulkan |
+| `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission, and `Texture2D` for sprites). Until the asset system, `EntitySerializer` also loads sprite textures and reads `Project` for the asset folder (see [Planned: asset system](#planned-asset-system)) |
 | `Project` | Project file (`.hyproj`, YAML) and settings | Core, Utils, Renderer (`RendererSettings` only) |
 | `Utils` | Platform file dialogs, shared YAML conversions for glm types | Core |
 | `ImGUI` | ImGui layer | Core, Renderer |
@@ -115,6 +116,7 @@ A `RenderView` (`Renderer/RenderView.h`, created from a `RenderViewSpecification
 ```cpp
 Renderer2D::BeginScene(view, camera, cameraTransform); // or BeginScene(view, viewProjection)
 Renderer2D::DrawQuad(transform, color);
+Renderer2D::DrawQuad(transform, texture, tilingFactor, tintColor); // Ref<Texture2D>; null = white
 Renderer2D::EndScene();
 ```
 
@@ -122,6 +124,21 @@ Renderer2D::EndScene();
 - `view.SetSize(w, h)` resizes it from the next render (the editor follows its window sizes).
 - The quad pipeline is built once, against a 1×1 compatibility render pass and a layout-only descriptor set. Every view's target has the same format and its set 0 (camera + textures) is built the same way, so `VulkanPipeline::BindDescriptorSet` binds the view's own set.
 - Views are resources: the application creates them after `Renderer::Init` and destroys them while the renderer is alive (Oxygen does it in `OnDetach`).
+
+### Textures and batching
+
+`Texture2D` (`Renderer/Texture2D.h`) is the engine-facing texture: RGBA8, made from an `ImageSpecification` (size, `ImageFormat::SRGB` for colour or `RGBA` for data) and `TextureProperties` (filter, wrap), on a `VulkanImage` (VMA, one upload). `Texture2D::LoadFromFile(path)` reads PNG/JPG/TGA/BMP with stb_image and returns `nullptr` (logged) on failure; while a texture from the same file is alive it is shared instead of loaded again. Textures are shared by many sprites, so they are held in `Ref<Texture2D>`. The header has no Vulkan types: the image lives in `Texture2DData` (`Platform/Vulkan/VulkanTexture2DData.h`).
+
+A view's quads are recorded as a list of **draws** (one `vkCmdDrawIndexed` each), in submission order:
+
+- **Batches** hold vertices: up to 20,000 quads per vertex buffer (one per frame in flight). When one is full the next is used, allocated the first time a frame needs it.
+- **Texture sets** hold up to 32 textures (`Renderer2D::GetMaxTextureSlots()`; slot 0 is a 1×1 white texture made in code, so untextured quads need no file) and set 0's descriptor sets (camera + texture array, one per frame in flight). `DrawQuad` looks the texture up in the current set and adds it to a free slot.
+- A new draw starts when the batch is full or when a quad needs a 33rd texture (a **texture flush**: the next set is used, with fresh slots). A flush costs one more draw call, not a new vertex buffer, and earlier draws are recorded first, so draw order is kept. There is no limit on quads or textures per frame. Batches and sets are reused every frame; nothing is allocated once a scene has been drawn.
+- `RecordView` writes each used set's texture array into that frame's descriptor set before the pass (the frame's fence has signalled, so the GPU is done with it), uploads the batches, then binds vertex buffer and descriptor set only when they change between draws.
+- **Lifetime.** Every texture a frame's command buffer samples is kept in `TexturesInFlight[frame]` until that frame index is recorded again. So dropping the last `Ref` to a texture mid-frame (changing a sprite's texture, deleting an entity) is safe without `Renderer::WaitIdle`.
+- The quad shader picks the texture with a `switch` over constant indices (`textureGrad` with derivatives taken before it), because indexing the sampler array with a per-quad value needs descriptor indexing, which the device doesn't enable. `texIndex` is `flat`. The vertex colour multiplies the texture, alpha included.
+- Texture coordinates run `v = 1` at the quad's bottom to `v = 0` at its top (Vulkan's first image row is the top), times the tiling factor; samplers repeat by default.
+- **Stats** (Oxygen's Stats window): slots per draw, slots used, texture flushes.
 
 Scenes are drawn through a `CameraComponent` at runtime or the `EditorCamera` in the editor; see [Scene, ECS and systems](SceneAndECS.md#cameras).
 
@@ -161,7 +178,8 @@ The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorS
 | `VulkanFrameContext` | Per frame in flight (`MAX_FRAMES_IN_FLIGHT = 2`): command pool + buffer, fence, image-acquired semaphore |
 | `Renderer` | The above, and runs the frame |
 | `VulkanRenderPass` | An offscreen colour target: one image + framebuffer per frame in flight. Each `RenderView` owns one |
-| `RenderView` | Its target, a uniform buffer + descriptor set for its camera, and its quad batches (per-frame vertex buffers) |
+| `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures) |
+| `Texture2D` | One `VulkanImage` (image, view, sampler; VMA). Shared through `Ref<Texture2D>`; `Renderer2D` keeps the ones a frame samples alive until that frame's fence |
 
 Rules that follow from this:
 
@@ -172,7 +190,7 @@ Rules that follow from this:
 
 ## Shaders
 
-Shaders live as GLSL in the application's `assets/shaders` folder and are referenced by their source path (`assets/shaders/vertex.vert`). `VulkanShader` compiles them with shaderc when it is created, so there is no separate compile step to run.
+Shaders live as GLSL in the application's `assets/shaders` folder and are referenced by their source path (`assets/shaders/vertex.vert`). `VulkanShader` compiles them with shaderc when it is created, so there is no separate compile step to run. The quad shader's `sampler2D inTextures[32]` and its `switch` must match `Renderer2D`'s texture slot count (`VulkanDescriptorBuilder::MaxImageArraySize`, checked by a `static_assert`).
 
 - **Build-time check.** Oxygen's project also runs `glslc` on every shader as a Visual Studio build step, so syntax errors show up in the Error List. The `.spv` files it writes are not used at runtime yet; they are there for shipping precompiled shaders later.
 - **Hot reload.** `RendererSettings::ShaderHotReload` (on by default, off in Dist; toggle it in **Render Settings**). `Renderer2D` watches its shader's sources and `#include`d files with a `FileWatcher` (polled every 250 ms). On a change it compiles a new `VulkanShader` and `VulkanPipeline` from the old specifications, waits for the GPU (`Renderer::WaitIdle`), then swaps them in. If compilation fails, the error is logged and the old shader keeps drawing.
@@ -232,10 +250,24 @@ Agreed on October 19, 2026 after reviewing the engine and editor code against th
 | A5 | `SystemContext` and an ordered list of stages in `Scene` | Finishes E5. See [Scene, ECS and systems](SceneAndECS.md#planned-system-context-and-stages) |
 | A6 | One component registry | Name, save/load and inspector drawing per component, so saving, the play copy and the inspector loop over one list (E4). See [Scene, ECS and systems](SceneAndECS.md#planned-component-registry) |
 | A7 | No Vulkan in `Renderer/` headers | `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h`. `RenderView` returns an opaque `ImTextureID` |
-| A8 | No asset paths in the engine | `Renderer2D` loads `assets/shaders/vertex.vert` and `assets/textures/white.png` from the application. Create the white texture in code; engine shaders come from an engine resources folder or a shader library. Needed by the Runtime (RT1) |
+| A8 | No asset paths in the engine | Partly (Oct 20, 2026): the white texture is made in code. `Renderer2D` still loads `assets/shaders/vertex.vert` and `fragment.frag` from the application; engine shaders come from an engine resources folder or a shader library. Needed by the Runtime (RT1) |
 | A9 | Smaller fixes | `LayerStack` owns layers as `Scope<Layer>` (no raw `new`/`delete`); `VK_CHECK_RESULT` asserts in Debug ([#35](https://github.com/joelnl74/Hydro/issues/35)); typed event dispatch and `Handled` ([#38](https://github.com/joelnl74/Hydro/issues/38)); `Entity` asserts (E6) |
 | A10 | Naming | `m_PascalCase` members (`m_uniformBuffers`, `m_format`, `m_renderPass`, `m_commandBuffer`, `m_vmaAllocation`, `m_memory`, `m_layoutBinding`, `m_poolSizes`); PascalCase spec fields (`PipelineSpecification::shader`, `ShaderInformation::path`; drop the duplicate `shaderStage`/`shaderType`); `VullkanTexture`, `HierachyWindow`, `heigth`, `GetPipeLine`; `enum class` instead of `typedef enum class` (`KeyCodes.h`, `Input.h`) |
 | A11 | Const and ownership in signatures | `const Ref<T>&` parameters (`VulkanDescriptorBuilder::BindBuffer`/`BindImage` take `Ref&`), `explicit` single-argument constructors, `const` overloads of `Entity::GetComponent`/`HasComponent`, `"Hydro/..."` include paths instead of `"../Scene/..."` |
+
+## Planned: asset system
+
+**TODO (Roadmap AS1–AS5).** Today a sprite holds a `Ref<Texture2D>` and the scene file stores the texture's path (relative to the project's asset folder). That is deliberately small: an `AssetHandle` is only useful together with a registry that maps handles to files and survives renames, so the handle, the registry and the manager are one piece of work. Steps, in order:
+
+1. **`AssetHandle` and `Asset`.** `using AssetHandle = UUID;` and `enum class AssetType : uint16_t { None, Texture2D, Scene, Prefab, ... }` in `Asset/Asset.h`; `Texture2D` (and later fonts, audio clips) derive from a small `Asset` base with `GetType()`. No Vulkan, no file paths in the type.
+2. **Asset registry.** One file per project (`Assets/AssetRegistry.hyr`, YAML): handle → path relative to the asset folder, type, import settings (for textures: `TextureProperties` and sRGB). Rebuilt by scanning the asset folder at project open; new files get a new handle, known files keep theirs.
+3. **`AssetManager` subsystem.** A registry-style subsystem (`...Manager`, see [Subsystems](Subsystems.md#current-and-planned-subsystems)) started after `Renderer`, at the planned position: `Init`/`Shutdown`, `OnProjectOpened(project)` (the application calls it, like `Renderer::SetSettings`), `GetAsset<T>(handle)` returning `Ref<T>` (loaded on first use, cached by handle), `ImportAsset(path)` → handle, `IsAssetHandleValid`. It owns what `Texture2D::LoadFromFile`'s sharing does today; per-type importers (texture via stb_image) live next to it.
+4. **Components store handles.** `SpriteRendererComponent::Texture` becomes `AssetHandle Texture = 0;`; `SceneRenderer` resolves it with `AssetManager::GetAsset<Texture2D>` (null → white). `EntitySerializer` saves the handle (a `uint64_t`) and keeps reading the old `Texture: <path>` key, importing the file to get a handle, so existing scenes load. `EntitySerializer` stops including `Project.h` and stops loading files.
+5. **Editor.** The Project window shows registered assets with thumbnails (an ImGui texture per `Texture2D`) and drags handles instead of paths; the sprite's texture field accepts them; the inspector shows a selected texture's import settings and re-imports on change.
+6. **Hot reload.** A `FileWatcher` per loaded file; on change re-import into the same `Ref`/handle, freeing the old image through the deletion queue (A3), so sprites keep their handle.
+7. **Later.** Async loading on the `JobScheduler` (C3) with a placeholder texture; an asset pack for `Dist` builds (RT7).
+
+Until then, new code that references a texture holds a `Ref<Texture2D>` and is marked `TODO(assets)`, so the switch is easy to find.
 
 ## Known gaps
 
@@ -248,7 +280,10 @@ These are where the code does not yet match the rules above. Fix them when you t
 - Six Vulkan wrappers still have a manual `Destroy()` instead of a destructor, and objects that are freed while frames are in flight wait for the GPU with `Renderer::WaitIdle` (A3; see [Resource creation](ResourceCreation.md#ownership)).
 - Owned GPU objects are held in `Ref<T>` (17 members), so ownership isn't visible in the type (A4).
 - `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h` (A7).
-- `Renderer2D` loads its shader and white texture from the application's `assets/` folder (A8).
+- `Renderer2D` loads its shaders from the application's `assets/` folder (A8).
+- Sprites reference textures directly (`Ref<Texture2D>`) and scenes save the file path; `EntitySerializer` loads textures and reads `Project` for the asset folder. A texture file that is missing when a scene loads is logged and the sprite draws untextured; saving the scene then drops the reference. Sampling options (`TextureProperties`) aren't saved per texture yet (always linear + repeat). All of this moves to the asset system ([Planned: asset system](#planned-asset-system)).
+- The 32 texture slots are fixed (shader array size). `Renderer2D::Init` logs an error if the GPU allows fewer samplers per stage (Vulkan guarantees 16; desktop GPUs have far more).
+- Textures load synchronously on the main thread (stb_image decode + one upload that waits for the GPU).
 - `LayerStack` owns layers through raw pointers (A9); some members and spec fields don't follow the naming rules (A10).
 - Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s quad shader is watched; there is no shader library yet.
 - `VkInstance` and the device are `static` members of `VulkanRendererContext` ([#50](https://github.com/joelnl74/Hydro/issues/50)).

@@ -4,8 +4,8 @@
 #include "Renderer2D.h"
 #include <glm/ext/matrix_transform.hpp>
 
-#include "../Scene/Components/Components.h"
-#include "../Scene/Entity.h"
+#include "Hydro/Scene/Components/Components.h"
+#include "Hydro/Scene/Entity.h"
 
 namespace Hydro
 {
@@ -48,7 +48,8 @@ namespace Hydro
 		for (auto entity : view)
 		{
 			auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-			Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+			// A null texture draws the white texture, i.e. a plain coloured quad.
+			Renderer2D::DrawQuad(transform.GetTransform(), sprite.Texture, sprite.TilingFactor, sprite.Color);
 		}
 
 		// TODO MESH RENDERING

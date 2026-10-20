@@ -3,8 +3,10 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
+#include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Camera.h"
 #include "Hydro/Renderer/RenderView.h"
+#include "Hydro/Renderer/Texture2D.h"
 
 namespace Hydro
 {
@@ -17,10 +19,15 @@ namespace Hydro
 		uint32_t LineCount = 0;
 
 		// Batching.
-		uint32_t BatchCount = 0;          // batches used this frame (= quad draw calls)
+		uint32_t BatchCount = 0;          // vertex batches used this frame (each holds up to MaxQuadsPerBatch quads)
 		uint32_t BatchesAllocated = 0;    // batches kept alive for reuse
 		uint32_t MaxQuadsPerBatch = 0;
 		uint64_t VertexBytesUploaded = 0; // CPU -> GPU vertex upload this frame
+
+		// Textures.
+		uint32_t MaxTextureSlots = 0;     // textures one draw call can sample (slot 0 is the white texture)
+		uint32_t TextureSlotsUsed = 0;    // slots filled this frame, summed over all texture sets of all views
+		uint32_t TextureFlushes = 0;      // extra draw calls because a draw ran out of texture slots
 
 		// GPU memory (from VMA).
 		uint64_t GPUMemoryUsed = 0;
@@ -63,8 +70,14 @@ namespace Hydro
 		// data. When the current batch is full a new batch is started automatically - there is no
 		// hard limit on quads per frame.
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
+		// Textured quad: the texture, repeated tilingFactor times across the quad, multiplied by
+		// tintColor. A null texture draws the white texture (a plain coloured quad).
+		// One draw call samples up to MaxTextureSlots textures. The quad that needs one more starts a
+		// new draw call with its own texture slots ("texture flush"), in the same vertex batch, so
+		// there is no limit on textures per frame either. Draw order is kept.
+		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
 
-		// Records one render pass per view begun this frame (one vkCmdDrawIndexed per batch) into
+		// Records one render pass per view begun this frame (one vkCmdDrawIndexed per draw) into
 		// the frame's command buffer. Called once per frame by Renderer::RenderFrame.
 		static void Render(VkCommandBuffer commandBuffer);
 
@@ -74,10 +87,21 @@ namespace Hydro
 		// Stats from the last frame that was rendered (all views together).
 		static Statistics GetStats();
 
+		// Textures one draw call can sample, including the white texture in slot 0.
+		static uint32_t GetMaxTextureSlots();
+
 	private:
 		static void AllocateBatch(RenderViewData& view);
 		static void NextBatch(RenderViewData& view);
 		static void ResetBatches(RenderViewData& view);
+		static void AllocateTextureSet(RenderViewData& view);
+		static void NextTextureSet(RenderViewData& view);
+		// Slot of `texture` in the view's current texture set; adds it, or starts a new set (and draw)
+		// when the set is full.
+		static float GetTextureSlot(RenderViewData& view, const Ref<Texture2D>& texture);
+		// Starts a new draw at the current batch's write position with the current texture set.
+		static void StartDraw(RenderViewData& view);
+		static void SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& color);
 		static void ApplyViewResize(RenderViewData& view);
 		static void RecordView(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
 		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad

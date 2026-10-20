@@ -285,7 +285,9 @@ namespace Hydro
 		ImGuiStyle& style = ImGui::GetStyle();
 
 		for (int i = 0; i < ImGuiCol_COUNT; i++)
+		{
 			style.Colors[i] = Colors[i];
+		}
 
 		style.WindowRounding = WindowRounding;
 		style.ChildRounding = ChildRounding;

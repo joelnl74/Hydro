@@ -4,6 +4,7 @@
 
 #include <imgui/imgui.h>
 
+#include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SceneSerializer.h>
 
@@ -257,12 +258,22 @@ namespace Hydro
 			m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
 		}
 
-		// Prefabs and scenes can be dragged onto the viewport / hierarchy.
-		if ((item.Type == AssetType::Prefab || item.Type == AssetType::Scene) && ImGui::BeginDragDropSource())
+		// Prefabs and scenes can be dragged onto the viewport / hierarchy, images onto a sprite's
+		// Texture field in the inspector.
+		// TODO(assets): give textures their own AssetType (and thumbnails) with the asset system.
+		const bool isTexture = item.Type == AssetType::Other && Texture2D::IsSupportedFile(item.Path);
+		if ((item.Type == AssetType::Prefab || item.Type == AssetType::Scene || isTexture) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
-			ImGui::TextDisabled("%s", item.Type == AssetType::Prefab ? "Drop to instantiate" : "Drop to open");
+			if (isTexture)
+			{
+				ImGui::TextDisabled("Drop on a sprite's Texture");
+			}
+			else
+			{
+				ImGui::TextDisabled("%s", item.Type == AssetType::Prefab ? "Drop to instantiate" : "Drop to open");
+			}
 			ImGui::EndDragDropSource();
 		}
 

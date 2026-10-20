@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 namespace Hydro
 {
@@ -48,12 +49,14 @@ namespace Hydro
 		TextureCube
 	};
 
+	// How a texture is sampled. Whether it is sRGB is part of what the image is
+	// (ImageSpecification::Format = ImageFormat::SRGB or RGBA), not of how it is used.
 	struct TextureProperties
 	{
 		TextureWrap SamplerWrap = TextureWrap::Repeat;
 		TextureFilter SamplerFilter = TextureFilter::Linear;
-		bool GenerateMips = true;
-		bool SRGB = false;
+		// Not applied yet: textures have a single mip level.
+		bool GenerateMips = false;
 	};
 
 	struct ImageSpecification

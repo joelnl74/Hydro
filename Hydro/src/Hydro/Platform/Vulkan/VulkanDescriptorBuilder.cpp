@@ -54,7 +54,12 @@ namespace Hydro
 		}
 	}
 
-	void VulkanDescriptorBuilder::BindImage(uint32_t binding, Ref<VullkanTexture>& vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	void VulkanDescriptorBuilder::BindImage(uint32_t binding, const Ref<VullkanTexture>& vulkanTexture, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	{
+		BindImage(binding, vulkanTexture->GetImageView(), vulkanTexture->GetImageSampler(), type, stageFlags);
+	}
+
+	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags)
 	{
 		const uint32_t descriptorCount = MaxImageArraySize;
 
@@ -80,8 +85,8 @@ namespace Hydro
 		{
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = vulkanTexture->GetImageView();
-			imageInfo.sampler = vulkanTexture->GetImageSampler();
+			imageInfo.imageView = imageView;
+			imageInfo.sampler = sampler;
 			m_imageInfo.push_back(imageInfo);
 		}
 
@@ -157,6 +162,28 @@ namespace Hydro
 		}
 
 		return true;
+	}
+
+	void VulkanDescriptorBuilder::WriteImages(uint32_t frameIndex, uint32_t binding, const VkDescriptorImageInfo* images, uint32_t count, VkDescriptorType type)
+	{
+		HY_CORE_ASSERT(frameIndex < m_DescriptorSets.size(), "VulkanDescriptorBuilder::WriteImages before Build");
+		HY_CORE_ASSERT(count <= MaxImageArraySize, "VulkanDescriptorBuilder::WriteImages: too many images");
+		if (count == 0)
+		{
+			return;
+		}
+
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = m_DescriptorSets[frameIndex];
+		write.dstBinding = binding;
+		write.dstArrayElement = 0;
+		write.descriptorType = type;
+		write.descriptorCount = count;
+		write.pImageInfo = images;
+
+		auto device = Renderer::GetRendererContext()->GetVulkanDevice()->GetDevice();
+		vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 	}
 
 	void VulkanDescriptorBuilder::Destroy()

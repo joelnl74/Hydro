@@ -22,9 +22,12 @@ namespace Hydro
 	{
 	public:
 		// Texture loaded from disk (RGBA8), uploaded and left in SHADER_READ_ONLY_OPTIMAL.
-		VulkanImage(const std::string& filePath, ImageSpecification spec);
+		VulkanImage(const std::string& filePath, ImageSpecification spec, const TextureProperties& properties = {});
+		// Texture from spec.Width * spec.Height RGBA8 pixels (Format RGBA or SRGB), uploaded and left in
+		// SHADER_READ_ONLY_OPTIMAL. The sampler follows `properties`.
+		VulkanImage(const ImageSpecification& spec, const void* pixels, const TextureProperties& properties = {});
 		// Empty image. Usage::Attachment makes a render target that can also be sampled.
-		VulkanImage(ImageSpecification spec);
+		explicit VulkanImage(ImageSpecification spec);
 		~VulkanImage();
 
 		VulkanImage(const VulkanImage&) = delete;
@@ -37,10 +40,12 @@ namespace Hydro
 
 		static VkFormat GetImageFormat(ImageFormat imageformat);
 		static bool IsDepthFormat(ImageFormat imageformat);
+		static VkFilter GetFilter(TextureFilter filter);
+		static VkSamplerAddressMode GetAddressMode(TextureWrap wrap);
 
 	private:
 		void CreateImage(VkImageUsageFlags usage);
-		void CreateViewAndSampler(VkImageAspectFlags aspect);
+		void CreateViewAndSampler(VkImageAspectFlags aspect, const TextureProperties& properties);
 		void UploadPixels(const void* pixels, VkDeviceSize size);
 
 	private:

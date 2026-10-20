@@ -121,6 +121,8 @@ Every current name was checked against the table. Only one changed:
 | `Project` | Keep | Data the application opens and closes (`Load`/`New`, `Close`), not a subsystem |
 | `SceneRenderer` | Keep | Per-scene counterpart of `Renderer` |
 | `ScriptRegistry` | New, not a subsystem | A name → script lookup table. It has no lifecycle or OS/GPU resources (a function-local static, filled before scenes load), so it isn't a `Manager` subsystem; becomes part of a `ScriptEngine` if one is added |
+| `Texture2D` | New, a resource (Oct 20, 2026) | A texture sprites are drawn with, made from `ImageSpecification` + `TextureProperties`; `LoadFromFile` shares textures by file until the `AssetManager` takes that over. Named for what it is, like `RenderView` |
+| `AssetHandle` | Planned, a value | A `UUID` naming an asset in the project's asset registry; components will hold one instead of a `Ref<Texture2D>` |
 | `RenderView` | New, a resource | One picture of a scene (target + camera + quads) that `Renderer2D` draws into; not a subsystem or part, the application creates as many as it shows |
 | `Camera`, `SceneCamera`, `EditorCamera` | New, not subsystems | `Camera` is a projection value (and where clip-space conventions live); `SceneCamera` is the per-scene camera data held by `CameraComponent` (`Scene...` prefix); `EditorCamera` is an editor tool the application owns |
 

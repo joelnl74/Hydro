@@ -6,8 +6,10 @@
 #include <string>
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <Hydro/Core/Base.h>
 #include <Hydro/Core/UUID.h>
 #include <Hydro/Renderer/SceneCamera.h>
+#include <Hydro/Renderer/Texture2D.h>
 #include <glm/gtx/quaternion.hpp>
 
 namespace Hydro
@@ -16,10 +18,15 @@ namespace Hydro
 	class Scene;
 	class UUID;
 
+	// A quad drawn with the entity's TransformComponent: Texture (white when null), repeated
+	// TilingFactor times, multiplied by Color (alpha blended).
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		// Ref<Texture2D> Texture;
+		// Shared with every sprite that uses the same file. Saved as the file's path (relative to the
+		// project's asset folder when it is inside it).
+		// TODO(assets): becomes an AssetHandle once the AssetManager exists (Roadmap "Asset system").
+		Ref<Texture2D> Texture;
 		float TilingFactor = 1.0f;
 
 		SpriteRendererComponent() = default;
