@@ -80,6 +80,7 @@ namespace Hydro
 		// The ImGui layer is attached before the client's layers, so its context exists here and the
 		// editor's style replaces the engine's default one.
 		LoadEditorSettings();
+		RestoreOpenWindows();
 		m_EditorCamera.SetProjectionType(m_EditorSettings.CameraStartsIn2D ? ProjectionType::Orthographic : ProjectionType::Perspective);
 
 		CreateGalaxy();
@@ -187,6 +188,9 @@ namespace Hydro
 
 	void EditorLayer::OnDetach()
 	{
+		// Before the windows go: their open state is part of the session saved below.
+		StoreOpenWindows();
+
 		// Release everything OnAttach created, here rather than in the destructor:
 		// Application::Shutdown detaches layers while the renderer is still alive.
 		m_EditorSettingsWindow = nullptr;
@@ -346,11 +350,10 @@ namespace Hydro
 
 			if (ImGui::BeginMenu("View"))
 			{
-				ImGui::MenuItem("Console", nullptr, &m_ConsoleWindow->IsOpen());
-				ImGui::MenuItem("Stats", nullptr, &m_StatsWindow->IsOpen());
-				ImGui::MenuItem("Render Settings", nullptr, &m_RenderSettingsWindow->IsOpen());
-				ImGui::MenuItem("Project Settings", nullptr, &m_ProjectSettingsWindow->IsOpen());
-				ImGui::MenuItem("Editor Settings", nullptr, &m_EditorSettingsWindow->IsOpen());
+				for (const ViewWindow& window : GetViewWindows())
+				{
+					ImGui::MenuItem(window.Name, nullptr, window.Open);
+				}
 				ImGui::EndMenu();
 			}
 
@@ -376,6 +379,13 @@ namespace Hydro
 
 		DrawEditorWindow();
 		DrawGameWindow();
+
+		// A window opened or closed (View menu or its close button): remember it now rather than
+		// only on close, so it also holds when the editor is stopped from the debugger.
+		if (StoreOpenWindows())
+		{
+			EditorSettingsSerializer::SaveSession(m_EditorSettings.Session, EditorPaths::GetEditorSettingsPath());
+		}
 
 		ImGui::End();
 
@@ -630,6 +640,45 @@ namespace Hydro
 		m_EditorSettings = settings;
 		m_EditorSettings.Style.Apply();
 		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
+	}
+
+	std::vector<EditorLayer::ViewWindow> EditorLayer::GetViewWindows()
+	{
+		return {
+			{ "Console", &m_ConsoleWindow->IsOpen() },
+			{ "Stats", &m_StatsWindow->IsOpen() },
+			{ "Render Settings", &m_RenderSettingsWindow->IsOpen() },
+			{ "Project Settings", &m_ProjectSettingsWindow->IsOpen() },
+			{ "Editor Settings", &m_EditorSettingsWindow->IsOpen() },
+		};
+	}
+
+	void EditorLayer::RestoreOpenWindows()
+	{
+		const std::map<std::string, bool>& saved = m_EditorSettings.Session.OpenWindows;
+		for (const ViewWindow& window : GetViewWindows())
+		{
+			if (auto it = saved.find(window.Name); it != saved.end())
+			{
+				*window.Open = it->second;
+			}
+		}
+	}
+
+	bool EditorLayer::StoreOpenWindows()
+	{
+		bool changed = false;
+		std::map<std::string, bool>& saved = m_EditorSettings.Session.OpenWindows;
+		for (const ViewWindow& window : GetViewWindows())
+		{
+			auto it = saved.find(window.Name);
+			if (it == saved.end() || it->second != *window.Open)
+			{
+				saved[window.Name] = *window.Open;
+				changed = true;
+			}
+		}
+		return changed;
 	}
 
 	void EditorLayer::RevertEditorSettings()

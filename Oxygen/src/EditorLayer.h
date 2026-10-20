@@ -46,6 +46,19 @@ namespace Hydro
 		// Saves the open scene every Autosave.IntervalMinutes while editing.
 		void UpdateAutosave(float deltaTime);
 
+		// The windows in the View menu, by menu name: the menu, the session and the restore all use
+		// this one list, so a window added here is remembered too.
+		struct ViewWindow
+		{
+			const char* Name;
+			bool* Open;
+		};
+		std::vector<ViewWindow> GetViewWindows();
+		// Opens / closes the View menu windows as the session left them (windows not listed keep their default).
+		void RestoreOpenWindows();
+		// Copies the windows' open state into the session; returns true when it changed.
+		bool StoreOpenWindows();
+
 		// Scenes (.hyscene, YAML). These always work on the editor scene and stop play mode first.
 		void NewScene();
 		void OpenScene();
