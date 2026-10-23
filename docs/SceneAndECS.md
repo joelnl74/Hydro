@@ -22,7 +22,7 @@ Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name)
 
 - Public fields with defaults, plus small pure helpers (`TransformComponent::GetTransform()`). No virtual functions, and no update logic.
 - No raw pointers or references to other components or entities. Refer to other entities by `Entity` or `UUID`.
-- A shared engine resource is fine: `SpriteRendererComponent::Texture` is a `Ref<Texture2D>` (copied with the component, so the play copy shares it). It becomes an `AssetHandle` with the asset system ([Architecture](Architecture.md#planned-asset-system)).
+- A shared engine resource is fine: `SpriteRendererComponent::Texture` is a `Ref<Texture2D>` (copied with the component, so the play copy shares it). It becomes an `AssetHandle` with the asset system ([Architecture](Architecture.md#asset-system)).
 - Don't keep a `T&` from `GetComponent<T>()` across a call that adds or removes components. EnTT moves its storage, so the reference can dangle.
 
 ## Systems are functions
@@ -193,5 +193,5 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 - There is no parent/child hierarchy yet.
 - Systems take loose parameters (`registry`, `deltaTime`) and the order lives in `OnUpdateRuntime` / `OnUpdateEditor` code, not a list (A5).
 - Each component is listed separately in the serializer, `CopyableComponents` and the inspector (A6).
-- Sprite textures are referenced by path until the asset system: `EntitySerializer` loads them and reads `Project` for the asset folder, a texture whose file is missing at load is dropped when the scene is saved again, and sampling options aren't saved (see [Architecture](Architecture.md#planned-asset-system)).
+- Sprite textures are referenced by path until the asset system: `EntitySerializer` loads them and reads `Project` for the asset folder, a texture whose file is missing at load is dropped when the scene is saved again, and sampling options aren't saved (see [Architecture](Architecture.md#asset-system)).
 - `Entity::GetComponent` doesn't assert the component exists and has no `const` overload (E6, A11).

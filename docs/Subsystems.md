@@ -53,8 +53,9 @@ delete app;                                           // destructor: no engine w
 | 3 | `EventDispatcher::Init()` | — | `EventDispatcher::Shutdown()` |
 | 4 | `Window::Create()`, then `Window::Init(spec.MainWindow)` | Events (window callbacks post events) | `Window::Shutdown()`, then the `Scope` is reset |
 | 5 | `Renderer::Init(window)` | Window (surface) | `Renderer::Shutdown()` |
-| 6 | Push `ImGuiLayer` as an overlay (`OnAttach`) | Renderer, Window | `Renderer::WaitIdle()`, then `LayerStack::Clear()` detaches and deletes every layer, top-most first |
-| 7 | Client `OnInit()` (pushes the application's layers) | everything above | Client `OnShutdown()`, first, while everything is alive |
+| 6 | `AssetManager::Init()` | Renderer (for the GPU textures it will create); empty until the application calls `OnProjectOpened` | `AssetManager::Shutdown()`, after the layers are detached |
+| 7 | Push `ImGuiLayer` as an overlay (`OnAttach`) | Renderer, Window | `Renderer::WaitIdle()`, then `LayerStack::Clear()` detaches and deletes every layer, top-most first |
+| 8 | Client `OnInit()` (pushes the application's layers) | everything above | Client `OnShutdown()`, first, while everything is alive |
 
 Inside `Renderer::Init`, and reversed in `Renderer::Shutdown`:
 
@@ -122,12 +123,17 @@ Every current name was checked against the table. Only one changed:
 | `SceneRenderer` | Keep | Per-scene counterpart of `Renderer` |
 | `ScriptRegistry` | New, not a subsystem | A name → script lookup table. It has no lifecycle or OS/GPU resources (a function-local static, filled before scenes load), so it isn't a `Manager` subsystem; becomes part of a `ScriptEngine` if one is added |
 | `Texture2D` | New, a resource (Oct 20, 2026) | A texture sprites are drawn with, made from `ImageSpecification` + `TextureProperties`; `LoadFromFile` shares textures by file until the `AssetManager` takes that over. Named for what it is, like `RenderView` |
+| `AssetHandle` | New (Oct 24, 2026), a value | `using AssetHandle = UUID;`: names an asset file across renames and moves; components will hold one instead of a `Ref<Texture2D>` |
+| `AssetManager` | New (Oct 24, 2026), a subsystem | Registry-style (`Manager`): others look assets up by handle. Position 6, after `Renderer` |
+| `AssetRegistry` | New, data | The handle ↔ path table the manager holds; not a subsystem and not a `Manager` (no lifecycle), rebuilt by scanning |
+| `AssetMetadata`, `AssetScanInfo` | New, plain structs | What is known about one asset; what a scan found (`Info` = output, see [Resource creation](ResourceCreation.md#naming)) |
+| `AssetMetaSerializer` | New, a doer | Reads and writes where a file keeps its handle (its first line, or the `.hymeta` sidecar), like `SceneSerializer` |
+| `Asset` | New, a base class | Base of the asset types the manager loads (`Texture2D`); holds the handle only |
 | `TextureImportConfig`, `TextureImportSerializer`, `SpriteSlicer` | New (Oct 23, 2026) | Saved per-image import settings → `Config`; the serializer and slicer are doers (`-er`). Sprite sheets are a mode of `Texture2D`, not a `SpriteSheet` type, so there is one owner per image file |
 | `SpriteRegion`, `TextureRect` | New, plain structs | A sprite inside a texture (pixels) and a part of a texture (texture coordinates) |
 | `SpriteAnimationSet` | New, a resource | Named clips over one sheet; "set" because it holds many clips (`SpriteAnimation` alone would read as one clip) |
 | `SpriteEditorWindow`, `SpriteAnimationWindow`, `TextureImportPanel`, `PropertyUI` | New (Oct 23, 2026), editor only | Windows are `<Name>Window`; the inspector's sub-section is a `<Name>Panel`; `PropertyUI` holds shared widgets like `StatsUI` (not `...Helper`). "Animation" is the window's menu name, `SpriteAnimationWindow` says what it edits |
 | `SpriteAnimator`, `UpdateSpriteAnimations` | New | `SpriteAnimator` is a doer facade of static functions over `SpriteAnimatorComponent` (not `...System` / `...Controller`); the system itself is the function `UpdateSpriteAnimations` |
-| `AssetHandle` | Planned, a value | A `UUID` naming an asset in the project's asset registry; components will hold one instead of a `Ref<Texture2D>` |
 | `RenderView` | New, a resource | One picture of a scene (target + camera + quads) that `Renderer2D` draws into; not a subsystem or part, the application creates as many as it shows |
 | `Camera`, `SceneCamera`, `EditorCamera` | New, not subsystems | `Camera` is a projection value (and where clip-space conventions live); `SceneCamera` is the per-scene camera data held by `CameraComponent` (`Scene...` prefix); `EditorCamera` is an editor tool the application owns |
 
@@ -142,7 +148,7 @@ Every current name was checked against the table. Only one changed:
 | Input queries | `Input` | Stateless today, no lifecycle. Becomes a subsystem (after `Window`) when it gains state such as gamepads or action maps | after 4 |
 | Rendering | `Renderer` (parts: `Renderer2D`, `Renderer3D`, `Vulkan*`) | Done | 5 |
 | Jobs / threads | `JobScheduler` | Planned | after 2: others may submit jobs from their `Init` |
-| Assets | `AssetManager` | Planned | after `Renderer` (GPU assets need the device) |
+| Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan; loading comes next ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
 | Audio | `AudioEngine` | Planned | after `AssetManager` |
 | Scripting | `ScriptEngine` | Planned | after `AssetManager`, before the client's `OnInit` |
 | Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Planned | after `ScriptEngine` |

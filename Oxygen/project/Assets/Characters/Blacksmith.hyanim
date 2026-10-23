@@ -1,5 +1,6 @@
 # Blacksmith: idle and walk clips for each facing. The sheet has one 6-frame cycle per facing,
 # so Walk plays the same frames faster than Idle.
+Handle: 8079240564453792839
 SpriteAnimationSet:
   Texture: Villagers.png
   DefaultClip: IdleDown

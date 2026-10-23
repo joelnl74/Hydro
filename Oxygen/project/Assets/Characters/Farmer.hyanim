@@ -1,5 +1,6 @@
 # Farmer: idle and walk clips for each facing. The sheet has one 6-frame cycle per facing,
 # so Walk plays the same frames faster than Idle.
+Handle: 951407229409544592
 SpriteAnimationSet:
   Texture: Villagers.png
   DefaultClip: IdleDown

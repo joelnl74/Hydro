@@ -1,6 +1,9 @@
 #include "hypch.h"
 #include "SpriteAnimationSerializer.h"
 
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Asset/AssetMetaSerializer.h"
+
 #include <yaml-cpp/yaml.h>
 
 #include <cmath>
@@ -75,10 +78,24 @@ namespace Hydro
 			return false;
 		}
 
+		// The set's own handle goes first, like in scenes; a new file gets one here.
+		const AssetHandle handle = AssetManager::ImportAsset(filepath);
+		// The texture is saved by handle (follows renames) and by path (readable, and for files outside a project).
+		const AssetHandle textureHandle = texture->GetHandle();
+		const std::filesystem::path texturePath = AssetManager::IsAssetHandleValid(textureHandle) ? AssetManager::GetAbsolutePath(textureHandle) : texture->GetPath();
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		if ((uint64_t)handle != 0)
+		{
+			out << YAML::Key << AssetMetaSerializer::HandleKey << YAML::Value << (uint64_t)handle;
+		}
 		out << YAML::Key << "SpriteAnimationSet" << YAML::Value << YAML::BeginMap;
-		out << YAML::Key << "Texture" << YAML::Value << ToSavedTexturePath(texture->GetPath(), filepath);
+		if ((uint64_t)textureHandle != 0)
+		{
+			out << YAML::Key << "TextureHandle" << YAML::Value << (uint64_t)textureHandle;
+		}
+		out << YAML::Key << "Texture" << YAML::Value << ToSavedTexturePath(texturePath, filepath);
 		if (set.GetClipCount() > 0)
 		{
 			out << YAML::Key << "DefaultClip" << YAML::Value << set.GetClip(set.GetDefaultClip()).Name;
@@ -190,6 +207,15 @@ namespace Hydro
 			if (textureFile.is_relative())
 			{
 				textureFile = filepath.parent_path() / textureFile;
+			}
+			// The handle wins over the path: the texture may have been renamed or moved since this was saved.
+			if (auto node = root["TextureHandle"])
+			{
+				const AssetHandle textureHandle = AssetHandle(node.as<uint64_t>(0));
+				if (AssetManager::IsAssetHandleValid(textureHandle))
+				{
+					textureFile = AssetManager::GetAbsolutePath(textureHandle);
+				}
 			}
 			specification.Texture = Texture2D::LoadFromFile(textureFile);
 			if (specification.Texture == nullptr)

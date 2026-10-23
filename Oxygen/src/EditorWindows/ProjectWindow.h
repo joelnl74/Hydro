@@ -15,7 +15,9 @@
 namespace Hydro
 {
 	// Content browser for <project>/Assets: folders, scenes and prefabs.
-	// Prefabs get a live thumbnail drawn from their saved components.
+	// Prefabs get a live thumbnail drawn from their saved components. .hymeta sidecars (asset handles,
+	// see AssetMetaSerializer) are hidden; deleting an image deletes its sidecar too. When the folder's
+	// contents change (here or in Explorer) it asks the AssetManager to rescan, so new files get handles.
 	//
 	// Double-click: folder -> open, prefab -> instantiate into the scene, scene -> open.
 	// Drag a prefab or scene onto the viewport or the hierarchy to do the same.
@@ -39,13 +41,14 @@ namespace Hydro
 		void Refresh() { m_NeedsRescan = true; }
 
 	private:
-		enum class AssetType { Folder, Scene, Prefab, Other };
+		// What the window shows a file as (not Hydro::AssetType: folders are items, images are "Other").
+		enum class ItemType { Folder, Scene, Prefab, Other };
 
 		struct AssetItem
 		{
 			std::filesystem::path Path;
 			std::string DisplayName;
-			AssetType Type = AssetType::Other;
+			ItemType Type = ItemType::Other;
 		};
 
 		// What a prefab looks like, read from its file. Rebuilt when the file changes.
@@ -79,7 +82,7 @@ namespace Hydro
 		void BeginRename(const std::filesystem::path& path);
 		// Folders and scenes. TODO(assets): prefabs, textures and other files once references go
 		// through asset IDs; today a texture rename would break every sprite that uses it by path.
-		static bool CanRename(AssetType type) { return type == AssetType::Folder || type == AssetType::Scene; }
+		static bool CanRename(ItemType type) { return type == ItemType::Folder || type == ItemType::Scene; }
 		// Empty when `name` + `extension` is a valid new file / folder name in `parent`, otherwise why
 		// it isn't. `ignore` is the item being renamed (keeping its own name is allowed).
 		static std::string ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore);
@@ -90,7 +93,7 @@ namespace Hydro
 		const Ref<Texture2D>& GetTextureThumbnail(const std::filesystem::path& path);
 		// Writes "<image name>.hyanim" next to a sprite sheet, one clip per sprite group, and opens it.
 		void CreateSpriteAnimation(const std::filesystem::path& imagePath);
-		static AssetType GetAssetType(const std::filesystem::path& path);
+		static ItemType GetItemType(const std::filesystem::path& path);
 
 	private:
 		std::filesystem::path m_RootDirectory;
@@ -99,6 +102,9 @@ namespace Hydro
 		std::filesystem::path m_PendingDeletePath;
 
 		std::vector<AssetItem> m_Items;
+		// What the last scan of m_ListedDirectory found, to notice files added, removed or renamed.
+		std::filesystem::path m_ListedDirectory;
+		std::vector<std::filesystem::path> m_ListedPaths;
 		std::unordered_map<std::string, PrefabPreview> m_PrefabPreviews;
 		struct TextureThumbnail
 		{

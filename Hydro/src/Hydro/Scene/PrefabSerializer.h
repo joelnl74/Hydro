@@ -9,6 +9,7 @@ namespace Hydro
 	// Saves a single entity (with its components) as a reusable YAML prefab (.hyprefab)
 	// and spawns copies of it into a scene.
 	//
+	// Handle: 9876543210   (the file's asset handle, see SceneSerializer)
 	// Prefab: Player
 	// Entity:
 	//   Entity: 1234567890

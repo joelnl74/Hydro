@@ -1,6 +1,5 @@
-# How Villagers.png is imported (Texture2D::LoadFromFile reads this file).
-# The image is a 4x nearest-neighbour preview with an opaque background, so the background colour is
-# keyed out. Sprites is left out: the sheet is sliced on load from the Slicing grid (6 x 16 cells).
+Handle: 11969883262739761085
+Type: Texture2D
 TextureImport:
   Format: SRGB
   Filter: Nearest

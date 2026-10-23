@@ -230,6 +230,7 @@ namespace Hydro
 		EditorSettingsSerializer::SaveSession(m_EditorSettings.Session, EditorPaths::GetEditorSettingsPath());
 
 		// The editor opened the project, so it closes it.
+		AssetManager::OnProjectClosed();
 		Project::Close();
 	}
 
@@ -606,6 +607,7 @@ namespace Hydro
 		std::error_code ec;
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Scenes", ec);
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Prefabs", ec);
+		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 
 		// A new project starts from the default render settings.
 		Renderer::SetSettings(project->GetConfig().Renderer);
@@ -634,6 +636,8 @@ namespace Hydro
 		std::error_code pathError;
 		m_EditorSettings.Session.LastProject = std::filesystem::absolute(path, pathError);
 		Renderer::SetSettings(project->GetConfig().Renderer);
+		// Gives every asset file without a handle one (written into the file or a .hymeta next to it).
+		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 
 		const std::filesystem::path startScene = project->GetStartScenePath();
 		if (startScene.empty())
@@ -877,7 +881,8 @@ namespace Hydro
 
 		// None found (or it failed to load): an unsaved project in the default folder, so the editor
 		// always has one. File > Save Project writes it.
-		Project::New(directory / "Sandbox.hyproj");
+		Ref<Project> project = Project::New(directory / "Sandbox.hyproj");
+		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 		HY_INFO("No project found in {}; started an unsaved one", directory.string());
 	}
 
@@ -1019,7 +1024,8 @@ namespace Hydro
 	void EditorLayer::OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to)
 	{
 		// Scenes are only referenced by these paths, so a scene (or a folder of scenes) rename is complete.
-		// TODO(assets): textures are referenced by path from sprites and don't follow.
+		// Textures and .hyanim files are referenced by asset handle and follow a rename on their own.
+		// TODO(assets): the start scene and last scene become handles too (Roadmap AS4).
 		if (FollowRename(m_EditorScenePath, from, to))
 		{
 			m_EditorScene->SetName(m_EditorScenePath.stem().string());

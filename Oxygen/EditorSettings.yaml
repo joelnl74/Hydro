@@ -113,5 +113,5 @@ EditorSettings:
       Editor Settings: false
       Project Settings: false
       Render Settings: false
-      Sprite Editor: true
+      Sprite Editor: false
       Stats: false

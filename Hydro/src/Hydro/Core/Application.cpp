@@ -2,6 +2,7 @@
 #include "Application.h"
 
 #include "Hydro/Core/Time.h"
+#include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/Renderer2D.h"
 
@@ -59,14 +60,18 @@ namespace Hydro
 		events.Subscribe(EventType::MouseMoved, HY_BIND_EVENT_FN(Application::OnEvent));
 		events.Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
 
-		// 6. ImGui: an overlay, so it sits on top of every application layer.
+		// 6. Assets: the open project's assets by handle (after Renderer: it will create GPU textures).
+		//    Empty until the application opens a project (AssetManager::OnProjectOpened).
+		AssetManager::Init();
+
+		// 7. ImGui: an overlay, so it sits on top of every application layer.
 		m_ImGuiLayer = new ImGuiLayer(m_Specification.ImGui);
 		PushOverlay(m_ImGuiLayer);
 
 		HY_CORE_INFO("Engine initialized");
 		m_Running = true;
 
-		// 7. The client application: pushes its layers (and may already call Quit()).
+		// 8. The client application: pushes its layers (and may already call Quit()).
 		OnInit();
 	}
 
@@ -76,14 +81,17 @@ namespace Hydro
 	{
 		m_Running = false;
 
-		// 7. The client application, while everything is still alive.
+		// 8. The client application, while everything is still alive.
 		OnShutdown();
 
-		// 6. Layers (ImGui included) own GPU objects: detach them once the GPU is idle,
+		// 7. Layers (ImGui included) own GPU objects: detach them once the GPU is idle,
 		//    while the device still exists.
 		Renderer::WaitIdle();
 		m_LayerStack.Clear();
 		m_ImGuiLayer = nullptr;
+
+		// 6. Assets.
+		AssetManager::Shutdown();
 
 		// 5. Renderer.
 		Renderer::Shutdown();

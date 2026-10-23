@@ -1,4 +1,5 @@
 #pragma once
+#include "Hydro/Asset/Asset.h"
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Texture2D.h"
 
@@ -62,7 +63,7 @@ namespace Hydro
 	//
 	// A resource: made from a specification and immutable afterwards (the editor saves a new file and
 	// loads it again); shared by every animator that uses it, so held in a Ref.
-	class SpriteAnimationSet
+	class SpriteAnimationSet : public Asset
 	{
 	public:
 		explicit SpriteAnimationSet(const SpriteAnimationSetSpecification& specification);
@@ -75,8 +76,12 @@ namespace Hydro
 		// returned instead of loading it again.
 		// `reload` reads the file (and its texture's current import) again even when it is shared,
 		// e.g. after the texture was re-sliced; later loads then share the new set.
+		// Its handle is bound when loaded (AssetManager::BindHandle).
 		// TODO(assets): replaced by AssetManager::GetAsset<SpriteAnimationSet>(handle).
 		static Ref<SpriteAnimationSet> LoadFromFile(const std::filesystem::path& path, bool reload = false);
+
+		static AssetType GetStaticType() { return AssetType::SpriteAnimation; }
+		AssetType GetType() const override { return GetStaticType(); }
 
 		const Ref<Texture2D>& GetTexture() const { return m_Texture; }
 		uint32_t GetClipCount() const { return (uint32_t)m_Clips.size(); }

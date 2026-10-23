@@ -3,6 +3,7 @@
 #include "TextureImportSerializer.h"
 #include "SpriteSlicer.h"
 
+#include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Platform/Vulkan/VulkanTexture2DData.h"
 
 // stb_image's implementation is compiled here, once for the whole engine (VulkanImage.cpp uses it
@@ -16,7 +17,6 @@
 	#pragma warning(pop)
 #endif
 
-#include <cctype>
 #include <string>
 #include <unordered_map>
 
@@ -147,6 +147,7 @@ namespace Hydro
 		Ref<Texture2D> texture = CreateRef<Texture2D>(specification, pixels, config.Properties);
 		stbi_image_free(pixels);
 		texture->m_Path = absolutePath;
+		AssetManager::BindHandle(*texture, absolutePath);
 		texture->SetImportConfig(config);
 
 		// Drop entries whose textures are gone, then remember this one.
@@ -168,13 +169,7 @@ namespace Hydro
 
 	bool Texture2D::IsSupportedFile(const std::filesystem::path& path)
 	{
-		std::string extension = path.extension().string();
-		for (char& c : extension)
-		{
-			c = (char)std::tolower((unsigned char)c);
-		}
-
-		return extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga" || extension == ".bmp";
+		return GetAssetTypeFromExtension(path) == AssetType::Texture2D;
 	}
 
 	std::filesystem::path Texture2D::GetImportFilePath(const std::filesystem::path& imagePath)

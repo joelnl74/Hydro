@@ -75,8 +75,33 @@ namespace Hydro
 
 	bool TextureImportSerializer::Serialize(const std::filesystem::path& filepath, const TextureImportConfig& config)
 	{
+		// The file is also the image's asset sidecar: keep its Handle and Type (AssetMetaSerializer).
+		YAML::Node existing;
+		std::error_code existsError;
+		if (std::filesystem::exists(filepath, existsError))
+		{
+			try
+			{
+				existing = YAML::LoadFile(filepath.string());
+			}
+			catch (const YAML::Exception&)
+			{
+				// Not valid YAML: rewritten without a handle; the next asset scan gives the image a new one.
+			}
+		}
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		if (existing.IsMap())
+		{
+			for (const char* key : { "Handle", "Type" })
+			{
+				if (auto node = existing[key])
+				{
+					out << YAML::Key << key << YAML::Value << node;
+				}
+			}
+		}
 		out << YAML::Key << "TextureImport" << YAML::Value << YAML::BeginMap;
 
 		out << YAML::Key << "Format" << YAML::Value << ImageFormatToString(config.Format);
@@ -147,7 +172,7 @@ namespace Hydro
 		const YAML::Node root = data["TextureImport"];
 		if (root.IsDefined() == false || root.IsMap() == false)
 		{
-			HY_CORE_ERROR("TextureImportSerializer: '{}' has no TextureImport section", filepath.string());
+			// Not an error: a sidecar that only holds the asset handle means the image uses the defaults.
 			return false;
 		}
 

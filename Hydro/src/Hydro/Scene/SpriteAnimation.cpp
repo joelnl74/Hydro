@@ -2,6 +2,8 @@
 #include "SpriteAnimation.h"
 #include "SpriteAnimationSerializer.h"
 
+#include "Hydro/Asset/AssetManager.h"
+
 #include <algorithm>
 
 namespace Hydro
@@ -78,6 +80,7 @@ namespace Hydro
 
 		Ref<SpriteAnimationSet> set = CreateRef<SpriteAnimationSet>(specification);
 		set->m_Path = absolutePath;
+		AssetManager::BindHandle(*set, absolutePath);
 
 		for (auto it = s_LoadedAnimationSets.begin(); it != s_LoadedAnimationSets.end();)
 		{

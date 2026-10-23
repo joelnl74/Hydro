@@ -26,6 +26,13 @@
 #include "Hydro/Scene/SpriteAnimationSerializer.h"
 #include "Hydro/Scene/SpriteAnimator.h"
 
+// ASSETS.
+#include "Hydro/Asset/Asset.h"
+#include "Hydro/Asset/AssetMetadata.h"
+#include "Hydro/Asset/AssetRegistry.h"
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Asset/AssetMetaSerializer.h"
+
 // RENDERING.
 #include "Hydro/Renderer/SceneRenderer.h"
 #include "Hydro/Renderer/Camera.h"
