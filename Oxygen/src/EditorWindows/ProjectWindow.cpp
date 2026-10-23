@@ -4,6 +4,8 @@
 
 #include <imgui/imgui.h>
 
+#include <Hydro/Asset/AssetManager.h>
+#include <Hydro/Asset/AssetMetaSerializer.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SceneSerializer.h>
@@ -115,26 +117,45 @@ namespace Hydro
 		{
 			const std::filesystem::path& path = it->path();
 			const std::string fileName = path.filename().u8string();
-			if (fileName.empty() || fileName[0] == '.')
+			if (fileName.empty() || fileName[0] == '.' || AssetMetaSerializer::IsSidecar(path))
+			{
 				continue;
+			}
 
 			AssetItem item;
 			item.Path = path;
-			item.Type = GetAssetType(path);
-			item.DisplayName = (item.Type == AssetType::Folder || item.Type == AssetType::Other) ? fileName : path.stem().u8string();
+			item.Type = GetItemType(path);
+			item.DisplayName = (item.Type == ItemType::Folder || item.Type == ItemType::Other) ? fileName : path.stem().u8string();
 			m_Items.push_back(std::move(item));
 		}
 
 		// Folders first, then by name.
 		std::sort(m_Items.begin(), m_Items.end(), [](const AssetItem& a, const AssetItem& b)
 		{
-			const bool aFolder = a.Type == AssetType::Folder;
-			const bool bFolder = b.Type == AssetType::Folder;
+			const bool aFolder = a.Type == ItemType::Folder;
+			const bool bFolder = b.Type == ItemType::Folder;
 			if (aFolder != bFolder)
 				return aFolder;
 
 			return ToLower(a.DisplayName) < ToLower(b.DisplayName);
 		});
+
+		// Files added, removed or renamed in this folder since the last look (by this window or outside
+		// the editor): rescan the assets so they keep or get their handles. Not when only the folder changed.
+		std::vector<std::filesystem::path> listed;
+		listed.reserve(m_Items.size());
+		for (const AssetItem& item : m_Items)
+		{
+			listed.push_back(item.Path);
+		}
+
+		const bool sameFolder = m_ListedDirectory == m_CurrentDirectory;
+		if (sameFolder && listed != m_ListedPaths)
+		{
+			AssetManager::Rescan();
+		}
+		m_ListedDirectory = m_CurrentDirectory;
+		m_ListedPaths = std::move(listed);
 	}
 
 	void ProjectWindow::DrawToolbar()
@@ -229,7 +250,7 @@ namespace Hydro
 
 		// F2 renames the selected folder or scene.
 		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_F2, false) &&
-			m_SelectedPath.empty() == false && CanRename(GetAssetType(m_SelectedPath)))
+			m_SelectedPath.empty() == false && CanRename(GetItemType(m_SelectedPath)))
 		{
 			BeginRename(m_SelectedPath);
 		}
@@ -271,9 +292,9 @@ namespace Hydro
 
 		// Prefabs and scenes can be dragged onto the viewport / hierarchy, images onto a sprite's
 		// Texture field in the inspector.
-		// TODO(assets): give textures their own AssetType (and thumbnails) with the asset system.
-		const bool isTexture = item.Type == AssetType::Other && Texture2D::IsSupportedFile(item.Path);
-		if ((item.Type == AssetType::Prefab || item.Type == AssetType::Scene || isTexture) && ImGui::BeginDragDropSource())
+		// TODO(assets): give textures their own ItemType (and thumbnails) with the asset system.
+		const bool isTexture = item.Type == ItemType::Other && Texture2D::IsSupportedFile(item.Path);
+		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
@@ -283,7 +304,7 @@ namespace Hydro
 			}
 			else
 			{
-				ImGui::TextDisabled("%s", item.Type == AssetType::Prefab ? "Drop to instantiate" : "Drop to open");
+				ImGui::TextDisabled("%s", item.Type == ItemType::Prefab ? "Drop to instantiate" : "Drop to open");
 			}
 			ImGui::EndDragDropSource();
 		}
@@ -293,11 +314,11 @@ namespace Hydro
 			const AssetItem copy = item;
 			Ref<Scene> sceneCopy = scene;
 
-			if (item.Type == AssetType::Prefab && ImGui::MenuItem("Instantiate"))
+			if (item.Type == ItemType::Prefab && ImGui::MenuItem("Instantiate"))
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { InstantiatePrefab(copy.Path, sceneCopy); });
-			if (item.Type == AssetType::Scene && ImGui::MenuItem("Open Scene"))
+			if (item.Type == ItemType::Scene && ImGui::MenuItem("Open Scene"))
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
-			if (item.Type == AssetType::Folder && ImGui::MenuItem("Open Folder"))
+			if (item.Type == ItemType::Folder && ImGui::MenuItem("Open Folder"))
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
 			if (CanRename(item.Type) && ImGui::MenuItem("Rename...", "F2"))
 			{
@@ -342,7 +363,7 @@ namespace Hydro
 
 		switch (item.Type)
 		{
-			case AssetType::Folder:
+			case ItemType::Folder:
 			{
 				const ImU32 folder = ToColor(0.86f, 0.66f, 0.28f);
 				const ImU32 folderDark = ToColor(0.72f, 0.53f, 0.20f);
@@ -350,7 +371,7 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.32f), TilePoint(min, size, 0.84f, 0.78f), folder, 3.0f);
 				break;
 			}
-			case AssetType::Scene:
+			case ItemType::Scene:
 			{
 				const ImVec2 frameMin = TilePoint(min, size, 0.16f, 0.22f);
 				const ImVec2 frameMax = TilePoint(min, size, 0.84f, 0.78f);
@@ -363,7 +384,7 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.30f, 0.70f, 0.40f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
-			case AssetType::Prefab:
+			case ItemType::Prefab:
 			{
 				const PrefabPreview& preview = GetPrefabPreview(item.Path);
 
@@ -414,7 +435,7 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.26f, 0.59f, 0.98f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
-			case AssetType::Other:
+			case ItemType::Other:
 			default:
 			{
 				const ImU32 page = ToColor(0.62f, 0.64f, 0.68f);
@@ -437,7 +458,7 @@ namespace Hydro
 
 		switch (item.Type)
 		{
-			case AssetType::Prefab:
+			case ItemType::Prefab:
 			{
 				const PrefabPreview& preview = GetPrefabPreview(item.Path);
 				if (preview.Valid == false)
@@ -461,14 +482,27 @@ namespace Hydro
 				ImGui::TextDisabled("Double-click or drag into the scene");
 				break;
 			}
-			case AssetType::Scene:
+			case ItemType::Scene:
 				ImGui::TextDisabled("Scene - double-click or drag to the viewport to open");
 				break;
-			case AssetType::Folder:
+			case ItemType::Folder:
 				ImGui::TextDisabled("Folder");
 				break;
 			default:
 				break;
+		}
+
+		if (item.Type != ItemType::Folder && GetAssetTypeFromExtension(item.Path) != AssetType::None)
+		{
+			const AssetHandle handle = AssetManager::FindHandle(item.Path);
+			if ((uint64_t)handle != 0)
+			{
+				ImGui::TextDisabled("Asset handle %llu", (unsigned long long)(uint64_t)handle);
+			}
+			else
+			{
+				ImGui::TextDisabled("No asset handle yet");
+			}
 		}
 
 		ImGui::EndTooltip();
@@ -499,9 +533,15 @@ namespace Hydro
 			if (ImGui::Button("Delete", { 120.0f, 0.0f }))
 			{
 				if (std::filesystem::remove(m_PendingDeletePath, ec))
+				{
 					HY_INFO("Deleted {}", m_PendingDeletePath.u8string());
+					// An image's handle lives next to it; without the image it means nothing.
+					std::filesystem::remove(AssetMetaSerializer::GetSidecarPath(m_PendingDeletePath), ec);
+				}
 				else
+				{
 					HY_ERROR("Could not delete {}: {}", m_PendingDeletePath.u8string(), ec.message());
+				}
 
 				m_PrefabPreviews.erase(m_PendingDeletePath.u8string());
 				if (m_SelectedPath == m_PendingDeletePath)
@@ -527,15 +567,15 @@ namespace Hydro
 	{
 		switch (item.Type)
 		{
-			case AssetType::Folder:
+			case ItemType::Folder:
 				m_CurrentDirectory = item.Path;
 				m_SelectedPath.clear();
 				m_NeedsRescan = true;
 				break;
-			case AssetType::Prefab:
+			case ItemType::Prefab:
 				InstantiatePrefab(item.Path, scene);
 				break;
-			case AssetType::Scene:
+			case ItemType::Scene:
 				if (OnOpenScene)
 					OnOpenScene(item.Path);
 				break;
@@ -757,18 +797,18 @@ namespace Hydro
 		return m_PrefabPreviews[key] = preview;
 	}
 
-	ProjectWindow::AssetType ProjectWindow::GetAssetType(const std::filesystem::path& path)
+	ProjectWindow::ItemType ProjectWindow::GetItemType(const std::filesystem::path& path)
 	{
 		std::error_code ec;
 		if (std::filesystem::is_directory(path, ec))
-			return AssetType::Folder;
+			return ItemType::Folder;
 
 		const std::string extension = ToLower(path.extension().u8string());
 		if (extension == PrefabSerializer::FileExtension)
-			return AssetType::Prefab;
+			return ItemType::Prefab;
 		if (extension == SceneSerializer::FileExtension)
-			return AssetType::Scene;
+			return ItemType::Scene;
 
-		return AssetType::Other;
+		return ItemType::Other;
 	}
 }

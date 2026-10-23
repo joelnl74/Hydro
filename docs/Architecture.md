@@ -41,13 +41,14 @@ Everything is started and stopped explicitly; constructors and destructors do no
 
 | Init | Shutdown |
 | --- | --- |
-| 1. `Log` | 7. client `OnShutdown` |
-| 2. `Time` | 6. wait for the GPU, detach layers (ImGui included) |
-| 3. `EventDispatcher` | 5. `Renderer` |
-| 4. `Window` | 4. `Window` |
-| 5. `Renderer` (context, swapchain, frames, allocator, `Renderer2D`, `Renderer3D`) | 3. `EventDispatcher` |
-| 6. `ImGuiLayer` overlay | 2. `Time` |
-| 7. client `OnInit` (pushes layers) | 1. `Log` |
+| 1. `Log` | 8. client `OnShutdown` |
+| 2. `Time` | 7. wait for the GPU, detach layers (ImGui included) |
+| 3. `EventDispatcher` | 6. `AssetManager` |
+| 4. `Window` | 5. `Renderer` |
+| 5. `Renderer` (context, swapchain, frames, allocator, `Renderer2D`, `Renderer3D`) | 4. `Window` |
+| 6. `AssetManager` (empty until the application opens a project) | 3. `EventDispatcher` |
+| 7. `ImGuiLayer` overlay | 2. `Time` |
+| 8. client `OnInit` (pushes layers) | 1. `Log` |
 
 The rules, the vocabulary (subsystem, part, layer, system, resource) and how to name new subsystems are in [Subsystems](Subsystems.md).
 
@@ -56,11 +57,12 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 | Folder | Responsibility | May depend on |
 | --- | --- | --- |
 | `Core` | Application, `LayerStack` and layers, window interface, logging (`Log`, which also keeps the last 5000 messages in memory for `Log::GetMessagesSince`; Oxygen's **Console** window shows them), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
+| `Asset` | Asset identity: `AssetHandle`, `AssetType` and the `Asset` base (`Asset.h`), `AssetRegistry`, `AssetMetaSerializer` (handles inside scenes/prefabs and in `.hymeta` sidecars), the `AssetManager` subsystem. See [Asset system](#asset-system) | Core (yaml-cpp). `Renderer` (`Texture2D` is an `Asset`) and `Scene` (the serializers write handles) depend on it |
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core; `Renderer.h` for the device (`Renderer::GetVulkanDevice()`), the deletion queue and the frame index |
 | `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `RenderView`, `Texture2D`, `SceneRenderer`, `Camera`, `SceneCamera`, `EditorCamera`, `Image.h`) | Core, Platform/Vulkan |
-| `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission, and `Texture2D` for sprites). Until the asset system, `EntitySerializer` also loads sprite textures and reads `Project` for the asset folder (see [Planned: asset system](#planned-asset-system)) |
+| `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission, and `Texture2D` for sprites). Until the asset system, `EntitySerializer` also loads sprite textures and reads `Project` for the asset folder (see [Asset system](#asset-system)) |
 | `Project` | Project file (`.hyproj`, YAML) and settings | Core, Utils, Renderer (`RendererSettings` only) |
 | `Utils` | Platform file dialogs, shared YAML conversions for glm types | Core |
 | `ImGUI` | ImGui layer | Core, Renderer |
@@ -260,19 +262,39 @@ Agreed on October 19, 2026 after reviewing the engine and editor code against th
 | A10 | Naming | `m_PascalCase` members (`m_uniformBuffers`, `m_format`, `m_renderPass`, `m_commandBuffer`, `m_vmaAllocation`, `m_memory`, `m_layoutBinding`, `m_poolSizes`); PascalCase spec fields (`ShaderInformation::path`; drop the duplicate `shaderStage`/`shaderType`; `PipelineSpecification::Shader` is done); `HierachyWindow`, `heigth`, `GetPipeLine` (`VullkanTexture` is gone); `enum class` instead of `typedef enum class` (`KeyCodes.h`, `Input.h`) |
 | A11 | Const and ownership in signatures | `const Ref<T>&` parameters (`VulkanDescriptorBuilder::BindBuffer` takes `const VulkanUniformBuffer&` since Oct 20, 2026), `explicit` single-argument constructors, `const` overloads of `Entity::GetComponent`/`HasComponent`, `"Hydro/..."` include paths instead of `"../Scene/..."` |
 
-## Planned: asset system
+## Asset system
 
-**TODO (Roadmap AS1–AS5).** Today a sprite holds a `Ref<Texture2D>` and the scene file stores the texture's path (relative to the project's asset folder). That is deliberately small: an `AssetHandle` is only useful together with a registry that maps handles to files and survives renames, so the handle, the registry and the manager are one piece of work. Steps, in order:
+**Step 1 of AS1–AS5 is done (Oct 24, 2026): asset identity.** Every texture, scene and prefab in the open project's asset folder has an `AssetHandle` that survives renames and moves. Nothing is loaded through it yet: sprites still hold a `Ref<Texture2D>` and scenes save the texture's path (`TODO(assets)`).
 
-1. **`AssetHandle` and `Asset`.** `using AssetHandle = UUID;` and `enum class AssetType : uint16_t { None, Texture2D, Scene, Prefab, ... }` in `Asset/Asset.h`; `Texture2D` (and later fonts, audio clips) derive from a small `Asset` base with `GetType()`. No Vulkan, no file paths in the type.
-2. **Asset registry.** One file per project (`Assets/AssetRegistry.hyr`, YAML): handle → path relative to the asset folder, type, import settings (for textures: `TextureProperties` and sRGB). Rebuilt by scanning the asset folder at project open; new files get a new handle, known files keep theirs.
-3. **`AssetManager` subsystem.** A registry-style subsystem (`...Manager`, see [Subsystems](Subsystems.md#current-and-planned-subsystems)) started after `Renderer`, at the planned position: `Init`/`Shutdown`, `OnProjectOpened(project)` (the application calls it, like `Renderer::SetSettings`), `GetAsset<T>(handle)` returning `Ref<T>` (loaded on first use, cached by handle), `ImportAsset(path)` → handle, `IsAssetHandleValid`. It owns what `Texture2D::LoadFromFile`'s sharing does today; per-type importers (texture via stb_image) live next to it.
-4. **Components store handles.** `SpriteRendererComponent::Texture` becomes `AssetHandle Texture = 0;`; `SceneRenderer` resolves it with `AssetManager::GetAsset<Texture2D>` (null → white). `EntitySerializer` saves the handle (a `uint64_t`) and keeps reading the old `Texture: <path>` key, importing the file to get a handle, so existing scenes load. `EntitySerializer` stops including `Project.h` and stops loading files.
-5. **Editor.** The Project window shows registered assets with thumbnails (an ImGui texture per `Texture2D`) and drags handles instead of paths; the sprite's texture field accepts them; the inspector shows a selected texture's import settings and re-imports on change.
-6. **Hot reload.** A `FileWatcher` per loaded file; on change re-import into the same `Ref`/handle, freeing the old image through the deletion queue (A3), so sprites keep their handle.
-7. **Later.** Async loading on the `JobScheduler` (C3) with a placeholder texture; an asset pack for `Dist` builds (RT7).
+**Where handles live** (decided Oct 24, 2026, instead of one `AssetRegistry.hyr`). The files are the source of truth, so moves outside the editor and git merges keep working:
 
-Until then, new code that references a texture holds a `Ref<Texture2D>` and is marked `TODO(assets)`, so the switch is easy to find.
+- Files Hydro writes keep their handle inside: `.hyscene` and `.hyprefab` start with `Handle: <uint64>`. `SceneSerializer` / `PrefabSerializer` get it from `AssetManager::ImportAsset`, which keeps a file's handle when it is saved again and gives a new file (Save As) a new one; loading ignores the line.
+- Other files (images) get a sidecar next to them, `<file>.hymeta` (YAML: `Handle`, `Type`; other keys, such as texture import settings, are kept when the handle is written). Move or rename an image together with its sidecar and the handle stays. Commit `.hymeta` files. The Project window hides them and deletes them with their image.
+- The `AssetRegistry` (handle → `AssetMetadata { Handle, Type, Path, IsMissing }`, and path → handle) only lives in memory and is rebuilt by scanning. `AssetMetaSerializer` reads and writes the handles.
+
+**Scanning** (`AssetManager::OnProjectOpened`, `Rescan`) walks the asset folder (hidden files and folders skipped) and reads each file's handle (the first line of a scene or prefab, an image's sidecar):
+
+- a file without one gets a new handle, written into it or its sidecar. The first time a project opens, every scene and prefab gains a `Handle:` line and every image a `.hymeta`;
+- two files with the same handle (one was copied): the one at the path registered before keeps it, otherwise the first path in alphabetical order; the other gets a new handle and a warning is logged;
+- a registered file that is gone stays in the registry, marked missing, so a reference to it can be reported instead of turning into "none";
+- a `.hymeta` without its file is logged (moved without it?).
+
+Oxygen calls `OnProjectOpened` when it opens or creates a project and `OnProjectClosed` in `OnDetach`. The Project window calls `Rescan` when the folder it shows changes (in the editor or in Explorer), and its tooltips show each file's handle.
+
+**`AssetManager`** is a static subsystem started after `Renderer` (it will create GPU textures): `OnProjectOpened(assetDirectory)` / `OnProjectClosed()` (it takes the folder, not the `Project`, so the asset layer doesn't depend on `Project`), `Rescan()` → `AssetScanInfo`, `ImportAsset(path)`, `FindHandle(path)`, `GetMetadata(handle)`, `IsAssetHandleValid(handle)`, `GetAbsolutePath(handle)`, `GetRegistry()`.
+
+**`Asset`** (`Asset/Asset.h`) is the base of the types the manager will load and hand out as `Ref<T>`: `Texture2D` derives from it (`GetStaticType()`, `GetType()`). It holds only the handle: no paths, no Vulkan. Not every asset type is a loaded object: a scene is a file with a handle, but opening it always builds a fresh `Scene`, which is never shared or cached.
+
+Next steps, in order:
+
+2. **Texture slice.** `AssetManager::GetAsset<T>(handle)` loads synchronously and is only for scene loading and the editor; `GetLoadedAsset<T>(handle)` never touches the disk and is the only one render code calls. Opening a scene preloads the handles it references. A `TextureImporter` decodes (stb_image) into pixels + `ImageSpecification`; `Texture2D` uploads as today, so importers never touch Vulkan. Loaded assets are held by strong `Ref`s until the project closes (`UnloadUnused` with AS7). Import settings move into the image's `.hymeta`. File reads go through a small internal source, so a pack (RT8) can replace the folder without the API changing. A load state per asset (loaded, missing, failed, wrong type) for diagnostics.
+3. **Components store handles.** `SpriteRendererComponent::Texture` becomes `AssetHandle Texture = 0;`; `SceneRenderer` resolves it with `GetLoadedAsset<Texture2D>` (null → white, later magenta). `EntitySerializer` saves the handle and keeps reading the old `Texture: <path>` key, importing the file to get a handle; it stops including `Project.h` and loading files. A missing texture keeps its handle when the scene is saved again.
+4. **Scenes and prefabs by handle.** `AssetManager::MoveAsset` / `DeleteAsset` for the editor (rename for prefabs and images), `ProjectConfig::StartScene` as a handle, optionally a prefab instance → source prefab link.
+5. **Editor.** The Project window works from the registry, drags handles and shows thumbnails; the inspector shows an image's import settings.
+6. **Hot reload.** Re-import into the same handle: the manager swaps its cache entry and the old image goes through the deletion queue. Safe because only the manager keeps a `Ref<T>` across frames; everything else resolves the handle each frame.
+7. **Later.** Sprites as sub-assets (each sprite in an image's `.hymeta` gets its own handle, with the image as parent), async loading on the `JobScheduler` (C3) with placeholders, an asset pack for `Dist` builds (RT7, RT8).
+
+Until step 3, code that references a texture holds a `Ref<Texture2D>` and is marked `TODO(assets)`, so the switch is easy to find.
 
 ## Known gaps
 
@@ -285,8 +307,9 @@ These are where the code does not yet match the rules above. Fix them when you t
 - The deletion queue only knows the main frame's fence. ImGui windows dragged outside the main window are submitted separately by ImGui (`RenderPlatformWindowsDefault`), so a view image freed or rewritten after a resize could in theory still be sampled by such a window's previous submission. Not seen in practice; fixed properly when the ImGui upgrade lets those windows render through `Renderer`.
 - `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h` (A7).
 - `Renderer2D` loads its shaders from the application's `assets/` folder (A8).
-- Sprites reference textures directly (`Ref<Texture2D>`) and scenes save the file path; `EntitySerializer` loads textures and reads `Project` for the asset folder. A texture file that is missing when a scene loads is logged and the sprite draws untextured; saving the scene then drops the reference. Sampling options (`TextureProperties`) aren't saved per texture yet (always linear + repeat). All of this moves to the asset system ([Planned: asset system](#planned-asset-system)).
+- Sprites reference textures directly (`Ref<Texture2D>`) and scenes save the file path; `EntitySerializer` loads textures and reads `Project` for the asset folder. A texture file that is missing when a scene loads is logged and the sprite draws untextured; saving the scene then drops the reference. Sampling options (`TextureProperties`) aren't saved per texture yet (always linear + repeat). All of this moves to the asset system ([Asset system](#asset-system)).
 - The 32 texture slots are fixed (shader array size). `Renderer2D::Init` logs an error if the GPU allows fewer samplers per stage (Vulkan guarantees 16; desktop GPUs have far more).
+- `AssetManager::Rescan` is synchronous: it reads the first line of every scene and prefab and every sidecar. The Project window runs it only when the folder it shows changes, so a file added in Explorer to another folder gets its handle when that folder is shown, something is saved there, or the project is opened again.
 - Textures load synchronously on the main thread (stb_image decode + one upload that waits for the GPU).
 - `LayerStack` owns layers through raw pointers (A9); some members and spec fields don't follow the naming rules (A10).
 - Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s quad shader is watched; there is no shader library yet.

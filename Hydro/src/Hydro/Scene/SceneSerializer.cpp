@@ -2,6 +2,9 @@
 #include "SceneSerializer.h"
 #include "EntitySerializer.h"
 
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Asset/AssetMetaSerializer.h"
+
 namespace Hydro
 {
 	SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
@@ -11,8 +14,13 @@ namespace Hydro
 
 	bool SceneSerializer::Serialize(const std::filesystem::path& filepath)
 	{
+		// The file's asset handle comes first (AssetMetaSerializer reads only the first line): the one it
+		// already has when the file is overwritten, a new one for a new file.
+		const AssetHandle handle = AssetManager::ImportAsset(filepath);
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		out << YAML::Key << AssetMetaSerializer::HandleKey << YAML::Value << (uint64_t)handle;
 		out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 

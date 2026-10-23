@@ -20,6 +20,11 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Events/*` | Event types, `EventDispatcher` subsystem |
 | `ImGUI/ImGuiLayer.*` | ImGui init/shutdown, fonts (`ImGuiLayerSpecification`), present-pass callback |
 | `Platform/Windows/*` | `WindowsWindow` (GLFW), `WindowsInput`, `WindowsUtilities` (`FileDialogs`) |
+| **Asset** | |
+| `Asset/Asset.*` | `AssetHandle` (= `UUID`), `AssetType` (to/from string, from a file extension), `Asset` base class |
+| `Asset/AssetMetadata.h`, `Asset/AssetRegistry.*` | What is known about one asset; the handle ↔ path table (in memory, rebuilt by scanning) |
+| `Asset/AssetMetaSerializer.*` | Where a file keeps its handle: first line of scenes/prefabs, `<file>.hymeta` sidecar for images |
+| `Asset/AssetManager.*` | `AssetManager` subsystem: project open/close, scan (new handles, copies, missing files), `ImportAsset`, lookups |
 | **Renderer** (engine-facing, no Vulkan types in new headers) | |
 | `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
 | `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`), `RendererCapabilities` |
@@ -64,7 +69,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `EditorPaths.h` | Project-aware paths (scenes, prefabs, settings) |
 | `EditorWindows/InspectorWindow.*` | Component UI, **Add Component**, script list, prefab button |
 | `EditorWindows/HierachyWindow.*` | Entity list, create/delete, prefab drops |
-| `EditorWindows/ProjectWindow.*` | Asset browser, drag sources (prefabs, scenes, images), prefab previews |
+| `EditorWindows/ProjectWindow.*` | Asset browser, drag sources (prefabs, scenes, images), prefab previews; hides `.hymeta`, calls `AssetManager::Rescan` when the folder changes, handle in tooltips |
 | `EditorWindows/ConsoleWindow.*` | Log view |
 | `EditorWindows/StatsWindow.*`, `RendererStatsWindow.*`, `StatsUI.h` | Frame timings; `Renderer2D` stats; shared table helpers |
 | `EditorWindows/RenderSettingsWindow.*`, `ProjectSettingsWindow.*`, `EditorSettingsWindow.*` | Live `RendererSettings`; project name/start scene; editor preferences pages |
@@ -90,6 +95,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | New subsystem | Class + `Init`/`Shutdown`, `Application.cpp` (mirrored positions), tables in `docs/Subsystems.md` |
 | 2D drawing / batching | `Renderer2D.*`, shaders in `Oxygen/assets/shaders`, `RendererStatsWindow.cpp` for new stats |
 | Textures | `Texture2D.*`, `VulkanImage.*`, `VulkanTexture2DData.h`; sprites: `SceneRenderer.cpp`, `EntitySerializer.cpp`, `InspectorWindow.cpp` |
+| New asset type | `AssetType` + `AssetTypeToString` / `AssetTypeFromString` / `GetAssetTypeFromExtension` (`Asset.cpp`); `AssetMetaSerializer::StoresHandleInFile` if Hydro writes the file (and its serializer writes `Handle` first); a loaded type derives from `Asset` |
 | Docs | Edit `docs/`, then `python scripts/regen_wiki.py`; wiki-only pages (Components, Roadmap, Known-Issues) by hand |
 
 ## Gotchas

@@ -209,6 +209,7 @@ namespace Hydro
 		EditorSettingsSerializer::SaveSession(m_EditorSettings.Session, EditorPaths::GetEditorSettingsPath());
 
 		// The editor opened the project, so it closes it.
+		AssetManager::OnProjectClosed();
 		Project::Close();
 	}
 
@@ -570,6 +571,7 @@ namespace Hydro
 		std::error_code ec;
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Scenes", ec);
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Prefabs", ec);
+		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 
 		// A new project starts from the default render settings.
 		Renderer::SetSettings(project->GetConfig().Renderer);
@@ -598,6 +600,8 @@ namespace Hydro
 		std::error_code pathError;
 		m_EditorSettings.Session.LastProject = std::filesystem::absolute(path, pathError);
 		Renderer::SetSettings(project->GetConfig().Renderer);
+		// Gives every asset file without a handle one (written into the file or a .hymeta next to it).
+		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 
 		const std::filesystem::path startScene = project->GetStartScenePath();
 		if (startScene.empty())
@@ -698,7 +702,8 @@ namespace Hydro
 
 		// None found (or it failed to load): an unsaved project in the default folder, so the editor
 		// always has one. File > Save Project writes it.
-		Project::New(directory / "Sandbox.hyproj");
+		Ref<Project> project = Project::New(directory / "Sandbox.hyproj");
+		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 		HY_INFO("No project found in {}; started an unsaved one", directory.string());
 	}
 

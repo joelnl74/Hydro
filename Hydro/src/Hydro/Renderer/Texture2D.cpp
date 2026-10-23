@@ -14,7 +14,6 @@
 	#pragma warning(pop)
 #endif
 
-#include <cctype>
 #include <string>
 #include <unordered_map>
 
@@ -106,12 +105,6 @@ namespace Hydro
 
 	bool Texture2D::IsSupportedFile(const std::filesystem::path& path)
 	{
-		std::string extension = path.extension().string();
-		for (char& c : extension)
-		{
-			c = (char)std::tolower((unsigned char)c);
-		}
-
-		return extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga" || extension == ".bmp";
+		return GetAssetTypeFromExtension(path) == AssetType::Texture2D;
 	}
 }
