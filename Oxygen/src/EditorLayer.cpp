@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <random>
 
 namespace Hydro
@@ -69,6 +70,20 @@ namespace Hydro
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
 		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
 		m_ProjectWindow->OnPathRenamed = [this](const std::filesystem::path& from, const std::filesystem::path& to) { OnPathRenamed(from, to); };
+		m_ProjectWindow->OnAssetSelected = [this](const std::filesystem::path& path)
+		{
+			// The inspector shows the asset instead of an entity.
+			m_InspectedAsset = path;
+			m_HierarchyWindow->ClearSelection();
+		};
+		m_ProjectWindow->OnOpenAsset = [this](const std::filesystem::path& path) { OpenAsset(path); };
+		m_InspectorWindow->OnTextureReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
+		m_InspectorWindow->OnOpenSpriteEditor = [this](const std::filesystem::path& path) { OpenAsset(path); };
+		m_InspectorWindow->OnOpenAnimation = [this](const std::filesystem::path& path) { OpenAsset(path); };
+		m_SpriteEditorWindow = CreateRef<SpriteEditorWindow>();
+		m_SpriteEditorWindow->OnReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
+		m_SpriteAnimationWindow = CreateRef<SpriteAnimationWindow>();
+		m_SpriteAnimationWindow->OnSaved = [this](const std::filesystem::path& path) { OnAnimationSetSaved(path); };
 		m_RenderSettingsWindow = CreateRef<RenderSettingsWindow>();
 		m_RenderSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 		m_ProjectSettingsWindow = CreateRef<ProjectSettingsWindow>();
@@ -193,6 +208,8 @@ namespace Hydro
 
 		// Release everything OnAttach created, here rather than in the destructor:
 		// Application::Shutdown detaches layers while the renderer is still alive.
+		m_SpriteAnimationWindow = nullptr;
+		m_SpriteEditorWindow = nullptr;
 		m_EditorSettingsWindow = nullptr;
 		m_ProjectSettingsWindow = nullptr;
 		m_RenderSettingsWindow = nullptr;
@@ -367,7 +384,16 @@ namespace Hydro
 		}
 
 		m_HierarchyWindow->OnImguiRender(m_ActiveScene);
-		m_InspectorWindow->OnImguiRender(m_HierarchyWindow->GetSelectedEntity());
+		// Picking an entity in the hierarchy takes the inspector back from an asset.
+		const Entity selectedEntity = m_HierarchyWindow->GetSelectedEntity();
+		if ((entt::entity)selectedEntity != m_LastSelectedEntity && (bool)selectedEntity)
+		{
+			m_InspectedAsset.clear();
+		}
+		m_LastSelectedEntity = (entt::entity)selectedEntity;
+		m_InspectorWindow->OnImguiRender(selectedEntity, m_InspectedAsset);
+		m_SpriteEditorWindow->OnImguiRender();
+		m_SpriteAnimationWindow->OnImguiRender();
 		m_StatsWindow->OnImguiRender(m_ActiveScene);
 		m_RenderSettingsWindow->OnImguiRender();
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
@@ -642,6 +668,108 @@ namespace Hydro
 		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
 	}
 
+	void EditorLayer::OpenAsset(const std::filesystem::path& path)
+	{
+		if (Texture2D::IsSupportedFile(path))
+		{
+			m_SpriteEditorWindow->Open(path);
+		}
+		else if (path.extension() == SpriteAnimationSerializer::FileExtension)
+		{
+			m_SpriteAnimationWindow->Open(path);
+		}
+	}
+
+	void EditorLayer::OnTextureReimported(const std::filesystem::path& imagePath)
+	{
+		const Ref<Texture2D> texture = Texture2D::LoadFromFile(imagePath);
+		if (texture == nullptr)
+		{
+			return;
+		}
+
+		// Each animation set that uses the image is read again once, then shared.
+		std::map<std::filesystem::path, Ref<SpriteAnimationSet>> reloadedSets;
+		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
+		{
+			if (scene == nullptr)
+			{
+				continue;
+			}
+
+			auto sprites = scene->m_Registry.view<SpriteRendererComponent>();
+			for (auto entity : sprites)
+			{
+				SpriteRendererComponent& sprite = sprites.get<SpriteRendererComponent>(entity);
+				if (sprite.Texture == nullptr || sprite.Texture == texture || sprite.Texture->GetPath() != texture->GetPath())
+				{
+					continue;
+				}
+
+				// The same sprite by name: slicing again may have moved it.
+				const int32_t index = texture->FindSprite(sprite.Texture->GetSprite(sprite.SpriteIndex).Name);
+				sprite.SpriteIndex = index >= 0 ? (uint32_t)index : 0;
+				sprite.Texture = texture;
+			}
+
+			auto animators = scene->m_Registry.view<SpriteAnimatorComponent>();
+			for (auto entity : animators)
+			{
+				SpriteAnimatorComponent& animator = animators.get<SpriteAnimatorComponent>(entity);
+				if (animator.Animations == nullptr || animator.Animations->GetPath().empty() ||
+					animator.Animations->GetTexture()->GetPath() != texture->GetPath())
+				{
+					continue;
+				}
+
+				const std::filesystem::path setPath = animator.Animations->GetPath();
+				auto found = reloadedSets.find(setPath);
+				if (found == reloadedSets.end())
+				{
+					found = reloadedSets.emplace(setPath, SpriteAnimationSet::LoadFromFile(setPath, true)).first;
+				}
+				if (found->second != nullptr)
+				{
+					animator.Animations = found->second;
+				}
+			}
+		}
+	}
+
+	void EditorLayer::OnAnimationSetSaved(const std::filesystem::path& path)
+	{
+		const Ref<SpriteAnimationSet> set = SpriteAnimationSet::LoadFromFile(path, true);
+		if (set == nullptr)
+		{
+			return;
+		}
+
+		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
+		{
+			if (scene == nullptr)
+			{
+				continue;
+			}
+
+			auto animators = scene->m_Registry.view<SpriteAnimatorComponent>();
+			for (auto entity : animators)
+			{
+				SpriteAnimatorComponent& animator = animators.get<SpriteAnimatorComponent>(entity);
+				if (animator.Animations != nullptr && animator.Animations->GetPath() == set->GetPath())
+				{
+					// The clip it plays keeps playing if it still exists (by name); otherwise it starts over.
+					const std::string playing = animator.ClipIndex >= 0 && (uint32_t)animator.ClipIndex < animator.Animations->GetClipCount()
+						? animator.Animations->GetClip((uint32_t)animator.ClipIndex).Name
+						: std::string();
+					animator.Animations = set;
+					animator.ClipIndex = playing.empty() ? -1 : set->FindClip(playing);
+					animator.FrameIndex = 0;
+					animator.FrameTime = 0.0f;
+				}
+			}
+		}
+	}
+
 	std::vector<EditorLayer::ViewWindow> EditorLayer::GetViewWindows()
 	{
 		return {
@@ -650,6 +778,8 @@ namespace Hydro
 			{ "Render Settings", &m_RenderSettingsWindow->IsOpen() },
 			{ "Project Settings", &m_ProjectSettingsWindow->IsOpen() },
 			{ "Editor Settings", &m_EditorSettingsWindow->IsOpen() },
+			{ "Sprite Editor", &m_SpriteEditorWindow->IsOpen() },
+			{ "Animation", &m_SpriteAnimationWindow->IsOpen() },
 		};
 	}
 

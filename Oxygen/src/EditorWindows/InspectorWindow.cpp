@@ -7,6 +7,8 @@
 
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
+#include <Hydro/Scene/SpriteAnimation.h>
+#include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Scene/ScriptableEntity.h>
 #include <Hydro/Utils/PlatformUtils.h>
 
@@ -189,6 +191,171 @@ namespace Hydro
 		ImGui::EndDisabled();
 	}
 
+	// For a sprite sheet (a Multiple texture): which of its sprites to draw.
+	static void DrawSpriteField(SpriteRendererComponent& sprite)
+	{
+		const Texture2D& texture = *sprite.Texture;
+		const uint32_t current = sprite.SpriteIndex < texture.GetSpriteCount() ? sprite.SpriteIndex : 0;
+
+		char preview[160];
+		std::snprintf(preview, sizeof(preview), "%u: %s", current, texture.GetSprite(current).Name.c_str());
+		if (ImGui::BeginCombo("##Sprite", preview, ImGuiComboFlags_HeightLarge))
+		{
+			for (uint32_t i = 0; i < texture.GetSpriteCount(); i++)
+			{
+				char label[160];
+				std::snprintf(label, sizeof(label), "%u: %s", i, texture.GetSprite(i).Name.c_str());
+				const bool selected = i == current;
+				if (ImGui::Selectable(label, selected))
+				{
+					sprite.SpriteIndex = i;
+				}
+				if (selected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		if (ImGui::IsItemHovered())
+		{
+			const SpriteRegion& region = texture.GetSprite(current);
+			ImGui::SetTooltip("%u x %u px at (%u, %u)\nPivot (%.2f, %.2f)\n%u sprites in this sheet",
+				region.Size.x, region.Size.y, region.Position.x, region.Position.y, region.Pivot.x, region.Pivot.y, texture.GetSpriteCount());
+		}
+	}
+
+	// The animator's .hyanim: click to pick a file, drop one from the Project window, X to clear.
+	// TODO(assets): pick from the AssetManager's animation sets once it exists.
+	static void DrawAnimationSetField(SpriteAnimatorComponent& animator)
+	{
+		const float clearWidth = ImGui::GetFrameHeight();
+		const float spacing = ImGui::GetStyle().ItemSpacing.x;
+		const bool hasSet = animator.Animations != nullptr;
+
+		std::string label = "None";
+		if (hasSet)
+		{
+			label = animator.Animations->GetPath().empty() ? "(made in code)" : animator.Animations->GetPath().filename().u8string();
+		}
+
+		Ref<SpriteAnimationSet> picked;
+		if (ImGui::Button(label.c_str(), { ImGui::GetContentRegionAvail().x - clearWidth - spacing, 0.0f }))
+		{
+			const std::string file = FileDialogs::OpenFile("Sprite animations (*.hyanim)\0*.hyanim\0");
+			if (file.empty() == false)
+			{
+				picked = SpriteAnimationSet::LoadFromFile(file);
+			}
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			if (hasSet)
+			{
+				ImGui::SetTooltip("%s\n%u clips\nClick to pick another .hyanim, or drop one from the Project window.",
+					animator.Animations->GetPath().u8string().c_str(), animator.Animations->GetClipCount());
+			}
+			else
+			{
+				ImGui::SetTooltip("Click to pick a .hyanim file, or drop one from the Project window.");
+			}
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			std::filesystem::path droppedPath;
+			if (AssetDragDrop::AcceptPayload(droppedPath) && droppedPath.extension() == SpriteAnimationSerializer::FileExtension)
+			{
+				picked = SpriteAnimationSet::LoadFromFile(droppedPath);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		// LoadFromFile logs why a file couldn't be loaded; the old set is kept then.
+		if (picked != nullptr)
+		{
+			animator.Animations = picked;
+			animator.ClipIndex = -1;
+		}
+
+		ImGui::SameLine(0.0f, spacing);
+		ImGui::BeginDisabled(hasSet == false);
+		if (ImGui::Button("X", { clearWidth, 0.0f }))
+		{
+			animator.Animations = nullptr;
+			animator.ClipIndex = -1;
+		}
+		ImGui::EndDisabled();
+	}
+
+	// The clip played on start: the set's default clip, or one picked by name.
+	// Returns true when the choice changed.
+	static bool DrawStartClipField(SpriteAnimatorComponent& animator)
+	{
+		const SpriteAnimationSet* set = animator.Animations.get();
+		const std::string defaultLabel = set != nullptr && set->GetClipCount() > 0
+			? "Default (" + set->GetClip(set->GetDefaultClip()).Name + ")"
+			: std::string("Default");
+
+		bool changed = false;
+		const char* preview = animator.StartClip.empty() ? defaultLabel.c_str() : animator.StartClip.c_str();
+		ImGui::BeginDisabled(set == nullptr);
+		if (ImGui::BeginCombo("##StartClip", preview, ImGuiComboFlags_HeightLarge))
+		{
+			if (ImGui::Selectable(defaultLabel.c_str(), animator.StartClip.empty()))
+			{
+				animator.StartClip.clear();
+				changed = true;
+			}
+			for (uint32_t i = 0; set != nullptr && i < set->GetClipCount(); i++)
+			{
+				const std::string& name = set->GetClip(i).Name;
+				if (ImGui::Selectable(name.c_str(), animator.StartClip == name))
+				{
+					animator.StartClip = name;
+					changed = true;
+				}
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::EndDisabled();
+
+		if (set != nullptr && animator.StartClip.empty() == false && set->FindClip(animator.StartClip) < 0 && ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("'%s' isn't in this set; the default clip plays instead.", animator.StartClip.c_str());
+		}
+		return changed;
+	}
+
+	// Shows the start clip's first frame on the entity's sprite, so the editor (where nothing
+	// animates) shows the pose the game starts with.
+	static void ShowStartFrame(Entity entity, const SpriteAnimatorComponent& animator)
+	{
+		if (animator.Animations == nullptr || animator.Animations->GetClipCount() == 0 || entity.HasComponent<SpriteRendererComponent>() == false)
+		{
+			return;
+		}
+
+		const SpriteAnimationSet& set = *animator.Animations;
+		int32_t clipIndex = animator.StartClip.empty() ? -1 : set.FindClip(animator.StartClip);
+		if (clipIndex < 0)
+		{
+			clipIndex = (int32_t)set.GetDefaultClip();
+		}
+
+		const SpriteAnimationClip& clip = set.GetClip((uint32_t)clipIndex);
+		if (clip.Frames.empty())
+		{
+			return;
+		}
+
+		SpriteRendererComponent& sprite = entity.GetComponent<SpriteRendererComponent>();
+		sprite.Texture = set.GetTexture();
+		sprite.SpriteIndex = clip.Frames[0].Sprite;
+		sprite.FlipX = clip.FlipX;
+	}
+
 	// Collapsible section for one component type. Right-click the header to remove it.
 	// Removal is only *requested* here; the caller applies it after drawing, so no
 	// component reference is held while EnTT storage changes.
@@ -221,14 +388,21 @@ namespace Hydro
 		ImGui::PopID();
 	}
 
-	void InspectorWindow::OnImguiRender(Entity entity)
+	void InspectorWindow::OnImguiRender(Entity entity, const std::filesystem::path& asset)
 	{
 		ImGui::Begin("Inspector");
 
 		const bool hasEntity = entity && entity.GetScene() != nullptr && entity.GetScene()->m_Registry.valid(entity);
 		if (hasEntity == false)
 		{
-			ImGui::TextDisabled("Select an entity in the hierarchy.");
+			if (asset.empty())
+			{
+				ImGui::TextDisabled("Select an entity in the hierarchy, or an asset in the Project window.");
+			}
+			else
+			{
+				DrawAsset(asset);
+			}
 			ImGui::End();
 			return;
 		}
@@ -269,6 +443,7 @@ namespace Hydro
 		bool removeTransform = false;
 		bool removeSprite = false;
 		bool removeCamera = false;
+		bool removeAnimator = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
 
@@ -284,11 +459,43 @@ namespace Hydro
 			DrawVec3Control("Scale", transform.Scale, 1.0f);
 		});
 
-		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, removeSprite, [](SpriteRendererComponent& sprite)
+		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, removeSprite, [&](SpriteRendererComponent& sprite)
 		{
 			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##Color", glm::value_ptr(sprite.Color)); });
 			DrawPropertyRow("Texture", [&]() { DrawTextureField(sprite); });
-			DrawPropertyRow("Tiling", [&]() { InputFloatField("##Tiling", sprite.TilingFactor, "%.2f", 0.0f, 100.0f); });
+			const bool isSheet = sprite.Texture != nullptr && sprite.Texture->GetSpriteMode() == SpriteMode::Multiple;
+			if (isSheet)
+			{
+				DrawPropertyRow("Sprite", [&]() { DrawSpriteField(sprite); });
+			}
+			else
+			{
+				DrawPropertyRow("Tiling", [&]() { InputFloatField("##Tiling", sprite.TilingFactor, "%.2f", 0.0f, 100.0f); });
+			}
+			DrawPropertyRow("Flip", [&]()
+			{
+				ImGui::Checkbox("X##FlipX", &sprite.FlipX);
+				ImGui::SameLine();
+				ImGui::Checkbox("Y##FlipY", &sprite.FlipY);
+			});
+			if (sprite.Texture != nullptr && entity.HasComponent<TransformComponent>())
+			{
+				DrawPropertyRow("##NativeSize", [&]()
+				{
+					if (ImGui::Button("Set Native Size", { ImGui::GetContentRegionAvail().x, 0.0f }))
+					{
+						// Getting another component doesn't move this one, so `sprite` stays valid.
+						const glm::vec2 size = sprite.Texture->GetSpriteSizeInUnits(sprite.SpriteIndex);
+						TransformComponent& transform = entity.GetComponent<TransformComponent>();
+						transform.Scale.x = size.x;
+						transform.Scale.y = size.y;
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("Scale the entity to the sprite's size: pixels / the texture's Pixels Per Unit.");
+					}
+				});
+			}
 			DrawPropertyRow("Sort Order", [&]()
 			{
 				int sortOrder = (int)sprite.SortOrder;
@@ -302,6 +509,32 @@ namespace Hydro
 				}
 			});
 		});
+
+		bool showStartFrame = false;
+		DrawComponent<SpriteAnimatorComponent>("Sprite Animator", entity, removeAnimator, [&](SpriteAnimatorComponent& animator)
+		{
+			const SpriteAnimationSet* before = animator.Animations.get();
+			DrawPropertyRow("Animations", [&]() { DrawAnimationSetField(animator); });
+			DrawPropertyRow("Start Clip", [&]() { showStartFrame |= DrawStartClipField(animator); });
+			DrawPropertyRow("Play On Start", [&]() { ImGui::Checkbox("##PlayOnStart", &animator.PlayOnStart); });
+			DrawPropertyRow("Speed", [&]() { InputFloatField("##Speed", animator.Speed, "%.2f", 0.0f, 100.0f); });
+			showStartFrame |= animator.Animations.get() != before;
+
+			if (animator.ClipIndex >= 0 && animator.Animations != nullptr && (uint32_t)animator.ClipIndex < animator.Animations->GetClipCount())
+			{
+				ImGui::TextDisabled("Playing %s, frame %u%s", animator.Animations->GetClip((uint32_t)animator.ClipIndex).Name.c_str(),
+					animator.FrameIndex, animator.Playing ? "" : (animator.Finished ? " (finished)" : " (stopped)"));
+			}
+			if (entity.HasComponent<SpriteRendererComponent>() == false)
+			{
+				ImGui::TextColored({ 0.9f, 0.6f, 0.3f, 1.0f }, "Needs a Sprite Renderer to show anything.");
+			}
+		});
+		// Outside the section's lambda: it reads another component of the entity.
+		if (showStartFrame)
+		{
+			ShowStartFrame(entity, entity.GetComponent<SpriteAnimatorComponent>());
+		}
 
 		DrawComponent<CameraComponent>("Camera", entity, removeCamera, [&](CameraComponent& cameraComponent)
 		{
@@ -385,6 +618,10 @@ namespace Hydro
 			entity.RemoveComponent<SpriteRendererComponent>();
 		if (removeCamera)
 			entity.RemoveComponent<CameraComponent>();
+		if (removeAnimator)
+		{
+			entity.RemoveComponent<SpriteAnimatorComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -405,6 +642,7 @@ namespace Hydro
 			const bool hasTransform = entity.HasComponent<TransformComponent>();
 			const bool hasSprite = entity.HasComponent<SpriteRendererComponent>();
 			const bool hasCamera = entity.HasComponent<CameraComponent>();
+			const bool hasAnimator = entity.HasComponent<SpriteAnimatorComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -426,6 +664,21 @@ namespace Hydro
 
 				if (entity.HasComponent<TransformComponent>() == false)
 					entity.AddComponent<TransformComponent>();
+			}
+
+			if (ImGui::MenuItem("Sprite Animator", nullptr, false, hasAnimator == false))
+			{
+				entity.AddComponent<SpriteAnimatorComponent>();
+
+				// It animates the entity's sprite, which needs a transform to be drawn.
+				if (entity.HasComponent<SpriteRendererComponent>() == false)
+				{
+					entity.AddComponent<SpriteRendererComponent>();
+				}
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
 			}
 
 			if (ImGui::BeginMenu("Script"))
@@ -462,6 +715,77 @@ namespace Hydro
 					entity.AddComponent<NativeScriptComponent>().Bind(name);
 				return;
 			}
+		}
+	}
+
+	void InspectorWindow::DrawAsset(const std::filesystem::path& asset)
+	{
+		if (Texture2D::IsSupportedFile(asset))
+		{
+			m_TextureImportPanel.OnReimported = OnTextureReimported;
+			m_TextureImportPanel.OnOpenSpriteEditor = OnOpenSpriteEditor;
+			m_TextureImportPanel.OnImguiRender(asset);
+			return;
+		}
+
+		if (asset.extension() == SpriteAnimationSerializer::FileExtension)
+		{
+			DrawAnimationSetAsset(asset);
+			return;
+		}
+
+		ImGui::TextUnformatted(asset.filename().u8string().c_str());
+		ImGui::TextDisabled("Nothing to edit for this kind of file.");
+	}
+
+	void InspectorWindow::DrawAnimationSetAsset(const std::filesystem::path& path)
+	{
+		ImGui::TextUnformatted(path.filename().u8string().c_str());
+		// Read again only when another file is selected or this one was saved (a file that fails to
+		// load would otherwise log every frame).
+		std::error_code error;
+		const std::filesystem::file_time_type writeTime = std::filesystem::last_write_time(path, error);
+		if (path != m_InspectedAnimationPath || writeTime != m_InspectedAnimationTime)
+		{
+			m_InspectedAnimationPath = path;
+			m_InspectedAnimationTime = writeTime;
+			m_InspectedAnimationSet = SpriteAnimationSet::LoadFromFile(path);
+		}
+		const Ref<SpriteAnimationSet>& set = m_InspectedAnimationSet;
+		if (set == nullptr)
+		{
+			ImGui::TextDisabled("This file or its sprite sheet can't be read (see the Console).");
+		}
+		else
+		{
+			ImGui::TextDisabled("Sheet: %s", set->GetTexture()->GetPath().filename().u8string().c_str());
+			ImGui::Spacing();
+			if (ImGui::BeginTable("##Clips", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV))
+			{
+				ImGui::TableSetupColumn("Clip");
+				ImGui::TableSetupColumn("Frames");
+				ImGui::TableSetupColumn("Loop");
+				ImGui::TableHeadersRow();
+				const char* loopNames[] = { "Once", "Loop", "Ping Pong" };
+				for (uint32_t i = 0; i < set->GetClipCount(); i++)
+				{
+					const SpriteAnimationClip& clip = set->GetClip(i);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("%s%s", clip.Name.c_str(), i == set->GetDefaultClip() ? " (default)" : "");
+					ImGui::TableSetColumnIndex(1);
+					ImGui::Text("%zu, %.2f s", clip.Frames.size(), clip.GetLength());
+					ImGui::TableSetColumnIndex(2);
+					ImGui::TextUnformatted(loopNames[(int)clip.Loop]);
+				}
+				ImGui::EndTable();
+			}
+		}
+
+		ImGui::Spacing();
+		if (ImGui::Button("Open in Animation Window", { ImGui::GetContentRegionAvail().x, 0.0f }) && OnOpenAnimation)
+		{
+			OnOpenAnimation(path);
 		}
 	}
 

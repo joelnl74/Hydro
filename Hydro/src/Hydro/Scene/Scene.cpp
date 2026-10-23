@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "Entity.h"
 #include "ScriptableEntity.h"
+#include "SpriteAnimator.h"
 
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/UUID.h>
@@ -188,7 +189,11 @@ namespace Hydro
 			}
 		}
 
-		// 2. Engine systems shared with the editor.
+		// 2. Game-only engine systems, after the scripts so what a script started this frame shows
+		// this frame.
+		UpdateSpriteAnimations(m_Registry, deltaTime);
+
+		// 3. Engine systems shared with the editor.
 		OnUpdateEditor(deltaTime);
 	}
 
