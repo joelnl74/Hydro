@@ -1,0 +1,38 @@
+# Farmer: idle and walk clips for each facing. The sheet has one 6-frame cycle per facing,
+# so Walk plays the same frames faster than Idle.
+SpriteAnimationSet:
+  Texture: Villagers.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Farmer_Down_0, Farmer_Down_1, Farmer_Down_2, Farmer_Down_3, Farmer_Down_4, Farmer_Down_5]
+    - Name: IdleRight
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Farmer_Right_0, Farmer_Right_1, Farmer_Right_2, Farmer_Right_3, Farmer_Right_4, Farmer_Right_5]
+    - Name: IdleUp
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Farmer_Up_0, Farmer_Up_1, Farmer_Up_2, Farmer_Up_3, Farmer_Up_4, Farmer_Up_5]
+    - Name: IdleLeft
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Farmer_Left_0, Farmer_Left_1, Farmer_Left_2, Farmer_Left_3, Farmer_Left_4, Farmer_Left_5]
+    - Name: WalkDown
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Farmer_Down_0, Farmer_Down_1, Farmer_Down_2, Farmer_Down_3, Farmer_Down_4, Farmer_Down_5]
+    - Name: WalkRight
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Farmer_Right_0, Farmer_Right_1, Farmer_Right_2, Farmer_Right_3, Farmer_Right_4, Farmer_Right_5]
+    - Name: WalkUp
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Farmer_Up_0, Farmer_Up_1, Farmer_Up_2, Farmer_Up_3, Farmer_Up_4, Farmer_Up_5]
+    - Name: WalkLeft
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Farmer_Left_0, Farmer_Left_1, Farmer_Left_2, Farmer_Left_3, Farmer_Left_4, Farmer_Left_5]

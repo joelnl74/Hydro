@@ -107,3 +107,11 @@ EditorSettings:
   Session:
     LastProject: C:/Users/joeln/Hydro/Oxygen/project/Sandbox.hyproj
     LastScene: C:/Users/joeln/Hydro/Oxygen/project/Assets/Scenes/sample.hyscene
+    OpenWindows:
+      Animation: false
+      Console: true
+      Editor Settings: false
+      Project Settings: false
+      Render Settings: false
+      Sprite Editor: true
+      Stats: false

@@ -11,6 +11,7 @@
 #include <Hydro/Core/UUID.h>
 #include <Hydro/Renderer/SceneCamera.h>
 #include <Hydro/Renderer/Texture2D.h>
+#include <Hydro/Scene/SpriteAnimation.h>
 #include <glm/gtx/quaternion.hpp>
 
 namespace Hydro
@@ -19,8 +20,9 @@ namespace Hydro
 	class Scene;
 	class UUID;
 
-	// A quad drawn with the entity's TransformComponent: Texture (white when null), repeated
-	// TilingFactor times, multiplied by Color (alpha blended).
+	// A quad drawn with the entity's TransformComponent: Texture (white when null) multiplied by Color
+	// (alpha blended). A Single texture is drawn whole, repeated TilingFactor times; a Multiple texture
+	// (a sprite sheet, see TextureImportConfig) draws its sprite SpriteIndex, placed by the sprite's pivot.
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -28,10 +30,16 @@ namespace Hydro
 		// project's asset folder when it is inside it).
 		// TODO(assets): becomes an AssetHandle once the AssetManager exists (Roadmap "Asset system").
 		Ref<Texture2D> Texture;
-		float TilingFactor = 1.0f;
+		float TilingFactor = 1.0f; // Single textures only
 		// Draw order: sprites are drawn from low to high SortOrder, so higher values end up on top.
 		// Equal values: lower Translation.z first, then the order the scene stores them in.
 		int32_t SortOrder = 0;
+		// Which of the texture's sprites to draw (Texture2D::GetSprite). 0 is the whole image of a
+		// Single texture and the first sprite of a Multiple one; out of range draws sprite 0.
+		// A playing SpriteAnimatorComponent sets it every frame.
+		uint32_t SpriteIndex = 0;
+		bool FlipX = false;
+		bool FlipY = false;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -105,6 +113,30 @@ namespace Hydro
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	// Plays clips from a SpriteAnimationSet on the entity's SpriteRendererComponent (it sets the
+	// sprite's Texture, SpriteIndex and FlipX). Control it with SpriteAnimator (Play, Stop, Pause...);
+	// UpdateSpriteAnimations advances it, in play mode only.
+	struct SpriteAnimatorComponent
+	{
+		// Saved.
+		// TODO(assets): becomes an AssetHandle. Saved as the .hyanim's path, like a sprite's texture.
+		Ref<SpriteAnimationSet> Animations;
+		std::string StartClip; // played when the game starts; empty = the set's default clip
+		bool PlayOnStart = true;
+		float Speed = 1.0f;    // 2 = twice as fast
+
+		// Runtime state: not saved, written only by UpdateSpriteAnimations and SpriteAnimator.
+		int32_t ClipIndex = -1; // -1 = nothing started yet
+		uint32_t FrameIndex = 0;
+		float FrameTime = 0.0f; // seconds into the current frame
+		int8_t Step = 1;        // PingPong direction: 1 forwards, -1 backwards
+		bool Playing = false;
+		bool Finished = false;  // a Once clip reached its last frame
+
+		SpriteAnimatorComponent() = default;
+		SpriteAnimatorComponent(const SpriteAnimatorComponent&) = default;
+	};
+
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
 	template<typename... Component>
@@ -112,5 +144,5 @@ namespace Hydro
 	{
 	};
 
-	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent>;
+	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent>;
 }

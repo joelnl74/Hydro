@@ -4,6 +4,7 @@
 
 #include "Hydro/Project/Project.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Scene/SpriteAnimation.h"
 
 #include <filesystem>
 
@@ -83,7 +84,32 @@ namespace Hydro
 			if (sprite.Texture != nullptr && sprite.Texture->GetPath().empty() == false)
 			{
 				out << YAML::Key << "Texture" << YAML::Value << ToSavedAssetPath(sprite.Texture->GetPath());
+				// By name, so slicing the sheet again keeps the sprite; the index is the fallback.
+				if (sprite.Texture->GetSpriteMode() == SpriteMode::Multiple)
+				{
+					out << YAML::Key << "Sprite" << YAML::Value << sprite.Texture->GetSprite(sprite.SpriteIndex).Name;
+				}
 			}
+			out << YAML::Key << "SpriteIndex" << YAML::Value << sprite.SpriteIndex;
+			out << YAML::Key << "FlipX" << YAML::Value << sprite.FlipX;
+			out << YAML::Key << "FlipY" << YAML::Value << sprite.FlipY;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<SpriteAnimatorComponent>())
+		{
+			auto& animator = entity.GetComponent<SpriteAnimatorComponent>();
+
+			// Only the settings; the play state starts fresh.
+			out << YAML::Key << "SpriteAnimatorComponent";
+			out << YAML::BeginMap;
+			if (animator.Animations != nullptr && animator.Animations->GetPath().empty() == false)
+			{
+				out << YAML::Key << "Animations" << YAML::Value << ToSavedAssetPath(animator.Animations->GetPath());
+			}
+			out << YAML::Key << "StartClip" << YAML::Value << animator.StartClip;
+			out << YAML::Key << "PlayOnStart" << YAML::Value << animator.PlayOnStart;
+			out << YAML::Key << "Speed" << YAML::Value << animator.Speed;
 			out << YAML::EndMap;
 		}
 
@@ -163,6 +189,36 @@ namespace Hydro
 				if (savedPath.empty() == false)
 				{
 					sprite.Texture = Texture2D::LoadFromFile(FromSavedAssetPath(savedPath));
+				}
+			}
+
+			sprite.SpriteIndex = spriteNode["SpriteIndex"].as<uint32_t>(sprite.SpriteIndex);
+			sprite.FlipX = spriteNode["FlipX"].as<bool>(sprite.FlipX);
+			sprite.FlipY = spriteNode["FlipY"].as<bool>(sprite.FlipY);
+			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && sprite.Texture != nullptr)
+			{
+				const int32_t found = sprite.Texture->FindSprite(spriteNameNode.as<std::string>(""));
+				if (found >= 0)
+				{
+					sprite.SpriteIndex = (uint32_t)found;
+				}
+			}
+		}
+
+		if (auto animatorNode = entityNode["SpriteAnimatorComponent"])
+		{
+			auto& animator = entity.AddComponent<SpriteAnimatorComponent>();
+			animator.StartClip = animatorNode["StartClip"].as<std::string>(animator.StartClip);
+			animator.PlayOnStart = animatorNode["PlayOnStart"].as<bool>(animator.PlayOnStart);
+			animator.Speed = animatorNode["Speed"].as<float>(animator.Speed);
+
+			// A set that can't be loaded is logged by LoadFromFile; the animator then does nothing.
+			if (auto animationsNode = animatorNode["Animations"])
+			{
+				const std::string savedPath = animationsNode.as<std::string>("");
+				if (savedPath.empty() == false)
+				{
+					animator.Animations = SpriteAnimationSet::LoadFromFile(FromSavedAssetPath(savedPath));
 				}
 			}
 		}

@@ -1,0 +1,105 @@
+Scene: Villagers
+Entities:
+  - Entity: 8742514861359412280
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Orthographic
+      PerspectiveFOV: 45
+      PerspectiveNear: 0.00999999978
+      PerspectiveFar: 1000
+      OrthographicSize: 10
+      OrthographicNear: -1
+      OrthographicFar: 1
+  - Entity: 3641603982383516983
+    TagComponent:
+      Tag: Blacksmith
+    TransformComponent:
+      Translation: [-6, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      Texture: Characters/Villagers.png
+      Sprite: Blacksmith_Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      Animations: Characters/Blacksmith.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 445363681616962640
+    TagComponent:
+      Tag: Barmaid
+    TransformComponent:
+      Translation: [-2, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      Texture: Characters/Villagers.png
+      Sprite: Barmaid_Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      Animations: Characters/Barmaid.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 7574918311415852851
+    TagComponent:
+      Tag: Farmer (WASD)
+    TransformComponent:
+      Translation: [2, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      Texture: Characters/Villagers.png
+      Sprite: Farmer_Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      Animations: Characters/Farmer.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+    NativeScriptComponent:
+      Scripts:
+        - VillagerWalk
+  - Entity: 868196408185819179
+    TagComponent:
+      Tag: Gatherer
+    TransformComponent:
+      Translation: [6, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      Texture: Characters/Villagers.png
+      Sprite: Gatherer_Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      Animations: Characters/Gatherer.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1

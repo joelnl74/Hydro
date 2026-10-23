@@ -1,0 +1,19 @@
+# How Villagers.png is imported (Texture2D::LoadFromFile reads this file).
+# The image is a 4x nearest-neighbour preview with an opaque background, so the background colour is
+# keyed out. Sprites is left out: the sheet is sliced on load from the Slicing grid (6 x 16 cells).
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  ColorKey: [52, 48, 66]
+  SpriteMode: Multiple
+  PixelsPerUnit: 128
+  Slicing:
+    Mode: Grid
+    CellSize: [256, 384]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 6
+    Rows: 16
+    RowNames: [Blacksmith_Down, Blacksmith_Right, Blacksmith_Up, Blacksmith_Left, Barmaid_Down, Barmaid_Right, Barmaid_Up, Barmaid_Left, Farmer_Down, Farmer_Right, Farmer_Up, Farmer_Left, Gatherer_Down, Gatherer_Right, Gatherer_Up, Gatherer_Left]
+    DefaultPivot: [0.5, 0]

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hydro/Scene/Scene.h"
+#include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Renderer/EditorCamera.h"
 #include "Hydro/Renderer/RenderView.h"
 
@@ -32,6 +33,8 @@ namespace Hydro
 		// Sorts the scene's sprites (SpriteRendererComponent::SortOrder, then Z, then storage order)
 		// and submits them back to front.
 		void SubmitSprites();
+		// One sprite: the whole texture (tiled), or a sprite of a sheet placed by its pivot; flipped as asked.
+		static void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite);
 
 	private:
 		struct SpriteDrawItem

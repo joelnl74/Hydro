@@ -76,6 +76,10 @@ namespace Hydro
 		// new draw call with its own texture slots ("texture flush"), in the same vertex batch, so
 		// there is no limit on textures per frame either. Draw order is kept.
 		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
+		// Part of a texture (a sprite of a sprite sheet: Texture2D::GetSpriteUVRect), stretched over the
+		// quad and multiplied by tintColor. No tiling. Swap textureRect's Min.x and Max.x to flip it
+		// horizontally, Min.y and Max.y to flip it vertically.
+		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor = glm::vec4(1.0f));
 
 		// Records one render pass per view begun this frame (one vkCmdDrawIndexed per draw) into
 		// the frame's command buffer. Called once per frame by Renderer::RenderFrame.
@@ -90,6 +94,12 @@ namespace Hydro
 		// Textures one draw call can sample, including the white texture in slot 0.
 		static uint32_t GetMaxTextureSlots();
 
+		// An ImGui texture handle showing `texture` (pass it to ImGui::Image), for editor previews.
+		// Call it every frame the texture is shown. Handles come from a small pool: one unused for
+		// longer than the frames in flight lets go of its texture and is reused for another, so ImGui's
+		// descriptor pool doesn't grow and nothing is rewritten while the GPU may still read it.
+		static VkDescriptorSet GetImGuiTexture(const Ref<Texture2D>& texture);
+
 	private:
 		static void AllocateBatch(RenderViewData& view);
 		static void NextBatch(RenderViewData& view);
@@ -101,7 +111,7 @@ namespace Hydro
 		static float GetTextureSlot(RenderViewData& view, const Ref<Texture2D>& texture);
 		// Starts a new draw at the current batch's write position with the current texture set.
 		static void StartDraw(RenderViewData& view);
-		static void SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& color);
+		static void SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color);
 		static void ApplyViewResize(RenderViewData& view);
 		// Points the ImGui texture handles of frame index `frame` that a resize left outdated at the
 		// view's new images (every view, or one).
