@@ -73,6 +73,12 @@ namespace Hydro
 		// throws the copy away, so nothing done while playing changes the editor scene.
 		void PlayScene();
 		void StopScene();
+		// Runs the Push / Pop a script asked for through SceneTransition (see there): the running scene goes
+		// on a stack, or is replaced by the one below it. Called after the frame's update.
+		void ProcessSceneTransition();
+		// Selects, in `scene`, the entity with the same UUID as `previous` (an entity of the scene being
+		// left); clears the selection when there is none. Play and Stop use it to keep the selection.
+		void SelectSameEntity(Entity previous, Scene& scene);
 		bool IsPlaying() const { return m_SceneState == SceneState::Play; }
 
 		// Prefab / scene dropped from the project window onto the editor or game window.
@@ -99,6 +105,8 @@ namespace Hydro
 		void DrawEditorWindow();
 		// Game window: the active scene through its primary camera, as the game will show it.
 		void DrawGameWindow();
+		// Moves the editor camera to the entity and zooms to frame it (the selection outline shows which).
+		void FocusEntity(Entity entity);
 		// A new scene starts with a primary camera framing the origin.
 		void CreateDefaultCamera();
 
@@ -114,6 +122,7 @@ namespace Hydro
 		Hydro::Ref<Scene> m_EditorScene;  // what is edited and saved
 		Hydro::Ref<Scene> m_RuntimeScene; // the copy that runs while playing; null in Edit
 		Hydro::Ref<Scene> m_ActiveScene;  // m_RuntimeScene while playing, else m_EditorScene
+		std::vector<Hydro::Ref<Scene>> m_SuspendedScenes; // scenes under the running one (SceneTransition::Push), bottom first
 		Hydro::Scope<SceneRenderer> m_SceneRenderer;
 		std::filesystem::path m_EditorScenePath; // empty until the scene is saved / opened
 
@@ -147,6 +156,10 @@ namespace Hydro
 		EditorCamera m_EditorCamera;
 		bool m_EditorViewVisible = false;
 		bool m_EditorViewHovered = false;
+		// Editor window overlays (this session only): outline the selected entity / every collider.
+		bool m_ShowSelectionOutline = true;
+		bool m_ShowColliders = false;
+		bool m_FocusKeyDown = false; // F pressed last frame, so holding it focuses once
 		bool m_GameViewVisible = false;
 		bool m_SceneHasCamera = true; // false when the game view found no primary camera last frame
 		float m_Time = 0.0f;

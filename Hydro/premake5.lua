@@ -52,6 +52,7 @@ project "Hydro"
 		"%{IncludeDir.tinyobjloader}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.box2d}",
 		"%{IncludeDir.VMA}"
 	}
 
@@ -63,6 +64,7 @@ project "Hydro"
 		"GLFW",
 		"ImGui",
 		"yaml-cpp",
+		"box2d",
 
 		"%{Library.Vulkan}",
 	}

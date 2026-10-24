@@ -121,36 +121,35 @@ Call it the **Parameter Object** (resource descriptor / configuration object) pa
 - `Scene` owns the `entt::registry`. `Entity` is a handle (`entt::entity` + `Scene*`): copy it, store it by value. Every entity made with `CreateEntity` has `TagComponent` + `IDComponent` (UUID); only those are listed, saved and copied on Play.
 - **Components are data.** Plain structs with defaults and at most small pure helpers (`GetTransform()`, `SceneCamera::GetProjection(aspect)`). No virtual functions, no update logic, no pointers or references to other components or entities; refer to entities by `Entity` or `UUID`. Engine components live in `Scene/Components/Components.h` (`NativeScriptComponent` in `Scene/ScriptableEntity.h`); game-only components live in the application.
 - A new engine component is also added to: `EntitySerializer` (both directions, defaults for missing keys), `CopyableComponents` in `Components.h` (so play mode copies it), the inspector (`InspectorWindow::DrawComponents` and **Add Component**), and the wiki's Components page.
-- **Behaviour lives in systems.** A system is a function over a `registry.view<...>()` that does one job, taking `deltaTime` as a parameter:
+- **Behaviour lives in systems.** A system is a function over a `registry.view<...>()` that does one job, taking `(Scene&, const SystemContext&)`; `context.DeltaTime` is the frame's delta time:
 
 ```cpp
-void UpdateSpin(entt::registry& registry, float deltaTime)
+void UpdateSpin(Scene& scene, const SystemContext& context)
 {
-    auto view = registry.view<TransformComponent, SpinComponent>();
+    auto view = scene.m_Registry.view<TransformComponent, SpinComponent>();
     for (auto entity : view)
     {
         auto [transform, spin] = view.get<TransformComponent, SpinComponent>(entity);
-        transform.Rotation.z += spin.Speed * deltaTime;
+        transform.Rotation.z += spin.Speed * context.DeltaTime;
     }
 }
 ```
 
 - Use views. Don't add owning `group<...>()`s: only one may own a component type.
-- **Planned (A5): `SystemContext`.** `struct SystemContext { float DeltaTime; float FixedDeltaTime; uint64_t FrameIndex; bool IsPlaying; };` and systems shaped `void UpdatePhysics(Scene&, const SystemContext&)`, run by `Scene` from one ordered stage list: Scripts -> Physics -> Transforms -> Render submission. Once it exists, new systems use that signature and a stage, not a new parameter list; before it exists, keep `(entt::registry&, float deltaTime)` and don't invent another shape. Physics (P1) waits for it.
+- **`SystemContext` (A5, done).** `Scene/SystemContext.h`: `struct SystemContext { float DeltaTime; float FixedDeltaTime; uint64_t FrameIndex; bool IsPlaying; };` `Scene::OnUpdateRuntime` / `OnUpdateEditor` build one per update and run the stages as plain numbered calls: Scripts -> Physics (slot reserved, no system yet) -> Sprite animation -> Transforms. New engine systems have the shape `void UpdateX(Scene&, const SystemContext&)` and are called from a stage; game-only ones return at once when `context.IsPlaying` is false. Don't add another parameter shape. The application's own systems (`UpdateGalaxy`) still take `(registry, deltaTime)` and are migrated when touched.
 - **Planned (A6): component registry.** One registration per component (name, serialize/deserialize, inspector draw) that saving, `Scene::Copy` and the inspector loop over. Until it lands, follow the four-place list above.
 - Frame order, fixed and deliberate:
-  1. native scripts (`Scene::OnUpdateRuntime`, play mode only)
-  2. engine systems (`Scene::OnUpdateEditor`, which `OnUpdateRuntime` also calls)
-  3. application systems (in the layer, after the scene update; gameplay systems run only while playing)
-  4. render submission (`SceneRenderer::RenderEditor(view, editorCamera)` / `RenderRuntime(view)` -> `Renderer2D::BeginScene(view, ...)` + `DrawQuad` + `EndScene`)
-  5. GPU recording (`Renderer::RenderFrame`, run by the application loop)
+  1. scene stages (`Scene::OnUpdateRuntime`, play mode: scripts, physics, sprite animation, transforms) or `Scene::OnUpdateEditor` (editing: transforms only)
+  2. application systems (in the layer, after the scene update; gameplay systems run only while playing)
+  3. render submission (`SceneRenderer::RenderEditor(view, editorCamera)` / `RenderRuntime(view)` -> `Renderer2D::BeginScene(view, ...)` + `DrawQuad` + `EndScene`)
+  4. GPU recording (`Renderer::RenderFrame`, run by the application loop)
 
-  Engine systems that must also run while editing go in `OnUpdateEditor`; game-only engine systems go in `OnUpdateRuntime` after the scripts. Gameplay systems belong to the application.
+  Engine systems that must also run while editing are called from `OnUpdateEditor` as well; game-only engine systems are called from `OnUpdateRuntime` only, in a deliberate position. Gameplay systems belong to the application.
 - **Play mode** (Oxygen): Play runs `Scene::Copy(editorScene)`; Stop throws the copy away. Saving always writes the editor scene. Raw registry entities (no `IDComponent`) aren't copied; the application copies its own.
 - **Cameras**: `CameraComponent` holds a `SceneCamera` (projection data only; position from the transform, aspect from `Scene::OnViewportResize`). The game draws through the first `Primary` camera. Every projection is built with `Camera::Perspective` / `Camera::Orthographic` (zero-to-one depth, Y flip); never call `glm::perspective`/`glm::ortho` directly. Geometry is counter-clockwise; world units, not pixels.
 - Systems never call Vulkan. Render systems only submit to the renderer.
 - Don't keep a `T&` from `GetComponent<T>()` across code that adds or removes components; EnTT moves storage.
-- **Scripts** are for one-off per-entity behaviour: derive from `ScriptableEntity`, register the type once before scenes load (`ScriptRegistry::Register<T>("Name")` in `OnInit`), and bind with `AddComponent<NativeScriptComponent>().Bind<T>()` or `.Bind("Name")`. One `NativeScriptComponent` per entity holds any number of scripts. Registered names are saved with scenes; keep them stable. Remove scripts with `Scene::RemoveScript` / `RemoveScripts` (they call `OnDestroy`). If the same logic applies to many entities, write a system instead. Never store `this` or stack addresses in components, and don't add/remove script components or destroy entities from inside a script callback.
+- **Scripts** are for one-off per-entity behaviour: derive from `ScriptableEntity`, register the type once before scenes load (`ScriptRegistry::Register<T>("Name")` in `OnInit`), and bind with `AddComponent<NativeScriptComponent>().Bind<T>()` or `.Bind("Name")`. One `NativeScriptComponent` per entity holds any number of scripts. Registered names are saved with scenes; keep them stable. Remove scripts with `Scene::RemoveScript` / `RemoveScripts` (they call `OnDestroy`). If the same logic applies to many entities, write a system instead. Never store `this` or stack addresses in components, and note that `DestroyEntity` / `RemoveScript(s)` called from a script callback are deferred to the end of the script stage (the target stops running at once; `Scene::IsPendingDestroy` is true), while entities and scripts created in a callback start next update.
 
 ## 5. Renderer and frame
 
@@ -207,6 +206,7 @@ Check the change against this list:
 - [ ] GPU work is recorded in the frame's command buffer; per-frame resources exist per frame in flight
 - [ ] No `!` operators; forward-slash includes from `src` (no `../`, no `vendor/` paths); `#pragma once`
 - [ ] Names follow the rules (`m_PascalCase`, PascalCase fields, `enum class`, `explicit`, `const` getters, `[[maybe_unused]]`); no new warnings at `/W4`; formatted with `.clang-format`
+- [ ] A new or drastic system is part of the village (`StatueVillage.hyscene`) as a gameplay element, in the game's own art style, with a row in the Features table of `docs/TestBed.md`, and the summary says what to check in Play
 - [ ] `docs/` and the mirrored wiki pages updated if the change adds a subsystem, setting, spec, component, system or pass, or changes ownership, startup/shutdown or frame order. Wiki-only pages (Components, Coding-Conventions, Known-Issues, Roadmap) updated too; tick the Roadmap task boxes the change completes. If it fixes something under "Known gaps" or in Known-Issues, remove it there, update the Roadmap status, and close or comment on the GitHub issue.
 
 In the summary, say which rule each part of the change follows. If something had to break a rule, list it as a known gap in the docs instead of hiding it.

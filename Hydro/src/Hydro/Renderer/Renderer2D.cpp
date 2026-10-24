@@ -20,8 +20,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/constants.hpp>
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <chrono>
 
 namespace Hydro
@@ -124,6 +127,10 @@ namespace Hydro
 		// This frame's draw calls in submission order. A new draw starts when the batch is full
 		// or the texture set is full.
 		std::vector<QuadDraw> Draws;
+		// Draws made between BeginOverlay and EndOverlay. They are recorded after the lighting is
+		// composited, so lights and shadows don't darken them (editor outlines, debug shapes).
+		std::vector<QuadDraw> OverlayDraws;
+		bool InOverlay = false; // quads currently go to OverlayDraws
 
 		// ---- Lights ------------------------------------------------------------------
 		// Queued by DrawLight / DrawGlobalLight, drawn by RecordLightPass. Cleared with the batches.
@@ -815,13 +822,14 @@ namespace Hydro
 		draw.TextureSet = view.TextureSetIndex;
 
 		// A draw nothing was added to yet is reused rather than recorded empty.
-		if (view.Draws.empty() == false && view.Draws.back().IndexCount == 0)
+		std::vector<QuadDraw>& draws = view.InOverlay ? view.OverlayDraws : view.Draws;
+		if (draws.empty() == false && draws.back().IndexCount == 0)
 		{
-			view.Draws.back() = draw;
+			draws.back() = draw;
 		}
 		else
 		{
-			view.Draws.push_back(draw);
+			draws.push_back(draw);
 		}
 	}
 
@@ -854,6 +862,8 @@ namespace Hydro
 		view.HasLights = false;
 
 		view.Draws.clear();
+		view.OverlayDraws.clear();
+		view.InOverlay = false;
 		StartDraw(view);
 	}
 
@@ -882,7 +892,38 @@ namespace Hydro
 
 	void Renderer2D::EndScene()
 	{
+		// An overlay left open ends with the scene, so the next BeginScene starts with normal draws.
+		if (s_Data->CurrentView != nullptr && s_Data->CurrentView->InOverlay)
+		{
+			s_Data->CurrentView->InOverlay = false;
+			StartDraw(*s_Data->CurrentView);
+		}
+
 		s_Data->CurrentView = nullptr;
+	}
+
+	void Renderer2D::BeginOverlay()
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::BeginOverlay outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr || s_Data->CurrentView->InOverlay)
+		{
+			return;
+		}
+
+		s_Data->CurrentView->InOverlay = true;
+		StartDraw(*s_Data->CurrentView);
+	}
+
+	void Renderer2D::EndOverlay()
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::EndOverlay outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr || s_Data->CurrentView->InOverlay == false)
+		{
+			return;
+		}
+
+		s_Data->CurrentView->InOverlay = false;
+		StartDraw(*s_Data->CurrentView);
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
@@ -977,6 +1018,82 @@ namespace Hydro
 		view.Shadows.push_back(shadow);
 	}
 
+	// World units one pixel of `view` spans, from its view-projection (orthographic cameras: the same
+	// at every point). Used for lines, whose thickness is given in pixels.
+	static float GetWorldUnitsPerPixel(const RenderViewData& view)
+	{
+		const glm::mat4& matrix = view.ViewProjection;
+		// How far clip-space x moves per world unit, whatever the camera's rotation.
+		const float clipPerWorld = glm::length(glm::vec2(matrix[0][0], matrix[1][0]));
+		const float width = (float)std::max(view.Target->GetWidth(), 1u);
+		if (clipPerWorld <= 0.0f)
+		{
+			return 0.0f;
+		}
+
+		// Clip space spans 2 units across the view's width.
+		return 2.0f / (clipPerWorld * width);
+	}
+
+	void Renderer2D::DrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color, float thickness)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawLine outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+		{
+			return;
+		}
+
+		// A line is a thin quad (so it batches and blends like a sprite, and needs no wide-line support
+		// from the GPU). It is extended by its thickness at both ends, so lines meeting at a corner
+		// leave no gap. Only x and y are used for the direction; z is the start's.
+		const float width = std::max(thickness, 0.0f) * GetWorldUnitsPerPixel(*s_Data->CurrentView);
+		const glm::vec2 delta = glm::vec2(end) - glm::vec2(start);
+		const float length = glm::length(delta);
+		const float angle = std::atan2(delta.y, delta.x);
+		const glm::vec3 middle = 0.5f * (start + end);
+
+		const glm::mat4 transform = glm::translate(glm::mat4(1.0f), middle)
+			* glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 0.0f, 1.0f))
+			* glm::scale(glm::mat4(1.0f), glm::vec3(length + width, width, 1.0f));
+
+		SubmitQuad(transform, nullptr, TextureRect{}, color);
+		s_Data->Stats.LineCount++;
+	}
+
+	void Renderer2D::DrawRect(const glm::mat4& transform, const glm::vec4& color, float thickness)
+	{
+		glm::vec3 corners[4];
+		for (size_t i = 0; i < 4; i++)
+		{
+			corners[i] = glm::vec3(transform * s_Data->QuadVertexPositions[i]);
+		}
+
+		for (size_t i = 0; i < 4; i++)
+		{
+			DrawLine(corners[i], corners[(i + 1) % 4], color, thickness);
+		}
+	}
+
+	void Renderer2D::DrawRect(const glm::vec3& center, const glm::vec2& size, const glm::vec4& color, float thickness)
+	{
+		DrawRect(glm::translate(glm::mat4(1.0f), center) * glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f)), color, thickness);
+	}
+
+	void Renderer2D::DrawCircle(const glm::vec3& center, float radius, const glm::vec4& color, float thickness, uint32_t segments)
+	{
+		segments = std::clamp(segments, 3u, 256u);
+
+		const float step = glm::two_pi<float>() / (float)segments;
+		glm::vec3 previous = center + glm::vec3(radius, 0.0f, 0.0f);
+		for (uint32_t i = 1; i <= segments; i++)
+		{
+			const float angle = step * (float)i;
+			const glm::vec3 next = center + glm::vec3(std::cos(angle) * radius, std::sin(angle) * radius, 0.0f);
+			DrawLine(previous, next, color, thickness);
+			previous = next;
+		}
+	}
+
 	void Renderer2D::SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color)
 	{
 		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawQuad outside BeginScene/EndScene");
@@ -1015,7 +1132,7 @@ namespace Hydro
 		}
 
 		view.QuadIndexCounts[view.BatchIndex] += 6;
-		view.Draws.back().IndexCount += 6;
+		(view.InOverlay ? view.OverlayDraws : view.Draws).back().IndexCount += 6;
 		s_Data->Stats.QuadCount++;
 	}
 
@@ -1178,30 +1295,35 @@ namespace Hydro
 		// One draw call per draw, in submission order. Vertex buffer and descriptor set are only
 		// rebound when they change. Indices are 0,1,2,2,3,0 + 4 * quad, so FirstIndex = 6 * quad
 		// with vertex offset 0 reads that quad's vertices.
-		uint32_t boundBatch = UINT32_MAX;
-		uint32_t boundTextureSet = UINT32_MAX;
-		for (const QuadDraw& draw : view.Draws)
+		const auto recordDraws = [&](const std::vector<QuadDraw>& draws)
 		{
-			if (draw.IndexCount == 0)
+			uint32_t boundBatch = UINT32_MAX;
+			uint32_t boundTextureSet = UINT32_MAX;
+			for (const QuadDraw& draw : draws)
 			{
-				continue;
-			}
+				if (draw.IndexCount == 0)
+				{
+					continue;
+				}
 
-			if (draw.Batch != boundBatch)
-			{
-				view.QuadVertexBuffers[draw.Batch][frame]->Bind(commandBuffer);
-				boundBatch = draw.Batch;
-			}
+				if (draw.Batch != boundBatch)
+				{
+					view.QuadVertexBuffers[draw.Batch][frame]->Bind(commandBuffer);
+					boundBatch = draw.Batch;
+				}
 
-			if (draw.TextureSet != boundTextureSet)
-			{
-				s_Data->QuadPipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[draw.TextureSet].DescriptorSet);
-				boundTextureSet = draw.TextureSet;
-			}
+				if (draw.TextureSet != boundTextureSet)
+				{
+					s_Data->QuadPipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[draw.TextureSet].DescriptorSet);
+					boundTextureSet = draw.TextureSet;
+				}
 
-			vkCmdDrawIndexed(commandBuffer, draw.IndexCount, 1, draw.FirstIndex, 0, 0);
-			s_Data->Stats.DrawCalls++;
-		}
+				vkCmdDrawIndexed(commandBuffer, draw.IndexCount, 1, draw.FirstIndex, 0, 0);
+				s_Data->Stats.DrawCalls++;
+			}
+		};
+
+		recordDraws(view.Draws);
 
 		s_Data->Stats.BatchesAllocated += (uint32_t)view.QuadVertexBufferBases.size();
 
@@ -1209,6 +1331,16 @@ namespace Hydro
 		if (lit)
 		{
 			RecordComposite(commandBuffer, view, frame);
+		}
+
+		// The overlay is drawn on top of the (lit) scene, with the quad pipeline bound again because the
+		// composite replaced it.
+		const bool hasOverlay = std::any_of(view.OverlayDraws.begin(), view.OverlayDraws.end(), [](const QuadDraw& draw) { return draw.IndexCount != 0; });
+		if (hasOverlay)
+		{
+			s_Data->QuadPipeline->Bind(commandBuffer, { width, height });
+			s_Data->QuadIndexBuffer->Bind(commandBuffer);
+			recordDraws(view.OverlayDraws);
 		}
 
 		view.Target->End(commandBuffer);

@@ -16,7 +16,7 @@ namespace Hydro
 		// Geometry submitted this frame.
 		uint32_t DrawCalls = 0;
 		uint32_t QuadCount = 0;
-		uint32_t LineCount = 0;
+		uint32_t LineCount = 0;           // of QuadCount: the quads that are lines (DrawLine, DrawRect, DrawCircle)
 
 		// Batching.
 		uint32_t BatchCount = 0;          // vertex batches used this frame (each holds up to MaxQuadsPerBatch quads)
@@ -54,8 +54,8 @@ namespace Hydro
 		uint32_t FramesInFlight = 0;
 		uint32_t FrameIndex = 0;
 
-		uint32_t GetTotalVertexCount() const { return QuadCount * 4 + LineCount * 2; }
-		uint32_t GetTotalIndexCount() const { return QuadCount * 6 + LineCount * 2; }
+		uint32_t GetTotalVertexCount() const { return QuadCount * 4; }
+		uint32_t GetTotalIndexCount() const { return QuadCount * 6; }
 		uint32_t GetTriangleCount() const { return QuadCount * 2; }
 	};
 
@@ -90,6 +90,24 @@ namespace Hydro
 		// quad and multiplied by tintColor. No tiling. Swap textureRect's Min.x and Max.x to flip it
 		// horizontally, Min.y and Max.y to flip it vertically.
 		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor = glm::vec4(1.0f));
+
+		// Lines and outlines, drawn between BeginScene and EndScene. A line is a thin quad (it batches and
+		// blends like a sprite, and works on GPUs without wide lines), so it counts in QuadCount and
+		// LineCount. Thickness is in pixels of the view, so outlines look the same at any zoom. Colours are
+		// straight RGBA. Lines are drawn in submission order with the sprites, and are lit like them;
+		// wrap them in BeginOverlay / EndOverlay to draw them on top, after the lighting.
+		static void DrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color, float thickness = 1.5f);
+		// The outline of the unit quad (-0.5 to 0.5) moved by `transform`: the border of a sprite or collider.
+		static void DrawRect(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.5f);
+		static void DrawRect(const glm::vec3& center, const glm::vec2& size, const glm::vec4& color, float thickness = 1.5f);
+		// A circle outline in the XY plane, a polygon of `segments` sides (3 to 256).
+		static void DrawCircle(const glm::vec3& center, float radius, const glm::vec4& color, float thickness = 1.5f, uint32_t segments = 32);
+
+		// Everything queued between BeginOverlay and EndOverlay is drawn after the view's lighting is
+		// composited, on top of the scene and untouched by lights and shadows: selection outlines, collider
+		// shapes, gizmos. Overlay quads keep their order among themselves.
+		static void BeginOverlay();
+		static void EndOverlay();
 
 		// 2D lighting (RendererSettings::Lighting). Queue lights for the view between BeginScene and
 		// EndScene, like quads. A view that gets at least one light is drawn lit: each light is drawn

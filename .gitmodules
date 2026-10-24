@@ -12,3 +12,6 @@
 [submodule "Hydro/vendor/glm"]
 	path = Hydro/vendor/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Hydro/vendor/box2d"]
+	path = Hydro/vendor/box2d
+	url = https://github.com/erincatto/box2d.git

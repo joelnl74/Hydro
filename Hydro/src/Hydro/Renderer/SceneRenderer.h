@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hydro/Scene/Scene.h"
+#include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Renderer/EditorCamera.h"
 #include "Hydro/Renderer/RenderView.h"
@@ -10,11 +11,22 @@
 
 namespace Hydro
 {
+	class Texture2D;
+
 	// Submits a scene to Renderer2D (render submission, step 4 of the frame order), into a RenderView
 	// and through a camera.
 	class SceneRenderer
 	{
 	public:
+		// Editor-only drawing on top of the scene (lines, never lit): what is selected and where the
+		// colliders are. Not drawn by RenderRuntime.
+		struct EditorOverlay
+		{
+			Entity Selected;                 // outlined when SelectionOutline is on
+			bool SelectionOutline = true;
+			bool Colliders = false;          // every collider: sensor yellow, static green, dynamic blue, kinematic cyan
+		};
+
 		SceneRenderer(const Ref<Scene>& scene)
 			: m_Scene(scene) {
 		}
@@ -23,7 +35,7 @@ namespace Hydro
 		const Ref<Scene>& GetScene() const { return m_Scene; }
 
 		// Editing: the scene seen through the editor's camera.
-		void RenderEditor(RenderView& view, const EditorCamera& camera);
+		void RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay = {});
 		// Runtime: the scene seen through its primary CameraComponent, with the scene's viewport
 		// aspect ratio (keep Scene::OnViewportResize in step with the view's size). Draws nothing and
 		// returns false when the scene has no primary camera; the view is still cleared.
@@ -37,6 +49,10 @@ namespace Hydro
 		void SubmitLights();
 		// Submits the scene's Shadow2DComponents (blob shadows in lit views, RendererSettings::Shadows).
 		void SubmitShadows();
+		// The editor overlay: selection outline and collider outlines (Renderer2D lines, after lighting).
+		void SubmitEditorOverlay(const EditorOverlay& overlay);
+		// The sprite's quad: the entity transform, moved so a sprite sheet's pivot sits on the entity.
+		static glm::mat4 GetSpriteQuadTransform(const glm::mat4& transform, const Texture2D* texture, uint32_t spriteIndex);
 		// One sprite: the whole texture (tiled), or a sprite of a sheet placed by its pivot; flipped as asked.
 		static void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite);
 

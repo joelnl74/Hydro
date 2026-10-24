@@ -2,7 +2,7 @@
 
 A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are IDs, components are plain data, and behaviour lives in **systems**: functions that run over every entity with a given set of components, in a fixed order, each frame.
 
-"System" in Hydro always means an ECS system like this. Engine-wide services with a lifetime (`Renderer`, `Log`, `Time`, ...) are **subsystems**; see [Subsystems](Subsystems.md). Systems get the frame's delta time as a parameter; it comes from `Time::GetDeltaTime()`.
+"System" in Hydro always means an ECS system like this. Engine-wide services with a lifetime (`Renderer`, `Log`, `Time`, ...) are **subsystems**; see [Subsystems](Subsystems.md). Engine systems take `(Scene&, const SystemContext&)`; the context carries the frame's delta time (`Time::GetDeltaTime()`), the fixed step, the frame index and whether the game is playing (see [System context and stages](#system-context-and-stages)).
 
 ## The pieces
 
@@ -10,9 +10,9 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | --- | --- | --- |
 | `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdateRuntime` / `OnUpdateEditor`; knows its viewport size (`OnViewportResize`) and primary camera (`GetPrimaryCameraEntity`) |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
-| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent`, `Shadow2DComponent`, `NativeScriptComponent` |
+| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent` (saved data only: nothing simulates them yet), `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
-| `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
+| `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera, overlay)` or `RenderRuntime(view)` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
 | Serialization | `Scene/SceneSerializer.h`, `Scene/PrefabSerializer.h`, `Scene/EntitySerializer.h` | Saves scenes (`.hyscene`) and prefabs (`.hyprefab`) as YAML |
 
@@ -23,6 +23,8 @@ Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name)
 - Public fields with defaults, plus small pure helpers (`TransformComponent::GetTransform()`). No virtual functions, and no update logic.
 - No raw pointers or references to other components or entities. Refer to other entities by `Entity` or `UUID`.
 - A shared engine resource is fine: `SpriteRendererComponent::Texture` was a `Ref<Texture2D>` and is now an `AssetHandle` (copied with the component, so the play copy refers to the same asset); the renderer resolves it with `AssetManager::GetLoadedAsset` ([Architecture](Architecture.md#asset-system)).
+- Find an entity by its UUID with `Scene::GetEntityByUUID(uuid)`; it returns an empty `Entity` when there is none. `Entity::IsValid()` is true for an entity that exists and is not pending destroy; `HasComponent` on an empty or destroyed entity is false. `GetComponent` asserts (debug builds) that the entity is alive and has the component, and has a `const` overload.
+- Creating an entity with a UUID that is already used (`CreateEntityWithUUID`) logs an error and gives the new entity a fresh UUID, so lookups stay unambiguous.
 - Don't keep a `T&` from `GetComponent<T>()` across a call that adds or removes components. EnTT moves its storage, so the reference can dangle.
 
 ## Systems are functions
@@ -49,19 +51,20 @@ void UpdateSpin(entt::registry& registry, float deltaTime)
 
 A scene is updated one of two ways:
 
-- `Scene::OnUpdateRuntime(dt)` — the game is running: native scripts, then the engine systems.
-- `Scene::OnUpdateEditor(dt)` — editing: the engine systems only, no scripts. Oxygen calls this one except in play mode (see [Play mode](#play-mode)).
+- `Scene::OnUpdateRuntime(dt)` — the game is running: builds a `SystemContext` (`IsPlaying = true`) and runs the stages below in order.
+- `Scene::OnUpdateEditor(dt)` — editing: builds a context with `IsPlaying = false` and runs only the transform stage, no scripts or animation. Oxygen calls this one except in play mode (see [Play mode](#play-mode)).
 
 | Order | System | Runs in | Reads → writes |
 | --- | --- | --- | --- |
-| 1 | Native scripts (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
-| 1b | `UpdateSpriteAnimations` (runtime only) | `Scene::OnUpdateRuntime`, after the scripts | `SpriteAnimatorComponent` → `SpriteRendererComponent` (`Texture`, `SpriteIndex`, `FlipX`) |
-| 2 | Engine systems | `Scene::OnUpdateEditor` (also called by `OnUpdateRuntime`) | None yet; transform propagation goes here |
-| 3 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
-| 4 | Sprite and light submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling or sprite rect, colour)`; `TransformComponent` + `Light2DComponent` → `Renderer2D::DrawLight` / `DrawGlobalLight`; `TransformComponent` + `Shadow2DComponent` → `Renderer2D::DrawShadow` (the view is then drawn lit, see [Architecture](Architecture.md#2d-lighting)) |
+| 1 | `UpdateScripts` (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
+| 2 | Physics (runtime only) | `Scene::OnUpdateRuntime` | `PhysicsScene::Step`: kinematic bodies are carried to their transforms, fixed 60 Hz steps run, dynamic bodies' results are written to their transforms (see below) |
+| 3 | `UpdateSpriteAnimations` (runtime only) | `Scene::OnUpdateRuntime`, after the scripts | `SpriteAnimatorComponent` → `SpriteRendererComponent` (`Texture`, `SpriteIndex`, `FlipX`) |
+| 4 | `Scene::UpdateTransforms` | `OnUpdateEditor` and `OnUpdateRuntime` | None yet; transform propagation goes here |
+| 5 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
+| 6 | Sprite and light submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling or sprite rect, colour)`; `TransformComponent` + `Light2DComponent` → `Renderer2D::DrawLight` / `DrawGlobalLight`; `TransformComponent` + `Shadow2DComponent` → `Renderer2D::DrawShadow` (the view is then drawn lit, see [Architecture](Architecture.md#2d-lighting)) |
 | — | GPU | `Renderer::RenderFrame` (application loop) | Records and presents everything submitted |
 
-New engine systems go into `Scene::OnUpdateEditor` when they must also run while editing, or into `Scene::OnUpdateRuntime` (after the scripts) when they are game-only, in a deliberate position. Gameplay systems belong to the application and run after it.
+New engine systems are a `(Scene&, const SystemContext&)` function called from a stage: in `Scene::OnUpdateEditor` as well when they must also run while editing, otherwise only in `Scene::OnUpdateRuntime`, in a deliberate position. Game-only systems return at once when `context.IsPlaying` is false. Gameplay systems belong to the application and run after the scene update.
 
 ## Cameras
 
@@ -91,7 +94,9 @@ Oxygen edits one scene and plays a copy of it, so nothing that happens while pla
 
 - `Scene::Copy` copies every entity made with `CreateEntity` (same UUIDs), the components in `CopyableComponents` (`Components.h`: add new copyable components there), the native script bindings (fresh instances on the first runtime update), the name and the viewport size. Raw registry entities without an `IDComponent` are not copied; an application copies its own (the editor copies its galaxy stars).
 - The hierarchy, inspector and both windows show the active scene, so the runtime scene can be inspected and tweaked while playing; those changes are lost on Stop. Saving always writes the editor scene, and opening or creating a scene stops play first.
+- The selected entity stays selected across Play and Stop: the editor finds it again in the new scene by its UUID (`Scene::GetEntityByUUID`), and clears the selection if it no longer exists (for example an entity spawned while playing, after Stop).
 - Application systems are gameplay: Oxygen's galaxy only moves while playing.
+- **Scene stack.** While playing, a script can switch scenes with `SceneTransition::Push("Name")` (`Hydro/Scene/SceneTransition.h`): the host loads `Assets/Scenes/Name.hyscene` on top of the running scene, which stops updating and drawing but stays exactly as it was (entities, scripts, physics bodies). `SceneTransition::Pop()` throws the top scene away and the one below carries on. Scripts only record the request; the host (`EditorLayer::ProcessSceneTransition`, called after the frame's update) does it, so the scene is never changed in the middle of its own update. Stop discards the whole stack. Data that has to cross scenes (a battle's result) lives in plain game state, like `BattleState`. A future standalone runtime does the same with its own scene list.
 
 ## Scripts
 
@@ -119,7 +124,12 @@ entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>().Bind("Heal
 - `NativeScriptComponent` is data: a list of scripts (name, factory, instance). An entity has one `NativeScriptComponent` but any number of scripts in it. Instances are created on the scene's next runtime update, live on the heap, and hold their `Entity` by value.
 - **`ScriptRegistry`** maps a name to a script's factory. Scenes and prefabs save the names (`NativeScriptComponent: { Scripts: [Spin, Bob] }`) and loading binds them again by name. Register every script before a scene that uses it is loaded; names must stay stable once saved. A script bound in code but not registered still runs, but isn't saved. A saved name that isn't registered is kept (so the file saves back unchanged) but doesn't run, and the editor shows it in red.
 - Remove scripts with `Scene::RemoveScript(entity, index)` / `Scene::RemoveScripts(entity)`, which call `OnDestroy` on running ones. Oxygen's inspector lists an entity's scripts, removes them, and adds registered ones (**Add Component > Script** or **Add Script**).
-- Don't add or remove `NativeScriptComponent`s from inside a script's `OnCreate`/`OnUpdate`. The script system is iterating over them at that point ([#40](https://github.com/joelnl74/Hydro/issues/40)).
+- **Scripts can change the scene.** From `OnCreate`/`OnUpdate` a script may create entities, add components, bind scripts, and destroy entities or remove scripts, including its own. The script stage (`UpdateScripts`) walks a snapshot of the entities that had scripts when it began, and two rules keep it safe ([#40](https://github.com/joelnl74/Hydro/issues/40)):
+  - **Created things start next update.** An entity made during the stage exists at once (you can add components to it), but its scripts first run on the next update. A script bound to an existing entity does the same.
+  - **Removal happens when the stage ends.** While the stage runs, `Scene::DestroyEntity`, `RemoveScript` and `RemoveScripts` only mark the entity or script: it stops running at once (no more `OnUpdate`), `Scene::IsPendingDestroy(entity)` is true, and the entity stays valid (`GetComponent` still works) until the stage ends. Then `OnDestroy` is called and it is removed. Calling them twice is harmless. Outside a stage (the editor's hierarchy and inspector) they act at once.
+  - `OnDestroy` may itself destroy other entities or remove scripts; those are applied in the same round, after it. When a `Scene` is destroyed, such requests are dropped.
+  - A script removed with `RemoveScripts` leaves an empty `NativeScriptComponent` behind once the stage ends (removing it outright would need a component removal while a stage runs).
+  - `m_StageDepth` (private) is what the deferral checks; any stage that runs user code (physics callbacks, later) brackets its work with `Scene::BeginStage` / `EndStage`.
 - `Scene::DestroyEntity` calls `OnDestroy` on the entity's scripts before removing it.
 
 ## Saving scenes and prefabs
@@ -136,6 +146,7 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - **UUIDs.** Loading a scene keeps the saved UUIDs. Instantiating a prefab gives each copy a new UUID, so copies never clash.
 - **Missing fields keep their defaults**, so older files still load after a component gains a field.
 - Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
+- **Physics components** are saved by value (`Rigidbody2DComponent`: body type by name, flags, scales and damping; `BoxCollider2DComponent` / `CircleCollider2DComponent`: offset, size or radius, density, friction, restitution, `IsSensor`). Loading pulls values into range (sizes at least 0.001, density, friction, restitution and damping at least 0, NaN becomes the minimum). They are in `CopyableComponents`, so Play and Duplicate copy them. Runtime body handles will not be saved or copied.
 - **Sprite textures and animation sets** are saved as `TextureHandle: <id>` (plus the sprite's name) and `AnimationsHandle: <id>`, and loaded through `AssetManager::GetAsset`, so sprites using one file share one texture. Scenes saved before handles have `Texture: <path>` / `Animations: <path>`; those are still read (the file is imported to get its handle) and are replaced by the handle keys the next time the scene is saved. A handle the registry doesn't know keeps its value when saved again, so a texture that is missing today can come back.
 
 ## Sprite animation
@@ -144,7 +155,7 @@ Three pieces, chained by name: a sheet texture (sprite mode `Multiple`, see [Arc
 
 - **`SpriteAnimationSet`** (`Scene/SpriteAnimation.h`): a resource made from `SpriteAnimationSetSpecification` (texture, clips, default clip), loaded with `SpriteAnimationSet::LoadFromFile(path)` (shared while alive, `nullptr` on failure; `SpriteAnimationSerializer` reads the YAML). A clip is a name, frames (sprite index + duration in seconds, at least `MinFrameDuration`), a loop mode (`Once`, `Loop`, `PingPong`), `FlipX` and events (frame + name; recorded in the file, not delivered yet). In the file, frames name sprites (`Farmer_Left_0`), so re-slicing the sheet keeps clips; `FrameRate` is the short form for equal frames. Give every character a set with the same clip names and one script drives any of them.
 - **`SpriteAnimatorComponent`**: saved `Animations` (`Ref<SpriteAnimationSet>`, `TODO(assets)`), `StartClip` (empty = the set's default), `PlayOnStart`, `Speed`; runtime fields (`ClipIndex`, `FrameIndex`, `FrameTime`, `Step`, `Playing`, `Finished`) are not saved, so a play copy and a loaded scene start fresh.
-- **`UpdateSpriteAnimations(registry, deltaTime)`** (`Scene/SpriteAnimator.h`): one system over `SpriteAnimatorComponent` + `SpriteRendererComponent`, in `OnUpdateRuntime` right after the scripts (a `Play` from a script shows the same frame). Starts `PlayOnStart` animators, advances `FrameTime` by `deltaTime * Speed` (a `while`, so a hitch can pass several frames), then writes `Texture`, `SpriteIndex` and `FlipX`. Nothing animates while editing; the inspector writes the start clip's first frame into the sprite so the editor shows the starting pose.
+- **`UpdateSpriteAnimations(scene, context)`** (`Scene/SpriteAnimator.h`): one system over `SpriteAnimatorComponent` + `SpriteRendererComponent`, in `OnUpdateRuntime` after the scripts and physics (a `Play` from a script shows the same frame). Starts `PlayOnStart` animators, advances `FrameTime` by `context.DeltaTime * Speed` (a `while`, so a hitch can pass several frames), then writes `Texture`, `SpriteIndex` and `FlipX`. Nothing animates while editing; the inspector writes the start clip's first frame into the sprite so the editor shows the starting pose.
 - **`SpriteAnimator`**: static functions over the component (no state): `Play(entity, "WalkLeft", restart = false)` (already playing that clip → carries on, so it is safe every frame; unknown name → warning once, `false`), `Play(entity, index)`, `Stop` (back to frame 0), `Pause`, `Resume`, `IsPlaying(entity, clip = {})`, `IsFinished`, `GetCurrentClip`, `SetSpeed`.
 
 ```cpp
@@ -153,27 +164,50 @@ SpriteAnimator::Play(GetEntity(), moving ? "WalkLeft" : "IdleLeft");
 
 Oxygen's `VillagerWalkScript` and `Assets/Scenes/Villagers.hyscene` (Sandbox project) are a working example. `Assets/Scenes/LightingTest.hyscene` is a small playable scene built on it: the Player (`Player.png`, with idle and walk rows) uses `VillagerWalk` + `YSort`, and the camera uses `CameraFollow`; press Play and walk with WASD. In the editor: the Inspector's image import settings and the **Sprite Editor** make the sheet, the **Animation** window edits the clips (see [Architecture](Architecture.md#the-editor-oxygen)).
 
-## Planned: system context and stages
+## System context and stages
 
-Roadmap A5 (finishes E5). Every system gets the same small struct instead of a growing parameter list, and `Scene` runs its systems from one ordered list, so the frame order above is in code rather than only in this page:
+Every engine system gets the same small struct (`Scene/SystemContext.h`) instead of a growing parameter list, and `Scene` runs its systems as numbered, plain function calls in `OnUpdateRuntime` / `OnUpdateEditor`, so the frame order above is in code, not only on this page:
 
 ```cpp
 struct SystemContext
 {
-    float DeltaTime = 0.0f;       // variable step: Time::GetDeltaTime()
-    float FixedDeltaTime = 0.0f;  // fixed step for physics
-    uint64_t FrameIndex = 0;
-    bool IsPlaying = false;       // false in the editor
+    float DeltaTime = 0.0f;       // seconds since the last frame: Time::GetDeltaTime(), clamped
+    float FixedDeltaTime = 1/60;  // the step fixed-timestep stages (physics) advance by
+    uint64_t FrameIndex = 0;      // Time::GetFrameCount()
+    bool IsPlaying = false;       // true in OnUpdateRuntime, false while editing
 };
 
-void UpdatePhysics(Scene& scene, const SystemContext& context);
+void UpdateScripts(Scene& scene, const SystemContext& context);          // Scene/ScriptSystem.h
+void UpdateSpriteAnimations(Scene& scene, const SystemContext& context); // Scene/SpriteAnimator.h
 ```
 
-Stages run in this order: **Scripts** (play mode only) → **Physics** → **Transforms** (world-transform propagation, S3) → **Render submission**. `OnUpdateRuntime` and `OnUpdateEditor` build the context and run the stages; a stage that only runs in play mode checks `context.IsPlaying`. Do this before physics (P1) adds the first engine system with its own timestep.
+- **One context per update.** `Scene` builds it once and passes the same one to every stage, so all stages of a frame agree.
+- **Stage order:** Scripts → Physics → Sprite animation → Transforms (world-transform propagation, S3), then the application's systems, then render submission.
+- **Play-only stages check `context.IsPlaying`** and return at once when it is false, so calling one while editing is harmless.
+- **Physics (2D, Box2D)**: `Scene::OnRuntimeStart` builds a `PhysicsScene` (the editor calls it when Play starts; `OnUpdateRuntime` does it too if it wasn't), `OnRuntimeStop` / the destructor destroys it. Every entity with a Transform and a Rigidbody2D, Box or Circle collider becomes a body (a collider alone is static); entities that get those components while playing (a script's `DuplicateEntity`, a prefab, `AddComponent`) get a body at the start of the next physics step, or at once if game code calls `Physics2D::SetLinearVelocity` / `HasBody` on them. The components are read when the body is made, later changes to them don't reach the body.
+  - **Who owns the transform:** *Dynamic*: the simulation (it overwrites the transform each update; move it with `Physics2D::SetLinearVelocity`). *Kinematic*: the game (write the transform; the body is carried there with the right velocity so it pushes instead of teleporting). *Static*: nobody (moving it in play mode doesn't move the collider). Inspector edits to a dynamic body's transform while playing are ignored by the body.
+  - Steps are `FixedDeltaTime` (60 Hz), at most 4 per frame, the rest of a long frame is dropped. No interpolation yet: a frame with no step shows the last result. World gravity is -9.81 on Y; top-down bodies use GravityScale 0.
+  - `Scene::DestroyEntity` removes the entity's body. 
+  - **Collision and trigger callbacks (E2):** after each step `PhysicsScene` reads Box2D's contact and sensor events; `Scene::DispatchPhysicsEvents` then calls the scripts of both entities (`OnCollisionEnter/Exit(other)` for two solid colliders starting or stopping to touch, `OnTriggerEnter/Exit(other)` for a sensor collider and another shape starting or stopping to overlap) inside a stage, so `DestroyEntity` from a callback is deferred like in `OnUpdate`. Sensors only see shapes that can move (dynamic or kinematic bodies), never static ones, and not other sensors. Box2D 3.1 has these event flags off by default; `PhysicsScene` sets them (sensor events on sensors and on non-static shapes, contact events on solid shapes). Contact points and normals are not passed on yet.
+- The list stays plain function calls. Promote it to a registered list only if applications need their own stages.
 
 ## Planned: component registry
 
 Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` (both directions), `CopyableComponents`, the inspector and the "Add Component" menu. One registry replaces them: per component a display name, save and load functions and an inspector draw function, registered once. Saving, loading, the play copy and the inspector loop over that list, and adding a component becomes one registration.
+
+## Test bed scene
+
+`Oxygen/project/Assets/Scenes/StatueVillage.hyscene` (Sandbox project, the start scene) is the engine's gameplay test bed: a small playable village where every system can be seen working. It is a game scene, not a test area. When a new or drastic system lands (physics, audio, tilemaps, UI...), it is added to the village as a gameplay element, so it is checked in the place it will be used and nothing falls out of date: physics means colliders on buildings, trees and props, a body on the player and trigger zones; audio means footsteps and ambience; a tilemap means the paths. The full list of features, controls and what to check is on the [Test bed](TestBed.md) page.
+
+**Rules for changing it**
+- **Add, don't replace.** Existing content stays, so each feature keeps being exercised. The scene is saved by the editor, or edited as YAML by hand (every entity needs a new unique UUID).
+- **Make it part of the game.** A new feature gets a gameplay reason to exist in the village (an obstacle, a pushable crate, a zone, a sound source), not a separate demo area. Entities that exist only for the feature and are invisible (map walls, trigger zones) get a descriptive tag prefix (`Wall *`, `Zone *`, `Water *`) so the hierarchy groups them.
+- **In the game's own style and assets.** Reuse the art in `Assets/StatueVillage`; if something is missing, add a new asset in the same style (32 px per world unit, a `.hymeta` beside it, a texture handle in the scene). The East Meadow's ground is such an asset: the village's east edge, mirrored, so the road continues.
+- **Keep the map rules.** The walkable map is `VillageMap` in `Oxygen/src/Scripts/VillageScripts.h` (x -30 to 96, y -18 to 18: the village, the East Meadow and the Slime Field). The camera is clamped to it and the `Wall *` entities stop bodies at its edge; if the map grows, change both. `VillageMap::SortOriginY` stays 18, because every static sprite's `SortOrder` is `4 * (18 - feet y)`.
+- **Physics content is top-down.** Bodies that move on the ground have `GravityScale 0` and a high `LinearDamping`; collider sizes and offsets are in the entity's local units (the physics step multiplies them by the scale); a collider without a Rigidbody is a static body; pushable props carry `VillageYSort` so they stay correctly sorted as they move.
+- **Update the Test bed page**: add a row to its Features table (where in the scene, how to interact, what to check) and, if there are new controls, to its Controls table. Move the item out of "Planned for the test bed".
+- **A feature that needs code to exercise it** (a debug toggle, a gameplay script) gets that code in `Oxygen/src/Scripts`, registered with `ScriptRegistry`, and an entity in the village bound to it.
+- A feature's "done when" includes its place in the village, so the change can be checked by pressing Play.
 
 ## Adding a feature
 
@@ -183,15 +217,14 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 4. **Saving**: if the component should persist, add it to `EntitySerializer` (both directions).
 5. **Play mode**: if it should be in the play copy, add it to `CopyableComponents` in `Components.h`.
 6. **Editor**: show and edit the component in the inspector window.
+7. **Test bed**: add the feature to the village in `StatueVillage.hyscene` as a gameplay element and a row to the [Test bed](TestBed.md) Features table.
 
 ## Known gaps
 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
-- The selection is cleared on Play and Stop (there's no `GetEntityByUUID` yet to carry it over, S1).
 - Scripts must be compiled into the application and registered in code: there's no separate game module or hot reload, and scripts can't expose fields to the inspector yet.
 - There is no parent/child hierarchy yet.
-- Systems take loose parameters (`registry`, `deltaTime`) and the order lives in `OnUpdateRuntime` / `OnUpdateEditor` code, not a list (A5).
+- The stage order lives in `OnUpdateRuntime` / `OnUpdateEditor` code as plain calls, not a registered list; the application's own systems (`UpdateGalaxy`) still take `(registry, deltaTime)` and are migrated when touched.
 - Each component is listed separately in the serializer, `CopyableComponents` and the inspector (A6).
 - Sprite textures are referenced by path until the asset system: `EntitySerializer` loads them and reads `Project` for the asset folder, a texture whose file is missing at load is dropped when the scene is saved again, and sampling options aren't saved (see [Architecture](Architecture.md#asset-system)).
-- `Entity::GetComponent` doesn't assert the component exists and has no `const` overload (E6, A11).

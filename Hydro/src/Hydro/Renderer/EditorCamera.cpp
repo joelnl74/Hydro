@@ -46,6 +46,15 @@ namespace Hydro
 		UpdateView();
 	}
 
+	void EditorCamera::Frame(const glm::vec3& point, float frameSize, float minHeight)
+	{
+		const float viewHeight = std::max(frameSize * 3.0f, minHeight);
+		m_FocalPoint = point;
+		m_Distance = std::clamp(viewHeight * 0.5f / std::tan(glm::radians(m_Settings.VerticalFOV) * 0.5f), MinDistance, MaxDistance);
+		UpdateView();
+		UpdateProjection();
+	}
+
 	void EditorCamera::SetViewportSize(float width, float height)
 	{
 		if (width < 1.0f || height < 1.0f)

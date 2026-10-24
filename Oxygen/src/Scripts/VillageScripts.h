@@ -11,17 +11,43 @@
 
 // Native scripts of the StatueVillage scene (Assets/Scenes/StatueVillage.hyscene). They are registered by
 // RegisterExampleScripts, so they also show up under Add Component > Script. They only use what the engine
-// has: components, SpriteAnimator, Input and Renderer::SetSettings. No physics: the walker moves along its
-// waypoints and nothing collides.
+// has: components, SpriteAnimator, Input and Renderer::SetSettings. They don't use physics yet: the scene's
+// colliders are only data until the physics step lands, so the player and the walkers still pass through
+// buildings, and the walker moves along its waypoints.
 //
-// The scene is 60 x 36 tiles of 32 px = 60 x 36 world units, centred on the origin (tile (30, 18) is
-// world (0, 0); world x = tile x - 30, world y = 18 - tile y).
+// The village is 60 x 36 tiles of 32 px = 60 x 36 world units, centred on the origin (tile (30, 18) is
+// world (0, 0); world x = tile x - 30, world y = 18 - tile y). The East Meadow continues it to the east
+// (x 30 to 66, same height) and the Slime Field after that (x 66 to 96, with the slimes of BattleScripts.h),
+// so the whole map is 126 x 36 units; see VillageMap.
 namespace Hydro
 {
+	// The walkable map in world units. The camera stays inside it. The village is x -30 to 30, the East
+	// Meadow x 30 to 66 and the Slime Field x 66 to 96; the invisible Wall * entities in the scene stop
+	// bodies at the same edges.
+	// What the zones tell the other village scripts (play mode, one scene at a time). VillageZone sets it,
+	// VillagerWalk and the Director read it; VillageZone resets it when the game starts.
+	struct VillageState
+	{
+		static inline int SlowZones = 0;      // zones the player stands in that slow it down (the bridge)
+		static inline bool InPlaza = false;   // the player stands in the Statue Plaza: the brazier burns
+		static float PlayerSpeedScale() { return SlowZones > 0 ? 0.5f : 1.0f; }
+	};
+
 	struct VillageMap
 	{
-		static constexpr float HalfWidth = 30.0f;
-		static constexpr float HalfHeight = 18.0f;
+		static constexpr float MinX = -30.0f;
+		static constexpr float MaxX = 96.0f;
+		static constexpr float MinY = -18.0f;
+		static constexpr float MaxY = 18.0f;
+		static constexpr float Width = MaxX - MinX;
+		static constexpr float Height = MaxY - MinY;
+		static constexpr float CentreX = 0.5f * (MinX + MaxX);
+		static constexpr float CentreY = 0.5f * (MinY + MaxY);
+
+		// The sort rule's origin: SortOrder = 4 * (SortOriginY - feet y), how the scene's static sprites are
+		// written. It stays 18 however the map grows; changing it would put the characters out of step with
+		// every static sprite.
+		static constexpr float SortOriginY = 18.0f;
 	};
 
 	// Sorts a sprite among the others by its feet: the lower on screen, the more in front. The scene's static
@@ -40,7 +66,7 @@ namespace Hydro
 			}
 
 			const float feetY = GetComponent<TransformComponent>().Translation.y;
-			GetComponent<SpriteRendererComponent>().SortOrder = (int32_t)std::lround((VillageMap::HalfHeight - feetY) * 4.0f);
+			GetComponent<SpriteRendererComponent>().SortOrder = (int32_t)std::lround((VillageMap::SortOriginY - feetY) * 4.0f);
 		}
 	};
 
@@ -191,7 +217,155 @@ namespace Hydro
 		std::string m_Facing = "Down";
 	};
 
-	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 60 x 36 map (the
+	// Put it on a sensor collider named "Zone <Name>": logs when the player (the entity tagged "Player") enters
+	// and leaves, and does what the zone is for: the Bridge slows the player down, the Statue Plaza lights the
+	// brazier (the Director reads VillageState), the Finish logs the finish line. The other zones only log.
+	class VillageZoneScript : public ScriptableEntity
+	{
+	protected:
+		void OnCreate() override
+		{
+			const std::string& tag = GetComponent<TagComponent>().Tag;
+			m_Name = tag.rfind("Zone ", 0) == 0 ? tag.substr(5) : tag;
+			// The game just started: forget what the previous run left behind.
+			VillageState::SlowZones = 0;
+			VillageState::InPlaza = false;
+		}
+
+		void OnTriggerEnter(Entity other) override
+		{
+			if (IsPlayer(other) == false)
+			{
+				return;
+			}
+
+			if (m_Name == "Bridge")
+				VillageState::SlowZones++;
+			else if (m_Name == "Statue Plaza")
+				VillageState::InPlaza = true;
+
+			HY_INFO("Zone: entered {}", m_Name);
+			if (m_Name == "Finish" && m_Finished == false)
+			{
+				m_Finished = true;
+				HY_INFO("Zone: finish line crossed");
+			}
+		}
+
+		void OnTriggerExit(Entity other) override
+		{
+			if (IsPlayer(other) == false)
+			{
+				return;
+			}
+
+			if (m_Name == "Bridge")
+				VillageState::SlowZones = std::max(0, VillageState::SlowZones - 1);
+			else if (m_Name == "Statue Plaza")
+				VillageState::InPlaza = false;
+
+			HY_INFO("Zone: left {}", m_Name);
+		}
+
+	private:
+		static bool IsPlayer(Entity other)
+		{
+			return other.HasComponent<TagComponent>() && other.GetComponent<TagComponent>().Tag == "Player";
+		}
+
+		std::string m_Name;
+		bool m_Finished = false;
+	};
+
+	// Put it on any entity (the scene has one called "Crate Spawner"): press E to drop a crate in front of the
+	// player, a copy of the first entity tagged "crate" (same sprite, body and scripts). At most MaxCrates
+	// dropped crates exist; the oldest is destroyed when another is dropped. It shows physics bodies being
+	// created and destroyed while the game plays: the new crate is solid from the next physics step.
+	class VillageCrateSpawnerScript : public ScriptableEntity
+	{
+	protected:
+		void OnUpdate([[maybe_unused]] float deltaTime) override
+		{
+			Scene* scene = GetEntity().GetScene();
+			Entity player = FindByTag(*scene, "Player");
+			if (player.IsValid() == false)
+			{
+				return;
+			}
+
+			// Drop it on the side the player last walked to.
+			glm::vec2 velocity{ 0.0f };
+			if (Physics2D::GetLinearVelocity(player, velocity) && glm::length(velocity) > 0.1f)
+			{
+				m_Direction = glm::normalize(velocity);
+			}
+
+			const bool down = Input::IsKeyPressed(KeyCode::E);
+			const bool pressed = down && m_Previous == false;
+			m_Previous = down;
+			if (pressed == false)
+			{
+				return;
+			}
+
+			Entity original = FindByTag(*scene, "crate");
+			if (original.IsValid() == false)
+			{
+				return;
+			}
+
+			Entity crate = scene->DuplicateEntity(original);
+			if (crate.IsValid() == false)
+			{
+				return;
+			}
+
+			const glm::vec3& playerPosition = player.GetComponent<TransformComponent>().Translation;
+			TransformComponent& transform = crate.GetComponent<TransformComponent>();
+			transform.Translation.x = playerPosition.x + m_Direction.x * 1.4f;
+			transform.Translation.y = playerPosition.y + m_Direction.y * 1.4f;
+
+			m_Dropped.push_back(crate.GetUUID());
+			while (m_Dropped.size() > MaxCrates)
+			{
+				Entity oldest = scene->GetEntityByUUID(m_Dropped.front());
+				if (oldest.IsValid())
+				{
+					scene->DestroyEntity(oldest);
+				}
+				m_Dropped.erase(m_Dropped.begin());
+			}
+
+			HY_INFO("Crates: dropped one ({} of {} dropped crates)", m_Dropped.size(), MaxCrates);
+		}
+
+	private:
+		static constexpr size_t MaxCrates = 10;
+
+		// The first entity with exactly this tag that is not about to be destroyed.
+		static Entity FindByTag(Scene& scene, const char* tag)
+		{
+			auto view = scene.m_Registry.view<TagComponent>();
+			for (auto handle : view)
+			{
+				if (view.get<TagComponent>(handle).Tag == tag)
+				{
+					Entity entity{ handle, &scene };
+					if (entity.IsValid())
+					{
+						return entity;
+					}
+				}
+			}
+			return {};
+		}
+
+		std::vector<UUID> m_Dropped;
+		glm::vec2 m_Direction{ 0.0f, -1.0f };
+		bool m_Previous = false;
+	};
+
+	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 126 x 36 map (the
 	// view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world units
 	// seen vertically). Scripts run in play mode only.
 	class VillageCameraScript : public ScriptableEntity
@@ -212,7 +386,7 @@ namespace Hydro
 			{
 				camera.Camera.OrthographicSize -= m_ZoomSpeed * deltaTime;
 			}
-			camera.Camera.OrthographicSize = std::clamp(camera.Camera.OrthographicSize, m_MinSize, 2.0f * VillageMap::HalfHeight);
+			camera.Camera.OrthographicSize = std::clamp(camera.Camera.OrthographicSize, m_MinSize, VillageMap::Height);
 
 			if (m_Target == entt::null || scene->m_Registry.valid(m_Target) == false)
 			{
@@ -231,10 +405,10 @@ namespace Hydro
 			const float aspect = scene->GetViewportAspectRatio();
 			const float halfHeight = 0.5f * camera.Camera.OrthographicSize;
 			const float halfWidth = halfHeight * (aspect > 0.0f ? aspect : 1.0f);
-			const float limitX = std::max(0.0f, VillageMap::HalfWidth - halfWidth);
-			const float limitY = std::max(0.0f, VillageMap::HalfHeight - halfHeight);
-			goal.x = std::clamp(goal.x, -limitX, limitX);
-			goal.y = std::clamp(goal.y, -limitY, limitY);
+			const float limitX = std::max(0.0f, 0.5f * VillageMap::Width - halfWidth);
+			const float limitY = std::max(0.0f, 0.5f * VillageMap::Height - halfHeight);
+			goal.x = std::clamp(goal.x, VillageMap::CentreX - limitX, VillageMap::CentreX + limitX);
+			goal.y = std::clamp(goal.y, VillageMap::CentreY - limitY, VillageMap::CentreY + limitY);
 
 			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-m_Smoothing * deltaTime);
 			transform.Translation.x += (goal.x - transform.Translation.x) * t;
@@ -403,6 +577,13 @@ namespace Hydro
 				changed = true;
 			}
 
+			// The B key or the Statue Plaza zone: the brazier burns instead of the statue.
+			if (BrazierOn() != m_LastBrazier)
+			{
+				m_LastBrazier = BrazierOn();
+				changed = true;
+			}
+
 			if (changed)
 			{
 				ApplyPreset();
@@ -460,6 +641,9 @@ namespace Hydro
 			return presets[index];
 		}
 
+		// The B key toggles it; standing in the Statue Plaza zone (VillageZone) lights it too.
+		bool BrazierOn() const { return m_BrazierOn || VillageState::InPlaza; }
+
 		static bool KeyPressed(KeyCode key, bool& previous)
 		{
 			const bool down = Input::IsKeyPressed(key);
@@ -488,11 +672,11 @@ namespace Hydro
 			// Statue <-> brazier. Faded sprites are drawn with alpha 0.
 			for (const Faded& faded : m_Statue)
 			{
-				SetAlpha(*scene, faded.Entity, m_BrazierOn ? 0.0f : faded.BaseAlpha);
+				SetAlpha(*scene, faded.Entity, BrazierOn() ? 0.0f : faded.BaseAlpha);
 			}
 			for (const Faded& faded : m_Brazier)
 			{
-				SetAlpha(*scene, faded.Entity, m_BrazierOn ? faded.BaseAlpha : 0.0f);
+				SetAlpha(*scene, faded.Entity, BrazierOn() ? faded.BaseAlpha : 0.0f);
 			}
 		}
 
@@ -540,7 +724,7 @@ namespace Hydro
 						flicker = 0.02f;
 						break;
 					case LightKind::Brazier:
-						factor = m_BrazierOn ? 1.0f : 0.0f;
+						factor = BrazierOn() ? 1.0f : 0.0f;
 						flicker = 0.05f;
 						break;
 				}
@@ -568,7 +752,7 @@ namespace Hydro
 				float factor = point.Kind == LightKind::Lamp || point.Kind == LightKind::Torch || point.Kind == LightKind::Pond ? preset.LampFactor : preset.WindowFactor;
 				if (point.Kind == LightKind::Brazier)
 				{
-					factor = m_BrazierOn ? 1.0f : 0.0f;
+					factor = BrazierOn() ? 1.0f : 0.0f;
 				}
 				if (m_LightsOn && factor > 0.0f)
 				{
@@ -578,7 +762,7 @@ namespace Hydro
 
 			HY_INFO("Village: {} | ambient {:.2f} | point lights {} of {} | shadows {} | flicker {} | centre {} | radius x{:.2f}",
 				preset.Name, preset.Intensity, active, m_Lights.size(), Renderer::GetSettings().Shadows ? "on" : "off",
-				m_Flicker ? "on" : "off", m_BrazierOn ? "brazier" : "statue", m_RadiusScale);
+				m_Flicker ? "on" : "off", BrazierOn() ? "brazier" : "statue", m_RadiusScale);
 		}
 
 		std::vector<PointLight> m_Lights;
@@ -589,6 +773,7 @@ namespace Hydro
 		bool m_LightsOn = true;
 		bool m_Flicker = true;
 		bool m_BrazierOn = false;
+		bool m_LastBrazier = false;
 		float m_RadiusScale = 1.0f;
 		float m_Time = 0.0f;
 		bool m_Previous[9] = {};
@@ -601,5 +786,7 @@ namespace Hydro
 		ScriptRegistry::Register<WaypointWalkScript>("WaypointWalk");
 		ScriptRegistry::Register<VillageCameraScript>("VillageCamera");
 		ScriptRegistry::Register<VillageDirectorScript>("VillageDirector");
+		ScriptRegistry::Register<VillageZoneScript>("VillageZone");
+		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawner");
 	}
 }

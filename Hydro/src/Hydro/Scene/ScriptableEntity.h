@@ -9,6 +9,9 @@
 
 namespace Hydro
 {
+	class Scene;
+	struct SystemContext;
+
 	// Base class for native (C++) gameplay scripts. Derive from it and attach with
 	// entity.AddComponent<NativeScriptComponent>().Bind<MyScript>();
 	class ScriptableEntity
@@ -29,11 +32,22 @@ namespace Hydro
 		virtual void OnDestroy() {}
 		virtual void OnUpdate([[maybe_unused]] float deltaTime) {}
 
+		// Physics (play mode), called after the physics step, with the other entity. Collisions are
+		// between two solid colliders starting / stopping to touch; triggers are the entity's sensor
+		// collider (or a sensor it moved into) starting / stopping to overlap. Both entities get the
+		// call. DestroyEntity from here is safe (it takes effect when the stage ends).
+		virtual void OnCollisionEnter([[maybe_unused]] Entity other) {}
+		virtual void OnCollisionExit([[maybe_unused]] Entity other) {}
+		virtual void OnTriggerEnter([[maybe_unused]] Entity other) {}
+		virtual void OnTriggerExit([[maybe_unused]] Entity other) {}
+
 	private:
 		// Held by value: an Entity is just a handle + scene pointer, so it never dangles
 		// when the registry moves its component storage around.
 		Entity m_Entity;
 		friend class Scene;
+		// The script stage creates the instances and sets their entity.
+		friend void UpdateScripts(Scene&, const SystemContext&);
 	};
 
 	// Plain data stored in the registry: the entity's scripts, in the order they were bound.
@@ -50,6 +64,9 @@ namespace Hydro
 			// the entry is kept so the scene saves it back unchanged, but it never runs.
 			ScriptableEntity* (*Instantiate)() = nullptr;
 			std::unique_ptr<ScriptableEntity> Instance;
+			// Set by Scene::RemoveScript / RemoveScripts while a stage runs: the script stops running at
+			// once and is erased (OnDestroy first) when the stage ends. Never saved or copied.
+			bool PendingRemove = false;
 		};
 
 		std::vector<Script> Scripts;

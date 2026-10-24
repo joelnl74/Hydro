@@ -73,6 +73,7 @@ namespace Hydro
 		m_ProjectWindow = CreateRef<ProjectWindow>();
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
 		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
+		m_HierarchyWindow->OnEntityFocus = [this](Entity entity) { FocusEntity(entity); };
 		m_ProjectWindow->OnPathRenamed = [this](const std::filesystem::path& from, const std::filesystem::path& to) { OnPathRenamed(from, to); };
 		m_ProjectWindow->OnPathDeleted = [this](const std::filesystem::path& path) { OnPathDeleted(path); };
 		m_ProjectWindow->OnAssetSelected = [this](const std::filesystem::path& path)
@@ -224,6 +225,7 @@ namespace Hydro
 		m_StatsWindow = nullptr;
 		m_HierarchyWindow = nullptr;
 		m_SceneRenderer.reset();
+		m_SuspendedScenes.clear();
 		m_RuntimeScene = nullptr;
 		m_ActiveScene = nullptr;
 		m_EditorScene = nullptr;
@@ -250,6 +252,9 @@ namespace Hydro
 			m_ActiveScene->OnUpdateRuntime(deltaTime);
 			UpdateGalaxy(*m_ActiveScene, deltaTime);
 
+			// A script may have asked for another scene (the scene was not touched while it ran).
+			ProcessSceneTransition();
+
 			if (m_StepFrames > 0)
 				m_StepFrames--;
 		}
@@ -267,7 +272,13 @@ namespace Hydro
 		m_EditorCamera.Update(m_EditorViewVisible && m_EditorViewHovered);
 
 		if (m_EditorViewVisible)
-			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera);
+		{
+			SceneRenderer::EditorOverlay overlay;
+			overlay.Selected = m_HierarchyWindow->GetSelectedEntity();
+			overlay.SelectionOutline = m_ShowSelectionOutline;
+			overlay.Colliders = m_ShowColliders;
+			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera, overlay);
+		}
 
 		if (m_GameViewVisible)
 			m_SceneHasCamera = m_SceneRenderer->RenderRuntime(*m_GameView);
@@ -485,6 +496,17 @@ namespace Hydro
 					ImGui::EndMenu();
 				}
 
+				if (ImGui::BeginMenu("Overlays"))
+				{
+					ImGui::MenuItem("Selection Outline", nullptr, &m_ShowSelectionOutline);
+					ImGui::MenuItem("Collider Outlines", nullptr, &m_ShowColliders);
+					ImGui::Separator();
+					if (ImGui::MenuItem("Focus Selected", "F", false, (bool)m_HierarchyWindow->GetSelectedEntity()))
+						FocusEntity(m_HierarchyWindow->GetSelectedEntity());
+
+					ImGui::EndMenu();
+				}
+
 				ImGui::EndMenuBar();
 			}
 
@@ -499,10 +521,28 @@ namespace Hydro
 			ImGui::Image((ImTextureID)m_EditorView->GetImGuiTexture(), size);
 			m_EditorViewHovered = ImGui::IsItemHovered();
 			AcceptAssetDrop();
+
+			// F: look at the selected entity (edit mode only; play mode scripts may use F).
+			const bool focusKey = Input::IsKeyPressed(KeyCode::F);
+			if (focusKey && m_FocusKeyDown == false && m_EditorViewHovered && IsPlaying() == false && ImGui::GetIO().WantTextInput == false)
+				FocusEntity(m_HierarchyWindow->GetSelectedEntity());
+			m_FocusKeyDown = focusKey;
 		}
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::FocusEntity(Entity entity)
+	{
+		if (entity.IsValid() == false || entity.HasComponent<TransformComponent>() == false)
+		{
+			return;
+		}
+
+		const TransformComponent& transform = entity.GetComponent<TransformComponent>();
+		const float extent = std::max({ std::abs(transform.Scale.x), std::abs(transform.Scale.y), 1.0f });
+		m_EditorCamera.Frame(transform.Translation, extent);
 	}
 
 	void EditorLayer::DrawGameWindow()
@@ -565,9 +605,16 @@ namespace Hydro
 		if (IsPlaying())
 			return;
 
+		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
+
+		SceneTransition::Clear();
+		SceneTransition::SetDepth(0);
+		m_SuspendedScenes.clear();
+
 		m_RuntimeScene = Scene::Copy(m_EditorScene);
 		m_RuntimeScene->Init();
 		CopyGalaxyStars(*m_EditorScene, *m_RuntimeScene);
+		m_RuntimeScene->OnRuntimeStart(); // builds the physics world
 
 		m_ActiveScene = m_RuntimeScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
@@ -575,8 +622,20 @@ namespace Hydro
 		m_Paused = false;
 		m_StepFrames = 0;
 
-		// The selection belongs to the editor scene.
-		m_HierarchyWindow->ClearSelection();
+		// The copy has the same UUIDs, so what was selected stays selected (the copy's entity).
+		SelectSameEntity(selectedBefore, *m_ActiveScene);
+	}
+
+	void EditorLayer::SelectSameEntity(Entity previous, Scene& scene)
+	{
+		if (previous.IsValid() && previous.HasComponent<IDComponent>())
+		{
+			m_HierarchyWindow->SetSelectedEntity(scene.GetEntityByUUID(previous.GetUUID()));
+		}
+		else
+		{
+			m_HierarchyWindow->ClearSelection();
+		}
 	}
 
 	void EditorLayer::StopScene()
@@ -584,16 +643,77 @@ namespace Hydro
 		if (IsPlaying() == false)
 			return;
 
+		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
+
 		m_SceneState = SceneState::Edit;
 		m_Paused = false;
 		m_StepFrames = 0;
 
 		m_ActiveScene = m_EditorScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
-		m_HierarchyWindow->ClearSelection();
+
+		// Back to the editor scene's entity with the same UUID; cleared if it only existed while playing
+		// (made or destroyed by a script).
+		SelectSameEntity(selectedBefore, *m_ActiveScene);
 
 		// Destroying the copy runs its scripts' OnDestroy; the editor scene is as it was before Play.
+		// Scenes pushed on top of it during Play go with it, the top one first.
+		m_RuntimeScene->OnRuntimeStop();
 		m_RuntimeScene = nullptr;
+		while (m_SuspendedScenes.empty() == false)
+		{
+			m_SuspendedScenes.pop_back();
+		}
+
+		SceneTransition::Clear();
+		SceneTransition::SetDepth(0);
+	}
+
+	void EditorLayer::ProcessSceneTransition()
+	{
+		const SceneTransition::Request request = SceneTransition::Take();
+		if (request.Kind == SceneTransition::Type::None || IsPlaying() == false)
+		{
+			return;
+		}
+
+		if (request.Kind == SceneTransition::Type::Push)
+		{
+			// Like OpenScene: load into a fresh scene, and only switch when that worked.
+			const std::filesystem::path path = EditorPaths::GetScenesDirectory() / (request.SceneName + SceneSerializer::FileExtension);
+			Ref<Scene> next = CreateRef<Scene>(request.SceneName, false);
+			SceneSerializer serializer(next);
+			if (serializer.Deserialize(path) == false)
+			{
+				HY_WARN("Scene push: could not load {}", path.string());
+				return;
+			}
+
+			next->SetName(request.SceneName);
+			next->Init();
+			next->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
+
+			m_SuspendedScenes.push_back(m_RuntimeScene);
+			m_RuntimeScene = next;
+		}
+		else
+		{
+			if (m_SuspendedScenes.empty())
+			{
+				HY_WARN("Scene pop: there is no scene below this one");
+				return;
+			}
+
+			// The top scene goes (its scripts' OnDestroy run), the one below carries on as it was.
+			m_RuntimeScene = m_SuspendedScenes.back();
+			m_SuspendedScenes.pop_back();
+		}
+
+		m_ActiveScene = m_RuntimeScene;
+		m_ActiveScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
+		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_HierarchyWindow->ClearSelection();
+		SceneTransition::SetDepth((uint32_t)m_SuspendedScenes.size());
 	}
 
 	void EditorLayer::NewProject()

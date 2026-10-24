@@ -10,15 +10,17 @@
 #include "Hydro/Scene/Entity.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace Hydro
 {
-	void SceneRenderer::RenderEditor(RenderView& view, const EditorCamera& camera)
+	void SceneRenderer::RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay)
 	{
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
 		SubmitSprites();
 		SubmitLights();
 		SubmitShadows();
+		SubmitEditorOverlay(overlay);
 		Renderer2D::EndScene();
 	}
 
@@ -146,18 +148,10 @@ namespace Hydro
 
 		const Texture2D& texture = *loaded;
 		TextureRect rect;
-		glm::mat4 quadTransform = transform;
+		const glm::mat4 quadTransform = GetSpriteQuadTransform(transform, &texture, sprite.SpriteIndex);
 		if (texture.GetSpriteMode() == SpriteMode::Multiple)
 		{
 			rect = texture.GetSpriteUVRect(sprite.SpriteIndex);
-
-			// The quad is centred on the entity; move it so the sprite's pivot is there instead
-			// (a feet pivot keeps a character standing on its position while frames change).
-			const glm::vec2 pivot = texture.GetSprite(sprite.SpriteIndex).Pivot;
-			if (pivot != glm::vec2(0.5f))
-			{
-				quadTransform = transform * glm::translate(glm::mat4(1.0f), glm::vec3(0.5f - pivot.x, 0.5f - pivot.y, 0.0f));
-			}
 		}
 		else
 		{
@@ -174,5 +168,110 @@ namespace Hydro
 		}
 
 		Renderer2D::DrawQuad(quadTransform, loaded, rect, sprite.Color);
+	}
+
+	glm::mat4 SceneRenderer::GetSpriteQuadTransform(const glm::mat4& transform, const Texture2D* texture, uint32_t spriteIndex)
+	{
+		if (texture == nullptr || texture->GetSpriteMode() != SpriteMode::Multiple)
+		{
+			return transform;
+		}
+
+		// The quad is centred on the entity; move it so the sprite's pivot is there instead
+		// (a feet pivot keeps a character standing on its position while frames change).
+		const glm::vec2 pivot = texture->GetSprite(spriteIndex).Pivot;
+		if (pivot == glm::vec2(0.5f))
+		{
+			return transform;
+		}
+		return transform * glm::translate(glm::mat4(1.0f), glm::vec3(0.5f - pivot.x, 0.5f - pivot.y, 0.0f));
+	}
+
+	void SceneRenderer::SubmitEditorOverlay(const EditorOverlay& overlay)
+	{
+		Entity selected = overlay.Selected; // a copy: Entity::GetScene is not const
+		const bool drawSelected = overlay.SelectionOutline && selected.IsValid()
+			&& selected.GetScene() == m_Scene.get() && selected.HasComponent<TransformComponent>();
+		if (drawSelected == false && overlay.Colliders == false)
+		{
+			return;
+		}
+
+		Renderer2D::BeginOverlay();
+
+		if (overlay.Colliders)
+		{
+			const glm::vec4 sensorColor{ 1.0f, 0.9f, 0.2f, 1.0f };
+			const glm::vec4 staticColor{ 0.3f, 0.9f, 0.3f, 1.0f };
+			const glm::vec4 dynamicColor{ 0.3f, 0.55f, 1.0f, 1.0f };
+			const glm::vec4 kinematicColor{ 0.3f, 0.9f, 0.9f, 1.0f };
+
+			const auto colorFor = [&](entt::entity entity, bool sensor)
+			{
+				if (sensor)
+				{
+					return sensorColor;
+				}
+				if (m_Scene->m_Registry.has<Rigidbody2DComponent>(entity) == false)
+				{
+					return staticColor;
+				}
+				switch (m_Scene->m_Registry.get<Rigidbody2DComponent>(entity).Type)
+				{
+				case Rigidbody2DType::Dynamic: return dynamicColor;
+				case Rigidbody2DType::Kinematic: return kinematicColor;
+				default: return staticColor;
+				}
+			};
+
+			auto boxes = m_Scene->m_Registry.view<TransformComponent, BoxCollider2DComponent>();
+			for (auto entity : boxes)
+			{
+				const auto [transform, box] = boxes.get<TransformComponent, BoxCollider2DComponent>(entity);
+				const glm::mat4 shape = transform.GetTransform()
+					* glm::translate(glm::mat4(1.0f), glm::vec3(box.Offset, 0.0f))
+					* glm::scale(glm::mat4(1.0f), glm::vec3(box.Size, 1.0f));
+				Renderer2D::DrawRect(shape, colorFor(entity, box.IsSensor), 1.5f);
+			}
+
+			auto circles = m_Scene->m_Registry.view<TransformComponent, CircleCollider2DComponent>();
+			for (auto entity : circles)
+			{
+				const auto [transform, circle] = circles.get<TransformComponent, CircleCollider2DComponent>(entity);
+				const glm::vec3 centre = glm::vec3(transform.GetTransform() * glm::vec4(circle.Offset, 0.0f, 1.0f));
+				const float scale = std::max(std::abs(transform.Scale.x), std::abs(transform.Scale.y));
+				Renderer2D::DrawCircle(centre, circle.Radius * scale, colorFor(entity, circle.IsSensor), 1.5f);
+			}
+		}
+
+		if (drawSelected)
+		{
+			const glm::vec4 selectionColor{ 1.0f, 0.65f, 0.1f, 1.0f };
+			const float thickness = 2.5f;
+			const TransformComponent& transform = selected.GetComponent<TransformComponent>();
+			const glm::mat4 matrix = transform.GetTransform();
+
+			if (selected.HasComponent<SpriteRendererComponent>())
+			{
+				const SpriteRendererComponent& sprite = selected.GetComponent<SpriteRendererComponent>();
+				const Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
+				Renderer2D::DrawRect(GetSpriteQuadTransform(matrix, loaded.get(), sprite.SpriteIndex), selectionColor, thickness);
+			}
+			else
+			{
+				// Nothing drawn to outline: a small box on the entity (a point light also shows its reach).
+				Renderer2D::DrawRect(transform.Translation, glm::vec2(0.6f), selectionColor, thickness);
+				if (selected.HasComponent<Light2DComponent>())
+				{
+					const Light2DComponent& light = selected.GetComponent<Light2DComponent>();
+					if (light.Type == Light2DType::Point)
+					{
+						Renderer2D::DrawCircle(transform.Translation, light.Radius, selectionColor, 1.5f);
+					}
+				}
+			}
+		}
+
+		Renderer2D::EndOverlay();
 	}
 }

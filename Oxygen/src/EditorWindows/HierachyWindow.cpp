@@ -3,6 +3,8 @@
 #include "Utilities/AssetDragDrop.h"
 
 #include <imgui/imgui.h>
+#include <algorithm>
+#include <cctype>
 #include <Hydro/Core/UUID.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Utils/PlatformUtils.h>
@@ -18,6 +20,19 @@ namespace Hydro
 	HierachyWindow::~HierachyWindow()
 	{
 	}
+	bool HierachyWindow::MatchesSearch(const std::string& name) const
+	{
+		const size_t length = std::char_traits<char>::length(m_SearchBuffer);
+		if (length == 0)
+		{
+			return true;
+		}
+
+		const auto lower = [](char c) { return static_cast<char>(std::tolower(static_cast<unsigned char>(c))); };
+		return std::search(name.begin(), name.end(), m_SearchBuffer, m_SearchBuffer + length,
+			[&](char a, char b) { return lower(a) == lower(b); }) != name.end();
+	}
+
 	void HierachyWindow::OnImguiAttach()
 	{
 	}
@@ -36,6 +51,21 @@ namespace Hydro
 		bool moveAfter = false;
 
 		ImGui::Begin("Hierachy");
+
+		// Search: only rows whose name contains the text are listed.
+		{
+			const float clearWidth = ImGui::GetFrameHeight();
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - clearWidth - ImGui::GetStyle().ItemSpacing.x);
+			ImGui::InputTextWithHint("##HierarchySearch", "Search...", m_SearchBuffer, sizeof(m_SearchBuffer));
+			ImGui::SameLine();
+			ImGui::BeginDisabled(m_SearchBuffer[0] == '\0');
+			if (ImGui::Button("x", ImVec2(clearWidth, 0.0f)))
+			{
+				m_SearchBuffer[0] = '\0';
+			}
+			ImGui::EndDisabled();
+		}
+
 		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
 		const bool rootOpen = ImGui::TreeNodeEx("Root", flag);
 
@@ -65,6 +95,11 @@ namespace Hydro
 				const std::string& tag = entity.GetName();
 				const uint64_t id = entity.GetUUID();
 
+				if (MatchesSearch(tag) == false)
+				{
+					continue;
+				}
+
 				ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth;
 				if (m_SelectedEntity == entity)
 					child |= ImGuiTreeNodeFlags_Selected;
@@ -72,6 +107,13 @@ namespace Hydro
 				bool opened = ImGui::TreeNodeEx((void*)id, child, "%s", tag.c_str());
 				if (ImGui::IsItemClicked())
 					m_SelectedEntity = entity;
+				// Double-click: select it and look at it in the scene view.
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+				{
+					m_SelectedEntity = entity;
+					if (OnEntityFocus)
+						OnEntityFocus(entity);
+				}
 
 				// Drag a row onto the upper half of another row to put it before that row, onto the
 				// lower half to put it after.

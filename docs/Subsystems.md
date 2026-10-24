@@ -54,8 +54,9 @@ delete app;                                           // destructor: no engine w
 | 4 | `Window::Create()`, then `Window::Init(spec.MainWindow)` | Events (window callbacks post events) | `Window::Shutdown()`, then the `Scope` is reset |
 | 5 | `Renderer::Init(window)` | Window (surface) | `Renderer::Shutdown()` |
 | 6 | `AssetManager::Init()` | Renderer (it creates the GPU textures); empty until the application calls `OnProjectOpened` | `AssetManager::Shutdown()`, after the layers are detached |
-| 7 | Push `ImGuiLayer` as an overlay (`OnAttach`) | Renderer, Window | `Renderer::WaitIdle()`, then `LayerStack::Clear()` detaches and deletes every layer, top-most first |
-| 8 | Client `OnInit()` (pushes the application's layers) | everything above | Client `OnShutdown()`, first, while everything is alive |
+| 7 | `PhysicsEngine::Init()` | — (it sits after `AssetManager` because colliders will come from scenes and assets) | `PhysicsEngine::Shutdown()`, after the layers are detached: scenes own their physics worlds and are gone by then |
+| 8 | Push `ImGuiLayer` as an overlay (`OnAttach`) | Renderer, Window | `Renderer::WaitIdle()`, then `LayerStack::Clear()` detaches and deletes every layer, top-most first |
+| 9 | Client `OnInit()` (pushes the application's layers) | everything above | Client `OnShutdown()`, first, while everything is alive |
 
 Inside `Renderer::Init`, and reversed in `Renderer::Shutdown`:
 
@@ -124,6 +125,7 @@ Every current name was checked against the table. Only one changed:
 | `ScriptRegistry` | New, not a subsystem | A name → script lookup table. It has no lifecycle or OS/GPU resources (a function-local static, filled before scenes load), so it isn't a `Manager` subsystem; becomes part of a `ScriptEngine` if one is added |
 | `Texture2D` | New, a resource (Oct 20, 2026) | A texture sprites are drawn with, made from `ImageSpecification` + `TextureProperties`; `LoadFromFile` shares textures by file until the `AssetManager` takes that over. Named for what it is, like `RenderView` |
 | `AssetHandle` | New (Oct 24, 2026), a value | `using AssetHandle = UUID;`: names an asset file across renames and moves; components will hold one instead of a `Ref<Texture2D>` |
+| `PhysicsEngine` | New (Oct 24, 2026), a subsystem | Runtime-style (`Engine`): it hosts the Box2D physics library. Position 7, after `AssetManager`. The simulation is per scene (`PhysicsScene`, planned), not here |
 | `AssetManager` | New (Oct 24, 2026), a subsystem | Registry-style (`Manager`): others look assets up by handle. Position 6, after `Renderer` |
 | `AssetRegistry` | New, data | The handle ↔ path table the manager holds; not a subsystem and not a `Manager` (no lifecycle), rebuilt by scanning |
 | `AssetMetadata`, `AssetScanInfo` | New, plain structs | What is known about one asset; what a scan found (`Info` = output, see [Resource creation](ResourceCreation.md#naming)) |
@@ -151,7 +153,7 @@ Every current name was checked against the table. Only one changed:
 | Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache, components and the project's start scene by handle, move / delete that keep handles ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
 | Audio | `AudioEngine` | Planned | after `AssetManager` |
 | Scripting | `ScriptEngine` | Planned | after `AssetManager`, before the client's `OnInit` |
-| Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Planned | after `ScriptEngine` |
+| Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Started (Oct 24, 2026): Box2D v3.1.1 linked, assert hook, length unit, a Debug-build self test. No simulation yet; the physics components are saved data only | after `AssetManager` (there is no `ScriptEngine` yet) |
 
 ## Adding a subsystem
 

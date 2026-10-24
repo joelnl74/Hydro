@@ -21,10 +21,14 @@
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/ScriptableEntity.h"
 #include "Hydro/Scene/SceneSerializer.h"
+#include "Hydro/Scene/SceneTransition.h"
 #include "Hydro/Scene/PrefabSerializer.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "Hydro/Scene/SpriteAnimationSerializer.h"
 #include "Hydro/Scene/SpriteAnimator.h"
+
+// PHYSICS.
+#include "Hydro/Physics/PhysicsScene.h"
 
 // ASSETS.
 #include "Hydro/Asset/Asset.h"
