@@ -606,6 +606,7 @@ namespace Hydro
 		m_RuntimeScene = Scene::Copy(m_EditorScene);
 		m_RuntimeScene->Init();
 		CopyGalaxyStars(*m_EditorScene, *m_RuntimeScene);
+		m_RuntimeScene->OnRuntimeStart(); // builds the physics world
 
 		m_ActiveScene = m_RuntimeScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
@@ -648,6 +649,7 @@ namespace Hydro
 		SelectSameEntity(selectedBefore, *m_ActiveScene);
 
 		// Destroying the copy runs its scripts' OnDestroy; the editor scene is as it was before Play.
+		m_RuntimeScene->OnRuntimeStop();
 		m_RuntimeScene = nullptr;
 	}
 

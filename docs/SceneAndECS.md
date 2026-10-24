@@ -57,7 +57,7 @@ A scene is updated one of two ways:
 | Order | System | Runs in | Reads → writes |
 | --- | --- | --- | --- |
 | 1 | `UpdateScripts` (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
-| 2 | Physics (runtime only) | `Scene::OnUpdateRuntime` | None yet: the slot is reserved (Roadmap P1) |
+| 2 | Physics (runtime only) | `Scene::OnUpdateRuntime` | `PhysicsScene::Step`: kinematic bodies are carried to their transforms, fixed 60 Hz steps run, dynamic bodies' results are written to their transforms (see below) |
 | 3 | `UpdateSpriteAnimations` (runtime only) | `Scene::OnUpdateRuntime`, after the scripts | `SpriteAnimatorComponent` → `SpriteRendererComponent` (`Texture`, `SpriteIndex`, `FlipX`) |
 | 4 | `Scene::UpdateTransforms` | `OnUpdateEditor` and `OnUpdateRuntime` | None yet; transform propagation goes here |
 | 5 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
@@ -183,7 +183,10 @@ void UpdateSpriteAnimations(Scene& scene, const SystemContext& context); // Scen
 - **One context per update.** `Scene` builds it once and passes the same one to every stage, so all stages of a frame agree.
 - **Stage order:** Scripts → Physics → Sprite animation → Transforms (world-transform propagation, S3), then the application's systems, then render submission.
 - **Play-only stages check `context.IsPlaying`** and return at once when it is false, so calling one while editing is harmless.
-- Physics has its slot in `OnUpdateRuntime` but no system yet; `FixedDeltaTime` is the 60 Hz step it will use.
+- **Physics (2D, Box2D)**: `Scene::OnRuntimeStart` builds a `PhysicsScene` (the editor calls it when Play starts; `OnUpdateRuntime` does it too if it wasn't), `OnRuntimeStop` / the destructor destroys it. Every entity with a Transform and a Rigidbody2D, Box or Circle collider becomes a body (a collider alone is static); entities created while playing get none.
+  - **Who owns the transform:** *Dynamic*: the simulation (it overwrites the transform each update; move it with `Physics2D::SetLinearVelocity`). *Kinematic*: the game (write the transform; the body is carried there with the right velocity so it pushes instead of teleporting). *Static*: nobody (moving it in play mode doesn't move the collider). Inspector edits to a dynamic body's transform while playing are ignored by the body.
+  - Steps are `FixedDeltaTime` (60 Hz), at most 4 per frame, the rest of a long frame is dropped. No interpolation yet: a frame with no step shows the last result. World gravity is -9.81 on Y; top-down bodies use GravityScale 0.
+  - `Scene::DestroyEntity` removes the entity's body. Collision and trigger callbacks come next (E2).
 - The list stays plain function calls. Promote it to a registered list only if applications need their own stages.
 
 ## Planned: component registry

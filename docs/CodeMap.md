@@ -64,7 +64,8 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Scene/EntitySerializer.*` | YAML for every component (both directions); used by scenes and prefabs |
 | `Scene/SceneSerializer.*`, `PrefabSerializer.*` | `.hyscene` / `.hyprefab` files |
 | **Physics** | |
-| `Physics/PhysicsEngine.*` | `PhysicsEngine` subsystem: Box2D assert hook and length unit, version, a Debug-build self test (floor + falling box). No simulation yet |
+| `Physics/PhysicsEngine.*` | `PhysicsEngine` subsystem: Box2D assert hook and length unit, version, a Debug-build self test (floor + falling box) |
+| `Physics/PhysicsScene.*` | `PhysicsScene`: the Box2D world of one running `Scene` (created by `Scene::OnRuntimeStart`, destroyed on stop). Bodies from Rigidbody2D / collider components, 60 Hz fixed steps (max 4 a frame), dynamic results written back to transforms, kinematic bodies carried to their transforms; `Physics2D::SetLinearVelocity` for game code. No callbacks or interpolation yet |
 | **Project, Utils** | |
 | `Project/Project.*`, `ProjectSerializer.*` | Active project, `ProjectConfig` (`.hyproj`) |
 | `Utils/YAMLConversions.*`, `Utils/PlatformUtils.h` | glm ↔ YAML; `FileDialogs` |

@@ -5,6 +5,7 @@
 #include "ScriptSystem.h"
 #include "SpriteAnimator.h"
 #include "SystemContext.h"
+#include "Hydro/Physics/PhysicsScene.h"
 
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/Time.h>
@@ -41,6 +42,7 @@ namespace Hydro
 
 		m_Deferred.clear();
 		m_PendingDestroy.clear();
+		m_Physics.reset();
 	}
 
 	void Scene::Init()
@@ -310,6 +312,9 @@ namespace Hydro
 			return;
 
 		m_PendingDestroy.erase((entt::entity)entity);
+		// Its physics body goes with it (a body whose entity is gone would be written back to nothing).
+		if (m_Physics != nullptr)
+			m_Physics->OnEntityDestroyed((entt::entity)entity);
 		// Let native scripts clean up before their entity disappears.
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
@@ -458,6 +463,17 @@ namespace Hydro
 		return context;
 	}
 
+	void Scene::OnRuntimeStart()
+	{
+		if (m_Physics == nullptr)
+			m_Physics = CreateScope<PhysicsScene>(*this);
+	}
+
+	void Scene::OnRuntimeStop()
+	{
+		m_Physics.reset();
+	}
+
 	void Scene::OnUpdateRuntime(float deltaTime)
 	{
 		const SystemContext context = MakeSystemContext(deltaTime, true);
@@ -465,8 +481,11 @@ namespace Hydro
 		// 1. Native scripts. Instances are created lazily on their first update.
 		UpdateScripts(*this, context);
 
-		// 2. Physics: none yet (Roadmap P1). It runs here, after the scripts have set velocities and
-		// forces and before animation and transforms read the result.
+		// 2. Physics: after the scripts have set velocities and moved kinematic bodies, before animation
+		// and transforms read the result.
+		if (m_Physics == nullptr)
+			OnRuntimeStart();
+		m_Physics->Step(context);
 
 		// 3. Sprite animation, after the scripts so what a script started this frame shows this frame.
 		UpdateSpriteAnimations(*this, context);

@@ -26,6 +26,9 @@
 #include "Hydro/Scene/SpriteAnimationSerializer.h"
 #include "Hydro/Scene/SpriteAnimator.h"
 
+// PHYSICS.
+#include "Hydro/Physics/PhysicsScene.h"
+
 // ASSETS.
 #include "Hydro/Asset/Asset.h"
 #include "Hydro/Asset/AssetMetadata.h"

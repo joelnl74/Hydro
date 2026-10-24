@@ -44,13 +44,13 @@ In the editor (not playing): click an entity in the **Hierarchy** or the **Edito
 | Systems and stages (`SystemContext`, script stage, deferred destroy) | Everything that moves runs through them | Play and Stop several times, press Pause and Step: no crash, same behaviour each time |
 | Play copy and selection | The whole scene | Select an entity, press Play, then Stop: the same entity stays selected (found again by its UUID, `GetEntityByUUID`) |
 | Scene saving and loading | The whole scene | Move a prop, save, reload the scene (or restart): the change and all physics values stay |
-| 2D physics components (data only) | Buildings, trees, props, `Player`, `Walker *`, meadow areas; see [Collision layout](#collision-layout) | Select a building, tree, crate or the player: the inspector shows Rigidbody 2D and Box / Circle Collider 2D sections. Nothing simulates yet (Roadmap P1), so for now the player still walks through them |
+| 2D physics (Box2D, 60 Hz) | Buildings, trees, props, `Player`, `Walker *`, meadow areas; see [Collision layout](#collision-layout) | Select a building, tree, crate or the player: the inspector shows Rigidbody 2D and Box / Circle Collider 2D sections. Press Play and walk: the player stops at walls, buildings, trunks, fences and the map edge, pushes crates and barrels, and walks through bushes and zones. Turn on **Overlays > Collider Outlines** to see what blocks |
 
 ## East Meadow
 
-Everything in the meadow is built from the village's own art. Each area is a gameplay element that exercises part of the physics; until the physics step lands the expected behaviour is only data, so the "once physics runs" column is what to check then.
+Everything in the meadow is built from the village's own art. Each area is a gameplay element that exercises part of the physics; the last column is what to check in Play. Collision callbacks (zone enter and exit events) are not there yet.
 
-| Area | Where | What is in it | Once physics runs |
+| Area | Where | What is in it | What to check |
 | --- | --- | --- | --- |
 | **East Gate** | Fence line at x = 31, gap at y -2 to 2 where the road crosses; `Zone East Gate`, `Street Lamp 11`, `Sign East Meadow` | 31 fence segments (static) with a 4-unit opening | The player passes through the gap and is stopped by the fence everywhere else. The zone's enter and exit events fire once per crossing |
 | **Crate Yard** | Pen at x 34.6 to 44.6, y 8 to 13, open on the south side; `Zone Crate Yard`, `Sign Crate Yard` | 6 `crate` (wood), 3 `barrel`, dynamic, density 1 to 1.5 | Walking into a crate pushes it and it stops quickly; crates and barrels push each other; nothing leaves through the fence |
@@ -62,18 +62,18 @@ Everything in the meadow is built from the village's own art. Each area is a gam
 
 ## Collision layout
 
-Colliders are part of the village. The shapes are footprints at the foot of each sprite, sized by eye, so tune them in the inspector when the physics step lands.
+Colliders are part of the village. The shapes are footprints at the foot of each sprite, sized by eye, so tune them in the inspector (outlines on, Play, walk into them).
 
 | Group | Entities | Body | Why it is there |
 | --- | --- | --- | --- |
-| Player | `Player` | Dynamic, fixed rotation, gravity scale 0, linear damping 10, 0.5 x 0.3 box at the feet | The controllable body. A top-down game has no gravity, and damping stops it sliding. `VillagerWalk` will move it by velocity once physics runs |
+| Player | `Player` | Dynamic, fixed rotation, gravity scale 0, linear damping 10, 0.5 x 0.3 box at the feet | The controllable body. A top-down game has no gravity, and damping stops it sliding. `VillagerWalk` sets its velocity every frame (density 10, so it can push the heavy barrels slowly and the light crates easily) |
 | Villagers | `Walker *` (8) | Kinematic, same box | Moved by `WaypointWalk`; they push the player and crates but are not pushed |
 | Buildings | 5 `House *`, `Market Stall`, `Statue`, `well`, `notice_board` | Static (a collider without a Rigidbody) | The player cannot walk through them; only the base (about 1 unit deep) blocks, so you walk behind the roof line |
 | Trees | 89 village `tree_*` and `pine_*`, 22 meadow `pine_01` | Static, trunk box 0.6 to 0.8 wide | Walk between trunks, not through them |
 | Street furniture | `Street Lamp` (12), `Bollard` (4), `Bridge Torch` (2), `planter_*` (4), `bench_h/v` (3), `signpost`, `woodpile`, meadow signs and banners | Static | Small obstacles |
 | Fences | `fence_h` (58), `fence_v` (59), village and meadow | Static, thin box | Fence lines block |
 | Rocks and stumps | `rock_*`, `stump_*` (43) | Static | Natural obstacles. Bushes, flowers and grass tufts have no collider: you walk through them |
-| Pushables | Village: 4 `barrel`, 4 `crate*`, 3 `sack`. Meadow: Crate Yard, Weigh Lane, Bounce Stones | Dynamic, fixed rotation (the stones can spin), gravity scale 0, linear damping 8 (stones 0.6) | Once physics runs the player shoves them across the ground and they come to rest quickly. They carry `VillageYSort` so they sort correctly as they move |
+| Pushables | Village: 4 `barrel`, 4 `crate*`, 3 `sack`. Meadow: Crate Yard, Weigh Lane, Bounce Stones | Dynamic, fixed rotation (the stones can spin), gravity scale 0, linear damping 8 (stones 0.6) | The player shoves them across the ground and they come to rest quickly. They carry `VillageYSort` so they sort correctly as they move |
 | Moving cart | `Moving Cart` | Kinematic, driven by `Bob` | A moving obstacle that must push the player (teleport handling in the physics plan) |
 | Map walls | `Wall North/South/East/West` (invisible) | Static | Keep every body inside the 96 x 36 map |
 | Pond | `Water West`, `Water East` (invisible) | Static | The pond is blocked except along the bridge |
@@ -83,8 +83,8 @@ The scene has 40 rigidbodies (31 dynamic, 9 kinematic), 7 sensor zones and 366 c
 
 ## Planned for the test bed
 
-- **Physics simulation** (P1): Play makes pushables move when the player runs into them, nothing walks through a wall, building or tree, and the player stops at the map edge and the pond.
+- **Physics tuning**: collider sizes were set by eye; adjust them (and player speed against damping) after the first Play.
 - **Collision and trigger callbacks** (P3): entering `Zone Statue Plaza` tints the brazier light, `Zone Market` plays a sound once audio lands, `Zone Bridge` slows the player, `Zone Finish` logs a message.
-- **Debug drawing** (D2 lines, P7): a key toggles collider outlines.
+- **Debug drawing in play mode** (P7): collider outlines in the Game window; the editor view already has them.
 - **Script safety** (#40): a script that spawns and destroys a crate on a key press (in the Crate Yard), to watch the deferred stage.
 - Audio, tilemaps and runtime UI as each lands: each becomes part of the game (footstep sounds, a tiled path, a HUD), with a row in the Features table.
