@@ -35,7 +35,7 @@ namespace Hydro
 	// Steps 1 and 2 of the asset system (docs/Architecture.md, "Asset system"). Identity: every texture,
 	// scene, prefab and animation set file gets a handle. Loading: textures are loaded through the
 	// manager, which keeps them (strong Refs) until the project closes.
-	// TODO(assets): components still hold a Ref<Texture2D> (step 3).
+	// Components hold handles; render and animation code resolve them with GetLoadedAsset every frame.
 	//
 	//   AssetManager::OnProjectOpened(project->GetAssetDirectory()); // scans the folder
 	//   AssetHandle handle = AssetManager::FindHandle(path);       // 0 when not registered
@@ -92,7 +92,7 @@ namespace Hydro
 		// (or, for images, its .hymeta) changed or moved since. Synchronous, reads the disk: for scene
 		// loading and the editor, never for code that runs every frame. nullptr (logged, once per file
 		// version) when the handle is unknown, its file is missing or unreadable, or it isn't a T.
-		// Only Texture2D can be loaded so far.
+		// Texture2D and SpriteAnimationSet can be loaded so far.
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle handle)
 		{
@@ -117,12 +117,6 @@ namespace Hydro
 			static_assert(std::is_base_of<Asset, T>::value, "AssetManager::ReloadAsset: T must derive from Asset");
 			return std::static_pointer_cast<T>(LoadAsset(handle, T::GetStaticType(), true));
 		}
-
-		// Drops the loaded assets nobody else holds (the cache has the only Ref), freeing their memory;
-		// they load again on the next GetAsset. Returns how many were dropped. The cache otherwise
-		// keeps everything until the project closes, so the editor calls this after it lets go of
-		// textures it only showed (thumbnails).
-		static size_t UnloadUnused();
 
 		static AssetLoadState GetLoadState(AssetHandle handle);
 		// Assets in the cache (loaded successfully).

@@ -1,7 +1,10 @@
 #include "hypch.h"
 #include "SpriteAnimator.h"
 
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/Components/Components.h"
+#include "Hydro/Scene/SpriteAnimation.h"
 
 #include <unordered_set>
 
@@ -85,8 +88,9 @@ namespace Hydro
 		}
 	}
 
-	// The entity's animator when it has one with an animation set, else nullptr.
-	static SpriteAnimatorComponent* FindAnimator(Entity entity)
+	// The entity's animator when it has one whose animation set is loaded, else nullptr; `set` is that
+	// set. The AssetManager keeps loaded sets, so it stays valid for the call.
+	static SpriteAnimatorComponent* FindAnimator(Entity entity, Ref<SpriteAnimationSet>& set)
 	{
 		if ((bool)entity == false || entity.GetScene() == nullptr || entity.GetScene()->m_Registry.valid(entity) == false)
 		{
@@ -98,7 +102,14 @@ namespace Hydro
 		}
 
 		SpriteAnimatorComponent& animator = entity.GetComponent<SpriteAnimatorComponent>();
-		return animator.Animations == nullptr ? nullptr : &animator;
+		set = AssetManager::GetLoadedAsset<SpriteAnimationSet>(animator.Animations);
+		return set == nullptr ? nullptr : &animator;
+	}
+
+	static SpriteAnimatorComponent* FindAnimator(Entity entity)
+	{
+		Ref<SpriteAnimationSet> set;
+		return FindAnimator(entity, set);
 	}
 
 	// ---- System -----------------------------------------------------------------
@@ -109,11 +120,13 @@ namespace Hydro
 		for (auto entity : view)
 		{
 			auto [animator, sprite] = view.get<SpriteAnimatorComponent, SpriteRendererComponent>(entity);
-			if (animator.Animations == nullptr || animator.Animations->GetClipCount() == 0)
+			// Not loaded (none assigned, or nobody loaded it): nothing to play. Never loads from disk.
+			const Ref<SpriteAnimationSet> loaded = AssetManager::GetLoadedAsset<SpriteAnimationSet>(animator.Animations);
+			if (loaded == nullptr || loaded->GetClipCount() == 0)
 			{
 				continue;
 			}
-			const SpriteAnimationSet& set = *animator.Animations;
+			const SpriteAnimationSet& set = *loaded;
 
 			if (animator.ClipIndex < 0)
 			{
@@ -152,7 +165,7 @@ namespace Hydro
 				}
 			}
 
-			sprite.Texture = set.GetTexture();
+			sprite.Texture = set.GetTexture() != nullptr ? set.GetTexture()->GetHandle() : AssetHandle(0);
 			sprite.SpriteIndex = clip.Frames[animator.FrameIndex].Sprite;
 			sprite.FlipX = clip.FlipX;
 		}
@@ -162,20 +175,21 @@ namespace Hydro
 
 	bool SpriteAnimator::Play(Entity entity, std::string_view clip, bool restart)
 	{
-		SpriteAnimatorComponent* animator = FindAnimator(entity);
+		Ref<SpriteAnimationSet> set;
+		SpriteAnimatorComponent* animator = FindAnimator(entity, set);
 		if (animator == nullptr)
 		{
 			return false;
 		}
 
-		const int32_t index = animator->Animations->FindClip(clip);
+		const int32_t index = set->FindClip(clip);
 		if (index < 0)
 		{
 			// Play is usually called every frame; say it once per name.
 			static std::unordered_set<std::string> s_ReportedClips;
 			if (s_ReportedClips.insert(std::string(clip)).second)
 			{
-				HY_CORE_WARN("SpriteAnimator::Play: no clip '{}' in '{}'", std::string(clip), animator->Animations->GetPath().filename().string());
+				HY_CORE_WARN("SpriteAnimator::Play: no clip '{}' in '{}'", std::string(clip), set->GetPath().filename().string());
 			}
 			return false;
 		}
@@ -185,8 +199,9 @@ namespace Hydro
 
 	bool SpriteAnimator::Play(Entity entity, uint32_t clipIndex, bool restart)
 	{
-		SpriteAnimatorComponent* animator = FindAnimator(entity);
-		if (animator == nullptr || clipIndex >= animator->Animations->GetClipCount())
+		Ref<SpriteAnimationSet> set;
+		SpriteAnimatorComponent* animator = FindAnimator(entity, set);
+		if (animator == nullptr || clipIndex >= set->GetClipCount())
 		{
 			return false;
 		}
@@ -248,12 +263,13 @@ namespace Hydro
 
 	std::string_view SpriteAnimator::GetCurrentClip(Entity entity)
 	{
-		SpriteAnimatorComponent* animator = FindAnimator(entity);
-		if (animator == nullptr || animator->ClipIndex < 0 || (uint32_t)animator->ClipIndex >= animator->Animations->GetClipCount())
+		Ref<SpriteAnimationSet> set;
+		SpriteAnimatorComponent* animator = FindAnimator(entity, set);
+		if (animator == nullptr || animator->ClipIndex < 0 || (uint32_t)animator->ClipIndex >= set->GetClipCount())
 		{
 			return {};
 		}
-		return animator->Animations->GetClip((uint32_t)animator->ClipIndex).Name;
+		return set->GetClip((uint32_t)animator->ClipIndex).Name; // the manager keeps the set, so the name outlives this call
 	}
 
 	void SpriteAnimator::SetSpeed(Entity entity, float speed)

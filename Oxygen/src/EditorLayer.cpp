@@ -5,6 +5,9 @@
 #include <string>
 
 #include "Hydro/Utils/PlatformUtils.h"
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Scene/SpriteAnimation.h"
 #include "EditorPaths.h"
 #include "Utilities/AssetDragDrop.h"
 #include "Utilities/EditorChrome.h"
@@ -684,19 +687,43 @@ namespace Hydro
 		}
 	}
 
+	// Called after an image's import settings were saved, before the window that saved them reads the image
+	// again: the AssetManager reloads the texture (every holder of its handle gets the new one), the animation
+	// sets built on it are read again, and sprites keep showing the same sprite by name.
 	void EditorLayer::OnTextureReimported(const std::filesystem::path& imagePath)
 	{
-		const Ref<Texture2D> texture = Texture2D::LoadFromFile(imagePath);
+		const AssetHandle handle = AssetManager::FindHandle(imagePath);
+		if (static_cast<uint64_t>(handle) == 0)
+		{
+			return;
+		}
+
+		// The sprites as they were, to find each one again by name after slicing moved them.
+		const Ref<Texture2D> before = AssetManager::GetLoadedAsset<Texture2D>(handle);
+		const Ref<Texture2D> texture = AssetManager::ReloadAsset<Texture2D>(handle);
 		if (texture == nullptr)
 		{
 			return;
 		}
 
-		// Each animation set that uses the image is read again once, then shared.
-		std::map<std::filesystem::path, Ref<SpriteAnimationSet>> reloadedSets;
+		// A loaded animation set holds the texture it was built with, so each one on this image is read again.
+		for (const auto& entry : AssetManager::GetRegistry().GetAll())
+		{
+			if (entry.second.Type != AssetType::SpriteAnimation)
+			{
+				continue;
+			}
+
+			const Ref<SpriteAnimationSet> set = AssetManager::GetLoadedAsset<SpriteAnimationSet>(entry.first);
+			if (set != nullptr && set->GetTexture() != nullptr && set->GetTexture()->GetHandle() == handle)
+			{
+				AssetManager::ReloadAsset<SpriteAnimationSet>(entry.first);
+			}
+		}
+
 		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
 		{
-			if (scene == nullptr)
+			if (scene == nullptr || before == nullptr || before == texture)
 			{
 				continue;
 			}
@@ -705,44 +732,30 @@ namespace Hydro
 			for (auto entity : sprites)
 			{
 				SpriteRendererComponent& sprite = sprites.get<SpriteRendererComponent>(entity);
-				if (sprite.Texture == nullptr || sprite.Texture == texture || sprite.Texture->GetPath() != texture->GetPath())
+				if (sprite.Texture != handle)
 				{
 					continue;
 				}
 
 				// The same sprite by name: slicing again may have moved it.
-				const int32_t index = texture->FindSprite(sprite.Texture->GetSprite(sprite.SpriteIndex).Name);
+				const int32_t index = texture->FindSprite(before->GetSprite(sprite.SpriteIndex).Name);
 				sprite.SpriteIndex = index >= 0 ? (uint32_t)index : 0;
-				sprite.Texture = texture;
-			}
-
-			auto animators = scene->m_Registry.view<SpriteAnimatorComponent>();
-			for (auto entity : animators)
-			{
-				SpriteAnimatorComponent& animator = animators.get<SpriteAnimatorComponent>(entity);
-				if (animator.Animations == nullptr || animator.Animations->GetPath().empty() ||
-					animator.Animations->GetTexture()->GetPath() != texture->GetPath())
-				{
-					continue;
-				}
-
-				const std::filesystem::path setPath = animator.Animations->GetPath();
-				auto found = reloadedSets.find(setPath);
-				if (found == reloadedSets.end())
-				{
-					found = reloadedSets.emplace(setPath, SpriteAnimationSet::LoadFromFile(setPath, true)).first;
-				}
-				if (found->second != nullptr)
-				{
-					animator.Animations = found->second;
-				}
 			}
 		}
 	}
 
+	// Called after the Animation window saved `path`: the set is read again and every animator on it keeps its
+	// clip when that clip still exists (by name), and starts over otherwise.
 	void EditorLayer::OnAnimationSetSaved(const std::filesystem::path& path)
 	{
-		const Ref<SpriteAnimationSet> set = SpriteAnimationSet::LoadFromFile(path, true);
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		if (static_cast<uint64_t>(handle) == 0)
+		{
+			return;
+		}
+
+		const Ref<SpriteAnimationSet> before = AssetManager::GetLoadedAsset<SpriteAnimationSet>(handle);
+		const Ref<SpriteAnimationSet> set = AssetManager::ReloadAsset<SpriteAnimationSet>(handle);
 		if (set == nullptr)
 		{
 			return;
@@ -759,17 +772,17 @@ namespace Hydro
 			for (auto entity : animators)
 			{
 				SpriteAnimatorComponent& animator = animators.get<SpriteAnimatorComponent>(entity);
-				if (animator.Animations != nullptr && animator.Animations->GetPath() == set->GetPath())
+				if (animator.Animations != handle)
 				{
-					// The clip it plays keeps playing if it still exists (by name); otherwise it starts over.
-					const std::string playing = animator.ClipIndex >= 0 && (uint32_t)animator.ClipIndex < animator.Animations->GetClipCount()
-						? animator.Animations->GetClip((uint32_t)animator.ClipIndex).Name
-						: std::string();
-					animator.Animations = set;
-					animator.ClipIndex = playing.empty() ? -1 : set->FindClip(playing);
-					animator.FrameIndex = 0;
-					animator.FrameTime = 0.0f;
+					continue;
 				}
+
+				const std::string playing = before != nullptr && animator.ClipIndex >= 0 && (uint32_t)animator.ClipIndex < before->GetClipCount()
+					? before->GetClip((uint32_t)animator.ClipIndex).Name
+					: std::string();
+				animator.ClipIndex = playing.empty() ? -1 : set->FindClip(playing);
+				animator.FrameIndex = 0;
+				animator.FrameTime = 0.0f;
 			}
 		}
 	}

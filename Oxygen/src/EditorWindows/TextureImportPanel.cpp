@@ -47,12 +47,13 @@ namespace Hydro
 			return;
 		}
 
+		// Told first, so the texture is reloaded before this window reads it again.
 		const std::filesystem::path path = m_Path;
-		Load(path);
 		if (OnReimported)
 		{
 			OnReimported(path);
 		}
+		Load(path);
 	}
 
 	void TextureImportPanel::OnImguiRender(const std::filesystem::path& imagePath)

@@ -56,6 +56,17 @@ namespace Hydro
 		return texture;
 	}
 
+	Ref<Texture2D> Texture2D::LoadUnshared(const std::filesystem::path& path)
+	{
+		ImportedTexture imported;
+		if (TextureImporter::Import(path, TextureImportConfig{}, imported) == false)
+		{
+			return nullptr;
+		}
+
+		return Create(imported, path);
+	}
+
 	Ref<Texture2D> Texture2D::LoadFromFile(const std::filesystem::path& path, const TextureProperties& properties, ImageFormat format)
 	{
 		std::error_code error;

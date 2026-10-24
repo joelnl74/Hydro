@@ -85,8 +85,8 @@ namespace Hydro
 		// Asset editors. Images open in the Sprite Editor, .hyanim files in the Animation window.
 		void OpenAsset(const std::filesystem::path& path);
 		// An image's .hymeta was saved: sprites (editor and play scene) and the animation sets that
-		// use the image get the re-imported texture, keeping each sprite by name.
-		// TODO(assets): the AssetManager re-imports into the same handle instead.
+		// use the image get the re-imported texture (the AssetManager reloads it into the same handle), keeping
+		// each sprite by name. Called before the window that saved the file reads the image again.
 		void OnTextureReimported(const std::filesystem::path& imagePath);
 		// A .hyanim was saved: animators that play it get the new set.
 		void OnAnimationSetSaved(const std::filesystem::path& path);

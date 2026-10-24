@@ -42,8 +42,7 @@ namespace Hydro
 	//
 	// Images inside the asset folder are loaded and shared by the AssetManager
 	// (AssetManager::GetAsset<Texture2D>(handle)); LoadFromFile asks it for them.
-	// TODO(assets): sprites still hold a Ref<Texture2D> and scenes save the path next to the handle; with
-	// step 3 components hold an AssetHandle and the renderer resolves it with GetLoadedAsset.
+	// Components hold the texture's AssetHandle; the renderer resolves it with GetLoadedAsset.
 	class Texture2D : public Asset
 	{
 	public:
@@ -72,6 +71,10 @@ namespace Hydro
 		// new .hymeta and calling LoadFromFile again re-imports. For such files properties/format are
 		// ignored (the .hymeta decides). A file anywhere else is shared while a texture from it is alive.
 		static Ref<Texture2D> LoadFromFile(const std::filesystem::path& path, const TextureProperties& properties = {}, ImageFormat format = ImageFormat::SRGB);
+		// Loads an image for a short-lived use (the Project window's thumbnails): never shared and never
+		// kept by the AssetManager, so dropping the Ref frees it. The file's .hymeta decides how, as for
+		// LoadFromFile. Returns nullptr (logged) when the file can't be read.
+		static Ref<Texture2D> LoadUnshared(const std::filesystem::path& path);
 		// True for file extensions LoadFromFile can read (GetAssetTypeFromExtension gives Texture2D).
 		static bool IsSupportedFile(const std::filesystem::path& path);
 		// "<image path>.hymeta": where an image's import config is saved.

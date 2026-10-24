@@ -4,6 +4,7 @@
 
 #include "Hydro/Renderer/TextureImporter.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Scene/SpriteAnimation.h"
 
 #include <algorithm>
 #include <iterator>
@@ -426,6 +427,11 @@ namespace Hydro
 				}
 				return Texture2D::Create(imported, absolute);
 			}
+			case AssetType::SpriteAnimation:
+			{
+				// Reads its texture through Texture2D::LoadFromFile, i.e. this manager.
+				return SpriteAnimationSet::LoadUncached(absolute);
+			}
 			default:
 				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",
 					AssetTypeToString(type), absolute.string());
@@ -478,6 +484,17 @@ namespace Hydro
 		{
 			entry.Object->m_Handle = handle;
 		}
+		else
+		{
+			// A file that was fine and is now broken (a save in progress, a bad edit): keep showing the
+			// last good object. The state says Failed until the file is fixed. (Looked up again: loading
+			// may have loaded other assets, such as the texture of an animation set, and moved the table.)
+			auto previous = s_Data->Loaded.find(handle);
+			if (previous != s_Data->Loaded.end())
+			{
+				entry.Object = previous->second.Object;
+			}
+		}
 
 		Ref<Asset> result = entry.Object;
 		s_Data->Loaded[handle] = std::move(entry);
@@ -498,29 +515,6 @@ namespace Hydro
 		}
 
 		return found->second.Object;
-	}
-
-	size_t AssetManager::UnloadUnused()
-	{
-		if (s_Data == nullptr)
-		{
-			return 0;
-		}
-
-		size_t dropped = 0;
-		for (auto it = s_Data->Loaded.begin(); it != s_Data->Loaded.end();)
-		{
-			if (it->second.Object != nullptr && it->second.Object.use_count() == 1)
-			{
-				it = s_Data->Loaded.erase(it);
-				dropped++;
-			}
-			else
-			{
-				++it;
-			}
-		}
-		return dropped;
 	}
 
 	AssetLoadState AssetManager::GetLoadState(AssetHandle handle)

@@ -22,7 +22,7 @@ Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name)
 
 - Public fields with defaults, plus small pure helpers (`TransformComponent::GetTransform()`). No virtual functions, and no update logic.
 - No raw pointers or references to other components or entities. Refer to other entities by `Entity` or `UUID`.
-- A shared engine resource is fine: `SpriteRendererComponent::Texture` is a `Ref<Texture2D>` (copied with the component, so the play copy shares it). It becomes an `AssetHandle` with the asset system ([Architecture](Architecture.md#asset-system)).
+- A shared engine resource is fine: `SpriteRendererComponent::Texture` was a `Ref<Texture2D>` and is now an `AssetHandle` (copied with the component, so the play copy refers to the same asset); the renderer resolves it with `AssetManager::GetLoadedAsset` ([Architecture](Architecture.md#asset-system)).
 - Don't keep a `T&` from `GetComponent<T>()` across a call that adds or removes components. EnTT moves its storage, so the reference can dangle.
 
 ## Systems are functions
@@ -136,7 +136,7 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - **UUIDs.** Loading a scene keeps the saved UUIDs. Instantiating a prefab gives each copy a new UUID, so copies never clash.
 - **Missing fields keep their defaults**, so older files still load after a component gains a field.
 - Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
-- **Sprite textures** are saved as `Texture: <path>`, relative to the project's asset folder when the file is inside it (otherwise absolute, forward slashes), and loaded with `Texture2D::LoadFromFile`, so sprites using one file share one texture. Textures made in code aren't saved. TODO(assets): saved as an `AssetHandle`; the loader will keep reading `Texture:` paths so old scenes still load.
+- **Sprite textures and animation sets** are saved as `TextureHandle: <id>` (plus the sprite's name) and `AnimationsHandle: <id>`, and loaded through `AssetManager::GetAsset`, so sprites using one file share one texture. Scenes saved before handles have `Texture: <path>` / `Animations: <path>`; those are still read (the file is imported to get its handle) and are replaced by the handle keys the next time the scene is saved. A handle the registry doesn't know keeps its value when saved again, so a texture that is missing today can come back.
 
 ## Sprite animation
 

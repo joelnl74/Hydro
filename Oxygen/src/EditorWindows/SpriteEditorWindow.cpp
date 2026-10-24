@@ -177,16 +177,17 @@ namespace Hydro
 			return;
 		}
 
+		// Told first, so the texture is reloaded before this window reads it again.
 		const std::filesystem::path path = m_Path;
 		const int32_t selected = m_Selected;
 		const float zoom = m_Zoom;
-		Load(path);
-		m_Selected = std::min(selected, (int32_t)m_Config.Sprites.size() - 1);
-		m_Zoom = zoom;
 		if (OnReimported)
 		{
 			OnReimported(path);
 		}
+		Load(path);
+		m_Selected = std::min(selected, (int32_t)m_Config.Sprites.size() - 1);
+		m_Zoom = zoom;
 	}
 
 	void SpriteEditorWindow::OnImguiRender()

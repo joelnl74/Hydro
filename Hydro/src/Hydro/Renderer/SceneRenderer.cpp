@@ -4,6 +4,8 @@
 #include "Renderer2D.h"
 #include <glm/ext/matrix_transform.hpp>
 
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Entity.h"
 
@@ -99,14 +101,16 @@ namespace Hydro
 
 	void SceneRenderer::SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite)
 	{
-		// A null texture draws the white texture, i.e. a plain coloured quad.
-		if (sprite.Texture == nullptr)
+		// No texture, or one that isn't loaded, draws the white texture, i.e. a plain coloured quad. This
+		// never loads from disk: whoever assigned the handle loaded the asset (see the component).
+		const Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
+		if (loaded == nullptr)
 		{
 			Renderer2D::DrawQuad(transform, nullptr, sprite.TilingFactor, sprite.Color);
 			return;
 		}
 
-		const Texture2D& texture = *sprite.Texture;
+		const Texture2D& texture = *loaded;
 		TextureRect rect;
 		glm::mat4 quadTransform = transform;
 		if (texture.GetSpriteMode() == SpriteMode::Multiple)
@@ -135,6 +139,6 @@ namespace Hydro
 			std::swap(rect.Min.y, rect.Max.y);
 		}
 
-		Renderer2D::DrawQuad(quadTransform, sprite.Texture, rect, sprite.Color);
+		Renderer2D::DrawQuad(quadTransform, loaded, rect, sprite.Color);
 	}
 }

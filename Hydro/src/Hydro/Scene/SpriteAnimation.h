@@ -71,13 +71,17 @@ namespace Hydro
 		SpriteAnimationSet(const SpriteAnimationSet&) = delete;
 		SpriteAnimationSet& operator=(const SpriteAnimationSet&) = delete;
 
+		// Reads a .hyanim file and its texture, without sharing: every call makes a new set. Returns
+		// nullptr (logged) when either can't be read. The AssetManager's loader calls this.
+		static Ref<SpriteAnimationSet> LoadUncached(const std::filesystem::path& path);
+
 		// Reads a .hyanim file and its texture. Returns nullptr (logged) when either can't be read.
-		// While a set loaded from the same file (same modification time) is alive, that set is
-		// returned instead of loading it again.
+		// A file in the open project's asset folder is an asset: the AssetManager loads it once and
+		// shares it until the project closes (AssetManager::GetAsset<SpriteAnimationSet>(handle)); the
+		// set then knows its handle. A file anywhere else is shared while a set from it (same
+		// modification time) is alive.
 		// `reload` reads the file (and its texture's current import) again even when it is shared,
 		// e.g. after the texture was re-sliced; later loads then share the new set.
-		// Its handle is bound when loaded (AssetManager::BindHandle).
-		// TODO(assets): replaced by AssetManager::GetAsset<SpriteAnimationSet>(handle).
 		static Ref<SpriteAnimationSet> LoadFromFile(const std::filesystem::path& path, bool reload = false);
 
 		static AssetType GetStaticType() { return AssetType::SpriteAnimation; }

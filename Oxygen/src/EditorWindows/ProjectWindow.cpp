@@ -174,9 +174,6 @@ namespace Hydro
 				it = m_TextureThumbnails.erase(it);
 			}
 		}
-
-		// The asset manager keeps loaded textures until told otherwise: let go of the ones only shown here.
-		AssetManager::UnloadUnused();
 	}
 
 	void ProjectWindow::DrawToolbar()
@@ -933,7 +930,7 @@ namespace Hydro
 
 			if (thumbnail.Loaded == false || importTime != thumbnail.ImportTime)
 			{
-				thumbnail.Texture = Texture2D::LoadFromFile(path);
+				thumbnail.Texture = Texture2D::LoadUnshared(path);
 				thumbnail.ImportTime = importTime;
 				thumbnail.Loaded = true;
 			}

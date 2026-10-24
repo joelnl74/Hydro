@@ -10,7 +10,7 @@ namespace Hydro
 {
 	// Sets loaded from files that are still alive, so animators using one file share one set.
 	// Weak: the cache never keeps a set alive by itself.
-	// TODO(assets): replaced by the AssetManager's handle -> asset table.
+	// Sets loaded from files outside the asset folder (project files are shared by the AssetManager).
 	static std::unordered_map<std::string, std::weak_ptr<SpriteAnimationSet>> s_LoadedAnimationSets;
 
 	float SpriteAnimationClip::GetLength() const
@@ -51,6 +51,19 @@ namespace Hydro
 		return found == m_ClipIndices.end() ? -1 : (int32_t)found->second;
 	}
 
+	Ref<SpriteAnimationSet> SpriteAnimationSet::LoadUncached(const std::filesystem::path& path)
+	{
+		SpriteAnimationSetSpecification specification;
+		if (SpriteAnimationSerializer::Deserialize(path, specification) == false)
+		{
+			return nullptr;
+		}
+
+		Ref<SpriteAnimationSet> set = CreateRef<SpriteAnimationSet>(specification);
+		set->m_Path = path;
+		return set;
+	}
+
 	Ref<SpriteAnimationSet> SpriteAnimationSet::LoadFromFile(const std::filesystem::path& path, bool reload)
 	{
 		std::error_code error;
@@ -58,6 +71,12 @@ namespace Hydro
 		if (error)
 		{
 			absolutePath = path;
+		}
+
+		const AssetHandle handle = AssetManager::ImportAsset(absolutePath);
+		if ((uint64_t)handle != 0)
+		{
+			return reload ? AssetManager::ReloadAsset<SpriteAnimationSet>(handle) : AssetManager::GetAsset<SpriteAnimationSet>(handle);
 		}
 
 		// The modification time is part of the key, so a re-saved file loads again.
@@ -72,15 +91,11 @@ namespace Hydro
 			}
 		}
 
-		SpriteAnimationSetSpecification specification;
-		if (SpriteAnimationSerializer::Deserialize(absolutePath, specification) == false)
+		Ref<SpriteAnimationSet> set = LoadUncached(absolutePath);
+		if (set == nullptr)
 		{
 			return nullptr;
 		}
-
-		Ref<SpriteAnimationSet> set = CreateRef<SpriteAnimationSet>(specification);
-		set->m_Path = absolutePath;
-		AssetManager::BindHandle(*set, absolutePath);
 
 		for (auto it = s_LoadedAnimationSets.begin(); it != s_LoadedAnimationSets.end();)
 		{
