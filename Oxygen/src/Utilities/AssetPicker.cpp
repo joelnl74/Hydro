@@ -1,5 +1,6 @@
 #include "AssetPicker.h"
 #include "AssetDragDrop.h"
+#include "ThumbnailManager.h"
 #include "../EditorWindows/PropertyUI.h"
 
 #include <Hydro/Asset/AssetManager.h>
@@ -10,7 +11,6 @@
 #include <algorithm>
 #include <cctype>
 #include <cfloat>
-#include <unordered_map>
 #include <vector>
 
 namespace Hydro
@@ -30,8 +30,6 @@ namespace Hydro
 		std::vector<PickerRow> Rows;
 		std::vector<int> Visible;
 		char Search[128] = {};
-		// Images drawn on the rows: loaded when a row is first drawn, let go when the list closes.
-		std::unordered_map<uint64_t, Ref<Texture2D>> Thumbnails;
 	};
 
 	static PickerState s_State;
@@ -79,15 +77,18 @@ namespace Hydro
 		}
 	}
 
-	static const Ref<Texture2D>& GetThumbnail(AssetHandle handle)
+	// The row's small image; an empty square while it is still being made.
+	static void DrawRowThumbnail(AssetHandle handle, float size)
 	{
-		auto found = s_State.Thumbnails.find(static_cast<uint64_t>(handle));
-		if (found == s_State.Thumbnails.end())
+		const Thumbnail& thumbnail = ThumbnailManager::Get(handle);
+		if (thumbnail.Texture != nullptr)
 		{
-			// Not through the manager's cache: browsing a big project must not load every image for good.
-			found = s_State.Thumbnails.emplace(static_cast<uint64_t>(handle), Texture2D::LoadUnshared(AssetManager::GetAbsolutePath(handle))).first;
+			PropertyUI::SpriteImage(thumbnail.Texture, 0, size);
 		}
-		return found->second;
+		else
+		{
+			ImGui::Dummy({ size, size });
+		}
 	}
 
 	// The list popup of one field. Returns true when a row was chosen (`picked`).
@@ -101,7 +102,6 @@ namespace Hydro
 				s_State.Owner = 0;
 				s_State.Rows.clear();
 				s_State.Visible.clear();
-				s_State.Thumbnails.clear();
 			}
 			return false;
 		}
@@ -110,7 +110,6 @@ namespace Hydro
 		{
 			s_State.Owner = owner;
 			s_State.Search[0] = '\0';
-			s_State.Thumbnails.clear();
 			BuildRows(type);
 			ImGui::SetKeyboardFocusHere();
 		}
@@ -152,7 +151,7 @@ namespace Hydro
 					ImGui::SetCursorPos(start);
 					if (showThumbnails)
 					{
-						PropertyUI::SpriteImage(GetThumbnail(row.Handle), 0, rowHeight - 4.0f);
+						DrawRowThumbnail(row.Handle, rowHeight - 4.0f);
 						ImGui::SameLine();
 						ImGui::BeginGroup();
 						ImGui::TextUnformatted(row.Name.c_str());

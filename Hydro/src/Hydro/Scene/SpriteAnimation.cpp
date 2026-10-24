@@ -45,6 +45,25 @@ namespace Hydro
 		m_DefaultClip = m_Clips.empty() ? 0 : std::min(specification.DefaultClip, (uint32_t)m_Clips.size() - 1);
 	}
 
+	int32_t SpriteAnimationSet::FindStartClip(std::string_view startClip) const
+	{
+		if (m_Clips.empty())
+		{
+			return -1;
+		}
+
+		if (startClip.empty() == false)
+		{
+			const int32_t index = FindClip(startClip);
+			if (index >= 0)
+			{
+				return index;
+			}
+		}
+
+		return m_DefaultClip < m_Clips.size() ? (int32_t)m_DefaultClip : 0;
+	}
+
 	int32_t SpriteAnimationSet::FindClip(std::string_view name) const
 	{
 		const auto found = m_ClipIndices.find(std::string(name));

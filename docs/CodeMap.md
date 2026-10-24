@@ -80,13 +80,15 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `EditorWindows/SpriteAnimationWindow.*` | **Animation**: edit a `.hyanim` (sheet, clips, frames, durations, loop, flip, events, default clip), live preview, sprite picker; `MakeClipsFromSpriteNames` |
 | `EditorWindows/PropertyUI.h` | Shared label/value rows, number fields and `SpriteImage` for the asset editors |
 | `EditorWindows/HierachyWindow.*` | Entity list, create/delete, prefab drops |
-| `EditorWindows/ProjectWindow.*` | Asset browser, drag sources (prefabs, scenes, images, `.hyanim`), prefab previews, image thumbnails; selects / opens assets; **Create Sprite Animation** from a sheet; hides `.hymeta`; calls `AssetManager::Rescan` when the folder changes, handle in tooltips |
+| `EditorWindows/ProjectWindow.*` | Asset browser listing the registry (plus folders), drag sources (prefabs, scenes, images, `.hyanim`), prefab previews (first animation frame or sprite image), `.hyanim` first frames, image thumbnails; selects / opens assets; **Create Sprite Animation** from a sheet; hides `.hymeta`; calls `AssetManager::Rescan` when the folder changes, handle in tooltips |
 | `EditorWindows/ConsoleWindow.*` | Log view |
 | `EditorWindows/StatsWindow.*`, `RendererStatsWindow.*`, `StatsUI.h` | Frame timings; `Renderer2D` stats; shared table helpers |
 | `EditorWindows/RenderSettingsWindow.*`, `ProjectSettingsWindow.*`, `EditorSettingsWindow.*` | Live `RendererSettings`; project name/start scene; editor preferences pages |
 | `EditorWindows/EditorStyle.*`, `Utilities/EditorChrome.*` | Themes from one accent colour; droplet, waterline, icon buttons, play tint |
 | `Utilities/AssetDragDrop.h` | Drag & drop payload (the asset's handle; `AcceptHandle` by type, `AcceptPayload` as a path) |
 | `Utilities/AssetPicker.*` | The asset reference field: file name, searchable popup of one asset type with thumbnails, drop target, clear |
+| `Utilities/ThumbnailManager.*` | Small image thumbnails by handle for the Project window and picker; a few per frame, cached on disk in `<project>/.hydro/thumbnails` |
+| `Utilities/ThumbnailBaker.*` | Averages pixels down to a thumbnail and reads/writes the `.thumb` file; no GPU, no engine types |
 | `Utilities/PathFollower.h` | Keeps a remembered path valid after a rename or move |
 | `Scripts/ExampleScripts.h` | `SpinScript`, `BobScript`, `VillagerWalkScript` (WASD + `SpriteAnimator::Play`) |
 | `assets/shaders/vertex.vert`, `fragment.frag` | The quad shader (`inTextures[32]` must match `Renderer2D`) |

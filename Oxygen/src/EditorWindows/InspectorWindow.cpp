@@ -254,11 +254,7 @@ namespace Hydro
 		}
 
 		const SpriteAnimationSet& set = *setRef;
-		int32_t clipIndex = animator.StartClip.empty() ? -1 : set.FindClip(animator.StartClip);
-		if (clipIndex < 0)
-		{
-			clipIndex = (int32_t)set.GetDefaultClip();
-		}
+		const int32_t clipIndex = set.FindStartClip(animator.StartClip);
 
 		const SpriteAnimationClip& clip = set.GetClip((uint32_t)clipIndex);
 		if (clip.Frames.empty())

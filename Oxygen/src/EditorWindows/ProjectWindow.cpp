@@ -1,5 +1,6 @@
 #include "ProjectWindow.h"
 #include "Utilities/AssetDragDrop.h"
+#include "Utilities/ThumbnailManager.h"
 #include "../EditorPaths.h"
 
 #include <imgui/imgui.h>
@@ -9,6 +10,7 @@
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SceneSerializer.h>
+#include <Hydro/Scene/SpriteAnimation.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Renderer/TextureImportSerializer.h>
@@ -61,9 +63,109 @@ namespace Hydro
 		drawList->PopClipRect();
 	}
 
+
+	// The loaded asset for a tile. A full image is only loaded while `loadsLeft` allows it (one is used per
+	// load), so a folder of many prefabs fills in over a few frames. Never retries an asset that failed.
+	template<typename T>
+	static Ref<T> FindAsset(AssetHandle handle, int& loadsLeft)
+	{
+		if (static_cast<uint64_t>(handle) == 0)
+		{
+			return nullptr;
+		}
+
+		Ref<T> loaded = AssetManager::GetLoadedAsset<T>(handle);
+		if (loaded != nullptr)
+		{
+			return loaded;
+		}
+
+		if (loadsLeft > 0 && AssetManager::GetLoadState(handle) == AssetLoadState::NotLoaded)
+		{
+			loadsLeft--;
+			return AssetManager::GetAsset<T>(handle);
+		}
+		return nullptr;
+	}
+
+	// The first frame of the clip an animator starts with.
+	static bool GetStartFrame(const SpriteAnimationSet& set, const std::string& startClip, Ref<Texture2D>& texture, uint32_t& spriteIndex, bool& flipX)
+	{
+		const int32_t clipIndex = set.FindStartClip(startClip);
+		if (clipIndex < 0 || set.GetTexture() == nullptr)
+		{
+			return false;
+		}
+
+		const SpriteAnimationClip& clip = set.GetClip((uint32_t)clipIndex);
+		if (clip.Frames.empty())
+		{
+			return false;
+		}
+
+		texture = set.GetTexture();
+		spriteIndex = clip.Frames[0].Sprite;
+		flipX = clip.FlipX;
+		return true;
+	}
+
+	// What a sprite entity looks like at the start: its animation's first frame (the inspector shows the
+	// same one), else its own sprite. False when there is nothing to draw yet (no image, or not loaded).
+	static bool ResolveSprite(AssetHandle textureHandle, uint32_t spriteIndex, bool flipX, AssetHandle animations, const std::string& startClip,
+		int& loadsLeft, Ref<Texture2D>& texture, uint32_t& outIndex, bool& outFlipX)
+	{
+		if (static_cast<uint64_t>(animations) != 0)
+		{
+			const Ref<SpriteAnimationSet> set = FindAsset<SpriteAnimationSet>(animations, loadsLeft);
+			if (set != nullptr && GetStartFrame(*set, startClip, texture, outIndex, outFlipX))
+			{
+				return true;
+			}
+		}
+
+		texture = FindAsset<Texture2D>(textureHandle, loadsLeft);
+		outIndex = spriteIndex;
+		outFlipX = flipX;
+		return texture != nullptr;
+	}
+
+	// Sprite `spriteIndex` of `texture` fitted into the box, keeping its aspect ratio, tinted.
+	static void DrawTileSprite(ImDrawList* drawList, const Ref<Texture2D>& texture, uint32_t spriteIndex, bool flipX, ImU32 tint, const ImVec2& boxMin, const ImVec2& boxMax)
+	{
+		const SpriteRegion& sprite = texture->GetSprite(spriteIndex);
+		const float width = (float)std::max(sprite.Size.x, 1u);
+		const float height = (float)std::max(sprite.Size.y, 1u);
+		const float boxWidth = boxMax.x - boxMin.x;
+		const float boxHeight = boxMax.y - boxMin.y;
+		const float scale = std::min(boxWidth / width, boxHeight / height);
+		const ImVec2 imageMin = { boxMin.x + (boxWidth - width * scale) * 0.5f, boxMin.y + (boxHeight - height * scale) * 0.5f };
+		const ImVec2 imageMax = { imageMin.x + width * scale, imageMin.y + height * scale };
+
+		TextureRect rect = texture->GetSpriteUVRect(spriteIndex);
+		if (flipX)
+		{
+			std::swap(rect.Min.x, rect.Max.x);
+		}
+		drawList->AddImage((ImTextureID)Renderer2D::GetImGuiTexture(texture), imageMin, imageMax, { rect.Min.x, rect.Min.y }, { rect.Max.x, rect.Max.y }, tint);
+	}
+
+	// A sheet of paper: for files whose picture isn't ready or can't be made.
+	static void DrawPageIcon(ImDrawList* drawList, const glm::vec2& min, float size)
+	{
+		const ImU32 page = ToColor(0.62f, 0.64f, 0.68f);
+		drawList->AddRectFilled(TilePoint(min, size, 0.28f, 0.18f), TilePoint(min, size, 0.72f, 0.82f), page, 2.0f);
+		drawList->AddTriangleFilled(TilePoint(min, size, 0.58f, 0.18f), TilePoint(min, size, 0.72f, 0.18f), TilePoint(min, size, 0.72f, 0.32f), ToColor(0.17f, 0.17f, 0.19f));
+		for (int line = 0; line < 3; line++)
+		{
+			const float v = 0.42f + 0.12f * line;
+			drawList->AddLine(TilePoint(min, size, 0.36f, v), TilePoint(min, size, 0.64f, v), ToColor(0.40f, 0.42f, 0.46f), 2.0f);
+		}
+	}
+
 	void ProjectWindow::OnImguiRender(const Ref<Scene>& scene)
 	{
 		EnsureRoot();
+		m_PreviewLoadsLeft = 2;
 
 		if (m_NeedsRescan || ImGui::GetTime() - m_LastScanTime > RescanInterval)
 			Rescan();
@@ -95,6 +197,9 @@ namespace Hydro
 			m_RootDirectory = root;
 			m_CurrentDirectory = root;
 			m_SelectedPath.clear();
+			// Thumbnails and previews belong to the project that was open.
+			ThumbnailManager::Clear();
+			m_PrefabPreviews.clear();
 
 			std::error_code ec;
 			std::filesystem::create_directories(EditorPaths::GetScenesDirectory(), ec);
@@ -116,6 +221,10 @@ namespace Hydro
 		m_LastScanTime = ImGui::GetTime();
 		m_Items.clear();
 
+		// The folder on disk: its sub-folders are items (folders aren't assets), and its asset files tell
+		// whether anything was added, removed or renamed since the last look.
+		std::vector<std::filesystem::path> folders;
+		std::vector<std::filesystem::path> listed;
 		std::error_code ec;
 		for (std::filesystem::directory_iterator it(m_CurrentDirectory, ec), end; ec.value() == 0 && it != end; it.increment(ec))
 		{
@@ -126,10 +235,59 @@ namespace Hydro
 				continue;
 			}
 
+			std::error_code typeError;
+			if (std::filesystem::is_directory(path, typeError))
+			{
+				folders.push_back(path);
+			}
+			else if (GetAssetTypeFromExtension(path) != AssetType::None)
+			{
+				listed.push_back(path);
+			}
+		}
+		std::sort(listed.begin(), listed.end());
+
+		// Files added, removed or renamed in this folder (by this window or outside the editor): rescan the
+		// assets so they keep or get their handles. Not when only the folder changed.
+		const bool sameFolder = m_ListedDirectory == m_CurrentDirectory;
+		if (sameFolder && listed != m_ListedPaths)
+		{
+			AssetManager::Rescan();
+		}
+		m_ListedDirectory = m_CurrentDirectory;
+		m_ListedPaths = std::move(listed);
+
+		for (const std::filesystem::path& folder : folders)
+		{
 			AssetItem item;
-			item.Path = path;
-			item.Type = GetItemType(path);
-			item.DisplayName = (item.Type == ItemType::Folder || item.Type == ItemType::Other) ? fileName : path.stem().u8string();
+			item.Path = folder;
+			item.Type = ItemType::Folder;
+			item.DisplayName = folder.filename().u8string();
+			m_Items.push_back(std::move(item));
+		}
+
+		// The files are the registry's assets that live in this folder (the registry keeps paths relative to the
+		// asset folder, with forward slashes). Files that are gone but still registered are left out.
+		std::string folderKey = m_CurrentDirectory.lexically_relative(m_RootDirectory).generic_u8string();
+		if (folderKey == ".")
+		{
+			folderKey.clear();
+		}
+
+		for (const auto& entry : AssetManager::GetRegistry().GetAll())
+		{
+			const AssetMetadata& metadata = entry.second;
+			ItemType type = ItemType::Folder;
+			if (metadata.IsMissing || ToItemType(metadata.Type, type) == false || metadata.Path.parent_path().generic_u8string() != folderKey)
+			{
+				continue;
+			}
+
+			AssetItem item;
+			item.Path = m_CurrentDirectory / metadata.Path.filename();
+			item.Type = type;
+			item.Handle = metadata.Handle;
+			item.DisplayName = (type == ItemType::Scene || type == ItemType::Prefab) ? item.Path.stem().u8string() : item.Path.filename().u8string();
 			m_Items.push_back(std::move(item));
 		}
 
@@ -143,37 +301,6 @@ namespace Hydro
 
 			return ToLower(a.DisplayName) < ToLower(b.DisplayName);
 		});
-
-		// Files added, removed or renamed in this folder since the last look (by this window or outside
-		// the editor): rescan the assets so they keep or get their handles. Not when only the folder changed.
-		std::vector<std::filesystem::path> listed;
-		listed.reserve(m_Items.size());
-		for (const AssetItem& item : m_Items)
-		{
-			listed.push_back(item.Path);
-		}
-
-		const bool sameFolder = m_ListedDirectory == m_CurrentDirectory;
-		if (sameFolder && listed != m_ListedPaths)
-		{
-			AssetManager::Rescan();
-		}
-		m_ListedDirectory = m_CurrentDirectory;
-		m_ListedPaths = std::move(listed);
-
-		// Only the shown folder's images keep a thumbnail texture (GPU memory).
-		for (auto it = m_TextureThumbnails.begin(); it != m_TextureThumbnails.end();)
-		{
-			const bool shown = std::any_of(m_Items.begin(), m_Items.end(), [&](const AssetItem& item) { return item.Path.u8string() == it->first; });
-			if (shown)
-			{
-				++it;
-			}
-			else
-			{
-				it = m_TextureThumbnails.erase(it);
-			}
-		}
 	}
 
 	void ProjectWindow::DrawToolbar()
@@ -260,7 +387,7 @@ namespace Hydro
 		}
 
 		if (visibleCount == 0)
-			ImGui::TextDisabled("%s", search.empty() ? "This folder is empty. Save a prefab from the hierarchy or inspector." : "No assets match the search.");
+			ImGui::TextDisabled("%s", search.empty() ? (AssetManager::IsProjectOpen() ? "This folder is empty. Save a prefab from the hierarchy or inspector." : "No project is open.") : "No assets match the search.");
 
 		// Click on empty space clears the selection; right-click opens the folder menu.
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsAnyItemHovered() == false)
@@ -301,7 +428,7 @@ namespace Hydro
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 		{
 			m_SelectedPath = item.Path;
-			if (item.Type == ItemType::Other && OnAssetSelected)
+			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation) && OnAssetSelected)
 			{
 				OnAssetSelected(item.Path);
 			}
@@ -317,8 +444,8 @@ namespace Hydro
 		// Prefabs and scenes can be dragged onto the viewport / hierarchy, images onto a sprite's
 		// Texture field in the inspector, sprite animations onto a Sprite Animator's Animations field.
 		// What is dragged is the asset's handle (AssetDragDrop).
-		const bool isTexture = item.Type == ItemType::Other && Texture2D::IsSupportedFile(item.Path);
-		const bool isAnimationSet = item.Type == ItemType::Other && item.Path.extension() == SpriteAnimationSerializer::FileExtension;
+		const bool isTexture = item.Type == ItemType::Texture;
+		const bool isAnimationSet = item.Type == ItemType::Animation;
 		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
@@ -359,8 +486,7 @@ namespace Hydro
 				{
 					OnOpenAsset(item.Path);
 				}
-				const Ref<Texture2D>& texture = GetTextureThumbnail(item.Path);
-				const bool isSheet = texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple;
+				const bool isSheet = ThumbnailManager::Get(item.Handle).IsSheet;
 				if (ImGui::MenuItem("Create Sprite Animation", nullptr, false, isSheet))
 				{
 					m_DeferredActions.push_back([this, copy]() { CreateSpriteAnimation(copy.Path); });
@@ -442,6 +568,13 @@ namespace Hydro
 			{
 				const PrefabPreview& preview = GetPrefabPreview(item.Path);
 
+				// The first frame of its animation, or its sprite's image; none when it has no image.
+				Ref<Texture2D> spriteTexture;
+				uint32_t spriteIndex = 0;
+				bool spriteFlipX = false;
+				const bool hasImage = preview.Valid && preview.HasSprite &&
+					ResolveSprite(preview.TextureHandle, preview.SpriteIndex, preview.FlipX, preview.AnimationsHandle, preview.StartClip, m_PreviewLoadsLeft, spriteTexture, spriteIndex, spriteFlipX);
+
 				const ImVec2 innerMin = TilePoint(min, size, 0.10f, 0.10f);
 				const ImVec2 innerMax = TilePoint(min, size, 0.90f, 0.88f);
 				DrawCheckerboard(drawList, innerMin, innerMax, std::max(4.0f, size / 11.0f));
@@ -455,9 +588,14 @@ namespace Hydro
 					drawList->AddLine({ center.x - extent, center.y - extent }, { center.x + extent, center.y + extent }, ToColor(0.90f, 0.30f, 0.30f), 3.0f);
 					drawList->AddLine({ center.x - extent, center.y + extent }, { center.x + extent, center.y - extent }, ToColor(0.90f, 0.30f, 0.30f), 3.0f);
 				}
+				else if (hasImage)
+				{
+					DrawTileSprite(drawList, spriteTexture, spriteIndex, spriteFlipX,
+						ImGui::ColorConvertFloat4ToU32({ preview.Color.r, preview.Color.g, preview.Color.b, preview.Color.a }), innerMin, innerMax);
+				}
 				else if (preview.HasSprite)
 				{
-					// The sprite as it will look: colour, aspect ratio from scale, Z rotation.
+					// No image (none set, or not loaded yet): the sprite as a coloured quad: colour, aspect ratio from scale, Z rotation.
 					const float sx = std::max(std::abs(preview.Scale.x), 0.0001f);
 					const float sy = std::max(std::abs(preview.Scale.y), 0.0001f);
 					const float largest = std::max(sx, sy);
@@ -489,43 +627,48 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.26f, 0.59f, 0.98f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
-			case ItemType::Other:
-			default:
+			case ItemType::Texture:
 			{
-				if (Texture2D::IsSupportedFile(item.Path))
+				const Thumbnail& thumbnail = ThumbnailManager::Get(item.Handle);
+				if (thumbnail.Texture != nullptr)
 				{
-					const Ref<Texture2D>& texture = GetTextureThumbnail(item.Path);
-					if (texture != nullptr)
+					const ImVec2 innerMin = TilePoint(min, size, 0.10f, 0.10f);
+					const ImVec2 innerMax = TilePoint(min, size, 0.90f, 0.90f);
+					DrawCheckerboard(drawList, innerMin, innerMax, std::max(4.0f, size / 11.0f));
+					DrawTileSprite(drawList, thumbnail.Texture, 0, false, ToColor(1.0f, 1.0f, 1.0f), innerMin, innerMax);
+
+					// Sprite sheets get a strip, like scenes and prefabs.
+					if (thumbnail.IsSheet)
 					{
-						const ImVec2 innerMin = TilePoint(min, size, 0.10f, 0.10f);
-						const ImVec2 innerMax = TilePoint(min, size, 0.90f, 0.90f);
-						DrawCheckerboard(drawList, innerMin, innerMax, std::max(4.0f, size / 11.0f));
-
-						// The image fitted into the tile, keeping its aspect ratio.
-						const float box = innerMax.x - innerMin.x;
-						const float width = (float)std::max(texture->GetWidth(), 1u);
-						const float height = (float)std::max(texture->GetHeight(), 1u);
-						const float scale = box / std::max(width, height);
-						const ImVec2 imageMin = { innerMin.x + (box - width * scale) * 0.5f, innerMin.y + (box - height * scale) * 0.5f };
-						drawList->AddImage((ImTextureID)Renderer2D::GetImGuiTexture(texture), imageMin, { imageMin.x + width * scale, imageMin.y + height * scale });
-
-						// Sprite sheets get a strip, like scenes and prefabs.
-						if (texture->GetSpriteMode() == SpriteMode::Multiple)
-						{
-							drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ImGui::GetColorU32(ImGuiCol_CheckMark), rounding, ImDrawFlags_RoundCornersBottom);
-						}
-						break;
+						drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ImGui::GetColorU32(ImGuiCol_CheckMark), rounding, ImDrawFlags_RoundCornersBottom);
 					}
 				}
-
-				const ImU32 page = ToColor(0.62f, 0.64f, 0.68f);
-				drawList->AddRectFilled(TilePoint(min, size, 0.28f, 0.18f), TilePoint(min, size, 0.72f, 0.82f), page, 2.0f);
-				drawList->AddTriangleFilled(TilePoint(min, size, 0.58f, 0.18f), TilePoint(min, size, 0.72f, 0.18f), TilePoint(min, size, 0.72f, 0.32f), ToColor(0.17f, 0.17f, 0.19f));
-				for (int line = 0; line < 3; line++)
+				else
 				{
-					const float v = 0.42f + 0.12f * line;
-					drawList->AddLine(TilePoint(min, size, 0.36f, v), TilePoint(min, size, 0.64f, v), ToColor(0.40f, 0.42f, 0.46f), 2.0f);
+					DrawPageIcon(drawList, min, size);
 				}
+				break;
+			}
+			case ItemType::Animation:
+			{
+				Ref<Texture2D> frameTexture;
+				uint32_t frameSprite = 0;
+				bool frameFlipX = false;
+				const Ref<SpriteAnimationSet> set = FindAsset<SpriteAnimationSet>(item.Handle, m_PreviewLoadsLeft);
+				if (set != nullptr && GetStartFrame(*set, std::string(), frameTexture, frameSprite, frameFlipX))
+				{
+					const ImVec2 innerMin = TilePoint(min, size, 0.10f, 0.10f);
+					const ImVec2 innerMax = TilePoint(min, size, 0.90f, 0.88f);
+					DrawCheckerboard(drawList, innerMin, innerMax, std::max(4.0f, size / 11.0f));
+					DrawTileSprite(drawList, frameTexture, frameSprite, frameFlipX, ToColor(1.0f, 1.0f, 1.0f), innerMin, innerMax);
+				}
+				else
+				{
+					DrawPageIcon(drawList, min, size);
+				}
+
+				// Purple strip = animation set.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.62f, 0.40f, 0.90f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 		}
@@ -568,21 +711,17 @@ namespace Hydro
 			case ItemType::Folder:
 				ImGui::TextDisabled("Folder");
 				break;
-			default:
+			case ItemType::Texture:
+				ImGui::TextDisabled(ThumbnailManager::Get(item.Handle).IsSheet ? "Image - sprite sheet" : "Image");
+				break;
+			case ItemType::Animation:
+				ImGui::TextDisabled("Sprite animation");
 				break;
 		}
 
-		if (item.Type != ItemType::Folder && GetAssetTypeFromExtension(item.Path) != AssetType::None)
+		if (item.Type != ItemType::Folder)
 		{
-			const AssetHandle handle = AssetManager::FindHandle(item.Path);
-			if ((uint64_t)handle != 0)
-			{
-				ImGui::TextDisabled("Asset handle %llu", (unsigned long long)(uint64_t)handle);
-			}
-			else
-			{
-				ImGui::TextDisabled("No asset handle yet");
-			}
+			ImGui::TextDisabled("Asset handle %llu", (unsigned long long)(uint64_t)item.Handle);
 		}
 
 		ImGui::EndTooltip();
@@ -660,15 +799,13 @@ namespace Hydro
 				if (OnOpenScene)
 					OnOpenScene(item.Path);
 				break;
-			default:
-			{
-				const bool editable = Texture2D::IsSupportedFile(item.Path) || item.Path.extension() == SpriteAnimationSerializer::FileExtension;
-				if (editable && OnOpenAsset)
+			case ItemType::Texture:
+			case ItemType::Animation:
+				if (OnOpenAsset)
 				{
 					OnOpenAsset(item.Path);
 				}
 				break;
-			}
 		}
 	}
 
@@ -700,7 +837,8 @@ namespace Hydro
 
 	bool ProjectWindow::CanRename(const std::filesystem::path& path)
 	{
-		return GetItemType(path) == ItemType::Folder || static_cast<uint64_t>(AssetManager::FindHandle(path)) != 0;
+		std::error_code ec;
+		return std::filesystem::is_directory(path, ec) || static_cast<uint64_t>(AssetManager::FindHandle(path)) != 0;
 	}
 
 	void ProjectWindow::BeginRename(const std::filesystem::path& path)
@@ -885,54 +1023,44 @@ namespace Hydro
 
 			if (entity.HasComponent<SpriteRendererComponent>())
 			{
+				const SpriteRendererComponent& sprite = entity.GetComponent<SpriteRendererComponent>();
 				preview.HasSprite = true;
-				preview.Color = entity.GetComponent<SpriteRendererComponent>().Color;
+				preview.Color = sprite.Color;
+				preview.TextureHandle = sprite.Texture;
+				preview.SpriteIndex = sprite.SpriteIndex;
+				preview.FlipX = sprite.FlipX;
+			}
+
+			if (entity.HasComponent<SpriteAnimatorComponent>())
+			{
+				const SpriteAnimatorComponent& animator = entity.GetComponent<SpriteAnimatorComponent>();
+				preview.AnimationsHandle = animator.Animations;
+				preview.StartClip = animator.StartClip;
 			}
 		}
 
 		return m_PrefabPreviews[key] = preview;
 	}
 
-	ProjectWindow::ItemType ProjectWindow::GetItemType(const std::filesystem::path& path)
+	bool ProjectWindow::ToItemType(AssetType type, ItemType& itemType)
 	{
-		std::error_code ec;
-		if (std::filesystem::is_directory(path, ec))
-			return ItemType::Folder;
-
-		const std::string extension = ToLower(path.extension().u8string());
-		if (extension == PrefabSerializer::FileExtension)
-			return ItemType::Prefab;
-		if (extension == SceneSerializer::FileExtension)
-			return ItemType::Scene;
-
-		return ItemType::Other;
-	}
-
-	const Ref<Texture2D>& ProjectWindow::GetTextureThumbnail(const std::filesystem::path& path)
-	{
-		TextureThumbnail& thumbnail = m_TextureThumbnails[path.u8string()];
-
-		// The .hymeta is checked once a second, like the folder; a re-import loads the image again.
-		// A file that can't be loaded isn't tried again until its import changes (no log every frame).
-		const double now = ImGui::GetTime();
-		if (thumbnail.Loaded == false || now - thumbnail.LastCheckTime >= RescanInterval)
+		switch (type)
 		{
-			thumbnail.LastCheckTime = now;
-			std::error_code error;
-			std::filesystem::file_time_type importTime = std::filesystem::last_write_time(Texture2D::GetImportFilePath(path), error);
-			if (error)
-			{
-				importTime = {};
-			}
-
-			if (thumbnail.Loaded == false || importTime != thumbnail.ImportTime)
-			{
-				thumbnail.Texture = Texture2D::LoadUnshared(path);
-				thumbnail.ImportTime = importTime;
-				thumbnail.Loaded = true;
-			}
+			case AssetType::Texture2D:
+				itemType = ItemType::Texture;
+				return true;
+			case AssetType::Scene:
+				itemType = ItemType::Scene;
+				return true;
+			case AssetType::Prefab:
+				itemType = ItemType::Prefab;
+				return true;
+			case AssetType::SpriteAnimation:
+				itemType = ItemType::Animation;
+				return true;
+			default:
+				return false;
 		}
-		return thumbnail.Texture;
 	}
 
 	void ProjectWindow::CreateSpriteAnimation(const std::filesystem::path& imagePath)

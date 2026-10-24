@@ -94,6 +94,9 @@ namespace Hydro
 		int32_t FindClip(std::string_view name) const;
 		// Index of the clip played when an animator names none; only valid when GetClipCount() > 0.
 		uint32_t GetDefaultClip() const { return m_DefaultClip; }
+		// The clip an animator starts with: `startClip` by name, else the default clip. -1 when the set has
+		// no clips. Quiet: editors use it to show the start frame.
+		int32_t FindStartClip(std::string_view startClip) const;
 		// The .hyanim file it was loaded from (absolute), or empty for sets made in code.
 		const std::filesystem::path& GetPath() const { return m_Path; }
 
