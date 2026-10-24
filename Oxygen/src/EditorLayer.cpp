@@ -642,15 +642,29 @@ namespace Hydro
 		// Gives every asset file without a handle one (written into the file or a .hymeta next to it).
 		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 
-		const std::filesystem::path startScene = project->GetStartScenePath();
-		if (startScene.empty())
+		// A project file from before handles names its start scene by path: turn that into a handle now.
+		ProjectConfig& config = project->GetConfig();
+		if ((uint64_t)config.StartScene == 0 && config.LegacyStartScene.empty() == false)
+		{
+			const AssetHandle handle = AssetManager::ImportAsset(config.LegacyStartScene);
+			if ((uint64_t)handle != 0)
+			{
+				config.StartScene = handle;
+				config.LegacyStartScene.clear();
+				SaveProject();
+				HY_INFO("Start scene {} is now stored by asset handle", AssetManager::GetMetadata(handle)->Path.generic_u8string());
+			}
+		}
+
+		if ((uint64_t)config.StartScene == 0)
 			return;
 
+		const std::filesystem::path startScene = AssetManager::GetAbsolutePath(config.StartScene);
 		std::error_code ec;
-		if (std::filesystem::exists(startScene, ec))
+		if (AssetManager::IsAssetHandleValid(config.StartScene) && std::filesystem::exists(startScene, ec))
 			OpenScene(startScene);
 		else
-			HY_WARN("Project start scene {} does not exist", startScene.string());
+			HY_WARN("Project start scene (asset handle {}) is missing", (uint64_t)config.StartScene);
 	}
 	
 	void EditorLayer::SaveProject()
@@ -1036,30 +1050,14 @@ namespace Hydro
 
 	void EditorLayer::OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to)
 	{
-		// Scenes are only referenced by these paths, so a scene (or a folder of scenes) rename is complete.
-		// Textures and .hyanim files are referenced by asset handle and follow a rename on their own.
-		// TODO(assets): the start scene and last scene become handles too (Roadmap AS4).
+		// The open scene and the last scene are remembered by path (the last scene is an editor setting and can
+		// be outside any project), so they follow a rename here. The project's start scene, textures and
+		// .hyanim files are referenced by asset handle and follow on their own.
 		if (FollowRename(m_EditorScenePath, from, to))
 		{
 			m_EditorScene->SetName(m_EditorScenePath.stem().string());
 		}
 		FollowRename(m_EditorSettings.Session.LastScene, from, to);
-
-		Ref<Project> project = Project::GetActive();
-		if (project == nullptr)
-		{
-			return;
-		}
-
-		std::filesystem::path startScene = project->GetStartScenePath();
-		if (FollowRename(startScene, from, to))
-		{
-			std::error_code ec;
-			const std::filesystem::path assetDirectory = std::filesystem::absolute(project->GetAssetDirectory(), ec).lexically_normal();
-			project->GetConfig().StartScene = startScene.lexically_relative(assetDirectory);
-			SaveProject();
-			HY_INFO("Start scene is now {}", project->GetConfig().StartScene.generic_string());
-		}
 	}
 
 	void EditorLayer::OnAssetDropped(const std::filesystem::path& path)

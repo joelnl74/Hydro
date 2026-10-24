@@ -604,7 +604,7 @@ namespace Hydro
 
 			ImGui::Text("Delete '%s'?", m_PendingDeletePath.filename().u8string().c_str());
 			if (canDelete)
-				ImGui::TextDisabled("This cannot be undone. Entities already in a scene are not affected.");
+				ImGui::TextDisabled("This cannot be undone. Scenes that use it will report it as missing.");
 			else
 				ImGui::TextColored({ 0.9f, 0.6f, 0.3f, 1.0f }, "Only empty folders can be deleted.");
 
@@ -612,15 +612,11 @@ namespace Hydro
 			ImGui::BeginDisabled(canDelete == false);
 			if (ImGui::Button("Delete", { 120.0f, 0.0f }))
 			{
-				if (std::filesystem::remove(m_PendingDeletePath, ec))
+				// The manager deletes the file and its .hymeta, keeps the handle (marked missing, so scenes that
+				// use it report it) and logs why when it can't.
+				if (AssetManager::DeleteAsset(m_PendingDeletePath))
 				{
 					HY_INFO("Deleted {}", m_PendingDeletePath.u8string());
-					// An image's handle lives next to it; without the image it means nothing.
-					std::filesystem::remove(AssetMetaSerializer::GetSidecarPath(m_PendingDeletePath), ec);
-				}
-				else
-				{
-					HY_ERROR("Could not delete {}: {}", m_PendingDeletePath.u8string(), ec.message());
 				}
 
 				m_PrefabPreviews.erase(m_PendingDeletePath.u8string());
@@ -797,33 +793,24 @@ namespace Hydro
 			if (confirm && problem.empty())
 			{
 				const std::filesystem::path target = parent / std::filesystem::u8path(name + m_RenameExtension);
-				std::error_code ec;
+				bool succeeded = false;
 				if (renaming)
 				{
-					std::filesystem::rename(m_RenamePath, target, ec);
-
-					// An image's .hymeta (its asset handle and import config) goes with it, so the handle stays.
-					const std::filesystem::path importFile = Texture2D::GetImportFilePath(m_RenamePath);
-					std::error_code importError;
-					if (ec.value() == 0 && std::filesystem::exists(importFile, importError))
+					// The manager moves the file with its .hymeta and keeps the handle, so everything that refers
+					// to it by handle follows; it logs why when it can't.
+					succeeded = AssetManager::MoveAsset(m_RenamePath, target);
+				}
+				else
+				{
+					std::error_code ec;
+					succeeded = std::filesystem::create_directory(target, ec);
+					if (succeeded == false)
 					{
-						std::filesystem::rename(importFile, Texture2D::GetImportFilePath(target), importError);
-						if (importError)
-						{
-							HY_ERROR("Could not move {}: {}", importFile.u8string(), importError.message());
-						}
+						HY_ERROR("Could not create {}: {}", target.u8string(), ec.message());
 					}
 				}
-				else
-				{
-					std::filesystem::create_directory(target, ec);
-				}
 
-				if (ec)
-				{
-					HY_ERROR("Could not {} {}: {}", renaming ? "rename" : "create", target.u8string(), ec.message());
-				}
-				else
+				if (succeeded)
 				{
 					// Keep the browser where it was: follow the folder if we were inside it.
 					const std::filesystem::path relative = m_CurrentDirectory.lexically_relative(m_RenamePath);

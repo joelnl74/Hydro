@@ -4,14 +4,6 @@
 
 namespace Hydro
 {
-	std::filesystem::path Project::GetStartScenePath() const
-	{
-		if (m_Config.StartScene.empty())
-			return {};
-
-		return GetAssetDirectory() / m_Config.StartScene;
-	}
-
 	Ref<Project> Project::New(const std::filesystem::path& projectFile)
 	{
 		Ref<Project> project = CreateRef<Project>();

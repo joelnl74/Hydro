@@ -1,7 +1,7 @@
 Project:
   Name: Sandbox
   AssetDirectory: Assets
-  StartScene: Scenes/Villagers.hyscene
+  StartSceneHandle: 15379723701663396974
 Renderer:
   ClearColor: [0, 0, 0, 1]
   VSync: true

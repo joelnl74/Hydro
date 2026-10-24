@@ -349,6 +349,177 @@ namespace Hydro
 		return handle;
 	}
 
+	bool AssetManager::MoveAsset(const std::filesystem::path& from, const std::filesystem::path& to)
+	{
+		if (IsProjectOpen() == false)
+		{
+			HY_CORE_ERROR("AssetManager::MoveAsset: no project is open");
+			return false;
+		}
+
+		const std::filesystem::path relativeFrom = ToRelativePath(from);
+		const std::filesystem::path relativeTo = ToRelativePath(to);
+		if (relativeFrom.empty() || relativeTo.empty())
+		{
+			HY_CORE_ERROR("AssetManager::MoveAsset: '{}' to '{}': both must be inside the asset folder", from.string(), to.string());
+			return false;
+		}
+
+		const std::filesystem::path absoluteFrom = s_Data->AssetDirectory / relativeFrom;
+		const std::filesystem::path absoluteTo = s_Data->AssetDirectory / relativeTo;
+
+		std::error_code ec;
+		if (std::filesystem::exists(absoluteFrom, ec) == false)
+		{
+			HY_CORE_ERROR("AssetManager::MoveAsset: '{}' doesn't exist", relativeFrom.generic_u8string());
+			return false;
+		}
+		if (std::filesystem::exists(absoluteTo, ec))
+		{
+			HY_CORE_ERROR("AssetManager::MoveAsset: '{}' already exists", relativeTo.generic_u8string());
+			return false;
+		}
+
+		if (std::filesystem::is_directory(absoluteFrom, ec))
+		{
+			// Into itself: the file system would refuse it, but with a worse message.
+			const std::filesystem::path inside = relativeTo.lexically_relative(relativeFrom);
+			if (inside.empty() == false && *inside.begin() != "..")
+			{
+				HY_CORE_ERROR("AssetManager::MoveAsset: can't move '{}' into itself", relativeFrom.generic_u8string());
+				return false;
+			}
+
+			std::filesystem::rename(absoluteFrom, absoluteTo, ec);
+			if (ec)
+			{
+				HY_CORE_ERROR("AssetManager::MoveAsset: '{}': {}", relativeFrom.generic_u8string(), ec.message());
+				return false;
+			}
+
+			// Every file in it kept its handle, so a scan finds them again at their new paths.
+			Rescan();
+			return true;
+		}
+
+		const AssetType type = GetAssetTypeFromExtension(absoluteFrom);
+		if (type != GetAssetTypeFromExtension(absoluteTo))
+		{
+			HY_CORE_ERROR("AssetManager::MoveAsset: '{}' to '{}' would change what kind of asset it is",
+				relativeFrom.generic_u8string(), relativeTo.generic_u8string());
+			return false;
+		}
+
+		std::filesystem::rename(absoluteFrom, absoluteTo, ec);
+		if (ec)
+		{
+			HY_CORE_ERROR("AssetManager::MoveAsset: '{}': {}", relativeFrom.generic_u8string(), ec.message());
+			return false;
+		}
+
+		// An image's .hymeta holds its handle and import settings; without it the image would get a new handle.
+		const std::filesystem::path sidecarFrom = AssetMetaSerializer::GetSidecarPath(absoluteFrom);
+		if (std::filesystem::exists(sidecarFrom, ec))
+		{
+			std::filesystem::rename(sidecarFrom, AssetMetaSerializer::GetSidecarPath(absoluteTo), ec);
+			if (ec)
+			{
+				HY_CORE_ERROR("AssetManager::MoveAsset: couldn't move '{}': {}; undoing the move", sidecarFrom.string(), ec.message());
+				std::filesystem::rename(absoluteTo, absoluteFrom, ec);
+				return false;
+			}
+		}
+
+		const AssetHandle handle = s_Data->Registry.Find(relativeFrom);
+		if (const AssetMetadata* registered = s_Data->Registry.Get(handle))
+		{
+			AssetMetadata metadata = *registered;
+			metadata.Path = relativeTo;
+			s_Data->Registry.Add(metadata);
+		}
+
+		return true;
+	}
+
+	bool AssetManager::MoveAsset(AssetHandle handle, const std::filesystem::path& to)
+	{
+		const AssetMetadata* metadata = GetMetadata(handle);
+		if (metadata == nullptr || metadata->IsMissing)
+		{
+			HY_CORE_ERROR("AssetManager::MoveAsset: asset handle {} is not in the project", (uint64_t)handle);
+			return false;
+		}
+
+		return MoveAsset(s_Data->AssetDirectory / metadata->Path, to);
+	}
+
+	bool AssetManager::DeleteAsset(const std::filesystem::path& file)
+	{
+		if (IsProjectOpen() == false)
+		{
+			HY_CORE_ERROR("AssetManager::DeleteAsset: no project is open");
+			return false;
+		}
+
+		const std::filesystem::path relative = ToRelativePath(file);
+		if (relative.empty())
+		{
+			HY_CORE_ERROR("AssetManager::DeleteAsset: '{}' is not inside the asset folder", file.string());
+			return false;
+		}
+
+		const std::filesystem::path absolute = s_Data->AssetDirectory / relative;
+		std::error_code ec;
+		if (std::filesystem::exists(absolute, ec) == false)
+		{
+			HY_CORE_ERROR("AssetManager::DeleteAsset: '{}' doesn't exist", relative.generic_u8string());
+			return false;
+		}
+
+		const bool isFolder = std::filesystem::is_directory(absolute, ec);
+		if (isFolder && std::filesystem::is_empty(absolute, ec) == false)
+		{
+			HY_CORE_ERROR("AssetManager::DeleteAsset: folder '{}' isn't empty", relative.generic_u8string());
+			return false;
+		}
+
+		if (std::filesystem::remove(absolute, ec) == false)
+		{
+			HY_CORE_ERROR("AssetManager::DeleteAsset: '{}': {}", relative.generic_u8string(), ec.message());
+			return false;
+		}
+
+		if (isFolder)
+		{
+			return true;
+		}
+
+		// An image's handle lives next to it; without the image it means nothing.
+		std::filesystem::remove(AssetMetaSerializer::GetSidecarPath(absolute), ec);
+
+		const AssetHandle handle = s_Data->Registry.Find(relative);
+		if (const AssetMetadata* registered = s_Data->Registry.Get(handle))
+		{
+			AssetMetadata missing = *registered;
+			missing.IsMissing = true;
+			s_Data->Registry.Add(missing);
+		}
+		s_Data->Loaded.erase(handle);
+		return true;
+	}
+
+	bool AssetManager::DeleteAsset(AssetHandle handle)
+	{
+		const AssetMetadata* metadata = GetMetadata(handle);
+		if (metadata == nullptr || metadata->IsMissing)
+		{
+			HY_CORE_ERROR("AssetManager::DeleteAsset: asset handle {} is not in the project", (uint64_t)handle);
+			return false;
+		}
+
+		return DeleteAsset(s_Data->AssetDirectory / metadata->Path);
+	}
+
 	void AssetManager::BindHandle(Asset& asset, const std::filesystem::path& file)
 	{
 		if (s_Data == nullptr)

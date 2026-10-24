@@ -73,6 +73,20 @@ namespace Hydro
 		// (GetAssetTypeFromExtension) and for images that don't exist.
 		static AssetHandle ImportAsset(const std::filesystem::path& file);
 
+		// Renames or moves a file or folder inside the asset folder (`from` and `to` are absolute, or relative to
+		// it) and keeps every handle: a file's own handle moves with it (a scene's first line, an image's
+		// .hymeta, which is moved along), so everything that refers to it by handle follows. Fails (logged,
+		// nothing changed) when `to` exists, when either path is outside the asset folder, or when a file's
+		// extension would turn it into another kind of asset. A moved folder is scanned again.
+		static bool MoveAsset(const std::filesystem::path& from, const std::filesystem::path& to);
+		static bool MoveAsset(AssetHandle handle, const std::filesystem::path& to);
+
+		// Deletes a file (with its .hymeta) or an empty folder inside the asset folder. The file's handle stays
+		// in the registry, marked missing, so a scene that refers to it reports a missing asset instead of
+		// quietly turning into "none"; its loaded object is dropped. Fails (logged) for a folder with files in it.
+		static bool DeleteAsset(const std::filesystem::path& file);
+		static bool DeleteAsset(AssetHandle handle);
+
 		// Gives a loaded `asset` the handle of the file it was loaded from (ImportAsset). Loaders call this;
 		// the handle stays 0 for files outside the asset folder.
 		static void BindHandle(Asset& asset, const std::filesystem::path& file);

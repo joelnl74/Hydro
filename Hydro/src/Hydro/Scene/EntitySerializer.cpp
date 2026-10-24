@@ -3,7 +3,6 @@
 #include "ScriptableEntity.h"
 
 #include "Hydro/Asset/AssetManager.h"
-#include "Hydro/Project/Project.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -15,21 +14,6 @@ namespace Hydro
 	// AnimationsHandle). Scenes saved before handles hold the file's path instead (Texture, Animations,
 	// relative to the project's asset folder when the file is inside it); those are still read, and
 	// the next save writes the handle.
-
-	// The path an older scene saved, made absolute.
-	static std::filesystem::path FromSavedAssetPath(const std::string& saved)
-	{
-		std::filesystem::path path = std::filesystem::u8path(saved);
-		if (path.is_relative())
-		{
-			if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
-			{
-				return project->GetAssetDirectory() / path;
-			}
-		}
-
-		return path;
-	}
 
 	// The asset a saved reference points to: the handle when the registry knows it, else the file a
 	// path-only (older) scene names, registered now. A handle the registry doesn't know and no path to
@@ -51,7 +35,7 @@ namespace Hydro
 			const std::string savedPath = pathNode.as<std::string>("");
 			if (savedPath.empty() == false)
 			{
-				const AssetHandle fromPath = AssetManager::ImportAsset(FromSavedAssetPath(savedPath));
+				const AssetHandle fromPath = AssetManager::ImportAsset(std::filesystem::u8path(savedPath));
 				if ((uint64_t)fromPath != 0)
 				{
 					return fromPath;

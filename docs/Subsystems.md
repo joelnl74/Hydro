@@ -148,7 +148,7 @@ Every current name was checked against the table. Only one changed:
 | Input queries | `Input` | Stateless today, no lifecycle. Becomes a subsystem (after `Window`) when it gains state such as gamepads or action maps | after 4 |
 | Rendering | `Renderer` (parts: `Renderer2D`, `Renderer3D`, `Vulkan*`) | Done | 5 |
 | Jobs / threads | `JobScheduler` | Planned | after 2: others may submit jobs from their `Init` |
-| Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache; components by handle next ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
+| Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache, components and the project's start scene by handle, move / delete that keep handles ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
 | Audio | `AudioEngine` | Planned | after `AssetManager` |
 | Scripting | `ScriptEngine` | Planned | after `AssetManager`, before the client's `OnInit` |
 | Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Planned | after `ScriptEngine` |

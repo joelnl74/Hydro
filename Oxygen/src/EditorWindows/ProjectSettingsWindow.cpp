@@ -2,6 +2,7 @@
 #include "StatsUI.h"
 
 #include <imgui/imgui.h>
+#include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Project/Project.h>
 
 #include <cstring>
@@ -36,26 +37,32 @@ namespace Hydro
 		if (ImGui::InputText("Name", name, sizeof(name)))
 			config.Name = name;
 
-		// Start scene: stored relative to the asset directory so the project folder can move.
-		const std::string startScene = config.StartScene.empty() ? "(none)" : config.StartScene.generic_string();
+		// Start scene: stored as the scene's asset handle, so renaming or moving the scene keeps it.
+		std::string startScene = "(none)";
+		if ((uint64_t)config.StartScene != 0)
+		{
+			const AssetMetadata* metadata = AssetManager::GetMetadata(config.StartScene);
+			if (metadata == nullptr)
+				startScene = "(unknown asset)";
+			else
+				startScene = metadata->Path.generic_u8string() + (metadata->IsMissing ? " (missing)" : "");
+		}
 		ImGui::LabelText("Start scene", "%s", startScene.c_str());
 
 		const std::filesystem::path assetDirectory = project->GetAssetDirectory();
-		std::error_code ec;
-		const std::filesystem::path relativeScene = currentScenePath.empty() ? std::filesystem::path()
-			: std::filesystem::relative(currentScenePath, assetDirectory, ec);
-		const bool canUseCurrent = relativeScene.empty() == false && ec.value() == 0
-			&& relativeScene.generic_string().rfind("..", 0) != 0;
+		// A scene saved inside the asset folder has a handle; an unsaved or outside one has none.
+		const AssetHandle currentScene = currentScenePath.empty() ? AssetHandle(0) : AssetManager::FindHandle(currentScenePath);
+		const bool canUseCurrent = (uint64_t)currentScene != 0;
 
 		ImGui::BeginDisabled(canUseCurrent == false);
 		if (ImGui::Button("Use current scene"))
-			config.StartScene = relativeScene;
+			config.StartScene = currentScene;
 		ImGui::EndDisabled();
 		if (canUseCurrent == false && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 			ImGui::SetTooltip("Save the scene inside the project's asset folder first.");
 		ImGui::SameLine();
 		if (ImGui::Button("Clear"))
-			config.StartScene.clear();
+			config.StartScene = 0;
 
 		// ---- Locations (read-only) ---------------------------------------------
 		ImGui::Spacing();
