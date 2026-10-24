@@ -4,6 +4,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
+#include "Hydro/Scene/Prefab.h"
 
 namespace Hydro
 {
@@ -49,6 +50,21 @@ namespace Hydro
 			HY_CORE_INFO("Instantiated prefab '{}' from {}", entity.GetName(), filepath.string());
 
 		return entity;
+	}
+
+	Entity PrefabSerializer::Instantiate(Scene& scene, const Prefab& prefab)
+	{
+		return EntitySerializer::Deserialize(prefab.GetEntityNode(), scene, false);
+	}
+
+	Entity PrefabSerializer::Instantiate(Scene& scene, AssetHandle prefab)
+	{
+		const Ref<Prefab> loaded = AssetManager::GetAsset<Prefab>(prefab);
+		if (loaded == nullptr)
+		{
+			return {};
+		}
+		return Instantiate(scene, *loaded);
 	}
 
 	Entity PrefabSerializer::Load(Scene& scene, const std::filesystem::path& filepath)

@@ -291,6 +291,16 @@ namespace Hydro
 	class VillageCrateSpawnerScript : public ScriptableEntity
 	{
 	protected:
+		void OnCreate() override
+		{
+			// The dust effect (a prefab with a particle emitter), loaded once here: Vfx::Play never reads the disk.
+			m_Dust = AssetManager::FindHandle("Effects/DustPuff.hyprefab");
+			if ((uint64_t)m_Dust != 0)
+			{
+				AssetManager::GetAsset<Prefab>(m_Dust);
+			}
+		}
+
 		void OnUpdate([[maybe_unused]] float deltaTime) override
 		{
 			Scene* scene = GetEntity().GetScene();
@@ -331,6 +341,7 @@ namespace Hydro
 			TransformComponent& transform = crate.GetComponent<TransformComponent>();
 			transform.Translation.x = playerPosition.x + m_Direction.x * 1.4f;
 			transform.Translation.y = playerPosition.y + m_Direction.y * 1.4f;
+			PlayDust(*scene, transform.Translation);
 
 			m_Dropped.push_back(crate.GetUUID());
 			while (m_Dropped.size() > MaxCrates)
@@ -338,6 +349,7 @@ namespace Hydro
 				Entity oldest = scene->GetEntityByUUID(m_Dropped.front());
 				if (oldest.IsValid())
 				{
+					PlayDust(*scene, oldest.GetComponent<TransformComponent>().Translation);
 					scene->DestroyEntity(oldest);
 				}
 				m_Dropped.erase(m_Dropped.begin());
@@ -348,6 +360,17 @@ namespace Hydro
 
 	private:
 		static constexpr size_t MaxCrates = 10;
+
+		// A puff of dust at a crate's base, sorted just in front of it (the village's Y-sort rule).
+		void PlayDust(Scene& scene, const glm::vec3& crate)
+		{
+			const glm::vec3 base{ crate.x, crate.y - 0.4f, crate.z };
+			Entity dust = Vfx::Play(scene, m_Dust, base);
+			if (dust.IsValid() && dust.HasComponent<ParticleEmitter2DComponent>())
+			{
+				dust.GetComponent<ParticleEmitter2DComponent>().SortOrder = (int32_t)std::lround((VillageMap::SortOriginY - base.y) * 4.0f) + 1;
+			}
+		}
 
 		// The first entity with exactly this tag that is not about to be destroyed.
 		static Entity FindByTag(Scene& scene, const char* tag)
@@ -369,6 +392,7 @@ namespace Hydro
 
 		std::vector<UUID> m_Dropped;
 		glm::vec2 m_Direction{ 0.0f, -1.0f };
+		AssetHandle m_Dust = 0;
 		bool m_Previous = false;
 	};
 
