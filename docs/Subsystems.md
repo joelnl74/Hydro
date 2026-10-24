@@ -53,7 +53,7 @@ delete app;                                           // destructor: no engine w
 | 3 | `EventDispatcher::Init()` | — | `EventDispatcher::Shutdown()` |
 | 4 | `Window::Create()`, then `Window::Init(spec.MainWindow)` | Events (window callbacks post events) | `Window::Shutdown()`, then the `Scope` is reset |
 | 5 | `Renderer::Init(window)` | Window (surface) | `Renderer::Shutdown()` |
-| 6 | `AssetManager::Init()` | Renderer (for the GPU textures it will create); empty until the application calls `OnProjectOpened` | `AssetManager::Shutdown()`, after the layers are detached |
+| 6 | `AssetManager::Init()` | Renderer (it creates the GPU textures); empty until the application calls `OnProjectOpened` | `AssetManager::Shutdown()`, after the layers are detached |
 | 7 | Push `ImGuiLayer` as an overlay (`OnAttach`) | Renderer, Window | `Renderer::WaitIdle()`, then `LayerStack::Clear()` detaches and deletes every layer, top-most first |
 | 8 | Client `OnInit()` (pushes the application's layers) | everything above | Client `OnShutdown()`, first, while everything is alive |
 
@@ -129,7 +129,7 @@ Every current name was checked against the table. Only one changed:
 | `AssetMetadata`, `AssetScanInfo` | New, plain structs | What is known about one asset; what a scan found (`Info` = output, see [Resource creation](ResourceCreation.md#naming)) |
 | `AssetMetaSerializer` | New, a doer | Reads and writes where a file keeps its handle (its first line, or the `.hymeta` sidecar), like `SceneSerializer` |
 | `Asset` | New, a base class | Base of the asset types the manager loads (`Texture2D`); holds the handle only |
-| `TextureImportConfig`, `TextureImportSerializer`, `SpriteSlicer` | New (Oct 23, 2026) | Saved per-image import settings → `Config`; the serializer and slicer are doers (`-er`). Sprite sheets are a mode of `Texture2D`, not a `SpriteSheet` type, so there is one owner per image file |
+| `TextureImportConfig`, `TextureImportSerializer`, `TextureImporter`, `SpriteSlicer` | New (Oct 23, 2026) | Saved per-image import settings → `Config`; the serializer and slicer are doers (`-er`). Sprite sheets are a mode of `Texture2D`, not a `SpriteSheet` type, so there is one owner per image file |
 | `SpriteRegion`, `TextureRect` | New, plain structs | A sprite inside a texture (pixels) and a part of a texture (texture coordinates) |
 | `SpriteAnimationSet` | New, a resource | Named clips over one sheet; "set" because it holds many clips (`SpriteAnimation` alone would read as one clip) |
 | `SpriteEditorWindow`, `SpriteAnimationWindow`, `TextureImportPanel`, `PropertyUI` | New (Oct 23, 2026), editor only | Windows are `<Name>Window`; the inspector's sub-section is a `<Name>Panel`; `PropertyUI` holds shared widgets like `StatsUI` (not `...Helper`). "Animation" is the window's menu name, `SpriteAnimationWindow` says what it edits |
@@ -148,7 +148,7 @@ Every current name was checked against the table. Only one changed:
 | Input queries | `Input` | Stateless today, no lifecycle. Becomes a subsystem (after `Window`) when it gains state such as gamepads or action maps | after 4 |
 | Rendering | `Renderer` (parts: `Renderer2D`, `Renderer3D`, `Vulkan*`) | Done | 5 |
 | Jobs / threads | `JobScheduler` | Planned | after 2: others may submit jobs from their `Init` |
-| Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan; loading comes next ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
+| Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache; components by handle next ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
 | Audio | `AudioEngine` | Planned | after `AssetManager` |
 | Scripting | `ScriptEngine` | Planned | after `AssetManager`, before the client's `OnInit` |
 | Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Planned | after `ScriptEngine` |

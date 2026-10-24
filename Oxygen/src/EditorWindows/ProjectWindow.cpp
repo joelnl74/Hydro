@@ -174,6 +174,9 @@ namespace Hydro
 				it = m_TextureThumbnails.erase(it);
 			}
 		}
+
+		// The asset manager keeps loaded textures until told otherwise: let go of the ones only shown here.
+		AssetManager::UnloadUnused();
 	}
 
 	void ProjectWindow::DrawToolbar()

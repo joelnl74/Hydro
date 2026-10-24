@@ -45,6 +45,15 @@ namespace Hydro
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
 
+		// Every entity made with CreateEntity, in list order: the order the hierarchy shows them,
+		// scenes save them and Copy recreates them. New entities go last. The reference is
+		// invalidated by creating, destroying or moving entities.
+		const std::vector<entt::entity>& GetEntityOrder();
+
+		// Moves `entity` directly before (or, with placeAfter, directly after) `target` in the list.
+		// Don't call it while iterating GetEntityOrder().
+		void MoveEntity(Entity entity, Entity target, bool placeAfter);
+
 		// A new entity (new UUID, same name) in this scene with a copy of the entity's
 		// CopyableComponents and native script bindings. Returns an empty Entity if `entity` is
 		// not valid. Don't call it while iterating the registry.
@@ -64,6 +73,7 @@ namespace Hydro
 
 	private:
 		std::string m_Name;
+		std::vector<entt::entity> m_EntityOrder;
 		uint32_t m_ViewportWidth = 1280;
 		uint32_t m_ViewportHeight = 720;
 

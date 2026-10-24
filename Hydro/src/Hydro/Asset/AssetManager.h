@@ -1,8 +1,11 @@
 #pragma once
 #include "Hydro/Asset/AssetRegistry.h"
+#include "Hydro/Core/Base.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
+#include <type_traits>
 
 namespace Hydro
 {
@@ -16,18 +19,29 @@ namespace Hydro
 		size_t OrphanSidecars = 0;   // .hymeta files whose file is gone (moved without its sidecar?)
 	};
 
+	// Where an asset is in its life, for diagnostics (GetLoadState).
+	enum class AssetLoadState : uint8_t
+	{
+		NotLoaded, // registered, nobody has asked for it yet (or the project was reopened)
+		Loaded,    // in the cache
+		Failed,    // its file couldn't be read or decoded (logged once); retried when the file changes
+		Missing    // not in the registry, or its file is gone (a reference to it is dangling)
+	};
+
 	// Assets subsystem: knows every asset in the open project by handle (AssetRegistry), and keeps the
 	// handles stable when files are renamed, moved or copied. Started after Renderer (it will create
 	// GPU textures); the application tells it which project is open.
 	//
-	// Step 1 of the asset system (docs/Architecture.md, "Asset system"): identity only. Every texture,
-	// scene and prefab file gets a handle, but nothing is loaded through the manager yet; sprites still
-	// hold a Ref<Texture2D> and scenes save texture paths. TODO(assets): GetAsset<T>(handle) and
-	// GetLoadedAsset<T>(handle) come with the texture step.
+	// Steps 1 and 2 of the asset system (docs/Architecture.md, "Asset system"). Identity: every texture,
+	// scene, prefab and animation set file gets a handle. Loading: textures are loaded through the
+	// manager, which keeps them (strong Refs) until the project closes.
+	// TODO(assets): components still hold a Ref<Texture2D> (step 3).
 	//
 	//   AssetManager::OnProjectOpened(project->GetAssetDirectory()); // scans the folder
 	//   AssetHandle handle = AssetManager::FindHandle(path);       // 0 when not registered
 	//   const AssetMetadata* metadata = AssetManager::GetMetadata(handle);
+	//   Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(handle);        // loads if needed
+	//   Ref<Texture2D> drawn = AssetManager::GetLoadedAsset<Texture2D>(handle);    // never loads
 	class AssetManager
 	{
 	public:
@@ -73,5 +87,49 @@ namespace Hydro
 		static std::filesystem::path GetAbsolutePath(AssetHandle handle);
 
 		static const AssetRegistry& GetRegistry();
+
+		// The loaded asset for `handle`, loading it from its file when it isn't cached yet or its file
+		// (or, for images, its .hymeta) changed or moved since. Synchronous, reads the disk: for scene
+		// loading and the editor, never for code that runs every frame. nullptr (logged, once per file
+		// version) when the handle is unknown, its file is missing or unreadable, or it isn't a T.
+		// Only Texture2D can be loaded so far.
+		template<typename T>
+		static Ref<T> GetAsset(AssetHandle handle)
+		{
+			static_assert(std::is_base_of<Asset, T>::value, "AssetManager::GetAsset: T must derive from Asset");
+			return std::static_pointer_cast<T>(LoadAsset(handle, T::GetStaticType()));
+		}
+
+		// The asset if it is already loaded, else nullptr. Never touches the disk and never logs: the
+		// only one render code calls. Pair it with GetAsset when a scene is loaded so it is loaded first.
+		template<typename T>
+		static Ref<T> GetLoadedAsset(AssetHandle handle)
+		{
+			static_assert(std::is_base_of<Asset, T>::value, "AssetManager::GetLoadedAsset: T must derive from Asset");
+			return std::static_pointer_cast<T>(FindLoadedAsset(handle, T::GetStaticType()));
+		}
+
+		// Loads the asset again now (settings or file changed) into the same handle, replacing the cached
+		// one. Holders of the old object keep it. Returns the new object, nullptr on failure.
+		template<typename T>
+		static Ref<T> ReloadAsset(AssetHandle handle)
+		{
+			static_assert(std::is_base_of<Asset, T>::value, "AssetManager::ReloadAsset: T must derive from Asset");
+			return std::static_pointer_cast<T>(LoadAsset(handle, T::GetStaticType(), true));
+		}
+
+		// Drops the loaded assets nobody else holds (the cache has the only Ref), freeing their memory;
+		// they load again on the next GetAsset. Returns how many were dropped. The cache otherwise
+		// keeps everything until the project closes, so the editor calls this after it lets go of
+		// textures it only showed (thumbnails).
+		static size_t UnloadUnused();
+
+		static AssetLoadState GetLoadState(AssetHandle handle);
+		// Assets in the cache (loaded successfully).
+		static size_t GetLoadedAssetCount();
+
+	private:
+		static Ref<Asset> LoadAsset(AssetHandle handle, AssetType type, bool force = false);
+		static Ref<Asset> FindLoadedAsset(AssetHandle handle, AssetType type);
 	};
 }

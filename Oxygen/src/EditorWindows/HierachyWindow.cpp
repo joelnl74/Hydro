@@ -9,6 +9,9 @@
 
 namespace Hydro
 {
+	// Drag-and-drop payload of a hierarchy row: the dragged entt::entity.
+	static const char* s_EntityPayloadType = "HYDRO_HIERARCHY_ENTITY";
+
 	HierachyWindow::HierachyWindow()
 	{
 	}
@@ -27,6 +30,10 @@ namespace Hydro
 		// Destroying while iterating the registry is unsafe, so it happens after the loop.
 		Entity entityToDelete;
 		Entity entityToDuplicate;
+		// A drag-and-drop reorder, applied after the loop: `entityToMove` goes next to `moveTarget`.
+		Entity entityToMove;
+		Entity moveTarget;
+		bool moveAfter = false;
 
 		ImGui::Begin("Hierachy");
 		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
@@ -47,10 +54,12 @@ namespace Hydro
 
 		if (rootOpen)
 		{
-			scene->m_Registry.each([&](auto entityHandle)
+			for (entt::entity entityHandle : scene->GetEntityOrder())
 			{
 				if (scene->m_Registry.has<TagComponent>(entityHandle) == false || scene->m_Registry.has<IDComponent>(entityHandle) == false)
-					return;
+				{
+					continue;
+				}
 
 				Entity entity{ entityHandle, scene.get() };
 				const std::string& tag = entity.GetName();
@@ -63,6 +72,45 @@ namespace Hydro
 				bool opened = ImGui::TreeNodeEx((void*)id, child, "%s", tag.c_str());
 				if (ImGui::IsItemClicked())
 					m_SelectedEntity = entity;
+
+				// Drag a row onto the upper half of another row to put it before that row, onto the
+				// lower half to put it after.
+				if (ImGui::BeginDragDropSource())
+				{
+					ImGui::SetDragDropPayload(s_EntityPayloadType, &entityHandle, sizeof(entt::entity));
+					ImGui::TextUnformatted(tag.c_str());
+					ImGui::EndDragDropSource();
+				}
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(s_EntityPayloadType,
+						ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
+					if (payload != nullptr && payload->DataSize == sizeof(entt::entity))
+					{
+						const ImVec2 rowMin = ImGui::GetItemRectMin();
+						const ImVec2 rowMax = ImGui::GetItemRectMax();
+						const bool after = ImGui::GetMousePos().y > (rowMin.y + rowMax.y) * 0.5f;
+
+						// The insertion line shows where the entity will land.
+						const float lineY = after ? rowMax.y : rowMin.y;
+						ImGui::GetWindowDrawList()->AddLine(ImVec2(rowMin.x, lineY), ImVec2(rowMax.x, lineY),
+							ImGui::GetColorU32(ImGuiCol_DragDropTarget), 2.0f);
+
+						if (payload->IsDelivery())
+						{
+							const entt::entity draggedHandle = *(const entt::entity*)payload->Data;
+							if (scene->m_Registry.valid(draggedHandle))
+							{
+								entityToMove = Entity{ draggedHandle, scene.get() };
+								moveTarget = entity;
+								moveAfter = after;
+							}
+						}
+					}
+
+					ImGui::EndDragDropTarget();
+				}
 
 				if (ImGui::BeginPopupContextItem())
 				{
@@ -81,7 +129,7 @@ namespace Hydro
 
 				if (opened)
 					ImGui::TreePop();
-			});
+			}
 
 			ImGui::TreePop();
 		}
@@ -126,6 +174,11 @@ namespace Hydro
 		}
 
 		ImGui::End();
+
+		if (entityToMove)
+		{
+			scene->MoveEntity(entityToMove, moveTarget, moveAfter);
+		}
 
 		if (entityToDuplicate)
 		{

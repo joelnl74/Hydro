@@ -2,17 +2,33 @@
 #include "AssetManager.h"
 #include "AssetMetaSerializer.h"
 
+#include "Hydro/Renderer/TextureImporter.h"
+#include "Hydro/Renderer/Texture2D.h"
+
 #include <algorithm>
+#include <iterator>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace Hydro
 {
+	// One cache entry: the loaded object (null when loading failed) and what it was loaded from, so a
+	// later request can tell the file changed or moved.
+	struct LoadedAsset
+	{
+		Ref<Asset> Object;
+		AssetType Type = AssetType::None;
+		std::string Path;      // registry path (forward slashes) it was loaded from
+		uint64_t Version = 0;  // file + .hymeta modification times
+		bool Failed = false;
+	};
+
 	struct AssetManagerData
 	{
 		std::filesystem::path AssetDirectory; // absolute, normalised; empty = no project
 		AssetRegistry Registry;
+		std::unordered_map<AssetHandle, LoadedAsset> Loaded;
 	};
 
 	static AssetManagerData* s_Data = nullptr;
@@ -70,6 +86,7 @@ namespace Hydro
 		std::error_code ec;
 		s_Data->AssetDirectory = std::filesystem::absolute(assetDirectory, ec).lexically_normal();
 		s_Data->Registry.Clear();
+		s_Data->Loaded.clear();
 
 		Rescan();
 	}
@@ -81,6 +98,9 @@ namespace Hydro
 			return;
 		}
 
+		// Frees the loaded assets (their GPU images go through the renderer's deletion queue); objects
+		// still held elsewhere live on until their holders let go.
+		s_Data->Loaded.clear();
 		s_Data->AssetDirectory.clear();
 		s_Data->Registry.Clear();
 	}
@@ -250,6 +270,13 @@ namespace Hydro
 
 		s_Data->Registry = std::move(registry);
 
+		// Assets whose file is gone are no longer kept. (A moved file keeps its cache entry: the next
+		// GetAsset sees its path changed and loads it again from the new place.)
+		for (auto it = s_Data->Loaded.begin(); it != s_Data->Loaded.end();)
+		{
+			it = IsAssetHandleValid(it->first) ? std::next(it) : s_Data->Loaded.erase(it);
+		}
+
 		HY_CORE_INFO("Assets: {} in {} ({} new handles, {} duplicates, {} missing)", info.AssetCount, root.string(),
 			info.NewHandles, info.DuplicateHandles, info.MissingAssets);
 		return info;
@@ -367,6 +394,167 @@ namespace Hydro
 		}
 
 		return s_Data->AssetDirectory / metadata->Path;
+	}
+
+	// The version of what an asset is loaded from: its file's and (for images) its .hymeta's modification
+	// times, so saving either one makes the next GetAsset load again.
+	static uint64_t GetSourceVersion(const std::filesystem::path& absolute, AssetType type)
+	{
+		std::error_code ec;
+		uint64_t version = (uint64_t)std::filesystem::last_write_time(absolute, ec).time_since_epoch().count();
+		if (AssetMetaSerializer::StoresHandleInFile(type) == false)
+		{
+			const std::filesystem::path sidecar = AssetMetaSerializer::GetSidecarPath(absolute);
+			const uint64_t sidecarVersion = std::filesystem::exists(sidecar, ec) ?
+				(uint64_t)std::filesystem::last_write_time(sidecar, ec).time_since_epoch().count() : 0;
+			version = version * 1000003ull + sidecarVersion;
+		}
+		return version;
+	}
+
+	// Decodes and creates the object for one asset file. nullptr (logged) when it can't be.
+	static Ref<Asset> LoadFromDisk(const std::filesystem::path& absolute, AssetType type)
+	{
+		switch (type)
+		{
+			case AssetType::Texture2D:
+			{
+				ImportedTexture imported;
+				if (TextureImporter::Import(absolute, TextureImportConfig{}, imported) == false)
+				{
+					return nullptr;
+				}
+				return Texture2D::Create(imported, absolute);
+			}
+			default:
+				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",
+					AssetTypeToString(type), absolute.string());
+				return nullptr;
+		}
+	}
+
+	Ref<Asset> AssetManager::LoadAsset(AssetHandle handle, AssetType type, bool force)
+	{
+		if (s_Data == nullptr || (uint64_t)handle == 0)
+		{
+			return nullptr;
+		}
+
+		const AssetMetadata* metadata = s_Data->Registry.Get(handle);
+		if (metadata == nullptr)
+		{
+			HY_CORE_WARN("AssetManager: asset handle {} is not in the project (deleted, or from another project?)", (uint64_t)handle);
+			return nullptr;
+		}
+		if (metadata->IsMissing)
+		{
+			HY_CORE_WARN("AssetManager: the file of asset '{}' is missing", metadata->Path.generic_u8string());
+			return nullptr;
+		}
+		if (metadata->Type != type)
+		{
+			HY_CORE_ERROR("AssetManager: '{}' is a {}, not a {}", metadata->Path.generic_u8string(),
+				AssetTypeToString(metadata->Type), AssetTypeToString(type));
+			return nullptr;
+		}
+
+		const std::filesystem::path absolute = s_Data->AssetDirectory / metadata->Path;
+		const std::string pathKey = AssetRegistry::MakePathKey(metadata->Path);
+		const uint64_t version = GetSourceVersion(absolute, type);
+
+		auto found = s_Data->Loaded.find(handle);
+		if (force == false && found != s_Data->Loaded.end() && found->second.Version == version && found->second.Path == pathKey)
+		{
+			return found->second.Object; // null for a failed load that hasn't changed: already logged
+		}
+
+		LoadedAsset entry;
+		entry.Object = LoadFromDisk(absolute, type);
+		entry.Type = type;
+		entry.Path = pathKey;
+		entry.Version = version;
+		entry.Failed = entry.Object == nullptr;
+		if (entry.Object != nullptr)
+		{
+			entry.Object->m_Handle = handle;
+		}
+
+		Ref<Asset> result = entry.Object;
+		s_Data->Loaded[handle] = std::move(entry);
+		return result;
+	}
+
+	Ref<Asset> AssetManager::FindLoadedAsset(AssetHandle handle, AssetType type)
+	{
+		if (s_Data == nullptr)
+		{
+			return nullptr;
+		}
+
+		auto found = s_Data->Loaded.find(handle);
+		if (found == s_Data->Loaded.end() || found->second.Type != type)
+		{
+			return nullptr;
+		}
+
+		return found->second.Object;
+	}
+
+	size_t AssetManager::UnloadUnused()
+	{
+		if (s_Data == nullptr)
+		{
+			return 0;
+		}
+
+		size_t dropped = 0;
+		for (auto it = s_Data->Loaded.begin(); it != s_Data->Loaded.end();)
+		{
+			if (it->second.Object != nullptr && it->second.Object.use_count() == 1)
+			{
+				it = s_Data->Loaded.erase(it);
+				dropped++;
+			}
+			else
+			{
+				++it;
+			}
+		}
+		return dropped;
+	}
+
+	AssetLoadState AssetManager::GetLoadState(AssetHandle handle)
+	{
+		if (IsAssetHandleValid(handle) == false)
+		{
+			return AssetLoadState::Missing;
+		}
+
+		auto found = s_Data->Loaded.find(handle);
+		if (found == s_Data->Loaded.end())
+		{
+			return AssetLoadState::NotLoaded;
+		}
+
+		return found->second.Failed ? AssetLoadState::Failed : AssetLoadState::Loaded;
+	}
+
+	size_t AssetManager::GetLoadedAssetCount()
+	{
+		if (s_Data == nullptr)
+		{
+			return 0;
+		}
+
+		size_t count = 0;
+		for (const auto& [handle, entry] : s_Data->Loaded)
+		{
+			if (entry.Object != nullptr)
+			{
+				count++;
+			}
+		}
+		return count;
 	}
 
 	const AssetRegistry& AssetManager::GetRegistry()

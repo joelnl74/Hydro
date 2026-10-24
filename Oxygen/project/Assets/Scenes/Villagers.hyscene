@@ -17,78 +17,6 @@ Entities:
       OrthographicSize: 10
       OrthographicNear: -1
       OrthographicFar: 1
-  - Entity: 3641603982383516983
-    TagComponent:
-      Tag: Blacksmith
-    TransformComponent:
-      Translation: [-6, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2, 3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11969883262739761085
-      Texture: Characters/Villagers.png
-      Sprite: Blacksmith_Down_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-    SpriteAnimatorComponent:
-      AnimationsHandle: 8079240564453792839
-      Animations: Characters/Blacksmith.hyanim
-      StartClip: ""
-      PlayOnStart: true
-      Speed: 1
-  - Entity: 445363681616962640
-    TagComponent:
-      Tag: Barmaid
-    TransformComponent:
-      Translation: [-2, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2, 3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11969883262739761085
-      Texture: Characters/Villagers.png
-      Sprite: Barmaid_Down_0
-      SpriteIndex: 24
-      FlipX: false
-      FlipY: false
-    SpriteAnimatorComponent:
-      AnimationsHandle: 2472910742119809806
-      Animations: Characters/Barmaid.hyanim
-      StartClip: ""
-      PlayOnStart: true
-      Speed: 1
-  - Entity: 7574918311415852851
-    TagComponent:
-      Tag: Farmer
-    TransformComponent:
-      Translation: [2, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2, 3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11969883262739761085
-      Texture: Characters/Villagers.png
-      Sprite: Farmer_Down_0
-      SpriteIndex: 48
-      FlipX: false
-      FlipY: false
-    SpriteAnimatorComponent:
-      AnimationsHandle: 951407229409544592
-      Animations: Characters/Farmer.hyanim
-      StartClip: ""
-      PlayOnStart: true
-      Speed: 1
-    NativeScriptComponent:
-      Scripts:
-        []
   - Entity: 868196408185819179
     TagComponent:
       Tag: Gatherer
@@ -135,6 +63,29 @@ Entities:
       StartClip: ""
       PlayOnStart: true
       Speed: 1
+  - Entity: 5337072292957226024
+    TagComponent:
+      Tag: Gatherer
+    TransformComponent:
+      Translation: [6, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 11969883262739761085
+      Texture: Characters/Villagers.png
+      Sprite: Gatherer_Down_0
+      SpriteIndex: 72
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 1444298772692147167
+      Animations: Characters/Gatherer.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
   - Entity: 7156570116896834473
     TagComponent:
       Tag: Farmer
@@ -161,11 +112,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         []
-  - Entity: 17689259472080886904
+  - Entity: 7574918311415852851
     TagComponent:
-      Tag: Barmaid
+      Tag: Farmer
     TransformComponent:
-      Translation: [-2, 4, 0]
+      Translation: [2, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [2, 3, 1]
     SpriteRendererComponent:
@@ -174,85 +125,19 @@ Entities:
       SortOrder: 0
       TextureHandle: 11969883262739761085
       Texture: Characters/Villagers.png
-      Sprite: Barmaid_Down_0
-      SpriteIndex: 24
+      Sprite: Farmer_Down_0
+      SpriteIndex: 48
       FlipX: false
       FlipY: false
     SpriteAnimatorComponent:
-      AnimationsHandle: 2472910742119809806
-      Animations: Characters/Barmaid.hyanim
+      AnimationsHandle: 951407229409544592
+      Animations: Characters/Farmer.hyanim
       StartClip: ""
       PlayOnStart: true
       Speed: 1
-  - Entity: 7630690822749002946
-    TagComponent:
-      Tag: Blacksmith
-    TransformComponent:
-      Translation: [-6, 4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2, 3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11969883262739761085
-      Texture: Characters/Villagers.png
-      Sprite: Blacksmith_Down_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-    SpriteAnimatorComponent:
-      AnimationsHandle: 8079240564453792839
-      Animations: Characters/Blacksmith.hyanim
-      StartClip: ""
-      PlayOnStart: true
-      Speed: 1
-  - Entity: 5207375455725770143
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [-6, -4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2, 3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11969883262739761085
-      Texture: Characters/Villagers.png
-      Sprite: Blacksmith_Down_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-    SpriteAnimatorComponent:
-      AnimationsHandle: 8079240564453792839
-      Animations: Characters/Blacksmith.hyanim
-      StartClip: ""
-      PlayOnStart: true
-      Speed: 1
-  - Entity: 319096543639198420
-    TagComponent:
-      Tag: Barmaid
-    TransformComponent:
-      Translation: [-2, -4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2, 3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11969883262739761085
-      Texture: Characters/Villagers.png
-      Sprite: Barmaid_Down_0
-      SpriteIndex: 24
-      FlipX: false
-      FlipY: false
-    SpriteAnimatorComponent:
-      AnimationsHandle: 2472910742119809806
-      Animations: Characters/Barmaid.hyanim
-      StartClip: ""
-      PlayOnStart: true
-      Speed: 1
+    NativeScriptComponent:
+      Scripts:
+        []
   - Entity: 8808348576020357845
     TagComponent:
       Tag: Farmer
@@ -279,11 +164,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         []
-  - Entity: 5337072292957226024
+  - Entity: 7630690822749002946
     TagComponent:
-      Tag: Gatherer
+      Tag: Blacksmith
     TransformComponent:
-      Translation: [6, -4, 0]
+      Translation: [-6, 4, 0]
       Rotation: [0, 0, 0]
       Scale: [2, 3, 1]
     SpriteRendererComponent:
@@ -292,13 +177,142 @@ Entities:
       SortOrder: 0
       TextureHandle: 11969883262739761085
       Texture: Characters/Villagers.png
-      Sprite: Gatherer_Down_0
-      SpriteIndex: 72
+      Sprite: Blacksmith_Down_0
+      SpriteIndex: 0
       FlipX: false
       FlipY: false
     SpriteAnimatorComponent:
-      AnimationsHandle: 1444298772692147167
-      Animations: Characters/Gatherer.hyanim
+      AnimationsHandle: 8079240564453792839
+      Animations: Characters/Blacksmith.hyanim
       StartClip: ""
       PlayOnStart: true
       Speed: 1
+  - Entity: 3641603982383516983
+    TagComponent:
+      Tag: Blacksmith
+    TransformComponent:
+      Translation: [-6, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 11969883262739761085
+      Texture: Characters/Villagers.png
+      Sprite: Blacksmith_Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8079240564453792839
+      Animations: Characters/Blacksmith.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 5207375455725770143
+    TagComponent:
+      Tag: Blacksmith
+    TransformComponent:
+      Translation: [-6, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 11969883262739761085
+      Texture: Characters/Villagers.png
+      Sprite: Blacksmith_Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8079240564453792839
+      Animations: Characters/Blacksmith.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 17689259472080886904
+    TagComponent:
+      Tag: Barmaid
+    TransformComponent:
+      Translation: [-2, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 11969883262739761085
+      Texture: Characters/Villagers.png
+      Sprite: Barmaid_Down_0
+      SpriteIndex: 24
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 2472910742119809806
+      Animations: Characters/Barmaid.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 319096543639198420
+    TagComponent:
+      Tag: Barmaid
+    TransformComponent:
+      Translation: [-2, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 11969883262739761085
+      Texture: Characters/Villagers.png
+      Sprite: Barmaid_Down_0
+      SpriteIndex: 24
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 2472910742119809806
+      Animations: Characters/Barmaid.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 445363681616962640
+    TagComponent:
+      Tag: Barmaid
+    TransformComponent:
+      Translation: [-2, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 11969883262739761085
+      Texture: Characters/Villagers.png
+      Sprite: Barmaid_Down_0
+      SpriteIndex: 24
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 2472910742119809806
+      Animations: Characters/Barmaid.hyanim
+      StartClip: ""
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 1272504414806406023
+    TagComponent:
+      Tag: ground
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [32, 32, 1]
+    SpriteRendererComponent:
+      Color: [0.426896513, 0.899999976, 0.199999988, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false

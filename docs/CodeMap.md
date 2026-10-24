@@ -24,15 +24,16 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Asset/Asset.*` | `AssetHandle` (= `UUID`), `AssetType` (to/from string, from a file extension), `Asset` base class (`Texture2D`, `SpriteAnimationSet`) |
 | `Asset/AssetMetadata.h`, `Asset/AssetRegistry.*` | What is known about one asset; the handle ↔ path table (in memory, rebuilt by scanning) |
 | `Asset/AssetMetaSerializer.*` | Where a file keeps its handle: first line of scenes/prefabs/`.hyanim`, `<file>.hymeta` sidecar for images (shared with the texture import config) |
-| `Asset/AssetManager.*` | `AssetManager` subsystem: project open/close, scan (new handles, copies, missing files), `ImportAsset`, `BindHandle` (loaders), lookups |
+| `Asset/AssetManager.*` | `AssetManager` subsystem: project open/close, scan (new handles, copies, missing files), `ImportAsset`, `BindHandle`, lookups; texture cache: `GetAsset<T>`, `GetLoadedAsset<T>`, `ReloadAsset<T>`, `UnloadUnused`, `GetLoadState` |
 | **Renderer** (engine-facing, no Vulkan types in new headers) | |
 | `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
 | `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`), `RendererCapabilities` |
 | `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; `DrawQuad` with tiling or a `TextureRect` (sprite of a sheet); `GetImGuiTexture` for editor previews; also implements `RenderView` |
 | `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches) |
-| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `LoadFromFile` (shared by file, reads `<file>.hymeta`, slices sheets, colour key), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect`; compiles stb_image's implementation (`STB_IMAGE_IMPLEMENTATION`) for the engine |
+| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `Create` (uploads an `ImportedTexture`), `LoadFromFile` (asks the `AssetManager` for project files, shares other files while alive), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect` |
 | `Renderer/Image.h` | `ImageSpecification`, `TextureProperties`, image/texture enums |
 | `Renderer/TextureImport.h` | `TextureImportConfig` (saved per image in `<image>.hymeta`), `SpriteMode`, `SpriteRegion`, `SpriteSlicingConfig` |
+| `Renderer/TextureImporter.*` | Decodes an image file with its `.hymeta` (colour key, slicing) into `ImportedTexture` pixels + spec + config; compiles stb_image's implementation (`STB_IMAGE_IMPLEMENTATION`) for the engine; no GPU |
 | `Renderer/TextureImportSerializer.*` | `.hymeta` read/write |
 | `Renderer/SpriteSlicer.*` | Sprite sheet slicing: `SliceGrid`, `DetectGrid` (pure, no GPU) |
 | `Renderer/SceneRenderer.*` | Submits a `Scene`'s sprites through the editor camera or the primary camera (sheet sprites: UV rect, pivot, flip) |
@@ -106,7 +107,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | 2D drawing / batching | `Renderer2D.*`, shaders in `Oxygen/assets/shaders`, `RendererStatsWindow.cpp` for new stats |
 | Textures | `Texture2D.*`, `VulkanImage.*`, `VulkanTexture2DData.h`; sprites: `SceneRenderer.cpp`, `EntitySerializer.cpp`, `InspectorWindow.cpp` |
 | New asset type | `AssetType` + `AssetTypeToString` / `AssetTypeFromString` / `GetAssetTypeFromExtension` (`Asset.cpp`); `AssetMetaSerializer::StoresHandleInFile` if Hydro writes the file (and its serializer writes `Handle` first); a loaded type derives from `Asset` |
-| Sprite sheets / import settings | `TextureImport.h`, `TextureImportSerializer.*`, `SpriteSlicer.*`, `Texture2D.cpp` (`LoadFromFile`, `SetImportConfig`) |
+| Sprite sheets / import settings | `TextureImport.h`, `TextureImportSerializer.*`, `TextureImporter.*`, `SpriteSlicer.*`, `Texture2D.cpp` (`Create`, `SetImportConfig`) |
 | Sprite animation | `SpriteAnimation.*`, `SpriteAnimationSerializer.*`, `SpriteAnimator.*` (system + API), `Scene.cpp` (`OnUpdateRuntime`), inspector section, `SpriteAnimationWindow.*` |
 | An image shown in the editor | `Renderer2D::GetImGuiTexture(texture)` (pooled ImGui handles), `PropertyUI::SpriteImage` for one sprite |
 | Docs | Edit `docs/`, then `python scripts/regen_wiki.py`; wiki-only pages (Components, Roadmap, Known-Issues) by hand |

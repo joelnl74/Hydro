@@ -1,30 +1,19 @@
 #include "hypch.h"
 #include "Texture2D.h"
 #include "TextureImportSerializer.h"
-#include "SpriteSlicer.h"
+#include "TextureImporter.h"
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Platform/Vulkan/VulkanTexture2DData.h"
-
-// stb_image's implementation is compiled here, once for the whole engine (VulkanImage.cpp uses it
-// too). Vendored code: its warnings are not ours.
-#if defined(_MSC_VER)
-	#pragma warning(push, 0)
-#endif
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#if defined(_MSC_VER)
-	#pragma warning(pop)
-#endif
 
 #include <string>
 #include <unordered_map>
 
 namespace Hydro
 {
-	// Textures loaded from files that are still alive, so many sprites using one file share one texture.
-	// Weak: the cache never keeps a texture (or GPU memory) alive by itself.
-	// TODO(assets): replaced by the AssetManager's handle -> asset table.
+	// Textures loaded from files outside the asset folder that are still alive, so many sprites using one
+	// file share one texture. Weak: the cache never keeps a texture (or GPU memory) alive by itself.
+	// Images inside the asset folder are shared by the AssetManager instead.
 	static std::unordered_map<std::string, std::weak_ptr<Texture2D>> s_LoadedTextures;
 
 	// The .hymeta's modification time is part of the key, so a re-saved import config re-imports
@@ -34,23 +23,6 @@ namespace Hydro
 		return path.generic_u8string() + "|" + std::to_string((int)format) + "|" +
 			std::to_string((int)properties.SamplerFilter) + "|" + std::to_string((int)properties.SamplerWrap) + "|" +
 			std::to_string(importFileTime);
-	}
-
-	// Pixels of exactly the key colour become fully transparent (and black, so linear filtering
-	// doesn't pull the key colour into the sprite's edge).
-	static void ApplyColorKey(stbi_uc* pixels, size_t pixelCount, const glm::uvec3& key)
-	{
-		for (size_t i = 0; i < pixelCount; i++)
-		{
-			stbi_uc* pixel = pixels + i * 4;
-			if (pixel[0] == key.r && pixel[1] == key.g && pixel[2] == key.b)
-			{
-				pixel[0] = 0;
-				pixel[1] = 0;
-				pixel[2] = 0;
-				pixel[3] = 0;
-			}
-		}
 	}
 
 	Texture2D::Texture2D(const ImageSpecification& specification, const void* pixels, const TextureProperties& properties)
@@ -76,6 +48,14 @@ namespace Hydro
 		return *texture.m_Data;
 	}
 
+	Ref<Texture2D> Texture2D::Create(const ImportedTexture& imported, const std::filesystem::path& absolutePath)
+	{
+		Ref<Texture2D> texture = CreateRef<Texture2D>(imported.Specification, imported.Pixels.data(), imported.Config.Properties);
+		texture->m_Path = absolutePath;
+		texture->SetImportConfig(imported.Config);
+		return texture;
+	}
+
 	Ref<Texture2D> Texture2D::LoadFromFile(const std::filesystem::path& path, const TextureProperties& properties, ImageFormat format)
 	{
 		std::error_code error;
@@ -85,24 +65,32 @@ namespace Hydro
 			absolutePath = path;
 		}
 
-		// The import config next to the file decides how it is imported; without one, the caller's
-		// properties and format are used.
-		TextureImportConfig config;
-		config.Format = format;
-		config.Properties = properties;
-		int64_t importFileTime = 0;
-		const std::filesystem::path importPath = GetImportFilePath(absolutePath);
-		if (std::filesystem::exists(importPath, error))
+		// An image in the open project's asset folder is an asset: the AssetManager loads it once and
+		// shares it (its .hymeta decides how), until the project closes.
+		const AssetHandle handle = AssetManager::ImportAsset(absolutePath);
+		if ((uint64_t)handle != 0)
 		{
-			TextureImportConfig imported;
-			if (TextureImportSerializer::Deserialize(importPath, imported))
+			return AssetManager::GetAsset<Texture2D>(handle);
+		}
+
+		// Anywhere else: loaded here and shared while alive.
+		TextureImportConfig fallback;
+		fallback.Format = format;
+		fallback.Properties = properties;
+		const int64_t importFileTime = TextureImporter::GetImportConfigVersion(absolutePath);
+
+		// The settings used (the .hymeta's when there is one) are part of the key.
+		TextureImportConfig used = fallback;
+		if (importFileTime != 0)
+		{
+			TextureImportConfig fromFile;
+			if (TextureImportSerializer::Deserialize(GetImportFilePath(absolutePath), fromFile))
 			{
-				config = imported;
-				importFileTime = (int64_t)std::filesystem::last_write_time(importPath, error).time_since_epoch().count();
+				used = fromFile;
 			}
 		}
 
-		const std::string key = MakeCacheKey(absolutePath, config.Properties, config.Format, importFileTime);
+		const std::string key = MakeCacheKey(absolutePath, used.Properties, used.Format, importFileTime);
 		if (auto found = s_LoadedTextures.find(key); found != s_LoadedTextures.end())
 		{
 			if (Ref<Texture2D> texture = found->second.lock())
@@ -111,44 +99,13 @@ namespace Hydro
 			}
 		}
 
-		int width = 0;
-		int height = 0;
-		int channels = 0;
-		stbi_uc* pixels = stbi_load(absolutePath.string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
-		if (pixels == nullptr)
+		ImportedTexture imported;
+		if (TextureImporter::Import(absolutePath, fallback, imported) == false)
 		{
-			HY_CORE_ERROR("Texture2D: can't load '{}': {}", absolutePath.string(), stbi_failure_reason());
 			return nullptr;
 		}
 
-		// A sheet whose .hymeta has slicing settings but no sprite list is sliced now (written by hand,
-		// or Mode: Auto). The sprites aren't written back; the file stays as it is.
-		if (config.Mode == SpriteMode::Multiple && config.Sprites.empty() && config.Slicing.Mode != SpriteSlicingMode::Manual)
-		{
-			if (config.Slicing.Mode == SpriteSlicingMode::Auto &&
-				SpriteSlicer::DetectGrid(pixels, (uint32_t)width, (uint32_t)height, config, config.Slicing) == false)
-			{
-				HY_CORE_WARN("Texture2D: '{}': no sprite grid found; using the whole image", absolutePath.string());
-			}
-			config.Sprites = SpriteSlicer::SliceGrid((uint32_t)width, (uint32_t)height, config.Slicing, absolutePath.stem().u8string());
-		}
-
-		if (config.UseColorKey)
-		{
-			ApplyColorKey(pixels, (size_t)width * (size_t)height, config.ColorKey);
-		}
-
-		ImageSpecification specification;
-		specification.Width = (uint32_t)width;
-		specification.Height = (uint32_t)height;
-		specification.Format = config.Format;
-		specification.Usage = ImageUsage::Texture;
-
-		Ref<Texture2D> texture = CreateRef<Texture2D>(specification, pixels, config.Properties);
-		stbi_image_free(pixels);
-		texture->m_Path = absolutePath;
-		AssetManager::BindHandle(*texture, absolutePath);
-		texture->SetImportConfig(config);
+		Ref<Texture2D> texture = Create(imported, absolutePath);
 
 		// Drop entries whose textures are gone, then remember this one.
 		for (auto it = s_LoadedTextures.begin(); it != s_LoadedTextures.end();)
