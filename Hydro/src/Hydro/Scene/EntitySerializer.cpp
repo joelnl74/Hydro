@@ -147,6 +147,18 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<Shadow2DComponent>())
+		{
+			auto& shadow = entity.GetComponent<Shadow2DComponent>();
+
+			out << YAML::Key << "Shadow2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << shadow.Offset;
+			out << YAML::Key << "Size" << YAML::Value << shadow.Size;
+			out << YAML::Key << "Strength" << YAML::Value << shadow.Strength;
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
 			auto& scripts = entity.GetComponent<NativeScriptComponent>();
@@ -253,6 +265,14 @@ namespace Hydro
 			light.Color = lightNode["Color"].as<glm::vec3>(light.Color);
 			light.Intensity = lightNode["Intensity"].as<float>(light.Intensity);
 			light.Radius = lightNode["Radius"].as<float>(light.Radius);
+		}
+
+		if (auto shadowNode = entityNode["Shadow2DComponent"])
+		{
+			auto& shadow = entity.AddComponent<Shadow2DComponent>();
+			shadow.Offset = shadowNode["Offset"].as<glm::vec2>(shadow.Offset);
+			shadow.Size = shadowNode["Size"].as<glm::vec2>(shadow.Size);
+			shadow.Strength = shadowNode["Strength"].as<float>(shadow.Strength);
 		}
 
 		if (auto scriptNode = entityNode["NativeScriptComponent"])

@@ -37,6 +37,16 @@ namespace Hydro
 		float GPUTimeMs = -1.0f;
 		const char* GPUName = "";
 
+		// 2D lighting (GPU times come from the same timestamp queries, summed over the lit views;
+		// -1 = unsupported or no lit view). The light pass includes the shadows. The parts are
+		// measured separately, so they can slightly overlap the 2D pass total.
+		float LightPassGPUMs = -1.0f;
+		float ShadowGPUMs = -1.0f;
+		float CompositeGPUMs = -1.0f;
+		uint32_t LitViewCount = 0;   // views that drew a light buffer this frame
+		uint32_t LightCount = 0;     // point lights drawn into light buffers
+		uint32_t ShadowCount = 0;    // blob shadows drawn into light buffers
+
 		// Frame / target.
 		uint32_t ViewCount = 0;      // views rendered this frame
 		uint32_t ViewportWidth = 0;  // size of the first view rendered this frame
@@ -92,6 +102,11 @@ namespace Hydro
 		// A light that reaches everything equally: the ambient colour of the view. Several add up. Without
 		// one, the parts no point light reaches are black.
 		static void DrawGlobalLight(const glm::vec3& color, float intensity);
+		// A soft blob shadow (RendererSettings::Shadows): an ellipse centred on `position`, `size` wide and
+		// high in world units, that darkens the light buffer by `strength` (0..1) at its centre and fades to
+		// nothing at its edge. It darkens whatever light reaches that spot, ambient included. It does not
+		// light a view by itself and does nothing in an unlit one. At most 1024 per view and frame.
+		static void DrawShadow(const glm::vec3& position, const glm::vec2& size, float strength);
 
 		// Records one render pass per view begun this frame (one vkCmdDrawIndexed per draw) into
 		// the frame's command buffer. Called once per frame by Renderer::RenderFrame.
@@ -134,7 +149,7 @@ namespace Hydro
 		// isn't lit: lighting is off, it has no lights, or the light shaders are unavailable.
 		static bool RecordLightPass(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
 		// Multiplies the light buffer over the scene. Call it inside the scene pass, after the sprites.
-		static void RecordComposite(VkCommandBuffer commandBuffer, RenderViewData& view);
+		static void RecordComposite(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
 		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad
 		// shader when a source file changed (only with RendererSettings::ShaderHotReload).
 		static void ApplySettings();

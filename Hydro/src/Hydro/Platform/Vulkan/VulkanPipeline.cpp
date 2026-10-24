@@ -81,6 +81,16 @@ namespace Hydro
 			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 			state.alphaBlendOp = VK_BLEND_OP_ADD;
 			break;
+		case BlendMode::Darken:
+			// colour: dst * (1 - src alpha). The target's alpha is left as it is.
+			state.blendEnable = VK_TRUE;
+			state.srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+			state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			state.colorBlendOp = VK_BLEND_OP_ADD;
+			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.alphaBlendOp = VK_BLEND_OP_ADD;
+			break;
 		}
 
 		return state;

@@ -12,7 +12,7 @@ namespace Hydro
 	{
 		return a.ClearColor == b.ClearColor && a.VSync == b.VSync && a.Wireframe == b.Wireframe
 			&& a.ShaderHotReload == b.ShaderHotReload
-			&& a.Lighting == b.Lighting && a.LightFalloff == b.LightFalloff && a.LightBands == b.LightBands;
+			&& a.Lighting == b.Lighting && a.LightFalloff == b.LightFalloff && a.LightBands == b.LightBands && a.Shadows == b.Shadows;
 	}
 
 	static void HelpMarker(const char* text)
@@ -75,6 +75,9 @@ namespace Hydro
 				changed = true;
 			}
 			ImGui::EndDisabled();
+
+			changed |= ImGui::Checkbox("Shadows", &settings.Shadows);
+			HelpMarker("Draw blob shadows (Shadow 2D components) in lit views. They darken the light buffer.");
 
 			ImGui::EndDisabled();
 

@@ -159,6 +159,20 @@ namespace Hydro
 		Light2DComponent(const Light2DComponent&) = default;
 	};
 
+	// A soft blob shadow under the entity, for the 2D renderer: an ellipse that darkens the light buffer of a
+	// lit view (RendererSettings::Shadows). Placed by the TransformComponent plus Offset; Size is in world
+	// units and ignores the transform's scale. It is not cast from lights, so it does not move with them: it grounds the
+	// sprite. It darkens whatever light reaches that spot, ambient included.
+	struct Shadow2DComponent
+	{
+		glm::vec2 Offset{ 0.0f, 0.0f };  // from the entity's position, in world units (0 for a sprite whose pivot is at its feet)
+		glm::vec2 Size{ 1.5f, 0.5f };    // width and height of the ellipse, in world units (not scaled by the transform)
+		float Strength = 0.5f;           // 0 = no shadow, 1 = black at the centre
+
+		Shadow2DComponent() = default;
+		Shadow2DComponent(const Shadow2DComponent&) = default;
+	};
+
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
 	template<typename... Component>
@@ -166,5 +180,5 @@ namespace Hydro
 	{
 	};
 
-	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent>;
+	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent>;
 }

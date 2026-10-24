@@ -35,6 +35,8 @@ namespace Hydro
 		void SubmitSprites();
 		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
 		void SubmitLights();
+		// Submits the scene's Shadow2DComponents (blob shadows in lit views, RendererSettings::Shadows).
+		void SubmitShadows();
 		// One sprite: the whole texture (tiled), or a sprite of a sheet placed by its pivot; flipped as asked.
 		static void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite);
 

@@ -19,6 +19,7 @@ namespace Hydro
 	//   Lighting: true
 	//   LightFalloff: Smooth    (or Banded)
 	//   LightBands: 8
+	//   Shadows: true
 	class ProjectSerializer
 	{
 	public:

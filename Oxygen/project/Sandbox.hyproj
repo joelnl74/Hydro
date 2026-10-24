@@ -1,9 +1,13 @@
 Project:
   Name: Sandbox
   AssetDirectory: Assets
-  StartSceneHandle: 15379723701663396974
+  StartSceneHandle: 4844082714373857365
 Renderer:
   ClearColor: [0, 0, 0, 1]
   VSync: true
   Wireframe: false
   ShaderHotReload: true
+  Lighting: true
+  LightFalloff: Smooth
+  LightBands: 8
+  Shadows: true

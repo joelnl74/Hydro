@@ -18,6 +18,7 @@ namespace Hydro
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
 		SubmitSprites();
 		SubmitLights();
+		SubmitShadows();
 		Renderer2D::EndScene();
 	}
 
@@ -44,6 +45,7 @@ namespace Hydro
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
 		SubmitSprites();
 		SubmitLights();
+		SubmitShadows();
 		Renderer2D::EndScene();
 		return true;
 	}
@@ -116,6 +118,18 @@ namespace Hydro
 			{
 				Renderer2D::DrawLight(transform.Translation, light.Radius, light.Color, light.Intensity);
 			}
+		}
+	}
+
+	void SceneRenderer::SubmitShadows()
+	{
+		auto view = m_Scene->m_Registry.view<TransformComponent, Shadow2DComponent>();
+		for (auto entity : view)
+		{
+			const auto [transform, shadow] = view.get<TransformComponent, Shadow2DComponent>(entity);
+
+			const glm::vec3 position = transform.Translation + glm::vec3(shadow.Offset, 0.0f);
+			Renderer2D::DrawShadow(position, shadow.Size, shadow.Strength);
 		}
 	}
 

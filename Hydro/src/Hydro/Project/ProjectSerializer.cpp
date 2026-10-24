@@ -39,6 +39,7 @@ namespace Hydro
 		out << YAML::Key << "Lighting" << YAML::Value << renderer.Lighting;
 		out << YAML::Key << "LightFalloff" << YAML::Value << (renderer.LightFalloff == LightFalloffStyle::Banded ? "Banded" : "Smooth");
 		out << YAML::Key << "LightBands" << YAML::Value << renderer.LightBands;
+		out << YAML::Key << "Shadows" << YAML::Value << renderer.Shadows;
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
@@ -122,6 +123,11 @@ namespace Hydro
 				if (auto node = rendererNode["LightBands"])
 				{
 					renderer.LightBands = node.as<uint32_t>(renderer.LightBands);
+				}
+
+				if (auto node = rendererNode["Shadows"])
+				{
+					renderer.Shadows = node.as<bool>(renderer.Shadows);
 				}
 			}
 		}

@@ -35,6 +35,8 @@ namespace Hydro
 		// How lights fade out: Smooth, or Banded in LightBands steps (clamped to 2..32 when used).
 		LightFalloffStyle LightFalloff = LightFalloffStyle::Smooth;
 		uint32_t LightBands = 8;
+		// Blob shadows (Shadow2DComponent) in lit views: they darken the light buffer. Needs Lighting.
+		bool Shadows = true;
 
 		// Rebuild shaders when their source files change (checked a few times per second).
 #ifdef HY_DIST

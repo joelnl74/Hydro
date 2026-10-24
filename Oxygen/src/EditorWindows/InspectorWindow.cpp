@@ -357,6 +357,7 @@ namespace Hydro
 		bool removeCamera = false;
 		bool removeAnimator = false;
 		bool removeLight = false;
+		bool removeShadow = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
 
@@ -504,6 +505,16 @@ namespace Hydro
 			}
 		});
 
+		DrawComponent<Shadow2DComponent>("Shadow 2D", entity, removeShadow, [&](Shadow2DComponent& shadow)
+		{
+			DrawPropertyRow("Offset X", [&]() { InputFloatField("##ShadowOffsetX", shadow.Offset.x, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Offset Y", [&]() { InputFloatField("##ShadowOffsetY", shadow.Offset.y, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Width", [&]() { InputFloatField("##ShadowWidth", shadow.Size.x, "%.2f", 0.01f, 10000.0f); });
+			DrawPropertyRow("Height", [&]() { InputFloatField("##ShadowHeight", shadow.Size.y, "%.2f", 0.01f, 10000.0f); });
+			DrawPropertyRow("Strength", [&]() { InputFloatField("##ShadowStrength", shadow.Strength, "%.2f", 0.0f, 1.0f); });
+			ImGui::TextDisabled("A blob under the entity. Shows in views that have lights.");
+		});
+
 		int scriptToRemove = -1;
 		DrawComponent<NativeScriptComponent>("Scripts", entity, removeScripts, [&](NativeScriptComponent& scripts)
 		{
@@ -566,6 +577,10 @@ namespace Hydro
 		{
 			entity.RemoveComponent<Light2DComponent>();
 		}
+		if (removeShadow)
+		{
+			entity.RemoveComponent<Shadow2DComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -588,6 +603,7 @@ namespace Hydro
 			const bool hasCamera = entity.HasComponent<CameraComponent>();
 			const bool hasAnimator = entity.HasComponent<SpriteAnimatorComponent>();
 			const bool hasLight = entity.HasComponent<Light2DComponent>();
+			const bool hasShadow = entity.HasComponent<Shadow2DComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -631,6 +647,17 @@ namespace Hydro
 				entity.AddComponent<Light2DComponent>();
 
 				// A point light is placed by the entity's transform.
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Shadow 2D", nullptr, false, hasShadow == false))
+			{
+				entity.AddComponent<Shadow2DComponent>();
+
+				// The blob is placed by the entity's transform.
 				if (entity.HasComponent<TransformComponent>() == false)
 				{
 					entity.AddComponent<TransformComponent>();
