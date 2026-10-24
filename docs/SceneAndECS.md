@@ -2,7 +2,7 @@
 
 A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are IDs, components are plain data, and behaviour lives in **systems**: functions that run over every entity with a given set of components, in a fixed order, each frame.
 
-"System" in Hydro always means an ECS system like this. Engine-wide services with a lifetime (`Renderer`, `Log`, `Time`, ...) are **subsystems**; see [Subsystems](Subsystems.md). Systems get the frame's delta time as a parameter; it comes from `Time::GetDeltaTime()`.
+"System" in Hydro always means an ECS system like this. Engine-wide services with a lifetime (`Renderer`, `Log`, `Time`, ...) are **subsystems**; see [Subsystems](Subsystems.md). Engine systems take `(Scene&, const SystemContext&)`; the context carries the frame's delta time (`Time::GetDeltaTime()`), the fixed step, the frame index and whether the game is playing (see [System context and stages](#system-context-and-stages)).
 
 ## The pieces
 
@@ -49,19 +49,20 @@ void UpdateSpin(entt::registry& registry, float deltaTime)
 
 A scene is updated one of two ways:
 
-- `Scene::OnUpdateRuntime(dt)` — the game is running: native scripts, then the engine systems.
-- `Scene::OnUpdateEditor(dt)` — editing: the engine systems only, no scripts. Oxygen calls this one except in play mode (see [Play mode](#play-mode)).
+- `Scene::OnUpdateRuntime(dt)` — the game is running: builds a `SystemContext` (`IsPlaying = true`) and runs the stages below in order.
+- `Scene::OnUpdateEditor(dt)` — editing: builds a context with `IsPlaying = false` and runs only the transform stage, no scripts or animation. Oxygen calls this one except in play mode (see [Play mode](#play-mode)).
 
 | Order | System | Runs in | Reads → writes |
 | --- | --- | --- | --- |
-| 1 | Native scripts (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
-| 1b | `UpdateSpriteAnimations` (runtime only) | `Scene::OnUpdateRuntime`, after the scripts | `SpriteAnimatorComponent` → `SpriteRendererComponent` (`Texture`, `SpriteIndex`, `FlipX`) |
-| 2 | Engine systems | `Scene::OnUpdateEditor` (also called by `OnUpdateRuntime`) | None yet; transform propagation goes here |
-| 3 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
-| 4 | Sprite and light submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling or sprite rect, colour)`; `TransformComponent` + `Light2DComponent` → `Renderer2D::DrawLight` / `DrawGlobalLight`; `TransformComponent` + `Shadow2DComponent` → `Renderer2D::DrawShadow` (the view is then drawn lit, see [Architecture](Architecture.md#2d-lighting)) |
+| 1 | `UpdateScripts` (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
+| 2 | Physics (runtime only) | `Scene::OnUpdateRuntime` | None yet: the slot is reserved (Roadmap P1) |
+| 3 | `UpdateSpriteAnimations` (runtime only) | `Scene::OnUpdateRuntime`, after the scripts | `SpriteAnimatorComponent` → `SpriteRendererComponent` (`Texture`, `SpriteIndex`, `FlipX`) |
+| 4 | `Scene::UpdateTransforms` | `OnUpdateEditor` and `OnUpdateRuntime` | None yet; transform propagation goes here |
+| 5 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
+| 6 | Sprite and light submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling or sprite rect, colour)`; `TransformComponent` + `Light2DComponent` → `Renderer2D::DrawLight` / `DrawGlobalLight`; `TransformComponent` + `Shadow2DComponent` → `Renderer2D::DrawShadow` (the view is then drawn lit, see [Architecture](Architecture.md#2d-lighting)) |
 | — | GPU | `Renderer::RenderFrame` (application loop) | Records and presents everything submitted |
 
-New engine systems go into `Scene::OnUpdateEditor` when they must also run while editing, or into `Scene::OnUpdateRuntime` (after the scripts) when they are game-only, in a deliberate position. Gameplay systems belong to the application and run after it.
+New engine systems are a `(Scene&, const SystemContext&)` function called from a stage: in `Scene::OnUpdateEditor` as well when they must also run while editing, otherwise only in `Scene::OnUpdateRuntime`, in a deliberate position. Game-only systems return at once when `context.IsPlaying` is false. Gameplay systems belong to the application and run after the scene update.
 
 ## Cameras
 
@@ -145,7 +146,7 @@ Three pieces, chained by name: a sheet texture (sprite mode `Multiple`, see [Arc
 
 - **`SpriteAnimationSet`** (`Scene/SpriteAnimation.h`): a resource made from `SpriteAnimationSetSpecification` (texture, clips, default clip), loaded with `SpriteAnimationSet::LoadFromFile(path)` (shared while alive, `nullptr` on failure; `SpriteAnimationSerializer` reads the YAML). A clip is a name, frames (sprite index + duration in seconds, at least `MinFrameDuration`), a loop mode (`Once`, `Loop`, `PingPong`), `FlipX` and events (frame + name; recorded in the file, not delivered yet). In the file, frames name sprites (`Farmer_Left_0`), so re-slicing the sheet keeps clips; `FrameRate` is the short form for equal frames. Give every character a set with the same clip names and one script drives any of them.
 - **`SpriteAnimatorComponent`**: saved `Animations` (`Ref<SpriteAnimationSet>`, `TODO(assets)`), `StartClip` (empty = the set's default), `PlayOnStart`, `Speed`; runtime fields (`ClipIndex`, `FrameIndex`, `FrameTime`, `Step`, `Playing`, `Finished`) are not saved, so a play copy and a loaded scene start fresh.
-- **`UpdateSpriteAnimations(registry, deltaTime)`** (`Scene/SpriteAnimator.h`): one system over `SpriteAnimatorComponent` + `SpriteRendererComponent`, in `OnUpdateRuntime` right after the scripts (a `Play` from a script shows the same frame). Starts `PlayOnStart` animators, advances `FrameTime` by `deltaTime * Speed` (a `while`, so a hitch can pass several frames), then writes `Texture`, `SpriteIndex` and `FlipX`. Nothing animates while editing; the inspector writes the start clip's first frame into the sprite so the editor shows the starting pose.
+- **`UpdateSpriteAnimations(scene, context)`** (`Scene/SpriteAnimator.h`): one system over `SpriteAnimatorComponent` + `SpriteRendererComponent`, in `OnUpdateRuntime` after the scripts and physics (a `Play` from a script shows the same frame). Starts `PlayOnStart` animators, advances `FrameTime` by `context.DeltaTime * Speed` (a `while`, so a hitch can pass several frames), then writes `Texture`, `SpriteIndex` and `FlipX`. Nothing animates while editing; the inspector writes the start clip's first frame into the sprite so the editor shows the starting pose.
 - **`SpriteAnimator`**: static functions over the component (no state): `Play(entity, "WalkLeft", restart = false)` (already playing that clip → carries on, so it is safe every frame; unknown name → warning once, `false`), `Play(entity, index)`, `Stop` (back to frame 0), `Pause`, `Resume`, `IsPlaying(entity, clip = {})`, `IsFinished`, `GetCurrentClip`, `SetSpeed`.
 
 ```cpp
@@ -154,23 +155,28 @@ SpriteAnimator::Play(GetEntity(), moving ? "WalkLeft" : "IdleLeft");
 
 Oxygen's `VillagerWalkScript` and `Assets/Scenes/Villagers.hyscene` (Sandbox project) are a working example. `Assets/Scenes/LightingTest.hyscene` is a small playable scene built on it: the Player (`Player.png`, with idle and walk rows) uses `VillagerWalk` + `YSort`, and the camera uses `CameraFollow`; press Play and walk with WASD. In the editor: the Inspector's image import settings and the **Sprite Editor** make the sheet, the **Animation** window edits the clips (see [Architecture](Architecture.md#the-editor-oxygen)).
 
-## Planned: system context and stages
+## System context and stages
 
-Roadmap A5 (finishes E5). Every system gets the same small struct instead of a growing parameter list, and `Scene` runs its systems from one ordered list, so the frame order above is in code rather than only in this page:
+Every engine system gets the same small struct (`Scene/SystemContext.h`) instead of a growing parameter list, and `Scene` runs its systems as numbered, plain function calls in `OnUpdateRuntime` / `OnUpdateEditor`, so the frame order above is in code, not only on this page:
 
 ```cpp
 struct SystemContext
 {
-    float DeltaTime = 0.0f;       // variable step: Time::GetDeltaTime()
-    float FixedDeltaTime = 0.0f;  // fixed step for physics
-    uint64_t FrameIndex = 0;
-    bool IsPlaying = false;       // false in the editor
+    float DeltaTime = 0.0f;       // seconds since the last frame: Time::GetDeltaTime(), clamped
+    float FixedDeltaTime = 1/60;  // the step fixed-timestep stages (physics) advance by
+    uint64_t FrameIndex = 0;      // Time::GetFrameCount()
+    bool IsPlaying = false;       // true in OnUpdateRuntime, false while editing
 };
 
-void UpdatePhysics(Scene& scene, const SystemContext& context);
+void UpdateScripts(Scene& scene, const SystemContext& context);          // Scene/ScriptSystem.h
+void UpdateSpriteAnimations(Scene& scene, const SystemContext& context); // Scene/SpriteAnimator.h
 ```
 
-Stages run in this order: **Scripts** (play mode only) → **Physics** → **Transforms** (world-transform propagation, S3) → **Render submission**. `OnUpdateRuntime` and `OnUpdateEditor` build the context and run the stages; a stage that only runs in play mode checks `context.IsPlaying`. Do this before physics (P1) adds the first engine system with its own timestep.
+- **One context per update.** `Scene` builds it once and passes the same one to every stage, so all stages of a frame agree.
+- **Stage order:** Scripts → Physics → Sprite animation → Transforms (world-transform propagation, S3), then the application's systems, then render submission.
+- **Play-only stages check `context.IsPlaying`** and return at once when it is false, so calling one while editing is harmless.
+- Physics has its slot in `OnUpdateRuntime` but no system yet; `FixedDeltaTime` is the 60 Hz step it will use.
+- The list stays plain function calls. Promote it to a registered list only if applications need their own stages.
 
 ## Planned: component registry
 
@@ -192,7 +198,7 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 - The selection is cleared on Play and Stop (there's no `GetEntityByUUID` yet to carry it over, S1).
 - Scripts must be compiled into the application and registered in code: there's no separate game module or hot reload, and scripts can't expose fields to the inspector yet.
 - There is no parent/child hierarchy yet.
-- Systems take loose parameters (`registry`, `deltaTime`) and the order lives in `OnUpdateRuntime` / `OnUpdateEditor` code, not a list (A5).
+- The stage order lives in `OnUpdateRuntime` / `OnUpdateEditor` code as plain calls, not a registered list; the application's own systems (`UpdateGalaxy`) still take `(registry, deltaTime)` and are migrated when touched.
 - Each component is listed separately in the serializer, `CopyableComponents` and the inspector (A6).
 - Sprite textures are referenced by path until the asset system: `EntitySerializer` loads them and reads `Project` for the asset folder, a texture whose file is missing at load is dropped when the scene is saved again, and sampling options aren't saved (see [Architecture](Architecture.md#asset-system)).
 - `Entity::GetComponent` doesn't assert the component exists and has no `const` overload (E6, A11).

@@ -9,6 +9,9 @@
 
 namespace Hydro
 {
+	class Scene;
+	struct SystemContext;
+
 	// Base class for native (C++) gameplay scripts. Derive from it and attach with
 	// entity.AddComponent<NativeScriptComponent>().Bind<MyScript>();
 	class ScriptableEntity
@@ -34,6 +37,8 @@ namespace Hydro
 		// when the registry moves its component storage around.
 		Entity m_Entity;
 		friend class Scene;
+		// The script stage creates the instances and sets their entity.
+		friend void UpdateScripts(Scene&, const SystemContext&);
 	};
 
 	// Plain data stored in the registry: the entity's scripts, in the order they were bound.

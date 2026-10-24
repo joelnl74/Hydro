@@ -11,6 +11,7 @@ namespace Hydro
 {
 	class Entity;
 	class UUID;
+	struct SystemContext;
 
 	class Scene
 	{
@@ -26,9 +27,11 @@ namespace Hydro
 		// IDComponent are not copied. Also copies the name and the viewport size.
 		static Ref<Scene> Copy(const Ref<Scene>& source);
 
-		// Runtime (the game is running): native scripts, then the other engine systems.
+		// Runtime (the game is running): builds a SystemContext (IsPlaying = true) and runs the
+		// stages in order: scripts, physics (none yet), sprite animation, transforms.
 		void OnUpdateRuntime(float deltaTime);
-		// Editing: the engine systems that keep the scene consistent, without scripts.
+		// Editing: builds a SystemContext (IsPlaying = false) and runs only the stages that keep the
+		// scene consistent while editing (transforms), without scripts or animation.
 		void OnUpdateEditor(float deltaTime);
 		void OnRender();
 
@@ -72,6 +75,9 @@ namespace Hydro
 		entt::registry m_Registry;
 
 	private:
+		// Stage 4: world-transform propagation, once there is a hierarchy (S3). Runs in both updates.
+		void UpdateTransforms(const SystemContext& context);
+
 		std::string m_Name;
 		std::vector<entt::entity> m_EntityOrder;
 		uint32_t m_ViewportWidth = 1280;

@@ -4,7 +4,9 @@
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/Components/Components.h"
+#include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/SpriteAnimation.h"
+#include "Hydro/Scene/SystemContext.h"
 
 #include <unordered_set>
 
@@ -114,9 +116,14 @@ namespace Hydro
 
 	// ---- System -----------------------------------------------------------------
 
-	void UpdateSpriteAnimations(entt::registry& registry, float deltaTime)
+	void UpdateSpriteAnimations(Scene& scene, const SystemContext& context)
 	{
-		auto view = registry.view<SpriteAnimatorComponent, SpriteRendererComponent>();
+		if (context.IsPlaying == false)
+		{
+			return;
+		}
+
+		auto view = scene.m_Registry.view<SpriteAnimatorComponent, SpriteRendererComponent>();
 		for (auto entity : view)
 		{
 			auto [animator, sprite] = view.get<SpriteAnimatorComponent, SpriteRendererComponent>(entity);
@@ -155,7 +162,7 @@ namespace Hydro
 
 			if (animator.Playing)
 			{
-				animator.FrameTime += deltaTime * std::max(animator.Speed, 0.0f);
+				animator.FrameTime += context.DeltaTime * std::max(animator.Speed, 0.0f);
 				// while, not if: a long frame (a hitch, a high Speed) may pass several frames. Durations
 				// are at least MinFrameDuration, so this ends.
 				while (animator.Playing && animator.FrameTime >= clip.Frames[animator.FrameIndex].Duration)

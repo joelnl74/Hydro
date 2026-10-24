@@ -8,10 +8,14 @@
 
 namespace Hydro
 {
-	// System (play mode, right after native scripts): advances every SpriteAnimatorComponent by
-	// deltaTime * Speed and writes the current frame into the entity's SpriteRendererComponent
+	class Scene;
+	struct SystemContext;
+
+	// System (play mode, after physics and before transforms): advances every SpriteAnimatorComponent by
+	// context.DeltaTime * Speed and writes the current frame into the entity's SpriteRendererComponent
 	// (Texture, SpriteIndex, FlipX). Starts PlayOnStart animators on their first update.
-	void UpdateSpriteAnimations(entt::registry& registry, float deltaTime);
+	// Does nothing unless context.IsPlaying.
+	void UpdateSpriteAnimations(Scene& scene, const SystemContext& context);
 
 	// Controls an entity's SpriteAnimatorComponent from scripts and game code:
 	//

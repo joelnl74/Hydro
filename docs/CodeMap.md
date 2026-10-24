@@ -52,12 +52,14 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanVertexBuffer.*`, `VulkanIndexBuffer.*`, `VulkanUniformBuffer.*` | Buffers; vertex layout types live in `VulkanVertexBuffer.h` |
 | `VulkanUtils.h` | `VK_CHECK_RESULT` |
 | **Scene** | |
-| `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor`, `Copy` (play mode), scripts, primary camera |
+| `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor` (build a `SystemContext`, run the stages in order), `Copy` (play mode), primary camera |
+| `Scene/SystemContext.h` | `SystemContext`: `DeltaTime`, `FixedDeltaTime`, `FrameIndex`, `IsPlaying`, passed to every engine system |
+| `Scene/ScriptSystem.*` | `UpdateScripts` system (creates script instances, runs `OnUpdate`) |
 | `Scene/Entity.*` | Handle (`entt::entity` + `Scene*`), component access |
 | `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`) + `CopyableComponents` |
 | `Scene/SpriteAnimation.*` | `SpriteAnimationSet` resource and `Asset` (named clips over one sheet), clip/frame/event types, `LoadFromFile` (shared by file, binds its asset handle) |
 | `Scene/SpriteAnimationSerializer.*` | `.hyanim` read/write (handle first line, texture by `TextureHandle` + path) |
-| `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations` system; `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`...) |
+| `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations(Scene&, const SystemContext&)` system; `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`...) |
 | `Scene/ScriptableEntity.h`, `ScriptRegistry.*` | `NativeScriptComponent`, script base class, name → factory table |
 | `Scene/EntitySerializer.*` | YAML for every component (both directions); used by scenes and prefabs |
 | `Scene/SceneSerializer.*`, `PrefabSerializer.*` | `.hyscene` / `.hyprefab` files |
@@ -106,7 +108,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | --- | --- |
 | New engine component | `Components.h` (+ `CopyableComponents`), `EntitySerializer.cpp` (both directions, defaults), `InspectorWindow.cpp` (`DrawComponents` + **Add Component**), wiki `Components.md`, `docs/SceneAndECS.md` table |
 | New field on a component | Same as above minus `CopyableComponents` |
-| New engine system | Function over a view, called from `Scene::OnUpdateEditor` or `OnUpdateRuntime` (`Scene.cpp`); frame order in `docs/SceneAndECS.md` |
+| New engine system | `(Scene&, const SystemContext&)` function over a view, called as a stage from `Scene::OnUpdateRuntime` (and `OnUpdateEditor` if it must run while editing) in `Scene.cpp`; frame order in `docs/SceneAndECS.md` |
 | New renderer setting | `RendererSettings.h`, read in `Renderer2D.cpp`/`Renderer.cpp` (or applied in `Renderer::SetSettings`), `ProjectSerializer.cpp`, `RenderSettingsWindow.cpp`, docs inventory |
 | New editor preference | `EditorSettings.h`, `EditorSettings.cpp` (serializer, default on missing key), `EditorSettingsWindow.cpp` |
 | New editor window | `EditorWindows/<Name>Window.*`, member + View menu entry in `EditorLayer.*`; callbacks for anything that saves |

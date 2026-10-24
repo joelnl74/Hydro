@@ -2,9 +2,12 @@
 #include "Scene.h"
 #include "Entity.h"
 #include "ScriptableEntity.h"
+#include "ScriptSystem.h"
 #include "SpriteAnimator.h"
+#include "SystemContext.h"
 
 #include "../Renderer/Renderer2D.h"
+#include <Hydro/Core/Time.h>
 #include <Hydro/Core/UUID.h>
 
 #include <algorithm>
@@ -264,42 +267,44 @@ namespace Hydro
 		entity.RemoveComponent<NativeScriptComponent>();
 	}
 
-	void Scene::OnUpdateRuntime(float deltaTime)
+	// One context per update, shared by every stage of that frame.
+	static SystemContext MakeSystemContext(float deltaTime, bool isPlaying)
 	{
-		// 1. Native scripts. Instances are created lazily on their first update.
-		auto view = m_Registry.view<NativeScriptComponent>();
-		for (auto entityHandle : view)
-		{
-			auto& scriptComponent = view.get<NativeScriptComponent>(entityHandle);
-			for (auto& script : scriptComponent.Scripts)
-			{
-				// Unknown script (not registered): kept so the scene saves it back, but it can't run.
-				if (script.Instantiate == nullptr)
-					continue;
-
-				if (script.Instance == nullptr)
-				{
-					script.Instance.reset(script.Instantiate());
-					script.Instance->m_Entity = Entity{ entityHandle, this };
-					script.Instance->OnCreate();
-				}
-
-				script.Instance->OnUpdate(deltaTime);
-			}
-		}
-
-		// 2. Game-only engine systems, after the scripts so what a script started this frame shows
-		// this frame.
-		UpdateSpriteAnimations(m_Registry, deltaTime);
-
-		// 3. Engine systems shared with the editor.
-		OnUpdateEditor(deltaTime);
+		SystemContext context;
+		context.DeltaTime = deltaTime;
+		context.FrameIndex = Time::GetFrameCount();
+		context.IsPlaying = isPlaying;
+		return context;
 	}
 
-	void Scene::OnUpdateEditor([[maybe_unused]] float deltaTime)
+	void Scene::OnUpdateRuntime(float deltaTime)
 	{
-		// Engine systems that run while editing as well as at runtime (e.g. transform propagation,
-		// once there is a hierarchy) go here. None yet.
+		const SystemContext context = MakeSystemContext(deltaTime, true);
+
+		// 1. Native scripts. Instances are created lazily on their first update.
+		UpdateScripts(*this, context);
+
+		// 2. Physics: none yet (Roadmap P1). It runs here, after the scripts have set velocities and
+		// forces and before animation and transforms read the result.
+
+		// 3. Sprite animation, after the scripts so what a script started this frame shows this frame.
+		UpdateSpriteAnimations(*this, context);
+
+		// 4. Transforms, shared with the editor.
+		UpdateTransforms(context);
+	}
+
+	void Scene::OnUpdateEditor(float deltaTime)
+	{
+		// Only the stages that keep the scene consistent while editing: no scripts, physics or animation.
+		const SystemContext context = MakeSystemContext(deltaTime, false);
+
+		UpdateTransforms(context);
+	}
+
+	void Scene::UpdateTransforms([[maybe_unused]] const SystemContext& context)
+	{
+		// World-transform propagation goes here once there is a parent/child hierarchy (S3). None yet.
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)

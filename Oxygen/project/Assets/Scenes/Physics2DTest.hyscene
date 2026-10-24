@@ -1,0 +1,719 @@
+Handle: 5266021446570683844
+Scene: Physics2DTest
+Entities:
+  - Entity: 862419426261319830
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Orthographic
+      PerspectiveFOV: 45
+      PerspectiveNear: 0.00999999978
+      PerspectiveFar: 1000
+      OrthographicSize: 14
+      OrthographicNear: -1
+      OrthographicFar: 1
+  - Entity: 9122551603234227350
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [24, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.35, 0.37, 0.42, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.6
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3105423142019719795
+    TagComponent:
+      Tag: Wall Left
+    TransformComponent:
+      Translation: [-11.5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 14, 1]
+    SpriteRendererComponent:
+      Color: [0.35, 0.37, 0.42, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.3
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2257251887430764668
+    TagComponent:
+      Tag: Wall Right
+    TransformComponent:
+      Translation: [11.5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 14, 1]
+    SpriteRendererComponent:
+      Color: [0.35, 0.37, 0.42, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.3
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1364074903690081858
+    TagComponent:
+      Tag: Ramp
+    TransformComponent:
+      Translation: [4, -1.5, 0]
+      Rotation: [0, 0, -0.3]
+      Scale: [7, 0.4, 1]
+    SpriteRendererComponent:
+      Color: [0.55, 0.45, 0.3, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7843638479394267968
+    TagComponent:
+      Tag: Kinematic Platform
+    TransformComponent:
+      Translation: [-1, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 0.4, 1]
+    SpriteRendererComponent:
+      Color: [0.6, 0.3, 0.6, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.3
+      Restitution: 0
+      IsSensor: false
+  - Entity: 300324847044335750
+    TagComponent:
+      Tag: Sensor Zone
+    TransformComponent:
+      Translation: [8.5, -4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 2, 1]
+    SpriteRendererComponent:
+      Color: [0.2, 0.9, 0.4, 0.35]
+      TilingFactor: 1
+      SortOrder: -1
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.3
+      Restitution: 0
+      IsSensor: true
+  - Entity: 1036356596509621467
+    TagComponent:
+      Tag: Crate 0_0
+    TransformComponent:
+      Translation: [-8, -4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.9, 0.35, 0.3, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6090716713758177734
+    TagComponent:
+      Tag: Crate 0_1
+    TransformComponent:
+      Translation: [-6.95, -4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.9, 0.35, 0.3, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9084980249960404376
+    TagComponent:
+      Tag: Crate 0_2
+    TransformComponent:
+      Translation: [-5.9, -4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.9, 0.35, 0.3, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8704107606160734366
+    TagComponent:
+      Tag: Crate 0_3
+    TransformComponent:
+      Translation: [-4.85, -4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.9, 0.35, 0.3, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8272784592277370220
+    TagComponent:
+      Tag: Crate 0_4
+    TransformComponent:
+      Translation: [-3.8, -4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.9, 0.35, 0.3, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6058610494287701126
+    TagComponent:
+      Tag: Crate 1_0
+    TransformComponent:
+      Translation: [-7.475, -3.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.95, 0.7, 0.25, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6596889377722082171
+    TagComponent:
+      Tag: Crate 1_1
+    TransformComponent:
+      Translation: [-6.425, -3.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.95, 0.7, 0.25, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3553585707197403545
+    TagComponent:
+      Tag: Crate 1_2
+    TransformComponent:
+      Translation: [-5.375, -3.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.95, 0.7, 0.25, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6798171124736645075
+    TagComponent:
+      Tag: Crate 1_3
+    TransformComponent:
+      Translation: [-4.325, -3.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.95, 0.7, 0.25, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6777449539173545
+    TagComponent:
+      Tag: Crate 2_0
+    TransformComponent:
+      Translation: [-6.95, -2.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.4, 0.75, 0.4, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6921962377421052527
+    TagComponent:
+      Tag: Crate 2_1
+    TransformComponent:
+      Translation: [-5.9, -2.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.4, 0.75, 0.4, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 146027149507973981
+    TagComponent:
+      Tag: Crate 2_2
+    TransformComponent:
+      Translation: [-4.85, -2.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.4, 0.75, 0.4, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4441101050678709841
+    TagComponent:
+      Tag: Crate 3_0
+    TransformComponent:
+      Translation: [-6.425, -1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.3, 0.6, 0.9, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 435364517983043354
+    TagComponent:
+      Tag: Crate 3_1
+    TransformComponent:
+      Translation: [-5.375, -1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.3, 0.6, 0.9, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3824964953338980980
+    TagComponent:
+      Tag: Crate 4_0
+    TransformComponent:
+      Translation: [-5.9, -0.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.7, 0.45, 0.9, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8791973064254336194
+    TagComponent:
+      Tag: Heavy Box
+    TransformComponent:
+      Translation: [-6, 5, 0]
+      Rotation: [0, 0, 0.4]
+      Scale: [1.5, 1.5, 1]
+    SpriteRendererComponent:
+      Color: [0.2, 0.2, 0.25, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 5
+      Friction: 0.5
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1477263492502608442
+    TagComponent:
+      Tag: Ball (bounce 0)
+    TransformComponent:
+      Translation: [2.5, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.9, 0.35, 0.3, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.3
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8447268955442284289
+    TagComponent:
+      Tag: Ball (bounce 0.5)
+    TransformComponent:
+      Translation: [4, 4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.95, 0.7, 0.25, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.3
+      Restitution: 0.5
+      IsSensor: false
+  - Entity: 956174824899149024
+    TagComponent:
+      Tag: Ball (bounce 0.9)
+    TransformComponent:
+      Translation: [5.5, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.3, 0.6, 0.9, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.3
+      Restitution: 0.9
+      IsSensor: false
+  - Entity: 689417094156622578
+    TagComponent:
+      Tag: Small Ball
+    TransformComponent:
+      Translation: [3, 6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      IsBullet: false
+      GravityScale: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.3
+      Restitution: 0.2
+      IsSensor: false
