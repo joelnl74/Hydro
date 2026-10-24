@@ -1,14 +1,15 @@
 #include "SpriteAnimationWindow.h"
 #include "PropertyUI.h"
-#include "Utilities/AssetDragDrop.h"
+#include "Utilities/AssetPicker.h"
+#include "Utilities/PathFollower.h"
 
 #include <imgui/imgui.h>
 
+#include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Core/Log.h>
 
 #include <Hydro/Core/Time.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
-#include <Hydro/Utils/PlatformUtils.h>
 
 #include <algorithm>
 #include <cctype>
@@ -136,6 +137,30 @@ namespace Hydro
 			return;
 		}
 		Load(path);
+	}
+
+	void SpriteAnimationWindow::OnAssetMoved(const std::filesystem::path& from, const std::filesystem::path& to)
+	{
+		PathFollower::Follow(m_Path, from, to);
+		PathFollower::Follow(m_PendingOpen, from, to);
+	}
+
+	void SpriteAnimationWindow::OnAssetDeleted(const std::filesystem::path& path)
+	{
+		if (PathFollower::Follow(m_Path, path, path) == false)
+		{
+			return;
+		}
+
+		m_Open = false;
+		m_Path.clear();
+		m_Loaded = false;
+		m_Texture = nullptr;
+		m_Clips.clear();
+		m_SelectedClip = -1;
+		m_SelectedFrame = -1;
+		m_Dirty = false;
+		m_PendingOpen.clear();
 	}
 
 	void SpriteAnimationWindow::Load(const std::filesystem::path& path)
@@ -300,31 +325,14 @@ namespace Hydro
 		ImGui::TextDisabled("Sheet:");
 		ImGui::SameLine();
 
-		// The sprite sheet: click to pick an image, or drop one from the Project window.
-		const std::string label = m_Texture != nullptr ? m_Texture->GetPath().filename().u8string() : std::string("None (pick a sheet)");
-		Ref<Texture2D> picked;
-		if (ImGui::Button(label.c_str()))
+		// The sprite sheet: pick one of the project's images, or drop one from the Project window.
+		// Frames keep the sprites the new sheet has by name. (Clearing it isn't an option: a set needs a sheet.)
+		const AssetHandle current = m_Texture != nullptr ? m_Texture->GetHandle() : AssetHandle(0);
+		const AssetPickerResult result = AssetPicker::DrawField("##Sheet", current, AssetType::Texture2D, "Frames keep sprites the new sheet has by name.", 240.0f);
+		if (result.Changed && static_cast<uint64_t>(result.Handle) != 0)
 		{
-			const std::string file = FileDialogs::OpenFile("Image (*.png;*.jpg;*.jpeg;*.tga;*.bmp)\0*.png;*.jpg;*.jpeg;*.tga;*.bmp\0");
-			if (file.empty() == false)
-			{
-				picked = Texture2D::LoadFromFile(file);
-			}
+			SetTexture(AssetManager::GetAsset<Texture2D>(result.Handle));
 		}
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::SetTooltip("Click to pick another sprite sheet, or drop an image from the Project window.\nFrames keep sprites the new sheet has by name.");
-		}
-		if (ImGui::BeginDragDropTarget())
-		{
-			std::filesystem::path dropped;
-			if (AssetDragDrop::AcceptPayload(dropped) && Texture2D::IsSupportedFile(dropped))
-			{
-				picked = Texture2D::LoadFromFile(dropped);
-			}
-			ImGui::EndDragDropTarget();
-		}
-		SetTexture(picked);
 
 		ImGui::SameLine();
 		ImGui::TextDisabled("Default clip:");

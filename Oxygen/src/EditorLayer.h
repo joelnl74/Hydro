@@ -77,9 +77,11 @@ namespace Hydro
 
 		// Prefab / scene dropped from the project window onto the editor or game window.
 		void OnAssetDropped(const std::filesystem::path& path);
-		// A folder or scene was renamed in the project window: moves the open scene's path (and its
-		// name), the last session scene and the project's start scene if they were at or inside it.
+		// A folder or asset was renamed in the Project window: moves the open scene's path (and its name),
+		// the last session scene, the inspected asset and the sprite windows' files if they were at or inside it.
 		void OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to);
+		// A file was deleted in the Project window: whatever shows or edits it lets go.
+		void OnPathDeleted(const std::filesystem::path& path);
 		void AcceptAssetDrop();
 
 		// Asset editors. Images open in the Sprite Editor, .hyanim files in the Animation window.

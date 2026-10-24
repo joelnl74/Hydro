@@ -14,7 +14,7 @@
 
 namespace Hydro
 {
-	// Content browser for <project>/Assets: folders, scenes and prefabs.
+	// Content browser for <project>/Assets: folders, scenes, prefabs, images and animation sets.
 	// Prefabs get a live thumbnail drawn from their saved components. .hymeta sidecars (asset handles,
 	// see AssetMetaSerializer) are hidden; deleting an image deletes its sidecar too. When the folder's
 	// contents change (here or in Explorer) it asks the AssetManager to rescan, so new files get handles.
@@ -27,9 +27,11 @@ namespace Hydro
 		// Set by the editor layer. Called after the window has finished drawing.
 		std::function<void(const std::filesystem::path&)> OnOpenScene;
 		std::function<void(Entity)> OnEntityCreated;
-		// A folder or scene was renamed on disk: from -> to. The editor layer moves the paths it
-		// holds (open scene, start scene, last session) that point at or into it.
+		// A folder or asset was renamed: from -> to. The editor layer moves the paths it holds (open scene,
+		// last session, the asset the inspector shows, the Sprite Editor's image) that point at or into it.
 		std::function<void(const std::filesystem::path&, const std::filesystem::path&)> OnPathRenamed;
+		// A file was deleted (always through AssetManager::DeleteAsset): windows editing it let go of it.
+		std::function<void(const std::filesystem::path&)> OnPathDeleted;
 		// A file was clicked (the inspector shows it), or double-clicked / opened from its menu
 		// (images open in the Sprite Editor, .hyanim files in the Animation window).
 		std::function<void(const std::filesystem::path&)> OnAssetSelected;
@@ -80,9 +82,9 @@ namespace Hydro
 		// Opens the name popup to create a folder in the current folder, or to rename `path`.
 		void BeginCreateFolder();
 		void BeginRename(const std::filesystem::path& path);
-		// Folders and scenes. TODO(assets): prefabs, textures and other files once references go
-		// through asset IDs; today a texture rename would break every sprite that uses it by path.
-		static bool CanRename(ItemType type) { return type == ItemType::Folder || type == ItemType::Scene; }
+		// Folders and every registered asset (scenes, prefabs, images, animation sets): references are asset
+		// handles, which a rename (AssetManager::MoveAsset) keeps.
+		static bool CanRename(const std::filesystem::path& path);
 		// Empty when `name` + `extension` is a valid new file / folder name in `parent`, otherwise why
 		// it isn't. `ignore` is the item being renamed (keeping its own name is allowed).
 		static std::string ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore);

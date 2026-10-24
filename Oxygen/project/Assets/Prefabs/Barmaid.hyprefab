@@ -1,0 +1,24 @@
+Handle: 11118891717712171287
+Prefab: Barmaid
+Entity:
+  Entity: 17689259472080886904
+  TagComponent:
+    Tag: Barmaid
+  TransformComponent:
+    Translation: [-2, 4, 0]
+    Rotation: [0, 0, 0]
+    Scale: [2, 3, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 11969883262739761085
+    Sprite: Barmaid_Down_0
+    SpriteIndex: 24
+    FlipX: false
+    FlipY: false
+  SpriteAnimatorComponent:
+    AnimationsHandle: 2472910742119809806
+    StartClip: ""
+    PlayOnStart: true
+    Speed: 1

@@ -11,6 +11,7 @@
 #include "EditorPaths.h"
 #include "Utilities/AssetDragDrop.h"
 #include "Utilities/EditorChrome.h"
+#include "Utilities/PathFollower.h"
 
 #include <algorithm>
 #include <cmath>
@@ -73,6 +74,7 @@ namespace Hydro
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
 		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
 		m_ProjectWindow->OnPathRenamed = [this](const std::filesystem::path& from, const std::filesystem::path& to) { OnPathRenamed(from, to); };
+		m_ProjectWindow->OnPathDeleted = [this](const std::filesystem::path& path) { OnPathDeleted(path); };
 		m_ProjectWindow->OnAssetSelected = [this](const std::filesystem::path& path)
 		{
 			// The inspector shows the asset instead of an entity.
@@ -1026,38 +1028,30 @@ namespace Hydro
 		}
 	}
 
-	// If `path` is `from` or inside it, points it at the same place under `to` and returns true.
-	static bool FollowRename(std::filesystem::path& path, const std::filesystem::path& from, const std::filesystem::path& to)
-	{
-		if (path.empty())
-		{
-			return false;
-		}
-
-		std::error_code ec;
-		const std::filesystem::path absolutePath = std::filesystem::absolute(path, ec).lexically_normal();
-		const std::filesystem::path absoluteFrom = std::filesystem::absolute(from, ec).lexically_normal();
-		const std::filesystem::path relative = absolutePath.lexically_relative(absoluteFrom);
-		if (relative.empty() || *relative.begin() == "..")
-		{
-			return false;
-		}
-
-		const std::filesystem::path absoluteTo = std::filesystem::absolute(to, ec).lexically_normal();
-		path = relative == "." ? absoluteTo : (absoluteTo / relative).lexically_normal();
-		return true;
-	}
-
 	void EditorLayer::OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to)
 	{
 		// The open scene and the last scene are remembered by path (the last scene is an editor setting and can
 		// be outside any project), so they follow a rename here. The project's start scene, textures and
 		// .hyanim files are referenced by asset handle and follow on their own.
-		if (FollowRename(m_EditorScenePath, from, to))
+		if (PathFollower::Follow(m_EditorScenePath, from, to))
 		{
 			m_EditorScene->SetName(m_EditorScenePath.stem().string());
 		}
-		FollowRename(m_EditorSettings.Session.LastScene, from, to);
+		PathFollower::Follow(m_EditorSettings.Session.LastScene, from, to);
+		PathFollower::Follow(m_InspectedAsset, from, to);
+		m_SpriteEditorWindow->OnAssetMoved(from, to);
+		m_SpriteAnimationWindow->OnAssetMoved(from, to);
+	}
+
+	void EditorLayer::OnPathDeleted(const std::filesystem::path& path)
+	{
+		// What was open for editing is gone; saving it would bring the file back.
+		if (PathFollower::Follow(m_InspectedAsset, path, path))
+		{
+			m_InspectedAsset.clear();
+		}
+		m_SpriteEditorWindow->OnAssetDeleted(path);
+		m_SpriteAnimationWindow->OnAssetDeleted(path);
 	}
 
 	void EditorLayer::OnAssetDropped(const std::filesystem::path& path)

@@ -266,9 +266,9 @@ namespace Hydro
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsAnyItemHovered() == false)
 			m_SelectedPath.clear();
 
-		// F2 renames the selected folder or scene.
+		// F2 renames the selected folder or asset.
 		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_F2, false) &&
-			m_SelectedPath.empty() == false && CanRename(GetItemType(m_SelectedPath)))
+			m_SelectedPath.empty() == false && CanRename(m_SelectedPath))
 		{
 			BeginRename(m_SelectedPath);
 		}
@@ -316,7 +316,7 @@ namespace Hydro
 
 		// Prefabs and scenes can be dragged onto the viewport / hierarchy, images onto a sprite's
 		// Texture field in the inspector, sprite animations onto a Sprite Animator's Animations field.
-		// TODO(assets): give textures their own ItemType (and thumbnails) with the asset system.
+		// What is dragged is the asset's handle (AssetDragDrop).
 		const bool isTexture = item.Type == ItemType::Other && Texture2D::IsSupportedFile(item.Path);
 		const bool isAnimationSet = item.Type == ItemType::Other && item.Path.extension() == SpriteAnimationSerializer::FileExtension;
 		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet) && ImGui::BeginDragDropSource())
@@ -374,7 +374,7 @@ namespace Hydro
 			{
 				OnOpenAsset(item.Path);
 			}
-			if (CanRename(item.Type) && ImGui::MenuItem("Rename...", "F2"))
+			if (CanRename(item.Path) && ImGui::MenuItem("Rename...", "F2"))
 			{
 				BeginRename(item.Path);
 			}
@@ -617,6 +617,11 @@ namespace Hydro
 				if (AssetManager::DeleteAsset(m_PendingDeletePath))
 				{
 					HY_INFO("Deleted {}", m_PendingDeletePath.u8string());
+					if (OnPathDeleted)
+					{
+						const std::filesystem::path deleted = m_PendingDeletePath;
+						m_DeferredActions.push_back([this, deleted]() { OnPathDeleted(deleted); });
+					}
 				}
 
 				m_PrefabPreviews.erase(m_PendingDeletePath.u8string());
@@ -693,6 +698,11 @@ namespace Hydro
 		m_RequestNamePopup = true;
 	}
 
+	bool ProjectWindow::CanRename(const std::filesystem::path& path)
+	{
+		return GetItemType(path) == ItemType::Folder || static_cast<uint64_t>(AssetManager::FindHandle(path)) != 0;
+	}
+
 	void ProjectWindow::BeginRename(const std::filesystem::path& path)
 	{
 		// Folders: the whole name. Files: the name without the extension, which stays as it is.
@@ -753,7 +763,7 @@ namespace Hydro
 			const bool renamingFile = renaming && m_RenameExtension.empty() == false;
 			const std::filesystem::path parent = renaming ? m_RenamePath.parent_path() : m_CurrentDirectory;
 
-			ImGui::TextUnformatted(renaming == false ? "New folder" : (renamingFile ? "Rename scene" : "Rename folder"));
+			ImGui::TextUnformatted(renaming == false ? "New folder" : (renamingFile ? "Rename asset" : "Rename folder"));
 
 			// Focus the field (with its text selected) when the popup opens.
 			if (ImGui::IsWindowAppearing())

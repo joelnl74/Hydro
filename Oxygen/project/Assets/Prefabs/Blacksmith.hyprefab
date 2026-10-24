@@ -1,0 +1,24 @@
+Handle: 12746800987801364171
+Prefab: Blacksmith
+Entity:
+  Entity: 7630690822749002946
+  TagComponent:
+    Tag: Blacksmith
+  TransformComponent:
+    Translation: [-6, 4, 0]
+    Rotation: [0, 0, 0]
+    Scale: [2, 3, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 11969883262739761085
+    Sprite: Blacksmith_Down_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+  SpriteAnimatorComponent:
+    AnimationsHandle: 8079240564453792839
+    StartClip: ""
+    PlayOnStart: true
+    Speed: 1

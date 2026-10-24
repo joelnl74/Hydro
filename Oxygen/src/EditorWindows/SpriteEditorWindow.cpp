@@ -1,5 +1,6 @@
 #include "SpriteEditorWindow.h"
 #include "PropertyUI.h"
+#include "Utilities/PathFollower.h"
 
 #include <imgui/imgui.h>
 
@@ -92,6 +93,28 @@ namespace Hydro
 			return;
 		}
 		Load(imagePath);
+	}
+
+	void SpriteEditorWindow::OnAssetMoved(const std::filesystem::path& from, const std::filesystem::path& to)
+	{
+		PathFollower::Follow(m_Path, from, to);
+		PathFollower::Follow(m_PendingOpen, from, to);
+	}
+
+	void SpriteEditorWindow::OnAssetDeleted(const std::filesystem::path& path)
+	{
+		if (PathFollower::Follow(m_Path, path, path) == false)
+		{
+			return;
+		}
+
+		m_Open = false;
+		m_Path.clear();
+		m_Texture = nullptr;
+		m_Config = TextureImportConfig{};
+		m_Selected = -1;
+		m_Dirty = false;
+		m_PendingOpen.clear();
 	}
 
 	void SpriteEditorWindow::Load(const std::filesystem::path& imagePath)

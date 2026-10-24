@@ -1,6 +1,6 @@
 #include "InspectorWindow.h"
 #include "../EditorPaths.h"
-#include "Utilities/AssetDragDrop.h"
+#include "Utilities/AssetPicker.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,7 +11,6 @@
 #include <Hydro/Scene/SpriteAnimation.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Scene/ScriptableEntity.h>
-#include <Hydro/Utils/PlatformUtils.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -130,84 +129,24 @@ namespace Hydro
 		ImGui::PopID();
 	}
 
-	// The handle of a picked file, importing it into the registry when it is new. 0 (and an error in the
-	// console) when the file isn't an asset in the project's asset folder: components only store handles.
-	static AssetHandle PickAssetFile(const std::filesystem::path& file)
-	{
-		const AssetHandle handle = AssetManager::ImportAsset(file);
-		if (static_cast<uint64_t>(handle) == 0)
-		{
-			HY_ERROR("Inspector: '{}' isn't an asset in this project; put it in the asset folder first", file.filename().u8string());
-		}
-		return handle;
-	}
-
-	// The sprite's texture: click to pick a file, drop an image from the Project window, X to clear.
-	// TODO(assets): pick from the AssetManager's textures (with a thumbnail) once it exists.
+	// The sprite's texture: pick one of the project's images, or drop one from the Project window; X clears it.
 	static void DrawTextureField(SpriteRendererComponent& sprite)
 	{
-		const float clearWidth = ImGui::GetFrameHeight();
-		const float spacing = ImGui::GetStyle().ItemSpacing.x;
-		const bool hasTexture = static_cast<uint64_t>(sprite.Texture) != 0;
 		const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(sprite.Texture);
-		const std::filesystem::path texturePath = AssetManager::GetAbsolutePath(sprite.Texture);
+		const std::string detail = texture != nullptr ? std::to_string(texture->GetWidth()) + " x " + std::to_string(texture->GetHeight()) + " px"
+			: (static_cast<uint64_t>(sprite.Texture) != 0 ? "The texture is missing or couldn't be loaded (see the console)." : std::string());
 
-		std::string label = "None";
-		if (hasTexture)
+		const AssetPickerResult result = AssetPicker::DrawField("##Texture", sprite.Texture, AssetType::Texture2D, detail);
+		if (result.Changed == false)
 		{
-			label = texturePath.empty() ? "(missing)" : texturePath.filename().u8string();
-		}
-
-		AssetHandle picked = 0;
-		if (ImGui::Button(label.c_str(), { ImGui::GetContentRegionAvail().x - clearWidth - spacing, 0.0f }))
-		{
-			const std::string file = FileDialogs::OpenFile("Image (*.png;*.jpg;*.jpeg;*.tga;*.bmp)\0*.png;*.jpg;*.jpeg;*.tga;*.bmp\0");
-			if (file.empty() == false)
-			{
-				picked = PickAssetFile(file);
-			}
-		}
-
-		if (ImGui::IsItemHovered())
-		{
-			if (texture != nullptr)
-			{
-				ImGui::SetTooltip("%s\n%u x %u\nClick to pick another image, or drop one from the Project window.",
-					texturePath.u8string().c_str(), texture->GetWidth(), texture->GetHeight());
-			}
-			else if (hasTexture)
-			{
-				ImGui::SetTooltip("The texture for this handle is missing or couldn't be loaded (see the console).");
-			}
-			else
-			{
-				ImGui::SetTooltip("Click to pick an image, or drop one from the Project window.");
-			}
-		}
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			std::filesystem::path droppedPath;
-			if (AssetDragDrop::AcceptPayload(droppedPath) && Texture2D::IsSupportedFile(droppedPath))
-			{
-				picked = PickAssetFile(droppedPath);
-			}
-			ImGui::EndDragDropTarget();
+			return;
 		}
 
 		// Loading the texture logs why a file couldn't be loaded; a handle that doesn't load is not taken.
-		if (static_cast<uint64_t>(picked) != 0 && AssetManager::GetAsset<Texture2D>(picked) != nullptr)
+		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<Texture2D>(result.Handle) != nullptr)
 		{
-			sprite.Texture = picked;
+			sprite.Texture = result.Handle;
 		}
-
-		ImGui::SameLine(0.0f, spacing);
-		ImGui::BeginDisabled(hasTexture == false);
-		if (ImGui::Button("X", { clearWidth, 0.0f }))
-		{
-			sprite.Texture = 0;
-		}
-		ImGui::EndDisabled();
 	}
 
 	// For a sprite sheet (a Multiple texture): which of its sprites to draw.
@@ -243,74 +182,25 @@ namespace Hydro
 		}
 	}
 
-	// The animator's .hyanim: click to pick a file, drop one from the Project window, X to clear.
-	// TODO(assets): pick from the AssetManager's animation sets once it exists.
+	// The animator's .hyanim: pick one of the project's animation sets, or drop one from the Project window; X clears it.
 	static void DrawAnimationSetField(SpriteAnimatorComponent& animator)
 	{
-		const float clearWidth = ImGui::GetFrameHeight();
-		const float spacing = ImGui::GetStyle().ItemSpacing.x;
-		const bool hasSet = static_cast<uint64_t>(animator.Animations) != 0;
 		const Ref<SpriteAnimationSet> set = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
-		const std::filesystem::path setPath = AssetManager::GetAbsolutePath(animator.Animations);
+		const std::string detail = set != nullptr ? std::to_string(set->GetClipCount()) + " clips"
+			: (static_cast<uint64_t>(animator.Animations) != 0 ? "The animation set is missing or couldn't be loaded (see the console)." : std::string());
 
-		std::string label = "None";
-		if (hasSet)
+		const AssetPickerResult result = AssetPicker::DrawField("##Animations", animator.Animations, AssetType::SpriteAnimation, detail);
+		if (result.Changed == false)
 		{
-			label = setPath.empty() ? "(missing)" : setPath.filename().u8string();
-		}
-
-		AssetHandle picked = 0;
-		if (ImGui::Button(label.c_str(), { ImGui::GetContentRegionAvail().x - clearWidth - spacing, 0.0f }))
-		{
-			const std::string file = FileDialogs::OpenFile("Sprite animations (*.hyanim)\0*.hyanim\0");
-			if (file.empty() == false)
-			{
-				picked = PickAssetFile(file);
-			}
-		}
-
-		if (ImGui::IsItemHovered())
-		{
-			if (set != nullptr)
-			{
-				ImGui::SetTooltip("%s\n%u clips\nClick to pick another .hyanim, or drop one from the Project window.",
-					setPath.u8string().c_str(), set->GetClipCount());
-			}
-			else if (hasSet)
-			{
-				ImGui::SetTooltip("The animation set for this handle is missing or couldn't be loaded (see the console).");
-			}
-			else
-			{
-				ImGui::SetTooltip("Click to pick a .hyanim file, or drop one from the Project window.");
-			}
-		}
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			std::filesystem::path droppedPath;
-			if (AssetDragDrop::AcceptPayload(droppedPath) && droppedPath.extension() == SpriteAnimationSerializer::FileExtension)
-			{
-				picked = PickAssetFile(droppedPath);
-			}
-			ImGui::EndDragDropTarget();
+			return;
 		}
 
 		// Loading the set logs why a file couldn't be loaded; a handle that doesn't load is not taken.
-		if (static_cast<uint64_t>(picked) != 0 && AssetManager::GetAsset<SpriteAnimationSet>(picked) != nullptr)
+		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<SpriteAnimationSet>(result.Handle) != nullptr)
 		{
-			animator.Animations = picked;
+			animator.Animations = result.Handle;
 			animator.ClipIndex = -1;
 		}
-
-		ImGui::SameLine(0.0f, spacing);
-		ImGui::BeginDisabled(hasSet == false);
-		if (ImGui::Button("X", { clearWidth, 0.0f }))
-		{
-			animator.Animations = 0;
-			animator.ClipIndex = -1;
-		}
-		ImGui::EndDisabled();
 	}
 
 	// The clip played on start: the set's default clip, or one picked by name.

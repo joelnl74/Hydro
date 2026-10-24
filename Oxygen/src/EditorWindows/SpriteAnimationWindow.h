@@ -24,6 +24,11 @@ namespace Hydro
 		void OnImguiRender();
 		bool& IsOpen() { return m_Open; }
 
+		// The Project window renamed or moved a file or folder: the .hyanim shown follows it.
+		void OnAssetMoved(const std::filesystem::path& from, const std::filesystem::path& to);
+		// The Project window deleted a file: the window closes if it was editing it (Save would write it back).
+		void OnAssetDeleted(const std::filesystem::path& path);
+
 		// One clip per group of sprites named "<group>_<number>" (e.g. Farmer_Left_0..5 -> "Farmer_Left"),
 		// frames in sprite order, each lasting 1 / frameRate seconds. Also used by the Project window's
 		// "Create Sprite Animation".
