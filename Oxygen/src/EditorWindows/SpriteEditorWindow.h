@@ -24,6 +24,11 @@ namespace Hydro
 		void OnImguiRender();
 		bool& IsOpen() { return m_Open; }
 
+		// The Project window renamed or moved a file or folder: the image shown follows it.
+		void OnAssetMoved(const std::filesystem::path& from, const std::filesystem::path& to);
+		// The Project window deleted a file: the window closes if it was showing it (it would write it back).
+		void OnAssetDeleted(const std::filesystem::path& path);
+
 	private:
 		void Load(const std::filesystem::path& imagePath);
 		void Apply();

@@ -1,8 +1,17 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include <cstdint>
+
 namespace Hydro
 {
+	// How a 2D light fades out towards the edge of its radius (RendererSettings::LightFalloff).
+	enum class LightFalloffStyle : uint8_t
+	{
+		Smooth = 0, // a continuous fade
+		Banded      // RendererSettings::LightBands visible steps: the retro, pixel-art look
+	};
+
 	// Live options of the Renderer subsystem. Unlike a Specification these may change while the
 	// engine runs: Renderer::SetSettings applies them from the next frame. They are saved with the
 	// project (ProjectConfig::Renderer, in the .hyproj file).
@@ -18,6 +27,16 @@ namespace Hydro
 		// Draw sprites as outlines. Needs the GPU's fillModeNonSolid feature
 		// (RendererCapabilities::Wireframe); ignored with a warning otherwise.
 		bool Wireframe = false;
+
+		// 2D lighting. On: a view that has Light2DComponents is drawn lit (lights are drawn into a
+		// light buffer that is multiplied over the scene). Off: lights are ignored and the scene is
+		// drawn as it is. Views without lights are never changed.
+		bool Lighting = true;
+		// How lights fade out: Smooth, or Banded in LightBands steps (clamped to 2..32 when used).
+		LightFalloffStyle LightFalloff = LightFalloffStyle::Smooth;
+		uint32_t LightBands = 8;
+		// Blob shadows (Shadow2DComponent) in lit views: they darken the light buffer. Needs Lighting.
+		bool Shadows = true;
 
 		// Rebuild shaders when their source files change (checked a few times per second).
 #ifdef HY_DIST

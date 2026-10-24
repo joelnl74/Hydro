@@ -21,7 +21,14 @@ namespace Hydro
 		out << YAML::Key << "Project" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "Name" << YAML::Value << config.Name;
 		out << YAML::Key << "AssetDirectory" << YAML::Value << config.AssetDirectory.generic_string();
-		out << YAML::Key << "StartScene" << YAML::Value << config.StartScene.generic_string();
+		if ((uint64_t)config.StartScene != 0)
+		{
+			out << YAML::Key << "StartSceneHandle" << YAML::Value << (uint64_t)config.StartScene;
+		}
+		else if (config.LegacyStartScene.empty() == false)
+		{
+			out << YAML::Key << "StartScene" << YAML::Value << config.LegacyStartScene.generic_string();
+		}
 		out << YAML::EndMap;
 
 		out << YAML::Key << "Renderer" << YAML::Value << YAML::BeginMap;
@@ -29,6 +36,10 @@ namespace Hydro
 		out << YAML::Key << "VSync" << YAML::Value << renderer.VSync;
 		out << YAML::Key << "Wireframe" << YAML::Value << renderer.Wireframe;
 		out << YAML::Key << "ShaderHotReload" << YAML::Value << renderer.ShaderHotReload;
+		out << YAML::Key << "Lighting" << YAML::Value << renderer.Lighting;
+		out << YAML::Key << "LightFalloff" << YAML::Value << (renderer.LightFalloff == LightFalloffStyle::Banded ? "Banded" : "Smooth");
+		out << YAML::Key << "LightBands" << YAML::Value << renderer.LightBands;
+		out << YAML::Key << "Shadows" << YAML::Value << renderer.Shadows;
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
@@ -76,20 +87,48 @@ namespace Hydro
 				config.Name = node.as<std::string>();
 			if (auto node = projectNode["AssetDirectory"])
 				config.AssetDirectory = node.as<std::string>();
+			if (auto node = projectNode["StartSceneHandle"])
+				config.StartScene = AssetHandle(node.as<uint64_t>(0));
 			if (auto node = projectNode["StartScene"])
-				config.StartScene = node.as<std::string>();
+				config.LegacyStartScene = node.as<std::string>();
 
 			if (YAML::Node rendererNode = data["Renderer"])
 			{
 				RendererSettings& renderer = config.Renderer;
 				if (auto node = rendererNode["ClearColor"])
+				{
 					renderer.ClearColor = node.as<glm::vec4>();
+				}
 				if (auto node = rendererNode["VSync"])
+				{
 					renderer.VSync = node.as<bool>();
+				}
 				if (auto node = rendererNode["Wireframe"])
+				{
 					renderer.Wireframe = node.as<bool>();
+				}
 				if (auto node = rendererNode["ShaderHotReload"])
+				{
 					renderer.ShaderHotReload = node.as<bool>();
+				}
+				// Projects saved before 2D lighting have none of these keys: they keep the defaults.
+				if (auto node = rendererNode["Lighting"])
+				{
+					renderer.Lighting = node.as<bool>(renderer.Lighting);
+				}
+				if (auto node = rendererNode["LightFalloff"])
+				{
+					renderer.LightFalloff = node.as<std::string>("Smooth") == "Banded" ? LightFalloffStyle::Banded : LightFalloffStyle::Smooth;
+				}
+				if (auto node = rendererNode["LightBands"])
+				{
+					renderer.LightBands = node.as<uint32_t>(renderer.LightBands);
+				}
+
+				if (auto node = rendererNode["Shadows"])
+				{
+					renderer.Shadows = node.as<bool>(renderer.Shadows);
+				}
 			}
 		}
 		catch (const YAML::Exception& e)

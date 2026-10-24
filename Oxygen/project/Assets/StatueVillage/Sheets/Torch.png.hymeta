@@ -1,0 +1,17 @@
+Handle: 2639678793823783463
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 32
+  Slicing:
+    Mode: Grid
+    CellSize: [34, 82]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 3
+    Rows: 1
+    RowNames: [Torch]
+    DefaultPivot: [0.5, 0]

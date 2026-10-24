@@ -1,0 +1,10 @@
+# Sprite animations of the StatueVillage scene.
+Handle: 4303451864352478627
+SpriteAnimationSet:
+  Texture: Torch.png
+  DefaultClip: Burn
+  Clips:
+    - Name: Burn
+      FrameRate: 7
+      Loop: Loop
+      Frames: [Torch_0, Torch_1, Torch_2, Torch_1]

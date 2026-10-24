@@ -1,0 +1,24 @@
+Handle: 4400051264000605041
+Prefab: Gatherer
+Entity:
+  Entity: 868196408185819179
+  TagComponent:
+    Tag: Gatherer
+  TransformComponent:
+    Translation: [6, 0, 0]
+    Rotation: [0, 0, 0]
+    Scale: [2, 3, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 11969883262739761085
+    Sprite: Gatherer_Down_0
+    SpriteIndex: 72
+    FlipX: false
+    FlipY: false
+  SpriteAnimatorComponent:
+    AnimationsHandle: 1444298772692147167
+    StartClip: ""
+    PlayOnStart: true
+    Speed: 1

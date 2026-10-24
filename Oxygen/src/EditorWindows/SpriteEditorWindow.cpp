@@ -1,5 +1,6 @@
 #include "SpriteEditorWindow.h"
 #include "PropertyUI.h"
+#include "Utilities/PathFollower.h"
 
 #include <imgui/imgui.h>
 
@@ -94,6 +95,28 @@ namespace Hydro
 		Load(imagePath);
 	}
 
+	void SpriteEditorWindow::OnAssetMoved(const std::filesystem::path& from, const std::filesystem::path& to)
+	{
+		PathFollower::Follow(m_Path, from, to);
+		PathFollower::Follow(m_PendingOpen, from, to);
+	}
+
+	void SpriteEditorWindow::OnAssetDeleted(const std::filesystem::path& path)
+	{
+		if (PathFollower::Follow(m_Path, path, path) == false)
+		{
+			return;
+		}
+
+		m_Open = false;
+		m_Path.clear();
+		m_Texture = nullptr;
+		m_Config = TextureImportConfig{};
+		m_Selected = -1;
+		m_Dirty = false;
+		m_PendingOpen.clear();
+	}
+
 	void SpriteEditorWindow::Load(const std::filesystem::path& imagePath)
 	{
 		m_Path = imagePath;
@@ -177,16 +200,17 @@ namespace Hydro
 			return;
 		}
 
+		// Told first, so the texture is reloaded before this window reads it again.
 		const std::filesystem::path path = m_Path;
 		const int32_t selected = m_Selected;
 		const float zoom = m_Zoom;
-		Load(path);
-		m_Selected = std::min(selected, (int32_t)m_Config.Sprites.size() - 1);
-		m_Zoom = zoom;
 		if (OnReimported)
 		{
 			OnReimported(path);
 		}
+		Load(path);
+		m_Selected = std::min(selected, (int32_t)m_Config.Sprites.size() - 1);
+		m_Zoom = zoom;
 	}
 
 	void SpriteEditorWindow::OnImguiRender()

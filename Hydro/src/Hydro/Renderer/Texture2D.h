@@ -17,6 +17,8 @@ namespace Hydro
 
 	// Part of a texture in texture coordinates: Min is the top-left corner (v = 0 is the image's first,
 	// top row), Max the bottom-right. Renderer2D::DrawQuad(transform, texture, rect) draws it.
+	struct ImportedTexture;
+
 	struct TextureRect
 	{
 		glm::vec2 Min{ 0.0f };
@@ -38,10 +40,9 @@ namespace Hydro
 	// the whole image; a Multiple texture (a sprite sheet) has the named regions it was sliced into.
 	// SpriteRendererComponent::SpriteIndex picks one. Sprite 0 always exists.
 	//
-	// TODO(assets): sprites still reference textures directly and scenes save the file path; with the
-	// texture step of the asset system, components hold an AssetHandle, the AssetManager loads textures
-	// (GetAsset<Texture2D>) and LoadFromFile's sharing moves into it. Until then LoadFromFile sets
-	// GetHandle() for files inside the asset folder, and scenes save it next to the path.
+	// Images inside the asset folder are loaded and shared by the AssetManager
+	// (AssetManager::GetAsset<Texture2D>(handle)); LoadFromFile asks it for them.
+	// Components hold the texture's AssetHandle; the renderer resolves it with GetLoadedAsset.
 	class Texture2D : public Asset
 	{
 	public:
@@ -57,14 +58,23 @@ namespace Hydro
 		static AssetType GetStaticType() { return AssetType::Texture2D; }
 		AssetType GetType() const override { return GetStaticType(); }
 
+		// Makes a texture from a decoded image (TextureImporter::Import) and remembers `absolutePath` as
+		// its file. The AssetManager's loader calls this; uploading happens here, decoding does not.
+		static Ref<Texture2D> Create(const ImportedTexture& imported, const std::filesystem::path& absolutePath);
+
 		// Loads an image file (PNG, JPG, TGA, BMP; any channel count, converted to RGBA8). Returns nullptr
 		// and logs an error when the file can't be read.
 		// When "<path>.hymeta" exists, its TextureImportConfig decides format, sampling, colour key and
 		// sprites, and properties/format are ignored; otherwise they are used, with one sprite.
-		// While a texture loaded from the same file with the same settings (and the same .hymeta
-		// version) is alive, that texture is returned instead of loading it again, so saving a new
-		// .hymeta and calling LoadFromFile again re-imports.
+		// A file in the open project's asset folder is an asset: it is loaded once by the AssetManager,
+		// shared until the project closes, and loaded again when its file or .hymeta changed, so saving a
+		// new .hymeta and calling LoadFromFile again re-imports. For such files properties/format are
+		// ignored (the .hymeta decides). A file anywhere else is shared while a texture from it is alive.
 		static Ref<Texture2D> LoadFromFile(const std::filesystem::path& path, const TextureProperties& properties = {}, ImageFormat format = ImageFormat::SRGB);
+		// Loads an image for a short-lived use (the Project window's thumbnails): never shared and never
+		// kept by the AssetManager, so dropping the Ref frees it. The file's .hymeta decides how, as for
+		// LoadFromFile. Returns nullptr (logged) when the file can't be read.
+		static Ref<Texture2D> LoadUnshared(const std::filesystem::path& path);
 		// True for file extensions LoadFromFile can read (GetAssetTypeFromExtension gives Texture2D).
 		static bool IsSupportedFile(const std::filesystem::path& path);
 		// "<image path>.hymeta": where an image's import config is saved.
@@ -100,7 +110,7 @@ namespace Hydro
 		Scope<Texture2DData> m_Data; // the backend image (Platform/Vulkan/VulkanTexture2DData.h)
 
 		// Sets the import config and builds m_Sprites from it (one sprite for the whole image when it
-		// has none). Called by the constructor (defaults) and LoadFromFile.
+		// has none). Called by the constructor (defaults) and Create.
 		void SetImportConfig(const TextureImportConfig& config);
 
 		friend const Texture2DData& GetTexture2DData(const Texture2D& texture);

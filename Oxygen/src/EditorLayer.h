@@ -77,16 +77,18 @@ namespace Hydro
 
 		// Prefab / scene dropped from the project window onto the editor or game window.
 		void OnAssetDropped(const std::filesystem::path& path);
-		// A folder or scene was renamed in the project window: moves the open scene's path (and its
-		// name), the last session scene and the project's start scene if they were at or inside it.
+		// A folder or asset was renamed in the Project window: moves the open scene's path (and its name),
+		// the last session scene, the inspected asset and the sprite windows' files if they were at or inside it.
 		void OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to);
+		// A file was deleted in the Project window: whatever shows or edits it lets go.
+		void OnPathDeleted(const std::filesystem::path& path);
 		void AcceptAssetDrop();
 
 		// Asset editors. Images open in the Sprite Editor, .hyanim files in the Animation window.
 		void OpenAsset(const std::filesystem::path& path);
 		// An image's .hymeta was saved: sprites (editor and play scene) and the animation sets that
-		// use the image get the re-imported texture, keeping each sprite by name.
-		// TODO(assets): the AssetManager re-imports into the same handle instead.
+		// use the image get the re-imported texture (the AssetManager reloads it into the same handle), keeping
+		// each sprite by name. Called before the window that saved the file reads the image again.
 		void OnTextureReimported(const std::filesystem::path& imagePath);
 		// A .hyanim was saved: animators that play it get the new set.
 		void OnAnimationSetSaved(const std::filesystem::path& path);

@@ -1,4 +1,5 @@
 #pragma once
+#include "Hydro/Asset/Asset.h"
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/RendererSettings.h"
 
@@ -14,8 +15,13 @@ namespace Hydro
 
 		// Relative to the project directory (the folder that holds the .hyproj file).
 		std::filesystem::path AssetDirectory = "Assets";
-		// Relative to the asset directory. Empty = the application decides what to open first.
-		std::filesystem::path StartScene;
+		// The scene to open first, by asset handle (so renaming or moving it changes nothing here). 0 = the
+		// application decides what to open first.
+		AssetHandle StartScene = 0;
+		// A project file saved before handles holds the scene's path, relative to the asset directory. It is
+		// read into this, and whoever opens the project turns it into `StartScene` once the asset registry
+		// exists (the editor does, and saves the project). Written back only while `StartScene` is 0.
+		std::filesystem::path LegacyStartScene;
 
 		// Applied with Renderer::SetSettings when the project is opened.
 		RendererSettings Renderer;
@@ -35,8 +41,6 @@ namespace Hydro
 		const std::filesystem::path& GetProjectDirectory() const { return m_ProjectDirectory; }
 		const std::filesystem::path& GetProjectFilePath() const { return m_ProjectFilePath; }
 		std::filesystem::path GetAssetDirectory() const { return m_ProjectDirectory / m_Config.AssetDirectory; }
-		// Absolute path of the start scene, or empty when none is set.
-		std::filesystem::path GetStartScenePath() const;
 
 		static Ref<Project> GetActive() { return s_ActiveProject; }
 

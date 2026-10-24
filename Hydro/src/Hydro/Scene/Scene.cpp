@@ -7,7 +7,9 @@
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/UUID.h>
 
+#include <algorithm>
 #include <unordered_map>
+#include <unordered_set>
 namespace Hydro
 {
 	Scene::Scene(const std::string& debugName, [[maybe_unused]] bool isEditorScene)
@@ -60,23 +62,18 @@ namespace Hydro
 
 		const entt::registry& sourceRegistry = source->m_Registry;
 
-		// Same order as the source (entt iterates newest first), so the copy lists entities the same way.
-		std::vector<entt::entity> entities;
-		sourceRegistry.each([&](auto entityHandle)
-		{
-			if (sourceRegistry.has<IDComponent>(entityHandle))
-				entities.push_back(entityHandle);
-		});
-
+		// Created in the source's list order, so the copy lists entities the same way.
 		std::unordered_map<entt::entity, entt::entity> entityMap;
-		for (auto it = entities.rbegin(); it != entities.rend(); ++it)
+		for (entt::entity sourceEntity : source->GetEntityOrder())
 		{
-			const UUID uuid = sourceRegistry.get<IDComponent>(*it).Id;
+			const UUID uuid = sourceRegistry.get<IDComponent>(sourceEntity).Id;
 			std::string name;
-			if (sourceRegistry.has<TagComponent>(*it))
-				name = sourceRegistry.get<TagComponent>(*it).Tag;
+			if (sourceRegistry.has<TagComponent>(sourceEntity))
+			{
+				name = sourceRegistry.get<TagComponent>(sourceEntity).Tag;
+			}
 
-			entityMap[*it] = copy->CreateEntityWithUUID(uuid, name);
+			entityMap[sourceEntity] = copy->CreateEntityWithUUID(uuid, name);
 		}
 
 		CopyComponents(CopyableComponents{}, copy->m_Registry, sourceRegistry, entityMap);
@@ -124,6 +121,7 @@ namespace Hydro
 		}
 
 		Entity duplicate = CreateEntity(entity.GetName());
+		MoveEntity(duplicate, entity, true);
 		CopyComponentsOfEntity(CopyableComponents{}, m_Registry, entity, duplicate);
 
 		// Native scripts: copy the bindings, not the instances (those belong to the source entity).
@@ -144,6 +142,62 @@ namespace Hydro
 		return duplicate;
 	}
 
+	const std::vector<entt::entity>& Scene::GetEntityOrder()
+	{
+		// Drop entities that were destroyed straight through the registry.
+		m_EntityOrder.erase(std::remove_if(m_EntityOrder.begin(), m_EntityOrder.end(), [&](entt::entity handle)
+		{
+			return m_Registry.valid(handle) == false || m_Registry.has<IDComponent>(handle) == false;
+		}), m_EntityOrder.end());
+
+		// Pick up entities that got an IDComponent without going through CreateEntity.
+		if (m_Registry.size<IDComponent>() != m_EntityOrder.size())
+		{
+			const std::unordered_set<entt::entity> known(m_EntityOrder.begin(), m_EntityOrder.end());
+			std::vector<entt::entity> missing;
+			for (entt::entity handle : m_Registry.view<IDComponent>())
+			{
+				if (known.find(handle) == known.end())
+				{
+					missing.push_back(handle);
+				}
+			}
+
+			// The view lists newest first; the list is oldest first.
+			m_EntityOrder.insert(m_EntityOrder.end(), missing.rbegin(), missing.rend());
+		}
+
+		return m_EntityOrder;
+	}
+
+	void Scene::MoveEntity(Entity entity, Entity target, bool placeAfter)
+	{
+		if ((bool)entity == false || (bool)target == false || entity == target)
+		{
+			return;
+		}
+
+		GetEntityOrder();
+
+		const entt::entity entityHandle = (entt::entity)entity;
+		const entt::entity targetHandle = (entt::entity)target;
+		if (std::find(m_EntityOrder.begin(), m_EntityOrder.end(), entityHandle) == m_EntityOrder.end()
+			|| std::find(m_EntityOrder.begin(), m_EntityOrder.end(), targetHandle) == m_EntityOrder.end())
+		{
+			return;
+		}
+
+		m_EntityOrder.erase(std::remove(m_EntityOrder.begin(), m_EntityOrder.end(), entityHandle), m_EntityOrder.end());
+
+		auto position = std::find(m_EntityOrder.begin(), m_EntityOrder.end(), targetHandle);
+		if (placeAfter)
+		{
+			++position;
+		}
+
+		m_EntityOrder.insert(position, entityHandle);
+	}
+
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		return CreateEntityWithUUID({}, name);
@@ -156,6 +210,8 @@ namespace Hydro
 		entity.AddComponent<IDComponent>(uuid);
 		
 		tag.Tag = name.empty() ? "Entity" : name;
+
+		m_EntityOrder.push_back((entt::entity)entity);
 
 		return entity;
 	}
@@ -175,6 +231,7 @@ namespace Hydro
 			}
 		}
 
+		m_EntityOrder.erase(std::remove(m_EntityOrder.begin(), m_EntityOrder.end(), (entt::entity)entity), m_EntityOrder.end());
 		m_Registry.destroy(entity);
 	}
 	

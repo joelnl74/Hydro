@@ -9,12 +9,17 @@ namespace Hydro
 	// Project:
 	//   Name: Sandbox
 	//   AssetDirectory: Assets
-	//   StartScene: Scenes/Scene.hyscene
+	//   StartSceneHandle: 1234567890123456789
+	// (older files have `StartScene: Scenes/Scene.hyscene`; it is read, and written back only while there is no handle)
 	// Renderer:
 	//   ClearColor: [0, 0, 0, 1]
 	//   VSync: true
 	//   Wireframe: false
 	//   ShaderHotReload: true
+	//   Lighting: true
+	//   LightFalloff: Smooth    (or Banded)
+	//   LightBands: 8
+	//   Shadows: true
 	class ProjectSerializer
 	{
 	public:

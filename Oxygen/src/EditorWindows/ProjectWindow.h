@@ -1,4 +1,5 @@
 #pragma once
+#include "Hydro/Asset/Asset.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Core/Base.h"
@@ -14,10 +15,13 @@
 
 namespace Hydro
 {
-	// Content browser for <project>/Assets: folders, scenes and prefabs.
-	// Prefabs get a live thumbnail drawn from their saved components. .hymeta sidecars (asset handles,
-	// see AssetMetaSerializer) are hidden; deleting an image deletes its sidecar too. When the folder's
-	// contents change (here or in Explorer) it asks the AssetManager to rescan, so new files get handles.
+	// Content browser for <project>/Assets: folders, scenes, prefabs, images and animation sets.
+	// It lists the AssetRegistry (every item that isn't a folder is a registered asset with a handle), plus
+	// the folders on disk. Images show a small cached thumbnail (ThumbnailManager). A prefab shows the
+	// first frame of its animation, or its sprite's image (a blue strip marks it as a prefab); an
+	// animation set shows its first frame. .hymeta sidecars are hidden; deleting an image deletes its
+	// sidecar too. When the folder's contents change (here or in Explorer) it asks the AssetManager to
+	// rescan, so new files get handles.
 	//
 	// Double-click: folder -> open, prefab -> instantiate into the scene, scene -> open.
 	// Drag a prefab or scene onto the viewport or the hierarchy to do the same.
@@ -27,9 +31,11 @@ namespace Hydro
 		// Set by the editor layer. Called after the window has finished drawing.
 		std::function<void(const std::filesystem::path&)> OnOpenScene;
 		std::function<void(Entity)> OnEntityCreated;
-		// A folder or scene was renamed on disk: from -> to. The editor layer moves the paths it
-		// holds (open scene, start scene, last session) that point at or into it.
+		// A folder or asset was renamed: from -> to. The editor layer moves the paths it holds (open scene,
+		// last session, the asset the inspector shows, the Sprite Editor's image) that point at or into it.
 		std::function<void(const std::filesystem::path&, const std::filesystem::path&)> OnPathRenamed;
+		// A file was deleted (always through AssetManager::DeleteAsset): windows editing it let go of it.
+		std::function<void(const std::filesystem::path&)> OnPathDeleted;
 		// A file was clicked (the inspector shows it), or double-clicked / opened from its menu
 		// (images open in the Sprite Editor, .hyanim files in the Animation window).
 		std::function<void(const std::filesystem::path&)> OnAssetSelected;
@@ -41,14 +47,15 @@ namespace Hydro
 		void Refresh() { m_NeedsRescan = true; }
 
 	private:
-		// What the window shows a file as (not Hydro::AssetType: folders are items, images are "Other").
-		enum class ItemType { Folder, Scene, Prefab, Other };
+		// What the window shows an item as (Hydro::AssetType, plus folders).
+		enum class ItemType { Folder, Scene, Prefab, Texture, Animation };
 
 		struct AssetItem
 		{
-			std::filesystem::path Path;
+			std::filesystem::path Path; // absolute
 			std::string DisplayName;
-			ItemType Type = ItemType::Other;
+			ItemType Type = ItemType::Folder;
+			AssetHandle Handle = 0;     // 0 for folders
 		};
 
 		// What a prefab looks like, read from its file. Rebuilt when the file changes.
@@ -62,6 +69,12 @@ namespace Hydro
 			glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 			float RotationZ = 0.0f;
 			glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			// What the sprite shows, for the tile: its animation's first frame when it has one, else its sprite.
+			AssetHandle TextureHandle = 0;
+			uint32_t SpriteIndex = 0;
+			bool FlipX = false;
+			AssetHandle AnimationsHandle = 0;
+			std::string StartClip;
 		};
 
 		void EnsureRoot();
@@ -80,20 +93,18 @@ namespace Hydro
 		// Opens the name popup to create a folder in the current folder, or to rename `path`.
 		void BeginCreateFolder();
 		void BeginRename(const std::filesystem::path& path);
-		// Folders and scenes. TODO(assets): prefabs, textures and other files once references go
-		// through asset IDs; today a texture rename would break every sprite that uses it by path.
-		static bool CanRename(ItemType type) { return type == ItemType::Folder || type == ItemType::Scene; }
+		// Folders and every registered asset (scenes, prefabs, images, animation sets): references are asset
+		// handles, which a rename (AssetManager::MoveAsset) keeps.
+		static bool CanRename(const std::filesystem::path& path);
 		// Empty when `name` + `extension` is a valid new file / folder name in `parent`, otherwise why
 		// it isn't. `ignore` is the item being renamed (keeping its own name is allowed).
 		static std::string ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore);
 
 		const PrefabPreview& GetPrefabPreview(const std::filesystem::path& path);
-		// The image shown on an image's tile, loaded the first time it is drawn.
-		// TODO(assets): small cached thumbnails instead of the whole texture.
-		const Ref<Texture2D>& GetTextureThumbnail(const std::filesystem::path& path);
 		// Writes "<image name>.hyanim" next to a sprite sheet, one clip per sprite group, and opens it.
 		void CreateSpriteAnimation(const std::filesystem::path& imagePath);
-		static ItemType GetItemType(const std::filesystem::path& path);
+		// False for asset types the window doesn't show.
+		static bool ToItemType(AssetType type, ItemType& itemType);
 
 	private:
 		std::filesystem::path m_RootDirectory;
@@ -106,14 +117,9 @@ namespace Hydro
 		std::filesystem::path m_ListedDirectory;
 		std::vector<std::filesystem::path> m_ListedPaths;
 		std::unordered_map<std::string, PrefabPreview> m_PrefabPreviews;
-		struct TextureThumbnail
-		{
-			Ref<Texture2D> Texture;                       // null when the file can't be loaded
-			bool Loaded = false;
-			std::filesystem::file_time_type ImportTime{}; // of its .hymeta: loaded again when it changes
-			double LastCheckTime = 0.0;                   // ImGui time of the last .hymeta check
-		};
-		std::unordered_map<std::string, TextureThumbnail> m_TextureThumbnails;
+		// Full images (sprite sheets, animation sets) the tiles may load this frame, so opening a folder of
+		// many prefabs fills in over a few frames. Set when the window starts drawing.
+		int m_PreviewLoadsLeft = 0;
 
 		bool m_RequestDeletePopup = false;
 

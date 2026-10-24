@@ -24,18 +24,15 @@ namespace Hydro
 		out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-		// Collect first so the file keeps creation order (entt iterates newest first).
-		std::vector<entt::entity> entities;
-		m_Scene->m_Registry.each([&](auto entityHandle)
-		{
-			// Only "real" entities (made through CreateEntity) are saved. Raw registry entities
-			// without an ID, like the editor's demo galaxy stars, are runtime-only.
-			if (m_Scene->m_Registry.has<IDComponent>(entityHandle))
-				entities.push_back(entityHandle);
-		});
+		// The scene's list order (what the hierarchy shows). Only "real" entities (made through
+		// CreateEntity) are in it; raw registry entities without an ID, like the editor's demo
+		// galaxy stars, are runtime-only.
+		const std::vector<entt::entity>& entities = m_Scene->GetEntityOrder();
 
-		for (auto it = entities.rbegin(); it != entities.rend(); ++it)
-			EntitySerializer::Serialize(out, Entity{ *it, m_Scene.get() });
+		for (entt::entity handle : entities)
+		{
+			EntitySerializer::Serialize(out, Entity{ handle, m_Scene.get() });
+		}
 
 		out << YAML::EndSeq;
 		out << YAML::EndMap;

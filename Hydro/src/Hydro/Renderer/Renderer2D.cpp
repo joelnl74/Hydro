@@ -58,6 +58,26 @@ namespace Hydro
 		Scope<VulkanDescriptorBuilder> DescriptorSet;
 	};
 
+	// A point light queued for a view this frame. Global lights only add to RenderViewData::AmbientLight.
+	struct LightInstance
+	{
+		glm::vec3 Position{ 0.0f };
+		float Radius = 0.0f;
+		glm::vec3 Color{ 1.0f }; // linear RGB, already multiplied by the intensity
+	};
+
+	// A blob shadow queued for a view this frame.
+	struct ShadowInstance
+	{
+		glm::vec3 Position{ 0.0f };
+		glm::vec2 Size{ 1.0f };
+		float Strength = 0.5f;
+	};
+
+	// Point lights and blob shadows per view and frame (4 vertices each). More are dropped.
+	static constexpr uint32_t MaxLightsPerView = 1024;
+	static constexpr uint32_t MaxShadowsPerView = 1024;
+
 	// One vkCmdDrawIndexed: a run of quads in one vertex batch that use one texture set.
 	struct QuadDraw
 	{
@@ -105,6 +125,18 @@ namespace Hydro
 		// or the texture set is full.
 		std::vector<QuadDraw> Draws;
 
+		// ---- Lights ------------------------------------------------------------------
+		// Queued by DrawLight / DrawGlobalLight, drawn by RecordLightPass. Cleared with the batches.
+		std::vector<LightInstance> Lights;
+		std::vector<ShadowInstance> Shadows;
+		glm::vec3 AmbientLight{ 0.0f };  // the sum of the global lights: what the light buffer is cleared to
+		bool HasLights = false;          // a light of any kind was submitted this frame
+		// Made the first frame the view is lit, then kept and resized with the view.
+		Scope<VulkanRenderPass> LightTarget;                      // the light buffer: RGBA16F, the size of Target
+		Scope<VulkanDescriptorBuilder> LightBufferDescriptorSet;  // the composite's input: LightTarget's image of each frame
+		PerFrameVertexBuffers LightVertexBuffers;                 // 4 vertices per light, then 4 per shadow
+		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
+
 		bool Queued = false; // begun this frame, so Render() records it
 	};
 
@@ -137,6 +169,28 @@ namespace Hydro
 		static constexpr std::chrono::milliseconds ShaderPollInterval{ 250 };
 
 		Scope<VulkanPipeline> QuadPipeline;
+
+		// 2D lighting: lights are drawn into a per-view RGBA16F light buffer (LightPipeline, additive), which
+		// is multiplied over the scene (CompositePipeline). Built like QuadPipeline, against dummy render
+		// passes. Optional: all of it stays null when the light shaders can't be built, and views are then
+		// drawn unlit (see CreateLightingResources).
+		Scope<VulkanRenderPass> LightPipelineRenderPass;  // 1x1 RGBA16F, never drawn into
+		Scope<VulkanShader> LightShader;
+		FileWatcher LightShaderWatcher;
+		Scope<VulkanPipeline> LightPipeline;
+		Scope<VulkanDescriptorBuilder> CompositeLayoutDescriptorSet;
+		Scope<VulkanShader> CompositeShader;
+		FileWatcher CompositeShaderWatcher;
+		Scope<VulkanPipeline> CompositePipeline;
+		bool LightLimitWarned = false;
+
+		// Blob shadows: drawn into the light buffer after the lights (BlendMode::Darken). Optional like the
+		// lights, and separately: without the shadow shader the lights still work.
+		Scope<VulkanShader> ShadowShader;
+		FileWatcher ShadowShaderWatcher;
+		Scope<VulkanPipeline> ShadowPipeline;
+		bool ShadowLimitWarned = false;
+
 		Scope<VulkanIndexBuffer> QuadIndexBuffer;    // shared by all batches of all views (every batch starts at vertex 0)
 
 		// The pipeline is built against these. Every view's target uses the same attachment format,
@@ -156,11 +210,23 @@ namespace Hydro
 		std::vector<RenderViewData*> QueuedViews;
 		RenderViewData* CurrentView = nullptr;
 
-		// GPU timestamps: 2 queries (begin/end of all 2D passes) per frame in flight.
+		// GPU timestamps per frame in flight: queries 0/1 are begin/end of all 2D passes, then for each
+		// of the first MaxTimedViews lit views three begin/end pairs (TimerPhase): light buffer pass
+		// (including shadows), shadows, composite.
+		static constexpr uint32_t MaxTimedViews = 4;
+		static constexpr uint32_t TimerPhaseCount = 3;
+		static constexpr uint32_t QueriesPerFrame = 2 + MaxTimedViews * TimerPhaseCount * 2;
 		VkQueryPool TimestampPool = VK_NULL_HANDLE;
 		float TimestampPeriodNs = 0.0f;  // ns per timestamp tick
 		std::array<bool, MAX_FRAMES_IN_FLIGHT> TimestampsWritten{};
 		float LastGPUTimeMs = -1.0f;
+		float LastLightPassGPUMs = -1.0f;
+		float LastShadowGPUMs = -1.0f;
+		float LastCompositeGPUMs = -1.0f;
+		// Which phases of which timed view were written into each frame slot (bit per phase).
+		std::array<std::array<uint32_t, MaxTimedViews>, MAX_FRAMES_IN_FLIGHT> TimedPhaseMask{};
+		uint32_t TimedViewCount = 0;   // lit views timed so far this frame
+		uint32_t CurrentTimerSlot = UINT32_MAX; // timed slot of the view being recorded
 		char GPUName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE] = {};
 
 		Statistics Stats;          // being accumulated this frame
@@ -168,6 +234,33 @@ namespace Hydro
 	};
 
 	static Renderer2DData* s_Data = nullptr;
+
+	// The lighting phases timed per lit view (index = which begin/end query pair of the view's slot).
+	enum class TimerPhase : uint32_t
+	{
+		LightBuffer = 0, // the whole light buffer pass, shadows included
+		Shadows = 1,
+		Composite = 2
+	};
+
+	// Writes the begin (top of pipe) or end (bottom of pipe) timestamp of `phase` for the lit view being
+	// recorded. Does nothing without timestamp support or past MaxTimedViews lit views. Allowed inside a render pass.
+	static void WriteTimer(VkCommandBuffer commandBuffer, uint32_t frame, TimerPhase phase, bool end)
+	{
+		const uint32_t slot = s_Data->CurrentTimerSlot;
+		if (s_Data->TimestampPool == VK_NULL_HANDLE || slot >= Renderer2DData::MaxTimedViews)
+		{
+			return;
+		}
+
+		const uint32_t phaseIndex = (uint32_t)phase;
+		const uint32_t query = frame * Renderer2DData::QueriesPerFrame + 2 + (slot * Renderer2DData::TimerPhaseCount + phaseIndex) * 2 + (end ? 1u : 0u);
+		vkCmdWriteTimestamp(commandBuffer, end ? VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, s_Data->TimestampPool, query);
+		if (end)
+		{
+			s_Data->TimedPhaseMask[frame][slot] |= 1u << phaseIndex;
+		}
+	}
 
 	static const VulkanImageInfo& GetImageInfo(const Texture2D& texture)
 	{
@@ -203,6 +296,173 @@ namespace Hydro
 		}
 
 		set.DescriptorSet->WriteImages(frame, 1, images.data(), MaxTextureSlots, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	}
+
+	// The vertex layout of QuadVertex (the quad shader's inputs). The light quads use it too.
+	static VertexBufferLayout GetQuadVertexLayout()
+	{
+		return VertexBufferLayout
+		{
+			{ "inPosition", ShaderDataType::Float3, },
+			{ "inColor", ShaderDataType::Float4, },
+			{ "inTexCoord", ShaderDataType::Float2, },
+			{ "inTexIndex", ShaderDataType::Float, },
+		};
+	}
+
+	static Scope<VulkanShader> CreateEffectShader(const char* vertexPath, const char* fragmentPath)
+	{
+		ShaderInformation vertexInformation;
+		vertexInformation.path = vertexPath;
+		vertexInformation.shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
+		vertexInformation.shaderType = ShaderType::Vertex;
+
+		ShaderInformation fragmentInformation;
+		fragmentInformation.path = fragmentPath;
+		fragmentInformation.shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragmentInformation.shaderType = ShaderType::Fragment;
+
+		ShaderSpecification specification;
+		specification.shaderInformation = { vertexInformation, fragmentInformation };
+		return CreateScope<VulkanShader>(specification);
+	}
+
+	// Set 0 of the composite shader: binding 0 = the light buffer (an image array, see BindImage). Starts as
+	// the white texture; RecordLightPass points each view's set at its light buffer every frame.
+	static Scope<VulkanDescriptorBuilder> BuildLightBufferDescriptorSet()
+	{
+		const VulkanImageInfo& white = GetImageInfo(*s_Data->WhiteTexture);
+
+		Scope<VulkanDescriptorBuilder> descriptorSet = CreateScope<VulkanDescriptorBuilder>();
+		descriptorSet->Begin();
+		descriptorSet->BindImage(0, white.ImageView, white.Sampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+		descriptorSet->Build();
+		return descriptorSet;
+	}
+
+	// Lights are drawn as quads (the quad vertex layout, the view's camera set) and added up in the light buffer.
+	static Scope<VulkanPipeline> BuildLightPipeline(VulkanShader& shader)
+	{
+		PipelineSpecification specification;
+		specification.Layout = GetQuadVertexLayout();
+		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
+		specification.Shader = &shader;
+		specification.RenderPass = s_Data->LightPipelineRenderPass->GetRenderPass();
+		specification.Blend = BlendMode::Additive;
+		specification.BackfaceCulling = false;
+		specification.DepthTest = false;
+		specification.DepthWrite = false;
+		return CreateScope<VulkanPipeline>(specification);
+	}
+
+	// Blob shadows are drawn like the lights (quads, the view's camera set) but darken the light buffer.
+	static Scope<VulkanPipeline> BuildShadowPipeline(VulkanShader& shader)
+	{
+		PipelineSpecification specification;
+		specification.Layout = GetQuadVertexLayout();
+		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
+		specification.Shader = &shader;
+		specification.RenderPass = s_Data->LightPipelineRenderPass->GetRenderPass();
+		specification.Blend = BlendMode::Darken;
+		specification.BackfaceCulling = false;
+		specification.DepthTest = false;
+		specification.DepthWrite = false;
+		return CreateScope<VulkanPipeline>(specification);
+	}
+
+	// One triangle over the whole view (no vertex buffer), multiplied over what the scene pass has drawn.
+	static Scope<VulkanPipeline> BuildCompositePipeline(VulkanShader& shader)
+	{
+		PipelineSpecification specification;
+		specification.DescriptorSets = { s_Data->CompositeLayoutDescriptorSet.get() };
+		specification.Shader = &shader;
+		specification.RenderPass = s_Data->PipelineRenderPass->GetRenderPass();
+		specification.Blend = BlendMode::Multiply2x;
+		specification.BackfaceCulling = false;
+		specification.DepthTest = false;
+		specification.DepthWrite = false;
+		return CreateScope<VulkanPipeline>(specification);
+	}
+
+	// Lighting is optional: when a light shader is missing or doesn't compile, this logs it and every view is
+	// drawn unlit, instead of the engine failing to start.
+	static void CreateLightingResources()
+	{
+		try
+		{
+			s_Data->LightPipelineRenderPass = CreateScope<VulkanRenderPass>(1, 1, ImageFormat::RGBA16F);
+
+			s_Data->LightShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/light.frag");
+			s_Data->LightShaderWatcher = FileWatcher(s_Data->LightShader->GetSourceFiles());
+			s_Data->LightPipeline = BuildLightPipeline(*s_Data->LightShader);
+
+			s_Data->CompositeLayoutDescriptorSet = BuildLightBufferDescriptorSet();
+			s_Data->CompositeShader = CreateEffectShader("assets/shaders/composite.vert", "assets/shaders/composite.frag");
+			s_Data->CompositeShaderWatcher = FileWatcher(s_Data->CompositeShader->GetSourceFiles());
+			s_Data->CompositePipeline = BuildCompositePipeline(*s_Data->CompositeShader);
+		}
+		catch (const std::exception& e)
+		{
+			HY_CORE_ERROR("Renderer2D: 2D lighting is unavailable, views are drawn unlit: {}", e.what());
+
+			s_Data->CompositePipeline.reset();
+			s_Data->CompositeShader.reset();
+			s_Data->CompositeLayoutDescriptorSet.reset();
+			s_Data->LightPipeline.reset();
+			s_Data->LightShader.reset();
+			s_Data->LightPipelineRenderPass.reset();
+		}
+	}
+
+	// Shadows are optional on top of the lights: when the shader is missing or doesn't compile, this logs it
+	// and views are lit without shadows. Needs the light pipeline render pass.
+	static void CreateShadowResources()
+	{
+		if (s_Data->LightPipelineRenderPass == nullptr)
+		{
+			return;
+		}
+
+		try
+		{
+			s_Data->ShadowShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/shadow.frag");
+			s_Data->ShadowShaderWatcher = FileWatcher(s_Data->ShadowShader->GetSourceFiles());
+			s_Data->ShadowPipeline = BuildShadowPipeline(*s_Data->ShadowShader);
+		}
+		catch (const std::exception& e)
+		{
+			HY_CORE_ERROR("Renderer2D: shadows are unavailable, lit views are drawn without them: {}", e.what());
+
+			s_Data->ShadowPipeline.reset();
+			s_Data->ShadowShader.reset();
+		}
+	}
+
+	// Rebuilds a light or composite pipeline from its shader files (shader hot reload). The old pipeline keeps
+	// drawing when the new shader doesn't compile. Returns whether the new one took over.
+	static bool RebuildEffectPipeline(Scope<VulkanShader>& shader, FileWatcher& watcher, Scope<VulkanPipeline>& pipeline)
+	{
+		Scope<VulkanShader> newShader;
+		Scope<VulkanPipeline> newPipeline;
+		try
+		{
+			newShader = CreateScope<VulkanShader>(shader->GetSpecification());
+
+			PipelineSpecification specification = pipeline->GetSpecification();
+			specification.Shader = newShader.get();
+			newPipeline = CreateScope<VulkanPipeline>(specification);
+		}
+		catch (const std::exception&)
+		{
+			// VulkanShader already logged the compiler output.
+			HY_CORE_WARN("Lighting pipeline rebuild failed; still using the previous one.");
+			return false;
+		}
+
+		pipeline = std::move(newPipeline);
+		shader = std::move(newShader);
+		watcher = FileWatcher(shader->GetSourceFiles());
+		return true;
 	}
 
 	void Renderer2D::Init()
@@ -277,13 +537,7 @@ namespace Hydro
 		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(*s_Data->LayoutUniformBuffer);
 
 		PipelineSpecification specification;
-		specification.Layout =
-		{
-			{ "inPosition", ShaderDataType::Float3,},
-			{ "inColor", ShaderDataType::Float4, },
-			{ "inTexCoord", ShaderDataType::Float2, },
-			{ "inTexIndex", ShaderDataType::Float, },
-		};
+		specification.Layout = GetQuadVertexLayout();
 
 		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
 		specification.Shader = s_Data->Shader.get();
@@ -295,6 +549,9 @@ namespace Hydro
 		specification.DepthWrite = false;
 
 		s_Data->QuadPipeline = CreateScope<VulkanPipeline>(specification);
+
+		CreateLightingResources();
+		CreateShadowResources();
 
 		// GPU timing and limits.
 		{
@@ -317,7 +574,7 @@ namespace Hydro
 				VkQueryPoolCreateInfo queryPoolInfo{};
 				queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
 				queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
-				queryPoolInfo.queryCount = 2 * MAX_FRAMES_IN_FLIGHT;
+				queryPoolInfo.queryCount = Renderer2DData::QueriesPerFrame * MAX_FRAMES_IN_FLIGHT;
 				VK_CHECK_RESULT(vkCreateQueryPool(device.GetDevice(), &queryPoolInfo, nullptr, &s_Data->TimestampPool));
 			}
 		}
@@ -346,6 +603,15 @@ namespace Hydro
 
 		// The preview handles belong to ImGui's pool; only the textures they hold are released here.
 		s_Data->ImGuiTextures.clear();
+
+		s_Data->ShadowPipeline.reset();
+		s_Data->ShadowShader.reset();
+		s_Data->CompositePipeline.reset();
+		s_Data->CompositeShader.reset();
+		s_Data->CompositeLayoutDescriptorSet.reset();
+		s_Data->LightPipeline.reset();
+		s_Data->LightShader.reset();
+		s_Data->LightPipelineRenderPass.reset();
 
 		s_Data->QuadPipeline.reset();
 		s_Data->LayoutDescriptorSet.reset();
@@ -582,6 +848,11 @@ namespace Hydro
 		}
 		view.TextureSetIndex = 0;
 
+		view.Lights.clear();
+		view.Shadows.clear();
+		view.AmbientLight = glm::vec3(0.0f);
+		view.HasLights = false;
+
 		view.Draws.clear();
 		StartDraw(view);
 	}
@@ -628,6 +899,82 @@ namespace Hydro
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor)
 	{
 		SubmitQuad(transform, texture, textureRect, tintColor);
+	}
+
+	void Renderer2D::DrawLight(const glm::vec3& position, float radius, const glm::vec3& color, float intensity)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawLight outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+		{
+			return;
+		}
+
+		RenderViewData& view = *s_Data->CurrentView;
+
+		// A view with a light is lit, even when this one adds nothing.
+		view.HasLights = true;
+		if (radius <= 0.0f || intensity <= 0.0f)
+		{
+			return;
+		}
+
+		if (view.Lights.size() >= MaxLightsPerView)
+		{
+			if (s_Data->LightLimitWarned == false)
+			{
+				s_Data->LightLimitWarned = true;
+				HY_CORE_WARN("Renderer2D: more than {} lights in a view; the rest are not drawn", MaxLightsPerView);
+			}
+			return;
+		}
+
+		LightInstance light;
+		light.Position = position;
+		light.Radius = radius;
+		light.Color = color * intensity;
+		view.Lights.push_back(light);
+	}
+
+	void Renderer2D::DrawGlobalLight(const glm::vec3& color, float intensity)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawGlobalLight outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+		{
+			return;
+		}
+
+		RenderViewData& view = *s_Data->CurrentView;
+		view.HasLights = true;
+		if (intensity > 0.0f)
+		{
+			view.AmbientLight += color * intensity;
+		}
+	}
+
+	void Renderer2D::DrawShadow(const glm::vec3& position, const glm::vec2& size, float strength)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawShadow outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr || strength <= 0.0f || size.x <= 0.0f || size.y <= 0.0f)
+		{
+			return;
+		}
+
+		RenderViewData& view = *s_Data->CurrentView;
+		if (view.Shadows.size() >= MaxShadowsPerView)
+		{
+			if (s_Data->ShadowLimitWarned == false)
+			{
+				s_Data->ShadowLimitWarned = true;
+				HY_CORE_WARN("Renderer2D: more than {} shadows in a view; the rest are not drawn", MaxShadowsPerView);
+			}
+			return;
+		}
+
+		ShadowInstance shadow;
+		shadow.Position = position;
+		shadow.Size = size;
+		shadow.Strength = std::min(strength, 1.0f);
+		view.Shadows.push_back(shadow);
 	}
 
 	void Renderer2D::SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color)
@@ -689,21 +1036,56 @@ namespace Hydro
 
 		// The fence for this frame index was just waited on, so the timestamps this command
 		// buffer wrote last time are available: read them, then reset and write new ones.
-		const uint32_t firstQuery = frame * 2;
+		const uint32_t firstQuery = frame * Renderer2DData::QueriesPerFrame;
+		s_Data->TimedViewCount = 0;
+		s_Data->CurrentTimerSlot = UINT32_MAX;
 		if (s_Data->TimestampPool)
 		{
 			if (s_Data->TimestampsWritten[frame])
 			{
-				uint64_t timestamps[2] = {};
+				// {value, availability} per query (64-bit). Queries that were not written stay unavailable
+				// (VK_NOT_READY), which is fine: only the ones with availability set are used.
+				uint64_t results[Renderer2DData::QueriesPerFrame * 2] = {};
 				VkResult result = vkGetQueryPoolResults(Renderer::GetVulkanDevice().GetDevice(),
-					s_Data->TimestampPool, firstQuery, 2, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
-				if (result == VK_SUCCESS && timestamps[1] >= timestamps[0])
+					s_Data->TimestampPool, firstQuery, Renderer2DData::QueriesPerFrame, sizeof(results), results,
+					2 * sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT);
+				if (result == VK_SUCCESS || result == VK_NOT_READY)
 				{
-					s_Data->LastGPUTimeMs = (float)((double)(timestamps[1] - timestamps[0]) * s_Data->TimestampPeriodNs / 1.0e6);
+					const double toMs = (double)s_Data->TimestampPeriodNs / 1.0e6;
+					if (results[1] != 0 && results[3] != 0 && results[2] >= results[0])
+					{
+						s_Data->LastGPUTimeMs = (float)((double)(results[2] - results[0]) * toMs);
+					}
+
+					double phaseMs[Renderer2DData::TimerPhaseCount] = {};
+					bool anyLit = false;
+					for (uint32_t slot = 0; slot < Renderer2DData::MaxTimedViews; slot++)
+					{
+						for (uint32_t phase = 0; phase < Renderer2DData::TimerPhaseCount; phase++)
+						{
+							if ((s_Data->TimedPhaseMask[frame][slot] & (1u << phase)) == 0)
+							{
+								continue;
+							}
+
+							const uint32_t query = 2 + (slot * Renderer2DData::TimerPhaseCount + phase) * 2;
+							const bool available = results[query * 2 + 1] != 0 && results[(query + 1) * 2 + 1] != 0;
+							if (available && results[(query + 1) * 2] >= results[query * 2])
+							{
+								phaseMs[phase] += (double)(results[(query + 1) * 2] - results[query * 2]) * toMs;
+								anyLit = anyLit || phase == 0;
+							}
+						}
+					}
+
+					s_Data->LastLightPassGPUMs = anyLit ? (float)phaseMs[0] : -1.0f;
+					s_Data->LastShadowGPUMs = anyLit ? (float)phaseMs[1] : -1.0f;
+					s_Data->LastCompositeGPUMs = anyLit ? (float)phaseMs[2] : -1.0f;
 				}
 			}
 
-			vkCmdResetQueryPool(commandBuffer, s_Data->TimestampPool, firstQuery, 2);
+			s_Data->TimedPhaseMask[frame] = {};
+			vkCmdResetQueryPool(commandBuffer, s_Data->TimestampPool, firstQuery, Renderer2DData::QueriesPerFrame);
 			vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, s_Data->TimestampPool, firstQuery);
 		}
 
@@ -728,6 +1110,9 @@ namespace Hydro
 		s_Data->Stats.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
 		s_Data->Stats.FrameIndex = frame;
 		s_Data->Stats.GPUTimeMs = s_Data->LastGPUTimeMs;
+		s_Data->Stats.LightPassGPUMs = s_Data->LastLightPassGPUMs;
+		s_Data->Stats.ShadowGPUMs = s_Data->LastShadowGPUMs;
+		s_Data->Stats.CompositeGPUMs = s_Data->LastCompositeGPUMs;
 		s_Data->Stats.GPUName = s_Data->GPUName;
 		if (s_Data->QueuedViews.empty() == false)
 		{
@@ -779,6 +1164,9 @@ namespace Hydro
 			s_Data->Stats.VertexBytesUploaded += (uint64_t)vertexCount * sizeof(QuadVertex);
 		}
 
+		// The light buffer is drawn first: the scene pass below samples it (when the view is lit).
+		const bool lit = RecordLightPass(commandBuffer, view, frame);
+
 		// One render pass per view per frame => its target is cleared exactly once. Its subpass
 		// dependencies make the result visible to ImGui, which samples it later in this command buffer.
 		view.Target->Begin(commandBuffer, frame, Renderer::GetSettings().ClearColor);
@@ -817,7 +1205,142 @@ namespace Hydro
 
 		s_Data->Stats.BatchesAllocated += (uint32_t)view.QuadVertexBufferBases.size();
 
+		// Everything above is lit: sprites drawn after this point would not be, so the composite is last.
+		if (lit)
+		{
+			RecordComposite(commandBuffer, view, frame);
+		}
+
 		view.Target->End(commandBuffer);
+	}
+
+	bool Renderer2D::RecordLightPass(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
+	{
+		const RendererSettings& settings = Renderer::GetSettings();
+		if (settings.Lighting == false || view.HasLights == false || s_Data->LightPipeline == nullptr || s_Data->CompositePipeline == nullptr)
+		{
+			return false;
+		}
+
+		const uint32_t width = view.Target->GetWidth();
+		const uint32_t height = view.Target->GetHeight();
+
+		// The light buffer is made the first time the view is lit, then kept and resized with the view.
+		if (view.LightTarget == nullptr)
+		{
+			view.LightTarget = CreateScope<VulkanRenderPass>(width, height, ImageFormat::RGBA16F);
+			view.LightBufferDescriptorSet = BuildLightBufferDescriptorSet();
+			for (Scope<VulkanVertexBuffer>& vertexBuffer : view.LightVertexBuffers)
+			{
+				vertexBuffer = CreateScope<VulkanVertexBuffer>((MaxLightsPerView + MaxShadowsPerView) * 4 * (uint32_t)sizeof(QuadVertex));
+			}
+		}
+		else
+		{
+			view.LightTarget->Resize(width, height);
+		}
+
+		// One quad per light, covering its radius. The corners' texture coordinates run -1..1, which light.frag
+		// turns into the distance to the light; the "texture index" carries the number of bands (0 = smooth).
+		const float bands = settings.LightFalloff == LightFalloffStyle::Banded ? (float)std::min(std::max(settings.LightBands, 2u), 32u) : 0.0f;
+		static const glm::vec2 corners[4] = { { -1.0f, -1.0f }, { 1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f } };
+
+		view.LightVertices.clear();
+		for (const LightInstance& light : view.Lights)
+		{
+			for (const glm::vec2& corner : corners)
+			{
+				QuadVertex vertex;
+				vertex.Position = glm::vec3(light.Position.x + corner.x * light.Radius, light.Position.y + corner.y * light.Radius, light.Position.z);
+				vertex.Color = glm::vec4(light.Color, 1.0f);
+				vertex.TexCoord = corner;
+				vertex.TexIndex = bands;
+				view.LightVertices.push_back(vertex);
+			}
+		}
+
+		// The shadows' quads follow the lights' in the same buffer. TexCoord is -1..1 like a light's;
+		// the colour's alpha is the strength.
+		const bool drawShadows = settings.Shadows && s_Data->ShadowPipeline != nullptr;
+		if (drawShadows)
+		{
+			for (const ShadowInstance& shadow : view.Shadows)
+			{
+				for (const glm::vec2& corner : corners)
+				{
+					QuadVertex vertex;
+					vertex.Position = glm::vec3(shadow.Position.x + corner.x * shadow.Size.x * 0.5f, shadow.Position.y + corner.y * shadow.Size.y * 0.5f, shadow.Position.z);
+					vertex.Color = glm::vec4(0.0f, 0.0f, 0.0f, shadow.Strength);
+					vertex.TexCoord = corner;
+					vertex.TexIndex = 0.0f;
+					view.LightVertices.push_back(vertex);
+				}
+			}
+		}
+
+		const uint32_t lightCount = (uint32_t)view.Lights.size();
+		const uint32_t shadowCount = drawShadows ? (uint32_t)view.Shadows.size() : 0;
+		if (lightCount + shadowCount > 0)
+		{
+			view.LightVertexBuffers[frame]->SetData(view.LightVertices.data(), (uint32_t)(view.LightVertices.size() * sizeof(QuadVertex)));
+		}
+
+		// The composite samples this frame's light image. Written before the set is bound this frame.
+		const VulkanImageInfo& lightImage = view.LightTarget->GetImage(frame).GetVulkanImageInfo();
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = lightImage.ImageView;
+		imageInfo.sampler = lightImage.Sampler;
+		view.LightBufferDescriptorSet->WriteImages(frame, 0, &imageInfo, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+		// Cleared to the ambient light; every point light is added on top. The pass's dependencies make the
+		// result visible to the scene pass that samples it next.
+		s_Data->CurrentTimerSlot = s_Data->TimedViewCount++;
+		WriteTimer(commandBuffer, frame, TimerPhase::LightBuffer, false);
+		view.LightTarget->Begin(commandBuffer, frame, glm::vec4(view.AmbientLight, 1.0f));
+		if (lightCount + shadowCount > 0)
+		{
+			s_Data->QuadIndexBuffer->Bind(commandBuffer);
+			view.LightVertexBuffers[frame]->Bind(commandBuffer);
+		}
+
+		if (lightCount > 0)
+		{
+			s_Data->LightPipeline->Bind(commandBuffer, { width, height });
+			// The camera set of the view's first texture set (the light shader reads only the camera).
+			s_Data->LightPipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
+			vkCmdDrawIndexed(commandBuffer, lightCount * 6, 1, 0, 0, 0);
+			s_Data->Stats.DrawCalls++;
+		}
+
+		// Shadows last, so they darken the lights that reach them. Their vertices start after the lights'.
+		if (shadowCount > 0)
+		{
+			WriteTimer(commandBuffer, frame, TimerPhase::Shadows, false);
+			s_Data->ShadowPipeline->Bind(commandBuffer, { width, height });
+			s_Data->ShadowPipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
+			vkCmdDrawIndexed(commandBuffer, shadowCount * 6, 1, 0, (int32_t)(lightCount * 4), 0);
+			s_Data->Stats.DrawCalls++;
+			WriteTimer(commandBuffer, frame, TimerPhase::Shadows, true);
+		}
+		view.LightTarget->End(commandBuffer);
+		WriteTimer(commandBuffer, frame, TimerPhase::LightBuffer, true);
+
+		s_Data->Stats.LitViewCount++;
+		s_Data->Stats.LightCount += lightCount;
+		s_Data->Stats.ShadowCount += shadowCount;
+
+		return true;
+	}
+
+	void Renderer2D::RecordComposite(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
+	{
+		WriteTimer(commandBuffer, frame, TimerPhase::Composite, false);
+		s_Data->CompositePipeline->Bind(commandBuffer, view.Target->GetExtent());
+		s_Data->CompositePipeline->BindDescriptorSet(commandBuffer, 0, *view.LightBufferDescriptorSet);
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		s_Data->Stats.DrawCalls++;
+		WriteTimer(commandBuffer, frame, TimerPhase::Composite, true);
 	}
 
 	void Renderer2D::DiscardFrame()
@@ -985,16 +1508,32 @@ namespace Hydro
 		}
 
 		s_Data->NextShaderPoll = now + Renderer2DData::ShaderPollInterval;
-		if (s_Data->ShaderWatcher.Poll() == false)
-		{
-			return;
-		}
 
-		// Poll() has already taken the new file times, so a broken shader is retried on the next save,
-		// not every poll.
-		if (RebuildQuadPipeline(true, s_Data->QuadPipeline->GetSpecification().Wireframe))
+		// Every watcher is polled (a poll takes the new file times), then each changed shader is rebuilt.
+		// A broken shader is retried on the next save, not every poll.
+		const bool quadChanged = s_Data->ShaderWatcher.Poll();
+		const bool lightChanged = s_Data->LightShaderWatcher.Poll();
+		const bool compositeChanged = s_Data->CompositeShaderWatcher.Poll();
+		const bool shadowChanged = s_Data->ShadowShaderWatcher.Poll();
+
+		if (quadChanged && RebuildQuadPipeline(true, s_Data->QuadPipeline->GetSpecification().Wireframe))
 		{
 			HY_CORE_INFO("Shaders reloaded.");
+		}
+
+		if (lightChanged && s_Data->LightPipeline != nullptr && RebuildEffectPipeline(s_Data->LightShader, s_Data->LightShaderWatcher, s_Data->LightPipeline))
+		{
+			HY_CORE_INFO("Light shader reloaded.");
+		}
+
+		if (shadowChanged && s_Data->ShadowPipeline != nullptr && RebuildEffectPipeline(s_Data->ShadowShader, s_Data->ShadowShaderWatcher, s_Data->ShadowPipeline))
+		{
+			HY_CORE_INFO("Shadow shader reloaded.");
+		}
+
+		if (compositeChanged && s_Data->CompositePipeline != nullptr && RebuildEffectPipeline(s_Data->CompositeShader, s_Data->CompositeShaderWatcher, s_Data->CompositePipeline))
+		{
+			HY_CORE_INFO("Composite shader reloaded.");
 		}
 	}
 

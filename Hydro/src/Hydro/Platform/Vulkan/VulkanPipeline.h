@@ -21,6 +21,8 @@ namespace Hydro
 		None = 0,  // Opaque: source overwrites the target.
 		Alpha,     // Standard alpha blending (src * a + dst * (1 - a)). Use for sprites.
 		Additive,  // src * a + dst. Use for glows and particles.
+		Multiply2x, // dst * src * 2: a src of 0.5 leaves the target as it is, 1 doubles it. Use to apply a light buffer.
+		Darken,     // dst * (1 - a): the source's alpha darkens the target, its colour is ignored. Use for shadows.
 	};
 
 	struct PipelineSpecification

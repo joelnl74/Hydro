@@ -5,9 +5,13 @@
 #include <string>
 
 #include "Hydro/Utils/PlatformUtils.h"
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Scene/SpriteAnimation.h"
 #include "EditorPaths.h"
 #include "Utilities/AssetDragDrop.h"
 #include "Utilities/EditorChrome.h"
+#include "Utilities/PathFollower.h"
 
 #include <algorithm>
 #include <cmath>
@@ -70,6 +74,7 @@ namespace Hydro
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
 		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
 		m_ProjectWindow->OnPathRenamed = [this](const std::filesystem::path& from, const std::filesystem::path& to) { OnPathRenamed(from, to); };
+		m_ProjectWindow->OnPathDeleted = [this](const std::filesystem::path& path) { OnPathDeleted(path); };
 		m_ProjectWindow->OnAssetSelected = [this](const std::filesystem::path& path)
 		{
 			// The inspector shows the asset instead of an entity.
@@ -639,15 +644,29 @@ namespace Hydro
 		// Gives every asset file without a handle one (written into the file or a .hymeta next to it).
 		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 
-		const std::filesystem::path startScene = project->GetStartScenePath();
-		if (startScene.empty())
+		// A project file from before handles names its start scene by path: turn that into a handle now.
+		ProjectConfig& config = project->GetConfig();
+		if ((uint64_t)config.StartScene == 0 && config.LegacyStartScene.empty() == false)
+		{
+			const AssetHandle handle = AssetManager::ImportAsset(config.LegacyStartScene);
+			if ((uint64_t)handle != 0)
+			{
+				config.StartScene = handle;
+				config.LegacyStartScene.clear();
+				SaveProject();
+				HY_INFO("Start scene {} is now stored by asset handle", AssetManager::GetMetadata(handle)->Path.generic_u8string());
+			}
+		}
+
+		if ((uint64_t)config.StartScene == 0)
 			return;
 
+		const std::filesystem::path startScene = AssetManager::GetAbsolutePath(config.StartScene);
 		std::error_code ec;
-		if (std::filesystem::exists(startScene, ec))
+		if (AssetManager::IsAssetHandleValid(config.StartScene) && std::filesystem::exists(startScene, ec))
 			OpenScene(startScene);
 		else
-			HY_WARN("Project start scene {} does not exist", startScene.string());
+			HY_WARN("Project start scene (asset handle {}) is missing", (uint64_t)config.StartScene);
 	}
 	
 	void EditorLayer::SaveProject()
@@ -684,19 +703,43 @@ namespace Hydro
 		}
 	}
 
+	// Called after an image's import settings were saved, before the window that saved them reads the image
+	// again: the AssetManager reloads the texture (every holder of its handle gets the new one), the animation
+	// sets built on it are read again, and sprites keep showing the same sprite by name.
 	void EditorLayer::OnTextureReimported(const std::filesystem::path& imagePath)
 	{
-		const Ref<Texture2D> texture = Texture2D::LoadFromFile(imagePath);
+		const AssetHandle handle = AssetManager::FindHandle(imagePath);
+		if (static_cast<uint64_t>(handle) == 0)
+		{
+			return;
+		}
+
+		// The sprites as they were, to find each one again by name after slicing moved them.
+		const Ref<Texture2D> before = AssetManager::GetLoadedAsset<Texture2D>(handle);
+		const Ref<Texture2D> texture = AssetManager::ReloadAsset<Texture2D>(handle);
 		if (texture == nullptr)
 		{
 			return;
 		}
 
-		// Each animation set that uses the image is read again once, then shared.
-		std::map<std::filesystem::path, Ref<SpriteAnimationSet>> reloadedSets;
+		// A loaded animation set holds the texture it was built with, so each one on this image is read again.
+		for (const auto& entry : AssetManager::GetRegistry().GetAll())
+		{
+			if (entry.second.Type != AssetType::SpriteAnimation)
+			{
+				continue;
+			}
+
+			const Ref<SpriteAnimationSet> set = AssetManager::GetLoadedAsset<SpriteAnimationSet>(entry.first);
+			if (set != nullptr && set->GetTexture() != nullptr && set->GetTexture()->GetHandle() == handle)
+			{
+				AssetManager::ReloadAsset<SpriteAnimationSet>(entry.first);
+			}
+		}
+
 		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
 		{
-			if (scene == nullptr)
+			if (scene == nullptr || before == nullptr || before == texture)
 			{
 				continue;
 			}
@@ -705,44 +748,30 @@ namespace Hydro
 			for (auto entity : sprites)
 			{
 				SpriteRendererComponent& sprite = sprites.get<SpriteRendererComponent>(entity);
-				if (sprite.Texture == nullptr || sprite.Texture == texture || sprite.Texture->GetPath() != texture->GetPath())
+				if (sprite.Texture != handle)
 				{
 					continue;
 				}
 
 				// The same sprite by name: slicing again may have moved it.
-				const int32_t index = texture->FindSprite(sprite.Texture->GetSprite(sprite.SpriteIndex).Name);
+				const int32_t index = texture->FindSprite(before->GetSprite(sprite.SpriteIndex).Name);
 				sprite.SpriteIndex = index >= 0 ? (uint32_t)index : 0;
-				sprite.Texture = texture;
-			}
-
-			auto animators = scene->m_Registry.view<SpriteAnimatorComponent>();
-			for (auto entity : animators)
-			{
-				SpriteAnimatorComponent& animator = animators.get<SpriteAnimatorComponent>(entity);
-				if (animator.Animations == nullptr || animator.Animations->GetPath().empty() ||
-					animator.Animations->GetTexture()->GetPath() != texture->GetPath())
-				{
-					continue;
-				}
-
-				const std::filesystem::path setPath = animator.Animations->GetPath();
-				auto found = reloadedSets.find(setPath);
-				if (found == reloadedSets.end())
-				{
-					found = reloadedSets.emplace(setPath, SpriteAnimationSet::LoadFromFile(setPath, true)).first;
-				}
-				if (found->second != nullptr)
-				{
-					animator.Animations = found->second;
-				}
 			}
 		}
 	}
 
+	// Called after the Animation window saved `path`: the set is read again and every animator on it keeps its
+	// clip when that clip still exists (by name), and starts over otherwise.
 	void EditorLayer::OnAnimationSetSaved(const std::filesystem::path& path)
 	{
-		const Ref<SpriteAnimationSet> set = SpriteAnimationSet::LoadFromFile(path, true);
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		if (static_cast<uint64_t>(handle) == 0)
+		{
+			return;
+		}
+
+		const Ref<SpriteAnimationSet> before = AssetManager::GetLoadedAsset<SpriteAnimationSet>(handle);
+		const Ref<SpriteAnimationSet> set = AssetManager::ReloadAsset<SpriteAnimationSet>(handle);
 		if (set == nullptr)
 		{
 			return;
@@ -759,17 +788,17 @@ namespace Hydro
 			for (auto entity : animators)
 			{
 				SpriteAnimatorComponent& animator = animators.get<SpriteAnimatorComponent>(entity);
-				if (animator.Animations != nullptr && animator.Animations->GetPath() == set->GetPath())
+				if (animator.Animations != handle)
 				{
-					// The clip it plays keeps playing if it still exists (by name); otherwise it starts over.
-					const std::string playing = animator.ClipIndex >= 0 && (uint32_t)animator.ClipIndex < animator.Animations->GetClipCount()
-						? animator.Animations->GetClip((uint32_t)animator.ClipIndex).Name
-						: std::string();
-					animator.Animations = set;
-					animator.ClipIndex = playing.empty() ? -1 : set->FindClip(playing);
-					animator.FrameIndex = 0;
-					animator.FrameTime = 0.0f;
+					continue;
 				}
+
+				const std::string playing = before != nullptr && animator.ClipIndex >= 0 && (uint32_t)animator.ClipIndex < before->GetClipCount()
+					? before->GetClip((uint32_t)animator.ClipIndex).Name
+					: std::string();
+				animator.ClipIndex = playing.empty() ? -1 : set->FindClip(playing);
+				animator.FrameIndex = 0;
+				animator.FrameTime = 0.0f;
 			}
 		}
 	}
@@ -999,54 +1028,30 @@ namespace Hydro
 		}
 	}
 
-	// If `path` is `from` or inside it, points it at the same place under `to` and returns true.
-	static bool FollowRename(std::filesystem::path& path, const std::filesystem::path& from, const std::filesystem::path& to)
-	{
-		if (path.empty())
-		{
-			return false;
-		}
-
-		std::error_code ec;
-		const std::filesystem::path absolutePath = std::filesystem::absolute(path, ec).lexically_normal();
-		const std::filesystem::path absoluteFrom = std::filesystem::absolute(from, ec).lexically_normal();
-		const std::filesystem::path relative = absolutePath.lexically_relative(absoluteFrom);
-		if (relative.empty() || *relative.begin() == "..")
-		{
-			return false;
-		}
-
-		const std::filesystem::path absoluteTo = std::filesystem::absolute(to, ec).lexically_normal();
-		path = relative == "." ? absoluteTo : (absoluteTo / relative).lexically_normal();
-		return true;
-	}
-
 	void EditorLayer::OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to)
 	{
-		// Scenes are only referenced by these paths, so a scene (or a folder of scenes) rename is complete.
-		// Textures and .hyanim files are referenced by asset handle and follow a rename on their own.
-		// TODO(assets): the start scene and last scene become handles too (Roadmap AS4).
-		if (FollowRename(m_EditorScenePath, from, to))
+		// The open scene and the last scene are remembered by path (the last scene is an editor setting and can
+		// be outside any project), so they follow a rename here. The project's start scene, textures and
+		// .hyanim files are referenced by asset handle and follow on their own.
+		if (PathFollower::Follow(m_EditorScenePath, from, to))
 		{
 			m_EditorScene->SetName(m_EditorScenePath.stem().string());
 		}
-		FollowRename(m_EditorSettings.Session.LastScene, from, to);
+		PathFollower::Follow(m_EditorSettings.Session.LastScene, from, to);
+		PathFollower::Follow(m_InspectedAsset, from, to);
+		m_SpriteEditorWindow->OnAssetMoved(from, to);
+		m_SpriteAnimationWindow->OnAssetMoved(from, to);
+	}
 
-		Ref<Project> project = Project::GetActive();
-		if (project == nullptr)
+	void EditorLayer::OnPathDeleted(const std::filesystem::path& path)
+	{
+		// What was open for editing is gone; saving it would bring the file back.
+		if (PathFollower::Follow(m_InspectedAsset, path, path))
 		{
-			return;
+			m_InspectedAsset.clear();
 		}
-
-		std::filesystem::path startScene = project->GetStartScenePath();
-		if (FollowRename(startScene, from, to))
-		{
-			std::error_code ec;
-			const std::filesystem::path assetDirectory = std::filesystem::absolute(project->GetAssetDirectory(), ec).lexically_normal();
-			project->GetConfig().StartScene = startScene.lexically_relative(assetDirectory);
-			SaveProject();
-			HY_INFO("Start scene is now {}", project->GetConfig().StartScene.generic_string());
-		}
+		m_SpriteEditorWindow->OnAssetDeleted(path);
+		m_SpriteAnimationWindow->OnAssetDeleted(path);
 	}
 
 	void EditorLayer::OnAssetDropped(const std::filesystem::path& path)

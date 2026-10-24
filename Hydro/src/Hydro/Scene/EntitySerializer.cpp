@@ -3,7 +3,6 @@
 #include "ScriptableEntity.h"
 
 #include "Hydro/Asset/AssetManager.h"
-#include "Hydro/Project/Project.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -11,62 +10,40 @@
 
 namespace Hydro
 {
-	// Sprites and animators save the asset's handle (it follows renames and moves) and its path (readable,
-	// the fallback for files the AssetManager doesn't know, and how scenes from before handles load).
-	// TODO(assets): once components hold an AssetHandle (Roadmap AS3) the path keys and these helpers go away.
+	// Sprites and animators save the AssetHandle of their texture / animation set (TextureHandle,
+	// AnimationsHandle). Scenes saved before handles hold the file's path instead (Texture, Animations,
+	// relative to the project's asset folder when the file is inside it); those are still read, and
+	// the next save writes the handle.
 
-	// The file a saved reference points to: the handle's file when the registry has it, else the saved path.
-	static std::filesystem::path ResolveSavedAsset(const YAML::Node& handleNode, const std::string& savedPath);
-
-	// Relative to the active project's asset folder when the file is inside it (so projects can move),
-	// otherwise absolute. Forward slashes either way.
-	static std::string ToSavedAssetPath(const std::filesystem::path& path)
+	// The asset a saved reference points to: the handle when the registry knows it, else the file a
+	// path-only (older) scene names, registered now. A handle the registry doesn't know and no path to
+	// fall back on is returned as it is, so saving the scene again keeps it (a deleted file can come back).
+	static AssetHandle ResolveSavedAsset(const YAML::Node& handleNode, const YAML::Node& pathNode)
 	{
-		if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
-		{
-			std::error_code error;
-			const std::filesystem::path relative = std::filesystem::relative(path, project->GetAssetDirectory(), error);
-			if (error.value() == 0 && relative.empty() == false && *relative.begin() != "..")
-			{
-				return relative.generic_u8string();
-			}
-		}
-
-		return path.generic_u8string();
-	}
-
-	static std::filesystem::path FromSavedAssetPath(const std::string& saved)
-	{
-		std::filesystem::path path = std::filesystem::u8path(saved);
-		if (path.is_relative())
-		{
-			if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
-			{
-				return project->GetAssetDirectory() / path;
-			}
-		}
-
-		return path;
-	}
-
-	// Where `handle` is now (the file may have been renamed since it was loaded), else `loadedPath`.
-	static std::filesystem::path GetCurrentPath(AssetHandle handle, const std::filesystem::path& loadedPath)
-	{
-		return AssetManager::IsAssetHandleValid(handle) ? AssetManager::GetAbsolutePath(handle) : loadedPath;
-	}
-
-	static std::filesystem::path ResolveSavedAsset(const YAML::Node& handleNode, const std::string& savedPath)
-	{
+		AssetHandle handle = 0;
 		if (handleNode.IsDefined())
 		{
-			const AssetHandle handle = AssetHandle(handleNode.as<uint64_t>(0));
+			handle = AssetHandle(handleNode.as<uint64_t>(0));
 			if (AssetManager::IsAssetHandleValid(handle))
 			{
-				return AssetManager::GetAbsolutePath(handle);
+				return handle;
 			}
 		}
 
-		return savedPath.empty() ? std::filesystem::path() : FromSavedAssetPath(savedPath);
+		if (pathNode.IsDefined())
+		{
+			const std::string savedPath = pathNode.as<std::string>("");
+			if (savedPath.empty() == false)
+			{
+				const AssetHandle fromPath = AssetManager::ImportAsset(std::filesystem::u8path(savedPath));
+				if ((uint64_t)fromPath != 0)
+				{
+					return fromPath;
+				}
+			}
+		}
+
+		return handle;
 	}
 
 	void EntitySerializer::Serialize(YAML::Emitter& out, Entity entity)
@@ -105,19 +82,15 @@ namespace Hydro
 			out << YAML::Key << "Color" << YAML::Value << sprite.Color;
 			out << YAML::Key << "TilingFactor" << YAML::Value << sprite.TilingFactor;
 			out << YAML::Key << "SortOrder" << YAML::Value << sprite.SortOrder;
-			// Textures made in code have no file and aren't saved.
-			if (sprite.Texture != nullptr && sprite.Texture->GetPath().empty() == false)
+			// The handle is saved even when the file is missing, so a texture that comes back is found again.
+			if ((uint64_t)sprite.Texture != 0)
 			{
-				const AssetHandle textureHandle = sprite.Texture->GetHandle();
-				if ((uint64_t)textureHandle != 0)
-				{
-					out << YAML::Key << "TextureHandle" << YAML::Value << (uint64_t)textureHandle;
-				}
-				out << YAML::Key << "Texture" << YAML::Value << ToSavedAssetPath(GetCurrentPath(textureHandle, sprite.Texture->GetPath()));
+				out << YAML::Key << "TextureHandle" << YAML::Value << (uint64_t)sprite.Texture;
 				// By name, so slicing the sheet again keeps the sprite; the index is the fallback.
-				if (sprite.Texture->GetSpriteMode() == SpriteMode::Multiple)
+				const Ref<Texture2D> texture = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
+				if (texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple)
 				{
-					out << YAML::Key << "Sprite" << YAML::Value << sprite.Texture->GetSprite(sprite.SpriteIndex).Name;
+					out << YAML::Key << "Sprite" << YAML::Value << texture->GetSprite(sprite.SpriteIndex).Name;
 				}
 			}
 			out << YAML::Key << "SpriteIndex" << YAML::Value << sprite.SpriteIndex;
@@ -133,14 +106,9 @@ namespace Hydro
 			// Only the settings; the play state starts fresh.
 			out << YAML::Key << "SpriteAnimatorComponent";
 			out << YAML::BeginMap;
-			if (animator.Animations != nullptr && animator.Animations->GetPath().empty() == false)
+			if ((uint64_t)animator.Animations != 0)
 			{
-				const AssetHandle animationsHandle = animator.Animations->GetHandle();
-				if ((uint64_t)animationsHandle != 0)
-				{
-					out << YAML::Key << "AnimationsHandle" << YAML::Value << (uint64_t)animationsHandle;
-				}
-				out << YAML::Key << "Animations" << YAML::Value << ToSavedAssetPath(GetCurrentPath(animationsHandle, animator.Animations->GetPath()));
+				out << YAML::Key << "AnimationsHandle" << YAML::Value << (uint64_t)animator.Animations;
 			}
 			out << YAML::Key << "StartClip" << YAML::Value << animator.StartClip;
 			out << YAML::Key << "PlayOnStart" << YAML::Value << animator.PlayOnStart;
@@ -163,6 +131,31 @@ namespace Hydro
 			out << YAML::Key << "OrthographicSize" << YAML::Value << camera.OrthographicSize;
 			out << YAML::Key << "OrthographicNear" << YAML::Value << camera.OrthographicNear;
 			out << YAML::Key << "OrthographicFar" << YAML::Value << camera.OrthographicFar;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<Light2DComponent>())
+		{
+			auto& light = entity.GetComponent<Light2DComponent>();
+
+			out << YAML::Key << "Light2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Type" << YAML::Value << (light.Type == Light2DType::Global ? "Global" : "Point");
+			out << YAML::Key << "Color" << YAML::Value << light.Color;
+			out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
+			out << YAML::Key << "Radius" << YAML::Value << light.Radius;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<Shadow2DComponent>())
+		{
+			auto& shadow = entity.GetComponent<Shadow2DComponent>();
+
+			out << YAML::Key << "Shadow2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << shadow.Offset;
+			out << YAML::Key << "Size" << YAML::Value << shadow.Size;
+			out << YAML::Key << "Strength" << YAML::Value << shadow.Strength;
 			out << YAML::EndMap;
 		}
 
@@ -217,20 +210,17 @@ namespace Hydro
 			sprite.TilingFactor = spriteNode["TilingFactor"].as<float>(sprite.TilingFactor);
 			sprite.SortOrder = spriteNode["SortOrder"].as<int32_t>(sprite.SortOrder);
 
-			// A texture that can't be loaded is logged by LoadFromFile; the sprite is drawn untextured.
-			const std::string savedTexture = spriteNode["Texture"].as<std::string>("");
-			const std::filesystem::path textureFile = ResolveSavedAsset(spriteNode["TextureHandle"], savedTexture);
-			if (textureFile.empty() == false)
-			{
-				sprite.Texture = Texture2D::LoadFromFile(textureFile);
-			}
+			// The asset is loaded now (a texture that can't be loaded is logged by the manager) so the
+			// renderer, which never loads, finds it. The handle is kept either way.
+			sprite.Texture = ResolveSavedAsset(spriteNode["TextureHandle"], spriteNode["Texture"]);
+			const Ref<Texture2D> texture = (uint64_t)sprite.Texture != 0 ? AssetManager::GetAsset<Texture2D>(sprite.Texture) : nullptr;
 
 			sprite.SpriteIndex = spriteNode["SpriteIndex"].as<uint32_t>(sprite.SpriteIndex);
 			sprite.FlipX = spriteNode["FlipX"].as<bool>(sprite.FlipX);
 			sprite.FlipY = spriteNode["FlipY"].as<bool>(sprite.FlipY);
-			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && sprite.Texture != nullptr)
+			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
-				const int32_t found = sprite.Texture->FindSprite(spriteNameNode.as<std::string>(""));
+				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));
 				if (found >= 0)
 				{
 					sprite.SpriteIndex = (uint32_t)found;
@@ -245,12 +235,11 @@ namespace Hydro
 			animator.PlayOnStart = animatorNode["PlayOnStart"].as<bool>(animator.PlayOnStart);
 			animator.Speed = animatorNode["Speed"].as<float>(animator.Speed);
 
-			// A set that can't be loaded is logged by LoadFromFile; the animator then does nothing.
-			const std::string savedAnimations = animatorNode["Animations"].as<std::string>("");
-			const std::filesystem::path animationsFile = ResolveSavedAsset(animatorNode["AnimationsHandle"], savedAnimations);
-			if (animationsFile.empty() == false)
+			// A set that can't be loaded is logged by the manager; the animator then does nothing.
+			animator.Animations = ResolveSavedAsset(animatorNode["AnimationsHandle"], animatorNode["Animations"]);
+			if ((uint64_t)animator.Animations != 0)
 			{
-				animator.Animations = SpriteAnimationSet::LoadFromFile(animationsFile);
+				AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
 			}
 		}
 
@@ -267,6 +256,23 @@ namespace Hydro
 			camera.OrthographicSize = cameraNode["OrthographicSize"].as<float>(camera.OrthographicSize);
 			camera.OrthographicNear = cameraNode["OrthographicNear"].as<float>(camera.OrthographicNear);
 			camera.OrthographicFar = cameraNode["OrthographicFar"].as<float>(camera.OrthographicFar);
+		}
+
+		if (auto lightNode = entityNode["Light2DComponent"])
+		{
+			auto& light = entity.AddComponent<Light2DComponent>();
+			light.Type = lightNode["Type"].as<std::string>("Point") == "Global" ? Light2DType::Global : Light2DType::Point;
+			light.Color = lightNode["Color"].as<glm::vec3>(light.Color);
+			light.Intensity = lightNode["Intensity"].as<float>(light.Intensity);
+			light.Radius = lightNode["Radius"].as<float>(light.Radius);
+		}
+
+		if (auto shadowNode = entityNode["Shadow2DComponent"])
+		{
+			auto& shadow = entity.AddComponent<Shadow2DComponent>();
+			shadow.Offset = shadowNode["Offset"].as<glm::vec2>(shadow.Offset);
+			shadow.Size = shadowNode["Size"].as<glm::vec2>(shadow.Size);
+			shadow.Strength = shadowNode["Strength"].as<float>(shadow.Strength);
 		}
 
 		if (auto scriptNode = entityNode["NativeScriptComponent"])

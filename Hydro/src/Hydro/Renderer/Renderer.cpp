@@ -98,7 +98,7 @@ namespace Hydro
 		}
 
 		// Present mode is fixed per swapchain: rebuild it at the start of the next frame.
-		// Clear colour, wireframe and hot reload are read by Renderer2D every frame.
+		// Clear colour, wireframe, hot reload and the lighting options are read by Renderer2D every frame.
 		if (vsyncChanged)
 		{
 			s_Instance->m_SwapChain->SetVSync(settings.VSync);

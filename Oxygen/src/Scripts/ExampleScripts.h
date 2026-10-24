@@ -1,6 +1,8 @@
 #pragma once
 #include "Hydro.h"
+#include "VillageScripts.h"
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -105,11 +107,89 @@ namespace Hydro
 		float m_Speed = 3.0f; // units per second
 	};
 
+	// Sorts a sprite among the others by its height on screen: the lower it stands, the more in front it is
+	// (SortOrder = round(10 - y), the same rule the LightingTest scene uses for its static sprites). For
+	// characters that move; put it next to a script that walks them.
+	class YSortScript : public ScriptableEntity
+	{
+	protected:
+		void OnUpdate([[maybe_unused]] float deltaTime) override
+		{
+			Entity entity = GetEntity();
+			if (entity.HasComponent<SpriteRendererComponent>() == false)
+			{
+				return;
+			}
+
+			const float y = GetComponent<TransformComponent>().Translation.y;
+			GetComponent<SpriteRendererComponent>().SortOrder = (int32_t)std::lround(10.0f - y);
+		}
+	};
+
+	// Put it on the camera: the camera glides after the first entity tagged "Player" (x and y only; the
+	// Z and the zoom are left alone) and stays inside the bounds. It follows in play mode only, because
+	// scripts only run there.
+	class CameraFollowScript : public ScriptableEntity
+	{
+	protected:
+		void OnUpdate(float deltaTime) override
+		{
+			Entity self = GetEntity();
+			Scene* scene = self.GetScene();
+			auto& transform = GetComponent<TransformComponent>();
+
+			if (m_Target == entt::null || scene->m_Registry.valid(m_Target) == false)
+			{
+				m_Target = FindTarget(*scene);
+				m_Snap = true;
+			}
+
+			if (m_Target == entt::null || scene->m_Registry.has<TransformComponent>(m_Target) == false)
+			{
+				return;
+			}
+
+			const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
+			const glm::vec2 goal{ std::clamp(position.x, -m_BoundsX, m_BoundsX), std::clamp(position.y + m_LookAhead, -m_BoundsY, m_BoundsY) };
+
+			// Frame-rate independent smoothing: closes most of the gap in about a third of a second.
+			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-m_Smoothing * deltaTime);
+			transform.Translation.x += (goal.x - transform.Translation.x) * t;
+			transform.Translation.y += (goal.y - transform.Translation.y) * t;
+			m_Snap = false;
+		}
+
+	private:
+		entt::entity FindTarget(Scene& scene) const
+		{
+			auto view = scene.m_Registry.view<TagComponent, TransformComponent>();
+			for (auto entity : view)
+			{
+				if (view.get<TagComponent>(entity).Tag == "Player")
+				{
+					return entity;
+				}
+			}
+
+			return entt::null;
+		}
+
+		entt::entity m_Target = entt::null;
+		bool m_Snap = true;
+		float m_Smoothing = 8.0f;
+		float m_LookAhead = 1.5f;   // aim at the character's chest, not the feet
+		float m_BoundsX = 17.0f;    // LightingTest's ground is 60 x 60 units; the view is about 25 x 14
+		float m_BoundsY = 23.0f;
+	};
+
 	inline void RegisterExampleScripts()
 	{
 		// The names are what scenes save: keep them stable.
 		ScriptRegistry::Register<SpinScript>("Spin");
 		ScriptRegistry::Register<BobScript>("Bob");
 		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalk");
+		ScriptRegistry::Register<YSortScript>("YSort");
+		ScriptRegistry::Register<CameraFollowScript>("CameraFollow");
+		RegisterVillageScripts();
 	}
 }

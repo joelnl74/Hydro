@@ -24,18 +24,19 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Asset/Asset.*` | `AssetHandle` (= `UUID`), `AssetType` (to/from string, from a file extension), `Asset` base class (`Texture2D`, `SpriteAnimationSet`) |
 | `Asset/AssetMetadata.h`, `Asset/AssetRegistry.*` | What is known about one asset; the handle ↔ path table (in memory, rebuilt by scanning) |
 | `Asset/AssetMetaSerializer.*` | Where a file keeps its handle: first line of scenes/prefabs/`.hyanim`, `<file>.hymeta` sidecar for images (shared with the texture import config) |
-| `Asset/AssetManager.*` | `AssetManager` subsystem: project open/close, scan (new handles, copies, missing files), `ImportAsset`, `BindHandle` (loaders), lookups |
+| `Asset/AssetManager.*` | `AssetManager` subsystem: project open/close, scan (new handles, copies, missing files), `ImportAsset`, `MoveAsset` / `DeleteAsset`, `BindHandle`, lookups; texture cache: `GetAsset<T>`, `GetLoadedAsset<T>`, `ReloadAsset<T>`, `GetLoadState` |
 | **Renderer** (engine-facing, no Vulkan types in new headers) | |
 | `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
-| `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`), `RendererCapabilities` |
-| `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; `DrawQuad` with tiling or a `TextureRect` (sprite of a sheet); `GetImGuiTexture` for editor previews; also implements `RenderView` |
+| `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`; incl. the 2D lighting and shadow options), `LightFalloffStyle`, `RendererCapabilities` |
+| `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; `DrawQuad` with tiling or a `TextureRect` (sprite of a sheet); `GetImGuiTexture` for editor previews; 2D lighting (`DrawLight`, `DrawGlobalLight`: per-view light buffer pass + composite) and blob shadows (`DrawShadow`); also implements `RenderView` |
 | `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches) |
-| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `LoadFromFile` (shared by file, reads `<file>.hymeta`, slices sheets, colour key), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect`; compiles stb_image's implementation (`STB_IMAGE_IMPLEMENTATION`) for the engine |
+| `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `Create` (uploads an `ImportedTexture`), `LoadFromFile` (asks the `AssetManager` for project files, shares other files while alive), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect` |
 | `Renderer/Image.h` | `ImageSpecification`, `TextureProperties`, image/texture enums |
 | `Renderer/TextureImport.h` | `TextureImportConfig` (saved per image in `<image>.hymeta`), `SpriteMode`, `SpriteRegion`, `SpriteSlicingConfig` |
+| `Renderer/TextureImporter.*` | Decodes an image file with its `.hymeta` (colour key, slicing) into `ImportedTexture` pixels + spec + config; compiles stb_image's implementation (`STB_IMAGE_IMPLEMENTATION`) for the engine; no GPU |
 | `Renderer/TextureImportSerializer.*` | `.hymeta` read/write |
 | `Renderer/SpriteSlicer.*` | Sprite sheet slicing: `SliceGrid`, `DetectGrid` (pure, no GPU) |
-| `Renderer/SceneRenderer.*` | Submits a `Scene`'s sprites through the editor camera or the primary camera (sheet sprites: UV rect, pivot, flip) |
+| `Renderer/SceneRenderer.*` | Submits a `Scene`'s sprites, `Light2DComponent`s and `Shadow2DComponent`s through the editor camera or the primary camera (sheet sprites: UV rect, pivot, flip) |
 | `Renderer/Camera.*`, `SceneCamera.h`, `EditorCamera.*` | Projections (`*_ZO`, Y flip), per-scene camera data, editor orbit camera + `EditorCameraSettings` |
 | `Renderer/Renderer3D.*` | Placeholder part for the 3D path (R9): `Init` / `Shutdown` only |
 | **Platform/Vulkan** (backend; applications never include these) | |
@@ -45,7 +46,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |
 | `VulkanTexture2DData.h` | Backend half of `Texture2D` (`GetTexture2DData`) |
 | `VulkanRenderPass.*` | Offscreen colour target, one image + framebuffer per frame in flight, `Resize` |
-| `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned); `BindDescriptorSet` |
+| `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned; `BlendMode` None / Alpha / Additive / Multiply2x); `BindDescriptorSet` |
 | `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
 | `VulkanDescriptorBuilder.*` | Layout + pool + one set per frame; `BindBuffer`/`BindImage`/`WriteImages` |
 | `VulkanVertexBuffer.*`, `VulkanIndexBuffer.*`, `VulkanUniformBuffer.*` | Buffers; vertex layout types live in `VulkanVertexBuffer.h` |
@@ -53,7 +54,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | **Scene** | |
 | `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor`, `Copy` (play mode), scripts, primary camera |
 | `Scene/Entity.*` | Handle (`entt::entity` + `Scene*`), component access |
-| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent`) + `CopyableComponents` |
+| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent`, `Light2DComponent`, `Shadow2DComponent`) + `CopyableComponents` |
 | `Scene/SpriteAnimation.*` | `SpriteAnimationSet` resource and `Asset` (named clips over one sheet), clip/frame/event types, `LoadFromFile` (shared by file, binds its asset handle) |
 | `Scene/SpriteAnimationSerializer.*` | `.hyanim` read/write (handle first line, texture by `TextureHandle` + path) |
 | `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations` system; `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`...) |
@@ -79,14 +80,20 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `EditorWindows/SpriteAnimationWindow.*` | **Animation**: edit a `.hyanim` (sheet, clips, frames, durations, loop, flip, events, default clip), live preview, sprite picker; `MakeClipsFromSpriteNames` |
 | `EditorWindows/PropertyUI.h` | Shared label/value rows, number fields and `SpriteImage` for the asset editors |
 | `EditorWindows/HierachyWindow.*` | Entity list, create/delete, prefab drops |
-| `EditorWindows/ProjectWindow.*` | Asset browser, drag sources (prefabs, scenes, images, `.hyanim`), prefab previews, image thumbnails; selects / opens assets; **Create Sprite Animation** from a sheet; hides `.hymeta`; calls `AssetManager::Rescan` when the folder changes, handle in tooltips |
+| `EditorWindows/ProjectWindow.*` | Asset browser listing the registry (plus folders), drag sources (prefabs, scenes, images, `.hyanim`), prefab previews (first animation frame or sprite image), `.hyanim` first frames, image thumbnails; selects / opens assets; **Create Sprite Animation** from a sheet; hides `.hymeta`; calls `AssetManager::Rescan` when the folder changes, handle in tooltips |
 | `EditorWindows/ConsoleWindow.*` | Log view |
 | `EditorWindows/StatsWindow.*`, `RendererStatsWindow.*`, `StatsUI.h` | Frame timings; `Renderer2D` stats; shared table helpers |
 | `EditorWindows/RenderSettingsWindow.*`, `ProjectSettingsWindow.*`, `EditorSettingsWindow.*` | Live `RendererSettings`; project name/start scene; editor preferences pages |
 | `EditorWindows/EditorStyle.*`, `Utilities/EditorChrome.*` | Themes from one accent colour; droplet, waterline, icon buttons, play tint |
-| `Utilities/AssetDragDrop.h` | Drag & drop payload (file path) |
-| `Scripts/ExampleScripts.h` | `SpinScript`, `BobScript`, `VillagerWalkScript` (WASD + `SpriteAnimator::Play`) |
+| `Utilities/AssetDragDrop.h` | Drag & drop payload (the asset's handle; `AcceptHandle` by type, `AcceptPayload` as a path) |
+| `Utilities/AssetPicker.*` | The asset reference field: file name, searchable popup of one asset type with thumbnails, drop target, clear |
+| `Utilities/ThumbnailManager.*` | Small image thumbnails by handle for the Project window and picker; a few per frame, cached on disk in `<project>/.hydro/thumbnails` |
+| `Utilities/ThumbnailBaker.*` | Averages pixels down to a thumbnail and reads/writes the `.thumb` file; no GPU, no engine types |
+| `Utilities/PathFollower.h` | Keeps a remembered path valid after a rename or move |
+| `Scripts/ExampleScripts.h` | `SpinScript`, `BobScript`, `VillagerWalkScript` (WASD + `SpriteAnimator::Play`), `YSortScript` (sorts a moving sprite by its Y), `CameraFollowScript` (put it on the camera: glides after the entity tagged "Player"); includes `VillageScripts.h` |
+| `Scripts/VillageScripts.h` | The `StatueVillage` scene's scripts: `VillageYSortScript` (SortOrder from the feet, 4 x tile y), `WaypointWalkScript` (an NPC walks a loop through `Waypoint <Name> <n> [Facing] [Seconds]` entities, 4 directions, no physics), `VillageCameraScript` (follows the Player, stays inside the 60 x 36 map, zoom with - and =), `VillageDirectorScript` (keys 1/2/3 day/dusk/night, L lights, H shadows, F flicker, B statue/brazier, [ ] radius) |
 | `assets/shaders/vertex.vert`, `fragment.frag` | The quad shader (`inTextures[32]` must match `Renderer2D`) |
+| `assets/shaders/light.frag`, `shadow.frag`, `composite.vert`, `composite.frag` | 2D lighting: the light's falloff curve and the blob shadow's softness (both use `vertex.vert`), and the fullscreen triangle that multiplies the light buffer over the scene. Hot reloaded |
 | `project/` | The Sandbox project Oxygen opens at startup; `Assets/Characters` (villager sheet, `.hymeta`, `.hyanim`) + `Scenes/Villagers.hyscene` show sprite animation |
 
 Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*`, `Oxygen/src/EditorWindows/ContentWindow.h`. Also `Platform/Vulkan/VullkanTexture.*`, `VulkanBuffer.*` and `VulkanRenderCommandBuffer.*`: emptied on Oct 20, 2026, the files themselves still need deleting.
@@ -106,7 +113,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | 2D drawing / batching | `Renderer2D.*`, shaders in `Oxygen/assets/shaders`, `RendererStatsWindow.cpp` for new stats |
 | Textures | `Texture2D.*`, `VulkanImage.*`, `VulkanTexture2DData.h`; sprites: `SceneRenderer.cpp`, `EntitySerializer.cpp`, `InspectorWindow.cpp` |
 | New asset type | `AssetType` + `AssetTypeToString` / `AssetTypeFromString` / `GetAssetTypeFromExtension` (`Asset.cpp`); `AssetMetaSerializer::StoresHandleInFile` if Hydro writes the file (and its serializer writes `Handle` first); a loaded type derives from `Asset` |
-| Sprite sheets / import settings | `TextureImport.h`, `TextureImportSerializer.*`, `SpriteSlicer.*`, `Texture2D.cpp` (`LoadFromFile`, `SetImportConfig`) |
+| Sprite sheets / import settings | `TextureImport.h`, `TextureImportSerializer.*`, `TextureImporter.*`, `SpriteSlicer.*`, `Texture2D.cpp` (`Create`, `SetImportConfig`) |
 | Sprite animation | `SpriteAnimation.*`, `SpriteAnimationSerializer.*`, `SpriteAnimator.*` (system + API), `Scene.cpp` (`OnUpdateRuntime`), inspector section, `SpriteAnimationWindow.*` |
 | An image shown in the editor | `Renderer2D::GetImGuiTexture(texture)` (pooled ImGui handles), `PropertyUI::SpriteImage` for one sprite |
 | Docs | Edit `docs/`, then `python scripts/regen_wiki.py`; wiki-only pages (Components, Roadmap, Known-Issues) by hand |
@@ -122,3 +129,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 ## Checking without Windows
 
 `scripts/check.sh [files...]`: g++ `-fsyntax-only -Wall -Wextra` over the engine and editor sources (Windows-only files skipped) and glslang over the shaders. Linux/WSL; downloads Vulkan-Headers, shaderc headers and builds glslang once into `/tmp/hydro-check`. Not a substitute for an MSVC `/W4` build.
+
+## Tools
+
+`scripts/statue_village/`: Python (numpy, scipy, Pillow) that draws the `StatueVillage` pixel art and writes the scene: `gen_village.py` (layout, entities, `.hymeta`/`.hyanim`/`.hyscene` output; handles are hashed from the file path), `lib.py` (canvas with binary alpha), `nature.py`, `build.py`, `props.py`, `chars.py` (villager walk sheets), `ground.py` (grass, paths, plaza, garden, animated pond), `preview.py` (offline lighting mockup).

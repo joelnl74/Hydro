@@ -1,0 +1,8 @@
+Handle: 534945643873015901
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Repeat
+  SpriteMode: Single
+  PixelsPerUnit: 128

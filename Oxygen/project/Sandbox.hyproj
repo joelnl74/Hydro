@@ -1,9 +1,13 @@
 Project:
   Name: Sandbox
   AssetDirectory: Assets
-  StartScene: Scenes/Villagers.hyscene
+  StartSceneHandle: 1810447559653123777
 Renderer:
   ClearColor: [0, 0, 0, 1]
   VSync: true
   Wireframe: false
   ShaderHotReload: true
+  Lighting: true
+  LightFalloff: Smooth
+  LightBands: 8
+  Shadows: true

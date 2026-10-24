@@ -1,16 +1,16 @@
 #include "InspectorWindow.h"
 #include "../EditorPaths.h"
-#include "Utilities/AssetDragDrop.h"
+#include "Utilities/AssetPicker.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SpriteAnimation.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Scene/ScriptableEntity.h>
-#include <Hydro/Utils/PlatformUtils.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -129,72 +129,29 @@ namespace Hydro
 		ImGui::PopID();
 	}
 
-	// The sprite's texture: click to pick a file, drop an image from the Project window, X to clear.
-	// TODO(assets): pick from the AssetManager's textures (with a thumbnail) once it exists.
+	// The sprite's texture: pick one of the project's images, or drop one from the Project window; X clears it.
 	static void DrawTextureField(SpriteRendererComponent& sprite)
 	{
-		const float clearWidth = ImGui::GetFrameHeight();
-		const float spacing = ImGui::GetStyle().ItemSpacing.x;
-		const bool hasTexture = sprite.Texture != nullptr;
+		const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(sprite.Texture);
+		const std::string detail = texture != nullptr ? std::to_string(texture->GetWidth()) + " x " + std::to_string(texture->GetHeight()) + " px"
+			: (static_cast<uint64_t>(sprite.Texture) != 0 ? "The texture is missing or couldn't be loaded (see the console)." : std::string());
 
-		std::string label = "None";
-		if (hasTexture)
+		const AssetPickerResult result = AssetPicker::DrawField("##Texture", sprite.Texture, AssetType::Texture2D, detail);
+		if (result.Changed == false)
 		{
-			label = sprite.Texture->GetPath().empty() ? "(made in code)" : sprite.Texture->GetPath().filename().u8string();
+			return;
 		}
 
-		Ref<Texture2D> picked;
-		if (ImGui::Button(label.c_str(), { ImGui::GetContentRegionAvail().x - clearWidth - spacing, 0.0f }))
+		// Loading the texture logs why a file couldn't be loaded; a handle that doesn't load is not taken.
+		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<Texture2D>(result.Handle) != nullptr)
 		{
-			const std::string file = FileDialogs::OpenFile("Image (*.png;*.jpg;*.jpeg;*.tga;*.bmp)\0*.png;*.jpg;*.jpeg;*.tga;*.bmp\0");
-			if (file.empty() == false)
-			{
-				picked = Texture2D::LoadFromFile(file);
-			}
+			sprite.Texture = result.Handle;
 		}
-
-		if (ImGui::IsItemHovered())
-		{
-			if (hasTexture)
-			{
-				ImGui::SetTooltip("%s\n%u x %u\nClick to pick another image, or drop one from the Project window.",
-					sprite.Texture->GetPath().u8string().c_str(), sprite.Texture->GetWidth(), sprite.Texture->GetHeight());
-			}
-			else
-			{
-				ImGui::SetTooltip("Click to pick an image, or drop one from the Project window.");
-			}
-		}
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			std::filesystem::path droppedPath;
-			if (AssetDragDrop::AcceptPayload(droppedPath) && Texture2D::IsSupportedFile(droppedPath))
-			{
-				picked = Texture2D::LoadFromFile(droppedPath);
-			}
-			ImGui::EndDragDropTarget();
-		}
-
-		// LoadFromFile logs why a file couldn't be loaded; the old texture is kept then.
-		if (picked != nullptr)
-		{
-			sprite.Texture = picked;
-		}
-
-		ImGui::SameLine(0.0f, spacing);
-		ImGui::BeginDisabled(hasTexture == false);
-		if (ImGui::Button("X", { clearWidth, 0.0f }))
-		{
-			sprite.Texture = nullptr;
-		}
-		ImGui::EndDisabled();
 	}
 
 	// For a sprite sheet (a Multiple texture): which of its sprites to draw.
-	static void DrawSpriteField(SpriteRendererComponent& sprite)
+	static void DrawSpriteField(SpriteRendererComponent& sprite, const Texture2D& texture)
 	{
-		const Texture2D& texture = *sprite.Texture;
 		const uint32_t current = sprite.SpriteIndex < texture.GetSpriteCount() ? sprite.SpriteIndex : 0;
 
 		char preview[160];
@@ -225,75 +182,33 @@ namespace Hydro
 		}
 	}
 
-	// The animator's .hyanim: click to pick a file, drop one from the Project window, X to clear.
-	// TODO(assets): pick from the AssetManager's animation sets once it exists.
+	// The animator's .hyanim: pick one of the project's animation sets, or drop one from the Project window; X clears it.
 	static void DrawAnimationSetField(SpriteAnimatorComponent& animator)
 	{
-		const float clearWidth = ImGui::GetFrameHeight();
-		const float spacing = ImGui::GetStyle().ItemSpacing.x;
-		const bool hasSet = animator.Animations != nullptr;
+		const Ref<SpriteAnimationSet> set = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
+		const std::string detail = set != nullptr ? std::to_string(set->GetClipCount()) + " clips"
+			: (static_cast<uint64_t>(animator.Animations) != 0 ? "The animation set is missing or couldn't be loaded (see the console)." : std::string());
 
-		std::string label = "None";
-		if (hasSet)
+		const AssetPickerResult result = AssetPicker::DrawField("##Animations", animator.Animations, AssetType::SpriteAnimation, detail);
+		if (result.Changed == false)
 		{
-			label = animator.Animations->GetPath().empty() ? "(made in code)" : animator.Animations->GetPath().filename().u8string();
+			return;
 		}
 
-		Ref<SpriteAnimationSet> picked;
-		if (ImGui::Button(label.c_str(), { ImGui::GetContentRegionAvail().x - clearWidth - spacing, 0.0f }))
+		// Loading the set logs why a file couldn't be loaded; a handle that doesn't load is not taken.
+		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<SpriteAnimationSet>(result.Handle) != nullptr)
 		{
-			const std::string file = FileDialogs::OpenFile("Sprite animations (*.hyanim)\0*.hyanim\0");
-			if (file.empty() == false)
-			{
-				picked = SpriteAnimationSet::LoadFromFile(file);
-			}
-		}
-
-		if (ImGui::IsItemHovered())
-		{
-			if (hasSet)
-			{
-				ImGui::SetTooltip("%s\n%u clips\nClick to pick another .hyanim, or drop one from the Project window.",
-					animator.Animations->GetPath().u8string().c_str(), animator.Animations->GetClipCount());
-			}
-			else
-			{
-				ImGui::SetTooltip("Click to pick a .hyanim file, or drop one from the Project window.");
-			}
-		}
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			std::filesystem::path droppedPath;
-			if (AssetDragDrop::AcceptPayload(droppedPath) && droppedPath.extension() == SpriteAnimationSerializer::FileExtension)
-			{
-				picked = SpriteAnimationSet::LoadFromFile(droppedPath);
-			}
-			ImGui::EndDragDropTarget();
-		}
-
-		// LoadFromFile logs why a file couldn't be loaded; the old set is kept then.
-		if (picked != nullptr)
-		{
-			animator.Animations = picked;
+			animator.Animations = result.Handle;
 			animator.ClipIndex = -1;
 		}
-
-		ImGui::SameLine(0.0f, spacing);
-		ImGui::BeginDisabled(hasSet == false);
-		if (ImGui::Button("X", { clearWidth, 0.0f }))
-		{
-			animator.Animations = nullptr;
-			animator.ClipIndex = -1;
-		}
-		ImGui::EndDisabled();
 	}
 
 	// The clip played on start: the set's default clip, or one picked by name.
 	// Returns true when the choice changed.
 	static bool DrawStartClipField(SpriteAnimatorComponent& animator)
 	{
-		const SpriteAnimationSet* set = animator.Animations.get();
+		const Ref<SpriteAnimationSet> setRef = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
+		const SpriteAnimationSet* set = setRef.get();
 		const std::string defaultLabel = set != nullptr && set->GetClipCount() > 0
 			? "Default (" + set->GetClip(set->GetDefaultClip()).Name + ")"
 			: std::string("Default");
@@ -332,17 +247,14 @@ namespace Hydro
 	// animates) shows the pose the game starts with.
 	static void ShowStartFrame(Entity entity, const SpriteAnimatorComponent& animator)
 	{
-		if (animator.Animations == nullptr || animator.Animations->GetClipCount() == 0 || entity.HasComponent<SpriteRendererComponent>() == false)
+		const Ref<SpriteAnimationSet> setRef = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
+		if (setRef == nullptr || setRef->GetClipCount() == 0 || entity.HasComponent<SpriteRendererComponent>() == false)
 		{
 			return;
 		}
 
-		const SpriteAnimationSet& set = *animator.Animations;
-		int32_t clipIndex = animator.StartClip.empty() ? -1 : set.FindClip(animator.StartClip);
-		if (clipIndex < 0)
-		{
-			clipIndex = (int32_t)set.GetDefaultClip();
-		}
+		const SpriteAnimationSet& set = *setRef;
+		const int32_t clipIndex = set.FindStartClip(animator.StartClip);
 
 		const SpriteAnimationClip& clip = set.GetClip((uint32_t)clipIndex);
 		if (clip.Frames.empty())
@@ -351,7 +263,7 @@ namespace Hydro
 		}
 
 		SpriteRendererComponent& sprite = entity.GetComponent<SpriteRendererComponent>();
-		sprite.Texture = set.GetTexture();
+		sprite.Texture = set.GetTexture() != nullptr ? set.GetTexture()->GetHandle() : AssetHandle(0);
 		sprite.SpriteIndex = clip.Frames[0].Sprite;
 		sprite.FlipX = clip.FlipX;
 	}
@@ -444,6 +356,8 @@ namespace Hydro
 		bool removeSprite = false;
 		bool removeCamera = false;
 		bool removeAnimator = false;
+		bool removeLight = false;
+		bool removeShadow = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
 
@@ -463,10 +377,11 @@ namespace Hydro
 		{
 			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##Color", glm::value_ptr(sprite.Color)); });
 			DrawPropertyRow("Texture", [&]() { DrawTextureField(sprite); });
-			const bool isSheet = sprite.Texture != nullptr && sprite.Texture->GetSpriteMode() == SpriteMode::Multiple;
+			const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(sprite.Texture);
+			const bool isSheet = texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple;
 			if (isSheet)
 			{
-				DrawPropertyRow("Sprite", [&]() { DrawSpriteField(sprite); });
+				DrawPropertyRow("Sprite", [&]() { DrawSpriteField(sprite, *texture); });
 			}
 			else
 			{
@@ -478,14 +393,14 @@ namespace Hydro
 				ImGui::SameLine();
 				ImGui::Checkbox("Y##FlipY", &sprite.FlipY);
 			});
-			if (sprite.Texture != nullptr && entity.HasComponent<TransformComponent>())
+			if (texture != nullptr && entity.HasComponent<TransformComponent>())
 			{
 				DrawPropertyRow("##NativeSize", [&]()
 				{
 					if (ImGui::Button("Set Native Size", { ImGui::GetContentRegionAvail().x, 0.0f }))
 					{
 						// Getting another component doesn't move this one, so `sprite` stays valid.
-						const glm::vec2 size = sprite.Texture->GetSpriteSizeInUnits(sprite.SpriteIndex);
+						const glm::vec2 size = texture->GetSpriteSizeInUnits(sprite.SpriteIndex);
 						TransformComponent& transform = entity.GetComponent<TransformComponent>();
 						transform.Scale.x = size.x;
 						transform.Scale.y = size.y;
@@ -513,16 +428,17 @@ namespace Hydro
 		bool showStartFrame = false;
 		DrawComponent<SpriteAnimatorComponent>("Sprite Animator", entity, removeAnimator, [&](SpriteAnimatorComponent& animator)
 		{
-			const SpriteAnimationSet* before = animator.Animations.get();
+			const AssetHandle before = animator.Animations;
 			DrawPropertyRow("Animations", [&]() { DrawAnimationSetField(animator); });
 			DrawPropertyRow("Start Clip", [&]() { showStartFrame |= DrawStartClipField(animator); });
 			DrawPropertyRow("Play On Start", [&]() { ImGui::Checkbox("##PlayOnStart", &animator.PlayOnStart); });
 			DrawPropertyRow("Speed", [&]() { InputFloatField("##Speed", animator.Speed, "%.2f", 0.0f, 100.0f); });
-			showStartFrame |= animator.Animations.get() != before;
+			showStartFrame |= animator.Animations != before;
 
-			if (animator.ClipIndex >= 0 && animator.Animations != nullptr && (uint32_t)animator.ClipIndex < animator.Animations->GetClipCount())
+			const Ref<SpriteAnimationSet> animationSet = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
+			if (animator.ClipIndex >= 0 && animationSet != nullptr && (uint32_t)animator.ClipIndex < animationSet->GetClipCount())
 			{
-				ImGui::TextDisabled("Playing %s, frame %u%s", animator.Animations->GetClip((uint32_t)animator.ClipIndex).Name.c_str(),
+				ImGui::TextDisabled("Playing %s, frame %u%s", animationSet->GetClip((uint32_t)animator.ClipIndex).Name.c_str(),
 					animator.FrameIndex, animator.Playing ? "" : (animator.Finished ? " (finished)" : " (stopped)"));
 			}
 			if (entity.HasComponent<SpriteRendererComponent>() == false)
@@ -562,6 +478,41 @@ namespace Hydro
 				DrawPropertyRow("Near", [&]() { InputFloatField("##Near", camera.OrthographicNear, "%.2f", -10000.0f, camera.OrthographicFar); });
 				DrawPropertyRow("Far", [&]() { InputFloatField("##Far", camera.OrthographicFar, "%.2f", camera.OrthographicNear, 10000.0f); });
 			}
+		});
+
+		DrawComponent<Light2DComponent>("Light 2D", entity, removeLight, [&](Light2DComponent& light)
+		{
+			const char* typeNames[] = { "Point", "Global" };
+			int type = (int)light.Type;
+			DrawPropertyRow("Type", [&]()
+			{
+				if (ImGui::Combo("##LightType", &type, typeNames, 2))
+				{
+					light.Type = (Light2DType)type;
+				}
+			});
+
+			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit3("##LightColor", glm::value_ptr(light.Color)); });
+			DrawPropertyRow("Intensity", [&]() { InputFloatField("##LightIntensity", light.Intensity, "%.2f", 0.0f, 100.0f); });
+
+			if (light.Type == Light2DType::Point)
+			{
+				DrawPropertyRow("Radius", [&]() { InputFloatField("##LightRadius", light.Radius, "%.2f", 0.01f, 10000.0f); });
+			}
+			else
+			{
+				ImGui::TextDisabled("Lights everything equally: the ambient color.");
+			}
+		});
+
+		DrawComponent<Shadow2DComponent>("Shadow 2D", entity, removeShadow, [&](Shadow2DComponent& shadow)
+		{
+			DrawPropertyRow("Offset X", [&]() { InputFloatField("##ShadowOffsetX", shadow.Offset.x, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Offset Y", [&]() { InputFloatField("##ShadowOffsetY", shadow.Offset.y, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Width", [&]() { InputFloatField("##ShadowWidth", shadow.Size.x, "%.2f", 0.01f, 10000.0f); });
+			DrawPropertyRow("Height", [&]() { InputFloatField("##ShadowHeight", shadow.Size.y, "%.2f", 0.01f, 10000.0f); });
+			DrawPropertyRow("Strength", [&]() { InputFloatField("##ShadowStrength", shadow.Strength, "%.2f", 0.0f, 1.0f); });
+			ImGui::TextDisabled("A blob under the entity. Shows in views that have lights.");
 		});
 
 		int scriptToRemove = -1;
@@ -622,6 +573,14 @@ namespace Hydro
 		{
 			entity.RemoveComponent<SpriteAnimatorComponent>();
 		}
+		if (removeLight)
+		{
+			entity.RemoveComponent<Light2DComponent>();
+		}
+		if (removeShadow)
+		{
+			entity.RemoveComponent<Shadow2DComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -643,6 +602,8 @@ namespace Hydro
 			const bool hasSprite = entity.HasComponent<SpriteRendererComponent>();
 			const bool hasCamera = entity.HasComponent<CameraComponent>();
 			const bool hasAnimator = entity.HasComponent<SpriteAnimatorComponent>();
+			const bool hasLight = entity.HasComponent<Light2DComponent>();
+			const bool hasShadow = entity.HasComponent<Shadow2DComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -675,6 +636,28 @@ namespace Hydro
 				{
 					entity.AddComponent<SpriteRendererComponent>();
 				}
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Light 2D", nullptr, false, hasLight == false))
+			{
+				entity.AddComponent<Light2DComponent>();
+
+				// A point light is placed by the entity's transform.
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Shadow 2D", nullptr, false, hasShadow == false))
+			{
+				entity.AddComponent<Shadow2DComponent>();
+
+				// The blob is placed by the entity's transform.
 				if (entity.HasComponent<TransformComponent>() == false)
 				{
 					entity.AddComponent<TransformComponent>();

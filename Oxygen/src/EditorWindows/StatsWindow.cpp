@@ -166,6 +166,26 @@ namespace Hydro
 				StatsUI::Row("2D pass", "%.3f ms", stats.GPUTimeMs);
 			else
 				StatsUI::Row("2D pass", "n/a");
+
+			// Lighting parts (the light pass includes the shadows; parts are timed separately, so they
+			// may overlap the 2D pass total a little).
+			if (stats.LitViewCount > 0)
+			{
+				if (stats.LightPassGPUMs >= 0.0f)
+				{
+					StatsUI::Row("  Light pass", "%.3f ms", stats.LightPassGPUMs);
+					StatsUI::Row("    Shadows", "%.3f ms", stats.ShadowGPUMs);
+					StatsUI::Row("  Composite", "%.3f ms", stats.CompositeGPUMs);
+				}
+				else
+				{
+					StatsUI::Row("  Light pass", "n/a");
+				}
+
+				StatsUI::Row("  Lit views", "%u", stats.LitViewCount);
+				StatsUI::Row("  Lights", "%u", stats.LightCount);
+				StatsUI::Row("  Shadows drawn", "%u", stats.ShadowCount);
+			}
 			ImGui::EndTable();
 		}
 
