@@ -54,13 +54,15 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | **Scene** | |
 | `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor`, `Copy` (play mode), scripts, primary camera |
 | `Scene/Entity.*` | Handle (`entt::entity` + `Scene*`), component access |
-| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent`, `Light2DComponent`, `Shadow2DComponent`) + `CopyableComponents` |
+| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`) + `CopyableComponents` |
 | `Scene/SpriteAnimation.*` | `SpriteAnimationSet` resource and `Asset` (named clips over one sheet), clip/frame/event types, `LoadFromFile` (shared by file, binds its asset handle) |
 | `Scene/SpriteAnimationSerializer.*` | `.hyanim` read/write (handle first line, texture by `TextureHandle` + path) |
 | `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations` system; `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`...) |
 | `Scene/ScriptableEntity.h`, `ScriptRegistry.*` | `NativeScriptComponent`, script base class, name → factory table |
 | `Scene/EntitySerializer.*` | YAML for every component (both directions); used by scenes and prefabs |
 | `Scene/SceneSerializer.*`, `PrefabSerializer.*` | `.hyscene` / `.hyprefab` files |
+| **Physics** | |
+| `Physics/PhysicsEngine.*` | `PhysicsEngine` subsystem: Box2D assert hook and length unit, version, a Debug-build self test (floor + falling box). No simulation yet |
 | **Project, Utils** | |
 | `Project/Project.*`, `ProjectSerializer.*` | Active project, `ProjectConfig` (`.hyproj`) |
 | `Utils/YAMLConversions.*`, `Utils/PlatformUtils.h` | glm ↔ YAML; `FileDialogs` |
@@ -120,6 +122,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 
 ## Gotchas
 
+- **Box2D** is a git submodule at `Hydro/vendor/box2d`, pinned to v3.1.1 (`git submodule update --init Hydro/vendor/box2d`). `Hydro/vendor/box2d.premake5.lua` builds it as a C17 static library; Debug is optimised on purpose (see the comment there). Only `Physics/` includes `<box2d/box2d.h>`.
 - **Old EnTT** (vendored single header `Hydro/vendor/entt/entt.hpp`, no version macro): `registry.has<T>`, `view.get<A, B>(e)`; no `all_of`/`any_of` (upgrade is Roadmap E2).
 - **Line endings**: CRLF in the working copy for sources and docs (`.gitattributes`); `*.sh` is LF.
 - **Style**: `namespace Hydro` only, no `!` (use `== false` / `== nullptr`), braces on every body, `m_PascalCase`. See the skill or [Architecture](Architecture.md#code-conventions).

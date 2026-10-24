@@ -10,7 +10,7 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | --- | --- | --- |
 | `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdateRuntime` / `OnUpdateEditor`; knows its viewport size (`OnViewportResize`) and primary camera (`GetPrimaryCameraEntity`) |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
-| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent`, `Shadow2DComponent`, `NativeScriptComponent` |
+| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent` (saved data only: nothing simulates them yet), `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
 | `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
@@ -136,6 +136,7 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - **UUIDs.** Loading a scene keeps the saved UUIDs. Instantiating a prefab gives each copy a new UUID, so copies never clash.
 - **Missing fields keep their defaults**, so older files still load after a component gains a field.
 - Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
+- **Physics components** are saved by value (`Rigidbody2DComponent`: body type by name, flags, scales and damping; `BoxCollider2DComponent` / `CircleCollider2DComponent`: offset, size or radius, density, friction, restitution, `IsSensor`). Loading pulls values into range (sizes at least 0.001, density, friction, restitution and damping at least 0, NaN becomes the minimum). They are in `CopyableComponents`, so Play and Duplicate copy them. Runtime body handles will not be saved or copied.
 - **Sprite textures and animation sets** are saved as `TextureHandle: <id>` (plus the sprite's name) and `AnimationsHandle: <id>`, and loaded through `AssetManager::GetAsset`, so sprites using one file share one texture. Scenes saved before handles have `Texture: <path>` / `Animations: <path>`; those are still read (the file is imported to get its handle) and are replaced by the handle keys the next time the scene is saved. A handle the registry doesn't know keeps its value when saved again, so a texture that is missing today can come back.
 
 ## Sprite animation

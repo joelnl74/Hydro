@@ -173,6 +173,65 @@ namespace Hydro
 		Shadow2DComponent(const Shadow2DComponent&) = default;
 	};
 
+	enum class Rigidbody2DType : uint8_t
+	{
+		Static = 0, // never moves; other bodies collide with it
+		Dynamic,    // moved by forces, gravity and collisions
+		Kinematic   // moved only by the game (velocity or teleport); pushes dynamic bodies but is not pushed
+	};
+
+	// How a collider's surface behaves. Shared by the 2D collider components.
+	struct PhysicsMaterial2D
+	{
+		float Density = 1.0f;     // mass per unit area (a 1 x 1 box of density 1 weighs 1)
+		float Friction = 0.3f;    // 0 = ice; values around 0.2 to 1 are usual
+		float Restitution = 0.0f; // bounciness: 0 = none, 1 = keeps all its speed
+	};
+
+	// Makes the entity a body in the 2D physics world while the game plays, moved by the simulation
+	// (Dynamic) or by the game (Kinematic). Position and angle come from the TransformComponent
+	// (Translation.xy and Rotation.z). An entity with a collider but no Rigidbody2D is a static body.
+	// Data only for now: nothing simulates it yet.
+	struct Rigidbody2DComponent
+	{
+		Rigidbody2DType Type = Rigidbody2DType::Dynamic;
+		bool FixedRotation = false;   // collisions never turn it
+		bool IsBullet = false;        // continuous collision, for fast small bodies (projectiles)
+		float GravityScale = 1.0f;
+		float LinearDamping = 0.0f;   // slows its movement over time
+		float AngularDamping = 0.0f;  // slows its turning over time
+
+		Rigidbody2DComponent() = default;
+		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
+	};
+
+	// A rectangle that collides, in the entity's local space. Size is the full width and height in world
+	// units at scale 1: the entity's XY scale multiplies it (and Offset) when the body is created.
+	// IsSensor: it detects overlaps (trigger events) but nothing bounces off it.
+	struct BoxCollider2DComponent
+	{
+		glm::vec2 Offset{ 0.0f, 0.0f };
+		glm::vec2 Size{ 1.0f, 1.0f };
+		PhysicsMaterial2D Material;
+		bool IsSensor = false;
+
+		BoxCollider2DComponent() = default;
+		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
+	};
+
+	// A circle that collides. Radius is in world units at scale 1; the larger of the entity's X and Y
+	// scales multiplies it (and Offset) when the body is created.
+	struct CircleCollider2DComponent
+	{
+		glm::vec2 Offset{ 0.0f, 0.0f };
+		float Radius = 0.5f;
+		PhysicsMaterial2D Material;
+		bool IsSensor = false;
+
+		CircleCollider2DComponent() = default;
+		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
+	};
+
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
 	template<typename... Component>
@@ -180,5 +239,6 @@ namespace Hydro
 	{
 	};
 
-	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent>;
+	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

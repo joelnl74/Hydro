@@ -268,6 +268,22 @@ namespace Hydro
 		sprite.FlipX = clip.FlipX;
 	}
 
+	// The rows both 2D colliders share: how the surface behaves, and whether it is only a trigger.
+	static void DrawColliderRows(PhysicsMaterial2D& material, bool& isSensor)
+	{
+		DrawPropertyRow("Density", [&]() { InputFloatField("##Density", material.Density, "%.2f", 0.0f, 100000.0f); });
+		DrawPropertyRow("Friction", [&]() { InputFloatField("##Friction", material.Friction, "%.2f", 0.0f, 100.0f); });
+		DrawPropertyRow("Restitution", [&]() { InputFloatField("##Restitution", material.Restitution, "%.2f", 0.0f, 1.0f); });
+		DrawPropertyRow("Is Sensor", [&]()
+		{
+			ImGui::Checkbox("##IsSensor", &isSensor);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("A sensor detects overlaps (trigger events) but nothing bounces off it.");
+			}
+		});
+	}
+
 	// Collapsible section for one component type. Right-click the header to remove it.
 	// Removal is only *requested* here; the caller applies it after drawing, so no
 	// component reference is held while EnTT storage changes.
@@ -358,6 +374,9 @@ namespace Hydro
 		bool removeAnimator = false;
 		bool removeLight = false;
 		bool removeShadow = false;
+		bool removeRigidbody = false;
+		bool removeBoxCollider = false;
+		bool removeCircleCollider = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
 
@@ -515,6 +534,60 @@ namespace Hydro
 			ImGui::TextDisabled("A blob under the entity. Shows in views that have lights.");
 		});
 
+		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, removeRigidbody, [&](Rigidbody2DComponent& body)
+		{
+			const char* typeNames[] = { "Static", "Dynamic", "Kinematic" };
+			int type = (int)body.Type;
+			DrawPropertyRow("Type", [&]()
+			{
+				if (ImGui::Combo("##BodyType", &type, typeNames, 3))
+				{
+					body.Type = (Rigidbody2DType)type;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Static: never moves.\nDynamic: moved by forces, gravity and collisions.\nKinematic: moved only by the game; pushes dynamic bodies.");
+				}
+			});
+			DrawPropertyRow("Gravity Scale", [&]() { InputFloatField("##GravityScale", body.GravityScale, "%.2f", -100.0f, 100.0f); });
+			DrawPropertyRow("Linear Damping", [&]() { InputFloatField("##LinearDamping", body.LinearDamping, "%.2f", 0.0f, 1000.0f); });
+			DrawPropertyRow("Angular Damping", [&]() { InputFloatField("##AngularDamping", body.AngularDamping, "%.2f", 0.0f, 1000.0f); });
+			DrawPropertyRow("Fixed Rotation", [&]() { ImGui::Checkbox("##FixedRotation", &body.FixedRotation); });
+			DrawPropertyRow("Bullet", [&]()
+			{
+				ImGui::Checkbox("##IsBullet", &body.IsBullet);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Continuous collision for fast, small bodies such as projectiles. Costs more.");
+				}
+			});
+		});
+
+		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, removeBoxCollider, [&](BoxCollider2DComponent& collider)
+		{
+			DrawPropertyRow("Offset X", [&]() { InputFloatField("##BoxOffsetX", collider.Offset.x, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Offset Y", [&]() { InputFloatField("##BoxOffsetY", collider.Offset.y, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Width", [&]() { InputFloatField("##BoxWidth", collider.Size.x, "%.2f", 0.001f, 10000.0f); });
+			DrawPropertyRow("Height", [&]() { InputFloatField("##BoxHeight", collider.Size.y, "%.2f", 0.001f, 10000.0f); });
+			DrawColliderRows(collider.Material, collider.IsSensor);
+			if (entity.HasComponent<Rigidbody2DComponent>() == false)
+			{
+				ImGui::TextDisabled("No Rigidbody 2D: this is a static collider.");
+			}
+		});
+
+		DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, removeCircleCollider, [&](CircleCollider2DComponent& collider)
+		{
+			DrawPropertyRow("Offset X", [&]() { InputFloatField("##CircleOffsetX", collider.Offset.x, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Offset Y", [&]() { InputFloatField("##CircleOffsetY", collider.Offset.y, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Radius", [&]() { InputFloatField("##CircleRadius", collider.Radius, "%.2f", 0.001f, 10000.0f); });
+			DrawColliderRows(collider.Material, collider.IsSensor);
+			if (entity.HasComponent<Rigidbody2DComponent>() == false)
+			{
+				ImGui::TextDisabled("No Rigidbody 2D: this is a static collider.");
+			}
+		});
+
 		int scriptToRemove = -1;
 		DrawComponent<NativeScriptComponent>("Scripts", entity, removeScripts, [&](NativeScriptComponent& scripts)
 		{
@@ -581,6 +654,18 @@ namespace Hydro
 		{
 			entity.RemoveComponent<Shadow2DComponent>();
 		}
+		if (removeRigidbody)
+		{
+			entity.RemoveComponent<Rigidbody2DComponent>();
+		}
+		if (removeBoxCollider)
+		{
+			entity.RemoveComponent<BoxCollider2DComponent>();
+		}
+		if (removeCircleCollider)
+		{
+			entity.RemoveComponent<CircleCollider2DComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -604,6 +689,9 @@ namespace Hydro
 			const bool hasAnimator = entity.HasComponent<SpriteAnimatorComponent>();
 			const bool hasLight = entity.HasComponent<Light2DComponent>();
 			const bool hasShadow = entity.HasComponent<Shadow2DComponent>();
+			const bool hasRigidbody = entity.HasComponent<Rigidbody2DComponent>();
+			const bool hasBoxCollider = entity.HasComponent<BoxCollider2DComponent>();
+			const bool hasCircleCollider = entity.HasComponent<CircleCollider2DComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -662,6 +750,42 @@ namespace Hydro
 				{
 					entity.AddComponent<TransformComponent>();
 				}
+			}
+
+			if (ImGui::BeginMenu("Physics 2D"))
+			{
+				if (ImGui::MenuItem("Rigidbody 2D", nullptr, false, hasRigidbody == false))
+				{
+					entity.AddComponent<Rigidbody2DComponent>();
+
+					// A body is placed by the entity's transform.
+					if (entity.HasComponent<TransformComponent>() == false)
+					{
+						entity.AddComponent<TransformComponent>();
+					}
+				}
+
+				if (ImGui::MenuItem("Box Collider 2D", nullptr, false, hasBoxCollider == false))
+				{
+					entity.AddComponent<BoxCollider2DComponent>();
+
+					if (entity.HasComponent<TransformComponent>() == false)
+					{
+						entity.AddComponent<TransformComponent>();
+					}
+				}
+
+				if (ImGui::MenuItem("Circle Collider 2D", nullptr, false, hasCircleCollider == false))
+				{
+					entity.AddComponent<CircleCollider2DComponent>();
+
+					if (entity.HasComponent<TransformComponent>() == false)
+					{
+						entity.AddComponent<TransformComponent>();
+					}
+				}
+
+				ImGui::EndMenu();
 			}
 
 			if (ImGui::BeginMenu("Script"))

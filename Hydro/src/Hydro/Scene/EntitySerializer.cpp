@@ -6,6 +6,7 @@
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
+#include <algorithm>
 #include <filesystem>
 
 namespace Hydro
@@ -44,6 +45,53 @@ namespace Hydro
 		}
 
 		return handle;
+	}
+
+	static const char* Rigidbody2DTypeToString(Rigidbody2DType type)
+	{
+		switch (type)
+		{
+		case Rigidbody2DType::Static: return "Static";
+		case Rigidbody2DType::Kinematic: return "Kinematic";
+		case Rigidbody2DType::Dynamic: return "Dynamic";
+		}
+
+		return "Dynamic";
+	}
+
+	static Rigidbody2DType Rigidbody2DTypeFromString(const std::string& name)
+	{
+		if (name == "Static")
+		{
+			return Rigidbody2DType::Static;
+		}
+		if (name == "Kinematic")
+		{
+			return Rigidbody2DType::Kinematic;
+		}
+
+		return Rigidbody2DType::Dynamic;
+	}
+
+	// Saved values the physics engine would choke on are pulled into range. Written as max(minimum, value)
+	// so that NaN (which compares false with everything) also becomes the minimum.
+	static float AtLeast(float minimum, float value)
+	{
+		return std::max(minimum, value);
+	}
+
+	static void SerializeMaterial(YAML::Emitter& out, const PhysicsMaterial2D& material)
+	{
+		out << YAML::Key << "Density" << YAML::Value << material.Density;
+		out << YAML::Key << "Friction" << YAML::Value << material.Friction;
+		out << YAML::Key << "Restitution" << YAML::Value << material.Restitution;
+	}
+
+	static void DeserializeMaterial(const YAML::Node& node, PhysicsMaterial2D& material)
+	{
+		material.Density = AtLeast(0.0f, node["Density"].as<float>(material.Density));
+		material.Friction = AtLeast(0.0f, node["Friction"].as<float>(material.Friction));
+		material.Restitution = AtLeast(0.0f, node["Restitution"].as<float>(material.Restitution));
 	}
 
 	void EntitySerializer::Serialize(YAML::Emitter& out, Entity entity)
@@ -156,6 +204,47 @@ namespace Hydro
 			out << YAML::Key << "Offset" << YAML::Value << shadow.Offset;
 			out << YAML::Key << "Size" << YAML::Value << shadow.Size;
 			out << YAML::Key << "Strength" << YAML::Value << shadow.Strength;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<Rigidbody2DComponent>())
+		{
+			auto& body = entity.GetComponent<Rigidbody2DComponent>();
+
+			out << YAML::Key << "Rigidbody2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Type" << YAML::Value << Rigidbody2DTypeToString(body.Type);
+			out << YAML::Key << "FixedRotation" << YAML::Value << body.FixedRotation;
+			out << YAML::Key << "IsBullet" << YAML::Value << body.IsBullet;
+			out << YAML::Key << "GravityScale" << YAML::Value << body.GravityScale;
+			out << YAML::Key << "LinearDamping" << YAML::Value << body.LinearDamping;
+			out << YAML::Key << "AngularDamping" << YAML::Value << body.AngularDamping;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<BoxCollider2DComponent>())
+		{
+			auto& collider = entity.GetComponent<BoxCollider2DComponent>();
+
+			out << YAML::Key << "BoxCollider2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << collider.Offset;
+			out << YAML::Key << "Size" << YAML::Value << collider.Size;
+			SerializeMaterial(out, collider.Material);
+			out << YAML::Key << "IsSensor" << YAML::Value << collider.IsSensor;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<CircleCollider2DComponent>())
+		{
+			auto& collider = entity.GetComponent<CircleCollider2DComponent>();
+
+			out << YAML::Key << "CircleCollider2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << collider.Offset;
+			out << YAML::Key << "Radius" << YAML::Value << collider.Radius;
+			SerializeMaterial(out, collider.Material);
+			out << YAML::Key << "IsSensor" << YAML::Value << collider.IsSensor;
 			out << YAML::EndMap;
 		}
 
@@ -273,6 +362,37 @@ namespace Hydro
 			shadow.Offset = shadowNode["Offset"].as<glm::vec2>(shadow.Offset);
 			shadow.Size = shadowNode["Size"].as<glm::vec2>(shadow.Size);
 			shadow.Strength = shadowNode["Strength"].as<float>(shadow.Strength);
+		}
+
+		if (auto bodyNode = entityNode["Rigidbody2DComponent"])
+		{
+			auto& body = entity.AddComponent<Rigidbody2DComponent>();
+			body.Type = Rigidbody2DTypeFromString(bodyNode["Type"].as<std::string>("Dynamic"));
+			body.FixedRotation = bodyNode["FixedRotation"].as<bool>(body.FixedRotation);
+			body.IsBullet = bodyNode["IsBullet"].as<bool>(body.IsBullet);
+			body.GravityScale = bodyNode["GravityScale"].as<float>(body.GravityScale);
+			body.LinearDamping = AtLeast(0.0f, bodyNode["LinearDamping"].as<float>(body.LinearDamping));
+			body.AngularDamping = AtLeast(0.0f, bodyNode["AngularDamping"].as<float>(body.AngularDamping));
+		}
+
+		if (auto boxNode = entityNode["BoxCollider2DComponent"])
+		{
+			auto& collider = entity.AddComponent<BoxCollider2DComponent>();
+			collider.Offset = boxNode["Offset"].as<glm::vec2>(collider.Offset);
+			collider.Size = boxNode["Size"].as<glm::vec2>(collider.Size);
+			collider.Size.x = AtLeast(0.001f, collider.Size.x);
+			collider.Size.y = AtLeast(0.001f, collider.Size.y);
+			DeserializeMaterial(boxNode, collider.Material);
+			collider.IsSensor = boxNode["IsSensor"].as<bool>(collider.IsSensor);
+		}
+
+		if (auto circleNode = entityNode["CircleCollider2DComponent"])
+		{
+			auto& collider = entity.AddComponent<CircleCollider2DComponent>();
+			collider.Offset = circleNode["Offset"].as<glm::vec2>(collider.Offset);
+			collider.Radius = AtLeast(0.001f, circleNode["Radius"].as<float>(collider.Radius));
+			DeserializeMaterial(circleNode, collider.Material);
+			collider.IsSensor = circleNode["IsSensor"].as<bool>(collider.IsSensor);
 		}
 
 		if (auto scriptNode = entityNode["NativeScriptComponent"])

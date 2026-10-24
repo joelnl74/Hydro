@@ -3,6 +3,7 @@
 
 #include "Hydro/Core/Time.h"
 #include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Physics/PhysicsEngine.h"
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/Renderer2D.h"
 
@@ -64,14 +65,18 @@ namespace Hydro
 		//    Empty until the application opens a project (AssetManager::OnProjectOpened).
 		AssetManager::Init();
 
-		// 7. ImGui: an overlay, so it sits on top of every application layer.
+		// 7. Physics: Box2D's global setup (assert hook, length unit). Scenes create their own physics
+		//    worlds while they play. After Assets, because colliders will come from scenes and assets.
+		PhysicsEngine::Init();
+
+		// 8. ImGui: an overlay, so it sits on top of every application layer.
 		m_ImGuiLayer = new ImGuiLayer(m_Specification.ImGui);
 		PushOverlay(m_ImGuiLayer);
 
 		HY_CORE_INFO("Engine initialized");
 		m_Running = true;
 
-		// 8. The client application: pushes its layers (and may already call Quit()).
+		// 9. The client application: pushes its layers (and may already call Quit()).
 		OnInit();
 	}
 
@@ -81,14 +86,17 @@ namespace Hydro
 	{
 		m_Running = false;
 
-		// 8. The client application, while everything is still alive.
+		// 9. The client application, while everything is still alive.
 		OnShutdown();
 
-		// 7. Layers (ImGui included) own GPU objects: detach them once the GPU is idle,
-		//    while the device still exists.
+		// 8. Layers (ImGui included) own GPU objects, and scenes with physics worlds: detach them once
+		//    the GPU is idle, while the device still exists.
 		Renderer::WaitIdle();
 		m_LayerStack.Clear();
 		m_ImGuiLayer = nullptr;
+
+		// 7. Physics.
+		PhysicsEngine::Shutdown();
 
 		// 6. Assets.
 		AssetManager::Shutdown();
