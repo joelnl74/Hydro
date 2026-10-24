@@ -16,7 +16,7 @@ trim_trailing_whitespace = true
 trim_trailing_whitespace = false
 
 # YAML and the files Hydro writes as YAML (scenes, prefabs, projects, editor settings): spaces only.
-[*.{yaml,yml,hyscene,hyprefab,hyproj}]
+[*.{yaml,yml,hyscene,hyprefab,hyproj,hymeta}]
 indent_style = space
 indent_size = 2
 

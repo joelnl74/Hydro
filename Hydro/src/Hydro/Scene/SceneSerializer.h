@@ -6,8 +6,10 @@
 
 namespace Hydro
 {
-	// Saves / loads a whole scene as YAML (.hyscene).
+	// Saves / loads a whole scene as YAML (.hyscene). The first line is the file's asset handle
+	// (AssetManager::ImportAsset keeps it when the file is saved again); loading ignores it.
 	//
+	// Handle: 9876543210
 	// Scene: Untitled
 	// Entities:
 	//   - Entity: 1234567890

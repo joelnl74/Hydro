@@ -2,6 +2,9 @@
 #include "PrefabSerializer.h"
 #include "EntitySerializer.h"
 
+#include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Asset/AssetMetaSerializer.h"
+
 namespace Hydro
 {
 	bool PrefabSerializer::Save(Entity entity, const std::filesystem::path& filepath)
@@ -12,8 +15,12 @@ namespace Hydro
 			return false;
 		}
 
+		// The file's asset handle comes first (see SceneSerializer::Serialize).
+		const AssetHandle handle = AssetManager::ImportAsset(filepath);
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		out << YAML::Key << AssetMetaSerializer::HandleKey << YAML::Value << (uint64_t)handle;
 		out << YAML::Key << "Prefab" << YAML::Value << entity.GetName();
 		out << YAML::Key << "Entity" << YAML::Value;
 		EntitySerializer::Serialize(out, entity);
