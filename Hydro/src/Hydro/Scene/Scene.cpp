@@ -102,6 +102,48 @@ namespace Hydro
 		return copy;
 	}
 
+	template<typename... Component>
+	static void CopyComponentsOfEntity(ComponentGroup<Component...>, entt::registry& registry, entt::entity source, entt::entity destination)
+	{
+		([&]()
+		{
+			if (registry.has<Component>(source))
+			{
+				// Copy first: emplacing can reallocate the pool the source component lives in.
+				Component copy = registry.get<Component>(source);
+				registry.emplace_or_replace<Component>(destination, std::move(copy));
+			}
+		}(), ...);
+	}
+
+	Entity Scene::DuplicateEntity(Entity entity)
+	{
+		if ((bool)entity == false || m_Registry.valid(entity) == false || m_Registry.has<IDComponent>(entity) == false)
+		{
+			return {};
+		}
+
+		Entity duplicate = CreateEntity(entity.GetName());
+		CopyComponentsOfEntity(CopyableComponents{}, m_Registry, entity, duplicate);
+
+		// Native scripts: copy the bindings, not the instances (those belong to the source entity).
+		if (m_Registry.has<NativeScriptComponent>(entity))
+		{
+			std::vector<NativeScriptComponent::Script> bindings;
+			for (const auto& script : m_Registry.get<NativeScriptComponent>(entity).Scripts)
+			{
+				NativeScriptComponent::Script binding;
+				binding.Name = script.Name;
+				binding.Instantiate = script.Instantiate;
+				bindings.push_back(std::move(binding));
+			}
+
+			m_Registry.emplace<NativeScriptComponent>(duplicate).Scripts = std::move(bindings);
+		}
+
+		return duplicate;
+	}
+
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		return CreateEntityWithUUID({}, name);

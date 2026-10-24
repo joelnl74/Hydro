@@ -26,6 +26,7 @@ namespace Hydro
 
 		// Destroying while iterating the registry is unsafe, so it happens after the loop.
 		Entity entityToDelete;
+		Entity entityToDuplicate;
 
 		ImGui::Begin("Hierachy");
 		ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
@@ -67,8 +68,13 @@ namespace Hydro
 				{
 					if (ImGui::MenuItem("Save as Prefab"))
 						SaveAsPrefab(entity);
+					if (ImGui::MenuItem("Duplicate Entity"))
+					{
+						entityToDuplicate = entity;
+					}
 					if (ImGui::MenuItem("Delete Entity"))
 						entityToDelete = entity;
+
 
 					ImGui::EndPopup();
 				}
@@ -120,6 +126,14 @@ namespace Hydro
 		}
 
 		ImGui::End();
+
+		if (entityToDuplicate)
+		{
+			if (Entity duplicate = scene->DuplicateEntity(entityToDuplicate))
+			{
+				m_SelectedEntity = duplicate;
+			}
+		}
 
 		if (entityToDelete)
 		{

@@ -45,6 +45,11 @@ namespace Hydro
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
 
+		// A new entity (new UUID, same name) in this scene with a copy of the entity's
+		// CopyableComponents and native script bindings. Returns an empty Entity if `entity` is
+		// not valid. Don't call it while iterating the registry.
+		Entity DuplicateEntity(Entity entity);
+
 		// Removes one of the entity's native scripts (or its whole NativeScriptComponent), calling
 		// OnDestroy on scripts that are running. Don't call these from inside a script callback.
 		void RemoveScript(Entity entity, size_t index);
