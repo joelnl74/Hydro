@@ -125,6 +125,29 @@ Colliders are part of the village. The shapes are footprints at the foot of each
 
 The scene had 40 rigidbodies (31 dynamic, 9 kinematic), 7 sensor zones and 366 colliders before the Slime Field; the field adds 5 dynamic slimes and 2 sensor zones, and a few dozen static colliders (trees, rocks, torches). To see a collider's shape now, select the entity and read its Box Collider 2D values (offset and size are in the entity's local units, so a collider on a 3 x 4 tree is 1/3 and 1/4 of its world size). The collider outlines will be drawn by the debug-draw toggle once it exists.
 
+## MVP scene
+
+`Assets/Scenes/MVP.hyscene` is a second, separate scene: the GDD's "First Scene Minimum Viable Test", built from the existing art by `scripts/diorama_rpg/mvp.py` (run it again to regenerate; handles and entity IDs are stable). Open it from the editor instead of `StatueVillage`.
+
+| Item | Where | What it does |
+| --- | --- | --- |
+| `Inn` | (-3, 2.5), the middle of the map | `inn_two_story`, with `Light Window 1..3` on its lit windows and a cobbled yard at the door |
+| `Lantern 1` / `2`, `Light Lamp 1` / `2` | Either side of the door | Hanging lantern posts; the lights follow the day / dusk / night presets like the village's lamps |
+| `MVP Ground` | 60 x 40 units | One texture (`DioramaRPG/Environment/MVP_Ground.png`): grass, the cobblestone path (cobbles in the middle, packed earth at the sides, grass creeping over the rim) from the door south over the bridge and a branch west, a stream across the south with muddy banks, and the forest's shade beyond the walkable 40 x 24 map |
+| `Bridge`, `Stream West` / `East` | x -3, y -6 | A plank bridge; the two colliders along the stream mean the bridge is the only way across |
+| `Tree *`, `Decor *`, `Canopy *` | Everywhere | About 300 pines and oaks (dense outside the walls, a few in the clearing), 130 grass clumps, ferns, flowers, rocks, bushes and stumps on the grass, dark leaves along the top and bottom |
+| `Player` | (-3, -1) | Orin: `VillagerWalk`, `VillageYSort`, a dynamic body |
+| `MVP Director` | | `MvpDirector` (`Oxygen/src/Scripts/MvpScripts.h`): the interact prompts, the messages and the inventory menu below |
+| `Sign Fork`, `Chest 1`, `Door Inn`, `Save Stone` + `Light Save`, `Exit South` / `Exit West`, `Npc Elder` | The fork, beside the inn, the door, west of the yard, the path's ends, by the bench | Interactables: the tag's first word is the kind. Within 1.7 units a prompt shows above Orin (`E: Read` / `Open` / `Enter` / `Save` / `Leave` / `Talk`) |
+| `Wisp 1` | (9, 2.5) | A spirit wisp (`EnemyChase`): touching it pushes `Battle.hyscene`; the MVP scene waits below and reads the outcome when the battle pops |
+| `UI *` | Authored around the origin | The UI is sprites (`DioramaRPG/UI/MvpText.png` labels, the battle icons' digits and cursor, `Panel.png`) that `MvpDirector` keeps on the camera; all start with alpha 0 |
+| `Camera` | | `CameraFollow`: glides after the player, clamped at x 17, y 23 (the ground is painted that far) |
+| `Wall North` / `South` / `West` / `East` | The map's edges | Keep the player in the 40 x 24 clearing |
+
+**The mechanics** (prototype values, in `MvpScripts.h`). **E** interacts with the nearest thing in range: the sign shows two lines; the chest opens once (its lid sprite changes) and adds a Potion to the inventory, then says it is empty; the inn's door restores the party's HP and MP with a dip to black ("You feel rested"); the save stone says there is no save slot yet (J5 is not written); the two exits fade out and push `StatueVillage` (there is no way back to the MVP scene yet); the elder says one of three lines. **Tab** opens the inventory: twelve rows (six visible, the list scrolls so the selection stays in view), **Up / Down** (or W / S) select with wrap-around, **Enter** / **Space** use the item (a Potion heals both heroes 25, a Hi-Potion 60, an Ether gives 10 MP; everything else says it cannot be used here), **Esc** closes. While the menu is open `UIState::MenuOpen` is set and `VillagerWalk` ignores the movement keys, so nothing leaks into the field; the selection is kept between opens. Messages sit in a banner at the bottom for 3 s.
+
+What to check: walk the path from the door to the bridge and over it; each interactable shows its prompt and does its thing; open the menu while walking: Orin stops and does not drift; press Down past the sixth row: the list scrolls; close and reopen: the same row is selected; touch the wisp: the battle starts, win it, and the wisp is gone when the scene returns (lose: it goes home and ignores you for 4 s); use a Potion after a battle and check the HP in the next battle's panel; Orin passes behind the inn's wall and in front of the lanterns correctly; the camera follows smoothly and never shows past the forest; 1 / 2 / 3 switch day, dusk and night and the lanterns and windows follow; the stream cannot be crossed except on the bridge.
+
 ## Planned for the test bed
 
 - **Physics tuning**: collider sizes were set by eye; adjust them (and player speed against damping) after the first Play.

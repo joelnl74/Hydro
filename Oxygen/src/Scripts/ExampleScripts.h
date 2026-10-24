@@ -2,6 +2,7 @@
 #include "Hydro.h"
 #include "VillageScripts.h"
 #include "BattleScripts.h"
+#include "MvpScripts.h"
 
 #include <algorithm>
 #include <cmath>
@@ -55,19 +56,21 @@ namespace Hydro
 		void OnUpdate(float deltaTime) override
 		{
 			glm::vec2 move{ 0.0f };
-			if (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left))
+			// A modal menu owns the keys: the character stands still (and faces the way it was).
+			const bool inputAllowed = UIState::MenuOpen == false;
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left)))
 			{
 				move.x -= 1.0f;
 			}
-			if (Input::IsKeyPressed(KeyCode::D) || Input::IsKeyPressed(KeyCode::Right))
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::D) || Input::IsKeyPressed(KeyCode::Right)))
 			{
 				move.x += 1.0f;
 			}
-			if (Input::IsKeyPressed(KeyCode::W) || Input::IsKeyPressed(KeyCode::Up))
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::W) || Input::IsKeyPressed(KeyCode::Up)))
 			{
 				move.y += 1.0f;
 			}
-			if (Input::IsKeyPressed(KeyCode::S) || Input::IsKeyPressed(KeyCode::Down))
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::S) || Input::IsKeyPressed(KeyCode::Down)))
 			{
 				move.y -= 1.0f;
 			}
@@ -195,6 +198,7 @@ namespace Hydro
 		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalk");
 		ScriptRegistry::Register<YSortScript>("YSort");
 		ScriptRegistry::Register<CameraFollowScript>("CameraFollow");
+		ScriptRegistry::Register<MvpDirectorScript>("MvpDirector");
 		RegisterVillageScripts();
 		RegisterBattleScripts();
 	}
