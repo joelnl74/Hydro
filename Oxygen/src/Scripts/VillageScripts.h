@@ -17,11 +17,13 @@
 //
 // The village is 60 x 36 tiles of 32 px = 60 x 36 world units, centred on the origin (tile (30, 18) is
 // world (0, 0); world x = tile x - 30, world y = 18 - tile y). The East Meadow continues it to the east
-// (x 30 to 66, same height), so the whole map is 96 x 36 units; see VillageMap.
+// (x 30 to 66, same height) and the Slime Field after that (x 66 to 96, with the slimes of BattleScripts.h),
+// so the whole map is 126 x 36 units; see VillageMap.
 namespace Hydro
 {
-	// The walkable map in world units. The camera stays inside it. The village is x -30 to 30 and the East
-	// Meadow x 30 to 66; the invisible Wall * entities in the scene stop bodies at the same edges.
+	// The walkable map in world units. The camera stays inside it. The village is x -30 to 30, the East
+	// Meadow x 30 to 66 and the Slime Field x 66 to 96; the invisible Wall * entities in the scene stop
+	// bodies at the same edges.
 	// What the zones tell the other village scripts (play mode, one scene at a time). VillageZone sets it,
 	// VillagerWalk and the Director read it; VillageZone resets it when the game starts.
 	struct VillageState
@@ -34,7 +36,7 @@ namespace Hydro
 	struct VillageMap
 	{
 		static constexpr float MinX = -30.0f;
-		static constexpr float MaxX = 66.0f;
+		static constexpr float MaxX = 96.0f;
 		static constexpr float MinY = -18.0f;
 		static constexpr float MaxY = 18.0f;
 		static constexpr float Width = MaxX - MinX;
@@ -363,7 +365,7 @@ namespace Hydro
 		bool m_Previous = false;
 	};
 
-	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 96 x 36 map (the
+	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 126 x 36 map (the
 	// view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world units
 	// seen vertically). Scripts run in play mode only.
 	class VillageCameraScript : public ScriptableEntity

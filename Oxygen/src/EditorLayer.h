@@ -73,6 +73,9 @@ namespace Hydro
 		// throws the copy away, so nothing done while playing changes the editor scene.
 		void PlayScene();
 		void StopScene();
+		// Runs the Push / Pop a script asked for through SceneTransition (see there): the running scene goes
+		// on a stack, or is replaced by the one below it. Called after the frame's update.
+		void ProcessSceneTransition();
 		// Selects, in `scene`, the entity with the same UUID as `previous` (an entity of the scene being
 		// left); clears the selection when there is none. Play and Stop use it to keep the selection.
 		void SelectSameEntity(Entity previous, Scene& scene);
@@ -119,6 +122,7 @@ namespace Hydro
 		Hydro::Ref<Scene> m_EditorScene;  // what is edited and saved
 		Hydro::Ref<Scene> m_RuntimeScene; // the copy that runs while playing; null in Edit
 		Hydro::Ref<Scene> m_ActiveScene;  // m_RuntimeScene while playing, else m_EditorScene
+		std::vector<Hydro::Ref<Scene>> m_SuspendedScenes; // scenes under the running one (SceneTransition::Push), bottom first
 		Hydro::Scope<SceneRenderer> m_SceneRenderer;
 		std::filesystem::path m_EditorScenePath; // empty until the scene is saved / opened
 

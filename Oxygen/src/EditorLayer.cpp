@@ -225,6 +225,7 @@ namespace Hydro
 		m_StatsWindow = nullptr;
 		m_HierarchyWindow = nullptr;
 		m_SceneRenderer.reset();
+		m_SuspendedScenes.clear();
 		m_RuntimeScene = nullptr;
 		m_ActiveScene = nullptr;
 		m_EditorScene = nullptr;
@@ -250,6 +251,9 @@ namespace Hydro
 			// Scripts and engine systems, then the application's systems.
 			m_ActiveScene->OnUpdateRuntime(deltaTime);
 			UpdateGalaxy(*m_ActiveScene, deltaTime);
+
+			// A script may have asked for another scene (the scene was not touched while it ran).
+			ProcessSceneTransition();
 
 			if (m_StepFrames > 0)
 				m_StepFrames--;
@@ -603,6 +607,10 @@ namespace Hydro
 
 		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
 
+		SceneTransition::Clear();
+		SceneTransition::SetDepth(0);
+		m_SuspendedScenes.clear();
+
 		m_RuntimeScene = Scene::Copy(m_EditorScene);
 		m_RuntimeScene->Init();
 		CopyGalaxyStars(*m_EditorScene, *m_RuntimeScene);
@@ -649,8 +657,63 @@ namespace Hydro
 		SelectSameEntity(selectedBefore, *m_ActiveScene);
 
 		// Destroying the copy runs its scripts' OnDestroy; the editor scene is as it was before Play.
+		// Scenes pushed on top of it during Play go with it, the top one first.
 		m_RuntimeScene->OnRuntimeStop();
 		m_RuntimeScene = nullptr;
+		while (m_SuspendedScenes.empty() == false)
+		{
+			m_SuspendedScenes.pop_back();
+		}
+
+		SceneTransition::Clear();
+		SceneTransition::SetDepth(0);
+	}
+
+	void EditorLayer::ProcessSceneTransition()
+	{
+		const SceneTransition::Request request = SceneTransition::Take();
+		if (request.Kind == SceneTransition::Type::None || IsPlaying() == false)
+		{
+			return;
+		}
+
+		if (request.Kind == SceneTransition::Type::Push)
+		{
+			// Like OpenScene: load into a fresh scene, and only switch when that worked.
+			const std::filesystem::path path = EditorPaths::GetScenesDirectory() / (request.SceneName + SceneSerializer::FileExtension);
+			Ref<Scene> next = CreateRef<Scene>(request.SceneName, false);
+			SceneSerializer serializer(next);
+			if (serializer.Deserialize(path) == false)
+			{
+				HY_WARN("Scene push: could not load {}", path.string());
+				return;
+			}
+
+			next->SetName(request.SceneName);
+			next->Init();
+			next->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
+
+			m_SuspendedScenes.push_back(m_RuntimeScene);
+			m_RuntimeScene = next;
+		}
+		else
+		{
+			if (m_SuspendedScenes.empty())
+			{
+				HY_WARN("Scene pop: there is no scene below this one");
+				return;
+			}
+
+			// The top scene goes (its scripts' OnDestroy run), the one below carries on as it was.
+			m_RuntimeScene = m_SuspendedScenes.back();
+			m_SuspendedScenes.pop_back();
+		}
+
+		m_ActiveScene = m_RuntimeScene;
+		m_ActiveScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
+		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_HierarchyWindow->ClearSelection();
+		SceneTransition::SetDepth((uint32_t)m_SuspendedScenes.size());
 	}
 
 	void EditorLayer::NewProject()

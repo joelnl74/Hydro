@@ -60,6 +60,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Scene/SpriteAnimation.*` | `SpriteAnimationSet` resource and `Asset` (named clips over one sheet), clip/frame/event types, `LoadFromFile` (shared by file, binds its asset handle) |
 | `Scene/SpriteAnimationSerializer.*` | `.hyanim` read/write (handle first line, texture by `TextureHandle` + path) |
 | `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations(Scene&, const SystemContext&)` system; `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`...) |
+| `Scene/SceneTransition.h` | `SceneTransition`: Push / Pop requests for a scene stack (header only); the host (`EditorLayer::ProcessSceneTransition`) honours them after the frame update |
 | `Scene/ScriptableEntity.h`, `ScriptRegistry.*` | `NativeScriptComponent`, script base class, name → factory table |
 | `Scene/EntitySerializer.*` | YAML for every component (both directions); used by scenes and prefabs |
 | `Scene/SceneSerializer.*`, `PrefabSerializer.*` | `.hyscene` / `.hyprefab` files |
@@ -76,7 +77,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | File | Owns / does |
 | --- | --- |
 | `OxygenEditorApplication.cpp` | `CreateApplication`, registers example scripts, pushes `EditorLayer` |
-| `EditorLayer.*` | Editor scene + play copy, the two `RenderView`s, `EditorCamera`, all windows, menus and top bar, open/save project and scene, asset drops, inspected asset, re-import of textures / reload of animation sets into the open scenes, galaxy demo |
+| `EditorLayer.*` | Editor scene + play copy, the two `RenderView`s, `EditorCamera`, all windows, menus and top bar, open/save project and scene, the scene stack for play mode (`ProcessSceneTransition`), asset drops, inspected asset, re-import of textures / reload of animation sets into the open scenes, galaxy demo |
 | `EditorSettings.*` | `EditorSettings` + `EditorSettingsSerializer` (`EditorSettings.yaml`, session) |
 | `EditorPaths.h` | Project-aware paths (scenes, prefabs, settings) |
 | `EditorWindows/InspectorWindow.*` | Component UI, **Add Component**, script list, prefab button; the selected asset when no entity is selected (image import settings, `.hyanim` summary) |
@@ -97,6 +98,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Utilities/PathFollower.h` | Keeps a remembered path valid after a rename or move |
 | `Scripts/ExampleScripts.h` | `SpinScript`, `BobScript`, `VillagerWalkScript` (WASD + `SpriteAnimator::Play`), `YSortScript` (sorts a moving sprite by its Y), `CameraFollowScript` (put it on the camera: glides after the entity tagged "Player"); includes `VillageScripts.h` |
 | `Scripts/VillageScripts.h` | The `StatueVillage` scene's scripts: `VillageYSortScript` (SortOrder from the feet, 4 x tile y), `WaypointWalkScript` (an NPC walks a loop through `Waypoint <Name> <n> [Facing] [Seconds]` entities, 4 directions, no physics), `VillageCameraScript` (follows the Player, stays inside the 60 x 36 map, zoom with - and =), `VillageDirectorScript` (keys 1/2/3 day/dusk/night, L lights, H shadows, F flicker, B statue/brazier, [ ] radius) |
+| `Scripts/BattleScripts.h` | `BattleState` (HP and result shared by the village and the battle), `EnemyChaseScript` (a slime that wanders, chases the player and pushes the `Battle` scene on contact), `BattleScript` (the turn-based battle of `Battle.hyscene`: keys 1 to 4, HP bars as quads) |
 | `assets/shaders/vertex.vert`, `fragment.frag` | The quad shader (`inTextures[32]` must match `Renderer2D`) |
 | `assets/shaders/light.frag`, `shadow.frag`, `composite.vert`, `composite.frag` | 2D lighting: the light's falloff curve and the blob shadow's softness (both use `vertex.vert`), and the fullscreen triangle that multiplies the light buffer over the scene. Hot reloaded |
 | `project/` | The Sandbox project Oxygen opens at startup; `Assets/Characters` (villager sheet, `.hymeta`, `.hyanim`) + `Scenes/StatueVillage.hyscene` is the **gameplay test bed** (start scene; the village and the East Meadow, with lighting, scripts and colliders; the walkable map is `VillageMap` in `Oxygen/src/Scripts/VillageScripts.h`; see `docs/TestBed.md`); `Scenes/Villagers.hyscene` is a smaller sprite-animation example |
