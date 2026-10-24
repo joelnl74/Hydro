@@ -2,6 +2,7 @@
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Core/Base.h"
+#include "Hydro/Renderer/Texture2D.h"
 
 #include <glm/glm.hpp>
 
@@ -29,6 +30,10 @@ namespace Hydro
 		// A folder or scene was renamed on disk: from -> to. The editor layer moves the paths it
 		// holds (open scene, start scene, last session) that point at or into it.
 		std::function<void(const std::filesystem::path&, const std::filesystem::path&)> OnPathRenamed;
+		// A file was clicked (the inspector shows it), or double-clicked / opened from its menu
+		// (images open in the Sprite Editor, .hyanim files in the Animation window).
+		std::function<void(const std::filesystem::path&)> OnAssetSelected;
+		std::function<void(const std::filesystem::path&)> OnOpenAsset;
 
 		void OnImguiRender(const Ref<Scene>& scene);
 
@@ -83,6 +88,11 @@ namespace Hydro
 		static std::string ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore);
 
 		const PrefabPreview& GetPrefabPreview(const std::filesystem::path& path);
+		// The image shown on an image's tile, loaded the first time it is drawn.
+		// TODO(assets): small cached thumbnails instead of the whole texture.
+		const Ref<Texture2D>& GetTextureThumbnail(const std::filesystem::path& path);
+		// Writes "<image name>.hyanim" next to a sprite sheet, one clip per sprite group, and opens it.
+		void CreateSpriteAnimation(const std::filesystem::path& imagePath);
 		static ItemType GetItemType(const std::filesystem::path& path);
 
 	private:
@@ -96,6 +106,14 @@ namespace Hydro
 		std::filesystem::path m_ListedDirectory;
 		std::vector<std::filesystem::path> m_ListedPaths;
 		std::unordered_map<std::string, PrefabPreview> m_PrefabPreviews;
+		struct TextureThumbnail
+		{
+			Ref<Texture2D> Texture;                       // null when the file can't be loaded
+			bool Loaded = false;
+			std::filesystem::file_time_type ImportTime{}; // of its .hymeta: loaded again when it changes
+			double LastCheckTime = 0.0;                   // ImGui time of the last .hymeta check
+		};
+		std::unordered_map<std::string, TextureThumbnail> m_TextureThumbnails;
 
 		bool m_RequestDeletePopup = false;
 

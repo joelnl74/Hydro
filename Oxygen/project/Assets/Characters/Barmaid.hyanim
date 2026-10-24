@@ -1,0 +1,39 @@
+# Barmaid: idle and walk clips for each facing. The sheet has one 6-frame cycle per facing,
+# so Walk plays the same frames faster than Idle.
+Handle: 2472910742119809806
+SpriteAnimationSet:
+  Texture: Villagers.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Barmaid_Down_0, Barmaid_Down_1, Barmaid_Down_2, Barmaid_Down_3, Barmaid_Down_4, Barmaid_Down_5]
+    - Name: IdleRight
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Barmaid_Right_0, Barmaid_Right_1, Barmaid_Right_2, Barmaid_Right_3, Barmaid_Right_4, Barmaid_Right_5]
+    - Name: IdleUp
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Barmaid_Up_0, Barmaid_Up_1, Barmaid_Up_2, Barmaid_Up_3, Barmaid_Up_4, Barmaid_Up_5]
+    - Name: IdleLeft
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Barmaid_Left_0, Barmaid_Left_1, Barmaid_Left_2, Barmaid_Left_3, Barmaid_Left_4, Barmaid_Left_5]
+    - Name: WalkDown
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Barmaid_Down_0, Barmaid_Down_1, Barmaid_Down_2, Barmaid_Down_3, Barmaid_Down_4, Barmaid_Down_5]
+    - Name: WalkRight
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Barmaid_Right_0, Barmaid_Right_1, Barmaid_Right_2, Barmaid_Right_3, Barmaid_Right_4, Barmaid_Right_5]
+    - Name: WalkUp
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Barmaid_Up_0, Barmaid_Up_1, Barmaid_Up_2, Barmaid_Up_3, Barmaid_Up_4, Barmaid_Up_5]
+    - Name: WalkLeft
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Barmaid_Left_0, Barmaid_Left_1, Barmaid_Left_2, Barmaid_Left_3, Barmaid_Left_4, Barmaid_Left_5]

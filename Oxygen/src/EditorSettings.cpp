@@ -194,6 +194,12 @@ namespace Hydro
 		out << YAML::Key << "Session" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "LastProject" << YAML::Value << settings.Session.LastProject.generic_string();
 		out << YAML::Key << "LastScene" << YAML::Value << settings.Session.LastScene.generic_string();
+		out << YAML::Key << "OpenWindows" << YAML::Value << YAML::BeginMap;
+		for (const auto& [name, open] : settings.Session.OpenWindows)
+		{
+			out << YAML::Key << name << YAML::Value << open;
+		}
+		out << YAML::EndMap; // OpenWindows
 		out << YAML::EndMap;
 
 		out << YAML::EndMap; // EditorSettings
@@ -330,6 +336,14 @@ namespace Hydro
 		{
 			ReadPath(session, "LastProject", loaded.Session.LastProject);
 			ReadPath(session, "LastScene", loaded.Session.LastScene);
+
+			if (const YAML::Node windows = session["OpenWindows"]; windows.IsDefined() && windows.IsMap())
+			{
+				for (const auto& window : windows)
+				{
+					loaded.Session.OpenWindows[window.first.as<std::string>()] = window.second.as<bool>(true);
+				}
+			}
 		}
 
 		settings = loaded;

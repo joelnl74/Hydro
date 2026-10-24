@@ -98,17 +98,15 @@ namespace Hydro
 		std::vector<const char*> instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
 		m_ValidationActive = false;
-		if (s_ValidationRequested)
+		if (s_ValidationRequested && CheckValidationLayerSupport())
 		{
-			if (CheckValidationLayerSupport())
-			{
-				m_ValidationActive = true;
-				instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-			}
-			else
-			{
-				HY_CORE_WARN("Validation layer {0} not present, validation is disabled", s_ValidationLayerName);
-			}
+			m_ValidationActive = true;
+			instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+
+		if (m_ValidationActive == false)
+		{
+			HY_CORE_WARN("Validation layer {0} not present, validation is disabled", s_ValidationLayerName);
 		}
 
 		VkInstanceCreateInfo instanceCreateInfo{};

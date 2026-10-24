@@ -22,7 +22,8 @@ namespace Hydro
 		None = 0,
 		Texture2D,
 		Scene,
-		Prefab
+		Prefab,
+		SpriteAnimation
 	};
 
 	// "Texture2D", "Scene", ... ("None" for AssetType::None).
@@ -30,7 +31,7 @@ namespace Hydro
 	// The inverse of AssetTypeToString; AssetType::None for an unknown name.
 	AssetType AssetTypeFromString(const std::string& name);
 	// The asset type of a file, from its extension (case-insensitive): .png/.jpg/.jpeg/.tga/.bmp ->
-	// Texture2D, .hyscene -> Scene, .hyprefab -> Prefab. AssetType::None for anything else, including
+	// Texture2D, .hyscene -> Scene, .hyprefab -> Prefab, .hyanim -> SpriteAnimation. AssetType::None for anything else, including
 	// .hymeta sidecars and folders.
 	AssetType GetAssetTypeFromExtension(const std::filesystem::path& path);
 
@@ -39,8 +40,9 @@ namespace Hydro
 	// Not every AssetType is a loaded object: a scene is an asset (a file with a handle), but opening
 	// it always builds a fresh Scene, which is not shared or cached.
 	//
-	// The handle is 0 until the AssetManager loads the object for a registered file (a later step:
-	// today textures are still loaded with Texture2D::LoadFromFile). TODO(assets)
+	// The handle is set when the object is loaded from a file inside the asset folder (the loader calls
+	// AssetManager::BindHandle) and stays 0 otherwise (made in code, or loaded from outside the project).
+	// TODO(assets): the AssetManager does the loading itself (GetAsset<T>) in the texture step.
 	class Asset
 	{
 	public:

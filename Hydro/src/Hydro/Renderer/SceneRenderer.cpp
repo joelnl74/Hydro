@@ -91,10 +91,50 @@ namespace Hydro
 		for (const SpriteDrawItem& item : m_SpriteQueue)
 		{
 			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(item.Entity);
-			// A null texture draws the white texture, i.e. a plain coloured quad.
-			Renderer2D::DrawQuad(transform.GetTransform(), sprite.Texture, sprite.TilingFactor, sprite.Color);
+			SubmitSprite(transform.GetTransform(), sprite);
 		}
 
 		// TODO MESH RENDERING
+	}
+
+	void SceneRenderer::SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite)
+	{
+		// A null texture draws the white texture, i.e. a plain coloured quad.
+		if (sprite.Texture == nullptr)
+		{
+			Renderer2D::DrawQuad(transform, nullptr, sprite.TilingFactor, sprite.Color);
+			return;
+		}
+
+		const Texture2D& texture = *sprite.Texture;
+		TextureRect rect;
+		glm::mat4 quadTransform = transform;
+		if (texture.GetSpriteMode() == SpriteMode::Multiple)
+		{
+			rect = texture.GetSpriteUVRect(sprite.SpriteIndex);
+
+			// The quad is centred on the entity; move it so the sprite's pivot is there instead
+			// (a feet pivot keeps a character standing on its position while frames change).
+			const glm::vec2 pivot = texture.GetSprite(sprite.SpriteIndex).Pivot;
+			if (pivot != glm::vec2(0.5f))
+			{
+				quadTransform = transform * glm::translate(glm::mat4(1.0f), glm::vec3(0.5f - pivot.x, 0.5f - pivot.y, 0.0f));
+			}
+		}
+		else
+		{
+			rect.Max = glm::vec2(sprite.TilingFactor);
+		}
+
+		if (sprite.FlipX)
+		{
+			std::swap(rect.Min.x, rect.Max.x);
+		}
+		if (sprite.FlipY)
+		{
+			std::swap(rect.Min.y, rect.Max.y);
+		}
+
+		Renderer2D::DrawQuad(quadTransform, sprite.Texture, rect, sprite.Color);
 	}
 }

@@ -73,7 +73,7 @@ namespace Hydro
 
 	bool AssetMetaSerializer::StoresHandleInFile(AssetType type)
 	{
-		return type == AssetType::Scene || type == AssetType::Prefab;
+		return type == AssetType::Scene || type == AssetType::Prefab || type == AssetType::SpriteAnimation;
 	}
 
 	std::filesystem::path AssetMetaSerializer::GetSidecarPath(const std::filesystem::path& file)

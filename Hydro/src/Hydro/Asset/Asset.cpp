@@ -12,6 +12,7 @@ namespace Hydro
 			case AssetType::Texture2D: return "Texture2D";
 			case AssetType::Scene: return "Scene";
 			case AssetType::Prefab: return "Prefab";
+			case AssetType::SpriteAnimation: return "SpriteAnimation";
 			case AssetType::None: return "None";
 		}
 
@@ -31,6 +32,10 @@ namespace Hydro
 		if (name == "Prefab")
 		{
 			return AssetType::Prefab;
+		}
+		if (name == "SpriteAnimation")
+		{
+			return AssetType::SpriteAnimation;
 		}
 
 		return AssetType::None;
@@ -57,6 +62,10 @@ namespace Hydro
 		if (extension == ".hyprefab")
 		{
 			return AssetType::Prefab;
+		}
+		if (extension == ".hyanim")
+		{
+			return AssetType::SpriteAnimation;
 		}
 
 		return AssetType::None;

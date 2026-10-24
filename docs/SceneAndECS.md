@@ -10,7 +10,7 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | --- | --- | --- |
 | `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdateRuntime` / `OnUpdateEditor`; knows its viewport size (`OnViewportResize`) and primary camera (`GetPrimaryCameraEntity`) |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
-| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `CameraComponent`, `NativeScriptComponent` |
+| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
 | `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
@@ -55,9 +55,10 @@ A scene is updated one of two ways:
 | Order | System | Runs in | Reads → writes |
 | --- | --- | --- | --- |
 | 1 | Native scripts (runtime only) | `Scene::OnUpdateRuntime` | `NativeScriptComponent` → whatever scripts touch |
+| 1b | `UpdateSpriteAnimations` (runtime only) | `Scene::OnUpdateRuntime`, after the scripts | `SpriteAnimatorComponent` → `SpriteRendererComponent` (`Texture`, `SpriteIndex`, `FlipX`) |
 | 2 | Engine systems | `Scene::OnUpdateEditor` (also called by `OnUpdateRuntime`) | None yet; transform propagation goes here |
 | 3 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
-| 4 | Sprite submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling, colour)` |
+| 4 | Sprite submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling or sprite rect, colour)` |
 | — | GPU | `Renderer::RenderFrame` (application loop) | Records and presents everything submitted |
 
 New engine systems go into `Scene::OnUpdateEditor` when they must also run while editing, or into `Scene::OnUpdateRuntime` (after the scripts) when they are game-only, in a deliberate position. Gameplay systems belong to the application and run after it.
@@ -137,6 +138,21 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
 - **Sprite textures** are saved as `Texture: <path>`, relative to the project's asset folder when the file is inside it (otherwise absolute, forward slashes), and loaded with `Texture2D::LoadFromFile`, so sprites using one file share one texture. Textures made in code aren't saved. TODO(assets): saved as an `AssetHandle`; the loader will keep reading `Texture:` paths so old scenes still load.
 
+## Sprite animation
+
+Three pieces, chained by name: a sheet texture (sprite mode `Multiple`, see [Architecture](Architecture.md#sprite-sheets-and-import-settings)), a `.hyanim` file of named clips over its sprites, and a `SpriteAnimatorComponent` that plays a clip on the entity's `SpriteRendererComponent`.
+
+- **`SpriteAnimationSet`** (`Scene/SpriteAnimation.h`): a resource made from `SpriteAnimationSetSpecification` (texture, clips, default clip), loaded with `SpriteAnimationSet::LoadFromFile(path)` (shared while alive, `nullptr` on failure; `SpriteAnimationSerializer` reads the YAML). A clip is a name, frames (sprite index + duration in seconds, at least `MinFrameDuration`), a loop mode (`Once`, `Loop`, `PingPong`), `FlipX` and events (frame + name; recorded in the file, not delivered yet). In the file, frames name sprites (`Farmer_Left_0`), so re-slicing the sheet keeps clips; `FrameRate` is the short form for equal frames. Give every character a set with the same clip names and one script drives any of them.
+- **`SpriteAnimatorComponent`**: saved `Animations` (`Ref<SpriteAnimationSet>`, `TODO(assets)`), `StartClip` (empty = the set's default), `PlayOnStart`, `Speed`; runtime fields (`ClipIndex`, `FrameIndex`, `FrameTime`, `Step`, `Playing`, `Finished`) are not saved, so a play copy and a loaded scene start fresh.
+- **`UpdateSpriteAnimations(registry, deltaTime)`** (`Scene/SpriteAnimator.h`): one system over `SpriteAnimatorComponent` + `SpriteRendererComponent`, in `OnUpdateRuntime` right after the scripts (a `Play` from a script shows the same frame). Starts `PlayOnStart` animators, advances `FrameTime` by `deltaTime * Speed` (a `while`, so a hitch can pass several frames), then writes `Texture`, `SpriteIndex` and `FlipX`. Nothing animates while editing; the inspector writes the start clip's first frame into the sprite so the editor shows the starting pose.
+- **`SpriteAnimator`**: static functions over the component (no state): `Play(entity, "WalkLeft", restart = false)` (already playing that clip → carries on, so it is safe every frame; unknown name → warning once, `false`), `Play(entity, index)`, `Stop` (back to frame 0), `Pause`, `Resume`, `IsPlaying(entity, clip = {})`, `IsFinished`, `GetCurrentClip`, `SetSpeed`.
+
+```cpp
+SpriteAnimator::Play(GetEntity(), moving ? "WalkLeft" : "IdleLeft");
+```
+
+Oxygen's `VillagerWalkScript` and `Assets/Scenes/Villagers.hyscene` (Sandbox project) are a working example. In the editor: the Inspector's image import settings and the **Sprite Editor** make the sheet, the **Animation** window edits the clips (see [Architecture](Architecture.md#the-editor-oxygen)).
+
 ## Planned: system context and stages
 
 Roadmap A5 (finishes E5). Every system gets the same small struct instead of a growing parameter list, and `Scene` runs its systems from one ordered list, so the frame order above is in code rather than only in this page:
@@ -171,6 +187,7 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 ## Known gaps
 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
+- Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
 - The selection is cleared on Play and Stop (there's no `GetEntityByUUID` yet to carry it over, S1).
 - Scripts must be compiled into the application and registered in code: there's no separate game module or hot reload, and scripts can't expose fields to the inspector yet.
 - There is no parent/child hierarchy yet.

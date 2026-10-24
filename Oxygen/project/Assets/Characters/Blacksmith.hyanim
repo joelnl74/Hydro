@@ -1,0 +1,39 @@
+# Blacksmith: idle and walk clips for each facing. The sheet has one 6-frame cycle per facing,
+# so Walk plays the same frames faster than Idle.
+Handle: 8079240564453792839
+SpriteAnimationSet:
+  Texture: Villagers.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Blacksmith_Down_0, Blacksmith_Down_1, Blacksmith_Down_2, Blacksmith_Down_3, Blacksmith_Down_4, Blacksmith_Down_5]
+    - Name: IdleRight
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Blacksmith_Right_0, Blacksmith_Right_1, Blacksmith_Right_2, Blacksmith_Right_3, Blacksmith_Right_4, Blacksmith_Right_5]
+    - Name: IdleUp
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Blacksmith_Up_0, Blacksmith_Up_1, Blacksmith_Up_2, Blacksmith_Up_3, Blacksmith_Up_4, Blacksmith_Up_5]
+    - Name: IdleLeft
+      FrameRate: 6
+      Loop: Loop
+      Frames: [Blacksmith_Left_0, Blacksmith_Left_1, Blacksmith_Left_2, Blacksmith_Left_3, Blacksmith_Left_4, Blacksmith_Left_5]
+    - Name: WalkDown
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Blacksmith_Down_0, Blacksmith_Down_1, Blacksmith_Down_2, Blacksmith_Down_3, Blacksmith_Down_4, Blacksmith_Down_5]
+    - Name: WalkRight
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Blacksmith_Right_0, Blacksmith_Right_1, Blacksmith_Right_2, Blacksmith_Right_3, Blacksmith_Right_4, Blacksmith_Right_5]
+    - Name: WalkUp
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Blacksmith_Up_0, Blacksmith_Up_1, Blacksmith_Up_2, Blacksmith_Up_3, Blacksmith_Up_4, Blacksmith_Up_5]
+    - Name: WalkLeft
+      FrameRate: 12
+      Loop: Loop
+      Frames: [Blacksmith_Left_0, Blacksmith_Left_1, Blacksmith_Left_2, Blacksmith_Left_3, Blacksmith_Left_4, Blacksmith_Left_5]

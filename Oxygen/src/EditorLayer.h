@@ -8,6 +8,8 @@
 #include "EditorWindows/RenderSettingsWindow.h"
 #include "EditorWindows/ProjectSettingsWindow.h"
 #include "EditorWindows/EditorSettingsWindow.h"
+#include "EditorWindows/SpriteEditorWindow.h"
+#include "EditorWindows/SpriteAnimationWindow.h"
 #include "EditorSettings.h"
 
 #include <glm/glm.hpp>
@@ -46,6 +48,19 @@ namespace Hydro
 		// Saves the open scene every Autosave.IntervalMinutes while editing.
 		void UpdateAutosave(float deltaTime);
 
+		// The windows in the View menu, by menu name: the menu, the session and the restore all use
+		// this one list, so a window added here is remembered too.
+		struct ViewWindow
+		{
+			const char* Name;
+			bool* Open;
+		};
+		std::vector<ViewWindow> GetViewWindows();
+		// Opens / closes the View menu windows as the session left them (windows not listed keep their default).
+		void RestoreOpenWindows();
+		// Copies the windows' open state into the session; returns true when it changed.
+		bool StoreOpenWindows();
+
 		// Scenes (.hyscene, YAML). These always work on the editor scene and stop play mode first.
 		void NewScene();
 		void OpenScene();
@@ -66,6 +81,15 @@ namespace Hydro
 		// name), the last session scene and the project's start scene if they were at or inside it.
 		void OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to);
 		void AcceptAssetDrop();
+
+		// Asset editors. Images open in the Sprite Editor, .hyanim files in the Animation window.
+		void OpenAsset(const std::filesystem::path& path);
+		// An image's .hymeta was saved: sprites (editor and play scene) and the animation sets that
+		// use the image get the re-imported texture, keeping each sprite by name.
+		// TODO(assets): the AssetManager re-imports into the same handle instead.
+		void OnTextureReimported(const std::filesystem::path& imagePath);
+		// A .hyanim was saved: animators that play it get the new set.
+		void OnAnimationSetSaved(const std::filesystem::path& path);
 
 		// The Play / Pause / Step buttons, centred in the main menu bar.
 		void DrawPlayControls();
@@ -104,6 +128,11 @@ namespace Hydro
 		Hydro::Ref<RenderSettingsWindow> m_RenderSettingsWindow;
 		Hydro::Ref<ProjectSettingsWindow> m_ProjectSettingsWindow;
 		Hydro::Ref<EditorSettingsWindow> m_EditorSettingsWindow;
+		Hydro::Ref<SpriteEditorWindow> m_SpriteEditorWindow;
+		Hydro::Ref<SpriteAnimationWindow> m_SpriteAnimationWindow;
+		// The asset the inspector shows while no entity is selected (picked in the Project window).
+		std::filesystem::path m_InspectedAsset;
+		entt::entity m_LastSelectedEntity = entt::null;
 
 		// How the editor looks and behaves; loaded from EditorSettings.yaml in OnAttach. The session
 		// part (last project / scene) is kept up to date here and written on close.

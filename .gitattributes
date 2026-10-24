@@ -13,6 +13,7 @@
 *.hyscene  text eol=crlf
 *.hyprefab text eol=crlf
 *.hyproj   text eol=crlf
+*.hyanim   text eol=crlf
 *.hymeta   text eol=crlf
 *.vert   text eol=crlf
 *.frag   text eol=crlf

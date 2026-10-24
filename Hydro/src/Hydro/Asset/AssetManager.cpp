@@ -321,6 +321,16 @@ namespace Hydro
 		return handle;
 	}
 
+	void AssetManager::BindHandle(Asset& asset, const std::filesystem::path& file)
+	{
+		if (s_Data == nullptr)
+		{
+			return;
+		}
+
+		asset.m_Handle = ImportAsset(file);
+	}
+
 	AssetHandle AssetManager::FindHandle(const std::filesystem::path& file)
 	{
 		const std::filesystem::path relative = ToRelativePath(file);

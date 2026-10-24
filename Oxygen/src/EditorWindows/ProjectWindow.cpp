@@ -9,6 +9,10 @@
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SceneSerializer.h>
+#include <Hydro/Scene/SpriteAnimationSerializer.h>
+#include <Hydro/Renderer/Renderer2D.h>
+#include <Hydro/Renderer/TextureImportSerializer.h>
+#include "SpriteAnimationWindow.h"
 
 #include <algorithm>
 #include <cctype>
@@ -156,6 +160,20 @@ namespace Hydro
 		}
 		m_ListedDirectory = m_CurrentDirectory;
 		m_ListedPaths = std::move(listed);
+
+		// Only the shown folder's images keep a thumbnail texture (GPU memory).
+		for (auto it = m_TextureThumbnails.begin(); it != m_TextureThumbnails.end();)
+		{
+			const bool shown = std::any_of(m_Items.begin(), m_Items.end(), [&](const AssetItem& item) { return item.Path.u8string() == it->first; });
+			if (shown)
+			{
+				++it;
+			}
+			else
+			{
+				it = m_TextureThumbnails.erase(it);
+			}
+		}
 	}
 
 	void ProjectWindow::DrawToolbar()
@@ -281,7 +299,13 @@ namespace Hydro
 		const bool selected = m_SelectedPath == item.Path;
 
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
+		{
 			m_SelectedPath = item.Path;
+			if (item.Type == ItemType::Other && OnAssetSelected)
+			{
+				OnAssetSelected(item.Path);
+			}
+		}
 
 		if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
@@ -291,16 +315,21 @@ namespace Hydro
 		}
 
 		// Prefabs and scenes can be dragged onto the viewport / hierarchy, images onto a sprite's
-		// Texture field in the inspector.
+		// Texture field in the inspector, sprite animations onto a Sprite Animator's Animations field.
 		// TODO(assets): give textures their own ItemType (and thumbnails) with the asset system.
 		const bool isTexture = item.Type == ItemType::Other && Texture2D::IsSupportedFile(item.Path);
-		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture) && ImGui::BeginDragDropSource())
+		const bool isAnimationSet = item.Type == ItemType::Other && item.Path.extension() == SpriteAnimationSerializer::FileExtension;
+		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
 			if (isTexture)
 			{
 				ImGui::TextDisabled("Drop on a sprite's Texture");
+			}
+			else if (isAnimationSet)
+			{
+				ImGui::TextDisabled("Drop on a Sprite Animator's Animations");
 			}
 			else
 			{
@@ -320,6 +349,31 @@ namespace Hydro
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
 			if (item.Type == ItemType::Folder && ImGui::MenuItem("Open Folder"))
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
+			if (isTexture)
+			{
+				if (ImGui::MenuItem("Import Settings") && OnAssetSelected)
+				{
+					OnAssetSelected(item.Path);
+				}
+				if (ImGui::MenuItem("Sprite Editor") && OnOpenAsset)
+				{
+					OnOpenAsset(item.Path);
+				}
+				const Ref<Texture2D>& texture = GetTextureThumbnail(item.Path);
+				const bool isSheet = texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple;
+				if (ImGui::MenuItem("Create Sprite Animation", nullptr, false, isSheet))
+				{
+					m_DeferredActions.push_back([this, copy]() { CreateSpriteAnimation(copy.Path); });
+				}
+				if (isSheet == false && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+				{
+					ImGui::SetTooltip("Set the image's Sprite Mode to Multiple and slice it first.");
+				}
+			}
+			if (isAnimationSet && ImGui::MenuItem("Open in Animation Window") && OnOpenAsset)
+			{
+				OnOpenAsset(item.Path);
+			}
 			if (CanRename(item.Type) && ImGui::MenuItem("Rename...", "F2"))
 			{
 				BeginRename(item.Path);
@@ -438,6 +492,32 @@ namespace Hydro
 			case ItemType::Other:
 			default:
 			{
+				if (Texture2D::IsSupportedFile(item.Path))
+				{
+					const Ref<Texture2D>& texture = GetTextureThumbnail(item.Path);
+					if (texture != nullptr)
+					{
+						const ImVec2 innerMin = TilePoint(min, size, 0.10f, 0.10f);
+						const ImVec2 innerMax = TilePoint(min, size, 0.90f, 0.90f);
+						DrawCheckerboard(drawList, innerMin, innerMax, std::max(4.0f, size / 11.0f));
+
+						// The image fitted into the tile, keeping its aspect ratio.
+						const float box = innerMax.x - innerMin.x;
+						const float width = (float)std::max(texture->GetWidth(), 1u);
+						const float height = (float)std::max(texture->GetHeight(), 1u);
+						const float scale = box / std::max(width, height);
+						const ImVec2 imageMin = { innerMin.x + (box - width * scale) * 0.5f, innerMin.y + (box - height * scale) * 0.5f };
+						drawList->AddImage((ImTextureID)Renderer2D::GetImGuiTexture(texture), imageMin, { imageMin.x + width * scale, imageMin.y + height * scale });
+
+						// Sprite sheets get a strip, like scenes and prefabs.
+						if (texture->GetSpriteMode() == SpriteMode::Multiple)
+						{
+							drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ImGui::GetColorU32(ImGuiCol_CheckMark), rounding, ImDrawFlags_RoundCornersBottom);
+						}
+						break;
+					}
+				}
+
 				const ImU32 page = ToColor(0.62f, 0.64f, 0.68f);
 				drawList->AddRectFilled(TilePoint(min, size, 0.28f, 0.18f), TilePoint(min, size, 0.72f, 0.82f), page, 2.0f);
 				drawList->AddTriangleFilled(TilePoint(min, size, 0.58f, 0.18f), TilePoint(min, size, 0.72f, 0.18f), TilePoint(min, size, 0.72f, 0.32f), ToColor(0.17f, 0.17f, 0.19f));
@@ -580,7 +660,14 @@ namespace Hydro
 					OnOpenScene(item.Path);
 				break;
 			default:
+			{
+				const bool editable = Texture2D::IsSupportedFile(item.Path) || item.Path.extension() == SpriteAnimationSerializer::FileExtension;
+				if (editable && OnOpenAsset)
+				{
+					OnOpenAsset(item.Path);
+				}
 				break;
+			}
 		}
 	}
 
@@ -694,9 +781,9 @@ namespace Hydro
 			}
 			else if (renaming && renamingFile == false)
 			{
-				// TODO(assets): references by path don't follow a rename until the asset registry exists.
-				// The open scene and the start scene do follow (OnPathRenamed); textures don't.
-				ImGui::TextDisabled("Sprites that use textures in this folder by path won't follow.");
+				// Sprites and animators reference textures and .hyanim files by asset handle, so they follow a
+				// rename. Scenes saved before handles existed are given one the next time they are saved.
+				ImGui::TextDisabled("Sprites in saved scenes follow by asset handle. Scenes from before handles follow once re-saved.");
 			}
 
 			ImGui::Spacing();
@@ -714,6 +801,18 @@ namespace Hydro
 				if (renaming)
 				{
 					std::filesystem::rename(m_RenamePath, target, ec);
+
+					// An image's .hymeta (its asset handle and import config) goes with it, so the handle stays.
+					const std::filesystem::path importFile = Texture2D::GetImportFilePath(m_RenamePath);
+					std::error_code importError;
+					if (ec.value() == 0 && std::filesystem::exists(importFile, importError))
+					{
+						std::filesystem::rename(importFile, Texture2D::GetImportFilePath(target), importError);
+						if (importError)
+						{
+							HY_ERROR("Could not move {}: {}", importFile.u8string(), importError.message());
+						}
+					}
 				}
 				else
 				{
@@ -810,5 +909,68 @@ namespace Hydro
 			return ItemType::Scene;
 
 		return ItemType::Other;
+	}
+
+	const Ref<Texture2D>& ProjectWindow::GetTextureThumbnail(const std::filesystem::path& path)
+	{
+		TextureThumbnail& thumbnail = m_TextureThumbnails[path.u8string()];
+
+		// The .hymeta is checked once a second, like the folder; a re-import loads the image again.
+		// A file that can't be loaded isn't tried again until its import changes (no log every frame).
+		const double now = ImGui::GetTime();
+		if (thumbnail.Loaded == false || now - thumbnail.LastCheckTime >= RescanInterval)
+		{
+			thumbnail.LastCheckTime = now;
+			std::error_code error;
+			std::filesystem::file_time_type importTime = std::filesystem::last_write_time(Texture2D::GetImportFilePath(path), error);
+			if (error)
+			{
+				importTime = {};
+			}
+
+			if (thumbnail.Loaded == false || importTime != thumbnail.ImportTime)
+			{
+				thumbnail.Texture = Texture2D::LoadFromFile(path);
+				thumbnail.ImportTime = importTime;
+				thumbnail.Loaded = true;
+			}
+		}
+		return thumbnail.Texture;
+	}
+
+	void ProjectWindow::CreateSpriteAnimation(const std::filesystem::path& imagePath)
+	{
+		const Ref<Texture2D> texture = Texture2D::LoadFromFile(imagePath);
+		if (texture == nullptr)
+		{
+			return;
+		}
+
+		// "<image>.hyanim", or "<image> 2.hyanim"... when taken.
+		const std::filesystem::path folder = imagePath.parent_path();
+		const std::string stem = imagePath.stem().u8string();
+		std::filesystem::path target = folder / std::filesystem::u8path(stem + SpriteAnimationSerializer::FileExtension);
+		std::error_code error;
+		for (int number = 2; std::filesystem::exists(target, error); number++)
+		{
+			target = folder / std::filesystem::u8path(stem + " " + std::to_string(number) + SpriteAnimationSerializer::FileExtension);
+		}
+
+		SpriteAnimationSetSpecification specification;
+		specification.Texture = texture;
+		specification.Clips = SpriteAnimationWindow::MakeClipsFromSpriteNames(*texture, 10.0f);
+		const SpriteAnimationSet set(specification);
+		if (SpriteAnimationSerializer::Serialize(target, set) == false)
+		{
+			return;
+		}
+
+		HY_INFO("Created {} ({} clips)", target.filename().u8string(), set.GetClipCount());
+		m_SelectedPath = target;
+		m_NeedsRescan = true;
+		if (OnOpenAsset)
+		{
+			OnOpenAsset(target);
+		}
 	}
 }

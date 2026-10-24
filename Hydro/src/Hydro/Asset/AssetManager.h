@@ -59,6 +59,10 @@ namespace Hydro
 		// (GetAssetTypeFromExtension) and for images that don't exist.
 		static AssetHandle ImportAsset(const std::filesystem::path& file);
 
+		// Gives a loaded `asset` the handle of the file it was loaded from (ImportAsset). Loaders call this;
+		// the handle stays 0 for files outside the asset folder.
+		static void BindHandle(Asset& asset, const std::filesystem::path& file);
+
 		// The handle of the registered file at `file` (absolute, or relative to the asset folder), or 0.
 		static AssetHandle FindHandle(const std::filesystem::path& file);
 		// nullptr when the handle isn't registered.

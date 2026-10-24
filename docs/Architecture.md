@@ -142,6 +142,16 @@ A view's quads are recorded as a list of **draws** (one `vkCmdDrawIndexed` each)
 - Texture coordinates run `v = 1` at the quad's bottom to `v = 0` at its top (Vulkan's first image row is the top), times the tiling factor; samplers repeat by default.
 - **Stats** (Oxygen's Stats window): slots per draw, slots used, texture flushes.
 
+### Sprite sheets and import settings
+
+A sprite sheet is not a separate type: like Unity, every `Texture2D` has a **sprite mode**. `Single` (the default) is one sprite, the whole image; `Multiple` is a sheet sliced into named sprites. How an image is imported is a `TextureImportConfig` (`Renderer/TextureImport.h`), saved next to it as `<image>.hymeta` (YAML, `TextureImportSerializer`): format, filter, wrap, an optional colour key, sprite mode, pixels per unit, the slicing settings and the sprite list.
+
+- `Texture2D::LoadFromFile` reads the `.hymeta` when there is one (its settings replace the caller's `properties`/`format`). A `Multiple` config with slicing settings but no `Sprites` is sliced on load (`SpriteSlicer::SliceGrid`; `Mode: Auto` runs `SpriteSlicer::DetectGrid` on the pixels first), so a hand-written `.hymeta` needs only the grid. The colour key turns that exact colour transparent before upload. The `.hymeta`'s modification time is part of the sharing key, so saving it and loading again re-imports.
+- A texture always has at least one sprite (`GetSpriteCount() >= 1`); sprites outside the image are dropped with a warning. `GetSpriteUVRect(i)` returns the sprite's `TextureRect`, inset by 1/1000 texel so nearest sampling at the quad's edge never picks the neighbour; a whole-image sprite is exactly 0..1.
+- `Renderer2D::DrawQuad(transform, texture, TextureRect, tint)` draws part of a texture (swap `Min`/`Max` to flip). The tiling overload is the same path with the rect `(0,0)-(tiling,tiling)`; no shader or vertex change.
+- `SpriteRendererComponent::SpriteIndex` picks the sprite (0 by default: the first frame of a sheet). `SceneRenderer` draws a `Multiple` texture's sprite with its UV rect and moves the quad so the sprite's **pivot** sits on the entity (a feet pivot `(0.5, 0)` keeps characters standing still while frames change); `FlipX`/`FlipY` swap the rect.
+- Sprite animation (named clips over a sheet, `SpriteAnimatorComponent`, `SpriteAnimator::Play`) is in [Scene, ECS and systems](SceneAndECS.md#sprite-animation).
+
 Scenes are drawn through a `CameraComponent` at runtime or the `EditorCamera` in the editor; see [Scene, ECS and systems](SceneAndECS.md#cameras).
 
 ## The editor (Oxygen)
@@ -154,8 +164,10 @@ Scenes are drawn through a `CameraComponent` at runtime or the `EditorCamera` in
 | **Game** | The active scene through its primary `CameraComponent`; its size is the scene's viewport |
 | Top bar | The Hydro droplet, the menus and icon buttons for **Play / Stop**, **Pause / Resume**, **Step** (see [Play mode](SceneAndECS.md#play-mode)). A thin accent "waterline" runs under it |
 | **Hierarchy** | Entities with a Tag and ID; create, delete, save as prefab, drop prefabs |
-| **Inspector** | The selected entity's components, edited with typed input fields; Add Component (including registered scripts) |
-| **Project** | The project's asset folder; open scenes, drag prefabs into the scene |
+| **Inspector** | The selected entity's components, edited with typed input fields; Add Component (including registered scripts). With no entity selected, the asset picked in the Project window: an image's import settings (`TextureImportPanel`: sprite mode, pixels per unit, filter, wrap, colour space, colour key; **Apply** writes the `.hymeta` and re-imports) or a `.hyanim`'s clips |
+| **Project** | The project's asset folder; open scenes, drag prefabs into the scene; image thumbnails (sheets get a strip); click an image or `.hyanim` to inspect it, double-click to open it in the Sprite Editor / Animation window; right-click a sheet > **Create Sprite Animation** (one clip per sprite group). `.hymeta` files are hidden and follow their image on rename and delete |
+| **Sprite Editor** | Slices an image into sprites: Grid / Auto (**Detect Grid**) / Manual, row names (sprites are named `<row>_<column>`), per-sprite name, rectangle and pivot (presets), sprites and the selected pivot drawn over the image, Ctrl+wheel zoom. **Apply** sets sprite mode Multiple, writes the `.hymeta` and re-imports |
+| **Animation** | Edits a `.hyanim`: sheet (pick or drop), default clip, clips (add, copy, delete, **Clips from Sprite Names**), per clip name / loop / flip / frames (sprite, seconds, order) / events, a live preview and a sprite picker (click to add a frame). **Save** writes the file and reloads the animators that play it |
 | **Console** | The `Log` history (engine and client), with level toggles, a text filter and auto-scroll; time and source columns follow Editor Settings |
 | **Stats**, **Render Settings**, **Project Settings** | Frame timings and renderer stats; live `RendererSettings`; project name and start scene |
 | **Editor Settings** | Pages: **Appearance** (theme, accent colour, text scale, font size), **Play Mode** (tint), **Layout** (rounding, borders, spacing), **Colors** (every ImGui colour), **Editor Camera** (start in 2D, field of view, clip planes, orbit/pan/zoom speed), **Console**, **Startup** (reopen last project and scene, autosave). Applied live; **Save** writes `EditorSettings.yaml` next to `imgui.ini` (per user, not per project); **Revert** reloads it; **Defaults** resets everything |
@@ -168,7 +180,8 @@ The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorS
 - **Chrome.** `EditorChrome` draws what a theme can't: the droplet and name at the start of the menu bar, the waterline, the play-control icons and the play-mode tint. While playing, windows, title bars, tabs and the menu bar blend towards the tint colour, the waterline takes the tint colour and the Game window gets an outline.
 - **Fonts.** Oxygen loads Open Sans (`Oxygen/assets/Fonts/opensans`, Regular and Bold) through `ApplicationSpecification::ImGui` (an `ImGuiLayerSpecification`). The engine loads only the fonts the application lists; `ImGuiLayer::GetFont("Bold")` finds one by name. The font atlas is built once at startup, so **Font size** applies after a restart (it is read in `CreateApplication`, before the log exists); **Scale** applies at once.
 - **Editor camera.** `EditorCameraSettings` (engine, `Renderer/EditorCamera.h`) are live options passed in with `EditorCamera::SetSettings` every frame; changing the field of view keeps the framing at the focal point.
-- **Session.** The last project and scene are remembered in the same file. On close, `EditorSettingsSerializer::SaveSession` rewrites only that part, so unsaved edits in the window aren't written by accident.
+- **Asset editing.** The windows edit copies and write files; `EditorLayer` then swaps the result into the editor scene and the play copy: a re-imported texture replaces the old one on every sprite that used the file (keeping each sprite by name), animation sets that use it are read again (`SpriteAnimationSet::LoadFromFile(path, true)`), and a saved `.hyanim` replaces the set on its animators (the playing clip carries on by name). Images in these windows go through `Renderer2D::GetImGuiTexture`: a small pool of ImGui handles, each rewritten for another texture only after it hasn't been drawn for longer than the frames in flight, so ImGui's descriptor pool doesn't grow.
+- **Session.** The last project and scene, and which View menu windows are open (`EditorSession::OpenWindows`, by menu name), are remembered in the same file. On close, and as soon as a window is opened or closed, `EditorSettingsSerializer::SaveSession` rewrites only that part, so unsaved edits in the window aren't written by accident. `EditorLayer::GetViewWindows()` is the one list behind the View menu, the save and the restore: a new window added there is remembered too; a window missing from the file keeps its own default.
 
 ## Vulkan ownership
 
@@ -264,11 +277,11 @@ Agreed on October 19, 2026 after reviewing the engine and editor code against th
 
 ## Asset system
 
-**Step 1 of AS1–AS5 is done (Oct 24, 2026): asset identity.** Every texture, scene and prefab in the open project's asset folder has an `AssetHandle` that survives renames and moves. Nothing is loaded through it yet: sprites still hold a `Ref<Texture2D>` and scenes save the texture's path (`TODO(assets)`).
+**Step 1 of AS1–AS5 is done (Oct 24, 2026): asset identity.** Every texture, scene, prefab and sprite animation set in the open project's asset folder has an `AssetHandle` that survives renames and moves. Sprites and animators are the first users: scenes save their texture and animation set by handle (below). Nothing is loaded through the manager yet: components still hold a `Ref<Texture2D>` / `Ref<SpriteAnimationSet>` (`TODO(assets)`).
 
 **Where handles live** (decided Oct 24, 2026, instead of one `AssetRegistry.hyr`). The files are the source of truth, so moves outside the editor and git merges keep working:
 
-- Files Hydro writes keep their handle inside: `.hyscene` and `.hyprefab` start with `Handle: <uint64>`. `SceneSerializer` / `PrefabSerializer` get it from `AssetManager::ImportAsset`, which keeps a file's handle when it is saved again and gives a new file (Save As) a new one; loading ignores the line.
+- Files Hydro writes keep their handle inside: `.hyscene`, `.hyprefab` and `.hyanim` start with `Handle: <uint64>`. `SceneSerializer` / `PrefabSerializer` get it from `AssetManager::ImportAsset`, which keeps a file's handle when it is saved again and gives a new file (Save As) a new one; loading ignores the line.
 - Other files (images) get a sidecar next to them, `<file>.hymeta` (YAML: `Handle`, `Type`; other keys, such as texture import settings, are kept when the handle is written). Move or rename an image together with its sidecar and the handle stays. Commit `.hymeta` files. The Project window hides them and deletes them with their image.
 - The `AssetRegistry` (handle → `AssetMetadata { Handle, Type, Path, IsMissing }`, and path → handle) only lives in memory and is rebuilt by scanning. `AssetMetaSerializer` reads and writes the handles.
 
@@ -294,7 +307,10 @@ Next steps, in order:
 6. **Hot reload.** Re-import into the same handle: the manager swaps its cache entry and the old image goes through the deletion queue. Safe because only the manager keeps a `Ref<T>` across frames; everything else resolves the handle each frame.
 7. **Later.** Sprites as sub-assets (each sprite in an image's `.hymeta` gets its own handle, with the image as parent), async loading on the `JobScheduler` (C3) with placeholders, an asset pack for `Dist` builds (RT7, RT8).
 
-Until step 3, code that references a texture holds a `Ref<Texture2D>` and is marked `TODO(assets)`, so the switch is easy to find.
+**Sprite code and handles (done with the sprite merge).** `SpriteAnimationSet` is an `Asset` of its own type (`AssetType::SpriteAnimation`, `.hyanim`). `Texture2D::LoadFromFile` and `SpriteAnimationSet::LoadFromFile` call `AssetManager::BindHandle`, so a loaded object knows its handle when its file is inside the asset folder. Scenes save `TextureHandle` / `AnimationsHandle` next to the old `Texture` / `Animations` path keys, and a `.hyanim` saves `TextureHandle` next to its `Texture` path. Loading prefers a handle the registry knows (so renames and moves are followed) and falls back to the path (old scenes, files outside the project). Saving writes the path the handle has now, so a scene kept open across a rename saves the new path. A sheet's `TextureImportConfig` lives in the same `<image>.hymeta` as the handle: `TextureImportSerializer::Serialize` keeps `Handle`/`Type`, `AssetMetaSerializer::WriteHandle` keeps the `TextureImport` section, and a sidecar with only a handle means default import settings.
+
+Until step 3, components hold a `Ref<Texture2D>` / `Ref<SpriteAnimationSet>` and are marked `TODO(assets)`, so the switch is easy to find. Sprites and frames refer to a sheet's sprites by name in files, so re-slicing doesn't break them; with sub-assets (step 7) that becomes a per-sprite handle.
+
 
 ## Known gaps
 
@@ -308,6 +324,8 @@ These are where the code does not yet match the rules above. Fix them when you t
 - `Renderer.h`, `Renderer2D.h` and `RenderView.h` include `vulkan.h` (A7).
 - `Renderer2D` loads its shaders from the application's `assets/` folder (A8).
 - Sprites reference textures directly (`Ref<Texture2D>`) and scenes save the file path; `EntitySerializer` loads textures and reads `Project` for the asset folder. A texture file that is missing when a scene loads is logged and the sprite draws untextured; saving the scene then drops the reference. Sampling options (`TextureProperties`) aren't saved per texture yet (always linear + repeat). All of this moves to the asset system ([Asset system](#asset-system)).
+- A texture re-imported after its `.hymeta` changes is a new `Texture2D`. The editor swaps it into the open scenes; anything else holding the old one (a game's own `Ref`) keeps it. Project window thumbnails load whole textures (no small cached thumbnails yet).
+- Editor previews (`Renderer2D::GetImGuiTexture`) share the deletion-queue caveat of ImGui windows dragged outside the main window (below).
 - The 32 texture slots are fixed (shader array size). `Renderer2D::Init` logs an error if the GPU allows fewer samplers per stage (Vulkan guarantees 16; desktop GPUs have far more).
 - `AssetManager::Rescan` is synchronous: it reads the first line of every scene and prefab and every sidecar. The Project window runs it only when the folder it shows changes, so a file added in Explorer to another folder gets its handle when that folder is shown, something is saved there, or the project is opened again.
 - Textures load synchronously on the main thread (stb_image decode + one upload that waits for the GPU).

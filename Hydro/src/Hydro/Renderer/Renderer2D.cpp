@@ -15,6 +15,7 @@
 
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Core/FileWatcher.h"
+#include "Hydro/Core/Time.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -107,8 +108,20 @@ namespace Hydro
 		bool Queued = false; // begun this frame, so Render() records it
 	};
 
+	// One ImGui texture handle (from ImGui's descriptor pool) and the texture it shows.
+	struct ImGuiTextureEntry
+	{
+		VkDescriptorSet Set = VK_NULL_HANDLE;
+		Ref<Texture2D> Texture;     // kept alive while the handle may be drawn
+		uint64_t LastUsedFrame = 0; // Time::GetFrameCount() when last handed out
+	};
+
 	struct Renderer2DData
 	{
+		// Editor previews (GetImGuiTexture). Sets are never freed (this ImGui version has no
+		// RemoveTexture); they are rewritten for another texture once unused for a while.
+		std::vector<ImGuiTextureEntry> ImGuiTextures;
+
 		// Quads per batch (= per vertex buffer). 20k quads * 4 verts * 40 bytes = ~3.2 MB per buffer.
 		// When a frame needs more, extra batches are allocated on demand.
 		static const uint32_t MaxQuads = 20000;
@@ -330,6 +343,9 @@ namespace Hydro
 				vkDestroyQueryPool(device, pool, nullptr);
 			});
 		}
+
+		// The preview handles belong to ImGui's pool; only the textures they hold are released here.
+		s_Data->ImGuiTextures.clear();
 
 		s_Data->QuadPipeline.reset();
 		s_Data->LayoutDescriptorSet.reset();
@@ -600,15 +616,21 @@ namespace Hydro
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
 	{
-		SubmitQuad(transform, nullptr, 1.0f, color);
+		SubmitQuad(transform, nullptr, TextureRect{}, color);
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
 	{
-		SubmitQuad(transform, texture, tilingFactor, tintColor);
+		// Tiling is a rect larger than the texture; the sampler's wrap mode repeats it.
+		SubmitQuad(transform, texture, TextureRect{ glm::vec2(0.0f), glm::vec2(tilingFactor) }, tintColor);
 	}
 
-	void Renderer2D::SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor)
+	{
+		SubmitQuad(transform, texture, textureRect, tintColor);
+	}
+
+	void Renderer2D::SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color)
 	{
 		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawQuad outside BeginScene/EndScene");
 		if (s_Data->CurrentView == nullptr)
@@ -620,8 +642,12 @@ namespace Hydro
 
 		constexpr size_t quadVertexCount = 4;
 		// Vulkan's v = 0 is the first (top) row of the image, and vertex 0 is the quad's bottom-left
-		// corner, so v runs 1 -> 0 from bottom to top and the image appears upright.
-		constexpr glm::vec2 textureCoords[] = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };
+		// corner, so v runs Max.y -> Min.y from bottom to top and the image appears upright.
+		const glm::vec2 textureCoords[] = {
+			{ textureRect.Min.x, textureRect.Max.y },
+			{ textureRect.Max.x, textureRect.Max.y },
+			{ textureRect.Max.x, textureRect.Min.y },
+			{ textureRect.Min.x, textureRect.Min.y } };
 
 		// Batch full? Start a new one instead of overflowing (or flushing mid-frame).
 		if (view.QuadIndexCounts[view.BatchIndex] >= Renderer2DData::MaxIndices)
@@ -636,7 +662,7 @@ namespace Hydro
 		{
 			view.QuadVertexBufferPtr->Position = transform * s_Data->QuadVertexPositions[i];
 			view.QuadVertexBufferPtr->Color = color;
-			view.QuadVertexBufferPtr->TexCoord = textureCoords[i] * tilingFactor;
+			view.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			view.QuadVertexBufferPtr->TexIndex = textureIndex;
 			view.QuadVertexBufferPtr++;
 		}
@@ -815,6 +841,46 @@ namespace Hydro
 	uint32_t Renderer2D::GetMaxTextureSlots()
 	{
 		return MaxTextureSlots;
+	}
+
+	static void WriteImGuiTexture(VkDescriptorSet set, VkImageView view, VkSampler sampler);
+
+	VkDescriptorSet Renderer2D::GetImGuiTexture(const Ref<Texture2D>& texture)
+	{
+		if (s_Data == nullptr || texture == nullptr)
+		{
+			return VK_NULL_HANDLE;
+		}
+
+		const uint64_t frame = Time::GetFrameCount();
+		for (ImGuiTextureEntry& entry : s_Data->ImGuiTextures)
+		{
+			if (entry.Texture == texture)
+			{
+				entry.LastUsedFrame = frame;
+				return entry.Set;
+			}
+		}
+
+		// A handle no frame in flight can still be drawing with: rewrite it for this texture.
+		const VulkanImageInfo& image = GetTexture2DData(*texture).Image->GetVulkanImageInfo();
+		for (ImGuiTextureEntry& entry : s_Data->ImGuiTextures)
+		{
+			if (entry.LastUsedFrame + MAX_FRAMES_IN_FLIGHT + 1 < frame)
+			{
+				WriteImGuiTexture(entry.Set, image.ImageView, image.Sampler);
+				entry.Texture = texture;
+				entry.LastUsedFrame = frame;
+				return entry.Set;
+			}
+		}
+
+		ImGuiTextureEntry entry;
+		entry.Set = ImGui_ImplVulkan_AddTexture(image.Sampler, image.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		entry.Texture = texture;
+		entry.LastUsedFrame = frame;
+		s_Data->ImGuiTextures.push_back(entry);
+		return entry.Set;
 	}
 
 	static void WriteImGuiTexture(VkDescriptorSet set, VkImageView view, VkSampler sampler)

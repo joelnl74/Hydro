@@ -4,6 +4,8 @@
 #include <Hydro/Renderer/EditorCamera.h>
 
 #include <filesystem>
+#include <map>
+#include <string>
 
 namespace Hydro
 {
@@ -37,12 +39,15 @@ namespace Hydro
 		float IntervalMinutes = 5.0f;
 	};
 
-	// What the editor had open last time. Written by the editor (on close and when a project or
-	// scene is opened or saved), not edited by hand.
+	// What the editor had open last time. Written by the editor (on close, when a project or scene
+	// is opened or saved, and when a window is opened or closed), not edited by hand.
 	struct EditorSession
 	{
 		std::filesystem::path LastProject;
 		std::filesystem::path LastScene;
+		// Open or closed, per View menu window, by its menu name ("Console", "Stats", ...). A window
+		// that isn't listed keeps its own default, so new windows need no entry here.
+		std::map<std::string, bool> OpenWindows;
 	};
 
 	// The Oxygen editor's own settings: how the editor looks and behaves, not the game or the engine.

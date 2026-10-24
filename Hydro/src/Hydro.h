@@ -22,6 +22,9 @@
 #include "Hydro/Scene/ScriptableEntity.h"
 #include "Hydro/Scene/SceneSerializer.h"
 #include "Hydro/Scene/PrefabSerializer.h"
+#include "Hydro/Scene/SpriteAnimation.h"
+#include "Hydro/Scene/SpriteAnimationSerializer.h"
+#include "Hydro/Scene/SpriteAnimator.h"
 
 // ASSETS.
 #include "Hydro/Asset/Asset.h"
@@ -38,6 +41,9 @@
 #include "Hydro/Renderer/RenderView.h"
 #include "Hydro/Renderer/Renderer2D.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Renderer/TextureImport.h"
+#include "Hydro/Renderer/TextureImportSerializer.h"
+#include "Hydro/Renderer/SpriteSlicer.h"
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/RendererSettings.h"
 
