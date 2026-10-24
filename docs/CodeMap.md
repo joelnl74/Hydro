@@ -56,10 +56,10 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Scene/SystemContext.h` | `SystemContext`: `DeltaTime`, `FixedDeltaTime`, `FrameIndex`, `IsPlaying`, passed to every engine system |
 | `Scene/ScriptSystem.*` | `UpdateScripts` system (creates script instances, runs `OnUpdate`) |
 | `Scene/Entity.*` | Handle (`entt::entity` + `Scene*`), component access |
-| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`) + `CopyableComponents` |
+| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent` + its runtime `SpriteAnimatorState`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`) + `CopyableComponents` |
 | `Scene/SpriteAnimation.*` | `SpriteAnimationSet` resource and `Asset` (named clips over one sheet), clip/frame/event types, `LoadFromFile` (shared by file, binds its asset handle) |
 | `Scene/SpriteAnimationSerializer.*` | `.hyanim` read/write (handle first line, texture by `TextureHandle` + path) |
-| `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations(Scene&, const SystemContext&)` system; `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`...) |
+| `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations(Scene&, const SystemContext&)` system, `ResetSpriteAnimations` (called by `Scene::OnRuntimeStart`); `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`, `GetFrameIndex`..., and `ResetPlayback` / `RestartAfterReload` for the editor). The only code that writes `SpriteAnimatorState` |
 | `Scene/SceneTransition.h` | `SceneTransition`: Push / Pop requests for a scene stack (header only); the host (`EditorLayer::ProcessSceneTransition`) honours them after the frame update |
 | `Scene/ScriptableEntity.h`, `ScriptRegistry.*` | `NativeScriptComponent`, script base class, name → factory table |
 | `Scene/EntitySerializer.*` | YAML for every component (both directions); used by scenes and prefabs |
@@ -109,7 +109,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 
 | Change | Files |
 | --- | --- |
-| New engine component | `Components.h` (+ `CopyableComponents`), `EntitySerializer.cpp` (both directions, defaults), `InspectorWindow.cpp` (`DrawComponents` + **Add Component**), wiki `Components.md`, `docs/SceneAndECS.md` table |
+| New engine component | `Components.h` (+ `CopyableComponents`), `EntitySerializer.cpp` (both directions, defaults), `InspectorWindow.cpp` (`DrawComponents` + **Add Component**), wiki `Components.md`, `docs/SceneAndECS.md` table. Runtime state: decide with the component state rule (`docs/SceneAndECS.md`, *Where runtime state lives*): a `State` member reset in `Scene::OnRuntimeStart`, or a per-scene `...Scene` object |
 | New field on a component | Same as above minus `CopyableComponents` |
 | Test a new system or feature | Add it to the village in `Assets/Scenes/StatueVillage.hyscene` as a gameplay element (a collider on a building, a pushable prop, a zone, a sound source) in the game's own art style, update `VillageMap` if the map grows, and add a row to the Features table in `docs/TestBed.md`; code that exercises it goes in `Oxygen/src/Scripts` |
 | New engine system | `(Scene&, const SystemContext&)` function over a view, called as a stage from `Scene::OnUpdateRuntime` (and `OnUpdateEditor` if it must run while editing) in `Scene.cpp`; frame order in `docs/SceneAndECS.md` |
@@ -122,7 +122,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | Textures | `Texture2D.*`, `VulkanImage.*`, `VulkanTexture2DData.h`; sprites: `SceneRenderer.cpp`, `EntitySerializer.cpp`, `InspectorWindow.cpp` |
 | New asset type | `AssetType` + `AssetTypeToString` / `AssetTypeFromString` / `GetAssetTypeFromExtension` (`Asset.cpp`); `AssetMetaSerializer::StoresHandleInFile` if Hydro writes the file (and its serializer writes `Handle` first); a loaded type derives from `Asset` |
 | Sprite sheets / import settings | `TextureImport.h`, `TextureImportSerializer.*`, `TextureImporter.*`, `SpriteSlicer.*`, `Texture2D.cpp` (`Create`, `SetImportConfig`) |
-| Sprite animation | `SpriteAnimation.*`, `SpriteAnimationSerializer.*`, `SpriteAnimator.*` (system + API), `Scene.cpp` (`OnUpdateRuntime`), inspector section, `SpriteAnimationWindow.*` |
+| Sprite animation | `SpriteAnimation.*`, `SpriteAnimationSerializer.*`, `SpriteAnimator.*` (system + API), `Scene.cpp` (`OnUpdateRuntime`, `OnRuntimeStart`), inspector section, `EditorLayer.cpp` (reload after the Animation window saves), `SpriteAnimationWindow.*` |
 | An image shown in the editor | `Renderer2D::GetImGuiTexture(texture)` (pooled ImGui handles), `PropertyUI::SpriteImage` for one sprite |
 | Docs | Edit `docs/`, then `python scripts/regen_wiki.py`; wiki-only pages (Components, Roadmap, Known-Issues) by hand; `docs/TestBed.md` is the Test bed page (the wiki's Test-Bed) |
 

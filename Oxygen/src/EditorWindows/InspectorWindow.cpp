@@ -10,6 +10,7 @@
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SpriteAnimation.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
+#include <Hydro/Scene/SpriteAnimator.h>
 #include <Hydro/Scene/ScriptableEntity.h>
 
 #include <algorithm>
@@ -183,7 +184,7 @@ namespace Hydro
 	}
 
 	// The animator's .hyanim: pick one of the project's animation sets, or drop one from the Project window; X clears it.
-	static void DrawAnimationSetField(SpriteAnimatorComponent& animator)
+	static void DrawAnimationSetField(Entity entity, SpriteAnimatorComponent& animator)
 	{
 		const Ref<SpriteAnimationSet> set = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
 		const std::string detail = set != nullptr ? std::to_string(set->GetClipCount()) + " clips"
@@ -199,7 +200,7 @@ namespace Hydro
 		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<SpriteAnimationSet>(result.Handle) != nullptr)
 		{
 			animator.Animations = result.Handle;
-			animator.ClipIndex = -1;
+			SpriteAnimator::ResetPlayback(entity);
 		}
 	}
 
@@ -448,17 +449,18 @@ namespace Hydro
 		DrawComponent<SpriteAnimatorComponent>("Sprite Animator", entity, removeAnimator, [&](SpriteAnimatorComponent& animator)
 		{
 			const AssetHandle before = animator.Animations;
-			DrawPropertyRow("Animations", [&]() { DrawAnimationSetField(animator); });
+			DrawPropertyRow("Animations", [&]() { DrawAnimationSetField(entity, animator); });
 			DrawPropertyRow("Start Clip", [&]() { showStartFrame |= DrawStartClipField(animator); });
 			DrawPropertyRow("Play On Start", [&]() { ImGui::Checkbox("##PlayOnStart", &animator.PlayOnStart); });
 			DrawPropertyRow("Speed", [&]() { InputFloatField("##Speed", animator.Speed, "%.2f", 0.0f, 100.0f); });
 			showStartFrame |= animator.Animations != before;
 
-			const Ref<SpriteAnimationSet> animationSet = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
-			if (animator.ClipIndex >= 0 && animationSet != nullptr && (uint32_t)animator.ClipIndex < animationSet->GetClipCount())
+			// Playback status (play mode): read through SpriteAnimator, never from the component's State.
+			const std::string_view currentClip = SpriteAnimator::GetCurrentClip(entity);
+			if (currentClip.empty() == false)
 			{
-				ImGui::TextDisabled("Playing %s, frame %u%s", animationSet->GetClip((uint32_t)animator.ClipIndex).Name.c_str(),
-					animator.FrameIndex, animator.Playing ? "" : (animator.Finished ? " (finished)" : " (stopped)"));
+				const char* status = SpriteAnimator::IsPlaying(entity) ? "" : (SpriteAnimator::IsFinished(entity) ? " (finished)" : " (stopped)");
+				ImGui::TextDisabled("Playing %.*s, frame %u%s", (int)currentClip.size(), currentClip.data(), SpriteAnimator::GetFrameIndex(entity), status);
 			}
 			if (entity.HasComponent<SpriteRendererComponent>() == false)
 			{

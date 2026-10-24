@@ -2,13 +2,15 @@
 
 The **StatueVillage** scene (`Oxygen/project/Assets/Scenes/StatueVillage.hyscene`, the Sandbox project's start scene) is the engine's gameplay test bed. It is a small playable game, not a separate test area: every new engine feature is added to it as part of the game (a building gets a collider, the player gets a body, a plaza gets a trigger zone, a meadow gets pushable crates), so a feature is checked in the place where it will be used, together with everything else, and nothing falls out of date.
 
-This page lists what the scene contains, how to interact with each feature, and what to check. The rules for adding to it are in [Scene, ECS and systems](SceneAndECS.md#test-bed-scene). This page is `docs/TestBed.md` and is mirrored to the wiki; it describes the scene as of October 24, 2026.
+This page lists what the scene contains, how to interact with each feature, and what to check. The rules for adding to it are in [Scene, ECS and systems](SceneAndECS.md#test-bed-scene). This page is `docs/TestBed.md` and is mirrored to the wiki; it describes the scene as of October 25, 2026.
 
-The map has three parts: the **village** (x -30 to 30, the original scene), the **East Meadow** (x 30 to 66), reached through the East Gate, and the **Slime Field** (x 66 to 96), where the road ends in a dirt arena and slimes roam. Together the map is 126 x 36 world units. Touching a slime starts a turn-based battle in a second scene, `Battle.hyscene`; see [Slime Field and battle](#slime-field-and-battle).
+The map has three parts: the **village** (x -30 to 30, the original scene), the **East Meadow** (x 30 to 66), reached through the East Gate, and the **Slime Field** (x 66 to 96), where the road ends in a dirt arena and slimes roam. Together the map is 126 x 36 world units. Touching a slime or a spirit wisp starts a party battle in a second scene, `Battle.hyscene`; see [Slime Field and battle](#slime-field-and-battle).
+
+The test bed is growing into the engine's first full test project, the **Diorama RPG** ([plan](DioramaRPG.md)): the player is **Orin** (warrior), **Lila** (white mage) follows him, and the art has been regraded towards the diorama palette (mossy grass, warm roads and cobbles, terracotta roofs, warm highlights and cool shadows, a darker forest edge around the map). The new art and the scene edits come from `scripts/diorama_rpg/build.py`; `preview_scene.py` next to it draws an offline mockup of a scene.
 
 ## Quick start
 
-1. Build and run **Oxygen**; the Sandbox project opens `StatueVillage` (558 entities).
+1. Build and run **Oxygen**; the Sandbox project opens `StatueVillage`.
 2. Press **Play** in the toolbar (click the **Game** window if the keys do not respond).
 3. Walk with **WASD** or the arrows. To reach the East Meadow, follow the road east out of the plaza and through the gap in the fence at x = 31. **Stop** returns to the editor scene untouched.
 
@@ -16,16 +18,18 @@ The map has three parts: the **village** (x -30 to 30, the original scene), the 
 
 | Keys | What it does | Script |
 | --- | --- | --- |
-| **W A S D** or arrows | Walk the player; plays `Walk<Direction>` / `Idle<Direction>` | `VillagerWalk` |
+| **W A S D** or arrows | Walk Orin (the `Player`); plays `Walk<Direction>` / `Idle<Direction>`. Lila follows along his path | `VillagerWalk`; `PartyFollow` on `Party Lila` |
 | **-** / **=** | Zoom the game camera out / in (8 to 36 units visible vertically) | `VillageCamera` |
-| **1** / **2** / **3** | Day, dusk, night (global light and how strongly lamps and windows burn) | `VillageDirector` |
+| **1** / **2** / **3** | Day, dusk, night (global light and how strongly lamps and windows burn); the game starts at dusk | `VillageDirector` |
 | **L** | All point lights on / off | `VillageDirector` |
 | **H** | Blob shadows on / off | `VillageDirector` |
 | **F** | Flame flicker on / off | `VillageDirector` |
 | **B** | Statue <-> brazier A/B check | `VillageDirector` |
 | **E** | Drops a crate in front of the player (at most 10; the oldest disappears) | `VillageCrateSpawner` on `Crate Spawner` |
-| **1** / **2** / **3** / **4** in a battle | Attack, defend (the next hit does half), heal (3 potions), run (50 %); these keys only work in the battle scene | `Battle` on `Battle Director` |
+| **1** to **6** in a battle | Attack, skill, skill, guard, potion, run for the hero whose turn it is; **Left / Right** (A / D) pick the target, **Up / Down** (W / S) set the boost. Only in the battle scene | `Battle` on `Battle Director` |
 | **[** / **]** | Point light radius smaller / larger | `VillageDirector` |
+| **F11** (or **Full screen** in the Game window's menu bar) | The Game window fills the editor and, by default, the whole monitor; **F11** or **Escape** leaves. Stop leaves too. Both are options in the Game window's **Options** menu and under Editor Settings > Play mode | Oxygen (`EditorLayer`) |
+| **P** | Pause / resume the scenery animations (pond, torches: the animators no script drives) through `SpriteAnimator::Pause` / `Resume` | `VillageDirector` |
 
 There is no in-game text: the Director's status line goes to the **Console** window, and the **Stats** window shows lit views, light and shadow counts and GPU time.
 
@@ -36,7 +40,7 @@ In the editor (not playing): click an entity in the **Hierarchy** or the **Edito
 | Feature | Where in the scene | How to interact and what to check |
 | --- | --- | --- |
 | Textured sprites and sprite sheets | Everything visible: the village ground (60 x 36), the East Meadow ground (36 x 36), props, buildings, characters | Open the scene: nothing is missing or drawn pink, and the meadow ground continues the road at the village edge without a seam |
-| Sprite animation (`SpriteAnimatorComponent`, `.hyanim` clips) | `Player`, `Walker *` (8 villagers), `Pond`, `Bridge Torch 1/2` | Press Play: water and torches animate, walkers play the clip for their direction, the player switches walk and idle as you move |
+| Sprite animation (`SpriteAnimatorComponent`, `.hyanim` clips) | `Player`, `Walker *` (8 villagers), `Pond`, `Bridge Torch 1/2` | Press Play: water and torches animate, walkers play the clip for their direction, the player switches walk and idle as you move. **Playback state (`SpriteAnimatorState`):** select `Pond` while playing: the inspector shows "Playing <clip>, frame N" with N counting. Press **P**: the pond and torches freeze on their frame and the line ends in "(stopped)"; press **P** again: they carry on from that frame (not from frame 0), while scripted characters (walkers, Lila, enemies) never stop. Stop and Play again: everything starts from its start clip, frame 0. With the Animation window open, change a frame duration of the pond's set and save while playing: the pond keeps its clip and restarts it from its first frame. Slimes and wisps speed their walk animation up when they chase (`SpriteAnimator::SetSpeed`) |
 | Native scripts and `ScriptRegistry` | `Player` (`VillagerWalk`, `VillageYSort`), `Walker *` (`WaypointWalk`, `VillageYSort`), `Camera` (`VillageCamera`), `Village Director`, `Moving Cart` (`Bob`), pushable props (`VillageYSort`) | Select one: the inspector lists its scripts. Add `Spin` or `Bob` to a prop (Add Component > Script) and press Play |
 | Y-sorting | Player, walkers and pushable props vs. trees, houses, fences | Walk behind a house or tree (hidden by it) and in front of it (drawn over it) |
 | Camera follow, zoom, map clamp | `Camera` entity | The camera glides after the player, stops at the edge of the 96 x 36 map (west edge of the village, east edge of the meadow), and zooms with - and = |
@@ -48,7 +52,10 @@ In the editor (not playing): click an entity in the **Hierarchy** or the **Edito
 | Scene saving and loading | The whole scene | Move a prop, save, reload the scene (or restart): the change and all physics values stay |
 | 2D physics (Box2D, 60 Hz) | Buildings, trees, props, `Player`, `Walker *`, meadow areas; see [Collision layout](#collision-layout) | Select a building, tree, crate or the player: the inspector shows Rigidbody 2D and Box / Circle Collider 2D sections. Press Play and walk: the player stops at walls, buildings, trunks, fences and the map edge, pushes crates and barrels, and walks through bushes and zones. Turn on **Overlays > Collider Outlines** to see what blocks |
 | Trigger zones and collision callbacks | `Zone Bridge`, `Zone Statue Plaza`, `Zone Market`, `Zone East Gate`, `Zone Crate Yard`, `Zone Weigh Lane`, `Zone Finish` | Walk across the bridge: the Console logs the zone and the player slows down. Stand in the plaza: the brazier lights (and the statue fades) until you leave. Cross the Finish: the Console logs the finish line. Walk through the East Gate: enter and exit are logged |
-| Scene stack (`SceneTransition`) | `Slime 1` to `Slime 5`, `Battle.hyscene` | Walk into a slime: the Console logs `battle starts` and the game switches to the battle scene. Win, lose or run: the village is back exactly as you left it (same crates, same positions, same lights) |
+| Scene stack (`SceneTransition`) | `Slime 1` to `Slime 5`, `Wisp 1` to `Wisp 4`, `Battle.hyscene` | Walk into a slime or wisp: the Console logs `battle starts` and the game switches to the battle scene. Win, lose or run: the village is back exactly as you left it (same crates, same positions, same lights) |
+| Party and follower (Diorama RPG) | `Player` (Orin, `DioramaRPG/Characters/Orin`), `Party Lila` (`PartyFollow`, no body) | Walk around: Lila follows Orin's path about a step behind, turns and animates with him, and never blocks him or starts a battle |
+| Sprite as a light source | `Wisp 1` to `Wisp 4` (a `Light2DComponent` on the moving enemy itself) | Press 3 (night) in the meadow or the field: each wisp lights the grass around it and the light moves and breathes with it |
+| Sprite sheets as UI (labels, icons, digits) | `Battle.hyscene`: `Command *`, `Order Chip *`, `Message`, `Popup *`, `* Digit *`, `* Weak *` | In a battle: the command names, turn order, damage numbers, shields and weakness icons are sprites whose `SpriteIndex` the script sets, standing in for runtime text until U1 |
 | Spawning and destroying bodies in play | `Crate Spawner` | Press E: a crate appears in front of you (a copy of a village crate) and is solid at once: push it, walk into it. Press E more than ten times: the oldest crate disappears. The Console logs each drop. Stop and Play again: the dropped crates are gone |
 
 ## Slime Field and battle
@@ -58,9 +65,24 @@ The road continues east through the Slime Field (x 66 to 96): `Slime Field Groun
 | Item | Where | What it does |
 | --- | --- | --- |
 | `Slime 1` to `Slime 5` | (73.5, 4.5), (79, -8.5), (90.5, 7), (92, -7), (86, 0.5) | Dynamic body, `EnemyChase` + `VillageYSort`. Wanders within 3 units of where it was placed; runs at the player (speed 2.2, the player walks at 3) when closer than 5.5; gives up beyond 10; touching the player starts the battle |
-| `Battle.hyscene` | `Assets/Scenes` | The battle: backdrop, the player on the left, the slime on the right, HP bars (coloured quads: there is no text yet), four command squares with 1 to 4 dots for the keys, a turn marker, a shield and a full-screen overlay for the fade. `Battle Director` has the `Battle` script |
+| `Wisp 1` to `Wisp 4` | (59.5, -9.5), (63.5, 6.5) in the meadow; (72.5, -5.5), (83, 6) in the field | Spirit wisps: the same `EnemyChase` (a tag starting with `Wisp` makes it a wisp: 15 % faster, it sways as it drifts), a cyan point light of their own |
+| `Battle.hyscene` | `Assets/Scenes` | Written by `scripts/diorama_rpg/build.py`: a forest-clearing backdrop, Orin and Lila on the right, three enemy slots on the left (each a slime and a wisp, the battle shows the one in use, plus a light for wisps), HP and MP bars, HP numbers, Momentum pips, shield and weakness icons, the turn order at the top, a command box, a message banner, damage numbers and a full-screen overlay for the fades. `Battle Director` has the `Battle` script |
 
-**The battle.** Player 40 HP (kept between battles), slime 30 HP. Each turn the player presses **1** attack (7 to 12, a critical hit doubles it), **2** defend (the slime's next hit does half), **3** heal (+14, three potions per battle) or **4** run (50 %); then the slime hits for 4 to 8. Every step is logged in the Console. Winning removes that slime from the village; losing or running leaves it, and it ignores the player for 4 seconds and walks home. Losing restores the player's HP.
+**The battle** (prototype values, in `BattleScripts.h`). The enemy you touched brings 0 to 2 friends (slimes or wisps). Each round everyone acts once, fastest first; the order is shown at the top. On a hero's turn press **1** attack, **2** / **3** skills, **4** guard (half damage until the hero's next turn), **5** potion (+25 HP to the most hurt hero, three per battle) or **6** run (50 %); **Left / Right** move the target cursor, **Up / Down** set the boost.
+
+| | HP / MP | Attack | Skill 2 | Skill 3 |
+| --- | --- | --- | --- | --- |
+| **Orin** | 62 / 20 | Slash | Flame Edge (Fire, 5 MP) | Crush (Blunt, 4 MP) |
+| **Lila** | 44 / 30 | Pierce | Holy Light (Light, 5 MP) | Heal (6 MP, the most hurt hero) |
+
+| Enemy | HP | Shield | Weak to | Resists |
+| --- | --- | --- | --- | --- |
+| Slime | 30 | 2 | Pierce, Fire | Blunt |
+| Spirit Wisp | 24 | 3 | Fire, Light | Slash, Pierce |
+
+A weak hit does 1.5x (orange number, "WEAK") and takes a point off the enemy's shield; a resisted hit does 0.5x. Weaknesses show as **?** until the party hits them, and stay known for the rest of the session. At shield 0 the enemy is **broken** ("BREAK!", red shield): it loses its turns this round and the next, takes 2x damage, then its shield comes back. Each hero gains one **Momentum** pip per round (not in a round after boosting), up to five; boosting spends 1 to 3: an attack hits once more per point, a skill gets 60 % stronger per point. HP and MP carry over between battles (a fallen hero gets up with 1 HP); losing restores the party. Winning removes the enemy you touched from the village; losing or running leaves it, and it ignores the player for 4 seconds and walks home. Every step is logged in the Console.
+
+What to check: a slime's Pierce/Fire weakness breaks it in two hits (Lila's attack, Orin's Flame Edge); a wisp shrugs off Orin's sword ("RESIST") but not Holy Light; boosting an attack with 3 pips hits four times; a broken enemy skips its turn in the order bar; Heal and potions pick the most hurt hero; KO'd heroes lie down and are skipped.
 
 **How the scenes switch.** `EnemyChase.OnCollisionEnter` records which slime it was in `BattleState` and calls `SceneTransition::Push("Battle")`. After the frame the editor loads `Assets/Scenes/Battle.hyscene`, puts the village on a stack (not updated or drawn, kept as it was) and runs the battle. The battle ends with `SceneTransition::Pop()`; the village resumes and the slime reads `BattleState::Outcome`.
 
@@ -104,8 +126,9 @@ The scene had 40 rigidbodies (31 dynamic, 9 kinematic), 7 sensor zones and 366 c
 - **Physics tuning**: collider sizes were set by eye; adjust them (and player speed against damping) after the first Play.
 - **Zone Market** plays a sound once audio lands (it only logs for now).
 - **Collision callbacks on props** (E2 follow-up): a crate that logs or reacts when something hits it hard (hit events carry speed).
-- **Wolf**: a second enemy kind (a sprite sheet, more HP, a faster chase) once the slime battle has been played.
-- **Battle UI**: the HP bars and command squares are coloured quads; real UI and text come with the UI system. The battle scene is the place to prototype them.
+- **Wolf**: a third enemy kind (a sprite sheet, more HP, a faster chase).
+- **Battle UI**: labels, icons and numbers are sprite sheets drawn by `scripts/diorama_rpg/build.py`; real UI and text come with the UI system (U1). The battle scene is the place to prototype them.
+- **Diorama RPG next steps**: the game track in [DioramaRPG.md](DioramaRPG.md) (J1 rules as plain C++ with tests, J2 data files, J4 random encounters, J5 save game, J6 interaction).
 - **Debug drawing in play mode** (P7): collider outlines in the Game window; the editor view already has them.
 - **Script safety** (#40): a script that spawns and destroys a crate on a key press (in the Crate Yard), to watch the deferred stage.
 - Audio, tilemaps and runtime UI as each lands: each becomes part of the game (footstep sounds, a tiled path, a HUD), with a row in the Features table.

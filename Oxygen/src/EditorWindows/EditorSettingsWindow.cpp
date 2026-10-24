@@ -365,6 +365,9 @@ namespace Hydro
 			changed |= FloatRow("Strength", playMode.TintStrength, 0.0f, 1.0f, "%.2f");
 			ImGui::EndDisabled();
 
+			changed |= CheckboxRow("Full screen (F11) covers the monitor", playMode.FullscreenCoversMonitor);
+			changed |= CheckboxRow("Leave full screen on Stop", playMode.LeaveFullscreenOnStop);
+
 			ImGui::EndTable();
 		}
 

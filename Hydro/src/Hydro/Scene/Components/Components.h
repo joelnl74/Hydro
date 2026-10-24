@@ -113,6 +113,20 @@ namespace Hydro
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	// Playback of a SpriteAnimatorComponent: runtime state kept in the component (component state rule 2
+	// in docs/SceneAndECS.md). Not saved; reset for every animator when the game starts
+	// (ResetSpriteAnimations); written only by UpdateSpriteAnimations and SpriteAnimator. Everything else
+	// reads it through SpriteAnimator (GetCurrentClip, GetFrameIndex, IsPlaying, IsFinished).
+	struct SpriteAnimatorState
+	{
+		int32_t ClipIndex = -1; // -1 = nothing started yet
+		uint32_t FrameIndex = 0;
+		float FrameTime = 0.0f; // seconds into the current frame
+		int8_t Step = 1;        // PingPong direction: 1 forwards, -1 backwards
+		bool Playing = false;
+		bool Finished = false;  // a Once clip reached its last frame
+	};
+
 	// Plays clips from a SpriteAnimationSet on the entity's SpriteRendererComponent (it sets the
 	// sprite's Texture, SpriteIndex and FlipX). Control it with SpriteAnimator (Play, Stop, Pause...);
 	// UpdateSpriteAnimations advances it, in play mode only.
@@ -125,13 +139,8 @@ namespace Hydro
 		bool PlayOnStart = true;
 		float Speed = 1.0f;    // 2 = twice as fast
 
-		// Runtime state: not saved, written only by UpdateSpriteAnimations and SpriteAnimator.
-		int32_t ClipIndex = -1; // -1 = nothing started yet
-		uint32_t FrameIndex = 0;
-		float FrameTime = 0.0f; // seconds into the current frame
-		int8_t Step = 1;        // PingPong direction: 1 forwards, -1 backwards
-		bool Playing = false;
-		bool Finished = false;  // a Once clip reached its last frame
+		// Runtime, not saved: see SpriteAnimatorState.
+		SpriteAnimatorState State;
 
 		SpriteAnimatorComponent() = default;
 		SpriteAnimatorComponent(const SpriteAnimatorComponent&) = default;

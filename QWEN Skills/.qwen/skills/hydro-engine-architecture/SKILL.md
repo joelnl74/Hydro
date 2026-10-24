@@ -122,6 +122,7 @@ Call it the **Parameter Object** (resource descriptor / configuration object) pa
 
 - `Scene` owns the `entt::registry`. `Entity` is a handle (`entt::entity` + `Scene*`): copy it, store it by value. Every entity made with `CreateEntity` has `TagComponent` + `IDComponent` (UUID); only those are listed, saved and copied on Play.
 - **Components are data.** Plain structs with defaults and at most small pure helpers (`GetTransform()`, `SceneCamera::GetProjection(aspect)`). No virtual functions, no update logic, no pointers or references to other components or entities; refer to entities by `Entity` or `UUID`. Engine components live in `Scene/Components/Components.h` (`NativeScriptComponent` in `Scene/ScriptableEntity.h`); game-only components live in the application.
+- **Where runtime state lives** (component state rule, `docs/SceneAndECS.md`): saved settings in the component; small fixed-size per-entity runtime state may sit in one `State` member (`<Name>State`, never saved, reset in `Scene::OnRuntimeStart`, written only by its system and facade: `SpriteAnimatorComponent::State`); variable-size or library-owned runtime state lives in a per-scene `...Scene` object owned by `Scene` (`PhysicsScene`, planned `ParticleScene`), and then all of that component's runtime goes there. Scripts and editor tools use the facade (`SpriteAnimator`, `Physics2D`), never runtime fields.
 - A new engine component is also added to: `EntitySerializer` (both directions, defaults for missing keys), `CopyableComponents` in `Components.h` (so play mode copies it), the inspector (`InspectorWindow::DrawComponents` and **Add Component**), and the wiki's Components page.
 - **Behaviour lives in systems.** A system is a function over a `registry.view<...>()` that does one job, taking `deltaTime` as a parameter:
 
@@ -206,7 +207,7 @@ Check the change against this list:
 - [ ] New resources take a `Specification`/`Properties` struct, own their handles, are non-copyable and are held in a `Scope<T>` by their owner (no new `Destroy()`, no new `Ref<Vulkan...>` members)
 - [ ] Engine-level specs and `Renderer/` headers contain no Vulkan types; the engine loads nothing from `assets/`
 - [ ] New behaviour is a system over a view (or a script, if it's truly per-entity), in a deliberate place in the frame order
-- [ ] Components stay plain data, with no pointers to other components or entities; new ones are saved, in `CopyableComponents`, and in the inspector
+- [ ] Components stay plain data, with no pointers to other components or entities; new ones are saved, in `CopyableComponents`, and in the inspector; runtime state placed by the component state rule
 - [ ] Projections come from `Camera::Perspective` / `Camera::Orthographic`
 - [ ] GPU work is recorded in the frame's command buffer; per-frame resources exist per frame in flight
 - [ ] No `!` operators; every `if` / `else` / loop body in `{ }`; forward-slash includes from `src` (no `../`, no `vendor/` paths); `#pragma once`

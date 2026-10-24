@@ -23,8 +23,14 @@ namespace Hydro
 		virtual void* GetNativeWindow() const { return m_Window; }
 		virtual GLFWwindow* GetGLFWWindow() const { return m_Window; }
 
+		void SetFullscreen(bool fullscreen) override;
+		bool IsFullscreen() const override { return m_Fullscreen; }
+
 	private:
 		GLFWwindow* m_Window = nullptr;
+		bool m_Fullscreen = false;
+		// Where the window was before going full screen, to go back to.
+		int m_WindowedX = 0, m_WindowedY = 0, m_WindowedWidth = 0, m_WindowedHeight = 0;
 
 		struct WindowData
 		{

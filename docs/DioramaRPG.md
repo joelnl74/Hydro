@@ -97,6 +97,16 @@ All of this uses existing features (native scripts, Box2D sensors and callbacks,
 | J9 | **Prepare the village for the diorama.** Mark every sprite as flat (ground, roads, decals, flowers, water) or upright (trees, houses, lamps, props, characters), and set pivots at the feet. This is generator work in `gen_village.py` that pays off the day H1 lands |
 | J10 | **Battle feel with what exists.** Hit flash through the sprite colour, a lunge and knock-back through the transform, camera shake in a script, a point light for spell flashes, the full-screen overlay for the Break flash |
 
+### Progress
+
+October 25, 2026 (quick prototype code, for play testing; see [Test bed](TestBed.md#slime-field-and-battle)):
+
+- **J3 Battle v2, playable.** Orin and Lila against up to three enemies; turn order by speed shown at the top; weaknesses as icons ("?" until found); shields and Break; Momentum pips and boosting; guard, potions, run; target cursor; damage numbers. Rules, data and presentation still live together in `Oxygen/src/Scripts/BattleScripts.h` (J1 and J2 split them out).
+- **J7 Characters, placeholders.** Orin and Lila field sheets (32 x 56, four directions, walk) and battle sheets (64 x 64: idle, attack, cast, hurt, guard, down), drawn in code by `scripts/diorama_rpg/heroes.py`. Lila follows Orin in the village (`PartyFollow`).
+- **J8 Enemies, partly.** The Spirit Wisp (weak to Fire and Light, resists Slash and Pierce) roams the meadow and the Slime Field with its own light; the slime stays. The Stone Scarab and the wolf are next.
+- **J10 Battle feel, partly.** Lunges, hit flash and shake, a break banner, fades; no camera shake or particles yet.
+- **Look.** The village art is regraded towards the palette (`scripts/diorama_rpg/regrade.py`), a new forest-clearing battle backdrop, dusk as the default time of day, the camera a little closer.
+
 ## Test project phases
 
 Each phase adds rows to the Features table in [Test bed](TestBed.md) with how to check them.

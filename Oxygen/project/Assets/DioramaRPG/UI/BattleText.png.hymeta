@@ -1,0 +1,17 @@
+Handle: 1605799077072840019
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 32
+  Slicing:
+    Mode: Grid
+    CellSize: [128, 16]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 1
+    Rows: 24
+    RowNames: [Attack, FlameEdge, Crush, HolyLight, Heal, Guard, Potion, Run, Orin, Lila, Slime, Wisp, Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, Nopotions, Critical, Guarding, Noescape]
+    DefaultPivot: [0.5, 0.5]

@@ -32,8 +32,9 @@ namespace Hydro
 		static Ref<Scene> Copy(const Ref<Scene>& source);
 
 		// The game starts / stops running this scene: creates / destroys its 2D physics world (see
-		// PhysicsScene for which entities become bodies). OnUpdateRuntime starts it by itself if it was
-		// not started, and the destructor stops it; the editor calls both around Play and Stop.
+		// PhysicsScene for which entities become bodies); starting also resets every animator's
+		// playback (ResetSpriteAnimations). OnUpdateRuntime starts it by itself, before its first stage,
+		// if it was not started, and the destructor stops it; the editor calls both around Play and Stop.
 		void OnRuntimeStart();
 		void OnRuntimeStop();
 		// The running physics world, or null while editing / before OnRuntimeStart.

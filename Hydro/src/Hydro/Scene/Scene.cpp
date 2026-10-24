@@ -530,7 +530,11 @@ namespace Hydro
 	void Scene::OnRuntimeStart()
 	{
 		if (m_Physics == nullptr)
+		{
 			m_Physics = CreateScope<PhysicsScene>(*this);
+		}
+		// The play copy carries the editor scene's runtime state; the game starts from the saved settings.
+		ResetSpriteAnimations(*this);
 	}
 
 	void Scene::OnRuntimeStop()
@@ -542,13 +546,18 @@ namespace Hydro
 	{
 		const SystemContext context = MakeSystemContext(deltaTime, true);
 
+		// Nobody called OnRuntimeStart: do it before the first stage, so it can't undo what the
+		// scripts start in their first update (it resets the animators).
+		if (m_Physics == nullptr)
+		{
+			OnRuntimeStart();
+		}
+
 		// 1. Native scripts. Instances are created lazily on their first update.
 		UpdateScripts(*this, context);
 
 		// 2. Physics: after the scripts have set velocities and moved kinematic bodies, before animation
 		// and transforms read the result.
-		if (m_Physics == nullptr)
-			OnRuntimeStart();
 		m_Physics->Step(context);
 		DispatchPhysicsEvents();
 

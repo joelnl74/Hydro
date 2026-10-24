@@ -439,6 +439,97 @@ namespace Hydro
 		float m_ZoomSpeed = 10.0f;  // units per second while - or = is held
 	};
 
+	// A party member who follows the entity tagged "Player" along the path it walked (Diorama RPG: Lila
+	// follows Orin), a little behind, with the same Walk<Facing> / Idle<Facing> clips as VillagerWalk. It has
+	// no physics body, so it never blocks the player or starts a battle; it walks where the player walked.
+	class PartyFollowScript : public ScriptableEntity
+	{
+	protected:
+		void OnUpdate([[maybe_unused]] float deltaTime) override
+		{
+			Entity self = GetEntity();
+			Scene* scene = self.GetScene();
+			if (m_Player == entt::null || scene->m_Registry.valid(m_Player) == false)
+			{
+				m_Player = entt::null;
+				auto view = scene->m_Registry.view<TagComponent, TransformComponent>();
+				for (auto entity : view)
+				{
+					if (view.get<TagComponent>(entity).Tag == "Player")
+					{
+						m_Player = entity;
+					}
+				}
+				if (m_Player == entt::null)
+				{
+					return;
+				}
+				m_Trail.clear();
+			}
+
+			auto& transform = GetComponent<TransformComponent>();
+			const glm::vec3& playerPosition = scene->m_Registry.get<TransformComponent>(m_Player).Translation;
+			const glm::vec2 player{ playerPosition.x, playerPosition.y };
+			if (m_Trail.empty())
+			{
+				// Start right behind the player.
+				m_Trail.push_back({ transform.Translation.x, transform.Translation.y });
+			}
+			if (glm::length(player - m_Trail.back()) > 0.08f)
+			{
+				m_Trail.push_back(player);
+			}
+
+			// Walk the trail back from the player until it is FollowDistance long: that point is where to stand.
+			glm::vec2 goal = m_Trail.front();
+			float length = 0.0f;
+			size_t keepFrom = 0;
+			for (size_t i = m_Trail.size() - 1; i > 0; i--)
+			{
+				const float segment = glm::length(m_Trail[i] - m_Trail[i - 1]);
+				if (length + segment >= FollowDistance)
+				{
+					const float t = (FollowDistance - length) / std::max(segment, 0.0001f);
+					goal = m_Trail[i] + (m_Trail[i - 1] - m_Trail[i]) * t;
+					keepFrom = i - 1;
+					break;
+				}
+				length += segment;
+			}
+			if (keepFrom > 0)
+			{
+				m_Trail.erase(m_Trail.begin(), m_Trail.begin() + (std::ptrdiff_t)keepFrom);
+			}
+
+			const glm::vec2 position{ transform.Translation.x, transform.Translation.y };
+			const glm::vec2 step = goal - position;
+			const bool moving = glm::length(step) > 0.02f;
+			if (moving)
+			{
+				// Follow closely but smoothly; a big gap (after a teleport or a scene change) closes at once.
+				const glm::vec2 next = glm::length(step) > 4.0f ? goal : position + step * std::min(1.0f, 12.0f * deltaTime);
+				transform.Translation.x = next.x;
+				transform.Translation.y = next.y;
+				if (std::abs(step.x) > std::abs(step.y))
+				{
+					m_Facing = step.x < 0.0f ? "Left" : "Right";
+				}
+				else
+				{
+					m_Facing = step.y > 0.0f ? "Up" : "Down";
+				}
+			}
+			SpriteAnimator::Play(self, (moving ? "Walk" : "Idle") + m_Facing);
+		}
+
+	private:
+		static constexpr float FollowDistance = 1.1f;
+
+		entt::entity m_Player = entt::null;
+		std::vector<glm::vec2> m_Trail;
+		std::string m_Facing = "Down";
+	};
+
 	// The scene's lighting test bench. Put it on one entity. It finds the scene's lights by their tags and
 	// drives them from the keyboard (play mode):
 	//   1 / 2 / 3   day / dusk / night: the global light and how strongly the lamps and windows burn
@@ -519,7 +610,7 @@ namespace Hydro
 				}
 			}
 
-			HY_INFO("Village: 1/2/3 day-dusk-night, L lights, H shadows, F flicker, B statue/brazier, [ ] light radius, - = zoom, WASD walk");
+			HY_INFO("Village: 1/2/3 day-dusk-night, L lights, H shadows, F flicker, B statue/brazier, P pause scenery animations, [ ] light radius, - = zoom, WASD walk");
 			ApplyPreset();
 			ReportStatus();
 		}
@@ -574,6 +665,12 @@ namespace Hydro
 			if (KeyPressed(KeyCode::RightBracket, m_Previous[8]))
 			{
 				m_RadiusScale = std::min(2.0f, m_RadiusScale * 1.1f);
+				changed = true;
+			}
+			if (KeyPressed(KeyCode::P, m_Previous[9]))
+			{
+				m_SceneryPaused = m_SceneryPaused == false;
+				PauseScenery(m_SceneryPaused);
 				changed = true;
 			}
 
@@ -639,6 +736,33 @@ namespace Hydro
 				{ "Night", { 0.50f, 0.60f, 0.85f }, 0.42f, 1.0f, 1.0f }
 			};
 			return presets[index];
+		}
+
+		// The P key: pauses or resumes, through SpriteAnimator, the animators no script drives (the pond and
+		// the torches). Checks that a paused clip holds its frame and carries on from it, and that the
+		// inspector's status line (read through SpriteAnimator) says "stopped". Scripted characters keep
+		// walking: their scripts call SpriteAnimator::Play every frame.
+		void PauseScenery(bool paused)
+		{
+			Scene* scene = GetEntity().GetScene();
+			auto animators = scene->m_Registry.view<SpriteAnimatorComponent>();
+			for (auto handle : animators)
+			{
+				if (scene->m_Registry.has<NativeScriptComponent>(handle))
+				{
+					continue;
+				}
+
+				const Entity entity(handle, scene);
+				if (paused)
+				{
+					SpriteAnimator::Pause(entity);
+				}
+				else
+				{
+					SpriteAnimator::Resume(entity);
+				}
+			}
 		}
 
 		// The B key toggles it; standing in the Statue Plaza zone (VillageZone) lights it too.
@@ -760,23 +884,24 @@ namespace Hydro
 				}
 			}
 
-			HY_INFO("Village: {} | ambient {:.2f} | point lights {} of {} | shadows {} | flicker {} | centre {} | radius x{:.2f}",
+			HY_INFO("Village: {} | ambient {:.2f} | point lights {} of {} | shadows {} | flicker {} | centre {} | radius x{:.2f} | scenery {}",
 				preset.Name, preset.Intensity, active, m_Lights.size(), Renderer::GetSettings().Shadows ? "on" : "off",
-				m_Flicker ? "on" : "off", BrazierOn() ? "brazier" : "statue", m_RadiusScale);
+				m_Flicker ? "on" : "off", BrazierOn() ? "brazier" : "statue", m_RadiusScale, m_SceneryPaused ? "paused" : "animating");
 		}
 
 		std::vector<PointLight> m_Lights;
 		std::vector<Faded> m_Statue;
 		std::vector<Faded> m_Brazier;
 		entt::entity m_Ambient = entt::null;
-		int m_Preset = 2; // night
+		int m_Preset = 1; // dusk: the warm diorama look (Diorama RPG)
 		bool m_LightsOn = true;
 		bool m_Flicker = true;
 		bool m_BrazierOn = false;
+		bool m_SceneryPaused = false;
 		bool m_LastBrazier = false;
 		float m_RadiusScale = 1.0f;
 		float m_Time = 0.0f;
-		bool m_Previous[9] = {};
+		bool m_Previous[10] = {};
 	};
 
 	inline void RegisterVillageScripts()
@@ -788,5 +913,6 @@ namespace Hydro
 		ScriptRegistry::Register<VillageDirectorScript>("VillageDirector");
 		ScriptRegistry::Register<VillageZoneScript>("VillageZone");
 		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawner");
+		ScriptRegistry::Register<PartyFollowScript>("PartyFollow");
 	}
 }

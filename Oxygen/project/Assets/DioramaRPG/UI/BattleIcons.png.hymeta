@@ -1,0 +1,17 @@
+Handle: 3328678694188945053
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 16
+  Slicing:
+    Mode: Grid
+    CellSize: [16, 16]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 12
+    Rows: 2
+    RowNames: [Icon, Digit]
+    DefaultPivot: [0.5, 0.5]
