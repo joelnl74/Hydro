@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro.h"
+#include "VillageScripts.h"
 
 #include <algorithm>
 #include <cmath>
@@ -189,5 +190,6 @@ namespace Hydro
 		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalk");
 		ScriptRegistry::Register<YSortScript>("YSort");
 		ScriptRegistry::Register<CameraFollowScript>("CameraFollow");
+		RegisterVillageScripts();
 	}
 }

@@ -90,7 +90,8 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Utilities/ThumbnailManager.*` | Small image thumbnails by handle for the Project window and picker; a few per frame, cached on disk in `<project>/.hydro/thumbnails` |
 | `Utilities/ThumbnailBaker.*` | Averages pixels down to a thumbnail and reads/writes the `.thumb` file; no GPU, no engine types |
 | `Utilities/PathFollower.h` | Keeps a remembered path valid after a rename or move |
-| `Scripts/ExampleScripts.h` | `SpinScript`, `BobScript`, `VillagerWalkScript` (WASD + `SpriteAnimator::Play`), `YSortScript` (sorts a moving sprite by its Y), `CameraFollowScript` (put it on the camera: glides after the entity tagged "Player") |
+| `Scripts/ExampleScripts.h` | `SpinScript`, `BobScript`, `VillagerWalkScript` (WASD + `SpriteAnimator::Play`), `YSortScript` (sorts a moving sprite by its Y), `CameraFollowScript` (put it on the camera: glides after the entity tagged "Player"); includes `VillageScripts.h` |
+| `Scripts/VillageScripts.h` | The `StatueVillage` scene's scripts: `VillageYSortScript` (SortOrder from the feet, 4 x tile y), `WaypointWalkScript` (an NPC walks a loop through `Waypoint <Name> <n> [Facing] [Seconds]` entities, 4 directions, no physics), `VillageCameraScript` (follows the Player, stays inside the 60 x 36 map, zoom with - and =), `VillageDirectorScript` (keys 1/2/3 day/dusk/night, L lights, H shadows, F flicker, B statue/brazier, [ ] radius) |
 | `assets/shaders/vertex.vert`, `fragment.frag` | The quad shader (`inTextures[32]` must match `Renderer2D`) |
 | `assets/shaders/light.frag`, `shadow.frag`, `composite.vert`, `composite.frag` | 2D lighting: the light's falloff curve and the blob shadow's softness (both use `vertex.vert`), and the fullscreen triangle that multiplies the light buffer over the scene. Hot reloaded |
 | `project/` | The Sandbox project Oxygen opens at startup; `Assets/Characters` (villager sheet, `.hymeta`, `.hyanim`) + `Scenes/Villagers.hyscene` show sprite animation |
@@ -128,3 +129,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 ## Checking without Windows
 
 `scripts/check.sh [files...]`: g++ `-fsyntax-only -Wall -Wextra` over the engine and editor sources (Windows-only files skipped) and glslang over the shaders. Linux/WSL; downloads Vulkan-Headers, shaderc headers and builds glslang once into `/tmp/hydro-check`. Not a substitute for an MSVC `/W4` build.
+
+## Tools
+
+`scripts/statue_village/`: Python (numpy, scipy, Pillow) that draws the `StatueVillage` pixel art and writes the scene: `gen_village.py` (layout, entities, `.hymeta`/`.hyanim`/`.hyscene` output; handles are hashed from the file path), `lib.py` (canvas with binary alpha), `nature.py`, `build.py`, `props.py`, `chars.py` (villager walk sheets), `ground.py` (grass, paths, plaza, garden, animated pond), `preview.py` (offline lighting mockup).

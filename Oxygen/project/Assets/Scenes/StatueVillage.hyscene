@@ -1,0 +1,6608 @@
+Handle: 4286843794460917501
+Scene: StatueVillage
+Entities:
+  - Entity: 1755911605912804201
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Orthographic
+      PerspectiveFOV: 45
+      PerspectiveNear: 0.00999999978
+      PerspectiveFar: 1000
+      OrthographicSize: 14
+      OrthographicNear: -1
+      OrthographicFar: 1
+    NativeScriptComponent:
+      Scripts:
+        - VillageCamera
+  - Entity: 2764424940373943551
+    TagComponent:
+      Tag: Ambient Light
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Global
+      Color: [0.56, 0.64, 0.84]
+      Intensity: 0.56
+      Radius: 5
+  - Entity: 1061899397342035261
+    TagComponent:
+      Tag: Village Director
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+        - VillageDirector
+  - Entity: 614481315703108079
+    TagComponent:
+      Tag: Village Ground
+    TransformComponent:
+      Translation: [0, 0, -0.5]
+      Rotation: [0, 0, 0]
+      Scale: [60, 36, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -100
+      TextureHandle: 2071511426255485897
+      Texture: StatueVillage/Terrain/Village_Ground.png
+      FlipX: false
+      FlipY: false
+  - Entity: 399272768828822521
+    TagComponent:
+      Tag: Pond
+    TransformComponent:
+      Translation: [-21.8, -10.2, -0.4]
+      Rotation: [0, 0, 0]
+      Scale: [14, 10, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -60
+      TextureHandle: 3883124499878618919
+      Sprite: Pond_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 3314656612663362747
+      StartClip: Ripple
+      PlayOnStart: true
+      Speed: 1
+  - Entity: 3362062175178550959
+    TagComponent:
+      Tag: Bridge
+    TransformComponent:
+      Translation: [-18.8, -10, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [3, 9, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -40
+      TextureHandle: 367947344292174031
+      Texture: StatueVillage/Buildings/bridge.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0.15, -0.1]
+      Size: [3.2, 8]
+      Strength: 0.35
+  - Entity: 2447941058954311557
+    TagComponent:
+      Tag: Light Pond Reflection
+    TransformComponent:
+      Translation: [-23.5, -9.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [0.55, 0.7, 1]
+      Intensity: 0.35
+      Radius: 4
+  - Entity: 3230431629963876829
+    TagComponent:
+      Tag: Bridge Torch 1
+    TransformComponent:
+      Translation: [-20.8, -5.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 1.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 108769749493301659
+      Sprite: Torch_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 1984105967432467037
+      StartClip: Burn
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.6, 0.25]
+      Strength: 0.5
+  - Entity: 414296773933373787
+    TagComponent:
+      Tag: Light Torch 1
+    TransformComponent:
+      Translation: [-20.8, -4.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.3]
+      Intensity: 1.25
+      Radius: 4.2
+  - Entity: 2877321556239415075
+    TagComponent:
+      Tag: Bridge Torch 2
+    TransformComponent:
+      Translation: [-16.8, -14.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 1.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 130
+      TextureHandle: 108769749493301659
+      Sprite: Torch_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 1984105967432467037
+      StartClip: Burn
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.6, 0.25]
+      Strength: 0.5
+  - Entity: 919884355118112683
+    TagComponent:
+      Tag: Light Torch 2
+    TransformComponent:
+      Translation: [-16.8, -13.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.3]
+      Intensity: 1.25
+      Radius: 4.2
+  - Entity: 3330677763252194659
+    TagComponent:
+      Tag: Statue
+    TransformComponent:
+      Translation: [0, 0.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 78
+      TextureHandle: 3656000429232252283
+      Texture: StatueVillage/Landmark/statue.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.7, 0.7]
+      Strength: 0.5
+  - Entity: 2713549117496998467
+    TagComponent:
+      Tag: Light Lamp Statue
+    TransformComponent:
+      Translation: [0.6, 1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 0.8
+      Radius: 3
+  - Entity: 3655286949607450035
+    TagComponent:
+      Tag: planter_white
+    TransformComponent:
+      Translation: [-3.7, 3.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 62
+      TextureHandle: 852468337307630753
+      Texture: StatueVillage/Props/planter_white.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.1875, 0.35]
+      Strength: 0.45
+  - Entity: 3635466357084613957
+    TagComponent:
+      Tag: planter_pink
+    TransformComponent:
+      Translation: [3.7, 3.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 62
+      TextureHandle: 4423815540144723085
+      Texture: StatueVillage/Props/planter_pink.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.1875, 0.35]
+      Strength: 0.45
+  - Entity: 3792306650522395535
+    TagComponent:
+      Tag: planter_pink
+    TransformComponent:
+      Translation: [-3.7, -4.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 4423815540144723085
+      Texture: StatueVillage/Props/planter_pink.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.1875, 0.35]
+      Strength: 0.45
+  - Entity: 3972931534576110657
+    TagComponent:
+      Tag: planter_white
+    TransformComponent:
+      Translation: [3.7, -4.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 852468337307630753
+      Texture: StatueVillage/Props/planter_white.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.1875, 0.35]
+      Strength: 0.45
+  - Entity: 980402304868923653
+    TagComponent:
+      Tag: bench_v
+    TransformComponent:
+      Translation: [-5.4, -1.725, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 82
+      TextureHandle: 1178695641417010965
+      Texture: StatueVillage/Props/bench_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2128216043112077391
+    TagComponent:
+      Tag: bench_v
+    TransformComponent:
+      Translation: [5.4, -1.725, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 82
+      TextureHandle: 1178695641417010965
+      Texture: StatueVillage/Props/bench_v.png
+      FlipX: true
+      FlipY: false
+  - Entity: 825496230411565661
+    TagComponent:
+      Tag: Street Lamp 1
+    TransformComponent:
+      Translation: [-6.6, 4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 60
+      TextureHandle: 178214511562663719
+      Texture: StatueVillage/Props/lamp_post_banner.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 2614434012195156793
+    TagComponent:
+      Tag: Light Lamp 1
+    TransformComponent:
+      Translation: [-6.3188, 5.1562, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 382610870892235211
+    TagComponent:
+      Tag: Street Lamp 2
+    TransformComponent:
+      Translation: [7, 3.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 66
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 3305103137930828569
+    TagComponent:
+      Tag: Light Lamp 2
+    TransformComponent:
+      Translation: [6.7188, 3.7563, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 3123852441047134547
+    TagComponent:
+      Tag: Street Lamp 3
+    TransformComponent:
+      Translation: [-6.6, -3.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 404916274314077779
+    TagComponent:
+      Tag: Light Lamp 3
+    TransformComponent:
+      Translation: [-6.3188, -3.2437, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 1459039425128493425
+    TagComponent:
+      Tag: Street Lamp 4
+    TransformComponent:
+      Translation: [6.6, -3.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 178214511562663719
+      Texture: StatueVillage/Props/lamp_post_banner.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 196695201644955793
+    TagComponent:
+      Tag: Light Lamp 4
+    TransformComponent:
+      Translation: [6.3188, -3.2437, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 2573099158545586381
+    TagComponent:
+      Tag: Street Lamp 5
+    TransformComponent:
+      Translation: [-2.8, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 1960916530756804351
+    TagComponent:
+      Tag: Light Lamp 5
+    TransformComponent:
+      Translation: [-2.5188, 13.6562, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 1671881222741682077
+    TagComponent:
+      Tag: Street Lamp 6
+    TransformComponent:
+      Translation: [3, -11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 122
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 4303326371760076051
+    TagComponent:
+      Tag: Light Lamp 6
+    TransformComponent:
+      Translation: [2.7188, -10.3438, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 372699994178226897
+    TagComponent:
+      Tag: Street Lamp 7
+    TransformComponent:
+      Translation: [-17, 3.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 64
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 2391873903376683033
+    TagComponent:
+      Tag: Light Lamp 7
+    TransformComponent:
+      Translation: [-16.7188, 4.1562, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 913482291516688113
+    TagComponent:
+      Tag: Street Lamp 8
+    TransformComponent:
+      Translation: [17.4, 2.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 66
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 2133829197947381101
+    TagComponent:
+      Tag: Light Lamp 8
+    TransformComponent:
+      Translation: [17.1187, 3.5562, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 236661592786848327
+    TagComponent:
+      Tag: Street Lamp 9
+    TransformComponent:
+      Translation: [26, 3.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 66
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 595551861994864879
+    TagComponent:
+      Tag: Light Lamp 9
+    TransformComponent:
+      Translation: [25.7188, 3.7563, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 4392287055376298535
+    TagComponent:
+      Tag: Street Lamp 10
+    TransformComponent:
+      Translation: [-25, 3.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 65
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 3298021625805878349
+    TagComponent:
+      Tag: Light Lamp 10
+    TransformComponent:
+      Translation: [-24.7188, 3.8562, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 3447273587208812787
+    TagComponent:
+      Tag: Bollard 11
+    TransformComponent:
+      Translation: [-2, -8.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 106
+      TextureHandle: 2956255163383371383
+      Texture: StatueVillage/Props/lamp_short.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 2037049133003831237
+    TagComponent:
+      Tag: Light Lamp Bollard 11
+    TransformComponent:
+      Translation: [-2, -7.85, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1
+      Radius: 2.6
+  - Entity: 4265103836897429571
+    TagComponent:
+      Tag: Bollard 12
+    TransformComponent:
+      Translation: [2.2, -8.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 106
+      TextureHandle: 2956255163383371383
+      Texture: StatueVillage/Props/lamp_short.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 819152736898420187
+    TagComponent:
+      Tag: Light Lamp Bollard 12
+    TransformComponent:
+      Translation: [2.2, -7.85, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1
+      Radius: 2.6
+  - Entity: 2320579402542620645
+    TagComponent:
+      Tag: Bollard 13
+    TransformComponent:
+      Translation: [-1.6, 7.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 2956255163383371383
+      Texture: StatueVillage/Props/lamp_short.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 811762522725639669
+    TagComponent:
+      Tag: Light Lamp Bollard 13
+    TransformComponent:
+      Translation: [-1.6, 8.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1
+      Radius: 2.6
+  - Entity: 506328179946612749
+    TagComponent:
+      Tag: Bollard 14
+    TransformComponent:
+      Translation: [2.4, 7.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 2956255163383371383
+      Texture: StatueVillage/Props/lamp_short.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 789461748413840827
+    TagComponent:
+      Tag: Light Lamp Bollard 14
+    TransformComponent:
+      Translation: [2.4, 8.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1
+      Radius: 2.6
+  - Entity: 3153769306094185013
+    TagComponent:
+      Tag: House house_tall_blue
+    TransformComponent:
+      Translation: [-21.3, 9.7875, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4, 4.375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 791177911514605913
+      Texture: StatueVillage/Buildings/house_tall_blue.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -2.1375]
+      Size: [3.8, 1.1]
+      Strength: 0.5
+  - Entity: 1932403015165527087
+    TagComponent:
+      Tag: Light Window 1
+    TransformComponent:
+      Translation: [-22.175, 8.3937, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 4319685477382154591
+    TagComponent:
+      Tag: Light Window 2
+    TransformComponent:
+      Translation: [-20.675, 8.7844, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 2914653353938540315
+    TagComponent:
+      Tag: House house_cottage_blue
+    TransformComponent:
+      Translation: [-12.5, 9.35, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4, 3.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 3076339018991556465
+      Texture: StatueVillage/Buildings/house_cottage_blue.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.7]
+      Size: [3.8, 1.1]
+      Strength: 0.5
+  - Entity: 659063234451821955
+    TagComponent:
+      Tag: Light Window 3
+    TransformComponent:
+      Translation: [-13.375, 7.9875, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 2847212887901962673
+    TagComponent:
+      Tag: Light Window 4
+    TransformComponent:
+      Translation: [-12, 8.3625, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 1757336034400760927
+    TagComponent:
+      Tag: House house_tall_red
+    TransformComponent:
+      Translation: [12.3, 9.7875, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4, 4.375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 2265241359536964181
+      Texture: StatueVillage/Buildings/house_tall_red.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -2.1375]
+      Size: [3.8, 1.1]
+      Strength: 0.5
+  - Entity: 626341279829528923
+    TagComponent:
+      Tag: Light Window 5
+    TransformComponent:
+      Translation: [11.425, 8.3937, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 1869256076835007941
+    TagComponent:
+      Tag: Light Window 6
+    TransformComponent:
+      Translation: [12.925, 8.7844, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 4150379731103466293
+    TagComponent:
+      Tag: House house_cottage_red
+    TransformComponent:
+      Translation: [22.3, 9.35, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4, 3.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 215913443912196899
+      Texture: StatueVillage/Buildings/house_cottage_red.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.7]
+      Size: [3.8, 1.1]
+      Strength: 0.5
+  - Entity: 4491001065743252127
+    TagComponent:
+      Tag: Light Window 7
+    TransformComponent:
+      Translation: [21.425, 7.9875, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 2953479010596597801
+    TagComponent:
+      Tag: Light Window 8
+    TransformComponent:
+      Translation: [22.8, 8.3625, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 2042851360744971709
+    TagComponent:
+      Tag: House house_wide_blue
+    TransformComponent:
+      Translation: [17.6, -10.65, 0]
+      Rotation: [0, 0, 0]
+      Scale: [5, 3.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 122
+      TextureHandle: 4392364634562456863
+      Texture: StatueVillage/Buildings/house_wide_blue.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.7]
+      Size: [4.75, 1.1]
+      Strength: 0.5
+  - Entity: 2515540631018834397
+    TagComponent:
+      Tag: Light Window 9
+    TransformComponent:
+      Translation: [16.225, -12.0125, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 3805258047223298681
+    TagComponent:
+      Tag: Light Window 10
+    TransformComponent:
+      Translation: [18.1833, -11.7625, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.64, 0.3]
+      Intensity: 0.95
+      Radius: 3.2
+  - Entity: 582690678661189763
+    TagComponent:
+      Tag: Market Stall
+    TransformComponent:
+      Translation: [7, 6.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 2393921531389306731
+      Texture: StatueVillage/Buildings/market_stall.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2.7, 0.7]
+      Strength: 0.5
+  - Entity: 4341221922044064247
+    TagComponent:
+      Tag: Light Market
+    TransformComponent:
+      Translation: [7, 6.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.72, 0.4]
+      Intensity: 1.1
+      Radius: 4
+  - Entity: 2195823718354875081
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [4.6, 5.2375, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.8125, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 53
+      TextureHandle: 3073542522268574899
+      Texture: StatueVillage/Props/crate.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.7719, 0.35]
+      Strength: 0.45
+  - Entity: 257413667641180777
+    TagComponent:
+      Tag: crate_marked
+    TransformComponent:
+      Translation: [4.9, 4.5375, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.8125, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 56
+      TextureHandle: 1354940981794926813
+      Texture: StatueVillage/Props/crate_marked.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.7719, 0.35]
+      Strength: 0.45
+  - Entity: 3405979516638883231
+    TagComponent:
+      Tag: barrel
+    TransformComponent:
+      Translation: [9.4, 5.1687, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 0.9375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 53
+      TextureHandle: 189659554232842745
+      Texture: StatueVillage/Props/barrel.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.4188]
+      Size: [0.7125, 0.35]
+      Strength: 0.45
+  - Entity: 3312867265919744767
+    TagComponent:
+      Tag: sack
+    TransformComponent:
+      Translation: [9.6, 4.2438, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.625, 0.6875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 56
+      TextureHandle: 2528819519362471701
+      Texture: StatueVillage/Props/sack.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.2938]
+      Size: [0.5938, 0.35]
+      Strength: 0.45
+  - Entity: 3592236066842859545
+    TagComponent:
+      Tag: sack
+    TransformComponent:
+      Translation: [4.2, 4.0437, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.625, 0.6875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 57
+      TextureHandle: 2528819519362471701
+      Texture: StatueVillage/Props/sack.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.2938]
+      Size: [0.5938, 0.35]
+      Strength: 0.45
+  - Entity: 693782159479661911
+    TagComponent:
+      Tag: well
+    TransformComponent:
+      Translation: [-11, -3.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 2.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 93
+      TextureHandle: 1891056923217865105
+      Texture: StatueVillage/Buildings/well.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.2]
+      Size: [1.8, 0.7]
+      Strength: 0.5
+  - Entity: 4340626838237226797
+    TagComponent:
+      Tag: notice_board
+    TransformComponent:
+      Translation: [11.6, -3.125, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 88
+      TextureHandle: 2341142545100652039
+      Texture: StatueVillage/Buildings/notice_board.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.825]
+      Size: [1.35, 0.7]
+      Strength: 0.5
+  - Entity: 573541331641978947
+    TagComponent:
+      Tag: Light Window Notice
+    TransformComponent:
+      Translation: [11.6, -2.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 0
+      Radius: 2
+  - Entity: 547475259682660447
+    TagComponent:
+      Tag: signpost
+    TransformComponent:
+      Translation: [2.8, 14.475, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 18
+      TextureHandle: 1158091520117600647
+      Texture: StatueVillage/Props/signpost.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.825]
+      Size: [0.8, 0.3]
+      Strength: 0.5
+  - Entity: 1364938305183354697
+    TagComponent:
+      Tag: bench_h
+    TransformComponent:
+      Translation: [6.6, -7.5625, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.75, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 104
+      TextureHandle: 1688842130169158105
+      Texture: StatueVillage/Props/bench_h.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [1.575, 0.7]
+      Strength: 0.5
+  - Entity: 4570741529006841253
+    TagComponent:
+      Tag: woodpile
+    TransformComponent:
+      Translation: [21, -12.625, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 124
+      TextureHandle: 2266449032730074113
+      Texture: StatueVillage/Props/woodpile.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [1.125, 0.7]
+      Strength: 0.5
+  - Entity: 1890212805630110995
+    TagComponent:
+      Tag: barrel
+    TransformComponent:
+      Translation: [14, -12.1313, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 0.9375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 122
+      TextureHandle: 189659554232842745
+      Texture: StatueVillage/Props/barrel.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.4188]
+      Size: [0.7125, 0.35]
+      Strength: 0.45
+  - Entity: 4261815367485111549
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [14.8, -12.4625, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.8125, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 124
+      TextureHandle: 3073542522268574899
+      Texture: StatueVillage/Props/crate.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.7719, 0.35]
+      Strength: 0.45
+  - Entity: 4060269887038417677
+    TagComponent:
+      Tag: barrel
+    TransformComponent:
+      Translation: [-18.6, 7.6687, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 0.9375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 43
+      TextureHandle: 189659554232842745
+      Texture: StatueVillage/Props/barrel.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.4188]
+      Size: [0.7125, 0.35]
+      Strength: 0.45
+  - Entity: 1471618826387551041
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [-9.6, 7.5375, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.8125, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 44
+      TextureHandle: 3073542522268574899
+      Texture: StatueVillage/Props/crate.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.7719, 0.35]
+      Strength: 0.45
+  - Entity: 2301847138159813527
+    TagComponent:
+      Tag: barrel
+    TransformComponent:
+      Translation: [15.2, 7.5687, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 0.9375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 44
+      TextureHandle: 189659554232842745
+      Texture: StatueVillage/Props/barrel.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.4188]
+      Size: [0.7125, 0.35]
+      Strength: 0.45
+  - Entity: 1078701277703534917
+    TagComponent:
+      Tag: sack
+    TransformComponent:
+      Translation: [25, 7.4437, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.625, 0.6875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 44
+      TextureHandle: 2528819519362471701
+      Texture: StatueVillage/Props/sack.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.2938]
+      Size: [0.5938, 0.35]
+      Strength: 0.45
+  - Entity: 1187964094869384443
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-14, -9.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 111
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3956209078245634127
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-13, -9.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 111
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1668058803289288139
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-12, -9.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 111
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3128220344005594059
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-9, -9.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 111
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2311528506842422607
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-8, -9.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 111
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 51413353929090239
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-14, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3839475597184070181
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-13, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1556144033971345963
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-12, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1738486970031596441
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-11, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1553003611228436725
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-10, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3746404524479653543
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-9, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1779834019681123835
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-8, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3752476412481645925
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-14.6, -10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 114
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2464336941936038629
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-7.4, -10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 114
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 835754847553247529
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-14.6, -11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 118
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 173364816787498105
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-7.4, -11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 118
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1720138606490425609
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-14.6, -12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 122
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3952867239803139555
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-7.4, -12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 122
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3554787301232563455
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-14.6, -13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 126
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1061655311194539037
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-7.4, -13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 126
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3936452341187290063
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-14.6, -14, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 130
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1042452414533365785
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-7.4, -14, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 130
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3320260643193542419
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-14.6, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 487679871209123271
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [-7.4, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3172294433769884699
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-29, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1447759862837637913
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-28, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3523297102756474329
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-27, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3281427400703644407
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-26, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3281749290742888001
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [-25, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1768833267763359763
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [25, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2020496623269795993
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [26, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4423030609675466405
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [27, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4069916224124040565
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [28, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1942023224872448765
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [29, 5.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4185830634959931463
+    TagComponent:
+      Tag: Walker Greenhat
+    TransformComponent:
+      Translation: [-3.2, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 88
+      TextureHandle: 2253209512462279
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4200729950705943819
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 321326785349756209
+    TagComponent:
+      Tag: Waypoint Greenhat 1 1
+    TransformComponent:
+      Translation: [-3.2, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1351361369643842391
+    TagComponent:
+      Tag: Waypoint Greenhat 2 Up 2.5
+    TransformComponent:
+      Translation: [3.2, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3158118550753681697
+    TagComponent:
+      Tag: Waypoint Greenhat 3 0.5
+    TransformComponent:
+      Translation: [4.6, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1478486905642636425
+    TagComponent:
+      Tag: Waypoint Greenhat 4 Down 2
+    TransformComponent:
+      Translation: [0, 2.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2200227975789002613
+    TagComponent:
+      Tag: Waypoint Greenhat 5 0.5
+    TransformComponent:
+      Translation: [-4.6, 0.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 586977334205263841
+    TagComponent:
+      Tag: Walker Redhair
+    TransformComponent:
+      Translation: [-12.5, 6.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 45
+      TextureHandle: 2741467568583082657
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 3267264934602108825
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 4132132265029886807
+    TagComponent:
+      Tag: Waypoint Redhair 1 Down 3
+    TransformComponent:
+      Translation: [-12.5, 6.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1987276648793242877
+    TagComponent:
+      Tag: Waypoint Redhair 2 0.3
+    TransformComponent:
+      Translation: [-8, 2.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1341458091512637233
+    TagComponent:
+      Tag: Waypoint Redhair 3 0.3
+    TransformComponent:
+      Translation: [0, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4464638241324794641
+    TagComponent:
+      Tag: Waypoint Redhair 4 Up 4
+    TransformComponent:
+      Translation: [6.4, 2.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3810726396381163495
+    TagComponent:
+      Tag: Waypoint Redhair 5 0.3
+    TransformComponent:
+      Translation: [0, 1.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 735194160548199437
+    TagComponent:
+      Tag: Waypoint Redhair 6 0.3
+    TransformComponent:
+      Translation: [-7.6, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1747638506240620203
+    TagComponent:
+      Tag: Walker Bearded
+    TransformComponent:
+      Translation: [14, -1.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 78
+      TextureHandle: 882034371112185373
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 1993915546081567391
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 3128338277331979239
+    TagComponent:
+      Tag: Waypoint Bearded 1 0.5
+    TransformComponent:
+      Translation: [14, -1.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3978532718319361193
+    TagComponent:
+      Tag: Waypoint Bearded 2 0.3
+    TransformComponent:
+      Translation: [21.4, -0.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2853076517603193537
+    TagComponent:
+      Tag: Waypoint Bearded 3 Up 3
+    TransformComponent:
+      Translation: [22.3, 6.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3296551783827125389
+    TagComponent:
+      Tag: Waypoint Bearded 4 0.3
+    TransformComponent:
+      Translation: [22, -0.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 896843388666992851
+    TagComponent:
+      Tag: Waypoint Bearded 5 Right 2.5
+    TransformComponent:
+      Translation: [27, -0.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1553432961846357561
+    TagComponent:
+      Tag: Waypoint Bearded 6 0.5
+    TransformComponent:
+      Translation: [14, -1.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 911531908158058997
+    TagComponent:
+      Tag: Walker Apron
+    TransformComponent:
+      Translation: [12.3, 6.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 45
+      TextureHandle: 2104467476488773067
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 101810847117063429
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 19882440183709279
+    TagComponent:
+      Tag: Waypoint Apron 1 Down 2
+    TransformComponent:
+      Translation: [12.3, 6.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1638482219008034741
+    TagComponent:
+      Tag: Waypoint Apron 2 0.3
+    TransformComponent:
+      Translation: [9, 2.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1362297950633466393
+    TagComponent:
+      Tag: Waypoint Apron 3 0.3
+    TransformComponent:
+      Translation: [-4, -0.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3922035461630141273
+    TagComponent:
+      Tag: Waypoint Apron 4 0.3
+    TransformComponent:
+      Translation: [-9.4, -4.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4110529293627070739
+    TagComponent:
+      Tag: Waypoint Apron 5 Left 3.5
+    TransformComponent:
+      Translation: [-9.6, -5.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3079761544322363459
+    TagComponent:
+      Tag: Waypoint Apron 6 0.3
+    TransformComponent:
+      Translation: [-4, -7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3640891640672015677
+    TagComponent:
+      Tag: Waypoint Apron 7 0.3
+    TransformComponent:
+      Translation: [8, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1203572310080701037
+    TagComponent:
+      Tag: Walker Strawhat
+    TransformComponent:
+      Translation: [-10.5, -8.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 106
+      TextureHandle: 3273335588748254211
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4259303488390855879
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 1921748222808429011
+    TagComponent:
+      Tag: Waypoint Strawhat 1 Down 2.5
+    TransformComponent:
+      Translation: [-10.5, -8.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3470989213706899001
+    TagComponent:
+      Tag: Waypoint Strawhat 2 0.3
+    TransformComponent:
+      Translation: [-15.6, -8.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3257049630432838031
+    TagComponent:
+      Tag: Waypoint Strawhat 3 0.3
+    TransformComponent:
+      Translation: [-18.8, -6.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1882701638204019313
+    TagComponent:
+      Tag: Waypoint Strawhat 4 Left 2.5
+    TransformComponent:
+      Translation: [-18.8, -13.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3974131477453083909
+    TagComponent:
+      Tag: Waypoint Strawhat 5 0.3
+    TransformComponent:
+      Translation: [-18.8, -6.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3027831643130106411
+    TagComponent:
+      Tag: Waypoint Strawhat 6 0.3
+    TransformComponent:
+      Translation: [-15.4, -8.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 16686314734740265
+    TagComponent:
+      Tag: Walker Merchant
+    TransformComponent:
+      Translation: [6, 5.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 50
+      TextureHandle: 3854672290508153445
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 1398635824423621877
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 2313481102225951959
+    TagComponent:
+      Tag: Waypoint Merchant 1 Down 4
+    TransformComponent:
+      Translation: [6, 5.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 933856751497816677
+    TagComponent:
+      Tag: Waypoint Merchant 2 Down 3
+    TransformComponent:
+      Translation: [8, 5.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2407761904548492283
+    TagComponent:
+      Tag: Walker Blonde
+    TransformComponent:
+      Translation: [-0.2, -16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 136
+      TextureHandle: 1848346500086277613
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 2661277196427811231
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 4380652096752399671
+    TagComponent:
+      Tag: Waypoint Blonde 1 0.3
+    TransformComponent:
+      Translation: [-0.2, -16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4511612050662482683
+    TagComponent:
+      Tag: Waypoint Blonde 2 0.3
+    TransformComponent:
+      Translation: [1.2, -11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4567664582539024669
+    TagComponent:
+      Tag: Waypoint Blonde 3 0.3
+    TransformComponent:
+      Translation: [0.2, -7.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2357106326533313841
+    TagComponent:
+      Tag: Waypoint Blonde 4 0.3
+    TransformComponent:
+      Translation: [6, -6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3716059764328585165
+    TagComponent:
+      Tag: Waypoint Blonde 5 Up 3
+    TransformComponent:
+      Translation: [11.6, -4.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4303125485207004147
+    TagComponent:
+      Tag: Waypoint Blonde 6 0.3
+    TransformComponent:
+      Translation: [3, -9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1217054086001479881
+    TagComponent:
+      Tag: Walker Elder
+    TransformComponent:
+      Translation: [6.4, -8.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 106
+      TextureHandle: 4427682999371818319
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 3363558919026677037
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - WaypointWalk
+        - VillageYSort
+  - Entity: 3926630212420418771
+    TagComponent:
+      Tag: Waypoint Elder 1 Down 5
+    TransformComponent:
+      Translation: [6.4, -8.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1922322267013527623
+    TagComponent:
+      Tag: Waypoint Elder 2 0.5
+    TransformComponent:
+      Translation: [7.6, -3.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2584265245439587277
+    TagComponent:
+      Tag: Waypoint Elder 3 Up 2
+    TransformComponent:
+      Translation: [3.6, -3.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2886807981900539565
+    TagComponent:
+      Tag: Waypoint Elder 4 0.5
+    TransformComponent:
+      Translation: [1.2, -6.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3541135568243750349
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [1.5, -6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 96
+      TextureHandle: 1364260252924969887
+      Sprite: Down_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    SpriteAnimatorComponent:
+      AnimationsHandle: 724255347458241449
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    NativeScriptComponent:
+      Scripts:
+        - VillagerWalk
+        - VillageYSort
+  - Entity: 3830149355071260353
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-23.52, 17.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 11
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2794396023455859787
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [26.49, -6.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 106
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1325876593924047141
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-28.05, -13.49, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3409116608294410775
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [23.78, -16.96, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 146
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 4609558519350768795
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [28.44, 3.67, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 65
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3718756086043063727
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [8.78, 16.08, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 16
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 348511884149285913
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [4.63, 16.75, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 13
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 147393513336364599
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-13.95, 15.53, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 18
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 268917888034611819
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-28.16, 16.52, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 12
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1382216659140452815
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [23.15, 13.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 4477073764907327529
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-11.65, 16.69, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 13
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2888758580065241769
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [11.38, 14.67, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 21
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3278520889557426439
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-23.36, -16.34, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 145
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2651315865903425923
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-9.53, 16.84, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 11
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 894684982294900065
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [27.47, 16.66, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 11
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 461682775384437177
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-2.75, -16.08, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 144
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3983152696045074811
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [18.85, -15.74, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 143
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1820052816688489221
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-26.03, -2.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 92
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3639765681609676711
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [25.73, -10.87, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 123
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1221183233058194623
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [17.76, 14.62, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1517506677454697271
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [28.85, -12.33, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 129
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 4048473664530895445
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-28.82, 7.71, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 47
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 4158669069223144421
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-26.6, 15.14, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 19
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 4002594932615348327
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-28.87, 4.38, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 62
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3203459940432227551
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [-10.26, 14.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 20
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1794048601793222063
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [28.19, 9.76, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 41
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2591227610550549421
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [21.37, -16.51, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 146
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3297557339985351113
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [9.59, -15.27, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 139
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1659465275340755383
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [-26.05, 11.26, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 35
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 957439110040714597
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-17.31, 14.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 20
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2135958186040571041
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [-6.26, 15.51, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 16
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3893858464440129003
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [27.71, 13.79, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 23
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3227034556528299615
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-28.98, -0.63, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 83
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 847003466931216703
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-28.94, 13.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 23
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 4208978515231528945
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [26.72, -15.51, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 142
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 4603103582577480563
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [20.09, 15.97, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 14
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 2641562376958844207
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-7.5, -16.64, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 145
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 2886230507922064819
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-10.06, -16.62, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 144
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 4224289592874299877
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-4.24, -14.22, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 137
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3066827167895800645
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [2.74, -16.29, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 145
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 4521460709160330861
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [24.05, 16.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 11
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 2451865429377975097
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-21.02, -15.04, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 140
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 4598702217356421205
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [13.85, 15.52, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 18
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2412718470576352539
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [28.3, -1.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 85
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 529732126664432355
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [12.43, -16.89, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 146
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3672121344992625201
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-14.95, -15.29, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 139
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 332706379531740869
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-21.43, 12.82, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 27
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3021495398095373697
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [-4.17, 16.88, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 12
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 18172576716395147
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [-25.83, 8.84, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 45
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3138849895789787977
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-29.1, 11.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 35
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1269840201844488727
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [15.47, -15.24, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 141
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 55368212840025283
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [6.09, 9.22, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 43
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1471521730156287811
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [27.5, -3.52, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1206128265622185441
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-28.44, -16.33, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 145
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 627892166047166793
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [6.52, 14.92, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 20
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 4242724527518288059
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-20.82, 15.98, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 16
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1832051457460286461
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [27.21, 12.06, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 32
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 220237298799776843
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [7.27, -15.34, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 141
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2358121734863248031
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [23.74, -7.17, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 107
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 2560711334528181031
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [4.95, -8.16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 111
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1347329955509940453
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [22.04, 16.96, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 10
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3863826560974097773
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-2.56, 14.93, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 18
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 265202378304101861
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-29.09, -6.59, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 106
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3574199206066174939
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [29.39, 15.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 17
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1058843915684119587
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-25.37, -14.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 139
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 869199679343801217
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-28.53, -4.35, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 95
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 2235106990000876975
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [-26.58, 4.47, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 60
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1258074575472525565
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [15.22, 2.04, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 70
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3029131063709831839
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-29.4, -10.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 123
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 325794376439280263
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [29, -16.67, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 145
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 4237249371806666735
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [11.17, 17.07, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 12
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 3576773229370399261
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [29.09, -9.37, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 115
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 800773388902246061
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [29.48, 12.38, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 28
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1631072167916105881
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-9.62, 12.81, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 29
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 4427033389921514259
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [11.63, -14.76, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 137
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 2467032873340836743
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [4.02, -14.74, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 137
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3428438093690749555
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [-17.12, 10.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 39
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 523725381523024353
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [25.06, 14.46, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 20
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 579688685332141141
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [-16.03, -5.16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 99
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 631585484270204901
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-24.3, 13.39, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2514859118032017857
+    TagComponent:
+      Tag: tree_round_02
+    TransformComponent:
+      Translation: [-12.72, -16.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 146
+      TextureHandle: 1746345931131060191
+      Texture: StatueVillage/Nature/tree_round_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 152574199551323179
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [-14.78, 6.06, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 56
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 2364564028683574213
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [29.37, -5.99, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 102
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1748959588206010517
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [-16.37, 16.47, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 12
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 1632115348748889565
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [17.82, 4.59, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 60
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 3607635849341139555
+    TagComponent:
+      Tag: tree_autumn_01
+    TransformComponent:
+      Translation: [16.92, 17.23, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 11
+      TextureHandle: 4247177265879207991
+      Texture: StatueVillage/Nature/tree_autumn_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 1067865908091389147
+    TagComponent:
+      Tag: tree_medium_01
+    TransformComponent:
+      Translation: [26.36, 7.65, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 47
+      TextureHandle: 725922086428953907
+      Texture: StatueVillage/Nature/tree_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 2805127045845063567
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [26.41, 4.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 59
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [2, 0.85]
+      Strength: 0.55
+  - Entity: 4467007037556107723
+    TagComponent:
+      Tag: tree_round_01
+    TransformComponent:
+      Translation: [18.57, 9.69, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 41
+      TextureHandle: 581506787590842183
+      Texture: StatueVillage/Nature/tree_round_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2.4, 0.85]
+      Strength: 0.55
+  - Entity: 742983161049264867
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [24.62, 11.85, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 27
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3565639399143129877
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [18.5, -6.44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 100
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 4118625400866016925
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [-14.97, -3.46, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 87
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3732828298299288271
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [5.7, 11.36, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 29
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2011325142927675831
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [6.03, -6.54, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 100
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 1417933679205818501
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-12.81, -8.41, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 108
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3407343405187508003
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [5.3, -14.84, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 133
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 675915195875550757
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [18.62, 1.4575, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 68
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 2964856612786692889
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-13.88, -1.69, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 81
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2403801446336545565
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [11.32, -11.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 120
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4287928264351981697
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [-27.74, 10.66, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1065734402991302701
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [14.95, 5.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 52
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4228053837450600867
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [-2.78, -10.97, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 118
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3658361366506343129
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [-18.99, 4.29, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 57
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3609861506659961173
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [5.6, -10.49, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 116
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4565017487023517085
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [14.81, -6.695, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 100
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 2613664587639171729
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [4.2, -12.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 126
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3380381212251002393
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [25.5, -6.73, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 101
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 2778334185918419515
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [14.25, 10.775, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 4105870777453859561
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [21.33, -5.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 95
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4041847977189743045
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [19.72, 12.87, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 23
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 744479094749025573
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [8.3, -12.32, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 123
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 4105778062000152299
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [-5.75, 7.43, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 44
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 767720069117311599
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [21.48, -10.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 117
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 2047252261530751413
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [10.44, -4.8125, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 93
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1166766625345799981
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-6.43, 8.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 41
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2717650809976962651
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [8.29, -10.88, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 117
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2694811074689792771
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [18.11, -5.34, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 95
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 93987282142544779
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [-23.67, 10.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 33
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4374598756918007477
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [8.83, 9.56, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 36
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 612184031800914689
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [8.67, -14.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 131
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 52063962687250175
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [16.45, 8.13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 41
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1317301438795633899
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [17.33, 5.81, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 50
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2564110077783401461
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-10.93, -2.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 85
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 1337860774713169425
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [13.55, 9.91, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 33
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2270994207745544659
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [22.65, -10.12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 113
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 3696816307852830721
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-4.98, -13.36, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 127
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 185826562145406217
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [-27.09, -2.53, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 84
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 756106887783438007
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [21.99, -1.72, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 81
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 3152335680940687703
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [18.75, 5.5775, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 51
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3904165023349228955
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [15.83, 12.62, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 24
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 3062117233135455215
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [28.97, 6.355, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 48
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3714660410477203625
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [21.45, -14.9625, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 4467536551483302579
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-24.47, -3.52, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 88
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1737017227147304683
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [9.83, -7.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 103
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: true
+      FlipY: false
+  - Entity: 1248264572278344385
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-22.62, 5.845, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 50
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1045169999066092531
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [-6.58, 10.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 31
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 695198857881464307
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [20.51, -10.36, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 115
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 3110043469063770975
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [9.84, 6.4975, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 48
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3521949027627114927
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [2.2, 10.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 32
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4329572224872996965
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [13.9, 4.495, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 56
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3407801240580332839
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-12.19, -3.825, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 89
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1932758267286029061
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [-13.68, 11.41, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 28
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3300180910269548097
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [-22.82, -3.83, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 89
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3572873178746701647
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [14.53, -7.47, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 104
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 803146382680721071
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [-7.59, 8.38, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 40
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1873635019334660467
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [5.72, -12.3825, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 123
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 251671459873434843
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [16.94, 8.97, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 1114945211413319349
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [13.06, -10.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 116
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1198147281087798635
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [-10.72, -16.33, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 139
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 3890205966661131867
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [21.99, -6.9925, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 102
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 433297889762135101
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-23.97, 6.145, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 49
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 19917517565279963
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [26.85, -11.04, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 118
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 4351609142445122883
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [21.67, -3.445, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 87
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3863001123536887145
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [12.51, 4.36, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 57
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: true
+      FlipY: false
+  - Entity: 607613834596230027
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [7.7, -14.06, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 130
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4396627032575559617
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [16.94, 10.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 32
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2901951618465656873
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [8.56, 6.71, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 46
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 282565487377494257
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [27.34, -14.77, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 133
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 4059016296815940757
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [21.59, -6.28, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 98
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 845027485072319601
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [16.54, 6.41, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 47
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3524249002204382523
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [-23.73, 4.2875, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 57
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 686433692414750999
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [-4.12, 9.96, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 34
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4301171032675516553
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [28.34, -8.62, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 107
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 164177906497557691
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [10.84, -13.97, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 129
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1825422830230252539
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [-18.92, 6.84, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 47
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 4573603286172275271
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [4.16, 11.33, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 29
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 2057943110310581905
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [23.8, -15.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 137
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 763862214539157475
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [-19.28, 15.11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 14
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1075982004158601925
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [-8.58, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 37
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2004543096290845057
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [13.2, 5.34, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 53
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2205178167592782101
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [19.53, 2.42, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 63
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 2823375972340581855
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [14.43, -13.84, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 129
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1704363836578685549
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [7.23, 9.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 35
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 737310522394843761
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [-7.94, 14.53, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 16
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: true
+      FlipY: false
+  - Entity: 3383292232802830967
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [18.04, -2.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 86
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2235007885587800755
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-15.01, -0.73, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 77
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3299517332222221277
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [15.16, -13.54, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 127
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 463275920909659607
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [-15.86, -1.17, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 79
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2819517693780279871
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [26.12, 11.65, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4179242521221729149
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [-18.05, 2.67, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 63
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 800488225586486555
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [-5.58, 10.11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 34
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 2192476716653743373
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [10.38, -14.775, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 133
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 4138587758966311303
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [-13.17, -2.9325, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 85
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 794958010439463751
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [-6.11, -12.84, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 125
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3165927256279567415
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [16.69, -2.54, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 84
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 774038706539191677
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [9.61, 8.52, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 40
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 2378827309668298715
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [4.98, -11.575, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 120
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3692760515451860715
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [21.17, 13.54, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 19
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4229280433414012491
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [7.36, -10.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 115
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3922551295388684613
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [9.57, -12.36, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 123
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 356246940873166399
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-12.79, 2.715, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 63
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1109133162981092295
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [3.02, -10.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 116
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1045815562347019593
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [15.72, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 58
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3251195589238825073
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [23.88, -11.015, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 118
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1823600045757724995
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [11.04, -5.78, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 97
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 2589012236810669507
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [-14.58, -8.32, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 107
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1114284116562293505
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [20.55, 6.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 48
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1494351262318106813
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [-4.47, 12.18, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 25
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 2603710397624214443
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-13.35, 12.335, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 24
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 2285995013291469345
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [23.95, -4.59, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 91
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 447509063042342591
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [-3.61, 8.77, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 39
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 2895484706023821397
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [-17.46, 4.91, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4350226650300145787
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [22.91, -13.34, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 127
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 2014189905068562545
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [24.87, -14.84, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 133
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1453562283516578219
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [5.06, 9.3375, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 36
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 4266770742026905905
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [23.47, -5.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 98
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 3057736073213574973
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [-14.4, -4.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 853703276224868509
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [11.89, 3.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 60
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 4151567590498139723
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [19.05, -14, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 129
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 3098414240505138357
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [-3.82, -13.82, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 128
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 46745879683674743
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [15.62, -14.67, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 133
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 2445643729026346411
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-7.61, 11.565, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 27
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 904997323327334091
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [-20.05, -1.78, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 81
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1681143601130038545
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [18.53, -9.33, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 111
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 734620977848391961
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [11.67, -13.17, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 127
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1795044470030707927
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-21.33, -3.995, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 89
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 3212473364349011943
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [-8.19, 7.16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 45
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 2448142080268592213
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [18.79, 6.29, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 48
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 913638724362314715
+    TagComponent:
+      Tag: bush_medium_01
+    TransformComponent:
+      Translation: [24.7, -9.66, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 113
+      TextureHandle: 2199734087054257061
+      Texture: StatueVillage/Nature/bush_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 257125168375141819
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [21.9, 12.06, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 4419582301517408739
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [-7.6, 13.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 20
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1636914823779827349
+    TagComponent:
+      Tag: flowers_orange
+    TransformComponent:
+      Translation: [24.25, 9.53, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 36
+      TextureHandle: 1631564574508198803
+      Texture: StatueVillage/Nature/flowers_orange.png
+      FlipX: false
+      FlipY: false
+  - Entity: 650876460475228243
+    TagComponent:
+      Tag: rock_small_01
+    TransformComponent:
+      Translation: [-4.85, 7.645, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 43
+      TextureHandle: 782166794391602743
+      Texture: StatueVillage/Nature/rock_small_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.325]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 361186814967897265
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [25.06, -17.26, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 142
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3971368125449305131
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [4.12, 7.54, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 44
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: true
+      FlipY: false
+  - Entity: 83284640179995677
+    TagComponent:
+      Tag: bush_small_01
+    TransformComponent:
+      Translation: [-21.87, -3.0325, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 86
+      TextureHandle: 1857445611706159723
+      Texture: StatueVillage/Nature/bush_small_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3875]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 4341268947662585089
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [-2.29, 8.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 4103703427193166657
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [14.61, -10.11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 114
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 1129665877513434147
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [24.23, 5.75, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 50
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 707613838766178451
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [3.26, 12.39, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 24
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: false
+      FlipY: false
+  - Entity: 341546694764186501
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [-4.07, -12.68, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 125
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 133964479640857101
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [-6.08, -17.33, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 142
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: true
+      FlipY: false
+  - Entity: 977113925408165669
+    TagComponent:
+      Tag: bush_medium_02
+    TransformComponent:
+      Translation: [11.4, -4.81, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 93
+      TextureHandle: 497286945601773831
+      Texture: StatueVillage/Nature/bush_medium_02.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 1584392464123088137
+    TagComponent:
+      Tag: flowers_pink
+    TransformComponent:
+      Translation: [7.84, 7.99, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 1842615132843754725
+      Texture: StatueVillage/Nature/flowers_pink.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1180219838369903569
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [-7.26, 5.73, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 51
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.4]
+      Strength: 0.35
+  - Entity: 4341502015788198055
+    TagComponent:
+      Tag: stump_01
+    TransformComponent:
+      Translation: [23.52, 10.19, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 33
+      TextureHandle: 664063371274987657
+      Texture: StatueVillage/Nature/stump_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.9, 0.4]
+      Strength: 0.35
+  - Entity: 2974585008234795793
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [-15.14, 8.49, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 40
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false
+  - Entity: 2001727649276276005
+    TagComponent:
+      Tag: grass_tuft_01
+    TransformComponent:
+      Translation: [11.07, 10.08, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 33
+      TextureHandle: 3155347658036633039
+      Texture: StatueVillage/Nature/grass_tuft_01.png
+      FlipX: false
+      FlipY: false
+  - Entity: 3032126506352294817
+    TagComponent:
+      Tag: flowers_purple
+    TransformComponent:
+      Translation: [14.39, 7.16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 45
+      TextureHandle: 1328184244469230425
+      Texture: StatueVillage/Nature/flowers_purple.png
+      FlipX: true
+      FlipY: false

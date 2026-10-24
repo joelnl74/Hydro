@@ -1,7 +1,7 @@
 Project:
   Name: Sandbox
   AssetDirectory: Assets
-  StartSceneHandle: 4844082714373857365
+  StartSceneHandle: 1810447559653123777
 Renderer:
   ClearColor: [0, 0, 0, 1]
   VSync: true
