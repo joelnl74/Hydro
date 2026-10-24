@@ -134,6 +134,13 @@ Entities:
       Offset: [0, 0.05]
       Size: [0.6, 0.25]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.8, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 414296773933373787
     TagComponent:
       Tag: Light Torch 1
@@ -171,6 +178,13 @@ Entities:
       Offset: [0, 0.05]
       Size: [0.6, 0.25]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.8, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 919884355118112683
     TagComponent:
       Tag: Light Torch 2
@@ -202,6 +216,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.7, 0.7]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.375]
+      Size: [0.7333, 0.225]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2713549117496998467
     TagComponent:
       Tag: Light Lamp Statue
@@ -233,6 +254,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
       Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.225]
+      Size: [0.88, 0.45]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3635466357084613957
     TagComponent:
       Tag: planter_pink
@@ -252,6 +280,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
       Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.225]
+      Size: [0.88, 0.45]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3792306650522395535
     TagComponent:
       Tag: planter_pink
@@ -271,6 +306,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
       Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.225]
+      Size: [0.88, 0.45]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3972931534576110657
     TagComponent:
       Tag: planter_white
@@ -290,6 +332,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
       Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.225]
+      Size: [0.88, 0.45]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 980402304868923653
     TagComponent:
       Tag: bench_v
@@ -305,6 +354,13 @@ Entities:
       Texture: StatueVillage/Props/bench_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.1857]
+      Size: [0.6667, 0.5714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2128216043112077391
     TagComponent:
       Tag: bench_v
@@ -320,6 +376,13 @@ Entities:
       Texture: StatueVillage/Props/bench_v.png
       FlipX: true
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.1857]
+      Size: [0.6667, 0.5714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 825496230411565661
     TagComponent:
       Tag: Street Lamp 1
@@ -339,6 +402,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2614434012195156793
     TagComponent:
       Tag: Light Lamp 1
@@ -370,6 +440,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3305103137930828569
     TagComponent:
       Tag: Light Lamp 2
@@ -401,6 +478,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 404916274314077779
     TagComponent:
       Tag: Light Lamp 3
@@ -432,6 +516,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 196695201644955793
     TagComponent:
       Tag: Light Lamp 4
@@ -463,6 +554,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1960916530756804351
     TagComponent:
       Tag: Light Lamp 5
@@ -494,6 +592,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4303326371760076051
     TagComponent:
       Tag: Light Lamp 6
@@ -525,6 +630,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2391873903376683033
     TagComponent:
       Tag: Light Lamp 7
@@ -556,6 +668,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2133829197947381101
     TagComponent:
       Tag: Light Lamp 8
@@ -587,6 +706,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 595551861994864879
     TagComponent:
       Tag: Light Lamp 9
@@ -618,6 +744,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.5, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3298021625805878349
     TagComponent:
       Tag: Light Lamp 10
@@ -649,6 +782,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3]
+      Size: [0.8, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2037049133003831237
     TagComponent:
       Tag: Light Lamp Bollard 11
@@ -680,6 +820,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3]
+      Size: [0.8, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 819152736898420187
     TagComponent:
       Tag: Light Lamp Bollard 12
@@ -711,6 +858,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3]
+      Size: [0.8, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 811762522725639669
     TagComponent:
       Tag: Light Lamp Bollard 13
@@ -742,6 +896,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3]
+      Size: [0.8, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 789461748413840827
     TagComponent:
       Tag: Light Lamp Bollard 14
@@ -773,6 +934,13 @@ Entities:
       Offset: [0, -2.1375]
       Size: [3.8, 1.1]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3514]
+      Size: [0.85, 0.2743]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1932403015165527087
     TagComponent:
       Tag: Light Window 1
@@ -816,6 +984,13 @@ Entities:
       Offset: [0, -1.7]
       Size: [3.8, 1.1]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3143]
+      Size: [0.85, 0.3429]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 659063234451821955
     TagComponent:
       Tag: Light Window 3
@@ -859,6 +1034,13 @@ Entities:
       Offset: [0, -2.1375]
       Size: [3.8, 1.1]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3514]
+      Size: [0.85, 0.2743]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 626341279829528923
     TagComponent:
       Tag: Light Window 5
@@ -902,6 +1084,13 @@ Entities:
       Offset: [0, -1.7]
       Size: [3.8, 1.1]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3143]
+      Size: [0.85, 0.3429]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4491001065743252127
     TagComponent:
       Tag: Light Window 7
@@ -945,6 +1134,13 @@ Entities:
       Offset: [0, -1.7]
       Size: [4.75, 1.1]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3143]
+      Size: [0.88, 0.3429]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2515540631018834397
     TagComponent:
       Tag: Light Window 9
@@ -988,6 +1184,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2.7, 0.7]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.35]
+      Size: [0.8667, 0.2667]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4341221922044064247
     TagComponent:
       Tag: Light Market
@@ -1019,6 +1222,23 @@ Entities:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.1286]
+      Size: [0.8615, 0.6286]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 257413667641180777
     TagComponent:
       Tag: crate_marked
@@ -1038,6 +1258,23 @@ Entities:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.1286]
+      Size: [0.8615, 0.6286]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 3405979516638883231
     TagComponent:
       Tag: barrel
@@ -1057,6 +1294,23 @@ Entities:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.18]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 3312867265919744767
     TagComponent:
       Tag: sack
@@ -1076,6 +1330,23 @@ Entities:
       Offset: [0, -0.2938]
       Size: [0.5938, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.1364]
+      Size: [0.8, 0.5818]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 3592236066842859545
     TagComponent:
       Tag: sack
@@ -1095,6 +1366,23 @@ Entities:
       Offset: [0, -0.2938]
       Size: [0.5938, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.1364]
+      Size: [0.8, 0.5818]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 693782159479661911
     TagComponent:
       Tag: well
@@ -1114,6 +1402,13 @@ Entities:
       Offset: [0, -1.2]
       Size: [1.8, 0.7]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.32]
+      Size: [0.8, 0.32]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4340626838237226797
     TagComponent:
       Tag: notice_board
@@ -1133,6 +1428,13 @@ Entities:
       Offset: [0, -0.825]
       Size: [1.35, 0.7]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3286]
+      Size: [0.8, 0.2857]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 573541331641978947
     TagComponent:
       Tag: Light Window Notice
@@ -1164,6 +1466,13 @@ Entities:
       Offset: [0, -0.825]
       Size: [0.8, 0.3]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.3857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1364938305183354697
     TagComponent:
       Tag: bench_h
@@ -1183,6 +1492,13 @@ Entities:
       Offset: [0, -0.3875]
       Size: [1.575, 0.7]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.1571]
+      Size: [0.8571, 0.5714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4570741529006841253
     TagComponent:
       Tag: woodpile
@@ -1202,6 +1518,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [1.125, 0.7]
       Strength: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, -0.1]
+      Size: [0.88, 0.6667]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1890212805630110995
     TagComponent:
       Tag: barrel
@@ -1221,6 +1544,23 @@ Entities:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.18]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 4261815367485111549
     TagComponent:
       Tag: crate
@@ -1240,6 +1580,23 @@ Entities:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.1286]
+      Size: [0.8615, 0.6286]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 4060269887038417677
     TagComponent:
       Tag: barrel
@@ -1259,6 +1616,23 @@ Entities:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.18]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 1471618826387551041
     TagComponent:
       Tag: crate
@@ -1278,6 +1652,23 @@ Entities:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.1286]
+      Size: [0.8615, 0.6286]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 2301847138159813527
     TagComponent:
       Tag: barrel
@@ -1297,6 +1688,23 @@ Entities:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.18]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 1078701277703534917
     TagComponent:
       Tag: sack
@@ -1316,6 +1724,23 @@ Entities:
       Offset: [0, -0.2938]
       Size: [0.5938, 0.35]
       Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, -0.1364]
+      Size: [0.8, 0.5818]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
   - Entity: 1187964094869384443
     TagComponent:
       Tag: fence_h
@@ -1331,6 +1756,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3956209078245634127
     TagComponent:
       Tag: fence_h
@@ -1346,6 +1778,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1668058803289288139
     TagComponent:
       Tag: fence_h
@@ -1361,6 +1800,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3128220344005594059
     TagComponent:
       Tag: fence_h
@@ -1376,6 +1822,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2311528506842422607
     TagComponent:
       Tag: fence_h
@@ -1391,6 +1844,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 51413353929090239
     TagComponent:
       Tag: fence_h
@@ -1406,6 +1866,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3839475597184070181
     TagComponent:
       Tag: fence_h
@@ -1421,6 +1888,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1556144033971345963
     TagComponent:
       Tag: fence_h
@@ -1436,6 +1910,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1738486970031596441
     TagComponent:
       Tag: fence_h
@@ -1451,6 +1932,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1553003611228436725
     TagComponent:
       Tag: fence_h
@@ -1466,6 +1954,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3746404524479653543
     TagComponent:
       Tag: fence_h
@@ -1481,6 +1976,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1779834019681123835
     TagComponent:
       Tag: fence_h
@@ -1496,6 +1998,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3752476412481645925
     TagComponent:
       Tag: fence_v
@@ -1511,6 +2020,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2464336941936038629
     TagComponent:
       Tag: fence_v
@@ -1526,6 +2042,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 835754847553247529
     TagComponent:
       Tag: fence_v
@@ -1541,6 +2064,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 173364816787498105
     TagComponent:
       Tag: fence_v
@@ -1556,6 +2086,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1720138606490425609
     TagComponent:
       Tag: fence_v
@@ -1571,6 +2108,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3952867239803139555
     TagComponent:
       Tag: fence_v
@@ -1586,6 +2130,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3554787301232563455
     TagComponent:
       Tag: fence_v
@@ -1601,6 +2152,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1061655311194539037
     TagComponent:
       Tag: fence_v
@@ -1616,6 +2174,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3936452341187290063
     TagComponent:
       Tag: fence_v
@@ -1631,6 +2196,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1042452414533365785
     TagComponent:
       Tag: fence_v
@@ -1646,6 +2218,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3320260643193542419
     TagComponent:
       Tag: fence_v
@@ -1661,6 +2240,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 487679871209123271
     TagComponent:
       Tag: fence_v
@@ -1676,6 +2262,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3172294433769884699
     TagComponent:
       Tag: fence_h
@@ -1691,6 +2284,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1447759862837637913
     TagComponent:
       Tag: fence_h
@@ -1706,6 +2306,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3523297102756474329
     TagComponent:
       Tag: fence_h
@@ -1721,6 +2328,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3281427400703644407
     TagComponent:
       Tag: fence_h
@@ -1736,6 +2350,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3281749290742888001
     TagComponent:
       Tag: fence_h
@@ -1751,6 +2372,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1768833267763359763
     TagComponent:
       Tag: fence_h
@@ -1766,6 +2394,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2020496623269795993
     TagComponent:
       Tag: fence_h
@@ -1781,6 +2416,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4423030609675466405
     TagComponent:
       Tag: fence_h
@@ -1796,6 +2438,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4069916224124040565
     TagComponent:
       Tag: fence_h
@@ -1811,6 +2460,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1942023224872448765
     TagComponent:
       Tag: fence_h
@@ -1826,6 +2482,13 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4185830634959931463
     TagComponent:
       Tag: Walker Greenhat
@@ -1855,6 +2518,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 321326785349756209
     TagComponent:
       Tag: Waypoint Greenhat 1 1
@@ -1919,6 +2596,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4132132265029886807
     TagComponent:
       Tag: Waypoint Redhair 1 Down 3
@@ -1990,6 +2681,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3128338277331979239
     TagComponent:
       Tag: Waypoint Bearded 1 0.5
@@ -2061,6 +2766,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 19882440183709279
     TagComponent:
       Tag: Waypoint Apron 1 Down 2
@@ -2139,6 +2858,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1921748222808429011
     TagComponent:
       Tag: Waypoint Strawhat 1 Down 2.5
@@ -2210,6 +2943,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2313481102225951959
     TagComponent:
       Tag: Waypoint Merchant 1 Down 4
@@ -2253,6 +3000,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4380652096752399671
     TagComponent:
       Tag: Waypoint Blonde 1 0.3
@@ -2324,6 +3085,20 @@ Entities:
       Scripts:
         - WaypointWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3926630212420418771
     TagComponent:
       Tag: Waypoint Elder 1 Down 5
@@ -2381,6 +3156,20 @@ Entities:
       Scripts:
         - VillagerWalk
         - VillageYSort
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 10
+      AngularDamping: 0.05
+    BoxCollider2DComponent:
+      Offset: [0, 0.0857]
+      Size: [0.5, 0.1714]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3830149355071260353
     TagComponent:
       Tag: tree_round_01
@@ -2400,6 +3189,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2794396023455859787
     TagComponent:
       Tag: tree_round_01
@@ -2419,6 +3215,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1325876593924047141
     TagComponent:
       Tag: tree_round_02
@@ -2438,6 +3241,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3409116608294410775
     TagComponent:
       Tag: tree_medium_01
@@ -2457,6 +3267,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4609558519350768795
     TagComponent:
       Tag: tree_round_02
@@ -2476,6 +3293,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3718756086043063727
     TagComponent:
       Tag: tree_round_02
@@ -2495,6 +3319,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 348511884149285913
     TagComponent:
       Tag: tree_round_01
@@ -2514,6 +3345,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 147393513336364599
     TagComponent:
       Tag: tree_round_02
@@ -2533,6 +3371,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 268917888034611819
     TagComponent:
       Tag: pine_01
@@ -2552,6 +3397,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1382216659140452815
     TagComponent:
       Tag: pine_01
@@ -2571,6 +3423,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4477073764907327529
     TagComponent:
       Tag: tree_round_01
@@ -2590,6 +3449,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2888758580065241769
     TagComponent:
       Tag: tree_round_02
@@ -2609,6 +3475,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3278520889557426439
     TagComponent:
       Tag: tree_round_02
@@ -2628,6 +3501,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2651315865903425923
     TagComponent:
       Tag: pine_01
@@ -2647,6 +3527,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 894684982294900065
     TagComponent:
       Tag: pine_01
@@ -2666,6 +3553,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 461682775384437177
     TagComponent:
       Tag: tree_round_02
@@ -2685,6 +3579,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3983152696045074811
     TagComponent:
       Tag: tree_round_02
@@ -2704,6 +3605,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1820052816688489221
     TagComponent:
       Tag: tree_round_02
@@ -2723,6 +3631,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3639765681609676711
     TagComponent:
       Tag: tree_round_01
@@ -2742,6 +3657,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1221183233058194623
     TagComponent:
       Tag: tree_round_01
@@ -2761,6 +3683,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1517506677454697271
     TagComponent:
       Tag: tree_round_01
@@ -2780,6 +3709,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4048473664530895445
     TagComponent:
       Tag: pine_01
@@ -2799,6 +3735,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4158669069223144421
     TagComponent:
       Tag: tree_round_02
@@ -2818,6 +3761,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4002594932615348327
     TagComponent:
       Tag: tree_round_01
@@ -2837,6 +3787,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3203459940432227551
     TagComponent:
       Tag: tree_medium_01
@@ -2856,6 +3813,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1794048601793222063
     TagComponent:
       Tag: tree_autumn_01
@@ -2875,6 +3839,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2591227610550549421
     TagComponent:
       Tag: tree_round_01
@@ -2894,6 +3865,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3297557339985351113
     TagComponent:
       Tag: pine_01
@@ -2913,6 +3891,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1659465275340755383
     TagComponent:
       Tag: tree_autumn_01
@@ -2932,6 +3917,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 957439110040714597
     TagComponent:
       Tag: tree_round_02
@@ -2951,6 +3943,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2135958186040571041
     TagComponent:
       Tag: tree_medium_01
@@ -2970,6 +3969,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3893858464440129003
     TagComponent:
       Tag: pine_01
@@ -2989,6 +3995,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3227034556528299615
     TagComponent:
       Tag: tree_round_02
@@ -3008,6 +4021,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 847003466931216703
     TagComponent:
       Tag: pine_01
@@ -3027,6 +4047,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4208978515231528945
     TagComponent:
       Tag: tree_round_02
@@ -3046,6 +4073,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4603103582577480563
     TagComponent:
       Tag: tree_medium_01
@@ -3065,6 +4099,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2641562376958844207
     TagComponent:
       Tag: pine_01
@@ -3084,6 +4125,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2886230507922064819
     TagComponent:
       Tag: pine_01
@@ -3103,6 +4151,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4224289592874299877
     TagComponent:
       Tag: tree_round_02
@@ -3122,6 +4177,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3066827167895800645
     TagComponent:
       Tag: tree_autumn_01
@@ -3141,6 +4203,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4521460709160330861
     TagComponent:
       Tag: pine_01
@@ -3160,6 +4229,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2451865429377975097
     TagComponent:
       Tag: tree_round_01
@@ -3179,6 +4255,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4598702217356421205
     TagComponent:
       Tag: tree_autumn_01
@@ -3198,6 +4281,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2412718470576352539
     TagComponent:
       Tag: tree_round_02
@@ -3217,6 +4307,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 529732126664432355
     TagComponent:
       Tag: pine_01
@@ -3236,6 +4333,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3672121344992625201
     TagComponent:
       Tag: pine_01
@@ -3255,6 +4359,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 332706379531740869
     TagComponent:
       Tag: pine_01
@@ -3274,6 +4385,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3021495398095373697
     TagComponent:
       Tag: tree_autumn_01
@@ -3293,6 +4411,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 18172576716395147
     TagComponent:
       Tag: tree_autumn_01
@@ -3312,6 +4437,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3138849895789787977
     TagComponent:
       Tag: tree_round_02
@@ -3331,6 +4463,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1269840201844488727
     TagComponent:
       Tag: tree_round_02
@@ -3350,6 +4489,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 55368212840025283
     TagComponent:
       Tag: tree_round_01
@@ -3369,6 +4515,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1471521730156287811
     TagComponent:
       Tag: tree_round_02
@@ -3388,6 +4541,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1206128265622185441
     TagComponent:
       Tag: tree_round_01
@@ -3407,6 +4567,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 627892166047166793
     TagComponent:
       Tag: tree_round_02
@@ -3426,6 +4593,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4242724527518288059
     TagComponent:
       Tag: tree_round_01
@@ -3445,6 +4619,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1832051457460286461
     TagComponent:
       Tag: tree_round_02
@@ -3464,6 +4645,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 220237298799776843
     TagComponent:
       Tag: tree_round_02
@@ -3483,6 +4671,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2358121734863248031
     TagComponent:
       Tag: pine_01
@@ -3502,6 +4697,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2560711334528181031
     TagComponent:
       Tag: pine_01
@@ -3521,6 +4723,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1347329955509940453
     TagComponent:
       Tag: pine_01
@@ -3540,6 +4749,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3863826560974097773
     TagComponent:
       Tag: pine_01
@@ -3559,6 +4775,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 265202378304101861
     TagComponent:
       Tag: tree_round_02
@@ -3578,6 +4801,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3574199206066174939
     TagComponent:
       Tag: tree_round_02
@@ -3597,6 +4827,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1058843915684119587
     TagComponent:
       Tag: tree_round_01
@@ -3616,6 +4853,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 869199679343801217
     TagComponent:
       Tag: pine_01
@@ -3635,6 +4879,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2235106990000876975
     TagComponent:
       Tag: tree_medium_01
@@ -3654,6 +4905,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1258074575472525565
     TagComponent:
       Tag: tree_medium_01
@@ -3673,6 +4931,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3029131063709831839
     TagComponent:
       Tag: tree_round_02
@@ -3692,6 +4957,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 325794376439280263
     TagComponent:
       Tag: tree_medium_01
@@ -3711,6 +4983,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4237249371806666735
     TagComponent:
       Tag: tree_round_02
@@ -3730,6 +5009,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3576773229370399261
     TagComponent:
       Tag: pine_01
@@ -3749,6 +5035,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 800773388902246061
     TagComponent:
       Tag: pine_01
@@ -3768,6 +5061,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1631072167916105881
     TagComponent:
       Tag: tree_round_01
@@ -3787,6 +5087,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4427033389921514259
     TagComponent:
       Tag: pine_01
@@ -3806,6 +5113,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2467032873340836743
     TagComponent:
       Tag: pine_01
@@ -3825,6 +5139,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3428438093690749555
     TagComponent:
       Tag: tree_autumn_01
@@ -3844,6 +5165,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 523725381523024353
     TagComponent:
       Tag: tree_medium_01
@@ -3863,6 +5191,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 579688685332141141
     TagComponent:
       Tag: tree_medium_01
@@ -3882,6 +5217,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 631585484270204901
     TagComponent:
       Tag: tree_round_01
@@ -3901,6 +5243,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2514859118032017857
     TagComponent:
       Tag: tree_round_02
@@ -3920,6 +5269,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 152574199551323179
     TagComponent:
       Tag: tree_round_01
@@ -3939,6 +5295,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2364564028683574213
     TagComponent:
       Tag: tree_medium_01
@@ -3958,6 +5321,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1748959588206010517
     TagComponent:
       Tag: pine_01
@@ -3977,6 +5347,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1632115348748889565
     TagComponent:
       Tag: tree_medium_01
@@ -3996,6 +5373,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3607635849341139555
     TagComponent:
       Tag: tree_autumn_01
@@ -4015,6 +5399,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1067865908091389147
     TagComponent:
       Tag: tree_medium_01
@@ -4034,6 +5425,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2805127045845063567
     TagComponent:
       Tag: pine_01
@@ -4053,6 +5451,13 @@ Entities:
       Offset: [0, -1.45]
       Size: [2, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.3917]
+      Size: [0.35, 0.1833]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4467007037556107723
     TagComponent:
       Tag: tree_round_01
@@ -4072,6 +5477,13 @@ Entities:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
       Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4125]
+      Size: [0.3, 0.15]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 742983161049264867
     TagComponent:
       Tag: bush_medium_02
@@ -4110,6 +5522,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4118625400866016925
     TagComponent:
       Tag: grass_tuft_01
@@ -4302,6 +5721,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3609861506659961173
     TagComponent:
       Tag: flowers_purple
@@ -4336,6 +5762,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2613664587639171729
     TagComponent:
       Tag: bush_medium_02
@@ -4389,6 +5822,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4105870777453859561
     TagComponent:
       Tag: flowers_pink
@@ -4438,6 +5878,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4105778062000152299
     TagComponent:
       Tag: flowers_purple
@@ -4585,6 +6032,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 52063962687250175
     TagComponent:
       Tag: bush_medium_02
@@ -4766,6 +6220,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3714660410477203625
     TagComponent:
       Tag: bush_small_01
@@ -4834,6 +6295,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1045169999066092531
     TagComponent:
       Tag: bush_medium_02
@@ -4921,6 +6389,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3407801240580332839
     TagComponent:
       Tag: rock_small_01
@@ -4940,6 +6415,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1932758267286029061
     TagComponent:
       Tag: stump_01
@@ -4959,6 +6441,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3300180910269548097
     TagComponent:
       Tag: bush_medium_01
@@ -5114,6 +6603,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 19917517565279963
     TagComponent:
       Tag: stump_01
@@ -5133,6 +6629,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4351609142445122883
     TagComponent:
       Tag: rock_small_01
@@ -5152,6 +6655,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3863001123536887145
     TagComponent:
       Tag: flowers_orange
@@ -5231,6 +6741,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4059016296815940757
     TagComponent:
       Tag: grass_tuft_01
@@ -5363,6 +6880,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2057943110310581905
     TagComponent:
       Tag: flowers_orange
@@ -5397,6 +6921,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1075982004158601925
     TagComponent:
       Tag: grass_tuft_01
@@ -5461,6 +6992,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1704363836578685549
     TagComponent:
       Tag: flowers_pink
@@ -5600,6 +7138,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2192476716653743373
     TagComponent:
       Tag: rock_small_01
@@ -5619,6 +7164,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4138587758966311303
     TagComponent:
       Tag: bush_small_01
@@ -5676,6 +7228,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 774038706539191677
     TagComponent:
       Tag: stump_01
@@ -5695,6 +7254,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2378827309668298715
     TagComponent:
       Tag: rock_small_01
@@ -5714,6 +7280,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3692760515451860715
     TagComponent:
       Tag: grass_tuft_01
@@ -5786,6 +7359,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1109133162981092295
     TagComponent:
       Tag: rock_medium_01
@@ -5805,6 +7385,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1045815562347019593
     TagComponent:
       Tag: flowers_purple
@@ -5839,6 +7426,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1823600045757724995
     TagComponent:
       Tag: stump_01
@@ -5858,6 +7452,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2589012236810669507
     TagComponent:
       Tag: bush_medium_01
@@ -5896,6 +7497,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1494351262318106813
     TagComponent:
       Tag: flowers_orange
@@ -5930,6 +7538,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2285995013291469345
     TagComponent:
       Tag: grass_tuft_01
@@ -6130,6 +7745,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2445643729026346411
     TagComponent:
       Tag: rock_small_01
@@ -6149,6 +7771,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 904997323327334091
     TagComponent:
       Tag: stump_01
@@ -6168,6 +7797,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1681143601130038545
     TagComponent:
       Tag: flowers_purple
@@ -6202,6 +7838,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1795044470030707927
     TagComponent:
       Tag: rock_small_01
@@ -6221,6 +7864,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 3212473364349011943
     TagComponent:
       Tag: bush_medium_01
@@ -6308,6 +7958,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1636914823779827349
     TagComponent:
       Tag: flowers_orange
@@ -6342,6 +7999,13 @@ Entities:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.1667]
+      Size: [0.8, 0.5333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 361186814967897265
     TagComponent:
       Tag: grass_tuft_01
@@ -6425,6 +8089,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 1129665877513434147
     TagComponent:
       Tag: grass_tuft_01
@@ -6542,6 +8213,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 4341502015788198055
     TagComponent:
       Tag: stump_01
@@ -6561,6 +8239,13 @@ Entities:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
       Strength: 0.35
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 2974585008234795793
     TagComponent:
       Tag: flowers_purple
@@ -6606,3 +8291,3654 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+  - Entity: 6266021446570683844
+    TagComponent:
+      Tag: Wall North
+    TransformComponent:
+      Translation: [18, 18.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [98, 1]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1862419426261319830
+    TagComponent:
+      Tag: Wall South
+    TransformComponent:
+      Translation: [18, -18.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [98, 1]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4105423142019719795
+    TagComponent:
+      Tag: Wall East
+    TransformComponent:
+      Translation: [66.5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 38]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3257251887430764668
+    TagComponent:
+      Tag: Wall West
+    TransformComponent:
+      Translation: [-30.5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 38]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2364074903690081858
+    TagComponent:
+      Tag: Water West
+    TransformComponent:
+      Translation: [-24.3, -10.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [8, 9]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8843638479394267968
+    TagComponent:
+      Tag: Water East
+    TransformComponent:
+      Translation: [-16.3, -10.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [2, 9]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1300324847044335750
+    TagComponent:
+      Tag: Zone Bridge
+    TransformComponent:
+      Translation: [-18.8, -10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [3, 9]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: true
+  - Entity: 2036356596509621467
+    TagComponent:
+      Tag: Zone Statue Plaza
+    TransformComponent:
+      Translation: [0, -1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [9, 7]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: true
+  - Entity: 7090716713758177734
+    TagComponent:
+      Tag: Zone Market
+    TransformComponent:
+      Translation: [7, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [6, 4]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: true
+  - Entity: 2779972809554124980
+    TagComponent:
+      Tag: East Meadow Ground
+    TransformComponent:
+      Translation: [48, 0, -0.5]
+      Rotation: [0, 0, 0]
+      Scale: [36, 36, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -100
+      TextureHandle: 2779972809554124980
+      Texture: StatueVillage/Terrain/Meadow_Ground.png
+      FlipX: false
+      FlipY: false
+  - Entity: 1837644109089553282
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -17, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 142
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7139340909864901719
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 138
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2918718014751683337
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 134
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9144525291487462886
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -14, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 130
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1720588001137631950
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 126
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7188390533466060115
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 122
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1954461558054822699
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 118
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9012261112122693208
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 114
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7159848977646357883
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 110
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6809407364178882595
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 106
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4352832599728581796
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 102
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5789841720329956793
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 98
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8139851981757354152
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 94
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5513996572903002108
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 90
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6530873937484166001
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 86
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8812257732672443911
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 66
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3496386027594311300
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 62
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4245655901886648220
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 58
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1859933750512959703
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1551931099627016005
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 50
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5021344074366877306
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 46
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1711170113188424800
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9099539441596559102
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7851873020753620611
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 34
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2649120858074839448
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3643325976429527474
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4547177929298779379
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7393299057314521557
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 14, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 18
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1460746743819607254
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 14
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6272404864374131434
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 16, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 10
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5374172079244357981
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [31, 17, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 6
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9218474258255860966
+    TagComponent:
+      Tag: Street Lamp 11
+    TransformComponent:
+      Translation: [30.4, 2.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 68
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.9, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.3, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1490485485255953624
+    TagComponent:
+      Tag: Light Lamp 10
+    TransformComponent:
+      Translation: [30.12, 3.26, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 2947135538667375729
+    TagComponent:
+      Tag: Sign East Meadow
+    TransformComponent:
+      Translation: [32.2, -2.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 2.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 87
+      TextureHandle: 2425838877143581559
+      Texture: StatueVillage/Props/sign_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.075]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.3636, 0.1333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5749359393048380820
+    TagComponent:
+      Tag: Zone East Gate
+    TransformComponent:
+      Translation: [31, -0.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [2.4, 4.2]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: true
+  - Entity: 6965100852027028403
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [35, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6324647845593135426
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [35, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6088379978127605639
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [36, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7256145396220679332
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [36, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4407725190638923609
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [37, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7584040425215640815
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [37, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7816771810716980569
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [38, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1678154270765986084
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [38, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1179079773249225631
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [39, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1862270685702432512
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [40, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9067414375345934826
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [41, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8379901091428359228
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [41, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2763172963088027471
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [42, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1661926669521142470
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [42, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7827813817226269252
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [43, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2749208529760922846
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [43, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3589350437315919278
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [44, 13, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 22
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4915774207071658511
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [44, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2150359186854153380
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [34.6, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3314426355252969814
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [44.6, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7267222791777096770
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [34.6, 10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 34
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1649075440471104298
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [44.6, 10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 34
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6185474737975842952
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [34.6, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7464417874175239470
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [44.6, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7451426227843162042
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [34.6, 12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7072347933279049648
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [44.6, 12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6823196279603610528
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [36, 12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.375]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1765]
+      Size: [0.8485, 0.7059]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 3748889856436418835
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [37.3, 12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.375]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1765]
+      Size: [0.8485, 0.7059]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 2307124888599627086
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [36.4, 10.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 31
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.375]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1765]
+      Size: [0.8485, 0.7059]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 3140077742355875866
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [41, 12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.375]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1765]
+      Size: [0.8485, 0.7059]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 8041376467716881987
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [42.3, 11.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.375]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1765]
+      Size: [0.8485, 0.7059]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 2429620804604648583
+    TagComponent:
+      Tag: crate
+    TransformComponent:
+      Translation: [41.6, 10.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 31
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.375]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1765]
+      Size: [0.8485, 0.7059]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 7405724112956764281
+    TagComponent:
+      Tag: barrel
+    TransformComponent:
+      Translation: [38.5, 12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.725, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 26
+      TextureHandle: 4191351922365452907
+      Texture: StatueVillage/Props/barrel_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.6525, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8276, 0.5]
+      Density: 1.5
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 6117507855354557358
+    TagComponent:
+      Tag: barrel
+    TransformComponent:
+      Translation: [43.3, 10.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.725, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 33
+      TextureHandle: 4191351922365452907
+      Texture: StatueVillage/Props/barrel_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.6525, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8276, 0.5]
+      Density: 1.5
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 6333860837745117987
+    TagComponent:
+      Tag: barrel
+    TransformComponent:
+      Translation: [35.6, 9.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.725, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 37
+      TextureHandle: 4191351922365452907
+      Texture: StatueVillage/Props/barrel_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.6525, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.2]
+      Size: [0.8276, 0.5]
+      Density: 1.5
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 7794674540689265670
+    TagComponent:
+      Tag: Zone Crate Yard
+    TransformComponent:
+      Translation: [39.6, 10.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [9.2, 4.6]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: true
+  - Entity: 2785882759632179085
+    TagComponent:
+      Tag: Sign Crate Yard
+    TransformComponent:
+      Translation: [37.3, 7.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 2.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 48
+      TextureHandle: 2425838877143581559
+      Texture: StatueVillage/Props/sign_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.075]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.3636, 0.1333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5500158099534120233
+    TagComponent:
+      Tag: Heavy Barrel 1
+    TransformComponent:
+      Translation: [36, -8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.0688, 1.5469, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 107
+      TextureHandle: 3757811978861763203
+      Texture: StatueVillage/Props/barrel_large.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.7234]
+      Size: [0.9619, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1939]
+      Size: [0.7485, 0.3879]
+      Density: 4
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 4847059053418784488
+    TagComponent:
+      Tag: Heavy Barrel 2
+    TransformComponent:
+      Translation: [38, -8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.0688, 1.5469, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 107
+      TextureHandle: 3757811978861763203
+      Texture: StatueVillage/Props/barrel_large.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.7234]
+      Size: [0.9619, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1939]
+      Size: [0.7485, 0.3879]
+      Density: 4
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 6026902650361439072
+    TagComponent:
+      Tag: Heavy Barrel 3
+    TransformComponent:
+      Translation: [40, -8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.0688, 1.5469, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 107
+      TextureHandle: 3757811978861763203
+      Texture: StatueVillage/Props/barrel_large.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.7234]
+      Size: [0.9619, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.1939]
+      Size: [0.7485, 0.3879]
+      Density: 4
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 7801732771766800138
+    TagComponent:
+      Tag: Light Crate 1
+    TransformComponent:
+      Translation: [36, -10.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9281, 0.9563, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 116
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.4281]
+      Size: [0.8353, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.2092]
+      Size: [0.862, 0.732]
+      Density: 0.3
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 4669997846444583975
+    TagComponent:
+      Tag: Light Crate 2
+    TransformComponent:
+      Translation: [38, -10.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9281, 0.9563, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 116
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.4281]
+      Size: [0.8353, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.2092]
+      Size: [0.862, 0.732]
+      Density: 0.3
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 7507093279061131150
+    TagComponent:
+      Tag: Light Crate 3
+    TransformComponent:
+      Translation: [40, -10.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9281, 0.9563, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 116
+      TextureHandle: 3824842028287098225
+      Texture: StatueVillage/Props/crate_wood.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.4281]
+      Size: [0.8353, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 8
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.2092]
+      Size: [0.862, 0.732]
+      Density: 0.3
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 3527633358239869379
+    TagComponent:
+      Tag: Sign Weigh Lane
+    TransformComponent:
+      Translation: [34.2, -9.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.825, 2.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 113
+      TextureHandle: 2425838877143581559
+      Texture: StatueVillage/Props/sign_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.075]
+      Size: [0.7425, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.4333]
+      Size: [0.3636, 0.1333]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4685552171481363361
+    TagComponent:
+      Tag: Zone Weigh Lane
+    TransformComponent:
+      Translation: [38.2, -9.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [7.6, 5.4]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: true
+  - Entity: 4576178275507204906
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [50, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6952074780267146329
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [50, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6141037819770470407
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [51, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7144298925750660973
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [51, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2069638208786863920
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [52, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7875563239548627977
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [52, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3399688736688602787
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [53, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9068476286519897016
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [53, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7852860572051795790
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [54, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7444169321346130992
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [54, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1437532227100036946
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [55, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1824998492782347326
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [55, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9197249174694347628
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [56, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4816724563799852009
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [56, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1185859187022402487
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [57, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1176890281263240527
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [57, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5861307138889860283
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [58, 11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 30
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2000275479800752377
+    TagComponent:
+      Tag: fence_h
+    TransformComponent:
+      Translation: [58, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 4373606603088527021
+      Texture: StatueVillage/Buildings/fence_h.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5245597452598911197
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [58.4, 6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 50
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3991711762745552088
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [49.6, 6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 50
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4941969853604165415
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [58.4, 7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 46
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4406792469430413999
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [58.4, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 42
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3555391798394995721
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [58.4, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7726559823859647788
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [49.6, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7646966628441963787
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [58.4, 10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 34
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5203084124689219801
+    TagComponent:
+      Tag: fence_v
+    TransformComponent:
+      Translation: [49.6, 10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 34
+      TextureHandle: 3218344103031575721
+      Texture: StatueVillage/Buildings/fence_v.png
+      FlipX: false
+      FlipY: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.3, 1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2481934675914954498
+    TagComponent:
+      Tag: Bounce Stone 1
+    TransformComponent:
+      Translation: [52, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9844, 0.7875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 696840065079996079
+      Texture: StatueVillage/Nature/rock_single.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3438]
+      Size: [0.8859, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0.6
+      AngularDamping: 0
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.3352
+      Density: 0.8
+      Friction: 0.1
+      Restitution: 0.9
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 6198535628234273342
+    TagComponent:
+      Tag: Bounce Stone 2
+    TransformComponent:
+      Translation: [53.5, 7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9844, 0.7875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 46
+      TextureHandle: 696840065079996079
+      Texture: StatueVillage/Nature/rock_single.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3438]
+      Size: [0.8859, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0.6
+      AngularDamping: 0
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.3352
+      Density: 0.8
+      Friction: 0.1
+      Restitution: 0.9
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 1534224041335599319
+    TagComponent:
+      Tag: Bounce Stone 3
+    TransformComponent:
+      Translation: [55, 9.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9844, 0.7875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 37
+      TextureHandle: 696840065079996079
+      Texture: StatueVillage/Nature/rock_single.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3438]
+      Size: [0.8859, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0.6
+      AngularDamping: 0
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.3352
+      Density: 0.8
+      Friction: 0.1
+      Restitution: 0.9
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 5729623779267975783
+    TagComponent:
+      Tag: Bounce Stone 4
+    TransformComponent:
+      Translation: [56.4, 6.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9844, 0.7875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 46
+      TextureHandle: 696840065079996079
+      Texture: StatueVillage/Nature/rock_single.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.3438]
+      Size: [0.8859, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0.6
+      AngularDamping: 0
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.3352
+      Density: 0.8
+      Friction: 0.1
+      Restitution: 0.9
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - VillageYSort
+  - Entity: 7354172670450721517
+    TagComponent:
+      Tag: Moving Cart
+    TransformComponent:
+      Translation: [51, -6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.0016, 2.975, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 102
+      TextureHandle: 775929001995940685
+      Texture: StatueVillage/Buildings/market_stall_red.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.4375]
+      Size: [2.7014, 0.35]
+      Strength: 0.45
+    Rigidbody2DComponent:
+      Type: Kinematic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 0
+      AngularDamping: 0
+    BoxCollider2DComponent:
+      Offset: [0, -0.3319]
+      Size: [0.8, 0.3361]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - Bob
+  - Entity: 5249040738533844124
+    TagComponent:
+      Tag: Banner Finish 1
+    TransformComponent:
+      Translation: [62, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.0125, 1.9688, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 68
+      TextureHandle: 3732474670272984753
+      Texture: StatueVillage/Buildings/banner_heraldic.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.9344]
+      Size: [0.9113, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.4238]
+      Size: [0.2963, 0.1524]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4507516330662630308
+    TagComponent:
+      Tag: Banner Finish 2
+    TransformComponent:
+      Translation: [62, -3.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.0125, 1.9688, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 90
+      TextureHandle: 3732474670272984753
+      Texture: StatueVillage/Buildings/banner_heraldic.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.9344]
+      Size: [0.9113, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.4238]
+      Size: [0.2963, 0.1524]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5974454856937940803
+    TagComponent:
+      Tag: Finish Board
+    TransformComponent:
+      Translation: [64.2, 2.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.4062, 2.3062, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 67
+      TextureHandle: 3417689362554770413
+      Texture: StatueVillage/Buildings/town_notice_board.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.1031]
+      Size: [1.2656, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3916]
+      Size: [0.8, 0.2168]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4344725614964814440
+    TagComponent:
+      Tag: Street Lamp 12
+    TransformComponent:
+      Translation: [60.6, 2.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 68
+      TextureHandle: 1522097651184602713
+      Texture: StatueVillage/Props/lamp_post.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [0.9, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.45]
+      Size: [0.3, 0.1]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8205781685528226485
+    TagComponent:
+      Tag: Light Lamp 11
+    TransformComponent:
+      Translation: [60.32, 3.26, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.58, 0.24]
+      Intensity: 1.7
+      Radius: 5.8
+  - Entity: 3404144742262713237
+    TagComponent:
+      Tag: Zone Finish
+    TransformComponent:
+      Translation: [62, -0.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [3, 5]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: true
+  - Entity: 6445397438067698775
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [32.82, 15.41, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 16
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3706584917711503374
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [36.31, 15.94, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 14
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7652405942868612985
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [39.65, 15.91, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 14
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9080260437128872825
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [42.9, 15.18, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 17
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3288763505732081417
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [46.62, 16.03, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 14
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5127188491044329093
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [48.9, 16.24, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 13
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7206028494703280338
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [52.58, 16.56, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 12
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7004908177311062605
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [56.03, 16.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 12
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2977515507571079301
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [58.48, 14.78, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 19
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8657787832598097338
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [61.23, 16.67, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 11
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7627468442645466476
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [63.97, 15.01, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 18
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9083504124697916451
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [33.07, -15.83, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 141
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5891030792854391357
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [35.81, -14.81, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 137
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5758128945613616743
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [39.32, -15.07, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 138
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6792007220908532100
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [42.43, -16.24, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 143
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7684863867069706353
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [45.11, -16.21, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 143
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4322558985153898571
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [49.19, -16.54, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 144
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4337743488885877722
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [51.83, -16.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 143
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8905359709357840501
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [54.81, -14.81, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 137
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2932123296983842300
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [57.13, -15.72, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 141
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6421312599991415714
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [60.45, -16.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 143
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5472005670979366051
+    TagComponent:
+      Tag: pine_01
+    TransformComponent:
+      Translation: [63.58, -15.21, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2, 3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 139
+      TextureHandle: 3459862876985718025
+      Texture: StatueVillage/Nature/pine_01.png
+      FlipX: true
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -1.45]
+      Size: [1.8, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.3667]
+      Size: [0.3, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6199511775856964842
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [47.5, 2.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 64
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.1]
+      Size: [0.8667, 0.7]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3978010147209308637
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [57, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 86
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.1]
+      Size: [0.8667, 0.7]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6437876312322176324
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [44, -4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 90
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.1]
+      Size: [0.8667, 0.7]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5099367355306598708
+    TagComponent:
+      Tag: rock_medium_01
+    TransformComponent:
+      Translation: [60, 9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 38
+      TextureHandle: 78164669084331391
+      Texture: StatueVillage/Nature/rock_medium_01.png
+      FlipX: false
+      FlipY: false
+    Shadow2DComponent:
+      Offset: [0, -0.45]
+      Size: [1.35, 0.35]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.1]
+      Size: [0.8667, 0.7]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false

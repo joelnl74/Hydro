@@ -12,7 +12,7 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
 | Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent` (saved data only: nothing simulates them yet), `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
-| `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
+| `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera, overlay)` or `RenderRuntime(view)` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
 | Serialization | `Scene/SceneSerializer.h`, `Scene/PrefabSerializer.h`, `Scene/EntitySerializer.h` | Saves scenes (`.hyscene`) and prefabs (`.hyprefab`) as YAML |
 
@@ -23,6 +23,8 @@ Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name)
 - Public fields with defaults, plus small pure helpers (`TransformComponent::GetTransform()`). No virtual functions, and no update logic.
 - No raw pointers or references to other components or entities. Refer to other entities by `Entity` or `UUID`.
 - A shared engine resource is fine: `SpriteRendererComponent::Texture` was a `Ref<Texture2D>` and is now an `AssetHandle` (copied with the component, so the play copy refers to the same asset); the renderer resolves it with `AssetManager::GetLoadedAsset` ([Architecture](Architecture.md#asset-system)).
+- Find an entity by its UUID with `Scene::GetEntityByUUID(uuid)`; it returns an empty `Entity` when there is none. `Entity::IsValid()` is true for an entity that exists and is not pending destroy; `HasComponent` on an empty or destroyed entity is false. `GetComponent` asserts (debug builds) that the entity is alive and has the component, and has a `const` overload.
+- Creating an entity with a UUID that is already used (`CreateEntityWithUUID`) logs an error and gives the new entity a fresh UUID, so lookups stay unambiguous.
 - Don't keep a `T&` from `GetComponent<T>()` across a call that adds or removes components. EnTT moves its storage, so the reference can dangle.
 
 ## Systems are functions
@@ -92,6 +94,7 @@ Oxygen edits one scene and plays a copy of it, so nothing that happens while pla
 
 - `Scene::Copy` copies every entity made with `CreateEntity` (same UUIDs), the components in `CopyableComponents` (`Components.h`: add new copyable components there), the native script bindings (fresh instances on the first runtime update), the name and the viewport size. Raw registry entities without an `IDComponent` are not copied; an application copies its own (the editor copies its galaxy stars).
 - The hierarchy, inspector and both windows show the active scene, so the runtime scene can be inspected and tweaked while playing; those changes are lost on Stop. Saving always writes the editor scene, and opening or creating a scene stops play first.
+- The selected entity stays selected across Play and Stop: the editor finds it again in the new scene by its UUID (`Scene::GetEntityByUUID`), and clears the selection if it no longer exists (for example an entity spawned while playing, after Stop).
 - Application systems are gameplay: Oxygen's galaxy only moves while playing.
 
 ## Scripts
@@ -120,7 +123,12 @@ entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>().Bind("Heal
 - `NativeScriptComponent` is data: a list of scripts (name, factory, instance). An entity has one `NativeScriptComponent` but any number of scripts in it. Instances are created on the scene's next runtime update, live on the heap, and hold their `Entity` by value.
 - **`ScriptRegistry`** maps a name to a script's factory. Scenes and prefabs save the names (`NativeScriptComponent: { Scripts: [Spin, Bob] }`) and loading binds them again by name. Register every script before a scene that uses it is loaded; names must stay stable once saved. A script bound in code but not registered still runs, but isn't saved. A saved name that isn't registered is kept (so the file saves back unchanged) but doesn't run, and the editor shows it in red.
 - Remove scripts with `Scene::RemoveScript(entity, index)` / `Scene::RemoveScripts(entity)`, which call `OnDestroy` on running ones. Oxygen's inspector lists an entity's scripts, removes them, and adds registered ones (**Add Component > Script** or **Add Script**).
-- Don't add or remove `NativeScriptComponent`s from inside a script's `OnCreate`/`OnUpdate`. The script system is iterating over them at that point ([#40](https://github.com/joelnl74/Hydro/issues/40)).
+- **Scripts can change the scene.** From `OnCreate`/`OnUpdate` a script may create entities, add components, bind scripts, and destroy entities or remove scripts, including its own. The script stage (`UpdateScripts`) walks a snapshot of the entities that had scripts when it began, and two rules keep it safe ([#40](https://github.com/joelnl74/Hydro/issues/40)):
+  - **Created things start next update.** An entity made during the stage exists at once (you can add components to it), but its scripts first run on the next update. A script bound to an existing entity does the same.
+  - **Removal happens when the stage ends.** While the stage runs, `Scene::DestroyEntity`, `RemoveScript` and `RemoveScripts` only mark the entity or script: it stops running at once (no more `OnUpdate`), `Scene::IsPendingDestroy(entity)` is true, and the entity stays valid (`GetComponent` still works) until the stage ends. Then `OnDestroy` is called and it is removed. Calling them twice is harmless. Outside a stage (the editor's hierarchy and inspector) they act at once.
+  - `OnDestroy` may itself destroy other entities or remove scripts; those are applied in the same round, after it. When a `Scene` is destroyed, such requests are dropped.
+  - A script removed with `RemoveScripts` leaves an empty `NativeScriptComponent` behind once the stage ends (removing it outright would need a component removal while a stage runs).
+  - `m_StageDepth` (private) is what the deferral checks; any stage that runs user code (physics callbacks, later) brackets its work with `Scene::BeginStage` / `EndStage`.
 - `Scene::DestroyEntity` calls `OnDestroy` on the entity's scripts before removing it.
 
 ## Saving scenes and prefabs
@@ -182,6 +190,20 @@ void UpdateSpriteAnimations(Scene& scene, const SystemContext& context); // Scen
 
 Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` (both directions), `CopyableComponents`, the inspector and the "Add Component" menu. One registry replaces them: per component a display name, save and load functions and an inspector draw function, registered once. Saving, loading, the play copy and the inspector loop over that list, and adding a component becomes one registration.
 
+## Test bed scene
+
+`Oxygen/project/Assets/Scenes/StatueVillage.hyscene` (Sandbox project, the start scene) is the engine's gameplay test bed: a small playable village where every system can be seen working. It is a game scene, not a test area. When a new or drastic system lands (physics, audio, tilemaps, UI...), it is added to the village as a gameplay element, so it is checked in the place it will be used and nothing falls out of date: physics means colliders on buildings, trees and props, a body on the player and trigger zones; audio means footsteps and ambience; a tilemap means the paths. The full list of features, controls and what to check is on the [Test bed](TestBed.md) page.
+
+**Rules for changing it**
+- **Add, don't replace.** Existing content stays, so each feature keeps being exercised. The scene is saved by the editor, or edited as YAML by hand (every entity needs a new unique UUID).
+- **Make it part of the game.** A new feature gets a gameplay reason to exist in the village (an obstacle, a pushable crate, a zone, a sound source), not a separate demo area. Entities that exist only for the feature and are invisible (map walls, trigger zones) get a descriptive tag prefix (`Wall *`, `Zone *`, `Water *`) so the hierarchy groups them.
+- **In the game's own style and assets.** Reuse the art in `Assets/StatueVillage`; if something is missing, add a new asset in the same style (32 px per world unit, a `.hymeta` beside it, a texture handle in the scene). The East Meadow's ground is such an asset: the village's east edge, mirrored, so the road continues.
+- **Keep the map rules.** The walkable map is `VillageMap` in `Oxygen/src/Scripts/VillageScripts.h` (x -30 to 66, y -18 to 18: the village plus the East Meadow). The camera is clamped to it and the `Wall *` entities stop bodies at its edge; if the map grows, change both. `VillageMap::SortOriginY` stays 18, because every static sprite's `SortOrder` is `4 * (18 - feet y)`.
+- **Physics content is top-down.** Bodies that move on the ground have `GravityScale 0` and a high `LinearDamping`; collider sizes and offsets are in the entity's local units (the physics step multiplies them by the scale); a collider without a Rigidbody is a static body; pushable props carry `VillageYSort` so they stay correctly sorted as they move.
+- **Update the Test bed page**: add a row to its Features table (where in the scene, how to interact, what to check) and, if there are new controls, to its Controls table. Move the item out of "Planned for the test bed".
+- **A feature that needs code to exercise it** (a debug toggle, a gameplay script) gets that code in `Oxygen/src/Scripts`, registered with `ScriptRegistry`, and an entity in the village bound to it.
+- A feature's "done when" includes its place in the village, so the change can be checked by pressing Play.
+
 ## Adding a feature
 
 1. **Component**: add a plain struct to `Components.h` (engine) or to your application (game-only data, like `GalaxyStar`).
@@ -190,15 +212,14 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 4. **Saving**: if the component should persist, add it to `EntitySerializer` (both directions).
 5. **Play mode**: if it should be in the play copy, add it to `CopyableComponents` in `Components.h`.
 6. **Editor**: show and edit the component in the inspector window.
+7. **Test bed**: add the feature to the village in `StatueVillage.hyscene` as a gameplay element and a row to the [Test bed](TestBed.md) Features table.
 
 ## Known gaps
 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
-- The selection is cleared on Play and Stop (there's no `GetEntityByUUID` yet to carry it over, S1).
 - Scripts must be compiled into the application and registered in code: there's no separate game module or hot reload, and scripts can't expose fields to the inspector yet.
 - There is no parent/child hierarchy yet.
 - The stage order lives in `OnUpdateRuntime` / `OnUpdateEditor` code as plain calls, not a registered list; the application's own systems (`UpdateGalaxy`) still take `(registry, deltaTime)` and are migrated when touched.
 - Each component is listed separately in the serializer, `CopyableComponents` and the inspector (A6).
 - Sprite textures are referenced by path until the asset system: `EntitySerializer` loads them and reads `Project` for the asset folder, a texture whose file is missing at load is dropped when the scene is saved again, and sampling options aren't saved (see [Architecture](Architecture.md#asset-system)).
-- `Entity::GetComponent` doesn't assert the component exists and has no `const` overload (E6, A11).

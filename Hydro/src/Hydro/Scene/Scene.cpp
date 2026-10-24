@@ -23,7 +23,11 @@ namespace Hydro
 
 	Scene::~Scene()
 	{
-		// Give scripts a chance to clean up while the registry and their entities still exist.
+		// Give scripts a chance to clean up while the registry and their entities still exist. A stage
+		// is open so that anything a script's OnDestroy asks for (DestroyEntity...) is queued and then
+		// dropped instead of changing the registry under this loop.
+		m_StageDepth++;
+
 		auto view = m_Registry.view<NativeScriptComponent>();
 		for (auto entityHandle : view)
 		{
@@ -34,8 +38,11 @@ namespace Hydro
 					script.Instance->OnDestroy();
 			}
 		}
+
+		m_Deferred.clear();
+		m_PendingDestroy.clear();
 	}
-	
+
 	void Scene::Init()
 	{
 
@@ -208,6 +215,22 @@ namespace Hydro
 
 	Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
 	{
+		// An entity with this UUID is already here (an entry for a destroyed one doesn't count).
+		const auto existing = m_EntityMap.find(uuid);
+		if (existing != m_EntityMap.end())
+		{
+			const entt::entity handle = existing->second;
+			if (m_Registry.valid(handle) && m_Registry.has<IDComponent>(handle) && m_Registry.get<IDComponent>(handle).Id == uuid)
+			{
+				HY_CORE_ERROR("Scene '{0}': UUID {1} is already used by an entity; '{2}' gets a new one", m_Name, (uint64_t)uuid, name);
+				do
+				{
+					uuid = UUID();
+				}
+				while (m_EntityMap.find(uuid) != m_EntityMap.end());
+			}
+		}
+
 		Entity entity = { m_Registry.create(), this };
 		auto& tag = entity.AddComponent<TagComponent>();
 		entity.AddComponent<IDComponent>(uuid);
@@ -215,8 +238,52 @@ namespace Hydro
 		tag.Tag = name.empty() ? "Entity" : name;
 
 		m_EntityOrder.push_back((entt::entity)entity);
+		m_EntityMap[uuid] = (entt::entity)entity;
 
 		return entity;
+	}
+
+	Entity Scene::GetEntityByUUID(UUID uuid)
+	{
+		for (int attempt = 0; attempt < 2; attempt++)
+		{
+			const auto found = m_EntityMap.find(uuid);
+			if (found != m_EntityMap.end())
+			{
+				const entt::entity handle = found->second;
+				if (m_Registry.valid(handle) && m_Registry.has<IDComponent>(handle) && m_Registry.get<IDComponent>(handle).Id == uuid)
+				{
+					return Entity{ handle, this };
+				}
+
+				// Destroyed (or its ID changed) behind the scene's back.
+				m_EntityMap.erase(found);
+			}
+
+			// A miss: unless the map matches the registry exactly, an entity may have gotten an
+			// IDComponent without CreateEntity, so look at the registry once before saying no.
+			if (attempt == 0)
+			{
+				if (m_EntityMap.size() == m_Registry.size<IDComponent>())
+				{
+					break;
+				}
+
+				RebuildEntityMap();
+			}
+		}
+
+		return {};
+	}
+
+	void Scene::RebuildEntityMap()
+	{
+		m_EntityMap.clear();
+		for (entt::entity handle : m_Registry.view<IDComponent>())
+		{
+			// The first entity with a UUID keeps it if (through the registry) two share one.
+			m_EntityMap.emplace(m_Registry.get<IDComponent>(handle).Id, handle);
+		}
 	}
 
 	void Scene::DestroyEntity(Entity entity)
@@ -224,6 +291,25 @@ namespace Hydro
 		if ((bool)entity == false || m_Registry.valid(entity) == false)
 			return;
 
+		if (m_StageDepth > 0)
+		{
+			// A script may be running on this very entity: stop it from running again, remove it later.
+			if (m_PendingDestroy.insert((entt::entity)entity).second)
+			{
+				m_Deferred.push_back({ DeferredCommand::Type::DestroyEntity, (entt::entity)entity });
+			}
+			return;
+		}
+
+		DestroyEntityNow(entity);
+	}
+
+	void Scene::DestroyEntityNow(Entity entity)
+	{
+		if ((bool)entity == false || m_Registry.valid(entity) == false)
+			return;
+
+		m_PendingDestroy.erase((entt::entity)entity);
 		// Let native scripts clean up before their entity disappears.
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
@@ -234,10 +320,26 @@ namespace Hydro
 			}
 		}
 
+		// Looked up until now, so a script's OnDestroy can still find its own entity by UUID.
+		if (m_Registry.has<IDComponent>(entity))
+		{
+			const UUID uuid = m_Registry.get<IDComponent>(entity).Id;
+			const auto found = m_EntityMap.find(uuid);
+			if (found != m_EntityMap.end() && found->second == (entt::entity)entity)
+			{
+				m_EntityMap.erase(found);
+			}
+		}
+
 		m_EntityOrder.erase(std::remove(m_EntityOrder.begin(), m_EntityOrder.end(), (entt::entity)entity), m_EntityOrder.end());
 		m_Registry.destroy(entity);
 	}
-	
+
+	bool Scene::IsPendingDestroy(Entity entity) const
+	{
+		return (bool)entity && m_PendingDestroy.find((entt::entity)entity) != m_PendingDestroy.end();
+	}
+
 	void Scene::RemoveScript(Entity entity, size_t index)
 	{
 		if (entity.HasComponent<NativeScriptComponent>() == false)
@@ -246,6 +348,13 @@ namespace Hydro
 		auto& scripts = entity.GetComponent<NativeScriptComponent>().Scripts;
 		if (index >= scripts.size())
 			return;
+
+		if (m_StageDepth > 0)
+		{
+			scripts[index].PendingRemove = true;
+			m_Deferred.push_back({ DeferredCommand::Type::RemoveFlaggedScripts, (entt::entity)entity });
+			return;
+		}
 
 		if (scripts[index].Instance != nullptr)
 			scripts[index].Instance->OnDestroy();
@@ -258,6 +367,17 @@ namespace Hydro
 		if (entity.HasComponent<NativeScriptComponent>() == false)
 			return;
 
+		if (m_StageDepth > 0)
+		{
+			for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+			{
+				script.PendingRemove = true;
+			}
+
+			m_Deferred.push_back({ DeferredCommand::Type::RemoveFlaggedScripts, (entt::entity)entity });
+			return;
+		}
+
 		for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
 		{
 			if (script.Instance != nullptr)
@@ -265,6 +385,67 @@ namespace Hydro
 		}
 
 		entity.RemoveComponent<NativeScriptComponent>();
+	}
+
+	void Scene::RemoveFlaggedScriptsNow(entt::entity handle)
+	{
+		if (m_Registry.valid(handle) == false || m_Registry.has<NativeScriptComponent>(handle) == false)
+			return;
+
+		// OnDestroy can call back into the scene (queued, since a stage is open) and can bind scripts,
+		// so no reference into the vector is kept across it: take one flagged script at a time out first.
+		for (;;)
+		{
+			auto& scripts = m_Registry.get<NativeScriptComponent>(handle).Scripts;
+			auto flagged = std::find_if(scripts.begin(), scripts.end(), [](const NativeScriptComponent::Script& script)
+			{
+				return script.PendingRemove;
+			});
+			if (flagged == scripts.end())
+				break;
+
+			std::unique_ptr<ScriptableEntity> instance = std::move(flagged->Instance);
+			scripts.erase(flagged);
+			if (instance != nullptr)
+				instance->OnDestroy();
+		}
+	}
+
+	void Scene::BeginStage()
+	{
+		m_StageDepth++;
+	}
+
+	void Scene::EndStage()
+	{
+		m_StageDepth--;
+		if (m_StageDepth == 0)
+		{
+			ApplyDeferred();
+		}
+	}
+
+	void Scene::ApplyDeferred()
+	{
+		// A stage stays open while this runs, so commands queued by OnDestroy callbacks wait in
+		// m_Deferred and are picked up by the next round of the loop.
+		m_StageDepth++;
+
+		while (m_Deferred.empty() == false)
+		{
+			std::vector<DeferredCommand> batch = std::move(m_Deferred);
+			m_Deferred.clear();
+
+			for (const DeferredCommand& command : batch)
+			{
+				if (command.Kind == DeferredCommand::Type::RemoveFlaggedScripts)
+					RemoveFlaggedScriptsNow(command.Handle);
+				else
+					DestroyEntityNow(Entity{ command.Handle, this });
+			}
+		}
+
+		m_StageDepth--;
 	}
 
 	// One context per update, shared by every stage of that frame.

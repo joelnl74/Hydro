@@ -12,6 +12,10 @@ Vulkan game engine (`Hydro`, static library) and its editor (`Oxygen`). Windows 
 
 The `hydro-engine-architecture` skill has the rules and the before-finishing checklist; follow `docs/` when they disagree with anything else, or ask. The ones most often missed: everything in `namespace Hydro` (no other, nested or anonymous namespaces), no `!` operator (`== false`, `== nullptr`), braces on every `if`/`else`/loop body, `m_PascalCase` members, `Init`/`Shutdown` for subsystems and RAII for resources, components are plain data, no Vulkan in new `Renderer/` headers, CRLF line endings.
 
+## Test bed
+
+`Oxygen/project/Assets/Scenes/StatueVillage.hyscene` is the engine's gameplay test bed: a playable village (see `docs/TestBed.md`). When a new or drastic system lands (physics, audio, tilemaps, UI...), add it to the village as a gameplay element (colliders on buildings and the player, trigger zones, sound sources), not as a separate demo area, add a row to the Features table in `docs/TestBed.md`, and say in the summary what to check by pressing Play.
+
 ## Working from a cloud session
 
 - **Reading**: clone `https://github.com/joelnl74/Hydro` (public) and search there. It only has what is pushed; ask the user what is uncommitted, and stage those files from their computer instead.

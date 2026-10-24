@@ -50,6 +50,9 @@ namespace Hydro
 		// Back to the default view: looking down -Z at the origin, 10 units visible vertically.
 		void Reset();
 		void Focus(const glm::vec3& point);
+		// Centres on point and zooms so a square of frameSize world units fills about a third of the
+		// view height (never closer than minHeight units of view), e.g. to look at a selected entity.
+		void Frame(const glm::vec3& point, float frameSize, float minHeight = 6.0f);
 
 		const glm::mat4& GetView() const { return m_View; }
 		glm::mat4 GetViewProjection() const { return m_Projection * m_View; }

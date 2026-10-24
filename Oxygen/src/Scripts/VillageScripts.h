@@ -11,17 +11,32 @@
 
 // Native scripts of the StatueVillage scene (Assets/Scenes/StatueVillage.hyscene). They are registered by
 // RegisterExampleScripts, so they also show up under Add Component > Script. They only use what the engine
-// has: components, SpriteAnimator, Input and Renderer::SetSettings. No physics: the walker moves along its
-// waypoints and nothing collides.
+// has: components, SpriteAnimator, Input and Renderer::SetSettings. They don't use physics yet: the scene's
+// colliders are only data until the physics step lands, so the player and the walkers still pass through
+// buildings, and the walker moves along its waypoints.
 //
-// The scene is 60 x 36 tiles of 32 px = 60 x 36 world units, centred on the origin (tile (30, 18) is
-// world (0, 0); world x = tile x - 30, world y = 18 - tile y).
+// The village is 60 x 36 tiles of 32 px = 60 x 36 world units, centred on the origin (tile (30, 18) is
+// world (0, 0); world x = tile x - 30, world y = 18 - tile y). The East Meadow continues it to the east
+// (x 30 to 66, same height), so the whole map is 96 x 36 units; see VillageMap.
 namespace Hydro
 {
+	// The walkable map in world units. The camera stays inside it. The village is x -30 to 30 and the East
+	// Meadow x 30 to 66; the invisible Wall * entities in the scene stop bodies at the same edges.
 	struct VillageMap
 	{
-		static constexpr float HalfWidth = 30.0f;
-		static constexpr float HalfHeight = 18.0f;
+		static constexpr float MinX = -30.0f;
+		static constexpr float MaxX = 66.0f;
+		static constexpr float MinY = -18.0f;
+		static constexpr float MaxY = 18.0f;
+		static constexpr float Width = MaxX - MinX;
+		static constexpr float Height = MaxY - MinY;
+		static constexpr float CentreX = 0.5f * (MinX + MaxX);
+		static constexpr float CentreY = 0.5f * (MinY + MaxY);
+
+		// The sort rule's origin: SortOrder = 4 * (SortOriginY - feet y), how the scene's static sprites are
+		// written. It stays 18 however the map grows; changing it would put the characters out of step with
+		// every static sprite.
+		static constexpr float SortOriginY = 18.0f;
 	};
 
 	// Sorts a sprite among the others by its feet: the lower on screen, the more in front. The scene's static
@@ -40,7 +55,7 @@ namespace Hydro
 			}
 
 			const float feetY = GetComponent<TransformComponent>().Translation.y;
-			GetComponent<SpriteRendererComponent>().SortOrder = (int32_t)std::lround((VillageMap::HalfHeight - feetY) * 4.0f);
+			GetComponent<SpriteRendererComponent>().SortOrder = (int32_t)std::lround((VillageMap::SortOriginY - feetY) * 4.0f);
 		}
 	};
 
@@ -191,7 +206,7 @@ namespace Hydro
 		std::string m_Facing = "Down";
 	};
 
-	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 60 x 36 map (the
+	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 96 x 36 map (the
 	// view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world units
 	// seen vertically). Scripts run in play mode only.
 	class VillageCameraScript : public ScriptableEntity
@@ -212,7 +227,7 @@ namespace Hydro
 			{
 				camera.Camera.OrthographicSize -= m_ZoomSpeed * deltaTime;
 			}
-			camera.Camera.OrthographicSize = std::clamp(camera.Camera.OrthographicSize, m_MinSize, 2.0f * VillageMap::HalfHeight);
+			camera.Camera.OrthographicSize = std::clamp(camera.Camera.OrthographicSize, m_MinSize, VillageMap::Height);
 
 			if (m_Target == entt::null || scene->m_Registry.valid(m_Target) == false)
 			{
@@ -231,10 +246,10 @@ namespace Hydro
 			const float aspect = scene->GetViewportAspectRatio();
 			const float halfHeight = 0.5f * camera.Camera.OrthographicSize;
 			const float halfWidth = halfHeight * (aspect > 0.0f ? aspect : 1.0f);
-			const float limitX = std::max(0.0f, VillageMap::HalfWidth - halfWidth);
-			const float limitY = std::max(0.0f, VillageMap::HalfHeight - halfHeight);
-			goal.x = std::clamp(goal.x, -limitX, limitX);
-			goal.y = std::clamp(goal.y, -limitY, limitY);
+			const float limitX = std::max(0.0f, 0.5f * VillageMap::Width - halfWidth);
+			const float limitY = std::max(0.0f, 0.5f * VillageMap::Height - halfHeight);
+			goal.x = std::clamp(goal.x, VillageMap::CentreX - limitX, VillageMap::CentreX + limitX);
+			goal.y = std::clamp(goal.y, VillageMap::CentreY - limitY, VillageMap::CentreY + limitY);
 
 			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-m_Smoothing * deltaTime);
 			transform.Translation.x += (goal.x - transform.Translation.x) * t;

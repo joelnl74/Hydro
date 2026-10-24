@@ -55,6 +55,9 @@ namespace Hydro
 			// the entry is kept so the scene saves it back unchanged, but it never runs.
 			ScriptableEntity* (*Instantiate)() = nullptr;
 			std::unique_ptr<ScriptableEntity> Instance;
+			// Set by Scene::RemoveScript / RemoveScripts while a stage runs: the script stops running at
+			// once and is erased (OnDestroy first) when the stage ends. Never saved or copied.
+			bool PendingRemove = false;
 		};
 
 		std::vector<Script> Scripts;
