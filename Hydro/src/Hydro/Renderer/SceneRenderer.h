@@ -3,6 +3,7 @@
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Components/Components.h"
+#include "Hydro/Scene/ParticleScene.h"
 #include "Hydro/Renderer/EditorCamera.h"
 #include "Hydro/Renderer/RenderView.h"
 
@@ -42,9 +43,15 @@ namespace Hydro
 		bool RenderRuntime(RenderView& view);
 
 	private:
-		// Sorts the scene's sprites (SpriteRendererComponent::SortOrder, then Z, then storage order)
-		// and submits them back to front.
+		// Sorts the scene's sprites and lit particle emitters together (SortOrder, then Z, then storage
+		// order) and submits them back to front. An emitter is one entry: its particles are drawn together.
 		void SubmitSprites();
+		// Unlit emitters (ParticleLighting::Unlit): drawn after the view's lighting is composited, so they
+		// are not darkened at night. They go on top of every sprite (no SortOrder against sprites yet;
+		// the emissive path is decided by the Roadmap V4 spike).
+		void SubmitUnlitParticles();
+		// One emitter's live particles, at the emitter's Z.
+		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, float z);
 		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
 		void SubmitLights();
 		// Submits the scene's Shadow2DComponents (blob shadows in lit views, RendererSettings::Shadows).
@@ -63,6 +70,7 @@ namespace Hydro
 			float Z = 0.0f;
 			uint32_t Index = 0; // storage order, so equal keys keep a stable order
 			entt::entity Entity = entt::null;
+			bool IsEmitter = false; // a ParticleEmitter2DComponent instead of a sprite
 		};
 
 		Ref<Scene> m_Scene;

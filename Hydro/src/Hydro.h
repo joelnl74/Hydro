@@ -26,6 +26,7 @@
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "Hydro/Scene/SpriteAnimationSerializer.h"
 #include "Hydro/Scene/SpriteAnimator.h"
+#include "Hydro/Scene/ParticleScene.h"
 
 // PHYSICS.
 #include "Hydro/Physics/PhysicsScene.h"

@@ -137,10 +137,10 @@ Every current name was checked against the table. Only one changed:
 | `SpriteEditorWindow`, `SpriteAnimationWindow`, `TextureImportPanel`, `PropertyUI` | New (Oct 23, 2026), editor only | Windows are `<Name>Window`; the inspector's sub-section is a `<Name>Panel`; `PropertyUI` holds shared widgets like `StatsUI` (not `...Helper`). "Animation" is the window's menu name, `SpriteAnimationWindow` says what it edits |
 | `SpriteAnimator`, `UpdateSpriteAnimations` | New | `SpriteAnimator` is a doer facade of static functions over `SpriteAnimatorComponent` (not `...System` / `...Controller`); the system itself is the function `UpdateSpriteAnimations` |
 | `SpriteAnimatorState`, `ResetSpriteAnimations` | New (Oct 25, 2026) | The animator's playback, grouped as the component's `State` member (`<Component>State`, see the component state rule in [Scene and ECS](SceneAndECS.md#where-runtime-state-lives-component-state-rule)); the reset is a function over the scene like a system |
-| `ParticleEmitter2DComponent` | Planned (Roadmap V1) | `2D` like `Light2DComponent`, `Rigidbody2DComponent`; settings only |
-| `ParticleScene` | Planned (Roadmap V2), per-scene | Per-scene counterpart (`...Scene`, like `PhysicsScene`) holding the live particles; not `SceneParticles` |
-| `UpdateParticles` | Planned (Roadmap V2), a system | Systems are functions; **not** `ParticleSystem2D` (`...System` is banned) |
-| `Particles2D`, `Vfx` | Planned (Roadmap V5) | Domain facades of static functions like `Physics2D`: `Particles2D` controls emitters (`Play`, `Stop`, `Burst`), `Vfx` plays effect prefabs (`Vfx::Play`) |
+| `ParticleEmitter2DComponent` | New (Oct 25, 2026) | `2D` like `Light2DComponent`, `Rigidbody2DComponent`; settings only |
+| `ParticleScene` | New (Oct 25, 2026), per-scene | Per-scene counterpart (`...Scene`, like `PhysicsScene`) holding the live particles; not `SceneParticles` |
+| `UpdateParticles` | New (Oct 25, 2026), a system | Systems are functions; **not** `ParticleSystem2D` (`...System` is banned) |
+| `Particles2D`, `Vfx` | `Particles2D` new (Oct 25, 2026), `Vfx` planned (Roadmap V5) | Domain facades of static functions like `Physics2D`: `Particles2D` controls emitters (`Play`, `Stop`, `Burst`), `Vfx` plays effect prefabs (`Vfx::Play`) |
 | `ParticleEmitterSettings` | Rejected | `Settings` means live options with `Get`/`Set` applied next frame; an emitter preset is just a `ParticleEmitter2DComponent` value (a prefab, or a function in the editor) |
 | `RenderView` | New, a resource | One picture of a scene (target + camera + quads) that `Renderer2D` draws into; not a subsystem or part, the application creates as many as it shows |
 | `Camera`, `SceneCamera`, `EditorCamera` | New, not subsystems | `Camera` is a projection value (and where clip-space conventions live); `SceneCamera` is the per-scene camera data held by `CameraComponent` (`Scene...` prefix); `EditorCamera` is an editor tool the application owns |

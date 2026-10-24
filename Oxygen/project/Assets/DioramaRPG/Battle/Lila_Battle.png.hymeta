@@ -8,10 +8,10 @@ TextureImport:
   PixelsPerUnit: 64
   Slicing:
     Mode: Grid
-    CellSize: [64, 64]
+    CellSize: [96, 128]
     Offset: [0, 0]
     Spacing: [0, 0]
-    Columns: 4
-    Rows: 6
-    RowNames: [Idle, Attack, Cast, Hurt, Guard, Down]
-    DefaultPivot: [0.5, 0.0312]
+    Columns: 6
+    Rows: 8
+    RowNames: [Idle, Anticipation, Attack, Cast, Heal, Hurt, Guard, Down]
+    DefaultPivot: [0.6771, 0.0312]

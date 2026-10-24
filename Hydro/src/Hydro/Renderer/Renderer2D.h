@@ -90,6 +90,13 @@ namespace Hydro
 		// quad and multiplied by tintColor. No tiling. Swap textureRect's Min.x and Max.x to flip it
 		// horizontally, Min.y and Max.y to flip it vertically.
 		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor = glm::vec4(1.0f));
+		// The fast path for many small quads (particles): a quad centred on `position`, `size` wide and
+		// high, turned `rotation` radians around Z, without building a matrix. Otherwise like the one above.
+		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor);
+
+		// A soft round dot (white, alpha fading from the centre to the edge), made in code: the default
+		// particle texture. Valid between Init and Shutdown.
+		static const Ref<Texture2D>& GetSoftDotTexture();
 
 		// Lines and outlines, drawn between BeginScene and EndScene. A line is a thin quad (it batches and
 		// blends like a sprite, and works on GPUs without wide lines), so it counts in QuadCount and
@@ -157,6 +164,8 @@ namespace Hydro
 		// Starts a new draw at the current batch's write position with the current texture set.
 		static void StartDraw(RenderViewData& view);
 		static void SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color);
+		// Corners counter-clockwise from the bottom-left, like QuadVertexPositions.
+		static void SubmitQuadCorners(const glm::vec3 (&corners)[4], const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color);
 		static void ApplyViewResize(RenderViewData& view);
 		// Points the ImGui texture handles of frame index `frame` that a resize left outdated at the
 		// view's new images (every view, or one).

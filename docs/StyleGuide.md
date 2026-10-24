@@ -2,13 +2,13 @@
 
 The art direction of the Diorama RPG ([plan](DioramaRPG.md)), the engine's first full test project. It says what the game should look like, the rules every new asset follows, and how assets are made today, so that the art keeps moving towards one look while the engine grows (2D sprites now, depth, meshes and post-processing later). The palette and constants in this page are code: `scripts/diorama_rpg/style.py`. When they change, change both.
 
-Written October 25, 2026. VFX get their own section once the particle work lands ([Planned](#planned-vfx)).
+Updated October 25, 2026 (V2 art direction). Read [Sprite sizes](SpriteSizes.md) before changing asset dimensions; [Scene review, Oct 25](SceneReview-2026-10-25.md) lists the prioritised fixes from the current build.
 
 ## The look in one paragraph
 
-A small, hand-made world seen like a **miniature diorama**: pixel-art characters in front of richly textured, softly lit places. Late-afternoon and dusk light: **warm lantern and window light against cool green-blue shade**. Surfaces are worn and lived-in (cobbles with moss in the joints, mossy terracotta roofs, weathered plaster, ferns at the foot of trees). The edges of a scene fall into dark foliage, so the playable space reads as a lit stage. Every material is a few-step colour ramp with crisp pixels, never a smooth gradient or a flat fill.
+A small, hand-made world seen like a **miniature diorama**: pixel-art characters in front of richly textured, softly lit places. Late-afternoon and dusk light: **warm lantern and window light against cool green-blue shade**. Surfaces are worn and lived-in (cobbles with moss in the joints, mossy terracotta roofs, weathered plaster, ferns at the foot of trees). The edges of a scene fall into dark foliage, so the playable space reads as a lit stage. Illustrated/pixel-authored material textures use coherent few-step colour ramps and crisp intentional clusters, not arbitrary fine noise. **Lighting and compositing** may have smooth gradients; **sprite pixels** must remain crisp.
 
-Reference points (for their qualities, not to copy): the concept art in `docs/images/` (the project's own), *Octopath Traveler* and *Final Fantasy Resonance* (dark foreground framing, tilt-shift depth, lantern pools, side-view battles with large enemies). Screenshots of other games are not kept in the repository.
+Reference points (for principles, not copying): the concept art in `docs/images/` (the project's own); *Octopath Traveler II* for layered 2D/3D environments, depth and atmosphere; *Final Fantasy Resonance* for taller expressive pixel characters, large locations and more dynamic cinematic staging. Use original designs and art, not traced game assets. Review screenshots of our own build are kept outside the repository; game screenshots are never stored here.
 
 ![Village concept](images/diorama_concept_village.jpg)
 
@@ -16,13 +16,26 @@ Reference points (for their qualities, not to copy): the concept art in `docs/im
 
 | Thing | Rule |
 | --- | --- |
-| Pixel density | **32 px per world unit** (`PixelsPerUnit: 32`) for everything in the field. Nearest filtering, no mipmaps |
-| View | Top-down three-quarter: the ground is seen from above, buildings, props and characters show their front and their top. Later the same sprites stand up as cards under a tilted camera (Diorama RPG plan, H1 and H2), so draw them so they also read from the front |
-| Field characters | 32 x 56 px (1 x 1.75 units), feet on the bottom row, pivot `[0.5, 0]`. Four directions (Down, Up, Left, Right = mirrored Left), idle + 4-frame walk (stand, step, pass, step) |
-| Battle characters | 64 x 64 px cells, side view facing left (the party stands on the right), pivot at the feet. Poses: Idle (2), Attack (4), Cast (3), Hurt, Guard, Down |
-| Enemies | Field: 32 x 32. In battle they are drawn larger than the heroes (bosses much larger), facing right |
-| Props | Sized to their real size at 32 px per unit: a barrel is about 0.75 x 1, a house 4 to 5 units wide, a tree 2 to 3 wide |
-| Camera | Orthographic, about 11 units visible vertically (the village camera), so a character is about 1/6 of the screen height |
+| World coordinate scale | **KEEP** 32 px per world unit for the current working 2D scenes (`PixelsPerUnit: 32`). Do not silently change the engine world scale to make sprites more detailed. Nearest filtering on pixel art; no mipmaps on sprites. |
+| View: now | Top-down three-quarter **2D**, composed with foreground occluders, distinct near/mid/far planes, shadow pools and clear landmarks. Keep the player readable even when the ground is busy. |
+| View: future | Upright sprites or cut-out cards with feet/base anchoring, actual depth, meshes for ground/buildings and camera tilt. Separate camera profiles for field, battle and cinematics. |
+| Field heroes/NPCs - current | **32 x 56 px frame**, feet pivot `[0.5, 0]`; 1 x 1.75 world units at 32 PPU. Keep for the current playtest. Four facing directions: Down/Up/Left/Right; mirroring Right is allowed only if costume/accessories are symmetrical. |
+| Field heroes/NPCs - optional V2 | **48 x 84 px at 48 PPU**, same 1 x 1.75 world-unit size, if/when making a deliberate fidelity migration. Do **not** mix this with 32 PPU per sprite by accident. All field assets must be evaluated in the same camera framing. |
+| Battle heroes | **96 x 128 px sprite cells**, side view facing left, one animation per row, per-frame timing in the `.hyanim`. Done for Orin and Lila (`scripts/diorama_rpg/battle_sprites.py`); the character stands right of centre so the weapon has room in front, and the pivot is at the feet (Orin `[0.656, 0.031]`, Lila `[0.677, 0.031]`). Drawn at 16 px per battle unit (6 x 8 units). Poses in [Sprite sizes](SpriteSizes.md). |
+| Enemies | Field icons/proxies follow the field grid. Battle Wisp 96 x 96; medium enemy 128 x 144; elite 192 x 192; boss up to 256 x 256 (all *art canvases*, not world-unit size). |
+| Props | Size by real world units at 32 PPU now: barrel about 24 x 32; house 4 to 5 units wide; tree trunk anchored at its **base**, canopy may overhang. |
+| Camera | Current village orthographic ~11 world units vertically; validate legibility at the target **game display resolution** and in motion. Battle viewport framing is independent of field PPU. |
+
+## Quality target and what the screenshots tell us
+
+We are **not yet** at the final diorama look. The statue plaza already has attractive stone variation, planters and a strong landmark, but the cobbles have very high local contrast and the characters feel visually lost. The current battle has a useful gameplay layout (turn strip, shields/weakness symbols, party HUD), but the flat elliptical arena, generic layered treeline and small stiff character sprites read as conventional 2D pixel art. Those are staging, hierarchy and sprite-design issues, not just missing bloom.
+
+- **Preserve:** warm/cool palette, crisp pixel clusters, dark foreground framing, playable battle loop, current code-generation pipeline.
+- **Improve now (2D renderer):** character silhouettes, higher-quality battle poses, less noisy path textures, battle backdrop with near/middle/far staging, shadow contact, interaction/target feedback, more intentional UI type hierarchy.
+- **Improve later (3D renderer):** depth-aware alpha cut-outs, 3D set dressing, specular and volumetric accents, camera tilt and parallax, optional selective depth of field, soft shadows and cinematic camera movement.
+- **Do not imitate** screenshots pixel-for-pixel. Aim for the *feeling*: authored detail + depth + theatrical light + legible combat.
+
+See [Scene review, Oct 25](SceneReview-2026-10-25.md) for prioritised fixes, with checklists tied to both captures.
 
 ## Light
 
@@ -53,12 +66,18 @@ The ramps live in `scripts/diorama_rpg/style.py`; a material uses one ramp, neve
 ## Pixel rules
 
 1. **Binary alpha.** A pixel is opaque or empty; no soft edges, no semi-transparent fringe. Never trust a "transparent" image from an AI tool: check the alpha channel (a painted checkerboard is not transparency).
-2. **Inner outline.** Sprites get a 1 px outline inside their silhouette, made by darkening the sprite's own edge colour (about 0.45x), not pure black. Ground textures have no outline.
-3. **Ramps, not gradients.** 4 to 7 steps per material, chosen with `style.step_ramp`. Light dithering (a 4 x 4 Bayer pattern) only to break up large flat areas.
+2. **Selective inner outline.** Characters and handheld props usually get a 1 px outline inside their silhouette, darkened from local palette (about 0.45x), not pure black. Do not outline every leaf, ground tile or cobblestone; group surfaces to avoid noisy interiors.
+3. **Ramps, not per-pixel confetti.** Target 4 to 7 deliberate values per material, chosen with `style.step_ramp`; cluster details rather than independent random pixels. Dither sparingly (4 x 4 Bayer) only on large material planes, **never on faces as default**.
 4. **Texture at the right scale.** Detail is 1 to 3 px: grass blades, stone joints, wood grain, roof shingles. Nothing finer than a pixel and no blurry upscales.
 5. **Shading follows the light.** Upper-left lit, lower-right shaded; each stone, shingle and leaf clump has its own little highlight and shadow.
-6. **No pure black, no pure white,** except the hottest centre of a light or a spark.
-7. **Readability first.** Characters must stand out from the ground: warmer or brighter than what is behind them, with a darker outline.
+6. **No pure black / pure white in base art** except the hottest centre of a light or spark. Real-time HDR bloom is a separate effect and should not recolor the source sprites.
+7. **Readability first.** Characters must separate from busy ground at native game view size: use coherent silhouette, value separation, contact shadow and controlled local contrast. Test without post-processing.
+
+## Character art direction
+
+**Orin Kenshi:** ~30-year-old, experienced two-handed-sword traveler, weathered dark cloth/leather, small practical steel pieces (one shoulder, bracers), rugged hair and a distinctive scarf; readable blade silhouette. Scars and age through posture/face rather than oversized armor. **Lila Stormtree:** attractive, warm, approachable white mage with ivory and muted blue clothing, travel boots, practical cape, simple gold ornament, and distinctive **staff/spear hybrid** with a slender winged/sunburst head; no excessive ceremonial armor. Preserve the identities from the high-resolution portrait concepts, but *redesign details into pixel clusters*, not a muddy downscale of illustration.
+
+Character production **must** include a field spritesheet, a dedicated larger battle spritesheet and a high-resolution dialogue portrait. Do not enlarge the field sprite for battle. Keep facial proportions, hair color, accessories and weapon geometry consistent between all three. See [Sprite sizes](SpriteSizes.md). (A character and NPC guide is planned; it is not in the repository yet.)
 
 ## Materials
 
@@ -86,17 +105,25 @@ What makes the village read as a diorama and not as a tile map:
 
 ## Battles
 
+**Composition rule:** the camera shows three clear bands: (1) softly layered distant forest/ruins, (2) midground encounter stage (rocks, stump, shrine fragment, grass islands), (3) foreground grasses/shadows that frame but do not obscure the command UI. Remove the sensation of a floating brown oval: blend the combat path into the environment with irregular terrain edges and contact shadows. Keep gameplay readouts unobstructed.
+
+Battle hero sprites should carry more silhouette acting than the field versions. Orin plants his weight before a heavy two-handed strike; Lila uses controlled spear/staff gestures and cool-white healing glows. Build these basic key poses before adding more particles. Use meaningful wind-up/impact/recovery frames and a brief hit pause where appropriate. (A battle presentation guide is planned; it is not in the repository yet.)
+
 - Side view: the party on the right facing left, enemies on the left facing right, all standing on the backdrop's floor (`Battle_Background.png`: a forest clearing with an earth arena, framed by dark leaves, warm light from one side).
 - Enemies are larger than heroes. Each shows its HP bar, shield count and weakness icons above it; heroes show HP, MP and Momentum pips above them.
 - UI: black glass panels with a gold frame, the 5 x 7 pixel font (`art.py`), parchment text. Damage numbers: white normal, orange **weak**, grey-blue **resisted**, green **heal**. Banners: WEAK! orange, BREAK! red.
 
 ## UI
 
+HUD should have three levels of priority: **actionable choice/target** > **current health/weakness** > **secondary stats/resources**. Keep damage and weakness feedback close to targets but never cover the head for several seconds. The battle command panel should visually identify the active character. Once runtime typography arrives, distinguish headings from legible body text; do not use an all-caps 5 x 7 font everywhere at final size.
+
 Black glass `#15120c` panels with a gold `#c99a3f` frame and bright gold corners; parchment text with a dark drop shadow. Until the engine has text (U1), labels, icons and numbers are sprite sheets (`DioramaRPG/UI`), drawn with the pixel font in `art.py`; later the fonts from the GDD (Cinzel for titles, EB Garamond or Cormorant for menus, all SIL OFL) replace it.
 
-## Planned: VFX
+## VFX and post-processing - phased
 
-Particles and effects are in progress (Roadmap V1 to V5). Until this section is written, follow the light rules: additive glows in lantern amber or magic blue, effects short and readable, never hiding the characters, dust and fireflies sparse.
+**Now / 2D:** build small reusable effects: white slash arc + 2-3 impact pixels; Wisp fire/holy reaction; staff cast glints; heal light ring; grass/dust foot puffs. Prefer sprite flipsheets and CPU-lightweight particles. Limit large additive regions and keep opacity separate from binary alpha sprite rules. Simple global color grade, subtle vignette and light pools are enough; avoid blurring the character pixel art.
+
+**Later / 3D:** real emissive glows, controlled bloom, depth-based atmospheric fog, optional depth of field on distant **backgrounds only**, 3D lights/shadows, camera motion. If doing pixel-perfect presentation, composite pixel sprites after high-resolution depth effects or use a pixel-preserving render route; check edges during rotation/zoom. A VFX and render transition guide is planned (not in the repository yet); the render steps are H1 to H8 in the [plan](DioramaRPG.md).
 
 ## How assets are made today
 
@@ -107,14 +134,17 @@ All the Diorama RPG art is drawn in code, so it can be re-generated and tuned:
 | `scripts/diorama_rpg/style.py` | The palette, light direction and pixel density (this page as code) |
 | `scripts/diorama_rpg/env.py` | Ground repaint, the house detail pass, set dressing (ferns, tall grass, mushrooms, hay bales, hand cart, hanging lantern post, foreground canopy) |
 | `scripts/diorama_rpg/regrade.py` | Recolours the older village art towards the palette (from its version at commit `5307eb8`) |
-| `scripts/diorama_rpg/heroes.py`, `art.py` | Orin and Lila, the Spirit Wisp, the battle backdrop, the battle UI sheets |
-| `scripts/diorama_rpg/build.py` | Runs all of the above and edits `StatueVillage.hyscene` (`--battle` also rewrites `Battle.hyscene`) |
+| `scripts/diorama_rpg/heroes.py` | Orin and Lila in the field (32 x 56) |
+| `scripts/diorama_rpg/battle_sprites.py` | Orin and Lila in battle (96 x 128, a small pose rig: hip, lean, foot and hand targets, two-bone IK, weapon angle), the slash and heal effect sheets |
+| `scripts/diorama_rpg/art.py` | The Spirit Wisp, the battle backdrop, the battle UI sheets |
+| `scripts/diorama_rpg/check_assets.py` | The art validator (run it before committing art) |
+| `scripts/diorama_rpg/build.py` | Runs all of the above, edits `StatueVillage.hyscene` and updates `Battle.hyscene` in place (hero quads, effect entities, party panel); `--battle` rewrites `Battle.hyscene` from scratch |
 | `scripts/diorama_rpg/preview_scene.py` | An offline mockup of a scene (approximate lighting) for checking the look without the editor |
 
 To add an asset: draw it with `lib.Canvas` and the ramps from `style.py`, save it with `build.save_texture` (the handle comes from the path, so re-running keeps it), and place it from `build.py` with an entity tag the script owns (`Decor *`, `Canopy *`), so a re-run replaces it instead of duplicating it. Close the village scene in the editor before running `build.py`, or the editor saves over it.
 
-Hand-made art (Aseprite, Krita, AI-assisted) follows the same rules; check before importing: binary alpha, 32 px per unit, the outline, the palette, the light from the upper left.
+Hand-made art (Aseprite, Krita, AI-assisted) follows the same rules: validate **real** alpha (not painted checkerboard), correct atlas cell/pivot, palette, lighting direction and sprite size. `32 PPU` is locked for **current field**; future high-detail art uses explicit metadata rather than a silent rescale. Run the validator: `python scripts/diorama_rpg/check_assets.py` (binary alpha, no painted checkerboard, sheet cells and rows, pivots, clip frames, battle feet anchor).
 
 ## When the renderer grows
 
-What stays the same when the engine gets the diorama camera, depth, meshes and post-processing (Diorama RPG plan H1 to H8): the pixel density, the palette, the light direction, binary alpha (it becomes alpha cut-out with depth), and the composition rules. What changes: buildings, props and characters stand up as cards facing the camera; ground and walls can become meshes with these same pixel textures (nearest filtering); the dark frame and tilt-shift come from depth of field instead of painted shade; lantern pools come from real lights. Draw new assets so they also work standing up: no baked ground shadow inside the sprite, feet on the bottom row.
+Keep a consistent **world-unit contract**, palette, light direction, pivot and composition. Revisit pixel density **only through an explicit 32-to-48 PPU migration**. When 3D is ready, characters/props can stand up as depth-writing alpha-cutout cards, while ground/buildings may be meshes with the same texture language; foreground canopy may be cutout cards. Depth of field is optional, **not** a substitute for scene composition. Real lights replace painted pools gradually; never include a baked oval ground shadow in character sprites. The plant/sprite pivot is at the feet or root base; character Y-sorting in 2D becomes depth/occlusion with real geometry later. Follow the render steps H1 to H8 in the [plan](DioramaRPG.md).

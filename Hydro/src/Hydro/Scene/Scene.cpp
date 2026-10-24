@@ -6,6 +6,7 @@
 #include "SpriteAnimator.h"
 #include "SystemContext.h"
 #include "Hydro/Physics/PhysicsScene.h"
+#include "ParticleScene.h"
 
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/Time.h>
@@ -42,6 +43,7 @@ namespace Hydro
 
 		m_Deferred.clear();
 		m_PendingDestroy.clear();
+		m_Particles.reset();
 		m_Physics.reset();
 	}
 
@@ -533,12 +535,17 @@ namespace Hydro
 		{
 			m_Physics = CreateScope<PhysicsScene>(*this);
 		}
+		if (m_Particles == nullptr)
+		{
+			m_Particles = CreateScope<ParticleScene>();
+		}
 		// The play copy carries the editor scene's runtime state; the game starts from the saved settings.
 		ResetSpriteAnimations(*this);
 	}
 
 	void Scene::OnRuntimeStop()
 	{
+		m_Particles.reset();
 		m_Physics.reset();
 	}
 
@@ -566,6 +573,10 @@ namespace Hydro
 
 		// 4. Transforms, shared with the editor.
 		UpdateTransforms(context);
+
+		// 5. Particles, after transforms so emitters read their final position this frame. Finished
+		// one-shot effects (DestroyWhenFinished) are destroyed here, after the emitter loop.
+		UpdateParticles(*this, context);
 	}
 
 	void Scene::OnUpdateEditor(float deltaTime)
