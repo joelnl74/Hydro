@@ -23,6 +23,7 @@ The map has two parts: the **village** (x -30 to 30, the original scene) and the
 | **H** | Blob shadows on / off | `VillageDirector` |
 | **F** | Flame flicker on / off | `VillageDirector` |
 | **B** | Statue <-> brazier A/B check | `VillageDirector` |
+| **E** | Drops a crate in front of the player (at most 10; the oldest disappears) | `VillageCrateSpawner` on `Crate Spawner` |
 | **[** / **]** | Point light radius smaller / larger | `VillageDirector` |
 
 There is no in-game text: the Director's status line goes to the **Console** window, and the **Stats** window shows lit views, light and shadow counts and GPU time.
@@ -45,10 +46,12 @@ In the editor (not playing): click an entity in the **Hierarchy** or the **Edito
 | Play copy and selection | The whole scene | Select an entity, press Play, then Stop: the same entity stays selected (found again by its UUID, `GetEntityByUUID`) |
 | Scene saving and loading | The whole scene | Move a prop, save, reload the scene (or restart): the change and all physics values stay |
 | 2D physics (Box2D, 60 Hz) | Buildings, trees, props, `Player`, `Walker *`, meadow areas; see [Collision layout](#collision-layout) | Select a building, tree, crate or the player: the inspector shows Rigidbody 2D and Box / Circle Collider 2D sections. Press Play and walk: the player stops at walls, buildings, trunks, fences and the map edge, pushes crates and barrels, and walks through bushes and zones. Turn on **Overlays > Collider Outlines** to see what blocks |
+| Trigger zones and collision callbacks | `Zone Bridge`, `Zone Statue Plaza`, `Zone Market`, `Zone East Gate`, `Zone Crate Yard`, `Zone Weigh Lane`, `Zone Finish` | Walk across the bridge: the Console logs the zone and the player slows down. Stand in the plaza: the brazier lights (and the statue fades) until you leave. Cross the Finish: the Console logs the finish line. Walk through the East Gate: enter and exit are logged |
+| Spawning and destroying bodies in play | `Crate Spawner` | Press E: a crate appears in front of you (a copy of a village crate) and is solid at once: push it, walk into it. Press E more than ten times: the oldest crate disappears. The Console logs each drop. Stop and Play again: the dropped crates are gone |
 
 ## East Meadow
 
-Everything in the meadow is built from the village's own art. Each area is a gameplay element that exercises part of the physics; the last column is what to check in Play. Collision callbacks (zone enter and exit events) are not there yet.
+Everything in the meadow is built from the village's own art. Each area is a gameplay element that exercises part of the physics; the last column is what to check in Play. Zones fire trigger events: the Console logs `Zone: entered/left <Name>` when the player crosses one.
 
 | Area | Where | What is in it | What to check |
 | --- | --- | --- | --- |
@@ -57,7 +60,7 @@ Everything in the meadow is built from the village's own art. Each area is a gam
 | **Weigh Lane** | x 34 to 42, y -12 to -7; `Zone Weigh Lane`, `Sign Weigh Lane` | Back row: 3 `Heavy Barrel` (density 4). Front row: 3 `Light Crate` (density 0.3) | The same push moves a light crate much further than a heavy barrel |
 | **Bounce Pen** | Pen at x 49.6 to 58.4, y 5 to 11, with a 2-unit opening on the west side | 4 `Bounce Stone` (circle colliders, restitution 0.9, low damping) | A shoved stone rebounds off the fences several times before it settles; each rebounds more than a crate |
 | **Moving Cart** | x 51, y -6 | `market_stall_red`, kinematic, bobs 0.5 units up and down with the `Bob` script | The cart carries on moving and pushes the player instead of being pushed |
-| **Finish** | x 60 to 65, y -3 to 3; `Zone Finish`, `Finish Board`, 2 `Banner Finish`, `Street Lamp 12` | Static props around a sensor zone | Entering the zone logs a trigger-begin event (P3); leaving logs trigger-end |
+| **Finish** | x 60 to 65, y -3 to 3; `Zone Finish`, `Finish Board`, 2 `Banner Finish`, `Street Lamp 12` | Static props around a sensor zone | Entering logs `Zone: entered Finish` and `Zone: finish line crossed` (once), leaving logs `Zone: left Finish` |
 | **Meadow edge** | North and south edges, x 31 to 66 | 22 `pine_01` and 4 `rock_medium_01` with trunk and rock colliders; invisible `Wall *` at the map edge | The player stops at the map edge and walks between trunks, not through them |
 
 ## Collision layout
@@ -77,14 +80,15 @@ Colliders are part of the village. The shapes are footprints at the foot of each
 | Moving cart | `Moving Cart` | Kinematic, driven by `Bob` | A moving obstacle that must push the player (teleport handling in the physics plan) |
 | Map walls | `Wall North/South/East/West` (invisible) | Static | Keep every body inside the 96 x 36 map |
 | Pond | `Water West`, `Water East` (invisible) | Static | The pond is blocked except along the bridge |
-| Trigger zones | `Zone Bridge`, `Zone Statue Plaza`, `Zone Market`, `Zone East Gate`, `Zone Crate Yard`, `Zone Weigh Lane`, `Zone Finish` (invisible) | Sensor boxes | Enter and exit events for the collision callbacks; see "Planned" |
+| Trigger zones | `Zone Bridge`, `Zone Statue Plaza`, `Zone Market`, `Zone East Gate`, `Zone Crate Yard`, `Zone Weigh Lane`, `Zone Finish` (invisible) | Sensor boxes | Each carries the `VillageZone` script: `OnTriggerEnter/Exit` for the player logs, and the Bridge slows the player to half speed, the Statue Plaza lights the brazier instead of the statue while the player stands in it |
 
 The scene has 40 rigidbodies (31 dynamic, 9 kinematic), 7 sensor zones and 366 colliders in total. To see a collider's shape now, select the entity and read its Box Collider 2D values (offset and size are in the entity's local units, so a collider on a 3 x 4 tree is 1/3 and 1/4 of its world size). The collider outlines will be drawn by the debug-draw toggle once it exists.
 
 ## Planned for the test bed
 
 - **Physics tuning**: collider sizes were set by eye; adjust them (and player speed against damping) after the first Play.
-- **Collision and trigger callbacks** (P3): entering `Zone Statue Plaza` tints the brazier light, `Zone Market` plays a sound once audio lands, `Zone Bridge` slows the player, `Zone Finish` logs a message.
+- **Zone Market** plays a sound once audio lands (it only logs for now).
+- **Collision callbacks on props** (E2 follow-up): a crate that logs or reacts when something hits it hard (hit events carry speed).
 - **Debug drawing in play mode** (P7): collider outlines in the Game window; the editor view already has them.
 - **Script safety** (#40): a script that spawns and destroys a crate on a key press (in the Crate Yard), to watch the deferred stage.
 - Audio, tilemaps and runtime UI as each lands: each becomes part of the game (footstep sounds, a tiled path, a HUD), with a row in the Features table.

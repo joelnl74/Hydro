@@ -95,7 +95,7 @@ namespace Hydro
 
 			// With a physics body the player moves by velocity, so walls stop it and it pushes crates;
 			// without one (or while no world runs) it just slides the transform.
-			const glm::vec2 velocity = moving ? glm::normalize(move) * m_Speed : glm::vec2(0.0f);
+			const glm::vec2 velocity = moving ? glm::normalize(move) * (m_Speed * VillageState::PlayerSpeedScale()) : glm::vec2(0.0f);
 			if (Physics2D::SetLinearVelocity(GetEntity(), velocity) == false && moving)
 			{
 				auto& transform = GetComponent<TransformComponent>();

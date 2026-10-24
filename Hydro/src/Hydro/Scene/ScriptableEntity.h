@@ -32,6 +32,15 @@ namespace Hydro
 		virtual void OnDestroy() {}
 		virtual void OnUpdate([[maybe_unused]] float deltaTime) {}
 
+		// Physics (play mode), called after the physics step, with the other entity. Collisions are
+		// between two solid colliders starting / stopping to touch; triggers are the entity's sensor
+		// collider (or a sensor it moved into) starting / stopping to overlap. Both entities get the
+		// call. DestroyEntity from here is safe (it takes effect when the stage ends).
+		virtual void OnCollisionEnter([[maybe_unused]] Entity other) {}
+		virtual void OnCollisionExit([[maybe_unused]] Entity other) {}
+		virtual void OnTriggerEnter([[maybe_unused]] Entity other) {}
+		virtual void OnTriggerExit([[maybe_unused]] Entity other) {}
+
 	private:
 		// Held by value: an Entity is just a handle + scene pointer, so it never dangles
 		// when the registry moves its component storage around.

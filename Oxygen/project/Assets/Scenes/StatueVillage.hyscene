@@ -8389,6 +8389,9 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: true
+    NativeScriptComponent:
+      Scripts:
+        - VillageZone
   - Entity: 2036356596509621467
     TagComponent:
       Tag: Zone Statue Plaza
@@ -8403,6 +8406,9 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: true
+    NativeScriptComponent:
+      Scripts:
+        - VillageZone
   - Entity: 7090716713758177734
     TagComponent:
       Tag: Zone Market
@@ -8417,6 +8423,9 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: true
+    NativeScriptComponent:
+      Scripts:
+        - VillageZone
   - Entity: 2779972809554124980
     TagComponent:
       Tag: East Meadow Ground
@@ -9192,6 +9201,9 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: true
+    NativeScriptComponent:
+      Scripts:
+        - VillageZone
   - Entity: 6965100852027028403
     TagComponent:
       Tag: fence_h
@@ -10102,6 +10114,9 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: true
+    NativeScriptComponent:
+      Scripts:
+        - VillageZone
   - Entity: 2785882759632179085
     TagComponent:
       Tag: Sign Crate Yard
@@ -10384,6 +10399,9 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: true
+    NativeScriptComponent:
+      Scripts:
+        - VillageZone
   - Entity: 4576178275507204906
     TagComponent:
       Tag: fence_h
@@ -11266,6 +11284,9 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: true
+    NativeScriptComponent:
+      Scripts:
+        - VillageZone
   - Entity: 6445397438067698775
     TagComponent:
       Tag: pine_01
@@ -11942,3 +11963,13 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+  - Entity: 5912744001235599231
+    TagComponent:
+      Tag: Crate Spawner
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+        - VillageCrateSpawner

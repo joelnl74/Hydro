@@ -14,6 +14,7 @@ namespace Hydro
 {
 	class Entity;
 	class PhysicsScene;
+	class ScriptableEntity;
 	struct SystemContext;
 
 	class Scene
@@ -102,6 +103,11 @@ namespace Hydro
 		entt::registry m_Registry;
 
 	private:
+		// Delivers the physics step's collision and trigger events to the entities' scripts (inside a stage).
+		void DispatchPhysicsEvents();
+		// Calls one ScriptableEntity hook on every running script of `self`, with `other` as the argument.
+		void NotifyScripts(entt::entity self, entt::entity other, void (ScriptableEntity::*hook)(Entity));
+
 		// Stage 4: world-transform propagation, once there is a hierarchy (S3). Runs in both updates.
 		void UpdateTransforms(const SystemContext& context);
 

@@ -5,6 +5,8 @@
 #include <entt.hpp>
 
 #include <cstddef>
+#include <cstdint>
+#include <vector>
 
 namespace Hydro
 {
@@ -19,7 +21,11 @@ namespace Hydro
 	// Which entities become bodies (built once, when the world is created): every entity with a
 	// TransformComponent and a Rigidbody2DComponent, BoxCollider2DComponent or CircleCollider2DComponent.
 	//  - No Rigidbody2D: a static body (it never moves).
-	//  - Static / Dynamic / Kinematic as the Rigidbody2D says. Entities created after the start get no body.
+	//  - Static / Dynamic / Kinematic as the Rigidbody2D says.
+	// Entities that get such components after the start (spawned by a script, DuplicateEntity, a prefab)
+	// get their body at the start of the next physics step, or at once when game code asks for it
+	// (Physics2D::SetLinearVelocity / HasBody). The components are read when the body is made: changing
+	// them later has no effect on the body.
 	// Position (Translation.xy) and angle (Rotation.z) come from the TransformComponent when the world is
 	// built; Z, and the sprite, are never touched.
 	//
@@ -48,6 +54,18 @@ namespace Hydro
 		PhysicsScene(const PhysicsScene&) = delete;
 		PhysicsScene& operator=(const PhysicsScene&) = delete;
 
+		// What happened in this update's steps, for Scene to deliver to scripts. Collision events are
+		// between two solid shapes starting / stopping to touch; trigger events are a sensor (A) and
+		// another shape (B) starting / stopping to overlap. Rebuilt by every Step.
+		struct Event
+		{
+			enum class Type : uint8_t { CollisionBegin, CollisionEnd, TriggerBegin, TriggerEnd };
+			Type Kind = Type::CollisionBegin;
+			entt::entity A{ entt::null };
+			entt::entity B{ entt::null };
+		};
+		const std::vector<Event>& GetEvents() const { return m_Events; }
+
 		// Physics stage of a runtime update: moves kinematic bodies to their transforms, runs the fixed
 		// steps this frame's time allows, then writes the dynamic bodies' results to their transforms.
 		void Step(const SystemContext& context);
@@ -56,15 +74,26 @@ namespace Hydro
 		void OnEntityDestroyed(entt::entity handle);
 
 		bool HasBody(entt::entity handle) const;
+		// Makes the entity's body now if it has the components for one and none yet (an entity spawned this
+		// frame). True when it has a body afterwards.
+		bool EnsureBody(entt::entity handle);
 		size_t GetBodyCount() const;
 
 		// Dynamic and kinematic bodies only (false otherwise). World units per second.
 		bool SetLinearVelocity(entt::entity handle, const glm::vec2& velocity);
-		bool GetLinearVelocity(entt::entity handle, glm::vec2& velocity) const;
+		bool GetLinearVelocity(entt::entity handle, glm::vec2& velocity);
 
 	private:
 		struct Data;
+		// Builds the body of one entity (false when it has none to make or already has it).
+		bool CreateBody(entt::entity handle);
+		// Builds bodies for entities that got physics components since the last step.
+		void CreateNewBodies();
+		// Reads Box2D's contact and sensor events of the step that just ran into m_Events.
+		void CollectEvents();
+
 		Scope<Data> m_Data;
+		std::vector<Event> m_Events;
 		Scene* m_Scene = nullptr;
 	};
 

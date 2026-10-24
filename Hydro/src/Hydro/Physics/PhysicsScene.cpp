@@ -48,18 +48,23 @@ namespace Hydro
 	};
 
 	// Adds the entity's collider components as shapes of the body.
-	static void CreateShapes(b2BodyId body, entt::registry& registry, entt::entity handle, const TransformComponent& transform)
+	static void CreateShapes(b2BodyId body, b2BodyType bodyType, entt::registry& registry, entt::entity handle, const TransformComponent& transform)
 	{
 		const float scaleX = std::abs(transform.Scale.x);
 		const float scaleY = std::abs(transform.Scale.y);
 
-		const auto makeShapeDef = [](const PhysicsMaterial2D& material, bool isSensor)
+		const auto makeShapeDef = [bodyType](const PhysicsMaterial2D& material, bool isSensor)
 		{
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
 			shapeDef.density = material.Density;
 			shapeDef.material.friction = material.Friction;
 			shapeDef.material.restitution = material.Restitution;
 			shapeDef.isSensor = isSensor;
+			// Box2D 3.1 has both kinds of events off by default. Sensors need it on to work at all; a shape
+			// is seen by sensors when it can move (a static wall never triggers a zone); solid shapes report
+			// when they start and stop touching.
+			shapeDef.enableSensorEvents = isSensor || bodyType != b2_staticBody;
+			shapeDef.enableContactEvents = isSensor == false;
 			return shapeDef;
 		};
 
@@ -94,55 +99,85 @@ namespace Hydro
 		worldDef.gravity = { 0.0f, Gravity };
 		m_Data->World = b2CreateWorld(&worldDef);
 
-		entt::registry& registry = scene.m_Registry;
+		// The entities that exist when the game starts, in scene order. Later ones get bodies in Step.
 		for (entt::entity handle : scene.GetEntityOrder())
 		{
-			if (registry.has<TransformComponent>(handle) == false)
-			{
-				continue;
-			}
-
-			const bool hasRigidbody = registry.has<Rigidbody2DComponent>(handle);
-			if (hasRigidbody == false && registry.has<BoxCollider2DComponent>(handle) == false
-				&& registry.has<CircleCollider2DComponent>(handle) == false)
-			{
-				continue;
-			}
-
-			const TransformComponent& transform = registry.get<TransformComponent>(handle);
-
-			b2BodyDef bodyDef = b2DefaultBodyDef();
-			bodyDef.type = b2_staticBody;
-			if (hasRigidbody)
-			{
-				const Rigidbody2DComponent& rigidbody = registry.get<Rigidbody2DComponent>(handle);
-				switch (rigidbody.Type)
-				{
-				case Rigidbody2DType::Dynamic: bodyDef.type = b2_dynamicBody; break;
-				case Rigidbody2DType::Kinematic: bodyDef.type = b2_kinematicBody; break;
-				default: bodyDef.type = b2_staticBody; break;
-				}
-				bodyDef.fixedRotation = rigidbody.FixedRotation;
-				bodyDef.isBullet = rigidbody.IsBullet;
-				bodyDef.gravityScale = rigidbody.GravityScale;
-				bodyDef.linearDamping = rigidbody.LinearDamping;
-				bodyDef.angularDamping = rigidbody.AngularDamping;
-			}
-			bodyDef.position = { transform.Translation.x, transform.Translation.y };
-			bodyDef.rotation = b2MakeRot(transform.Rotation.z);
-			// For the collision callbacks (E2): the entity this body belongs to.
-			bodyDef.userData = reinterpret_cast<void*>(static_cast<std::uintptr_t>(static_cast<uint32_t>(handle)));
-
-			const b2BodyId body = b2CreateBody(m_Data->World, &bodyDef);
-			CreateShapes(body, registry, handle, transform);
-
-			Data::Body entry;
-			entry.Handle = handle;
-			entry.Id = body;
-			entry.Type = bodyDef.type;
-			m_Data->Index[handle] = m_Data->Bodies.size();
-			m_Data->Bodies.push_back(entry);
+			CreateBody(handle);
 		}
+	}
+
+	bool PhysicsScene::CreateBody(entt::entity handle)
+	{
+		entt::registry& registry = m_Scene->m_Registry;
+		if (registry.valid(handle) == false || registry.has<TransformComponent>(handle) == false || HasBody(handle))
+		{
+			return false;
+		}
+
+		const bool hasRigidbody = registry.has<Rigidbody2DComponent>(handle);
+		if (hasRigidbody == false && registry.has<BoxCollider2DComponent>(handle) == false
+			&& registry.has<CircleCollider2DComponent>(handle) == false)
+		{
+			return false;
+		}
+		// About to be destroyed (at the end of the stage that is running): never gets a body.
+		if (m_Scene->IsPendingDestroy(Entity{ handle, m_Scene }))
+		{
+			return false;
+		}
+
+		const TransformComponent& transform = registry.get<TransformComponent>(handle);
+
+		b2BodyDef bodyDef = b2DefaultBodyDef();
+		bodyDef.type = b2_staticBody;
+		if (hasRigidbody)
+		{
+			const Rigidbody2DComponent& rigidbody = registry.get<Rigidbody2DComponent>(handle);
+			switch (rigidbody.Type)
+			{
+			case Rigidbody2DType::Dynamic: bodyDef.type = b2_dynamicBody; break;
+			case Rigidbody2DType::Kinematic: bodyDef.type = b2_kinematicBody; break;
+			default: bodyDef.type = b2_staticBody; break;
+			}
+			bodyDef.fixedRotation = rigidbody.FixedRotation;
+			bodyDef.isBullet = rigidbody.IsBullet;
+			bodyDef.gravityScale = rigidbody.GravityScale;
+			bodyDef.linearDamping = rigidbody.LinearDamping;
+			bodyDef.angularDamping = rigidbody.AngularDamping;
+		}
+		bodyDef.position = { transform.Translation.x, transform.Translation.y };
+		bodyDef.rotation = b2MakeRot(transform.Rotation.z);
+		// For the collision callbacks (E2): the entity this body belongs to.
+		bodyDef.userData = reinterpret_cast<void*>(static_cast<std::uintptr_t>(static_cast<uint32_t>(handle)));
+
+		const b2BodyId body = b2CreateBody(m_Data->World, &bodyDef);
+		CreateShapes(body, bodyDef.type, registry, handle, transform);
+
+		Data::Body entry;
+		entry.Handle = handle;
+		entry.Id = body;
+		entry.Type = bodyDef.type;
+		m_Data->Index[handle] = m_Data->Bodies.size();
+		m_Data->Bodies.push_back(entry);
+		return true;
+	}
+
+	void PhysicsScene::CreateNewBodies()
+	{
+		// Entities that got their physics components after the world was built (spawned by a script,
+		// duplicated, instantiated from a prefab). Only entities with a Rigidbody2D or a collider are looked at.
+		entt::registry& registry = m_Scene->m_Registry;
+		for (entt::entity handle : registry.view<Rigidbody2DComponent>())
+			CreateBody(handle);
+		for (entt::entity handle : registry.view<BoxCollider2DComponent>())
+			CreateBody(handle);
+		for (entt::entity handle : registry.view<CircleCollider2DComponent>())
+			CreateBody(handle);
+	}
+
+	bool PhysicsScene::EnsureBody(entt::entity handle)
+	{
+		return HasBody(handle) || CreateBody(handle);
 	}
 
 	PhysicsScene::~PhysicsScene()
@@ -159,6 +194,11 @@ namespace Hydro
 		{
 			return;
 		}
+
+		m_Events.clear();
+
+		// Bodies for entities that appeared since the last update.
+		CreateNewBodies();
 
 		const float fixed = context.FixedDeltaTime;
 		m_Data->Accumulator += context.DeltaTime;
@@ -201,6 +241,8 @@ namespace Hydro
 		for (int i = 0; i < steps; i++)
 		{
 			b2World_Step(m_Data->World, fixed, SubStepCount);
+			// Box2D keeps a step's events only until the next step, so read them after every step.
+			CollectEvents();
 		}
 
 		// Dynamic bodies: the simulation's result becomes the entity's transform. A body that is asleep
@@ -221,6 +263,58 @@ namespace Hydro
 			transform.Translation.x = position.x;
 			transform.Translation.y = position.y;
 			transform.Rotation.z = b2Rot_GetAngle(b2Body_GetRotation(body.Id));
+		}
+	}
+
+	// The entity a shape belongs to (its body's user data, set when the body was made).
+	static bool GetShapeEntity(b2ShapeId shape, entt::entity& handle)
+	{
+		// An end event can refer to a shape that was destroyed since.
+		if (b2Shape_IsValid(shape) == false)
+		{
+			return false;
+		}
+
+		const std::uintptr_t value = reinterpret_cast<std::uintptr_t>(b2Body_GetUserData(b2Shape_GetBody(shape)));
+		handle = static_cast<entt::entity>(static_cast<uint32_t>(value));
+		return true;
+	}
+
+	void PhysicsScene::CollectEvents()
+	{
+		const auto add = [this](Event::Type kind, b2ShapeId shapeA, b2ShapeId shapeB)
+		{
+			Event event;
+			event.Kind = kind;
+			if (GetShapeEntity(shapeA, event.A) && GetShapeEntity(shapeB, event.B))
+			{
+				m_Events.push_back(event);
+			}
+		};
+
+		// Sensors don't see other sensors in what the game cares about: a zone touching a zone is no event.
+		const b2SensorEvents sensors = b2World_GetSensorEvents(m_Data->World);
+		for (int i = 0; i < sensors.beginCount; i++)
+		{
+			const b2SensorBeginTouchEvent& event = sensors.beginEvents[i];
+			if (b2Shape_IsValid(event.visitorShapeId) && b2Shape_IsSensor(event.visitorShapeId) == false)
+				add(Event::Type::TriggerBegin, event.sensorShapeId, event.visitorShapeId);
+		}
+		for (int i = 0; i < sensors.endCount; i++)
+		{
+			const b2SensorEndTouchEvent& event = sensors.endEvents[i];
+			if (b2Shape_IsValid(event.visitorShapeId) && b2Shape_IsSensor(event.visitorShapeId) == false)
+				add(Event::Type::TriggerEnd, event.sensorShapeId, event.visitorShapeId);
+		}
+
+		const b2ContactEvents contacts = b2World_GetContactEvents(m_Data->World);
+		for (int i = 0; i < contacts.beginCount; i++)
+		{
+			add(Event::Type::CollisionBegin, contacts.beginEvents[i].shapeIdA, contacts.beginEvents[i].shapeIdB);
+		}
+		for (int i = 0; i < contacts.endCount; i++)
+		{
+			add(Event::Type::CollisionEnd, contacts.endEvents[i].shapeIdA, contacts.endEvents[i].shapeIdB);
 		}
 	}
 
@@ -258,6 +352,7 @@ namespace Hydro
 
 	bool PhysicsScene::SetLinearVelocity(entt::entity handle, const glm::vec2& velocity)
 	{
+		EnsureBody(handle);
 		const auto found = m_Data->Index.find(handle);
 		if (found == m_Data->Index.end() || m_Data->Bodies[found->second].Type == b2_staticBody)
 		{
@@ -268,8 +363,9 @@ namespace Hydro
 		return true;
 	}
 
-	bool PhysicsScene::GetLinearVelocity(entt::entity handle, glm::vec2& velocity) const
+	bool PhysicsScene::GetLinearVelocity(entt::entity handle, glm::vec2& velocity)
 	{
+		EnsureBody(handle);
 		const auto found = m_Data->Index.find(handle);
 		if (found == m_Data->Index.end() || m_Data->Bodies[found->second].Type == b2_staticBody)
 		{
@@ -296,7 +392,7 @@ namespace Hydro
 		bool HasBody(Entity entity)
 		{
 			PhysicsScene* world = GetWorld(entity);
-			return world != nullptr && world->HasBody(static_cast<entt::entity>(entity));
+			return world != nullptr && world->EnsureBody(static_cast<entt::entity>(entity));
 		}
 
 		bool SetLinearVelocity(Entity entity, const glm::vec2& velocity)

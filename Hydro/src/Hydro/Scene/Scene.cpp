@@ -463,6 +463,70 @@ namespace Hydro
 		return context;
 	}
 
+	void Scene::NotifyScripts(entt::entity self, entt::entity other, void (ScriptableEntity::*hook)(Entity))
+	{
+		if (m_Registry.valid(self) == false || m_Registry.valid(other) == false || m_Registry.has<NativeScriptComponent>(self) == false)
+		{
+			return;
+		}
+		if (IsPendingDestroy(Entity{ self, this }))
+		{
+			return;
+		}
+
+		// A snapshot: a script may add components, which can move the script list while it is walked.
+		// Scripts removed meanwhile stay alive until the stage ends (RemoveScript is deferred).
+		std::vector<ScriptableEntity*> instances;
+		for (auto& script : m_Registry.get<NativeScriptComponent>(self).Scripts)
+		{
+			if (script.Instance != nullptr && script.PendingRemove == false)
+			{
+				instances.push_back(script.Instance.get());
+			}
+		}
+
+		for (ScriptableEntity* instance : instances)
+		{
+			(instance->*hook)(Entity{ other, this });
+		}
+	}
+
+	void Scene::DispatchPhysicsEvents()
+	{
+		if (m_Physics == nullptr || m_Physics->GetEvents().empty())
+		{
+			return;
+		}
+
+		// Copied: nothing may change the list while scripts run, but a copy costs little and can't dangle.
+		const std::vector<PhysicsScene::Event> events = m_Physics->GetEvents();
+
+		BeginStage();
+		for (const PhysicsScene::Event& event : events)
+		{
+			switch (event.Kind)
+			{
+			case PhysicsScene::Event::Type::CollisionBegin:
+				NotifyScripts(event.A, event.B, &ScriptableEntity::OnCollisionEnter);
+				NotifyScripts(event.B, event.A, &ScriptableEntity::OnCollisionEnter);
+				break;
+			case PhysicsScene::Event::Type::CollisionEnd:
+				NotifyScripts(event.A, event.B, &ScriptableEntity::OnCollisionExit);
+				NotifyScripts(event.B, event.A, &ScriptableEntity::OnCollisionExit);
+				break;
+			case PhysicsScene::Event::Type::TriggerBegin:
+				NotifyScripts(event.A, event.B, &ScriptableEntity::OnTriggerEnter);
+				NotifyScripts(event.B, event.A, &ScriptableEntity::OnTriggerEnter);
+				break;
+			case PhysicsScene::Event::Type::TriggerEnd:
+				NotifyScripts(event.A, event.B, &ScriptableEntity::OnTriggerExit);
+				NotifyScripts(event.B, event.A, &ScriptableEntity::OnTriggerExit);
+				break;
+			}
+		}
+		EndStage();
+	}
+
 	void Scene::OnRuntimeStart()
 	{
 		if (m_Physics == nullptr)
@@ -486,6 +550,7 @@ namespace Hydro
 		if (m_Physics == nullptr)
 			OnRuntimeStart();
 		m_Physics->Step(context);
+		DispatchPhysicsEvents();
 
 		// 3. Sprite animation, after the scripts so what a script started this frame shows this frame.
 		UpdateSpriteAnimations(*this, context);

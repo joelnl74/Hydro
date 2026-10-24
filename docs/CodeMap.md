@@ -65,7 +65,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Scene/SceneSerializer.*`, `PrefabSerializer.*` | `.hyscene` / `.hyprefab` files |
 | **Physics** | |
 | `Physics/PhysicsEngine.*` | `PhysicsEngine` subsystem: Box2D assert hook and length unit, version, a Debug-build self test (floor + falling box) |
-| `Physics/PhysicsScene.*` | `PhysicsScene`: the Box2D world of one running `Scene` (created by `Scene::OnRuntimeStart`, destroyed on stop). Bodies from Rigidbody2D / collider components, 60 Hz fixed steps (max 4 a frame), dynamic results written back to transforms, kinematic bodies carried to their transforms; `Physics2D::SetLinearVelocity` for game code. No callbacks or interpolation yet |
+| `Physics/PhysicsScene.*` | `PhysicsScene`: the Box2D world of one running `Scene` (created by `Scene::OnRuntimeStart`, destroyed on stop). Bodies from Rigidbody2D / collider components, 60 Hz fixed steps (max 4 a frame), dynamic results written back to transforms, kinematic bodies carried to their transforms; `Physics2D::SetLinearVelocity` for game code; bodies for entities spawned during play (`CreateNewBodies`, `EnsureBody`). Collision and trigger events are collected after each step and delivered by `Scene::DispatchPhysicsEvents` to `ScriptableEntity::OnCollisionEnter/Exit`, `OnTriggerEnter/Exit`. No interpolation yet |
 | **Project, Utils** | |
 | `Project/Project.*`, `ProjectSerializer.*` | Active project, `ProjectConfig` (`.hyproj`) |
 | `Utils/YAMLConversions.*`, `Utils/PlatformUtils.h` | glm ↔ YAML; `FileDialogs` |
