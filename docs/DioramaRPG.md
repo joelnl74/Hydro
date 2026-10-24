@@ -106,6 +106,7 @@ October 25, 2026 (quick prototype code, for play testing; see [Test bed](TestBed
 - **J8 Enemies, partly.** The Spirit Wisp (weak to Fire and Light, resists Slash and Pierce) roams the meadow and the Slime Field with its own light; the slime stays. The Stone Scarab and the wolf are next.
 - **J10 Battle feel, partly.** Lunges, hit flash and shake, a break banner, fades; no camera shake or particles yet.
 - **Look.** The village art is regraded towards the palette (`scripts/diorama_rpg/regrade.py`), a new forest-clearing battle backdrop, dusk as the default time of day, the camera a little closer.
+- **The village as a diorama map.** The ground is repainted (cobbled streets and plaza with mossy joints, rich grass with blades and wild flowers, packed-earth roads outside the village, a darker forest edge), the houses have stone foundations, mossy roofs, eave shadows and flower boxes, the street lamps are hanging lanterns, ferns, tall grass and mushrooms grow at the foot of trees, hay bales and hand carts sit by the field and the market, and dark foreground leaves frame the map (`scripts/diorama_rpg/env.py`). The rules behind it are the [Style guide](StyleGuide.md).
 
 ## Test project phases
 

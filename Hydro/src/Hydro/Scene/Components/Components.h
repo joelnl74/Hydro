@@ -243,11 +243,97 @@ namespace Hydro
 
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
+	// How a particle's colour is combined with what is already drawn.
+	enum class ParticleBlend : uint8_t
+	{
+		Alpha = 0, // like sprites: smoke, dust, leaves
+		Additive   // adds light: sparks, embers, magic
+	};
+
+	// Whether the view's lighting darkens a particle. Unlit + Additive is "emissive" (stays bright at night).
+	enum class ParticleLighting : uint8_t
+	{
+		Lit = 0, // multiplied by the view's light buffer, like sprites
+		Unlit    // not darkened by scene lighting (Roadmap V4; drawn lit until then)
+	};
+
+	// Where new particles appear, around the entity's position. A cone is a Point with a narrow Spread.
+	enum class EmitterShape : uint8_t
+	{
+		Point = 0,
+		Circle, // inside a circle of radius ShapeSize.x
+		Box     // inside a ShapeSize.x x ShapeSize.y box
+	};
+
+	// A random value between Min and Max (inclusive), picked once per particle.
+	struct FloatRange
+	{
+		float Min = 1.0f;
+		float Max = 1.0f;
+	};
+
+	// Emits 2D particles at the entity's position (world space: a particle stays where it was emitted).
+	// Settings only (component state rule 3 in docs/SceneAndECS.md): the live particles and the playback
+	// state will be in the scene's ParticleScene, simulated by UpdateParticles and controlled with
+	// Particles2D (Roadmap V2, V5). Until then this component is saved, copied on Play and edited in the
+	// inspector, but nothing is drawn.
+	struct ParticleEmitter2DComponent
+	{
+		// Limits the editor and the loader clamp to.
+		static constexpr uint32_t MaxParticlesLimit = 4096;
+
+		// Emission
+		bool PlayOnStart = true;
+		bool Looping = true;
+		float Duration = 1.0f;        // seconds per loop
+		float Rate = 10.0f;           // particles per second
+		uint32_t BurstCount = 0;      // emitted at once at the start of every loop
+		uint32_t MaxParticles = 64;   // alive at once, at most (1 to MaxParticlesLimit)
+		uint32_t Seed = 0;            // 0 = a new random seed each playback; otherwise repeatable
+		EmitterShape Shape = EmitterShape::Point;
+		glm::vec2 ShapeSize{ 0.5f, 0.5f }; // Circle: x = radius; Box: width, height (world units)
+
+		// Each particle at birth
+		FloatRange Lifetime{ 0.5f, 1.0f };        // seconds
+		FloatRange Speed{ 1.0f, 2.0f };           // world units per second
+		float Direction = 90.0f;                  // degrees, 0 = right, 90 = up
+		float Spread = 30.0f;                     // degrees either side of Direction (180 = every way)
+		FloatRange StartSize{ 0.1f, 0.2f };       // world units
+		FloatRange StartRotation{ 0.0f, 0.0f };   // degrees
+		FloatRange AngularVelocity{ 0.0f, 0.0f }; // degrees per second
+
+		// Over a particle's life (start to end; curves are Roadmap V3)
+		float EndSizeScale = 1.0f;                // size at death = start size * this
+		glm::vec4 StartColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 EndColor{ 1.0f, 1.0f, 1.0f, 0.0f };
+		glm::vec2 Gravity{ 0.0f, 0.0f };          // world units / s^2
+		float Drag = 0.0f;                        // slows particles down; 0 = none
+		float Turbulence = 0.0f;                  // random push, world units / s^2 (wandering fireflies)
+
+		// Look
+		AssetHandle Texture = 0;                  // 0 = a soft round dot
+		uint32_t SpriteIndex = 0;                 // for a sprite sheet texture
+		ParticleBlend Blend = ParticleBlend::Alpha;
+		ParticleLighting Lighting = ParticleLighting::Lit;
+		int32_t SortOrder = 0;                    // sorted with sprites (higher = on top)
+
+		// Light per emitter (Roadmap V4, optional; 0 radius = none)
+		float LightRadius = 0.0f;
+		float LightIntensity = 1.0f;
+		uint32_t MaxLights = 0;                   // the youngest particles that get a light
+
+		// One-shot effects: destroy the entity once it stopped emitting and no particles are left
+		bool DestroyWhenFinished = false;
+
+		ParticleEmitter2DComponent() = default;
+		ParticleEmitter2DComponent(const ParticleEmitter2DComponent&) = default;
+	};
+
 	template<typename... Component>
 	struct ComponentGroup
 	{
 	};
 
 	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent>;
 }

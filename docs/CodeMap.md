@@ -56,7 +56,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Scene/SystemContext.h` | `SystemContext`: `DeltaTime`, `FixedDeltaTime`, `FrameIndex`, `IsPlaying`, passed to every engine system |
 | `Scene/ScriptSystem.*` | `UpdateScripts` system (creates script instances, runs `OnUpdate`) |
 | `Scene/Entity.*` | Handle (`entt::entity` + `Scene*`), component access |
-| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent` + its runtime `SpriteAnimatorState`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`) + `CopyableComponents` |
+| `Scene/Components/Components.h` | Engine components (incl. `SpriteAnimatorComponent` + its runtime `SpriteAnimatorState`, `Light2DComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`, `ParticleEmitter2DComponent` + `ParticleBlend` / `ParticleLighting` / `EmitterShape` / `FloatRange`) + `CopyableComponents` |
 | `Scene/SpriteAnimation.*` | `SpriteAnimationSet` resource and `Asset` (named clips over one sheet), clip/frame/event types, `LoadFromFile` (shared by file, binds its asset handle) |
 | `Scene/SpriteAnimationSerializer.*` | `.hyanim` read/write (handle first line, texture by `TextureHandle` + path) |
 | `Scene/SpriteAnimator.*` | `UpdateSpriteAnimations(Scene&, const SystemContext&)` system, `ResetSpriteAnimations` (called by `Scene::OnRuntimeStart`); `SpriteAnimator` API (`Play`, `Stop`, `Pause`, `Resume`, `IsPlaying`, `GetFrameIndex`..., and `ResetPlayback` / `RestartAfterReload` for the editor). The only code that writes `SpriteAnimatorState` |
@@ -142,3 +142,5 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 ## Tools
 
 `scripts/statue_village/`: Python (numpy, scipy, Pillow) that draws the `StatueVillage` pixel art and writes the scene: `gen_village.py` (layout, entities, `.hymeta`/`.hyanim`/`.hyscene` output; handles are hashed from the file path), `lib.py` (canvas with binary alpha), `nature.py`, `build.py`, `props.py`, `chars.py` (villager walk sheets), `ground.py` (grass, paths, plaza, garden, animated pond), `preview.py` (offline lighting mockup).
+
+`scripts/diorama_rpg/`: Python (numpy, scipy, Pillow, PyYAML) for the Diorama RPG test content ([DioramaRPG.md](DioramaRPG.md), [StyleGuide.md](StyleGuide.md)): `style.py` (palette, light, pixel density), `env.py` (ground repaint, house detail pass, set dressing), `regrade.py` (recolours the older village art), `heroes.py` (Orin and Lila), `art.py` (Spirit Wisp, battle backdrop, battle UI sheets and pixel font), `build.py` (writes the assets and edits `StatueVillage.hyscene`; `--battle` also `Battle.hyscene`), `preview_scene.py` (offline mockup of any `.hyscene`).

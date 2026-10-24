@@ -7,6 +7,7 @@
 #include "Hydro/Scene/SpriteAnimation.h"
 
 #include <algorithm>
+#include <cfloat>
 #include <filesystem>
 
 namespace Hydro
@@ -92,6 +93,46 @@ namespace Hydro
 		material.Density = AtLeast(0.0f, node["Density"].as<float>(material.Density));
 		material.Friction = AtLeast(0.0f, node["Friction"].as<float>(material.Friction));
 		material.Restitution = AtLeast(0.0f, node["Restitution"].as<float>(material.Restitution));
+	}
+
+	static const char* EmitterShapeToString(EmitterShape shape)
+	{
+		switch (shape)
+		{
+		case EmitterShape::Point: return "Point";
+		case EmitterShape::Circle: return "Circle";
+		case EmitterShape::Box: return "Box";
+		}
+
+		return "Point";
+	}
+
+	static EmitterShape EmitterShapeFromString(const std::string& name)
+	{
+		if (name == "Circle")
+		{
+			return EmitterShape::Circle;
+		}
+		if (name == "Box")
+		{
+			return EmitterShape::Box;
+		}
+
+		return EmitterShape::Point;
+	}
+
+	// A FloatRange is saved as [Min, Max]. Read back clamped to at least `minimum`, with Min <= Max.
+	static FloatRange ReadRange(const YAML::Node& node, FloatRange fallback, float minimum = -FLT_MAX)
+	{
+		const glm::vec2 values = node.as<glm::vec2>(glm::vec2(fallback.Min, fallback.Max));
+		const float a = AtLeast(minimum, values.x);
+		const float b = AtLeast(minimum, values.y);
+		return { std::min(a, b), std::max(a, b) };
+	}
+
+	static uint32_t ReadCount(const YAML::Node& node, uint32_t fallback, uint32_t minimum, uint32_t maximum)
+	{
+		return std::clamp(node.as<uint32_t>(fallback), minimum, maximum);
 	}
 
 	void EntitySerializer::Serialize(YAML::Emitter& out, Entity entity)
@@ -248,6 +289,49 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<ParticleEmitter2DComponent>())
+		{
+			auto& emitter = entity.GetComponent<ParticleEmitter2DComponent>();
+
+			out << YAML::Key << "ParticleEmitter2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "PlayOnStart" << YAML::Value << emitter.PlayOnStart;
+			out << YAML::Key << "Looping" << YAML::Value << emitter.Looping;
+			out << YAML::Key << "Duration" << YAML::Value << emitter.Duration;
+			out << YAML::Key << "Rate" << YAML::Value << emitter.Rate;
+			out << YAML::Key << "BurstCount" << YAML::Value << emitter.BurstCount;
+			out << YAML::Key << "MaxParticles" << YAML::Value << emitter.MaxParticles;
+			out << YAML::Key << "Seed" << YAML::Value << emitter.Seed;
+			out << YAML::Key << "Shape" << YAML::Value << EmitterShapeToString(emitter.Shape);
+			out << YAML::Key << "ShapeSize" << YAML::Value << emitter.ShapeSize;
+			out << YAML::Key << "Lifetime" << YAML::Value << glm::vec2(emitter.Lifetime.Min, emitter.Lifetime.Max);
+			out << YAML::Key << "Speed" << YAML::Value << glm::vec2(emitter.Speed.Min, emitter.Speed.Max);
+			out << YAML::Key << "Direction" << YAML::Value << emitter.Direction;
+			out << YAML::Key << "Spread" << YAML::Value << emitter.Spread;
+			out << YAML::Key << "StartSize" << YAML::Value << glm::vec2(emitter.StartSize.Min, emitter.StartSize.Max);
+			out << YAML::Key << "StartRotation" << YAML::Value << glm::vec2(emitter.StartRotation.Min, emitter.StartRotation.Max);
+			out << YAML::Key << "AngularVelocity" << YAML::Value << glm::vec2(emitter.AngularVelocity.Min, emitter.AngularVelocity.Max);
+			out << YAML::Key << "EndSizeScale" << YAML::Value << emitter.EndSizeScale;
+			out << YAML::Key << "StartColor" << YAML::Value << emitter.StartColor;
+			out << YAML::Key << "EndColor" << YAML::Value << emitter.EndColor;
+			out << YAML::Key << "Gravity" << YAML::Value << emitter.Gravity;
+			out << YAML::Key << "Drag" << YAML::Value << emitter.Drag;
+			out << YAML::Key << "Turbulence" << YAML::Value << emitter.Turbulence;
+			if ((uint64_t)emitter.Texture != 0)
+			{
+				out << YAML::Key << "TextureHandle" << YAML::Value << (uint64_t)emitter.Texture;
+			}
+			out << YAML::Key << "SpriteIndex" << YAML::Value << emitter.SpriteIndex;
+			out << YAML::Key << "Blend" << YAML::Value << (emitter.Blend == ParticleBlend::Additive ? "Additive" : "Alpha");
+			out << YAML::Key << "Lighting" << YAML::Value << (emitter.Lighting == ParticleLighting::Unlit ? "Unlit" : "Lit");
+			out << YAML::Key << "SortOrder" << YAML::Value << emitter.SortOrder;
+			out << YAML::Key << "LightRadius" << YAML::Value << emitter.LightRadius;
+			out << YAML::Key << "LightIntensity" << YAML::Value << emitter.LightIntensity;
+			out << YAML::Key << "MaxLights" << YAML::Value << emitter.MaxLights;
+			out << YAML::Key << "DestroyWhenFinished" << YAML::Value << emitter.DestroyWhenFinished;
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
 			auto& scripts = entity.GetComponent<NativeScriptComponent>();
@@ -393,6 +477,55 @@ namespace Hydro
 			collider.Radius = AtLeast(0.001f, circleNode["Radius"].as<float>(collider.Radius));
 			DeserializeMaterial(circleNode, collider.Material);
 			collider.IsSensor = circleNode["IsSensor"].as<bool>(collider.IsSensor);
+		}
+
+		if (auto emitterNode = entityNode["ParticleEmitter2DComponent"])
+		{
+			// Missing keys keep the defaults; values that would break the simulation are pulled into range.
+			auto& emitter = entity.AddComponent<ParticleEmitter2DComponent>();
+			const uint32_t limit = ParticleEmitter2DComponent::MaxParticlesLimit;
+			emitter.PlayOnStart = emitterNode["PlayOnStart"].as<bool>(emitter.PlayOnStart);
+			emitter.Looping = emitterNode["Looping"].as<bool>(emitter.Looping);
+			emitter.Duration = AtLeast(0.01f, emitterNode["Duration"].as<float>(emitter.Duration));
+			emitter.Rate = AtLeast(0.0f, emitterNode["Rate"].as<float>(emitter.Rate));
+			emitter.BurstCount = ReadCount(emitterNode["BurstCount"], emitter.BurstCount, 0, limit);
+			emitter.MaxParticles = ReadCount(emitterNode["MaxParticles"], emitter.MaxParticles, 1, limit);
+			emitter.Seed = emitterNode["Seed"].as<uint32_t>(emitter.Seed);
+			emitter.Shape = EmitterShapeFromString(emitterNode["Shape"].as<std::string>("Point"));
+			emitter.ShapeSize = emitterNode["ShapeSize"].as<glm::vec2>(emitter.ShapeSize);
+			emitter.ShapeSize.x = AtLeast(0.0f, emitter.ShapeSize.x);
+			emitter.ShapeSize.y = AtLeast(0.0f, emitter.ShapeSize.y);
+			emitter.Lifetime = ReadRange(emitterNode["Lifetime"], emitter.Lifetime, 0.01f);
+			emitter.Speed = ReadRange(emitterNode["Speed"], emitter.Speed);
+			emitter.Direction = emitterNode["Direction"].as<float>(emitter.Direction);
+			emitter.Spread = std::clamp(emitterNode["Spread"].as<float>(emitter.Spread), 0.0f, 180.0f);
+			emitter.StartSize = ReadRange(emitterNode["StartSize"], emitter.StartSize, 0.0f);
+			emitter.StartRotation = ReadRange(emitterNode["StartRotation"], emitter.StartRotation);
+			emitter.AngularVelocity = ReadRange(emitterNode["AngularVelocity"], emitter.AngularVelocity);
+			emitter.EndSizeScale = AtLeast(0.0f, emitterNode["EndSizeScale"].as<float>(emitter.EndSizeScale));
+			emitter.StartColor = emitterNode["StartColor"].as<glm::vec4>(emitter.StartColor);
+			emitter.EndColor = emitterNode["EndColor"].as<glm::vec4>(emitter.EndColor);
+			emitter.Gravity = emitterNode["Gravity"].as<glm::vec2>(emitter.Gravity);
+			emitter.Drag = AtLeast(0.0f, emitterNode["Drag"].as<float>(emitter.Drag));
+			emitter.Turbulence = AtLeast(0.0f, emitterNode["Turbulence"].as<float>(emitter.Turbulence));
+			emitter.SpriteIndex = emitterNode["SpriteIndex"].as<uint32_t>(emitter.SpriteIndex);
+			emitter.Blend = emitterNode["Blend"].as<std::string>("Alpha") == "Additive" ? ParticleBlend::Additive : ParticleBlend::Alpha;
+			emitter.Lighting = emitterNode["Lighting"].as<std::string>("Lit") == "Unlit" ? ParticleLighting::Unlit : ParticleLighting::Lit;
+			emitter.SortOrder = emitterNode["SortOrder"].as<int32_t>(emitter.SortOrder);
+			emitter.LightRadius = AtLeast(0.0f, emitterNode["LightRadius"].as<float>(emitter.LightRadius));
+			emitter.LightIntensity = AtLeast(0.0f, emitterNode["LightIntensity"].as<float>(emitter.LightIntensity));
+			emitter.MaxLights = ReadCount(emitterNode["MaxLights"], emitter.MaxLights, 0, limit);
+			emitter.DestroyWhenFinished = emitterNode["DestroyWhenFinished"].as<bool>(emitter.DestroyWhenFinished);
+
+			// Loaded now, like a sprite's texture, so the renderer (which never loads) finds it.
+			if (auto textureNode = emitterNode["TextureHandle"])
+			{
+				emitter.Texture = AssetHandle(textureNode.as<uint64_t>(0));
+				if ((uint64_t)emitter.Texture != 0)
+				{
+					AssetManager::GetAsset<Texture2D>(emitter.Texture);
+				}
+			}
 		}
 
 		if (auto scriptNode = entityNode["NativeScriptComponent"])
