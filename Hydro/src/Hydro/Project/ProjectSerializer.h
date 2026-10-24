@@ -16,6 +16,9 @@ namespace Hydro
 	//   VSync: true
 	//   Wireframe: false
 	//   ShaderHotReload: true
+	//   Lighting: true
+	//   LightFalloff: Smooth    (or Banded)
+	//   LightBands: 8
 	class ProjectSerializer
 	{
 	public:

@@ -36,6 +36,9 @@ namespace Hydro
 		out << YAML::Key << "VSync" << YAML::Value << renderer.VSync;
 		out << YAML::Key << "Wireframe" << YAML::Value << renderer.Wireframe;
 		out << YAML::Key << "ShaderHotReload" << YAML::Value << renderer.ShaderHotReload;
+		out << YAML::Key << "Lighting" << YAML::Value << renderer.Lighting;
+		out << YAML::Key << "LightFalloff" << YAML::Value << (renderer.LightFalloff == LightFalloffStyle::Banded ? "Banded" : "Smooth");
+		out << YAML::Key << "LightBands" << YAML::Value << renderer.LightBands;
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
@@ -92,13 +95,34 @@ namespace Hydro
 			{
 				RendererSettings& renderer = config.Renderer;
 				if (auto node = rendererNode["ClearColor"])
+				{
 					renderer.ClearColor = node.as<glm::vec4>();
+				}
 				if (auto node = rendererNode["VSync"])
+				{
 					renderer.VSync = node.as<bool>();
+				}
 				if (auto node = rendererNode["Wireframe"])
+				{
 					renderer.Wireframe = node.as<bool>();
+				}
 				if (auto node = rendererNode["ShaderHotReload"])
+				{
 					renderer.ShaderHotReload = node.as<bool>();
+				}
+				// Projects saved before 2D lighting have none of these keys: they keep the defaults.
+				if (auto node = rendererNode["Lighting"])
+				{
+					renderer.Lighting = node.as<bool>(renderer.Lighting);
+				}
+				if (auto node = rendererNode["LightFalloff"])
+				{
+					renderer.LightFalloff = node.as<std::string>("Smooth") == "Banded" ? LightFalloffStyle::Banded : LightFalloffStyle::Smooth;
+				}
+				if (auto node = rendererNode["LightBands"])
+				{
+					renderer.LightBands = node.as<uint32_t>(renderer.LightBands);
+				}
 			}
 		}
 		catch (const YAML::Exception& e)

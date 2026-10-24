@@ -10,7 +10,7 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | --- | --- | --- |
 | `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdateRuntime` / `OnUpdateEditor`; knows its viewport size (`OnViewportResize`) and primary camera (`GetPrimaryCameraEntity`) |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
-| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `NativeScriptComponent` |
+| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent`, `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
 | `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera)` or `RenderRuntime(view)` (primary camera) |
 | Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
@@ -58,7 +58,7 @@ A scene is updated one of two ways:
 | 1b | `UpdateSpriteAnimations` (runtime only) | `Scene::OnUpdateRuntime`, after the scripts | `SpriteAnimatorComponent` → `SpriteRendererComponent` (`Texture`, `SpriteIndex`, `FlipX`) |
 | 2 | Engine systems | `Scene::OnUpdateEditor` (also called by `OnUpdateRuntime`) | None yet; transform propagation goes here |
 | 3 | Application systems | The layer, after the scene update | Its own components. The editor's `UpdateGalaxy` reads `GalaxyStar` and writes `TransformComponent` + `SpriteRendererComponent` |
-| 4 | Sprite submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling or sprite rect, colour)` |
+| 4 | Sprite and light submission | `SceneRenderer::RenderEditor` / `RenderRuntime` | camera → `Renderer2D::BeginScene`; `TransformComponent` + `SpriteRendererComponent` → `Renderer2D::DrawQuad(transform, texture, tiling or sprite rect, colour)`; `TransformComponent` + `Light2DComponent` → `Renderer2D::DrawLight` / `DrawGlobalLight` (the view is then drawn lit, see [Architecture](Architecture.md#2d-lighting)) |
 | — | GPU | `Renderer::RenderFrame` (application loop) | Records and presents everything submitted |
 
 New engine systems go into `Scene::OnUpdateEditor` when they must also run while editing, or into `Scene::OnUpdateRuntime` (after the scripts) when they are game-only, in a deliberate position. Gameplay systems belong to the application and run after it.

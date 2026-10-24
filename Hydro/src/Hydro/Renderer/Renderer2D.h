@@ -81,6 +81,18 @@ namespace Hydro
 		// horizontally, Min.y and Max.y to flip it vertically.
 		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor = glm::vec4(1.0f));
 
+		// 2D lighting (RendererSettings::Lighting). Queue lights for the view between BeginScene and
+		// EndScene, like quads. A view that gets at least one light is drawn lit: each light is drawn
+		// into the view's light buffer, which is then multiplied over the scene. Colours are linear RGB,
+		// multiplied by intensity. A light is drawn through the view's camera like the sprites, so give
+		// it the Z of the sprites it lights.
+		// A point light lights the area around `position` out to `radius` (world units). At most 1024
+		// per view and frame; the rest are dropped.
+		static void DrawLight(const glm::vec3& position, float radius, const glm::vec3& color, float intensity);
+		// A light that reaches everything equally: the ambient colour of the view. Several add up. Without
+		// one, the parts no point light reaches are black.
+		static void DrawGlobalLight(const glm::vec3& color, float intensity);
+
 		// Records one render pass per view begun this frame (one vkCmdDrawIndexed per draw) into
 		// the frame's command buffer. Called once per frame by Renderer::RenderFrame.
 		static void Render(VkCommandBuffer commandBuffer);
@@ -118,6 +130,11 @@ namespace Hydro
 		static void UpdateImGuiTextures(uint32_t frame);
 		static void UpdateImGuiTextures(RenderViewData& view, uint32_t frame);
 		static void RecordView(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
+		// Draws the view's lights into its light buffer (before the view's scene pass). False when the view
+		// isn't lit: lighting is off, it has no lights, or the light shaders are unavailable.
+		static bool RecordLightPass(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
+		// Multiplies the light buffer over the scene. Call it inside the scene pass, after the sprites.
+		static void RecordComposite(VkCommandBuffer commandBuffer, RenderViewData& view);
 		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad
 		// shader when a source file changed (only with RendererSettings::ShaderHotReload).
 		static void ApplySettings();

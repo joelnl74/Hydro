@@ -134,6 +134,19 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<Light2DComponent>())
+		{
+			auto& light = entity.GetComponent<Light2DComponent>();
+
+			out << YAML::Key << "Light2DComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Type" << YAML::Value << (light.Type == Light2DType::Global ? "Global" : "Point");
+			out << YAML::Key << "Color" << YAML::Value << light.Color;
+			out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
+			out << YAML::Key << "Radius" << YAML::Value << light.Radius;
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
 			auto& scripts = entity.GetComponent<NativeScriptComponent>();
@@ -231,6 +244,15 @@ namespace Hydro
 			camera.OrthographicSize = cameraNode["OrthographicSize"].as<float>(camera.OrthographicSize);
 			camera.OrthographicNear = cameraNode["OrthographicNear"].as<float>(camera.OrthographicNear);
 			camera.OrthographicFar = cameraNode["OrthographicFar"].as<float>(camera.OrthographicFar);
+		}
+
+		if (auto lightNode = entityNode["Light2DComponent"])
+		{
+			auto& light = entity.AddComponent<Light2DComponent>();
+			light.Type = lightNode["Type"].as<std::string>("Point") == "Global" ? Light2DType::Global : Light2DType::Point;
+			light.Color = lightNode["Color"].as<glm::vec3>(light.Color);
+			light.Intensity = lightNode["Intensity"].as<float>(light.Intensity);
+			light.Radius = lightNode["Radius"].as<float>(light.Radius);
 		}
 
 		if (auto scriptNode = entityNode["NativeScriptComponent"])

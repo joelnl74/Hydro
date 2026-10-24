@@ -71,6 +71,16 @@ namespace Hydro
 			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 			state.alphaBlendOp = VK_BLEND_OP_ADD;
 			break;
+		case BlendMode::Multiply2x:
+			// colour: src * dst + dst * src. The target's alpha is left as it is.
+			state.blendEnable = VK_TRUE;
+			state.srcColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR;
+			state.dstColorBlendFactor = VK_BLEND_FACTOR_SRC_COLOR;
+			state.colorBlendOp = VK_BLEND_OP_ADD;
+			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.alphaBlendOp = VK_BLEND_OP_ADD;
+			break;
 		}
 
 		return state;
@@ -112,7 +122,8 @@ namespace Hydro
 			location++;
 		}
 
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		// A pipeline without vertex attributes (a fullscreen triangle made in the vertex shader) has no vertex binding.
+		vertexInputInfo.vertexBindingDescriptionCount = vertexInputAttributs.empty() ? 0 : 1;
 		vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributs.size();
 		vertexInputInfo.pVertexBindingDescriptions = &vertexInputBinding;
 		vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributs.data();

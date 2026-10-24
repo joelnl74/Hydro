@@ -11,7 +11,8 @@ namespace Hydro
 	static bool SameSettings(const RendererSettings& a, const RendererSettings& b)
 	{
 		return a.ClearColor == b.ClearColor && a.VSync == b.VSync && a.Wireframe == b.Wireframe
-			&& a.ShaderHotReload == b.ShaderHotReload;
+			&& a.ShaderHotReload == b.ShaderHotReload
+			&& a.Lighting == b.Lighting && a.LightFalloff == b.LightFalloff && a.LightBands == b.LightBands;
 	}
 
 	static void HelpMarker(const char* text)
@@ -47,6 +48,37 @@ namespace Hydro
 
 			changed |= ImGui::Checkbox("VSync", &settings.VSync);
 			HelpMarker("Wait for the display refresh. Off: uncapped (mailbox, or immediate if the GPU has no mailbox).\nChanging it recreates the swapchain.");
+		}
+
+		// ---- Lighting ----------------------------------------------------------
+		if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			changed |= ImGui::Checkbox("2D lighting", &settings.Lighting);
+			HelpMarker("Draw views that have lights (Light 2D components) lit. Off: lights are ignored and the scene is drawn as it is.");
+
+			ImGui::BeginDisabled(settings.Lighting == false);
+
+			const char* falloffNames[] = { "Smooth", "Banded" };
+			int falloff = (int)settings.LightFalloff;
+			if (ImGui::Combo("Light falloff", &falloff, falloffNames, 2))
+			{
+				settings.LightFalloff = (LightFalloffStyle)falloff;
+				changed = true;
+			}
+			HelpMarker("Smooth: lights fade out continuously.\nBanded: the fade is cut into visible steps (the retro, pixel-art look).");
+
+			ImGui::BeginDisabled(settings.LightFalloff != LightFalloffStyle::Banded);
+			int bands = (int)settings.LightBands;
+			if (ImGui::SliderInt("Bands", &bands, 2, 32))
+			{
+				settings.LightBands = (uint32_t)bands;
+				changed = true;
+			}
+			ImGui::EndDisabled();
+
+			ImGui::EndDisabled();
+
+			ImGui::TextDisabled("The light curve is assets/shaders/light.frag. With Shader hot reload on,\nsaving it changes the look of the running editor.");
 		}
 
 		// ---- Debug -------------------------------------------------------------

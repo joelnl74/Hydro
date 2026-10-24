@@ -137,6 +137,28 @@ namespace Hydro
 		SpriteAnimatorComponent(const SpriteAnimatorComponent&) = default;
 	};
 
+	enum class Light2DType : uint8_t
+	{
+		Point = 0, // lights the area around the entity, out to Radius
+		Global     // lights the whole view equally: the ambient light
+	};
+
+	// A light for the 2D renderer. A point light is placed by the entity's TransformComponent; a global
+	// light ignores the position. SceneRenderer submits every light to Renderer2D, which draws a view
+	// that has at least one light lit (RendererSettings::Lighting): the global lights are the ambient
+	// colour of the scene, point lights add to it. Without a global light, the unlit parts are black.
+	// The light is drawn through the same camera as the sprites, so give it the Z of the sprites it lights.
+	struct Light2DComponent
+	{
+		Light2DType Type = Light2DType::Point;
+		glm::vec3 Color{ 1.0f, 1.0f, 1.0f }; // linear RGB
+		float Intensity = 1.0f;              // multiplies Color; values above 1 over-brighten (up to 2x the sprite's colour)
+		float Radius = 5.0f;                 // Point only: how far the light reaches, in world units
+
+		Light2DComponent() = default;
+		Light2DComponent(const Light2DComponent&) = default;
+	};
+
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
 	template<typename... Component>
@@ -144,5 +166,5 @@ namespace Hydro
 	{
 	};
 
-	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent>;
+	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent>;
 }

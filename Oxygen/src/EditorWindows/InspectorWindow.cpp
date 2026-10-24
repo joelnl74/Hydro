@@ -356,6 +356,7 @@ namespace Hydro
 		bool removeSprite = false;
 		bool removeCamera = false;
 		bool removeAnimator = false;
+		bool removeLight = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
 
@@ -478,6 +479,31 @@ namespace Hydro
 			}
 		});
 
+		DrawComponent<Light2DComponent>("Light 2D", entity, removeLight, [&](Light2DComponent& light)
+		{
+			const char* typeNames[] = { "Point", "Global" };
+			int type = (int)light.Type;
+			DrawPropertyRow("Type", [&]()
+			{
+				if (ImGui::Combo("##LightType", &type, typeNames, 2))
+				{
+					light.Type = (Light2DType)type;
+				}
+			});
+
+			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit3("##LightColor", glm::value_ptr(light.Color)); });
+			DrawPropertyRow("Intensity", [&]() { InputFloatField("##LightIntensity", light.Intensity, "%.2f", 0.0f, 100.0f); });
+
+			if (light.Type == Light2DType::Point)
+			{
+				DrawPropertyRow("Radius", [&]() { InputFloatField("##LightRadius", light.Radius, "%.2f", 0.01f, 10000.0f); });
+			}
+			else
+			{
+				ImGui::TextDisabled("Lights everything equally: the ambient color.");
+			}
+		});
+
 		int scriptToRemove = -1;
 		DrawComponent<NativeScriptComponent>("Scripts", entity, removeScripts, [&](NativeScriptComponent& scripts)
 		{
@@ -536,6 +562,10 @@ namespace Hydro
 		{
 			entity.RemoveComponent<SpriteAnimatorComponent>();
 		}
+		if (removeLight)
+		{
+			entity.RemoveComponent<Light2DComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -557,6 +587,7 @@ namespace Hydro
 			const bool hasSprite = entity.HasComponent<SpriteRendererComponent>();
 			const bool hasCamera = entity.HasComponent<CameraComponent>();
 			const bool hasAnimator = entity.HasComponent<SpriteAnimatorComponent>();
+			const bool hasLight = entity.HasComponent<Light2DComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -589,6 +620,17 @@ namespace Hydro
 				{
 					entity.AddComponent<SpriteRendererComponent>();
 				}
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Light 2D", nullptr, false, hasLight == false))
+			{
+				entity.AddComponent<Light2DComponent>();
+
+				// A point light is placed by the entity's transform.
 				if (entity.HasComponent<TransformComponent>() == false)
 				{
 					entity.AddComponent<TransformComponent>();

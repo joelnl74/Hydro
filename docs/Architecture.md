@@ -83,10 +83,13 @@ Renderer:
   VSync: true
   Wireframe: false
   ShaderHotReload: true
+  Lighting: true            # 2D lighting on/off
+  LightFalloff: Smooth      # Smooth or Banded
+  LightBands: 8             # steps of a Banded falloff (2 to 32)
 ```
 
 - `Project::Load(file)` / `Project::New(file)` make a project active; `Project::SaveActive()` writes it; `Project::Close()` releases it. `Project` doesn't call other subsystems: whoever opens a project applies its settings (`Renderer::SetSettings(config.Renderer)`) and, when saving, copies the live settings back (`config.Renderer = Renderer::GetSettings()`).
-- `RendererSettings` are live: `Renderer::SetSettings` applies them from the next frame. Clear colour and hot reload are read every frame, wireframe rebuilds the 2D pipeline, and vsync recreates the swapchain. `Renderer::GetCapabilities()` says what the GPU supports (wireframe, wide lines).
+- `RendererSettings` are live: `Renderer::SetSettings` applies them from the next frame. Clear colour, hot reload and the lighting options are read every frame, wireframe rebuilds the 2D pipeline, and vsync recreates the swapchain. `Renderer::GetCapabilities()` says what the GPU supports (wireframe, wide lines).
 - Oxygen opens the first `.hyproj` in its `project` folder at startup (`Oxygen/project/Sandbox.hyproj`). **View > Render Settings** edits the renderer settings live and **View > Project Settings** edits the name and start scene; **File > Save Project** (or the Save buttons) writes both.
 
 ## The frame
@@ -98,7 +101,7 @@ Renderer:
 3. **Update**: every layer's `OnUpdate(Time::GetDeltaTime())`. A layer updates its scene here (`Scene::OnUpdateRuntime` or `OnUpdateEditor`, then its own systems) and submits draw calls into a `RenderView` through a camera (`SceneRenderer::RenderRuntime` or `RenderEditor` → `Renderer2D::BeginScene(view, ...)` + `DrawQuad` + `EndScene`). Nothing touches the GPU yet.
 4. **Render**: `Renderer::RenderFrame` records and submits the whole frame in **one** command buffer:
    1. wait for this frame-in-flight's fence, run the deletion queue's frees whose frames are now finished (`Renderer::SubmitResourceFree`, see [Vulkan ownership](#vulkan-ownership)), acquire a swapchain image;
-   2. `Renderer2D::Render` — one offscreen 2D pass per `RenderView` begun this frame (its batched quads, seen through its camera), each cleared to `RendererSettings::ClearColor`. It applies each view's pending resize before its pass, and first rebuilds its pipeline if `Wireframe` changed and, when hot reload is on, rebuilds its shader and pipeline if a shader source changed (see [Shaders](#shaders));
+   2. `Renderer2D::Render` — one offscreen 2D pass per `RenderView` begun this frame (its batched quads, seen through its camera), each cleared to `RendererSettings::ClearColor` (a view that has lights first gets a light buffer pass, see [2D lighting](#2d-lighting)). It applies each view's pending resize before its pass, and first rebuilds its pipeline if `Wireframe` changed and, when hot reload is on, rebuilds its shader and pipeline if a shader source changed (see [Shaders](#shaders));
    3. the swapchain pass — ImGui draws the editor UI, including the Editor and Game windows, which sample their views' images;
    4. submit, present.
 
@@ -141,6 +144,15 @@ A view's quads are recorded as a list of **draws** (one `vkCmdDrawIndexed` each)
 - The quad shader picks the texture with a `switch` over constant indices (`textureGrad` with derivatives taken before it), because indexing the sampler array with a per-quad value needs descriptor indexing, which the device doesn't enable. `texIndex` is `flat`. The vertex colour multiplies the texture, alpha included.
 - Texture coordinates run `v = 1` at the quad's bottom to `v = 0` at its top (Vulkan's first image row is the top), times the tiling factor; samplers repeat by default.
 - **Stats** (Oxygen's Stats window): slots per draw, slots used, texture flushes.
+
+### 2D lighting
+
+A view that is given at least one light between `BeginScene` and `EndScene` is drawn lit (when `RendererSettings::Lighting` is on; views without lights are drawn exactly as before). `SceneRenderer` submits every `Light2DComponent`: `Renderer2D::DrawLight(position, radius, color, intensity)` for a point light, `DrawGlobalLight(color, intensity)` for a global one.
+
+1. **Light buffer pass** (before the view's scene pass, `RecordLightPass`). An RGBA16F target the size of the view, made the first time the view is lit and resized with it. It is cleared to the sum of the global lights (the ambient colour, 0 when there are none); each point light is then added with one quad covering its radius (`LightPipeline`, `BlendMode::Additive`, `assets/shaders/light.frag`, one indexed draw for all lights).
+2. **Composite** (last draw of the scene pass, `RecordComposite`). A fullscreen triangle (`composite.vert`, no vertex buffer) samples the light buffer and multiplies it over everything drawn so far (`BlendMode::Multiply2x`: `dst * src * 2`, so a light of 1 leaves a colour as it is and up to 2 over-brightens it). Blending happens in linear space.
+
+`RendererSettings::LightFalloff` picks a smooth fade or `LightBands` visible steps; it reaches `light.frag` in the light quads' vertices (the "texture index": 0 = smooth, otherwise the band count). The curve itself is in the shader file, and light shaders are hot reloaded like the quad shader. Lighting is optional: if its shaders can't be built, `Renderer2D::Init` logs it and every view is drawn unlit.
 
 ### Sprite sheets and import settings
 
@@ -340,6 +352,7 @@ These are where the code does not yet match the rules above. Fix them when you t
 - `AssetManager::Rescan` is synchronous: it reads the first line of every scene and prefab and every sidecar. The Project window runs it only when the folder it shows changes, so a file added in Explorer to another folder gets its handle when that folder is shown, something is saved there, or the project is opened again.
 - Textures load synchronously on the main thread (stb_image decode + one upload that waits for the GPU).
 - `LayerStack` owns layers through raw pointers (A9); some members and spec fields don't follow the naming rules (A10).
-- Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s quad shader is watched; there is no shader library yet.
+- Shader hot reload rebuilds the pipeline from its existing `PipelineSpecification`, so a shader whose descriptor bindings or vertex inputs change still needs `Renderer2D`'s setup changed and a restart. Only `Renderer2D`'s own shaders (quad, light, composite) are watched; there is no shader library yet.
+- 2D lighting lights the whole view (the clear colour and every sprite): there is no unlit layer or emissive sprite yet, and no shadows. The editor views are lit too, so a scene with only point lights is dark while editing (add a global light or turn off **Lighting** in **Render Settings**). The light buffer is full resolution; a half-resolution option is not built. Light shader files are loaded from the application's `assets/` folder (A8).
 - `Platform/Vulkan/VulkanCommandBuffer.h` and `.cpp` are empty since one-off uploads moved to `VulkanDevice::SubmitImmediate` (Oct 20, 2026); delete them and regenerate the projects.
 - `VulkanDevice` and `VulkanSwapChain` still do their setup in the constructor (+ `Create`) instead of `Init` (see [Subsystems](Subsystems.md#known-gaps)).

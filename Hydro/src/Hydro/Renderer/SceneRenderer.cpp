@@ -17,6 +17,7 @@ namespace Hydro
 	{
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
 		SubmitSprites();
+		SubmitLights();
 		Renderer2D::EndScene();
 	}
 
@@ -42,6 +43,7 @@ namespace Hydro
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
 		SubmitSprites();
+		SubmitLights();
 		Renderer2D::EndScene();
 		return true;
 	}
@@ -97,6 +99,24 @@ namespace Hydro
 		}
 
 		// TODO MESH RENDERING
+	}
+
+	void SceneRenderer::SubmitLights()
+	{
+		auto view = m_Scene->m_Registry.view<TransformComponent, Light2DComponent>();
+		for (auto entity : view)
+		{
+			const auto [transform, light] = view.get<TransformComponent, Light2DComponent>(entity);
+
+			if (light.Type == Light2DType::Global)
+			{
+				Renderer2D::DrawGlobalLight(light.Color, light.Intensity);
+			}
+			else
+			{
+				Renderer2D::DrawLight(transform.Translation, light.Radius, light.Color, light.Intensity);
+			}
+		}
 	}
 
 	void SceneRenderer::SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite)

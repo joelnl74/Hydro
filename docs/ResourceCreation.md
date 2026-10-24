@@ -76,7 +76,7 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 | `ImGuiLayerSpecification`, `ImGuiFontSpecification` (`ImGUI/ImGuiLayer.h`) | `ImGuiLayer` constructor (from `ApplicationSpecification::ImGui`) | In use: fonts loaded into the atlas at startup (name, file, pixel size); the first is the default. Missing files are logged and skipped |
 | `EditorCameraSettings` (`Renderer/EditorCamera.h`) | `EditorCamera::SetSettings` | In use: field of view, clip planes, orbit/pan/zoom speed multipliers. Live; Oxygen saves them in its editor settings |
 | `ProjectConfig` | `Project`, saved by `ProjectSerializer` (`.hyproj`) | In use: name, asset directory, start scene, `RendererSettings` |
-| `RendererSettings` (`Renderer/RendererSettings.h`) | `Renderer::SetSettings` | In use: clear colour, vsync, wireframe, shader hot reload |
+| `RendererSettings` (`Renderer/RendererSettings.h`) | `Renderer::SetSettings` | In use: clear colour, vsync, wireframe, shader hot reload, 2D lighting (`Lighting`, `LightFalloff` smooth or banded, `LightBands`) |
 | `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output |
 
 ## Adding a new resource
