@@ -220,6 +220,10 @@ namespace Hydro
 
 			setLayouts.push_back(descriptorSet->GetDescriptorSetLayout());
 		}
+		if (spec.DescriptorSets.empty())
+		{
+			setLayouts = spec.DescriptorSetLayouts;
+		}
 
 		pipelineLayoutInfo.setLayoutCount = (uint32_t)setLayouts.size();
 		pipelineLayoutInfo.pSetLayouts = setLayouts.empty() ? nullptr : setLayouts.data();

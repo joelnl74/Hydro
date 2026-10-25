@@ -131,11 +131,6 @@ namespace Hydro
 		// use DEPTH32F as one). SceneRenderer chooses sprite draw modes only then.
 		static bool HasSharedDepth(const RenderFeatureSettings& settings);
 
-		// TEMPORARY(S1, removed in M4): an unlit box for the shared-depth spike, drawn opaque with depth
-		// test and write before the sprites. `transform` maps the unit box (base centred on the origin,
-		// 1 x 1 wide, 1 high along +Z) into the world. Only drawn in views with shared depth.
-		static void DrawSpikeBox(const glm::mat4& transform, const glm::vec4& color);
-
 		// The entity the quads submitted next belong to, until the next call or EndScene (which goes back to
 		// -1). The Editor view writes it to its entity-ID attachment for click-to-select (M7); -1 (or any
 		// negative value) = none: the quads don't change the IDs below them (particles, effects, lines).
@@ -195,8 +190,6 @@ namespace Hydro
 		// Records `draws` (one of the view's quad lists) with pipelines built for the view's attachments:
 		// `mode` picks the cut-out or the sprite pipeline, `overlay` the overlay's. Nothing when empty.
 		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay);
-		// TEMPORARY(S1): the view's spike boxes.
-		static void RecordSpikeBoxes(VkCommandBuffer commandBuffer, RenderViewData& view);
 		// The draw list quads go to now (overlay, or the current sprite draw mode's list).
 		static std::vector<QuadDraw>& GetCurrentDraws(RenderViewData& view);
 		static void AllocateBatch(RenderViewData& view);

@@ -35,6 +35,9 @@ namespace Hydro
 		// Not owned: their layouts are read at creation; BindDescriptorSets binds them, so they must
 		// outlive the pipeline when that is used.
 		std::vector<VulkanDescriptorBuilder*> DescriptorSets;
+		// Used instead when DescriptorSets is empty: the set layouts in set-index order (from
+		// VulkanDescriptorAllocator::GetLayout), for pipelines whose sets come from elsewhere (materials).
+		std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
 
 		VertexBufferLayout Layout;
 		// The attachments the pipeline draws into (dynamic rendering, no VkRenderPass): the colour formats

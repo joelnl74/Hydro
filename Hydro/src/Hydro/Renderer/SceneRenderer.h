@@ -83,10 +83,10 @@ namespace Hydro
 		// then the standing ones, Upright, Billboard and emitters, from far to near along the camera's
 		// ground direction; then storage order) and submits them back to front. An emitter is one entry:
 		// its particles are drawn together. With shared depth it also picks each one's SpriteDrawMode (decal,
-		// cut-out or translucent) and submits the spike boxes.
+		// cut-out or translucent).
 		void SubmitSprites();
-		// TEMPORARY(S1, removed in M4): entities tagged "S1 Depth Box ..." as Renderer2D spike boxes.
-		void SubmitSpikeBoxes();
+		// MeshComponents (Renderer3D), when the render features draw meshes; a warning once per scene otherwise.
+		void SubmitMeshes(RenderView& renderView);
 		// Unlit emitters (ParticleLighting::Unlit): drawn after the view's lighting is composited, so they
 		// are not darkened at night. They go on top of every sprite (no SortOrder against sprites yet;
 		// the emissive path is decided by the Roadmap V4 spike).
@@ -129,5 +129,6 @@ namespace Hydro
 		CameraBasis m_Camera;
 		// Reused every frame (capacity kept), so sorting allocates nothing once the scene is drawn.
 		std::vector<SpriteDrawItem> m_SpriteQueue;
+		bool m_MeshWarningShown = false;
 	};
 }

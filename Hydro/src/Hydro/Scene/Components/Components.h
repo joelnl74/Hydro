@@ -11,6 +11,9 @@
 #include <Hydro/Core/UUID.h>
 #include <Hydro/Renderer/SceneCamera.h>
 #include <Hydro/Asset/Asset.h>
+#include <Hydro/Renderer/Image.h>
+
+#include <vector>
 #include <glm/gtx/quaternion.hpp>
 
 namespace Hydro
@@ -74,6 +77,55 @@ namespace Hydro
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {
 		}
+	};
+
+	// The Standard material (plan M4): albedo times tint, plus emission, opaque or cut out. The MVP's only
+	// material type; lit by M6's forward lights, otherwise unlit. Inline on a MeshComponent (M4b adds
+	// material assets).
+	struct MaterialData
+	{
+		AssetHandle Albedo = 0;   // a Texture2D; 0 = white
+		AssetHandle Emissive = 0; // a Texture2D multiplied by EmissionColor * EmissionIntensity; 0 = white
+		glm::vec4 Tint{ 1.0f };   // linear RGBA, multiplies the albedo
+		glm::vec2 Tiling{ 1.0f }; // texture repeats per metre (built-in shapes have UVs in metres)
+		glm::vec3 EmissionColor{ 0.0f }; // linear RGB; black = no emission
+		float EmissionIntensity = 1.0f;
+		// Pixels whose albedo alpha is below this are dropped (cut-out: railings, leaves). 0 = opaque.
+		float AlphaCutoff = 0.0f;
+		TextureFilter Filter = TextureFilter::Nearest; // nearest keeps pixel art crisp
+
+		bool operator==(const MaterialData& other) const
+		{
+			return Albedo == other.Albedo && Emissive == other.Emissive && Tint == other.Tint && Tiling == other.Tiling
+				&& EmissionColor == other.EmissionColor && EmissionIntensity == other.EmissionIntensity
+				&& AlphaCutoff == other.AlphaCutoff && Filter == other.Filter;
+		}
+		bool operator!=(const MaterialData& other) const { return (*this == other) == false; }
+	};
+
+	// A built-in shape of a MeshComponent (MeshFactory). Z-up, standing on its position.
+	enum class MeshShape : uint8_t
+	{
+		Box = 0,
+		Plane,
+		Ramp,
+		Stairs,
+		Cylinder
+	};
+
+	// A static mesh drawn with shared depth when the view's render features have Meshes on (plan M4).
+	// Plain data: SceneRenderer turns it into a cached Mesh and materials every frame.
+	struct MeshComponent
+	{
+		MeshShape Shape = MeshShape::Box;
+		// Width (X), depth (Y), height (Z) in metres, before the transform's scale. Built-in shapes stand on
+		// the entity's position (their base is centred there at z = 0).
+		glm::vec3 Size{ 1.0f };
+		uint32_t Steps = 4;     // Stairs
+		uint32_t Segments = 16; // Cylinder
+		// One per sub-mesh (built-in shapes have one); a missing one draws white.
+		std::vector<MaterialData> Materials{ MaterialData{} };
+		bool CastShadows = true; // kept for shadows (H6); nothing reads it yet
 	};
 
 	struct TagComponent
@@ -368,5 +420,5 @@ namespace Hydro
 	};
 
 	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent>;
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent>;
 }

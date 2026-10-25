@@ -3,6 +3,7 @@
 
 #include <imgui/imgui.h>
 #include <Hydro/Renderer/Renderer2D.h>
+#include <Hydro/Renderer/Renderer3D.h>
 
 #include <cstdio>
 
@@ -22,6 +23,17 @@ namespace Hydro
 			StatsUI::Row("Triangles", "%u", stats.GetTriangleCount());
 			StatsUI::Row("Vertices", "%u", stats.GetTotalVertexCount());
 			StatsUI::Row("Indices", "%u", stats.GetTotalIndexCount());
+			ImGui::EndTable();
+		}
+
+		// ---- Meshes (Renderer3D) ----------------------------------------------
+		const Renderer3DStatistics meshStats = Renderer3D::GetStats();
+		if (ImGui::CollapsingHeader("Meshes", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##meshes"))
+		{
+			StatsUI::Row("Mesh draw calls", "%u", meshStats.MeshDraws);
+			StatsUI::Row("Mesh triangles", "%u", meshStats.Triangles);
+			StatsUI::Row("Cached shapes", "%u", meshStats.CachedMeshes);
+			StatsUI::Row("Cached materials", "%u", meshStats.CachedMaterials);
 			ImGui::EndTable();
 		}
 

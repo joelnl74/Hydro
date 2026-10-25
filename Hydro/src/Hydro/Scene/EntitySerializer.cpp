@@ -86,6 +86,85 @@ namespace Hydro
 		return SpriteAlphaMode::Default;
 	}
 
+	static const char* MeshShapeToString(MeshShape shape)
+	{
+		switch (shape)
+		{
+		case MeshShape::Box: return "Box";
+		case MeshShape::Plane: return "Plane";
+		case MeshShape::Ramp: return "Ramp";
+		case MeshShape::Stairs: return "Stairs";
+		case MeshShape::Cylinder: return "Cylinder";
+		}
+
+		return "Box";
+	}
+
+	static MeshShape MeshShapeFromString(const std::string& name)
+	{
+		if (name == "Plane")
+		{
+			return MeshShape::Plane;
+		}
+		if (name == "Ramp")
+		{
+			return MeshShape::Ramp;
+		}
+		if (name == "Stairs")
+		{
+			return MeshShape::Stairs;
+		}
+		if (name == "Cylinder")
+		{
+			return MeshShape::Cylinder;
+		}
+
+		return MeshShape::Box;
+	}
+
+	static void SerializeMeshMaterial(YAML::Emitter& out, const MaterialData& material)
+	{
+		out << YAML::BeginMap;
+		if ((uint64_t)material.Albedo != 0)
+		{
+			out << YAML::Key << "AlbedoHandle" << YAML::Value << (uint64_t)material.Albedo;
+		}
+		if ((uint64_t)material.Emissive != 0)
+		{
+			out << YAML::Key << "EmissiveHandle" << YAML::Value << (uint64_t)material.Emissive;
+		}
+		out << YAML::Key << "Tint" << YAML::Value << material.Tint;
+		out << YAML::Key << "Tiling" << YAML::Value << material.Tiling;
+		out << YAML::Key << "EmissionColor" << YAML::Value << material.EmissionColor;
+		out << YAML::Key << "EmissionIntensity" << YAML::Value << material.EmissionIntensity;
+		out << YAML::Key << "AlphaCutoff" << YAML::Value << material.AlphaCutoff;
+		out << YAML::Key << "Filter" << YAML::Value << (material.Filter == TextureFilter::Linear ? "Linear" : "Nearest");
+		out << YAML::EndMap;
+	}
+
+	// The textures are loaded now, so the renderer (which never loads) finds them.
+	static MaterialData DeserializeMeshMaterial(const YAML::Node& node)
+	{
+		MaterialData material;
+		material.Albedo = ResolveSavedAsset(node["AlbedoHandle"], node["Albedo"]);
+		material.Emissive = ResolveSavedAsset(node["EmissiveHandle"], node["Emissive"]);
+		if ((uint64_t)material.Albedo != 0)
+		{
+			AssetManager::GetAsset<Texture2D>(material.Albedo);
+		}
+		if ((uint64_t)material.Emissive != 0)
+		{
+			AssetManager::GetAsset<Texture2D>(material.Emissive);
+		}
+		material.Tint = node["Tint"].as<glm::vec4>(material.Tint);
+		material.Tiling = node["Tiling"].as<glm::vec2>(material.Tiling);
+		material.EmissionColor = node["EmissionColor"].as<glm::vec3>(material.EmissionColor);
+		material.EmissionIntensity = node["EmissionIntensity"].as<float>(material.EmissionIntensity);
+		material.AlphaCutoff = node["AlphaCutoff"].as<float>(material.AlphaCutoff);
+		material.Filter = node["Filter"].as<std::string>("Nearest") == "Linear" ? TextureFilter::Linear : TextureFilter::Nearest;
+		return material;
+	}
+
 	static SpriteFacing SpriteFacingFromString(const std::string& name)
 	{
 		if (name == "Upright")
@@ -299,6 +378,32 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<MeshComponent>())
+		{
+			auto& mesh = entity.GetComponent<MeshComponent>();
+
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Shape" << YAML::Value << MeshShapeToString(mesh.Shape);
+			out << YAML::Key << "Size" << YAML::Value << mesh.Size;
+			if (mesh.Shape == MeshShape::Stairs)
+			{
+				out << YAML::Key << "Steps" << YAML::Value << mesh.Steps;
+			}
+			if (mesh.Shape == MeshShape::Cylinder)
+			{
+				out << YAML::Key << "Segments" << YAML::Value << mesh.Segments;
+			}
+			out << YAML::Key << "CastShadows" << YAML::Value << mesh.CastShadows;
+			out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
+			for (const MaterialData& material : mesh.Materials)
+			{
+				SerializeMeshMaterial(out, material);
+			}
+			out << YAML::EndSeq;
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<Shadow2DComponent>())
 		{
 			auto& shadow = entity.GetComponent<Shadow2DComponent>();
@@ -506,6 +611,24 @@ namespace Hydro
 			light.Intensity = lightNode["Intensity"].as<float>(light.Intensity);
 			light.Radius = lightNode["Radius"].as<float>(light.Radius);
 			light.Height = lightNode["Height"].as<float>(light.Height);
+		}
+
+		if (auto meshNode = entityNode["MeshComponent"])
+		{
+			auto& mesh = entity.AddComponent<MeshComponent>();
+			mesh.Shape = MeshShapeFromString(meshNode["Shape"].as<std::string>("Box"));
+			mesh.Size = meshNode["Size"].as<glm::vec3>(mesh.Size);
+			mesh.Steps = meshNode["Steps"].as<uint32_t>(mesh.Steps);
+			mesh.Segments = meshNode["Segments"].as<uint32_t>(mesh.Segments);
+			mesh.CastShadows = meshNode["CastShadows"].as<bool>(mesh.CastShadows);
+			if (auto materialsNode = meshNode["Materials"]; materialsNode && materialsNode.IsSequence())
+			{
+				mesh.Materials.clear();
+				for (const YAML::Node& materialNode : materialsNode)
+				{
+					mesh.Materials.push_back(DeserializeMeshMaterial(materialNode));
+				}
+			}
 		}
 
 		if (auto shadowNode = entityNode["Shadow2DComponent"])

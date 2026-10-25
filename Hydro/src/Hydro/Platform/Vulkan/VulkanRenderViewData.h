@@ -8,6 +8,7 @@
 #include "Hydro/Renderer/Image.h"
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/RenderGraph.h"
+#include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "VulkanDescriptorBuilder.h"
 #include "VulkanFrameContext.h"
@@ -96,11 +97,17 @@ namespace Hydro
 	};
 
 	// Everything one RenderView needs: its target, its camera and its quads.
-	// TEMPORARY(S1): a box drawn by the shared-depth spike (Renderer2D::DrawSpikeBox). Removed in M4.
-	struct SpikeBox
+	struct MeshMaterial; // Renderer3D.cpp
+
+	// One sub-mesh queued by Renderer3D::DrawMesh, recorded by the view's Meshes pass.
+	struct MeshDraw
 	{
-		glm::mat4 Transform{ 1.0f }; // the unit box (base centred on the origin, 1 high along +Z) into the world
-		glm::vec4 Color{ 1.0f };
+		Ref<Mesh> MeshRef;
+		uint32_t SubMesh = 0;
+		MeshMaterial* Material = nullptr; // owned by Renderer3D's material cache (kept while used)
+		glm::mat4 Transform{ 1.0f };
+		int32_t EntityID = -1;
+		float SortDepth = 0.0f; // clip-space depth of the mesh's centre: front to back
 	};
 
 	struct RenderViewData
@@ -148,7 +155,7 @@ namespace Hydro
 		bool InOverlay = false; // quads currently go to OverlayDraws
 		SpriteDrawMode DrawMode = SpriteDrawMode::Translucent; // the list quads go to outside the overlay
 		int32_t EntityID = -1; // Renderer2D::SetEntityID: what the next quads carry
-		std::vector<SpikeBox> SpikeBoxes; // TEMPORARY(S1)
+		std::vector<MeshDraw> MeshDraws;  // Renderer3D::DrawMesh, cleared with the batches
 
 		// ---- Lights ------------------------------------------------------------------
 		// Queued by DrawLight / DrawGlobalLight, drawn by RecordLightPass. Cleared with the batches.

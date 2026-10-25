@@ -410,6 +410,7 @@ namespace Hydro
 		bool removeAnimator = false;
 		bool removeLight = false;
 		bool removeShadow = false;
+		bool removeMesh = false;
 		bool removeRigidbody = false;
 		bool removeBoxCollider = false;
 		bool removeCircleCollider = false;
@@ -602,6 +603,87 @@ namespace Hydro
 			{
 				ImGui::TextDisabled("Lights everything equally: the ambient color.");
 			}
+		});
+
+		DrawComponent<MeshComponent>("Mesh", entity, removeMesh, [&](MeshComponent& mesh)
+		{
+			DrawPropertyRow("Shape", [&]()
+			{
+				const char* shapeNames[] = { "Box", "Plane", "Ramp", "Stairs", "Cylinder" };
+				int shape = (int)mesh.Shape;
+				if (ImGui::Combo("##MeshShape", &shape, shapeNames, 5))
+				{
+					mesh.Shape = (MeshShape)shape;
+				}
+			});
+			DrawVec3Control("Size", mesh.Size, 1.0f);
+			if (mesh.Shape == MeshShape::Stairs)
+			{
+				DrawPropertyRow("Steps", [&]()
+				{
+					int steps = (int)mesh.Steps;
+					if (ImGui::InputInt("##MeshSteps", &steps))
+					{
+						mesh.Steps = (uint32_t)std::clamp(steps, 1, 64);
+					}
+				});
+			}
+			if (mesh.Shape == MeshShape::Cylinder)
+			{
+				DrawPropertyRow("Segments", [&]()
+				{
+					int segments = (int)mesh.Segments;
+					if (ImGui::InputInt("##MeshSegments", &segments))
+					{
+						mesh.Segments = (uint32_t)std::clamp(segments, 3, 128);
+					}
+				});
+			}
+			ImGui::TextDisabled("Metres, Z up, standing on the entity's position.");
+
+			if (mesh.Materials.empty())
+			{
+				mesh.Materials.push_back(MaterialData{});
+			}
+			MaterialData& material = mesh.Materials[0];
+			ImGui::Separator();
+			ImGui::TextUnformatted("Material");
+			DrawPropertyRow("Albedo", [&]() { DrawTextureField("##MeshAlbedo", material.Albedo); });
+			DrawPropertyRow("Tint", [&]() { ImGui::ColorEdit4("##MeshTint", glm::value_ptr(material.Tint)); });
+			DrawPropertyRow("Tiling", [&]()
+			{
+				ImGui::DragFloat2("##MeshTiling", glm::value_ptr(material.Tiling), 0.05f, 0.01f, 100.0f, "%.2f");
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Texture repeats per metre.");
+				}
+			});
+			DrawPropertyRow("Emissive", [&]() { DrawTextureField("##MeshEmissive", material.Emissive); });
+			DrawPropertyRow("Emission", [&]() { ImGui::ColorEdit3("##MeshEmission", glm::value_ptr(material.EmissionColor)); });
+			DrawPropertyRow("Intensity", [&]() { InputFloatField("##MeshEmissionIntensity", material.EmissionIntensity, "%.2f", 0.0f, 100.0f); });
+			DrawPropertyRow("Alpha cut-off", [&]()
+			{
+				InputFloatField("##MeshAlphaCutoff", material.AlphaCutoff, "%.2f", 0.0f, 1.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Pixels with less albedo alpha than this are dropped (railings, leaves). 0 = opaque.");
+				}
+			});
+			DrawPropertyRow("Filter", [&]()
+			{
+				const char* filterNames[] = { "Nearest", "Linear" };
+				int filter = material.Filter == TextureFilter::Linear ? 1 : 0;
+				if (ImGui::Combo("##MeshFilter", &filter, filterNames, 2))
+				{
+					material.Filter = filter == 1 ? TextureFilter::Linear : TextureFilter::Nearest;
+				}
+			});
+			if (mesh.Materials.size() > 1)
+			{
+				ImGui::TextDisabled("%u more material slots (edited in the file for now).", (uint32_t)mesh.Materials.size() - 1);
+			}
+			DrawPropertyRow("Cast shadows", [&]() { ImGui::Checkbox("##MeshCastShadows", &mesh.CastShadows); });
+			ImGui::TextDisabled("Drawn with Depth = Shared and Meshes on (Render Settings > Rendering).");
 		});
 
 		DrawComponent<Shadow2DComponent>("Shadow 2D", entity, removeShadow, [&](Shadow2DComponent& shadow)
@@ -865,6 +947,10 @@ namespace Hydro
 		{
 			entity.RemoveComponent<ParticleEmitter2DComponent>();
 		}
+		if (removeMesh)
+		{
+			entity.RemoveComponent<MeshComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -935,6 +1021,17 @@ namespace Hydro
 				entity.AddComponent<Light2DComponent>();
 
 				// A point light is placed by the entity's transform.
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Mesh", nullptr, false, entity.HasComponent<MeshComponent>() == false))
+			{
+				entity.AddComponent<MeshComponent>();
+
+				// Placed by the entity's transform.
 				if (entity.HasComponent<TransformComponent>() == false)
 				{
 					entity.AddComponent<TransformComponent>();

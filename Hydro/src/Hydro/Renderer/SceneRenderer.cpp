@@ -3,6 +3,7 @@
 #include "SceneRenderer.h"
 #include "Renderer2D.h"
 #include "Renderer.h"
+#include "Renderer3D.h"
 #include <glm/ext/matrix_transform.hpp>
 
 #include "Hydro/Asset/AssetManager.h"
@@ -62,6 +63,7 @@ namespace Hydro
 		m_Camera = MakeCameraBasis(glm::mat3(cameraWorld));
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
+		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();
 		SubmitShadows();
@@ -95,6 +97,7 @@ namespace Hydro
 
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
+		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();
 		SubmitShadows();
@@ -301,26 +304,51 @@ namespace Hydro
 		if (sharedDepth)
 		{
 			Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Translucent);
-			SubmitSpikeBoxes();
 		}
 
 		// TODO MESH RENDERING
 	}
 
-	void SceneRenderer::SubmitSpikeBoxes()
+	void SceneRenderer::SubmitMeshes(RenderView& renderView)
 	{
-		// TEMPORARY(S1, removed in M4 with MeshComponent): an entity tagged "S1 Depth Box ..." is drawn as an
-		// unlit box standing on its position: Scale is its width (X), depth (Y) and height (Z).
-		const glm::vec4 stone{ 0.66f, 0.6f, 0.52f, 1.0f };
-		auto tagged = m_Scene->m_Registry.view<TagComponent, TransformComponent>();
-		for (auto entity : tagged)
+		auto meshes = m_Scene->m_Registry.view<TransformComponent, MeshComponent>();
+		if (meshes.begin() == meshes.end())
 		{
-			const auto [tag, transform] = tagged.get<TagComponent, TransformComponent>(entity);
-			if (tag.Tag.rfind("S1 Depth Box", 0) == 0)
+			return;
+		}
+
+		// Meshes are drawn only with shared depth and the Meshes feature; otherwise say so once for this scene.
+		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
+		if (features.Meshes == false || Renderer2D::HasSharedDepth(features) == false)
+		{
+			if (m_MeshWarningShown == false)
 			{
-				Renderer2D::DrawSpikeBox(transform.GetTransform(), stone);
+				HY_CORE_WARN("Scene '{}' has MeshComponents, but its render features don't draw them (Meshes needs to be on, with Depth = Shared)", m_Scene->GetName());
+				m_MeshWarningShown = true;
+			}
+			return;
+		}
+
+		Renderer3D::BeginScene(renderView);
+		for (auto entity : meshes)
+		{
+			const auto [transform, meshComponent] = meshes.get<TransformComponent, MeshComponent>(entity);
+			const Ref<Mesh> mesh = Renderer3D::GetShapeMesh(meshComponent);
+			if (mesh == nullptr)
+			{
+				continue;
+			}
+
+			const glm::mat4 world = transform.GetTransform();
+			const uint32_t subMeshCount = (uint32_t)mesh->GetSubMeshes().size();
+			for (uint32_t i = 0; i < subMeshCount; i++)
+			{
+				const uint32_t slot = mesh->GetSubMeshes()[i].MaterialSlot;
+				const MaterialData material = slot < meshComponent.Materials.size() ? meshComponent.Materials[slot] : MaterialData{};
+				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity);
 			}
 		}
+		Renderer3D::EndScene();
 	}
 
 	void SceneRenderer::SubmitUnlitParticles()

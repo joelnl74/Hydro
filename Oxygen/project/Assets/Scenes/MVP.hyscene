@@ -11864,16 +11864,9 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
-  - Entity: 3596799573489577125
-    TagComponent:
-      Tag: S1 Depth Box
-    TransformComponent:
-      Translation: [-17.3, -1.2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.2, 1.2, 0.9]
   - Entity: 2173924343473726646
     TagComponent:
-      Tag: S1 Road 0
+      Tag: Mesh Test Road 0
     TransformComponent:
       Translation: [-19.375, -2, 0]
       Rotation: [0, 0, 0]
@@ -11889,7 +11882,7 @@ Entities:
       Facing: Flat
   - Entity: 6337819461406226561
     TagComponent:
-      Tag: S1 Road 1
+      Tag: Mesh Test Road 1
     TransformComponent:
       Translation: [-18.125, -2, 0]
       Rotation: [0, 0, 0]
@@ -11905,7 +11898,7 @@ Entities:
       Facing: Flat
   - Entity: 5369526070388541847
     TagComponent:
-      Tag: S1 Road 2
+      Tag: Mesh Test Road 2
     TransformComponent:
       Translation: [-16.875, -2, 0]
       Rotation: [0, 0, 0]
@@ -11921,7 +11914,7 @@ Entities:
       Facing: Flat
   - Entity: 4192300476115817309
     TagComponent:
-      Tag: S1 Road 3
+      Tag: Mesh Test Road 3
     TransformComponent:
       Translation: [-15.625, -2, 0]
       Rotation: [0, 0, 0]
@@ -11937,7 +11930,7 @@ Entities:
       Facing: Flat
   - Entity: 7631087710597073396
     TagComponent:
-      Tag: S1 Road 4
+      Tag: Mesh Test Road 4
     TransformComponent:
       Translation: [-14.375, -2, 0]
       Rotation: [0, 0, 0]
@@ -11953,7 +11946,7 @@ Entities:
       Facing: Flat
   - Entity: 3872523951829890165
     TagComponent:
-      Tag: S1 Tree tree_round_02
+      Tag: Mesh Test Tree tree_round_02
     TransformComponent:
       Translation: [-16, -0.6, 0]
       Rotation: [0, 0, 0]
@@ -11978,3 +11971,81 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+  - Entity: 7477955140076880982
+    TagComponent:
+      Tag: Mesh Test Block
+    TransformComponent:
+      Translation: [-17.3, -1.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [2.2, 1.2, 0.9]
+      CastShadows: true
+      Materials:
+        - AlbedoHandle: 345836454132741581
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 6306476877570600128
+    TagComponent:
+      Tag: Mesh Test Stairs
+    TransformComponent:
+      Translation: [-16.6, -2.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Stairs
+      Size: [1.2, 0.9, 0.9]
+      Steps: 3
+      CastShadows: true
+      Materials:
+        - AlbedoHandle: 345836454132741581
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 7682828082362047979
+    TagComponent:
+      Tag: Mesh Test Ramp
+    TransformComponent:
+      Translation: [-18.4, -2.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Ramp
+      Size: [1.0, 0.9, 0.9]
+      CastShadows: true
+      Materials:
+        - AlbedoHandle: 4680268584103075221
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3830533983221303889
+    TagComponent:
+      Tag: Mesh Test Pillar
+    TransformComponent:
+      Translation: [-19.4, -0.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Cylinder
+      Size: [0.6, 0.6, 0.95]
+      Segments: 12
+      CastShadows: true
+      Materials:
+        - AlbedoHandle: 345836454132741581
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest

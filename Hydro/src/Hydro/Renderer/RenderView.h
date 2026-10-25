@@ -76,5 +76,6 @@ namespace Hydro
 		Scope<RenderViewData> m_Data;
 
 		friend class Renderer2D;
+		friend class Renderer3D;
 	};
 }

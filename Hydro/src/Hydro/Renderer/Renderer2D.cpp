@@ -4,6 +4,7 @@
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
 #include "Hydro/Platform/Vulkan/VulkanBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanShaderLibrary.h"
+#include "Hydro/Renderer/Renderer3D.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderTarget.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanImageReadback.h"
@@ -50,8 +51,7 @@ namespace Hydro
 		Decal,      // ground decals: like Sprite, with a small depth bias towards the camera
 		Cutout,     // cut-out quads: depth test and write, alpha < 0.5 discarded, no blending
 		Overlay,    // overlay quads (editor outlines, HUD sprites): no depth test
-		Composite,  // the 2D light composite
-		SpikeBox    // TEMPORARY(S1)
+		Composite   // the 2D light composite
 	};
 
 	// The pipeline cache's key: the attachment layout (colour formats in order, depth format; one sample per
@@ -109,10 +109,6 @@ namespace Hydro
 		// (one colour attachment) keeps using the pipelines above.
 		std::map<ViewPipelineKey, Scope<VulkanPipeline>> ViewPipelines;
 
-		// TEMPORARY(S1, removed in M4): the spike's unlit box, one indexed draw per box, its transform and
-		// colour in push constants.
-		Scope<VulkanBuffer> SpikeBoxVertexBuffer; // GpuOnly
-		Scope<VulkanBuffer> SpikeBoxIndexBuffer;  // GpuOnly
 
 		Scope<VulkanBuffer> QuadIndexBuffer;    // GpuOnly; shared by all batches of all views (every batch starts at vertex 0)
 
@@ -241,7 +237,6 @@ namespace Hydro
 	static constexpr const char* LightShaderName = "Light";
 	static constexpr const char* ShadowShaderName = "Shadow";
 	static constexpr const char* CompositeShaderName = "Composite";
-	static constexpr const char* SpikeBoxShaderName = "SpikeBox"; // TEMPORARY(S1)
 
 	// The shader loaded under `name`, loading it the first time. Throws when it doesn't compile.
 	static VulkanShader& GetOrLoadShader(const char* name, const char* vertexPath, const char* fragmentPath)
@@ -376,13 +371,6 @@ namespace Hydro
 
 	static constexpr ImageFormat SharedDepthFormat = ImageFormat::DEPTH32F;
 
-	// TEMPORARY(S1): push constants of the spike box shader (spike_box.vert).
-	struct SpikeBoxPushConstants
-	{
-		glm::mat4 Model;
-		glm::vec4 Color;
-	};
-	static_assert(sizeof(SpikeBoxPushConstants) == 80, "Must match the push_constant block in spike_box.vert");
 
 	// Drops the cached view pipelines (they free themselves through the deletion queue); they are built
 	// again on first use from the current shaders and settings.
@@ -398,7 +386,6 @@ namespace Hydro
 		{
 			case ViewPipelineKind::Cutout: return SpriteCutoutShaderName;
 			case ViewPipelineKind::Composite: return CompositeShaderName;
-			case ViewPipelineKind::SpikeBox: return SpikeBoxShaderName;
 			default: return SpriteShaderName;
 		}
 	}
@@ -419,67 +406,12 @@ namespace Hydro
 		}
 	}
 
-	// TEMPORARY(S1): the unit box, base centred on the origin, 1 high along +Z. Each face has its own four
-	// vertices and a flat shade (top lightest), darker towards the ground, so its edges read without lighting.
-	static void CreateSpikeBoxGeometry()
-	{
-		struct Face
-		{
-			glm::vec3 Corners[4]; // counter-clockwise seen from outside
-			float Shade;
-		};
-		const Face faces[6] = {
-			{ { { -0.5f, -0.5f, 1.0f }, { 0.5f, -0.5f, 1.0f }, { 0.5f, 0.5f, 1.0f }, { -0.5f, 0.5f, 1.0f } }, 1.0f },   // top
-			{ { { -0.5f, -0.5f, 0.0f }, { -0.5f, 0.5f, 0.0f }, { 0.5f, 0.5f, 0.0f }, { 0.5f, -0.5f, 0.0f } }, 0.45f },  // bottom
-			{ { { -0.5f, -0.5f, 0.0f }, { 0.5f, -0.5f, 0.0f }, { 0.5f, -0.5f, 1.0f }, { -0.5f, -0.5f, 1.0f } }, 0.8f }, // south (-Y)
-			{ { { 0.5f, 0.5f, 0.0f }, { -0.5f, 0.5f, 0.0f }, { -0.5f, 0.5f, 1.0f }, { 0.5f, 0.5f, 1.0f } }, 0.6f },     // north (+Y)
-			{ { { 0.5f, -0.5f, 0.0f }, { 0.5f, 0.5f, 0.0f }, { 0.5f, 0.5f, 1.0f }, { 0.5f, -0.5f, 1.0f } }, 0.7f },     // east (+X)
-			{ { { -0.5f, 0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }, { -0.5f, -0.5f, 1.0f }, { -0.5f, 0.5f, 1.0f } }, 0.65f },// west (-X)
-		};
-
-		std::array<QuadVertex, 24> vertices{};
-		std::array<uint32_t, 36> indices{};
-		for (uint32_t f = 0; f < 6; f++)
-		{
-			for (uint32_t c = 0; c < 4; c++)
-			{
-				const glm::vec3& corner = faces[f].Corners[c];
-				const float shade = faces[f].Shade * (corner.z > 0.5f ? 1.0f : 0.85f);
-				QuadVertex& vertex = vertices[f * 4 + c];
-				vertex.Position = corner;
-				vertex.Color = glm::vec4(shade, shade, shade, 1.0f);
-				vertex.TexCoord = glm::vec2(0.0f);
-				vertex.TexIndex = 0.0f;
-			}
-			const uint32_t quad[6] = { 0, 1, 2, 2, 3, 0 };
-			for (uint32_t i = 0; i < 6; i++)
-			{
-				indices[f * 6 + i] = f * 4 + quad[i];
-			}
-		}
-
-		// Written once: GPU-only memory, filled through a staging buffer at Init.
-		BufferSpecification vertexSpecification;
-		vertexSpecification.Usage = BufferUsage::Vertex;
-		vertexSpecification.Memory = BufferMemory::GpuOnly;
-		vertexSpecification.Size = vertices.size() * sizeof(QuadVertex);
-		vertexSpecification.DebugName = "Spike box vertices";
-		s_Data->SpikeBoxVertexBuffer = CreateScope<VulkanBuffer>(vertexSpecification, vertices.data());
-
-		BufferSpecification indexSpecification;
-		indexSpecification.Usage = BufferUsage::Index;
-		indexSpecification.Memory = BufferMemory::GpuOnly;
-		indexSpecification.Size = indices.size() * sizeof(uint32_t);
-		indexSpecification.DebugName = "Spike box indices";
-		s_Data->SpikeBoxIndexBuffer = CreateScope<VulkanBuffer>(indexSpecification, indices.data());
-	}
 
 	// A pipeline for `key`, from the pipeline built at Init for that kind of draw (so shaders, vertex layout,
 	// descriptor sets and the wireframe setting carry over). Throws when a shader doesn't compile.
 	static Scope<VulkanPipeline> BuildViewPipeline(const ViewPipelineKey& key)
 	{
 		const bool hasDepth = key.DepthFormat != ImageFormat::None;
-		const bool wireframe = s_Data->QuadPipeline->GetSpecification().Wireframe;
 
 		PipelineSpecification specification;
 		switch (key.Kind)
@@ -518,17 +450,6 @@ namespace Hydro
 				specification.DepthWrite = false;
 				break;
 
-			case ViewPipelineKind::SpikeBox:
-				specification.Layout = GetQuadVertexLayout();
-				specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
-				specification.Shader = &GetOrLoadShader(SpikeBoxShaderName, "assets/shaders/spike_box.vert", "assets/shaders/spike_box.frag");
-				specification.PushConstantSize = (uint32_t)sizeof(SpikeBoxPushConstants);
-				specification.BackfaceCulling = false;
-				specification.DepthTest = true;
-				specification.DepthWrite = true;
-				specification.Blend = BlendMode::None;
-				specification.Wireframe = wireframe;
-				break;
 		}
 
 		specification.ColorFormats = key.ColorFormats;
@@ -657,9 +578,6 @@ namespace Hydro
 		s_Data->QuadIndexBuffer = CreateScope<VulkanBuffer>(indexSpecification, quadIndices);
 		delete[] quadIndices;
 
-		// TEMPORARY(S1): uploaded here, not mid-frame when the first view with depth is drawn.
-		CreateSpikeBoxGeometry();
-
 		BufferSpecification layoutSpecification;
 		layoutSpecification.Usage = BufferUsage::Uniform;
 		layoutSpecification.Memory = BufferMemory::HostVisible;
@@ -737,8 +655,6 @@ namespace Hydro
 		s_Data->ImGuiTextures.clear();
 
 		ClearViewPipelines();
-		s_Data->SpikeBoxIndexBuffer.reset();
-		s_Data->SpikeBoxVertexBuffer.reset();
 
 		s_Data->ShadowPipeline.reset();
 		s_Data->CompositePipeline.reset();
@@ -903,7 +819,7 @@ namespace Hydro
 		view.InOverlay = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
 		view.EntityID = -1;
-		view.SpikeBoxes.clear();
+		view.MeshDraws.clear();
 		StartDraw(view);
 	}
 
@@ -1034,16 +950,6 @@ namespace Hydro
 		}
 	}
 
-	void Renderer2D::DrawSpikeBox(const glm::mat4& transform, const glm::vec4& color)
-	{
-		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawSpikeBox outside BeginScene/EndScene");
-		RenderViewData* view = s_Data->CurrentView;
-		if (view == nullptr || HasSharedDepth(view->Features) == false)
-		{
-			return;
-		}
-		view->SpikeBoxes.push_back({ transform, color });
-	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
 	{
@@ -1604,32 +1510,6 @@ namespace Hydro
 		}
 	}
 
-	void Renderer2D::RecordSpikeBoxes(VkCommandBuffer commandBuffer, RenderViewData& view)
-	{
-		if (view.SpikeBoxes.empty() || view.Target->GetPipelineDepthFormat() == ImageFormat::None)
-		{
-			return;
-		}
-		VulkanPipeline* spikePipeline = GetViewPipeline(ViewPipelineKind::SpikeBox, *view.Target, false);
-		if (spikePipeline == nullptr)
-		{
-			return;
-		}
-
-		VulkanPipeline& pipeline = *spikePipeline;
-		pipeline.Bind(commandBuffer, view.Target->GetExtent());
-		// Texture set 0's descriptor set has the view's camera at binding 0 (written in RecordView).
-		pipeline.BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
-		s_Data->SpikeBoxVertexBuffer->BindAsVertexBuffer(commandBuffer);
-		s_Data->SpikeBoxIndexBuffer->BindAsIndexBuffer(commandBuffer);
-		for (const SpikeBox& box : view.SpikeBoxes)
-		{
-			const SpikeBoxPushConstants constants{ box.Transform, box.Color };
-			pipeline.PushConstants(commandBuffer, &constants, (uint32_t)sizeof(constants));
-			vkCmdDrawIndexed(commandBuffer, 36, 1, 0, 0, 0);
-			s_Data->Stats.DrawCalls++;
-		}
-	}
 
 	// ---- Render features --------------------------------------------------------
 
@@ -1754,18 +1634,32 @@ namespace Hydro
 				}));
 		}
 
-		// TEMPORARY(S1, removed in M4): the spike's boxes (Renderer2D::DrawSpikeBox), opaque, before the sprites.
-		if (sharedDepth)
+		// Static meshes (M4, Renderer3D): opaque and cut-out, depth test and write, at Opaque before the sprites'
+		// passes, so decals and sprites test against them. Needs shared depth.
+		if (settings.Meshes)
 		{
-			features.push_back(CreateScope<FunctionRenderFeature>("DepthSpike", nullptr,
-				[](RenderGraphBuilder& builder)
+			features.push_back(CreateScope<FunctionRenderFeature>("Meshes",
+				[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
+				{
+					if (context.Settings.Depth != DepthMode::Shared)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Error, "meshes need Depth = Shared");
+					}
+				},
+				[editorView](RenderGraphBuilder& builder)
 				{
 					builder.ImportResource("SceneColor");
 					builder.ImportResource("Depth");
-					builder.AddPass({ "SpikeBoxes", RenderStage::Opaque, {}, { "SceneColor", "Depth" },
+					builder.ImportResource("MeshTextures");
+					std::vector<std::string> writes = { "SceneColor", "Depth" };
+					if (editorView)
+					{
+						writes.push_back("EntityID");
+					}
+					builder.AddPass({ "Meshes", RenderStage::Opaque, { "MeshTextures" }, writes,
 						[](RenderPassContext& context)
 						{
-							RecordSpikeBoxes(context.CommandBuffer, context.View);
+							Renderer3D::RecordMeshes(context);
 						} });
 				}));
 		}
@@ -1834,19 +1728,6 @@ namespace Hydro
 
 		// Features the settings can ask for that later steps build. Asking for them is reported, and they
 		// are left out, so the frame still draws.
-
-		if (settings.Meshes)
-		{
-			features.push_back(CreateScope<FunctionRenderFeature>("Meshes",
-				[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
-				{
-					if (context.Settings.Depth != DepthMode::Shared)
-					{
-						AddValidationMessage(out, feature, RenderValidationSeverity::Error, "meshes need Depth = Shared");
-					}
-					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "meshes are not implemented yet (M4)");
-				}, nullptr));
-		}
 
 		if (settings.Lighting == LightingMode::Forward)
 		{
@@ -2282,6 +2163,7 @@ namespace Hydro
 				RebuildPipelineWithShader(s_Data->CompositePipeline, CompositeShaderName);
 			}
 			ClearViewPipelines(name);
+			Renderer3D::OnShaderReloaded(name);
 			HY_CORE_INFO("Shader '{}' reloaded.", name);
 		}
 	}
