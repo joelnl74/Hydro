@@ -3,13 +3,19 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
+#include <vector>
+
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Camera.h"
+#include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/RenderView.h"
 #include "Hydro/Renderer/Texture2D.h"
 
 namespace Hydro
 {
+	class RenderFeature;
+	struct QuadDraw;
+
 	// Stats
 	struct Statistics
 	{
@@ -146,6 +152,10 @@ namespace Hydro
 		// Textures one draw call can sample, including the white texture in slot 0.
 		static uint32_t GetMaxTextureSlots();
 
+		// What a view's render graph would report for these render features (settings UI). `editorView`:
+		// as the Editor window's view.
+		static std::vector<RenderValidationMessage> ValidateRenderFeatures(const RenderFeatureSettings& settings, bool editorView);
+
 		// An ImGui texture handle showing `texture` (pass it to ImGui::Image), for editor previews.
 		// Call it every frame the texture is shown. Handles come from a small pool: one unused for
 		// longer than the frames in flight lets go of its texture and is reused for another, so ImGui's
@@ -153,6 +163,16 @@ namespace Hydro
 		static VkDescriptorSet GetImGuiTexture(const Ref<Texture2D>& texture);
 
 	private:
+		// RenderView's constructor and destructor: batches, texture sets, the view list.
+		static void RegisterView(RenderViewData& view);
+		static void UnregisterView(RenderViewData& view);
+		// The render features `settings` ask for, in the order their passes run within a stage.
+		static std::vector<Scope<RenderFeature>> CreateRenderFeatures(const RenderFeatureSettings& settings);
+		// Rebuilds the view's render graph when its features changed (and its target when they need
+		// other attachments).
+		static void UpdateRenderGraph(RenderViewData& view);
+		// Binds the quad pipeline and records `draws` (the view's sprites or its overlay). Nothing when empty.
+		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws);
 		static void AllocateBatch(RenderViewData& view);
 		static void NextBatch(RenderViewData& view);
 		static void ResetBatches(RenderViewData& view);

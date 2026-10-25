@@ -7,6 +7,7 @@
 #include "Hydro/Platform/Vulkan/VulkanRenderTarget.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanImageReadback.h"
+#include "Hydro/Platform/Vulkan/VulkanRenderViewData.h"
 #include "Hydro/Platform/Vulkan/VulkanTexture2DData.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 
@@ -31,134 +32,6 @@
 
 namespace Hydro
 {
-	// Attachment formats: every view's target, and the 2D light buffer. Pipelines are built from these
-	// (PipelineSpecification::ColorFormats), so a target and the pipelines drawing into it must agree.
-	static constexpr ImageFormat ViewColorFormat = ImageFormat::SRGB;
-	static constexpr ImageFormat LightBufferFormat = ImageFormat::RGBA16F;
-
-	struct QuadVertex
-	{
-		glm::vec3 Position;
-		glm::vec4 Color;
-		glm::vec2 TexCoord;
-		float TexIndex;
-	};
-
-	struct UniformBufferObject
-	{
-		alignas(16) glm::mat4 mvp;
-	};
-
-	// Textures one draw call can sample. The quad shader declares `sampler2D inTextures[32]` and the
-	// descriptor set's image array has VulkanDescriptorBuilder::MaxImageArraySize elements; all three agree.
-	static constexpr uint32_t MaxTextureSlots = VulkanDescriptorBuilder::MaxImageArraySize;
-	static_assert(MaxTextureSlots == 32, "Change inTextures[] and SampleTexture in fragment.frag too");
-
-	// One GPU vertex buffer per frame in flight. While frame N is still being read by
-	// the GPU, frame N+1 writes into its own buffer, so the CPU never overwrites data
-	// the GPU is using.
-	using PerFrameVertexBuffers = std::array<Scope<VulkanVertexBuffer>, MAX_FRAMES_IN_FLIGHT>;
-
-	// Up to MaxTextureSlots textures that one or more draws sample from, and the set 0 descriptor sets
-	// (camera + texture array, one per frame in flight) that bind them. Slot 0 is always the white texture.
-	struct TextureSet
-	{
-		std::array<Ref<Texture2D>, MaxTextureSlots> Slots;
-		uint32_t SlotCount = 1;
-		Scope<VulkanDescriptorBuilder> DescriptorSet;
-	};
-
-	// A point light queued for a view this frame. Global lights only add to RenderViewData::AmbientLight.
-	struct LightInstance
-	{
-		glm::vec3 Position{ 0.0f };
-		float Radius = 0.0f;
-		glm::vec3 Color{ 1.0f }; // linear RGB, already multiplied by the intensity
-	};
-
-	// A blob shadow queued for a view this frame.
-	struct ShadowInstance
-	{
-		glm::vec3 Position{ 0.0f };
-		glm::vec2 Size{ 1.0f };
-		float Strength = 0.5f;
-	};
-
-	// Point lights and blob shadows per view and frame (4 vertices each). More are dropped.
-	static constexpr uint32_t MaxLightsPerView = 1024;
-	static constexpr uint32_t MaxShadowsPerView = 1024;
-
-	// One vkCmdDrawIndexed: a run of quads in one vertex batch that use one texture set.
-	struct QuadDraw
-	{
-		uint32_t Batch = 0;       // vertex batch the quads are in
-		uint32_t FirstIndex = 0;  // first index in that batch (6 per quad)
-		uint32_t IndexCount = 0;
-		uint32_t TextureSet = 0;
-	};
-
-	// Everything one RenderView needs: its target, its camera and its quads.
-	struct RenderViewData
-	{
-		std::string DebugName;
-
-		// ---- Target ------------------------------------------------------------------
-		Scope<VulkanRenderTarget> Target;
-		// Requested size (RenderView::SetSize). Applied at the start of the view's next render.
-		uint32_t RequestedWidth = 0;
-		uint32_t RequestedHeight = 0;
-		// ImGui texture handles for the image of each frame in flight. Created lazily (ImGui may not be
-		// initialised when the view is). After a resize each one is pointed at its new image when its
-		// frame index is recorded next (a frame still in flight may be drawing with the old one).
-		std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> ImGuiTextures{};
-		std::array<bool, MAX_FRAMES_IN_FLIGHT> ImGuiTexturesOutdated{};
-
-		// ---- Camera ------------------------------------------------------------------
-		glm::mat4 ViewProjection{ 1.0f };
-		Scope<VulkanUniformBuffer> UniformBuffer;   // one buffer per frame in flight
-
-		// ---- Batches -----------------------------------------------------------------
-		// Vertex storage. Index i in each vector belongs to batch i. Batches are never freed, only
-		// reused, so after the first heavy frame there are no more allocations.
-		std::vector<QuadVertex*> QuadVertexBufferBases;        // CPU staging, [batch]
-		std::vector<PerFrameVertexBuffers> QuadVertexBuffers;  // GPU,         [batch][frame]
-		std::vector<uint32_t> QuadIndexCounts;                 // indices used, [batch]
-
-		uint32_t BatchIndex = 0;                     // batch currently being filled
-		QuadVertex* QuadVertexBufferPtr = nullptr;   // write cursor into current batch
-
-		// ---- Textures and draws ------------------------------------------------------
-		// Texture sets are reused like batches (their descriptor sets are created once).
-		std::vector<TextureSet> TextureSets;
-		uint32_t TextureSetIndex = 0;                // set currently being filled
-		// This frame's draw calls in submission order. A new draw starts when the batch is full
-		// or the texture set is full.
-		std::vector<QuadDraw> Draws;
-		// Draws made between BeginOverlay and EndOverlay. They are recorded after the lighting is
-		// composited, so lights and shadows don't darken them (editor outlines, debug shapes).
-		std::vector<QuadDraw> OverlayDraws;
-		bool InOverlay = false; // quads currently go to OverlayDraws
-
-		// ---- Lights ------------------------------------------------------------------
-		// Queued by DrawLight / DrawGlobalLight, drawn by RecordLightPass. Cleared with the batches.
-		std::vector<LightInstance> Lights;
-		std::vector<ShadowInstance> Shadows;
-		glm::vec3 AmbientLight{ 0.0f };  // the sum of the global lights: what the light buffer is cleared to
-		bool HasLights = false;          // a light of any kind was submitted this frame
-		// Made the first frame the view is lit, then kept and resized with the view.
-		Scope<VulkanRenderTarget> LightTarget;                    // the light buffer: RGBA16F, the size of Target
-		Scope<VulkanDescriptorBuilder> LightBufferDescriptorSet;  // the composite's input: LightTarget's image of each frame
-		PerFrameVertexBuffers LightVertexBuffers;                 // 4 vertices per light, then 4 per shadow
-		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
-
-		// ---- Capture (RenderView::RequestCapture) --------------------------------------
-		std::filesystem::path RequestedCapture;  // empty = none; recorded after the view's next pass
-		Scope<VulkanImageReadback> Readback;     // made by the first capture, then kept
-		// The file each frame index's copy goes to; written when that frame's fence has signalled.
-		std::array<std::filesystem::path, MAX_FRAMES_IN_FLIGHT> CapturePaths;
-
-		bool Queued = false; // begun this frame, so Render() records it
-	};
 
 	// One ImGui texture handle (from ImGui's descriptor pool) and the texture it shows.
 	struct ImGuiTextureEntry
@@ -660,124 +533,6 @@ namespace Hydro
 
 		delete s_Data;
 		s_Data = nullptr;
-	}
-
-	// ---- RenderView -------------------------------------------------------------
-
-	RenderView::RenderView(const RenderViewSpecification& specification)
-		: m_Specification(specification), m_Data(CreateScope<RenderViewData>())
-	{
-		HY_CORE_ASSERT(s_Data != nullptr, "Create RenderViews after Renderer::Init");
-
-		const uint32_t width = specification.Width > 0 ? specification.Width : 1;
-		const uint32_t height = specification.Height > 0 ? specification.Height : 1;
-
-		RenderViewData& view = *m_Data;
-		view.DebugName = specification.DebugName;
-		RenderTargetSpecification targetSpecification;
-		targetSpecification.Width = width;
-		targetSpecification.Height = height;
-		targetSpecification.ColorFormats = { ViewColorFormat };
-		targetSpecification.DebugName = specification.DebugName;
-		view.Target = CreateScope<VulkanRenderTarget>(targetSpecification);
-		view.RequestedWidth = width;
-		view.RequestedHeight = height;
-
-		view.UniformBuffer = CreateScope<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
-
-		// First batch and texture set. More are created when a frame needs them.
-		Renderer2D::AllocateBatch(view);
-		Renderer2D::AllocateTextureSet(view);
-		Renderer2D::ResetBatches(view);
-
-		s_Data->Views.push_back(&view);
-	}
-
-	RenderView::~RenderView()
-	{
-		RenderViewData& view = *m_Data;
-
-		// Never leave a dangling pointer in the view list or this frame's queue.
-		if (s_Data != nullptr)
-		{
-			auto& views = s_Data->Views;
-			views.erase(std::remove(views.begin(), views.end(), &view), views.end());
-
-			auto& queued = s_Data->QueuedViews;
-			queued.erase(std::remove(queued.begin(), queued.end(), &view), queued.end());
-			if (s_Data->CurrentView == &view)
-			{
-				s_Data->CurrentView = nullptr;
-			}
-		}
-
-		for (QuadVertex* base : view.QuadVertexBufferBases)
-		{
-			delete[] base;
-		}
-
-		// The GPU objects (vertex and uniform buffers, descriptor sets, target) free themselves when
-		// m_Data goes, through the deletion queue, so frames in flight can still finish with them.
-		// The ImGui texture handles belong to ImGui's descriptor pool, which the ImGui layer frees
-		// (this ImGui version has no RemoveTexture).
-	}
-
-	void RenderView::SetSize(uint32_t width, uint32_t height)
-	{
-		if (width == 0 || height == 0)
-		{
-			return;
-		}
-
-		m_Data->RequestedWidth = width;
-		m_Data->RequestedHeight = height;
-	}
-
-	uint32_t RenderView::GetWidth() const
-	{
-		return m_Data->RequestedWidth;
-	}
-
-	uint32_t RenderView::GetHeight() const
-	{
-		return m_Data->RequestedHeight;
-	}
-
-	VkDescriptorSet RenderView::GetImGuiTexture()
-	{
-		const uint32_t frame = Renderer::GetRenderFrame();
-		VkDescriptorSet& set = m_Data->ImGuiTextures[frame];
-
-		if (set == VK_NULL_HANDLE)
-		{
-			const VulkanImageInfo& image = m_Data->Target->GetImage(frame).GetVulkanImageInfo();
-			set = ImGui_ImplVulkan_AddTexture(image.Sampler, image.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		}
-
-		return set;
-	}
-
-	void RenderView::RequestCapture(const std::filesystem::path& path)
-	{
-		m_Data->RequestedCapture = path;
-	}
-
-	bool RenderView::IsCapturePending() const
-	{
-		if (m_Data->RequestedCapture.empty() == false)
-		{
-			return true;
-		}
-
-		for (const std::filesystem::path& path : m_Data->CapturePaths)
-		{
-			if (path.empty() == false)
-			{
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	// ---- Batching ---------------------------------------------------------------
@@ -1416,9 +1171,6 @@ namespace Hydro
 	{
 		ApplyViewResize(view);
 
-		const uint32_t width = view.Target->GetWidth();
-		const uint32_t height = view.Target->GetHeight();
-
 		UniformBufferObject ubo;
 		ubo.mvp = view.ViewProjection;
 		view.UniformBuffer->Update(&ubo, frame, (uint32_t)sizeof(UniformBufferObject));
@@ -1451,72 +1203,300 @@ namespace Hydro
 			s_Data->Stats.VertexBytesUploaded += (uint64_t)vertexCount * sizeof(QuadVertex);
 		}
 
-		// The light buffer is drawn first: the scene pass below samples it (when the view is lit).
-		const bool lit = RecordLightPass(commandBuffer, view, frame);
+		// Pass-list rebuild when the view's render features changed (never per frame otherwise).
+		UpdateRenderGraph(view);
+		RenderPassContext context{ commandBuffer, frame, view };
 
-		// One rendering pass per view per frame, so its target is cleared exactly once. End() moves the image to
-		// SHADER_READ_ONLY_OPTIMAL for ImGui, which samples it later in this command buffer.
+		// BeforeScene passes draw into their own targets (the 2D light buffer) before the view's target is begun.
+		view.Graph->ExecuteStage(RenderStage::BeforeScene, context);
+
+		// One rendering pass per view per frame, so its target is cleared exactly once. Every later stage
+		// records into it, in stage order. End() moves the image to SHADER_READ_ONLY_OPTIMAL for ImGui,
+		// which samples it later in this command buffer.
 		view.Target->Begin(commandBuffer, frame, RenderTargetBeginInfo::Clear(Renderer::GetSettings().ClearColor));
+		for (uint8_t stage = (uint8_t)RenderStage::Opaque; stage < (uint8_t)RenderStage::Count; stage++)
+		{
+			view.Graph->ExecuteStage((RenderStage)stage, context);
+		}
+		view.Target->End(commandBuffer, frame);
 
-		// State shared by every draw: bind once. Viewport/scissor follow the view's size.
-		s_Data->QuadPipeline->Bind(commandBuffer, { width, height });
+		s_Data->Stats.BatchesAllocated += (uint32_t)view.QuadVertexBufferBases.size();
+
+		// After the pass, so the capture has everything the view drew, overlay included.
+		RecordCapture(commandBuffer, view, frame);
+	}
+
+	void Renderer2D::RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws)
+	{
+		const bool hasDraws = std::any_of(draws.begin(), draws.end(), [](const QuadDraw& draw) { return draw.IndexCount != 0; });
+		if (hasDraws == false)
+		{
+			return;
+		}
+
+		// Bound by every pass that draws quads: the pass before may have bound another pipeline (the composite).
+		// Viewport/scissor follow the view's size.
+		s_Data->QuadPipeline->Bind(commandBuffer, view.Target->GetExtent());
 		s_Data->QuadIndexBuffer->Bind(commandBuffer);
 
 		// One draw call per draw, in submission order. Vertex buffer and descriptor set are only
 		// rebound when they change. Indices are 0,1,2,2,3,0 + 4 * quad, so FirstIndex = 6 * quad
 		// with vertex offset 0 reads that quad's vertices.
-		const auto recordDraws = [&](const std::vector<QuadDraw>& draws)
+		uint32_t boundBatch = UINT32_MAX;
+		uint32_t boundTextureSet = UINT32_MAX;
+		for (const QuadDraw& draw : draws)
 		{
-			uint32_t boundBatch = UINT32_MAX;
-			uint32_t boundTextureSet = UINT32_MAX;
-			for (const QuadDraw& draw : draws)
+			if (draw.IndexCount == 0)
 			{
-				if (draw.IndexCount == 0)
-				{
-					continue;
-				}
-
-				if (draw.Batch != boundBatch)
-				{
-					view.QuadVertexBuffers[draw.Batch][frame]->Bind(commandBuffer);
-					boundBatch = draw.Batch;
-				}
-
-				if (draw.TextureSet != boundTextureSet)
-				{
-					s_Data->QuadPipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[draw.TextureSet].DescriptorSet);
-					boundTextureSet = draw.TextureSet;
-				}
-
-				vkCmdDrawIndexed(commandBuffer, draw.IndexCount, 1, draw.FirstIndex, 0, 0);
-				s_Data->Stats.DrawCalls++;
+				continue;
 			}
-		};
 
-		recordDraws(view.Draws);
+			if (draw.Batch != boundBatch)
+			{
+				view.QuadVertexBuffers[draw.Batch][frame]->Bind(commandBuffer);
+				boundBatch = draw.Batch;
+			}
 
-		s_Data->Stats.BatchesAllocated += (uint32_t)view.QuadVertexBufferBases.size();
+			if (draw.TextureSet != boundTextureSet)
+			{
+				s_Data->QuadPipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[draw.TextureSet].DescriptorSet);
+				boundTextureSet = draw.TextureSet;
+			}
 
-		// Everything above is lit: sprites drawn after this point would not be, so the composite is last.
-		if (lit)
+			vkCmdDrawIndexed(commandBuffer, draw.IndexCount, 1, draw.FirstIndex, 0, 0);
+			s_Data->Stats.DrawCalls++;
+		}
+	}
+
+	// ---- Render features --------------------------------------------------------
+
+	// A render feature made of functions, so the 2D features below can be written inside Renderer2D
+	// (they record with its private functions) without a class each.
+	class FunctionRenderFeature : public RenderFeature
+	{
+	public:
+		using ValidateFunction = std::function<void(const RenderFeature&, const RenderGraphContext&, std::vector<RenderValidationMessage>&)>;
+		using SetupFunction = std::function<void(RenderGraphBuilder&)>;
+
+		FunctionRenderFeature(const char* name, ValidateFunction validate, SetupFunction setup)
+			: m_Name(name), m_Validate(std::move(validate)), m_Setup(std::move(setup))
 		{
-			RecordComposite(commandBuffer, view, frame);
 		}
 
-		// The overlay is drawn on top of the (lit) scene, with the quad pipeline bound again because the
-		// composite replaced it.
-		const bool hasOverlay = std::any_of(view.OverlayDraws.begin(), view.OverlayDraws.end(), [](const QuadDraw& draw) { return draw.IndexCount != 0; });
-		if (hasOverlay)
+		const char* GetName() const override { return m_Name; }
+
+		void Validate(const RenderGraphContext& context, std::vector<RenderValidationMessage>& out) const override
 		{
-			s_Data->QuadPipeline->Bind(commandBuffer, { width, height });
-			s_Data->QuadIndexBuffer->Bind(commandBuffer);
-			recordDraws(view.OverlayDraws);
+			if (m_Validate)
+			{
+				m_Validate(*this, context, out);
+			}
 		}
 
-		view.Target->End(commandBuffer, frame);
+		void Setup(RenderGraphBuilder& builder) override
+		{
+			if (m_Setup)
+			{
+				m_Setup(builder);
+			}
+		}
 
-		// After the pass, so the capture has everything the view drew, overlay included.
-		RecordCapture(commandBuffer, view, frame);
+	private:
+		const char* m_Name;
+		ValidateFunction m_Validate;
+		SetupFunction m_Setup;
+	};
+
+	static void AddValidationMessage(std::vector<RenderValidationMessage>& out, const RenderFeature& feature, RenderValidationSeverity severity, const std::string& text)
+	{
+		out.push_back({ severity, feature.GetName(), text });
+	}
+
+	std::vector<Scope<RenderFeature>> Renderer2D::CreateRenderFeatures(const RenderFeatureSettings& settings)
+	{
+		std::vector<Scope<RenderFeature>> features;
+
+		// The 2D light buffer: lights and blob shadows into the light buffer before the scene, multiplied
+		// over it after the sprites. Its state between the two passes (drawn this frame or not) is per view.
+		if (settings.Lighting == LightingMode::LightBuffer2D)
+		{
+			Ref<bool> drawnThisFrame = CreateRef<bool>(false);
+			features.push_back(CreateScope<FunctionRenderFeature>("LightBuffer2D",
+				[](const RenderFeature& feature, const RenderGraphContext&, std::vector<RenderValidationMessage>& out)
+				{
+					if (s_Data->LightPipeline == nullptr || s_Data->CompositePipeline == nullptr)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "the light shaders are unavailable; views are drawn unlit");
+					}
+				},
+				[drawnThisFrame](RenderGraphBuilder& builder)
+				{
+					builder.ImportResource("SceneColor");
+					builder.AddPass({ "LightBuffer", RenderStage::BeforeScene, {}, { "LightBuffer" },
+						[drawnThisFrame](RenderPassContext& context)
+						{
+							// Skips itself on frame data: lighting switched off live, no lights, no shaders.
+							*drawnThisFrame = RecordLightPass(context.CommandBuffer, context.View, context.Frame);
+						} });
+					builder.AddPass({ "LightComposite", RenderStage::AfterLighting, { "LightBuffer" }, { "SceneColor" },
+						[drawnThisFrame](RenderPassContext& context)
+						{
+							if (*drawnThisFrame)
+							{
+								RecordComposite(context.CommandBuffer, context.View, context.Frame);
+							}
+						} });
+				}));
+		}
+
+		// Sprites, particles and lines in submission order (SceneRenderer sorts them: the SortOrder policy).
+		// In the 2D preset every sprite is translucent, so this is the view's translucent list.
+		features.push_back(CreateScope<FunctionRenderFeature>("Sprites",
+			[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
+			{
+				if (context.Settings.SpriteSorting == SpriteSortMode::ViewDepth)
+				{
+					AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "view-depth sorting is not implemented yet (M3); sprites keep the SortOrder order");
+				}
+				if (context.Settings.DefaultSpriteAlpha == SpriteAlphaDefault::Cutout)
+				{
+					AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "cut-out sprites are not implemented yet (M3); sprites are drawn translucent");
+				}
+			},
+			[](RenderGraphBuilder& builder)
+			{
+				builder.ImportResource("SceneColor");
+				builder.ImportResource("SpriteTextures");
+				builder.AddPass({ "Sprites", RenderStage::Translucent, { "SpriteTextures" }, { "SceneColor" },
+					[](RenderPassContext& context)
+					{
+						RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.Draws);
+					} });
+			}));
+
+		// Quads queued between BeginOverlay and EndOverlay: on top, after the lighting.
+		features.push_back(CreateScope<FunctionRenderFeature>("Overlay", nullptr,
+			[](RenderGraphBuilder& builder)
+			{
+				builder.ImportResource("SceneColor");
+				builder.ImportResource("SpriteTextures");
+				builder.AddPass({ "Overlay", RenderStage::Overlay, { "SpriteTextures" }, { "SceneColor" },
+					[](RenderPassContext& context)
+					{
+						RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.OverlayDraws);
+					} });
+			}));
+
+		// Features the settings can ask for that later steps build. Asking for them is reported, and they
+		// are left out, so the frame still draws.
+		if (settings.Depth == DepthMode::Shared)
+		{
+			features.push_back(CreateScope<FunctionRenderFeature>("Depth",
+				[](const RenderFeature& feature, const RenderGraphContext&, std::vector<RenderValidationMessage>& out)
+				{
+					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "shared depth is not implemented yet (S1)");
+				}, nullptr));
+		}
+
+		if (settings.Meshes)
+		{
+			features.push_back(CreateScope<FunctionRenderFeature>("Meshes",
+				[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
+				{
+					if (context.Settings.Depth != DepthMode::Shared)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Error, "meshes need Depth = Shared");
+					}
+					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "meshes are not implemented yet (M4)");
+				}, nullptr));
+		}
+
+		if (settings.Lighting == LightingMode::Forward)
+		{
+			features.push_back(CreateScope<FunctionRenderFeature>("ForwardLighting",
+				[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
+				{
+					if (context.Settings.Depth != DepthMode::Shared)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "forward lighting without shared depth");
+					}
+					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "forward lighting is not implemented yet (M6); nothing is lit");
+				}, nullptr));
+		}
+
+		return features;
+	}
+
+	std::vector<RenderValidationMessage> Renderer2D::ValidateRenderFeatures(const RenderFeatureSettings& settings, bool editorView)
+	{
+		RenderGraphContext context;
+		context.Settings = settings;
+		context.Capabilities = Renderer::GetCapabilities();
+		context.EditorView = editorView;
+		return RenderGraph::Validate(CreateRenderFeatures(settings), context);
+	}
+
+	void Renderer2D::UpdateRenderGraph(RenderViewData& view)
+	{
+		const bool upToDate = view.Graph != nullptr && view.Graph->GetContext().Settings == view.Features
+			&& view.Graph->GetContext().EditorView == view.EditorView;
+		if (upToDate)
+		{
+			return;
+		}
+
+		// A pass-list rebuild: CPU only. The old graph holds no GPU objects, so it can go at once.
+		RenderGraphContext context;
+		context.Settings = view.Features;
+		context.Capabilities = Renderer::GetCapabilities();
+		context.EditorView = view.EditorView;
+		view.Graph = CreateScope<RenderGraph>(CreateRenderFeatures(view.Features), context, view.DebugName);
+
+		// A target recreation when the features need other attachments (depth, entity ID; none of the
+		// features built so far ask for one). The old images go through the deletion queue.
+		const RenderTargetSpecification& current = view.Target->GetSpecification();
+		if (view.Graph->GetDepthFormat() != current.DepthFormat || view.Graph->NeedsEntityID() != current.EntityID)
+		{
+			RenderTargetSpecification specification = current;
+			specification.DepthFormat = view.Graph->GetDepthFormat();
+			specification.EntityID = view.Graph->NeedsEntityID();
+			view.Target = CreateScope<VulkanRenderTarget>(specification);
+			for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+			{
+				view.ImGuiTexturesOutdated[i] = true;
+			}
+			UpdateImGuiTextures(view, Renderer::GetRenderFrame());
+		}
+	}
+
+	void Renderer2D::RegisterView(RenderViewData& view)
+	{
+		HY_CORE_ASSERT(s_Data != nullptr, "Create RenderViews after Renderer::Init");
+
+		// First batch and texture set. More are created when a frame needs them.
+		AllocateBatch(view);
+		AllocateTextureSet(view);
+		ResetBatches(view);
+
+		s_Data->Views.push_back(&view);
+	}
+
+	void Renderer2D::UnregisterView(RenderViewData& view)
+	{
+		if (s_Data == nullptr)
+		{
+			return;
+		}
+
+		auto& views = s_Data->Views;
+		views.erase(std::remove(views.begin(), views.end(), &view), views.end());
+
+		auto& queued = s_Data->QueuedViews;
+		queued.erase(std::remove(queued.begin(), queued.end(), &view), queued.end());
+		if (s_Data->CurrentView == &view)
+		{
+			s_Data->CurrentView = nullptr;
+		}
 	}
 
 	bool Renderer2D::RecordLightPass(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)

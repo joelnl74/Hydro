@@ -104,7 +104,7 @@ Oxygen edits one scene and plays a copy of it, so nothing that happens while pla
 | **Step** (while paused) | Runs one runtime frame |
 | **Stop** | Throws the runtime scene away (its scripts get `OnDestroy`); the editor scene becomes active again |
 
-- `Scene::Copy` copies every entity made with `CreateEntity` (same UUIDs), the components in `CopyableComponents` (`Components.h`: add new copyable components there), the native script bindings (fresh instances on the first runtime update), the name and the viewport size. Raw registry entities without an `IDComponent` are not copied; an application copies its own (the editor copies its galaxy stars).
+- `Scene::Copy` copies every entity made with `CreateEntity` (same UUIDs), the components in `CopyableComponents` (`Components.h`: add new copyable components there), the native script bindings (fresh instances on the first runtime update), the name, the viewport size and the scene's render settings. Raw registry entities without an `IDComponent` are not copied; an application copies its own (the editor copies its galaxy stars).
 - The hierarchy, inspector and both windows show the active scene, so the runtime scene can be inspected and tweaked while playing; those changes are lost on Stop. Saving always writes the editor scene, and opening or creating a scene stops play first.
 - The selected entity stays selected across Play and Stop: the editor finds it again in the new scene by its UUID (`Scene::GetEntityByUUID`), and clears the selection if it no longer exists (for example an entity spawned while playing, after Stop).
 - Application systems are gameplay: Oxygen's galaxy only moves while playing.
@@ -150,11 +150,12 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 
 | File | Written by | Holds |
 | --- | --- | --- |
-| `.hyscene` | `SceneSerializer` | The scene name and every entity that has an `IDComponent` |
+| `.hyscene` | `SceneSerializer` | The scene name, its `RenderSettings` (only when it overrides the project's render features) and every entity that has an `IDComponent` |
 | `.hyprefab` | `PrefabSerializer` | One entity and its components, to spawn copies of |
 
 - **One place per component.** `EntitySerializer` writes and reads every component for both file types. A new component that should be saved goes into `EntitySerializer::Serialize` and `EntitySerializer::Deserialize`, and nowhere else.
 - **Only entities made with `CreateEntity` are saved.** Raw registry entities without an `IDComponent`, such as the editor's galaxy stars, are runtime-only.
+- **Render settings.** A scene can override the project's render features (`SceneRenderSettings`: `OverrideProject` + `RenderFeatureSettings`, edited in **Render Settings > Rendering (scene)**). Scenes that don't override write nothing, so older files and 2D scenes stay as they were. See [Render features](Architecture.md#render-features-and-the-render-graph).
 - **UUIDs.** Loading a scene keeps the saved UUIDs. Instantiating a prefab gives each copy a new UUID, so copies never clash.
 - **Prefabs as loaded assets (Oct 25, 2026).** `AssetManager::GetAsset<Prefab>(handle)` reads a `.hyprefab` once into a `Prefab` (`Scene/Prefab.h`: its name and the saved entity as YAML) and keeps it like a texture; it loads again when the file changes. `PrefabSerializer::Instantiate(scene, prefab)` makes a copy from a loaded `Prefab` without reading the file or logging; `Instantiate(scene, handle)` loads it first when needed. The path-based `Instantiate` / `Load` still read the file every time (the editor's drag and drop and thumbnails use them).
 - **Effects (`Vfx`, Oct 25, 2026).** `Vfx::Play(scene, effectHandle, position)` (`Scene/Vfx.h`) instantiates a loaded effect prefab at `position`, makes its emitter a one-shot (`DestroyWhenFinished`) and returns the entity; it never loads (load the prefab once, e.g. in a script's `OnCreate`), so a prefab nobody loaded logs once and returns `{}`. Creating entities is allowed while scripts run, so it can be called from `OnUpdate` and collision callbacks.

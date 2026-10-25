@@ -62,6 +62,7 @@ namespace Hydro
 
 		RenderViewSpecification editorViewSpecification;
 		editorViewSpecification.DebugName = "Editor";
+		editorViewSpecification.EditorView = true;
 		m_EditorView = CreateScope<RenderView>(editorViewSpecification);
 
 		RenderViewSpecification gameViewSpecification;
@@ -428,7 +429,7 @@ namespace Hydro
 		m_SpriteEditorWindow->OnImguiRender();
 		m_SpriteAnimationWindow->OnImguiRender();
 		m_StatsWindow->OnImguiRender(m_ActiveScene);
-		m_RenderSettingsWindow->OnImguiRender();
+		m_RenderSettingsWindow->OnImguiRender(m_EditorScene.get(), m_ActiveScene.get());
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
 		m_EditorSettingsWindow->OnImguiRender(m_EditorSettings);
 

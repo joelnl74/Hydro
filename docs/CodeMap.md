@@ -27,9 +27,12 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Asset/AssetManager.*` | `AssetManager` subsystem: project open/close, scan (new handles, copies, missing files), `ImportAsset`, `MoveAsset` / `DeleteAsset`, `BindHandle`, lookups; texture cache: `GetAsset<T>`, `GetLoadedAsset<T>`, `ReloadAsset<T>`, `GetLoadState` |
 | **Renderer** (engine-facing, no Vulkan types in new headers) | |
 | `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
-| `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`; incl. the 2D lighting and shadow options), `LightFalloffStyle`, `RendererCapabilities` |
-| `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; `DrawQuad` with tiling or a `TextureRect` (sprite of a sheet); `DrawLine`/`DrawRect`/`DrawCircle` (thin quads in the same batch; thickness in pixels) and `BeginOverlay`/`EndOverlay` (lines drawn after the lighting composite, so night doesn't darken them); `GetImGuiTexture` for editor previews; 2D lighting (`DrawLight`, `DrawGlobalLight`: per-view light buffer pass + composite) and blob shadows (`DrawShadow`); also implements `RenderView`; `DrawQuad(position, size, rotation, ...)` fast path and the soft-dot particle texture |
-| `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches); `RequestCapture(path)` saves its next frame as a PNG |
+| `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`; incl. the 2D lighting and shadow options and the project's `RenderFeatureSettings`), `LightFalloffStyle`, `RendererCapabilities` |
+| `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; `DrawQuad` with tiling or a `TextureRect` (sprite of a sheet); `DrawLine`/`DrawRect`/`DrawCircle` (thin quads in the same batch; thickness in pixels) and `BeginOverlay`/`EndOverlay` (lines drawn after the lighting composite, so night doesn't darken them); `GetImGuiTexture` for editor previews; 2D lighting (`DrawLight`, `DrawGlobalLight`: per-view light buffer pass + composite) and blob shadows (`DrawShadow`); view registration and recording through each view's `RenderGraph`; `CreateRenderFeatures` (LightBuffer2D, Sprites, Overlay, Depth/Meshes/ForwardLighting stubs), `ValidateRenderFeatures`; `DrawQuad(position, size, rotation, ...)` fast path and the soft-dot particle texture |
+| `Renderer/RenderView.*` | One offscreen picture of a scene (target, camera, batches); `RenderViewSpecification::EditorView`; `Set/GetRenderFeatures`, `GetValidationMessages`; `GetImGuiTexture` (`ImTextureID`); `RequestCapture(path)` saves its next frame as a PNG |
+| `Renderer/RenderFeatures.h` | `RenderFeatureSettings` (depth, sprite sorting, lighting, default sprite alpha, meshes; `Preset2D` / `Preset3D`), `SceneRenderSettings` (per-scene override), `RenderValidationMessage` |
+| `Renderer/RenderGraph.*` | Fixed-stage render graph v1: `RenderStage`, `RenderPassDeclaration` (reads/writes, `Execute`), `RenderGraphBuilder`, `RenderFeature` (`Validate`, `Setup`), `RenderGraph` (validation, stage sort, read checks, `ExecuteStage`) |
+| `Renderer/RenderFeatureSerializer.*` | YAML for `RenderFeatureSettings` (enums by name; missing keys keep their value) |
 | `Renderer/ImageWriter.*` | `ImageWriter::WritePNG` (stb_image_write; compiles its implementation for the engine); CPU only |
 | `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `Create` (uploads an `ImportedTexture`), `LoadFromFile` (asks the `AssetManager` for project files, shares other files while alive), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect` |
 | `Renderer/RenderTarget.h` | `RenderTargetSpecification`, `AttachmentLoadOp`, `RenderTargetBeginInfo` (engine-facing, no Vulkan types) |
@@ -48,6 +51,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |
 | `VulkanImageReadback.*` | Copies a region of a colour image into a per-frame-in-flight host buffer; pixels taken after that frame's fence (view captures, later ID picking) |
 | `VulkanTexture2DData.h` | Backend half of `Texture2D` (`GetTexture2DData`) |
+| `VulkanRenderViewData.h` | A view's GPU state (`RenderViewData`: target, batches, texture sets, lights, draws, graph), `QuadVertex`, `RenderPassContext` (command buffer, frame, view); shared by `RenderView.cpp` and `Renderer2D.cpp` |
 | `VulkanRenderTarget.*` | Offscreen target for dynamic rendering (colour, optional depth and entity ID, per frame in flight), tracked layouts, `Begin` / `End` with explicit load ops, `Resize` |
 | `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned; `BlendMode` None / Alpha / Additive / Multiply2x); `BindDescriptorSet` |
 | `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
@@ -121,6 +125,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 | New field on a component | Same as above minus `CopyableComponents` |
 | Test a new system or feature | Add it to the village in `Assets/Scenes/StatueVillage.hyscene` as a gameplay element (a collider on a building, a pushable prop, a zone, a sound source) in the game's own art style, update `VillageMap` if the map grows, and add a row to the Features table in `docs/TestBed.md`; code that exercises it goes in `Oxygen/src/Scripts` |
 | New engine system | `(Scene&, const SystemContext&)` function over a view, called as a stage from `Scene::OnUpdateRuntime` (and `OnUpdateEditor` if it must run while editing) in `Scene.cpp`; frame order in `docs/SceneAndECS.md` |
+| New render feature (a pass in the view's frame) | `RenderFeatures.h` (a setting, if any, + presets), `RenderFeatureSerializer.cpp`, `Renderer2D::CreateRenderFeatures` (validate + passes at a `RenderStage` with declared reads/writes), `RenderSettingsWindow.cpp`, [Architecture](Architecture.md#render-features-and-the-render-graph) |
 | New renderer setting | `RendererSettings.h`, read in `Renderer2D.cpp`/`Renderer.cpp` (or applied in `Renderer::SetSettings`), `ProjectSerializer.cpp`, `RenderSettingsWindow.cpp`, docs inventory |
 | New editor preference | `EditorSettings.h`, `EditorSettings.cpp` (serializer, default on missing key), `EditorSettingsWindow.cpp` |
 | New editor window | `EditorWindows/<Name>Window.*`, member + View menu entry in `EditorLayer.*`; callbacks for anything that saves |
@@ -141,7 +146,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 - **Old EnTT** (vendored single header `Hydro/vendor/entt/entt.hpp`, no version macro): `registry.has<T>`, `view.get<A, B>(e)`; no `all_of`/`any_of` (upgrade is Roadmap E2).
 - **Line endings**: CRLF in the working copy for sources and docs (`.gitattributes`); `*.sh` is LF.
 - **Style**: `namespace Hydro` only, no `!` (use `== false` / `== nullptr`), braces on every body, `m_PascalCase`. See the skill or [Architecture](Architecture.md#code-conventions).
-- `Renderer2D.h`, `Renderer.h`, `RenderView.h` still include `vulkan.h` (A7); don't add Vulkan to other `Renderer/` headers.
+- `Renderer2D.h` and `Renderer.h` still include `vulkan.h` (A7; `RenderView.h` no longer does); don't add Vulkan to other `Renderer/` headers.
 - Shaders are compiled at runtime by shaderc from `assets/shaders/...`, relative to the working directory (run Oxygen from the `Oxygen/` folder).
 
 ## Checking without Windows

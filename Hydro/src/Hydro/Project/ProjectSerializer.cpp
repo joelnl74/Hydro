@@ -2,6 +2,7 @@
 #include "ProjectSerializer.h"
 
 #include "Hydro/Utils/YAMLConversions.h"
+#include "Hydro/Renderer/RenderFeatureSerializer.h"
 
 namespace Hydro
 {
@@ -40,6 +41,8 @@ namespace Hydro
 		out << YAML::Key << "LightFalloff" << YAML::Value << (renderer.LightFalloff == LightFalloffStyle::Banded ? "Banded" : "Smooth");
 		out << YAML::Key << "LightBands" << YAML::Value << renderer.LightBands;
 		out << YAML::Key << "Shadows" << YAML::Value << renderer.Shadows;
+		out << YAML::Key << "RenderFeatures" << YAML::Value;
+		RenderFeatureSerializer::Serialize(out, renderer.Features);
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
@@ -128,6 +131,11 @@ namespace Hydro
 				if (auto node = rendererNode["Shadows"])
 				{
 					renderer.Shadows = node.as<bool>(renderer.Shadows);
+				}
+
+				if (auto node = rendererNode["RenderFeatures"])
+				{
+					RenderFeatureSerializer::Deserialize(node, renderer.Features);
 				}
 			}
 		}

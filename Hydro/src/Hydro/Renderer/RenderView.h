@@ -1,11 +1,13 @@
 #pragma once
 #include "Hydro/Core/Base.h"
+#include "Hydro/Renderer/RenderFeatures.h"
 
-#include <vulkan/vulkan.h>
+#include <imgui.h>
 
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 namespace Hydro
 {
@@ -14,6 +16,8 @@ namespace Hydro
 		uint32_t Width = 1280;
 		uint32_t Height = 720;
 		std::string DebugName = "View";
+		// The editor's scene view: gets the editor-only render features (entity ID, debug lines).
+		bool EditorView = false;
 	};
 
 	struct RenderViewData;
@@ -26,7 +30,8 @@ namespace Hydro
 	// A resource: create it after Renderer::Init and destroy it before Renderer::Shutdown (layers do
 	// this in OnDetach). Its GPU objects are freed through the deletion queue, so it can be destroyed
 	// at any point in a frame.
-	// Its contents belong to Renderer2D, which implements it (Renderer2D.cpp).
+	// Its backend data (RenderViewData, Platform/Vulkan/VulkanRenderViewData.h) is filled and recorded by
+	// Renderer2D; what is drawn each frame is the view's render graph, built from its render features.
 	class RenderView
 	{
 	public:
@@ -44,7 +49,15 @@ namespace Hydro
 		float GetAspectRatio() const { return (float)GetWidth() / (float)GetHeight(); }
 
 		// ImGui texture of the image of the frame being recorded: pass it to ImGui::Image.
-		VkDescriptorSet GetImGuiTexture();
+		ImTextureID GetImGuiTexture();
+
+		// The render features the next render uses (SceneRenderer sets them every frame from the scene's
+		// override or the project's RendererSettings::Features). The view's render graph is rebuilt when
+		// they change, never otherwise. Starts as the 2D preset.
+		void SetRenderFeatures(const RenderFeatureSettings& features);
+		const RenderFeatureSettings& GetRenderFeatures() const;
+		// What the view's current render graph reported when it was built (empty before the first render).
+		const std::vector<RenderValidationMessage>& GetValidationMessages() const;
 
 		// Saves the next picture this view renders as a PNG at `path` (folders are created). The image
 		// is copied to host memory right after the view's pass and written when that frame's GPU work

@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include "Hydro/Renderer/RenderFeatures.h"
+
 #include <cstdint>
 
 namespace Hydro
@@ -37,6 +39,11 @@ namespace Hydro
 		uint32_t LightBands = 8;
 		// Blob shadows (Shadow2DComponent) in lit views: they darken the light buffer. Needs Lighting.
 		bool Shadows = true;
+
+		// The project's render features (RenderFeatures.h): what every scene uses unless it overrides
+		// them (SceneRenderSettings). Changing them rebuilds the views' render graphs. Missing from an
+		// older .hyproj: the 2D preset, today's frame.
+		RenderFeatureSettings Features;
 
 		// Rebuild shaders when their source files change (checked a few times per second).
 #ifdef HY_DIST

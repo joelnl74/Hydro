@@ -4,6 +4,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
+#include "Hydro/Renderer/RenderFeatureSerializer.h"
 
 namespace Hydro
 {
@@ -22,6 +23,16 @@ namespace Hydro
 		out << YAML::BeginMap;
 		out << YAML::Key << AssetMetaSerializer::HandleKey << YAML::Value << (uint64_t)handle;
 		out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
+		// Only written when the scene overrides the project's render features, so 2D scenes stay as they were.
+		const SceneRenderSettings& renderSettings = m_Scene->GetRenderSettings();
+		if (renderSettings.OverrideProject)
+		{
+			out << YAML::Key << "RenderSettings" << YAML::Value << YAML::BeginMap;
+			out << YAML::Key << "OverrideProject" << YAML::Value << true;
+			out << YAML::Key << "Features" << YAML::Value;
+			RenderFeatureSerializer::Serialize(out, renderSettings.Features);
+			out << YAML::EndMap;
+		}
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
 		// The scene's list order (what the hierarchy shows). Only "real" entities (made through
@@ -73,6 +84,22 @@ namespace Hydro
 		}
 
 		m_Scene->SetName(data["Scene"].as<std::string>());
+
+		// Missing: the scene uses the project's render features.
+		SceneRenderSettings renderSettings;
+		YAML::Node renderNode = data["RenderSettings"];
+		if (renderNode && renderNode.IsMap())
+		{
+			if (auto overrideNode = renderNode["OverrideProject"])
+			{
+				renderSettings.OverrideProject = overrideNode.as<bool>(false);
+			}
+			if (auto featuresNode = renderNode["Features"])
+			{
+				RenderFeatureSerializer::Deserialize(featuresNode, renderSettings.Features);
+			}
+		}
+		m_Scene->SetRenderSettings(renderSettings);
 
 		size_t count = 0;
 		if (auto entities = data["Entities"])

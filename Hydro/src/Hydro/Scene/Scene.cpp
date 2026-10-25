@@ -73,6 +73,7 @@ namespace Hydro
 		Ref<Scene> copy = CreateRef<Scene>(source->GetName());
 		copy->m_ViewportWidth = source->m_ViewportWidth;
 		copy->m_ViewportHeight = source->m_ViewportHeight;
+		copy->m_RenderSettings = source->m_RenderSettings;
 
 		const entt::registry& sourceRegistry = source->m_Registry;
 

@@ -45,6 +45,10 @@ namespace Hydro
 		// returns false when the scene has no primary camera; the view is still cleared.
 		bool RenderRuntime(RenderView& view);
 
+		// The scene's render features when it overrides the project's, else RendererSettings::Features.
+		// RenderEditor and RenderRuntime hand them to the view every frame.
+		RenderFeatureSettings GetEffectiveRenderFeatures() const;
+
 	private:
 		// How the camera of the view being drawn is turned, for SpriteFacing (Diorama RPG H1). Made once
 		// per RenderEditor / RenderRuntime from the camera's rotation.

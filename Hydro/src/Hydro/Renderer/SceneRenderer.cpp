@@ -2,6 +2,7 @@
 
 #include "SceneRenderer.h"
 #include "Renderer2D.h"
+#include "Renderer.h"
 #include <glm/ext/matrix_transform.hpp>
 
 #include "Hydro/Asset/AssetManager.h"
@@ -47,8 +48,15 @@ namespace Hydro
 		return basis;
 	}
 
+	RenderFeatureSettings SceneRenderer::GetEffectiveRenderFeatures() const
+	{
+		const SceneRenderSettings& scene = m_Scene->GetRenderSettings();
+		return scene.OverrideProject ? scene.Features : Renderer::GetSettings().Features;
+	}
+
 	void SceneRenderer::RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay)
 	{
+		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		m_Camera = MakeCameraBasis(glm::mat3(glm::inverse(camera.GetView())));
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
 		SubmitSprites();
@@ -61,6 +69,7 @@ namespace Hydro
 
 	bool SceneRenderer::RenderRuntime(RenderView& view)
 	{
+		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		Entity cameraEntity = m_Scene->GetPrimaryCameraEntity();
 		if ((bool)cameraEntity == false)
 		{
