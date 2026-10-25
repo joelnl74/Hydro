@@ -22,36 +22,7 @@
 
 namespace Hydro
 {
-	// Per-star animation data for the demo galaxy (plain entt component).
-	struct GalaxyStar
-	{
-		float Radius;        // 0..1, scaled to the viewport each frame
-		float Angle;         // radians
-		float AngularSpeed;  // radians / second (inner stars orbit faster)
-		float TwinklePhase;
-		glm::vec3 BaseColor;
-		bool Bright;
-	};
-
-	// 20k quads per batch -> 50k stars = 3 batches / 3 draw calls (20k + 20k + 10k).
-	constexpr uint32_t GalaxyStarCount = 50000;
-	// World units: the galaxy fits the default 10-unit-high camera view.
-	constexpr float GalaxyRadius = 4.0f;
-	constexpr float StarSizeScale = 0.012f;
-	constexpr int GalaxyArms = 4;
-	constexpr float Pi = 3.14159265f;
-
 	static glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t) { return a + (b - a) * t; }
-
-	// Warm core -> pink mid -> blue rim.
-	static glm::vec3 GalaxyColor(float radius)
-	{
-		const glm::vec3 core(1.00f, 0.88f, 0.62f);
-		const glm::vec3 mid(0.92f, 0.45f, 0.85f);
-		const glm::vec3 rim(0.35f, 0.55f, 1.00f);
-		return radius < 0.35f ? Lerp(core, mid, radius / 0.35f)
-		                      : Lerp(mid, rim, std::min((radius - 0.35f) / 0.65f, 1.0f));
-	}
 
 	void EditorLayer::OnAttach()
 	{
@@ -107,107 +78,10 @@ namespace Hydro
 		RestoreOpenWindows();
 		m_EditorCamera.SetProjectionType(m_EditorSettings.CameraStartsIn2D ? ProjectionType::Orthographic : ProjectionType::Perspective);
 
-		CreateGalaxy();
 		CreateDefaultCamera();
 
 		// After the demo scene: a project with a start scene replaces it.
 		OpenStartupProject();
-	}
-
-	void EditorLayer::CreateGalaxy()
-	{
-		// One tagged entity so the galaxy shows up in the hierarchy. The stars themselves get
-		// no Tag/ID: the hierarchy window builds a tree node for every tagged entity each frame,
-		// which would be far too slow for 50k entities.
-		m_EditorScene->CreateEntity("Galaxy (" + std::to_string(GalaxyStarCount) + " stars)");
-
-		entt::registry& registry = m_EditorScene->m_Registry;
-
-		std::mt19937 rng(1337);
-		std::uniform_real_distribution<float> uniform(0.0f, 1.0f);
-		std::normal_distribution<float> gauss(0.0f, 1.0f);
-
-		for (uint32_t i = 0; i < GalaxyStarCount; i++)
-		{
-			float radius, angle;
-
-			if (uniform(rng) < 0.18f)
-			{
-				// Dense core.
-				radius = std::min(std::abs(gauss(rng)) * 0.11f, 1.0f);
-				angle = uniform(rng) * 2.0f * Pi;
-			}
-			else
-			{
-				// Spiral arms: the angle offset grows with radius, plus some scatter.
-				int arm = (int)(uniform(rng) * GalaxyArms) % GalaxyArms;
-				radius = 0.06f + 0.94f * std::pow(uniform(rng), 0.85f);
-				radius = std::clamp(radius + gauss(rng) * 0.015f, 0.0f, 1.0f);
-				angle = arm * (2.0f * Pi / GalaxyArms) + radius * 5.5f + gauss(rng) * (0.12f + 0.18f * radius);
-			}
-
-			const bool bright = uniform(rng) < 0.01f;
-			const float size = StarSizeScale * (bright ? 4.0f + uniform(rng) * 3.0f : 1.5f + uniform(rng) * 2.0f);
-			const glm::vec3 color = GalaxyColor(radius) * (0.55f + 0.45f * uniform(rng));
-
-			GalaxyStar star;
-			star.Radius = radius;
-			star.Angle = angle;
-			star.AngularSpeed = 0.10f * (1.0f + 0.35f / (radius + 0.25f));
-			star.TwinklePhase = uniform(rng) * 2.0f * Pi;
-			star.BaseColor = bright ? glm::vec3(1.0f) : color;
-			star.Bright = bright;
-
-			entt::entity entity = registry.create();
-			registry.emplace<TransformComponent>(entity, glm::vec3(0.0f), glm::vec3(size, size, 1.0f));
-			registry.emplace<SpriteRendererComponent>(entity, glm::vec4(star.BaseColor, 1.0f));
-			registry.emplace<GalaxyStar>(entity, star);
-		}
-
-		// Place the stars without advancing them: the galaxy only moves while playing.
-		UpdateGalaxy(*m_EditorScene, 0.0f);
-	}
-
-	void EditorLayer::CopyGalaxyStars(Scene& source, Scene& destination)
-	{
-		entt::registry& from = source.m_Registry;
-		entt::registry& to = destination.m_Registry;
-
-		auto view = from.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
-		for (auto entity : view)
-		{
-			entt::entity copy = to.create();
-			to.emplace<TransformComponent>(copy, view.get<TransformComponent>(entity));
-			to.emplace<SpriteRendererComponent>(copy, view.get<SpriteRendererComponent>(entity));
-			to.emplace<GalaxyStar>(copy, view.get<GalaxyStar>(entity));
-		}
-	}
-
-	void EditorLayer::UpdateGalaxy(Scene& scene, float deltaTime)
-	{
-		m_Time += deltaTime;
-
-		// Centred on the origin; Y is squashed a little so it reads as a tilted disc.
-
-		auto view = scene.m_Registry.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
-		for (auto entity : view)
-		{
-			GalaxyStar& star = view.get<GalaxyStar>(entity);
-			TransformComponent& transform = view.get<TransformComponent>(entity);
-
-			star.Angle += star.AngularSpeed * deltaTime;
-
-			const float r = star.Radius * GalaxyRadius;
-			transform.Translation.x = std::cos(star.Angle) * r;
-			transform.Translation.y = std::sin(star.Angle) * r * 0.78f;
-
-			if (star.Bright)
-			{
-				SpriteRendererComponent& sprite = view.get<SpriteRendererComponent>(entity);
-				const float twinkle = 0.65f + 0.35f * std::sin(m_Time * 3.0f + star.TwinklePhase);
-				sprite.Color = glm::vec4(star.BaseColor * twinkle, 1.0f);
-			}
-		}
 	}
 
 	void EditorLayer::OnDetach()
@@ -263,7 +137,6 @@ namespace Hydro
 		{
 			// Scripts and engine systems, then the application's systems.
 			m_ActiveScene->OnUpdateRuntime(deltaTime);
-			UpdateGalaxy(*m_ActiveScene, deltaTime);
 
 			// A script may have asked for another scene (the scene was not touched while it ran).
 			ProcessSceneTransition();
@@ -863,7 +736,6 @@ namespace Hydro
 
 		m_RuntimeScene = Scene::Copy(m_EditorScene);
 		m_RuntimeScene->Init();
-		CopyGalaxyStars(*m_EditorScene, *m_RuntimeScene);
 		m_RuntimeScene->OnRuntimeStart(); // builds the physics world
 
 		m_ActiveScene = m_RuntimeScene;
