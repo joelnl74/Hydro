@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include <cstdint>
+#include <filesystem>
 #include <string>
 
 namespace Hydro
@@ -44,6 +45,16 @@ namespace Hydro
 
 		// ImGui texture of the image of the frame being recorded: pass it to ImGui::Image.
 		VkDescriptorSet GetImGuiTexture();
+
+		// Saves the next picture this view renders as a PNG at `path` (folders are created). The image
+		// is copied to host memory right after the view's pass and written when that frame's GPU work
+		// has finished (a frame or two later), so nothing waits for the GPU; the PNG is encoded on the
+		// main thread, a short hitch for a large view. Alpha is written opaque. The file is logged when
+		// written. A view that isn't rendered (hidden window, minimised) keeps the request until it is.
+		// A second request before the first is recorded replaces it.
+		void RequestCapture(const std::filesystem::path& path);
+		// True from RequestCapture until its file is written (or failed).
+		bool IsCapturePending() const;
 
 		const RenderViewSpecification& GetSpecification() const { return m_Specification; }
 

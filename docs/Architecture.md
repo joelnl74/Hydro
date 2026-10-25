@@ -131,6 +131,17 @@ Renderer2D::EndScene();
 - The quad pipeline is built once, against a 1×1 compatibility render pass and a layout-only descriptor set. Every view's target has the same format and its set 0 (camera + textures) is built the same way, so `VulkanPipeline::BindDescriptorSet` binds the view's own set.
 - Views are resources: the application creates them after `Renderer::Init` and destroys them while the renderer is alive (Oxygen does it in `OnDetach`).
 
+### Captures
+
+`view.RequestCapture(path)` saves the next picture the view renders as a PNG (the comparison tool for renderer changes: step 0 of the [3D renderer MVP plan](https://github.com/joelnl74/Hydro/wiki/Renderer-3D-MVP-Plan), [#113](https://github.com/joelnl74/Hydro/issues/113)).
+
+- Right after the view's pass, `Renderer2D` records a copy of its target image into a host-visible buffer for that frame in flight (`VulkanImageReadback`: barrier to `TRANSFER_SRC`, `vkCmdCopyImageToBuffer`, barrier back to `SHADER_READ_ONLY_OPTIMAL`, so ImGui still samples it later in the command buffer). Nothing waits: the next time the same frame index is rendered, its fence has signalled, and `Renderer2D::Render` takes the pixels and writes the file with `ImageWriter::WritePNG` (stb_image_write). So the file appears `MAX_FRAMES_IN_FLIGHT` frames after the capture.
+- The target is sRGB (`R8G8B8A8_SRGB`), so the bytes go into the PNG as they are; alpha is written opaque. The overlay (editor outlines) is included.
+- A view that isn't rendered (hidden window, minimised) keeps the request until it is. `IsCapturePending()` is true until the file is written. The PNG is encoded on the main thread: a short hitch for a large view.
+- `VulkanImageReadback` copies any region of a colour image (RGBA8, BGRA8, R32, RGBA16F/32F); click-to-select will read the entity-ID attachment with it (plan M7). Colour attachments are made with `TRANSFER_SRC` usage for this.
+- Oxygen: the **Capture** menu in the Editor and Game windows, **F12** (Game view) and **Shift+F12** (Editor view). **Fixed Size (1280 x 720)** (on by default) renders the captured frame at that size, with the scene's or editor camera's viewport set to it for that frame, so captures don't depend on the window layout; the window shows that one frame stretched. Files go to `<project>/.hydro/captures/<scene>_<view>_<yyyymmdd-hhmmss-mmm>.png` and the Console logs each one.
+- `scripts/compare_captures.py a.png b.png [--out diff.png] [--tolerance N]` counts differing pixels, reports the largest difference and writes a diff image (Pillow). Baselines for the 3D work are listed on [Test bed](TestBed.md#baseline-captures).
+
 ### Textures and batching
 
 `Texture2D` (`Renderer/Texture2D.h`) is the engine-facing texture: RGBA8, made from an `ImageSpecification` (size, `ImageFormat::SRGB` for colour or `RGBA` for data) and `TextureProperties` (filter, wrap), on a `VulkanImage` (VMA, one upload). `Texture2D::LoadFromFile(path)` returns `nullptr` (logged) on failure; a file in the project's asset folder is loaded and shared by the `AssetManager` ([Asset system](#asset-system)), any other file is decoded by `TextureImporter` (stb_image) and shared while a texture from it is alive. Textures are shared by many sprites, so they are held in `Ref<Texture2D>`. The header has no Vulkan types: the image lives in `Texture2DData` (`Platform/Vulkan/VulkanTexture2DData.h`).
@@ -208,7 +219,7 @@ The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorS
 | `VulkanFrameContext` | Per frame in flight (`MAX_FRAMES_IN_FLIGHT = 2`): command pool + buffer, fence, image-acquired semaphore |
 | `Renderer` | The above (`Scope`s; `GetVulkanDevice()`, `GetRendererContext()` and `GetVulkanSwapChain()` return references), the **deletion queue**, and runs the frame |
 | `VulkanRenderPass` | An offscreen colour target: one image + framebuffer per frame in flight. Each `RenderView` owns one |
-| `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures), all in `Scope`s |
+| `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures), and, after its first capture, a `VulkanImageReadback` (one host buffer per frame in flight), all in `Scope`s |
 | `Renderer2D` | The quad shader, pipeline, index buffer, the 1×1 compatibility render pass with its layout descriptor set, and the white texture |
 | `Texture2D` | One `VulkanImage` (image, view, sampler; VMA). Shared through `Ref<Texture2D>` |
 

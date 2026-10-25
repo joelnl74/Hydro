@@ -14,7 +14,9 @@
 #include "Utilities/PathFollower.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <ctime>
 #include <map>
 #include <random>
 
@@ -298,6 +300,7 @@ namespace Hydro
 	void EditorLayer::OnImGuiRender()
 	{
 		UpdateFullscreenKeys();
+		UpdateCaptureKeys();
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -526,14 +529,15 @@ namespace Hydro
 					ImGui::EndMenu();
 				}
 
+				DrawCaptureMenu();
+
 				ImGui::EndMenuBar();
 			}
 
 			const ImVec2 size = ImGui::GetContentRegionAvail();
 			if (size.x >= 1.0f && size.y >= 1.0f)
 			{
-				m_EditorView->SetSize((uint32_t)size.x, (uint32_t)size.y);
-				m_EditorCamera.SetViewportSize(size.x, size.y);
+				ResizeEditorView((uint32_t)size.x, (uint32_t)size.y);
 			}
 
 			// Camera projections flip Y for Vulkan, so the image is shown the right way up as is.
@@ -585,6 +589,7 @@ namespace Hydro
 				}
 				ImGui::EndMenu();
 			}
+			DrawCaptureMenu();
 			ImGui::EndMenuBar();
 		}
 
@@ -598,9 +603,7 @@ namespace Hydro
 			const ImVec2 size = ImGui::GetContentRegionAvail();
 			if (size.x >= 1.0f && size.y >= 1.0f)
 			{
-				// The game's cameras take their aspect ratio from the scene's viewport.
-				m_GameView->SetSize((uint32_t)size.x, (uint32_t)size.y);
-				m_ActiveScene->OnViewportResize((uint32_t)size.x, (uint32_t)size.y);
+				ResizeGameView((uint32_t)size.x, (uint32_t)size.y);
 			}
 
 			const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
@@ -686,8 +689,7 @@ namespace Hydro
 		const ImVec2 size = ImGui::GetContentRegionAvail();
 		if (size.x >= 1.0f && size.y >= 1.0f)
 		{
-			m_GameView->SetSize((uint32_t)size.x, (uint32_t)size.y);
-			m_ActiveScene->OnViewportResize((uint32_t)size.x, (uint32_t)size.y);
+			ResizeGameView((uint32_t)size.x, (uint32_t)size.y);
 		}
 
 		const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
@@ -717,6 +719,110 @@ namespace Hydro
 		}
 
 		ImGui::End();
+	}
+
+	void EditorLayer::ResizeGameView(uint32_t width, uint32_t height)
+	{
+		if (m_CaptureGameRequested)
+		{
+			if (m_CaptureFixedSize)
+			{
+				width = CaptureWidth;
+				height = CaptureHeight;
+			}
+			m_GameView->RequestCapture(MakeCapturePath("Game"));
+			m_CaptureGameRequested = false;
+		}
+
+		// The game's cameras take their aspect ratio from the scene's viewport.
+		m_GameView->SetSize(width, height);
+		m_ActiveScene->OnViewportResize(width, height);
+	}
+
+	void EditorLayer::ResizeEditorView(uint32_t width, uint32_t height)
+	{
+		if (m_CaptureEditorRequested)
+		{
+			if (m_CaptureFixedSize)
+			{
+				width = CaptureWidth;
+				height = CaptureHeight;
+			}
+			m_EditorView->RequestCapture(MakeCapturePath("Editor"));
+			m_CaptureEditorRequested = false;
+		}
+
+		m_EditorView->SetSize(width, height);
+		m_EditorCamera.SetViewportSize((float)width, (float)height);
+	}
+
+	void EditorLayer::DrawCaptureMenu()
+	{
+		if (ImGui::BeginMenu("Capture"))
+		{
+			if (ImGui::MenuItem("Capture Game View", "F12"))
+			{
+				m_CaptureGameRequested = true;
+			}
+			if (ImGui::MenuItem("Capture Editor View", "Shift+F12"))
+			{
+				m_CaptureEditorRequested = true;
+			}
+
+			ImGui::Separator();
+			ImGui::MenuItem("Fixed Size (1280 x 720)", nullptr, &m_CaptureFixedSize);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("Render the captured frame at 1280 x 720, whatever the window's size,\nso captures can be compared. Pause first so the scene stands still.");
+			}
+
+			ImGui::Separator();
+			ImGui::TextDisabled("Saved in <project>/.hydro/captures");
+			ImGui::EndMenu();
+		}
+	}
+
+	void EditorLayer::UpdateCaptureKeys()
+	{
+		// F12: the Game view (also in game full screen); Shift+F12: the Editor view. Holding captures once.
+		const bool f12 = Input::IsKeyPressed(KeyCode::F12);
+		if (f12 && m_CaptureKeyDown == false && ImGui::GetIO().WantTextInput == false)
+		{
+			const bool shift = Input::IsKeyPressed(KeyCode::LeftShift) || Input::IsKeyPressed(KeyCode::RightShift);
+			if (shift)
+			{
+				m_CaptureEditorRequested = true;
+			}
+			else
+			{
+				m_CaptureGameRequested = true;
+			}
+		}
+		m_CaptureKeyDown = f12;
+	}
+
+	std::filesystem::path EditorLayer::MakeCapturePath(const std::string& viewName) const
+	{
+		const std::string sceneName = m_ActiveScene != nullptr && m_ActiveScene->GetName().empty() == false
+			? m_ActiveScene->GetName() : std::string("Untitled");
+
+		const auto now = std::chrono::system_clock::now();
+		const std::time_t seconds = std::chrono::system_clock::to_time_t(now);
+		const long long milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+
+		std::tm local = {};
+#if defined(_WIN32)
+		localtime_s(&local, &seconds);
+#else
+		localtime_r(&seconds, &local);
+#endif
+		char stamp[32] = {};
+		std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", &local);
+		char suffix[8] = {};
+		std::snprintf(suffix, sizeof(suffix), "-%03lld", milliseconds);
+
+		const std::string fileName = EditorPaths::ToFileName(sceneName) + "_" + viewName + "_" + stamp + suffix + ".png";
+		return EditorPaths::GetCapturesDirectory() / fileName;
 	}
 
 	void EditorLayer::AcceptAssetDrop()

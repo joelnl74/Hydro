@@ -6,6 +6,7 @@
 #include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderPass.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
+#include "Hydro/Platform/Vulkan/VulkanImageReadback.h"
 #include "Hydro/Platform/Vulkan/VulkanTexture2DData.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 
@@ -14,6 +15,7 @@
 // SHOULD BE A IMGUI EXTENSION END BLOCK.
 
 #include "Hydro/Renderer/Renderer.h"
+#include "Hydro/Renderer/ImageWriter.h"
 #include "Hydro/Core/FileWatcher.h"
 #include "Hydro/Core/Time.h"
 
@@ -143,6 +145,12 @@ namespace Hydro
 		Scope<VulkanDescriptorBuilder> LightBufferDescriptorSet;  // the composite's input: LightTarget's image of each frame
 		PerFrameVertexBuffers LightVertexBuffers;                 // 4 vertices per light, then 4 per shadow
 		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
+
+		// ---- Capture (RenderView::RequestCapture) --------------------------------------
+		std::filesystem::path RequestedCapture;  // empty = none; recorded after the view's next pass
+		Scope<VulkanImageReadback> Readback;     // made by the first capture, then kept
+		// The file each frame index's copy goes to; written when that frame's fence has signalled.
+		std::array<std::filesystem::path, MAX_FRAMES_IN_FLIGHT> CapturePaths;
 
 		bool Queued = false; // begun this frame, so Render() records it
 	};
@@ -749,6 +757,29 @@ namespace Hydro
 		return set;
 	}
 
+	void RenderView::RequestCapture(const std::filesystem::path& path)
+	{
+		m_Data->RequestedCapture = path;
+	}
+
+	bool RenderView::IsCapturePending() const
+	{
+		if (m_Data->RequestedCapture.empty() == false)
+		{
+			return true;
+		}
+
+		for (const std::filesystem::path& path : m_Data->CapturePaths)
+		{
+			if (path.empty() == false)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	// ---- Batching ---------------------------------------------------------------
 
 	void Renderer2D::AllocateBatch(RenderViewData& view)
@@ -1195,6 +1226,86 @@ namespace Hydro
 
 	// ---- Frame ------------------------------------------------------------------
 
+	// ---- Captures ---------------------------------------------------------------
+
+	// Writes a read-back view image as a PNG: RGBA8 or BGRA8 (swizzled), alpha made opaque.
+	static void SaveCapture(const std::filesystem::path& path, ImageReadbackResult& result)
+	{
+		const bool rgba = result.Format == VK_FORMAT_R8G8B8A8_SRGB || result.Format == VK_FORMAT_R8G8B8A8_UNORM;
+		const bool bgra = result.Format == VK_FORMAT_B8G8R8A8_SRGB || result.Format == VK_FORMAT_B8G8R8A8_UNORM;
+		if (rgba == false && bgra == false)
+		{
+			HY_CORE_ERROR("Capture {}: the view's format ({}) can't be saved as a PNG", path.string(), (int)result.Format);
+			return;
+		}
+
+		const size_t pixelCount = (size_t)result.Width * result.Height;
+		for (size_t i = 0; i < pixelCount; i++)
+		{
+			uint8_t* pixel = result.Pixels.data() + i * 4;
+			if (bgra)
+			{
+				std::swap(pixel[0], pixel[2]);
+			}
+			pixel[3] = 255;
+		}
+
+		if (ImageWriter::WritePNG(path, result.Width, result.Height, result.Pixels.data()))
+		{
+			HY_CORE_INFO("Saved capture {} ({} x {})", path.string(), result.Width, result.Height);
+		}
+	}
+
+	// Called after `frame`'s fence: the copies recorded the last time this frame index ran are done.
+	static void ResolveCaptures(uint32_t frame)
+	{
+		// Every view, not only the ones begun this frame: a copy may belong to a view that is hidden now.
+		for (RenderViewData* view : s_Data->Views)
+		{
+			if (view->Readback == nullptr || view->Readback->IsPending(frame) == false)
+			{
+				continue;
+			}
+
+			ImageReadbackResult result;
+			if (view->Readback->TakeResult(frame, result))
+			{
+				SaveCapture(view->CapturePaths[frame], result);
+			}
+			view->CapturePaths[frame].clear();
+		}
+	}
+
+	// Right after the view's pass: its image is in SHADER_READ_ONLY_OPTIMAL (the pass's final layout).
+	static void RecordCapture(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
+	{
+		if (view.RequestedCapture.empty())
+		{
+			return;
+		}
+
+		if (view.Readback == nullptr)
+		{
+			view.Readback = CreateScope<VulkanImageReadback>();
+		}
+
+		// This frame index's last copy hasn't been written yet: try again next frame.
+		if (view.Readback->IsPending(frame))
+		{
+			return;
+		}
+
+		if (view.Readback->Record(commandBuffer, view.Target->GetImage(frame), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, frame))
+		{
+			view.CapturePaths[frame] = view.RequestedCapture;
+		}
+		else
+		{
+			HY_CORE_ERROR("Capture of view '{}' failed: {}", view.DebugName, view.RequestedCapture.string());
+		}
+		view.RequestedCapture.clear();
+	}
+
 	void Renderer2D::Render(VkCommandBuffer commandBuffer)
 	{
 		HY_CORE_ASSERT(s_Data->CurrentView == nullptr, "Renderer2D::Render inside BeginScene/EndScene");
@@ -1207,6 +1318,8 @@ namespace Hydro
 		// Renderer::RenderFrame already waited on this frame-in-flight's fence, so the GPU is done
 		// with every view's buffers and descriptor sets for `frame`: safe to overwrite.
 		UpdateImGuiTextures(frame);
+		// The same fence covers the captures this frame index recorded last time: write them.
+		ResolveCaptures(frame);
 
 		// The fence for this frame index was just waited on, so the timestamps this command
 		// buffer wrote last time are available: read them, then reset and write new ones.
@@ -1401,6 +1514,9 @@ namespace Hydro
 		}
 
 		view.Target->End(commandBuffer);
+
+		// After the pass, so the capture has everything the view drew, overlay included.
+		RecordCapture(commandBuffer, view, frame);
 	}
 
 	bool Renderer2D::RecordLightPass(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)

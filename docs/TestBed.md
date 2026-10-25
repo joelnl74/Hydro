@@ -62,6 +62,26 @@ In the editor (not playing): click an entity in the **Hierarchy** or the **Edito
 | Sprite as a light source | `Wisp 1` to `Wisp 4` (a `Light2DComponent` on the moving enemy itself) | Press 3 (night) in the meadow or the field: each wisp lights the grass around it and the light moves and breathes with it |
 | Sprite sheets as UI (labels, icons, digits) | `Battle.hyscene`: `Command *`, `Order Chip *`, `Message`, `Popup *`, `* Digit *`, `* Weak *` | In a battle: the command names, turn order, damage numbers, shields and weakness icons are sprites whose `SpriteIndex` the script sets, standing in for runtime text until U1 |
 | Spawning and destroying bodies in play | `Crate Spawner` | Press E: a crate appears in front of you (a copy of a village crate) and is solid at once: push it, walk into it. Press E more than ten times: the oldest crate disappears. The Console logs each drop. Stop and Play again: the dropped crates are gone |
+| View captures (Capture menu, F12) | Game and Editor windows | Press Play, Pause, F12: the Console logs `Saved capture ... (1280 x 720)` a moment later and the PNG in `.hydro/captures` shows the Game view. Shift+F12 does the Editor view (with its outlines). Capture the same paused frame twice and run `scripts/compare_captures.py` on the two files: 0 pixels differ. See [Baseline captures](#baseline-captures) |
+
+## Baseline captures
+
+Renderer changes (the [3D renderer MVP plan](https://github.com/joelnl74/Hydro/wiki/Renderer-3D-MVP-Plan)) are checked by comparing captures from before and after. Make the baselines once before the render pipeline work starts, and again whenever a difference is accepted.
+
+1. In the Game or Editor window's **Capture** menu, leave **Fixed Size (1280 x 720)** on.
+2. For each row below: open the scene, press Play, set it up, press **Pause**, then **F12** (Game view) or **Shift+F12** (Editor view). The Console logs the file (`<project>/.hydro/captures/`).
+3. Move the files to `.hydro/captures/baseline/` with the names below (git-ignored: captures stay on your machine).
+4. After a change: capture the same way and run `python scripts/compare_captures.py .hydro/captures/baseline/<name>.png <new>.png --out diff.png`. 0 differing pixels means unchanged.
+
+| Name | Scene and setup |
+| --- | --- |
+| `village_topdown.png` | `StatueVillage`, Play, the camera at its start position, Pause, F12 |
+| `village_dusk.png` | `StatueVillage`, Play, press 2 (dusk), Pause, F12 |
+| `village_diorama.png` | `StatueVillage`, Play, press V and wait for the tilt, Pause, F12 |
+| `battle.png` | `StatueVillage`, Play, walk into a slime, wait for the command menu, Pause, F12 |
+| `mvp.png` | `MVP`, Play, Pause, F12 |
+
+Animated things (water, torches, particles, walkers) only match if they are paused on the same frame; compare with `--tolerance` or look at the diff image when a capture can't be repeated exactly.
 
 ## Slime Field and battle
 
