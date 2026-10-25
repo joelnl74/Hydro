@@ -78,6 +78,9 @@ namespace Hydro
 		// Binds this frame's set of `descriptorSet` at set index `setIndex` instead of the one in the
 		// specification. Its layout must be defined identically to that entry's (e.g. built the same way).
 		void BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VulkanDescriptorBuilder& descriptorSet);
+		// Binds `set` (e.g. one from VulkanDescriptorAllocator::AllocateFrame) at `setIndex`; its layout must be
+		// the one this pipeline was built with for that set.
+		void BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VkDescriptorSet set);
 		// Writes `size` bytes of push constants from offset 0 (at most PipelineSpecification::PushConstantSize).
 		void PushConstants(VkCommandBuffer commandBuffer, const void* data, uint32_t size);
 

@@ -376,6 +376,11 @@ namespace Hydro
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, setIndex, 1, &set, 0, nullptr);
 	}
 
+	void VulkanPipeline::BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VkDescriptorSet set)
+	{
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, setIndex, 1, &set, 0, nullptr);
+	}
+
 	void VulkanPipeline::PushConstants(VkCommandBuffer commandBuffer, const void* data, uint32_t size)
 	{
 		HY_CORE_ASSERT(size <= m_pipelineSpecification.PushConstantSize, "VulkanPipeline::PushConstants: more bytes than the pipeline declares");

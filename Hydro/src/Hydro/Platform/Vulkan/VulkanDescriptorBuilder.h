@@ -2,14 +2,16 @@
 #include <vulkan/vulkan.h>
 
 #include "VulkanBuffer.h"
+#include "VulkanDescriptors.h"
 
 #include <vector>
 #include <map>
 
 namespace Hydro
 {
-	// A descriptor set layout, a pool and one descriptor set per frame in flight, described with
-	// Begin -> Bind... -> Build. A resource: owns the layout and pool (freed through
+	// One persistent descriptor set per frame in flight, described with Begin -> Bind... -> Build. The
+	// layout comes from VulkanDescriptorAllocator's cache (shared with every builder that has the same
+	// bindings), the sets from its persistent pools. A resource: owns its sets (freed through
 	// Renderer::SubmitResourceFree when it is destroyed) and is non-copyable; hold it in a Scope.
 	class VulkanDescriptorBuilder
 	{
@@ -51,14 +53,13 @@ namespace Hydro
 		};
 
 		std::vector<VkDescriptorSet> m_DescriptorSets;
+		std::vector<DescriptorAllocation> m_Allocations;
 		std::map<uint32_t, std::vector<PendingWrite>> m_writeDescriptorSets;
 		std::vector<VkDescriptorSetLayoutBinding> m_layoutBinding;
-		std::vector<VkDescriptorPoolSize> m_poolSizes;
 
 		std::vector<VkDescriptorBufferInfo> m_bufferInfo;
 		std::vector<VkDescriptorImageInfo> m_imageInfo;
 
-		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
-		VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE;
+		VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE; // owned by the layout cache
 	};
 }

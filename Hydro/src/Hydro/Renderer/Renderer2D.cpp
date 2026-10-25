@@ -262,8 +262,9 @@ namespace Hydro
 		return CreateScope<VulkanShader>(specification);
 	}
 
-	// Set 0 of the composite shader: binding 0 = the light buffer (an image array, see BindImage). Starts as
-	// the white texture; RecordLightPass points each view's set at its light buffer every frame.
+	// Set 0 of the composite shader: binding 0 = the light buffer (an image array, see BindImage). Only its
+	// layout is used (the composite pipeline is built with it); RecordLightPass gives each lit view a
+	// per-frame set with that layout, pointing at the view's light buffer.
 	static Scope<VulkanDescriptorBuilder> BuildLightBufferDescriptorSet()
 	{
 		const VulkanImageInfo& white = GetImageInfo(*s_Data->WhiteTexture);
@@ -1996,7 +1997,6 @@ namespace Hydro
 			lightSpecification.ColorFormats = { LightBufferFormat };
 			lightSpecification.DebugName = view.DebugName + " light buffer";
 			view.LightTarget = CreateScope<VulkanRenderTarget>(lightSpecification);
-			view.LightBufferDescriptorSet = BuildLightBufferDescriptorSet();
 			BufferSpecification vertexSpecification;
 			vertexSpecification.Usage = BufferUsage::Vertex;
 			vertexSpecification.Memory = BufferMemory::HostVisible;
@@ -2054,13 +2054,30 @@ namespace Hydro
 			view.LightVertexBuffers[frame]->SetData(view.LightVertices.data(), view.LightVertices.size() * sizeof(QuadVertex));
 		}
 
-		// The composite samples this frame's light image. Written before the set is bound this frame.
+		// The composite samples this frame's light image, through a per-frame descriptor set (plan M2b): made
+		// now, gone when this frame slot is reused, so a resized light buffer needs no rewrite. Every element
+		// of the shader's array points at it.
 		const VulkanImageInfo& lightImage = view.LightTarget->GetImage(frame).GetVulkanImageInfo();
-		VkDescriptorImageInfo imageInfo{};
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = lightImage.ImageView;
-		imageInfo.sampler = lightImage.Sampler;
-		view.LightBufferDescriptorSet->WriteImages(frame, 0, &imageInfo, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		std::array<VkDescriptorImageInfo, VulkanDescriptorBuilder::MaxImageArraySize> imageInfos{};
+		for (VkDescriptorImageInfo& imageInfo : imageInfos)
+		{
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = lightImage.ImageView;
+			imageInfo.sampler = lightImage.Sampler;
+		}
+		view.LightBufferSet = VulkanDescriptorAllocator::AllocateFrame(s_Data->CompositeLayoutDescriptorSet->GetDescriptorSetLayout());
+		if (view.LightBufferSet == VK_NULL_HANDLE)
+		{
+			return false;
+		}
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = view.LightBufferSet;
+		write.dstBinding = 0;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		write.descriptorCount = (uint32_t)imageInfos.size();
+		write.pImageInfo = imageInfos.data();
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 1, &write, 0, nullptr);
 
 		// Cleared to the ambient light; every point light is added on top. End() makes the result readable by
 		// the scene pass, whose composite samples it next.
@@ -2113,7 +2130,7 @@ namespace Hydro
 
 		WriteTimer(commandBuffer, frame, TimerPhase::Composite, false);
 		pipeline->Bind(commandBuffer, view.Target->GetExtent());
-		pipeline->BindDescriptorSet(commandBuffer, 0, *view.LightBufferDescriptorSet);
+		pipeline->BindDescriptorSet(commandBuffer, 0, view.LightBufferSet);
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		s_Data->Stats.DrawCalls++;
 		WriteTimer(commandBuffer, frame, TimerPhase::Composite, true);

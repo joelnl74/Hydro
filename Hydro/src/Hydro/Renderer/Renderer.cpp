@@ -5,6 +5,7 @@
 #include "Renderer3D.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
+#include "Hydro/Platform/Vulkan/VulkanDescriptors.h"
 #include "Hydro/Core/Time.h"
 
 namespace Hydro
@@ -89,6 +90,8 @@ namespace Hydro
 
 		// 4. GPU memory allocator.
 		VulkanAllocator::Init(renderer.m_RendererContext->GetInstance(), device);
+		// Descriptor set layouts and pools (persistent and per frame in flight).
+		VulkanDescriptorAllocator::Init();
 
 		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
 		Renderer2D::Init();
@@ -111,6 +114,7 @@ namespace Hydro
 		Renderer2D::Shutdown();
 		// The sub-renderers' resources went into the queue: free them while the allocator and device exist.
 		s_Instance->FlushResourceFrees(true);
+		VulkanDescriptorAllocator::Shutdown();
 		VulkanAllocator::Shutdown();
 
 		s_Instance->m_Frames.Shutdown();
@@ -245,6 +249,8 @@ namespace Hydro
 		m_Frames.WaitForFrame();
 		// The frame that used this slot before is done, and so is every frame before it.
 		FlushResourceFrees(false);
+		// Its per-frame descriptor sets can be handed out again.
+		VulkanDescriptorAllocator::ResetFrame(GetRenderFrame());
 
 		VkResult result = m_SwapChain->AcquireNextImage(m_Frames.GetImageAvailableSemaphore(), outImageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)

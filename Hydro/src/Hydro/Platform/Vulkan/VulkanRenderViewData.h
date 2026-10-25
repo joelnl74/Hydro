@@ -158,7 +158,7 @@ namespace Hydro
 		bool HasLights = false;          // a light of any kind was submitted this frame
 		// Made the first frame the view is lit, then kept and resized with the view.
 		Scope<VulkanRenderTarget> LightTarget;                    // the light buffer: RGBA16F, the size of Target
-		Scope<VulkanDescriptorBuilder> LightBufferDescriptorSet;  // the composite's input: LightTarget's image of each frame
+		VkDescriptorSet LightBufferSet = VK_NULL_HANDLE;  // the composite's input this frame (a per-frame set: LightTarget's image)
 		PerFrameBuffers LightVertexBuffers;                    // 4 vertices per light, then 4 per shadow
 		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
 

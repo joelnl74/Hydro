@@ -35,6 +35,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/RenderFeatureSerializer.*` | YAML for `RenderFeatureSettings` (enums by name; missing keys keep their value) |
 | `Renderer/ImageWriter.*` | `ImageWriter::WritePNG` (stb_image_write; compiles its implementation for the engine); CPU only |
 | `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `Create` (uploads an `ImportedTexture`), `LoadFromFile` (asks the `AssetManager` for project files, shares other files while alive), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect` |
+| `Renderer/Buffer.h` | `BufferSpecification`, `BufferUsage`, `BufferMemory` (engine-facing, no Vulkan types) |
 | `Renderer/RenderTarget.h` | `RenderTargetSpecification`, `AttachmentLoadOp`, `RenderTargetBeginInfo` (engine-facing, no Vulkan types) |
 | `Renderer/Image.h` | `ImageSpecification`, `TextureProperties`, image/texture enums |
 | `Renderer/TextureImport.h` | `TextureImportConfig` (saved per image in `<image>.hymeta`), `SpriteMode`, `SpriteRegion`, `SpriteSlicingConfig` |
@@ -55,8 +56,11 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanRenderTarget.*` | Offscreen target for dynamic rendering (colour, optional depth and entity ID, per frame in flight), tracked layouts, `Begin` / `End` with explicit load ops, `Resize` |
 | `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned; `BlendMode` None / Alpha / Additive / Multiply2x; integer attachments never blended, `WriteIntegerAttachments`); `BindDescriptorSet`, `PushConstants` |
 | `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
-| `VulkanDescriptorBuilder.*` | Layout + pool + one set per frame; `BindBuffer`/`BindImage`/`WriteImages` |
-| `VulkanVertexBuffer.*`, `VulkanIndexBuffer.*`, `VulkanUniformBuffer.*` | Buffers; vertex layout types live in `VulkanVertexBuffer.h` |
+| `VulkanDescriptors.*` | `VulkanDescriptorAllocator`: the descriptor set layout cache, persistent sets (growable pools, freed through the deletion queue) and per-frame sets (pools per frame in flight, reset after its fence) |
+| `VulkanDescriptorBuilder.*` | One persistent set per frame in flight (layout from the cache, sets from `VulkanDescriptorAllocator`); `BindBuffer`/`BindImage`/`WriteImages` |
+| `VulkanBuffer.*` | Every GPU buffer (`BufferSpecification`): HostVisible (persistently mapped, `SetData` + flush) or GpuOnly (filled once through staging); `PerFrameBuffers`, `CreatePerFrameBuffers`; bind as vertex / index buffer |
+| `VulkanVertexLayout.h` | `ShaderDataType`, `VertexBufferElement`, `VertexBufferLayout` (a pipeline's vertex attributes) |
+| `VulkanGPUData.h` | GPU data layout rules (std140 / std430, static_asserts), `UniformBufferObject`, `ObjectPushConstants` |
 | `VulkanUtils.h` | `VK_CHECK_RESULT` |
 | **Scene** | |
 | `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor` (build a `SystemContext`, run the stages in order), `Copy` (play mode), primary camera |
