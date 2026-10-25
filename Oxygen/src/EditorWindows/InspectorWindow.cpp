@@ -449,6 +449,19 @@ namespace Hydro
 				ImGui::SameLine();
 				ImGui::Checkbox("Y##FlipY", &sprite.FlipY);
 			});
+			DrawPropertyRow("Facing", [&]()
+			{
+				const char* facingNames[] = { "Flat", "Upright", "Billboard" };
+				int facing = (int)sprite.Facing;
+				if (ImGui::Combo("##Facing", &facing, facingNames, 3))
+				{
+					sprite.Facing = (SpriteFacing)facing;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How the sprite turns towards a tilted camera.\nFlat: lies on the ground (roads, decals, water).\nUpright: stands on its bottom edge and faces the camera (trees, houses, characters).\nBillboard: faces the camera about its centre (glows, icons, world-space UI).\nA top-down camera draws all three the same.");
+				}
+			});
 			if (texture != nullptr && entity.HasComponent<TransformComponent>())
 			{
 				DrawPropertyRow("##NativeSize", [&]()
@@ -476,7 +489,7 @@ namespace Hydro
 				}
 				if (ImGui::IsItemHovered())
 				{
-					ImGui::SetTooltip("Higher values are drawn on top. Equal values: lower Z first.");
+					ImGui::SetTooltip("Higher values are drawn on top. Equal values: Flat sprites first (lower Z first),\nthen Upright and Billboard ones from far to near.");
 				}
 			});
 		});
@@ -555,6 +568,14 @@ namespace Hydro
 			if (light.Type == Light2DType::Point)
 			{
 				DrawPropertyRow("Radius", [&]() { InputFloatField("##LightRadius", light.Radius, "%.2f", 0.01f, 10000.0f); });
+				DrawPropertyRow("Height", [&]()
+				{
+					InputFloatField("##LightHeight", light.Height, "%.2f", 0.0f, 10000.0f);
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("How far above its position the light is, up an Upright sprite (a lantern's glass).\nTop-down it is drawn that far up the screen; with a tilted camera that far up the standing sprite.");
+					}
+				});
 			}
 			else
 			{

@@ -48,6 +48,32 @@ namespace Hydro
 		return handle;
 	}
 
+	static const char* SpriteFacingToString(SpriteFacing facing)
+	{
+		switch (facing)
+		{
+		case SpriteFacing::Flat: return "Flat";
+		case SpriteFacing::Upright: return "Upright";
+		case SpriteFacing::Billboard: return "Billboard";
+		}
+
+		return "Flat";
+	}
+
+	static SpriteFacing SpriteFacingFromString(const std::string& name)
+	{
+		if (name == "Upright")
+		{
+			return SpriteFacing::Upright;
+		}
+		if (name == "Billboard")
+		{
+			return SpriteFacing::Billboard;
+		}
+
+		return SpriteFacing::Flat;
+	}
+
 	static const char* Rigidbody2DTypeToString(Rigidbody2DType type)
 	{
 		switch (type)
@@ -185,6 +211,7 @@ namespace Hydro
 			out << YAML::Key << "SpriteIndex" << YAML::Value << sprite.SpriteIndex;
 			out << YAML::Key << "FlipX" << YAML::Value << sprite.FlipX;
 			out << YAML::Key << "FlipY" << YAML::Value << sprite.FlipY;
+			out << YAML::Key << "Facing" << YAML::Value << SpriteFacingToString(sprite.Facing);
 			out << YAML::EndMap;
 		}
 
@@ -233,6 +260,7 @@ namespace Hydro
 			out << YAML::Key << "Color" << YAML::Value << light.Color;
 			out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
 			out << YAML::Key << "Radius" << YAML::Value << light.Radius;
+			out << YAML::Key << "Height" << YAML::Value << light.Height;
 			out << YAML::EndMap;
 		}
 
@@ -391,6 +419,8 @@ namespace Hydro
 			sprite.SpriteIndex = spriteNode["SpriteIndex"].as<uint32_t>(sprite.SpriteIndex);
 			sprite.FlipX = spriteNode["FlipX"].as<bool>(sprite.FlipX);
 			sprite.FlipY = spriteNode["FlipY"].as<bool>(sprite.FlipY);
+			// Scenes from before facings have none: Flat, which draws as they always did.
+			sprite.Facing = SpriteFacingFromString(spriteNode["Facing"].as<std::string>("Flat"));
 			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
 				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));
@@ -438,6 +468,7 @@ namespace Hydro
 			light.Color = lightNode["Color"].as<glm::vec3>(light.Color);
 			light.Intensity = lightNode["Intensity"].as<float>(light.Intensity);
 			light.Radius = lightNode["Radius"].as<float>(light.Radius);
+			light.Height = lightNode["Height"].as<float>(light.Height);
 		}
 
 		if (auto shadowNode = entityNode["Shadow2DComponent"])
