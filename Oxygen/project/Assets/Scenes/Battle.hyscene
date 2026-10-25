@@ -62,7 +62,7 @@ Entities:
     TransformComponent:
       Translation: [7, -2.6, 0]
       Rotation: [0, 0, 0]
-      Scale: [6, 6, 1]
+      Scale: [6, 8, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -84,7 +84,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin HP Back
     TransformComponent:
-      Translation: [6.6, 3, 0]
+      Translation: [11.2, -6.98, 0]
       Rotation: [0, 0, 0]
       Scale: [2.6, 0.32, 1]
     SpriteRendererComponent:
@@ -97,7 +97,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin HP Fill
     TransformComponent:
-      Translation: [6.6, 3, 0]
+      Translation: [11.2, -6.98, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 0.22, 1]
     SpriteRendererComponent:
@@ -110,7 +110,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin MP Back
     TransformComponent:
-      Translation: [6.6, 2.64, 0]
+      Translation: [11.2, -7.35, 0]
       Rotation: [0, 0, 0]
       Scale: [2.6, 0.22, 1]
     SpriteRendererComponent:
@@ -123,7 +123,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin MP Fill
     TransformComponent:
-      Translation: [6.6, 2.64, 0]
+      Translation: [11.2, -7.35, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 0.12, 1]
     SpriteRendererComponent:
@@ -136,7 +136,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin HP Digit 0
     TransformComponent:
-      Translation: [8.7, 3, 0]
+      Translation: [13.3, -6.98, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -151,7 +151,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin HP Digit 1
     TransformComponent:
-      Translation: [9.12, 3, 0]
+      Translation: [13.72, -6.98, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -166,7 +166,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin HP Digit 2
     TransformComponent:
-      Translation: [9.54, 3, 0]
+      Translation: [14.14, -6.98, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -181,7 +181,7 @@ Entities:
     TagComponent:
       Tag: Hero Orin Name
     TransformComponent:
-      Translation: [6.5, 3.55, 0]
+      Translation: [8.5, -6.95, 0]
       Rotation: [0, 0, 0]
       Scale: [2.4, 0.3, 1]
     SpriteRendererComponent:
@@ -196,9 +196,9 @@ Entities:
     TagComponent:
       Tag: Hero Orin Pip 0
     TransformComponent:
-      Translation: [5.6, 2.2, 0]
+      Translation: [7.7, -7.4, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -211,9 +211,9 @@ Entities:
     TagComponent:
       Tag: Hero Orin Pip 1
     TransformComponent:
-      Translation: [6.1, 2.2, 0]
+      Translation: [8.12, -7.4, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -226,9 +226,9 @@ Entities:
     TagComponent:
       Tag: Hero Orin Pip 2
     TransformComponent:
-      Translation: [6.6, 2.2, 0]
+      Translation: [8.54, -7.4, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -241,9 +241,9 @@ Entities:
     TagComponent:
       Tag: Hero Orin Pip 3
     TransformComponent:
-      Translation: [7.1, 2.2, 0]
+      Translation: [8.96, -7.4, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -256,9 +256,9 @@ Entities:
     TagComponent:
       Tag: Hero Orin Pip 4
     TransformComponent:
-      Translation: [7.6, 2.2, 0]
+      Translation: [9.38, -7.4, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -273,7 +273,7 @@ Entities:
     TransformComponent:
       Translation: [10.2, -5.6, 0]
       Rotation: [0, 0, 0]
-      Scale: [6, 6, 1]
+      Scale: [6, 8, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -295,7 +295,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila HP Back
     TransformComponent:
-      Translation: [9.8, 0, 0]
+      Translation: [11.2, -8.13, 0]
       Rotation: [0, 0, 0]
       Scale: [2.6, 0.32, 1]
     SpriteRendererComponent:
@@ -308,7 +308,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila HP Fill
     TransformComponent:
-      Translation: [9.8, 0, 0]
+      Translation: [11.2, -8.13, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 0.22, 1]
     SpriteRendererComponent:
@@ -321,7 +321,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila MP Back
     TransformComponent:
-      Translation: [9.8, -0.36, 0]
+      Translation: [11.2, -8.5, 0]
       Rotation: [0, 0, 0]
       Scale: [2.6, 0.22, 1]
     SpriteRendererComponent:
@@ -334,7 +334,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila MP Fill
     TransformComponent:
-      Translation: [9.8, -0.36, 0]
+      Translation: [11.2, -8.5, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 0.12, 1]
     SpriteRendererComponent:
@@ -347,7 +347,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila HP Digit 0
     TransformComponent:
-      Translation: [11.9, 0, 0]
+      Translation: [13.3, -8.13, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -362,7 +362,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila HP Digit 1
     TransformComponent:
-      Translation: [12.32, 0, 0]
+      Translation: [13.72, -8.13, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -377,7 +377,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila HP Digit 2
     TransformComponent:
-      Translation: [12.74, 0, 0]
+      Translation: [14.14, -8.13, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -392,7 +392,7 @@ Entities:
     TagComponent:
       Tag: Hero Lila Name
     TransformComponent:
-      Translation: [9.7, 0.55, 0]
+      Translation: [8.5, -8.1, 0]
       Rotation: [0, 0, 0]
       Scale: [2.4, 0.3, 1]
     SpriteRendererComponent:
@@ -407,9 +407,9 @@ Entities:
     TagComponent:
       Tag: Hero Lila Pip 0
     TransformComponent:
-      Translation: [8.8, -0.8, 0]
+      Translation: [7.7, -8.55, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -422,9 +422,9 @@ Entities:
     TagComponent:
       Tag: Hero Lila Pip 1
     TransformComponent:
-      Translation: [9.3, -0.8, 0]
+      Translation: [8.12, -8.55, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -437,9 +437,9 @@ Entities:
     TagComponent:
       Tag: Hero Lila Pip 2
     TransformComponent:
-      Translation: [9.8, -0.8, 0]
+      Translation: [8.54, -8.55, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -452,9 +452,9 @@ Entities:
     TagComponent:
       Tag: Hero Lila Pip 3
     TransformComponent:
-      Translation: [10.3, -0.8, 0]
+      Translation: [8.96, -8.55, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -467,9 +467,9 @@ Entities:
     TagComponent:
       Tag: Hero Lila Pip 4
     TransformComponent:
-      Translation: [10.8, -0.8, 0]
+      Translation: [9.38, -8.55, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.45, 0.45, 1]
+      Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -1492,3 +1492,68 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - Battle
+  - Entity: 2717703238488551711
+    TagComponent:
+      Tag: Party Panel
+    TransformComponent:
+      Translation: [11.3, -7.72, 0]
+      Rotation: [0, 0, 0]
+      Scale: [8.6, 2.3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.92]
+      TilingFactor: 1
+      SortOrder: 195
+      TextureHandle: 1876931991275611681
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+  - Entity: 3606704619762678601
+    TagComponent:
+      Tag: FX Slash
+    TransformComponent:
+      Translation: [0, -20, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 60
+      TextureHandle: 2640737163067251553
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.75, 0.4]
+      Intensity: 0
+      Radius: 3.5
+    SpriteAnimatorComponent:
+      AnimationsHandle: 2558487333698803989
+      StartClip: Slash
+      PlayOnStart: false
+      Speed: 1
+  - Entity: 4463077264953172967
+    TagComponent:
+      Tag: FX Heal
+    TransformComponent:
+      Translation: [0, -20, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 61
+      TextureHandle: 76619594864854401
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+    Light2DComponent:
+      Type: Point
+      Color: [0.6, 0.95, 1]
+      Intensity: 0
+      Radius: 4.5
+    SpriteAnimatorComponent:
+      AnimationsHandle: 700814717632547411
+      StartClip: Heal
+      PlayOnStart: false
+      Speed: 1

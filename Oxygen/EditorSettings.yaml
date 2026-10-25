@@ -86,6 +86,8 @@ EditorSettings:
     Tint: true
     TintColor: [1, 0.550000012, 0.239999995, 1]
     TintStrength: 0.119999997
+    FullscreenCoversMonitor: true
+    LeaveFullscreenOnStop: true
   EditorCamera:
     StartsIn2D: true
     VerticalFOV: 45
@@ -106,7 +108,7 @@ EditorSettings:
     IntervalMinutes: 5
   Session:
     LastProject: C:/Users/joeln/Hydro/Oxygen/project/Sandbox.hyproj
-    LastScene: C:/Users/joeln/Hydro/Oxygen/project/Assets/Scenes/StatueVillage.hyscene
+    LastScene: C:/Users/joeln/Hydro/Oxygen/project/Assets/Scenes/MVP.hyscene
     OpenWindows:
       Animation: false
       Console: true

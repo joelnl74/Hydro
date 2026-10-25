@@ -20,6 +20,7 @@ namespace Hydro
 		SubmitSprites();
 		SubmitLights();
 		SubmitShadows();
+		SubmitUnlitParticles();
 		SubmitEditorOverlay(overlay);
 		Renderer2D::EndScene();
 	}
@@ -48,6 +49,7 @@ namespace Hydro
 		SubmitSprites();
 		SubmitLights();
 		SubmitShadows();
+		SubmitUnlitParticles();
 		Renderer2D::EndScene();
 		return true;
 	}
@@ -91,6 +93,36 @@ namespace Hydro
 			m_SpriteQueue.push_back(item);
 		}
 
+		// Lit emitters with live particles join the same order (only while the game runs: there is no
+		// ParticleScene while editing).
+		const ParticleScene* particles = m_Scene->GetParticleScene();
+		if (particles != nullptr)
+		{
+			auto emitters = m_Scene->m_Registry.view<TransformComponent, ParticleEmitter2DComponent>();
+			for (auto entity : emitters)
+			{
+				const auto [transform, emitter] = emitters.get<TransformComponent, ParticleEmitter2DComponent>(entity);
+				const ParticleScene::EmitterRuntime* runtime = particles->Find(entity);
+				if (emitter.Lighting == ParticleLighting::Unlit || runtime == nullptr || runtime->Particles.Count == 0)
+				{
+					continue;
+				}
+
+				SpriteDrawItem item;
+				item.SortOrder = emitter.SortOrder;
+				item.Z = transform.Translation.z;
+				item.Index = index++;
+				item.Entity = entity;
+				item.IsEmitter = true;
+
+				if (inOrder && m_SpriteQueue.empty() == false && drawsBefore(item, m_SpriteQueue.back()))
+				{
+					inOrder = false;
+				}
+				m_SpriteQueue.push_back(item);
+			}
+		}
+
 		if (inOrder == false)
 		{
 			std::sort(m_SpriteQueue.begin(), m_SpriteQueue.end(), drawsBefore);
@@ -98,11 +130,70 @@ namespace Hydro
 
 		for (const SpriteDrawItem& item : m_SpriteQueue)
 		{
+			if (item.IsEmitter)
+			{
+				const ParticleEmitter2DComponent& emitter = m_Scene->m_Registry.get<ParticleEmitter2DComponent>(item.Entity);
+				SubmitParticles(emitter, *particles->Find(item.Entity), item.Z);
+				continue;
+			}
 			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(item.Entity);
 			SubmitSprite(transform.GetTransform(), sprite);
 		}
 
 		// TODO MESH RENDERING
+	}
+
+	void SceneRenderer::SubmitUnlitParticles()
+	{
+		const ParticleScene* particles = m_Scene->GetParticleScene();
+		if (particles == nullptr)
+		{
+			return;
+		}
+
+		bool began = false;
+		auto emitters = m_Scene->m_Registry.view<TransformComponent, ParticleEmitter2DComponent>();
+		for (auto entity : emitters)
+		{
+			const auto [transform, emitter] = emitters.get<TransformComponent, ParticleEmitter2DComponent>(entity);
+			const ParticleScene::EmitterRuntime* runtime = particles->Find(entity);
+			if (emitter.Lighting != ParticleLighting::Unlit || runtime == nullptr || runtime->Particles.Count == 0)
+			{
+				continue;
+			}
+			if (began == false)
+			{
+				Renderer2D::BeginOverlay();
+				began = true;
+			}
+			SubmitParticles(emitter, *runtime, transform.Translation.z);
+		}
+		if (began)
+		{
+			Renderer2D::EndOverlay();
+		}
+	}
+
+	void SceneRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, float z)
+	{
+		// The emitter's texture when it is loaded (whoever assigned it loaded it), else the soft dot.
+		// TODO(V4): ParticleBlend::Additive needs the premultiplied quad pipeline; until then it draws alpha.
+		const Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(emitter.Texture);
+		const Ref<Texture2D>& texture = loaded != nullptr ? loaded : Renderer2D::GetSoftDotTexture();
+		TextureRect rect;
+		if (loaded != nullptr && loaded->GetSpriteMode() == SpriteMode::Multiple)
+		{
+			rect = loaded->GetSpriteUVRect(emitter.SpriteIndex);
+		}
+
+		const ParticleScene::ParticleBuffer& buffer = runtime.Particles;
+		for (uint32_t i = 0; i < buffer.Count; i++)
+		{
+			const float t = std::clamp(buffer.Age[i] / buffer.Lifetime[i], 0.0f, 1.0f);
+			const glm::vec4 color = emitter.StartColor + (emitter.EndColor - emitter.StartColor) * t;
+			const float size = buffer.StartSize[i] * (1.0f + (emitter.EndSizeScale - 1.0f) * t);
+			Renderer2D::DrawQuad(glm::vec3(buffer.Position[i], z), glm::vec2(size), buffer.Rotation[i], texture, rect, color);
+		}
 	}
 
 	void SceneRenderer::SubmitLights()

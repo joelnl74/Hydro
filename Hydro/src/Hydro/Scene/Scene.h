@@ -14,6 +14,7 @@ namespace Hydro
 {
 	class Entity;
 	class PhysicsScene;
+	class ParticleScene;
 	class ScriptableEntity;
 	struct SystemContext;
 
@@ -32,16 +33,18 @@ namespace Hydro
 		static Ref<Scene> Copy(const Ref<Scene>& source);
 
 		// The game starts / stops running this scene: creates / destroys its 2D physics world (see
-		// PhysicsScene for which entities become bodies); starting also resets every animator's
-		// playback (ResetSpriteAnimations). OnUpdateRuntime starts it by itself, before its first stage,
+		// PhysicsScene for which entities become bodies) and its ParticleScene; starting also resets
+		// every animator's playback (ResetSpriteAnimations). OnUpdateRuntime starts it by itself, before its first stage,
 		// if it was not started, and the destructor stops it; the editor calls both around Play and Stop.
 		void OnRuntimeStart();
 		void OnRuntimeStop();
 		// The running physics world, or null while editing / before OnRuntimeStart.
 		PhysicsScene* GetPhysicsScene() { return m_Physics.get(); }
+		// The live particles (ParticleScene), or null while editing / before OnRuntimeStart.
+		ParticleScene* GetParticleScene() { return m_Particles.get(); }
 
 		// Runtime (the game is running): builds a SystemContext (IsPlaying = true) and runs the
-		// stages in order: scripts, physics, sprite animation, transforms.
+		// stages in order: scripts, physics, sprite animation, transforms, particles.
 		void OnUpdateRuntime(float deltaTime);
 		// Editing: builds a SystemContext (IsPlaying = false) and runs only the stages that keep the
 		// scene consistent while editing (transforms), without scripts or animation.
@@ -139,6 +142,7 @@ namespace Hydro
 		std::unordered_set<entt::entity> m_PendingDestroy;
 
 		Scope<PhysicsScene> m_Physics; // exists while the game runs this scene
+		Scope<ParticleScene> m_Particles; // exists while the game runs this scene
 
 		std::string m_Name;
 		std::vector<entt::entity> m_EntityOrder;

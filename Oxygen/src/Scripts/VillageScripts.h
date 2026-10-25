@@ -33,6 +33,13 @@ namespace Hydro
 		static float PlayerSpeedScale() { return SlowZones > 0 ? 0.5f : 1.0f; }
 	};
 
+	// What the game's UI tells the scripts that read input: while a modal menu is open (MvpScripts.h's
+	// MvpDirector) the walking and interaction keys belong to the menu, so VillagerWalk stands still.
+	struct UIState
+	{
+		static inline bool MenuOpen = false;
+	};
+
 	struct VillageMap
 	{
 		static constexpr float MinX = -30.0f;
@@ -610,7 +617,7 @@ namespace Hydro
 				}
 			}
 
-			HY_INFO("Village: 1/2/3 day-dusk-night, L lights, H shadows, F flicker, B statue/brazier, P pause scenery animations, [ ] light radius, - = zoom, WASD walk");
+			HY_INFO("Village: 1/2/3 day-dusk-night, L lights, H shadows, F flicker, B statue/brazier, [ ] light radius, - = zoom, WASD walk");
 			ApplyPreset();
 			ReportStatus();
 		}
@@ -665,12 +672,6 @@ namespace Hydro
 			if (KeyPressed(KeyCode::RightBracket, m_Previous[8]))
 			{
 				m_RadiusScale = std::min(2.0f, m_RadiusScale * 1.1f);
-				changed = true;
-			}
-			if (KeyPressed(KeyCode::P, m_Previous[9]))
-			{
-				m_SceneryPaused = m_SceneryPaused == false;
-				PauseScenery(m_SceneryPaused);
 				changed = true;
 			}
 
@@ -736,33 +737,6 @@ namespace Hydro
 				{ "Night", { 0.50f, 0.60f, 0.85f }, 0.42f, 1.0f, 1.0f }
 			};
 			return presets[index];
-		}
-
-		// The P key: pauses or resumes, through SpriteAnimator, the animators no script drives (the pond and
-		// the torches). Checks that a paused clip holds its frame and carries on from it, and that the
-		// inspector's status line (read through SpriteAnimator) says "stopped". Scripted characters keep
-		// walking: their scripts call SpriteAnimator::Play every frame.
-		void PauseScenery(bool paused)
-		{
-			Scene* scene = GetEntity().GetScene();
-			auto animators = scene->m_Registry.view<SpriteAnimatorComponent>();
-			for (auto handle : animators)
-			{
-				if (scene->m_Registry.has<NativeScriptComponent>(handle))
-				{
-					continue;
-				}
-
-				const Entity entity(handle, scene);
-				if (paused)
-				{
-					SpriteAnimator::Pause(entity);
-				}
-				else
-				{
-					SpriteAnimator::Resume(entity);
-				}
-			}
 		}
 
 		// The B key toggles it; standing in the Statue Plaza zone (VillageZone) lights it too.
@@ -884,9 +858,9 @@ namespace Hydro
 				}
 			}
 
-			HY_INFO("Village: {} | ambient {:.2f} | point lights {} of {} | shadows {} | flicker {} | centre {} | radius x{:.2f} | scenery {}",
+			HY_INFO("Village: {} | ambient {:.2f} | point lights {} of {} | shadows {} | flicker {} | centre {} | radius x{:.2f}",
 				preset.Name, preset.Intensity, active, m_Lights.size(), Renderer::GetSettings().Shadows ? "on" : "off",
-				m_Flicker ? "on" : "off", BrazierOn() ? "brazier" : "statue", m_RadiusScale, m_SceneryPaused ? "paused" : "animating");
+				m_Flicker ? "on" : "off", BrazierOn() ? "brazier" : "statue", m_RadiusScale);
 		}
 
 		std::vector<PointLight> m_Lights;
@@ -897,11 +871,10 @@ namespace Hydro
 		bool m_LightsOn = true;
 		bool m_Flicker = true;
 		bool m_BrazierOn = false;
-		bool m_SceneryPaused = false;
 		bool m_LastBrazier = false;
 		float m_RadiusScale = 1.0f;
 		float m_Time = 0.0f;
-		bool m_Previous[10] = {};
+		bool m_Previous[9] = {};
 	};
 
 	inline void RegisterVillageScripts()

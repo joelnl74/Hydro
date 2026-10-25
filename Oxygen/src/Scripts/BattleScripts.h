@@ -64,15 +64,18 @@ namespace Hydro
 		int SkillCost[2];
 		float SkillPower[2];
 		bool SkillHeals[2];
+		// Battle sheet clips (DioramaRPG/Battle/<Name>_Battle.hyanim) for the two skills and for using an item.
+		const char* SkillClip[2];
+		const char* ItemClip;
 	};
 
 	inline const HeroDefinition& GetHero(int index)
 	{
 		static const HeroDefinition heroes[2] = {
 			{ "Orin", BattleLabel::Orin, 62, 20, 10, 5, 6, DamageType::Slash,
-				{ BattleLabel::FlameEdge, BattleLabel::Crush }, { DamageType::Fire, DamageType::Blunt }, { 5, 4 }, { 1.6f, 1.4f }, { false, false } },
+				{ BattleLabel::FlameEdge, BattleLabel::Crush }, { DamageType::Fire, DamageType::Blunt }, { 5, 4 }, { 1.6f, 1.4f }, { false, false }, { "Attack", "Attack" }, "Cast" },
 			{ "Lila", BattleLabel::Lila, 44, 30, 6, 10, 8, DamageType::Pierce,
-				{ BattleLabel::HolyLight, BattleLabel::Heal }, { DamageType::Light, DamageType::None }, { 5, 6 }, { 1.7f, 2.2f }, { false, true } },
+				{ BattleLabel::HolyLight, BattleLabel::Heal }, { DamageType::Light, DamageType::None }, { 5, 6 }, { 1.7f, 2.2f }, { false, true }, { "Cast", "Heal" }, "Heal" },
 		};
 		return heroes[index];
 	}
@@ -471,6 +474,8 @@ namespace Hydro
 			m_BoostDigit = Find(scene, "Boost Digit");
 			m_Message = Find(scene, "Message");
 			m_Overlay = Find(scene, "Battle Overlay");
+			m_SlashEffect.Entity = Find(scene, "FX Slash");
+			m_HealEffect.Entity = Find(scene, "FX Heal");
 
 			// Keys held when the battle opens (the player was still walking) do not count.
 			for (bool& previous : m_Previous)
@@ -570,6 +575,7 @@ namespace Hydro
 			int BrokenUntilRound = -1; // broken while m_Round <= this
 			float Flash = 0.0f;
 			float Fade = 1.0f;         // 1 alive, falls to 0 when defeated
+			float ShadowBaseY[2] = { -1000.0f, -1000.0f }; // the shadows' authored offsets (slime, wisp)
 			bool Alive() const { return Kind != EnemyKind::None && HP > 0; }
 		};
 
@@ -834,6 +840,7 @@ namespace Hydro
 		void BeginHeroAction()
 		{
 			const int h = m_Action.Actor;
+			m_StrikesPlayed = 0;
 			Entity sprite = EntityOf(m_Heroes[h].Sprite);
 			switch (m_Action.Kind)
 			{
@@ -843,9 +850,13 @@ namespace Hydro
 				case Command::SkillA:
 				case Command::SkillB:
 				case Command::Potion:
-					SpriteAnimator::Play(sprite, "Cast", true);
+				{
+					const HeroDefinition& definition = GetHero(h);
+					const char* clip = m_Action.Kind == Command::Potion ? definition.ItemClip : definition.SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1];
+					SpriteAnimator::Play(sprite, clip, true);
 					ShowMessage(m_Action.Kind == Command::Potion ? BattleLabel::Potion : GetHero(h).SkillLabel[m_Action.Kind == Command::SkillA ? 0 : 1], 0.9f);
 					break;
+				}
 				case Command::Guard:
 					m_Heroes[h].Guarding = true;
 					SpriteAnimator::Play(sprite, "Guard", true);
@@ -877,9 +888,17 @@ namespace Hydro
 			const bool hero = IsHero(m_Action.Actor);
 			if (hero && m_Action.Kind == Command::Attack)
 			{
-				// Lunge, then the hits 0.22 s apart, then back.
-				const float firstHit = 0.35f;
-				while (m_Action.HitsDone < m_Action.Hits && m_PhaseTime >= firstHit + 0.22f * (float)m_Action.HitsDone)
+				// Lunge, then the hits HitSpacing apart, then back. The first hit lands on the Attack clip's contact
+				// frame (anticipation, then the swing); each extra hit of a boost replays the swing alone (Strike),
+				// started so its contact frame meets the hit.
+				const float firstHit = FirstHitTime;
+				const int next = m_Action.HitsDone;
+				if (next > 0 && next < m_Action.Hits && m_StrikesPlayed < next && m_PhaseTime >= firstHit + HitSpacing * (float)next - StrikeContact)
+				{
+					SpriteAnimator::Play(EntityOf(m_Heroes[m_Action.Actor].Sprite), "Strike", true);
+					m_StrikesPlayed = next;
+				}
+				while (m_Action.HitsDone < m_Action.Hits && m_PhaseTime >= firstHit + HitSpacing * (float)m_Action.HitsDone)
 				{
 					if (m_Enemies[m_Action.Target].Alive() == false)
 					{
@@ -889,14 +908,10 @@ namespace Hydro
 							break;
 						}
 					}
-					if (m_Action.HitsDone > 0)
-					{
-						SpriteAnimator::Play(EntityOf(m_Heroes[m_Action.Actor].Sprite), "Attack", true);
-					}
 					HitEnemy(m_Action.Target, GetHero(m_Action.Actor).WeaponType, (float)GetHero(m_Action.Actor).Attack, 1.0f);
 					m_Action.HitsDone++;
 				}
-				const float end = firstHit + 0.22f * (float)(m_Action.Hits - 1) + 0.55f;
+				const float end = firstHit + HitSpacing * (float)(m_Action.Hits - 1) + 0.55f;
 				if (m_PhaseTime >= end || m_Action.Target < 0)
 				{
 					EndAction();
@@ -906,10 +921,15 @@ namespace Hydro
 
 			if (hero && (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB))
 			{
-				if (m_Action.HitsDone == 0 && m_PhaseTime >= 0.55f)
+				// Orin's skills are heavy slashes (the Attack clip: contact at FirstHitTime); Lila's spells land on
+				// the peak of the Cast / Heal clip.
+				const HeroDefinition& skillHero = GetHero(m_Action.Actor);
+				const char* skillClip = skillHero.SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1];
+				const float resolveAt = std::string(skillClip) == "Attack" ? FirstHitTime : SpellPeakTime;
+				if (m_Action.HitsDone == 0 && m_PhaseTime >= resolveAt)
 				{
 					m_Action.HitsDone = 1;
-					const HeroDefinition& definition = GetHero(m_Action.Actor);
+					const HeroDefinition& definition = skillHero;
 					const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
 					const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
 					if (definition.SkillHeals[s])
@@ -939,7 +959,7 @@ namespace Hydro
 
 			if (hero && m_Action.Kind == Command::Potion)
 			{
-				if (m_Action.HitsDone == 0 && m_PhaseTime >= 0.5f)
+				if (m_Action.HitsDone == 0 && m_PhaseTime >= SpellPeakTime)
 				{
 					m_Action.HitsDone = 1;
 					HealHero(m_Action.Target, 25);
@@ -975,6 +995,7 @@ namespace Hydro
 				BattleState::HeroHP[m_Action.Target] = std::max(0, BattleState::HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
 				SpawnPopup(target.Base + glm::vec2(0.0f, 4.5f), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+				PlayEffect("Effect Hit Sparks", target.Base + glm::vec2(0.0f, 2.0f), HitSparks(DamageType::Blunt, target.Guarding == false));
 				Entity sprite = EntityOf(target.Sprite);
 				if (BattleState::HeroHP[m_Action.Target] <= 0)
 				{
@@ -1080,11 +1101,58 @@ namespace Hydro
 			}
 
 			SpawnPopup(enemy.Base + glm::vec2(0.0f, 3.2f), damage, color);
+			PlayEffect("Effect Hit Sparks", enemy.Base + glm::vec2(0.0f, 1.2f), HitSparks(type, weak || critical));
+			PlaySpriteEffect(m_SlashEffect, enemy.Base + glm::vec2(0.2f, 1.6f), "Slash", SlashEffectTime);
 			HY_INFO("Battle: {} takes {}{}{}{} ({} HP left, shield {})", definition.Name, damage, weak ? " (weak)" : "", resisted ? " (resisted)" : "",
 				critical ? " (critical)" : "", enemy.HP, enemy.Shield);
 			if (enemy.HP <= 0)
 			{
 				HY_INFO("Battle: {} is defeated", definition.Name);
+				PlayEffect("Effect Defeat Puff", enemy.Base + glm::vec2(0.0f, 1.0f), DefeatPuff(enemy.Kind));
+			}
+		}
+
+		// One-shot effect sprites (Battle.hyscene: "FX Slash", "FX Heal"): placed, restarted, shown while their clip runs;
+		// a point light on the same entity flares with it (PresentSpriteEffect fades both). They play alongside the
+		// particle effects below: the sprite gives the authored shape, the particles the spray.
+		struct SpriteEffect
+		{
+			entt::entity Entity = entt::null;
+			float Time = 0.0f;     // seconds left
+			float Duration = 1.0f;
+			float LightBase = 0.0f;
+		};
+
+		void PlaySpriteEffect(SpriteEffect& effect, const glm::vec2& position, const char* clip, float duration)
+		{
+			Scene& scene = *GetEntity().GetScene();
+			if (Alive(scene, effect.Entity) == false)
+			{
+				return;
+			}
+			SetPosition(scene, effect.Entity, position);
+			SpriteAnimator::Play(EntityOf(effect.Entity), clip, true);
+			effect.Time = duration;
+			effect.Duration = duration;
+		}
+
+		void PresentSpriteEffect(Scene& scene, SpriteEffect& effect)
+		{
+			if (Alive(scene, effect.Entity) == false)
+			{
+				return;
+			}
+			effect.Time = std::max(0.0f, effect.Time - m_DeltaTime);
+			const float k = effect.Time > 0.0f ? std::min(1.0f, effect.Time / (0.5f * effect.Duration)) : 0.0f;
+			SetColor(scene, effect.Entity, glm::vec4(1.0f, 1.0f, 1.0f, effect.Time > 0.0f ? 1.0f : 0.0f));
+			if (scene.m_Registry.has<Light2DComponent>(effect.Entity))
+			{
+				Light2DComponent& light = scene.m_Registry.get<Light2DComponent>(effect.Entity);
+				if (effect.LightBase <= 0.0f)
+				{
+					effect.LightBase = std::max(light.Intensity, 0.8f);
+				}
+				light.Intensity = effect.LightBase * k;
 			}
 		}
 
@@ -1097,6 +1165,8 @@ namespace Hydro
 			const int before = BattleState::HeroHP[h];
 			BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + amount);
 			SpawnPopup(m_Heroes[h].Base + glm::vec2(0.0f, 4.5f), BattleState::HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
+			PlayEffect("Effect Heal", m_Heroes[h].Base + glm::vec2(0.0f, 0.8f), HealMotes());
+			PlaySpriteEffect(m_HealEffect, m_Heroes[h].Base + glm::vec2(0.0f, 1.2f), "Heal", HealEffectTime);
 			HY_INFO("Battle: {} recovers {} HP", GetHero(h).Name, BattleState::HeroHP[h] - before);
 		}
 
@@ -1168,6 +1238,123 @@ namespace Hydro
 			popup.Value = std::clamp(value, 0, 999);
 			popup.Color = color;
 			popup.Time = 0.0f;
+		}
+
+		// ---- Effects (particles) ----------------------------------------------------------------------------
+		// Each effect is a short-lived entity with a ParticleEmitter2DComponent: one burst, then it destroys
+		// itself (DestroyWhenFinished). The presets are plain component values (Roadmap: prefabs later, V5).
+
+		// Sparks where a hit lands, coloured by the damage type. Unlit, so they stay bright in a dark battle.
+		static ParticleEmitter2DComponent HitSparks(DamageType type, bool strong)
+		{
+			ParticleEmitter2DComponent sparks;
+			sparks.Looping = false;
+			sparks.Duration = 0.05f;
+			sparks.Rate = 0.0f;
+			sparks.BurstCount = strong ? 30 : 18;
+			sparks.MaxParticles = 48;
+			sparks.Shape = EmitterShape::Circle;
+			sparks.ShapeSize = { 0.25f, 0.25f };
+			sparks.Lifetime = { 0.25f, 0.5f };
+			sparks.Speed = { 4.0f, strong ? 10.0f : 7.5f };
+			sparks.Direction = 90.0f;
+			sparks.Spread = 180.0f;
+			sparks.StartSize = { 0.12f, 0.28f };
+			sparks.EndSizeScale = 0.2f;
+			sparks.Gravity = { 0.0f, -9.0f };
+			sparks.Drag = 3.0f;
+			sparks.Lighting = ParticleLighting::Unlit;
+			sparks.Blend = ParticleBlend::Additive; // drawn alpha until the additive pipeline (Roadmap V4)
+			sparks.SortOrder = 200;
+			sparks.DestroyWhenFinished = true;
+			switch (type)
+			{
+				case DamageType::Fire:
+					sparks.StartColor = { 1.0f, 0.75f, 0.3f, 1.0f };
+					sparks.EndColor = { 1.0f, 0.25f, 0.05f, 0.0f };
+					break;
+				case DamageType::Light:
+					sparks.StartColor = { 1.0f, 1.0f, 0.85f, 1.0f };
+					sparks.EndColor = { 1.0f, 0.85f, 0.4f, 0.0f };
+					break;
+				default:
+					sparks.StartColor = { 1.0f, 0.97f, 0.8f, 1.0f };
+					sparks.EndColor = { 1.0f, 0.7f, 0.3f, 0.0f };
+					break;
+			}
+			return sparks;
+		}
+
+		// A puff of smoke where a defeated enemy was. Lit: smoke is a thing in the scene, not a light.
+		static ParticleEmitter2DComponent DefeatPuff(EnemyKind kind)
+		{
+			ParticleEmitter2DComponent puff;
+			puff.Looping = false;
+			puff.Duration = 0.05f;
+			puff.Rate = 0.0f;
+			puff.BurstCount = 26;
+			puff.MaxParticles = 32;
+			puff.Shape = EmitterShape::Circle;
+			puff.ShapeSize = { 0.8f, 0.8f };
+			puff.Lifetime = { 0.7f, 1.2f };
+			puff.Speed = { 0.4f, 1.8f };
+			puff.Direction = 90.0f;
+			puff.Spread = 180.0f;
+			puff.StartSize = { 0.6f, 1.1f };
+			puff.EndSizeScale = 2.2f;
+			puff.StartRotation = { 0.0f, 360.0f };
+			puff.AngularVelocity = { -60.0f, 60.0f };
+			puff.Gravity = { 0.0f, 0.9f };
+			puff.Drag = 1.5f;
+			puff.SortOrder = 25;
+			puff.DestroyWhenFinished = true;
+			if (kind == EnemyKind::Wisp)
+			{
+				puff.StartColor = { 0.75f, 0.95f, 1.0f, 0.8f };
+				puff.EndColor = { 0.5f, 0.8f, 1.0f, 0.0f };
+			}
+			else
+			{
+				puff.StartColor = { 0.85f, 0.9f, 0.8f, 0.8f };
+				puff.EndColor = { 0.6f, 0.65f, 0.6f, 0.0f };
+			}
+			return puff;
+		}
+
+		// Green motes rising from a healed hero. Unlit.
+		static ParticleEmitter2DComponent HealMotes()
+		{
+			ParticleEmitter2DComponent motes;
+			motes.Looping = false;
+			motes.Duration = 0.4f;
+			motes.Rate = 40.0f;
+			motes.BurstCount = 10;
+			motes.MaxParticles = 40;
+			motes.Shape = EmitterShape::Box;
+			motes.ShapeSize = { 1.6f, 0.6f };
+			motes.Lifetime = { 0.7f, 1.1f };
+			motes.Speed = { 1.0f, 2.2f };
+			motes.Direction = 90.0f;
+			motes.Spread = 12.0f;
+			motes.StartSize = { 0.15f, 0.3f };
+			motes.EndSizeScale = 0.4f;
+			motes.Drag = 0.8f;
+			motes.Turbulence = 2.0f;
+			motes.StartColor = { 0.55f, 1.0f, 0.6f, 1.0f };
+			motes.EndColor = { 0.8f, 1.0f, 0.7f, 0.0f };
+			motes.Lighting = ParticleLighting::Unlit;
+			motes.SortOrder = 200;
+			motes.DestroyWhenFinished = true;
+			return motes;
+		}
+
+		// Creates the effect entity at `position`. Creating entities is allowed while scripts run; the
+		// emitter starts in this frame's particle stage.
+		void PlayEffect(const char* name, const glm::vec2& position, const ParticleEmitter2DComponent& settings)
+		{
+			Entity effect = GetEntity().GetScene()->CreateEntity(name);
+			effect.AddComponent<TransformComponent>().Translation = { position.x, position.y, 0.0f };
+			effect.AddComponent<ParticleEmitter2DComponent>(settings);
 		}
 
 		bool Pressed(int index, KeyCode key)
@@ -1294,7 +1481,7 @@ namespace Hydro
 				glm::vec2 offset{ 0.0f };
 				if (acting && actor == h && m_Action.Kind == Command::Attack && m_Action.Target >= 0)
 				{
-					const float total = 0.35f + 0.22f * (float)(m_Action.Hits - 1) + 0.55f;
+					const float total = FirstHitTime + HitSpacing * (float)(m_Action.Hits - 1) + 0.55f;
 					const float t = std::clamp(m_PhaseTime / total, 0.0f, 1.0f);
 					const float reach = std::sin(std::min(1.0f, t * 1.15f) * 3.1415927f);
 					const glm::vec2 goal = m_Enemies[m_Action.Target].Base + glm::vec2(3.2f, 0.0f);
@@ -1346,9 +1533,25 @@ namespace Hydro
 				{
 					offset.x += std::sin(m_Time * 70.0f) * 0.2f;
 				}
+				float bob = 0.0f;
 				if (enemy.Kind == EnemyKind::Wisp)
 				{
-					offset.y += std::sin(m_Time * 2.2f + (float)e) * 0.25f;
+					bob = std::sin(m_Time * 2.2f + (float)e) * 0.25f;
+					offset.y += bob;
+				}
+				// The contact shadow stays on the ground: it does not follow the float.
+				for (int s = 0; s < 2; s++)
+				{
+					if (Alive(scene, enemy.Sprites[s]) && scene.m_Registry.has<Shadow2DComponent>(enemy.Sprites[s]))
+					{
+						Shadow2DComponent& shadow = scene.m_Registry.get<Shadow2DComponent>(enemy.Sprites[s]);
+						if (enemy.ShadowBaseY[s] < -100.0f)
+						{
+							enemy.ShadowBaseY[s] = shadow.Offset.y;
+						}
+						shadow.Offset.y = enemy.ShadowBaseY[s] - bob;
+						shadow.Strength = (int)enemy.Kind == s + 1 ? 0.45f * enemy.Fade : 0.0f;
+					}
 				}
 
 				const float heat = std::clamp(enemy.Flash / 0.3f, 0.0f, 1.0f);
@@ -1442,6 +1645,9 @@ namespace Hydro
 				}
 			}
 
+			PresentSpriteEffect(scene, m_SlashEffect);
+			PresentSpriteEffect(scene, m_HealEffect);
+
 			// The message banner, damage numbers and the fade.
 			SetSprite(scene, m_Message, (uint32_t)m_MessageLabel);
 			const glm::vec3 messageTint = m_MessageLabel == BattleLabel::Break ? glm::vec3(1.0f, 0.45f, 0.3f)
@@ -1481,6 +1687,19 @@ namespace Hydro
 		float m_PhaseTime = 0.0f;
 		float m_Time = 0.0f;
 		float m_DeltaTime = 0.0f;
+		int m_StrikesPlayed = 0;   // extra swings of a boosted attack already started
+		SpriteEffect m_SlashEffect;
+		SpriteEffect m_HealEffect;
+
+		// Timing that matches the battle sheets (scripts/diorama_rpg/battle_sprites.py TIMING): the Attack clip's
+		// contact frame starts after the anticipation (0.10 + 0.12) and the first two swing frames (0.07 + 0.06);
+		// Strike is the swing alone. Spells peak on the Cast / Heal clip's third frame.
+		static constexpr float FirstHitTime = 0.35f;
+		static constexpr float StrikeContact = 0.13f;
+		static constexpr float HitSpacing = 0.3f;
+		static constexpr float SpellPeakTime = 0.38f;
+		static constexpr float SlashEffectTime = 0.42f;
+		static constexpr float HealEffectTime = 0.66f;
 		int m_Round = 0;
 		int m_Turn = -1;
 		int m_Target = 0;   // the last target, kept for the next hero
