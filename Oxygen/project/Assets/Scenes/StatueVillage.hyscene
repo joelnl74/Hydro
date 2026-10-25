@@ -57,6 +57,7 @@ Entities:
       Texture: StatueVillage/Terrain/Village_Ground.png
       FlipX: false
       FlipY: false
+      Facing: Flat
   - Entity: 399272768828822521
     TagComponent:
       Tag: Pond
@@ -73,6 +74,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Flat
     SpriteAnimatorComponent:
       AnimationsHandle: 3314656612663362747
       StartClip: Ripple
@@ -93,6 +95,7 @@ Entities:
       Texture: StatueVillage/Buildings/bridge.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     Shadow2DComponent:
       Offset: [0.15, -0.1]
       Size: [3.2, 8]
@@ -125,6 +128,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1984105967432467037
       StartClip: Burn
@@ -145,7 +149,7 @@ Entities:
     TagComponent:
       Tag: Light Torch 1
     TransformComponent:
-      Translation: [-20.8, -4.6, 0]
+      Translation: [-20.8, -5.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -153,6 +157,7 @@ Entities:
       Color: [1, 0.62, 0.3]
       Intensity: 1.25
       Radius: 4.2
+      Height: 1
   - Entity: 2877321556239415075
     TagComponent:
       Tag: Bridge Torch 2
@@ -169,6 +174,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1984105967432467037
       StartClip: Burn
@@ -189,7 +195,7 @@ Entities:
     TagComponent:
       Tag: Light Torch 2
     TransformComponent:
-      Translation: [-16.8, -13.6, 0]
+      Translation: [-16.8, -14.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -197,6 +203,7 @@ Entities:
       Color: [1, 0.62, 0.3]
       Intensity: 1.25
       Radius: 4.2
+      Height: 1
   - Entity: 3330677763252194659
     TagComponent:
       Tag: Statue
@@ -212,6 +219,7 @@ Entities:
       Texture: StatueVillage/Landmark/statue.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.7, 0.7]
@@ -227,7 +235,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp Statue
     TransformComponent:
-      Translation: [0.6, 1.5, 0]
+      Translation: [0.6, -1.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -235,6 +243,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 0.8
       Radius: 3
+      Height: 3.1
   - Entity: 3655286949607450035
     TagComponent:
       Tag: planter_white
@@ -250,6 +259,7 @@ Entities:
       Texture: StatueVillage/Props/planter_white.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
@@ -276,6 +286,7 @@ Entities:
       Texture: StatueVillage/Props/planter_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
@@ -302,6 +313,7 @@ Entities:
       Texture: StatueVillage/Props/planter_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
@@ -328,6 +340,7 @@ Entities:
       Texture: StatueVillage/Props/planter_white.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.1875, 0.35]
@@ -354,6 +367,7 @@ Entities:
       Texture: StatueVillage/Props/bench_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, -0.1857]
       Size: [0.6667, 0.5714]
@@ -376,6 +390,7 @@ Entities:
       Texture: StatueVillage/Props/bench_v.png
       FlipX: true
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, -0.1857]
       Size: [0.6667, 0.5714]
@@ -398,6 +413,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post_banner.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -413,7 +429,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 1
     TransformComponent:
-      Translation: [-6.3188, 5.1562, 0]
+      Translation: [-6.3188, 3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -421,6 +437,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1562
   - Entity: 382610870892235211
     TagComponent:
       Tag: Street Lamp 2
@@ -436,6 +453,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -451,7 +469,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 2
     TransformComponent:
-      Translation: [6.7188, 3.7563, 0]
+      Translation: [6.7188, 1.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -459,6 +477,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1563
   - Entity: 3123852441047134547
     TagComponent:
       Tag: Street Lamp 3
@@ -474,6 +493,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -489,7 +509,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 3
     TransformComponent:
-      Translation: [-6.3188, -3.2437, 0]
+      Translation: [-6.3188, -5.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -497,6 +517,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1563
   - Entity: 1459039425128493425
     TagComponent:
       Tag: Street Lamp 4
@@ -512,6 +533,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post_banner.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -527,7 +549,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 4
     TransformComponent:
-      Translation: [6.3188, -3.2437, 0]
+      Translation: [6.3188, -5.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -535,6 +557,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1563
   - Entity: 2573099158545586381
     TagComponent:
       Tag: Street Lamp 5
@@ -550,6 +573,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -565,7 +589,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 5
     TransformComponent:
-      Translation: [-2.5188, 13.6562, 0]
+      Translation: [-2.5188, 11.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -573,6 +597,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1562
   - Entity: 1671881222741682077
     TagComponent:
       Tag: Street Lamp 6
@@ -588,6 +613,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -603,7 +629,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 6
     TransformComponent:
-      Translation: [2.7188, -10.3438, 0]
+      Translation: [2.7188, -12.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -611,6 +637,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1562
   - Entity: 372699994178226897
     TagComponent:
       Tag: Street Lamp 7
@@ -626,6 +653,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -641,7 +669,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 7
     TransformComponent:
-      Translation: [-16.7188, 4.1562, 0]
+      Translation: [-16.7188, 2, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -649,6 +677,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1562
   - Entity: 913482291516688113
     TagComponent:
       Tag: Street Lamp 8
@@ -664,6 +693,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -679,7 +709,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 8
     TransformComponent:
-      Translation: [17.1187, 3.5562, 0]
+      Translation: [17.1187, 1.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -687,6 +717,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1562
   - Entity: 236661592786848327
     TagComponent:
       Tag: Street Lamp 9
@@ -702,6 +733,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -717,7 +749,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 9
     TransformComponent:
-      Translation: [25.7188, 3.7563, 0]
+      Translation: [25.7188, 1.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -725,6 +757,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1563
   - Entity: 4392287055376298535
     TagComponent:
       Tag: Street Lamp 10
@@ -740,6 +773,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -755,7 +789,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 10
     TransformComponent:
-      Translation: [-24.7188, 3.8562, 0]
+      Translation: [-24.7188, 1.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -763,6 +797,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1562
   - Entity: 3447273587208812787
     TagComponent:
       Tag: Bollard 11
@@ -778,6 +813,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_short.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
@@ -793,7 +829,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp Bollard 11
     TransformComponent:
-      Translation: [-2, -7.85, 0]
+      Translation: [-2, -8.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -801,6 +837,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1
       Radius: 2.6
+      Height: 0.75
   - Entity: 4265103836897429571
     TagComponent:
       Tag: Bollard 12
@@ -816,6 +853,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_short.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
@@ -831,7 +869,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp Bollard 12
     TransformComponent:
-      Translation: [2.2, -7.85, 0]
+      Translation: [2.2, -8.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -839,6 +877,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1
       Radius: 2.6
+      Height: 0.75
   - Entity: 2320579402542620645
     TagComponent:
       Tag: Bollard 13
@@ -854,6 +893,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_short.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
@@ -869,7 +909,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp Bollard 13
     TransformComponent:
-      Translation: [-1.6, 8.15, 0]
+      Translation: [-1.6, 7.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -877,6 +917,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1
       Radius: 2.6
+      Height: 0.75
   - Entity: 506328179946612749
     TagComponent:
       Tag: Bollard 14
@@ -892,6 +933,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_short.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.8, 0.3]
@@ -907,7 +949,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp Bollard 14
     TransformComponent:
-      Translation: [2.4, 8.15, 0]
+      Translation: [2.4, 7.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -915,6 +957,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1
       Radius: 2.6
+      Height: 0.75
   - Entity: 3153769306094185013
     TagComponent:
       Tag: House house_tall_blue
@@ -930,6 +973,7 @@ Entities:
       Texture: StatueVillage/Buildings/house_tall_blue.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.1375]
       Size: [3.8, 1.1]
@@ -945,7 +989,7 @@ Entities:
     TagComponent:
       Tag: Light Window 1
     TransformComponent:
-      Translation: [-22.175, 8.3937, 0]
+      Translation: [-22.175, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -953,11 +997,12 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.7937
   - Entity: 4319685477382154591
     TagComponent:
       Tag: Light Window 2
     TransformComponent:
-      Translation: [-20.675, 8.7844, 0]
+      Translation: [-20.675, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -965,6 +1010,7 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 1.1844
   - Entity: 2914653353938540315
     TagComponent:
       Tag: House house_cottage_blue
@@ -980,6 +1026,7 @@ Entities:
       Texture: StatueVillage/Buildings/house_cottage_blue.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7]
       Size: [3.8, 1.1]
@@ -995,7 +1042,7 @@ Entities:
     TagComponent:
       Tag: Light Window 3
     TransformComponent:
-      Translation: [-13.375, 7.9875, 0]
+      Translation: [-13.375, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1003,11 +1050,12 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.3875
   - Entity: 2847212887901962673
     TagComponent:
       Tag: Light Window 4
     TransformComponent:
-      Translation: [-12, 8.3625, 0]
+      Translation: [-12, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1015,6 +1063,7 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.7625
   - Entity: 1757336034400760927
     TagComponent:
       Tag: House house_tall_red
@@ -1030,6 +1079,7 @@ Entities:
       Texture: StatueVillage/Buildings/house_tall_red.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.1375]
       Size: [3.8, 1.1]
@@ -1045,7 +1095,7 @@ Entities:
     TagComponent:
       Tag: Light Window 5
     TransformComponent:
-      Translation: [11.425, 8.3937, 0]
+      Translation: [11.425, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1053,11 +1103,12 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.7937
   - Entity: 1869256076835007941
     TagComponent:
       Tag: Light Window 6
     TransformComponent:
-      Translation: [12.925, 8.7844, 0]
+      Translation: [12.925, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1065,6 +1116,7 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 1.1844
   - Entity: 4150379731103466293
     TagComponent:
       Tag: House house_cottage_red
@@ -1080,6 +1132,7 @@ Entities:
       Texture: StatueVillage/Buildings/house_cottage_red.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7]
       Size: [3.8, 1.1]
@@ -1095,7 +1148,7 @@ Entities:
     TagComponent:
       Tag: Light Window 7
     TransformComponent:
-      Translation: [21.425, 7.9875, 0]
+      Translation: [21.425, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1103,11 +1156,12 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.3875
   - Entity: 2953479010596597801
     TagComponent:
       Tag: Light Window 8
     TransformComponent:
-      Translation: [22.8, 8.3625, 0]
+      Translation: [22.8, 7.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1115,6 +1169,7 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.7625
   - Entity: 2042851360744971709
     TagComponent:
       Tag: House house_wide_blue
@@ -1130,6 +1185,7 @@ Entities:
       Texture: StatueVillage/Buildings/house_wide_blue.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7]
       Size: [4.75, 1.1]
@@ -1145,7 +1201,7 @@ Entities:
     TagComponent:
       Tag: Light Window 9
     TransformComponent:
-      Translation: [16.225, -12.0125, 0]
+      Translation: [16.225, -12.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1153,11 +1209,12 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.3875
   - Entity: 3805258047223298681
     TagComponent:
       Tag: Light Window 10
     TransformComponent:
-      Translation: [18.1833, -11.7625, 0]
+      Translation: [18.1833, -12.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1165,6 +1222,7 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 0.6375
   - Entity: 582690678661189763
     TagComponent:
       Tag: Market Stall
@@ -1180,6 +1238,7 @@ Entities:
       Texture: StatueVillage/Buildings/market_stall.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2.7, 0.7]
@@ -1195,7 +1254,7 @@ Entities:
     TagComponent:
       Tag: Light Market
     TransformComponent:
-      Translation: [7, 6.2, 0]
+      Translation: [7, 4.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1203,6 +1262,7 @@ Entities:
       Color: [1, 0.72, 0.4]
       Intensity: 1.1
       Radius: 4
+      Height: 1.6
   - Entity: 2195823718354875081
     TagComponent:
       Tag: crate
@@ -1218,6 +1278,7 @@ Entities:
       Texture: StatueVillage/Props/crate.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
@@ -1254,6 +1315,7 @@ Entities:
       Texture: StatueVillage/Props/crate_marked.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
@@ -1290,6 +1352,7 @@ Entities:
       Texture: StatueVillage/Props/barrel.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
@@ -1326,6 +1389,7 @@ Entities:
       Texture: StatueVillage/Props/sack.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.2938]
       Size: [0.5938, 0.35]
@@ -1362,6 +1426,7 @@ Entities:
       Texture: StatueVillage/Props/sack.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.2938]
       Size: [0.5938, 0.35]
@@ -1398,6 +1463,7 @@ Entities:
       Texture: StatueVillage/Buildings/well.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.2]
       Size: [1.8, 0.7]
@@ -1424,6 +1490,7 @@ Entities:
       Texture: StatueVillage/Buildings/notice_board.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.825]
       Size: [1.35, 0.7]
@@ -1439,7 +1506,7 @@ Entities:
     TagComponent:
       Tag: Light Window Notice
     TransformComponent:
-      Translation: [11.6, -2.6, 0]
+      Translation: [11.6, -4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1447,6 +1514,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 0
       Radius: 2
+      Height: 1.4
   - Entity: 547475259682660447
     TagComponent:
       Tag: signpost
@@ -1462,6 +1530,7 @@ Entities:
       Texture: StatueVillage/Props/signpost.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.825]
       Size: [0.8, 0.3]
@@ -1488,6 +1557,7 @@ Entities:
       Texture: StatueVillage/Props/bench_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [1.575, 0.7]
@@ -1514,6 +1584,7 @@ Entities:
       Texture: StatueVillage/Props/woodpile.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [1.125, 0.7]
@@ -1540,6 +1611,7 @@ Entities:
       Texture: StatueVillage/Props/barrel.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
@@ -1576,6 +1648,7 @@ Entities:
       Texture: StatueVillage/Props/crate.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
@@ -1612,6 +1685,7 @@ Entities:
       Texture: StatueVillage/Props/barrel.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
@@ -1648,6 +1722,7 @@ Entities:
       Texture: StatueVillage/Props/crate.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.7719, 0.35]
@@ -1684,6 +1759,7 @@ Entities:
       Texture: StatueVillage/Props/barrel.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4188]
       Size: [0.7125, 0.35]
@@ -1720,6 +1796,7 @@ Entities:
       Texture: StatueVillage/Props/sack.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.2938]
       Size: [0.5938, 0.35]
@@ -1756,6 +1833,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1778,6 +1856,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1800,6 +1879,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1822,6 +1902,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1844,6 +1925,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1866,6 +1948,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1888,6 +1971,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1910,6 +1994,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1932,6 +2017,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1954,6 +2040,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1976,6 +2063,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -1998,6 +2086,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2020,6 +2109,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2042,6 +2132,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2064,6 +2155,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2086,6 +2178,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2108,6 +2201,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2130,6 +2224,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2152,6 +2247,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2174,6 +2270,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2196,6 +2293,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2218,6 +2316,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2240,6 +2339,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2262,6 +2362,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -2284,6 +2385,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2306,6 +2408,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2328,6 +2431,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2350,6 +2454,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2372,6 +2477,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2394,6 +2500,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2416,6 +2523,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2438,6 +2546,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2460,6 +2569,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2482,6 +2592,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.2]
       Size: [1, 0.3]
@@ -2505,6 +2616,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 4200729950705943819
       StartClip: IdleDown
@@ -2583,6 +2695,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 3267264934602108825
       StartClip: IdleDown
@@ -2668,6 +2781,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1993915546081567391
       StartClip: IdleDown
@@ -2753,6 +2867,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 101810847117063429
       StartClip: IdleDown
@@ -2845,6 +2960,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 4259303488390855879
       StartClip: IdleDown
@@ -2930,6 +3046,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1398635824423621877
       StartClip: IdleDown
@@ -2987,6 +3104,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2661277196427811231
       StartClip: IdleDown
@@ -3072,6 +3190,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 3363558919026677037
       StartClip: IdleDown
@@ -3143,6 +3262,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2573213401033506043
       StartClip: IdleDown
@@ -3185,6 +3305,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3211,6 +3332,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3237,6 +3359,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3263,6 +3386,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3289,6 +3413,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3315,6 +3440,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3341,6 +3467,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3367,6 +3494,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3393,6 +3521,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3419,6 +3548,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3445,6 +3575,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3471,6 +3602,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3497,6 +3629,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3523,6 +3656,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3549,6 +3683,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3575,6 +3710,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3601,6 +3737,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3627,6 +3764,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3653,6 +3791,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3679,6 +3818,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3705,6 +3845,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3731,6 +3872,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3757,6 +3899,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3783,6 +3926,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3809,6 +3953,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3835,6 +3980,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3861,6 +4007,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3887,6 +4034,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3913,6 +4061,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3939,6 +4088,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -3965,6 +4115,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3991,6 +4142,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4017,6 +4169,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4043,6 +4196,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4069,6 +4223,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4095,6 +4250,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4121,6 +4277,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4147,6 +4304,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4173,6 +4331,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4199,6 +4358,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4225,6 +4385,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4251,6 +4412,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4277,6 +4439,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4303,6 +4466,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4329,6 +4493,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4355,6 +4520,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4381,6 +4547,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4407,6 +4574,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4433,6 +4601,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4459,6 +4628,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4485,6 +4655,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4511,6 +4682,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4537,6 +4709,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4563,6 +4736,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4589,6 +4763,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4615,6 +4790,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4641,6 +4817,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4667,6 +4844,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4693,6 +4871,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4719,6 +4898,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4745,6 +4925,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4771,6 +4952,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4797,6 +4979,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4823,6 +5006,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4849,6 +5033,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4875,6 +5060,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4901,6 +5087,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4927,6 +5114,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4953,6 +5141,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -4979,6 +5168,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5005,6 +5195,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5031,6 +5222,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5057,6 +5249,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5083,6 +5276,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5109,6 +5303,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5135,6 +5330,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5161,6 +5357,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5187,6 +5384,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5213,6 +5411,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5239,6 +5438,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5265,6 +5465,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5291,6 +5492,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5317,6 +5519,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5343,6 +5546,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5369,6 +5573,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5395,6 +5600,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5421,6 +5627,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5447,6 +5654,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5473,6 +5681,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -5499,6 +5708,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -5518,6 +5728,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -5544,6 +5755,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3732828298299288271
     TagComponent:
       Tag: flowers_pink
@@ -5559,6 +5771,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2011325142927675831
     TagComponent:
       Tag: flowers_pink
@@ -5574,6 +5787,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1417933679205818501
     TagComponent:
       Tag: flowers_pink
@@ -5589,6 +5803,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3407343405187508003
     TagComponent:
       Tag: flowers_purple
@@ -5604,6 +5819,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 675915195875550757
     TagComponent:
       Tag: bush_small_01
@@ -5619,6 +5835,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -5638,6 +5855,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2403801446336545565
     TagComponent:
       Tag: flowers_purple
@@ -5653,6 +5871,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4287928264351981697
     TagComponent:
       Tag: grass_tuft_01
@@ -5668,6 +5887,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1065734402991302701
     TagComponent:
       Tag: grass_tuft_01
@@ -5683,6 +5903,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4228053837450600867
     TagComponent:
       Tag: bush_medium_02
@@ -5698,6 +5919,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -5717,6 +5939,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -5743,6 +5966,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4565017487023517085
     TagComponent:
       Tag: rock_small_01
@@ -5758,6 +5982,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -5784,6 +6009,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -5803,6 +6029,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2778334185918419515
     TagComponent:
       Tag: rock_small_01
@@ -5818,6 +6045,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -5844,6 +6072,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4041847977189743045
     TagComponent:
       Tag: flowers_pink
@@ -5859,6 +6088,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 744479094749025573
     TagComponent:
       Tag: rock_medium_01
@@ -5874,6 +6104,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -5900,6 +6131,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 767720069117311599
     TagComponent:
       Tag: bush_medium_01
@@ -5915,6 +6147,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -5934,6 +6167,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -5953,6 +6187,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2717650809976962651
     TagComponent:
       Tag: grass_tuft_01
@@ -5968,6 +6203,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2694811074689792771
     TagComponent:
       Tag: flowers_pink
@@ -5983,6 +6219,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 93987282142544779
     TagComponent:
       Tag: flowers_purple
@@ -5998,6 +6235,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4374598756918007477
     TagComponent:
       Tag: flowers_purple
@@ -6013,6 +6251,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 612184031800914689
     TagComponent:
       Tag: rock_medium_01
@@ -6028,6 +6267,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6054,6 +6294,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6073,6 +6314,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2564110077783401461
     TagComponent:
       Tag: flowers_pink
@@ -6088,6 +6330,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1337860774713169425
     TagComponent:
       Tag: grass_tuft_01
@@ -6103,6 +6346,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2270994207745544659
     TagComponent:
       Tag: grass_tuft_01
@@ -6118,6 +6362,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3696816307852830721
     TagComponent:
       Tag: flowers_pink
@@ -6133,6 +6378,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 185826562145406217
     TagComponent:
       Tag: bush_medium_01
@@ -6148,6 +6394,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6167,6 +6414,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3152335680940687703
     TagComponent:
       Tag: bush_small_01
@@ -6182,6 +6430,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -6201,6 +6450,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3062117233135455215
     TagComponent:
       Tag: rock_small_01
@@ -6216,6 +6466,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -6242,6 +6493,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -6261,6 +6513,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1737017227147304683
     TagComponent:
       Tag: flowers_orange
@@ -6276,6 +6529,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1248264572278344385
     TagComponent:
       Tag: rock_small_01
@@ -6291,6 +6545,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -6317,6 +6572,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6336,6 +6592,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3110043469063770975
     TagComponent:
       Tag: bush_small_01
@@ -6351,6 +6608,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -6370,6 +6628,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4329572224872996965
     TagComponent:
       Tag: rock_small_01
@@ -6385,6 +6644,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -6411,6 +6671,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -6437,6 +6698,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -6463,6 +6725,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6482,6 +6745,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 803146382680721071
     TagComponent:
       Tag: bush_medium_02
@@ -6497,6 +6761,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6516,6 +6781,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -6535,6 +6801,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1114945211413319349
     TagComponent:
       Tag: flowers_purple
@@ -6550,6 +6817,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1198147281087798635
     TagComponent:
       Tag: flowers_purple
@@ -6565,6 +6833,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3890205966661131867
     TagComponent:
       Tag: bush_small_01
@@ -6580,6 +6849,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -6599,6 +6869,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -6625,6 +6896,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -6651,6 +6923,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -6677,6 +6950,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 607613834596230027
     TagComponent:
       Tag: flowers_orange
@@ -6692,6 +6966,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4396627032575559617
     TagComponent:
       Tag: flowers_purple
@@ -6707,6 +6982,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2901951618465656873
     TagComponent:
       Tag: grass_tuft_01
@@ -6722,6 +6998,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 282565487377494257
     TagComponent:
       Tag: rock_medium_01
@@ -6737,6 +7014,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6763,6 +7041,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 845027485072319601
     TagComponent:
       Tag: grass_tuft_01
@@ -6778,6 +7057,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3524249002204382523
     TagComponent:
       Tag: bush_small_01
@@ -6793,6 +7073,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -6812,6 +7093,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4301171032675516553
     TagComponent:
       Tag: grass_tuft_01
@@ -6827,6 +7109,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 164177906497557691
     TagComponent:
       Tag: grass_tuft_01
@@ -6842,6 +7125,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1825422830230252539
     TagComponent:
       Tag: bush_medium_01
@@ -6857,6 +7141,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6876,6 +7161,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -6902,6 +7188,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 763862214539157475
     TagComponent:
       Tag: stump_01
@@ -6917,6 +7204,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -6943,6 +7231,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2004543096290845057
     TagComponent:
       Tag: flowers_orange
@@ -6958,6 +7247,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2205178167592782101
     TagComponent:
       Tag: grass_tuft_01
@@ -6973,6 +7263,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2823375972340581855
     TagComponent:
       Tag: rock_medium_01
@@ -6988,6 +7279,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7014,6 +7306,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 737310522394843761
     TagComponent:
       Tag: flowers_orange
@@ -7029,6 +7322,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3383292232802830967
     TagComponent:
       Tag: flowers_pink
@@ -7044,6 +7338,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2235007885587800755
     TagComponent:
       Tag: flowers_pink
@@ -7059,6 +7354,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3299517332222221277
     TagComponent:
       Tag: grass_tuft_01
@@ -7074,6 +7370,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 463275920909659607
     TagComponent:
       Tag: flowers_orange
@@ -7089,6 +7386,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2819517693780279871
     TagComponent:
       Tag: grass_tuft_01
@@ -7104,6 +7402,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4179242521221729149
     TagComponent:
       Tag: flowers_pink
@@ -7119,6 +7418,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 800488225586486555
     TagComponent:
       Tag: rock_medium_01
@@ -7134,6 +7434,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7160,6 +7461,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -7186,6 +7488,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -7205,6 +7508,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7224,6 +7528,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7250,6 +7555,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -7276,6 +7582,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -7302,6 +7609,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4229280433414012491
     TagComponent:
       Tag: bush_medium_01
@@ -7317,6 +7625,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7336,6 +7645,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7355,6 +7665,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -7381,6 +7692,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7407,6 +7719,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3251195589238825073
     TagComponent:
       Tag: rock_small_01
@@ -7422,6 +7735,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -7448,6 +7762,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -7474,6 +7789,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7493,6 +7809,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7519,6 +7836,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2603710397624214443
     TagComponent:
       Tag: rock_small_01
@@ -7534,6 +7852,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -7560,6 +7879,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 447509063042342591
     TagComponent:
       Tag: flowers_purple
@@ -7575,6 +7895,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2895484706023821397
     TagComponent:
       Tag: flowers_orange
@@ -7590,6 +7911,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4350226650300145787
     TagComponent:
       Tag: flowers_pink
@@ -7605,6 +7927,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2014189905068562545
     TagComponent:
       Tag: flowers_pink
@@ -7620,6 +7943,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1453562283516578219
     TagComponent:
       Tag: bush_small_01
@@ -7635,6 +7959,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -7654,6 +7979,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7673,6 +7999,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7692,6 +8019,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7711,6 +8039,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3098414240505138357
     TagComponent:
       Tag: grass_tuft_01
@@ -7726,6 +8055,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 46745879683674743
     TagComponent:
       Tag: rock_medium_01
@@ -7741,6 +8071,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7767,6 +8098,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -7793,6 +8125,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -7819,6 +8152,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 734620977848391961
     TagComponent:
       Tag: stump_01
@@ -7834,6 +8168,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -7860,6 +8195,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -7886,6 +8222,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7905,6 +8242,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 913638724362314715
     TagComponent:
       Tag: bush_medium_01
@@ -7920,6 +8258,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7939,6 +8278,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4419582301517408739
     TagComponent:
       Tag: rock_medium_01
@@ -7954,6 +8294,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -7980,6 +8321,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 650876460475228243
     TagComponent:
       Tag: rock_small_01
@@ -7995,6 +8337,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -8021,6 +8364,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3971368125449305131
     TagComponent:
       Tag: flowers_pink
@@ -8036,6 +8380,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 83284640179995677
     TagComponent:
       Tag: bush_small_01
@@ -8051,6 +8396,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -8070,6 +8416,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4103703427193166657
     TagComponent:
       Tag: stump_01
@@ -8085,6 +8432,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -8111,6 +8459,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 707613838766178451
     TagComponent:
       Tag: flowers_purple
@@ -8126,6 +8475,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 341546694764186501
     TagComponent:
       Tag: bush_medium_02
@@ -8141,6 +8491,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -8160,6 +8511,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 977113925408165669
     TagComponent:
       Tag: bush_medium_02
@@ -8175,6 +8527,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -8194,6 +8547,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1180219838369903569
     TagComponent:
       Tag: rock_medium_01
@@ -8209,6 +8563,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -8235,6 +8590,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -8261,6 +8617,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2001727649276276005
     TagComponent:
       Tag: grass_tuft_01
@@ -8276,6 +8633,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3032126506352294817
     TagComponent:
       Tag: flowers_purple
@@ -8291,6 +8649,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 6266021446570683844
     TagComponent:
       Tag: Wall North
@@ -8441,6 +8800,7 @@ Entities:
       Texture: StatueVillage/Terrain/Meadow_Ground.png
       FlipX: false
       FlipY: false
+      Facing: Flat
   - Entity: 1837644109089553282
     TagComponent:
       Tag: fence_v
@@ -8456,6 +8816,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8478,6 +8839,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8500,6 +8862,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8522,6 +8885,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8544,6 +8908,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8566,6 +8931,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8588,6 +8954,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8610,6 +8977,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8632,6 +9000,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8654,6 +9023,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8676,6 +9046,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8698,6 +9069,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8720,6 +9092,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8742,6 +9115,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8764,6 +9138,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8786,6 +9161,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8808,6 +9184,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8830,6 +9207,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8852,6 +9230,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8874,6 +9253,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8896,6 +9276,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8918,6 +9299,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8940,6 +9322,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8962,6 +9345,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -8984,6 +9368,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9006,6 +9391,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9028,6 +9414,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9050,6 +9437,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9072,6 +9460,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9094,6 +9483,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9116,6 +9506,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9138,6 +9529,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.9, 0.35]
@@ -9153,7 +9545,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 10
     TransformComponent:
-      Translation: [30.12, 3.26, 0]
+      Translation: [30.12, 1.1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -9161,6 +9553,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.16
   - Entity: 2947135538667375729
     TagComponent:
       Tag: Sign East Meadow
@@ -9176,6 +9569,7 @@ Entities:
       Texture: StatueVillage/Props/sign_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.075]
       Size: [0.7425, 0.35]
@@ -9219,6 +9613,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9241,6 +9636,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9263,6 +9659,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9285,6 +9682,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9307,6 +9705,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9329,6 +9728,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9351,6 +9751,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9373,6 +9774,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9395,6 +9797,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9417,6 +9820,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9439,6 +9843,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9461,6 +9866,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9483,6 +9889,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9505,6 +9912,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9527,6 +9935,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9549,6 +9958,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9571,6 +9981,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9593,6 +10004,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -9615,6 +10027,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9637,6 +10050,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9659,6 +10073,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9681,6 +10096,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9703,6 +10119,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9725,6 +10142,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9747,6 +10165,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9769,6 +10188,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -9791,6 +10211,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.375]
       Size: [0.7425, 0.35]
@@ -9827,6 +10248,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.375]
       Size: [0.7425, 0.35]
@@ -9863,6 +10285,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.375]
       Size: [0.7425, 0.35]
@@ -9899,6 +10322,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.375]
       Size: [0.7425, 0.35]
@@ -9935,6 +10359,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.375]
       Size: [0.7425, 0.35]
@@ -9971,6 +10396,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.375]
       Size: [0.7425, 0.35]
@@ -10007,6 +10433,7 @@ Entities:
       Texture: StatueVillage/Props/barrel_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.6525, 0.35]
@@ -10043,6 +10470,7 @@ Entities:
       Texture: StatueVillage/Props/barrel_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.6525, 0.35]
@@ -10079,6 +10507,7 @@ Entities:
       Texture: StatueVillage/Props/barrel_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.6525, 0.35]
@@ -10132,6 +10561,7 @@ Entities:
       Texture: StatueVillage/Props/sign_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.075]
       Size: [0.7425, 0.35]
@@ -10158,6 +10588,7 @@ Entities:
       Texture: StatueVillage/Props/barrel_large.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.7234]
       Size: [0.9619, 0.35]
@@ -10194,6 +10625,7 @@ Entities:
       Texture: StatueVillage/Props/barrel_large.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.7234]
       Size: [0.9619, 0.35]
@@ -10230,6 +10662,7 @@ Entities:
       Texture: StatueVillage/Props/barrel_large.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.7234]
       Size: [0.9619, 0.35]
@@ -10266,6 +10699,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4281]
       Size: [0.8353, 0.35]
@@ -10302,6 +10736,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4281]
       Size: [0.8353, 0.35]
@@ -10338,6 +10773,7 @@ Entities:
       Texture: StatueVillage/Props/crate_wood.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4281]
       Size: [0.8353, 0.35]
@@ -10374,6 +10810,7 @@ Entities:
       Texture: StatueVillage/Props/sign_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.075]
       Size: [0.7425, 0.35]
@@ -10417,6 +10854,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10439,6 +10877,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10461,6 +10900,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10483,6 +10923,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10505,6 +10946,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10527,6 +10969,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10549,6 +10992,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10571,6 +11015,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10593,6 +11038,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10615,6 +11061,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10637,6 +11084,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10659,6 +11107,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10681,6 +11130,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10703,6 +11153,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10725,6 +11176,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10747,6 +11199,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10769,6 +11222,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10791,6 +11245,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_h.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [1, 0.3]
@@ -10813,6 +11268,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10835,6 +11291,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10857,6 +11314,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10879,6 +11337,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10901,6 +11360,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10923,6 +11383,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10945,6 +11406,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10967,6 +11429,7 @@ Entities:
       Texture: StatueVillage/Buildings/fence_v.png
       FlipX: false
       FlipY: false
+      Facing: Flat
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.3, 1]
@@ -10989,6 +11452,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_single.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3438]
       Size: [0.8859, 0.35]
@@ -11025,6 +11489,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_single.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3438]
       Size: [0.8859, 0.35]
@@ -11061,6 +11526,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_single.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3438]
       Size: [0.8859, 0.35]
@@ -11097,6 +11563,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_single.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3438]
       Size: [0.8859, 0.35]
@@ -11133,6 +11600,7 @@ Entities:
       Texture: StatueVillage/Buildings/market_stall_red.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.4375]
       Size: [2.7014, 0.35]
@@ -11169,6 +11637,7 @@ Entities:
       Texture: StatueVillage/Buildings/banner_heraldic.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.9344]
       Size: [0.9113, 0.35]
@@ -11195,6 +11664,7 @@ Entities:
       Texture: StatueVillage/Buildings/banner_heraldic.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.9344]
       Size: [0.9113, 0.35]
@@ -11221,6 +11691,7 @@ Entities:
       Texture: StatueVillage/Buildings/town_notice_board.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.1031]
       Size: [1.2656, 0.35]
@@ -11247,6 +11718,7 @@ Entities:
       Texture: StatueVillage/Props/lamp_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.9, 0.35]
@@ -11262,7 +11734,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 11
     TransformComponent:
-      Translation: [60.32, 3.26, 0]
+      Translation: [60.32, 1.1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -11270,6 +11742,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.16
   - Entity: 3404144742262713237
     TagComponent:
       Tag: Zone Finish
@@ -11302,6 +11775,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11328,6 +11802,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11354,6 +11829,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11380,6 +11856,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11406,6 +11883,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11432,6 +11910,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11458,6 +11937,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11484,6 +11964,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11510,6 +11991,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11536,6 +12018,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11562,6 +12045,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11588,6 +12072,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11614,6 +12099,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11640,6 +12126,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11666,6 +12153,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11692,6 +12180,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11718,6 +12207,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11744,6 +12234,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11770,6 +12261,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11796,6 +12288,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11822,6 +12315,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11848,6 +12342,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -11874,6 +12369,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.35]
@@ -11900,6 +12396,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.35]
@@ -11926,6 +12423,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.35]
@@ -11952,6 +12450,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.35]
@@ -11988,6 +12487,7 @@ Entities:
       Texture: StatueVillage/Terrain/Slime_Field_Ground.png
       FlipX: false
       FlipY: false
+      Facing: Flat
   - Entity: 3690680944404043393
     TagComponent:
       Tag: tree_round_f01
@@ -12003,6 +12503,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12029,6 +12530,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12055,6 +12557,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12081,6 +12584,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12107,6 +12611,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12133,6 +12638,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12159,6 +12665,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12185,6 +12692,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12211,6 +12719,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12237,6 +12746,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -12263,6 +12773,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12289,6 +12800,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12315,6 +12827,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12341,6 +12854,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12367,6 +12881,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -12393,6 +12908,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12419,6 +12935,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12445,6 +12962,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -12471,6 +12989,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12497,6 +13016,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -12523,6 +13043,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12549,6 +13070,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12575,6 +13097,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12601,6 +13124,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12627,6 +13151,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12653,6 +13178,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12679,6 +13205,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12705,6 +13232,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12731,6 +13259,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12757,6 +13286,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -12783,6 +13313,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12809,6 +13340,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12835,6 +13367,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12861,6 +13394,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12887,6 +13421,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -12913,6 +13448,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12939,6 +13475,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -12965,6 +13502,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_round_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -12991,6 +13529,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_autumn_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2.4, 0.85]
@@ -13017,6 +13556,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [1.8, 0.35]
@@ -13043,6 +13583,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -13069,6 +13610,7 @@ Entities:
       Texture: StatueVillage/Nature/tree_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -13095,6 +13637,7 @@ Entities:
       Texture: StatueVillage/Nature/pine_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -13121,6 +13664,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13147,6 +13691,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13173,6 +13718,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13199,6 +13745,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13225,6 +13772,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13251,6 +13799,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13277,6 +13826,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13303,6 +13853,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13329,6 +13880,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -13355,6 +13907,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.35]
@@ -13381,6 +13934,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13407,6 +13961,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13433,6 +13988,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13459,6 +14015,7 @@ Entities:
       Texture: StatueVillage/Nature/rock_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13485,6 +14042,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -13511,6 +14069,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -13537,6 +14096,7 @@ Entities:
       Texture: StatueVillage/Nature/stump_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [0.9, 0.4]
@@ -13563,6 +14123,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13582,6 +14143,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13601,6 +14163,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13620,6 +14183,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13639,6 +14203,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13658,6 +14223,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13677,6 +14243,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_medium_02.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1.35, 0.4]
@@ -13696,6 +14263,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13715,6 +14283,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13734,6 +14303,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13753,6 +14323,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13772,6 +14343,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13791,6 +14363,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13810,6 +14383,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13829,6 +14403,7 @@ Entities:
       Texture: StatueVillage/Nature/bush_small_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [0.9, 0.4]
@@ -13848,6 +14423,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4447426435776508282
     TagComponent:
       Tag: flowers_pink_f77
@@ -13863,6 +14439,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 8714271625490116442
     TagComponent:
       Tag: flowers_pink_f78
@@ -13878,6 +14455,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 321736895134648063
     TagComponent:
       Tag: flowers_pink_f79
@@ -13893,6 +14471,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 8081806759899307276
     TagComponent:
       Tag: flowers_pink_f80
@@ -13908,6 +14487,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1502460619191445359
     TagComponent:
       Tag: flowers_pink_f81
@@ -13923,6 +14503,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3505742537224763791
     TagComponent:
       Tag: flowers_pink_f82
@@ -13938,6 +14519,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 6715523450889642212
     TagComponent:
       Tag: flowers_pink_f83
@@ -13953,6 +14535,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 455802445994899044
     TagComponent:
       Tag: flowers_pink_f84
@@ -13968,6 +14551,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3205088669705325073
     TagComponent:
       Tag: flowers_pink_f85
@@ -13983,6 +14567,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_pink.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 5614546660348689950
     TagComponent:
       Tag: flowers_orange_f86
@@ -13998,6 +14583,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4234098213494969942
     TagComponent:
       Tag: flowers_orange_f87
@@ -14013,6 +14599,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 6377968935520886580
     TagComponent:
       Tag: flowers_orange_f88
@@ -14028,6 +14615,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4488680768092519428
     TagComponent:
       Tag: flowers_orange_f89
@@ -14043,6 +14631,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 5576994412877182883
     TagComponent:
       Tag: flowers_orange_f90
@@ -14058,6 +14647,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4179533469404132347
     TagComponent:
       Tag: flowers_orange_f91
@@ -14073,6 +14663,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 379132858195662233
     TagComponent:
       Tag: flowers_orange_f92
@@ -14088,6 +14679,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2136502427459900689
     TagComponent:
       Tag: flowers_orange_f93
@@ -14103,6 +14695,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_orange.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4404818762064925842
     TagComponent:
       Tag: flowers_purple_f94
@@ -14118,6 +14711,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 391173329835821205
     TagComponent:
       Tag: flowers_purple_f95
@@ -14133,6 +14727,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3942260337940575769
     TagComponent:
       Tag: flowers_purple_f96
@@ -14148,6 +14743,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 8994061991562214705
     TagComponent:
       Tag: flowers_purple_f97
@@ -14163,6 +14759,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 8363283479380190256
     TagComponent:
       Tag: flowers_purple_f98
@@ -14178,6 +14775,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2180938155718023577
     TagComponent:
       Tag: flowers_purple_f99
@@ -14193,6 +14791,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2419172825143633474
     TagComponent:
       Tag: flowers_purple_f100
@@ -14208,6 +14807,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 6227530850800820644
     TagComponent:
       Tag: flowers_purple_f101
@@ -14223,6 +14823,7 @@ Entities:
       Texture: StatueVillage/Nature/flowers_purple.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3965753323341345656
     TagComponent:
       Tag: grass_tuft_f102
@@ -14238,6 +14839,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 6408383134763205106
     TagComponent:
       Tag: grass_tuft_f103
@@ -14253,6 +14855,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 6836273599720352225
     TagComponent:
       Tag: grass_tuft_f104
@@ -14268,6 +14871,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 6896968071170411160
     TagComponent:
       Tag: grass_tuft_f105
@@ -14283,6 +14887,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2968862411482538086
     TagComponent:
       Tag: grass_tuft_f106
@@ -14298,6 +14903,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 5238364222733598777
     TagComponent:
       Tag: grass_tuft_f107
@@ -14313,6 +14919,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 8973702727367298240
     TagComponent:
       Tag: grass_tuft_f108
@@ -14328,6 +14935,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4576057237984736858
     TagComponent:
       Tag: grass_tuft_f109
@@ -14343,6 +14951,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 6961451205338701943
     TagComponent:
       Tag: grass_tuft_f110
@@ -14358,6 +14967,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 6417515996902808355
     TagComponent:
       Tag: grass_tuft_f111
@@ -14373,6 +14983,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4823528260877307064
     TagComponent:
       Tag: grass_tuft_f112
@@ -14388,6 +14999,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 638638309214920713
     TagComponent:
       Tag: grass_tuft_f113
@@ -14403,6 +15015,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4870556800322816901
     TagComponent:
       Tag: grass_tuft_f114
@@ -14418,6 +15031,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 721473830764209264
     TagComponent:
       Tag: grass_tuft_f115
@@ -14433,6 +15047,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4762446102641868467
     TagComponent:
       Tag: grass_tuft_f116
@@ -14448,6 +15063,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 5096086104866303332
     TagComponent:
       Tag: grass_tuft_f117
@@ -14463,6 +15079,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2523747799198390836
     TagComponent:
       Tag: grass_tuft_f118
@@ -14478,6 +15095,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 8512192857830574312
     TagComponent:
       Tag: grass_tuft_f119
@@ -14493,6 +15111,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 6966182825688896348
     TagComponent:
       Tag: grass_tuft_f120
@@ -14508,6 +15127,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 5797113978288631773
     TagComponent:
       Tag: grass_tuft_f121
@@ -14523,6 +15143,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 117519425134372244
     TagComponent:
       Tag: grass_tuft_f122
@@ -14538,6 +15159,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 5790827660818609017
     TagComponent:
       Tag: grass_tuft_f123
@@ -14553,6 +15175,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 7346983351838347953
     TagComponent:
       Tag: grass_tuft_f124
@@ -14568,6 +15191,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3539193200057376850
     TagComponent:
       Tag: grass_tuft_f125
@@ -14583,6 +15207,7 @@ Entities:
       Texture: StatueVillage/Nature/grass_tuft_01.png
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3801416015895889406
     TagComponent:
       Tag: Sign Slime Field
@@ -14598,6 +15223,7 @@ Entities:
       Texture: StatueVillage/Props/sign_post.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.075]
       Size: [0.7425, 0.35]
@@ -14624,6 +15250,7 @@ Entities:
       Texture: StatueVillage/Buildings/banner_heraldic.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.9344]
       Size: [0.9113, 0.35]
@@ -14650,6 +15277,7 @@ Entities:
       Texture: StatueVillage/Buildings/banner_heraldic.png
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.9344]
       Size: [0.9113, 0.35]
@@ -14677,6 +15305,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1984105967432467037
       StartClip: Burn
@@ -14697,7 +15326,7 @@ Entities:
     TagComponent:
       Tag: Light Torch Arena 1
     TransformComponent:
-      Translation: [78.800, 0.030, 0]
+      Translation: [78.800, -0.97, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -14705,6 +15334,7 @@ Entities:
       Color: [1, 0.62, 0.3]
       Intensity: 1.25
       Radius: 4.2
+      Height: 1
   - Entity: 5590432294048969462
     TagComponent:
       Tag: Arena Torch 2
@@ -14721,6 +15351,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1984105967432467037
       StartClip: Burn
@@ -14741,7 +15372,7 @@ Entities:
     TagComponent:
       Tag: Light Torch Arena 2
     TransformComponent:
-      Translation: [93.200, 0.030, 0]
+      Translation: [93.200, -0.97, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -14749,6 +15380,7 @@ Entities:
       Color: [1, 0.62, 0.3]
       Intensity: 1.25
       Radius: 4.2
+      Height: 1
   - Entity: 2719929774039194354
     TagComponent:
       Tag: Arena Torch 3
@@ -14765,6 +15397,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1984105967432467037
       StartClip: Burn
@@ -14785,7 +15418,7 @@ Entities:
     TagComponent:
       Tag: Light Torch Arena 3
     TransformComponent:
-      Translation: [86.000, 7.430, 0]
+      Translation: [86.000, 6.43, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -14793,6 +15426,7 @@ Entities:
       Color: [1, 0.62, 0.3]
       Intensity: 1.25
       Radius: 4.2
+      Height: 1
   - Entity: 7922228819900236005
     TagComponent:
       Tag: Arena Torch 4
@@ -14809,6 +15443,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 1984105967432467037
       StartClip: Burn
@@ -14829,7 +15464,7 @@ Entities:
     TagComponent:
       Tag: Light Torch Arena 4
     TransformComponent:
-      Translation: [86.000, -6.370, 0]
+      Translation: [86.000, -7.37, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -14837,6 +15472,7 @@ Entities:
       Color: [1, 0.62, 0.3]
       Intensity: 1.25
       Radius: 4.2
+      Height: 1
   - Entity: 2006494655025373023
     TagComponent:
       Tag: Zone Slime Field
@@ -14887,6 +15523,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2173924343473726646
       StartClip: Bounce
@@ -14930,6 +15567,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2173924343473726646
       StartClip: Bounce
@@ -14973,6 +15611,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2173924343473726646
       StartClip: Bounce
@@ -15016,6 +15655,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2173924343473726646
       StartClip: Bounce
@@ -15059,6 +15699,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2173924343473726646
       StartClip: Bounce
@@ -15101,6 +15742,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 4019531725114148987
       StartClip: IdleDown
@@ -15129,6 +15771,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 381359539372406047
       StartClip: Float
@@ -15176,6 +15819,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 381359539372406047
       StartClip: Float
@@ -15223,6 +15867,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 381359539372406047
       StartClip: Float
@@ -15270,6 +15915,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 381359539372406047
       StartClip: Float
@@ -15317,6 +15963,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4267766884691851731
     TagComponent:
       Tag: Decor fern 2
@@ -15332,6 +15979,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3728724788288002455
     TagComponent:
       Tag: Decor tall_grass_b 3
@@ -15347,6 +15995,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1553230802717874059
     TagComponent:
       Tag: Decor fern 4
@@ -15362,6 +16011,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1690703380277263021
     TagComponent:
       Tag: Decor fern 5
@@ -15377,6 +16027,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3156922159268930877
     TagComponent:
       Tag: Decor tall_grass_b 6
@@ -15392,6 +16043,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1046794016316568311
     TagComponent:
       Tag: Decor mushrooms 7
@@ -15407,6 +16059,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3713628930728584727
     TagComponent:
       Tag: Decor mushrooms 8
@@ -15422,6 +16075,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 156514971091196355
     TagComponent:
       Tag: Decor fern 9
@@ -15437,6 +16091,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3150593663674918157
     TagComponent:
       Tag: Decor fern 10
@@ -15452,6 +16107,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3137710066680566199
     TagComponent:
       Tag: Decor fern 11
@@ -15467,6 +16123,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1418773276980721043
     TagComponent:
       Tag: Decor mushrooms 12
@@ -15482,6 +16139,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 71077591157883015
     TagComponent:
       Tag: Decor fern 13
@@ -15497,6 +16155,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2067248170094003489
     TagComponent:
       Tag: Decor tall_grass_b 14
@@ -15512,6 +16171,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3571286552331538623
     TagComponent:
       Tag: Decor fern_b 15
@@ -15527,6 +16187,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 515329417553627471
     TagComponent:
       Tag: Decor fern_b 16
@@ -15542,6 +16203,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1725814392919087011
     TagComponent:
       Tag: Decor tall_grass_b 17
@@ -15557,6 +16219,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 415035230893497493
     TagComponent:
       Tag: Decor mushrooms 18
@@ -15572,6 +16235,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 808501018311430739
     TagComponent:
       Tag: Decor tall_grass 19
@@ -15587,6 +16251,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2138611856087927353
     TagComponent:
       Tag: Decor tall_grass 20
@@ -15602,6 +16267,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2181225662521652143
     TagComponent:
       Tag: Decor fern_b 21
@@ -15617,6 +16283,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 705886265742111417
     TagComponent:
       Tag: Decor fern 22
@@ -15632,6 +16299,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 825236944748453867
     TagComponent:
       Tag: Decor fern 23
@@ -15647,6 +16315,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 981551800758810341
     TagComponent:
       Tag: Decor tall_grass 24
@@ -15662,6 +16331,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3779282679287417101
     TagComponent:
       Tag: Decor tall_grass_b 25
@@ -15677,6 +16347,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 315136146536468789
     TagComponent:
       Tag: Decor tall_grass_b 26
@@ -15692,6 +16363,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1034265066083528301
     TagComponent:
       Tag: Decor fern_b 27
@@ -15707,6 +16379,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1517864117649653771
     TagComponent:
       Tag: Decor tall_grass 28
@@ -15722,6 +16395,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1368898359007628641
     TagComponent:
       Tag: Decor mushrooms 29
@@ -15737,6 +16411,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 823352651976649661
     TagComponent:
       Tag: Decor mushrooms 30
@@ -15752,6 +16427,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 102930155153188729
     TagComponent:
       Tag: Decor tall_grass 31
@@ -15767,6 +16443,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 6799553632138707
     TagComponent:
       Tag: Decor mushrooms 32
@@ -15782,6 +16459,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1564099804038697985
     TagComponent:
       Tag: Decor tall_grass_b 33
@@ -15797,6 +16475,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 920402823442847559
     TagComponent:
       Tag: Decor fern_b 34
@@ -15812,6 +16491,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4311577873959588203
     TagComponent:
       Tag: Decor fern 35
@@ -15827,6 +16507,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4011775330584000695
     TagComponent:
       Tag: Decor fern 36
@@ -15842,6 +16523,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3331420575332253517
     TagComponent:
       Tag: Decor mushrooms 37
@@ -15857,6 +16539,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2113914089237376295
     TagComponent:
       Tag: Decor mushrooms 38
@@ -15872,6 +16555,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3635510616453861471
     TagComponent:
       Tag: Decor tall_grass_b 39
@@ -15887,6 +16571,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2050930592508683985
     TagComponent:
       Tag: Decor fern_b 40
@@ -15902,6 +16587,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1266600171617559529
     TagComponent:
       Tag: Decor fern 41
@@ -15917,6 +16603,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1284668200958750705
     TagComponent:
       Tag: Decor tall_grass_b 42
@@ -15932,6 +16619,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2354086659606607817
     TagComponent:
       Tag: Decor fern 43
@@ -15947,6 +16635,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3948604280566695487
     TagComponent:
       Tag: Decor tall_grass 44
@@ -15962,6 +16651,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3723567869941163331
     TagComponent:
       Tag: Decor fern_b 45
@@ -15977,6 +16667,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2184714173741520197
     TagComponent:
       Tag: Decor fern 46
@@ -15992,6 +16683,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3046982055493009185
     TagComponent:
       Tag: Decor tall_grass_b 47
@@ -16007,6 +16699,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 339571609641143677
     TagComponent:
       Tag: Decor fern 48
@@ -16022,6 +16715,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 831131949305771761
     TagComponent:
       Tag: Decor tall_grass 49
@@ -16037,6 +16731,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1299099930819933923
     TagComponent:
       Tag: Decor tall_grass_b 50
@@ -16052,6 +16747,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1599618715745375297
     TagComponent:
       Tag: Decor fern 51
@@ -16067,6 +16763,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 602347203209737535
     TagComponent:
       Tag: Decor fern_b 52
@@ -16082,6 +16779,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 667452638046552033
     TagComponent:
       Tag: Decor tall_grass 53
@@ -16097,6 +16795,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4071112226274316313
     TagComponent:
       Tag: Decor fern_b 54
@@ -16112,6 +16811,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1301149148859402871
     TagComponent:
       Tag: Decor mushrooms 55
@@ -16127,6 +16827,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1476950091906509795
     TagComponent:
       Tag: Decor fern_b 56
@@ -16142,6 +16843,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1227710332737539439
     TagComponent:
       Tag: Decor fern_b 57
@@ -16157,6 +16859,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2301709471726339693
     TagComponent:
       Tag: Decor tall_grass 58
@@ -16172,6 +16875,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1474456063990528581
     TagComponent:
       Tag: Decor tall_grass 59
@@ -16187,6 +16891,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2145575230052593677
     TagComponent:
       Tag: Decor tall_grass_b 60
@@ -16202,6 +16907,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4195040759789134701
     TagComponent:
       Tag: Decor tall_grass_b 61
@@ -16217,6 +16923,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2961574408104271805
     TagComponent:
       Tag: Decor tall_grass 62
@@ -16232,6 +16939,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4422847642924725621
     TagComponent:
       Tag: Decor tall_grass 63
@@ -16247,6 +16955,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3322710649435510509
     TagComponent:
       Tag: Decor tall_grass_b 64
@@ -16262,6 +16971,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2318010992090586917
     TagComponent:
       Tag: Decor tall_grass 65
@@ -16277,6 +16987,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3789632938548721035
     TagComponent:
       Tag: Decor fern 66
@@ -16292,6 +17003,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2450295534726008591
     TagComponent:
       Tag: Decor tall_grass_b 67
@@ -16307,6 +17019,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3170005748087937707
     TagComponent:
       Tag: Decor tall_grass 68
@@ -16322,6 +17035,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2798343964967106893
     TagComponent:
       Tag: Decor mushrooms 69
@@ -16337,6 +17051,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3651207611251500321
     TagComponent:
       Tag: Decor tall_grass 70
@@ -16352,6 +17067,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 945170126137831379
     TagComponent:
       Tag: Decor tall_grass_b 71
@@ -16367,6 +17083,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 64599657949223695
     TagComponent:
       Tag: Decor tall_grass_b 72
@@ -16382,6 +17099,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4207466746117665129
     TagComponent:
       Tag: Decor fern 73
@@ -16397,6 +17115,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 705474778351212027
     TagComponent:
       Tag: Decor tall_grass 74
@@ -16412,6 +17131,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 563214957434825947
     TagComponent:
       Tag: Decor fern 75
@@ -16427,6 +17147,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3772750310052814269
     TagComponent:
       Tag: Decor tall_grass_b 76
@@ -16442,6 +17163,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2669145388450405721
     TagComponent:
       Tag: Decor fern 77
@@ -16457,6 +17179,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3304213688234085585
     TagComponent:
       Tag: Decor fern_b 78
@@ -16472,6 +17195,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1330888468217246161
     TagComponent:
       Tag: Decor tall_grass 79
@@ -16487,6 +17211,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1717630830839017447
     TagComponent:
       Tag: Decor tall_grass_b 80
@@ -16502,6 +17227,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3464907327779696387
     TagComponent:
       Tag: Decor mushrooms 81
@@ -16517,6 +17243,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3245194879075403629
     TagComponent:
       Tag: Decor fern 82
@@ -16532,6 +17259,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3421181528236943927
     TagComponent:
       Tag: Decor fern 83
@@ -16547,6 +17275,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2056621588376531959
     TagComponent:
       Tag: Decor fern 84
@@ -16562,6 +17291,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1630300507161826209
     TagComponent:
       Tag: Decor tall_grass_b 85
@@ -16577,6 +17307,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 560302470649484803
     TagComponent:
       Tag: Decor tall_grass 86
@@ -16592,6 +17323,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 199966515420702103
     TagComponent:
       Tag: Decor tall_grass_b 87
@@ -16607,6 +17339,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2897519872685236155
     TagComponent:
       Tag: Decor fern 88
@@ -16622,6 +17355,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 502558229876651011
     TagComponent:
       Tag: Decor fern 89
@@ -16637,6 +17371,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3044433894577748497
     TagComponent:
       Tag: Decor fern 90
@@ -16652,6 +17387,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2976083672009368267
     TagComponent:
       Tag: Decor fern_b 91
@@ -16667,6 +17403,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 646343692311707077
     TagComponent:
       Tag: Decor fern_b 92
@@ -16682,6 +17419,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1976077461771861801
     TagComponent:
       Tag: Decor fern 93
@@ -16697,6 +17435,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3490066299084663995
     TagComponent:
       Tag: Decor fern 94
@@ -16712,6 +17451,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2557605626777571405
     TagComponent:
       Tag: Decor fern 95
@@ -16727,6 +17467,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1029309661590022351
     TagComponent:
       Tag: Decor tall_grass_b 96
@@ -16742,6 +17483,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4547113452205449585
     TagComponent:
       Tag: Decor tall_grass 97
@@ -16757,6 +17499,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2713237564987429935
     TagComponent:
       Tag: Decor fern_b 98
@@ -16772,6 +17515,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2116439202943767427
     TagComponent:
       Tag: Decor fern 99
@@ -16787,6 +17531,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 74514428866202189
     TagComponent:
       Tag: Decor fern 100
@@ -16802,6 +17547,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 844568111933293589
     TagComponent:
       Tag: Decor mushrooms 101
@@ -16817,6 +17563,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4584217479483463397
     TagComponent:
       Tag: Decor fern_b 102
@@ -16832,6 +17579,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 676850760983256551
     TagComponent:
       Tag: Decor fern_b 103
@@ -16847,6 +17595,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3832779449625068187
     TagComponent:
       Tag: Decor fern_b 104
@@ -16862,6 +17611,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4187515650541466999
     TagComponent:
       Tag: Decor fern_b 105
@@ -16877,6 +17627,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 896007025259875073
     TagComponent:
       Tag: Decor fern 106
@@ -16892,6 +17643,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1769817135082504205
     TagComponent:
       Tag: Decor tall_grass_b 107
@@ -16907,6 +17659,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2912107427152381033
     TagComponent:
       Tag: Decor fern_b 108
@@ -16922,6 +17675,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4315782131909504421
     TagComponent:
       Tag: Decor fern_b 109
@@ -16937,6 +17691,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 364792142819202599
     TagComponent:
       Tag: Decor fern 110
@@ -16952,6 +17707,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4455972588508163907
     TagComponent:
       Tag: Decor tall_grass_b 111
@@ -16967,6 +17723,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 59298182580081133
     TagComponent:
       Tag: Decor mushrooms 112
@@ -16982,6 +17739,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3401994133678732061
     TagComponent:
       Tag: Decor fern 113
@@ -16997,6 +17755,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 893254420655340385
     TagComponent:
       Tag: Decor fern 114
@@ -17012,6 +17771,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 608760427234900191
     TagComponent:
       Tag: Decor tall_grass_b 115
@@ -17027,6 +17787,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1238906764847752689
     TagComponent:
       Tag: Decor fern_b 116
@@ -17042,6 +17803,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3366363595901436799
     TagComponent:
       Tag: Decor fern_b 117
@@ -17057,6 +17819,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 280036420270794457
     TagComponent:
       Tag: Decor mushrooms 118
@@ -17072,6 +17835,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3865179432246327177
     TagComponent:
       Tag: Decor fern 119
@@ -17087,6 +17851,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2456567909487776723
     TagComponent:
       Tag: Decor hay_bale 0
@@ -17102,6 +17867,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -17128,6 +17894,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -17154,6 +17921,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.325]
       Size: [0.9, 0.4]
@@ -17180,6 +17948,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.5125]
       Size: [1.35, 0.4]
@@ -17206,6 +17975,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.5125]
       Size: [1.35, 0.4]
@@ -17232,6 +18002,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 322376189506925089
     TagComponent:
       Tag: Canopy North 0
@@ -17247,6 +18018,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 2769134975146912283
     TagComponent:
       Tag: Canopy South 1
@@ -17262,6 +18034,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 773269712872227013
     TagComponent:
       Tag: Canopy North 1
@@ -17277,6 +18050,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 949252431121743649
     TagComponent:
       Tag: Canopy South 2
@@ -17292,6 +18066,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 313025541888385473
     TagComponent:
       Tag: Canopy North 2
@@ -17307,6 +18082,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 184296537362963291
     TagComponent:
       Tag: Canopy South 3
@@ -17322,6 +18098,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3304317632112050173
     TagComponent:
       Tag: Canopy North 3
@@ -17337,6 +18114,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 2897426669932703459
     TagComponent:
       Tag: Canopy South 4
@@ -17352,6 +18130,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 724966681722340255
     TagComponent:
       Tag: Canopy North 4
@@ -17367,6 +18146,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 4265548378052493339
     TagComponent:
       Tag: Canopy South 5
@@ -17382,6 +18162,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 206585189787495073
     TagComponent:
       Tag: Canopy North 5
@@ -17397,6 +18178,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 2240755311770331859
     TagComponent:
       Tag: Canopy South 6
@@ -17412,6 +18194,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 807143889903958977
     TagComponent:
       Tag: Canopy North 6
@@ -17427,6 +18210,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 128981955148007845
     TagComponent:
       Tag: Canopy South 7
@@ -17442,6 +18226,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3267439150460840591
     TagComponent:
       Tag: Canopy North 7
@@ -17457,6 +18242,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 1374267226552388575
     TagComponent:
       Tag: Canopy South 8
@@ -17472,6 +18258,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1344711277729814921
     TagComponent:
       Tag: Canopy North 8
@@ -17487,6 +18274,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 3812705028797051707
     TagComponent:
       Tag: Canopy South 9
@@ -17502,6 +18290,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 48248923384388611
     TagComponent:
       Tag: Canopy North 9
@@ -17517,6 +18306,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 3587176914430350635
     TagComponent:
       Tag: Canopy South 10
@@ -17532,6 +18322,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3388238139858490161
     TagComponent:
       Tag: Canopy North 10
@@ -17547,6 +18338,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 1524787564309653855
     TagComponent:
       Tag: Canopy South 11
@@ -17562,6 +18354,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3619627933583895323
     TagComponent:
       Tag: Canopy North 11
@@ -17577,6 +18370,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 3976119153426915909
     TagComponent:
       Tag: Canopy South 12
@@ -17592,6 +18386,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3993289045372486689
     TagComponent:
       Tag: Canopy North 12
@@ -17607,6 +18402,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 1323528435647764461
     TagComponent:
       Tag: Canopy South 13
@@ -17622,6 +18418,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1920481742553190125
     TagComponent:
       Tag: Canopy North 13
@@ -17637,6 +18434,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 1347363517701289247
     TagComponent:
       Tag: Canopy South 14
@@ -17652,6 +18450,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4061135302712719133
     TagComponent:
       Tag: Canopy North 14
@@ -17667,6 +18466,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 4570288857093623997
     TagComponent:
       Tag: Canopy South 15
@@ -17682,6 +18482,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 15600555543429335
     TagComponent:
       Tag: Canopy North 15
@@ -17697,6 +18498,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 3546172546166090357
     TagComponent:
       Tag: Canopy South 16
@@ -17712,6 +18514,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 147859436110104707
     TagComponent:
       Tag: Canopy North 16
@@ -17727,6 +18530,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 3743829587111527445
     TagComponent:
       Tag: Canopy South 17
@@ -17742,6 +18546,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3155014753905206879
     TagComponent:
       Tag: Canopy North 17
@@ -17757,6 +18562,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 1618958459813004061
     TagComponent:
       Tag: Canopy South 18
@@ -17772,6 +18578,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3011297945603133427
     TagComponent:
       Tag: Canopy North 18
@@ -17787,6 +18594,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 1377961827708293721
     TagComponent:
       Tag: Canopy South 19
@@ -17802,6 +18610,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3490120455953691137
     TagComponent:
       Tag: Canopy North 19
@@ -17817,6 +18626,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 2726146534695928621
     TagComponent:
       Tag: Canopy South 20
@@ -17832,6 +18642,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4137701806035064217
     TagComponent:
       Tag: Canopy North 20
@@ -17847,6 +18658,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 100539264007219309
     TagComponent:
       Tag: Canopy South 21
@@ -17862,6 +18674,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4522572979817790539
     TagComponent:
       Tag: Canopy North 21
@@ -17877,6 +18690,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 3720663569270698413
     TagComponent:
       Tag: Canopy South 22
@@ -17892,6 +18706,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4326063378945582647
     TagComponent:
       Tag: Canopy North 22
@@ -17907,6 +18722,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 1480001369752618459
     TagComponent:
       Tag: Canopy South 23
@@ -17922,6 +18738,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1006563964632232479
     TagComponent:
       Tag: Canopy North 23
@@ -17937,6 +18754,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 2073820749240531659
     TagComponent:
       Tag: Canopy South 24
@@ -17952,6 +18770,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2458833468734670815
     TagComponent:
       Tag: Canopy North 24
@@ -17967,6 +18786,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 1987538743413798363
     TagComponent:
       Tag: Canopy South 25
@@ -17982,6 +18802,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1523773083426851173
     TagComponent:
       Tag: Canopy North 25
@@ -17997,6 +18818,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 2873785850771529909
     TagComponent:
       Tag: Canopy South 26
@@ -18012,6 +18834,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3214929977390634087
     TagComponent:
       Tag: Canopy North 26
@@ -18027,6 +18850,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 4195142202687735665
     TagComponent:
       Tag: Canopy South 27
@@ -18042,6 +18866,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 108477612198300017
     TagComponent:
       Tag: Canopy North 27
@@ -18057,6 +18882,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 4087961946837820049
     TagComponent:
       Tag: Canopy South 28
@@ -18072,6 +18898,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4264727077941005969
     TagComponent:
       Tag: Canopy North 28
@@ -18087,6 +18914,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 827483940365137169
     TagComponent:
       Tag: Canopy South 29
@@ -18102,6 +18930,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1509023600472899595
     TagComponent:
       Tag: Canopy North 29
@@ -18117,6 +18946,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 3342530306461842257
     TagComponent:
       Tag: Canopy South 30
@@ -18132,6 +18962,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2604797776604758119
     TagComponent:
       Tag: Canopy North 30
@@ -18147,6 +18978,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 40137386960474079
     TagComponent:
       Tag: Canopy South 31
@@ -18162,6 +18994,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 350682476855409027
     TagComponent:
       Tag: Canopy North 31
@@ -18177,6 +19010,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 1554547954811585287
     TagComponent:
       Tag: Canopy West 0
@@ -18192,6 +19026,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 961265688465155955
     TagComponent:
       Tag: Canopy West 1
@@ -18207,6 +19042,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3713784345932042519
     TagComponent:
       Tag: Canopy West 2
@@ -18222,6 +19058,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1393056264654375793
     TagComponent:
       Tag: Canopy West 3
@@ -18237,6 +19074,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1491228795359362259
     TagComponent:
       Tag: Canopy West 4
@@ -18252,6 +19090,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3027630024191609685
     TagComponent:
       Tag: Canopy West 5
@@ -18267,6 +19106,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3891400988793519053
     TagComponent:
       Tag: Canopy West 6
@@ -18282,6 +19122,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1734684731618410691
     TagComponent:
       Tag: Canopy West 7
@@ -18297,6 +19138,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 609048379307486285
     TagComponent:
       Tag: Canopy West 8
@@ -18312,6 +19154,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3542455883307593661
     TagComponent:
       Tag: Canopy West 9
@@ -18327,6 +19170,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 675469817612994415
     TagComponent:
       Tag: Canopy West 10
@@ -18342,6 +19186,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4423585428752682177
     TagComponent:
       Tag: Canopy West 11
@@ -18357,6 +19202,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 954425006023171551
     TagComponent:
       Tag: Canopy West 12
@@ -18372,6 +19218,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3316198538959246775
     TagComponent:
       Tag: Canopy West 13
@@ -18387,6 +19234,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2823395965647082415
     TagComponent:
       Tag: Canopy West 14
@@ -18402,6 +19250,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1027246711259646555
     TagComponent:
       Tag: Canopy West 15
@@ -18417,6 +19266,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 555566695868963787
     TagComponent:
       Tag: Canopy West 16
@@ -18432,6 +19282,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1963980806137443427
     TagComponent:
       Tag: Canopy West 17
@@ -18447,6 +19298,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3703144771685985063
     TagComponent:
       Tag: Canopy East 0
@@ -18462,6 +19314,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1559419378109966673
     TagComponent:
       Tag: Canopy East 1
@@ -18477,6 +19330,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4469888468353396835
     TagComponent:
       Tag: Canopy East 2
@@ -18492,6 +19346,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1208250202171918119
     TagComponent:
       Tag: Canopy East 3
@@ -18507,6 +19362,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2244537203652902807
     TagComponent:
       Tag: Canopy East 4
@@ -18522,6 +19378,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1324848740553134071
     TagComponent:
       Tag: Canopy East 5
@@ -18537,6 +19394,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2135844609844356205
     TagComponent:
       Tag: Canopy East 6
@@ -18552,6 +19410,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 447508491844502649
     TagComponent:
       Tag: Canopy East 7
@@ -18567,6 +19426,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 980360335977251353
     TagComponent:
       Tag: Canopy East 8
@@ -18582,6 +19442,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 400987552747856241
     TagComponent:
       Tag: Canopy East 9
@@ -18597,6 +19458,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2059498719631999781
     TagComponent:
       Tag: Canopy East 10
@@ -18612,6 +19474,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2813439889627043509
     TagComponent:
       Tag: Canopy East 11
@@ -18627,6 +19490,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3258878995643888245
     TagComponent:
       Tag: Canopy East 12
@@ -18642,6 +19506,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2698356909305365179
     TagComponent:
       Tag: Canopy East 13
@@ -18657,6 +19522,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4525327809230851135
     TagComponent:
       Tag: Canopy East 14
@@ -18672,6 +19538,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 495664745216763065
     TagComponent:
       Tag: Canopy East 15
@@ -18687,6 +19554,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1223089593193533649
     TagComponent:
       Tag: Canopy East 16
@@ -18702,6 +19570,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3429717868507780183
     TagComponent:
       Tag: Canopy East 17
@@ -18717,6 +19586,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2690177968625754328
     TagComponent:
       Tag: Smoke Chimney house_tall_blue

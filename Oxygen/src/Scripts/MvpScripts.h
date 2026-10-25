@@ -213,8 +213,10 @@ namespace Hydro
 				return;
 			}
 			SetSprite(scene, m_Prompt.Label, (uint32_t)PromptFor(nearest->Type));
-			SetPosition(scene, m_Prompt.Panel, player + glm::vec2(0.0f, 2.35f));
-			SetPosition(scene, m_Prompt.Label, player + glm::vec2(0.0f, 2.35f));
+			// Above the player's head, in either camera view (DioramaCamera.h).
+			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, 0.0f), 2.35f);
+			SetPosition(scene, m_Prompt.Panel, overHead);
+			SetPosition(scene, m_Prompt.Label, overHead);
 
 			if (KeyPressed(KeyCode::E, m_Previous[1]) == false || m_Resting > 0.0f)
 			{
@@ -454,12 +456,14 @@ namespace Hydro
 			}
 		}
 
-		void FollowCamera(Scene& scene)
+		// Every UI sprite at its offset from the centre of the screen, on the camera's view plane through the
+		// point it looks at (DioramaView::OnScreen; top-down: the camera's x, y plus the offset, at z 0.5).
+		// The UI sprites are Billboards, so they face the camera when it is tilted.
+		void FollowCamera([[maybe_unused]] Scene& scene)
 		{
-			const glm::vec2 camera = Position(scene, m_Camera);
 			for (const Offset& offset : m_Offsets)
 			{
-				SetPosition(scene, offset.Entity, camera + offset.Value);
+				SetPosition(scene, offset.Entity, DioramaView::OnScreen(offset.Value));
 			}
 		}
 
@@ -509,6 +513,14 @@ namespace Hydro
 				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
 				transform.Translation.x = position.x;
 				transform.Translation.y = position.y;
+			}
+		}
+
+		static void SetPosition(Scene& scene, entt::entity entity, const glm::vec3& position)
+		{
+			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
+			{
+				scene.m_Registry.get<TransformComponent>(entity).Translation = position;
 			}
 		}
 

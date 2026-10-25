@@ -4,6 +4,7 @@
 
 #include "Hydro/Renderer/TextureImporter.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
 #include <algorithm>
@@ -602,6 +603,10 @@ namespace Hydro
 			{
 				// Reads its texture through Texture2D::LoadFromFile, i.e. this manager.
 				return SpriteAnimationSet::LoadUncached(absolute);
+			}
+			case AssetType::Prefab:
+			{
+				return Prefab::LoadUncached(absolute);
 			}
 			default:
 				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",

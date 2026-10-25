@@ -129,6 +129,7 @@ Every current name was checked against the table. Only one changed:
 | `AssetManager` | New (Oct 24, 2026), a subsystem | Registry-style (`Manager`): others look assets up by handle. Position 6, after `Renderer` |
 | `AssetRegistry` | New, data | The handle ↔ path table the manager holds; not a subsystem and not a `Manager` (no lifecycle), rebuilt by scanning |
 | `AssetMetadata`, `AssetScanInfo` | New, plain structs | What is known about one asset; what a scan found (`Info` = output, see [Resource creation](ResourceCreation.md#naming)) |
+| `Prefab` | New (Oct 25, 2026), an asset | A `.hyprefab` read into memory (`Asset` subclass, like `SpriteAnimationSet`); named for what it is. Instantiating stays in `PrefabSerializer` |
 | `AssetMetaSerializer` | New, a doer | Reads and writes where a file keeps its handle (its first line, or the `.hymeta` sidecar), like `SceneSerializer` |
 | `Asset` | New, a base class | Base of the asset types the manager loads (`Texture2D`); holds the handle only |
 | `TextureImportConfig`, `TextureImportSerializer`, `TextureImporter`, `SpriteSlicer` | New (Oct 23, 2026) | Saved per-image import settings → `Config`; the serializer and slicer are doers (`-er`). Sprite sheets are a mode of `Texture2D`, not a `SpriteSheet` type, so there is one owner per image file |
@@ -140,7 +141,7 @@ Every current name was checked against the table. Only one changed:
 | `ParticleEmitter2DComponent` | New (Oct 25, 2026) | `2D` like `Light2DComponent`, `Rigidbody2DComponent`; settings only |
 | `ParticleScene` | New (Oct 25, 2026), per-scene | Per-scene counterpart (`...Scene`, like `PhysicsScene`) holding the live particles; not `SceneParticles` |
 | `UpdateParticles` | New (Oct 25, 2026), a system | Systems are functions; **not** `ParticleSystem2D` (`...System` is banned) |
-| `Particles2D`, `Vfx` | `Particles2D` new (Oct 25, 2026), `Vfx` planned (Roadmap V5) | Domain facades of static functions like `Physics2D`: `Particles2D` controls emitters (`Play`, `Stop`, `Burst`), `Vfx` plays effect prefabs (`Vfx::Play`) |
+| `Particles2D`, `Vfx` | New (Oct 25, 2026) | Domain facades of static functions like `Physics2D`: `Particles2D` controls emitters (`Play`, `Stop`, `Burst`), `Vfx` plays effect prefabs (`Vfx::Play`) |
 | `ParticleEmitterSettings` | Rejected | `Settings` means live options with `Get`/`Set` applied next frame; an emitter preset is just a `ParticleEmitter2DComponent` value (a prefab, or a function in the editor) |
 | `RenderView` | New, a resource | One picture of a scene (target + camera + quads) that `Renderer2D` draws into; not a subsystem or part, the application creates as many as it shows |
 | `Camera`, `SceneCamera`, `EditorCamera` | New, not subsystems | `Camera` is a projection value (and where clip-space conventions live); `SceneCamera` is the per-scene camera data held by `CameraComponent` (`Scene...` prefix); `EditorCamera` is an editor tool the application owns |

@@ -1,0 +1,41 @@
+Handle: 3100456622457317386
+Prefab: Dust Puff
+Entity:
+  Entity: 3925965915699408275
+  TagComponent:
+    Tag: Dust Puff
+  TransformComponent:
+    Translation: [0, 0, 0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  ParticleEmitter2DComponent:
+    PlayOnStart: true
+    Looping: false
+    Duration: 0.05
+    Rate: 0
+    BurstCount: 14
+    MaxParticles: 16
+    Seed: 0
+    Shape: Circle
+    ShapeSize: [0.45, 0.45]
+    Lifetime: [0.4, 0.75]
+    Speed: [0.6, 1.6]
+    Direction: 90
+    Spread: 180
+    StartSize: [0.3, 0.55]
+    StartRotation: [0, 360]
+    AngularVelocity: [-90, 90]
+    EndSizeScale: 1.8
+    StartColor: [0.62, 0.53, 0.42, 0.65]
+    EndColor: [0.72, 0.65, 0.54, 0]
+    Gravity: [0, 0.3]
+    Drag: 3
+    Turbulence: 0
+    SpriteIndex: 0
+    Blend: Alpha
+    Lighting: Lit
+    SortOrder: 0
+    LightRadius: 0
+    LightIntensity: 1
+    MaxLights: 0
+    DestroyWhenFinished: true

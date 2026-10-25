@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro.h"
+#include "DioramaCamera.h"
 
 #include <algorithm>
 #include <cmath>
@@ -291,6 +292,16 @@ namespace Hydro
 	class VillageCrateSpawnerScript : public ScriptableEntity
 	{
 	protected:
+		void OnCreate() override
+		{
+			// The dust effect (a prefab with a particle emitter), loaded once here: Vfx::Play never reads the disk.
+			m_Dust = AssetManager::FindHandle("Effects/DustPuff.hyprefab");
+			if ((uint64_t)m_Dust != 0)
+			{
+				AssetManager::GetAsset<Prefab>(m_Dust);
+			}
+		}
+
 		void OnUpdate([[maybe_unused]] float deltaTime) override
 		{
 			Scene* scene = GetEntity().GetScene();
@@ -331,6 +342,7 @@ namespace Hydro
 			TransformComponent& transform = crate.GetComponent<TransformComponent>();
 			transform.Translation.x = playerPosition.x + m_Direction.x * 1.4f;
 			transform.Translation.y = playerPosition.y + m_Direction.y * 1.4f;
+			PlayDust(*scene, transform.Translation);
 
 			m_Dropped.push_back(crate.GetUUID());
 			while (m_Dropped.size() > MaxCrates)
@@ -338,6 +350,7 @@ namespace Hydro
 				Entity oldest = scene->GetEntityByUUID(m_Dropped.front());
 				if (oldest.IsValid())
 				{
+					PlayDust(*scene, oldest.GetComponent<TransformComponent>().Translation);
 					scene->DestroyEntity(oldest);
 				}
 				m_Dropped.erase(m_Dropped.begin());
@@ -348,6 +361,17 @@ namespace Hydro
 
 	private:
 		static constexpr size_t MaxCrates = 10;
+
+		// A puff of dust at a crate's base, sorted just in front of it (the village's Y-sort rule).
+		void PlayDust(Scene& scene, const glm::vec3& crate)
+		{
+			const glm::vec3 base{ crate.x, crate.y - 0.4f, crate.z };
+			Entity dust = Vfx::Play(scene, m_Dust, base);
+			if (dust.IsValid() && dust.HasComponent<ParticleEmitter2DComponent>())
+			{
+				dust.GetComponent<ParticleEmitter2DComponent>().SortOrder = (int32_t)std::lround((VillageMap::SortOriginY - base.y) * 4.0f) + 1;
+			}
+		}
 
 		// The first entity with exactly this tag that is not about to be destroyed.
 		static Entity FindByTag(Scene& scene, const char* tag)
@@ -369,12 +393,14 @@ namespace Hydro
 
 		std::vector<UUID> m_Dropped;
 		glm::vec2 m_Direction{ 0.0f, -1.0f };
+		AssetHandle m_Dust = 0;
 		bool m_Previous = false;
 	};
 
 	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 126 x 36 map (the
-	// view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world units
-	// seen vertically). Scripts run in play mode only.
+	// top-down view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world
+	// units seen vertically). V tilts it into the diorama view and back, O switches the diorama between
+	// perspective and orthographic (DioramaCamera.h). Scripts run in play mode only.
 	class VillageCameraScript : public ScriptableEntity
 	{
 	protected:
@@ -385,6 +411,7 @@ namespace Hydro
 			auto& transform = GetComponent<TransformComponent>();
 			auto& camera = GetComponent<CameraComponent>();
 
+			DioramaView::Update(deltaTime);
 			if (Input::IsKeyPressed(KeyCode::Minus))
 			{
 				camera.Camera.OrthographicSize += m_ZoomSpeed * deltaTime;
@@ -401,7 +428,11 @@ namespace Hydro
 				m_Snap = true;
 			}
 
-			glm::vec2 goal{ transform.Translation.x, transform.Translation.y };
+			if (m_Snap && m_Target == entt::null)
+			{
+				m_Focus = { transform.Translation.x, transform.Translation.y };
+			}
+			glm::vec2 goal = m_Focus;
 			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
 				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
@@ -418,9 +449,10 @@ namespace Hydro
 			goal.y = std::clamp(goal.y, VillageMap::CentreY - limitY, VillageMap::CentreY + limitY);
 
 			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-m_Smoothing * deltaTime);
-			transform.Translation.x += (goal.x - transform.Translation.x) * t;
-			transform.Translation.y += (goal.y - transform.Translation.y) * t;
+			m_Focus += (goal - m_Focus) * t;
 			m_Snap = false;
+
+			DioramaView::Apply(transform, camera, m_Focus);
 		}
 
 	private:
@@ -440,6 +472,7 @@ namespace Hydro
 
 		entt::entity m_Target = entt::null;
 		bool m_Snap = true;
+		glm::vec2 m_Focus{ 0.0f }; // where the camera looks, on the ground
 		float m_Smoothing = 8.0f;
 		float m_LookAhead = 1.5f;   // aim at the player's chest, not the feet
 		float m_MinSize = 8.0f;     // closest zoom, world units visible vertically

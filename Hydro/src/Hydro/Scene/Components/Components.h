@@ -19,9 +19,21 @@ namespace Hydro
 	class Scene;
 	class UUID;
 
+	// How a sprite's quad is turned towards the camera. The ground is the XY plane and +Z is up (Diorama RPG
+	// H1), so a top-down camera (looking down -Z) sees every facing the same way: as a flat quad in XY.
+	enum class SpriteFacing : uint8_t
+	{
+		Flat = 0,  // lies on the ground (XY), as it is authored: ground, roads, decals, water, bridges
+		Upright,   // stands on the bottom edge of its quad and turns to face the camera (yaw and pitch, never
+		           // roll): trees, buildings, props, characters. With a top-down camera it lies flat, so
+		           // tilting the camera stands it up gradually
+		Billboard  // turns about its centre to face the camera fully: particles, glows, icons, world-space UI
+	};
+
 	// A quad drawn with the entity's TransformComponent: Texture (white when 0 or not loaded) multiplied by Color
 	// (alpha blended). A Single texture is drawn whole, repeated TilingFactor times; a Multiple texture
 	// (a sprite sheet, see TextureImportConfig) draws its sprite SpriteIndex, placed by the sprite's pivot.
+	// Facing decides how the quad turns towards a tilted camera (SceneRenderer).
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -32,7 +44,9 @@ namespace Hydro
 		AssetHandle Texture = 0;
 		float TilingFactor = 1.0f; // Single textures only
 		// Draw order: sprites are drawn from low to high SortOrder, so higher values end up on top.
-		// Equal values: lower Translation.z first, then the order the scene stores them in.
+		// Equal values: Flat sprites first (lower Translation.z first), then Upright and Billboard ones from
+		// far to near along the camera's ground direction (feet of an Upright, centre of a Billboard), then
+		// the order the scene stores them in.
 		int32_t SortOrder = 0;
 		// Which of the texture's sprites to draw (Texture2D::GetSprite). 0 is the whole image of a
 		// Single texture and the first sprite of a Multiple one; out of range draws sprite 0.
@@ -40,6 +54,7 @@ namespace Hydro
 		uint32_t SpriteIndex = 0;
 		bool FlipX = false;
 		bool FlipY = false;
+		SpriteFacing Facing = SpriteFacing::Flat;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -163,6 +178,11 @@ namespace Hydro
 		glm::vec3 Color{ 1.0f, 1.0f, 1.0f }; // linear RGB
 		float Intensity = 1.0f;              // multiplies Color; values above 1 over-brighten (up to 2x the sprite's colour)
 		float Radius = 5.0f;                 // Point only: how far the light reaches, in world units
+		// Point only: how high above its ground position the light sits, measured up an Upright sprite (a
+		// lantern's glass, a window). The light moves with the camera's tilt the way a point on an Upright
+		// sprite does: Height units up the screen in a top-down view, that far up the standing sprite in a
+		// tilted one. 0 = on the ground.
+		float Height = 0.0f;
 
 		Light2DComponent() = default;
 		Light2DComponent(const Light2DComponent&) = default;

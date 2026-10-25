@@ -57,6 +57,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Flat
   - Entity: 3446400367575763371
     TagComponent:
       Tag: Inn
@@ -72,6 +73,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -3.1531]
       Size: [4.9578, 1.1]
@@ -87,7 +89,7 @@ Entities:
     TagComponent:
       Tag: Light Window 1
     TransformComponent:
-      Translation: [-3.8983, 5.4233, 0]
+      Translation: [-3.8983, 2.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -95,11 +97,12 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 2.9233
   - Entity: 899195812919272201
     TagComponent:
       Tag: Light Window 2
     TransformComponent:
-      Translation: [-2.7031, 5.5567, 0]
+      Translation: [-2.7031, 2.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -107,11 +110,12 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 3.0567
   - Entity: 1048133414074810629
     TagComponent:
       Tag: Light Window 3
     TransformComponent:
-      Translation: [-4.4344, 4.5562, 0]
+      Translation: [-4.4344, 2.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -119,6 +123,7 @@ Entities:
       Color: [1, 0.64, 0.3]
       Intensity: 0.95
       Radius: 3.2
+      Height: 2.0562
   - Entity: 4476261099609342981
     TagComponent:
       Tag: Lantern 1
@@ -134,6 +139,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -149,7 +155,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 1
     TransformComponent:
-      Translation: [-5.4, 3.7, 0]
+      Translation: [-5.4, 1.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -157,6 +163,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1
   - Entity: 4107675005199804895
     TagComponent:
       Tag: Lantern 2
@@ -172,6 +179,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [0.8, 0.3]
@@ -187,7 +195,7 @@ Entities:
     TagComponent:
       Tag: Light Lamp 2
     TransformComponent:
-      Translation: [-0.6, 3.7, 0]
+      Translation: [-0.6, 1.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -195,6 +203,7 @@ Entities:
       Color: [1, 0.58, 0.24]
       Intensity: 1.7
       Radius: 5.8
+      Height: 2.1
   - Entity: 4415513811750229323
     TagComponent:
       Tag: Sign Fork
@@ -210,6 +219,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.825]
       Size: [0.8, 0.3]
@@ -236,6 +246,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3875]
       Size: [1.6, 0.5]
@@ -262,6 +273,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.4188]
       Size: [0.9, 0.35]
@@ -288,6 +300,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Flat
     Shadow2DComponent:
       Offset: [0.15, -0.1]
       Size: [3.2, 5.375]
@@ -347,6 +360,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.3406]
       Size: [1.2, 0.4]
@@ -366,6 +380,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.5125]
       Size: [1.2, 0.4]
@@ -441,6 +456,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -467,6 +483,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -493,6 +510,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -519,6 +537,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -545,6 +564,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -571,6 +591,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -597,6 +618,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -623,6 +645,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -649,6 +672,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -675,6 +699,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -701,6 +726,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -727,6 +753,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -753,6 +780,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -779,6 +807,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -805,6 +834,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -831,6 +861,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -857,6 +888,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -883,6 +915,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -909,6 +942,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -935,6 +969,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -961,6 +996,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -987,6 +1023,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -1013,6 +1050,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -1039,6 +1077,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1065,6 +1104,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1091,6 +1131,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1117,6 +1158,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1143,6 +1185,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -1169,6 +1212,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1195,6 +1239,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -1221,6 +1266,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1247,6 +1293,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1273,6 +1320,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -1299,6 +1347,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1325,6 +1374,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1351,6 +1401,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -1377,6 +1428,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1403,6 +1455,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1429,6 +1482,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -1455,6 +1509,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1481,6 +1536,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1507,6 +1563,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -1533,6 +1590,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1559,6 +1617,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1585,6 +1644,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -1611,6 +1671,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1637,6 +1698,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1663,6 +1725,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1689,6 +1752,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -1715,6 +1779,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -1741,6 +1806,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1767,6 +1833,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1793,6 +1860,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -1819,6 +1887,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -1845,6 +1914,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -1871,6 +1941,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -1897,6 +1968,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -1923,6 +1995,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -1949,6 +2022,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -1975,6 +2049,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2001,6 +2076,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -2027,6 +2103,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2053,6 +2130,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2079,6 +2157,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -2105,6 +2184,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2131,6 +2211,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -2157,6 +2238,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2183,6 +2265,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2209,6 +2292,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2235,6 +2319,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -2261,6 +2346,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -2287,6 +2373,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2313,6 +2400,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -2339,6 +2427,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2365,6 +2454,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2391,6 +2481,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2417,6 +2508,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2443,6 +2535,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -2469,6 +2562,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -2495,6 +2589,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2521,6 +2616,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2547,6 +2643,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2573,6 +2670,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -2599,6 +2697,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2625,6 +2724,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2651,6 +2751,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2677,6 +2778,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -2703,6 +2805,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -2729,6 +2832,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2755,6 +2859,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2781,6 +2886,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -2807,6 +2913,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -2833,6 +2940,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -2859,6 +2967,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -2885,6 +2994,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2911,6 +3021,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2937,6 +3048,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -2963,6 +3075,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -2989,6 +3102,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -3015,6 +3129,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3041,6 +3156,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3067,6 +3183,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3093,6 +3210,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3119,6 +3237,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3145,6 +3264,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3171,6 +3291,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3197,6 +3318,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3223,6 +3345,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -3249,6 +3372,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3275,6 +3399,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -3301,6 +3426,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -3327,6 +3453,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -3353,6 +3480,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -3379,6 +3507,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -3405,6 +3534,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3431,6 +3561,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -3457,6 +3588,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3483,6 +3615,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -3509,6 +3642,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -3535,6 +3669,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3561,6 +3696,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3587,6 +3723,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3613,6 +3750,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3639,6 +3777,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3665,6 +3804,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3691,6 +3831,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3717,6 +3858,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -3743,6 +3885,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3769,6 +3912,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3795,6 +3939,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3821,6 +3966,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -3847,6 +3993,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3873,6 +4020,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3899,6 +4047,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3925,6 +4074,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -3951,6 +4101,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -3977,6 +4128,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4003,6 +4155,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4029,6 +4182,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -4055,6 +4209,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4081,6 +4236,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4107,6 +4263,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4133,6 +4290,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4159,6 +4317,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -4185,6 +4344,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -4211,6 +4371,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -4237,6 +4398,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -4263,6 +4425,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -4289,6 +4452,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -4315,6 +4479,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -4341,6 +4506,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4367,6 +4533,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4393,6 +4560,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4419,6 +4587,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4445,6 +4614,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -4471,6 +4641,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -4497,6 +4668,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4523,6 +4695,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4549,6 +4722,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4575,6 +4749,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4601,6 +4776,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4627,6 +4803,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4653,6 +4830,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4679,6 +4857,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -4705,6 +4884,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4731,6 +4911,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4757,6 +4938,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4783,6 +4965,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -4809,6 +4992,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4835,6 +5019,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -4861,6 +5046,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -4887,6 +5073,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4913,6 +5100,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -4939,6 +5127,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -4965,6 +5154,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -4991,6 +5181,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -5017,6 +5208,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -5043,6 +5235,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5069,6 +5262,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -5095,6 +5289,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5121,6 +5316,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -5147,6 +5343,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -5173,6 +5370,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5199,6 +5397,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5225,6 +5424,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -5251,6 +5451,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5277,6 +5478,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5303,6 +5505,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5329,6 +5532,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5355,6 +5559,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -5381,6 +5586,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -5407,6 +5613,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5433,6 +5640,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -5459,6 +5667,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -5485,6 +5694,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5511,6 +5721,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5537,6 +5748,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5563,6 +5775,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5589,6 +5802,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5615,6 +5829,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5641,6 +5856,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -5667,6 +5883,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5693,6 +5910,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -5719,6 +5937,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -5745,6 +5964,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5771,6 +5991,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -5797,6 +6018,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -5823,6 +6045,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -5849,6 +6072,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -5875,6 +6099,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -5901,6 +6126,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -5927,6 +6153,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -5953,6 +6180,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -5979,6 +6207,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6005,6 +6234,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6031,6 +6261,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6057,6 +6288,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6083,6 +6315,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6109,6 +6342,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -6135,6 +6369,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6161,6 +6396,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6187,6 +6423,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -6213,6 +6450,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -6239,6 +6477,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6265,6 +6504,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -6291,6 +6531,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -6317,6 +6558,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6343,6 +6585,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6369,6 +6612,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6395,6 +6639,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -6421,6 +6666,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -6447,6 +6693,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6473,6 +6720,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6499,6 +6747,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -6525,6 +6774,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -6551,6 +6801,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -6577,6 +6828,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6603,6 +6855,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6629,6 +6882,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6655,6 +6909,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -6681,6 +6936,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6707,6 +6963,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6733,6 +6990,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6759,6 +7017,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6785,6 +7044,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -6811,6 +7071,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -6837,6 +7098,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6863,6 +7125,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6889,6 +7152,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -6915,6 +7179,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6941,6 +7206,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -6967,6 +7233,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -6993,6 +7260,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -7019,6 +7287,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7045,6 +7314,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -7071,6 +7341,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -7097,6 +7368,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -7123,6 +7395,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7149,6 +7422,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7175,6 +7449,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7201,6 +7476,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -7227,6 +7503,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -7253,6 +7530,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -7279,6 +7557,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7305,6 +7584,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7331,6 +7611,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7357,6 +7638,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -7383,6 +7665,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -7409,6 +7692,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7435,6 +7719,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -7461,6 +7746,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -7487,6 +7773,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7513,6 +7800,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -7539,6 +7827,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7565,6 +7854,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -2.0125]
       Size: [2, 0.85]
@@ -7591,6 +7881,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -7617,6 +7908,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7643,6 +7935,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -7669,6 +7962,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7695,6 +7989,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -7721,6 +8016,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7747,6 +8043,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7773,6 +8070,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7799,6 +8097,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -7825,6 +8124,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.7156]
       Size: [2, 0.85]
@@ -7851,6 +8151,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7877,6 +8178,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -7903,6 +8205,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -7929,6 +8232,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -7955,6 +8259,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.95]
       Size: [2, 0.85]
@@ -7981,6 +8286,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -8007,6 +8313,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -8033,6 +8340,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -8059,6 +8367,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -8085,6 +8394,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -8111,6 +8421,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.45]
       Size: [2, 0.85]
@@ -8137,6 +8448,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -1.6687]
       Size: [2, 0.85]
@@ -8163,6 +8475,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3579611609886619307
     TagComponent:
       Tag: Decor 1 tall_grass_b
@@ -8178,6 +8491,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1439767492120306771
     TagComponent:
       Tag: Decor 2 fern
@@ -8193,6 +8507,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 744453744225121487
     TagComponent:
       Tag: Decor 3 stump_01
@@ -8208,6 +8523,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -8234,6 +8550,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4257318326453629705
     TagComponent:
       Tag: Decor 5 rock_small_01
@@ -8249,6 +8566,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3295903589961341647
     TagComponent:
       Tag: Decor 6 bush_small_01
@@ -8264,6 +8582,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3927819226685270059
     TagComponent:
       Tag: Decor 7 bush_small_01
@@ -8279,6 +8598,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2890578243913537643
     TagComponent:
       Tag: Decor 8 fern
@@ -8294,6 +8614,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 455687303110863855
     TagComponent:
       Tag: Decor 9 flowers_white
@@ -8309,6 +8630,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4415770489154221557
     TagComponent:
       Tag: Decor 10 rock_medium_01
@@ -8324,6 +8646,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -8350,6 +8673,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 542885144658941193
     TagComponent:
       Tag: Decor 12 bush_small_01
@@ -8365,6 +8689,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2758559677533419111
     TagComponent:
       Tag: Decor 13 grass_tuft_01
@@ -8380,6 +8705,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2397250056060219495
     TagComponent:
       Tag: Decor 14 rock_small_01
@@ -8395,6 +8721,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 554626488875599501
     TagComponent:
       Tag: Decor 15 fern
@@ -8410,6 +8737,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3954677466559251347
     TagComponent:
       Tag: Decor 16 grass_tuft_01
@@ -8425,6 +8753,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 855357351291098461
     TagComponent:
       Tag: Decor 17 rock_small_01
@@ -8440,6 +8769,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1869184719372544611
     TagComponent:
       Tag: Decor 18 grass_tuft_01
@@ -8455,6 +8785,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 540398130754098551
     TagComponent:
       Tag: Decor 19 grass_tuft_01
@@ -8470,6 +8801,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1858828467648532031
     TagComponent:
       Tag: Decor 20 flowers_purple
@@ -8485,6 +8817,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3284733853416695293
     TagComponent:
       Tag: Decor 21 mushrooms
@@ -8500,6 +8833,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1855808465478202353
     TagComponent:
       Tag: Decor 22 fern
@@ -8515,6 +8849,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4456628251717198821
     TagComponent:
       Tag: Decor 23 rock_small_01
@@ -8530,6 +8865,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3071993125848772673
     TagComponent:
       Tag: Decor 24 stump_01
@@ -8545,6 +8881,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -8571,6 +8908,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3352739381965534953
     TagComponent:
       Tag: Decor 26 bush_small_01
@@ -8586,6 +8924,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1340522930108720585
     TagComponent:
       Tag: Decor 27 bush_small_01
@@ -8601,6 +8940,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3466370773446211743
     TagComponent:
       Tag: Decor 28 mushrooms
@@ -8616,6 +8956,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2950323288901215639
     TagComponent:
       Tag: Decor 29 bush_small_01
@@ -8631,6 +8972,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1716122232267610799
     TagComponent:
       Tag: Decor 30 mushrooms
@@ -8646,6 +8988,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2271186605710175621
     TagComponent:
       Tag: Decor 31 tall_grass
@@ -8661,6 +9004,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 971864559922062001
     TagComponent:
       Tag: Decor 32 flowers_pink
@@ -8676,6 +9020,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1658639263187524155
     TagComponent:
       Tag: Decor 33 tall_grass
@@ -8691,6 +9036,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4049306660663805991
     TagComponent:
       Tag: Decor 34 bush_small_01
@@ -8706,6 +9052,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1353599455763317435
     TagComponent:
       Tag: Decor 35 fern_b
@@ -8721,6 +9068,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4599300886445809717
     TagComponent:
       Tag: Decor 36 fern_b
@@ -8736,6 +9084,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 940479908720397917
     TagComponent:
       Tag: Decor 37 grass_tuft_01
@@ -8751,6 +9100,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 838634698101966913
     TagComponent:
       Tag: Decor 38 rock_small_01
@@ -8766,6 +9116,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1029639947344189167
     TagComponent:
       Tag: Decor 39 grass_tuft_01
@@ -8781,6 +9132,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2885796382424976163
     TagComponent:
       Tag: Decor 40 mushrooms
@@ -8796,6 +9148,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3632242282387612473
     TagComponent:
       Tag: Decor 41 flowers_pink
@@ -8811,6 +9164,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3379857638769225751
     TagComponent:
       Tag: Decor 42 tall_grass
@@ -8826,6 +9180,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4550981005247531779
     TagComponent:
       Tag: Decor 43 bush_small_01
@@ -8841,6 +9196,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1672548359972720525
     TagComponent:
       Tag: Decor 44 grass_tuft_01
@@ -8856,6 +9212,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3410773971713203299
     TagComponent:
       Tag: Decor 45 grass_tuft_01
@@ -8871,6 +9228,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 120372521290607109
     TagComponent:
       Tag: Decor 46 mushrooms
@@ -8886,6 +9244,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3140438296070659757
     TagComponent:
       Tag: Decor 47 fern
@@ -8901,6 +9260,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4014038418613766067
     TagComponent:
       Tag: Decor 48 mushrooms
@@ -8916,6 +9276,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1585455351598117871
     TagComponent:
       Tag: Decor 49 bush_medium_01
@@ -8931,6 +9292,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -8957,6 +9319,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1676472557217052733
     TagComponent:
       Tag: Decor 51 rock_small_01
@@ -8972,6 +9335,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2759973726676563091
     TagComponent:
       Tag: Decor 52 fern_b
@@ -8987,6 +9351,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4404882513223775331
     TagComponent:
       Tag: Decor 53 tall_grass
@@ -9002,6 +9367,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4521486366672718319
     TagComponent:
       Tag: Decor 54 rock_small_01
@@ -9017,6 +9383,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1141371026587154345
     TagComponent:
       Tag: Decor 55 tall_grass
@@ -9032,6 +9399,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 236221253359757095
     TagComponent:
       Tag: Decor 56 flowers_purple
@@ -9047,6 +9415,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1678383300814649103
     TagComponent:
       Tag: Decor 57 bush_medium_01
@@ -9062,6 +9431,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9088,6 +9458,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 144385117405746379
     TagComponent:
       Tag: Decor 59 grass_tuft_01
@@ -9103,6 +9474,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1312073140994502723
     TagComponent:
       Tag: Decor 60 stump_01
@@ -9118,6 +9490,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9144,6 +9517,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9170,6 +9544,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1078585763293167863
     TagComponent:
       Tag: Decor 63 tall_grass
@@ -9185,6 +9560,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2900807736792097993
     TagComponent:
       Tag: Decor 64 bush_small_01
@@ -9200,6 +9576,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 431619495133541801
     TagComponent:
       Tag: Decor 65 bush_medium_01
@@ -9215,6 +9592,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9241,6 +9619,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2997246640145371921
     TagComponent:
       Tag: Decor 67 bush_small_01
@@ -9256,6 +9635,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1063429615370804919
     TagComponent:
       Tag: Decor 68 mushrooms
@@ -9271,6 +9651,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4290708250663390349
     TagComponent:
       Tag: Decor 69 fern_b
@@ -9286,6 +9667,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1566253019350450545
     TagComponent:
       Tag: Decor 70 bush_medium_01
@@ -9301,6 +9683,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9327,6 +9710,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 830007086449137981
     TagComponent:
       Tag: Decor 72 stump_01
@@ -9342,6 +9726,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9368,6 +9753,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 533517431423953611
     TagComponent:
       Tag: Decor 74 flowers_white
@@ -9383,6 +9769,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1411713108589216667
     TagComponent:
       Tag: Decor 75 grass_tuft_01
@@ -9398,6 +9785,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 245862918120326513
     TagComponent:
       Tag: Decor 76 flowers_purple
@@ -9413,6 +9801,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2136130136867342237
     TagComponent:
       Tag: Decor 77 bush_small_01
@@ -9428,6 +9817,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4043726943648958385
     TagComponent:
       Tag: Decor 78 tall_grass
@@ -9443,6 +9833,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1517117492783294937
     TagComponent:
       Tag: Decor 79 grass_tuft_01
@@ -9458,6 +9849,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4010730834015228939
     TagComponent:
       Tag: Decor 80 flowers_pink
@@ -9473,6 +9865,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4354890165181786863
     TagComponent:
       Tag: Decor 81 tall_grass
@@ -9488,6 +9881,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2817253152262179937
     TagComponent:
       Tag: Decor 82 grass_tuft_01
@@ -9503,6 +9897,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 908677804790854473
     TagComponent:
       Tag: Decor 83 bush_medium_01
@@ -9518,6 +9913,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9544,6 +9940,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3055456009316937535
     TagComponent:
       Tag: Decor 85 stump_01
@@ -9559,6 +9956,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9585,6 +9983,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1244563338852176165
     TagComponent:
       Tag: Decor 87 grass_tuft_01
@@ -9600,6 +9999,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4046341608267496483
     TagComponent:
       Tag: Decor 88 tall_grass
@@ -9615,6 +10015,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1276788223639913887
     TagComponent:
       Tag: Decor 89 grass_tuft_01
@@ -9630,6 +10031,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1660206707298204369
     TagComponent:
       Tag: Decor 90 tall_grass_b
@@ -9645,6 +10047,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2088044460516373909
     TagComponent:
       Tag: Decor 91 rock_medium_01
@@ -9660,6 +10063,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9686,6 +10090,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 633947267750967343
     TagComponent:
       Tag: Decor 93 bush_medium_01
@@ -9701,6 +10106,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9727,6 +10133,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4171802555832689315
     TagComponent:
       Tag: Decor 95 rock_small_01
@@ -9742,6 +10149,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2493725938727293689
     TagComponent:
       Tag: Decor 96 mushrooms
@@ -9757,6 +10165,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2851937374495609789
     TagComponent:
       Tag: Decor 97 bush_medium_01
@@ -9772,6 +10181,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9798,6 +10208,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4284137897753510061
     TagComponent:
       Tag: Decor 99 bush_medium_01
@@ -9813,6 +10224,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -9839,6 +10251,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1113721468698804707
     TagComponent:
       Tag: Decor 101 fern
@@ -9854,6 +10267,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1691515134319090731
     TagComponent:
       Tag: Decor 102 grass_tuft_01
@@ -9869,6 +10283,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4400430395143098243
     TagComponent:
       Tag: Decor 103 rock_small_01
@@ -9884,6 +10299,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1584414713410379533
     TagComponent:
       Tag: Decor 104 mushrooms
@@ -9899,6 +10315,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3094794864838258225
     TagComponent:
       Tag: Decor 105 bush_small_01
@@ -9914,6 +10331,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2824690213104163833
     TagComponent:
       Tag: Decor 106 grass_tuft_01
@@ -9929,6 +10347,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 587152855879209979
     TagComponent:
       Tag: Decor 107 grass_tuft_01
@@ -9944,6 +10363,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1398249140243963059
     TagComponent:
       Tag: Decor 108 tall_grass
@@ -9959,6 +10379,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2603334086354856053
     TagComponent:
       Tag: Decor 109 fern_b
@@ -9974,6 +10395,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3756956584925951287
     TagComponent:
       Tag: Decor 110 grass_tuft_01
@@ -9989,6 +10411,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4352376785112012217
     TagComponent:
       Tag: Decor 111 bush_small_01
@@ -10004,6 +10427,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3136606161528675393
     TagComponent:
       Tag: Decor 112 rock_small_01
@@ -10019,6 +10443,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1284228225346448163
     TagComponent:
       Tag: Decor 113 tall_grass_b
@@ -10034,6 +10459,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 419172394536040429
     TagComponent:
       Tag: Decor 114 tall_grass
@@ -10049,6 +10475,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2848110312134885971
     TagComponent:
       Tag: Decor 115 mushrooms
@@ -10064,6 +10491,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4420313823368543113
     TagComponent:
       Tag: Decor 116 grass_tuft_01
@@ -10079,6 +10507,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1132309252118393391
     TagComponent:
       Tag: Decor 117 tall_grass_b
@@ -10094,6 +10523,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4142669194430736071
     TagComponent:
       Tag: Decor 118 bush_medium_01
@@ -10109,6 +10539,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.45]
       Size: [1, 0.35]
@@ -10135,6 +10566,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4369275843877601797
     TagComponent:
       Tag: Decor 120 fern_b
@@ -10150,6 +10582,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4202237750214255163
     TagComponent:
       Tag: Decor 121 grass_tuft_01
@@ -10165,6 +10598,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2528594070608062811
     TagComponent:
       Tag: Decor 122 tall_grass
@@ -10180,6 +10614,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 844189984699566695
     TagComponent:
       Tag: Decor 123 tall_grass_b
@@ -10195,6 +10630,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1774319219432857197
     TagComponent:
       Tag: Decor 124 grass_tuft_01
@@ -10210,6 +10646,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 227173186443793143
     TagComponent:
       Tag: Decor 125 grass_tuft_01
@@ -10225,6 +10662,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 156585405933912499
     TagComponent:
       Tag: Decor 126 flowers_pink
@@ -10240,6 +10678,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2473196228449687747
     TagComponent:
       Tag: Decor 127 fern_b
@@ -10255,6 +10694,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2801823189379324147
     TagComponent:
       Tag: Decor 128 grass_tuft_01
@@ -10270,6 +10710,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 615649791595431393
     TagComponent:
       Tag: Decor 129 flowers_white
@@ -10285,6 +10726,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1986830864407010769
     TagComponent:
       Tag: Canopy South 0
@@ -10300,6 +10742,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4455782011858903689
     TagComponent:
       Tag: Canopy North 0
@@ -10315,6 +10758,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 912234520294642273
     TagComponent:
       Tag: Canopy South 1
@@ -10330,6 +10774,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3493831593940813025
     TagComponent:
       Tag: Canopy North 1
@@ -10345,6 +10790,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 4081910170618932623
     TagComponent:
       Tag: Canopy South 2
@@ -10360,6 +10806,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1894405048900800851
     TagComponent:
       Tag: Canopy North 2
@@ -10375,6 +10822,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 2580745744610655915
     TagComponent:
       Tag: Canopy South 3
@@ -10390,6 +10838,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 4482050968276121371
     TagComponent:
       Tag: Canopy North 3
@@ -10405,6 +10854,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 5336740150758081
     TagComponent:
       Tag: Canopy South 4
@@ -10420,6 +10870,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 4528083813118071257
     TagComponent:
       Tag: Canopy North 4
@@ -10435,6 +10886,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 2970702645694578663
     TagComponent:
       Tag: Canopy South 5
@@ -10450,6 +10902,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 385506701332024275
     TagComponent:
       Tag: Canopy North 5
@@ -10465,6 +10918,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 3987581616081506569
     TagComponent:
       Tag: Canopy South 6
@@ -10480,6 +10934,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3406916640012590045
     TagComponent:
       Tag: Canopy North 6
@@ -10495,6 +10950,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 1349867076223362103
     TagComponent:
       Tag: Canopy South 7
@@ -10510,6 +10966,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3140646888711179689
     TagComponent:
       Tag: Canopy North 7
@@ -10525,6 +10982,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 3220925052327972583
     TagComponent:
       Tag: Canopy South 8
@@ -10540,6 +10998,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 104283159259020981
     TagComponent:
       Tag: Canopy North 8
@@ -10555,6 +11014,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 1187587083028924801
     TagComponent:
       Tag: Canopy South 9
@@ -10570,6 +11030,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 1449430192920507683
     TagComponent:
       Tag: Canopy North 9
@@ -10585,6 +11046,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 1425621750055964461
     TagComponent:
       Tag: Canopy South 10
@@ -10600,6 +11062,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 1431341056807273447
     TagComponent:
       Tag: Canopy North 10
@@ -10615,6 +11078,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 4023816983242812497
     TagComponent:
       Tag: Canopy South 11
@@ -10630,6 +11094,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 3510127121525084255
     TagComponent:
       Tag: Canopy North 11
@@ -10645,6 +11110,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 4030699679300082181
     TagComponent:
       Tag: Canopy South 12
@@ -10660,6 +11126,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 2353043453224315875
     TagComponent:
       Tag: Canopy North 12
@@ -10675,6 +11142,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 2729986113522265257
     TagComponent:
       Tag: Canopy South 13
@@ -10690,6 +11158,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 2539093553476660999
     TagComponent:
       Tag: Canopy North 13
@@ -10705,6 +11174,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 2851830512969876413
     TagComponent:
       Tag: Canopy South 14
@@ -10720,6 +11190,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
   - Entity: 606634104437925977
     TagComponent:
       Tag: Canopy North 14
@@ -10735,6 +11206,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: true
+      Facing: Upright
   - Entity: 2499379903836134929
     TagComponent:
       Tag: Canopy South 15
@@ -10750,6 +11222,7 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
+      Facing: Upright
   - Entity: 3169001950357609545
     TagComponent:
       Tag: Canopy North 15
@@ -10765,6 +11238,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: true
+      Facing: Upright
   - Entity: 316884209401126505
     TagComponent:
       Tag: MVP Director
@@ -10790,6 +11264,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.33]
       Size: [0.9, 0.3]
@@ -10816,6 +11291,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     Shadow2DComponent:
       Offset: [0, -0.7]
       Size: [0.9, 0.35]
@@ -10831,7 +11307,7 @@ Entities:
     TagComponent:
       Tag: Light Save
     TransformComponent:
-      Translation: [-7.6, 2.7, 0]
+      Translation: [-7.6, 1.9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -10839,6 +11315,7 @@ Entities:
       Color: [0.45, 0.85, 1]
       Intensity: 0.9
       Radius: 2.6
+      Height: 0.8
   - Entity: 3701596207424601073
     TagComponent:
       Tag: Door Inn
@@ -10875,6 +11352,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 3363558919026677037
       StartClip: IdleDown
@@ -10906,6 +11384,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 381359539372406047
       StartClip: Float
@@ -10951,6 +11430,7 @@ Entities:
       SortOrder: 1000
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 3650261328035911407
     TagComponent:
       Tag: UI Prompt Panel
@@ -10966,6 +11446,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 329991542241652307
     TagComponent:
       Tag: UI Prompt Label
@@ -10981,6 +11462,7 @@ Entities:
       SpriteIndex: 15
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 2226715346565420433
     TagComponent:
       Tag: UI Message Panel
@@ -10996,6 +11478,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 823995066864971081
     TagComponent:
       Tag: UI Message Line 1
@@ -11011,6 +11494,7 @@ Entities:
       SpriteIndex: 21
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 472136036508150141
     TagComponent:
       Tag: UI Message Line 2
@@ -11026,6 +11510,7 @@ Entities:
       SpriteIndex: 22
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 3075346590274797519
     TagComponent:
       Tag: UI Menu Panel
@@ -11041,6 +11526,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 4409706017980994773
     TagComponent:
       Tag: UI Menu Title
@@ -11056,6 +11542,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 1111213669424711685
     TagComponent:
       Tag: UI Menu Row 0
@@ -11071,6 +11558,7 @@ Entities:
       SpriteIndex: 3
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 660896285707559447
     TagComponent:
       Tag: UI Menu Count 0
@@ -11086,6 +11574,7 @@ Entities:
       SpriteIndex: 12
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 1047425196972571937
     TagComponent:
       Tag: UI Menu Row 1
@@ -11101,6 +11590,7 @@ Entities:
       SpriteIndex: 4
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 3304263280154483277
     TagComponent:
       Tag: UI Menu Count 1
@@ -11116,6 +11606,7 @@ Entities:
       SpriteIndex: 12
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 3432268594544643995
     TagComponent:
       Tag: UI Menu Row 2
@@ -11131,6 +11622,7 @@ Entities:
       SpriteIndex: 5
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 1906203247717488183
     TagComponent:
       Tag: UI Menu Count 2
@@ -11146,6 +11638,7 @@ Entities:
       SpriteIndex: 12
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 929652692041040761
     TagComponent:
       Tag: UI Menu Row 3
@@ -11161,6 +11654,7 @@ Entities:
       SpriteIndex: 6
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 2336472411397069379
     TagComponent:
       Tag: UI Menu Count 3
@@ -11176,6 +11670,7 @@ Entities:
       SpriteIndex: 12
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 4157222143219367159
     TagComponent:
       Tag: UI Menu Row 4
@@ -11191,6 +11686,7 @@ Entities:
       SpriteIndex: 7
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 3029125156434012833
     TagComponent:
       Tag: UI Menu Count 4
@@ -11206,6 +11702,7 @@ Entities:
       SpriteIndex: 12
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 333873459092100103
     TagComponent:
       Tag: UI Menu Row 5
@@ -11221,6 +11718,7 @@ Entities:
       SpriteIndex: 8
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 3301155837927865107
     TagComponent:
       Tag: UI Menu Count 5
@@ -11236,6 +11734,7 @@ Entities:
       SpriteIndex: 12
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 1692632060945626425
     TagComponent:
       Tag: UI Menu Highlight
@@ -11249,6 +11748,7 @@ Entities:
       SortOrder: 311
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 258728487501887919
     TagComponent:
       Tag: UI Menu Cursor
@@ -11264,6 +11764,7 @@ Entities:
       SpriteIndex: 9
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 1466587572000682877
     TagComponent:
       Tag: UI Menu Footer 1
@@ -11279,6 +11780,7 @@ Entities:
       SpriteIndex: 1
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 4024858111829553111
     TagComponent:
       Tag: UI Menu Footer 2
@@ -11294,6 +11796,7 @@ Entities:
       SpriteIndex: 2
       FlipX: false
       FlipY: false
+      Facing: Billboard
   - Entity: 4019748085196214873
     TagComponent:
       Tag: Player
@@ -11309,6 +11812,7 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
+      Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 2573213401033506043
       StartClip: IdleDown
