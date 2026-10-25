@@ -50,7 +50,7 @@ The object created from a spec owns its GPU handles:
 - Its single owner holds it in a `Scope<T>` and hands it to users as `T&` / `const T&`. Use `Ref<T>` only when several objects really share it (a `Texture2D` used by many sprites). Don't take a `Ref<T>` by value or by non-const reference to use it; take `const Ref<T>&` only when you keep a copy.
 - Its destructor doesn't destroy the handles directly: it passes a function that does to `Renderer::SubmitResourceFree`, capturing the handles (never `this`). So it can be destroyed at any point in a frame, even while frames in flight still use it, and nobody calls `Renderer::WaitIdle()` to release something.
 
-Every GPU resource follows this: `VulkanImage`, `VulkanRenderPass`, `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline`, `VulkanShader` (frees its modules at once; pipelines don't need them after creation) and `Texture2D`. There are no `Ref<Vulkan...>` members and no manual `Destroy()` methods left (Roadmap A3, A4, done Oct 20, 2026).
+Every GPU resource follows this: `VulkanImage`, `VulkanRenderPass`, `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline`, `VulkanShader` (frees its modules at once; pipelines don't need them after creation), `VulkanImageReadback` (no specification: its host buffers are made on the first `Record` and reused) and `Texture2D`. There are no `Ref<Vulkan...>` members and no manual `Destroy()` methods left (Roadmap A3, A4, done Oct 20, 2026).
 
 **Deletion queue.** `Renderer::SubmitResourceFree(std::function<void()>)` stores the free function with the current frame number and runs it at the start of the frame `MAX_FRAMES_IN_FLIGHT` frames later, right after that frame slot's fence wait (the GPU is then done with every frame that could have used the resource). Everything still queued runs after a swapchain rebuild (the device is idle) and at `Renderer::Shutdown`, before the allocator and the device are destroyed. Frees run in the order they were queued, so an owner that releases children first (framebuffers before their images) keeps that order. A resource released after `Renderer::Shutdown` asserts and leaks its handles, so owners release GPU objects before then (layers in `OnDetach`).
 
@@ -77,7 +77,7 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 | `EditorCameraSettings` (`Renderer/EditorCamera.h`) | `EditorCamera::SetSettings` | In use: field of view, clip planes, orbit/pan/zoom speed multipliers. Live; Oxygen saves them in its editor settings |
 | `ProjectConfig` | `Project`, saved by `ProjectSerializer` (`.hyproj`) | In use: name, asset directory, start scene, `RendererSettings` |
 | `RendererSettings` (`Renderer/RendererSettings.h`) | `Renderer::SetSettings` | In use: clear colour, vsync, wireframe, shader hot reload, 2D lighting (`Lighting`, `LightFalloff` smooth or banded, `LightBands`), `Shadows` (blob shadows) |
-| `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output |
+| `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output: GPU name and Vulkan version, required (dynamic rendering, synchronization2) and optional features as enabled, limits (push constants, sampled images per stage, anisotropy, depth formats); see [Device requirements](Architecture.md#device-requirements) |
 
 ## Adding a new resource
 

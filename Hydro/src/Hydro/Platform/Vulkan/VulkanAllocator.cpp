@@ -135,6 +135,8 @@ namespace Hydro {
 
 		// Initialize VulkanMemoryAllocator
 		VmaAllocatorCreateInfo allocatorInfo = {};
+		// Stays 1.2 on the 1.3 device: the vendored VMA (3.0.0-development, 2021) asserts on anything
+		// above 1.2. It only decides which memory functions VMA loads, and those are the same.
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
 		allocatorInfo.physicalDevice = device.GetPhysicalDevice().GetVulkanPhysicalDevice();
 		allocatorInfo.device = device.GetDevice();

@@ -131,6 +131,17 @@ Renderer2D::EndScene();
 - The quad pipeline is built once, against a 1×1 compatibility render pass and a layout-only descriptor set. Every view's target has the same format and its set 0 (camera + textures) is built the same way, so `VulkanPipeline::BindDescriptorSet` binds the view's own set.
 - Views are resources: the application creates them after `Renderer::Init` and destroys them while the renderer is alive (Oxygen does it in `OnDetach`).
 
+### Captures
+
+`view.RequestCapture(path)` saves the next picture the view renders as a PNG (the comparison tool for renderer changes: step 0 of the [3D renderer MVP plan](https://github.com/joelnl74/Hydro/wiki/Renderer-3D-MVP-Plan), [#113](https://github.com/joelnl74/Hydro/issues/113)).
+
+- Right after the view's pass, `Renderer2D` records a copy of its target image into a host-visible buffer for that frame in flight (`VulkanImageReadback`: barrier to `TRANSFER_SRC`, `vkCmdCopyImageToBuffer`, barrier back to `SHADER_READ_ONLY_OPTIMAL`, so ImGui still samples it later in the command buffer). Nothing waits: the next time the same frame index is rendered, its fence has signalled, and `Renderer2D::Render` takes the pixels and writes the file with `ImageWriter::WritePNG` (stb_image_write). So the file appears `MAX_FRAMES_IN_FLIGHT` frames after the capture.
+- The target is sRGB (`R8G8B8A8_SRGB`), so the bytes go into the PNG as they are; alpha is written opaque. The overlay (editor outlines) is included.
+- A view that isn't rendered (hidden window, minimised) keeps the request until it is. `IsCapturePending()` is true until the file is written. The PNG is encoded on the main thread: a short hitch for a large view.
+- `VulkanImageReadback` copies any region of a colour image (RGBA8, BGRA8, R32, RGBA16F/32F); click-to-select will read the entity-ID attachment with it (plan M7). Colour attachments are made with `TRANSFER_SRC` usage for this.
+- Oxygen: the **Capture** menu in the Editor and Game windows, **F9** (Game view) and **Shift+F9** (Editor view; not F12, which Windows reserves for debuggers and which breaks into Visual Studio while debugging). **Fixed Size (1280 x 720)** (on by default) renders the captured frame at that size, with the scene's or editor camera's viewport set to it for that frame, so captures don't depend on the window layout; the window shows that one frame stretched. Files go to `<project>/.hydro/captures/<scene>_<view>_<yyyymmdd-hhmmss-mmm>.png` and the Console logs each one.
+- `scripts/compare_captures.py a.png b.png [--out diff.png] [--tolerance N]` counts differing pixels, reports the largest difference and writes a diff image (Pillow). Baselines for the 3D work are listed on [Test bed](TestBed.md#baseline-captures).
+
 ### Textures and batching
 
 `Texture2D` (`Renderer/Texture2D.h`) is the engine-facing texture: RGBA8, made from an `ImageSpecification` (size, `ImageFormat::SRGB` for colour or `RGBA` for data) and `TextureProperties` (filter, wrap), on a `VulkanImage` (VMA, one upload). `Texture2D::LoadFromFile(path)` returns `nullptr` (logged) on failure; a file in the project's asset folder is loaded and shared by the `AssetManager` ([Asset system](#asset-system)), any other file is decoded by `TextureImporter` (stb_image) and shared while a texture from it is alive. Textures are shared by many sprites, so they are held in `Ref<Texture2D>`. The header has no Vulkan types: the image lives in `Texture2DData` (`Platform/Vulkan/VulkanTexture2DData.h`).
@@ -198,17 +209,28 @@ The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorS
 - **Asset editing.** The windows edit copies and write files; `EditorLayer` then swaps the result into the editor scene and the play copy: a re-imported texture replaces the old one on every sprite that used the file (keeping each sprite by name), animation sets that use it are read again (`SpriteAnimationSet::LoadFromFile(path, true)`), and a saved `.hyanim` replaces the set on its animators (the playing clip carries on by name). Images in these windows go through `Renderer2D::GetImGuiTexture`: a small pool of ImGui handles, each rewritten for another texture only after it hasn't been drawn for longer than the frames in flight, so ImGui's descriptor pool doesn't grow.
 - **Session.** The last project and scene, and which View menu windows are open (`EditorSession::OpenWindows`, by menu name), are remembered in the same file. On close, and as soon as a window is opened or closed, `EditorSettingsSerializer::SaveSession` rewrites only that part, so unsaved edits in the window aren't written by accident. `EditorLayer::GetViewWindows()` is the one list behind the View menu, the save and the restore: a new window added there is remembered too; a window missing from the file keeps its own default.
 
+## Device requirements
+
+The engine needs **Vulkan 1.3** (decided October 25, 2026, for the [3D renderer MVP plan](https://github.com/joelnl74/Hydro/wiki/Renderer-3D-MVP-Plan), step M0, [#114](https://github.com/joelnl74/Hydro/issues/114)). Windows only for now; any desktop GPU with a driver from 2022 or later has it. The Vulkan SDK the setup scripts install is 1.3.296.
+
+- `VulkanRendererContext` creates the instance with `HY_REQUIRED_VULKAN_VERSION` (1.3).
+- `VulkanPhysicalDevice` reads each GPU's features with `vkGetPhysicalDeviceFeatures2` (the 1.0 features, `VkPhysicalDeviceVulkan12Features`, and `VkPhysicalDeviceVulkan13Features` when the GPU has 1.3) and only picks a GPU with Vulkan 1.3, `dynamicRendering` and `synchronization2` that can present to the window. Every GPU that can't be used is logged with the reason; when none can, startup stops with a message that names them.
+- `VulkanDevice` enables one feature chain: `VkPhysicalDeviceFeatures2` in `VkDeviceCreateInfo::pNext` (`pEnabledFeatures` is null) → `VkPhysicalDeviceVulkan13Features`. Required: `dynamicRendering`, `synchronization2`. Optional, enabled when the GPU has them: `samplerAnisotropy`, `fillModeNonSolid` (wireframe), `wideLines`. `descriptorIndexing` is reported but not enabled until bindless textures use it. Code asks the device what was **enabled** (`IsWideLinesEnabled()`), never what the GPU merely supports.
+- `RendererCapabilities` (`Renderer::GetCapabilities()`) has the GPU's name and Vulkan version, the required and optional features, and the limits the 3D work depends on: push constant size, sampled images per stage, maximum anisotropy, and whether `DEPTH32F` / `DEPTH24STENCIL8` can be depth attachments. They are logged at startup (four `Renderer:` lines) and listed in **Render Settings > Device**.
+- Two places stay on 1.2 on purpose: VMA's `vulkanApiVersion` (the vendored VMA asserts on anything above 1.2; it only decides which memory functions it loads) and shaderc's target environment (SPIR-V for 1.2 runs on a 1.3 device).
+- Dynamic rendering and synchronization2 are enabled but not used yet: render passes move to dynamic rendering in M1. The present pass keeps its `VkRenderPass` until ImGui is upgraded (the vendored ImGui 1.89 backend needs one).
+
 ## Vulkan ownership
 
 | Object | Owns |
 | --- | --- |
 | `VulkanRendererContext` | Instance, debug messenger (Debug builds), window surface, device (`Scope<VulkanDevice>`, handed out as `VulkanDevice&`). All members: nothing in it is `static` |
-| `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`, whose properties and features are read once), logical device, graphics + present queues, the upload command pool (private: only `SubmitImmediate` uses it) |
+| `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`, whose properties and features are read once), the enabled features (`Is...Enabled`), logical device, graphics + present queues, the upload command pool (private: only `SubmitImmediate` uses it) |
 | `VulkanSwapChain` | Swapchain images, views, framebuffers, present render pass, render-finished semaphores; acquire/present; `Recreate` |
 | `VulkanFrameContext` | Per frame in flight (`MAX_FRAMES_IN_FLIGHT = 2`): command pool + buffer, fence, image-acquired semaphore |
 | `Renderer` | The above (`Scope`s; `GetVulkanDevice()`, `GetRendererContext()` and `GetVulkanSwapChain()` return references), the **deletion queue**, and runs the frame |
 | `VulkanRenderPass` | An offscreen colour target: one image + framebuffer per frame in flight. Each `RenderView` owns one |
-| `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures), all in `Scope`s |
+| `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures), and, after its first capture, a `VulkanImageReadback` (one host buffer per frame in flight), all in `Scope`s |
 | `Renderer2D` | The quad shader, pipeline, index buffer, the 1×1 compatibility render pass with its layout descriptor set, and the white texture |
 | `Texture2D` | One `VulkanImage` (image, view, sampler; VMA). Shared through `Ref<Texture2D>` |
 

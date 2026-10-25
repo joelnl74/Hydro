@@ -59,9 +59,14 @@ namespace Hydro
 
 		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 		if (spec.Usage == ImageUsage::Attachment)
-			usage |= isDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		{
+			// Colour targets can be copied out (VulkanImageReadback: view captures, later picking).
+			usage |= isDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+		}
 		else
+		{
 			usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		}
 
 		CreateImage(usage);
 

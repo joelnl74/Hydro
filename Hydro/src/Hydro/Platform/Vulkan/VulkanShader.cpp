@@ -173,7 +173,7 @@ namespace Hydro
 
 		shaderc::CompileOptions options;
 		options.SetSourceLanguage(shaderc_source_language_glsl);
-		// Matches the instance's apiVersion (VulkanRendererContext).
+		// SPIR-V for Vulkan 1.2 runs on the 1.3 device; raise it when a shader needs a 1.3 SPIR-V feature.
 		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
 		options.SetIncluder(std::make_unique<ShaderIncluder>(&m_SourceFiles));
 #ifdef HY_DEBUG

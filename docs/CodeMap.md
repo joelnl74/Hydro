@@ -29,7 +29,8 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
 | `Renderer/RendererSettings.h` | `RendererSettings` (live, saved in `.hyproj`; incl. the 2D lighting and shadow options), `LightFalloffStyle`, `RendererCapabilities` |
 | `Renderer/Renderer2D.*` | Quad batching, texture slots + flushes, per-view passes, stats, hot reload, wireframe rebuild; `DrawQuad` with tiling or a `TextureRect` (sprite of a sheet); `DrawLine`/`DrawRect`/`DrawCircle` (thin quads in the same batch; thickness in pixels) and `BeginOverlay`/`EndOverlay` (lines drawn after the lighting composite, so night doesn't darken them); `GetImGuiTexture` for editor previews; 2D lighting (`DrawLight`, `DrawGlobalLight`: per-view light buffer pass + composite) and blob shadows (`DrawShadow`); also implements `RenderView`; `DrawQuad(position, size, rotation, ...)` fast path and the soft-dot particle texture |
-| `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches) |
+| `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches); `RequestCapture(path)` saves its next frame as a PNG |
+| `Renderer/ImageWriter.*` | `ImageWriter::WritePNG` (stb_image_write; compiles its implementation for the engine); CPU only |
 | `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `Create` (uploads an `ImportedTexture`), `LoadFromFile` (asks the `AssetManager` for project files, shares other files while alive), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect` |
 | `Renderer/Image.h` | `ImageSpecification`, `TextureProperties`, image/texture enums |
 | `Renderer/TextureImport.h` | `TextureImportConfig` (saved per image in `<image>.hymeta`), `SpriteMode`, `SpriteRegion`, `SpriteSlicingConfig` |
@@ -40,10 +41,11 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/Camera.*`, `SceneCamera.h`, `EditorCamera.*` | Projections (`*_ZO`, Y flip), per-scene camera data, editor orbit camera + `EditorCameraSettings`, `Focus`/`Frame` to look at a point |
 | `Renderer/Renderer3D.*` | Placeholder part for the 3D path (R9): `Init` / `Shutdown` only |
 | **Platform/Vulkan** (backend; applications never include these) | |
-| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance, surface, device (reached with `Renderer::GetVulkanDevice()`), queues, enabled features, `SubmitImmediate` for one-off uploads |
+| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance (Vulkan 1.3), surface, GPU choice (needs 1.3 + dynamic rendering + synchronization2), device with the feature chain (reached with `Renderer::GetVulkanDevice()`), queues, enabled features, `SubmitImmediate` for one-off uploads; see [Device requirements](Architecture.md#device-requirements) |
 | `VulkanSwapChain.*`, `VulkanFrameContext.*` | Swapchain + present pass; per-frame command buffer, fence, semaphores (`MAX_FRAMES_IN_FLIGHT = 2`) |
 | `VulkanAllocator.*` | VMA wrapper, GPU memory stats |
 | `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |
+| `VulkanImageReadback.*` | Copies a region of a colour image into a per-frame-in-flight host buffer; pixels taken after that frame's fence (view captures, later ID picking) |
 | `VulkanTexture2DData.h` | Backend half of `Texture2D` (`GetTexture2DData`) |
 | `VulkanRenderPass.*` | Offscreen colour target, one image + framebuffer per frame in flight, `Resize` |
 | `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned; `BlendMode` None / Alpha / Additive / Multiply2x); `BindDescriptorSet` |
@@ -82,7 +84,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `OxygenEditorApplication.cpp` | `CreateApplication`, registers example scripts, pushes `EditorLayer` |
 | `EditorLayer.*` | Editor scene + play copy, the two `RenderView`s, `EditorCamera`, all windows, menus and top bar, open/save project and scene, the scene stack for play mode (`ProcessSceneTransition`), asset drops, inspected asset, re-import of textures / reload of animation sets into the open scenes, galaxy demo |
 | `EditorSettings.*` | `EditorSettings` + `EditorSettingsSerializer` (`EditorSettings.yaml`, session) |
-| `EditorPaths.h` | Project-aware paths (scenes, prefabs, settings) |
+| `EditorPaths.h` | Project-aware paths (scenes, prefabs, settings, captures) |
 | `EditorWindows/InspectorWindow.*` | Component UI, **Add Component**, script list, prefab button; the selected asset when no entity is selected (image import settings, `.hyanim` summary) |
 | `EditorWindows/TextureImportPanel.*` | Inspector panel for an image: preview, `TextureImportConfig` (sprite mode, pixels per unit, filter, wrap, colour space, colour key), Apply / Revert |
 | `EditorWindows/SpriteEditorWindow.*` | **Sprite Editor**: slice a sheet (grid, detect grid, manual), row names, per-sprite name / rect / pivot, sprites drawn over the image |
@@ -142,6 +144,8 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 - Shaders are compiled at runtime by shaderc from `assets/shaders/...`, relative to the working directory (run Oxygen from the `Oxygen/` folder).
 
 ## Checking without Windows
+
+`scripts/compare_captures.py a.png b.png [--out diff.png]`: compares two view captures (Capture menu, F9) pixel by pixel; exit code 0 when they match (Pillow).
 
 `scripts/check.sh [files...]`: g++ `-fsyntax-only -Wall -Wextra` over the engine and editor sources (Windows-only files skipped) and glslang over the shaders. Linux/WSL; downloads Vulkan-Headers, shaderc headers and builds glslang once into `/tmp/hydro-check`. Not a substitute for an MSVC `/W4` build.
 

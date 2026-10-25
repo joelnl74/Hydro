@@ -111,6 +111,16 @@ namespace Hydro
 		void SetGameFullscreen(bool fullscreen);
 		void DrawGameFullscreen();
 		void UpdateFullscreenKeys();
+		// Sizes a view (and the scene's or editor camera's viewport) to its window. A capture asked for
+		// with the Capture menu or F9 / Shift+F9 is requested here, at the fixed capture size if that
+		// option is on (the window shows that one frame stretched).
+		void ResizeGameView(uint32_t width, uint32_t height);
+		void ResizeEditorView(uint32_t width, uint32_t height);
+		// The Capture menu, shown in the Editor and Game windows' menu bars.
+		void DrawCaptureMenu();
+		void UpdateCaptureKeys();
+		// <project>/.hydro/captures/<scene>_<view>_<yyyymmdd-hhmmss-mmm>.png
+		std::filesystem::path MakeCapturePath(const std::string& viewName) const;
 		// Moves the editor camera to the entity and zooms to frame it (the selection outline shows which).
 		void FocusEntity(Entity entity);
 		// A new scene starts with a primary camera framing the origin.
@@ -175,6 +185,13 @@ namespace Hydro
 		bool m_FullscreenKeyDown = false;      // F11 last frame, so holding it toggles once
 		bool m_EscapeKeyDown = false;
 		float m_FullscreenHintTime = 0.0f;     // seconds left to show how to leave full screen
+		// View captures (this session only). A request waits until its view is drawn.
+		static constexpr uint32_t CaptureWidth = 1280;
+		static constexpr uint32_t CaptureHeight = 720;
+		bool m_CaptureFixedSize = true;        // render the captured frame at CaptureWidth x CaptureHeight
+		bool m_CaptureGameRequested = false;
+		bool m_CaptureEditorRequested = false;
+		bool m_CaptureKeyDown = false;         // F9 last frame, so holding it captures once
 		float m_Time = 0.0f;
 	};
 }
