@@ -9,7 +9,7 @@ the largest channel difference and where it is. With --out, writes a diff image:
 dimmed to grey, changed pixels red with brightness by how much they changed.
 Exit code: 0 when the images match, 1 when they differ, 2 on an error (missing file, other size).
 
-Captures come from the editor's Capture menu (F12 / Shift+F12) and are saved in
+Captures come from the editor's Capture menu (F9 / Shift+F9) and are saved in
 <project>/.hydro/captures. Needs Pillow: pip install pillow
 """
 

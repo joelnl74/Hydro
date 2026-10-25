@@ -42,7 +42,7 @@ namespace Hydro
 
 		static std::filesystem::path GetScenesDirectory() { return GetAssetsDirectory() / "Scenes"; }
 
-		// View captures (Capture menu, F12): <project>/.hydro/captures. A cache folder, not in git.
+		// View captures (Capture menu, F9): <project>/.hydro/captures. A cache folder, not in git.
 		static std::filesystem::path GetCapturesDirectory() { return GetProjectDirectory() / ".hydro" / "captures"; }
 		static std::filesystem::path GetPrefabsDirectory() { return GetAssetsDirectory() / "Prefabs"; }
 

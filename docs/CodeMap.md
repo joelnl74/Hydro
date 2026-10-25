@@ -145,7 +145,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 
 ## Checking without Windows
 
-`scripts/compare_captures.py a.png b.png [--out diff.png]`: compares two view captures (Capture menu, F12) pixel by pixel; exit code 0 when they match (Pillow).
+`scripts/compare_captures.py a.png b.png [--out diff.png]`: compares two view captures (Capture menu, F9) pixel by pixel; exit code 0 when they match (Pillow).
 
 `scripts/check.sh [files...]`: g++ `-fsyntax-only -Wall -Wextra` over the engine and editor sources (Windows-only files skipped) and glslang over the shaders. Linux/WSL; downloads Vulkan-Headers, shaderc headers and builds glslang once into `/tmp/hydro-check`. Not a substitute for an MSVC `/W4` build.
 

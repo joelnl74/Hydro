@@ -112,7 +112,7 @@ namespace Hydro
 		void DrawGameFullscreen();
 		void UpdateFullscreenKeys();
 		// Sizes a view (and the scene's or editor camera's viewport) to its window. A capture asked for
-		// with the Capture menu or F12 / Shift+F12 is requested here, at the fixed capture size if that
+		// with the Capture menu or F9 / Shift+F9 is requested here, at the fixed capture size if that
 		// option is on (the window shows that one frame stretched).
 		void ResizeGameView(uint32_t width, uint32_t height);
 		void ResizeEditorView(uint32_t width, uint32_t height);
@@ -191,7 +191,7 @@ namespace Hydro
 		bool m_CaptureFixedSize = true;        // render the captured frame at CaptureWidth x CaptureHeight
 		bool m_CaptureGameRequested = false;
 		bool m_CaptureEditorRequested = false;
-		bool m_CaptureKeyDown = false;         // F12 last frame, so holding it captures once
+		bool m_CaptureKeyDown = false;         // F9 last frame, so holding it captures once
 		float m_Time = 0.0f;
 	};
 }

@@ -760,11 +760,11 @@ namespace Hydro
 	{
 		if (ImGui::BeginMenu("Capture"))
 		{
-			if (ImGui::MenuItem("Capture Game View", "F12"))
+			if (ImGui::MenuItem("Capture Game View", "F9"))
 			{
 				m_CaptureGameRequested = true;
 			}
-			if (ImGui::MenuItem("Capture Editor View", "Shift+F12"))
+			if (ImGui::MenuItem("Capture Editor View", "Shift+F9"))
 			{
 				m_CaptureEditorRequested = true;
 			}
@@ -784,9 +784,11 @@ namespace Hydro
 
 	void EditorLayer::UpdateCaptureKeys()
 	{
-		// F12: the Game view (also in game full screen); Shift+F12: the Editor view. Holding captures once.
-		const bool f12 = Input::IsKeyPressed(KeyCode::F12);
-		if (f12 && m_CaptureKeyDown == false && ImGui::GetIO().WantTextInput == false)
+		// F9: the Game view (also in game full screen); Shift+F9: the Editor view. Holding captures once.
+		// Not F12: Windows reserves F12 for debuggers (UserDebuggerHotKey), so pressing it while a
+		// debugger is attached breaks into the debugger.
+		const bool captureKey = Input::IsKeyPressed(KeyCode::F9);
+		if (captureKey && m_CaptureKeyDown == false && ImGui::GetIO().WantTextInput == false)
 		{
 			const bool shift = Input::IsKeyPressed(KeyCode::LeftShift) || Input::IsKeyPressed(KeyCode::RightShift);
 			if (shift)
@@ -798,7 +800,7 @@ namespace Hydro
 				m_CaptureGameRequested = true;
 			}
 		}
-		m_CaptureKeyDown = f12;
+		m_CaptureKeyDown = captureKey;
 	}
 
 	std::filesystem::path EditorLayer::MakeCapturePath(const std::string& viewName) const
