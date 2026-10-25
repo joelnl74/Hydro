@@ -309,6 +309,52 @@ namespace Hydro
 					// entity.AddComponent<LightComponent>();
 					m_HierarchyWindow->SetSelectedEntity(entity);
 				}
+				if (ImGui::BeginMenu("Meshes"))
+				{
+					if (ImGui::MenuItem("Box"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Box");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Box;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Cylinder"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Cylinder");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Cylinder;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Plane"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Plane");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Plane;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Stairs"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Stairs");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Stairs;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Ramp"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Ramp");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Ramp;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+
+
+					ImGui::EndMenu();
+				}
 
 				ImGui::EndMenu();
 			}
