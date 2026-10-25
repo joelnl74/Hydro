@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro.h"
+#include "DioramaCamera.h"
 
 #include <algorithm>
 #include <cmath>
@@ -31,6 +32,13 @@ namespace Hydro
 		static inline int SlowZones = 0;      // zones the player stands in that slow it down (the bridge)
 		static inline bool InPlaza = false;   // the player stands in the Statue Plaza: the brazier burns
 		static float PlayerSpeedScale() { return SlowZones > 0 ? 0.5f : 1.0f; }
+	};
+
+	// What the game's UI tells the scripts that read input: while a modal menu is open (MvpScripts.h's
+	// MvpDirector) the walking and interaction keys belong to the menu, so VillagerWalk stands still.
+	struct UIState
+	{
+		static inline bool MenuOpen = false;
 	};
 
 	struct VillageMap
@@ -284,6 +292,16 @@ namespace Hydro
 	class VillageCrateSpawnerScript : public ScriptableEntity
 	{
 	protected:
+		void OnCreate() override
+		{
+			// The dust effect (a prefab with a particle emitter), loaded once here: Vfx::Play never reads the disk.
+			m_Dust = AssetManager::FindHandle("Effects/DustPuff.hyprefab");
+			if ((uint64_t)m_Dust != 0)
+			{
+				AssetManager::GetAsset<Prefab>(m_Dust);
+			}
+		}
+
 		void OnUpdate([[maybe_unused]] float deltaTime) override
 		{
 			Scene* scene = GetEntity().GetScene();
@@ -324,6 +342,7 @@ namespace Hydro
 			TransformComponent& transform = crate.GetComponent<TransformComponent>();
 			transform.Translation.x = playerPosition.x + m_Direction.x * 1.4f;
 			transform.Translation.y = playerPosition.y + m_Direction.y * 1.4f;
+			PlayDust(*scene, transform.Translation);
 
 			m_Dropped.push_back(crate.GetUUID());
 			while (m_Dropped.size() > MaxCrates)
@@ -331,6 +350,7 @@ namespace Hydro
 				Entity oldest = scene->GetEntityByUUID(m_Dropped.front());
 				if (oldest.IsValid())
 				{
+					PlayDust(*scene, oldest.GetComponent<TransformComponent>().Translation);
 					scene->DestroyEntity(oldest);
 				}
 				m_Dropped.erase(m_Dropped.begin());
@@ -341,6 +361,17 @@ namespace Hydro
 
 	private:
 		static constexpr size_t MaxCrates = 10;
+
+		// A puff of dust at a crate's base, sorted just in front of it (the village's Y-sort rule).
+		void PlayDust(Scene& scene, const glm::vec3& crate)
+		{
+			const glm::vec3 base{ crate.x, crate.y - 0.4f, crate.z };
+			Entity dust = Vfx::Play(scene, m_Dust, base);
+			if (dust.IsValid() && dust.HasComponent<ParticleEmitter2DComponent>())
+			{
+				dust.GetComponent<ParticleEmitter2DComponent>().SortOrder = (int32_t)std::lround((VillageMap::SortOriginY - base.y) * 4.0f) + 1;
+			}
+		}
 
 		// The first entity with exactly this tag that is not about to be destroyed.
 		static Entity FindByTag(Scene& scene, const char* tag)
@@ -362,12 +393,14 @@ namespace Hydro
 
 		std::vector<UUID> m_Dropped;
 		glm::vec2 m_Direction{ 0.0f, -1.0f };
+		AssetHandle m_Dust = 0;
 		bool m_Previous = false;
 	};
 
 	// Put it on the camera: it glides after the first entity tagged "Player", stays inside the 126 x 36 map (the
-	// view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world units
-	// seen vertically). Scripts run in play mode only.
+	// top-down view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world
+	// units seen vertically). V tilts it into the diorama view and back, O switches the diorama between
+	// perspective and orthographic (DioramaCamera.h). Scripts run in play mode only.
 	class VillageCameraScript : public ScriptableEntity
 	{
 	protected:
@@ -378,6 +411,7 @@ namespace Hydro
 			auto& transform = GetComponent<TransformComponent>();
 			auto& camera = GetComponent<CameraComponent>();
 
+			DioramaView::Update(deltaTime);
 			if (Input::IsKeyPressed(KeyCode::Minus))
 			{
 				camera.Camera.OrthographicSize += m_ZoomSpeed * deltaTime;
@@ -394,7 +428,11 @@ namespace Hydro
 				m_Snap = true;
 			}
 
-			glm::vec2 goal{ transform.Translation.x, transform.Translation.y };
+			if (m_Snap && m_Target == entt::null)
+			{
+				m_Focus = { transform.Translation.x, transform.Translation.y };
+			}
+			glm::vec2 goal = m_Focus;
 			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
 				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
@@ -411,9 +449,10 @@ namespace Hydro
 			goal.y = std::clamp(goal.y, VillageMap::CentreY - limitY, VillageMap::CentreY + limitY);
 
 			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-m_Smoothing * deltaTime);
-			transform.Translation.x += (goal.x - transform.Translation.x) * t;
-			transform.Translation.y += (goal.y - transform.Translation.y) * t;
+			m_Focus += (goal - m_Focus) * t;
 			m_Snap = false;
+
+			DioramaView::Apply(transform, camera, m_Focus);
 		}
 
 	private:
@@ -433,10 +472,102 @@ namespace Hydro
 
 		entt::entity m_Target = entt::null;
 		bool m_Snap = true;
+		glm::vec2 m_Focus{ 0.0f }; // where the camera looks, on the ground
 		float m_Smoothing = 8.0f;
 		float m_LookAhead = 1.5f;   // aim at the player's chest, not the feet
 		float m_MinSize = 8.0f;     // closest zoom, world units visible vertically
 		float m_ZoomSpeed = 10.0f;  // units per second while - or = is held
+	};
+
+	// A party member who follows the entity tagged "Player" along the path it walked (Diorama RPG: Lila
+	// follows Orin), a little behind, with the same Walk<Facing> / Idle<Facing> clips as VillagerWalk. It has
+	// no physics body, so it never blocks the player or starts a battle; it walks where the player walked.
+	class PartyFollowScript : public ScriptableEntity
+	{
+	protected:
+		void OnUpdate([[maybe_unused]] float deltaTime) override
+		{
+			Entity self = GetEntity();
+			Scene* scene = self.GetScene();
+			if (m_Player == entt::null || scene->m_Registry.valid(m_Player) == false)
+			{
+				m_Player = entt::null;
+				auto view = scene->m_Registry.view<TagComponent, TransformComponent>();
+				for (auto entity : view)
+				{
+					if (view.get<TagComponent>(entity).Tag == "Player")
+					{
+						m_Player = entity;
+					}
+				}
+				if (m_Player == entt::null)
+				{
+					return;
+				}
+				m_Trail.clear();
+			}
+
+			auto& transform = GetComponent<TransformComponent>();
+			const glm::vec3& playerPosition = scene->m_Registry.get<TransformComponent>(m_Player).Translation;
+			const glm::vec2 player{ playerPosition.x, playerPosition.y };
+			if (m_Trail.empty())
+			{
+				// Start right behind the player.
+				m_Trail.push_back({ transform.Translation.x, transform.Translation.y });
+			}
+			if (glm::length(player - m_Trail.back()) > 0.08f)
+			{
+				m_Trail.push_back(player);
+			}
+
+			// Walk the trail back from the player until it is FollowDistance long: that point is where to stand.
+			glm::vec2 goal = m_Trail.front();
+			float length = 0.0f;
+			size_t keepFrom = 0;
+			for (size_t i = m_Trail.size() - 1; i > 0; i--)
+			{
+				const float segment = glm::length(m_Trail[i] - m_Trail[i - 1]);
+				if (length + segment >= FollowDistance)
+				{
+					const float t = (FollowDistance - length) / std::max(segment, 0.0001f);
+					goal = m_Trail[i] + (m_Trail[i - 1] - m_Trail[i]) * t;
+					keepFrom = i - 1;
+					break;
+				}
+				length += segment;
+			}
+			if (keepFrom > 0)
+			{
+				m_Trail.erase(m_Trail.begin(), m_Trail.begin() + (std::ptrdiff_t)keepFrom);
+			}
+
+			const glm::vec2 position{ transform.Translation.x, transform.Translation.y };
+			const glm::vec2 step = goal - position;
+			const bool moving = glm::length(step) > 0.02f;
+			if (moving)
+			{
+				// Follow closely but smoothly; a big gap (after a teleport or a scene change) closes at once.
+				const glm::vec2 next = glm::length(step) > 4.0f ? goal : position + step * std::min(1.0f, 12.0f * deltaTime);
+				transform.Translation.x = next.x;
+				transform.Translation.y = next.y;
+				if (std::abs(step.x) > std::abs(step.y))
+				{
+					m_Facing = step.x < 0.0f ? "Left" : "Right";
+				}
+				else
+				{
+					m_Facing = step.y > 0.0f ? "Up" : "Down";
+				}
+			}
+			SpriteAnimator::Play(self, (moving ? "Walk" : "Idle") + m_Facing);
+		}
+
+	private:
+		static constexpr float FollowDistance = 1.1f;
+
+		entt::entity m_Player = entt::null;
+		std::vector<glm::vec2> m_Trail;
+		std::string m_Facing = "Down";
 	};
 
 	// The scene's lighting test bench. Put it on one entity. It finds the scene's lights by their tags and
@@ -769,7 +900,7 @@ namespace Hydro
 		std::vector<Faded> m_Statue;
 		std::vector<Faded> m_Brazier;
 		entt::entity m_Ambient = entt::null;
-		int m_Preset = 2; // night
+		int m_Preset = 1; // dusk: the warm diorama look (Diorama RPG)
 		bool m_LightsOn = true;
 		bool m_Flicker = true;
 		bool m_BrazierOn = false;
@@ -788,5 +919,6 @@ namespace Hydro
 		ScriptRegistry::Register<VillageDirectorScript>("VillageDirector");
 		ScriptRegistry::Register<VillageZoneScript>("VillageZone");
 		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawner");
+		ScriptRegistry::Register<PartyFollowScript>("PartyFollow");
 	}
 }

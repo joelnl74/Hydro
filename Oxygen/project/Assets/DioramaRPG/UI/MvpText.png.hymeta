@@ -1,0 +1,17 @@
+Handle: 746269551121266447
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 32
+  Slicing:
+    Mode: Grid
+    CellSize: [192, 16]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 1
+    Rows: 36
+    RowNames: [Inventory, Enteruse, Escclose, Potion, HiPotion, Ether, IronSword, HerbBundle, PhoenixFeather, CrystalShard, LeatherBoots, Antidote, AncientKey, CopperOre, OldMap, ERead, EOpen, EEnter, ESave, ELeave, ETalk, ShrineGladeInn, Villagesouth, FoundaPotion, Chestisempty, Youfeelrested, HPMPrestored, Nosaveslotyet, Theroadgoeson, Tothevillage, Usedanitem, Notusablehere, Noneleft, Lovelyevening, Bewarethewisps, Theinniswarm]
+    DefaultPivot: [0.5, 0.5]

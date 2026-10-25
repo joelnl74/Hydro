@@ -106,7 +106,7 @@ And:
 - **Platform implementations** are `<Platform><Name>`: `WindowsWindow`, `VulkanRendererContext`, `VulkanAllocator`. Engine code talks to the platform-free name.
 - **Configuration** follows [Resource creation](ResourceCreation.md#naming): `<Name>Specification` passed to `Init` (`WindowSpecification`, `ApplicationSpecification`) and fixed for the subsystem's lifetime; `<Name>Settings` for live options changed while running through `Get<...>Settings` / `Set<...>Settings` (`RendererSettings`); `<Name>Config` only for what is saved to disk (`ProjectConfig`, which holds a `RendererSettings`).
 - **Capabilities** a subsystem discovers at `Init` (what the hardware supports) are `<Name>Capabilities` (`RendererCapabilities`), read-only.
-- **Per-scene counterparts** of a subsystem take the `Scene` prefix or suffix (`SceneRenderer` submits one scene to the `Renderer`; a future `PhysicsScene` would be one scene's world inside the `PhysicsEngine`). They are owned by a layer or scene, not by `Application`.
+- **Per-scene counterparts** of a subsystem take the `Scene` prefix or suffix (`SceneRenderer` submits one scene to the `Renderer`; `PhysicsScene` is one scene's Box2D world, hosted by the `PhysicsEngine`). They are owned by a layer or scene, not by `Application`.
 
 ### Names we checked
 
@@ -125,10 +125,11 @@ Every current name was checked against the table. Only one changed:
 | `ScriptRegistry` | New, not a subsystem | A name → script lookup table. It has no lifecycle or OS/GPU resources (a function-local static, filled before scenes load), so it isn't a `Manager` subsystem; becomes part of a `ScriptEngine` if one is added |
 | `Texture2D` | New, a resource (Oct 20, 2026) | A texture sprites are drawn with, made from `ImageSpecification` + `TextureProperties`; `LoadFromFile` shares textures by file until the `AssetManager` takes that over. Named for what it is, like `RenderView` |
 | `AssetHandle` | New (Oct 24, 2026), a value | `using AssetHandle = UUID;`: names an asset file across renames and moves; components will hold one instead of a `Ref<Texture2D>` |
-| `PhysicsEngine` | New (Oct 24, 2026), a subsystem | Runtime-style (`Engine`): it hosts the Box2D physics library. Position 7, after `AssetManager`. The simulation is per scene (`PhysicsScene`, planned), not here |
+| `PhysicsEngine` | New (Oct 24, 2026), a subsystem | Runtime-style (`Engine`): it hosts the Box2D physics library. Position 7, after `AssetManager`. The simulation is per scene (`PhysicsScene`), not here |
 | `AssetManager` | New (Oct 24, 2026), a subsystem | Registry-style (`Manager`): others look assets up by handle. Position 6, after `Renderer` |
 | `AssetRegistry` | New, data | The handle ↔ path table the manager holds; not a subsystem and not a `Manager` (no lifecycle), rebuilt by scanning |
 | `AssetMetadata`, `AssetScanInfo` | New, plain structs | What is known about one asset; what a scan found (`Info` = output, see [Resource creation](ResourceCreation.md#naming)) |
+| `Prefab` | New (Oct 25, 2026), an asset | A `.hyprefab` read into memory (`Asset` subclass, like `SpriteAnimationSet`); named for what it is. Instantiating stays in `PrefabSerializer` |
 | `AssetMetaSerializer` | New, a doer | Reads and writes where a file keeps its handle (its first line, or the `.hymeta` sidecar), like `SceneSerializer` |
 | `Asset` | New, a base class | Base of the asset types the manager loads (`Texture2D`); holds the handle only |
 | `TextureImportConfig`, `TextureImportSerializer`, `TextureImporter`, `SpriteSlicer` | New (Oct 23, 2026) | Saved per-image import settings → `Config`; the serializer and slicer are doers (`-er`). Sprite sheets are a mode of `Texture2D`, not a `SpriteSheet` type, so there is one owner per image file |
@@ -136,6 +137,12 @@ Every current name was checked against the table. Only one changed:
 | `SpriteAnimationSet` | New, a resource | Named clips over one sheet; "set" because it holds many clips (`SpriteAnimation` alone would read as one clip) |
 | `SpriteEditorWindow`, `SpriteAnimationWindow`, `TextureImportPanel`, `PropertyUI` | New (Oct 23, 2026), editor only | Windows are `<Name>Window`; the inspector's sub-section is a `<Name>Panel`; `PropertyUI` holds shared widgets like `StatsUI` (not `...Helper`). "Animation" is the window's menu name, `SpriteAnimationWindow` says what it edits |
 | `SpriteAnimator`, `UpdateSpriteAnimations` | New | `SpriteAnimator` is a doer facade of static functions over `SpriteAnimatorComponent` (not `...System` / `...Controller`); the system itself is the function `UpdateSpriteAnimations` |
+| `SpriteAnimatorState`, `ResetSpriteAnimations` | New (Oct 25, 2026) | The animator's playback, grouped as the component's `State` member (`<Component>State`, see the component state rule in [Scene and ECS](SceneAndECS.md#where-runtime-state-lives-component-state-rule)); the reset is a function over the scene like a system |
+| `ParticleEmitter2DComponent` | New (Oct 25, 2026) | `2D` like `Light2DComponent`, `Rigidbody2DComponent`; settings only |
+| `ParticleScene` | New (Oct 25, 2026), per-scene | Per-scene counterpart (`...Scene`, like `PhysicsScene`) holding the live particles; not `SceneParticles` |
+| `UpdateParticles` | New (Oct 25, 2026), a system | Systems are functions; **not** `ParticleSystem2D` (`...System` is banned) |
+| `Particles2D`, `Vfx` | New (Oct 25, 2026) | Domain facades of static functions like `Physics2D`: `Particles2D` controls emitters (`Play`, `Stop`, `Burst`), `Vfx` plays effect prefabs (`Vfx::Play`) |
+| `ParticleEmitterSettings` | Rejected | `Settings` means live options with `Get`/`Set` applied next frame; an emitter preset is just a `ParticleEmitter2DComponent` value (a prefab, or a function in the editor) |
 | `RenderView` | New, a resource | One picture of a scene (target + camera + quads) that `Renderer2D` draws into; not a subsystem or part, the application creates as many as it shows |
 | `Camera`, `SceneCamera`, `EditorCamera` | New, not subsystems | `Camera` is a projection value (and where clip-space conventions live); `SceneCamera` is the per-scene camera data held by `CameraComponent` (`Scene...` prefix); `EditorCamera` is an editor tool the application owns |
 
@@ -153,7 +160,7 @@ Every current name was checked against the table. Only one changed:
 | Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache, components and the project's start scene by handle, move / delete that keep handles ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
 | Audio | `AudioEngine` | Planned | after `AssetManager` |
 | Scripting | `ScriptEngine` | Planned | after `AssetManager`, before the client's `OnInit` |
-| Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Started (Oct 24, 2026): Box2D v3.1.1 linked, assert hook, length unit, a Debug-build self test. No simulation yet; the physics components are saved data only | after `AssetManager` (there is no `ScriptEngine` yet) |
+| Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Started (Oct 24, 2026): Box2D v3.1.1 linked, assert hook, length unit, a Debug-build self test. Each runtime scene owns a `PhysicsScene` that steps at a fixed 60 Hz and delivers collision and trigger events to scripts | after `AssetManager` (there is no `ScriptEngine` yet) |
 
 ## Adding a subsystem
 

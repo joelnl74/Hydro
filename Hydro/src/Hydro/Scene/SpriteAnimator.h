@@ -9,6 +9,7 @@
 namespace Hydro
 {
 	class Scene;
+	class SpriteAnimationSet;
 	struct SystemContext;
 
 	// System (play mode, after physics and before transforms): advances every SpriteAnimatorComponent by
@@ -16,6 +17,10 @@ namespace Hydro
 	// (Texture, SpriteIndex, FlipX). Starts PlayOnStart animators on their first update.
 	// Does nothing unless context.IsPlaying.
 	void UpdateSpriteAnimations(Scene& scene, const SystemContext& context);
+
+	// Clears every animator's playback (SpriteAnimatorState), so the game starts from PlayOnStart and
+	// StartClip whatever the editor scene's copy held. Scene::OnRuntimeStart calls it.
+	void ResetSpriteAnimations(Scene& scene);
 
 	// Controls an entity's SpriteAnimatorComponent from scripts and game code:
 	//
@@ -44,6 +49,18 @@ namespace Hydro
 		static bool IsFinished(Entity entity);
 		// The current clip's name; empty when nothing was started.
 		static std::string_view GetCurrentClip(Entity entity);
+		// The frame of the current clip that is showing (0 when nothing was started).
+		static uint32_t GetFrameIndex(Entity entity);
+		// Sets the saved Speed (clamped to 0 or more). Meant for play mode, where the scene is a copy:
+		// called on the editor scene it changes what is saved.
 		static void SetSpeed(Entity entity, float speed);
+
+		// Clears the playback, as if the animator had never started (the animation set changed in the
+		// inspector). Works without a loaded set.
+		static void ResetPlayback(Entity entity);
+		// After the entity's animation set was reloaded (edited and saved in the Animation window):
+		// keeps the clip with the same name as the one that was playing in `before`, from its first
+		// frame, or starts over (PlayOnStart) when the new set has no such clip.
+		static void RestartAfterReload(Entity entity, const SpriteAnimationSet* before);
 	};
 }

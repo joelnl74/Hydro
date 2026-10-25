@@ -154,4 +154,68 @@ namespace Hydro
 		glfwPollEvents();
 	}
 
+	// The monitor that holds most of the window (the primary one when it overlaps none).
+	static GLFWmonitor* FindMonitorOf(GLFWwindow* window)
+	{
+		int windowX = 0, windowY = 0, windowWidth = 0, windowHeight = 0;
+		glfwGetWindowPos(window, &windowX, &windowY);
+		glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+		int count = 0;
+		GLFWmonitor** monitors = glfwGetMonitors(&count);
+		GLFWmonitor* best = glfwGetPrimaryMonitor();
+		int bestArea = 0;
+		for (int i = 0; i < count; i++)
+		{
+			const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
+			if (mode == nullptr)
+			{
+				continue;
+			}
+
+			int monitorX = 0, monitorY = 0;
+			glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
+			const int overlapWidth = std::max(0, std::min(windowX + windowWidth, monitorX + mode->width) - std::max(windowX, monitorX));
+			const int overlapHeight = std::max(0, std::min(windowY + windowHeight, monitorY + mode->height) - std::max(windowY, monitorY));
+			if (overlapWidth * overlapHeight > bestArea)
+			{
+				bestArea = overlapWidth * overlapHeight;
+				best = monitors[i];
+			}
+		}
+
+		return best;
+	}
+
+	void WindowsWindow::SetFullscreen(bool fullscreen)
+	{
+		if (m_Window == nullptr || fullscreen == m_Fullscreen)
+		{
+			return;
+		}
+
+		if (fullscreen)
+		{
+			glfwGetWindowPos(m_Window, &m_WindowedX, &m_WindowedY);
+			glfwGetWindowSize(m_Window, &m_WindowedWidth, &m_WindowedHeight);
+
+			GLFWmonitor* monitor = FindMonitorOf(m_Window);
+			const GLFWvidmode* mode = monitor != nullptr ? glfwGetVideoMode(monitor) : nullptr;
+			if (mode == nullptr)
+			{
+				HY_CORE_WARN("Window: no monitor found, staying windowed");
+				return;
+			}
+
+			// The monitor's current mode: no mode switch, so going in and out is quick.
+			glfwSetWindowMonitor(m_Window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+		}
+		else
+		{
+			glfwSetWindowMonitor(m_Window, nullptr, m_WindowedX, m_WindowedY, std::max(1, m_WindowedWidth), std::max(1, m_WindowedHeight), 0);
+		}
+
+		m_Fullscreen = fullscreen;
+	}
+
 }

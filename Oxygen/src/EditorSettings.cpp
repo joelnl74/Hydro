@@ -162,6 +162,8 @@ namespace Hydro
 		out << YAML::Key << "Tint" << YAML::Value << settings.PlayMode.Tint;
 		WriteVec4(out, "TintColor", settings.PlayMode.TintColor);
 		out << YAML::Key << "TintStrength" << YAML::Value << settings.PlayMode.TintStrength;
+		out << YAML::Key << "FullscreenCoversMonitor" << YAML::Value << settings.PlayMode.FullscreenCoversMonitor;
+		out << YAML::Key << "LeaveFullscreenOnStop" << YAML::Value << settings.PlayMode.LeaveFullscreenOnStop;
 		out << YAML::EndMap;
 
 		const EditorCameraSettings& camera = settings.Camera;
@@ -299,6 +301,8 @@ namespace Hydro
 			ReadBool(playMode, "Tint", loaded.PlayMode.Tint);
 			ReadVec4(playMode, "TintColor", loaded.PlayMode.TintColor);
 			ReadFloat(playMode, "TintStrength", loaded.PlayMode.TintStrength);
+			ReadBool(playMode, "FullscreenCoversMonitor", loaded.PlayMode.FullscreenCoversMonitor);
+			ReadBool(playMode, "LeaveFullscreenOnStop", loaded.PlayMode.LeaveFullscreenOnStop);
 		}
 
 		if (const YAML::Node camera = node["EditorCamera"])

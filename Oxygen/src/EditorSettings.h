@@ -16,6 +16,10 @@ namespace Hydro
 		bool Tint = true;
 		ImVec4 TintColor = { 1.00f, 0.55f, 0.24f, 1.0f }; // ember
 		float TintStrength = 0.12f;                       // 0 = none, 1 = the tint colour itself
+		// The Game window's full screen mode (F11): also make the editor's window cover the whole monitor
+		// (otherwise the game only fills the editor's window), and leave it when Play stops.
+		bool FullscreenCoversMonitor = true;
+		bool LeaveFullscreenOnStop = true;
 	};
 
 	struct ConsoleSettings

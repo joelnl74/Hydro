@@ -209,6 +209,8 @@ namespace Hydro
 
 		// Slot 0 of every texture set; made in code (no file).
 		Ref<Texture2D> WhiteTexture;
+		// The default particle texture; made in code.
+		Ref<Texture2D> SoftDotTexture;
 
 		// Every RenderView that exists (they register themselves).
 		std::vector<RenderViewData*> Views;
@@ -518,6 +520,30 @@ namespace Hydro
 			s_Data->WhiteTexture = CreateRef<Texture2D>(whiteSpecification, &whitePixel);
 		}
 
+		// The soft dot: white, alpha (1 - r)^2 from the centre to the edge of a 32 x 32 image.
+		{
+			constexpr uint32_t size = 32;
+			std::vector<uint32_t> pixels(size * size);
+			for (uint32_t y = 0; y < size; y++)
+			{
+				for (uint32_t x = 0; x < size; x++)
+				{
+					const float dx = ((float)x + 0.5f) / (float)size * 2.0f - 1.0f;
+					const float dy = ((float)y + 0.5f) / (float)size * 2.0f - 1.0f;
+					const float falloff = std::max(0.0f, 1.0f - std::sqrt(dx * dx + dy * dy));
+					const uint32_t alpha = (uint32_t)std::lround(falloff * falloff * 255.0f);
+					pixels[y * size + x] = (alpha << 24) | 0x00ffffffu; // RGBA bytes in memory: ff ff ff alpha
+				}
+			}
+			ImageSpecification dotSpecification;
+			dotSpecification.Width = size;
+			dotSpecification.Height = size;
+			dotSpecification.Format = ImageFormat::SRGB;
+			TextureProperties dotProperties;
+			dotProperties.SamplerWrap = TextureWrap::Clamp;
+			s_Data->SoftDotTexture = CreateRef<Texture2D>(dotSpecification, pixels.data(), dotProperties);
+		}
+
 		// Index buffer. FIX: indices are uint32_t (and bound as VK_INDEX_TYPE_UINT32), so the
 		// buffer must be MaxIndices * 4 bytes. It used to be sized with sizeof(uint16_t), so only
 		// the first half was uploaded and any draw past MaxQuads/2 read outside the buffer.
@@ -624,6 +650,7 @@ namespace Hydro
 		s_Data->LayoutDescriptorSet.reset();
 		s_Data->LayoutUniformBuffer.reset();
 		s_Data->QuadIndexBuffer.reset();
+		s_Data->SoftDotTexture.reset();
 		s_Data->WhiteTexture.reset();
 		s_Data->Shader.reset();
 		s_Data->PipelineRenderPass.reset();
@@ -1094,7 +1121,37 @@ namespace Hydro
 		}
 	}
 
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor)
+	{
+		// The unit quad's corners scaled, turned and moved, without a 4x4 matrix per quad.
+		const float c = std::cos(rotation);
+		const float s = std::sin(rotation);
+		const glm::vec2 right = glm::vec2(c, s) * (size.x * 0.5f);
+		const glm::vec2 up = glm::vec2(-s, c) * (size.y * 0.5f);
+		const glm::vec3 corners[4] = {
+			{ position.x - right.x - up.x, position.y - right.y - up.y, position.z },
+			{ position.x + right.x - up.x, position.y + right.y - up.y, position.z },
+			{ position.x + right.x + up.x, position.y + right.y + up.y, position.z },
+			{ position.x - right.x + up.x, position.y - right.y + up.y, position.z } };
+		SubmitQuadCorners(corners, texture, textureRect, tintColor);
+	}
+
+	const Ref<Texture2D>& Renderer2D::GetSoftDotTexture()
+	{
+		return s_Data->SoftDotTexture;
+	}
+
 	void Renderer2D::SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color)
+	{
+		glm::vec3 corners[4];
+		for (size_t i = 0; i < 4; i++)
+		{
+			corners[i] = glm::vec3(transform * s_Data->QuadVertexPositions[i]);
+		}
+		SubmitQuadCorners(corners, texture, textureRect, color);
+	}
+
+	void Renderer2D::SubmitQuadCorners(const glm::vec3 (&corners)[4], const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color)
 	{
 		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawQuad outside BeginScene/EndScene");
 		if (s_Data->CurrentView == nullptr)
@@ -1124,7 +1181,7 @@ namespace Hydro
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			view.QuadVertexBufferPtr->Position = transform * s_Data->QuadVertexPositions[i];
+			view.QuadVertexBufferPtr->Position = corners[i];
 			view.QuadVertexBufferPtr->Color = color;
 			view.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			view.QuadVertexBufferPtr->TexIndex = textureIndex;

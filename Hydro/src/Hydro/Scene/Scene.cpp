@@ -6,6 +6,7 @@
 #include "SpriteAnimator.h"
 #include "SystemContext.h"
 #include "Hydro/Physics/PhysicsScene.h"
+#include "ParticleScene.h"
 
 #include "../Renderer/Renderer2D.h"
 #include <Hydro/Core/Time.h>
@@ -42,6 +43,7 @@ namespace Hydro
 
 		m_Deferred.clear();
 		m_PendingDestroy.clear();
+		m_Particles.reset();
 		m_Physics.reset();
 	}
 
@@ -530,11 +532,20 @@ namespace Hydro
 	void Scene::OnRuntimeStart()
 	{
 		if (m_Physics == nullptr)
+		{
 			m_Physics = CreateScope<PhysicsScene>(*this);
+		}
+		if (m_Particles == nullptr)
+		{
+			m_Particles = CreateScope<ParticleScene>();
+		}
+		// The play copy carries the editor scene's runtime state; the game starts from the saved settings.
+		ResetSpriteAnimations(*this);
 	}
 
 	void Scene::OnRuntimeStop()
 	{
+		m_Particles.reset();
 		m_Physics.reset();
 	}
 
@@ -542,13 +553,18 @@ namespace Hydro
 	{
 		const SystemContext context = MakeSystemContext(deltaTime, true);
 
+		// Nobody called OnRuntimeStart: do it before the first stage, so it can't undo what the
+		// scripts start in their first update (it resets the animators).
+		if (m_Physics == nullptr)
+		{
+			OnRuntimeStart();
+		}
+
 		// 1. Native scripts. Instances are created lazily on their first update.
 		UpdateScripts(*this, context);
 
 		// 2. Physics: after the scripts have set velocities and moved kinematic bodies, before animation
 		// and transforms read the result.
-		if (m_Physics == nullptr)
-			OnRuntimeStart();
 		m_Physics->Step(context);
 		DispatchPhysicsEvents();
 
@@ -557,6 +573,10 @@ namespace Hydro
 
 		// 4. Transforms, shared with the editor.
 		UpdateTransforms(context);
+
+		// 5. Particles, after transforms so emitters read their final position this frame. Finished
+		// one-shot effects (DestroyWhenFinished) are destroyed here, after the emitter loop.
+		UpdateParticles(*this, context);
 	}
 
 	void Scene::OnUpdateEditor(float deltaTime)

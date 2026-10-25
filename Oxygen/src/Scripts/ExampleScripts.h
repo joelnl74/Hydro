@@ -1,7 +1,9 @@
 #pragma once
 #include "Hydro.h"
+#include "DioramaCamera.h"
 #include "VillageScripts.h"
 #include "BattleScripts.h"
+#include "MvpScripts.h"
 
 #include <algorithm>
 #include <cmath>
@@ -55,19 +57,21 @@ namespace Hydro
 		void OnUpdate(float deltaTime) override
 		{
 			glm::vec2 move{ 0.0f };
-			if (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left))
+			// A modal menu owns the keys: the character stands still (and faces the way it was).
+			const bool inputAllowed = UIState::MenuOpen == false;
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left)))
 			{
 				move.x -= 1.0f;
 			}
-			if (Input::IsKeyPressed(KeyCode::D) || Input::IsKeyPressed(KeyCode::Right))
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::D) || Input::IsKeyPressed(KeyCode::Right)))
 			{
 				move.x += 1.0f;
 			}
-			if (Input::IsKeyPressed(KeyCode::W) || Input::IsKeyPressed(KeyCode::Up))
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::W) || Input::IsKeyPressed(KeyCode::Up)))
 			{
 				move.y += 1.0f;
 			}
-			if (Input::IsKeyPressed(KeyCode::S) || Input::IsKeyPressed(KeyCode::Down))
+			if (inputAllowed && (Input::IsKeyPressed(KeyCode::S) || Input::IsKeyPressed(KeyCode::Down)))
 			{
 				move.y -= 1.0f;
 			}
@@ -131,9 +135,10 @@ namespace Hydro
 		}
 	};
 
-	// Put it on the camera: the camera glides after the first entity tagged "Player" (x and y only; the
-	// Z and the zoom are left alone) and stays inside the bounds. It follows in play mode only, because
-	// scripts only run there.
+	// Put it on the camera: the camera glides after the first entity tagged "Player" (the zoom is left alone)
+	// and its focus stays inside the bounds. V switches between top-down and the tilted diorama view, O
+	// between perspective and orthographic in the diorama (DioramaCamera.h). It follows in play mode only,
+	// because scripts only run there.
 	class CameraFollowScript : public ScriptableEntity
 	{
 	protected:
@@ -143,25 +148,36 @@ namespace Hydro
 			Scene* scene = self.GetScene();
 			auto& transform = GetComponent<TransformComponent>();
 
+			DioramaView::Update(deltaTime);
 			if (m_Target == entt::null || scene->m_Registry.valid(m_Target) == false)
 			{
 				m_Target = FindTarget(*scene);
 				m_Snap = true;
 			}
 
-			if (m_Target == entt::null || scene->m_Registry.has<TransformComponent>(m_Target) == false)
+			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
-				return;
+				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
+				const glm::vec2 goal{ std::clamp(position.x, -m_BoundsX, m_BoundsX), std::clamp(position.y + m_LookAhead, -m_BoundsY, m_BoundsY) };
+
+				// Frame-rate independent smoothing: closes most of the gap in about a third of a second.
+				if (m_Snap)
+				{
+					m_Focus = goal;
+				}
+				const float t = 1.0f - std::exp(-m_Smoothing * deltaTime);
+				m_Focus += (goal - m_Focus) * t;
+				m_Snap = false;
+			}
+			else if (m_Snap)
+			{
+				m_Focus = { transform.Translation.x, transform.Translation.y };
 			}
 
-			const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
-			const glm::vec2 goal{ std::clamp(position.x, -m_BoundsX, m_BoundsX), std::clamp(position.y + m_LookAhead, -m_BoundsY, m_BoundsY) };
-
-			// Frame-rate independent smoothing: closes most of the gap in about a third of a second.
-			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-m_Smoothing * deltaTime);
-			transform.Translation.x += (goal.x - transform.Translation.x) * t;
-			transform.Translation.y += (goal.y - transform.Translation.y) * t;
-			m_Snap = false;
+			if (self.HasComponent<CameraComponent>())
+			{
+				DioramaView::Apply(transform, GetComponent<CameraComponent>(), m_Focus);
+			}
 		}
 
 	private:
@@ -181,6 +197,7 @@ namespace Hydro
 
 		entt::entity m_Target = entt::null;
 		bool m_Snap = true;
+		glm::vec2 m_Focus{ 0.0f }; // where the camera looks, on the ground
 		float m_Smoothing = 8.0f;
 		float m_LookAhead = 1.5f;   // aim at the character's chest, not the feet
 		float m_BoundsX = 17.0f;    // LightingTest's ground is 60 x 60 units; the view is about 25 x 14
@@ -195,6 +212,7 @@ namespace Hydro
 		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalk");
 		ScriptRegistry::Register<YSortScript>("YSort");
 		ScriptRegistry::Register<CameraFollowScript>("CameraFollow");
+		ScriptRegistry::Register<MvpDirectorScript>("MvpDirector");
 		RegisterVillageScripts();
 		RegisterBattleScripts();
 	}

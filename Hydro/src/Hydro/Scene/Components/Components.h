@@ -19,9 +19,21 @@ namespace Hydro
 	class Scene;
 	class UUID;
 
+	// How a sprite's quad is turned towards the camera. The ground is the XY plane and +Z is up (Diorama RPG
+	// H1), so a top-down camera (looking down -Z) sees every facing the same way: as a flat quad in XY.
+	enum class SpriteFacing : uint8_t
+	{
+		Flat = 0,  // lies on the ground (XY), as it is authored: ground, roads, decals, water, bridges
+		Upright,   // stands on the bottom edge of its quad and turns to face the camera (yaw and pitch, never
+		           // roll): trees, buildings, props, characters. With a top-down camera it lies flat, so
+		           // tilting the camera stands it up gradually
+		Billboard  // turns about its centre to face the camera fully: particles, glows, icons, world-space UI
+	};
+
 	// A quad drawn with the entity's TransformComponent: Texture (white when 0 or not loaded) multiplied by Color
 	// (alpha blended). A Single texture is drawn whole, repeated TilingFactor times; a Multiple texture
 	// (a sprite sheet, see TextureImportConfig) draws its sprite SpriteIndex, placed by the sprite's pivot.
+	// Facing decides how the quad turns towards a tilted camera (SceneRenderer).
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -32,7 +44,9 @@ namespace Hydro
 		AssetHandle Texture = 0;
 		float TilingFactor = 1.0f; // Single textures only
 		// Draw order: sprites are drawn from low to high SortOrder, so higher values end up on top.
-		// Equal values: lower Translation.z first, then the order the scene stores them in.
+		// Equal values: Flat sprites first (lower Translation.z first), then Upright and Billboard ones from
+		// far to near along the camera's ground direction (feet of an Upright, centre of a Billboard), then
+		// the order the scene stores them in.
 		int32_t SortOrder = 0;
 		// Which of the texture's sprites to draw (Texture2D::GetSprite). 0 is the whole image of a
 		// Single texture and the first sprite of a Multiple one; out of range draws sprite 0.
@@ -40,6 +54,7 @@ namespace Hydro
 		uint32_t SpriteIndex = 0;
 		bool FlipX = false;
 		bool FlipY = false;
+		SpriteFacing Facing = SpriteFacing::Flat;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -113,6 +128,20 @@ namespace Hydro
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	// Playback of a SpriteAnimatorComponent: runtime state kept in the component (component state rule 2
+	// in docs/SceneAndECS.md). Not saved; reset for every animator when the game starts
+	// (ResetSpriteAnimations); written only by UpdateSpriteAnimations and SpriteAnimator. Everything else
+	// reads it through SpriteAnimator (GetCurrentClip, GetFrameIndex, IsPlaying, IsFinished).
+	struct SpriteAnimatorState
+	{
+		int32_t ClipIndex = -1; // -1 = nothing started yet
+		uint32_t FrameIndex = 0;
+		float FrameTime = 0.0f; // seconds into the current frame
+		int8_t Step = 1;        // PingPong direction: 1 forwards, -1 backwards
+		bool Playing = false;
+		bool Finished = false;  // a Once clip reached its last frame
+	};
+
 	// Plays clips from a SpriteAnimationSet on the entity's SpriteRendererComponent (it sets the
 	// sprite's Texture, SpriteIndex and FlipX). Control it with SpriteAnimator (Play, Stop, Pause...);
 	// UpdateSpriteAnimations advances it, in play mode only.
@@ -125,13 +154,8 @@ namespace Hydro
 		bool PlayOnStart = true;
 		float Speed = 1.0f;    // 2 = twice as fast
 
-		// Runtime state: not saved, written only by UpdateSpriteAnimations and SpriteAnimator.
-		int32_t ClipIndex = -1; // -1 = nothing started yet
-		uint32_t FrameIndex = 0;
-		float FrameTime = 0.0f; // seconds into the current frame
-		int8_t Step = 1;        // PingPong direction: 1 forwards, -1 backwards
-		bool Playing = false;
-		bool Finished = false;  // a Once clip reached its last frame
+		// Runtime, not saved: see SpriteAnimatorState.
+		SpriteAnimatorState State;
 
 		SpriteAnimatorComponent() = default;
 		SpriteAnimatorComponent(const SpriteAnimatorComponent&) = default;
@@ -154,6 +178,11 @@ namespace Hydro
 		glm::vec3 Color{ 1.0f, 1.0f, 1.0f }; // linear RGB
 		float Intensity = 1.0f;              // multiplies Color; values above 1 over-brighten (up to 2x the sprite's colour)
 		float Radius = 5.0f;                 // Point only: how far the light reaches, in world units
+		// Point only: how high above its ground position the light sits, measured up an Upright sprite (a
+		// lantern's glass, a window). The light moves with the camera's tilt the way a point on an Upright
+		// sprite does: Height units up the screen in a top-down view, that far up the standing sprite in a
+		// tilted one. 0 = on the ground.
+		float Height = 0.0f;
 
 		Light2DComponent() = default;
 		Light2DComponent(const Light2DComponent&) = default;
@@ -234,11 +263,97 @@ namespace Hydro
 
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
+	// How a particle's colour is combined with what is already drawn.
+	enum class ParticleBlend : uint8_t
+	{
+		Alpha = 0, // like sprites: smoke, dust, leaves
+		Additive   // adds light: sparks, embers, magic
+	};
+
+	// Whether the view's lighting darkens a particle. Unlit + Additive is "emissive" (stays bright at night).
+	enum class ParticleLighting : uint8_t
+	{
+		Lit = 0, // multiplied by the view's light buffer, like sprites
+		Unlit    // not darkened by scene lighting (Roadmap V4; drawn lit until then)
+	};
+
+	// Where new particles appear, around the entity's position. A cone is a Point with a narrow Spread.
+	enum class EmitterShape : uint8_t
+	{
+		Point = 0,
+		Circle, // inside a circle of radius ShapeSize.x
+		Box     // inside a ShapeSize.x x ShapeSize.y box
+	};
+
+	// A random value between Min and Max (inclusive), picked once per particle.
+	struct FloatRange
+	{
+		float Min = 1.0f;
+		float Max = 1.0f;
+	};
+
+	// Emits 2D particles at the entity's position (world space: a particle stays where it was emitted).
+	// Settings only (component state rule 3 in docs/SceneAndECS.md): the live particles and the playback
+	// state will be in the scene's ParticleScene, simulated by UpdateParticles and controlled with
+	// Particles2D (Roadmap V2, V5). Until then this component is saved, copied on Play and edited in the
+	// inspector, but nothing is drawn.
+	struct ParticleEmitter2DComponent
+	{
+		// Limits the editor and the loader clamp to.
+		static constexpr uint32_t MaxParticlesLimit = 4096;
+
+		// Emission
+		bool PlayOnStart = true;
+		bool Looping = true;
+		float Duration = 1.0f;        // seconds per loop
+		float Rate = 10.0f;           // particles per second
+		uint32_t BurstCount = 0;      // emitted at once at the start of every loop
+		uint32_t MaxParticles = 64;   // alive at once, at most (1 to MaxParticlesLimit)
+		uint32_t Seed = 0;            // 0 = a new random seed each playback; otherwise repeatable
+		EmitterShape Shape = EmitterShape::Point;
+		glm::vec2 ShapeSize{ 0.5f, 0.5f }; // Circle: x = radius; Box: width, height (world units)
+
+		// Each particle at birth
+		FloatRange Lifetime{ 0.5f, 1.0f };        // seconds
+		FloatRange Speed{ 1.0f, 2.0f };           // world units per second
+		float Direction = 90.0f;                  // degrees, 0 = right, 90 = up
+		float Spread = 30.0f;                     // degrees either side of Direction (180 = every way)
+		FloatRange StartSize{ 0.1f, 0.2f };       // world units
+		FloatRange StartRotation{ 0.0f, 0.0f };   // degrees
+		FloatRange AngularVelocity{ 0.0f, 0.0f }; // degrees per second
+
+		// Over a particle's life (start to end; curves are Roadmap V3)
+		float EndSizeScale = 1.0f;                // size at death = start size * this
+		glm::vec4 StartColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 EndColor{ 1.0f, 1.0f, 1.0f, 0.0f };
+		glm::vec2 Gravity{ 0.0f, 0.0f };          // world units / s^2
+		float Drag = 0.0f;                        // slows particles down; 0 = none
+		float Turbulence = 0.0f;                  // random push, world units / s^2 (wandering fireflies)
+
+		// Look
+		AssetHandle Texture = 0;                  // 0 = a soft round dot
+		uint32_t SpriteIndex = 0;                 // for a sprite sheet texture
+		ParticleBlend Blend = ParticleBlend::Alpha;
+		ParticleLighting Lighting = ParticleLighting::Lit;
+		int32_t SortOrder = 0;                    // sorted with sprites (higher = on top)
+
+		// Light per emitter (Roadmap V4, optional; 0 radius = none)
+		float LightRadius = 0.0f;
+		float LightIntensity = 1.0f;
+		uint32_t MaxLights = 0;                   // the youngest particles that get a light
+
+		// One-shot effects: destroy the entity once it stopped emitting and no particles are left
+		bool DestroyWhenFinished = false;
+
+		ParticleEmitter2DComponent() = default;
+		ParticleEmitter2DComponent(const ParticleEmitter2DComponent&) = default;
+	};
+
 	template<typename... Component>
 	struct ComponentGroup
 	{
 	};
 
 	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent>;
 }

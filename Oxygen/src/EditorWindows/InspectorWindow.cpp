@@ -1,6 +1,7 @@
 #include "InspectorWindow.h"
 #include "../EditorPaths.h"
 #include "Utilities/AssetPicker.h"
+#include "PropertyUI.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,6 +11,7 @@
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SpriteAnimation.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
+#include <Hydro/Scene/SpriteAnimator.h>
 #include <Hydro/Scene/ScriptableEntity.h>
 
 #include <algorithm>
@@ -129,14 +131,15 @@ namespace Hydro
 		ImGui::PopID();
 	}
 
-	// The sprite's texture: pick one of the project's images, or drop one from the Project window; X clears it.
-	static void DrawTextureField(SpriteRendererComponent& sprite)
+	// A texture field (sprites, particle emitters): pick one of the project's images, or drop one from the
+	// Project window; X clears it.
+	static void DrawTextureField(const char* id, AssetHandle& textureHandle)
 	{
-		const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(sprite.Texture);
+		const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(textureHandle);
 		const std::string detail = texture != nullptr ? std::to_string(texture->GetWidth()) + " x " + std::to_string(texture->GetHeight()) + " px"
-			: (static_cast<uint64_t>(sprite.Texture) != 0 ? "The texture is missing or couldn't be loaded (see the console)." : std::string());
+			: (static_cast<uint64_t>(textureHandle) != 0 ? "The texture is missing or couldn't be loaded (see the console)." : std::string());
 
-		const AssetPickerResult result = AssetPicker::DrawField("##Texture", sprite.Texture, AssetType::Texture2D, detail);
+		const AssetPickerResult result = AssetPicker::DrawField(id, textureHandle, AssetType::Texture2D, detail);
 		if (result.Changed == false)
 		{
 			return;
@@ -145,8 +148,41 @@ namespace Hydro
 		// Loading the texture logs why a file couldn't be loaded; a handle that doesn't load is not taken.
 		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<Texture2D>(result.Handle) != nullptr)
 		{
-			sprite.Texture = result.Handle;
+			textureHandle = result.Handle;
 		}
+	}
+
+	// A FloatRange as two fields, Min and Max, clamped to [min, max] when left; Max never ends up below Min.
+	static void DrawRangeField(const char* id, FloatRange& range, float min, float max, const char* format = "%.2f")
+	{
+		ImGui::PushID(id);
+		const float half = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+		ImGui::SetNextItemWidth(half);
+		InputFloatField("##Min", range.Min, format, min, max);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("Min: each particle picks a value between Min and Max.");
+		}
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-1.0f);
+		InputFloatField("##Max", range.Max, format, min, max);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("Max");
+		}
+		if (ImGui::IsAnyItemActive() == false && range.Max < range.Min)
+		{
+			std::swap(range.Min, range.Max);
+		}
+		ImGui::PopID();
+	}
+
+	// A small heading between groups of rows in a long component section.
+	static void DrawSubheading(const char* text)
+	{
+		ImGui::Spacing();
+		ImGui::TextDisabled("%s", text);
+		ImGui::Separator();
 	}
 
 	// For a sprite sheet (a Multiple texture): which of its sprites to draw.
@@ -183,7 +219,7 @@ namespace Hydro
 	}
 
 	// The animator's .hyanim: pick one of the project's animation sets, or drop one from the Project window; X clears it.
-	static void DrawAnimationSetField(SpriteAnimatorComponent& animator)
+	static void DrawAnimationSetField(Entity entity, SpriteAnimatorComponent& animator)
 	{
 		const Ref<SpriteAnimationSet> set = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
 		const std::string detail = set != nullptr ? std::to_string(set->GetClipCount()) + " clips"
@@ -199,7 +235,7 @@ namespace Hydro
 		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<SpriteAnimationSet>(result.Handle) != nullptr)
 		{
 			animator.Animations = result.Handle;
-			animator.ClipIndex = -1;
+			SpriteAnimator::ResetPlayback(entity);
 		}
 	}
 
@@ -377,6 +413,7 @@ namespace Hydro
 		bool removeRigidbody = false;
 		bool removeBoxCollider = false;
 		bool removeCircleCollider = false;
+		bool removeEmitter = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
 
@@ -395,7 +432,7 @@ namespace Hydro
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, removeSprite, [&](SpriteRendererComponent& sprite)
 		{
 			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##Color", glm::value_ptr(sprite.Color)); });
-			DrawPropertyRow("Texture", [&]() { DrawTextureField(sprite); });
+			DrawPropertyRow("Texture", [&]() { DrawTextureField("##Texture", sprite.Texture); });
 			const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(sprite.Texture);
 			const bool isSheet = texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple;
 			if (isSheet)
@@ -411,6 +448,19 @@ namespace Hydro
 				ImGui::Checkbox("X##FlipX", &sprite.FlipX);
 				ImGui::SameLine();
 				ImGui::Checkbox("Y##FlipY", &sprite.FlipY);
+			});
+			DrawPropertyRow("Facing", [&]()
+			{
+				const char* facingNames[] = { "Flat", "Upright", "Billboard" };
+				int facing = (int)sprite.Facing;
+				if (ImGui::Combo("##Facing", &facing, facingNames, 3))
+				{
+					sprite.Facing = (SpriteFacing)facing;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How the sprite turns towards a tilted camera.\nFlat: lies on the ground (roads, decals, water).\nUpright: stands on its bottom edge and faces the camera (trees, houses, characters).\nBillboard: faces the camera about its centre (glows, icons, world-space UI).\nA top-down camera draws all three the same.");
+				}
 			});
 			if (texture != nullptr && entity.HasComponent<TransformComponent>())
 			{
@@ -439,7 +489,7 @@ namespace Hydro
 				}
 				if (ImGui::IsItemHovered())
 				{
-					ImGui::SetTooltip("Higher values are drawn on top. Equal values: lower Z first.");
+					ImGui::SetTooltip("Higher values are drawn on top. Equal values: Flat sprites first (lower Z first),\nthen Upright and Billboard ones from far to near.");
 				}
 			});
 		});
@@ -448,17 +498,18 @@ namespace Hydro
 		DrawComponent<SpriteAnimatorComponent>("Sprite Animator", entity, removeAnimator, [&](SpriteAnimatorComponent& animator)
 		{
 			const AssetHandle before = animator.Animations;
-			DrawPropertyRow("Animations", [&]() { DrawAnimationSetField(animator); });
+			DrawPropertyRow("Animations", [&]() { DrawAnimationSetField(entity, animator); });
 			DrawPropertyRow("Start Clip", [&]() { showStartFrame |= DrawStartClipField(animator); });
 			DrawPropertyRow("Play On Start", [&]() { ImGui::Checkbox("##PlayOnStart", &animator.PlayOnStart); });
 			DrawPropertyRow("Speed", [&]() { InputFloatField("##Speed", animator.Speed, "%.2f", 0.0f, 100.0f); });
 			showStartFrame |= animator.Animations != before;
 
-			const Ref<SpriteAnimationSet> animationSet = AssetManager::GetAsset<SpriteAnimationSet>(animator.Animations);
-			if (animator.ClipIndex >= 0 && animationSet != nullptr && (uint32_t)animator.ClipIndex < animationSet->GetClipCount())
+			// Playback status (play mode): read through SpriteAnimator, never from the component's State.
+			const std::string_view currentClip = SpriteAnimator::GetCurrentClip(entity);
+			if (currentClip.empty() == false)
 			{
-				ImGui::TextDisabled("Playing %s, frame %u%s", animationSet->GetClip((uint32_t)animator.ClipIndex).Name.c_str(),
-					animator.FrameIndex, animator.Playing ? "" : (animator.Finished ? " (finished)" : " (stopped)"));
+				const char* status = SpriteAnimator::IsPlaying(entity) ? "" : (SpriteAnimator::IsFinished(entity) ? " (finished)" : " (stopped)");
+				ImGui::TextDisabled("Playing %.*s, frame %u%s", (int)currentClip.size(), currentClip.data(), SpriteAnimator::GetFrameIndex(entity), status);
 			}
 			if (entity.HasComponent<SpriteRendererComponent>() == false)
 			{
@@ -517,6 +568,14 @@ namespace Hydro
 			if (light.Type == Light2DType::Point)
 			{
 				DrawPropertyRow("Radius", [&]() { InputFloatField("##LightRadius", light.Radius, "%.2f", 0.01f, 10000.0f); });
+				DrawPropertyRow("Height", [&]()
+				{
+					InputFloatField("##LightHeight", light.Height, "%.2f", 0.0f, 10000.0f);
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("How far above its position the light is, up an Upright sprite (a lantern's glass).\nTop-down it is drawn that far up the screen; with a tilted camera that far up the standing sprite.");
+					}
+				});
 			}
 			else
 			{
@@ -586,6 +645,121 @@ namespace Hydro
 			{
 				ImGui::TextDisabled("No Rigidbody 2D: this is a static collider.");
 			}
+		});
+
+		DrawComponent<ParticleEmitter2DComponent>("Particle Emitter 2D", entity, removeEmitter, [&](ParticleEmitter2DComponent& emitter)
+		{
+			const float limit = (float)ParticleEmitter2DComponent::MaxParticlesLimit;
+
+			DrawSubheading("Emission");
+			DrawPropertyRow("Play On Start", [&]() { ImGui::Checkbox("##EmitterPlayOnStart", &emitter.PlayOnStart); });
+			DrawPropertyRow("Looping", [&]() { ImGui::Checkbox("##EmitterLooping", &emitter.Looping); });
+			DrawPropertyRow("Duration", [&]() { InputFloatField("##EmitterDuration", emitter.Duration, "%.2f s", 0.01f, 3600.0f); });
+			DrawPropertyRow("Rate", [&]() { InputFloatField("##EmitterRate", emitter.Rate, "%.1f / s", 0.0f, 10000.0f); });
+			DrawPropertyRow("Burst", [&]() { PropertyUI::InputUInt("##EmitterBurst", emitter.BurstCount, 0, (uint32_t)limit); });
+			DrawPropertyRow("Max Particles", [&]() { PropertyUI::InputUInt("##EmitterMaxParticles", emitter.MaxParticles, 1, (uint32_t)limit); });
+			DrawPropertyRow("Seed", [&]()
+			{
+				PropertyUI::InputUInt("##EmitterSeed", emitter.Seed, 0, 1000000000u);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("0: a new random seed each time it plays. Any other value: the same pattern every time.");
+				}
+			});
+			const char* shapeNames[] = { "Point", "Circle", "Box" };
+			int shape = (int)emitter.Shape;
+			DrawPropertyRow("Shape", [&]()
+			{
+				if (ImGui::Combo("##EmitterShape", &shape, shapeNames, 3))
+				{
+					emitter.Shape = (EmitterShape)shape;
+				}
+			});
+			if (emitter.Shape == EmitterShape::Circle)
+			{
+				DrawPropertyRow("Radius", [&]() { InputFloatField("##EmitterRadius", emitter.ShapeSize.x, "%.2f", 0.0f, 10000.0f); });
+			}
+			else if (emitter.Shape == EmitterShape::Box)
+			{
+				DrawPropertyRow("Width", [&]() { InputFloatField("##EmitterWidth", emitter.ShapeSize.x, "%.2f", 0.0f, 10000.0f); });
+				DrawPropertyRow("Height", [&]() { InputFloatField("##EmitterHeight", emitter.ShapeSize.y, "%.2f", 0.0f, 10000.0f); });
+			}
+
+			DrawSubheading("Particles at birth");
+			DrawPropertyRow("Lifetime", [&]() { DrawRangeField("EmitterLifetime", emitter.Lifetime, 0.01f, 3600.0f); });
+			DrawPropertyRow("Speed", [&]() { DrawRangeField("EmitterSpeed", emitter.Speed, -10000.0f, 10000.0f); });
+			DrawPropertyRow("Direction", [&]() { InputFloatField("##EmitterDirection", emitter.Direction, "%.1f deg", -360.0f, 360.0f); });
+			DrawPropertyRow("Spread", [&]() { InputFloatField("##EmitterSpread", emitter.Spread, "%.1f deg", 0.0f, 180.0f); });
+			DrawPropertyRow("Size", [&]() { DrawRangeField("EmitterSize", emitter.StartSize, 0.0f, 10000.0f); });
+			DrawPropertyRow("Rotation", [&]() { DrawRangeField("EmitterRotation", emitter.StartRotation, -360.0f, 360.0f, "%.1f"); });
+			DrawPropertyRow("Spin", [&]() { DrawRangeField("EmitterSpin", emitter.AngularVelocity, -10000.0f, 10000.0f, "%.1f"); });
+
+			DrawSubheading("Over lifetime");
+			DrawPropertyRow("Start Color", [&]() { ImGui::ColorEdit4("##EmitterStartColor", glm::value_ptr(emitter.StartColor)); });
+			DrawPropertyRow("End Color", [&]() { ImGui::ColorEdit4("##EmitterEndColor", glm::value_ptr(emitter.EndColor)); });
+			DrawPropertyRow("End Size", [&]() { InputFloatField("##EmitterEndSize", emitter.EndSizeScale, "x %.2f", 0.0f, 100.0f); });
+			DrawPropertyRow("Gravity X", [&]() { InputFloatField("##EmitterGravityX", emitter.Gravity.x, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Gravity Y", [&]() { InputFloatField("##EmitterGravityY", emitter.Gravity.y, "%.2f", -10000.0f, 10000.0f); });
+			DrawPropertyRow("Drag", [&]() { InputFloatField("##EmitterDrag", emitter.Drag, "%.2f", 0.0f, 1000.0f); });
+			DrawPropertyRow("Turbulence", [&]() { InputFloatField("##EmitterTurbulence", emitter.Turbulence, "%.2f", 0.0f, 10000.0f); });
+
+			DrawSubheading("Look");
+			DrawPropertyRow("Texture", [&]() { DrawTextureField("##EmitterTexture", emitter.Texture); });
+			const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(emitter.Texture);
+			if (texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple)
+			{
+				DrawPropertyRow("Sprite", [&]() { PropertyUI::InputUInt("##EmitterSprite", emitter.SpriteIndex, 0, texture->GetSpriteCount() > 0 ? texture->GetSpriteCount() - 1 : 0); });
+			}
+			const char* blendNames[] = { "Alpha", "Additive" };
+			int blend = (int)emitter.Blend;
+			DrawPropertyRow("Blend", [&]()
+			{
+				if (ImGui::Combo("##EmitterBlend", &blend, blendNames, 2))
+				{
+					emitter.Blend = (ParticleBlend)blend;
+				}
+			});
+			const char* lightingNames[] = { "Lit", "Unlit" };
+			int lighting = (int)emitter.Lighting;
+			DrawPropertyRow("Lighting", [&]()
+			{
+				if (ImGui::Combo("##EmitterLighting", &lighting, lightingNames, 2))
+				{
+					emitter.Lighting = (ParticleLighting)lighting;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Unlit: not darkened by scene lighting. Unlit + Additive stays bright at night.");
+				}
+			});
+			DrawPropertyRow("Sort Order", [&]()
+			{
+				int sortOrder = (int)emitter.SortOrder;
+				if (ImGui::InputInt("##EmitterSortOrder", &sortOrder))
+				{
+					emitter.SortOrder = (int32_t)sortOrder;
+				}
+			});
+
+			DrawSubheading("Light (optional)");
+			DrawPropertyRow("Light Radius", [&]() { InputFloatField("##EmitterLightRadius", emitter.LightRadius, "%.2f", 0.0f, 10000.0f); });
+			if (emitter.LightRadius > 0.0f)
+			{
+				DrawPropertyRow("Light Intensity", [&]() { InputFloatField("##EmitterLightIntensity", emitter.LightIntensity, "%.2f", 0.0f, 100.0f); });
+				DrawPropertyRow("Max Lights", [&]() { PropertyUI::InputUInt("##EmitterMaxLights", emitter.MaxLights, 0, (uint32_t)limit); });
+			}
+
+			DrawSubheading("Cleanup");
+			DrawPropertyRow("Destroy When Done", [&]()
+			{
+				ImGui::Checkbox("##EmitterDestroyWhenFinished", &emitter.DestroyWhenFinished);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("For one-shot effects: the entity is destroyed once it stopped emitting and no particles are left.");
+				}
+			});
+
+			ImGui::TextDisabled("Settings only for now: particles are simulated and drawn from Roadmap V2.");
 		});
 
 		int scriptToRemove = -1;
@@ -666,6 +840,10 @@ namespace Hydro
 		{
 			entity.RemoveComponent<CircleCollider2DComponent>();
 		}
+		if (removeEmitter)
+		{
+			entity.RemoveComponent<ParticleEmitter2DComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -692,6 +870,7 @@ namespace Hydro
 			const bool hasRigidbody = entity.HasComponent<Rigidbody2DComponent>();
 			const bool hasBoxCollider = entity.HasComponent<BoxCollider2DComponent>();
 			const bool hasCircleCollider = entity.HasComponent<CircleCollider2DComponent>();
+			const bool hasEmitter = entity.HasComponent<ParticleEmitter2DComponent>();
 
 			if (ImGui::MenuItem("Transform", nullptr, false, hasTransform == false))
 				entity.AddComponent<TransformComponent>();
@@ -746,6 +925,17 @@ namespace Hydro
 				entity.AddComponent<Shadow2DComponent>();
 
 				// The blob is placed by the entity's transform.
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Particle Emitter 2D", nullptr, false, hasEmitter == false))
+			{
+				entity.AddComponent<ParticleEmitter2DComponent>();
+
+				// Particles are emitted at the entity's position.
 				if (entity.HasComponent<TransformComponent>() == false)
 				{
 					entity.AddComponent<TransformComponent>();

@@ -245,6 +245,16 @@ namespace Hydro
 	{
 		// deltaTime comes from the Time subsystem (Time::GetDeltaTime()), passed in by Application::Run.
 		// 1-3. The scene runs only in play mode (and not while paused, except for a Step).
+		// The editor's window goes in or out of full screen here, between ImGui frames (SetGameFullscreen asks).
+		if (m_PendingWindowFullscreen >= 0)
+		{
+			Window& window = Application::Get().GetWindow();
+			window.SetFullscreen(m_PendingWindowFullscreen == 1);
+			m_WindowFullscreenByGame = m_PendingWindowFullscreen == 1 && window.IsFullscreen();
+			m_PendingWindowFullscreen = -1;
+		}
+		m_FullscreenHintTime = std::max(0.0f, m_FullscreenHintTime - deltaTime);
+
 		const bool runGame = IsPlaying() && (m_Paused == false || m_StepFrames > 0);
 		if (runGame)
 		{
@@ -271,7 +281,8 @@ namespace Hydro
 		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
 		m_EditorCamera.Update(m_EditorViewVisible && m_EditorViewHovered);
 
-		if (m_EditorViewVisible)
+		// In game full screen the Editor window is covered: don't draw it.
+		if (m_EditorViewVisible && m_GameFullscreen == false)
 		{
 			SceneRenderer::EditorOverlay overlay;
 			overlay.Selected = m_HierarchyWindow->GetSelectedEntity();
@@ -280,12 +291,14 @@ namespace Hydro
 			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera, overlay);
 		}
 
-		if (m_GameViewVisible)
+		if (m_GameViewVisible || m_GameFullscreen)
 			m_SceneHasCamera = m_SceneRenderer->RenderRuntime(*m_GameView);
 	}
 
 	void EditorLayer::OnImGuiRender()
 	{
+		UpdateFullscreenKeys();
+
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
 		bool opt_fullscreen = opt_fullscreen_persistant;
@@ -432,6 +445,12 @@ namespace Hydro
 
 		ImGui::End();
 
+		// Over everything else, so it is drawn last.
+		if (m_GameFullscreen)
+		{
+			DrawGameFullscreen();
+		}
+
 		EditorChrome::PopPlayModeTint();
 	}
 
@@ -548,9 +567,33 @@ namespace Hydro
 	void EditorLayer::DrawGameWindow()
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		m_GameViewVisible = ImGui::Begin("Game");
+		m_GameViewVisible = ImGui::Begin("Game", nullptr, ImGuiWindowFlags_MenuBar);
 
-		if (m_GameViewVisible)
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::MenuItem("Full screen", "F11", m_GameFullscreen))
+			{
+				SetGameFullscreen(m_GameFullscreen == false);
+			}
+			if (ImGui::BeginMenu("Options"))
+			{
+				bool changed = ImGui::MenuItem("Full screen covers the monitor", nullptr, &m_EditorSettings.PlayMode.FullscreenCoversMonitor);
+				changed |= ImGui::MenuItem("Leave full screen on Stop", nullptr, &m_EditorSettings.PlayMode.LeaveFullscreenOnStop);
+				if (changed)
+				{
+					EditorSettingsSerializer::Save(m_EditorSettings, EditorPaths::GetEditorSettingsPath());
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+
+		if (m_GameViewVisible && m_GameFullscreen)
+		{
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + 8.0f, ImGui::GetCursorPosY() + 8.0f));
+			ImGui::TextDisabled("The game is in full screen. F11 or Escape to leave.");
+		}
+		else if (m_GameViewVisible)
 		{
 			const ImVec2 size = ImGui::GetContentRegionAvail();
 			if (size.x >= 1.0f && size.y >= 1.0f)
@@ -576,6 +619,104 @@ namespace Hydro
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::SetGameFullscreen(bool fullscreen)
+	{
+		if (fullscreen == m_GameFullscreen)
+		{
+			return;
+		}
+
+		m_GameFullscreen = fullscreen;
+		if (fullscreen)
+		{
+			m_FocusFullscreen = true;
+			m_FullscreenHintTime = 2.5f;
+			// Only when the window isn't full screen already, so leaving gives back what the user had.
+			if (m_EditorSettings.PlayMode.FullscreenCoversMonitor && Application::Get().GetWindow().IsFullscreen() == false)
+			{
+				m_PendingWindowFullscreen = 1;
+			}
+		}
+		else if (m_WindowFullscreenByGame || m_PendingWindowFullscreen == 1)
+		{
+			m_PendingWindowFullscreen = 0;
+		}
+	}
+
+	void EditorLayer::UpdateFullscreenKeys()
+	{
+		// Polled like the editor's other keys; F11 toggles, Escape only leaves.
+		const bool f11 = Input::IsKeyPressed(KeyCode::F11);
+		const bool escape = Input::IsKeyPressed(KeyCode::Escape);
+		if (f11 && m_FullscreenKeyDown == false)
+		{
+			SetGameFullscreen(m_GameFullscreen == false);
+		}
+		else if (escape && m_EscapeKeyDown == false && m_GameFullscreen)
+		{
+			SetGameFullscreen(false);
+		}
+		m_FullscreenKeyDown = f11;
+		m_EscapeKeyDown = escape;
+	}
+
+	void EditorLayer::DrawGameFullscreen()
+	{
+		// One undecorated window over the main viewport, in front of the dockspace and every docked window.
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowViewport(viewport->ID);
+		if (m_FocusFullscreen)
+		{
+			ImGui::SetNextWindowFocus();
+			m_FocusFullscreen = false;
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
+			| ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse;
+		ImGui::Begin("##GameFullscreen", nullptr, flags);
+		ImGui::PopStyleVar(3);
+
+		const ImVec2 size = ImGui::GetContentRegionAvail();
+		if (size.x >= 1.0f && size.y >= 1.0f)
+		{
+			m_GameView->SetSize((uint32_t)size.x, (uint32_t)size.y);
+			m_ActiveScene->OnViewportResize((uint32_t)size.x, (uint32_t)size.y);
+		}
+
+		const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
+		ImGui::Image((ImTextureID)m_GameView->GetImGuiTexture(), size);
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		const ImVec2 textPosition = { imagePosition.x + 12.0f, imagePosition.y + 12.0f };
+		if (m_SceneHasCamera == false)
+		{
+			drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255), "No primary camera in the scene. Add a Camera component and tick Primary.");
+		}
+		else if (IsPlaying() && m_Paused)
+		{
+			drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255), "Paused");
+		}
+
+		// How to get out, for a moment after going in.
+		if (m_FullscreenHintTime > 0.0f)
+		{
+			const float alpha = std::min(1.0f, m_FullscreenHintTime / 0.5f);
+			const char* hint = "Full screen: F11 or Escape to leave";
+			const ImVec2 textSize = ImGui::CalcTextSize(hint);
+			const ImVec2 position = { imagePosition.x + 0.5f * (size.x - textSize.x), imagePosition.y + 24.0f };
+			drawList->AddRectFilled({ position.x - 12.0f, position.y - 6.0f }, { position.x + textSize.x + 12.0f, position.y + textSize.y + 6.0f },
+				IM_COL32(0, 0, 0, (int)(160.0f * alpha)), 6.0f);
+			drawList->AddText(position, IM_COL32(255, 255, 255, (int)(255.0f * alpha)), hint);
+		}
+
+		ImGui::End();
 	}
 
 	void EditorLayer::AcceptAssetDrop()
@@ -667,6 +808,11 @@ namespace Hydro
 
 		SceneTransition::Clear();
 		SceneTransition::SetDepth(0);
+
+		if (m_EditorSettings.PlayMode.LeaveFullscreenOnStop)
+		{
+			SetGameFullscreen(false);
+		}
 	}
 
 	void EditorLayer::ProcessSceneTransition()
@@ -907,18 +1053,11 @@ namespace Hydro
 			auto animators = scene->m_Registry.view<SpriteAnimatorComponent>();
 			for (auto entity : animators)
 			{
-				SpriteAnimatorComponent& animator = animators.get<SpriteAnimatorComponent>(entity);
-				if (animator.Animations != handle)
+				if (animators.get<SpriteAnimatorComponent>(entity).Animations != handle)
 				{
 					continue;
 				}
-
-				const std::string playing = before != nullptr && animator.ClipIndex >= 0 && (uint32_t)animator.ClipIndex < before->GetClipCount()
-					? before->GetClip((uint32_t)animator.ClipIndex).Name
-					: std::string();
-				animator.ClipIndex = playing.empty() ? -1 : set->FindClip(playing);
-				animator.FrameIndex = 0;
-				animator.FrameTime = 0.0f;
+				SpriteAnimator::RestartAfterReload(Entity(entity, scene.get()), before.get());
 			}
 		}
 	}

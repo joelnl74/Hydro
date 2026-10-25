@@ -29,6 +29,12 @@ namespace Hydro
 
 		virtual void* GetNativeWindow() const = 0;
 
+		// Full screen on the monitor the window is on (the monitor's own resolution and refresh rate);
+		// false goes back to the windowed size and position it had before. Posts a WindowResizeEvent
+		// like any other resize, so the swapchain follows.
+		virtual void SetFullscreen(bool fullscreen) = 0;
+		virtual bool IsFullscreen() const = 0;
+
 		static Scope<Window> Create();
 	};
 }

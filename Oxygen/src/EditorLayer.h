@@ -105,6 +105,12 @@ namespace Hydro
 		void DrawEditorWindow();
 		// Game window: the active scene through its primary camera, as the game will show it.
 		void DrawGameWindow();
+		// Game full screen (F11, or Full screen in the Game window's menu bar): the game view covers the
+		// editor's whole window, drawn over everything else, and with PlayModeSettings::FullscreenCoversMonitor
+		// the editor's window covers the monitor too. F11 or Escape leaves it.
+		void SetGameFullscreen(bool fullscreen);
+		void DrawGameFullscreen();
+		void UpdateFullscreenKeys();
 		// Moves the editor camera to the entity and zooms to frame it (the selection outline shows which).
 		void FocusEntity(Entity entity);
 		// A new scene starts with a primary camera framing the origin.
@@ -162,6 +168,13 @@ namespace Hydro
 		bool m_FocusKeyDown = false; // F pressed last frame, so holding it focuses once
 		bool m_GameViewVisible = false;
 		bool m_SceneHasCamera = true; // false when the game view found no primary camera last frame
+		bool m_GameFullscreen = false;
+		bool m_FocusFullscreen = false;        // bring the full screen view to the front on its first frame
+		bool m_WindowFullscreenByGame = false; // the editor's window went full screen for the game, and goes back with it
+		int m_PendingWindowFullscreen = -1;    // -1 nothing, 0 / 1: change the window in OnUpdate, outside the ImGui frame
+		bool m_FullscreenKeyDown = false;      // F11 last frame, so holding it toggles once
+		bool m_EscapeKeyDown = false;
+		float m_FullscreenHintTime = 0.0f;     // seconds left to show how to leave full screen
 		float m_Time = 0.0f;
 	};
 }
