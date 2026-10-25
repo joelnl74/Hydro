@@ -104,6 +104,10 @@ namespace Hydro
 		void DrawPlayControls();
 		// Editor window: the active scene through the editor camera, which it controls.
 		void DrawEditorWindow();
+		// The Editor window's Camera menu (2D / 3D, the standard views, the controls) and the 2D/3D switch.
+		void DrawEditorCameraMenu();
+		// Over the Editor window's image: the fly speed while the camera flies.
+		void DrawEditorCameraHint(const ImVec2& imageMin);
 		// Game window: the active scene through its primary camera, as the game will show it.
 		void DrawGameWindow();
 		// Game full screen (F11, or Full screen in the Game window's menu bar): the game view covers the

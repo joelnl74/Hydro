@@ -156,7 +156,7 @@ namespace Hydro
 		// so a drag never jumps, but only takes new input over the Editor window. Its settings may
 		// have changed in the Editor Settings window (SetSettings does nothing when they didn't).
 		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
-		m_EditorCamera.Update(m_EditorViewVisible && m_EditorViewHovered);
+		m_EditorCamera.Update(deltaTime, m_EditorViewVisible && m_EditorViewHovered);
 
 		// In game full screen the Editor window is covered: don't draw it.
 		if (m_EditorViewVisible && m_GameFullscreen == false)
@@ -458,19 +458,7 @@ namespace Hydro
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				if (ImGui::BeginMenu("Camera"))
-				{
-					const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
-					if (ImGui::MenuItem("2D (Orthographic)", nullptr, orthographic))
-						m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
-					if (ImGui::MenuItem("Reset View"))
-						m_EditorCamera.Reset();
-
-					ImGui::Separator();
-					ImGui::TextDisabled("Alt+LMB orbit, MMB pan, Alt+RMB / wheel zoom");
-
-					ImGui::EndMenu();
-				}
+				DrawEditorCameraMenu();
 
 				if (ImGui::BeginMenu("Overlays"))
 				{
@@ -497,6 +485,7 @@ namespace Hydro
 			// Camera projections flip Y for Vulkan, so the image is shown the right way up as is.
 			ImGui::Image((ImTextureID)m_EditorView->GetImGuiTexture(), size);
 			m_EditorViewHovered = ImGui::IsItemHovered();
+			DrawEditorCameraHint(ImGui::GetItemRectMin());
 			UpdateClickSelection(ImGui::GetItemRectMin(), size);
 			AcceptAssetDrop();
 
@@ -509,6 +498,82 @@ namespace Hydro
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::DrawEditorCameraMenu()
+	{
+		const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
+
+		if (ImGui::BeginMenu("Camera"))
+		{
+			if (ImGui::MenuItem("2D", "Orthographic, top-down", orthographic))
+			{
+				m_EditorCamera.SetProjectionType(ProjectionType::Orthographic);
+			}
+			if (ImGui::MenuItem("3D", "Perspective", orthographic == false))
+			{
+				m_EditorCamera.SetProjectionType(ProjectionType::Perspective);
+			}
+
+			ImGui::Separator();
+			// The standard views turn the camera around what it looks at (and switch to 3D).
+			struct ViewItem
+			{
+				const char* Label;
+				EditorCameraView View;
+			};
+			static const ViewItem views[] = {
+				{ "Top", EditorCameraView::Top }, { "Diorama (50 degrees)", EditorCameraView::Diorama },
+				{ "Front (looking north)", EditorCameraView::Front }, { "Back (looking south)", EditorCameraView::Back },
+				{ "Left (looking east)", EditorCameraView::Left }, { "Right (looking west)", EditorCameraView::Right }
+			};
+			for (const ViewItem& item : views)
+			{
+				if (ImGui::MenuItem(item.Label))
+				{
+					m_EditorCamera.SetView(item.View);
+				}
+			}
+
+			ImGui::Separator();
+			if (ImGui::MenuItem("Reset View"))
+			{
+				m_EditorCamera.Reset();
+			}
+
+			ImGui::Separator();
+			ImGui::TextDisabled("Alt+LMB orbit, MMB pan, wheel / Alt+RMB zoom");
+			ImGui::TextDisabled("3D: hold RMB to fly: mouse look, WASD move, Q/E down/up,");
+			ImGui::TextDisabled("Shift faster, wheel changes the speed");
+
+			ImGui::EndMenu();
+		}
+
+		// A one-click switch next to the menu: shows the mode you're in, switches to the other.
+		if (ImGui::MenuItem(orthographic ? "2D" : "3D"))
+		{
+			m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip(orthographic ? "2D view (orthographic, top-down). Click for 3D" : "3D view (perspective). Click for 2D");
+		}
+	}
+
+	void EditorLayer::DrawEditorCameraHint(const ImVec2& imageMin)
+	{
+		// While flying: the speed in the view's corner, so the wheel's change is visible.
+		if (m_EditorCamera.IsFlying() == false)
+		{
+			return;
+		}
+
+		char text[64];
+		std::snprintf(text, sizeof(text), "Fly %.1f m/s", m_EditorCamera.GetFlySpeed());
+		const ImVec2 position{ imageMin.x + 8.0f, imageMin.y + 6.0f };
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddText(ImVec2(position.x + 1.0f, position.y + 1.0f), ImGui::GetColorU32(ImGuiCol_WindowBg), text);
+		drawList->AddText(position, ImGui::GetColorU32(ImGuiCol_Text), text);
 	}
 
 	void EditorLayer::UpdateClickSelection(const ImVec2& imageMin, const ImVec2& imageSize)

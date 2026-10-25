@@ -2225,15 +2225,25 @@ Entities:
     TagComponent:
       Tag: Shrine
     TransformComponent:
-      Translation: [0, 6.94, 3.1]
+      Translation: [0, 9.54, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      ModelHandle: 5849944005700627485
-      Shape: Box
-      Size: [1, 1, 1]
-      CastShadows: true
-      Materials: []
+      Scale: [5.875, 7, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2032422625001741205
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.3857]
+      Size: [0.783, 0.2286]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 9074558629336959517
     TagComponent:
       Tag: Save Shrine
@@ -2241,32 +2251,29 @@ Entities:
       Translation: [0, 4.29, 3.1]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 6760161599500390135
+  - Entity: 7964150790657466625
     TagComponent:
-      Tag: Ancient Tree
+      Tag: Sacred Tree
     TransformComponent:
-      Translation: [-5.6, 6.24, 3.1]
+      Translation: [-5.6, 12.48, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      ModelHandle: 6140914825932526310
-      Shape: Box
-      Size: [1, 1, 1]
-      CastShadows: true
-      Materials: []
-  - Entity: 4520772125576666553
-    TagComponent:
-      Tag: Ancient Tree Crown
-    TransformComponent:
-      Translation: [-5.6, 6.24, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      ModelHandle: 1870003086700095524
-      Shape: Box
-      Size: [1, 1, 1]
-      CastShadows: true
-      Materials: []
+      Scale: [11.1875, 13, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7852483744401080896
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.4538]
+      Size: [0.286, 0.0923]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
   - Entity: 5515472067107185271
     TagComponent:
       Tag: Stone Lantern Plaza
@@ -4348,21 +4355,21 @@ Entities:
     TagComponent:
       Tag: Banner
     TransformComponent:
-      Translation: [-4.4, 0.9937, 1]
+      Translation: [-4.4, 1.1031, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.125, 2.1875, 1]
+      Scale: [0.8125, 2.4062, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 3732474670272984753
+      TextureHandle: 8069398690771449800
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.4543]
-      Size: [0.2667, 0.0914]
+      Offset: [0, -0.4584]
+      Size: [0.3692, 0.0831]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4371,21 +4378,21 @@ Entities:
     TagComponent:
       Tag: Banner 2
     TransformComponent:
-      Translation: [4.4, 0.9937, 1]
+      Translation: [4.4, 1.1031, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.125, 2.1875, 1]
+      Scale: [0.8125, 2.4062, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 3732474670272984753
+      TextureHandle: 8069398690771449800
       SpriteIndex: 0
       FlipX: true
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.4543]
-      Size: [0.2667, 0.0914]
+      Offset: [0, -0.4584]
+      Size: [0.3692, 0.0831]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4394,106 +4401,67 @@ Entities:
     TagComponent:
       Tag: Stone Jizo
     TransformComponent:
-      Translation: [-3.3, 2.3, 3.1]
+      Translation: [-3.4, 2.605, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.75, 1.1, 1]
+      Scale: [1.0938, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 640167798583091945
+      TextureHandle: 8571906672705332884
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.5]
-      Size: [0.75, 0.3]
-      Strength: 0.45
     BoxCollider2DComponent:
-      Offset: [0, -0.3636]
-      Size: [0.7333, 0.2727]
+      Offset: [0, -0.3667]
+      Size: [0.8229, 0.2667]
       Density: 1
       Friction: 0.4
       Restitution: 0
       IsSensor: false
-  - Entity: 9041148645977416914
+  - Entity: 3817149133891794433
     TagComponent:
-      Tag: Grave Stone
+      Tag: Grave Stones
     TransformComponent:
-      Translation: [4.4, 5.4437, 3.1]
+      Translation: [5.4, 6.14, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.805, 1.2075, 1]
+      Scale: [3, 2, 1]
     SpriteRendererComponent:
-      Color: [0.62, 0.64, 0.6, 1]
+      Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 640167798583091945
+      TextureHandle: 2946571567835355620
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.5]
-      Size: [0.7, 0.25]
-      Strength: 0.45
     BoxCollider2DComponent:
-      Offset: [0, -0.3965]
-      Size: [0.7143, 0.207]
+      Offset: [0, -0.35]
+      Size: [0.8667, 0.3]
       Density: 1
       Friction: 0.4
       Restitution: 0
       IsSensor: false
-  - Entity: 8663925174146742235
+  - Entity: 7993783122074570228
     TagComponent:
-      Tag: Grave Stone 2
+      Tag: Grave Jizo
     TransformComponent:
-      Translation: [5.4, 6.2488, 3.1]
+      Translation: [7.6, 5.0981, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.945, 1.4175, 1]
+      Scale: [0.7812, 1.1875, 1]
     SpriteRendererComponent:
-      Color: [0.62, 0.64, 0.6, 1]
+      Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 640167798583091945
+      TextureHandle: 4729300461183536161
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.5]
-      Size: [0.7, 0.25]
-      Strength: 0.45
     BoxCollider2DComponent:
-      Offset: [0, -0.4118]
-      Size: [0.7143, 0.1764]
-      Density: 1
-      Friction: 0.4
-      Restitution: 0
-      IsSensor: false
-  - Entity: 2126063777373702265
-    TagComponent:
-      Tag: Grave Stone 3
-    TransformComponent:
-      Translation: [6.3, 5.165, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [0.7, 1.05, 1]
-    SpriteRendererComponent:
-      Color: [0.62, 0.64, 0.6, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 640167798583091945
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.5]
-      Size: [0.7, 0.25]
-      Strength: 0.45
-    BoxCollider2DComponent:
-      Offset: [0, -0.381]
-      Size: [0.7143, 0.2381]
+      Offset: [0, -0.3737]
+      Size: [0.768, 0.2526]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4502,21 +4470,21 @@ Entities:
     TagComponent:
       Tag: Fence
     TransformComponent:
-      Translation: [-2.9, 2.0656, 3.1]
+      Translation: [-3, 2.0312, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4525,21 +4493,21 @@ Entities:
     TagComponent:
       Tag: Fence 2
     TransformComponent:
-      Translation: [-5.9, 2.0656, 3.1]
+      Translation: [-5.3, 2.0312, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4548,21 +4516,21 @@ Entities:
     TagComponent:
       Tag: Fence 3
     TransformComponent:
-      Translation: [-8.6, 2.0656, 3.1]
+      Translation: [-7.6, 2.0312, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4571,21 +4539,21 @@ Entities:
     TagComponent:
       Tag: Fence 4
     TransformComponent:
-      Translation: [2.9, 2.0656, 3.1]
+      Translation: [3, 2.0312, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: true
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4594,21 +4562,21 @@ Entities:
     TagComponent:
       Tag: Fence 5
     TransformComponent:
-      Translation: [5.9, 2.0656, 3.1]
+      Translation: [5.3, 2.0312, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: true
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4617,21 +4585,21 @@ Entities:
     TagComponent:
       Tag: Fence 6
     TransformComponent:
-      Translation: [8.6, 2.0656, 3.1]
+      Translation: [7.6, 2.0312, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: true
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4640,21 +4608,21 @@ Entities:
     TagComponent:
       Tag: Fence Shrine
     TransformComponent:
-      Translation: [4.55, 7.2556, 3.1]
+      Translation: [-4.6, 7.125, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [2.425, 1.0312, 1]
+      Scale: [1.875, 0.875, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.3857]
+      Size: [0.9387, 0.2286]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4663,21 +4631,21 @@ Entities:
     TagComponent:
       Tag: Fence Shrine 2
     TransformComponent:
-      Translation: [-4.55, 7.2556, 3.1]
+      Translation: [4.6, 7.125, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [2.425, 1.0312, 1]
+      Scale: [1.875, 0.875, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.3857]
+      Size: [0.9387, 0.2286]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4686,21 +4654,21 @@ Entities:
     TagComponent:
       Tag: Fence 7
     TransformComponent:
-      Translation: [-4.6, -1.9344, 1]
+      Translation: [-4.6, -1.9687, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4709,21 +4677,21 @@ Entities:
     TagComponent:
       Tag: Fence 8
     TransformComponent:
-      Translation: [-7.6, -1.9344, 1]
+      Translation: [-6.9, -1.9687, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4732,21 +4700,21 @@ Entities:
     TagComponent:
       Tag: Fence 9
     TransformComponent:
-      Translation: [4.6, -1.9344, 1]
+      Translation: [4.6, -1.9687, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: true
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4755,21 +4723,21 @@ Entities:
     TagComponent:
       Tag: Fence 10
     TransformComponent:
-      Translation: [7.6, -1.9344, 1]
+      Translation: [6.9, -1.9687, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.0312, 1.0312, 1]
+      Scale: [2.3438, 1.0938, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1491498009684045269
+      TextureHandle: 7384853099756451139
       SpriteIndex: 0
       FlipX: true
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.403]
-      Size: [1, 0.1939]
+      Offset: [0, -0.4086]
+      Size: [0.9387, 0.1829]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4797,6 +4765,146 @@ Entities:
     BoxCollider2DComponent:
       Offset: [0, -0.3]
       Size: [0.9, 0.4]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 671545796382782252
+    TagComponent:
+      Tag: Offering Crate
+    TransformComponent:
+      Translation: [-3, 5.84, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.4062, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3769216229987225042
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    Shadow2DComponent:
+      Offset: [0, -0.5]
+      Size: [1.2, 0.4]
+      Strength: 0.45
+    BoxCollider2DComponent:
+      Offset: [0, -0.25]
+      Size: [0.8533, 0.5]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 915656162424463572
+    TagComponent:
+      Tag: Torii
+    TransformComponent:
+      Translation: [0, -8.8063, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4.8438, 5.1875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8336527542827475502
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3321331343758281839
+    TagComponent:
+      Tag: Torii Post
+    TransformComponent:
+      Translation: [-1.7437, -11.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6534739203578931046
+    TagComponent:
+      Tag: Torii Post 2
+    TransformComponent:
+      Translation: [1.7437, -11.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2695164959763579222
+    TagComponent:
+      Tag: Stone Blocks
+    TransformComponent:
+      Translation: [-8.4, 0.8667, 1]
+      Rotation: [0, 0, 0]
+      Scale: [2.8687, 1.6313, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4958177054136900421
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.3161]
+      Size: [0.8366, 0.3678]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4855382728371746423
+    TagComponent:
+      Tag: Stone Blocks 2
+    TransformComponent:
+      Translation: [9.2, -3.3185, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.55, 1.45, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4958177054136900421
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.2931]
+      Size: [0.8627, 0.4138]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7373750165991196134
+    TagComponent:
+      Tag: Rocks Mossy
+    TransformComponent:
+      Translation: [8, 0.8598, 1]
+      Rotation: [0, 0, 0]
+      Scale: [2.4188, 1.4344, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 750092319949928506
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.2908]
+      Size: [0.8269, 0.4183]
       Density: 1
       Friction: 0.4
       Restitution: 0
@@ -4947,46 +5055,46 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot
     TransformComponent:
-      Translation: [-9.059, -2.9164, 0]
+      Translation: [-9.059, -2.8319, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.6277, 0.6277, 1]
+      Scale: [1.2993, 0.8474, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7180996951451654804
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 4287282078365465841
     TagComponent:
       Tag: Decor Wall Foot 2
     TransformComponent:
-      Translation: [-8.3623, -2.8885, 0]
+      Translation: [7.269, -3.0854, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.9943, 1.0325, 1]
+      Scale: [1.3391, 1.0787, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 1484020808902068523
     TagComponent:
       Tag: Decor Wall Foot 3
     TransformComponent:
-      Translation: [-8.8173, -2.92, 0]
+      Translation: [-11.1346, -3.2448, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.1247, 0.9138, 1]
+      Scale: [0.6494, 0.3953, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 1721407883394281960
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -4995,14 +5103,14 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 4
     TransformComponent:
-      Translation: [-8.1259, -3.0997, 0]
+      Translation: [11.0175, -2.9559, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.5772, 0.5772, 1]
+      Scale: [1.3564, 0.8681, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7180996951451654804
+      TextureHandle: 5739746010985043715
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -5027,14 +5135,14 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 6
     TransformComponent:
-      Translation: [10.122, -3.167, 0]
+      Translation: [10.9697, -3.1674, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.2941, 1.0425, 1]
+      Scale: [1.7052, 1.0949, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5043,30 +5151,30 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 7
     TransformComponent:
-      Translation: [-6.8507, -3.2054, 0]
+      Translation: [-8.0349, -2.9563, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.92, 0.9554, 1]
+      Scale: [1.2555, 0.8188, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 4888468975563466761
     TagComponent:
       Tag: Decor Wall Foot 8
     TransformComponent:
-      Translation: [-8.0349, -2.9014, 0]
+      Translation: [-7.9102, -3.0202, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.0917, 0.8794, 1]
+      Scale: [1.4192, 0.9255, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5075,30 +5183,30 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 9
     TransformComponent:
-      Translation: [-7.9102, -2.9581, 0]
+      Translation: [4.8677, -2.7425, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.2341, 0.9941, 1]
+      Scale: [1.3711, 0.8942, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 6643504752862352982
     TagComponent:
       Tag: Decor Wall Foot 10
     TransformComponent:
-      Translation: [4.8677, -2.8316, 0]
+      Translation: [11.2873, -2.8228, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.6624, 0.6624, 1]
+      Scale: [1.432, 1.1536, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7180996951451654804
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5107,14 +5215,14 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 11
     TransformComponent:
-      Translation: [6.3669, -3.0742, 0]
+      Translation: [9.9659, -2.6865, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.7326, 0.7326, 1]
+      Scale: [2.0839, 1.3381, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7180996951451654804
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5123,30 +5231,30 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 12
     TransformComponent:
-      Translation: [11.1305, -3.1709, 0]
+      Translation: [6.2022, -2.8185, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.7168, 0.4363, 1]
+      Scale: [0.9696, 0.8657, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1721407883394281960
+      TextureHandle: 2536696117543792921
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 1342193893640533459
     TagComponent:
       Tag: Decor Wall Foot 13
     TransformComponent:
-      Translation: [5.8964, -2.8401, 0]
+      Translation: [8.4605, -2.9615, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.9342, 0.759, 1]
+      Scale: [1.2897, 0.8411, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5155,30 +5263,30 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 14
     TransformComponent:
-      Translation: [-6.1885, -2.6468, 0]
+      Translation: [-11.8231, -3.2036, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.919, 0.9543, 1]
+      Scale: [1.0106, 0.8211, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 2314740518976743974
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 3835118227793015675
     TagComponent:
       Tag: Decor Wall Foot 15
     TransformComponent:
-      Translation: [8.4502, -3.0187, 0]
+      Translation: [6.9532, -2.9869, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.6349, 0.6349, 1]
+      Scale: [1.0902, 0.8783, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7180996951451654804
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5187,30 +5295,14 @@ Entities:
     TagComponent:
       Tag: Decor Wall Foot 16
     TransformComponent:
-      Translation: [11.3858, -2.746, 0]
+      Translation: [8.0651, -3.1325, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.3887, 1.1187, 1]
+      Scale: [0.6057, 0.6057, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 8534037643847354760
-    TagComponent:
-      Tag: Decor Wall Foot 17
-    TransformComponent:
-      Translation: [-7.7167, -3.2012, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.862, 0.8951, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 7180996951451654804
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -5219,9 +5311,9 @@ Entities:
     TagComponent:
       Tag: Decor Front
     TransformComponent:
-      Translation: [-4.2434, -5.2703, 0]
+      Translation: [6.7153, -8.1075, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.6302, 0.6302, 1]
+      Scale: [0.7073, 0.7073, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5235,137 +5327,9 @@ Entities:
     TagComponent:
       Tag: Decor Front 2
     TransformComponent:
-      Translation: [6.1228, -6.7966, 0]
+      Translation: [6.7507, -5.1796, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.8715, 0.9094, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 62607357716152746
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 345958861004842209
-    TagComponent:
-      Tag: Decor Front 3
-    TransformComponent:
-      Translation: [6.0488, -9.3835, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9843, 0.8789, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2536696117543792921
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 7062322757954641578
-    TagComponent:
-      Tag: Decor Front 4
-    TransformComponent:
-      Translation: [-2.4808, -7.4045, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9153, 0.5571, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1721407883394281960
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5950469236921882599
-    TagComponent:
-      Tag: Decor Front 5
-    TransformComponent:
-      Translation: [-5.2028, -6.849, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.7063, 0.737, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 62607357716152746
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1357318129447540514
-    TagComponent:
-      Tag: Decor Front 6
-    TransformComponent:
-      Translation: [-7.0081, -7.3035, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.0773, 0.9619, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2536696117543792921
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 2710655264244465748
-    TagComponent:
-      Tag: Decor Front 7
-    TransformComponent:
-      Translation: [-2.8749, -6.2404, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.0238, 0.9141, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2536696117543792921
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 2002931085847023979
-    TagComponent:
-      Tag: Decor Front 8
-    TransformComponent:
-      Translation: [-7.6422, -9.6644, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.74, 0.7722, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 62607357716152746
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8009227784510626039
-    TagComponent:
-      Tag: Decor Front 9
-    TransformComponent:
-      Translation: [10.1398, -8.4297, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.6951, 0.6951, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 7180996951451654804
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 6667755795108018924
-    TagComponent:
-      Tag: Decor Front 10
-    TransformComponent:
-      Translation: [-5.6103, -6.2752, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.8041, 0.835, 1]
+      Scale: [0.9982, 1.0366, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5375,13 +5339,109 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 651661403401568047
+  - Entity: 345958861004842209
     TagComponent:
-      Tag: Decor Front 11
+      Tag: Decor Front 3
     TransformComponent:
-      Translation: [11.1902, -6.8131, 0]
+      Translation: [4.6255, -9.3293, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.6803, 0.5257, 1]
+      Scale: [0.8754, 0.6764, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4882584824912478370
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7062322757954641578
+    TagComponent:
+      Tag: Decor Front 4
+    TransformComponent:
+      Translation: [10.4837, -8.6941, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.7891, 0.6097, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4882584824912478370
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5950469236921882599
+    TagComponent:
+      Tag: Decor Front 5
+    TransformComponent:
+      Translation: [9.5565, -9.0523, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.6906, 0.6906, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7180996951451654804
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1357318129447540514
+    TagComponent:
+      Tag: Decor Front 6
+    TransformComponent:
+      Translation: [-7.9699, -9.0187, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.8089, 0.8441, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 62607357716152746
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2710655264244465748
+    TagComponent:
+      Tag: Decor Front 7
+    TransformComponent:
+      Translation: [-2.6602, -9.9107, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.847, 0.5156, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 1721407883394281960
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2002931085847023979
+    TagComponent:
+      Tag: Decor Front 8
+    TransformComponent:
+      Translation: [-4.1986, -7.4892, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.6588, 0.401, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 1721407883394281960
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8009227784510626039
+    TagComponent:
+      Tag: Decor Front 9
+    TransformComponent:
+      Translation: [4.597, -4.9163, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.8511, 0.6577, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5395,14 +5455,14 @@ Entities:
     TagComponent:
       Tag: Decor Wall Bush
     TransformComponent:
-      Translation: [5.4399, -3.5068, 0]
+      Translation: [-6.6302, -3.9408, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.2834, 1.242, 1]
+      Scale: [1.065, 0.6978, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 801037335933292480
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -5411,14 +5471,14 @@ Entities:
     TagComponent:
       Tag: Decor Wall Bush 2
     TransformComponent:
-      Translation: [-9.2075, -3.2446, 0]
+      Translation: [5.4399, -3.5689, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.2494, 1.0064, 1]
+      Scale: [1.3248, 1.1178, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 9007837791076890564
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -5426,6 +5486,22 @@ Entities:
   - Entity: 676667337007952355
     TagComponent:
       Tag: Decor Wall Bush 3
+    TransformComponent:
+      Translation: [-9.2075, -3.2881, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5617, 0.9995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5739746010985043715
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 552859329122860968
+    TagComponent:
+      Tag: Decor Wall Bush 4
     TransformComponent:
       Translation: [-7.6775, -3.1207, 0]
       Rotation: [0, 0, 0]
@@ -5439,34 +5515,18 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 552859329122860968
-    TagComponent:
-      Tag: Decor Wall Bush 4
-    TransformComponent:
-      Translation: [-5.5662, -3.1732, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.2572, 1.2166, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1047774335627272014
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
   - Entity: 7880683847257081743
     TagComponent:
       Tag: Decor Wall Bush 5
     TransformComponent:
-      Translation: [11.5441, -3.0581, 0]
+      Translation: [5.0004, -3.7724, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.4339, 1.3877, 1]
+      Scale: [1.0268, 0.6727, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 801037335933292480
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5475,9 +5535,41 @@ Entities:
     TagComponent:
       Tag: Decor Wall Bush 6
     TransformComponent:
-      Translation: [-8.6731, -3.9045, 0]
+      Translation: [6.2489, -3.1059, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.1029, 0.9305, 1]
+      Scale: [1.5145, 1.2306, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2314740518976743974
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 1810352089794284345
+    TagComponent:
+      Tag: Decor Wall Bush 7
+    TransformComponent:
+      Translation: [-8.5285, -3.8359, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.2383, 1.4325, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5739746010985043715
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 462546996615082575
+    TagComponent:
+      Tag: Decor Wall Bush 8
+    TransformComponent:
+      Translation: [-11.9952, -3.5157, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.4108, 1.1903, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5491,14 +5583,14 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall
     TransformComponent:
-      Translation: [7.2144, 0.886, 1]
+      Translation: [8.1935, 1.0094, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.0729, 0.8718, 1]
+      Scale: [1.4405, 0.9394, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5507,14 +5599,14 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 2
     TransformComponent:
-      Translation: [11.7388, 1.2368, 1]
+      Translation: [-9.1847, 1.0961, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.0048, 0.8164, 1]
+      Scale: [0.8105, 0.4933, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 1721407883394281960
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5523,14 +5615,14 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 3
     TransformComponent:
-      Translation: [-9.6002, 0.9613, 1]
+      Translation: [-9.0568, 1.2641, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.6754, 0.4111, 1]
+      Scale: [1.6944, 1.0844, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1721407883394281960
+      TextureHandle: 5739746010985043715
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -5539,46 +5631,46 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 4
     TransformComponent:
-      Translation: [2.8055, 1.0593, 1]
+      Translation: [-2.2269, 1.047, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.0393, 0.8372, 1]
+      Scale: [1.6135, 1.0327, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 5739746010985043715
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 4689209354844996956
     TagComponent:
       Tag: Decor Plaza Wall 5
     TransformComponent:
-      Translation: [3.7664, 1.2682, 1]
+      Translation: [7.2772, 1.2409, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.2088, 0.9738, 1]
+      Scale: [0.9097, 0.7391, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 2314740518976743974
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 5681509022482803464
     TagComponent:
       Tag: Decor Plaza Wall 6
     TransformComponent:
-      Translation: [11.8071, 1.2682, 1]
+      Translation: [-9.6199, 1.1938, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.4333, 1.1546, 1]
+      Scale: [1.159, 0.9417, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 2314740518976743974
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -5587,30 +5679,30 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 7
     TransformComponent:
-      Translation: [7.2772, 1.0703, 1]
+      Translation: [-9.1436, 1.1337, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.6538, 0.398, 1]
+      Scale: [0.8162, 0.8476, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1721407883394281960
+      TextureHandle: 235042511787055345
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 8877347541011218156
     TagComponent:
       Tag: Decor Plaza Wall 8
     TransformComponent:
-      Translation: [-5.7957, 0.8517, 1]
+      Translation: [-5.4008, 1.1443, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.7141, 0.7141, 1]
+      Scale: [1.6587, 1.0818, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7180996951451654804
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5619,9 +5711,9 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 9
     TransformComponent:
-      Translation: [-6.1435, 1.0276, 1]
+      Translation: [8.1287, 1.4295, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.7467, 0.7754, 1]
+      Scale: [1.0396, 1.0796, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5635,14 +5727,14 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 10
     TransformComponent:
-      Translation: [-7.6925, 1.2731, 1]
+      Translation: [10.1832, 0.9871, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.0697, 0.8692, 1]
+      Scale: [0.8848, 0.79, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 2536696117543792921
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -5651,30 +5743,30 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 11
     TransformComponent:
-      Translation: [4.7183, 1.0855, 1]
+      Translation: [-5.0917, 1.0082, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.8276, 0.5038, 1]
+      Scale: [0.8493, 0.7583, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1721407883394281960
+      TextureHandle: 2536696117543792921
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 1211292674791106852
     TagComponent:
       Tag: Decor Plaza Wall 12
     TransformComponent:
-      Translation: [3.549, 0.9197, 1]
+      Translation: [6.1622, 1.149, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.8322, 0.5066, 1]
+      Scale: [0.7922, 0.8227, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1721407883394281960
+      TextureHandle: 235042511787055345
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5683,9 +5775,9 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 13
     TransformComponent:
-      Translation: [10.7726, 1.2707, 1]
+      Translation: [8.4002, 1.1122, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.9465, 0.9829, 1]
+      Scale: [0.7472, 0.7759, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5695,29 +5787,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 825608932338065429
+  - Entity: 450773846447120991
     TagComponent:
-      Tag: Decor Plaza Wall 14
+      Tag: Decor Plaza Edge
     TransformComponent:
-      Translation: [10.1832, 1.0503, 1]
+      Translation: [-7.6819, -2.5118, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.1376, 0.9164, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 82724074147920288
-    TagComponent:
-      Tag: Decor Plaza Wall 15
-    TransformComponent:
-      Translation: [-5.0917, 0.8413, 1]
-      Rotation: [0, 0, 0]
-      Scale: [0.6976, 0.4246, 1]
+      Scale: [0.7253, 0.4415, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5727,114 +5803,34 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 4724937562318225093
-    TagComponent:
-      Tag: Decor Plaza Wall 16
-    TransformComponent:
-      Translation: [-7.3021, 1.1181, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.1666, 0.9478, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2314740518976743974
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 2971418299890626193
-    TagComponent:
-      Tag: Decor Plaza Wall 17
-    TransformComponent:
-      Translation: [-8.4357, 0.9897, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.3168, 1.0608, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 4809378329087589393
-    TagComponent:
-      Tag: Decor Plaza Wall 18
-    TransformComponent:
-      Translation: [3.7591, 1.2318, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.0484, 0.9361, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2536696117543792921
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4821237866938215847
-    TagComponent:
-      Tag: Decor Plaza Wall 19
-    TransformComponent:
-      Translation: [-10.8252, 1.0125, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.0365, 1.0764, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 235042511787055345
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 450773846447120991
-    TagComponent:
-      Tag: Decor Plaza Edge
-    TransformComponent:
-      Translation: [-5.4525, -2.2006, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.0247, 0.8326, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2314740518976743974
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
   - Entity: 759157030934755130
     TagComponent:
       Tag: Decor Plaza Edge 2
     TransformComponent:
-      Translation: [8.6588, -1.9979, 1]
+      Translation: [6.5729, -2.1951, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.9011, 0.8046, 1]
+      Scale: [1.0255, 0.9157, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 2536696117543792921
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 1213748683280620109
     TagComponent:
       Tag: Decor Plaza Edge 3
     TransformComponent:
-      Translation: [-11.9084, -1.961, 1]
+      Translation: [6.4072, -1.8222, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.1693, 0.9419, 1]
+      Scale: [2.1322, 1.3691, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5843,30 +5839,30 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Edge 4
     TransformComponent:
-      Translation: [4.3991, -2.239, 1]
+      Translation: [9.7807, -2.3081, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.8897, 0.7944, 1]
+      Scale: [0.8351, 0.8672, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2536696117543792921
+      TextureHandle: 235042511787055345
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 4528418667084164075
     TagComponent:
       Tag: Decor Plaza Edge 5
     TransformComponent:
-      Translation: [2.3689, -2.1415, 1]
+      Translation: [9.065, -2.0559, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.7558, 0.7849, 1]
+      Scale: [1.1748, 0.9463, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5875,14 +5871,14 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Edge 6
     TransformComponent:
-      Translation: [-11.0156, -2.1512, 1]
+      Translation: [-11.0156, -2.2257, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.834, 0.7447, 1]
+      Scale: [0.5957, 0.5957, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2536696117543792921
+      TextureHandle: 7180996951451654804
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5891,14 +5887,14 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Edge 7
     TransformComponent:
-      Translation: [-11.0287, -2.0236, 1]
+      Translation: [-11.0287, -1.8624, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.2279, 0.9977, 1]
+      Scale: [2.1872, 1.4044, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5923,9 +5919,57 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Edge 9
     TransformComponent:
-      Translation: [10.6498, -2.1183, 1]
+      Translation: [10.6498, -2.1094, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.1433, 0.9289, 1]
+      Scale: [1.6078, 1.029, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5739746010985043715
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1734516111120992641
+    TagComponent:
+      Tag: Decor Shrine Edge
+    TransformComponent:
+      Translation: [6.5623, 1.9761, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.0947, 0.9774, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2536696117543792921
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5106778069466485909
+    TagComponent:
+      Tag: Decor Shrine Edge 2
+    TransformComponent:
+      Translation: [9.7056, 1.7756, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.8779, 0.9116, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 235042511787055345
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 9045408753711605032
+    TagComponent:
+      Tag: Decor Shrine Edge 3
+    TransformComponent:
+      Translation: [-10.7388, 1.8427, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.9591, 0.7793, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5935,82 +5979,18 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 5900996594639549203
-    TagComponent:
-      Tag: Decor Plaza Edge 10
-    TransformComponent:
-      Translation: [6.5623, -2.2934, 1]
-      Rotation: [0, 0, 0]
-      Scale: [0.8992, 0.5474, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1721407883394281960
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1734516111120992641
-    TagComponent:
-      Tag: Decor Shrine Edge
-    TransformComponent:
-      Translation: [2.4851, 2.1447, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.1105, 0.8946, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5106778069466485909
-    TagComponent:
-      Tag: Decor Shrine Edge 2
-    TransformComponent:
-      Translation: [10.2994, 1.7201, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.2195, 0.9824, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 9045408753711605032
-    TagComponent:
-      Tag: Decor Shrine Edge 3
-    TransformComponent:
-      Translation: [6.4872, 1.7547, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.0237, 1.0631, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 235042511787055345
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
   - Entity: 5490432496170299511
     TagComponent:
       Tag: Decor Shrine Edge 4
     TransformComponent:
-      Translation: [10.2194, 1.6168, 3.1]
+      Translation: [-10.9892, 2.2038, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.9039, 0.8071, 1]
+      Scale: [1.6862, 1.0827, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2536696117543792921
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -6018,6 +5998,22 @@ Entities:
   - Entity: 9112019076117548154
     TagComponent:
       Tag: Decor Shrine Edge 5
+    TransformComponent:
+      Translation: [-4.0162, 1.8925, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.2081, 0.9816, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2314740518976743974
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6115274274919844876
+    TagComponent:
+      Tag: Decor Shrine Edge 6
     TransformComponent:
       Translation: [-3.9895, 1.8577, 3.1]
       Rotation: [0, 0, 0]
@@ -6031,9 +6027,9 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
-  - Entity: 6115274274919844876
+  - Entity: 4128770617519603141
     TagComponent:
-      Tag: Decor Shrine Edge 6
+      Tag: Decor Shrine Edge 7
     TransformComponent:
       Translation: [-5.5337, 1.6905, 3.1]
       Rotation: [0, 0, 0]
@@ -6047,82 +6043,66 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
-  - Entity: 4128770617519603141
-    TagComponent:
-      Tag: Decor Shrine Edge 7
-    TransformComponent:
-      Translation: [-8.8507, 1.6267, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [0.7335, 0.7335, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 7180996951451654804
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
   - Entity: 997957949927456755
     TagComponent:
       Tag: Decor Shrine Edge 8
     TransformComponent:
-      Translation: [8.1889, 1.7293, 3.1]
+      Translation: [-8.8507, 1.8908, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.0131, 0.8232, 1]
+      Scale: [2.0906, 1.3424, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 7467864718423095009
     TagComponent:
       Tag: Decor Shrine Edge 9
     TransformComponent:
-      Translation: [2.4367, 2.1262, 3.1]
+      Translation: [10.6823, 2.0193, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.035, 0.8338, 1]
+      Scale: [0.8269, 0.7383, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 2536696117543792921
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 9008664878403003965
     TagComponent:
       Tag: Decor Shrine Edge 10
     TransformComponent:
-      Translation: [-4.5746, 1.7257, 3.1]
+      Translation: [10.2235, 1.6683, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.9633, 0.7827, 1]
+      Scale: [1.085, 0.8815, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 2314740518976743974
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 1687883376420060104
     TagComponent:
       Tag: Decor Shrine Edge 11
     TransformComponent:
-      Translation: [10.3173, 1.7725, 3.1]
+      Translation: [-11.1613, 1.7091, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.7639, 0.7933, 1]
+      Scale: [0.7017, 0.4272, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 1721407883394281960
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6131,14 +6111,14 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Edge 12
     TransformComponent:
-      Translation: [4.179, 2.2286, 3.1]
+      Translation: [-5.2339, 1.9147, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.2903, 1.0394, 1]
+      Scale: [0.8292, 0.5047, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 1721407883394281960
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -6147,14 +6127,14 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Edge 13
     TransformComponent:
-      Translation: [6.8784, 1.6983, 3.1]
+      Translation: [-9.5898, 1.7585, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.705, 0.705, 1]
+      Scale: [1.2655, 1.0194, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7180996951451654804
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6163,30 +6143,62 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Edge 14
     TransformComponent:
-      Translation: [10.7731, 1.7688, 3.1]
+      Translation: [2.8138, 1.8423, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.048, 0.9357, 1]
+      Scale: [0.7654, 0.7948, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2536696117543792921
+      TextureHandle: 235042511787055345
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 2542985579613469090
     TagComponent:
       Tag: Decor Shrine Edge 15
     TransformComponent:
-      Translation: [2.8537, 1.9296, 3.1]
+      Translation: [11.5197, 1.8462, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.9668, 0.8632, 1]
+      Scale: [0.9439, 0.7669, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2536696117543792921
+      TextureHandle: 2314740518976743974
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5526723344392430397
+    TagComponent:
+      Tag: Decor Shrine Edge 16
+    TransformComponent:
+      Translation: [2.8537, 1.8433, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.6906, 0.6906, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7180996951451654804
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 4521340684789885899
+    TagComponent:
+      Tag: Decor Shrine Edge 17
+    TransformComponent:
+      Translation: [7.1996, 1.966, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.5394, 0.9852, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5739746010985043715
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -6194,22 +6206,6 @@ Entities:
   - Entity: 3562601995907036867
     TagComponent:
       Tag: Decor Shrine
-    TransformComponent:
-      Translation: [7.1996, 9.7631, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [0.9578, 0.8552, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2536696117543792921
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 429815071947817661
-    TagComponent:
-      Tag: Decor Shrine 2
     TransformComponent:
       Translation: [-4.5868, 9.9012, 3.1]
       Rotation: [0, 0, 0]
@@ -6223,9 +6219,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1516325721436511756
+  - Entity: 429815071947817661
     TagComponent:
-      Tag: Decor Shrine 3
+      Tag: Decor Shrine 2
     TransformComponent:
       Translation: [-6.6136, 8.9341, 3.1]
       Rotation: [0, 0, 0]
@@ -6239,9 +6235,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7101163910796827038
+  - Entity: 1516325721436511756
     TagComponent:
-      Tag: Decor Shrine 4
+      Tag: Decor Shrine 3
     TransformComponent:
       Translation: [11.9739, 9.0863, 3.1]
       Rotation: [0, 0, 0]
@@ -6255,9 +6251,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 5571125516747136383
+  - Entity: 7101163910796827038
     TagComponent:
-      Tag: Decor Shrine 5
+      Tag: Decor Shrine 4
     TransformComponent:
       Translation: [-8.4758, 11.0046, 3.1]
       Rotation: [0, 0, 0]
@@ -6271,9 +6267,9 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
-  - Entity: 3779737555743171505
+  - Entity: 5571125516747136383
     TagComponent:
-      Tag: Decor Shrine 6
+      Tag: Decor Shrine 5
     TransformComponent:
       Translation: [-6.6691, 10.262, 3.1]
       Rotation: [0, 0, 0]
@@ -6287,9 +6283,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2356688421805321695
+  - Entity: 3779737555743171505
     TagComponent:
-      Tag: Decor Shrine 7
+      Tag: Decor Shrine 6
     TransformComponent:
       Translation: [-6.3931, 10.8015, 3.1]
       Rotation: [0, 0, 0]
@@ -6303,9 +6299,9 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
-  - Entity: 1441812604569663898
+  - Entity: 2356688421805321695
     TagComponent:
-      Tag: Decor Shrine 8
+      Tag: Decor Shrine 7
     TransformComponent:
       Translation: [-8.3218, 7.7455, 3.1]
       Rotation: [0, 0, 0]
@@ -6319,9 +6315,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 182962754119123205
+  - Entity: 1441812604569663898
     TagComponent:
-      Tag: Decor Shrine 9
+      Tag: Decor Shrine 8
     TransformComponent:
       Translation: [-7.6231, 10.4861, 3.1]
       Rotation: [0, 0, 0]
@@ -6335,9 +6331,9 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
-  - Entity: 2323669116538449886
+  - Entity: 182962754119123205
     TagComponent:
-      Tag: Decor Shrine 10
+      Tag: Decor Shrine 9
     TransformComponent:
       Translation: [-11.0457, 11.4075, 3.1]
       Rotation: [0, 0, 0]
@@ -6351,9 +6347,9 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
-  - Entity: 8915666742718931192
+  - Entity: 2323669116538449886
     TagComponent:
-      Tag: Decor Shrine 11
+      Tag: Decor Shrine 10
     TransformComponent:
       Translation: [8.2652, 9.805, 3.1]
       Rotation: [0, 0, 0]
@@ -6367,9 +6363,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 6390795475234083925
+  - Entity: 8915666742718931192
     TagComponent:
-      Tag: Decor Shrine 12
+      Tag: Decor Shrine 11
     TransformComponent:
       Translation: [-5.3053, 10.4914, 3.1]
       Rotation: [0, 0, 0]
@@ -6387,46 +6383,46 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Bush
     TransformComponent:
-      Translation: [4.0727, 11.4923, 3.1]
+      Translation: [-7.0708, 9.3345, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.448, 1.1765, 1]
+      Scale: [1.2136, 0.7951, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2314740518976743974
+      TextureHandle: 801037335933292480
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 7707118601334173326
     TagComponent:
       Tag: Decor Shrine Bush 2
     TransformComponent:
-      Translation: [-11.3653, 9.2723, 3.1]
+      Translation: [-6.0406, 9.0761, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.2276, 1.188, 1]
+      Scale: [1.7098, 1.3773, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 6367627297178582322
     TagComponent:
       Tag: Decor Shrine Bush 3
     TransformComponent:
-      Translation: [-6.0406, 8.8386, 3.1]
+      Translation: [4.8273, 9.6755, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.3773, 0.9024, 1]
+      Scale: [1.7508, 1.4103, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 801037335933292480
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -6435,73 +6431,9 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Bush 4
     TransformComponent:
-      Translation: [3.6792, 11.0623, 3.1]
+      Translation: [5.1605, 9.3642, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.3659, 1.3219, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1047774335627272014
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 3083567613734212025
-    TagComponent:
-      Tag: Decor Shrine Bush 5
-    TransformComponent:
-      Translation: [7.1237, 9.0497, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.7211, 1.6656, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1047774335627272014
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5429554370800214787
-    TagComponent:
-      Tag: Decor Shrine Bush 6
-    TransformComponent:
-      Translation: [-4.2199, 10.5227, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.3241, 1.0758, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2314740518976743974
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 2222785858926559805
-    TagComponent:
-      Tag: Decor Shrine Bush 7
-    TransformComponent:
-      Translation: [6.0623, 9.5745, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.4529, 1.406, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1047774335627272014
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 3513118845795846299
-    TagComponent:
-      Tag: Decor Shrine Bush 8
-    TransformComponent:
-      Translation: [4.0414, 11.9595, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.0295, 1.1531, 1]
+      Scale: [0.9576, 1.0725, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6511,13 +6443,61 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
+  - Entity: 3083567613734212025
+    TagComponent:
+      Tag: Decor Shrine Bush 5
+    TransformComponent:
+      Translation: [8.057, 9.2282, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.6635, 1.34, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 1700424717692955747
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 5429554370800214787
+    TagComponent:
+      Tag: Decor Shrine Bush 6
+    TransformComponent:
+      Translation: [5.6215, 9.7614, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [2.8518, 1.8312, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962550117341521128
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2222785858926559805
+    TagComponent:
+      Tag: Decor Shrine Bush 7
+    TransformComponent:
+      Translation: [-8.4547, 10.4043, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.6204, 1.0617, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 801037335933292480
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
   - Entity: 2701295029039167096
     TagComponent:
       Tag: Decor Hill Edge
     TransformComponent:
-      Translation: [-2.7287, 13.3595, 3.1]
+      Translation: [-11.9188, 13.372, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.2951, 1.4505, 1]
+      Scale: [1.6231, 1.8179, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6531,14 +6511,14 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 2
     TransformComponent:
-      Translation: [0.596, 13.6817, 3.1]
+      Translation: [-5.9706, 13.4029, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [2.0434, 1.9775, 1]
+      Scale: [2.0839, 1.7583, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 9007837791076890564
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6547,25 +6527,73 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 3
     TransformComponent:
-      Translation: [6.355, 13.1007, 3.1]
+      Translation: [-0.0893, 13.5232, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.3292, 1.4887, 1]
+      Scale: [2.1553, 1.8185, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 4046331560406254492
+      TextureHandle: 9007837791076890564
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 9019067610155784444
     TagComponent:
       Tag: Decor Hill Edge 4
     TransformComponent:
-      Translation: [7.4968, 13.3226, 3.1]
+      Translation: [0.7008, 13.2595, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.715, 1.1236, 1]
+      Scale: [2.9123, 1.8639, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5739746010985043715
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 746697313304837171
+    TagComponent:
+      Tag: Decor Hill Edge 5
+    TransformComponent:
+      Translation: [5.3221, 13.3067, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.4964, 1.6759, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4046331560406254492
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4870351730073297226
+    TagComponent:
+      Tag: Decor Hill Edge 6
+    TransformComponent:
+      Translation: [4.1654, 13.4288, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.7914, 1.4431, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 1700424717692955747
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 335830346442154474
+    TagComponent:
+      Tag: Decor Hill Edge 7
+    TransformComponent:
+      Translation: [8.1309, 13.2584, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.6015, 1.0493, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6575,66 +6603,18 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 746697313304837171
-    TagComponent:
-      Tag: Decor Hill Edge 5
-    TransformComponent:
-      Translation: [12.4564, 12.9911, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.6147, 1.5627, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1047774335627272014
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4870351730073297226
-    TagComponent:
-      Tag: Decor Hill Edge 6
-    TransformComponent:
-      Translation: [0.388, 13.1619, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.7473, 1.4197, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2314740518976743974
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 335830346442154474
-    TagComponent:
-      Tag: Decor Hill Edge 7
-    TransformComponent:
-      Translation: [4.1654, 13.4039, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.244, 1.3933, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 4046331560406254492
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
   - Entity: 6891174022631651750
     TagComponent:
       Tag: Decor Hill Edge 8
     TransformComponent:
-      Translation: [8.1309, 13.5621, 3.1]
+      Translation: [7.655, 12.9127, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.712, 1.6567, 1]
+      Scale: [2.5339, 1.6217, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 5739746010985043715
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6643,14 +6623,14 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 9
     TransformComponent:
-      Translation: [7.655, 12.9268, 3.1]
+      Translation: [1.4749, 13.1823, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.8019, 1.5204, 1]
+      Scale: [1.8989, 1.2441, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 9007837791076890564
+      TextureHandle: 801037335933292480
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -6659,25 +6639,25 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 10
     TransformComponent:
-      Translation: [-9.1045, 13.5575, 3.1]
+      Translation: [9.5639, 13.012, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [2.0703, 1.7468, 1]
+      Scale: [1.5393, 1.724, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 9007837791076890564
+      TextureHandle: 4046331560406254492
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 5695976193549132763
     TagComponent:
       Tag: Decor Hill Edge 11
     TransformComponent:
-      Translation: [-7.362, 12.9285, 3.1]
+      Translation: [8.1771, 13.2128, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.4529, 0.9519, 1]
+      Scale: [1.4528, 0.9519, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6691,9 +6671,25 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 12
     TransformComponent:
-      Translation: [-3.6335, 13.4598, 3.1]
+      Translation: [-4.8437, 13.5585, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.5273, 1.7106, 1]
+      Scale: [2.6784, 1.7468, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2675845896482149263
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5103394348372965492
+    TagComponent:
+      Tag: Decor Hill Edge 13
+    TransformComponent:
+      Translation: [14.0963, 13.2147, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.2325, 1.3804, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6703,13 +6699,13 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
-  - Entity: 5103394348372965492
+  - Entity: 735845302069624886
     TagComponent:
-      Tag: Decor Hill Edge 13
+      Tag: Decor Hill Edge 14
     TransformComponent:
-      Translation: [-1.5752, 13.0297, 3.1]
+      Translation: [-13.1943, 13.3781, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.9107, 1.5392, 1]
+      Scale: [2.4504, 1.9739, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6719,13 +6715,77 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 735845302069624886
+  - Entity: 708284206782804475
     TagComponent:
-      Tag: Decor Hill Edge 14
+      Tag: Decor Hill Edge 15
     TransformComponent:
-      Translation: [14.0963, 12.9929, 3.1]
+      Translation: [14.0219, 12.8627, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.4297, 0.9367, 1]
+      Scale: [1.7033, 1.384, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2314740518976743974
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3583041541154037120
+    TagComponent:
+      Tag: Decor Hill Edge 16
+    TransformComponent:
+      Translation: [-4.1552, 13.3336, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [2.5159, 1.6408, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2675845896482149263
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2020083100823483412
+    TagComponent:
+      Tag: Decor Hill Edge 17
+    TransformComponent:
+      Translation: [10.9749, 13.2797, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [2.2012, 1.4088, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5739746010985043715
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 9110736314116410108
+    TagComponent:
+      Tag: Decor Hill Edge 18
+    TransformComponent:
+      Translation: [15.0242, 13.4181, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.1705, 1.3109, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4046331560406254492
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 9200246522751595079
+    TagComponent:
+      Tag: Decor Hill Edge 19
+    TransformComponent:
+      Translation: [-11.2457, 12.7908, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.4623, 0.958, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6735,98 +6795,18 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 708284206782804475
-    TagComponent:
-      Tag: Decor Hill Edge 15
-    TransformComponent:
-      Translation: [-6.37, 12.9465, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.9493, 1.5703, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 3583041541154037120
-    TagComponent:
-      Tag: Decor Hill Edge 16
-    TransformComponent:
-      Translation: [-8.6524, 13.0998, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.4641, 1.4168, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1047774335627272014
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 2020083100823483412
-    TagComponent:
-      Tag: Decor Hill Edge 17
-    TransformComponent:
-      Translation: [3.522, 12.9892, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [2.1846, 1.7598, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 9110736314116410108
-    TagComponent:
-      Tag: Decor Hill Edge 18
-    TransformComponent:
-      Translation: [5.785, 13.1365, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [1.8469, 1.4878, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 9200246522751595079
-    TagComponent:
-      Tag: Decor Hill Edge 19
-    TransformComponent:
-      Translation: [-1.6503, 13.1058, 3.1]
-      Rotation: [0, 0, 0]
-      Scale: [2.1898, 1.764, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
   - Entity: 6201051591935336764
     TagComponent:
       Tag: Decor Hill Edge 20
     TransformComponent:
-      Translation: [13.7115, 12.8473, 3.1]
+      Translation: [-6.3049, 13.0615, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.4714, 1.4239, 1]
+      Scale: [1.7844, 1.4374, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 1700424717692955747
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6835,32 +6815,32 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 21
     TransformComponent:
-      Translation: [14.0766, 13.5635, 3.1]
+      Translation: [-14.5838, 13.5304, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.5911, 1.5397, 1]
+      Scale: [3.9117, 2.5117, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 3485068613338979465
     TagComponent:
       Tag: Decor Hill Edge 22
     TransformComponent:
-      Translation: [10.723, 13.1193, 3.1]
+      Translation: [11.1888, 12.9125, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [2.0449, 1.7254, 1]
+      Scale: [1.9338, 1.267, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 9007837791076890564
+      TextureHandle: 801037335933292480
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 1712060653907632781
@@ -6924,7 +6904,7 @@ Entities:
       SortOrder: 0
       TextureHandle: 1047774335627272014
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 1989661402193555698
@@ -6940,7 +6920,7 @@ Entities:
       SortOrder: 0
       TextureHandle: 4046331560406254492
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 7216863574807356806
@@ -6956,23 +6936,23 @@ Entities:
       SortOrder: 0
       TextureHandle: 2314740518976743974
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 7078799132378088511
     TagComponent:
       Tag: Rock
     TransformComponent:
-      Translation: [-11, -3.0094, 0]
+      Translation: [-11, -3.1844, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.4, 1.1812, 1]
+      Scale: [1.2687, 0.8312, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 9007837791076890564
+      TextureHandle: 801037335933292480
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 5061178514271246099
@@ -6988,21 +6968,21 @@ Entities:
       SortOrder: 0
       TextureHandle: 9007837791076890564
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 7805685482707567927
     TagComponent:
       Tag: Rock 3
     TransformComponent:
-      Translation: [-5.6, 1.1156, 1]
+      Translation: [-5.6, 1.2906, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.2687, 0.8312, 1]
+      Scale: [1.4, 1.1812, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 801037335933292480
+      TextureHandle: 9007837791076890564
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7027,14 +7007,14 @@ Entities:
     TagComponent:
       Tag: Canopy Front
     TransformComponent:
-      Translation: [-5.4, -4.4125, 0]
+      Translation: [-5.6, -4.6145, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.7, 2.175, 1]
+      Scale: [3.2656, 2.0969, 1]
     SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
+      Color: [0.9, 0.88, 0.86, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1700424717692955747
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7043,30 +7023,30 @@ Entities:
     TagComponent:
       Tag: Canopy Front 2
     TransformComponent:
-      Translation: [-7.6, -4.6813, 0]
+      Translation: [-8.6, -4.6069, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.5188, 2.4375, 1]
+      Scale: [2.5875, 1.6875, 1]
     SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
+      Color: [0.9, 0.88, 0.86, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 1047774335627272014
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
-      FlipX: false
+      FlipX: true
       FlipY: false
       Facing: Upright
   - Entity: 5363181629097023839
     TagComponent:
       Tag: Canopy Front 3
     TransformComponent:
-      Translation: [-9.6, -4.3719, 0]
+      Translation: [5.8, -4.9069, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.7875, 1.8563, 1]
+      Scale: [2.5875, 1.6875, 1]
     SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
+      Color: [0.9, 0.88, 0.86, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7075,14 +7055,14 @@ Entities:
     TagComponent:
       Tag: Canopy Front 4
     TransformComponent:
-      Translation: [5.6, -4.5875, 0]
+      Translation: [8.8, -4.4041, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.95, 2.025, 1]
+      Scale: [2.9688, 1.9062, 1]
     SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
+      Color: [0.9, 0.88, 0.86, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 235042511787055345
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -7091,14 +7071,14 @@ Entities:
     TagComponent:
       Tag: Canopy Front 5
     TransformComponent:
-      Translation: [7.8, -4.75, 0]
+      Translation: [-5.2, -10.2391, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.875, 2.1, 1]
+      Scale: [2.1562, 1.4062, 1]
     SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
+      Color: [0.9, 0.88, 0.86, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 4046331560406254492
+      TextureHandle: 2675845896482149263
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7107,78 +7087,14 @@ Entities:
     TagComponent:
       Tag: Canopy Front 6
     TransformComponent:
-      Translation: [9.8, -4.3406, 0]
+      Translation: [5.4, -10.1937, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.925, 1.7188, 1]
+      Scale: [2.6719, 1.7156, 1]
     SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
+      Color: [0.9, 0.88, 0.86, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2536696117543792921
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 6266079466458038552
-    TagComponent:
-      Tag: Canopy Front 7
-    TransformComponent:
-      Translation: [-6.4, -9.6937, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.25, 1.8125, 1]
-    SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1700424717692955747
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8451206556614315736
-    TagComponent:
-      Tag: Canopy Front 8
-    TransformComponent:
-      Translation: [-4.2, -10.5094, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.8406, 1.7812, 1]
-    SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1047774335627272014
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 647316421080007629
-    TagComponent:
-      Tag: Canopy Front 9
-    TransformComponent:
-      Translation: [6.2, -9.9563, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.625, 1.6875, 1]
-    SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 235042511787055345
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 6650543042686484141
-    TagComponent:
-      Tag: Canopy Front 10
-    TransformComponent:
-      Translation: [4.2, -10.7687, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.4844, 1.6625, 1]
-    SpriteRendererComponent:
-      Color: [0.86, 0.84, 0.8, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 4046331560406254492
+      TextureHandle: 962550117341521128
       SpriteIndex: 0
       FlipX: true
       FlipY: false

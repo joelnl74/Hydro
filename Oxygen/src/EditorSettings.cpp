@@ -175,6 +175,7 @@ namespace Hydro
 		out << YAML::Key << "OrbitSpeed" << YAML::Value << camera.OrbitSpeed;
 		out << YAML::Key << "PanSpeed" << YAML::Value << camera.PanSpeed;
 		out << YAML::Key << "ZoomSpeed" << YAML::Value << camera.ZoomSpeed;
+		out << YAML::Key << "FlySpeed" << YAML::Value << camera.FlySpeed;
 		out << YAML::EndMap;
 
 		out << YAML::Key << "Console" << YAML::Value << YAML::BeginMap;
@@ -314,6 +315,7 @@ namespace Hydro
 			ReadFloat(camera, "OrbitSpeed", loaded.Camera.OrbitSpeed);
 			ReadFloat(camera, "PanSpeed", loaded.Camera.PanSpeed);
 			ReadFloat(camera, "ZoomSpeed", loaded.Camera.ZoomSpeed);
+			ReadFloat(camera, "FlySpeed", loaded.Camera.FlySpeed);
 		}
 
 		if (const YAML::Node console = node["Console"])

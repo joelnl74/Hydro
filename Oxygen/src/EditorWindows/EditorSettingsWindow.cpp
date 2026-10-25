@@ -482,11 +482,13 @@ namespace Hydro
 			changed |= FloatRow("Orbit speed", camera.OrbitSpeed, 0.05f, 10.0f, "%.2f");
 			changed |= FloatRow("Pan speed", camera.PanSpeed, 0.05f, 10.0f, "%.2f");
 			changed |= FloatRow("Zoom speed", camera.ZoomSpeed, 0.05f, 10.0f, "%.2f");
+			changed |= FloatRow("Fly speed (m/s)", camera.FlySpeed, 0.1f, 200.0f, "%.1f");
 			ImGui::EndTable();
 		}
 
-		ImGui::TextDisabled("Field of view is used by the 3D view. Speeds multiply the defaults (1 = default).");
+		ImGui::TextDisabled("Field of view and fly speed are used by the 3D view. The other speeds multiply the defaults (1 = default).");
 		ImGui::TextDisabled("Controls: Alt+LMB orbit, MMB pan, Alt+RMB or the wheel to zoom.");
+		ImGui::TextDisabled("3D: hold RMB to fly (mouse look, WASD, Q/E down/up, Shift faster, wheel = speed).");
 
 		ImGui::Spacing();
 		if (ImGui::Button("Reset camera settings"))
