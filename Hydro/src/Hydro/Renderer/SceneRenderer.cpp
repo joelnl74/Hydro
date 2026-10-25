@@ -198,8 +198,32 @@ namespace Hydro
 			std::sort(m_SpriteQueue.begin(), m_SpriteQueue.end(), drawsBefore);
 		}
 
+		// Shared depth (S1): the flat sprites before the first standing item (the ground, roads, decals) are
+		// decals, drawn first in this order; standing sprites are cut-outs when that is the default alpha;
+		// everything else (particles, flat sprites layered above standing ones) stays translucent. Without
+		// shared depth Renderer2D ignores the modes and draws everything in this order, as before.
+		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
+		const bool sharedDepth = Renderer2D::HasSharedDepth(features);
+		const bool cutoutSprites = features.DefaultSpriteAlpha == SpriteAlphaDefault::Cutout;
+		bool reachedStanding = false;
+
 		for (const SpriteDrawItem& item : m_SpriteQueue)
 		{
+			if (sharedDepth)
+			{
+				reachedStanding = reachedStanding || item.Standing;
+				SpriteDrawMode mode = SpriteDrawMode::Translucent;
+				if (item.Standing == false)
+				{
+					mode = reachedStanding ? SpriteDrawMode::Translucent : SpriteDrawMode::Decal;
+				}
+				else if (item.IsEmitter == false && cutoutSprites)
+				{
+					mode = SpriteDrawMode::Cutout;
+				}
+				Renderer2D::SetSpriteDrawMode(mode);
+			}
+
 			if (item.IsEmitter)
 			{
 				const ParticleEmitter2DComponent& emitter = m_Scene->m_Registry.get<ParticleEmitter2DComponent>(item.Entity);
@@ -210,7 +234,29 @@ namespace Hydro
 			SubmitSprite(transform.GetTransform(), sprite, m_Camera);
 		}
 
+		if (sharedDepth)
+		{
+			Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Translucent);
+			SubmitSpikeBoxes();
+		}
+
 		// TODO MESH RENDERING
+	}
+
+	void SceneRenderer::SubmitSpikeBoxes()
+	{
+		// TEMPORARY(S1, removed in M4 with MeshComponent): an entity tagged "S1 Depth Box ..." is drawn as an
+		// unlit box standing on its position: Scale is its width (X), depth (Y) and height (Z).
+		const glm::vec4 stone{ 0.66f, 0.6f, 0.52f, 1.0f };
+		auto tagged = m_Scene->m_Registry.view<TagComponent, TransformComponent>();
+		for (auto entity : tagged)
+		{
+			const auto [tag, transform] = tagged.get<TagComponent, TransformComponent>(entity);
+			if (tag.Tag.rfind("S1 Depth Box", 0) == 0)
+			{
+				Renderer2D::DrawSpikeBox(transform.GetTransform(), stone);
+			}
+		}
 	}
 
 	void SceneRenderer::SubmitUnlitParticles()

@@ -14,6 +14,7 @@
 namespace Hydro
 {
 	class RenderFeature;
+	class VulkanPipeline;
 	struct QuadDraw;
 
 	// Stats
@@ -122,6 +123,20 @@ namespace Hydro
 		static void BeginOverlay();
 		static void EndOverlay();
 
+		// Shared depth (RenderFeatureSettings::Depth): how the quads submitted next are drawn, until the next
+		// call or EndScene (which goes back to Translucent). Decal and Cutout quads go to their own lists,
+		// drawn before the translucent ones; see SpriteDrawMode. Ignored inside an overlay and in a view
+		// without shared depth (everything is translucent there, in submission order).
+		static void SetSpriteDrawMode(SpriteDrawMode mode);
+		// Whether a view with these settings has a shared depth attachment (Depth = Shared and the GPU can
+		// use DEPTH32F as one). SceneRenderer chooses sprite draw modes only then.
+		static bool HasSharedDepth(const RenderFeatureSettings& settings);
+
+		// TEMPORARY(S1, removed in M4): an unlit box for the shared-depth spike, drawn opaque with depth
+		// test and write before the sprites. `transform` maps the unit box (base centred on the origin,
+		// 1 x 1 wide, 1 high along +Z) into the world. Only drawn in views with shared depth.
+		static void DrawSpikeBox(const glm::mat4& transform, const glm::vec4& color);
+
 		// 2D lighting (RendererSettings::Lighting). Queue lights for the view between BeginScene and
 		// EndScene, like quads. A view that gets at least one light is drawn lit: each light is drawn
 		// into the view's light buffer, which is then multiplied over the scene. Colours are linear RGB,
@@ -171,8 +186,13 @@ namespace Hydro
 		// Rebuilds the view's render graph when its features changed (and its target when they need
 		// other attachments).
 		static void UpdateRenderGraph(RenderViewData& view);
-		// Binds the quad pipeline and records `draws` (the view's sprites or its overlay). Nothing when empty.
-		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws);
+		// Binds `pipeline` (a quad pipeline built for the view's attachments) and records `draws` (one of the
+		// view's quad lists). Nothing when empty or when the pipeline is null.
+		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, VulkanPipeline* pipeline);
+		// TEMPORARY(S1): the view's spike boxes.
+		static void RecordSpikeBoxes(VkCommandBuffer commandBuffer, RenderViewData& view);
+		// The draw list quads go to now (overlay, or the current sprite draw mode's list).
+		static std::vector<QuadDraw>& GetCurrentDraws(RenderViewData& view);
 		static void AllocateBatch(RenderViewData& view);
 		static void NextBatch(RenderViewData& view);
 		static void ResetBatches(RenderViewData& view);

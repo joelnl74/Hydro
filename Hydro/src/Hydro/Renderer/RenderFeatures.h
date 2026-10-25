@@ -30,6 +30,15 @@ namespace Hydro
 		Forward        // directional, point and spot lights in the sprite and mesh shaders
 	};
 
+	// How the sprites submitted next are drawn in a view with shared depth (Renderer2D::SetSpriteDrawMode).
+	// Ignored, and everything drawn Translucent, without shared depth, so the 2D preset is unchanged.
+	enum class SpriteDrawMode : uint8_t
+	{
+		Translucent = 0, // depth test, no depth write, alpha blended, after the cut-out sprites (particles, effects)
+		Decal,           // the same, but before the cut-out sprites: ground, roads, flat decals in painter's order
+		Cutout           // depth test and write; pixels with alpha under 0.5 are discarded (standing sprites)
+	};
+
 	// The alpha mode of sprites that don't choose one.
 	enum class SpriteAlphaDefault : uint8_t
 	{

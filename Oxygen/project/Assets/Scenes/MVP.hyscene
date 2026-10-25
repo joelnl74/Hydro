@@ -11840,3 +11840,117 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+  - Entity: 3596799573489577125
+    TagComponent:
+      Tag: S1 Depth Box
+    TransformComponent:
+      Translation: [-17.3, -1.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.2, 1.2, 0.9]
+  - Entity: 2173924343473726646
+    TagComponent:
+      Tag: S1 Road 0
+    TransformComponent:
+      Translation: [-19.375, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -50
+      TextureHandle: 4680268584103075221
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 6337819461406226561
+    TagComponent:
+      Tag: S1 Road 1
+    TransformComponent:
+      Translation: [-18.125, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -50
+      TextureHandle: 4680268584103075221
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 5369526070388541847
+    TagComponent:
+      Tag: S1 Road 2
+    TransformComponent:
+      Translation: [-16.875, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -50
+      TextureHandle: 4680268584103075221
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 4192300476115817309
+    TagComponent:
+      Tag: S1 Road 3
+    TransformComponent:
+      Translation: [-15.625, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -50
+      TextureHandle: 4680268584103075221
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 7631087710597073396
+    TagComponent:
+      Tag: S1 Road 4
+    TransformComponent:
+      Translation: [-14.375, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: -50
+      TextureHandle: 4680268584103075221
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 3872523951829890165
+    TagComponent:
+      Tag: S1 Tree tree_round_02
+    TransformComponent:
+      Translation: [-16, -0.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 4, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 82
+      TextureHandle: 1746345931131060191
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    Shadow2DComponent:
+      Offset: [0, -1.95]
+      Size: [2, 0.85]
+      Strength: 0.55
+    BoxCollider2DComponent:
+      Offset: [0, -0.4313]
+      Size: [0.2333, 0.1375]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false

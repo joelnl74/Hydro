@@ -46,7 +46,7 @@ namespace Hydro
 	// Textures one draw call can sample. The quad shader declares `sampler2D inTextures[32]` and the
 	// descriptor set's image array has VulkanDescriptorBuilder::MaxImageArraySize elements; all three agree.
 	static constexpr uint32_t MaxTextureSlots = VulkanDescriptorBuilder::MaxImageArraySize;
-	static_assert(MaxTextureSlots == 32, "Change inTextures[] and SampleTexture in fragment.frag too");
+	static_assert(MaxTextureSlots == 32, "Change inTextures[] and SampleTexture in sprite_common.glsl too");
 
 	// One GPU vertex buffer per frame in flight. While frame N is still being read by
 	// the GPU, frame N+1 writes into its own buffer, so the CPU never overwrites data
@@ -92,6 +92,13 @@ namespace Hydro
 	};
 
 	// Everything one RenderView needs: its target, its camera and its quads.
+	// TEMPORARY(S1): a box drawn by the shared-depth spike (Renderer2D::DrawSpikeBox). Removed in M4.
+	struct SpikeBox
+	{
+		glm::mat4 Transform{ 1.0f }; // the unit box (base centred on the origin, 1 high along +Z) into the world
+		glm::vec4 Color{ 1.0f };
+	};
+
 	struct RenderViewData
 	{
 		std::string DebugName;
@@ -126,12 +133,17 @@ namespace Hydro
 		std::vector<TextureSet> TextureSets;
 		uint32_t TextureSetIndex = 0;                // set currently being filled
 		// This frame's draw calls in submission order. A new draw starts when the batch is full
-		// or the texture set is full.
+		// or the texture set is full. Every quad without shared depth; with it, the translucent ones.
 		std::vector<QuadDraw> Draws;
+		// Shared depth only (Renderer2D::SetSpriteDrawMode): decals, then cut-out sprites, drawn before Draws.
+		std::vector<QuadDraw> DecalDraws;
+		std::vector<QuadDraw> CutoutDraws;
 		// Draws made between BeginOverlay and EndOverlay. They are recorded after the lighting is
 		// composited, so lights and shadows don't darken them (editor outlines, debug shapes).
 		std::vector<QuadDraw> OverlayDraws;
 		bool InOverlay = false; // quads currently go to OverlayDraws
+		SpriteDrawMode DrawMode = SpriteDrawMode::Translucent; // the list quads go to outside the overlay
+		std::vector<SpikeBox> SpikeBoxes; // TEMPORARY(S1)
 
 		// ---- Lights ------------------------------------------------------------------
 		// Queued by DrawLight / DrawGlobalLight, drawn by RecordLightPass. Cleared with the batches.

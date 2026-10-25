@@ -80,8 +80,11 @@ namespace Hydro
 		// Sorts the scene's sprites and lit particle emitters together (SortOrder; then Flat sprites by Z,
 		// then the standing ones, Upright, Billboard and emitters, from far to near along the camera's
 		// ground direction; then storage order) and submits them back to front. An emitter is one entry:
-		// its particles are drawn together.
+		// its particles are drawn together. With shared depth it also picks each one's SpriteDrawMode (decal,
+		// cut-out or translucent) and submits the spike boxes.
 		void SubmitSprites();
+		// TEMPORARY(S1, removed in M4): entities tagged "S1 Depth Box ..." as Renderer2D spike boxes.
+		void SubmitSpikeBoxes();
 		// Unlit emitters (ParticleLighting::Unlit): drawn after the view's lighting is composited, so they
 		// are not darkened at night. They go on top of every sprite (no SortOrder against sprites yet;
 		// the emissive path is decided by the Roadmap V4 spike).
