@@ -27,15 +27,37 @@ namespace Hydro
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
-		// Only enable features the GPU actually has.
-		VkPhysicalDeviceFeatures deviceFeatures{};
-		m_SamplerAnisotropyEnabled = m_PhysicalDevice->GetFeatures().samplerAnisotropy == VK_TRUE;
-		deviceFeatures.samplerAnisotropy = m_SamplerAnisotropyEnabled ? VK_TRUE : VK_FALSE;
+		// One feature chain: VkPhysicalDeviceFeatures2 (the Vulkan 1.0 features) -> Vulkan 1.3 features.
+		// Required features were checked when the GPU was picked (VulkanPhysicalDevice); optional ones
+		// are enabled only when the GPU has them, and what was enabled is what the rest of the
+		// engine asks for (IsWideLinesEnabled, ...), never what the GPU merely supports.
+		const VkPhysicalDeviceFeatures& supported = m_PhysicalDevice->GetFeatures();
+		const VkPhysicalDeviceVulkan13Features& supported13 = m_PhysicalDevice->GetVulkan13Features();
+
+		VkPhysicalDeviceVulkan13Features enabled13{};
+		enabled13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+		// Required (Vulkan 1.3): offscreen passes without VkRenderPass/VkFramebuffer, and vkCmdPipelineBarrier2.
+		enabled13.dynamicRendering = VK_TRUE;
+		enabled13.synchronization2 = VK_TRUE;
+		HY_CORE_ASSERT(supported13.dynamicRendering == VK_TRUE && supported13.synchronization2 == VK_TRUE,
+			"VulkanPhysicalDevice picked a GPU without dynamicRendering / synchronization2");
+		m_DynamicRenderingEnabled = true;
+		m_Synchronization2Enabled = true;
+
+		VkPhysicalDeviceFeatures2 enabledFeatures{};
+		enabledFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		enabledFeatures.pNext = &enabled13;
+
+		// Optional.
+		m_SamplerAnisotropyEnabled = supported.samplerAnisotropy == VK_TRUE;
+		enabledFeatures.features.samplerAnisotropy = m_SamplerAnisotropyEnabled ? VK_TRUE : VK_FALSE;
 		// Needed by PipelineSpecification::Wireframe and ::LineWidth != 1.
-		m_FillModeNonSolidEnabled = m_PhysicalDevice->GetFeatures().fillModeNonSolid == VK_TRUE;
-		deviceFeatures.fillModeNonSolid = m_FillModeNonSolidEnabled ? VK_TRUE : VK_FALSE;
-		m_WideLinesEnabled = m_PhysicalDevice->GetFeatures().wideLines == VK_TRUE;
-		deviceFeatures.wideLines = m_WideLinesEnabled ? VK_TRUE : VK_FALSE;
+		m_FillModeNonSolidEnabled = supported.fillModeNonSolid == VK_TRUE;
+		enabledFeatures.features.fillModeNonSolid = m_FillModeNonSolidEnabled ? VK_TRUE : VK_FALSE;
+		m_WideLinesEnabled = supported.wideLines == VK_TRUE;
+		enabledFeatures.features.wideLines = m_WideLinesEnabled ? VK_TRUE : VK_FALSE;
+		// Descriptor indexing (Vulkan 1.2, for bindless textures later) is reported in
+		// RendererCapabilities but not enabled: nothing uses it yet.
 
 		const std::vector<const char*>& deviceExtensions = VulkanPhysicalDevice::GetRequiredExtensions();
 
@@ -45,7 +67,9 @@ namespace Hydro
 		deviceCreateInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
 		deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
 		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
-		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+		// With a VkPhysicalDeviceFeatures2 in pNext, pEnabledFeatures must be null.
+		deviceCreateInfo.pNext = &enabledFeatures;
+		deviceCreateInfo.pEnabledFeatures = nullptr;
 
 		VkResult result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, nullptr, &m_LogicalDevice);
 		if (result != VK_SUCCESS)

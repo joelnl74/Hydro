@@ -198,12 +198,23 @@ The editor's look is editor-only: `EditorStyle`, `EditorSettings` (with `EditorS
 - **Asset editing.** The windows edit copies and write files; `EditorLayer` then swaps the result into the editor scene and the play copy: a re-imported texture replaces the old one on every sprite that used the file (keeping each sprite by name), animation sets that use it are read again (`SpriteAnimationSet::LoadFromFile(path, true)`), and a saved `.hyanim` replaces the set on its animators (the playing clip carries on by name). Images in these windows go through `Renderer2D::GetImGuiTexture`: a small pool of ImGui handles, each rewritten for another texture only after it hasn't been drawn for longer than the frames in flight, so ImGui's descriptor pool doesn't grow.
 - **Session.** The last project and scene, and which View menu windows are open (`EditorSession::OpenWindows`, by menu name), are remembered in the same file. On close, and as soon as a window is opened or closed, `EditorSettingsSerializer::SaveSession` rewrites only that part, so unsaved edits in the window aren't written by accident. `EditorLayer::GetViewWindows()` is the one list behind the View menu, the save and the restore: a new window added there is remembered too; a window missing from the file keeps its own default.
 
+## Device requirements
+
+The engine needs **Vulkan 1.3** (decided October 25, 2026, for the [3D renderer MVP plan](https://github.com/joelnl74/Hydro/wiki/Renderer-3D-MVP-Plan), step M0, [#114](https://github.com/joelnl74/Hydro/issues/114)). Windows only for now; any desktop GPU with a driver from 2022 or later has it. The Vulkan SDK the setup scripts install is 1.3.296.
+
+- `VulkanRendererContext` creates the instance with `HY_REQUIRED_VULKAN_VERSION` (1.3).
+- `VulkanPhysicalDevice` reads each GPU's features with `vkGetPhysicalDeviceFeatures2` (the 1.0 features, `VkPhysicalDeviceVulkan12Features`, and `VkPhysicalDeviceVulkan13Features` when the GPU has 1.3) and only picks a GPU with Vulkan 1.3, `dynamicRendering` and `synchronization2` that can present to the window. Every GPU that can't be used is logged with the reason; when none can, startup stops with a message that names them.
+- `VulkanDevice` enables one feature chain: `VkPhysicalDeviceFeatures2` in `VkDeviceCreateInfo::pNext` (`pEnabledFeatures` is null) → `VkPhysicalDeviceVulkan13Features`. Required: `dynamicRendering`, `synchronization2`. Optional, enabled when the GPU has them: `samplerAnisotropy`, `fillModeNonSolid` (wireframe), `wideLines`. `descriptorIndexing` is reported but not enabled until bindless textures use it. Code asks the device what was **enabled** (`IsWideLinesEnabled()`), never what the GPU merely supports.
+- `RendererCapabilities` (`Renderer::GetCapabilities()`) has the GPU's name and Vulkan version, the required and optional features, and the limits the 3D work depends on: push constant size, sampled images per stage, maximum anisotropy, and whether `DEPTH32F` / `DEPTH24STENCIL8` can be depth attachments. They are logged at startup (four `Renderer:` lines) and listed in **Render Settings > Device**.
+- Two places stay on 1.2 on purpose: VMA's `vulkanApiVersion` (the vendored VMA asserts on anything above 1.2; it only decides which memory functions it loads) and shaderc's target environment (SPIR-V for 1.2 runs on a 1.3 device).
+- Dynamic rendering and synchronization2 are enabled but not used yet: render passes move to dynamic rendering in M1. The present pass keeps its `VkRenderPass` until ImGui is upgraded (the vendored ImGui 1.89 backend needs one).
+
 ## Vulkan ownership
 
 | Object | Owns |
 | --- | --- |
 | `VulkanRendererContext` | Instance, debug messenger (Debug builds), window surface, device (`Scope<VulkanDevice>`, handed out as `VulkanDevice&`). All members: nothing in it is `static` |
-| `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`, whose properties and features are read once), logical device, graphics + present queues, the upload command pool (private: only `SubmitImmediate` uses it) |
+| `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`, whose properties and features are read once), the enabled features (`Is...Enabled`), logical device, graphics + present queues, the upload command pool (private: only `SubmitImmediate` uses it) |
 | `VulkanSwapChain` | Swapchain images, views, framebuffers, present render pass, render-finished semaphores; acquire/present; `Recreate` |
 | `VulkanFrameContext` | Per frame in flight (`MAX_FRAMES_IN_FLIGHT = 2`): command pool + buffer, fence, image-acquired semaphore |
 | `Renderer` | The above (`Scope`s; `GetVulkanDevice()`, `GetRendererContext()` and `GetVulkanSwapChain()` return references), the **deletion queue**, and runs the frame |

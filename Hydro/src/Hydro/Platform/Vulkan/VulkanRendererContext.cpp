@@ -89,7 +89,8 @@ namespace Hydro
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "Hydro";
 		appInfo.pEngineName = "Hydro";
-		appInfo.apiVersion = VK_API_VERSION_1_2;
+		// The highest version the engine uses; the GPU must support it too (VulkanPhysicalDevice checks).
+		appInfo.apiVersion = HY_REQUIRED_VULKAN_VERSION;
 
 		// Start from what GLFW needs for the window surface (VK_KHR_surface + the platform surface),
 		// then add the debug-utils extension when validation is on.

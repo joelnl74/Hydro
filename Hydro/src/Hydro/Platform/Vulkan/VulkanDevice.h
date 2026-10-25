@@ -29,6 +29,9 @@ namespace Hydro
 		// work (record that into Renderer::GetCurrentCommandBuffer()). Main thread only.
 		void SubmitImmediate(const std::function<void(VkCommandBuffer)>& record);
 
+		// Enabled features (Vulkan 1.3 core: dynamic rendering, synchronization2; optional: the rest).
+		bool IsDynamicRenderingEnabled() const { return m_DynamicRenderingEnabled; }
+		bool IsSynchronization2Enabled() const { return m_Synchronization2Enabled; }
 		bool IsSamplerAnisotropyEnabled() const { return m_SamplerAnisotropyEnabled; }
 		bool IsFillModeNonSolidEnabled() const { return m_FillModeNonSolidEnabled; }
 		bool IsWideLinesEnabled() const { return m_WideLinesEnabled; }
@@ -43,6 +46,8 @@ namespace Hydro
 		VkQueue m_PresentQueue = VK_NULL_HANDLE;
 
 		VkCommandPool m_UploadCommandPool = VK_NULL_HANDLE;
+		bool m_DynamicRenderingEnabled = false;
+		bool m_Synchronization2Enabled = false;
 		bool m_SamplerAnisotropyEnabled = false;
 		bool m_FillModeNonSolidEnabled = false;
 		bool m_WideLinesEnabled = false;

@@ -105,11 +105,19 @@ namespace Hydro
 		{
 			const Statistics stats = Renderer2D::GetStats();
 			StatsUI::Row("GPU", "%s", capabilities.GPUName);
+			StatsUI::Row("Vulkan", "%u.%u.%u", capabilities.VulkanVersionMajor, capabilities.VulkanVersionMinor, capabilities.VulkanVersionPatch);
 			StatsUI::Row("Frames in flight", "%u", capabilities.FramesInFlight);
 			StatsUI::Row("Viewport", "%u x %u", stats.ViewportWidth, stats.ViewportHeight);
 			StatsUI::Row("Quads per batch", "%u", stats.MaxQuadsPerBatch);
 			StatsUI::Row("Wireframe support", "%s", capabilities.Wireframe ? "yes" : "no");
 			StatsUI::Row("Wide lines support", "%s", capabilities.WideLines ? "yes" : "no");
+			StatsUI::Row("Dynamic rendering", "%s", capabilities.DynamicRendering ? "yes" : "no");
+			StatsUI::Row("Synchronization2", "%s", capabilities.Synchronization2 ? "yes" : "no");
+			StatsUI::Row("Sampler anisotropy", "%s (max %.0f)", capabilities.SamplerAnisotropy ? "yes" : "no", capabilities.MaxSamplerAnisotropy);
+			StatsUI::Row("Descriptor indexing", "%s", capabilities.DescriptorIndexing ? "supported (not enabled)" : "no");
+			StatsUI::Row("Push constants", "%u bytes", capabilities.MaxPushConstantsSize);
+			StatsUI::Row("Sampled images / stage", "%u", capabilities.MaxSampledImagesPerStage);
+			StatsUI::Row("Depth formats", "D32F %s, D24S8 %s", capabilities.DepthFormat32F ? "yes" : "no", capabilities.DepthFormat24Stencil8 ? "yes" : "no");
 			ImGui::EndTable();
 		}
 

@@ -40,7 +40,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/Camera.*`, `SceneCamera.h`, `EditorCamera.*` | Projections (`*_ZO`, Y flip), per-scene camera data, editor orbit camera + `EditorCameraSettings`, `Focus`/`Frame` to look at a point |
 | `Renderer/Renderer3D.*` | Placeholder part for the 3D path (R9): `Init` / `Shutdown` only |
 | **Platform/Vulkan** (backend; applications never include these) | |
-| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance, surface, device (reached with `Renderer::GetVulkanDevice()`), queues, enabled features, `SubmitImmediate` for one-off uploads |
+| `VulkanRendererContext.*`, `VulkanDevice.*`, `VulkanPhysicalDevice.*` | Instance (Vulkan 1.3), surface, GPU choice (needs 1.3 + dynamic rendering + synchronization2), device with the feature chain (reached with `Renderer::GetVulkanDevice()`), queues, enabled features, `SubmitImmediate` for one-off uploads; see [Device requirements](Architecture.md#device-requirements) |
 | `VulkanSwapChain.*`, `VulkanFrameContext.*` | Swapchain + present pass; per-frame command buffer, fence, semaphores (`MAX_FRAMES_IN_FLIGHT = 2`) |
 | `VulkanAllocator.*` | VMA wrapper, GPU memory stats |
 | `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |

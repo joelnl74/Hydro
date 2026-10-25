@@ -25,14 +25,25 @@ namespace Hydro
 		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
 		int bestScore = 0;
+		std::string rejections; // every GPU that can't be used and why, for the error message
 
 		for (VkPhysicalDevice device : devices)
 		{
 			VkPhysicalDeviceProperties properties;
 			vkGetPhysicalDeviceProperties(device, &properties);
 
-			int score = ScoreDevice(device, surface);
-			HY_CORE_INFO("GPU candidate: {0} (score {1})", properties.deviceName, score);
+			const std::string missing = FindMissingRequirement(device, surface);
+			if (missing.empty() == false)
+			{
+				HY_CORE_WARN("GPU candidate: {0} (Vulkan {1}.{2}) can't be used: {3}", properties.deviceName,
+					VK_API_VERSION_MAJOR(properties.apiVersion), VK_API_VERSION_MINOR(properties.apiVersion), missing);
+				rejections += std::string("\n  ") + properties.deviceName + ": " + missing;
+				continue;
+			}
+
+			const int score = ScoreDevice(device);
+			HY_CORE_INFO("GPU candidate: {0} (Vulkan {1}.{2}, score {3})", properties.deviceName,
+				VK_API_VERSION_MAJOR(properties.apiVersion), VK_API_VERSION_MINOR(properties.apiVersion), score);
 
 			if (score > bestScore)
 			{
@@ -43,40 +54,118 @@ namespace Hydro
 
 		if (m_PhysicalDevice == VK_NULL_HANDLE)
 		{
-			throw std::runtime_error("No GPU can render and present to this window.");
+			const std::string message = "No GPU can run Hydro: it needs Vulkan 1.3 (dynamic rendering and synchronization2) "
+				"and must present to this window. Updating the graphics driver usually adds Vulkan 1.3." + rejections;
+			HY_CORE_ERROR("{0}", message);
+			throw std::runtime_error(message);
 		}
 
 		vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_Properties);
-		vkGetPhysicalDeviceFeatures(m_PhysicalDevice, &m_Features);
+		QueryFeatures(m_PhysicalDevice, m_Features, m_Features12, m_Features13);
 		m_QueueFamilyIndices = FindQueueFamilies(m_PhysicalDevice, surface);
 
 		HY_CORE_INFO("Physical device selected: {0}", m_Properties.deviceName);
 	}
 
-	int VulkanPhysicalDevice::ScoreDevice(VkPhysicalDevice device, VkSurfaceKHR surface)
+	void VulkanPhysicalDevice::QueryFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures& features,
+		VkPhysicalDeviceVulkan12Features& features12, VkPhysicalDeviceVulkan13Features& features13)
 	{
-		// Hard requirements: a graphics queue, a queue that can present, the swapchain extension
-		// and at least one surface format and present mode.
+		VkPhysicalDeviceProperties properties;
+		vkGetPhysicalDeviceProperties(device, &properties);
+
+		features12 = {};
+		features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		features13 = {};
+		features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
+		// A struct is only chained when the device has its version (the validation layers object to
+		// a 1.3 struct on a 1.2 device). The 1.2 struct needs 1.2.
+		VkPhysicalDeviceFeatures2 features2{};
+		features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		if (properties.apiVersion >= VK_API_VERSION_1_2)
+		{
+			features2.pNext = &features12;
+		}
+		if (properties.apiVersion >= VK_API_VERSION_1_3)
+		{
+			features12.pNext = &features13;
+		}
+
+		vkGetPhysicalDeviceFeatures2(device, &features2);
+		features = features2.features;
+
+		// Not part of the result: the caller's copies must not point at this function's locals.
+		features12.pNext = nullptr;
+		features13.pNext = nullptr;
+	}
+
+	std::string VulkanPhysicalDevice::FindMissingRequirement(VkPhysicalDevice device, VkSurfaceKHR surface)
+	{
+		VkPhysicalDeviceProperties properties;
+		vkGetPhysicalDeviceProperties(device, &properties);
+
+		if (properties.apiVersion < HY_REQUIRED_VULKAN_VERSION)
+		{
+			return "Vulkan 1.3 is needed, the driver reports " + std::to_string(VK_API_VERSION_MAJOR(properties.apiVersion))
+				+ "." + std::to_string(VK_API_VERSION_MINOR(properties.apiVersion));
+		}
+
+		VkPhysicalDeviceFeatures features;
+		VkPhysicalDeviceVulkan12Features features12;
+		VkPhysicalDeviceVulkan13Features features13;
+		QueryFeatures(device, features, features12, features13);
+
+		if (features13.dynamicRendering == VK_FALSE)
+		{
+			return "no dynamicRendering";
+		}
+		if (features13.synchronization2 == VK_FALSE)
+		{
+			return "no synchronization2";
+		}
+
+		// A graphics queue, a queue that can present, the swapchain extension and at least one
+		// surface format and present mode.
 		if (FindQueueFamilies(device, surface).IsComplete() == false)
-			return 0;
-
+		{
+			return "no queue that can draw and present to this window";
+		}
 		if (SupportsRequiredExtensions(device) == false)
-			return 0;
-
+		{
+			return "no VK_KHR_swapchain";
+		}
 		if (SupportsSurface(device, surface) == false)
-			return 0;
+		{
+			return "no surface format or present mode for this window";
+		}
 
+		return {};
+	}
+
+	int VulkanPhysicalDevice::ScoreDevice(VkPhysicalDevice device)
+	{
 		VkPhysicalDeviceProperties properties;
 		vkGetPhysicalDeviceProperties(device, &properties);
 
 		int score = 1;
 
 		if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		{
 			score += 1000;
+		}
 		else if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+		{
 			score += 100;
+		}
 
 		return score;
+	}
+
+	bool VulkanPhysicalDevice::SupportsDepthAttachment(VkFormat format) const
+	{
+		VkFormatProperties properties;
+		vkGetPhysicalDeviceFormatProperties(m_PhysicalDevice, format, &properties);
+		return (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) != 0;
 	}
 
 	QueueFamilyIndices VulkanPhysicalDevice::FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)

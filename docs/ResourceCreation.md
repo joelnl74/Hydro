@@ -77,7 +77,7 @@ This RAII rule is for resources only. Subsystems and their parts (`Renderer`, `V
 | `EditorCameraSettings` (`Renderer/EditorCamera.h`) | `EditorCamera::SetSettings` | In use: field of view, clip planes, orbit/pan/zoom speed multipliers. Live; Oxygen saves them in its editor settings |
 | `ProjectConfig` | `Project`, saved by `ProjectSerializer` (`.hyproj`) | In use: name, asset directory, start scene, `RendererSettings` |
 | `RendererSettings` (`Renderer/RendererSettings.h`) | `Renderer::SetSettings` | In use: clear colour, vsync, wireframe, shader hot reload, 2D lighting (`Lighting`, `LightFalloff` smooth or banded, `LightBands`), `Shadows` (blob shadows) |
-| `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output |
+| `RendererCapabilities` (`Renderer/RendererSettings.h`) | `Renderer::GetCapabilities` | Output: GPU name and Vulkan version, required (dynamic rendering, synchronization2) and optional features as enabled, limits (push constants, sampled images per stage, anisotropy, depth formats); see [Device requirements](Architecture.md#device-requirements) |
 
 ## Adding a new resource
 
