@@ -33,11 +33,13 @@ namespace Hydro
 		glm::vec4 SkyAmbient{ 0.0f };       // rgb
 		glm::vec4 GroundAmbient{ 0.0f };    // rgb
 		glm::vec4 FogColor{ 0.0f };         // rgb, w = 1 when there is fog
-		glm::vec4 FogParams{ 0.0f };        // x start, y end (metres from the camera), z = falloff bands (0 = smooth)
+		glm::vec4 FogParams{ 0.0f };        // x start, y end (metres from FogOrigin), z = falloff bands (0 = smooth)
 		glm::ivec4 Counts{ 0 };             // x = lights in the storage buffer, y = 1 when forward lit
+		glm::vec4 FogOrigin{ 0.0f };        // xyz: where fog distance is measured from (what the camera looks at)
 	};
-	static_assert(sizeof(FrameLightingUniform) == 128, "FrameLightingUniform: must match the std140 block in lighting.glsl");
-	static_assert(offsetof(FrameLightingUniform, FogParams) == 96 && offsetof(FrameLightingUniform, Counts) == 112,
+	static_assert(sizeof(FrameLightingUniform) == 144, "FrameLightingUniform: must match the std140 block in lighting.glsl");
+	static_assert(offsetof(FrameLightingUniform, FogParams) == 96 && offsetof(FrameLightingUniform, Counts) == 112
+		&& offsetof(FrameLightingUniform, FogOrigin) == 128,
 		"FrameLightingUniform: must match the std140 block in lighting.glsl");
 
 	// std430; one element of `Lights` in lighting.glsl (binding 3 of set 0, fragment): a point or spot light.

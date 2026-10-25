@@ -527,6 +527,14 @@ namespace Hydro
 	{
 		SceneLighting lighting;
 		lighting.CameraPosition = m_Camera.Position;
+		// Fog is measured from where the camera's view meets the ground (z = 0), so it doesn't depend on how far
+		// away the camera is: a top-down editor camera high above the scene isn't fogged out. A camera looking
+		// level or up measures from itself.
+		lighting.FogOrigin = m_Camera.Position;
+		if (m_Camera.Forward.z < -0.05f)
+		{
+			lighting.FogOrigin = m_Camera.Position + m_Camera.Forward * (-m_Camera.Position.z / m_Camera.Forward.z);
+		}
 
 		// The sun.
 		Entity sun = m_Scene->GetMainLight();

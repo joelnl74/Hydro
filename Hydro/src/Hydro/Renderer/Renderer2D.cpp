@@ -1799,6 +1799,7 @@ namespace Hydro
 			uniform.SkyAmbient = glm::vec4(lighting.SkyAmbient, 0.0f);
 			uniform.GroundAmbient = glm::vec4(lighting.GroundAmbient, 0.0f);
 			uniform.FogColor = glm::vec4(lighting.FogColor, lighting.Fog ? 1.0f : 0.0f);
+			uniform.FogOrigin = glm::vec4(lighting.FogOrigin, 1.0f);
 			const RendererSettings& settings = Renderer::GetSettings();
 			const float bands = settings.LightFalloff == LightFalloffStyle::Banded ? (float)std::clamp(settings.LightBands, 2u, 32u) : 0.0f;
 			uniform.FogParams = glm::vec4(lighting.FogStart, std::max(lighting.FogEnd, lighting.FogStart + 0.01f), bands, 0.0f);

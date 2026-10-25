@@ -17,7 +17,7 @@ namespace Hydro
 		glm::vec3 GroundAmbient{ 0.22f, 0.2f, 0.18f };
 		bool Fog = false;
 		glm::vec3 FogColor{ 0.4f, 0.42f, 0.5f };
-		float FogStart = 25.0f; // metres from the camera where fog starts
+		float FogStart = 25.0f; // metres from what the camera looks at (its point on the ground) where fog starts
 		float FogEnd = 70.0f;   // and where it is complete
 
 		bool operator==(const SceneEnvironment& other) const
@@ -62,6 +62,9 @@ namespace Hydro
 		glm::vec3 GroundAmbient{ 0.0f };
 		bool Fog = false;
 		glm::vec3 FogColor{ 0.0f };
+		// Fog distance is measured from here, not from the camera: the point on the ground the camera looks at.
+		// So a camera far above the scene (the editor's top-down view) sees it as clearly as the tilted one.
+		glm::vec3 FogOrigin{ 0.0f };
 		float FogStart = 0.0f;
 		float FogEnd = 1.0f;
 		std::vector<ForwardLight> Lights;

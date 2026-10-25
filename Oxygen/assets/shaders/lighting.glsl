@@ -4,7 +4,7 @@
 
 #include "light_falloff.glsl"
 
-// Must match FrameLightingUniform in VulkanGPUData.h (std140, 128 bytes).
+// Must match FrameLightingUniform in VulkanGPUData.h (std140, 144 bytes).
 layout(set = 0, binding = 2) uniform FrameLighting {
     vec4 cameraPosition;
     vec4 sunDirection;  // xyz towards the sun (unit length), w = 1 when there is a sun
@@ -12,8 +12,9 @@ layout(set = 0, binding = 2) uniform FrameLighting {
     vec4 skyAmbient;    // what surfaces facing up get
     vec4 groundAmbient; // and facing down
     vec4 fogColor;      // w = 1 when fog is on
-    vec4 fogParams;     // x start, y end (metres from the camera), z bands of the point lights' falloff
+    vec4 fogParams;     // x start, y end (metres from fogOrigin), z bands of the point lights' falloff
     ivec4 counts;       // x lights, y = 1 when the view is forward lit
+    vec4 fogOrigin;     // xyz: what the camera looks at (its point on the ground)
 } lighting;
 
 // Must match GPULight in VulkanGPUData.h (std430, 64 bytes).
@@ -70,16 +71,17 @@ vec3 ComputeLighting(vec3 position, vec3 normal, float wrap)
 	return light;
 }
 
-// Linear distance fog towards the fog colour.
+// Linear distance fog towards the fog colour, by the distance from what the camera looks at (not from the
+// camera itself, so how far away the camera is doesn't matter).
 vec3 ApplyFog(vec3 color, vec3 position)
 {
 	if (lighting.fogColor.w < 0.5)
 	{
 		return color;
 	}
-	float distanceToCamera = length(position - lighting.cameraPosition.xyz);
+	float distanceToFocus = length(position - lighting.fogOrigin.xyz);
 	float range = max(lighting.fogParams.y - lighting.fogParams.x, 0.001);
-	float amount = clamp((distanceToCamera - lighting.fogParams.x) / range, 0.0, 1.0);
+	float amount = clamp((distanceToFocus - lighting.fogParams.x) / range, 0.0, 1.0);
 	return mix(color, lighting.fogColor.rgb, amount);
 }
 
