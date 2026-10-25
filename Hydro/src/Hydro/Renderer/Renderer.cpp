@@ -212,8 +212,8 @@ namespace Hydro
 
 		VkCommandBuffer commandBuffer = renderer->m_Frames.BeginCommandBuffer();
 
-		// Offscreen scene passes first. Their render passes make the results readable by fragment
-		// shaders, so the present pass below can sample them (the editor viewport does).
+		// Offscreen scene passes first (dynamic rendering). Their targets end in SHADER_READ_ONLY_OPTIMAL,
+		// so the present pass below can sample them (the editor viewport does).
 		Renderer2D::Render(commandBuffer);
 
 		renderer->m_SwapChain->BeginRenderPass(commandBuffer, imageIndex);

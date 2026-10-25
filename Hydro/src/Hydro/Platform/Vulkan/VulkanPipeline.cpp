@@ -3,6 +3,7 @@
 
 #include "VulkanRendererContext.h"
 #include "VulkanUtils.h"
+#include "VulkanImage.h"
 #include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
@@ -107,7 +108,10 @@ namespace Hydro
 
 		VulkanDevice& vulkanDevice = Renderer::GetVulkanDevice();
 		VkDevice device = vulkanDevice.GetDevice();
-		VkRenderPass renderpass = spec.RenderPass != VK_NULL_HANDLE ? spec.RenderPass : Renderer::GetVulkanSwapChain().GetRenderPass();
+		if (spec.ColorFormats.empty())
+		{
+			throw std::runtime_error("PipelineSpecification::ColorFormats is empty.");
+		}
 
 		// Setup vertex data.
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -217,12 +221,25 @@ namespace Hydro
 		pipelineLayoutInfo.setLayoutCount = (uint32_t)setLayouts.size();
 		pipelineLayoutInfo.pSetLayouts = setLayouts.empty() ? nullptr : setLayouts.data();
 
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = spec.PushConstantSize;
+		if (spec.PushConstantSize > 0)
+		{
+			HY_CORE_ASSERT(spec.PushConstantSize % 4 == 0, "PipelineSpecification::PushConstantSize must be a multiple of 4");
+			HY_CORE_ASSERT(spec.PushConstantSize <= vulkanDevice.GetPhysicalDevice().GetProperties().limits.maxPushConstantsSize,
+				"PipelineSpecification::PushConstantSize is larger than the GPU allows");
+			pipelineLayoutInfo.pushConstantRangeCount = 1;
+			pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+		}
+
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
 		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-		// Ignored by Vulkan when the render pass has no depth attachment.
+		// Ignored by Vulkan when there is no depth attachment (DepthFormat None).
 		VkPipelineDepthStencilStateCreateInfo depthStencil{};
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		depthStencil.depthTestEnable = spec.DepthTest ? VK_TRUE : VK_FALSE;
@@ -231,14 +248,29 @@ namespace Hydro
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
 
-		VkPipelineColorBlendAttachmentState colorBlendAttachment = BlendModeToVulkan(spec.Blend);
+		// One blend state per colour attachment: the pipeline's blend mode, except integer attachments
+		// (the entity ID), which can't be blended and are written as they are.
+		std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
+		std::vector<VkFormat> colorFormats;
+		for (ImageFormat format : spec.ColorFormats)
+		{
+			colorFormats.push_back(VulkanImage::GetImageFormat(format));
+			if (format == ImageFormat::R32I)
+			{
+				colorBlendAttachments.push_back(BlendModeToVulkan(BlendMode::None));
+			}
+			else
+			{
+				colorBlendAttachments.push_back(BlendModeToVulkan(spec.Blend));
+			}
+		}
 
 		VkPipelineColorBlendStateCreateInfo colorBlending{};
 		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 		colorBlending.logicOpEnable = VK_FALSE;
 		colorBlending.logicOp = VK_LOGIC_OP_COPY;
-		colorBlending.attachmentCount = 1;
-		colorBlending.pAttachments = &colorBlendAttachment;
+		colorBlending.attachmentCount = (uint32_t)colorBlendAttachments.size();
+		colorBlending.pAttachments = colorBlendAttachments.data();
 		colorBlending.blendConstants[0] = 0.0f;
 		colorBlending.blendConstants[1] = 0.0f;
 		colorBlending.blendConstants[2] = 0.0f;
@@ -246,8 +278,17 @@ namespace Hydro
 
 		VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout));
 
+		// Dynamic rendering: the attachment formats replace a render pass.
+		VkPipelineRenderingCreateInfo renderingInfo{};
+		renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+		renderingInfo.colorAttachmentCount = (uint32_t)colorFormats.size();
+		renderingInfo.pColorAttachmentFormats = colorFormats.data();
+		renderingInfo.depthAttachmentFormat = spec.DepthFormat != ImageFormat::None ? VulkanImage::GetImageFormat(spec.DepthFormat) : VK_FORMAT_UNDEFINED;
+		renderingInfo.stencilAttachmentFormat = spec.DepthFormat == ImageFormat::DEPTH24STENCIL8 ? VulkanImage::GetImageFormat(spec.DepthFormat) : VK_FORMAT_UNDEFINED;
+
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineInfo.pNext = &renderingInfo;
 		pipelineInfo.stageCount = 2;
 		pipelineInfo.pStages = spec.Shader->GetShaderStageInformation().data();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
@@ -258,7 +299,7 @@ namespace Hydro
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 		pipelineInfo.layout = m_PipelineLayout;
-		pipelineInfo.renderPass = renderpass;
+		pipelineInfo.renderPass = VK_NULL_HANDLE;
 		pipelineInfo.subpass = 0;
 		pipelineInfo.pDepthStencilState = &depthStencil;
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
@@ -328,5 +369,11 @@ namespace Hydro
 	{
 		VkDescriptorSet set = descriptorSet.GetDescriptorSet(Renderer::GetRenderFrame());
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, setIndex, 1, &set, 0, nullptr);
+	}
+
+	void VulkanPipeline::PushConstants(VkCommandBuffer commandBuffer, const void* data, uint32_t size)
+	{
+		HY_CORE_ASSERT(size <= m_pipelineSpecification.PushConstantSize, "VulkanPipeline::PushConstants: more bytes than the pipeline declares");
+		vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
 	}
 }

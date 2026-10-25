@@ -4,7 +4,7 @@
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
 #include "Hydro/Platform/Vulkan/VulkanIndexBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
-#include "Hydro/Platform/Vulkan/VulkanRenderPass.h"
+#include "Hydro/Platform/Vulkan/VulkanRenderTarget.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanImageReadback.h"
 #include "Hydro/Platform/Vulkan/VulkanTexture2DData.h"
@@ -31,6 +31,11 @@
 
 namespace Hydro
 {
+	// Attachment formats: every view's target, and the 2D light buffer. Pipelines are built from these
+	// (PipelineSpecification::ColorFormats), so a target and the pipelines drawing into it must agree.
+	static constexpr ImageFormat ViewColorFormat = ImageFormat::SRGB;
+	static constexpr ImageFormat LightBufferFormat = ImageFormat::RGBA16F;
+
 	struct QuadVertex
 	{
 		glm::vec3 Position;
@@ -98,7 +103,7 @@ namespace Hydro
 		std::string DebugName;
 
 		// ---- Target ------------------------------------------------------------------
-		Scope<VulkanRenderPass> Target;
+		Scope<VulkanRenderTarget> Target;
 		// Requested size (RenderView::SetSize). Applied at the start of the view's next render.
 		uint32_t RequestedWidth = 0;
 		uint32_t RequestedHeight = 0;
@@ -141,7 +146,7 @@ namespace Hydro
 		glm::vec3 AmbientLight{ 0.0f };  // the sum of the global lights: what the light buffer is cleared to
 		bool HasLights = false;          // a light of any kind was submitted this frame
 		// Made the first frame the view is lit, then kept and resized with the view.
-		Scope<VulkanRenderPass> LightTarget;                      // the light buffer: RGBA16F, the size of Target
+		Scope<VulkanRenderTarget> LightTarget;                    // the light buffer: RGBA16F, the size of Target
 		Scope<VulkanDescriptorBuilder> LightBufferDescriptorSet;  // the composite's input: LightTarget's image of each frame
 		PerFrameVertexBuffers LightVertexBuffers;                 // 4 vertices per light, then 4 per shadow
 		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
@@ -186,10 +191,9 @@ namespace Hydro
 		Scope<VulkanPipeline> QuadPipeline;
 
 		// 2D lighting: lights are drawn into a per-view RGBA16F light buffer (LightPipeline, additive), which
-		// is multiplied over the scene (CompositePipeline). Built like QuadPipeline, against dummy render
-		// passes. Optional: all of it stays null when the light shaders can't be built, and views are then
-		// drawn unlit (see CreateLightingResources).
-		Scope<VulkanRenderPass> LightPipelineRenderPass;  // 1x1 RGBA16F, never drawn into
+		// is multiplied over the scene (CompositePipeline). Built like QuadPipeline, from the attachment
+		// formats (LightBufferFormat, ViewColorFormat). Optional: all of it stays null when the light shaders
+		// can't be built, and views are then drawn unlit (see CreateLightingResources).
 		Scope<VulkanShader> LightShader;
 		FileWatcher LightShaderWatcher;
 		Scope<VulkanPipeline> LightPipeline;
@@ -208,10 +212,9 @@ namespace Hydro
 
 		Scope<VulkanIndexBuffer> QuadIndexBuffer;    // shared by all batches of all views (every batch starts at vertex 0)
 
-		// The pipeline is built against these. Every view's target uses the same attachment format,
-		// so its render pass is compatible with PipelineRenderPass, and its descriptor sets are built
-		// exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so they can be bound in its place.
-		Scope<VulkanRenderPass> PipelineRenderPass;  // 1x1, never drawn into
+		// The pipeline's set 0 layout. Every view's target has the same attachment format (ViewColorFormat)
+		// and its descriptor sets are built exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so
+		// they can be bound in its place.
 		Scope<VulkanUniformBuffer> LayoutUniformBuffer;
 		Scope<VulkanDescriptorBuilder> LayoutDescriptorSet;
 
@@ -364,7 +367,7 @@ namespace Hydro
 		specification.Layout = GetQuadVertexLayout();
 		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
 		specification.Shader = &shader;
-		specification.RenderPass = s_Data->LightPipelineRenderPass->GetRenderPass();
+		specification.ColorFormats = { LightBufferFormat };
 		specification.Blend = BlendMode::Additive;
 		specification.BackfaceCulling = false;
 		specification.DepthTest = false;
@@ -379,7 +382,7 @@ namespace Hydro
 		specification.Layout = GetQuadVertexLayout();
 		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
 		specification.Shader = &shader;
-		specification.RenderPass = s_Data->LightPipelineRenderPass->GetRenderPass();
+		specification.ColorFormats = { LightBufferFormat };
 		specification.Blend = BlendMode::Darken;
 		specification.BackfaceCulling = false;
 		specification.DepthTest = false;
@@ -393,7 +396,7 @@ namespace Hydro
 		PipelineSpecification specification;
 		specification.DescriptorSets = { s_Data->CompositeLayoutDescriptorSet.get() };
 		specification.Shader = &shader;
-		specification.RenderPass = s_Data->PipelineRenderPass->GetRenderPass();
+		specification.ColorFormats = { ViewColorFormat };
 		specification.Blend = BlendMode::Multiply2x;
 		specification.BackfaceCulling = false;
 		specification.DepthTest = false;
@@ -407,8 +410,6 @@ namespace Hydro
 	{
 		try
 		{
-			s_Data->LightPipelineRenderPass = CreateScope<VulkanRenderPass>(1, 1, ImageFormat::RGBA16F);
-
 			s_Data->LightShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/light.frag");
 			s_Data->LightShaderWatcher = FileWatcher(s_Data->LightShader->GetSourceFiles());
 			s_Data->LightPipeline = BuildLightPipeline(*s_Data->LightShader);
@@ -427,15 +428,14 @@ namespace Hydro
 			s_Data->CompositeLayoutDescriptorSet.reset();
 			s_Data->LightPipeline.reset();
 			s_Data->LightShader.reset();
-			s_Data->LightPipelineRenderPass.reset();
 		}
 	}
 
 	// Shadows are optional on top of the lights: when the shader is missing or doesn't compile, this logs it
-	// and views are lit without shadows. Needs the light pipeline render pass.
+	// and views are lit without shadows. Needs the lights.
 	static void CreateShadowResources()
 	{
-		if (s_Data->LightPipelineRenderPass == nullptr)
+		if (s_Data->LightPipeline == nullptr)
 		{
 			return;
 		}
@@ -486,9 +486,6 @@ namespace Hydro
 	{
 		HY_CORE_ASSERT(s_Data == nullptr, "Renderer2D::Init called twice");
 		s_Data = new Renderer2DData();
-
-		// Created first: the pipeline is built against this render pass (see PipelineRenderPass).
-		s_Data->PipelineRenderPass = CreateScope<VulkanRenderPass>(1, 1);
 
 		/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
 		ShaderInformation vertexInformation;
@@ -582,7 +579,7 @@ namespace Hydro
 
 		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
 		specification.Shader = s_Data->Shader.get();
-		specification.RenderPass = s_Data->PipelineRenderPass->GetRenderPass();
+		specification.ColorFormats = { ViewColorFormat };
 		// Sprites: alpha blended, drawn in submission order, visible from both sides (negative scale flips them).
 		specification.Blend = BlendMode::Alpha;
 		specification.BackfaceCulling = false;
@@ -652,7 +649,6 @@ namespace Hydro
 		s_Data->CompositeLayoutDescriptorSet.reset();
 		s_Data->LightPipeline.reset();
 		s_Data->LightShader.reset();
-		s_Data->LightPipelineRenderPass.reset();
 
 		s_Data->QuadPipeline.reset();
 		s_Data->LayoutDescriptorSet.reset();
@@ -661,7 +657,6 @@ namespace Hydro
 		s_Data->SoftDotTexture.reset();
 		s_Data->WhiteTexture.reset();
 		s_Data->Shader.reset();
-		s_Data->PipelineRenderPass.reset();
 
 		delete s_Data;
 		s_Data = nullptr;
@@ -679,7 +674,12 @@ namespace Hydro
 
 		RenderViewData& view = *m_Data;
 		view.DebugName = specification.DebugName;
-		view.Target = CreateScope<VulkanRenderPass>(width, height);
+		RenderTargetSpecification targetSpecification;
+		targetSpecification.Width = width;
+		targetSpecification.Height = height;
+		targetSpecification.ColorFormats = { ViewColorFormat };
+		targetSpecification.DebugName = specification.DebugName;
+		view.Target = CreateScope<VulkanRenderTarget>(targetSpecification);
 		view.RequestedWidth = width;
 		view.RequestedHeight = height;
 
@@ -1454,9 +1454,9 @@ namespace Hydro
 		// The light buffer is drawn first: the scene pass below samples it (when the view is lit).
 		const bool lit = RecordLightPass(commandBuffer, view, frame);
 
-		// One render pass per view per frame => its target is cleared exactly once. Its subpass
-		// dependencies make the result visible to ImGui, which samples it later in this command buffer.
-		view.Target->Begin(commandBuffer, frame, Renderer::GetSettings().ClearColor);
+		// One rendering pass per view per frame, so its target is cleared exactly once. End() moves the image to
+		// SHADER_READ_ONLY_OPTIMAL for ImGui, which samples it later in this command buffer.
+		view.Target->Begin(commandBuffer, frame, RenderTargetBeginInfo::Clear(Renderer::GetSettings().ClearColor));
 
 		// State shared by every draw: bind once. Viewport/scissor follow the view's size.
 		s_Data->QuadPipeline->Bind(commandBuffer, { width, height });
@@ -1513,7 +1513,7 @@ namespace Hydro
 			recordDraws(view.OverlayDraws);
 		}
 
-		view.Target->End(commandBuffer);
+		view.Target->End(commandBuffer, frame);
 
 		// After the pass, so the capture has everything the view drew, overlay included.
 		RecordCapture(commandBuffer, view, frame);
@@ -1533,7 +1533,12 @@ namespace Hydro
 		// The light buffer is made the first time the view is lit, then kept and resized with the view.
 		if (view.LightTarget == nullptr)
 		{
-			view.LightTarget = CreateScope<VulkanRenderPass>(width, height, ImageFormat::RGBA16F);
+			RenderTargetSpecification lightSpecification;
+			lightSpecification.Width = width;
+			lightSpecification.Height = height;
+			lightSpecification.ColorFormats = { LightBufferFormat };
+			lightSpecification.DebugName = view.DebugName + " light buffer";
+			view.LightTarget = CreateScope<VulkanRenderTarget>(lightSpecification);
 			view.LightBufferDescriptorSet = BuildLightBufferDescriptorSet();
 			for (Scope<VulkanVertexBuffer>& vertexBuffer : view.LightVertexBuffers)
 			{
@@ -1598,11 +1603,11 @@ namespace Hydro
 		imageInfo.sampler = lightImage.Sampler;
 		view.LightBufferDescriptorSet->WriteImages(frame, 0, &imageInfo, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
-		// Cleared to the ambient light; every point light is added on top. The pass's dependencies make the
-		// result visible to the scene pass that samples it next.
+		// Cleared to the ambient light; every point light is added on top. End() makes the result readable by
+		// the scene pass, whose composite samples it next.
 		s_Data->CurrentTimerSlot = s_Data->TimedViewCount++;
 		WriteTimer(commandBuffer, frame, TimerPhase::LightBuffer, false);
-		view.LightTarget->Begin(commandBuffer, frame, glm::vec4(view.AmbientLight, 1.0f));
+		view.LightTarget->Begin(commandBuffer, frame, RenderTargetBeginInfo::Clear(glm::vec4(view.AmbientLight, 1.0f)));
 		if (lightCount + shadowCount > 0)
 		{
 			s_Data->QuadIndexBuffer->Bind(commandBuffer);
@@ -1628,7 +1633,7 @@ namespace Hydro
 			s_Data->Stats.DrawCalls++;
 			WriteTimer(commandBuffer, frame, TimerPhase::Shadows, true);
 		}
-		view.LightTarget->End(commandBuffer);
+		view.LightTarget->End(commandBuffer, frame);
 		WriteTimer(commandBuffer, frame, TimerPhase::LightBuffer, true);
 
 		s_Data->Stats.LitViewCount++;

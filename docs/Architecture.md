@@ -117,7 +117,7 @@ Every projection matrix is built by `Camera::Perspective` / `Camera::Orthographi
 
 ## Render views
 
-A `RenderView` (`Renderer/RenderView.h`, created from a `RenderViewSpecification`) is one picture of a scene: an offscreen image (a `VulkanRenderPass`), the camera it is seen through, and the quads queued for it this frame. Oxygen has two, shown in its **Editor** and **Game** windows with `ImGui::Image(view.GetImGuiTexture(), ...)`.
+A `RenderView` (`Renderer/RenderView.h`, created from a `RenderViewSpecification`) is one picture of a scene: an offscreen image (a `VulkanRenderTarget`), the camera it is seen through, and the quads queued for it this frame. Oxygen has two, shown in its **Editor** and **Game** windows with `ImGui::Image(view.GetImGuiTexture(), ...)`.
 
 ```cpp
 Renderer2D::BeginScene(view, camera, cameraTransform); // or BeginScene(view, viewProjection)
@@ -128,7 +128,7 @@ Renderer2D::EndScene();
 
 - Each view begun in a frame gets its own pass in `Renderer2D::Render`, in `BeginScene` order. A view not begun in a frame isn't rendered (Oxygen skips hidden windows).
 - `view.SetSize(w, h)` resizes it from the next render (the editor follows its window sizes). The old images go through the deletion queue, so a resize doesn't wait for the GPU; each frame index's ImGui texture handle is pointed at its new image when that index is recorded next.
-- The quad pipeline is built once, against a 1×1 compatibility render pass and a layout-only descriptor set. Every view's target has the same format and its set 0 (camera + textures) is built the same way, so `VulkanPipeline::BindDescriptorSet` binds the view's own set.
+- The quad pipeline is built once, from the views' attachment format (`ViewColorFormat`, SRGB; dynamic rendering, no render pass) and a layout-only descriptor set. Every view's target has the same format and its set 0 (camera + textures) is built the same way, so `VulkanPipeline::BindDescriptorSet` binds the view's own set.
 - Views are resources: the application creates them after `Renderer::Init` and destroys them while the renderer is alive (Oxygen does it in `OnDetach`).
 
 ### Captures
@@ -218,7 +218,17 @@ The engine needs **Vulkan 1.3** (decided October 25, 2026, for the [3D renderer 
 - `VulkanDevice` enables one feature chain: `VkPhysicalDeviceFeatures2` in `VkDeviceCreateInfo::pNext` (`pEnabledFeatures` is null) → `VkPhysicalDeviceVulkan13Features`. Required: `dynamicRendering`, `synchronization2`. Optional, enabled when the GPU has them: `samplerAnisotropy`, `fillModeNonSolid` (wireframe), `wideLines`. `descriptorIndexing` is reported but not enabled until bindless textures use it. Code asks the device what was **enabled** (`IsWideLinesEnabled()`), never what the GPU merely supports.
 - `RendererCapabilities` (`Renderer::GetCapabilities()`) has the GPU's name and Vulkan version, the required and optional features, and the limits the 3D work depends on: push constant size, sampled images per stage, maximum anisotropy, and whether `DEPTH32F` / `DEPTH24STENCIL8` can be depth attachments. They are logged at startup (four `Renderer:` lines) and listed in **Render Settings > Device**.
 - Two places stay on 1.2 on purpose: VMA's `vulkanApiVersion` (the vendored VMA asserts on anything above 1.2; it only decides which memory functions it loads) and shaderc's target environment (SPIR-V for 1.2 runs on a 1.3 device).
-- Dynamic rendering and synchronization2 are enabled but not used yet: render passes move to dynamic rendering in M1. The present pass keeps its `VkRenderPass` until ImGui is upgraded (the vendored ImGui 1.89 backend needs one).
+- Offscreen passes (every view's scene pass and its 2D light buffer) use **dynamic rendering** since M1 ([#115](https://github.com/joelnl74/Hydro/issues/115)): `VulkanRenderTarget` begins them with `vkCmdBeginRendering` and moves its images between layouts with `vkCmdPipelineBarrier2` (synchronization2), and pipelines are built from attachment formats (`PipelineSpecification::ColorFormats` / `DepthFormat`). The present pass keeps its `VkRenderPass` until ImGui is upgraded: the vendored ImGui 1.89 backend takes a render pass in `ImGui_ImplVulkan_Init`. Mixing the two is valid Vulkan.
+
+### Render targets
+
+`VulkanRenderTarget` (`Platform/Vulkan`, from a `RenderTargetSpecification` in `Renderer/RenderTarget.h`) is what views and the light buffer draw into: colour images in attachment order, an optional depth image and an optional `R32I` entity-ID image, one set per frame in flight.
+
+- `Begin(cmd, frame, RenderTargetBeginInfo)` transitions every attachment to its attachment layout and begins rendering; the info names each attachment's load op (`Clear`, `Load`, `DontCare`) and clear value, nothing is implied. `End(cmd, frame)` ends rendering and moves the colour attachments (entity ID included) to `SHADER_READ_ONLY_OPTIMAL`, which every reader expects: ImGui, the light composite, captures. Depth stays in `DEPTH_STENCIL_ATTACHMENT_OPTIMAL` (not `DEPTH_ATTACHMENT_OPTIMAL`, which would need the `separateDepthStencilLayouts` feature).
+- Layouts are tracked per image, so the barriers always start from the real layout (`UNDEFINED` for new images).
+- `Resize` makes new images and hands the old ones to the deletion queue, like every resource; it doesn't wait for the GPU. A size of 0 isn't allowed (callers skip minimised views).
+- `GetPipelineColorFormats()` / `GetPipelineDepthFormat()` give the attachment layout a pipeline must be built for (the entity ID is the last colour format when there is one).
+- Push constants: `PipelineSpecification::PushConstantSize` (vertex and fragment stages) and `VulkanPipeline::PushConstants`. Not used by the 2D pipelines yet; the S1 spike and meshes use them for the object transform.
 
 ## Vulkan ownership
 
@@ -226,15 +236,15 @@ The engine needs **Vulkan 1.3** (decided October 25, 2026, for the [3D renderer 
 | --- | --- |
 | `VulkanRendererContext` | Instance, debug messenger (Debug builds), window surface, device (`Scope<VulkanDevice>`, handed out as `VulkanDevice&`). All members: nothing in it is `static` |
 | `VulkanDevice` | The GPU it was created for (`Scope<VulkanPhysicalDevice>`, whose properties and features are read once), the enabled features (`Is...Enabled`), logical device, graphics + present queues, the upload command pool (private: only `SubmitImmediate` uses it) |
-| `VulkanSwapChain` | Swapchain images, views, framebuffers, present render pass, render-finished semaphores; acquire/present; `Recreate` |
+| `VulkanSwapChain` | Swapchain images, views, framebuffers, present render pass (kept for ImGui), render-finished semaphores; acquire/present; `Recreate` |
 | `VulkanFrameContext` | Per frame in flight (`MAX_FRAMES_IN_FLIGHT = 2`): command pool + buffer, fence, image-acquired semaphore |
 | `Renderer` | The above (`Scope`s; `GetVulkanDevice()`, `GetRendererContext()` and `GetVulkanSwapChain()` return references), the **deletion queue**, and runs the frame |
-| `VulkanRenderPass` | An offscreen colour target: one image + framebuffer per frame in flight. Each `RenderView` owns one |
+| `VulkanRenderTarget` | An offscreen target for dynamic rendering: colour, optional depth and entity-ID images per frame in flight, their tracked layouts. Each `RenderView` owns one, and a lit view a second for its light buffer |
 | `RenderView` | Its target, a uniform buffer for its camera, its quad batches (per-frame vertex buffers) and texture sets (per-frame descriptor sets: camera + 32 textures), and, after its first capture, a `VulkanImageReadback` (one host buffer per frame in flight), all in `Scope`s |
-| `Renderer2D` | The quad shader, pipeline, index buffer, the 1×1 compatibility render pass with its layout descriptor set, and the white texture |
+| `Renderer2D` | The quad shader, pipeline, index buffer, the layout descriptor set the pipelines are built with, and the white texture |
 | `Texture2D` | One `VulkanImage` (image, view, sampler; VMA). Shared through `Ref<Texture2D>` |
 
-GPU resources (`VulkanImage`, `VulkanRenderPass`, `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline`, `VulkanShader`) free their handles in their destructor and are non-copyable; their single owner holds them in a `Scope<T>` (see [Resource creation](ResourceCreation.md#ownership)). A destructor doesn't destroy the handles itself: it hands a function that does to the **deletion queue**, `Renderer::SubmitResourceFree(std::function<void()>)`. The renderer tags it with the current frame number and runs it at the start of the frame `MAX_FRAMES_IN_FLIGHT` frames later, once that frame slot's fence says the GPU is done with every frame that could have used the resource. It also runs everything queued after a swapchain rebuild (the device is idle then) and at `Renderer::Shutdown`, before the allocator and device go. Frees run in the order they were queued. `VulkanShader` is the exception: shader modules aren't used after a pipeline is created, so it frees them at once.
+GPU resources (`VulkanImage`, `VulkanRenderTarget`, `VulkanVertexBuffer`, `VulkanIndexBuffer`, `VulkanUniformBuffer`, `VulkanDescriptorBuilder`, `VulkanPipeline`, `VulkanShader`) free their handles in their destructor and are non-copyable; their single owner holds them in a `Scope<T>` (see [Resource creation](ResourceCreation.md#ownership)). A destructor doesn't destroy the handles itself: it hands a function that does to the **deletion queue**, `Renderer::SubmitResourceFree(std::function<void()>)`. The renderer tags it with the current frame number and runs it at the start of the frame `MAX_FRAMES_IN_FLIGHT` frames later, once that frame slot's fence says the GPU is done with every frame that could have used the resource. It also runs everything queued after a swapchain rebuild (the device is idle then) and at `Renderer::Shutdown`, before the allocator and device go. Frees run in the order they were queued. `VulkanShader` is the exception: shader modules aren't used after a pipeline is created, so it frees them at once.
 
 Rules that follow from this:
 

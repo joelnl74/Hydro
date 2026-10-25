@@ -32,6 +32,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/RenderView.h` | One offscreen picture of a scene (target, camera, batches); `RequestCapture(path)` saves its next frame as a PNG |
 | `Renderer/ImageWriter.*` | `ImageWriter::WritePNG` (stb_image_write; compiles its implementation for the engine); CPU only |
 | `Renderer/Texture2D.*` | Texture resource (`ImageSpecification` + `TextureProperties`), `Create` (uploads an `ImportedTexture`), `LoadFromFile` (asks the `AssetManager` for project files, shares other files while alive), sprite list (`GetSprite`, `FindSprite`, `GetSpriteUVRect`), `TextureRect` |
+| `Renderer/RenderTarget.h` | `RenderTargetSpecification`, `AttachmentLoadOp`, `RenderTargetBeginInfo` (engine-facing, no Vulkan types) |
 | `Renderer/Image.h` | `ImageSpecification`, `TextureProperties`, image/texture enums |
 | `Renderer/TextureImport.h` | `TextureImportConfig` (saved per image in `<image>.hymeta`), `SpriteMode`, `SpriteRegion`, `SpriteSlicingConfig` |
 | `Renderer/TextureImporter.*` | Decodes an image file with its `.hymeta` (colour key, slicing) into `ImportedTexture` pixels + spec + config; compiles stb_image's implementation (`STB_IMAGE_IMPLEMENTATION`) for the engine; no GPU |
@@ -47,7 +48,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanImage.*` | Image + view + sampler (render targets, textures from pixels) |
 | `VulkanImageReadback.*` | Copies a region of a colour image into a per-frame-in-flight host buffer; pixels taken after that frame's fence (view captures, later ID picking) |
 | `VulkanTexture2DData.h` | Backend half of `Texture2D` (`GetTexture2DData`) |
-| `VulkanRenderPass.*` | Offscreen colour target, one image + framebuffer per frame in flight, `Resize` |
+| `VulkanRenderTarget.*` | Offscreen target for dynamic rendering (colour, optional depth and entity ID, per frame in flight), tracked layouts, `Begin` / `End` with explicit load ops, `Resize` |
 | `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned; `BlendMode` None / Alpha / Additive / Multiply2x); `BindDescriptorSet` |
 | `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
 | `VulkanDescriptorBuilder.*` | Layout + pool + one set per frame; `BindBuffer`/`BindImage`/`WriteImages` |

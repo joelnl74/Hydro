@@ -14,6 +14,8 @@ namespace Hydro
 
 		SRGB,
 
+		R32I, // one signed 32-bit integer per pixel (entity IDs)
+
 		DEPTH32F,
 		DEPTH24STENCIL8,
 

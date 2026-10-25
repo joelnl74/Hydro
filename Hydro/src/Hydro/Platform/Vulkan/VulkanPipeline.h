@@ -3,6 +3,7 @@
 #include "VulkanVertexBuffer.h"
 #include "VulkanShader.h"
 #include "VulkanDescriptorBuilder.h"
+#include "Hydro/Renderer/Image.h"
 
 #include <vector>
 
@@ -36,8 +37,15 @@ namespace Hydro
 		std::vector<VulkanDescriptorBuilder*> DescriptorSets;
 
 		VertexBufferLayout Layout;
-		// Render pass the pipeline draws into. VK_NULL_HANDLE = the swapchain's present pass.
-		VkRenderPass RenderPass = VK_NULL_HANDLE;
+		// The attachments the pipeline draws into (dynamic rendering, no VkRenderPass): the colour formats
+		// in attachment order and the depth format, as the target reports them
+		// (VulkanRenderTarget::GetPipelineColorFormats / GetPipelineDepthFormat). Must match the target
+		// exactly. Integer formats (R32I, the entity ID) are never blended.
+		std::vector<ImageFormat> ColorFormats = { ImageFormat::SRGB };
+		ImageFormat DepthFormat = ImageFormat::None;
+		// Bytes of push constants, visible to the vertex and fragment stages. 0 = none. At most
+		// RendererCapabilities::MaxPushConstantsSize; keep it within 128, the guaranteed minimum.
+		uint32_t PushConstantSize = 0;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
 		bool BackfaceCulling = true;
 		bool DepthTest = true;
@@ -66,6 +74,8 @@ namespace Hydro
 		// Binds this frame's set of `descriptorSet` at set index `setIndex` instead of the one in the
 		// specification. Its layout must be defined identically to that entry's (e.g. built the same way).
 		void BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VulkanDescriptorBuilder& descriptorSet);
+		// Writes `size` bytes of push constants from offset 0 (at most PipelineSpecification::PushConstantSize).
+		void PushConstants(VkCommandBuffer commandBuffer, const void* data, uint32_t size);
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }

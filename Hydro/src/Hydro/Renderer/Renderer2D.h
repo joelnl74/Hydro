@@ -133,7 +133,7 @@ namespace Hydro
 		// light a view by itself and does nothing in an unlit one. At most 1024 per view and frame.
 		static void DrawShadow(const glm::vec3& position, const glm::vec2& size, float strength);
 
-		// Records one render pass per view begun this frame (one vkCmdDrawIndexed per draw) into
+		// Records one rendering pass per view begun this frame (one vkCmdDrawIndexed per draw) into
 		// the frame's command buffer. Called once per frame by Renderer::RenderFrame.
 		static void Render(VkCommandBuffer commandBuffer);
 
