@@ -99,6 +99,10 @@ All of this uses existing features (native scripts, Box2D sensors and callbacks,
 
 ### Progress
 
+October 26, 2026:
+
+- **The battle in the Shrine Glade's style** (`scripts/shrine_glade/battle.py`). The party is **Miko**, the shrine maiden, alone (`HeroCount` in `BattleScripts.h`; the code is written for any count): a 128 x 128 battle sheet cut from her source atlas (the west-facing action swing as Attack and Cast, the stance with a breath as Idle, recoil shifts as Hurt, the stance on its back as Down), Orin's timing, bare-handed Blunt attacks and two skills, Flame Kick (Fire) and Holy Palm (Light), whose labels are new rows of `BattleText.png` made from the sheet's own glyphs. The backdrop is a sunset shrine plaza composed from the glade's painted sky, pines, the stone wall and flagstone textures and the painted props (the shrine, torii, sacred tree, twisted tree, lanterns, banners, jizo, fence, bushes and flowers). `Battle.hyscene` is edited in place: the Lila entities gone, Orin's renamed to Miko and pointed at her sheet, one HUD row in the party panel. Orin and Lila stay the field characters of the village and the MVP scene for now.
+
 October 25, 2026 (quick prototype code, for play testing; see [Test bed](TestBed.md#slime-field-and-battle)):
 
 - **J3 Battle v2, playable.** Orin and Lila against up to three enemies; turn order by speed shown at the top; weaknesses as icons ("?" until found); shields and Break; Momentum pips and boosting; guard, potions, run; target cursor; damage numbers. Rules, data and presentation still live together in `Oxygen/src/Scripts/BattleScripts.h` (J1 and J2 split them out).

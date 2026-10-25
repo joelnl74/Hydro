@@ -378,7 +378,7 @@ namespace Hydro
 			}
 			item.Count -= 1;
 			const int heal = item.Label == MvpLabel::HiPotion ? 60 : 25;
-			for (int h = 0; h < 2; h++)
+			for (int h = 0; h < HeroCount; h++)
 			{
 				if (item.Label == MvpLabel::Ether)
 				{
@@ -390,8 +390,8 @@ namespace Hydro
 				}
 			}
 			ShowMessage(MvpLabel::UsedPotion);
-			HY_INFO("MVP: used item {} ({} left): Orin {} HP {} MP, Lila {} HP {} MP", (int)item.Label, item.Count,
-				BattleState::HeroHP[0], BattleState::HeroMP[0], BattleState::HeroHP[1], BattleState::HeroMP[1]);
+			HY_INFO("MVP: used item {} ({} left): {} {} HP {} MP", (int)item.Label, item.Count,
+				GetHero(0).Name, BattleState::HeroHP[0], BattleState::HeroMP[0]);
 			(void)scene;
 			PresentMenu();
 		}

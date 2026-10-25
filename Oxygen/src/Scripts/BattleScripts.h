@@ -14,6 +14,10 @@
 // meadow and the field), and the party battle they start (Assets/Scenes/Battle.hyscene). The village is pushed
 // down on the scene stack while the battle runs (SceneTransition) and carries on when it ends.
 //
+// The party is the shrine maiden Miko alone (HeroCount): the hero table, the scene's "Hero <Name>" entities and
+// the sheets in Assets/DioramaRPG/Battle come from scripts/shrine_glade/battle.py. The code is written for any
+// HeroCount, so a second hero is a row in GetHero, its entities in the scene and HeroCount + 1.
+//
 // Quick prototype code for play testing: the rules, the data and the presentation live together here. There
 // is no text rendering yet, so the labels, icons and numbers are sprites from Assets/DioramaRPG/UI.
 //
@@ -28,11 +32,13 @@ namespace Hydro
 
 	enum class EnemyKind : uint8_t { None = 0, Slime, Wisp };
 
-	// Rows of Assets/DioramaRPG/UI/BattleText.png (keep in step with scripts/diorama_rpg/build.py LABELS).
+	// Rows of Assets/DioramaRPG/UI/BattleText.png (keep in step with scripts/shrine_glade/battle.py TEXT_ROWS and
+	// NEW_TEXT, which appends the last three rows from the sheet's own glyphs).
 	enum class BattleLabel : uint32_t
 	{
 		Attack = 0, FlameEdge, Crush, HolyLight, Heal, Guard, Potion, Run, Orin, Lila, Slime, Wisp,
-		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape
+		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape,
+		Miko, FlameKick, HolyPalm
 	};
 
 	// Cells of Assets/DioramaRPG/UI/BattleIcons.png: row Icon, then row Digit (0-9 from DigitBase).
@@ -69,13 +75,16 @@ namespace Hydro
 		const char* ItemClip;
 	};
 
+	// The party: Miko, the shrine maiden, fighting bare-handed (Blunt). Flame Kick is the spinning strike of her
+	// Attack clip (contact at FirstHitTime); Holy Palm the palm thrust of her Cast clip (its peak at SpellPeakTime).
+	// Alone she carries the party's HP and MP, so she is sturdier than Orin and Lila were on their own.
+	constexpr int HeroCount = 1;
+
 	inline const HeroDefinition& GetHero(int index)
 	{
-		static const HeroDefinition heroes[2] = {
-			{ "Orin", BattleLabel::Orin, 62, 20, 10, 5, 6, DamageType::Slash,
-				{ BattleLabel::FlameEdge, BattleLabel::Crush }, { DamageType::Fire, DamageType::Blunt }, { 5, 4 }, { 1.6f, 1.4f }, { false, false }, { "Attack", "Attack" }, "Cast" },
-			{ "Lila", BattleLabel::Lila, 44, 30, 6, 10, 8, DamageType::Pierce,
-				{ BattleLabel::HolyLight, BattleLabel::Heal }, { DamageType::Light, DamageType::None }, { 5, 6 }, { 1.7f, 2.2f }, { false, true }, { "Cast", "Heal" }, "Heal" },
+		static const HeroDefinition heroes[HeroCount] = {
+			{ "Miko", BattleLabel::Miko, 90, 32, 10, 8, 9, DamageType::Blunt,
+				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Attack", "Cast" }, "Cast" },
 		};
 		return heroes[index];
 	}
@@ -109,8 +118,8 @@ namespace Hydro
 		static constexpr int MaxEnemies = 3;
 		static constexpr int MaxMomentum = 5;
 
-		static inline int HeroHP[2] = { GetHero(0).MaxHP, GetHero(1).MaxHP };
-		static inline int HeroMP[2] = { GetHero(0).MaxMP, GetHero(1).MaxMP };
+		static inline int HeroHP[HeroCount] = { GetHero(0).MaxHP };
+		static inline int HeroMP[HeroCount] = { GetHero(0).MaxMP };
 		static inline bool Active = false;               // a battle was started and has not been settled yet
 		static inline uint64_t EnemyId = 0;              // UUID of the village enemy that started it
 		static inline Result Outcome = Result::None;     // set by the battle for that enemy to read when it is back
@@ -120,7 +129,7 @@ namespace Hydro
 
 		static void RestoreParty()
 		{
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < HeroCount; i++)
 			{
 				HeroHP[i] = GetHero(i).MaxHP;
 				HeroMP[i] = GetHero(i).MaxMP;
@@ -400,7 +409,7 @@ namespace Hydro
 	// ---------------------------------------------------------------------------------------------------------
 	// Battle
 
-	// The party battle: put it on one entity of Battle.hyscene (the "Battle Director"). Orin and Lila against
+	// The party battle: put it on one entity of Battle.hyscene (the "Battle Director"). The party against
 	// up to three enemies (BattleState::Encounter). Rounds: everyone acts once, fastest first (the order is
 	// shown at the top). On a hero's turn: 1 attack, 2 / 3 skills, 4 guard, 5 potion, 6 run, Left / Right pick
 	// the target, Up / Down the boost.
@@ -412,14 +421,14 @@ namespace Hydro
 	//   - Momentum: each hero gains 1 per round (not in a round after boosting), up to 5. Boosting spends 1 to 3:
 	//     an attack hits once more per point, a skill gets stronger.
 	//   - Weaknesses show as "?" until hit with them, and stay known for the rest of the game.
-	// It finds the scene's entities by tag (see scripts/diorama_rpg/build.py, which writes the scene).
+	// It finds the scene's entities by tag (see scripts/shrine_glade/battle.py, which edits the scene).
 	class BattleScript : public ScriptableEntity
 	{
 	protected:
 		void OnCreate() override
 		{
 			Scene& scene = *GetEntity().GetScene();
-			for (int h = 0; h < 2; h++)
+			for (int h = 0; h < HeroCount; h++)
 			{
 				const std::string prefix = std::string("Hero ") + GetHero(h).Name;
 				Hero& hero = m_Heroes[h];
@@ -604,9 +613,10 @@ namespace Hydro
 			float Time = 10.0f;
 		};
 
-		// Actors: 0 and 1 are the heroes, 2 to 4 the enemies.
-		static constexpr int ActorCount = 2 + BattleState::MaxEnemies;
-		static bool IsHero(int actor) { return actor < 2; }
+		// Actors: the heroes first (0 to HeroCount - 1), then the enemies.
+		static constexpr int ActorCount = HeroCount + BattleState::MaxEnemies;
+		static bool IsHero(int actor) { return actor < HeroCount; }
+		static int EnemyIndex(int actor) { return actor - HeroCount; }
 
 		struct Action
 		{
@@ -630,7 +640,7 @@ namespace Hydro
 		{
 			m_Round++;
 			// Momentum, and shields come back once a break has run its course.
-			for (int h = 0; h < 2; h++)
+			for (int h = 0; h < HeroCount; h++)
 			{
 				Hero& hero = m_Heroes[h];
 				if (hero.BoostedLastRound == false && m_Round > 1)
@@ -656,7 +666,7 @@ namespace Hydro
 			{
 				if (ActorAlive(actor))
 				{
-					const int speed = IsHero(actor) ? GetHero(actor).Speed : GetEnemy(m_Enemies[actor - 2].Kind).Speed;
+					const int speed = IsHero(actor) ? GetHero(actor).Speed : GetEnemy(m_Enemies[EnemyIndex(actor)].Kind).Speed;
 					speeds.push_back({ (float)speed + 3.0f * Random01(), actor });
 				}
 			}
@@ -701,7 +711,7 @@ namespace Hydro
 				return;
 			}
 
-			Enemy& enemy = m_Enemies[actor - 2];
+			Enemy& enemy = m_Enemies[EnemyIndex(actor)];
 			if (IsBroken(enemy))
 			{
 				HY_INFO("Battle: {} is broken and cannot act", GetEnemy(enemy.Kind).Name);
@@ -729,7 +739,12 @@ namespace Hydro
 				return true;
 			}
 
-			if (BattleState::HeroHP[0] <= 0 && BattleState::HeroHP[1] <= 0)
+			bool heroesLeft = false;
+			for (int h = 0; h < HeroCount; h++)
+			{
+				heroesLeft = heroesLeft || BattleState::HeroHP[h] > 0;
+			}
+			if (heroesLeft == false)
 			{
 				ShowMessage(BattleLabel::Defeated);
 				HY_INFO("Battle: the party is defeated...");
@@ -758,7 +773,7 @@ namespace Hydro
 			}
 
 			// Fallen heroes get up with 1 HP after a won or fled battle.
-			for (int h = 0; h < 2; h++)
+			for (int h = 0; h < HeroCount; h++)
 			{
 				BattleState::HeroHP[h] = std::max(1, BattleState::HeroHP[h]);
 			}
@@ -886,11 +901,25 @@ namespace Hydro
 
 		void BeginEnemyAction()
 		{
-			// A random living hero; a guarding one a little less often.
-			int target = Random01() < 0.5f ? 0 : 1;
-			if (BattleState::HeroHP[target] <= 0)
+			// A random living hero.
+			int living = 0;
+			for (int h = 0; h < HeroCount; h++)
 			{
-				target = 1 - target;
+				living += BattleState::HeroHP[h] > 0 ? 1 : 0;
+			}
+			int pick = std::min(living - 1, (int)(Random01() * (float)living));
+			int target = 0;
+			for (int h = 0; h < HeroCount; h++)
+			{
+				if (BattleState::HeroHP[h] > 0)
+				{
+					if (pick == 0)
+					{
+						target = h;
+						break;
+					}
+					pick--;
+				}
 			}
 			m_Action.Target = target;
 			m_Action.Hits = 1;
@@ -937,8 +966,7 @@ namespace Hydro
 
 			if (hero && (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB))
 			{
-				// Orin's skills are heavy slashes (the Attack clip: contact at FirstHitTime); Lila's spells land on
-				// the peak of the Cast / Heal clip.
+				// Skills on the Attack clip (a strike) land at FirstHitTime; spells on the Cast / Heal clip at its peak.
 				const HeroDefinition& skillHero = GetHero(m_Action.Actor);
 				const char* skillClip = skillHero.SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1];
 				const float resolveAt = std::string(skillClip) == "Attack" ? FirstHitTime : SpellPeakTime;
@@ -1001,7 +1029,7 @@ namespace Hydro
 			if (m_Action.HitsDone == 0 && m_PhaseTime >= 0.45f)
 			{
 				m_Action.HitsDone = 1;
-				const Enemy& enemy = m_Enemies[m_Action.Actor - 2];
+				const Enemy& enemy = m_Enemies[EnemyIndex(m_Action.Actor)];
 				int damage = (int)std::lround((float)GetEnemy(enemy.Kind).Attack * (0.85f + 0.4f * Random01()));
 				Hero& target = m_Heroes[m_Action.Target];
 				if (target.Guarding)
@@ -1041,7 +1069,7 @@ namespace Hydro
 					SpriteAnimator::Play(sprite, "Idle");
 				}
 			}
-			for (int h = 0; h < 2; h++)
+			for (int h = 0; h < HeroCount; h++)
 			{
 				if (BattleState::HeroHP[h] > 0 && m_Heroes[h].Guarding == false && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
 				{
@@ -1190,7 +1218,7 @@ namespace Hydro
 
 		bool ActorAlive(int actor) const
 		{
-			return IsHero(actor) ? BattleState::HeroHP[actor] > 0 : m_Enemies[actor - 2].Alive();
+			return IsHero(actor) ? BattleState::HeroHP[actor] > 0 : m_Enemies[EnemyIndex(actor)].Alive();
 		}
 
 		bool IsBroken(const Enemy& enemy) const { return enemy.BrokenUntilRound >= m_Round && enemy.BrokenUntilRound >= 0; }
@@ -1228,7 +1256,7 @@ namespace Hydro
 		{
 			int best = 0;
 			float lowest = 2.0f;
-			for (int h = 0; h < 2; h++)
+			for (int h = 0; h < HeroCount; h++)
 			{
 				const float fraction = (float)BattleState::HeroHP[h] / (float)GetHero(h).MaxHP;
 				if (BattleState::HeroHP[h] > 0 && fraction < lowest)
@@ -1491,7 +1519,7 @@ namespace Hydro
 			const int actor = m_Action.Actor;
 
 			// Heroes: lunge on attacks, shake when hit.
-			for (int h = 0; h < 2; h++)
+			for (int h = 0; h < HeroCount; h++)
 			{
 				Hero& hero = m_Heroes[h];
 				glm::vec2 offset{ 0.0f };
@@ -1539,7 +1567,7 @@ namespace Hydro
 				}
 
 				glm::vec2 offset{ 0.0f };
-				if (acting && actor == e + 2)
+				if (acting && actor == HeroCount + e)
 				{
 					const float t = std::clamp((m_PhaseTime - 0.2f) / 0.6f, 0.0f, 1.0f);
 					const glm::vec2 goal = m_Heroes[m_Action.Target].Base + glm::vec2(-3.0f, 0.0f);
@@ -1607,7 +1635,7 @@ namespace Hydro
 			if (Alive(scene, m_TurnMarker))
 			{
 				const bool show = (choosing || acting) && IsHero(actor);
-				SetPosition(scene, m_TurnMarker, m_Heroes[std::min(actor, 1)].Base + glm::vec2(0.0f, 6.3f + 0.15f * std::sin(m_Time * 6.0f)));
+				SetPosition(scene, m_TurnMarker, m_Heroes[std::min(actor, HeroCount - 1)].Base + glm::vec2(0.0f, 6.3f + 0.15f * std::sin(m_Time * 6.0f)));
 				SetColor(scene, m_TurnMarker, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
 			}
 			if (Alive(scene, m_Cursor))
@@ -1618,7 +1646,7 @@ namespace Hydro
 				SetColor(scene, m_Cursor, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
 			}
 
-			const int hero = std::min(actor, 1);
+			const int hero = std::min(actor, HeroCount - 1);
 			const HeroDefinition& definition = GetHero(hero);
 			const BattleLabel labels[6] = { BattleLabel::Attack, definition.SkillLabel[0], definition.SkillLabel[1], BattleLabel::Guard, BattleLabel::Potion, BattleLabel::Run };
 			for (int c = 0; c < 6; c++)
@@ -1649,7 +1677,7 @@ namespace Hydro
 				if (index < (int)m_Order.size() && ActorAlive(m_Order[index]))
 				{
 					const int who = m_Order[index];
-					const BattleLabel name = IsHero(who) ? GetHero(who).NameLabel : GetEnemy(m_Enemies[who - 2].Kind).NameLabel;
+					const BattleLabel name = IsHero(who) ? GetHero(who).NameLabel : GetEnemy(m_Enemies[EnemyIndex(who)].Kind).NameLabel;
 					SetSprite(scene, m_OrderChips[c], (uint32_t)name);
 					const float strength = index == m_Turn ? 1.0f : (index < m_Turn ? 0.35f : 0.75f);
 					const glm::vec3 tint = IsHero(who) ? glm::vec3(1.0f) : glm::vec3(1.0f, 0.7f, 0.65f);
@@ -1707,7 +1735,7 @@ namespace Hydro
 		SpriteEffect m_SlashEffect;
 		SpriteEffect m_HealEffect;
 
-		// Timing that matches the battle sheets (scripts/diorama_rpg/battle_sprites.py TIMING): the Attack clip's
+		// Timing that matches the battle sheets (scripts/shrine_glade/battle.py TIMING): the Attack clip's
 		// contact frame starts after the anticipation (0.10 + 0.12) and the first two swing frames (0.07 + 0.06);
 		// Strike is the swing alone. Spells peak on the Cast / Heal clip's third frame.
 		static constexpr float FirstHitTime = 0.35f;
@@ -1722,7 +1750,7 @@ namespace Hydro
 		int m_Potions = 3;
 		std::vector<int> m_Order;
 		Action m_Action;
-		std::array<Hero, 2> m_Heroes;
+		std::array<Hero, HeroCount> m_Heroes;
 		std::array<Enemy, BattleState::MaxEnemies> m_Enemies;
 		std::array<Popup, 3> m_Popups;
 		int m_NextPopup = 0;

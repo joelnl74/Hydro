@@ -58,21 +58,21 @@ Entities:
       FlipY: false
   - Entity: 2354502644069435857
     TagComponent:
-      Tag: Hero Orin
+      Tag: Hero Miko
     TransformComponent:
-      Translation: [7, -2.6, 0]
+      Translation: [8.5, -5, 0]
       Rotation: [0, 0, 0]
-      Scale: [6, 8, 1]
+      Scale: [8, 8, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 30
-      TextureHandle: 2974873378375486385
+      TextureHandle: 6973643223218288539
       SpriteIndex: 0
       FlipX: false
       FlipY: false
     SpriteAnimatorComponent:
-      AnimationsHandle: 1110249129580146435
+      AnimationsHandle: 5638056826991381621
       StartClip: Idle
       PlayOnStart: true
       Speed: 1
@@ -82,9 +82,9 @@ Entities:
       Strength: 0.55
   - Entity: 543380005528913907
     TagComponent:
-      Tag: Hero Orin HP Back
+      Tag: Hero Miko HP Back
     TransformComponent:
-      Translation: [11.2, -6.98, 0]
+      Translation: [11.2, -7.53, 0]
       Rotation: [0, 0, 0]
       Scale: [2.6, 0.32, 1]
     SpriteRendererComponent:
@@ -95,9 +95,9 @@ Entities:
       FlipY: false
   - Entity: 1048460277824663231
     TagComponent:
-      Tag: Hero Orin HP Fill
+      Tag: Hero Miko HP Fill
     TransformComponent:
-      Translation: [11.2, -6.98, 0]
+      Translation: [11.2, -7.53, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 0.22, 1]
     SpriteRendererComponent:
@@ -108,9 +108,9 @@ Entities:
       FlipY: false
   - Entity: 2419822650444914979
     TagComponent:
-      Tag: Hero Orin MP Back
+      Tag: Hero Miko MP Back
     TransformComponent:
-      Translation: [11.2, -7.35, 0]
+      Translation: [11.2, -7.9, 0]
       Rotation: [0, 0, 0]
       Scale: [2.6, 0.22, 1]
     SpriteRendererComponent:
@@ -121,9 +121,9 @@ Entities:
       FlipY: false
   - Entity: 1503637125276567477
     TagComponent:
-      Tag: Hero Orin MP Fill
+      Tag: Hero Miko MP Fill
     TransformComponent:
-      Translation: [11.2, -7.35, 0]
+      Translation: [11.2, -7.9, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 0.12, 1]
     SpriteRendererComponent:
@@ -134,9 +134,9 @@ Entities:
       FlipY: false
   - Entity: 1265686853645913135
     TagComponent:
-      Tag: Hero Orin HP Digit 0
+      Tag: Hero Miko HP Digit 0
     TransformComponent:
-      Translation: [13.3, -6.98, 0]
+      Translation: [13.3, -7.53, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -149,9 +149,9 @@ Entities:
       FlipY: false
   - Entity: 208350898532652517
     TagComponent:
-      Tag: Hero Orin HP Digit 1
+      Tag: Hero Miko HP Digit 1
     TransformComponent:
-      Translation: [13.72, -6.98, 0]
+      Translation: [13.72, -7.53, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -164,9 +164,9 @@ Entities:
       FlipY: false
   - Entity: 1424454468408906631
     TagComponent:
-      Tag: Hero Orin HP Digit 2
+      Tag: Hero Miko HP Digit 2
     TransformComponent:
-      Translation: [14.14, -6.98, 0]
+      Translation: [14.14, -7.53, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -179,9 +179,9 @@ Entities:
       FlipY: false
   - Entity: 3803698164477593767
     TagComponent:
-      Tag: Hero Orin Name
+      Tag: Hero Miko Name
     TransformComponent:
-      Translation: [8.5, -6.95, 0]
+      Translation: [8.5, -7.5, 0]
       Rotation: [0, 0, 0]
       Scale: [2.4, 0.3, 1]
     SpriteRendererComponent:
@@ -189,14 +189,14 @@ Entities:
       TilingFactor: 1
       SortOrder: 205
       TextureHandle: 1605799077072840019
-      SpriteIndex: 8
+      SpriteIndex: 24
       FlipX: false
       FlipY: false
   - Entity: 2167776218256150105
     TagComponent:
-      Tag: Hero Orin Pip 0
+      Tag: Hero Miko Pip 0
     TransformComponent:
-      Translation: [7.7, -7.4, 0]
+      Translation: [7.7, -7.95, 0]
       Rotation: [0, 0, 0]
       Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
@@ -209,9 +209,9 @@ Entities:
       FlipY: false
   - Entity: 2979164332911855329
     TagComponent:
-      Tag: Hero Orin Pip 1
+      Tag: Hero Miko Pip 1
     TransformComponent:
-      Translation: [8.12, -7.4, 0]
+      Translation: [8.12, -7.95, 0]
       Rotation: [0, 0, 0]
       Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
@@ -224,9 +224,9 @@ Entities:
       FlipY: false
   - Entity: 4452058484974239225
     TagComponent:
-      Tag: Hero Orin Pip 2
+      Tag: Hero Miko Pip 2
     TransformComponent:
-      Translation: [8.54, -7.4, 0]
+      Translation: [8.54, -7.95, 0]
       Rotation: [0, 0, 0]
       Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
@@ -239,9 +239,9 @@ Entities:
       FlipY: false
   - Entity: 2636810904870439275
     TagComponent:
-      Tag: Hero Orin Pip 3
+      Tag: Hero Miko Pip 3
     TransformComponent:
-      Translation: [8.96, -7.4, 0]
+      Translation: [8.96, -7.95, 0]
       Rotation: [0, 0, 0]
       Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
@@ -254,220 +254,9 @@ Entities:
       FlipY: false
   - Entity: 3057690109097756637
     TagComponent:
-      Tag: Hero Orin Pip 4
+      Tag: Hero Miko Pip 4
     TransformComponent:
-      Translation: [9.38, -7.4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.38, 0.38, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-  - Entity: 4482230552332691951
-    TagComponent:
-      Tag: Hero Lila
-    TransformComponent:
-      Translation: [10.2, -5.6, 0]
-      Rotation: [0, 0, 0]
-      Scale: [6, 8, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 40
-      TextureHandle: 1787721183282490451
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-    SpriteAnimatorComponent:
-      AnimationsHandle: 4470018471009323867
-      StartClip: Idle
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.15]
-      Size: [2.2, 0.6]
-      Strength: 0.55
-  - Entity: 1703175488715354137
-    TagComponent:
-      Tag: Hero Lila HP Back
-    TransformComponent:
-      Translation: [11.2, -8.13, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.6, 0.32, 1]
-    SpriteRendererComponent:
-      Color: [0.08, 0.07, 0.05, 1]
-      TilingFactor: 1
-      SortOrder: 200
-      FlipX: false
-      FlipY: false
-  - Entity: 1599527890774545573
-    TagComponent:
-      Tag: Hero Lila HP Fill
-    TransformComponent:
-      Translation: [11.2, -8.13, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 0.22, 1]
-    SpriteRendererComponent:
-      Color: [0.45, 0.85, 0.35, 1]
-      TilingFactor: 1
-      SortOrder: 201
-      FlipX: false
-      FlipY: false
-  - Entity: 212982337231666913
-    TagComponent:
-      Tag: Hero Lila MP Back
-    TransformComponent:
-      Translation: [11.2, -8.5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.6, 0.22, 1]
-    SpriteRendererComponent:
-      Color: [0.08, 0.07, 0.05, 1]
-      TilingFactor: 1
-      SortOrder: 200
-      FlipX: false
-      FlipY: false
-  - Entity: 990645894736026393
-    TagComponent:
-      Tag: Hero Lila MP Fill
-    TransformComponent:
-      Translation: [11.2, -8.5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 0.12, 1]
-    SpriteRendererComponent:
-      Color: [0.35, 0.6, 0.95, 1]
-      TilingFactor: 1
-      SortOrder: 201
-      FlipX: false
-      FlipY: false
-  - Entity: 1932942655365452243
-    TagComponent:
-      Tag: Hero Lila HP Digit 0
-    TransformComponent:
-      Translation: [13.3, -8.13, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-  - Entity: 1800440953078605573
-    TagComponent:
-      Tag: Hero Lila HP Digit 1
-    TransformComponent:
-      Translation: [13.72, -8.13, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-  - Entity: 3088655365077865251
-    TagComponent:
-      Tag: Hero Lila HP Digit 2
-    TransformComponent:
-      Translation: [14.14, -8.13, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-  - Entity: 3021242517296598835
-    TagComponent:
-      Tag: Hero Lila Name
-    TransformComponent:
-      Translation: [8.5, -8.1, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.4, 0.3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 1605799077072840019
-      SpriteIndex: 9
-      FlipX: false
-      FlipY: false
-  - Entity: 2037401050920214815
-    TagComponent:
-      Tag: Hero Lila Pip 0
-    TransformComponent:
-      Translation: [7.7, -8.55, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.38, 0.38, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-  - Entity: 1699534436301461695
-    TagComponent:
-      Tag: Hero Lila Pip 1
-    TransformComponent:
-      Translation: [8.12, -8.55, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.38, 0.38, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-  - Entity: 3674502789611256557
-    TagComponent:
-      Tag: Hero Lila Pip 2
-    TransformComponent:
-      Translation: [8.54, -8.55, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.38, 0.38, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-  - Entity: 4233234132384428537
-    TagComponent:
-      Tag: Hero Lila Pip 3
-    TransformComponent:
-      Translation: [8.96, -8.55, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.38, 0.38, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-  - Entity: 1347475801775880567
-    TagComponent:
-      Tag: Hero Lila Pip 4
-    TransformComponent:
-      Translation: [9.38, -8.55, 0]
+      Translation: [9.38, -7.95, 0]
       Rotation: [0, 0, 0]
       Scale: [0.38, 0.38, 1]
     SpriteRendererComponent:
@@ -1498,7 +1287,7 @@ Entities:
     TransformComponent:
       Translation: [11.3, -7.72, 0]
       Rotation: [0, 0, 0]
-      Scale: [8.6, 2.3, 1]
+      Scale: [8.6, 1.3, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 0.92]
       TilingFactor: 1
