@@ -8,6 +8,8 @@
 #include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Asset/AssetMetaSerializer.h>
 #include <Hydro/Renderer/Texture2D.h>
+#include <Hydro/Renderer/Material.h>
+#include <Hydro/Renderer/MaterialSerializer.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SceneSerializer.h>
 #include <Hydro/Scene/SpriteAnimation.h>
@@ -406,6 +408,10 @@ namespace Hydro
 			{
 				BeginCreateFolder();
 			}
+			if (ImGui::MenuItem("New Material"))
+			{
+				m_DeferredActions.push_back([this]() { CreateMaterial(); });
+			}
 			if (ImGui::MenuItem("Refresh"))
 				m_NeedsRescan = true;
 
@@ -428,7 +434,7 @@ namespace Hydro
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 		{
 			m_SelectedPath = item.Path;
-			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation) && OnAssetSelected)
+			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material) && OnAssetSelected)
 			{
 				OnAssetSelected(item.Path);
 			}
@@ -446,7 +452,8 @@ namespace Hydro
 		// What is dragged is the asset's handle (AssetDragDrop).
 		const bool isTexture = item.Type == ItemType::Texture;
 		const bool isAnimationSet = item.Type == ItemType::Animation;
-		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet) && ImGui::BeginDragDropSource())
+		const bool isMaterial = item.Type == ItemType::Material;
+		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
@@ -457,6 +464,10 @@ namespace Hydro
 			else if (isAnimationSet)
 			{
 				ImGui::TextDisabled("Drop on a Sprite Animator's Animations");
+			}
+			else if (isMaterial)
+			{
+				ImGui::TextDisabled("Drop on a mesh's material Asset field");
 			}
 			else
 			{
@@ -671,6 +682,40 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.62f, 0.40f, 0.90f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
+			case ItemType::Material:
+			{
+				// A round swatch: its albedo image (or white) times its tint.
+				const Ref<MaterialAsset> material = FindAsset<MaterialAsset>(item.Handle, m_PreviewLoadsLeft);
+				const ImVec2 swatchMin = TilePoint(min, size, 0.18f, 0.14f);
+				const ImVec2 swatchMax = TilePoint(min, size, 0.82f, 0.78f);
+				const float radius = (swatchMax.x - swatchMin.x) * 0.5f;
+				const ImVec2 center = { swatchMin.x + radius, swatchMin.y + radius };
+				if (material != nullptr)
+				{
+					const MaterialData& data = material->GetData();
+					const ImU32 tint = ImGui::ColorConvertFloat4ToU32({ data.Tint.r, data.Tint.g, data.Tint.b, 1.0f });
+					const Ref<Texture2D> albedo = (uint64_t)data.Albedo != 0 ? ThumbnailManager::Get(data.Albedo).Texture : nullptr;
+					if (albedo != nullptr)
+					{
+						drawList->AddImageRounded((ImTextureID)Renderer2D::GetImGuiTexture(albedo), swatchMin, swatchMax, { 0.0f, 0.0f }, { 1.0f, 1.0f }, tint, radius);
+					}
+					else
+					{
+						drawList->AddCircleFilled(center, radius, tint, 32);
+					}
+					// A highlight, so it reads as a ball.
+					drawList->AddCircleFilled({ center.x - radius * 0.35f, center.y - radius * 0.35f }, radius * 0.18f, ToColor(1.0f, 1.0f, 1.0f, 0.35f), 16);
+				}
+				else
+				{
+					drawList->AddCircleFilled(center, radius, ToColor(0.45f, 0.45f, 0.48f), 32);
+				}
+				drawList->AddCircle(center, radius, ToColor(0.0f, 0.0f, 0.0f, 0.5f), 32, 1.5f);
+
+				// Orange strip = material.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.95f, 0.55f, 0.20f), rounding, ImDrawFlags_RoundCornersBottom);
+				break;
+			}
 		}
 	}
 
@@ -716,6 +761,9 @@ namespace Hydro
 				break;
 			case ItemType::Animation:
 				ImGui::TextDisabled("Sprite animation");
+				break;
+			case ItemType::Material:
+				ImGui::TextDisabled("Material (Standard) - drag onto a mesh's material Asset field");
 				break;
 		}
 
@@ -804,6 +852,13 @@ namespace Hydro
 				if (OnOpenAsset)
 				{
 					OnOpenAsset(item.Path);
+				}
+				break;
+			case ItemType::Material:
+				// Edited in the inspector.
+				if (OnAssetSelected)
+				{
+					OnAssetSelected(item.Path);
 				}
 				break;
 		}
@@ -1058,6 +1113,9 @@ namespace Hydro
 			case AssetType::SpriteAnimation:
 				itemType = ItemType::Animation;
 				return true;
+			case AssetType::Material:
+				itemType = ItemType::Material;
+				return true;
 			default:
 				return false;
 		}
@@ -1096,6 +1154,29 @@ namespace Hydro
 		if (OnOpenAsset)
 		{
 			OnOpenAsset(target);
+		}
+	}
+	void ProjectWindow::CreateMaterial()
+	{
+		std::filesystem::path folder = m_CurrentDirectory.empty() ? m_RootDirectory : m_CurrentDirectory;
+		std::filesystem::path target = folder / std::filesystem::u8path(std::string("New Material") + MaterialSerializer::FileExtension);
+		std::error_code error;
+		for (int number = 2; std::filesystem::exists(target, error); number++)
+		{
+			target = folder / std::filesystem::u8path("New Material " + std::to_string(number) + MaterialSerializer::FileExtension);
+		}
+
+		if (MaterialSerializer::Serialize(target, MaterialData{}) == false)
+		{
+			return;
+		}
+
+		HY_INFO("Created {}", target.filename().u8string());
+		m_SelectedPath = target;
+		m_NeedsRescan = true;
+		if (OnAssetSelected)
+		{
+			OnAssetSelected(target);
 		}
 	}
 }

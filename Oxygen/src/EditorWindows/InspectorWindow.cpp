@@ -7,6 +7,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Hydro/Asset/AssetManager.h>
+#include <Hydro/Renderer/Material.h>
+#include <Hydro/Renderer/MaterialSerializer.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SpriteAnimation.h>
@@ -150,6 +152,69 @@ namespace Hydro
 		{
 			textureHandle = result.Handle;
 		}
+	}
+
+	// The Standard material's fields (a mesh slot's inline settings or a material asset). Returns true when
+	// something changed.
+	static bool DrawMaterialFields(MaterialData& material)
+	{
+		const MaterialData before = material;
+		DrawPropertyRow("Albedo", [&]() { DrawTextureField("##MaterialAlbedo", material.Albedo); });
+		DrawPropertyRow("Tint", [&]() { ImGui::ColorEdit4("##MaterialTint", glm::value_ptr(material.Tint)); });
+		DrawPropertyRow("Tiling", [&]()
+		{
+			ImGui::DragFloat2("##MaterialTiling", glm::value_ptr(material.Tiling), 0.05f, 0.01f, 100.0f, "%.2f");
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("Texture repeats per metre.");
+			}
+		});
+		DrawPropertyRow("Emissive", [&]() { DrawTextureField("##MaterialEmissive", material.Emissive); });
+		DrawPropertyRow("Emission", [&]() { ImGui::ColorEdit3("##MaterialEmission", glm::value_ptr(material.EmissionColor)); });
+		DrawPropertyRow("Intensity", [&]() { InputFloatField("##MaterialEmissionIntensity", material.EmissionIntensity, "%.2f", 0.0f, 100.0f); });
+		DrawPropertyRow("Alpha cut-off", [&]()
+		{
+			InputFloatField("##MaterialAlphaCutoff", material.AlphaCutoff, "%.2f", 0.0f, 1.0f);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("Pixels with less albedo alpha than this are dropped (railings, leaves). 0 = opaque.");
+			}
+		});
+		DrawPropertyRow("Filter", [&]()
+		{
+			const char* filterNames[] = { "Nearest", "Linear" };
+			int filter = material.Filter == TextureFilter::Linear ? 1 : 0;
+			if (ImGui::Combo("##MaterialFilter", &filter, filterNames, 2))
+			{
+				material.Filter = filter == 1 ? TextureFilter::Linear : TextureFilter::Nearest;
+			}
+		});
+		return material != before;
+	}
+
+	// "<folder>/<name>.hymat", or "<name> 2.hymat"... when taken.
+	static std::filesystem::path MakeUniqueMaterialPath(const std::filesystem::path& folder, std::string name)
+	{
+		// Characters Windows doesn't allow in file names become '_'.
+		for (char& c : name)
+		{
+			if (c == '<' || c == '>' || c == ':' || c == '"' || c == '/' || c == '\\' || c == '|' || c == '?' || c == '*')
+			{
+				c = '_';
+			}
+		}
+		if (name.empty())
+		{
+			name = "New Material";
+		}
+
+		std::error_code error;
+		std::filesystem::path path = folder / std::filesystem::u8path(name + MaterialSerializer::FileExtension);
+		for (int number = 2; std::filesystem::exists(path, error); number++)
+		{
+			path = folder / std::filesystem::u8path(name + " " + std::to_string(number) + MaterialSerializer::FileExtension);
+		}
+		return path;
 	}
 
 	// A FloatRange as two fields, Min and Max, clamped to [min, max] when left; Max never ends up below Min.
@@ -367,6 +432,7 @@ namespace Hydro
 			{
 				DrawAsset(asset);
 			}
+			SaveEditedMaterial(false);
 			ImGui::End();
 			return;
 		}
@@ -381,7 +447,138 @@ namespace Hydro
 		DrawAddComponentButton(entity);
 		DrawPrefabButton(entity);
 
+		SaveEditedMaterial(false);
 		ImGui::End();
+	}
+
+	void InspectorWindow::EditMaterialAsset(const Ref<MaterialAsset>& asset)
+	{
+		MaterialData data = asset->GetData();
+		if (DrawMaterialFields(data))
+		{
+			// Every mesh using it changes now; the file is written once the edit is finished.
+			if (m_UnsavedMaterial != asset->GetHandle())
+			{
+				SaveEditedMaterial(true);
+			}
+			asset->SetData(data);
+			m_UnsavedMaterial = asset->GetHandle();
+		}
+	}
+
+	void InspectorWindow::SaveEditedMaterial(bool force)
+	{
+		if ((uint64_t)m_UnsavedMaterial == 0)
+		{
+			return;
+		}
+		// Not while a field is being dragged or typed in: a slider would write the file every frame.
+		if (force == false && ImGui::IsAnyItemActive())
+		{
+			return;
+		}
+
+		const AssetHandle handle = m_UnsavedMaterial;
+		m_UnsavedMaterial = 0;
+		const Ref<MaterialAsset> asset = AssetManager::GetLoadedAsset<MaterialAsset>(handle);
+		const std::filesystem::path path = AssetManager::GetAbsolutePath(handle);
+		if (asset == nullptr || path.empty())
+		{
+			return;
+		}
+		MaterialSerializer::Serialize(path, asset->GetData());
+	}
+
+	void InspectorWindow::DrawMeshMaterialSlot(Entity entity, MeshMaterialSlot& slot)
+	{
+		const Ref<MaterialAsset> asset = (uint64_t)slot.Material != 0 ? AssetManager::GetAsset<MaterialAsset>(slot.Material) : nullptr;
+
+		DrawPropertyRow("Asset", [&]()
+		{
+			const std::string detail = (uint64_t)slot.Material != 0 && asset == nullptr
+				? "The material is missing or couldn't be loaded (see the console); the settings below are drawn." : std::string();
+			const AssetPickerResult result = AssetPicker::DrawField("##MeshMaterialAsset", slot.Material, AssetType::Material, detail);
+			if (result.Changed == false)
+			{
+				return;
+			}
+
+			if ((uint64_t)result.Handle == 0)
+			{
+				// Detached: the slot keeps looking the same, now with its own copy of the settings.
+				if (asset != nullptr)
+				{
+					slot.Inline = asset->GetData();
+				}
+				slot.Material = 0;
+				return;
+			}
+
+			// Loading logs why a file couldn't be loaded; a handle that doesn't load is not taken.
+			const Ref<MaterialAsset> picked = AssetManager::GetAsset<MaterialAsset>(result.Handle);
+			if (picked != nullptr)
+			{
+				slot.Material = result.Handle;
+				// The fallback, should the file go missing later.
+				slot.Inline = picked->GetData();
+			}
+		});
+
+		if (asset != nullptr)
+		{
+			const std::filesystem::path path = AssetManager::GetAbsolutePath(slot.Material);
+			ImGui::TextDisabled("Shared: edits change every mesh using %s.", path.filename().u8string().c_str());
+			EditMaterialAsset(asset);
+			return;
+		}
+
+		if ((uint64_t)slot.Material != 0)
+		{
+			ImGui::TextColored({ 0.9f, 0.6f, 0.3f, 1.0f }, "Material asset missing: drawing these settings.");
+		}
+		DrawMaterialFields(slot.Inline);
+
+		// Turns these settings into a material asset other meshes can share.
+		if ((uint64_t)slot.Material == 0 && AssetManager::IsProjectOpen() && ImGui::Button("Save as Material Asset"))
+		{
+			const std::filesystem::path folder = AssetManager::GetAssetDirectory() / "Materials";
+			std::error_code error;
+			std::filesystem::create_directories(folder, error);
+			const std::string name = entity.HasComponent<TagComponent>() ? entity.GetComponent<TagComponent>().Tag : std::string();
+			const std::filesystem::path path = MakeUniqueMaterialPath(folder, name);
+			if (MaterialSerializer::Serialize(path, slot.Inline))
+			{
+				const AssetHandle handle = AssetManager::FindHandle(path);
+				if ((uint64_t)handle != 0 && AssetManager::GetAsset<MaterialAsset>(handle) != nullptr)
+				{
+					slot.Material = handle;
+					HY_INFO("Created {}", path.filename().u8string());
+				}
+			}
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("Writes these settings to Assets/Materials as a .hymat and uses it here; pick it on other meshes to share it.");
+		}
+	}
+
+	void InspectorWindow::DrawMaterialAsset(const std::filesystem::path& path)
+	{
+		ImGui::TextUnformatted(path.filename().u8string().c_str());
+		ImGui::TextDisabled("Material (Standard)");
+
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		const Ref<MaterialAsset> asset = (uint64_t)handle != 0 ? AssetManager::GetAsset<MaterialAsset>(handle) : nullptr;
+		if (asset == nullptr)
+		{
+			ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "Could not read the material (see the console).");
+			return;
+		}
+
+		ImGui::Separator();
+		EditMaterialAsset(asset);
+		ImGui::Spacing();
+		ImGui::TextDisabled("Edits change every mesh that uses this material; saved when an edit is finished.");
 	}
 
 	void InspectorWindow::DrawEntityHeader(Entity entity)
@@ -643,41 +840,11 @@ namespace Hydro
 
 			if (mesh.Materials.empty())
 			{
-				mesh.Materials.push_back(MaterialData{});
+				mesh.Materials.push_back(MeshMaterialSlot{});
 			}
-			MaterialData& material = mesh.Materials[0];
 			ImGui::Separator();
 			ImGui::TextUnformatted("Material");
-			DrawPropertyRow("Albedo", [&]() { DrawTextureField("##MeshAlbedo", material.Albedo); });
-			DrawPropertyRow("Tint", [&]() { ImGui::ColorEdit4("##MeshTint", glm::value_ptr(material.Tint)); });
-			DrawPropertyRow("Tiling", [&]()
-			{
-				ImGui::DragFloat2("##MeshTiling", glm::value_ptr(material.Tiling), 0.05f, 0.01f, 100.0f, "%.2f");
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::SetTooltip("Texture repeats per metre.");
-				}
-			});
-			DrawPropertyRow("Emissive", [&]() { DrawTextureField("##MeshEmissive", material.Emissive); });
-			DrawPropertyRow("Emission", [&]() { ImGui::ColorEdit3("##MeshEmission", glm::value_ptr(material.EmissionColor)); });
-			DrawPropertyRow("Intensity", [&]() { InputFloatField("##MeshEmissionIntensity", material.EmissionIntensity, "%.2f", 0.0f, 100.0f); });
-			DrawPropertyRow("Alpha cut-off", [&]()
-			{
-				InputFloatField("##MeshAlphaCutoff", material.AlphaCutoff, "%.2f", 0.0f, 1.0f);
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::SetTooltip("Pixels with less albedo alpha than this are dropped (railings, leaves). 0 = opaque.");
-				}
-			});
-			DrawPropertyRow("Filter", [&]()
-			{
-				const char* filterNames[] = { "Nearest", "Linear" };
-				int filter = material.Filter == TextureFilter::Linear ? 1 : 0;
-				if (ImGui::Combo("##MeshFilter", &filter, filterNames, 2))
-				{
-					material.Filter = filter == 1 ? TextureFilter::Linear : TextureFilter::Nearest;
-				}
-			});
+			DrawMeshMaterialSlot(entity, mesh.Materials[0]);
 			if (mesh.Materials.size() > 1)
 			{
 				ImGui::TextDisabled("%u more material slots (edited in the file for now).", (uint32_t)mesh.Materials.size() - 1);
@@ -1146,6 +1313,12 @@ namespace Hydro
 		if (asset.extension() == SpriteAnimationSerializer::FileExtension)
 		{
 			DrawAnimationSetAsset(asset);
+			return;
+		}
+
+		if (asset.extension() == MaterialSerializer::FileExtension)
+		{
+			DrawMaterialAsset(asset);
 			return;
 		}
 

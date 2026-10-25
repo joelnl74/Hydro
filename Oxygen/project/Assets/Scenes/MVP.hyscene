@@ -11983,13 +11983,15 @@ Entities:
       Size: [2.2, 1.2, 0.9]
       CastShadows: true
       Materials:
-        - AlbedoHandle: 345836454132741581
-          Tint: [1, 1, 1, 1]
-          Tiling: [1, 1]
-          EmissionColor: [0, 0, 0]
-          EmissionIntensity: 1
-          AlphaCutoff: 0
-          Filter: Nearest
+        - MaterialHandle: 7377955140076880982
+          Inline:
+            AlbedoHandle: 345836454132741581
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
   - Entity: 6306476877570600128
     TagComponent:
       Tag: Mesh Test Stairs
@@ -12003,13 +12005,15 @@ Entities:
       Steps: 3
       CastShadows: true
       Materials:
-        - AlbedoHandle: 345836454132741581
-          Tint: [1, 1, 1, 1]
-          Tiling: [1, 1]
-          EmissionColor: [0, 0, 0]
-          EmissionIntensity: 1
-          AlphaCutoff: 0
-          Filter: Nearest
+        - MaterialHandle: 7377955140076880982
+          Inline:
+            AlbedoHandle: 345836454132741581
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
   - Entity: 7682828082362047979
     TagComponent:
       Tag: Mesh Test Ramp
@@ -12022,13 +12026,14 @@ Entities:
       Size: [1.0, 0.9, 0.9]
       CastShadows: true
       Materials:
-        - AlbedoHandle: 4680268584103075221
-          Tint: [1, 1, 1, 1]
-          Tiling: [1, 1]
-          EmissionColor: [0, 0, 0]
-          EmissionIntensity: 1
-          AlphaCutoff: 0
-          Filter: Nearest
+        - Inline:
+            AlbedoHandle: 4680268584103075221
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
   - Entity: 3830533983221303889
     TagComponent:
       Tag: Mesh Test Pillar
@@ -12042,10 +12047,12 @@ Entities:
       Segments: 12
       CastShadows: true
       Materials:
-        - AlbedoHandle: 345836454132741581
-          Tint: [1, 1, 1, 1]
-          Tiling: [1, 1]
-          EmissionColor: [0, 0, 0]
-          EmissionIntensity: 1
-          AlphaCutoff: 0
-          Filter: Nearest
+        - MaterialHandle: 7377955140076880982
+          Inline:
+            AlbedoHandle: 345836454132741581
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest

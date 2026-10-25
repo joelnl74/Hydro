@@ -309,6 +309,21 @@ namespace Hydro
 		// TODO MESH RENDERING
 	}
 
+	// What a mesh slot draws with: its material asset when it is loaded (scene loading and the inspector load
+	// it), else its inline settings.
+	static MaterialData ResolveMaterial(const MeshMaterialSlot& slot)
+	{
+		if ((uint64_t)slot.Material != 0)
+		{
+			const Ref<MaterialAsset> asset = AssetManager::GetLoadedAsset<MaterialAsset>(slot.Material);
+			if (asset != nullptr)
+			{
+				return asset->GetData();
+			}
+		}
+		return slot.Inline;
+	}
+
 	void SceneRenderer::SubmitMeshes(RenderView& renderView)
 	{
 		auto meshes = m_Scene->m_Registry.view<TransformComponent, MeshComponent>();
@@ -344,7 +359,7 @@ namespace Hydro
 			for (uint32_t i = 0; i < subMeshCount; i++)
 			{
 				const uint32_t slot = mesh->GetSubMeshes()[i].MaterialSlot;
-				const MaterialData material = slot < meshComponent.Materials.size() ? meshComponent.Materials[slot] : MaterialData{};
+				const MaterialData material = slot < meshComponent.Materials.size() ? ResolveMaterial(meshComponent.Materials[slot]) : MaterialData{};
 				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity);
 			}
 		}

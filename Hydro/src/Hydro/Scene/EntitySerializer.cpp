@@ -3,6 +3,7 @@
 #include "ScriptableEntity.h"
 
 #include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/MaterialSerializer.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -120,49 +121,6 @@ namespace Hydro
 		}
 
 		return MeshShape::Box;
-	}
-
-	static void SerializeMeshMaterial(YAML::Emitter& out, const MaterialData& material)
-	{
-		out << YAML::BeginMap;
-		if ((uint64_t)material.Albedo != 0)
-		{
-			out << YAML::Key << "AlbedoHandle" << YAML::Value << (uint64_t)material.Albedo;
-		}
-		if ((uint64_t)material.Emissive != 0)
-		{
-			out << YAML::Key << "EmissiveHandle" << YAML::Value << (uint64_t)material.Emissive;
-		}
-		out << YAML::Key << "Tint" << YAML::Value << material.Tint;
-		out << YAML::Key << "Tiling" << YAML::Value << material.Tiling;
-		out << YAML::Key << "EmissionColor" << YAML::Value << material.EmissionColor;
-		out << YAML::Key << "EmissionIntensity" << YAML::Value << material.EmissionIntensity;
-		out << YAML::Key << "AlphaCutoff" << YAML::Value << material.AlphaCutoff;
-		out << YAML::Key << "Filter" << YAML::Value << (material.Filter == TextureFilter::Linear ? "Linear" : "Nearest");
-		out << YAML::EndMap;
-	}
-
-	// The textures are loaded now, so the renderer (which never loads) finds them.
-	static MaterialData DeserializeMeshMaterial(const YAML::Node& node)
-	{
-		MaterialData material;
-		material.Albedo = ResolveSavedAsset(node["AlbedoHandle"], node["Albedo"]);
-		material.Emissive = ResolveSavedAsset(node["EmissiveHandle"], node["Emissive"]);
-		if ((uint64_t)material.Albedo != 0)
-		{
-			AssetManager::GetAsset<Texture2D>(material.Albedo);
-		}
-		if ((uint64_t)material.Emissive != 0)
-		{
-			AssetManager::GetAsset<Texture2D>(material.Emissive);
-		}
-		material.Tint = node["Tint"].as<glm::vec4>(material.Tint);
-		material.Tiling = node["Tiling"].as<glm::vec2>(material.Tiling);
-		material.EmissionColor = node["EmissionColor"].as<glm::vec3>(material.EmissionColor);
-		material.EmissionIntensity = node["EmissionIntensity"].as<float>(material.EmissionIntensity);
-		material.AlphaCutoff = node["AlphaCutoff"].as<float>(material.AlphaCutoff);
-		material.Filter = node["Filter"].as<std::string>("Nearest") == "Linear" ? TextureFilter::Linear : TextureFilter::Nearest;
-		return material;
 	}
 
 	static SpriteFacing SpriteFacingFromString(const std::string& name)
@@ -396,9 +354,17 @@ namespace Hydro
 			}
 			out << YAML::Key << "CastShadows" << YAML::Value << mesh.CastShadows;
 			out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
-			for (const MaterialData& material : mesh.Materials)
+			// Each slot: its material asset's handle (when it has one) and its inline settings, the fallback.
+			for (const MeshMaterialSlot& slot : mesh.Materials)
 			{
-				SerializeMeshMaterial(out, material);
+				out << YAML::BeginMap;
+				if ((uint64_t)slot.Material != 0)
+				{
+					out << YAML::Key << "MaterialHandle" << YAML::Value << (uint64_t)slot.Material;
+				}
+				out << YAML::Key << "Inline" << YAML::Value;
+				MaterialSerializer::SerializeData(out, slot.Inline);
+				out << YAML::EndMap;
 			}
 			out << YAML::EndSeq;
 			out << YAML::EndMap;
@@ -626,7 +592,17 @@ namespace Hydro
 				mesh.Materials.clear();
 				for (const YAML::Node& materialNode : materialsNode)
 				{
-					mesh.Materials.push_back(DeserializeMeshMaterial(materialNode));
+					MeshMaterialSlot slot;
+					slot.Material = AssetHandle(materialNode["MaterialHandle"].as<uint64_t>(0));
+					// Scenes saved before material assets (M4) have the settings in the slot itself.
+					const YAML::Node inlineNode = materialNode["Inline"];
+					slot.Inline = MaterialSerializer::DeserializeData(inlineNode.IsDefined() ? inlineNode : materialNode);
+					// Loaded now (with its textures), so the renderer, which never loads, finds it.
+					if ((uint64_t)slot.Material != 0)
+					{
+						AssetManager::GetAsset<MaterialAsset>(slot.Material);
+					}
+					mesh.Materials.push_back(slot);
 				}
 			}
 		}

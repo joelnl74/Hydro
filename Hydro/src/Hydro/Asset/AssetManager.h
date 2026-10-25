@@ -106,7 +106,7 @@ namespace Hydro
 		// (or, for images, its .hymeta) changed or moved since. Synchronous, reads the disk: for scene
 		// loading and the editor, never for code that runs every frame. nullptr (logged, once per file
 		// version) when the handle is unknown, its file is missing or unreadable, or it isn't a T.
-		// Texture2D, SpriteAnimationSet and Prefab can be loaded so far.
+		// Texture2D, SpriteAnimationSet, Prefab and MaterialAsset can be loaded so far.
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle handle)
 		{

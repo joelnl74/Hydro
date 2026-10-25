@@ -12,6 +12,7 @@
 #include <Hydro/Renderer/SceneCamera.h>
 #include <Hydro/Asset/Asset.h>
 #include <Hydro/Renderer/Image.h>
+#include <Hydro/Renderer/Material.h>
 
 #include <vector>
 #include <glm/gtx/quaternion.hpp>
@@ -79,30 +80,6 @@ namespace Hydro
 		}
 	};
 
-	// The Standard material (plan M4): albedo times tint, plus emission, opaque or cut out. The MVP's only
-	// material type; lit by M6's forward lights, otherwise unlit. Inline on a MeshComponent (M4b adds
-	// material assets).
-	struct MaterialData
-	{
-		AssetHandle Albedo = 0;   // a Texture2D; 0 = white
-		AssetHandle Emissive = 0; // a Texture2D multiplied by EmissionColor * EmissionIntensity; 0 = white
-		glm::vec4 Tint{ 1.0f };   // linear RGBA, multiplies the albedo
-		glm::vec2 Tiling{ 1.0f }; // texture repeats per metre (built-in shapes have UVs in metres)
-		glm::vec3 EmissionColor{ 0.0f }; // linear RGB; black = no emission
-		float EmissionIntensity = 1.0f;
-		// Pixels whose albedo alpha is below this are dropped (cut-out: railings, leaves). 0 = opaque.
-		float AlphaCutoff = 0.0f;
-		TextureFilter Filter = TextureFilter::Nearest; // nearest keeps pixel art crisp
-
-		bool operator==(const MaterialData& other) const
-		{
-			return Albedo == other.Albedo && Emissive == other.Emissive && Tint == other.Tint && Tiling == other.Tiling
-				&& EmissionColor == other.EmissionColor && EmissionIntensity == other.EmissionIntensity
-				&& AlphaCutoff == other.AlphaCutoff && Filter == other.Filter;
-		}
-		bool operator!=(const MaterialData& other) const { return (*this == other) == false; }
-	};
-
 	// A built-in shape of a MeshComponent (MeshFactory). Z-up, standing on its position.
 	enum class MeshShape : uint8_t
 	{
@@ -111,6 +88,14 @@ namespace Hydro
 		Ramp,
 		Stairs,
 		Cylinder
+	};
+
+	// One material slot of a MeshComponent: a material asset (.hymat, plan M4b), shared with every slot that
+	// names it, or the slot's own settings. Inline is drawn when there is no asset, or its file is missing.
+	struct MeshMaterialSlot
+	{
+		AssetHandle Material = 0; // a MaterialAsset; 0 = use Inline
+		MaterialData Inline;
 	};
 
 	// A static mesh drawn with shared depth when the view's render features have Meshes on (plan M4).
@@ -124,7 +109,7 @@ namespace Hydro
 		uint32_t Steps = 4;     // Stairs
 		uint32_t Segments = 16; // Cylinder
 		// One per sub-mesh (built-in shapes have one); a missing one draws white.
-		std::vector<MaterialData> Materials{ MaterialData{} };
+		std::vector<MeshMaterialSlot> Materials{ MeshMaterialSlot{} };
 		bool CastShadows = true; // kept for shadows (H6); nothing reads it yet
 	};
 
