@@ -22,12 +22,15 @@ layout(push_constant) uniform ObjectPushConstants {
 
 layout(location = 0) out vec2 fragUV;
 layout(location = 1) out vec4 fragColor;
-layout(location = 2) out vec3 fragNormal; // world space; used by M6's lights
+layout(location = 2) out vec3 fragNormal; // world space, for forward lighting (mesh.frag)
 layout(location = 3) flat out int entityID;
+layout(location = 4) out vec3 fragWorldPos; // for forward lighting and fog (mesh.frag)
 
 void main()
 {
-	gl_Position = camera.mvp * object.transform * vec4(inPosition, 1.0);
+	vec4 world = object.transform * vec4(inPosition, 1.0);
+	gl_Position = camera.mvp * world;
+	fragWorldPos = world.xyz;
 	fragUV = inUV;
 	fragColor = inColor;
 	fragNormal = normalize(mat3(object.transform) * inNormal);

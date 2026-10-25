@@ -159,7 +159,7 @@ namespace Hydro
 
 			ImGui::EndDisabled();
 
-			ImGui::TextDisabled("The light curve is assets/shaders/light.frag. With Shader hot reload on,\nsaving it changes the look of the running editor.");
+			ImGui::TextDisabled("The light curve is assets/shaders/light_falloff.glsl (both lighting modes).\nWith Shader hot reload on, saving it changes the look of the running editor.");
 		}
 
 		// ---- Render features (project default) ----------------------------------
@@ -198,6 +198,43 @@ namespace Hydro
 					if (activeScene != nullptr && activeScene != editorScene)
 					{
 						activeScene->SetRenderSettings(sceneSettings);
+					}
+				}
+			}
+		}
+
+		// ---- Environment (scene) -----------------------------------------------
+		if (ImGui::CollapsingHeader("Environment (scene)", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			if (editorScene == nullptr)
+			{
+				ImGui::TextDisabled("No scene open.");
+			}
+			else
+			{
+				// Like the render features: edits go to the editor scene and the running copy.
+				SceneEnvironment environment = editorScene->GetEnvironment();
+				bool environmentChanged = ImGui::Checkbox("Own environment", &environment.Override);
+				HelpMarker("Forward lighting only. On: this scene's sky and ground ambient and fog.\nOff: its Global lights are the ambient light and there is no fog.");
+				if (environment.Override)
+				{
+					environmentChanged |= ImGui::ColorEdit3("Sky ambient", &environment.SkyAmbient.x, ImGuiColorEditFlags_Float);
+					HelpMarker("What surfaces facing up get (linear RGB). Facing sideways: half sky, half ground.");
+					environmentChanged |= ImGui::ColorEdit3("Ground ambient", &environment.GroundAmbient.x, ImGuiColorEditFlags_Float);
+					environmentChanged |= ImGui::Checkbox("Fog", &environment.Fog);
+					ImGui::BeginDisabled(environment.Fog == false);
+					environmentChanged |= ImGui::ColorEdit3("Fog color", &environment.FogColor.x, ImGuiColorEditFlags_Float);
+					environmentChanged |= ImGui::DragFloatRange2("Fog distance", &environment.FogStart, &environment.FogEnd, 0.25f, 0.0f, 10000.0f, "%.1f m", "%.1f m");
+					HelpMarker("Metres from the camera: where fog starts, and where it hides everything.");
+					ImGui::EndDisabled();
+				}
+
+				if (environmentChanged)
+				{
+					editorScene->SetEnvironment(environment);
+					if (activeScene != nullptr && activeScene != editorScene)
+					{
+						activeScene->SetEnvironment(environment);
 					}
 				}
 			}

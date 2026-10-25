@@ -17,6 +17,8 @@ layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) flat out float texIndex;
 // An integer: never interpolated.
 layout(location = 3) flat out int entityID;
+// World space (the quads' vertices are in world space already): read by the forward-lit sprite shaders.
+layout(location = 4) out vec3 fragWorldPos;
 
 void main() {
     gl_Position = ubo.mvp * vec4(inPosition, 1.0);
@@ -24,4 +26,5 @@ void main() {
 	fragTexCoord = inTexCoord;
 	texIndex = inTexIndex;
 	entityID = inEntityID;
+	fragWorldPos = inPosition;
 }

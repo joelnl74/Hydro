@@ -69,6 +69,17 @@ namespace Hydro
 		// True from RequestCapture until its file is written (or failed).
 		bool IsCapturePending() const;
 
+		// Click-to-select (M7): copies the entity ID under pixel (x, y) of the view's image (top-left origin,
+		// in the view's own pixels) after its next render; the answer arrives a frame or two later through
+		// TakeEntityIDResult, without waiting for the GPU. Only views with the entity-ID attachment (the
+		// Editor view) answer. A newer request replaces an older one; an answer is dropped when the view
+		// was resized or InvalidateEntityIDRequests was called since its request.
+		void RequestEntityIDReadback(uint32_t x, uint32_t y);
+		// True once per answer: `entityID` is the entt entity drawn there, or -1 for nothing.
+		bool TakeEntityIDResult(int32_t& entityID);
+		// The scene changed (opened, closed, Play, Stop): answers to earlier clicks are thrown away.
+		void InvalidateEntityIDRequests();
+
 		const RenderViewSpecification& GetSpecification() const { return m_Specification; }
 
 	private:

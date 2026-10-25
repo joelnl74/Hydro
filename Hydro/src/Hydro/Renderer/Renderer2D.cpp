@@ -51,7 +51,8 @@ namespace Hydro
 		Decal,      // ground decals: like Sprite, with a small depth bias towards the camera
 		Cutout,     // cut-out quads: depth test and write, alpha < 0.5 discarded, no blending
 		Overlay,    // overlay quads (editor outlines, HUD sprites): no depth test
-		Composite   // the 2D light composite
+		Composite,  // the 2D light composite
+		DebugLines  // editor lines in the scene (M7): depth test, no depth write, never IDs
 	};
 
 	// The pipeline cache's key: the attachment layout (colour formats in order, depth format; one sample per
@@ -62,10 +63,12 @@ namespace Hydro
 		std::vector<ImageFormat> ColorFormats;
 		ImageFormat DepthFormat = ImageFormat::None;
 		bool WriteEntityID = false;
+		// Forward lit (M6): the Sprite, Decal and Cutout kinds use their lit shaders.
+		bool Lit = false;
 
 		bool operator<(const ViewPipelineKey& other) const
 		{
-			return std::tie(Kind, ColorFormats, DepthFormat, WriteEntityID) < std::tie(other.Kind, other.ColorFormats, other.DepthFormat, other.WriteEntityID);
+			return std::tie(Kind, ColorFormats, DepthFormat, WriteEntityID, Lit) < std::tie(other.Kind, other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Lit);
 		}
 	};
 
@@ -116,7 +119,21 @@ namespace Hydro
 		// and its descriptor sets are built exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so
 		// they can be bound in its place.
 		PerFrameBuffers LayoutUniformBuffers;
+		PerFrameBuffers LayoutLightingBuffers;
+		PerFrameBuffers LayoutLightStorageBuffers;
 		Scope<VulkanDescriptorBuilder> LayoutDescriptorSet;
+		bool LightLimitWarnedForward = false;
+
+		// GPU time per render graph pass (M7): a second query pool, a begin/end pair per recorded pass, read
+		// when the frame's fence has signalled (never waiting). The names are summed over the views.
+		static constexpr uint32_t MaxTimedPasses = 48;
+		VkQueryPool PassTimestampPool = VK_NULL_HANDLE;
+		std::array<std::vector<std::string>, MAX_FRAMES_IN_FLIGHT> TimedPassNames;
+		std::vector<PassTiming> LastPassTimings;
+
+		// vkCmdBeginDebugUtilsLabelEXT / End (VK_EXT_debug_utils), null when the instance doesn't have it.
+		PFN_vkCmdBeginDebugUtilsLabelEXT BeginLabel = nullptr;
+		PFN_vkCmdEndDebugUtilsLabelEXT EndLabel = nullptr;
 
 		// Slot 0 of every texture set; made in code (no file).
 		Ref<Texture2D> WhiteTexture;
@@ -182,14 +199,38 @@ namespace Hydro
 		}
 	}
 
+	// A named region in the command buffer (RenderDoc, Nsight, validation messages), when VK_EXT_debug_utils
+	// is on; nothing otherwise.
+	static void BeginDebugLabel(VkCommandBuffer commandBuffer, const char* name)
+	{
+		if (s_Data->BeginLabel == nullptr)
+		{
+			return;
+		}
+		VkDebugUtilsLabelEXT label{};
+		label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+		label.pLabelName = name;
+		s_Data->BeginLabel(commandBuffer, &label);
+	}
+
+	static void EndDebugLabel(VkCommandBuffer commandBuffer)
+	{
+		if (s_Data->EndLabel != nullptr)
+		{
+			s_Data->EndLabel(commandBuffer);
+		}
+	}
+
 	static const VulkanImageInfo& GetImageInfo(const Texture2D& texture)
 	{
 		return GetTexture2DData(texture).Image->GetVulkanImageInfo();
 	}
 
-	// Set 0 of the quad shader: binding 0 = camera (vertex), binding 1 = texture array (fragment).
-	// Every texture slot starts as the white texture; RecordView writes the real ones each frame.
-	static Scope<VulkanDescriptorBuilder> BuildViewDescriptorSet(const PerFrameBuffers& uniformBuffers)
+	// Set 0 of the quad and mesh shaders: binding 0 = camera (vertex), binding 1 = texture array (fragment),
+	// binding 2 = forward lighting (FrameLightingUniform, vertex and fragment), binding 3 = the point and spot
+	// lights (a storage buffer of GPULight, fragment). Every texture slot starts as the white texture;
+	// RecordView writes the real ones and the lighting each frame.
+	static Scope<VulkanDescriptorBuilder> BuildViewDescriptorSet(const PerFrameBuffers& uniformBuffers, const PerFrameBuffers& lightingBuffers, const PerFrameBuffers& lightBuffers)
 	{
 		const VulkanImageInfo& white = GetImageInfo(*s_Data->WhiteTexture);
 
@@ -197,6 +238,8 @@ namespace Hydro
 		descriptorSet->Begin();
 		descriptorSet->BindBuffer(0, uniformBuffers, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
 		descriptorSet->BindImage(1, white.ImageView, white.Sampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+		descriptorSet->BindBuffer(2, lightingBuffers, sizeof(FrameLightingUniform), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+		descriptorSet->BindBuffer(3, lightBuffers, sizeof(GPULight) * MaxForwardLights, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
 		descriptorSet->Build();
 		return descriptorSet;
 	}
@@ -237,6 +280,9 @@ namespace Hydro
 	static constexpr const char* LightShaderName = "Light";
 	static constexpr const char* ShadowShaderName = "Shadow";
 	static constexpr const char* CompositeShaderName = "Composite";
+	// Forward lit (M6): the same vertex shader, lit fragment shaders (lighting.glsl).
+	static constexpr const char* SpriteLitShaderName = "SpriteLit";
+	static constexpr const char* SpriteCutoutLitShaderName = "SpriteCutoutLit";
 
 	// The shader loaded under `name`, loading it the first time. Throws when it doesn't compile.
 	static VulkanShader& GetOrLoadShader(const char* name, const char* vertexPath, const char* fragmentPath)
@@ -380,12 +426,14 @@ namespace Hydro
 	}
 
 	// The library shader a view pipeline kind is built from.
-	static const char* GetViewPipelineShaderName(ViewPipelineKind kind)
+	static const char* GetViewPipelineShaderName(ViewPipelineKind kind, bool lit)
 	{
 		switch (kind)
 		{
-			case ViewPipelineKind::Cutout: return SpriteCutoutShaderName;
+			case ViewPipelineKind::Cutout: return lit ? SpriteCutoutLitShaderName : SpriteCutoutShaderName;
 			case ViewPipelineKind::Composite: return CompositeShaderName;
+			case ViewPipelineKind::Sprite:
+			case ViewPipelineKind::Decal: return lit ? SpriteLitShaderName : SpriteShaderName;
 			default: return SpriteShaderName;
 		}
 	}
@@ -395,7 +443,7 @@ namespace Hydro
 	{
 		for (auto it = s_Data->ViewPipelines.begin(); it != s_Data->ViewPipelines.end();)
 		{
-			if (shaderName == GetViewPipelineShaderName(it->first.Kind))
+			if (shaderName == GetViewPipelineShaderName(it->first.Kind, it->first.Lit))
 			{
 				it = s_Data->ViewPipelines.erase(it);
 			}
@@ -420,11 +468,18 @@ namespace Hydro
 			case ViewPipelineKind::Decal:
 			case ViewPipelineKind::Overlay:
 			case ViewPipelineKind::Cutout:
+			case ViewPipelineKind::DebugLines:
 				specification = s_Data->QuadPipeline->GetSpecification();
 				specification.Shader = VulkanShaderLibrary::Get(SpriteShaderName);
+				if (key.Lit && (key.Kind == ViewPipelineKind::Sprite || key.Kind == ViewPipelineKind::Decal))
+				{
+					specification.Shader = &GetOrLoadShader(SpriteLitShaderName, "assets/shaders/vertex.vert", "assets/shaders/fragment_lit.frag");
+				}
 				if (key.Kind == ViewPipelineKind::Cutout)
 				{
-					specification.Shader = &GetOrLoadShader(SpriteCutoutShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_cutout.frag");
+					specification.Shader = key.Lit
+						? &GetOrLoadShader(SpriteCutoutLitShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_cutout_lit.frag")
+						: &GetOrLoadShader(SpriteCutoutShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_cutout.frag");
 					// Opaque where kept: the shader writes alpha 1, nothing to blend.
 					specification.Blend = BlendMode::None;
 				}
@@ -454,24 +509,25 @@ namespace Hydro
 
 		specification.ColorFormats = key.ColorFormats;
 		specification.DepthFormat = key.DepthFormat;
-		specification.WriteIntegerAttachments = key.WriteEntityID;
+		specification.WriteIntegerAttachments = key.WriteEntityID && key.Kind != ViewPipelineKind::DebugLines;
 		return CreateScope<VulkanPipeline>(specification);
 	}
 
 	// The pipeline that draws `kind` into `target`. `writeEntityID`: the draw writes its entity IDs (only
 	// meaningful when the target has the ID attachment). Null when it can't be built (logged once).
-	static VulkanPipeline* GetViewPipeline(ViewPipelineKind kind, const VulkanRenderTarget& target, bool writeEntityID)
+	static VulkanPipeline* GetViewPipeline(ViewPipelineKind kind, const VulkanRenderTarget& target, bool writeEntityID, bool lit = false)
 	{
 		ViewPipelineKey key;
 		key.Kind = kind;
 		key.ColorFormats = target.GetPipelineColorFormats();
 		key.DepthFormat = target.GetPipelineDepthFormat();
 		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID;
+		key.Lit = lit && (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Cutout);
 
 		// The plain 2D layout: the pipelines built at Init, exactly as before render features existed.
-		if (key.ColorFormats.size() == 1 && key.DepthFormat == ImageFormat::None)
+		if (key.ColorFormats.size() == 1 && key.DepthFormat == ImageFormat::None && key.Lit == false)
 		{
-			if (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Overlay)
+			if (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Overlay || kind == ViewPipelineKind::DebugLines)
 			{
 				return s_Data->QuadPipeline.get();
 			}
@@ -584,7 +640,16 @@ namespace Hydro
 		layoutSpecification.Size = sizeof(UniformBufferObject);
 		layoutSpecification.DebugName = "Pipeline layout camera";
 		s_Data->LayoutUniformBuffers = CreatePerFrameBuffers(layoutSpecification);
-		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(s_Data->LayoutUniformBuffers);
+		layoutSpecification.Size = sizeof(FrameLightingUniform);
+		layoutSpecification.DebugName = "Pipeline layout lighting";
+		s_Data->LayoutLightingBuffers = CreatePerFrameBuffers(layoutSpecification);
+		BufferSpecification layoutLightsSpecification;
+		layoutLightsSpecification.Usage = BufferUsage::Storage;
+		layoutLightsSpecification.Memory = BufferMemory::HostVisible;
+		layoutLightsSpecification.Size = sizeof(GPULight) * MaxForwardLights;
+		layoutLightsSpecification.DebugName = "Pipeline layout lights";
+		s_Data->LayoutLightStorageBuffers = CreatePerFrameBuffers(layoutLightsSpecification);
+		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(s_Data->LayoutUniformBuffers, s_Data->LayoutLightingBuffers, s_Data->LayoutLightStorageBuffers);
 
 		PipelineSpecification specification;
 		specification.Layout = GetQuadVertexLayout();
@@ -602,6 +667,19 @@ namespace Hydro
 
 		CreateLightingResources();
 		CreateShadowResources();
+
+		// Debug labels for passes (RenderDoc), when the instance has VK_EXT_debug_utils.
+		{
+			// An instance extension: its commands come from the instance (NULL when it isn't enabled).
+			VkInstance instance = Renderer::GetRendererContext().GetInstance();
+			s_Data->BeginLabel = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkCmdBeginDebugUtilsLabelEXT");
+			s_Data->EndLabel = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkCmdEndDebugUtilsLabelEXT");
+			if (s_Data->BeginLabel == nullptr || s_Data->EndLabel == nullptr)
+			{
+				s_Data->BeginLabel = nullptr;
+				s_Data->EndLabel = nullptr;
+			}
+		}
 
 		// GPU timing and limits.
 		{
@@ -626,6 +704,9 @@ namespace Hydro
 				queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
 				queryPoolInfo.queryCount = Renderer2DData::QueriesPerFrame * MAX_FRAMES_IN_FLIGHT;
 				VK_CHECK_RESULT(vkCreateQueryPool(device.GetDevice(), &queryPoolInfo, nullptr, &s_Data->TimestampPool));
+
+				queryPoolInfo.queryCount = Renderer2DData::MaxTimedPasses * 2 * MAX_FRAMES_IN_FLIGHT;
+				VK_CHECK_RESULT(vkCreateQueryPool(device.GetDevice(), &queryPoolInfo, nullptr, &s_Data->PassTimestampPool));
 			}
 		}
 	}
@@ -650,6 +731,14 @@ namespace Hydro
 				vkDestroyQueryPool(device, pool, nullptr);
 			});
 		}
+		if (s_Data->PassTimestampPool != VK_NULL_HANDLE)
+		{
+			VkDevice device = Renderer::GetVulkanDevice().GetDevice();
+			Renderer::SubmitResourceFree([device, pool = s_Data->PassTimestampPool]()
+			{
+				vkDestroyQueryPool(device, pool, nullptr);
+			});
+		}
 
 		// The preview handles belong to ImGui's pool; only the textures they hold are released here.
 		s_Data->ImGuiTextures.clear();
@@ -664,6 +753,8 @@ namespace Hydro
 		s_Data->QuadPipeline.reset();
 		s_Data->LayoutDescriptorSet.reset();
 		s_Data->LayoutUniformBuffers = {};
+		s_Data->LayoutLightingBuffers = {};
+		s_Data->LayoutLightStorageBuffers = {};
 		s_Data->QuadIndexBuffer.reset();
 		s_Data->SoftDotTexture.reset();
 		s_Data->WhiteTexture.reset();
@@ -709,7 +800,7 @@ namespace Hydro
 		TextureSet set;
 		set.Slots[0] = s_Data->WhiteTexture;
 		set.SlotCount = 1;
-		set.DescriptorSet = BuildViewDescriptorSet(view.UniformBuffers);
+		set.DescriptorSet = BuildViewDescriptorSet(view.UniformBuffers, view.LightingBuffers, view.LightStorageBuffers);
 		view.TextureSets.push_back(std::move(set));
 	}
 
@@ -817,6 +908,10 @@ namespace Hydro
 		view.CutoutDraws.clear();
 		view.OverlayDraws.clear();
 		view.InOverlay = false;
+		view.DebugDraws.clear();
+		view.InDebugLines = false;
+		view.Lighting = SceneLighting{};
+		view.LightingSubmitted = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
 		view.EntityID = -1;
 		view.MeshDraws.clear();
@@ -825,6 +920,10 @@ namespace Hydro
 
 	std::vector<QuadDraw>& Renderer2D::GetCurrentDraws(RenderViewData& view)
 	{
+		if (view.InDebugLines)
+		{
+			return view.DebugDraws;
+		}
 		if (view.InOverlay)
 		{
 			return view.OverlayDraws;
@@ -865,9 +964,10 @@ namespace Hydro
 		// An overlay left open and a sprite draw mode end with the scene, so the next BeginScene starts with
 		// translucent draws.
 		RenderViewData* view = s_Data->CurrentView;
-		if (view != nullptr && (view->InOverlay || view->DrawMode != SpriteDrawMode::Translucent || view->EntityID >= 0))
+		if (view != nullptr && (view->InOverlay || view->InDebugLines || view->DrawMode != SpriteDrawMode::Translucent || view->EntityID >= 0))
 		{
 			view->InOverlay = false;
+			view->InDebugLines = false;
 			view->DrawMode = SpriteDrawMode::Translucent;
 			view->EntityID = -1;
 			StartDraw(*view);
@@ -898,6 +998,48 @@ namespace Hydro
 
 		s_Data->CurrentView->InOverlay = false;
 		StartDraw(*s_Data->CurrentView);
+	}
+
+	void Renderer2D::BeginDebugLines()
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::BeginDebugLines outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr || s_Data->CurrentView->InDebugLines)
+		{
+			return;
+		}
+
+		// Lines carry no entity: they never write IDs.
+		SetEntityID(-1);
+		s_Data->CurrentView->InDebugLines = true;
+		StartDraw(*s_Data->CurrentView);
+	}
+
+	void Renderer2D::EndDebugLines()
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::EndDebugLines outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr || s_Data->CurrentView->InDebugLines == false)
+		{
+			return;
+		}
+
+		s_Data->CurrentView->InDebugLines = false;
+		StartDraw(*s_Data->CurrentView);
+	}
+
+	void Renderer2D::SetSceneLighting(const SceneLighting& lighting)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::SetSceneLighting outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+		{
+			return;
+		}
+		s_Data->CurrentView->Lighting = lighting;
+		s_Data->CurrentView->LightingSubmitted = true;
+	}
+
+	const std::vector<PassTiming>& Renderer2D::GetPassTimings()
+	{
+		return s_Data->LastPassTimings;
 	}
 
 	bool Renderer2D::HasSharedDepth(const RenderFeatureSettings& settings)
@@ -1085,6 +1227,64 @@ namespace Hydro
 		s_Data->Stats.LineCount++;
 	}
 
+	void Renderer2D::DrawLine3D(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color, float thickness)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawLine3D outside BeginScene/EndScene");
+		RenderViewData* view = s_Data->CurrentView;
+		if (view == nullptr)
+		{
+			return;
+		}
+
+		const glm::vec3 direction = end - start;
+		const float length = glm::length(direction);
+		if (length <= 1.0e-6f)
+		{
+			return;
+		}
+
+		// The camera's view of the line's middle: the ray through it (from the inverse view-projection, so
+		// perspective and orthographic alike) gives the side the ribbon spreads along, and the pixel size there.
+		const glm::mat4 inverse = glm::inverse(view->ViewProjection);
+		const glm::vec3 middle = 0.5f * (start + end);
+		const glm::vec4 clip = view->ViewProjection * glm::vec4(middle, 1.0f);
+		if (clip.w <= 1.0e-6f)
+		{
+			return;
+		}
+		const glm::vec2 ndc = glm::vec2(clip) / clip.w;
+		glm::vec4 nearPoint = inverse * glm::vec4(ndc, 0.0f, 1.0f);
+		glm::vec4 farPoint = inverse * glm::vec4(ndc, 1.0f, 1.0f);
+		nearPoint /= nearPoint.w;
+		farPoint /= farPoint.w;
+		const glm::vec3 viewDirection = glm::vec3(farPoint - nearPoint);
+
+		glm::vec3 side = glm::cross(direction / length, viewDirection);
+		if (glm::length(side) <= 1.0e-6f)
+		{
+			// Looking straight along the line: nothing to see.
+			return;
+		}
+		side = glm::normalize(side);
+
+		// World units per pixel at the middle: how far one unit along `side` moves on screen.
+		const glm::vec4 sideClip = view->ViewProjection * glm::vec4(middle + side, 1.0f);
+		const float width = (float)std::max(view->Target->GetWidth(), 1u);
+		const float height = (float)std::max(view->Target->GetHeight(), 1u);
+		const glm::vec2 pixels = (glm::vec2(sideClip) / sideClip.w - ndc) * glm::vec2(width, height) * 0.5f;
+		const float pixelsPerUnit = glm::length(pixels);
+		if (pixelsPerUnit <= 1.0e-6f)
+		{
+			return;
+		}
+		const glm::vec3 offset = side * (0.5f * std::max(thickness, 0.0f) / pixelsPerUnit);
+
+		const glm::vec3 corners[4] = { start - offset, end - offset, end + offset, start + offset };
+		SubmitQuadCorners(corners, nullptr, TextureRect{}, color);
+		s_Data->Stats.LineCount++;
+		s_Data->Stats.DebugLineCount++;
+	}
+
 	void Renderer2D::DrawRect(const glm::mat4& transform, const glm::vec4& color, float thickness)
 	{
 		glm::vec3 corners[4];
@@ -1244,6 +1444,68 @@ namespace Hydro
 		}
 	}
 
+	// Called after `frame`'s fence: a pick copy recorded the last time this frame index ran is done. It is the
+	// answer only when it belongs to the newest request and nothing invalidated it since (a resize, a scene change).
+	static void ResolvePicks(uint32_t frame)
+	{
+		for (RenderViewData* view : s_Data->Views)
+		{
+			if (view->PickReadback == nullptr || view->PickReadback->IsPending(frame) == false)
+			{
+				continue;
+			}
+
+			ImageReadbackResult result;
+			if (view->PickReadback->TakeResult(frame, result) == false || result.Pixels.size() < sizeof(int32_t))
+			{
+				continue;
+			}
+			if (view->PickSlotGeneration[frame] != view->PickGeneration || view->PickSlotRequest[frame] != view->PickRequest)
+			{
+				continue; // stale: a newer click, or the view or scene changed
+			}
+
+			int32_t id = -1;
+			memcpy(&id, result.Pixels.data(), sizeof(int32_t));
+			view->PickResult = id;
+			view->PickResultReady = true;
+		}
+	}
+
+	// After the view's pass (the entity-ID image is in SHADER_READ_ONLY_OPTIMAL): copies the requested pixel.
+	static void RecordPick(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
+	{
+		if (view.PickRequested == false)
+		{
+			return;
+		}
+
+		const VulkanImage* ids = view.Target->GetEntityIDImage(frame);
+		if (ids == nullptr || view.PickX >= view.Target->GetWidth() || view.PickY >= view.Target->GetHeight())
+		{
+			// No IDs in this view, or the click is outside the (resized) image: nothing is selected.
+			view.PickRequested = false;
+			return;
+		}
+
+		if (view.PickReadback == nullptr)
+		{
+			view.PickReadback = CreateScope<VulkanImageReadback>();
+		}
+		// This frame index's last copy hasn't been read yet: try again next frame.
+		if (view.PickReadback->IsPending(frame))
+		{
+			return;
+		}
+
+		if (view.PickReadback->Record(commandBuffer, *ids, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, frame, view.PickX, view.PickY, 1, 1))
+		{
+			view.PickSlotRequest[frame] = view.PickRequest;
+			view.PickSlotGeneration[frame] = view.PickGeneration;
+		}
+		view.PickRequested = false;
+	}
+
 	// Right after the view's pass: its image is in SHADER_READ_ONLY_OPTIMAL (the pass's final layout).
 	static void RecordCapture(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
 	{
@@ -1286,8 +1548,49 @@ namespace Hydro
 		// Renderer::RenderFrame already waited on this frame-in-flight's fence, so the GPU is done
 		// with every view's buffers and descriptor sets for `frame`: safe to overwrite.
 		UpdateImGuiTextures(frame);
-		// The same fence covers the captures this frame index recorded last time: write them.
+		// The same fence covers the captures and picks this frame index recorded last time: use them.
 		ResolveCaptures(frame);
+		ResolvePicks(frame);
+
+		// And its pass timestamps: sum them by pass name, then reset the frame's queries.
+		if (s_Data->PassTimestampPool != VK_NULL_HANDLE)
+		{
+			std::vector<std::string>& names = s_Data->TimedPassNames[frame];
+			if (names.empty() == false)
+			{
+				std::vector<uint64_t> results(names.size() * 4, 0);
+				const VkResult result = vkGetQueryPoolResults(Renderer::GetVulkanDevice().GetDevice(), s_Data->PassTimestampPool,
+					frame * Renderer2DData::MaxTimedPasses * 2, (uint32_t)names.size() * 2, results.size() * sizeof(uint64_t), results.data(),
+					2 * sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT);
+				if (result == VK_SUCCESS || result == VK_NOT_READY)
+				{
+					const double toMs = (double)s_Data->TimestampPeriodNs / 1.0e6;
+					std::vector<PassTiming> timings;
+					for (size_t i = 0; i < names.size(); i++)
+					{
+						const uint64_t begin = results[i * 4], beginReady = results[i * 4 + 1];
+						const uint64_t end = results[i * 4 + 2], endReady = results[i * 4 + 3];
+						if (beginReady == 0 || endReady == 0 || end < begin)
+						{
+							continue;
+						}
+						const float ms = (float)((double)(end - begin) * toMs);
+						auto found = std::find_if(timings.begin(), timings.end(), [&](const PassTiming& timing) { return timing.Name == names[i]; });
+						if (found == timings.end())
+						{
+							timings.push_back({ names[i], ms });
+						}
+						else
+						{
+							found->GPUMs += ms;
+						}
+					}
+					s_Data->LastPassTimings = std::move(timings);
+				}
+			}
+			names.clear();
+			vkCmdResetQueryPool(commandBuffer, s_Data->PassTimestampPool, frame * Renderer2DData::MaxTimedPasses * 2, Renderer2DData::MaxTimedPasses * 2);
+		}
 
 		// The fence for this frame index was just waited on, so the timestamps this command
 		// buffer wrote last time are available: read them, then reset and write new ones.
@@ -1387,6 +1690,7 @@ namespace Hydro
 		UniformBufferObject ubo;
 		ubo.mvp = view.ViewProjection;
 		view.UniformBuffers[frame]->SetData(&ubo, sizeof(UniformBufferObject));
+		UploadLighting(view, frame);
 
 		// Point this frame's descriptor set of every texture set used at its textures. Descriptor
 		// sets can't change once bound in a command buffer, so this happens before the pass.
@@ -1420,8 +1724,10 @@ namespace Hydro
 		UpdateRenderGraph(view);
 		RenderPassContext context{ commandBuffer, frame, view };
 
+		BeginDebugLabel(commandBuffer, ("View " + view.DebugName).c_str());
+
 		// BeforeScene passes draw into their own targets (the 2D light buffer) before the view's target is begun.
-		view.Graph->ExecuteStage(RenderStage::BeforeScene, context);
+		ExecuteStage(RenderStage::BeforeScene, context);
 
 		// One rendering pass per view per frame, so its target is cleared exactly once. Every later stage
 		// records into it, in stage order. End() moves the image to SHADER_READ_ONLY_OPTIMAL for ImGui,
@@ -1429,7 +1735,7 @@ namespace Hydro
 		view.Target->Begin(commandBuffer, frame, RenderTargetBeginInfo::Clear(Renderer::GetSettings().ClearColor));
 		for (uint8_t stage = (uint8_t)RenderStage::Opaque; stage < (uint8_t)RenderStage::Count; stage++)
 		{
-			view.Graph->ExecuteStage((RenderStage)stage, context);
+			ExecuteStage((RenderStage)stage, context);
 		}
 		view.Target->End(commandBuffer, frame);
 
@@ -1437,9 +1743,111 @@ namespace Hydro
 
 		// After the pass, so the capture has everything the view drew, overlay included.
 		RecordCapture(commandBuffer, view, frame);
+		RecordPick(commandBuffer, view, frame);
+		EndDebugLabel(commandBuffer);
 	}
 
-	void Renderer2D::RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay)
+	void Renderer2D::ExecuteStage(RenderStage stage, RenderPassContext& context)
+	{
+		for (const RenderPassDeclaration& pass : context.View.Graph->GetPasses())
+		{
+			if (pass.Stage != stage)
+			{
+				continue;
+			}
+
+			BeginDebugLabel(context.CommandBuffer, pass.Name.c_str());
+			// A begin/end timestamp pair per pass, while the frame's slots last.
+			uint32_t timer = UINT32_MAX;
+			std::vector<std::string>& names = s_Data->TimedPassNames[context.Frame];
+			if (s_Data->PassTimestampPool != VK_NULL_HANDLE && names.size() < Renderer2DData::MaxTimedPasses)
+			{
+				timer = (uint32_t)names.size();
+				names.push_back(pass.Name);
+				const uint32_t query = (context.Frame * Renderer2DData::MaxTimedPasses + timer) * 2;
+				vkCmdWriteTimestamp(context.CommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, s_Data->PassTimestampPool, query);
+			}
+
+			pass.Execute(context);
+
+			if (timer != UINT32_MAX)
+			{
+				const uint32_t query = (context.Frame * Renderer2DData::MaxTimedPasses + timer) * 2 + 1;
+				vkCmdWriteTimestamp(context.CommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, s_Data->PassTimestampPool, query);
+			}
+			EndDebugLabel(context.CommandBuffer);
+		}
+	}
+
+	void Renderer2D::UploadLighting(RenderViewData& view, uint32_t frame)
+	{
+		FrameLightingUniform uniform;
+		const SceneLighting& lighting = view.Lighting;
+		const bool forward = view.Features.Lighting == LightingMode::Forward && view.LightingSubmitted;
+		uint32_t count = 0;
+
+		if (forward)
+		{
+			uniform.CameraPosition = glm::vec4(lighting.CameraPosition, 1.0f);
+			if (lighting.HasSun)
+			{
+				const float length = glm::length(lighting.SunDirection);
+				const glm::vec3 towardsSun = length > 0.0f ? -lighting.SunDirection / length : glm::vec3(0.0f, 0.0f, 1.0f);
+				uniform.SunDirection = glm::vec4(towardsSun, 1.0f);
+				uniform.SunColor = glm::vec4(lighting.SunColor, 0.0f);
+			}
+			uniform.SkyAmbient = glm::vec4(lighting.SkyAmbient, 0.0f);
+			uniform.GroundAmbient = glm::vec4(lighting.GroundAmbient, 0.0f);
+			uniform.FogColor = glm::vec4(lighting.FogColor, lighting.Fog ? 1.0f : 0.0f);
+			const RendererSettings& settings = Renderer::GetSettings();
+			const float bands = settings.LightFalloff == LightFalloffStyle::Banded ? (float)std::clamp(settings.LightBands, 2u, 32u) : 0.0f;
+			uniform.FogParams = glm::vec4(lighting.FogStart, std::max(lighting.FogEnd, lighting.FogStart + 0.01f), bands, 0.0f);
+
+			// The nearest MaxForwardLights to the camera.
+			std::vector<const ForwardLight*> lights;
+			lights.reserve(lighting.Lights.size());
+			for (const ForwardLight& light : lighting.Lights)
+			{
+				lights.push_back(&light);
+			}
+			if (lights.size() > MaxForwardLights)
+			{
+				const glm::vec3 camera = lighting.CameraPosition;
+				std::partial_sort(lights.begin(), lights.begin() + MaxForwardLights, lights.end(), [camera](const ForwardLight* a, const ForwardLight* b)
+				{
+					return glm::length(a->Position - camera) < glm::length(b->Position - camera);
+				});
+				s_Data->Stats.ForwardLightsDropped += (uint32_t)(lights.size() - MaxForwardLights);
+				if (s_Data->LightLimitWarnedForward == false)
+				{
+					HY_CORE_WARN("Renderer2D: view '{}' has {} point and spot lights; the {} nearest to the camera are used", view.DebugName, lights.size(), MaxForwardLights);
+					s_Data->LightLimitWarnedForward = true;
+				}
+				lights.resize(MaxForwardLights);
+			}
+
+			std::array<GPULight, MaxForwardLights> gpu{};
+			for (const ForwardLight* light : lights)
+			{
+				GPULight& out = gpu[count++];
+				out.PositionRange = glm::vec4(light->Position, std::max(light->Range, 0.01f));
+				out.ColorType = glm::vec4(light->Color, light->Type == ForwardLightType::Spot ? 1.0f : 0.0f);
+				out.DirectionCosInner = glm::vec4(light->Direction, light->CosInner);
+				out.Params = glm::vec4(light->CosOuter, 0.0f, 0.0f, 0.0f);
+			}
+			if (count > 0)
+			{
+				view.LightStorageBuffers[frame]->SetData(gpu.data(), sizeof(GPULight) * count);
+			}
+			uniform.Counts = glm::ivec4((int32_t)count, 1, 0, 0);
+			s_Data->Stats.ForwardLitViewCount++;
+			s_Data->Stats.ForwardLightCount += count;
+		}
+
+		view.LightingBuffers[frame]->SetData(&uniform, sizeof(FrameLightingUniform));
+	}
+
+	void Renderer2D::RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay, bool debugLines)
 	{
 		const bool hasDraws = std::any_of(draws.begin(), draws.end(), [](const QuadDraw& draw) { return draw.IndexCount != 0; });
 		if (hasDraws == false)
@@ -1450,7 +1858,11 @@ namespace Hydro
 		// Built for the view's attachments. With the entity-ID attachment, pickable draws (an entity's sprites)
 		// write their IDs and the rest (particles, lines, the overlay) use a variant that leaves the IDs alone.
 		ViewPipelineKind kind = ViewPipelineKind::Sprite;
-		if (overlay)
+		if (debugLines)
+		{
+			kind = ViewPipelineKind::DebugLines;
+		}
+		else if (overlay)
 		{
 			kind = ViewPipelineKind::Overlay;
 		}
@@ -1464,8 +1876,10 @@ namespace Hydro
 		}
 		const bool hasEntityID = view.Target->GetSpecification().EntityID;
 		// Overlay quads can be pickable too: HUD sprites carry their entity (outlines and lines don't).
-		VulkanPipeline* pickablePipeline = GetViewPipeline(kind, *view.Target, true);
-		VulkanPipeline* otherPipeline = hasEntityID ? GetViewPipeline(kind, *view.Target, false) : pickablePipeline;
+		// Forward lit views shade sprites in their shaders (the overlay and debug lines stay unlit).
+		const bool lit = view.Features.Lighting == LightingMode::Forward && view.LightingSubmitted && overlay == false && debugLines == false;
+		VulkanPipeline* pickablePipeline = GetViewPipeline(kind, *view.Target, debugLines == false, lit);
+		VulkanPipeline* otherPipeline = hasEntityID ? GetViewPipeline(kind, *view.Target, false, lit) : pickablePipeline;
 
 		// Bound by every pass that draws quads: the pass before may have bound another pipeline (the composite).
 		// Viewport/scissor follow the view's size.
@@ -1726,9 +2140,8 @@ namespace Hydro
 					} });
 			}));
 
-		// Features the settings can ask for that later steps build. Asking for them is reported, and they
-		// are left out, so the frame still draws.
-
+		// Forward lighting (M6): no passes of its own. The view's set 0 carries its lights every frame
+		// (UploadLighting), and the sprite and mesh passes use their lit shaders.
 		if (settings.Lighting == LightingMode::Forward)
 		{
 			features.push_back(CreateScope<FunctionRenderFeature>("ForwardLighting",
@@ -1736,10 +2149,30 @@ namespace Hydro
 				{
 					if (context.Settings.Depth != DepthMode::Shared)
 					{
-						AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "forward lighting without shared depth");
+						AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "forward lighting without shared depth: sprites are lit, but sort in painter's order");
 					}
-					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "forward lighting is not implemented yet (M6); nothing is lit");
 				}, nullptr));
+		}
+
+		// Editor debug lines (M7): selection bounds, light reach, spot cones, the sun's direction, depth tested.
+		if (editorView)
+		{
+			features.push_back(CreateScope<FunctionRenderFeature>("DebugLines", nullptr,
+				[sharedDepth](RenderGraphBuilder& builder)
+				{
+					builder.ImportResource("SceneColor");
+					std::vector<std::string> reads = {};
+					if (sharedDepth)
+					{
+						builder.ImportResource("Depth");
+						reads.push_back("Depth");
+					}
+					builder.AddPass({ "DebugLines", RenderStage::Debug, reads, { "SceneColor" },
+						[](RenderPassContext& context)
+						{
+							RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.DebugDraws, SpriteDrawMode::Translucent, false, true);
+						} });
+				}));
 		}
 
 		return features;
@@ -2073,6 +2506,8 @@ namespace Hydro
 		// The old images and framebuffers go through the deletion queue: the other frame in flight
 		// may still be drawing into or sampling them, so there is no need to wait for the GPU.
 		view.Target->Resize(width, height);
+		// A click made on the old size points at another pixel now.
+		view.PickGeneration++;
 
 		// Each frame index's ImGui texture handle still points at that index's old image, which the
 		// frame in flight may be drawing with. Point it at the new one when that index is recorded

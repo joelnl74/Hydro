@@ -6,6 +6,7 @@
 
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Image.h"
+#include "Hydro/Renderer/Lighting.h"
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/RenderGraph.h"
 #include "Hydro/Renderer/Mesh.h"
@@ -129,6 +130,14 @@ namespace Hydro
 		glm::mat4 ViewProjection{ 1.0f };
 		PerFrameBuffers UniformBuffers;  // the camera (UniformBufferObject), one buffer per frame in flight
 
+		// ---- Forward lighting (M6) -----------------------------------------------------
+		// Set 0 bindings 2 and 3 of every texture set: FrameLightingUniform and MaxForwardLights GPULights,
+		// written every frame (unlit views write Counts.y = 0).
+		PerFrameBuffers LightingBuffers;
+		PerFrameBuffers LightStorageBuffers;
+		SceneLighting Lighting;        // Renderer2D::SetSceneLighting this frame; cleared with the batches
+		bool LightingSubmitted = false;
+
 		// ---- Batches -----------------------------------------------------------------
 		// Vertex storage. Index i in each vector belongs to batch i. Batches are never freed, only
 		// reused, so after the first heavy frame there are no more allocations.
@@ -153,6 +162,10 @@ namespace Hydro
 		// composited, so lights and shadows don't darken them (editor outlines, debug shapes).
 		std::vector<QuadDraw> OverlayDraws;
 		bool InOverlay = false; // quads currently go to OverlayDraws
+		// Draws made between BeginDebugLines and EndDebugLines (M7): editor shapes in the scene (bounds, light
+		// reach, spot cones), depth tested against it, never writing depth or IDs. Editor views only.
+		std::vector<QuadDraw> DebugDraws;
+		bool InDebugLines = false;
 		SpriteDrawMode DrawMode = SpriteDrawMode::Translucent; // the list quads go to outside the overlay
 		int32_t EntityID = -1; // Renderer2D::SetEntityID: what the next quads carry
 		std::vector<MeshDraw> MeshDraws;  // Renderer3D::DrawMesh, cleared with the batches
@@ -174,6 +187,21 @@ namespace Hydro
 		Scope<VulkanImageReadback> Readback;     // made by the first capture, then kept
 		// The file each frame index's copy goes to; written when that frame's fence has signalled.
 		std::array<std::filesystem::path, MAX_FRAMES_IN_FLIGHT> CapturePaths;
+
+		// ---- Picking (RenderView::RequestEntityIDReadback, M7) ---------------------------
+		// One pixel of the entity-ID attachment is copied after the view's pass and read when that frame's
+		// fence has signalled. A copy is used only when it belongs to the newest request and its generation
+		// still matches (bumped on a resize and by RenderView::InvalidateEntityIDRequests).
+		bool PickRequested = false;
+		uint32_t PickX = 0;
+		uint32_t PickY = 0;
+		uint64_t PickRequest = 0;    // the newest request's number
+		uint64_t PickGeneration = 0;
+		std::array<uint64_t, MAX_FRAMES_IN_FLIGHT> PickSlotRequest{};
+		std::array<uint64_t, MAX_FRAMES_IN_FLIGHT> PickSlotGeneration{};
+		Scope<VulkanImageReadback> PickReadback;
+		bool PickResultReady = false;
+		int32_t PickResult = -1;
 
 		// ---- Render graph (render features) ---------------------------------------------
 		// What the next render should use (RenderView::SetRenderFeatures; SceneRenderer sets it every

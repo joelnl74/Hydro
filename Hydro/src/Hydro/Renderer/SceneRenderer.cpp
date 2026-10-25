@@ -12,6 +12,8 @@
 #include "Hydro/Scene/Entity.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -482,6 +484,13 @@ namespace Hydro
 
 	void SceneRenderer::SubmitLights()
 	{
+		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
+		if (features.Lighting == LightingMode::Forward)
+		{
+			SubmitForwardLighting();
+			return;
+		}
+
 		auto view = m_Scene->m_Registry.view<TransformComponent, Light2DComponent>();
 		for (auto entity : view)
 		{
@@ -490,6 +499,11 @@ namespace Hydro
 			if (light.Type == Light2DType::Global)
 			{
 				Renderer2D::DrawGlobalLight(light.Color, light.Intensity);
+			}
+			else if (light.Type == Light2DType::Spot)
+			{
+				// Forward lighting only (the light buffer's cone is Roadmap D1).
+				continue;
 			}
 			else
 			{
@@ -501,15 +515,107 @@ namespace Hydro
 		}
 	}
 
+	// The direction an entity's -Z points to (spot lights, the sun): its full 3D rotation.
+	static glm::vec3 GetForwardDirection(const TransformComponent& transform)
+	{
+		const glm::vec3 direction = glm::quat(transform.Rotation) * glm::vec3(0.0f, 0.0f, -1.0f);
+		const float length = glm::length(direction);
+		return length > 0.0f ? direction / length : glm::vec3(0.0f, 0.0f, -1.0f);
+	}
+
+	void SceneRenderer::SubmitForwardLighting()
+	{
+		SceneLighting lighting;
+		lighting.CameraPosition = m_Camera.Position;
+
+		// The sun.
+		Entity sun = m_Scene->GetMainLight();
+		if ((bool)sun && sun.HasComponent<TransformComponent>())
+		{
+			const DirectionalLightComponent& light = sun.GetComponent<DirectionalLightComponent>();
+			lighting.HasSun = true;
+			lighting.SunDirection = GetForwardDirection(sun.GetComponent<TransformComponent>());
+			lighting.SunColor = light.Color * light.Intensity;
+		}
+
+		// Ambient: the scene's environment, else its Global lights (sky and ground alike).
+		glm::vec3 globalAmbient{ 0.0f };
+		auto lights = m_Scene->m_Registry.view<TransformComponent, Light2DComponent>();
+		for (auto entity : lights)
+		{
+			const auto [transform, light] = lights.get<TransformComponent, Light2DComponent>(entity);
+			if (light.Type == Light2DType::Global)
+			{
+				globalAmbient += light.Color * light.Intensity;
+				continue;
+			}
+
+			// Z is up: Height lifts the light straight above its entity (a lantern's glass above its post).
+			ForwardLight forward;
+			forward.Position = transform.Translation + glm::vec3(0.0f, 0.0f, light.Height);
+			forward.Range = light.Radius;
+			forward.Color = light.Color * light.Intensity;
+			if (light.Type == Light2DType::Spot)
+			{
+				const float inner = glm::radians(std::clamp(light.InnerAngle, 0.0f, 89.0f));
+				const float outer = glm::radians(std::clamp(std::max(light.OuterAngle, light.InnerAngle), 0.1f, 89.5f));
+				forward.Type = ForwardLightType::Spot;
+				forward.Direction = GetForwardDirection(transform);
+				forward.CosInner = std::cos(inner);
+				forward.CosOuter = std::cos(std::max(outer, inner + 0.001f));
+			}
+			lighting.Lights.push_back(forward);
+		}
+
+		const SceneEnvironment& environment = m_Scene->GetEnvironment();
+		if (environment.Override)
+		{
+			lighting.SkyAmbient = environment.SkyAmbient;
+			lighting.GroundAmbient = environment.GroundAmbient;
+			lighting.Fog = environment.Fog;
+			lighting.FogColor = environment.FogColor;
+			lighting.FogStart = environment.FogStart;
+			lighting.FogEnd = environment.FogEnd;
+		}
+		else
+		{
+			lighting.SkyAmbient = globalAmbient;
+			lighting.GroundAmbient = globalAmbient;
+		}
+
+		Renderer2D::SetSceneLighting(lighting);
+	}
+
 	void SceneRenderer::SubmitShadows()
 	{
 		auto view = m_Scene->m_Registry.view<TransformComponent, Shadow2DComponent>();
+		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
+		const bool forward = features.Lighting == LightingMode::Forward;
+		if (forward)
+		{
+			// Forward lighting has no light buffer to darken: blob shadows are soft dark decals on the ground
+			// under their owners (depth tested, drawn before the cut-out sprites).
+			Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Decal);
+		}
+
 		for (auto entity : view)
 		{
 			const auto [transform, shadow] = view.get<TransformComponent, Shadow2DComponent>(entity);
 
 			const glm::vec3 position = transform.Translation + glm::vec3(shadow.Offset, 0.0f);
+			if (forward)
+			{
+				const glm::mat4 quad = glm::translate(glm::mat4(1.0f), position + glm::vec3(0.0f, 0.0f, 0.01f))
+					* glm::scale(glm::mat4(1.0f), glm::vec3(shadow.Size, 1.0f));
+				Renderer2D::DrawQuad(quad, Renderer2D::GetSoftDotTexture(), 1.0f, glm::vec4(0.0f, 0.0f, 0.0f, std::clamp(shadow.Strength, 0.0f, 1.0f)));
+				continue;
+			}
 			Renderer2D::DrawShadow(position, shadow.Size, shadow.Strength);
+		}
+
+		if (forward)
+		{
+			Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Translucent);
 		}
 	}
 
@@ -666,5 +772,117 @@ namespace Hydro
 		}
 
 		Renderer2D::EndOverlay();
+
+		if (drawSelected)
+		{
+			SubmitSelectionDebugLines(selected);
+		}
+	}
+
+	// A circle of 3D lines about `centre` in the plane spanned by `u` and `v` (unit vectors).
+	static void DrawCircle3D(const glm::vec3& centre, const glm::vec3& u, const glm::vec3& v, float radius, const glm::vec4& color, uint32_t segments = 48)
+	{
+		glm::vec3 previous = centre + u * radius;
+		for (uint32_t i = 1; i <= segments; i++)
+		{
+			const float angle = glm::two_pi<float>() * (float)i / (float)segments;
+			const glm::vec3 point = centre + (u * std::cos(angle) + v * std::sin(angle)) * radius;
+			Renderer2D::DrawLine3D(previous, point, color);
+			previous = point;
+		}
+	}
+
+	// Two unit vectors at right angles to `axis` (unit length).
+	static void MakePerpendicular(const glm::vec3& axis, glm::vec3& u, glm::vec3& v)
+	{
+		const glm::vec3 helper = std::abs(axis.z) < 0.9f ? glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(1.0f, 0.0f, 0.0f);
+		u = glm::normalize(glm::cross(axis, helper));
+		v = glm::cross(axis, u);
+	}
+
+	void SceneRenderer::SubmitSelectionDebugLines(Entity selected)
+	{
+		const TransformComponent& transform = selected.GetComponent<TransformComponent>();
+		const glm::vec4 boundsColor{ 1.0f, 0.65f, 0.1f, 1.0f };
+		const glm::vec4 lightColor{ 1.0f, 0.9f, 0.4f, 0.9f };
+
+		Renderer2D::BeginDebugLines();
+
+		// A mesh: its bounding box, in its own space turned by the transform (12 edges).
+		if (selected.HasComponent<MeshComponent>())
+		{
+			const MeshComponent& meshComponent = selected.GetComponent<MeshComponent>();
+			const Ref<Mesh> mesh = (uint64_t)meshComponent.Model != 0 ? AssetManager::GetLoadedAsset<Mesh>(meshComponent.Model)
+				: Renderer3D::GetShapeMesh(meshComponent);
+			if (mesh != nullptr)
+			{
+				const glm::mat4 world = transform.GetTransform();
+				const glm::vec3 low = mesh->GetBoundsMin();
+				const glm::vec3 high = mesh->GetBoundsMax();
+				glm::vec3 corners[8];
+				for (int i = 0; i < 8; i++)
+				{
+					const glm::vec3 local{ (i & 1) ? high.x : low.x, (i & 2) ? high.y : low.y, (i & 4) ? high.z : low.z };
+					corners[i] = glm::vec3(world * glm::vec4(local, 1.0f));
+				}
+				const int edges[12][2] = { { 0, 1 }, { 2, 3 }, { 4, 5 }, { 6, 7 }, { 0, 2 }, { 1, 3 }, { 4, 6 }, { 5, 7 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 } };
+				for (const auto& edge : edges)
+				{
+					Renderer2D::DrawLine3D(corners[edge[0]], corners[edge[1]], boundsColor);
+				}
+			}
+		}
+
+		// A point or spot light: where it sits (its Height above the entity) and how far it reaches.
+		if (selected.HasComponent<Light2DComponent>())
+		{
+			const Light2DComponent& light = selected.GetComponent<Light2DComponent>();
+			const glm::vec3 position = transform.Translation + glm::vec3(0.0f, 0.0f, light.Height);
+			if (light.Type == Light2DType::Point)
+			{
+				DrawCircle3D(position, glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), light.Radius, lightColor);
+				DrawCircle3D(position, glm::vec3(1, 0, 0), glm::vec3(0, 0, 1), light.Radius, lightColor);
+				DrawCircle3D(position, glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), light.Radius, lightColor);
+				if (light.Height != 0.0f)
+				{
+					Renderer2D::DrawLine3D(transform.Translation, position, lightColor);
+				}
+			}
+			else if (light.Type == Light2DType::Spot)
+			{
+				const glm::vec3 direction = GetForwardDirection(transform);
+				glm::vec3 u;
+				glm::vec3 v;
+				MakePerpendicular(direction, u, v);
+				const float outer = glm::radians(std::clamp(std::max(light.OuterAngle, light.InnerAngle), 0.1f, 89.5f));
+				const glm::vec3 centre = position + direction * (light.Radius * std::cos(outer));
+				const float radius = light.Radius * std::sin(outer);
+				DrawCircle3D(centre, u, v, radius, lightColor, 32);
+				for (int i = 0; i < 4; i++)
+				{
+					const float angle = glm::half_pi<float>() * (float)i;
+					Renderer2D::DrawLine3D(position, centre + (u * std::cos(angle) + v * std::sin(angle)) * radius, lightColor);
+				}
+			}
+		}
+
+		// The sun: an arrow from the entity along the way its light travels.
+		if (selected.HasComponent<DirectionalLightComponent>())
+		{
+			const glm::vec3 direction = GetForwardDirection(transform);
+			const glm::vec3 start = transform.Translation;
+			const glm::vec3 end = start + direction * 3.0f;
+			glm::vec3 u;
+			glm::vec3 v;
+			MakePerpendicular(direction, u, v);
+			Renderer2D::DrawLine3D(start, end, lightColor, 2.0f);
+			for (int i = 0; i < 4; i++)
+			{
+				const float angle = glm::half_pi<float>() * (float)i;
+				Renderer2D::DrawLine3D(end, end - direction * 0.5f + (u * std::cos(angle) + v * std::sin(angle)) * 0.25f, lightColor, 2.0f);
+			}
+		}
+
+		Renderer2D::EndDebugLines();
 	}
 }

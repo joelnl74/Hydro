@@ -1,11 +1,17 @@
 #version 450
 
-// The Standard material (plan M4), unlit: albedo * tint + emission, cut out below AlphaCutoff.
+#extension GL_GOOGLE_include_directive : require
+
+#include "lighting.glsl"
+
+// The Standard material (plan M4): albedo * tint, lit by the view's forward lighting when it has it
+// (plan M6; unlit otherwise), plus emission, then fog; cut out below AlphaCutoff.
 
 layout(location = 0) in vec2 fragUV;
 layout(location = 1) in vec4 fragColor;
 layout(location = 2) in vec3 fragNormal;
 layout(location = 3) flat in int entityID;
+layout(location = 4) in vec3 fragWorldPos;
 
 // Must match MaterialUniform in Renderer3D.cpp (std140, 48 bytes).
 layout(set = 1, binding = 0) uniform Material {
@@ -31,6 +37,20 @@ void main()
 		discard;
 	}
 	vec3 emissive = texture(emissiveTexture, uv).rgb * material.emission.rgb;
-	outColor = vec4(albedo.rgb + emissive, 1.0);
+	if (IsForwardLit() == false)
+	{
+		outColor = vec4(albedo.rgb + emissive, 1.0);
+		outEntityID = entityID;
+		return;
+	}
+
+	// A normal that faces away from the camera belongs to a back face seen through a cut-out: flip it.
+	vec3 normal = normalize(fragNormal);
+	if (gl_FrontFacing == false)
+	{
+		normal = -normal;
+	}
+	vec3 lit = albedo.rgb * ComputeLighting(fragWorldPos, normal, 0.5) + emissive;
+	outColor = vec4(ApplyFog(lit, fragWorldPos), 1.0);
 	outEntityID = entityID;
 }

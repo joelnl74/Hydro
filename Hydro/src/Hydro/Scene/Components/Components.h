@@ -217,7 +217,8 @@ namespace Hydro
 	enum class Light2DType : uint8_t
 	{
 		Point = 0, // lights the area around the entity, out to Radius
-		Global     // lights the whole view equally: the ambient light
+		Global,    // lights the whole view equally: the ambient light
+		Spot       // forward lighting only (M6): a cone along the entity's -Z, out to Radius
 	};
 
 	// A light for the 2D renderer. A point light is placed by the entity's TransformComponent; a global
@@ -236,9 +237,26 @@ namespace Hydro
 		// sprite does: Height units up the screen in a top-down view, that far up the standing sprite in a
 		// tilted one. 0 = on the ground.
 		float Height = 0.0f;
+		// Spot only: the cone's half angles in degrees; full light inside InnerAngle, none outside OuterAngle
+		// (InnerAngle <= OuterAngle). Its direction is the transform's -Z (a lamp over a door points down).
+		float InnerAngle = 20.0f;
+		float OuterAngle = 30.0f;
 
 		Light2DComponent() = default;
 		Light2DComponent(const Light2DComponent&) = default;
+	};
+
+	// The sun or moon of a scene with forward lighting (plan M6): parallel light shining along the
+	// transform's -Z (rotate the entity to aim it). One per scene is used: the one marked IsMainLight, else
+	// the first (Scene::GetMainLight). Ignored by the 2D light buffer.
+	struct DirectionalLightComponent
+	{
+		glm::vec3 Color{ 1.0f, 0.95f, 0.85f }; // linear RGB
+		float Intensity = 1.0f;
+		bool IsMainLight = false;
+
+		DirectionalLightComponent() = default;
+		DirectionalLightComponent(const DirectionalLightComponent&) = default;
 	};
 
 	// A soft blob shadow under the entity, for the 2D renderer: an ellipse that darkens the light buffer of a
@@ -408,5 +426,5 @@ namespace Hydro
 	};
 
 	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent>;
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent>;
 }

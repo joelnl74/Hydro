@@ -36,6 +36,20 @@ namespace Hydro
 		cameraSpecification.DebugName = specification.DebugName + " camera";
 		view.UniformBuffers = CreatePerFrameBuffers(cameraSpecification);
 
+		BufferSpecification lightingSpecification;
+		lightingSpecification.Usage = BufferUsage::Uniform;
+		lightingSpecification.Memory = BufferMemory::HostVisible;
+		lightingSpecification.Size = sizeof(FrameLightingUniform);
+		lightingSpecification.DebugName = specification.DebugName + " lighting";
+		view.LightingBuffers = CreatePerFrameBuffers(lightingSpecification);
+
+		BufferSpecification lightsSpecification;
+		lightsSpecification.Usage = BufferUsage::Storage;
+		lightsSpecification.Memory = BufferMemory::HostVisible;
+		lightsSpecification.Size = sizeof(GPULight) * MaxForwardLights;
+		lightsSpecification.DebugName = specification.DebugName + " lights";
+		view.LightStorageBuffers = CreatePerFrameBuffers(lightsSpecification);
+
 		// Batches, texture sets and the view list belong to Renderer2D.
 		Renderer2D::RegisterView(view);
 	}
@@ -67,6 +81,36 @@ namespace Hydro
 
 		m_Data->RequestedWidth = width;
 		m_Data->RequestedHeight = height;
+	}
+
+	void RenderView::RequestEntityIDReadback(uint32_t x, uint32_t y)
+	{
+		RenderViewData& view = *m_Data;
+		view.PickRequested = true;
+		view.PickX = x;
+		view.PickY = y;
+		view.PickRequest++;
+		view.PickResultReady = false;
+	}
+
+	bool RenderView::TakeEntityIDResult(int32_t& entityID)
+	{
+		RenderViewData& view = *m_Data;
+		if (view.PickResultReady == false)
+		{
+			return false;
+		}
+		view.PickResultReady = false;
+		entityID = view.PickResult;
+		return true;
+	}
+
+	void RenderView::InvalidateEntityIDRequests()
+	{
+		RenderViewData& view = *m_Data;
+		view.PickGeneration++;
+		view.PickRequested = false;
+		view.PickResultReady = false;
 	}
 
 	uint32_t RenderView::GetWidth() const

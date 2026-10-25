@@ -13,6 +13,7 @@
 #include "EditorSettings.h"
 
 #include <glm/glm.hpp>
+#include <imgui/imgui.h>
 
 namespace Hydro
 {
@@ -123,6 +124,9 @@ namespace Hydro
 		std::filesystem::path MakeCapturePath(const std::string& viewName) const;
 		// Moves the editor camera to the entity and zooms to frame it (the selection outline shows which).
 		void FocusEntity(Entity entity);
+		// Click-to-select: a left click in the Editor view's image (at `imageMin`, `imageSize` ImGui pixels)
+		// asks the view for the entity under it; the answer, a frame or two later, selects it (or clears).
+		void UpdateClickSelection(const ImVec2& imageMin, const ImVec2& imageSize);
 		// A new scene starts with a primary camera framing the origin.
 		void CreateDefaultCamera();
 
@@ -176,6 +180,9 @@ namespace Hydro
 		bool m_ShowSelectionOutline = true;
 		bool m_ShowColliders = false;
 		bool m_FocusKeyDown = false; // F pressed last frame, so holding it focuses once
+		// Click-to-select in the Editor view (M7): a left press in the image, a release without moving.
+		bool m_ClickPending = false;
+		ImVec2 m_ClickStart{ 0.0f, 0.0f };
 		bool m_GameViewVisible = false;
 		bool m_SceneHasCamera = true; // false when the game view found no primary camera last frame
 		bool m_GameFullscreen = false;

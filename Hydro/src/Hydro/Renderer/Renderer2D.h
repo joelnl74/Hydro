@@ -3,11 +3,14 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
+#include <string>
 #include <vector>
 
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Camera.h"
+#include "Hydro/Renderer/Lighting.h"
 #include "Hydro/Renderer/RenderFeatures.h"
+#include "Hydro/Renderer/RenderGraph.h"
 #include "Hydro/Renderer/RenderView.h"
 #include "Hydro/Renderer/Texture2D.h"
 
@@ -15,6 +18,13 @@ namespace Hydro
 {
 	class RenderFeature;
 	struct QuadDraw;
+
+	// The GPU time of one render graph pass last frame (summed over the views that ran it), M7.
+	struct PassTiming
+	{
+		std::string Name;
+		float GPUMs = 0.0f;
+	};
 
 	// Stats
 	struct Statistics
@@ -52,6 +62,12 @@ namespace Hydro
 		uint32_t LitViewCount = 0;   // views that drew a light buffer this frame
 		uint32_t LightCount = 0;     // point lights drawn into light buffers
 		uint32_t ShadowCount = 0;    // blob shadows drawn into light buffers
+
+		// Forward lighting (M6), summed over the forward-lit views.
+		uint32_t ForwardLitViewCount = 0;
+		uint32_t ForwardLightCount = 0;    // point and spot lights uploaded
+		uint32_t ForwardLightsDropped = 0; // beyond MaxForwardLights (the farthest from the camera)
+		uint32_t DebugLineCount = 0;       // DrawLine3D quads (editor debug lines, M7)
 
 		// Frame / target.
 		uint32_t ViewCount = 0;      // views rendered this frame
@@ -122,6 +138,22 @@ namespace Hydro
 		static void BeginOverlay();
 		static void EndOverlay();
 
+		// Editor shapes in the scene (M7, the DebugLines feature of the Editor view): quads queued between
+		// BeginDebugLines and EndDebugLines are drawn last, depth tested against the scene (hidden behind
+		// what is in front of them) without writing depth or entity IDs. Views without the feature (the Game
+		// view) drop them.
+		static void BeginDebugLines();
+		static void EndDebugLines();
+		// A line between two points anywhere in 3D: a quad that faces the camera, `thickness` pixels wide at
+		// its middle. For debug shapes (bounds, light ranges, cones); DrawLine stays the 2D one (XY).
+		static void DrawLine3D(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color, float thickness = 1.5f);
+
+		// Forward lighting (M6): what the current view is lit with this frame, between BeginScene and EndScene
+		// (SceneRenderer gathers it). Used by views whose render features have Lighting = Forward: sprites and
+		// meshes are shaded with it in their shaders. The nearest MaxForwardLights point and spot lights to
+		// the camera are kept.
+		static void SetSceneLighting(const SceneLighting& lighting);
+
 		// Shared depth (RenderFeatureSettings::Depth): how the quads submitted next are drawn, until the next
 		// call or EndScene (which goes back to Translucent). Decal and Cutout quads go to their own lists,
 		// drawn before the translucent ones; see SpriteDrawMode. Ignored inside an overlay and in a view
@@ -163,6 +195,8 @@ namespace Hydro
 
 		// Stats from the last frame that was rendered (all views together).
 		static Statistics GetStats();
+		// GPU time per render graph pass, a couple of frames old (empty without timestamp support), M7.
+		static const std::vector<PassTiming>& GetPassTimings();
 
 		// Textures one draw call can sample, including the white texture in slot 0.
 		static uint32_t GetMaxTextureSlots();
@@ -189,7 +223,11 @@ namespace Hydro
 		static void UpdateRenderGraph(RenderViewData& view);
 		// Records `draws` (one of the view's quad lists) with pipelines built for the view's attachments:
 		// `mode` picks the cut-out or the sprite pipeline, `overlay` the overlay's. Nothing when empty.
-		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay);
+		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay, bool debugLines = false);
+		// Uploads the view's forward lighting (FrameLightingUniform, the light buffer) for `frame`.
+		static void UploadLighting(RenderViewData& view, uint32_t frame);
+		// Runs one stage of the view's render graph: each pass in a debug label, timed when it can be.
+		static void ExecuteStage(RenderStage stage, RenderPassContext& context);
 		// The draw list quads go to now (overlay, or the current sprite draw mode's list).
 		static std::vector<QuadDraw>& GetCurrentDraws(RenderViewData& view);
 		static void AllocateBatch(RenderViewData& view);

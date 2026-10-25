@@ -74,6 +74,7 @@ namespace Hydro
 		copy->m_ViewportWidth = source->m_ViewportWidth;
 		copy->m_ViewportHeight = source->m_ViewportHeight;
 		copy->m_RenderSettings = source->m_RenderSettings;
+		copy->m_Environment = source->m_Environment;
 
 		const entt::registry& sourceRegistry = source->m_Registry;
 
@@ -614,6 +615,40 @@ namespace Hydro
 		return {};
 	}
 	
+	Entity Scene::GetMainLight()
+	{
+		Entity first;
+		Entity main;
+		uint32_t marked = 0;
+		// Entity order (what the hierarchy shows), so "the first" is stable.
+		for (entt::entity handle : m_EntityOrder)
+		{
+			if (m_Registry.valid(handle) == false || m_Registry.has<DirectionalLightComponent>(handle) == false)
+			{
+				continue;
+			}
+			if ((bool)first == false)
+			{
+				first = Entity{ handle, this };
+			}
+			if (m_Registry.get<DirectionalLightComponent>(handle).IsMainLight)
+			{
+				if (marked == 0)
+				{
+					main = Entity{ handle, this };
+				}
+				marked++;
+			}
+		}
+
+		if (marked > 1 && m_MainLightWarned == false)
+		{
+			HY_CORE_WARN("Scene '{}': {} directional lights are marked as the main light; the first is used", m_Name, marked);
+			m_MainLightWarned = true;
+		}
+		return marked > 0 ? main : first;
+	}
+
 	void Scene::OnRender()
 	{
 	}

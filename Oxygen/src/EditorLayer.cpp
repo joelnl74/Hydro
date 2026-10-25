@@ -497,6 +497,7 @@ namespace Hydro
 			// Camera projections flip Y for Vulkan, so the image is shown the right way up as is.
 			ImGui::Image((ImTextureID)m_EditorView->GetImGuiTexture(), size);
 			m_EditorViewHovered = ImGui::IsItemHovered();
+			UpdateClickSelection(ImGui::GetItemRectMin(), size);
 			AcceptAssetDrop();
 
 			// F: look at the selected entity (edit mode only; play mode scripts may use F).
@@ -508,6 +509,57 @@ namespace Hydro
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::UpdateClickSelection(const ImVec2& imageMin, const ImVec2& imageSize)
+	{
+		// The answer to an earlier click: the entity drawn under it, or nothing (clears the selection).
+		int32_t picked = -1;
+		if (m_EditorView->TakeEntityIDResult(picked) && m_ActiveScene != nullptr)
+		{
+			const entt::entity handle = (entt::entity)(uint32_t)picked;
+			if (picked >= 0 && m_ActiveScene->m_Registry.valid(handle))
+			{
+				m_HierarchyWindow->SetSelectedEntity(Entity(handle, m_ActiveScene.get()));
+			}
+			else
+			{
+				m_HierarchyWindow->ClearSelection();
+			}
+		}
+
+		// A click is a press and release in the image without moving: a drag (orbit with Alt, a box
+		// later, an asset dropped) is not one, nor is anything with Alt held (camera controls).
+		const ImGuiIO& io = ImGui::GetIO();
+		const bool alt = io.KeyAlt;
+		if (m_EditorViewHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && alt == false && ImGui::GetDragDropPayload() == nullptr)
+		{
+			m_ClickPending = true;
+			m_ClickStart = io.MousePos;
+		}
+		if (m_ClickPending == false || ImGui::IsMouseReleased(ImGuiMouseButton_Left) == false)
+		{
+			return;
+		}
+		m_ClickPending = false;
+
+		const float dx = io.MousePos.x - m_ClickStart.x;
+		const float dy = io.MousePos.y - m_ClickStart.y;
+		if (m_EditorViewHovered == false || alt || dx * dx + dy * dy > 16.0f || imageSize.x < 1.0f || imageSize.y < 1.0f)
+		{
+			return;
+		}
+
+		// ImGui pixels to the view's own (the same unless the view hasn't caught up with a resize yet).
+		const float u = (io.MousePos.x - imageMin.x) / imageSize.x;
+		const float v = (io.MousePos.y - imageMin.y) / imageSize.y;
+		if (u < 0.0f || v < 0.0f || u >= 1.0f || v >= 1.0f)
+		{
+			return;
+		}
+		const uint32_t x = std::min((uint32_t)(u * (float)m_EditorView->GetWidth()), m_EditorView->GetWidth() - 1);
+		const uint32_t y = std::min((uint32_t)(v * (float)m_EditorView->GetHeight()), m_EditorView->GetHeight() - 1);
+		m_EditorView->RequestEntityIDReadback(x, y);
 	}
 
 	void EditorLayer::FocusEntity(Entity entity)
@@ -820,6 +872,7 @@ namespace Hydro
 
 		m_ActiveScene = m_RuntimeScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_SceneState = SceneState::Play;
 		m_Paused = false;
 		m_StepFrames = 0;
@@ -853,6 +906,7 @@ namespace Hydro
 
 		m_ActiveScene = m_EditorScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 
 		// Back to the editor scene's entity with the same UUID; cleared if it only existed while playing
 		// (made or destroyed by a script).
@@ -919,6 +973,7 @@ namespace Hydro
 		m_ActiveScene = m_RuntimeScene;
 		m_ActiveScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_HierarchyWindow->ClearSelection();
 		SceneTransition::SetDepth((uint32_t)m_SuspendedScenes.size());
 	}
@@ -1244,6 +1299,7 @@ namespace Hydro
 		m_EditorScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
 		m_ActiveScene = m_EditorScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_HierarchyWindow->ClearSelection();
 	}
 

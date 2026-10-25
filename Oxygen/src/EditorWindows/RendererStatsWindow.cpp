@@ -65,6 +65,32 @@ namespace Hydro
 			ImGui::EndTable();
 		}
 
+		// ---- Forward lighting and debug lines (M6, M7) ---------------------------
+		if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##lighting"))
+		{
+			StatsUI::Row("Forward-lit views", "%u", stats.ForwardLitViewCount);
+			StatsUI::Row("Forward lights", "%u (point and spot)", stats.ForwardLightCount);
+			StatsUI::Row("Lights dropped", "%u (beyond %u per view)", stats.ForwardLightsDropped, (uint32_t)MaxForwardLightsPerView);
+			StatsUI::Row("Light-buffer views", "%u (%u lights, %u shadows)", stats.LitViewCount, stats.LightCount, stats.ShadowCount);
+			StatsUI::Row("Debug lines", "%u", stats.DebugLineCount);
+			ImGui::EndTable();
+		}
+
+		// ---- Passes: GPU time per render-graph pass (summed over views, a couple of frames old) ----
+		const std::vector<PassTiming>& passes = Renderer2D::GetPassTimings();
+		if (ImGui::CollapsingHeader("Passes", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##passes"))
+		{
+			if (passes.empty())
+			{
+				StatsUI::Row("GPU time", "n/a (no timestamp support, or nothing drawn yet)");
+			}
+			for (const PassTiming& pass : passes)
+			{
+				StatsUI::Row(pass.Name.c_str(), "%.3f ms", pass.GPUMs);
+			}
+			ImGui::EndTable();
+		}
+
 		// ---- GPU ---------------------------------------------------------------
 		if (ImGui::CollapsingHeader("GPU", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##gpu"))
 		{

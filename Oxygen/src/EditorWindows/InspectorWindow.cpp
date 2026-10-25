@@ -728,6 +728,7 @@ namespace Hydro
 		bool removeLight = false;
 		bool removeShadow = false;
 		bool removeMesh = false;
+		bool removeDirectionalLight = false;
 		bool removeRigidbody = false;
 		bool removeBoxCollider = false;
 		bool removeCircleCollider = false;
@@ -891,35 +892,59 @@ namespace Hydro
 
 		DrawComponent<Light2DComponent>("Light 2D", entity, removeLight, [&](Light2DComponent& light)
 		{
-			const char* typeNames[] = { "Point", "Global" };
+			const char* typeNames[] = { "Point", "Global", "Spot" };
 			int type = (int)light.Type;
 			DrawPropertyRow("Type", [&]()
 			{
-				if (ImGui::Combo("##LightType", &type, typeNames, 2))
+				if (ImGui::Combo("##LightType", &type, typeNames, 3))
 				{
 					light.Type = (Light2DType)type;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Spot lights shine only under forward lighting (Render Settings > Lighting: Forward).\nThey point along the entity's -Z, turned by its rotation.");
 				}
 			});
 
 			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit3("##LightColor", glm::value_ptr(light.Color)); });
 			DrawPropertyRow("Intensity", [&]() { InputFloatField("##LightIntensity", light.Intensity, "%.2f", 0.0f, 100.0f); });
 
-			if (light.Type == Light2DType::Point)
+			if (light.Type == Light2DType::Point || light.Type == Light2DType::Spot)
 			{
-				DrawPropertyRow("Radius", [&]() { InputFloatField("##LightRadius", light.Radius, "%.2f", 0.01f, 10000.0f); });
+				DrawPropertyRow(light.Type == Light2DType::Spot ? "Range" : "Radius", [&]() { InputFloatField("##LightRadius", light.Radius, "%.2f", 0.01f, 10000.0f); });
 				DrawPropertyRow("Height", [&]()
 				{
 					InputFloatField("##LightHeight", light.Height, "%.2f", 0.0f, 10000.0f);
 					if (ImGui::IsItemHovered())
 					{
-						ImGui::SetTooltip("How far above its position the light is, up an Upright sprite (a lantern's glass).\nTop-down it is drawn that far up the screen; with a tilted camera that far up the standing sprite.");
+						ImGui::SetTooltip("How far above its position the light is (a lantern's glass).\nForward lighting: that far up along Z. Light buffer: that far up the screen top-down, up the standing sprite with a tilted camera.");
 					}
 				});
+				if (light.Type == Light2DType::Spot)
+				{
+					DrawPropertyRow("Inner Angle", [&]() { InputFloatField("##LightInner", light.InnerAngle, "%.1f deg", 0.0f, 89.0f); });
+					DrawPropertyRow("Outer Angle", [&]() { InputFloatField("##LightOuter", light.OuterAngle, "%.1f deg", light.InnerAngle, 89.5f); });
+				}
 			}
 			else
 			{
 				ImGui::TextDisabled("Lights everything equally: the ambient color.");
 			}
+		});
+
+		DrawComponent<DirectionalLightComponent>("Directional Light", entity, removeDirectionalLight, [&](DirectionalLightComponent& light)
+		{
+			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit3("##SunColor", glm::value_ptr(light.Color)); });
+			DrawPropertyRow("Intensity", [&]() { InputFloatField("##SunIntensity", light.Intensity, "%.2f", 0.0f, 100.0f); });
+			DrawPropertyRow("Main Light", [&]()
+			{
+				ImGui::Checkbox("##SunMain", &light.IsMainLight);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("The sun of the scene's forward lighting: the one marked, else the first.\nIt shines along the entity's -Z, turned by its rotation.");
+				}
+			});
+			ImGui::TextDisabled("Shines only under forward lighting (Render Settings > Lighting: Forward).");
 		});
 
 		DrawComponent<MeshComponent>("Mesh", entity, removeMesh, [&](MeshComponent& mesh)
@@ -1286,6 +1311,10 @@ namespace Hydro
 		{
 			entity.RemoveComponent<MeshComponent>();
 		}
+		if (removeDirectionalLight)
+		{
+			entity.RemoveComponent<DirectionalLightComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
@@ -1359,6 +1388,16 @@ namespace Hydro
 				if (entity.HasComponent<TransformComponent>() == false)
 				{
 					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Directional Light", nullptr, false, entity.HasComponent<DirectionalLightComponent>() == false))
+			{
+				// Pointing down and a little forward, so a new sun lights the ground at once.
+				entity.AddComponent<DirectionalLightComponent>();
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>().Rotation = glm::vec3(glm::radians(-35.0f), 0.0f, 0.0f);
 				}
 			}
 

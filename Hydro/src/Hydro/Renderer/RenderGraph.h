@@ -117,6 +117,8 @@ namespace Hydro
 		// Runs the passes of one stage, in the order they were added.
 		void ExecuteStage(RenderStage stage, RenderPassContext& context) const;
 		bool HasPasses(RenderStage stage) const;
+		// Every pass, sorted by stage (stable), for backends that wrap each pass (debug labels, timers).
+		const std::vector<RenderPassDeclaration>& GetPasses() const { return m_Passes; }
 
 		const std::vector<RenderValidationMessage>& GetValidationMessages() const { return m_Messages; }
 		const RenderGraphContext& GetContext() const { return m_Context; }
