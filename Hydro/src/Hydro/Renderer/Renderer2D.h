@@ -139,7 +139,7 @@ namespace Hydro
 		// The entity the quads submitted next belong to, until the next call or EndScene (which goes back to
 		// -1). The Editor view writes it to its entity-ID attachment for click-to-select (M7); -1 (or any
 		// negative value) = none: the quads don't change the IDs below them (particles, effects, lines).
-		// Overlay quads never write one.
+		// Overlay quads write it too (HUD sprites); editor lines carry -1.
 		static void SetEntityID(int32_t entityID);
 
 		// 2D lighting (RendererSettings::Lighting). Queue lights for the view between BeginScene and

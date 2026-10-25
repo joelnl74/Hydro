@@ -25,6 +25,7 @@ namespace Hydro
 		// The camera's up and forward in the world (it looks down its local -Z).
 		const glm::vec3 up = glm::normalize(rotation[1]);
 		const glm::vec3 forward = -glm::normalize(rotation[2]);
+		basis.Forward = forward;
 
 		// The direction "into the screen" along the ground. Up's ground part points the same way as
 		// forward's for a camera without roll, and still exists when the camera looks straight down
@@ -57,12 +58,15 @@ namespace Hydro
 	void SceneRenderer::RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay)
 	{
 		view.SetRenderFeatures(GetEffectiveRenderFeatures());
-		m_Camera = MakeCameraBasis(glm::mat3(glm::inverse(camera.GetView())));
+		const glm::mat4 cameraWorld = glm::inverse(camera.GetView());
+		m_Camera = MakeCameraBasis(glm::mat3(cameraWorld));
+		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
 		SubmitSprites();
 		SubmitLights();
 		SubmitShadows();
 		SubmitUnlitParticles();
+		SubmitOverlaySprites();
 		SubmitEditorOverlay(overlay);
 		Renderer2D::EndScene();
 	}
@@ -87,6 +91,7 @@ namespace Hydro
 			cameraTransform = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(glm::quat(transform.Rotation));
 		}
 		m_Camera = MakeCameraBasis(glm::mat3(cameraTransform));
+		m_Camera.Position = glm::vec3(cameraTransform[3]);
 
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
@@ -94,6 +99,7 @@ namespace Hydro
 		SubmitLights();
 		SubmitShadows();
 		SubmitUnlitParticles();
+		SubmitOverlaySprites();
 		Renderer2D::EndScene();
 		return true;
 	}
@@ -102,8 +108,14 @@ namespace Hydro
 	{
 		auto view = m_Scene->m_Registry.view<TransformComponent, SpriteRendererComponent>();
 
-		// SortOrder; then Flat before standing (Upright, Billboard, particles); Flat by Z, standing from far
-		// to near along the camera's ground direction (Depth, larger = further away); then storage order.
+		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
+		const bool sharedDepth = Renderer2D::HasSharedDepth(features);
+		const bool viewDepthSorting = features.SpriteSorting == SpriteSortMode::ViewDepth;
+		const bool cutoutByDefault = features.DefaultSpriteAlpha == SpriteAlphaDefault::Cutout;
+
+		// SpriteSortMode::SortOrder (the 2D preset, today's order kept bit for bit): SortOrder; then Flat
+		// before standing (Upright, Billboard, particles); Flat by Z, standing from far to near along the
+		// camera's ground direction (Depth, larger = further away); then storage order.
 		const auto drawsBefore = [](const SpriteDrawItem& a, const SpriteDrawItem& b)
 		{
 			if (a.SortOrder != b.SortOrder)
@@ -128,6 +140,45 @@ namespace Hydro
 			return a.Index < b.Index;
 		};
 
+		// SpriteSortMode::ViewDepth (3D): the ground decals first (Flat sprites, by SortOrder, then Z, then
+		// storage order), then everything standing back to front by its distance along the camera's view
+		// direction; SortOrder only breaks ties, so a high number can't pull an effect over a nearer sprite.
+		// Cut-out sprites don't depend on this order (the depth buffer sorts them); translucent ones do.
+		const auto drawsBeforeByViewDepth = [](const SpriteDrawItem& a, const SpriteDrawItem& b)
+		{
+			if (a.Standing != b.Standing)
+			{
+				return a.Standing == false;
+			}
+			if (a.Standing)
+			{
+				if (a.ViewDepth != b.ViewDepth)
+				{
+					return a.ViewDepth > b.ViewDepth;
+				}
+			}
+			else
+			{
+				if (a.SortOrder != b.SortOrder)
+				{
+					return a.SortOrder < b.SortOrder;
+				}
+				if (a.Z != b.Z)
+				{
+					return a.Z < b.Z;
+				}
+			}
+			if (a.SortOrder != b.SortOrder)
+			{
+				return a.SortOrder < b.SortOrder;
+			}
+			return a.Index < b.Index;
+		};
+		const auto isBefore = [&](const SpriteDrawItem& a, const SpriteDrawItem& b)
+		{
+			return viewDepthSorting ? drawsBeforeByViewDepth(a, b) : drawsBefore(a, b);
+		};
+
 		// Collect sort keys. Most scenes are already in order (all SortOrder 0, same Z), so the sort
 		// is skipped unless an item is out of order.
 		m_SpriteQueue.clear();
@@ -136,6 +187,10 @@ namespace Hydro
 		for (auto entity : view)
 		{
 			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+			if (sprite.Overlay)
+			{
+				continue; // SubmitOverlaySprites
+			}
 
 			SpriteDrawItem item;
 			item.SortOrder = sprite.SortOrder;
@@ -151,9 +206,13 @@ namespace Hydro
 				const glm::vec3 standsAt = glm::vec3(quad * local);
 				item.Standing = true;
 				item.Depth = glm::dot(glm::vec2(standsAt), m_Camera.GroundForward);
+				item.ViewDepth = glm::dot(standsAt - m_Camera.Position, m_Camera.Forward);
 			}
+			// Standing sprites take the view's default; flat ones are ground decals unless marked Cut-out.
+			const SpriteAlphaMode defaultMode = (item.Standing && cutoutByDefault) ? SpriteAlphaMode::Cutout : SpriteAlphaMode::Translucent;
+			item.Cutout = (sprite.AlphaMode == SpriteAlphaMode::Default ? defaultMode : sprite.AlphaMode) == SpriteAlphaMode::Cutout;
 
-			if (inOrder && m_SpriteQueue.empty() == false && drawsBefore(item, m_SpriteQueue.back()))
+			if (inOrder && m_SpriteQueue.empty() == false && isBefore(item, m_SpriteQueue.back()))
 			{
 				inOrder = false;
 			}
@@ -184,8 +243,9 @@ namespace Hydro
 				// Particles are billboards (see SubmitParticles), sorted by where the emitter is.
 				item.Standing = true;
 				item.Depth = glm::dot(glm::vec2(transform.Translation), m_Camera.GroundForward);
+				item.ViewDepth = glm::dot(transform.Translation - m_Camera.Position, m_Camera.Forward);
 
-				if (inOrder && m_SpriteQueue.empty() == false && drawsBefore(item, m_SpriteQueue.back()))
+				if (inOrder && m_SpriteQueue.empty() == false && isBefore(item, m_SpriteQueue.back()))
 				{
 					inOrder = false;
 				}
@@ -195,16 +255,15 @@ namespace Hydro
 
 		if (inOrder == false)
 		{
-			std::sort(m_SpriteQueue.begin(), m_SpriteQueue.end(), drawsBefore);
+			std::sort(m_SpriteQueue.begin(), m_SpriteQueue.end(), isBefore);
 		}
 
-		// Shared depth (S1): the flat sprites before the first standing item (the ground, roads, decals) are
-		// decals, drawn first in this order; standing sprites are cut-outs when that is the default alpha;
-		// everything else (particles, flat sprites layered above standing ones) stays translucent. Without
-		// shared depth Renderer2D ignores the modes and draws everything in this order, as before.
-		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
-		const bool sharedDepth = Renderer2D::HasSharedDepth(features);
-		const bool cutoutSprites = features.DefaultSpriteAlpha == SpriteAlphaDefault::Cutout;
+		// Shared depth: cut-out sprites (Cutout, their own or the view's default for standing ones) go to the
+		// cut-out list; flat sprites before the first standing item (the ground, roads, decals: with view-depth
+		// sorting every flat one) are decals, drawn first in this order; everything else (particles,
+		// translucent sprites, flat sprites layered above standing ones in SortOrder sorting) is translucent,
+		// drawn after the cut-outs in this order. Without shared depth Renderer2D ignores the modes and draws
+		// everything in this order, as before.
 		bool reachedStanding = false;
 
 		for (const SpriteDrawItem& item : m_SpriteQueue)
@@ -213,13 +272,13 @@ namespace Hydro
 			{
 				reachedStanding = reachedStanding || item.Standing;
 				SpriteDrawMode mode = SpriteDrawMode::Translucent;
-				if (item.Standing == false)
-				{
-					mode = reachedStanding ? SpriteDrawMode::Translucent : SpriteDrawMode::Decal;
-				}
-				else if (item.IsEmitter == false && cutoutSprites)
+				if (item.IsEmitter == false && item.Cutout)
 				{
 					mode = SpriteDrawMode::Cutout;
+				}
+				else if (item.Standing == false)
+				{
+					mode = reachedStanding ? SpriteDrawMode::Translucent : SpriteDrawMode::Decal;
 				}
 				Renderer2D::SetSpriteDrawMode(mode);
 			}
@@ -293,6 +352,39 @@ namespace Hydro
 		{
 			Renderer2D::EndOverlay();
 		}
+	}
+
+	void SceneRenderer::SubmitOverlaySprites()
+	{
+		// Rare (a few HUD sprites), so collected fresh each frame.
+		auto view = m_Scene->m_Registry.view<TransformComponent, SpriteRendererComponent>();
+		std::vector<std::pair<int32_t, entt::entity>> overlay;
+		for (auto entity : view)
+		{
+			const SpriteRendererComponent& sprite = view.get<SpriteRendererComponent>(entity);
+			if (sprite.Overlay)
+			{
+				overlay.emplace_back(sprite.SortOrder, entity);
+			}
+		}
+		if (overlay.empty())
+		{
+			return;
+		}
+
+		// Stable: equal SortOrders keep the scene's storage order.
+		std::stable_sort(overlay.begin(), overlay.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+		Renderer2D::BeginOverlay();
+		for (const auto& item : overlay)
+		{
+			const entt::entity entity = item.second;
+			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+			Renderer2D::SetEntityID((int32_t)(uint32_t)entity);
+			SubmitSprite(transform.GetTransform(), sprite, m_Camera);
+		}
+		Renderer2D::SetEntityID(-1);
+		Renderer2D::EndOverlay();
 	}
 
 	void SceneRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, float z, const CameraBasis& camera)

@@ -57,6 +57,8 @@ namespace Hydro
 			glm::mat3 Rotation{ 1.0f };          // the camera's rotation: what a Billboard quad turns by
 			glm::mat3 Upright{ 1.0f };           // yaw and lean without roll: what an Upright quad turns by
 			glm::vec2 GroundForward{ 0.0f, 1.0f }; // "into the screen" along the ground (unit length)
+			glm::vec3 Position{ 0.0f };          // the camera's position (set by RenderEditor / RenderRuntime)
+			glm::vec3 Forward{ 0.0f, 0.0f, -1.0f }; // where it looks (unit length): view-depth sorting measures along it
 
 			// Looking straight down without turning: every facing draws as authored.
 			bool IsTopDown() const
@@ -89,6 +91,8 @@ namespace Hydro
 		// are not darkened at night. They go on top of every sprite (no SortOrder against sprites yet;
 		// the emissive path is decided by the Roadmap V4 spike).
 		void SubmitUnlitParticles();
+		// Sprites marked Overlay (HUD): in the overlay pass, after the unlit particles, in SortOrder; unlit, no depth test.
+		void SubmitOverlaySprites();
 		// One emitter's live particles, at the emitter's Z; billboards when the camera is tilted.
 		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, float z, const CameraBasis& camera);
 		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
@@ -117,6 +121,8 @@ namespace Hydro
 			bool IsEmitter = false; // a ParticleEmitter2DComponent instead of a sprite
 			bool Standing = false;  // Upright, Billboard or particles: sorted by Depth instead of Z
 			float Depth = 0.0f;     // along CameraBasis::GroundForward: larger is further away
+			float ViewDepth = 0.0f; // along CameraBasis::Forward from the camera (SpriteSortMode::ViewDepth): larger is further away
+			bool Cutout = false;    // drawn as a cut-out with shared depth (its AlphaMode, or the view's default)
 		};
 
 		Ref<Scene> m_Scene;

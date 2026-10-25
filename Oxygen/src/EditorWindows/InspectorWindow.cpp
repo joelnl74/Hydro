@@ -462,6 +462,27 @@ namespace Hydro
 					ImGui::SetTooltip("How the sprite turns towards a tilted camera.\nFlat: lies on the ground (roads, decals, water).\nUpright: stands on its bottom edge and faces the camera (trees, houses, characters).\nBillboard: faces the camera about its centre (glows, icons, world-space UI).\nA top-down camera draws all three the same.");
 				}
 			});
+			DrawPropertyRow("Alpha", [&]()
+			{
+				const char* alphaNames[] = { "Default", "Cut-out", "Translucent" };
+				int alpha = (int)sprite.AlphaMode;
+				if (ImGui::Combo("##AlphaMode", &alpha, alphaNames, 3))
+				{
+					sprite.AlphaMode = (SpriteAlphaMode)alpha;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How the sprite is drawn with shared depth (Render Settings > Rendering).\nDefault: the render features' default sprite alpha.\nCut-out: half-transparent pixels are dropped, the rest hide what is behind (trees, characters).\nTranslucent: blended and sorted back to front (glows, water, smoke).\nWithout shared depth every sprite is translucent.");
+				}
+			});
+			DrawPropertyRow("Overlay", [&]()
+			{
+				ImGui::Checkbox("##Overlay", &sprite.Overlay);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("HUD sprite: drawn last, on top of everything, unlit and never hidden by depth\n(world-space prompts and menus).");
+				}
+			});
 			if (texture != nullptr && entity.HasComponent<TransformComponent>())
 			{
 				DrawPropertyRow("##NativeSize", [&]()

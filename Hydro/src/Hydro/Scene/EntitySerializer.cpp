@@ -60,6 +60,32 @@ namespace Hydro
 		return "Flat";
 	}
 
+	static const char* SpriteAlphaModeToString(SpriteAlphaMode mode)
+	{
+		switch (mode)
+		{
+		case SpriteAlphaMode::Default: return "Default";
+		case SpriteAlphaMode::Cutout: return "Cutout";
+		case SpriteAlphaMode::Translucent: return "Translucent";
+		}
+
+		return "Default";
+	}
+
+	static SpriteAlphaMode SpriteAlphaModeFromString(const std::string& name)
+	{
+		if (name == "Cutout")
+		{
+			return SpriteAlphaMode::Cutout;
+		}
+		if (name == "Translucent")
+		{
+			return SpriteAlphaMode::Translucent;
+		}
+
+		return SpriteAlphaMode::Default;
+	}
+
 	static SpriteFacing SpriteFacingFromString(const std::string& name)
 	{
 		if (name == "Upright")
@@ -212,6 +238,15 @@ namespace Hydro
 			out << YAML::Key << "FlipX" << YAML::Value << sprite.FlipX;
 			out << YAML::Key << "FlipY" << YAML::Value << sprite.FlipY;
 			out << YAML::Key << "Facing" << YAML::Value << SpriteFacingToString(sprite.Facing);
+			// Only when set, so scenes that don't use them are saved as before.
+			if (sprite.AlphaMode != SpriteAlphaMode::Default)
+			{
+				out << YAML::Key << "AlphaMode" << YAML::Value << SpriteAlphaModeToString(sprite.AlphaMode);
+			}
+			if (sprite.Overlay)
+			{
+				out << YAML::Key << "Overlay" << YAML::Value << true;
+			}
 			out << YAML::EndMap;
 		}
 
@@ -421,6 +456,8 @@ namespace Hydro
 			sprite.FlipY = spriteNode["FlipY"].as<bool>(sprite.FlipY);
 			// Scenes from before facings have none: Flat, which draws as they always did.
 			sprite.Facing = SpriteFacingFromString(spriteNode["Facing"].as<std::string>("Flat"));
+			sprite.AlphaMode = SpriteAlphaModeFromString(spriteNode["AlphaMode"].as<std::string>("Default"));
+			sprite.Overlay = spriteNode["Overlay"].as<bool>(false);
 			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
 				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));

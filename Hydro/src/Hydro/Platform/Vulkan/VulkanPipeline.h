@@ -50,6 +50,10 @@ namespace Hydro
 		bool BackfaceCulling = true;
 		bool DepthTest = true;
 		bool DepthWrite = true;
+		// Depth bias (both 0 = off): moves the drawn depth by Constant units of the depth format plus Slope
+		// times the polygon's depth slope. Negative = towards the camera (forward Z). Ground decals use it.
+		float DepthBiasConstant = 0.0f;
+		float DepthBiasSlope = 0.0f;
 		bool Wireframe = false;
 		float LineWidth = 1.0f; // Values other than 1 need the GPU's wideLines feature.
 		BlendMode Blend = BlendMode::None;

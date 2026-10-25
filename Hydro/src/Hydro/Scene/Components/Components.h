@@ -30,6 +30,15 @@ namespace Hydro
 		Billboard  // turns about its centre to face the camera fully: particles, glows, icons, world-space UI
 	};
 
+	// How a sprite is drawn in a view with shared depth (RenderFeatureSettings::Depth). Without it every sprite
+	// is translucent and drawn in sort order, as in the 2D preset.
+	enum class SpriteAlphaMode : uint8_t
+	{
+		Default = 0,  // the view's RenderFeatureSettings::DefaultSpriteAlpha (translucent in the 2D preset)
+		Cutout,       // pixels under half alpha are dropped, the rest are opaque: depth test and write, no blending
+		Translucent   // alpha blended: depth test, no depth write, sorted back to front (glows, water, effects)
+	};
+
 	// A quad drawn with the entity's TransformComponent: Texture (white when 0 or not loaded) multiplied by Color
 	// (alpha blended). A Single texture is drawn whole, repeated TilingFactor times; a Multiple texture
 	// (a sprite sheet, see TextureImportConfig) draws its sprite SpriteIndex, placed by the sprite's pivot.
@@ -55,6 +64,10 @@ namespace Hydro
 		bool FlipX = false;
 		bool FlipY = false;
 		SpriteFacing Facing = SpriteFacing::Flat;
+		SpriteAlphaMode AlphaMode = SpriteAlphaMode::Default;
+		// HUD: drawn in the view's overlay pass, after everything else and the lighting: unlit, never depth
+		// tested, in SortOrder among the overlay sprites. For world-space prompts and menus until runtime UI.
+		bool Overlay = false;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;

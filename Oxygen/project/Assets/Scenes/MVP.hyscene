@@ -11431,6 +11431,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 3650261328035911407
     TagComponent:
       Tag: UI Prompt Panel
@@ -11447,6 +11448,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 329991542241652307
     TagComponent:
       Tag: UI Prompt Label
@@ -11463,6 +11465,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 2226715346565420433
     TagComponent:
       Tag: UI Message Panel
@@ -11479,6 +11482,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 823995066864971081
     TagComponent:
       Tag: UI Message Line 1
@@ -11495,6 +11499,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 472136036508150141
     TagComponent:
       Tag: UI Message Line 2
@@ -11511,6 +11516,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 3075346590274797519
     TagComponent:
       Tag: UI Menu Panel
@@ -11527,6 +11533,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 4409706017980994773
     TagComponent:
       Tag: UI Menu Title
@@ -11543,6 +11550,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 1111213669424711685
     TagComponent:
       Tag: UI Menu Row 0
@@ -11559,6 +11567,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 660896285707559447
     TagComponent:
       Tag: UI Menu Count 0
@@ -11575,6 +11584,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 1047425196972571937
     TagComponent:
       Tag: UI Menu Row 1
@@ -11591,6 +11601,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 3304263280154483277
     TagComponent:
       Tag: UI Menu Count 1
@@ -11607,6 +11618,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 3432268594544643995
     TagComponent:
       Tag: UI Menu Row 2
@@ -11623,6 +11635,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 1906203247717488183
     TagComponent:
       Tag: UI Menu Count 2
@@ -11639,6 +11652,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 929652692041040761
     TagComponent:
       Tag: UI Menu Row 3
@@ -11655,6 +11669,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 2336472411397069379
     TagComponent:
       Tag: UI Menu Count 3
@@ -11671,6 +11686,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 4157222143219367159
     TagComponent:
       Tag: UI Menu Row 4
@@ -11687,6 +11703,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 3029125156434012833
     TagComponent:
       Tag: UI Menu Count 4
@@ -11703,6 +11720,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 333873459092100103
     TagComponent:
       Tag: UI Menu Row 5
@@ -11719,6 +11737,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 3301155837927865107
     TagComponent:
       Tag: UI Menu Count 5
@@ -11735,6 +11754,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 1692632060945626425
     TagComponent:
       Tag: UI Menu Highlight
@@ -11749,6 +11769,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 258728487501887919
     TagComponent:
       Tag: UI Menu Cursor
@@ -11765,6 +11786,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 1466587572000682877
     TagComponent:
       Tag: UI Menu Footer 1
@@ -11781,6 +11803,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 4024858111829553111
     TagComponent:
       Tag: UI Menu Footer 2
@@ -11797,6 +11820,7 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Billboard
+      Overlay: true
   - Entity: 4019748085196214873
     TagComponent:
       Tag: Player

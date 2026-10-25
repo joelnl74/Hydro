@@ -45,9 +45,10 @@ namespace Hydro
 	// What a view pipeline draws; its depth and entity-ID behaviour follow from the kind (BuildViewPipeline).
 	enum class ViewPipelineKind : uint8_t
 	{
-		Sprite = 0, // translucent and decal quads: depth test (no write) when there is depth
-		Cutout,     // cut-out quads: depth test and write, alpha < 0.5 discarded
-		Overlay,    // overlay quads: no depth test, never an entity ID
+		Sprite = 0, // translucent quads: depth test (no write) when there is depth
+		Decal,      // ground decals: like Sprite, with a small depth bias towards the camera
+		Cutout,     // cut-out quads: depth test and write, alpha < 0.5 discarded, no blending
+		Overlay,    // overlay quads (editor outlines, HUD sprites): no depth test
 		Composite,  // the 2D light composite
 		SpikeBox    // TEMPORARY(S1)
 	};
@@ -483,6 +484,7 @@ namespace Hydro
 		switch (key.Kind)
 		{
 			case ViewPipelineKind::Sprite:
+			case ViewPipelineKind::Decal:
 			case ViewPipelineKind::Overlay:
 			case ViewPipelineKind::Cutout:
 				specification = s_Data->QuadPipeline->GetSpecification();
@@ -495,9 +497,18 @@ namespace Hydro
 						s_Data->CutoutShaderWatcher = FileWatcher(s_Data->CutoutShader->GetSourceFiles());
 					}
 					specification.Shader = s_Data->CutoutShader.get();
+					// Opaque where kept: the shader writes alpha 1, nothing to blend.
+					specification.Blend = BlendMode::None;
 				}
 				specification.DepthTest = hasDepth && key.Kind != ViewPipelineKind::Overlay;
 				specification.DepthWrite = hasDepth && key.Kind == ViewPipelineKind::Cutout;
+				if (hasDepth && key.Kind == ViewPipelineKind::Decal)
+				{
+					// In front of ground geometry at the same height (later meshes; the spike box's base), never
+					// written, so nothing else is affected.
+					specification.DepthBiasConstant = -4.0f;
+					specification.DepthBiasSlope = -1.0f;
+				}
 				break;
 
 			case ViewPipelineKind::Composite:
@@ -548,7 +559,7 @@ namespace Hydro
 		// The plain 2D layout: the pipelines built at Init, exactly as before render features existed.
 		if (key.ColorFormats.size() == 1 && key.DepthFormat == ImageFormat::None)
 		{
-			if (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Overlay)
+			if (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Overlay)
 			{
 				return s_Data->QuadPipeline.get();
 			}
@@ -904,7 +915,7 @@ namespace Hydro
 		draw.FirstIndex = view.QuadIndexCounts[view.BatchIndex];
 		draw.IndexCount = 0;
 		draw.TextureSet = view.TextureSetIndex;
-		draw.Pickable = view.EntityID >= 0 && view.InOverlay == false;
+		draw.Pickable = view.EntityID >= 0;
 
 		// A draw nothing was added to yet is reused rather than recorded empty.
 		std::vector<QuadDraw>& draws = GetCurrentDraws(view);
@@ -1327,7 +1338,7 @@ namespace Hydro
 			view.QuadVertexBufferPtr->Color = color;
 			view.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			view.QuadVertexBufferPtr->TexIndex = textureIndex;
-			view.QuadVertexBufferPtr->EntityID = view.InOverlay ? -1 : view.EntityID;
+			view.QuadVertexBufferPtr->EntityID = view.EntityID;
 			view.QuadVertexBufferPtr++;
 		}
 
@@ -1593,9 +1604,22 @@ namespace Hydro
 
 		// Built for the view's attachments. With the entity-ID attachment, pickable draws (an entity's sprites)
 		// write their IDs and the rest (particles, lines, the overlay) use a variant that leaves the IDs alone.
-		const ViewPipelineKind kind = overlay ? ViewPipelineKind::Overlay : (mode == SpriteDrawMode::Cutout ? ViewPipelineKind::Cutout : ViewPipelineKind::Sprite);
+		ViewPipelineKind kind = ViewPipelineKind::Sprite;
+		if (overlay)
+		{
+			kind = ViewPipelineKind::Overlay;
+		}
+		else if (mode == SpriteDrawMode::Cutout)
+		{
+			kind = ViewPipelineKind::Cutout;
+		}
+		else if (mode == SpriteDrawMode::Decal)
+		{
+			kind = ViewPipelineKind::Decal;
+		}
 		const bool hasEntityID = view.Target->GetSpecification().EntityID;
-		VulkanPipeline* pickablePipeline = GetViewPipeline(kind, *view.Target, overlay == false);
+		// Overlay quads can be pickable too: HUD sprites carry their entity (outlines and lines don't).
+		VulkanPipeline* pickablePipeline = GetViewPipeline(kind, *view.Target, true);
 		VulkanPipeline* otherPipeline = hasEntityID ? GetViewPipeline(kind, *view.Target, false) : pickablePipeline;
 
 		// Bound by every pass that draws quads: the pass before may have bound another pipeline (the composite).
@@ -1813,10 +1837,6 @@ namespace Hydro
 		features.push_back(CreateScope<FunctionRenderFeature>("Sprites",
 			[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
 			{
-				if (context.Settings.SpriteSorting == SpriteSortMode::ViewDepth)
-				{
-					AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "view-depth sorting is not implemented yet (M3); sprites keep the SortOrder order");
-				}
 				if (context.Settings.DefaultSpriteAlpha == SpriteAlphaDefault::Cutout && context.Settings.Depth != DepthMode::Shared)
 				{
 					AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "cut-out sprites need Depth = Shared; sprites are drawn translucent");

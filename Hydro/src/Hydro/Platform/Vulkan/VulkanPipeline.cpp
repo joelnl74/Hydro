@@ -202,7 +202,10 @@ namespace Hydro
 		// Geometry is counter-clockwise in world space. Camera projections flip Y for Vulkan (Camera.h),
 		// which keeps that winding counter-clockwise on screen.
 		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		rasterizer.depthBiasEnable = VK_FALSE;
+		rasterizer.depthBiasEnable = (spec.DepthBiasConstant != 0.0f || spec.DepthBiasSlope != 0.0f) ? VK_TRUE : VK_FALSE;
+		rasterizer.depthBiasConstantFactor = spec.DepthBiasConstant;
+		rasterizer.depthBiasSlopeFactor = spec.DepthBiasSlope;
+		rasterizer.depthBiasClamp = 0.0f;
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
