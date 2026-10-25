@@ -55,6 +55,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanRenderViewData.h` | A view's GPU state (`RenderViewData`: target, batches, texture sets, lights, draws, graph), `QuadVertex` (with `EntityID`), `RenderPassContext` (command buffer, frame, view); shared by `RenderView.cpp` and `Renderer2D.cpp` |
 | `VulkanRenderTarget.*` | Offscreen target for dynamic rendering (colour, optional depth and entity ID, per frame in flight), tracked layouts, `Begin` / `End` with explicit load ops, `Resize` |
 | `VulkanPipeline.*` | Pipeline from `PipelineSpecification` (shader and descriptor sets not owned; `BlendMode` None / Alpha / Additive / Multiply2x; integer attachments never blended, `WriteIntegerAttachments`); `BindDescriptorSet`, `PushConstants` |
+| `VulkanShaderLibrary.*` | Shaders by name (`Load`, `Get`), one `FileWatcher` each, `ReloadChanged` for hot reload |
 | `VulkanShader.*` | shaderc compile from GLSL, `#include`, source list for hot reload |
 | `VulkanDescriptors.*` | `VulkanDescriptorAllocator`: the descriptor set layout cache, persistent sets (growable pools, freed through the deletion queue) and per-frame sets (pools per frame in flight, reset after its fence) |
 | `VulkanDescriptorBuilder.*` | One persistent set per frame in flight (layout from the cache, sets from `VulkanDescriptorAllocator`); `BindBuffer`/`BindImage`/`WriteImages` |

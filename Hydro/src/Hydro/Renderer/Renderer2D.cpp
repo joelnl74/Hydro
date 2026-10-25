@@ -3,6 +3,7 @@
 #include "Renderer2D.h"
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
 #include "Hydro/Platform/Vulkan/VulkanBuffer.h"
+#include "Hydro/Platform/Vulkan/VulkanShaderLibrary.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderTarget.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanImageReadback.h"
@@ -82,9 +83,7 @@ namespace Hydro
 
 		glm::vec4 QuadVertexPositions[4];
 
-		Scope<VulkanShader> Shader;
-		// Shader hot reload: the shader's source files, checked every ShaderPollInterval.
-		FileWatcher ShaderWatcher;
+		// Shader hot reload: VulkanShaderLibrary::ReloadChanged, at most every ShaderPollInterval.
 		std::chrono::steady_clock::time_point NextShaderPoll{};
 		static constexpr std::chrono::milliseconds ShaderPollInterval{ 250 };
 
@@ -94,19 +93,13 @@ namespace Hydro
 		// is multiplied over the scene (CompositePipeline). Built like QuadPipeline, from the attachment
 		// formats (LightBufferFormat, ViewColorFormat). Optional: all of it stays null when the light shaders
 		// can't be built, and views are then drawn unlit (see CreateLightingResources).
-		Scope<VulkanShader> LightShader;
-		FileWatcher LightShaderWatcher;
 		Scope<VulkanPipeline> LightPipeline;
 		Scope<VulkanDescriptorBuilder> CompositeLayoutDescriptorSet;
-		Scope<VulkanShader> CompositeShader;
-		FileWatcher CompositeShaderWatcher;
 		Scope<VulkanPipeline> CompositePipeline;
 		bool LightLimitWarned = false;
 
 		// Blob shadows: drawn into the light buffer after the lights (BlendMode::Darken). Optional like the
 		// lights, and separately: without the shadow shader the lights still work.
-		Scope<VulkanShader> ShadowShader;
-		FileWatcher ShadowShaderWatcher;
 		Scope<VulkanPipeline> ShadowPipeline;
 		bool ShadowLimitWarned = false;
 
@@ -115,13 +108,9 @@ namespace Hydro
 		// (ClearViewPipelines); a null entry is one that failed to build (logged once). The plain 2D layout
 		// (one colour attachment) keeps using the pipelines above.
 		std::map<ViewPipelineKey, Scope<VulkanPipeline>> ViewPipelines;
-		Scope<VulkanShader> CutoutShader;
-		FileWatcher CutoutShaderWatcher;
 
 		// TEMPORARY(S1, removed in M4): the spike's unlit box, one indexed draw per box, its transform and
 		// colour in push constants.
-		Scope<VulkanShader> SpikeBoxShader;
-		FileWatcher SpikeBoxShaderWatcher;
 		Scope<VulkanBuffer> SpikeBoxVertexBuffer; // GpuOnly
 		Scope<VulkanBuffer> SpikeBoxIndexBuffer;  // GpuOnly
 
@@ -246,21 +235,19 @@ namespace Hydro
 		};
 	}
 
-	static Scope<VulkanShader> CreateEffectShader(const char* vertexPath, const char* fragmentPath)
+	// Renderer2D's shaders in the VulkanShaderLibrary, by name.
+	static constexpr const char* SpriteShaderName = "Sprite";
+	static constexpr const char* SpriteCutoutShaderName = "SpriteCutout";
+	static constexpr const char* LightShaderName = "Light";
+	static constexpr const char* ShadowShaderName = "Shadow";
+	static constexpr const char* CompositeShaderName = "Composite";
+	static constexpr const char* SpikeBoxShaderName = "SpikeBox"; // TEMPORARY(S1)
+
+	// The shader loaded under `name`, loading it the first time. Throws when it doesn't compile.
+	static VulkanShader& GetOrLoadShader(const char* name, const char* vertexPath, const char* fragmentPath)
 	{
-		ShaderInformation vertexInformation;
-		vertexInformation.path = vertexPath;
-		vertexInformation.shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertexInformation.shaderType = ShaderType::Vertex;
-
-		ShaderInformation fragmentInformation;
-		fragmentInformation.path = fragmentPath;
-		fragmentInformation.shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragmentInformation.shaderType = ShaderType::Fragment;
-
-		ShaderSpecification specification;
-		specification.shaderInformation = { vertexInformation, fragmentInformation };
-		return CreateScope<VulkanShader>(specification);
+		VulkanShader* shader = VulkanShaderLibrary::Get(name);
+		return shader != nullptr ? *shader : VulkanShaderLibrary::Load(name, vertexPath, fragmentPath);
 	}
 
 	// Set 0 of the composite shader: binding 0 = the light buffer (an image array, see BindImage). Only its
@@ -327,24 +314,18 @@ namespace Hydro
 	{
 		try
 		{
-			s_Data->LightShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/light.frag");
-			s_Data->LightShaderWatcher = FileWatcher(s_Data->LightShader->GetSourceFiles());
-			s_Data->LightPipeline = BuildLightPipeline(*s_Data->LightShader);
+			s_Data->LightPipeline = BuildLightPipeline(VulkanShaderLibrary::Load(LightShaderName, "assets/shaders/vertex.vert", "assets/shaders/light.frag"));
 
 			s_Data->CompositeLayoutDescriptorSet = BuildLightBufferDescriptorSet();
-			s_Data->CompositeShader = CreateEffectShader("assets/shaders/composite.vert", "assets/shaders/composite.frag");
-			s_Data->CompositeShaderWatcher = FileWatcher(s_Data->CompositeShader->GetSourceFiles());
-			s_Data->CompositePipeline = BuildCompositePipeline(*s_Data->CompositeShader);
+			s_Data->CompositePipeline = BuildCompositePipeline(VulkanShaderLibrary::Load(CompositeShaderName, "assets/shaders/composite.vert", "assets/shaders/composite.frag"));
 		}
 		catch (const std::exception& e)
 		{
 			HY_CORE_ERROR("Renderer2D: 2D lighting is unavailable, views are drawn unlit: {}", e.what());
 
 			s_Data->CompositePipeline.reset();
-			s_Data->CompositeShader.reset();
 			s_Data->CompositeLayoutDescriptorSet.reset();
 			s_Data->LightPipeline.reset();
-			s_Data->LightShader.reset();
 		}
 	}
 
@@ -359,44 +340,36 @@ namespace Hydro
 
 		try
 		{
-			s_Data->ShadowShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/shadow.frag");
-			s_Data->ShadowShaderWatcher = FileWatcher(s_Data->ShadowShader->GetSourceFiles());
-			s_Data->ShadowPipeline = BuildShadowPipeline(*s_Data->ShadowShader);
+			s_Data->ShadowPipeline = BuildShadowPipeline(VulkanShaderLibrary::Load(ShadowShaderName, "assets/shaders/vertex.vert", "assets/shaders/shadow.frag"));
 		}
 		catch (const std::exception& e)
 		{
 			HY_CORE_ERROR("Renderer2D: shadows are unavailable, lit views are drawn without them: {}", e.what());
 
 			s_Data->ShadowPipeline.reset();
-			s_Data->ShadowShader.reset();
 		}
 	}
 
-	// Rebuilds a light or composite pipeline from its shader files (shader hot reload). The old pipeline keeps
-	// drawing when the new shader doesn't compile. Returns whether the new one took over.
-	static bool RebuildEffectPipeline(Scope<VulkanShader>& shader, FileWatcher& watcher, Scope<VulkanPipeline>& pipeline)
+	// Rebuilds `pipeline` (when it exists) with the library's current version of `shaderName` (shader hot
+	// reload). The old pipeline keeps drawing when the new one can't be built.
+	static void RebuildPipelineWithShader(Scope<VulkanPipeline>& pipeline, const char* shaderName)
 	{
-		Scope<VulkanShader> newShader;
-		Scope<VulkanPipeline> newPipeline;
+		VulkanShader* shader = VulkanShaderLibrary::Get(shaderName);
+		if (pipeline == nullptr || shader == nullptr)
+		{
+			return;
+		}
+
 		try
 		{
-			newShader = CreateScope<VulkanShader>(shader->GetSpecification());
-
 			PipelineSpecification specification = pipeline->GetSpecification();
-			specification.Shader = newShader.get();
-			newPipeline = CreateScope<VulkanPipeline>(specification);
+			specification.Shader = shader;
+			pipeline = CreateScope<VulkanPipeline>(specification);
 		}
-		catch (const std::exception&)
+		catch (const std::exception& e)
 		{
-			// VulkanShader already logged the compiler output.
-			HY_CORE_WARN("Lighting pipeline rebuild failed; still using the previous one.");
-			return false;
+			HY_CORE_WARN("Renderer2D: the '{}' pipeline couldn't be rebuilt; still using the previous one: {}", shaderName, e.what());
 		}
-
-		pipeline = std::move(newPipeline);
-		shader = std::move(newShader);
-		watcher = FileWatcher(shader->GetSourceFiles());
-		return true;
 	}
 
 	// ---- Shared depth -----------------------------------------------------------
@@ -416,6 +389,34 @@ namespace Hydro
 	static void ClearViewPipelines()
 	{
 		s_Data->ViewPipelines.clear();
+	}
+
+	// The library shader a view pipeline kind is built from.
+	static const char* GetViewPipelineShaderName(ViewPipelineKind kind)
+	{
+		switch (kind)
+		{
+			case ViewPipelineKind::Cutout: return SpriteCutoutShaderName;
+			case ViewPipelineKind::Composite: return CompositeShaderName;
+			case ViewPipelineKind::SpikeBox: return SpikeBoxShaderName;
+			default: return SpriteShaderName;
+		}
+	}
+
+	// Drops only the cached view pipelines built from `shaderName` (its hot reload); the rest are kept.
+	static void ClearViewPipelines(const std::string& shaderName)
+	{
+		for (auto it = s_Data->ViewPipelines.begin(); it != s_Data->ViewPipelines.end();)
+		{
+			if (shaderName == GetViewPipelineShaderName(it->first.Kind))
+			{
+				it = s_Data->ViewPipelines.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
 	}
 
 	// TEMPORARY(S1): the unit box, base centred on the origin, 1 high along +Z. Each face has its own four
@@ -488,15 +489,10 @@ namespace Hydro
 			case ViewPipelineKind::Overlay:
 			case ViewPipelineKind::Cutout:
 				specification = s_Data->QuadPipeline->GetSpecification();
-				specification.Shader = s_Data->Shader.get();
+				specification.Shader = VulkanShaderLibrary::Get(SpriteShaderName);
 				if (key.Kind == ViewPipelineKind::Cutout)
 				{
-					if (s_Data->CutoutShader == nullptr)
-					{
-						s_Data->CutoutShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/sprite_cutout.frag");
-						s_Data->CutoutShaderWatcher = FileWatcher(s_Data->CutoutShader->GetSourceFiles());
-					}
-					specification.Shader = s_Data->CutoutShader.get();
+					specification.Shader = &GetOrLoadShader(SpriteCutoutShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_cutout.frag");
 					// Opaque where kept: the shader writes alpha 1, nothing to blend.
 					specification.Blend = BlendMode::None;
 				}
@@ -517,20 +513,15 @@ namespace Hydro
 					return nullptr;
 				}
 				specification = s_Data->CompositePipeline->GetSpecification();
-				specification.Shader = s_Data->CompositeShader.get();
+				specification.Shader = VulkanShaderLibrary::Get(CompositeShaderName);
 				specification.DepthTest = false;
 				specification.DepthWrite = false;
 				break;
 
 			case ViewPipelineKind::SpikeBox:
-				if (s_Data->SpikeBoxShader == nullptr)
-				{
-					s_Data->SpikeBoxShader = CreateEffectShader("assets/shaders/spike_box.vert", "assets/shaders/spike_box.frag");
-					s_Data->SpikeBoxShaderWatcher = FileWatcher(s_Data->SpikeBoxShader->GetSourceFiles());
-				}
 				specification.Layout = GetQuadVertexLayout();
 				specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
-				specification.Shader = s_Data->SpikeBoxShader.get();
+				specification.Shader = &GetOrLoadShader(SpikeBoxShaderName, "assets/shaders/spike_box.vert", "assets/shaders/spike_box.frag");
 				specification.PushConstantSize = (uint32_t)sizeof(SpikeBoxPushConstants);
 				specification.BackfaceCulling = false;
 				specification.DepthTest = true;
@@ -590,55 +581,10 @@ namespace Hydro
 		return result;
 	}
 
-	// A view-pipeline shader file changed (hot reload): compile it again; the cached pipelines are rebuilt from it
-	// on the next draw. A shader that doesn't compile leaves the old pipelines drawing.
-	static bool ReloadViewShader(Scope<VulkanShader>& shader, FileWatcher& watcher)
-	{
-		if (shader == nullptr)
-		{
-			return false;
-		}
-
-		Scope<VulkanShader> newShader;
-		try
-		{
-			newShader = CreateScope<VulkanShader>(shader->GetSpecification());
-		}
-		catch (const std::exception&)
-		{
-			// VulkanShader already logged the compiler output.
-			HY_CORE_WARN("Shader reload failed; still using the previous pipelines.");
-			return false;
-		}
-
-		shader = std::move(newShader);
-		watcher = FileWatcher(shader->GetSourceFiles());
-		ClearViewPipelines();
-		return true;
-	}
-
 	void Renderer2D::Init()
 	{
 		HY_CORE_ASSERT(s_Data == nullptr, "Renderer2D::Init called twice");
 		s_Data = new Renderer2DData();
-
-		/// Should be done before even entering the renderer shaders should have an get method from some sort of library.
-		ShaderInformation vertexInformation;
-		vertexInformation.path = "assets/shaders/vertex.vert";
-		vertexInformation.shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertexInformation.shaderType = ShaderType::Vertex;
-
-		ShaderInformation fragmentInformation;
-		fragmentInformation.path = "assets/shaders/fragment.frag";
-		fragmentInformation.shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragmentInformation.shaderType = ShaderType::Fragment;
-
-		ShaderSpecification shaderSpecification;
-		shaderSpecification.shaderInformation =
-		{
-			vertexInformation,
-			fragmentInformation,
-		};
 
 		// Counter-clockwise starting bottom-left, matching the texture coords in SubmitQuad.
 		s_Data->QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
@@ -646,9 +592,8 @@ namespace Hydro
 		s_Data->QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
 		s_Data->QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
-		s_Data->Shader = CreateScope<VulkanShader>(shaderSpecification);
-		s_Data->ShaderWatcher = FileWatcher(s_Data->Shader->GetSourceFiles());
-		/// END BLOCK!
+		// The quad shader is required (throws when it doesn't compile); the others are optional.
+		VulkanShaderLibrary::Load(SpriteShaderName, "assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 
 		// The white texture is made in code, so plain coloured quads need no file.
 		{
@@ -727,7 +672,7 @@ namespace Hydro
 		specification.Layout = GetQuadVertexLayout();
 
 		specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
-		specification.Shader = s_Data->Shader.get();
+		specification.Shader = VulkanShaderLibrary::Get(SpriteShaderName);
 		specification.ColorFormats = { ViewColorFormat };
 		// Sprites: alpha blended, drawn in submission order, visible from both sides (negative scale flips them).
 		specification.Blend = BlendMode::Alpha;
@@ -794,16 +739,11 @@ namespace Hydro
 		ClearViewPipelines();
 		s_Data->SpikeBoxIndexBuffer.reset();
 		s_Data->SpikeBoxVertexBuffer.reset();
-		s_Data->SpikeBoxShader.reset();
-		s_Data->CutoutShader.reset();
 
 		s_Data->ShadowPipeline.reset();
-		s_Data->ShadowShader.reset();
 		s_Data->CompositePipeline.reset();
-		s_Data->CompositeShader.reset();
 		s_Data->CompositeLayoutDescriptorSet.reset();
 		s_Data->LightPipeline.reset();
-		s_Data->LightShader.reset();
 
 		s_Data->QuadPipeline.reset();
 		s_Data->LayoutDescriptorSet.reset();
@@ -811,7 +751,6 @@ namespace Hydro
 		s_Data->QuadIndexBuffer.reset();
 		s_Data->SoftDotTexture.reset();
 		s_Data->WhiteTexture.reset();
-		s_Data->Shader.reset();
 
 		delete s_Data;
 		s_Data = nullptr;
@@ -2298,9 +2237,10 @@ namespace Hydro
 		// The wireframe flag is baked into the pipeline, so a change means a rebuild.
 		// Only rebuild when the GPU can do it; otherwise VulkanPipeline would warn every frame.
 		const bool wireframe = settings.Wireframe && Renderer::GetCapabilities().Wireframe;
-		if (wireframe != s_Data->QuadPipeline->GetSpecification().Wireframe)
+		if (wireframe != s_Data->QuadPipeline->GetSpecification().Wireframe && RebuildQuadPipeline(wireframe))
 		{
-			RebuildQuadPipeline(false, wireframe);
+			// Every cached view pipeline copies the quad pipeline's wireframe setting.
+			ClearViewPipelines();
 		}
 
 		ReloadShadersIfChanged();
@@ -2322,83 +2262,50 @@ namespace Hydro
 
 		s_Data->NextShaderPoll = now + Renderer2DData::ShaderPollInterval;
 
-		// Every watcher is polled (a poll takes the new file times), then each changed shader is rebuilt.
-		// A broken shader is retried on the next save, not every poll.
-		const bool quadChanged = s_Data->ShaderWatcher.Poll();
-		const bool lightChanged = s_Data->LightShaderWatcher.Poll();
-		const bool compositeChanged = s_Data->CompositeShaderWatcher.Poll();
-		const bool shadowChanged = s_Data->ShadowShaderWatcher.Poll();
-		const bool cutoutChanged = s_Data->CutoutShaderWatcher.Poll();
-		const bool spikeBoxChanged = s_Data->SpikeBoxShaderWatcher.Poll();
-
-		if (quadChanged && RebuildQuadPipeline(true, s_Data->QuadPipeline->GetSpecification().Wireframe))
+		// Only what was built from a changed shader is rebuilt; the rest keeps drawing.
+		for (const std::string& name : VulkanShaderLibrary::ReloadChanged())
 		{
-			HY_CORE_INFO("Shaders reloaded.");
-		}
-
-		if (cutoutChanged && ReloadViewShader(s_Data->CutoutShader, s_Data->CutoutShaderWatcher))
-		{
-			HY_CORE_INFO("Cut-out sprite shader reloaded.");
-		}
-
-		if (spikeBoxChanged && ReloadViewShader(s_Data->SpikeBoxShader, s_Data->SpikeBoxShaderWatcher))
-		{
-			HY_CORE_INFO("Spike box shader reloaded.");
-		}
-
-		if (lightChanged && s_Data->LightPipeline != nullptr && RebuildEffectPipeline(s_Data->LightShader, s_Data->LightShaderWatcher, s_Data->LightPipeline))
-		{
-			HY_CORE_INFO("Light shader reloaded.");
-		}
-
-		if (shadowChanged && s_Data->ShadowPipeline != nullptr && RebuildEffectPipeline(s_Data->ShadowShader, s_Data->ShadowShaderWatcher, s_Data->ShadowPipeline))
-		{
-			HY_CORE_INFO("Shadow shader reloaded.");
-		}
-
-		if (compositeChanged && s_Data->CompositePipeline != nullptr && RebuildEffectPipeline(s_Data->CompositeShader, s_Data->CompositeShaderWatcher, s_Data->CompositePipeline))
-		{
-			ClearViewPipelines();
-			HY_CORE_INFO("Composite shader reloaded.");
+			if (name == SpriteShaderName)
+			{
+				RebuildQuadPipeline(s_Data->QuadPipeline->GetSpecification().Wireframe);
+			}
+			else if (name == LightShaderName)
+			{
+				RebuildPipelineWithShader(s_Data->LightPipeline, LightShaderName);
+			}
+			else if (name == ShadowShaderName)
+			{
+				RebuildPipelineWithShader(s_Data->ShadowPipeline, ShadowShaderName);
+			}
+			else if (name == CompositeShaderName)
+			{
+				RebuildPipelineWithShader(s_Data->CompositePipeline, CompositeShaderName);
+			}
+			ClearViewPipelines(name);
+			HY_CORE_INFO("Shader '{}' reloaded.", name);
 		}
 	}
 
-	bool Renderer2D::RebuildQuadPipeline(bool recompileShader, bool wireframe)
+	bool Renderer2D::RebuildQuadPipeline(bool wireframe)
 	{
-		// Build the replacements first, so a shader that doesn't compile leaves the old one drawing.
-		Scope<VulkanShader> newShader;
+		// Built first, so a pipeline that can't be built leaves the old one drawing.
 		Scope<VulkanPipeline> pipeline;
 		try
 		{
-			if (recompileShader)
-			{
-				newShader = CreateScope<VulkanShader>(s_Data->Shader->GetSpecification());
-			}
-
 			PipelineSpecification specification = s_Data->QuadPipeline->GetSpecification();
-			specification.Shader = recompileShader ? newShader.get() : s_Data->Shader.get();
+			specification.Shader = VulkanShaderLibrary::Get(SpriteShaderName);
 			specification.Wireframe = wireframe;
 			pipeline = CreateScope<VulkanPipeline>(specification);
 		}
-		catch (const std::exception&)
+		catch (const std::exception& e)
 		{
-			// VulkanShader already logged the compiler output.
-			HY_CORE_WARN("Quad pipeline rebuild failed; still using the previous one.");
+			HY_CORE_WARN("Quad pipeline rebuild failed; still using the previous one: {}", e.what());
 			return false;
 		}
 
-		// No need to wait for the GPU: the old pipeline frees itself through the deletion queue once
-		// the frames in flight that bound it are done. Shader modules aren't used after a pipeline is
-		// created, so the old shader can go at once.
+		// No need to wait for the GPU: the old pipeline frees itself through the deletion queue once the
+		// frames in flight that bound it are done.
 		s_Data->QuadPipeline = std::move(pipeline);
-		if (recompileShader)
-		{
-			s_Data->Shader = std::move(newShader);
-			s_Data->ShaderWatcher = FileWatcher(s_Data->Shader->GetSourceFiles());
-		}
-		// The cached view pipelines are built from the quad pipeline: rebuild them with the new shader or wireframe.
-		ClearViewPipelines();
-
 		return true;
 	}
 }

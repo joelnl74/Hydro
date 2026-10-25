@@ -6,6 +6,7 @@
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanDescriptors.h"
+#include "Hydro/Platform/Vulkan/VulkanShaderLibrary.h"
 #include "Hydro/Core/Time.h"
 
 namespace Hydro
@@ -92,6 +93,8 @@ namespace Hydro
 		VulkanAllocator::Init(renderer.m_RendererContext->GetInstance(), device);
 		// Descriptor set layouts and pools (persistent and per frame in flight).
 		VulkanDescriptorAllocator::Init();
+		// Shaders by name, with their hot reload (Renderer2D loads its own at Init).
+		VulkanShaderLibrary::Init();
 
 		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
 		Renderer2D::Init();
@@ -114,6 +117,7 @@ namespace Hydro
 		Renderer2D::Shutdown();
 		// The sub-renderers' resources went into the queue: free them while the allocator and device exist.
 		s_Instance->FlushResourceFrees(true);
+		VulkanShaderLibrary::Shutdown();
 		VulkanDescriptorAllocator::Shutdown();
 		VulkanAllocator::Shutdown();
 

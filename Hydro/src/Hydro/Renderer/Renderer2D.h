@@ -223,13 +223,13 @@ namespace Hydro
 		static bool RecordLightPass(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
 		// Multiplies the light buffer over the scene. Call it inside the scene pass, after the sprites.
 		static void RecordComposite(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame);
-		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and recompiles the quad
-		// shader when a source file changed (only with RendererSettings::ShaderHotReload).
+		// Applies Renderer::GetSettings() that need a rebuild (wireframe), and rebuilds what was built from a
+		// shader whose source changed (VulkanShaderLibrary; only with RendererSettings::ShaderHotReload).
 		static void ApplySettings();
 		static void ReloadShadersIfChanged();
-		// Builds a new quad pipeline (optionally with a new shader) and swaps it in; the old one is
-		// freed through the deletion queue. On failure the current one keeps drawing and false is returned.
-		static bool RebuildQuadPipeline(bool recompileShader, bool wireframe);
+		// Builds a new quad pipeline from the library's "Sprite" shader and swaps it in; the old one is freed
+		// through the deletion queue. On failure the current one keeps drawing and false is returned.
+		static bool RebuildQuadPipeline(bool wireframe);
 
 		friend class Hydro::RenderView;
 	};
