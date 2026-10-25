@@ -182,6 +182,7 @@ namespace Hydro
 
 		static constexpr int VisibleRows = 6;
 		static constexpr float InteractRange = 1.7f;
+		static constexpr float MaxReachHeight = 1.0f;   // metres between the player's ground and the item's
 		static constexpr float MessageTime = 3.0f;
 		static constexpr float LeaveTime = 0.6f;
 		static constexpr float RestTime = 1.2f;
@@ -191,11 +192,18 @@ namespace Hydro
 		void UpdateInteraction(Scene& scene)
 		{
 			const glm::vec2 player = Position(scene, m_Player);
+			// The ground the player stands on: a terrace in the Shrine Glade (DioramaWalk), 0 elsewhere.
+			const float playerHeight = Height(scene, m_Player);
 			Interactable* nearest = nullptr;
 			float best = InteractRange;
 			for (Interactable& item : m_Interactables)
 			{
 				if (Alive(scene, item.Entity) == false)
+				{
+					continue;
+				}
+				// Not through a terrace wall: a save stone on the level above is out of reach.
+				if (std::abs(Height(scene, item.Entity) - playerHeight) > MaxReachHeight)
 				{
 					continue;
 				}
@@ -214,7 +222,7 @@ namespace Hydro
 			}
 			SetSprite(scene, m_Prompt.Label, (uint32_t)PromptFor(nearest->Type));
 			// Above the player's head, in either camera view (DioramaCamera.h).
-			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, 0.0f), 2.35f);
+			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, playerHeight), 2.35f);
 			SetPosition(scene, m_Prompt.Panel, overHead);
 			SetPosition(scene, m_Prompt.Label, overHead);
 
@@ -504,6 +512,15 @@ namespace Hydro
 				return { position.x, position.y };
 			}
 			return glm::vec2(0.0f);
+		}
+
+		static float Height(Scene& scene, entt::entity entity)
+		{
+			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
+			{
+				return scene.m_Registry.get<TransformComponent>(entity).Translation.z;
+			}
+			return 0.0f;
 		}
 
 		static void SetPosition(Scene& scene, entt::entity entity, const glm::vec2& position)

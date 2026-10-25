@@ -1,0 +1,17 @@
+Handle: 7947839098198136297
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 32
+  Slicing:
+    Mode: Grid
+    CellSize: [64, 64]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 6
+    Rows: 12
+    RowNames: [WalkDown, WalkUp, WalkLeft, WalkRight, ActionDown, ActionUp, ActionLeft, ActionRight, IdleDown, IdleUp, IdleLeft, IdleRight]
+    DefaultPivot: [0.5, 0.0156]

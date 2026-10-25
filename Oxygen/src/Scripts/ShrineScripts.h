@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <vector>
 
 // The Shrine Glade (Assets/Scenes/ShrineGlade.hyscene): the first scene that mixes meshes (terraces,
 // retaining walls, stairs, the imported shrine and stone lanterns) with upright sprites (trees, props,
@@ -14,11 +15,14 @@ namespace Hydro
 {
 	// The walkable ground of a scene, read from its MeshComponents every time it is asked: the top of the
 	// highest built-in shape (or model, as its bounding box) under a point. Shapes may be turned about Z only
-	// (their Rotation.z), as blockout is. Game code for now; a collision system replaces it.
+	// (their Rotation.z), as blockout is. A model whose geometry starts well above its entity's base (a tree's
+	// crown) is overhead, not ground: things walk under it. Game code for now; a collision system replaces it.
 	struct DioramaGround
 	{
 		// No ground at all here (outside the map).
 		static constexpr float None = -1.0e9f;
+		// A model whose lowest point is this far above its entity's base is overhead (metres).
+		static constexpr float OverheadClearance = 2.0f;
 
 		static float HeightAt(Scene& scene, const glm::vec2& point)
 		{
@@ -53,6 +57,10 @@ namespace Hydro
 				}
 				const glm::vec3& min = model->GetBoundsMin();
 				const glm::vec3& max = model->GetBoundsMax();
+				if (min.z * scale.z > OverheadClearance)
+				{
+					return None;
+				}
 				if (local.x < min.x || local.x > max.x || local.y < min.y || local.y > max.y)
 				{
 					return None;
@@ -233,7 +241,17 @@ namespace Hydro
 		float m_HeightEasing = 18.0f;
 	};
 
-	// On the Shrine Glade's director entity: the scene starts in the tilted diorama view (V still switches).
+	// On the Shrine Glade's director entity: the scene's framing and its light.
+	//   - Starts in the tilted diorama view, much lower than the other field scenes (70 degrees from straight
+	//     down, 20 below the horizon, with a wider 35 degree lens): the terrace walls, the steps and the
+	//     shrine face the camera and the sunset shows over the valley's pines, as in the concept. The follow
+	//     camera looks 3 m ahead up the stairs and 2.2 m above the player's ground, and its focus stays on the
+	//     dressed stage (SceneBounds). All of it is reset when the scene ends. Keep in step with
+	//     scripts/shrine_glade/preview.py (TILT_DEGREES, FOV_DEGREES, FOCUS_LEAD, FOCUS_RISE, BOUNDS).
+	//   - Owns the light (the scene is forward lit, M6): the scene's Environment (sky and ground ambient, fog),
+	//     the main light (the sun's DirectionalLightComponent) and every point light whose tag starts
+	//     "Light Lantern" (flickering amber pools). Keys 1 / 2 / 3: day, golden dusk (the default, the
+	//     concept's), night; L lanterns on/off. The scene file's Environment and sun are the dusk preset.
 	class ShrineGladeScript : public ScriptableEntity
 	{
 	protected:
@@ -241,8 +259,134 @@ namespace Hydro
 		{
 			DioramaView::Enabled = true;
 			DioramaView::Blend = 1.0f;
-			HY_INFO("Shrine Glade: WASD walk up the stairs to the shrine, E interact, V top-down / tilted, O perspective / orthographic");
+			DioramaView::SceneTiltDegrees = 70.0f;
+			DioramaView::SceneFieldOfView = 35.0f;
+			DioramaView::SceneFocusLead = 3.0f;
+			DioramaView::SceneFocusRise = 2.2f;
+			DioramaView::HasSceneBounds = true;
+			DioramaView::SceneBoundsMin = { -2.0f, -8.0f };
+			DioramaView::SceneBoundsMax = { 2.0f, 6.0f };
+
+			Scene& scene = *GetEntity().GetScene();
+			auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
+			for (auto entity : lights)
+			{
+				const std::string& tag = lights.get<TagComponent>(entity).Tag;
+				const Light2DComponent& light = lights.get<Light2DComponent>(entity);
+				if (light.Type == Light2DType::Point && tag.rfind("Light Lantern", 0) == 0)
+				{
+					m_Lanterns.push_back({ entity, light.Intensity, light.Radius, (float)m_Lanterns.size() * 1.9f });
+				}
+			}
+			ApplyPreset();
+			HY_INFO("Shrine Glade: WASD walk up the stairs to the shrine, E interact, 1/2/3 day-dusk-night, L lanterns, V top-down / tilted, O perspective / orthographic");
 		}
+
+		void OnDestroy() override
+		{
+			DioramaView::ResetSceneFraming();
+		}
+
+		void OnUpdate(float deltaTime) override
+		{
+			m_Time += deltaTime;
+			const KeyCode keys[3] = { KeyCode::D1, KeyCode::D2, KeyCode::D3 };
+			for (int i = 0; i < 3; i++)
+			{
+				if (KeyPressed(keys[i], m_Previous[i]))
+				{
+					m_Preset = i;
+					ApplyPreset();
+				}
+			}
+			if (KeyPressed(KeyCode::L, m_Previous[3]))
+			{
+				m_LanternsOn = m_LanternsOn == false;
+			}
+
+			// Lanterns: a slow breathing flicker from a few sines, different per lantern (no random jumps).
+			Scene& scene = *GetEntity().GetScene();
+			const float factor = m_LanternsOn ? GetPreset(m_Preset).LanternFactor : 0.0f;
+			for (const Lantern& lantern : m_Lanterns)
+			{
+				if (scene.m_Registry.valid(lantern.Entity) == false)
+				{
+					continue;
+				}
+				const float t = m_Time + lantern.Phase;
+				const float flicker = 0.5f * std::sin(t * 6.3f) + 0.3f * std::sin(t * 11.9f + 1.3f) + 0.2f * std::sin(t * 2.7f + 0.4f);
+				Light2DComponent& light = scene.m_Registry.get<Light2DComponent>(lantern.Entity);
+				light.Intensity = lantern.BaseIntensity * factor * (1.0f + 0.05f * flicker);
+				light.Radius = lantern.BaseRadius * (1.0f + 0.02f * flicker);
+			}
+		}
+
+	private:
+		struct Lantern
+		{
+			entt::entity Entity = entt::null;
+			float BaseIntensity = 1.0f;
+			float BaseRadius = 1.0f;
+			float Phase = 0.0f;
+		};
+
+		// One time of day: the sun's colour and strength, the hemisphere ambient, the fog, and how much of their
+		// strength the lanterns keep. Dusk is what build.py writes into the scene; keep them in step (and
+		// scripts/shrine_glade/preview.py's PRESETS, which approximates them).
+		struct Preset
+		{
+			const char* Name;
+			glm::vec3 SunColor;
+			float SunIntensity;
+			glm::vec3 SkyAmbient;
+			glm::vec3 GroundAmbient;
+			glm::vec3 FogColor;
+			float LanternFactor;
+		};
+		static const Preset& GetPreset(int index)
+		{
+			static const Preset presets[3] = {
+				{ "Day", { 1.00f, 0.95f, 0.85f }, 1.10f, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, 0.0f },
+				{ "Dusk", { 1.00f, 0.72f, 0.46f }, 0.75f, { 0.36f, 0.28f, 0.32f }, { 0.12f, 0.09f, 0.08f }, { 0.66f, 0.44f, 0.36f }, 1.0f },
+				{ "Night", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
+			};
+			return presets[index];
+		}
+
+		void ApplyPreset()
+		{
+			Scene& scene = *GetEntity().GetScene();
+			const Preset& preset = GetPreset(m_Preset);
+			SceneEnvironment environment = scene.GetEnvironment();
+			environment.Override = true;
+			environment.SkyAmbient = preset.SkyAmbient;
+			environment.GroundAmbient = preset.GroundAmbient;
+			environment.FogColor = preset.FogColor;
+			scene.SetEnvironment(environment);
+
+			Entity sun = scene.GetMainLight();
+			if ((bool)sun)
+			{
+				DirectionalLightComponent& light = sun.GetComponent<DirectionalLightComponent>();
+				light.Color = preset.SunColor;
+				light.Intensity = preset.SunIntensity;
+			}
+			HY_INFO("Shrine Glade: {}", preset.Name);
+		}
+
+		static bool KeyPressed(KeyCode key, bool& previous)
+		{
+			const bool down = Input::IsKeyPressed(key);
+			const bool pressed = down && previous == false;
+			previous = down;
+			return pressed;
+		}
+
+		std::vector<Lantern> m_Lanterns;
+		int m_Preset = 1;
+		bool m_LanternsOn = true;
+		bool m_Previous[4] = { false, false, false, false };
+		float m_Time = 0.0f;
 	};
 
 	inline void RegisterShrineScripts()

@@ -1,0 +1,10 @@
+Handle: 12577364578639375211
+Material:
+  Type: Standard
+  AlbedoHandle: 11690109383781672479
+  Tint: [1, 1, 1, 1]
+  Tiling: [1, 1]
+  EmissionColor: [0, 0, 0]
+  EmissionIntensity: 1
+  AlphaCutoff: 0
+  Filter: Nearest
