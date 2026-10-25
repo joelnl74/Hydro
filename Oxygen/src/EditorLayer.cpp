@@ -281,6 +281,39 @@ namespace Hydro
 				ImGui::EndMenu();
 			}
 
+			if (ImGui::BeginMenu("Create"))
+			{
+				if (ImGui::MenuItem("Empty Entity"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Entity");
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+				if (ImGui::MenuItem("Sprite"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Sprite");
+					entity.AddComponent<TransformComponent>();
+					entity.AddComponent<SpriteRendererComponent>();
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+				if (ImGui::MenuItem("Camera"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Camera");
+					entity.AddComponent<TransformComponent>();
+					entity.AddComponent<CameraComponent>();
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+				if (ImGui::MenuItem("Light"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Light");
+					entity.AddComponent<TransformComponent>();
+					// entity.AddComponent<LightComponent>();
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+
+				ImGui::EndMenu();
+			}
+
+
 			DrawPlayControls();
 
 			// The waterline: the accent while editing, the play-mode tint while playing.
