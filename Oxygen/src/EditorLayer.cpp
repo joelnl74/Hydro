@@ -7,6 +7,7 @@
 #include "Hydro/Utils/PlatformUtils.h"
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "EditorPaths.h"
 #include "Utilities/AssetDragDrop.h"
@@ -1385,6 +1386,25 @@ namespace Hydro
 		else if (extension == SceneSerializer::FileExtension)
 		{
 			OpenScene(path);
+		}
+		else if (GetAssetTypeFromExtension(path) == AssetType::Mesh)
+		{
+			// A model: an entity with a Mesh component at the editor camera's focus, on the ground, using the
+			// materials the import made (no slots of its own).
+			const AssetHandle handle = AssetManager::FindHandle(path);
+			const Ref<Mesh> model = (uint64_t)handle != 0 ? AssetManager::GetAsset<Mesh>(handle) : nullptr;
+			if (model == nullptr)
+			{
+				return;
+			}
+
+			Entity entity = m_ActiveScene->CreateEntity(path.stem().u8string());
+			const glm::vec3 focus = m_EditorCamera.GetFocalPoint();
+			entity.AddComponent<TransformComponent>().Translation = { focus.x, focus.y, 0.0f };
+			auto& mesh = entity.AddComponent<MeshComponent>();
+			mesh.Model = handle;
+			mesh.Materials.clear();
+			m_HierarchyWindow->SetSelectedEntity(entity);
 		}
 	}
 }

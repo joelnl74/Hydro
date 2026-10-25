@@ -324,6 +324,21 @@ namespace Hydro
 		return slot.Inline;
 	}
 
+	// A slot the component doesn't have: a model's own material for it (the asset its import made), else white.
+	static MaterialData ResolveModelMaterial(const Mesh& mesh, uint32_t slot)
+	{
+		if (slot < mesh.GetMaterials().size())
+		{
+			const AssetHandle handle = mesh.GetMaterials()[slot].DefaultMaterial;
+			const Ref<MaterialAsset> asset = (uint64_t)handle != 0 ? AssetManager::GetLoadedAsset<MaterialAsset>(handle) : nullptr;
+			if (asset != nullptr)
+			{
+				return asset->GetData();
+			}
+		}
+		return MaterialData{};
+	}
+
 	void SceneRenderer::SubmitMeshes(RenderView& renderView)
 	{
 		auto meshes = m_Scene->m_Registry.view<TransformComponent, MeshComponent>();
@@ -348,7 +363,9 @@ namespace Hydro
 		for (auto entity : meshes)
 		{
 			const auto [transform, meshComponent] = meshes.get<TransformComponent, MeshComponent>(entity);
-			const Ref<Mesh> mesh = Renderer3D::GetShapeMesh(meshComponent);
+			// A model that isn't loaded (missing, or failed to import: logged when it was loaded) draws nothing.
+			const Ref<Mesh> mesh = (uint64_t)meshComponent.Model != 0 ? AssetManager::GetLoadedAsset<Mesh>(meshComponent.Model)
+				: Renderer3D::GetShapeMesh(meshComponent);
 			if (mesh == nullptr)
 			{
 				continue;
@@ -359,7 +376,7 @@ namespace Hydro
 			for (uint32_t i = 0; i < subMeshCount; i++)
 			{
 				const uint32_t slot = mesh->GetSubMeshes()[i].MaterialSlot;
-				const MaterialData material = slot < meshComponent.Materials.size() ? ResolveMaterial(meshComponent.Materials[slot]) : MaterialData{};
+				const MaterialData material = slot < meshComponent.Materials.size() ? ResolveMaterial(meshComponent.Materials[slot]) : ResolveModelMaterial(*mesh, slot);
 				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity);
 			}
 		}

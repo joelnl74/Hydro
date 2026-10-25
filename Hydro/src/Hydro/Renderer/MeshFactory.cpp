@@ -83,7 +83,9 @@ namespace Hydro
 
 	static void Finish(MeshData& mesh)
 	{
-		mesh.SubMeshes = { { 0, (uint32_t)mesh.Indices.size(), 0 } };
+		SubMesh whole;
+		whole.IndexCount = (uint32_t)mesh.Indices.size();
+		mesh.SubMeshes = { whole };
 	}
 
 	MeshData MeshFactory::Plane(const glm::vec3& size)

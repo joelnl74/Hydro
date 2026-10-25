@@ -12,7 +12,7 @@ IncludeDir["VMA"] = "%{wks.location}/Hydro/vendor/VulkanMemoryAllocator"
 IncludeDir["entt"] = "%{wks.location}/Hydro/vendor/entt"
 IncludeDir["spdlog"] = "%{wks.location}/Hydro/vendor/spdlog/include"
 IncludeDir["stb"] = "%{wks.location}/Hydro/vendor/stb/include"
-IncludeDir["tinyobjloader"] = "%{wks.location}/Hydro/vendor/Obj-loader"
+IncludeDir["cgltf"] = "%{wks.location}/Hydro/vendor/cgltf"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 
 -- Vendored include directories: searched like includedirs, but the compiler reports no warnings

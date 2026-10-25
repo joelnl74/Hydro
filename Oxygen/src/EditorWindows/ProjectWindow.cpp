@@ -434,7 +434,7 @@ namespace Hydro
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 		{
 			m_SelectedPath = item.Path;
-			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material) && OnAssetSelected)
+			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material || item.Type == ItemType::Model) && OnAssetSelected)
 			{
 				OnAssetSelected(item.Path);
 			}
@@ -453,7 +453,8 @@ namespace Hydro
 		const bool isTexture = item.Type == ItemType::Texture;
 		const bool isAnimationSet = item.Type == ItemType::Animation;
 		const bool isMaterial = item.Type == ItemType::Material;
-		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial) && ImGui::BeginDragDropSource())
+		const bool isModel = item.Type == ItemType::Model;
+		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
@@ -468,6 +469,10 @@ namespace Hydro
 			else if (isMaterial)
 			{
 				ImGui::TextDisabled("Drop on a mesh's material Asset field");
+			}
+			else if (isModel)
+			{
+				ImGui::TextDisabled("Drop into the viewport to place it, or on a mesh's Model field");
 			}
 			else
 			{
@@ -716,6 +721,20 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.95f, 0.55f, 0.20f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
+			case ItemType::Model:
+			{
+				// A cube seen from above the front-right: three shaded faces.
+				const ImVec2 top[4] = { TilePoint(min, size, 0.50f, 0.18f), TilePoint(min, size, 0.80f, 0.32f), TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.20f, 0.32f) };
+				const ImVec2 left[4] = { TilePoint(min, size, 0.20f, 0.32f), TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.50f, 0.82f), TilePoint(min, size, 0.20f, 0.68f) };
+				const ImVec2 right[4] = { TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.80f, 0.32f), TilePoint(min, size, 0.80f, 0.68f), TilePoint(min, size, 0.50f, 0.82f) };
+				drawList->AddConvexPolyFilled(top, 4, ToColor(0.78f, 0.80f, 0.86f));
+				drawList->AddConvexPolyFilled(left, 4, ToColor(0.52f, 0.55f, 0.62f));
+				drawList->AddConvexPolyFilled(right, 4, ToColor(0.38f, 0.41f, 0.48f));
+
+				// Teal strip = model.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.20f, 0.70f, 0.70f), rounding, ImDrawFlags_RoundCornersBottom);
+				break;
+			}
 		}
 	}
 
@@ -764,6 +783,9 @@ namespace Hydro
 				break;
 			case ItemType::Material:
 				ImGui::TextDisabled("Material (Standard) - drag onto a mesh's material Asset field");
+				break;
+			case ItemType::Model:
+				ImGui::TextDisabled("Model (glTF) - drag into the viewport to place it");
 				break;
 		}
 
@@ -855,6 +877,7 @@ namespace Hydro
 				}
 				break;
 			case ItemType::Material:
+			case ItemType::Model:
 				// Edited in the inspector.
 				if (OnAssetSelected)
 				{
@@ -1115,6 +1138,9 @@ namespace Hydro
 				return true;
 			case AssetType::Material:
 				itemType = ItemType::Material;
+				return true;
+			case AssetType::Mesh:
+				itemType = ItemType::Model;
 				return true;
 			default:
 				return false;

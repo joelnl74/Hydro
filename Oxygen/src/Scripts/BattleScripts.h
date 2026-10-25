@@ -209,6 +209,15 @@ namespace Hydro
 				const glm::vec3& playerPosition = scene->m_Registry.get<TransformComponent>(m_Player).Translation;
 				m_PlayerPosition = { playerPosition.x, playerPosition.y };
 				playerDistance = glm::length(m_PlayerPosition - position);
+
+				// A player without a physics body (DioramaWalk in the Shrine Glade) never collides: touching
+				// is being this close on the same level.
+				if (scene->m_Registry.has<Rigidbody2DComponent>(m_Player) == false && playerDistance < TouchRange
+					&& std::abs(playerPosition.z - transform.Translation.z) < 0.5f)
+				{
+					StartBattle();
+					return;
+				}
 			}
 
 			const float homeDistance = glm::length(m_Home - position);
@@ -309,7 +318,14 @@ namespace Hydro
 			{
 				return;
 			}
+			StartBattle();
+		}
 
+	private:
+		// The village (or field) is paused under the battle scene. Once per touch: not while cooling down
+		// after a battle or while one runs.
+		void StartBattle()
+		{
 			if (m_Cooldown > 0.0f || BattleState::Active)
 			{
 				return;
@@ -333,10 +349,10 @@ namespace Hydro
 			SceneTransition::Push("Battle");
 		}
 
-	private:
 		enum class State : uint8_t { Wander, Chase, Return };
 
 		static constexpr float AggroRange = 5.5f;   // the player this close wakes it up
+		static constexpr float TouchRange = 0.7f;   // a player without a body this close is touched
 		static constexpr float LeashRange = 10.0f;  // and this far makes it give up
 		static constexpr float MaxFromHome = 16.0f;
 		static constexpr float WanderRadius = 3.0f;

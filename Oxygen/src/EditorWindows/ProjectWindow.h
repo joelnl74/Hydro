@@ -15,7 +15,8 @@
 
 namespace Hydro
 {
-	// Content browser for <project>/Assets: folders, scenes, prefabs, images, animation sets and materials.
+	// Content browser for <project>/Assets: folders, scenes, prefabs, images, animation sets, materials and
+	// models (.gltf / .glb).
 	// It lists the AssetRegistry (every item that isn't a folder is a registered asset with a handle), plus
 	// the folders on disk. Images show a small cached thumbnail (ThumbnailManager). A prefab shows the
 	// first frame of its animation, or its sprite's image (a blue strip marks it as a prefab); an
@@ -48,7 +49,7 @@ namespace Hydro
 
 	private:
 		// What the window shows an item as (Hydro::AssetType, plus folders).
-		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material };
+		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model };
 
 		struct AssetItem
 		{

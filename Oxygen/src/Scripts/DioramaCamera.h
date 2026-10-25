@@ -71,8 +71,9 @@ namespace Hydro
 			Blend = Blend < target ? std::min(target, Blend + step) : std::max(target, Blend - step);
 		}
 
-		// Places the camera looking at focus (a point on the ground) for the current blend.
-		static void Apply(TransformComponent& transform, CameraComponent& cameraComponent, const glm::vec2& focus)
+		// Places the camera looking at focus (a point on the ground, `height` above z 0: a raised terrace the
+		// player stands on) for the current blend.
+		static void Apply(TransformComponent& transform, CameraComponent& cameraComponent, const glm::vec2& focus, float height = 0.0f)
 		{
 			SceneCamera& camera = cameraComponent.Camera;
 
@@ -118,7 +119,7 @@ namespace Hydro
 			camera.OrthographicNear = 0.1f;
 			camera.OrthographicFar = distance + 200.0f;
 
-			const glm::vec3 focusPoint{ focus.x, focus.y, 0.0f };
+			const glm::vec3 focusPoint{ focus.x, focus.y, height };
 			transform.Translation = focusPoint - forward * distance;
 			// A camera turned by +tilt about X looks from -Z towards +Y (north) and down.
 			transform.Rotation = { tilt, 0.0f, 0.0f };

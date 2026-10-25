@@ -9,6 +9,10 @@
 #include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
+#include <Hydro/Renderer/Mesh.h>
+#include <Hydro/Renderer/MeshImporter.h>
+#include <Hydro/Renderer/MeshImportSerializer.h>
+#include <Hydro/Asset/AssetMetaSerializer.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SpriteAnimation.h>
@@ -489,6 +493,54 @@ namespace Hydro
 		MaterialSerializer::Serialize(path, asset->GetData());
 	}
 
+	void InspectorWindow::AssignModelMaterials(MeshComponent& mesh, const Mesh& model)
+	{
+		// One slot per model material, each using the material asset the import made for it.
+		const uint32_t count = model.GetMaterialSlotCount();
+		mesh.Materials.assign(count, MeshMaterialSlot{});
+		const std::vector<MeshMaterialInfo>& infos = model.GetMaterials();
+		for (uint32_t slot = 0; slot < count && slot < (uint32_t)infos.size(); slot++)
+		{
+			const AssetHandle handle = infos[slot].DefaultMaterial;
+			const Ref<MaterialAsset> asset = (uint64_t)handle != 0 ? AssetManager::GetAsset<MaterialAsset>(handle) : nullptr;
+			if (asset != nullptr)
+			{
+				mesh.Materials[slot].Material = handle;
+				mesh.Materials[slot].Inline = asset->GetData();
+			}
+		}
+	}
+
+	void InspectorWindow::DrawMeshMaterialSlots(Entity entity, MeshComponent& mesh, const Mesh* model)
+	{
+		// A built-in shape has one slot: shown open. A model's slots are listed by the model's material names.
+		if (model == nullptr && mesh.Materials.size() == 1)
+		{
+			ImGui::Separator();
+			ImGui::TextUnformatted("Material");
+			DrawMeshMaterialSlot(entity, mesh.Materials[0]);
+			return;
+		}
+
+		ImGui::Separator();
+		ImGui::Text("Materials (%u)", (uint32_t)mesh.Materials.size());
+		for (uint32_t i = 0; i < (uint32_t)mesh.Materials.size(); i++)
+		{
+			std::string name = "Slot " + std::to_string(i);
+			if (model != nullptr && i < model->GetMaterials().size() && model->GetMaterials()[i].Name.empty() == false)
+			{
+				name += ": " + model->GetMaterials()[i].Name;
+			}
+			ImGui::PushID((int)i);
+			if (ImGui::TreeNodeEx(name.c_str(), mesh.Materials.size() <= 2 ? ImGuiTreeNodeFlags_DefaultOpen : 0))
+			{
+				DrawMeshMaterialSlot(entity, mesh.Materials[i]);
+				ImGui::TreePop();
+			}
+			ImGui::PopID();
+		}
+	}
+
 	void InspectorWindow::DrawMeshMaterialSlot(Entity entity, MeshMaterialSlot& slot)
 	{
 		const Ref<MaterialAsset> asset = (uint64_t)slot.Material != 0 ? AssetManager::GetAsset<MaterialAsset>(slot.Material) : nullptr;
@@ -560,6 +612,74 @@ namespace Hydro
 		{
 			ImGui::SetTooltip("Writes these settings to Assets/Materials as a .hymat and uses it here; pick it on other meshes to share it.");
 		}
+	}
+
+	void InspectorWindow::DrawModelAsset(const std::filesystem::path& path)
+	{
+		ImGui::TextUnformatted(path.filename().u8string().c_str());
+		ImGui::TextDisabled("Model (glTF)");
+
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		const std::filesystem::path sidecar = AssetMetaSerializer::GetSidecarPath(path);
+		MeshImportMapping mapping;
+		if (path != m_ModelSettingsPath)
+		{
+			m_ModelSettingsPath = path;
+			MeshImportSerializer::Deserialize(sidecar, m_ModelSettings, mapping);
+		}
+
+		ImGui::Separator();
+		ImGui::TextUnformatted("Import settings");
+		DrawPropertyRow("Scale", [&]() { InputFloatField("##ModelScale", m_ModelSettings.Scale, "%.3f", 0.001f, 1000.0f); });
+		DrawPropertyRow("Y up to Z up", [&]()
+		{
+			ImGui::Checkbox("##ModelYUp", &m_ModelSettings.ConvertYUpToZUp);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("glTF is Y-up; the engine is Z-up. On: the model stands up and its front (+Z) faces -Y, towards the diorama camera.");
+			}
+		});
+		DrawPropertyRow("Make normals", [&]() { ImGui::Checkbox("##ModelNormals", &m_ModelSettings.GenerateNormals); });
+		if (ImGui::Button("Apply (re-import)") && (uint64_t)handle != 0)
+		{
+			// Keeps the mapping, so its textures and materials keep their handles.
+			MeshImportConfig unused;
+			MeshImportSerializer::Deserialize(sidecar, unused, mapping);
+			MeshImportSerializer::Serialize(sidecar, m_ModelSettings, mapping);
+			AssetManager::ReloadAsset<Mesh>(handle);
+		}
+
+		const Ref<Mesh> mesh = (uint64_t)handle != 0 ? AssetManager::GetAsset<Mesh>(handle) : nullptr;
+		ImGui::Separator();
+		if (mesh == nullptr)
+		{
+			ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "Could not import the model (see the console).");
+			return;
+		}
+
+		const glm::vec3 size = mesh->GetBoundsMax() - mesh->GetBoundsMin();
+		ImGui::Text("%u sub-meshes, %u triangles, %u vertices", (uint32_t)mesh->GetSubMeshes().size(), mesh->GetIndexCount() / 3, mesh->GetVertexCount());
+		ImGui::Text("Size %.2f x %.2f x %.2f m (bottom at z %.2f)", size.x, size.y, size.z, mesh->GetBoundsMin().z);
+		if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			for (uint32_t i = 0; i < (uint32_t)mesh->GetMaterials().size(); i++)
+			{
+				const MeshMaterialInfo& info = mesh->GetMaterials()[i];
+				const std::filesystem::path file = (uint64_t)info.DefaultMaterial != 0 ? AssetManager::GetAbsolutePath(info.DefaultMaterial) : std::filesystem::path();
+				ImGui::BulletText("%u %s: %s", i, info.Name.c_str(), file.empty() ? "(none)" : file.filename().u8string().c_str());
+			}
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("Sub-meshes"))
+		{
+			for (const SubMesh& subMesh : mesh->GetSubMeshes())
+			{
+				ImGui::BulletText("%s (primitive %u): %u triangles, slot %u", subMesh.SourceName.c_str(), subMesh.SourcePrimitive, subMesh.IndexCount / 3, subMesh.MaterialSlot);
+			}
+			ImGui::TreePop();
+		}
+		ImGui::Spacing();
+		ImGui::TextDisabled("Drag it into the viewport to place it, or pick it in a Mesh component's Model field.");
 	}
 
 	void InspectorWindow::DrawMaterialAsset(const std::filesystem::path& path)
@@ -804,6 +924,60 @@ namespace Hydro
 
 		DrawComponent<MeshComponent>("Mesh", entity, removeMesh, [&](MeshComponent& mesh)
 		{
+			const Ref<Mesh> model = (uint64_t)mesh.Model != 0 ? AssetManager::GetAsset<Mesh>(mesh.Model) : nullptr;
+			DrawPropertyRow("Model", [&]()
+			{
+				const std::string detail = model != nullptr
+					? std::to_string(model->GetSubMeshes().size()) + " sub-meshes, " + std::to_string(model->GetIndexCount() / 3) + " triangles, "
+						+ std::to_string(model->GetMaterialSlotCount()) + " material slots"
+					: ((uint64_t)mesh.Model != 0 ? "The model is missing or couldn't be imported (see the console)." : "Empty: a built-in shape.");
+				const AssetPickerResult result = AssetPicker::DrawField("##MeshModel", mesh.Model, AssetType::Mesh, detail);
+				if (result.Changed == false)
+				{
+					return;
+				}
+				if ((uint64_t)result.Handle == 0)
+				{
+					mesh.Model = 0;
+					return;
+				}
+				// Importing logs why a model can't be used; a handle that doesn't import is not taken.
+				const Ref<Mesh> picked = AssetManager::GetAsset<Mesh>(result.Handle);
+				if (picked != nullptr)
+				{
+					mesh.Model = result.Handle;
+					// Its own materials until the slots are made here.
+					mesh.Materials.clear();
+				}
+			});
+			if ((uint64_t)mesh.Model != 0)
+			{
+				ImGui::Separator();
+				if (mesh.Materials.empty())
+				{
+					ImGui::TextDisabled("Uses the model's materials (the .hymat files its import made).");
+					if (model != nullptr && ImGui::Button("Choose materials here"))
+					{
+						AssignModelMaterials(mesh, *model);
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("Gives this mesh a slot per material, starting with the model's, so one slot can use another material.");
+					}
+				}
+				else
+				{
+					DrawMeshMaterialSlots(entity, mesh, model.get());
+					if (ImGui::Button("Use the model's materials"))
+					{
+						mesh.Materials.clear();
+					}
+				}
+				DrawPropertyRow("Cast shadows", [&]() { ImGui::Checkbox("##MeshCastShadows", &mesh.CastShadows); });
+				ImGui::TextDisabled("Drawn with Depth = Shared and Meshes on (Render Settings > Rendering).");
+				return;
+			}
+
 			DrawPropertyRow("Shape", [&]()
 			{
 				const char* shapeNames[] = { "Box", "Plane", "Ramp", "Stairs", "Cylinder" };
@@ -842,13 +1016,7 @@ namespace Hydro
 			{
 				mesh.Materials.push_back(MeshMaterialSlot{});
 			}
-			ImGui::Separator();
-			ImGui::TextUnformatted("Material");
-			DrawMeshMaterialSlot(entity, mesh.Materials[0]);
-			if (mesh.Materials.size() > 1)
-			{
-				ImGui::TextDisabled("%u more material slots (edited in the file for now).", (uint32_t)mesh.Materials.size() - 1);
-			}
+			DrawMeshMaterialSlots(entity, mesh, nullptr);
 			DrawPropertyRow("Cast shadows", [&]() { ImGui::Checkbox("##MeshCastShadows", &mesh.CastShadows); });
 			ImGui::TextDisabled("Drawn with Depth = Shared and Meshes on (Render Settings > Rendering).");
 		});
@@ -1319,6 +1487,12 @@ namespace Hydro
 		if (asset.extension() == MaterialSerializer::FileExtension)
 		{
 			DrawMaterialAsset(asset);
+			return;
+		}
+
+		if (GetAssetTypeFromExtension(asset) == AssetType::Mesh)
+		{
+			DrawModelAsset(asset);
 			return;
 		}
 

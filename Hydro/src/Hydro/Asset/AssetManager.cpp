@@ -5,6 +5,7 @@
 #include "Hydro/Renderer/TextureImporter.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Renderer/Material.h"
+#include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -614,6 +615,11 @@ namespace Hydro
 				// Loads its textures through this manager.
 				return MaterialAsset::LoadUncached(absolute);
 			}
+			case AssetType::Mesh:
+			{
+				// The first import writes its textures, materials and .hymeta (registered through this manager).
+				return Mesh::LoadUncached(absolute);
+			}
 			default:
 				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",
 					AssetTypeToString(type), absolute.string());
@@ -660,7 +666,9 @@ namespace Hydro
 		entry.Object = LoadFromDisk(absolute, type);
 		entry.Type = type;
 		entry.Path = pathKey;
-		entry.Version = version;
+		// Read again after loading: an importer may have written the .hymeta (a model records the handles of
+		// the textures and materials it made), which must not count as a change.
+		entry.Version = GetSourceVersion(absolute, type);
 		entry.Failed = entry.Object == nullptr;
 		if (entry.Object != nullptr)
 		{

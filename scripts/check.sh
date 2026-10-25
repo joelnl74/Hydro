@@ -84,7 +84,7 @@ V="$ROOT/Hydro/vendor"
 COMMON=(-std=c++17 -fsyntax-only -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFINE -DGLFW_INCLUDE_NONE
 	-isystem "$CACHE/Vulkan-Headers/include" -isystem "$V" -isystem "$V/glm" -isystem "$V/imgui" -isystem "$V/imgui/backends"
 	-isystem "$V/spdlog/include" -isystem "$V/yaml-cpp/include" -isystem "$V/entt" -isystem "$V/stb/include"
-	-isystem "$V/Obj-loader" -isystem "$V/VulkanMemoryAllocator" -isystem "$V/glfw/include"
+	-isystem "$V/cgltf" -isystem "$V/VulkanMemoryAllocator" -isystem "$V/glfw/include"
 	-isystem "$CACHE/shaderc/libshaderc/include")
 export SRC
 HYDRO_FLAGS="${COMMON[*]} -I$SRC/Hydro -include $SRC/Hydro/hypch.h"

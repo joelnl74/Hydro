@@ -14,6 +14,7 @@ namespace Hydro
 			case AssetType::Prefab: return "Prefab";
 			case AssetType::SpriteAnimation: return "SpriteAnimation";
 			case AssetType::Material: return "Material";
+			case AssetType::Mesh: return "Mesh";
 			case AssetType::None: return "None";
 		}
 
@@ -41,6 +42,10 @@ namespace Hydro
 		if (name == "Material")
 		{
 			return AssetType::Material;
+		}
+		if (name == "Mesh")
+		{
+			return AssetType::Mesh;
 		}
 
 		return AssetType::None;
@@ -75,6 +80,10 @@ namespace Hydro
 		if (extension == ".hymat") // MaterialSerializer::FileExtension
 		{
 			return AssetType::Material;
+		}
+		if (extension == ".gltf" || extension == ".glb")
+		{
+			return AssetType::Mesh;
 		}
 
 		return AssetType::None;

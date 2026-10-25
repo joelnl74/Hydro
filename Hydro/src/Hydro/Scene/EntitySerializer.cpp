@@ -4,6 +4,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/MaterialSerializer.h"
+#include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -342,6 +343,10 @@ namespace Hydro
 
 			out << YAML::Key << "MeshComponent";
 			out << YAML::BeginMap;
+			if ((uint64_t)mesh.Model != 0)
+			{
+				out << YAML::Key << "ModelHandle" << YAML::Value << (uint64_t)mesh.Model;
+			}
 			out << YAML::Key << "Shape" << YAML::Value << MeshShapeToString(mesh.Shape);
 			out << YAML::Key << "Size" << YAML::Value << mesh.Size;
 			if (mesh.Shape == MeshShape::Stairs)
@@ -582,6 +587,12 @@ namespace Hydro
 		if (auto meshNode = entityNode["MeshComponent"])
 		{
 			auto& mesh = entity.AddComponent<MeshComponent>();
+			mesh.Model = AssetHandle(meshNode["ModelHandle"].as<uint64_t>(0));
+			if ((uint64_t)mesh.Model != 0)
+			{
+				// Imported now (its materials and textures too), so the renderer, which never loads, finds it.
+				AssetManager::GetAsset<Mesh>(mesh.Model);
+			}
 			mesh.Shape = MeshShapeFromString(meshNode["Shape"].as<std::string>("Box"));
 			mesh.Size = meshNode["Size"].as<glm::vec3>(mesh.Size);
 			mesh.Steps = meshNode["Steps"].as<uint32_t>(mesh.Steps);

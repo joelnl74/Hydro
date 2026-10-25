@@ -4,6 +4,8 @@
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Renderer/Material.h"
+#include "Hydro/Renderer/Mesh.h"
+#include "Hydro/Renderer/MeshImporter.h"
 
 #include <filesystem>
 #include <functional>
@@ -42,6 +44,12 @@ namespace Hydro
 		// A mesh's material slot: its material asset (picked or dropped), whose fields edit the shared asset,
 		// or its inline settings with "Save as Material Asset".
 		void DrawMeshMaterialSlot(Entity entity, MeshMaterialSlot& slot);
+		// Every slot of a mesh (a tree node per slot for models, named after the model's materials).
+		void DrawMeshMaterialSlots(Entity entity, MeshComponent& mesh, const Mesh* model);
+		// Gives `mesh` one slot per material of `model`, each using the material asset its import made.
+		static void AssignModelMaterials(MeshComponent& mesh, const Mesh& model);
+		// A selected .gltf / .glb: its import settings (Apply re-imports) and what it holds.
+		void DrawModelAsset(const std::filesystem::path& path);
 		// The fields of a material asset; a change applies to the loaded asset at once (every mesh using it)
 		// and marks it to be saved.
 		void EditMaterialAsset(const Ref<MaterialAsset>& asset);
@@ -56,5 +64,8 @@ namespace Hydro
 		std::filesystem::file_time_type m_InspectedAnimationTime{};
 		// The material asset changed in memory and not written yet (0: none).
 		AssetHandle m_UnsavedMaterial = 0;
+		// The import settings being edited for the selected model (read again when another one is selected).
+		std::filesystem::path m_ModelSettingsPath;
+		MeshImportConfig m_ModelSettings;
 	};
 }

@@ -102,13 +102,16 @@ namespace Hydro
 	// Plain data: SceneRenderer turns it into a cached Mesh and materials every frame.
 	struct MeshComponent
 	{
+		// A model (a Mesh asset: .gltf / .glb, M5); 0 = the built-in Shape below.
+		AssetHandle Model = 0;
 		MeshShape Shape = MeshShape::Box;
 		// Width (X), depth (Y), height (Z) in metres, before the transform's scale. Built-in shapes stand on
 		// the entity's position (their base is centred there at z = 0).
 		glm::vec3 Size{ 1.0f };
 		uint32_t Steps = 4;     // Stairs
 		uint32_t Segments = 16; // Cylinder
-		// One per sub-mesh (built-in shapes have one); a missing one draws white.
+		// One per material slot (built-in shapes have one; a model has one per glTF material). A model's slots
+		// that aren't here use the model's own materials (the assets its import made): empty = all of them.
 		std::vector<MeshMaterialSlot> Materials{ MeshMaterialSlot{} };
 		bool CastShadows = true; // kept for shadows (H6); nothing reads it yet
 	};

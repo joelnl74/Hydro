@@ -2,6 +2,7 @@
 #include "Mesh.h"
 
 #include "Hydro/Platform/Vulkan/VulkanMeshData.h"
+#include "Hydro/Renderer/MeshImporter.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -20,7 +21,9 @@ namespace Hydro
 		m_IndexCount = (uint32_t)data.Indices.size();
 		if (m_SubMeshes.empty())
 		{
-			m_SubMeshes.push_back({ 0, m_IndexCount, 0 });
+			SubMesh whole;
+			whole.IndexCount = m_IndexCount;
+			m_SubMeshes.push_back(whole);
 		}
 
 		m_BoundsMin = data.Vertices.front().Position;
@@ -49,4 +52,19 @@ namespace Hydro
 
 	// Here, where MeshBuffers is complete. The buffers free themselves through the deletion queue.
 	Mesh::~Mesh() = default;
+
+	Ref<Mesh> Mesh::LoadUncached(const std::filesystem::path& path)
+	{
+		return MeshImporter::ImportAsset(path);
+	}
+
+	uint32_t Mesh::GetMaterialSlotCount() const
+	{
+		uint32_t count = (uint32_t)m_Materials.size();
+		for (const SubMesh& subMesh : m_SubMeshes)
+		{
+			count = std::max(count, subMesh.MaterialSlot + 1);
+		}
+		return count;
+	}
 }
