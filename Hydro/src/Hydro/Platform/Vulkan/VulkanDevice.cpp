@@ -56,6 +56,10 @@ namespace Hydro
 		enabledFeatures.features.fillModeNonSolid = m_FillModeNonSolidEnabled ? VK_TRUE : VK_FALSE;
 		m_WideLinesEnabled = supported.wideLines == VK_TRUE;
 		enabledFeatures.features.wideLines = m_WideLinesEnabled ? VK_TRUE : VK_FALSE;
+		// A different blend state per colour attachment: the Editor view's entity ID is never blended (and
+		// sometimes not written) next to the alpha-blended scene colour. Every desktop GPU has it.
+		m_IndependentBlendEnabled = supported.independentBlend == VK_TRUE;
+		enabledFeatures.features.independentBlend = m_IndependentBlendEnabled ? VK_TRUE : VK_FALSE;
 		// Descriptor indexing (Vulkan 1.2, for bindless textures later) is reported in
 		// RendererCapabilities but not enabled: nothing uses it yet.
 

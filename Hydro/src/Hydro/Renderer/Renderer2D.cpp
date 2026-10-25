@@ -26,6 +26,8 @@
 #include <glm/gtc/constants.hpp>
 
 #include <algorithm>
+#include <map>
+#include <tuple>
 #include <array>
 #include <cmath>
 #include <chrono>
@@ -39,6 +41,31 @@ namespace Hydro
 		VkDescriptorSet Set = VK_NULL_HANDLE;
 		Ref<Texture2D> Texture;     // kept alive while the handle may be drawn
 		uint64_t LastUsedFrame = 0; // Time::GetFrameCount() when last handed out
+	};
+
+	// What a view pipeline draws; its depth and entity-ID behaviour follow from the kind (BuildViewPipeline).
+	enum class ViewPipelineKind : uint8_t
+	{
+		Sprite = 0, // translucent and decal quads: depth test (no write) when there is depth
+		Cutout,     // cut-out quads: depth test and write, alpha < 0.5 discarded
+		Overlay,    // overlay quads: no depth test, never an entity ID
+		Composite,  // the 2D light composite
+		SpikeBox    // TEMPORARY(S1)
+	};
+
+	// The pipeline cache's key: the attachment layout (colour formats in order, depth format; one sample per
+	// pixel) plus what the pipeline does with it.
+	struct ViewPipelineKey
+	{
+		ViewPipelineKind Kind = ViewPipelineKind::Sprite;
+		std::vector<ImageFormat> ColorFormats;
+		ImageFormat DepthFormat = ImageFormat::None;
+		bool WriteEntityID = false;
+
+		bool operator<(const ViewPipelineKey& other) const
+		{
+			return std::tie(Kind, ColorFormats, DepthFormat, WriteEntityID) < std::tie(other.Kind, other.ColorFormats, other.DepthFormat, other.WriteEntityID);
+		}
 	};
 
 	struct Renderer2DData
@@ -83,23 +110,18 @@ namespace Hydro
 		Scope<VulkanPipeline> ShadowPipeline;
 		bool ShadowLimitWarned = false;
 
-		// Shared depth (S1): the pipelines of views with a DEPTH32F attachment. Built the first time such a
-		// view is drawn (EnsureDepthPipelines) and again after a shader reload or a wireframe change
-		// (ResetDepthPipelines). All null while unavailable; DepthPipelinesFailed stops the retries until
-		// the next shader change, so the error is logged once.
+		// Pipelines for the views' other attachment layouts (shared depth, the entity ID), built on first use
+		// by GetViewPipeline and kept per layout and kind. Cleared after a shader reload or a wireframe change
+		// (ClearViewPipelines); a null entry is one that failed to build (logged once). The plain 2D layout
+		// (one colour attachment) keeps using the pipelines above.
+		std::map<ViewPipelineKey, Scope<VulkanPipeline>> ViewPipelines;
 		Scope<VulkanShader> CutoutShader;
 		FileWatcher CutoutShaderWatcher;
-		Scope<VulkanPipeline> DepthQuadPipeline;      // translucent and decal quads: depth test, no depth write
-		Scope<VulkanPipeline> DepthOverlayPipeline;   // overlay quads: no depth test
-		Scope<VulkanPipeline> CutoutPipeline;         // cut-out quads: depth test and write, alpha < 0.5 discarded
-		Scope<VulkanPipeline> DepthCompositePipeline; // the 2D light composite in a view with depth
-		bool DepthPipelinesFailed = false;
 
 		// TEMPORARY(S1, removed in M4): the spike's unlit box, one indexed draw per box, its transform and
 		// colour in push constants.
 		Scope<VulkanShader> SpikeBoxShader;
 		FileWatcher SpikeBoxShaderWatcher;
-		Scope<VulkanPipeline> SpikeBoxPipeline;
 		Scope<VulkanVertexBuffer> SpikeBoxVertexBuffer;
 		Scope<VulkanIndexBuffer> SpikeBoxIndexBuffer;
 
@@ -220,6 +242,7 @@ namespace Hydro
 			{ "inColor", ShaderDataType::Float4, },
 			{ "inTexCoord", ShaderDataType::Float2, },
 			{ "inTexIndex", ShaderDataType::Float, },
+			{ "inEntityID", ShaderDataType::Int, },
 		};
 	}
 
@@ -387,16 +410,11 @@ namespace Hydro
 	};
 	static_assert(sizeof(SpikeBoxPushConstants) == 80, "Must match the push_constant block in spike_box.vert");
 
-	// Drops the depth pipelines (they free themselves through the deletion queue); the next view with
-	// depth builds them again from the current shaders and settings.
-	static void ResetDepthPipelines()
+	// Drops the cached view pipelines (they free themselves through the deletion queue); they are built
+	// again on first use from the current shaders and settings.
+	static void ClearViewPipelines()
 	{
-		s_Data->DepthQuadPipeline.reset();
-		s_Data->DepthOverlayPipeline.reset();
-		s_Data->CutoutPipeline.reset();
-		s_Data->DepthCompositePipeline.reset();
-		s_Data->SpikeBoxPipeline.reset();
-		s_Data->DepthPipelinesFailed = false;
+		s_Data->ViewPipelines.clear();
 	}
 
 	// TEMPORARY(S1): the unit box, base centred on the origin, 1 high along +Z. Each face has its own four
@@ -442,90 +460,116 @@ namespace Hydro
 		s_Data->SpikeBoxIndexBuffer = CreateScope<VulkanIndexBuffer>(indices.data(), (uint32_t)(indices.size() * sizeof(uint32_t)));
 	}
 
-	// Builds the depth pipelines when they don't exist. False while they are unavailable (a shader that
-	// doesn't compile); views with depth then draw only their clear colour.
-	static bool EnsureDepthPipelines()
+	// A pipeline for `key`, from the pipeline built at Init for that kind of draw (so shaders, vertex layout,
+	// descriptor sets and the wireframe setting carry over). Throws when a shader doesn't compile.
+	static Scope<VulkanPipeline> BuildViewPipeline(const ViewPipelineKey& key)
 	{
-		if (s_Data->DepthQuadPipeline != nullptr)
+		const bool hasDepth = key.DepthFormat != ImageFormat::None;
+		const bool wireframe = s_Data->QuadPipeline->GetSpecification().Wireframe;
+
+		PipelineSpecification specification;
+		switch (key.Kind)
 		{
-			return true;
-		}
-		if (s_Data->DepthPipelinesFailed)
-		{
-			return false;
+			case ViewPipelineKind::Sprite:
+			case ViewPipelineKind::Overlay:
+			case ViewPipelineKind::Cutout:
+				specification = s_Data->QuadPipeline->GetSpecification();
+				specification.Shader = s_Data->Shader.get();
+				if (key.Kind == ViewPipelineKind::Cutout)
+				{
+					if (s_Data->CutoutShader == nullptr)
+					{
+						s_Data->CutoutShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/sprite_cutout.frag");
+						s_Data->CutoutShaderWatcher = FileWatcher(s_Data->CutoutShader->GetSourceFiles());
+					}
+					specification.Shader = s_Data->CutoutShader.get();
+				}
+				specification.DepthTest = hasDepth && key.Kind != ViewPipelineKind::Overlay;
+				specification.DepthWrite = hasDepth && key.Kind == ViewPipelineKind::Cutout;
+				break;
+
+			case ViewPipelineKind::Composite:
+				if (s_Data->CompositePipeline == nullptr)
+				{
+					return nullptr;
+				}
+				specification = s_Data->CompositePipeline->GetSpecification();
+				specification.Shader = s_Data->CompositeShader.get();
+				specification.DepthTest = false;
+				specification.DepthWrite = false;
+				break;
+
+			case ViewPipelineKind::SpikeBox:
+				if (s_Data->SpikeBoxShader == nullptr)
+				{
+					s_Data->SpikeBoxShader = CreateEffectShader("assets/shaders/spike_box.vert", "assets/shaders/spike_box.frag");
+					s_Data->SpikeBoxShaderWatcher = FileWatcher(s_Data->SpikeBoxShader->GetSourceFiles());
+				}
+				specification.Layout = GetQuadVertexLayout();
+				specification.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
+				specification.Shader = s_Data->SpikeBoxShader.get();
+				specification.PushConstantSize = (uint32_t)sizeof(SpikeBoxPushConstants);
+				specification.BackfaceCulling = false;
+				specification.DepthTest = true;
+				specification.DepthWrite = true;
+				specification.Blend = BlendMode::None;
+				specification.Wireframe = wireframe;
+				break;
 		}
 
+		specification.ColorFormats = key.ColorFormats;
+		specification.DepthFormat = key.DepthFormat;
+		specification.WriteIntegerAttachments = key.WriteEntityID;
+		return CreateScope<VulkanPipeline>(specification);
+	}
+
+	// The pipeline that draws `kind` into `target`. `writeEntityID`: the draw writes its entity IDs (only
+	// meaningful when the target has the ID attachment). Null when it can't be built (logged once).
+	static VulkanPipeline* GetViewPipeline(ViewPipelineKind kind, const VulkanRenderTarget& target, bool writeEntityID)
+	{
+		ViewPipelineKey key;
+		key.Kind = kind;
+		key.ColorFormats = target.GetPipelineColorFormats();
+		key.DepthFormat = target.GetPipelineDepthFormat();
+		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID;
+
+		// The plain 2D layout: the pipelines built at Init, exactly as before render features existed.
+		if (key.ColorFormats.size() == 1 && key.DepthFormat == ImageFormat::None)
+		{
+			if (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Overlay)
+			{
+				return s_Data->QuadPipeline.get();
+			}
+			if (kind == ViewPipelineKind::Composite)
+			{
+				return s_Data->CompositePipeline.get();
+			}
+		}
+
+		auto it = s_Data->ViewPipelines.find(key);
+		if (it != s_Data->ViewPipelines.end())
+		{
+			return it->second.get();
+		}
+
+		Scope<VulkanPipeline> pipeline;
 		try
 		{
-			if (s_Data->CutoutShader == nullptr)
-			{
-				s_Data->CutoutShader = CreateEffectShader("assets/shaders/vertex.vert", "assets/shaders/sprite_cutout.frag");
-				s_Data->CutoutShaderWatcher = FileWatcher(s_Data->CutoutShader->GetSourceFiles());
-			}
-			if (s_Data->SpikeBoxShader == nullptr)
-			{
-				s_Data->SpikeBoxShader = CreateEffectShader("assets/shaders/spike_box.vert", "assets/shaders/spike_box.frag");
-				s_Data->SpikeBoxShaderWatcher = FileWatcher(s_Data->SpikeBoxShader->GetSourceFiles());
-			}
-			// From the 2D quad pipeline, so the wireframe setting carries over.
-			PipelineSpecification quad = s_Data->QuadPipeline->GetSpecification();
-			quad.Shader = s_Data->Shader.get();
-			quad.DepthFormat = SharedDepthFormat;
-			quad.DepthTest = true;
-			quad.DepthWrite = false;
-			Scope<VulkanPipeline> depthQuad = CreateScope<VulkanPipeline>(quad);
-
-			PipelineSpecification overlay = quad;
-			overlay.DepthTest = false;
-			Scope<VulkanPipeline> depthOverlay = CreateScope<VulkanPipeline>(overlay);
-
-			PipelineSpecification cutout = quad;
-			cutout.Shader = s_Data->CutoutShader.get();
-			cutout.DepthWrite = true;
-			Scope<VulkanPipeline> cutoutPipeline = CreateScope<VulkanPipeline>(cutout);
-
-			Scope<VulkanPipeline> depthComposite;
-			if (s_Data->CompositePipeline != nullptr)
-			{
-				PipelineSpecification composite = s_Data->CompositePipeline->GetSpecification();
-				composite.Shader = s_Data->CompositeShader.get();
-				composite.DepthFormat = SharedDepthFormat;
-				depthComposite = CreateScope<VulkanPipeline>(composite);
-			}
-
-			PipelineSpecification box;
-			box.Layout = GetQuadVertexLayout();
-			box.DescriptorSets = { s_Data->LayoutDescriptorSet.get() };
-			box.Shader = s_Data->SpikeBoxShader.get();
-			box.ColorFormats = { ViewColorFormat };
-			box.DepthFormat = SharedDepthFormat;
-			box.PushConstantSize = (uint32_t)sizeof(SpikeBoxPushConstants);
-			box.BackfaceCulling = false;
-			box.DepthTest = true;
-			box.DepthWrite = true;
-			box.Blend = BlendMode::None;
-			box.Wireframe = quad.Wireframe;
-			Scope<VulkanPipeline> spikeBox = CreateScope<VulkanPipeline>(box);
-
-			s_Data->DepthQuadPipeline = std::move(depthQuad);
-			s_Data->DepthOverlayPipeline = std::move(depthOverlay);
-			s_Data->CutoutPipeline = std::move(cutoutPipeline);
-			s_Data->DepthCompositePipeline = std::move(depthComposite);
-			s_Data->SpikeBoxPipeline = std::move(spikeBox);
+			pipeline = BuildViewPipeline(key);
 		}
 		catch (const std::exception& e)
 		{
-			HY_CORE_ERROR("Renderer2D: shared depth is unavailable, views with Depth = Shared draw only their clear colour: {}", e.what());
-			s_Data->DepthPipelinesFailed = true;
-			return false;
+			HY_CORE_ERROR("Renderer2D: a view pipeline could not be built; those draws are skipped until the next shader change: {}", e.what());
 		}
 
-		return true;
+		VulkanPipeline* result = pipeline.get();
+		s_Data->ViewPipelines.emplace(std::move(key), std::move(pipeline));
+		return result;
 	}
 
-	// A depth shader file changed (hot reload): compile it again; the depth pipelines are rebuilt from it
+	// A view-pipeline shader file changed (hot reload): compile it again; the cached pipelines are rebuilt from it
 	// on the next draw. A shader that doesn't compile leaves the old pipelines drawing.
-	static bool ReloadDepthShader(Scope<VulkanShader>& shader, FileWatcher& watcher)
+	static bool ReloadViewShader(Scope<VulkanShader>& shader, FileWatcher& watcher)
 	{
 		if (shader == nullptr)
 		{
@@ -540,33 +584,14 @@ namespace Hydro
 		catch (const std::exception&)
 		{
 			// VulkanShader already logged the compiler output.
-			HY_CORE_WARN("Depth shader reload failed; still using the previous pipelines.");
+			HY_CORE_WARN("Shader reload failed; still using the previous pipelines.");
 			return false;
 		}
 
 		shader = std::move(newShader);
 		watcher = FileWatcher(shader->GetSourceFiles());
-		ResetDepthPipelines();
+		ClearViewPipelines();
 		return true;
-	}
-
-	// The pipeline that draws one of a view's quad lists, built for the view's attachments. Null when the
-	// depth pipelines are unavailable.
-	static VulkanPipeline* GetQuadPipeline(const RenderViewData& view, SpriteDrawMode mode, bool overlay)
-	{
-		if (view.Target->GetPipelineDepthFormat() == ImageFormat::None)
-		{
-			return s_Data->QuadPipeline.get();
-		}
-		if (EnsureDepthPipelines() == false)
-		{
-			return nullptr;
-		}
-		if (overlay)
-		{
-			return s_Data->DepthOverlayPipeline.get();
-		}
-		return mode == SpriteDrawMode::Cutout ? s_Data->CutoutPipeline.get() : s_Data->DepthQuadPipeline.get();
 	}
 
 	void Renderer2D::Init()
@@ -732,7 +757,7 @@ namespace Hydro
 		// The preview handles belong to ImGui's pool; only the textures they hold are released here.
 		s_Data->ImGuiTextures.clear();
 
-		ResetDepthPipelines();
+		ClearViewPipelines();
 		s_Data->SpikeBoxIndexBuffer.reset();
 		s_Data->SpikeBoxVertexBuffer.reset();
 		s_Data->SpikeBoxShader.reset();
@@ -856,6 +881,7 @@ namespace Hydro
 		draw.FirstIndex = view.QuadIndexCounts[view.BatchIndex];
 		draw.IndexCount = 0;
 		draw.TextureSet = view.TextureSetIndex;
+		draw.Pickable = view.EntityID >= 0 && view.InOverlay == false;
 
 		// A draw nothing was added to yet is reused rather than recorded empty.
 		std::vector<QuadDraw>& draws = GetCurrentDraws(view);
@@ -903,6 +929,7 @@ namespace Hydro
 		view.OverlayDraws.clear();
 		view.InOverlay = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
+		view.EntityID = -1;
 		view.SpikeBoxes.clear();
 		StartDraw(view);
 	}
@@ -949,10 +976,11 @@ namespace Hydro
 		// An overlay left open and a sprite draw mode end with the scene, so the next BeginScene starts with
 		// translucent draws.
 		RenderViewData* view = s_Data->CurrentView;
-		if (view != nullptr && (view->InOverlay || view->DrawMode != SpriteDrawMode::Translucent))
+		if (view != nullptr && (view->InOverlay || view->DrawMode != SpriteDrawMode::Translucent || view->EntityID >= 0))
 		{
 			view->InOverlay = false;
 			view->DrawMode = SpriteDrawMode::Translucent;
+			view->EntityID = -1;
 			StartDraw(*view);
 		}
 
@@ -1009,6 +1037,25 @@ namespace Hydro
 		view->DrawMode = mode;
 		// Inside an overlay the overlay list stays current; EndOverlay starts the draw in the new mode's list.
 		if (view->InOverlay == false)
+		{
+			StartDraw(*view);
+		}
+	}
+
+	void Renderer2D::SetEntityID(int32_t entityID)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::SetEntityID outside BeginScene/EndScene");
+		RenderViewData* view = s_Data->CurrentView;
+		if (view == nullptr)
+		{
+			return;
+		}
+
+		const bool wasPickable = view->EntityID >= 0;
+		view->EntityID = entityID < 0 ? -1 : entityID;
+		// Pickable and other quads are drawn with different pipelines (one writes IDs), so a change of kind
+		// starts a new draw. Changing from one entity to the next doesn't.
+		if (wasPickable != (view->EntityID >= 0))
 		{
 			StartDraw(*view);
 		}
@@ -1257,6 +1304,7 @@ namespace Hydro
 			view.QuadVertexBufferPtr->Color = color;
 			view.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			view.QuadVertexBufferPtr->TexIndex = textureIndex;
+			view.QuadVertexBufferPtr->EntityID = view.InOverlay ? -1 : view.EntityID;
 			view.QuadVertexBufferPtr++;
 		}
 
@@ -1512,18 +1560,25 @@ namespace Hydro
 		RecordCapture(commandBuffer, view, frame);
 	}
 
-	void Renderer2D::RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, VulkanPipeline* pipeline)
+	void Renderer2D::RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay)
 	{
 		const bool hasDraws = std::any_of(draws.begin(), draws.end(), [](const QuadDraw& draw) { return draw.IndexCount != 0; });
-		if (hasDraws == false || pipeline == nullptr)
+		if (hasDraws == false)
 		{
 			return;
 		}
 
+		// Built for the view's attachments. With the entity-ID attachment, pickable draws (an entity's sprites)
+		// write their IDs and the rest (particles, lines, the overlay) use a variant that leaves the IDs alone.
+		const ViewPipelineKind kind = overlay ? ViewPipelineKind::Overlay : (mode == SpriteDrawMode::Cutout ? ViewPipelineKind::Cutout : ViewPipelineKind::Sprite);
+		const bool hasEntityID = view.Target->GetSpecification().EntityID;
+		VulkanPipeline* pickablePipeline = GetViewPipeline(kind, *view.Target, overlay == false);
+		VulkanPipeline* otherPipeline = hasEntityID ? GetViewPipeline(kind, *view.Target, false) : pickablePipeline;
+
 		// Bound by every pass that draws quads: the pass before may have bound another pipeline (the composite).
 		// Viewport/scissor follow the view's size.
-		pipeline->Bind(commandBuffer, view.Target->GetExtent());
 		s_Data->QuadIndexBuffer->Bind(commandBuffer);
+		VulkanPipeline* pipeline = nullptr;
 
 		// One draw call per draw, in submission order. Vertex buffer and descriptor set are only
 		// rebound when they change. Indices are 0,1,2,2,3,0 + 4 * quad, so FirstIndex = 6 * quad
@@ -1532,9 +1587,18 @@ namespace Hydro
 		uint32_t boundTextureSet = UINT32_MAX;
 		for (const QuadDraw& draw : draws)
 		{
-			if (draw.IndexCount == 0)
+			VulkanPipeline* drawPipeline = draw.Pickable ? pickablePipeline : otherPipeline;
+			if (draw.IndexCount == 0 || drawPipeline == nullptr)
 			{
 				continue;
+			}
+
+			if (drawPipeline != pipeline)
+			{
+				pipeline = drawPipeline;
+				pipeline->Bind(commandBuffer, view.Target->GetExtent());
+				// Both variants have the same layout; rebinding keeps it simple and cheap.
+				boundTextureSet = UINT32_MAX;
 			}
 
 			if (draw.Batch != boundBatch)
@@ -1556,12 +1620,17 @@ namespace Hydro
 
 	void Renderer2D::RecordSpikeBoxes(VkCommandBuffer commandBuffer, RenderViewData& view)
 	{
-		if (view.SpikeBoxes.empty() || view.Target->GetPipelineDepthFormat() == ImageFormat::None || EnsureDepthPipelines() == false)
+		if (view.SpikeBoxes.empty() || view.Target->GetPipelineDepthFormat() == ImageFormat::None)
+		{
+			return;
+		}
+		VulkanPipeline* spikePipeline = GetViewPipeline(ViewPipelineKind::SpikeBox, *view.Target, false);
+		if (spikePipeline == nullptr)
 		{
 			return;
 		}
 
-		VulkanPipeline& pipeline = *s_Data->SpikeBoxPipeline;
+		VulkanPipeline& pipeline = *spikePipeline;
 		pipeline.Bind(commandBuffer, view.Target->GetExtent());
 		// Texture set 0's descriptor set has the view's camera at binding 0 (written in RecordView).
 		pipeline.BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
@@ -1620,9 +1689,30 @@ namespace Hydro
 		out.push_back({ severity, feature.GetName(), text });
 	}
 
-	std::vector<Scope<RenderFeature>> Renderer2D::CreateRenderFeatures(const RenderFeatureSettings& settings)
+	std::vector<Scope<RenderFeature>> Renderer2D::CreateRenderFeatures(const RenderFeatureSettings& settings, bool editorView)
 	{
 		std::vector<Scope<RenderFeature>> features;
+
+		// The entity-ID attachment (M1d), on the Editor window's view only: R32_SINT, cleared to -1 when the
+		// view's pass begins. An entity's sprites write their ID wherever they draw a pixel (cut-out and
+		// translucent alike; pixels with alpha 0 write nothing); particles, lines, the overlay, the light
+		// composite and blob shadows never do. Read back for click-to-select in M7.
+		if (editorView)
+		{
+			features.push_back(CreateScope<FunctionRenderFeature>("EntityID",
+				[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
+				{
+					if (context.Capabilities.IndependentBlend == false)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Error, "the GPU has no independentBlend; the Editor view has no entity IDs");
+					}
+				},
+				[](RenderGraphBuilder& builder)
+				{
+					builder.RequireEntityIDAttachment();
+					builder.ImportResource("EntityID");
+				}));
+		}
 
 		// The 2D light buffer: lights and blob shadows into the light buffer before the scene, multiplied
 		// over it after the sprites. Its state between the two passes (drawn this frame or not) is per view.
@@ -1709,22 +1799,30 @@ namespace Hydro
 					AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "cut-out sprites need Depth = Shared; sprites are drawn translucent");
 				}
 			},
-			[sharedDepth](RenderGraphBuilder& builder)
+			[sharedDepth, editorView](RenderGraphBuilder& builder)
 			{
 				builder.ImportResource("SceneColor");
 				builder.ImportResource("SpriteTextures");
+				// Sprites write the entity ID in the Editor view.
+				std::vector<std::string> writes = { "SceneColor" };
+				if (editorView)
+				{
+					writes.push_back("EntityID");
+				}
+				std::vector<std::string> cutoutWrites = writes;
+				cutoutWrites.push_back("Depth");
 				if (sharedDepth)
 				{
 					builder.ImportResource("Depth");
-					builder.AddPass({ "Decals", RenderStage::Opaque, { "SpriteTextures", "Depth" }, { "SceneColor" },
+					builder.AddPass({ "Decals", RenderStage::Opaque, { "SpriteTextures", "Depth" }, writes,
 						[](RenderPassContext& context)
 						{
-							RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.DecalDraws, GetQuadPipeline(context.View, SpriteDrawMode::Decal, false));
+							RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.DecalDraws, SpriteDrawMode::Decal, false);
 						} });
-					builder.AddPass({ "CutoutSprites", RenderStage::Opaque, { "SpriteTextures", "Depth" }, { "SceneColor", "Depth" },
+					builder.AddPass({ "CutoutSprites", RenderStage::Opaque, { "SpriteTextures", "Depth" }, cutoutWrites,
 						[](RenderPassContext& context)
 						{
-							RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.CutoutDraws, GetQuadPipeline(context.View, SpriteDrawMode::Cutout, false));
+							RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.CutoutDraws, SpriteDrawMode::Cutout, false);
 						} });
 				}
 				std::vector<std::string> reads = { "SpriteTextures" };
@@ -1732,10 +1830,10 @@ namespace Hydro
 				{
 					reads.push_back("Depth");
 				}
-				builder.AddPass({ "Sprites", RenderStage::Translucent, reads, { "SceneColor" },
+				builder.AddPass({ "Sprites", RenderStage::Translucent, reads, writes,
 					[](RenderPassContext& context)
 					{
-						RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.Draws, GetQuadPipeline(context.View, SpriteDrawMode::Translucent, false));
+						RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.Draws, SpriteDrawMode::Translucent, false);
 					} });
 			}));
 
@@ -1748,7 +1846,7 @@ namespace Hydro
 				builder.AddPass({ "Overlay", RenderStage::Overlay, { "SpriteTextures" }, { "SceneColor" },
 					[](RenderPassContext& context)
 					{
-						RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.OverlayDraws, GetQuadPipeline(context.View, SpriteDrawMode::Translucent, true));
+						RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.OverlayDraws, SpriteDrawMode::Translucent, true);
 					} });
 			}));
 
@@ -1790,7 +1888,7 @@ namespace Hydro
 		context.Settings = settings;
 		context.Capabilities = Renderer::GetCapabilities();
 		context.EditorView = editorView;
-		return RenderGraph::Validate(CreateRenderFeatures(settings), context);
+		return RenderGraph::Validate(CreateRenderFeatures(settings, editorView), context);
 	}
 
 	void Renderer2D::UpdateRenderGraph(RenderViewData& view)
@@ -1807,10 +1905,10 @@ namespace Hydro
 		context.Settings = view.Features;
 		context.Capabilities = Renderer::GetCapabilities();
 		context.EditorView = view.EditorView;
-		view.Graph = CreateScope<RenderGraph>(CreateRenderFeatures(view.Features), context, view.DebugName);
+		view.Graph = CreateScope<RenderGraph>(CreateRenderFeatures(view.Features, view.EditorView), context, view.DebugName);
 
-		// A target recreation when the features need other attachments (depth, entity ID; none of the
-		// features built so far ask for one). The old images go through the deletion queue.
+		// A target recreation when the features need other attachments (depth, entity ID). The old images go
+		// through the deletion queue.
 		const RenderTargetSpecification& current = view.Target->GetSpecification();
 		if (view.Graph->GetDepthFormat() != current.DepthFormat || view.Graph->NeedsEntityID() != current.EntityID)
 		{
@@ -1982,12 +2080,8 @@ namespace Hydro
 
 	void Renderer2D::RecordComposite(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
 	{
-		// Built for the view's attachments: a view with shared depth needs the depth variant.
-		VulkanPipeline* pipeline = s_Data->CompositePipeline.get();
-		if (view.Target->GetPipelineDepthFormat() != ImageFormat::None)
-		{
-			pipeline = EnsureDepthPipelines() ? s_Data->DepthCompositePipeline.get() : nullptr;
-		}
+		// Built for the view's attachments (depth, entity ID); it never writes entity IDs.
+		VulkanPipeline* pipeline = GetViewPipeline(ViewPipelineKind::Composite, *view.Target, false);
 		if (pipeline == nullptr)
 		{
 			return;
@@ -2181,12 +2275,12 @@ namespace Hydro
 			HY_CORE_INFO("Shaders reloaded.");
 		}
 
-		if (cutoutChanged && ReloadDepthShader(s_Data->CutoutShader, s_Data->CutoutShaderWatcher))
+		if (cutoutChanged && ReloadViewShader(s_Data->CutoutShader, s_Data->CutoutShaderWatcher))
 		{
 			HY_CORE_INFO("Cut-out sprite shader reloaded.");
 		}
 
-		if (spikeBoxChanged && ReloadDepthShader(s_Data->SpikeBoxShader, s_Data->SpikeBoxShaderWatcher))
+		if (spikeBoxChanged && ReloadViewShader(s_Data->SpikeBoxShader, s_Data->SpikeBoxShaderWatcher))
 		{
 			HY_CORE_INFO("Spike box shader reloaded.");
 		}
@@ -2203,7 +2297,7 @@ namespace Hydro
 
 		if (compositeChanged && s_Data->CompositePipeline != nullptr && RebuildEffectPipeline(s_Data->CompositeShader, s_Data->CompositeShaderWatcher, s_Data->CompositePipeline))
 		{
-			ResetDepthPipelines();
+			ClearViewPipelines();
 			HY_CORE_INFO("Composite shader reloaded.");
 		}
 	}
@@ -2241,8 +2335,8 @@ namespace Hydro
 			s_Data->Shader = std::move(newShader);
 			s_Data->ShaderWatcher = FileWatcher(s_Data->Shader->GetSourceFiles());
 		}
-		// The depth variants are built from the quad pipeline: rebuild them with the new shader or wireframe.
-		ResetDepthPipelines();
+		// The cached view pipelines are built from the quad pipeline: rebuild them with the new shader or wireframe.
+		ClearViewPipelines();
 
 		return true;
 	}

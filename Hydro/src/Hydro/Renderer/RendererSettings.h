@@ -72,6 +72,7 @@ namespace Hydro
 		// Optional, enabled when the GPU has them.
 		bool Wireframe = false;          // fillModeNonSolid
 		bool WideLines = false;          // line widths other than 1
+		bool IndependentBlend = false;   // a blend state per colour attachment (the entity-ID attachment needs it)
 		bool SamplerAnisotropy = false;
 
 		// Supported but not enabled yet (bindless textures, later).

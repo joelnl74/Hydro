@@ -14,7 +14,6 @@
 namespace Hydro
 {
 	class RenderFeature;
-	class VulkanPipeline;
 	struct QuadDraw;
 
 	// Stats
@@ -137,6 +136,12 @@ namespace Hydro
 		// 1 x 1 wide, 1 high along +Z) into the world. Only drawn in views with shared depth.
 		static void DrawSpikeBox(const glm::mat4& transform, const glm::vec4& color);
 
+		// The entity the quads submitted next belong to, until the next call or EndScene (which goes back to
+		// -1). The Editor view writes it to its entity-ID attachment for click-to-select (M7); -1 (or any
+		// negative value) = none: the quads don't change the IDs below them (particles, effects, lines).
+		// Overlay quads never write one.
+		static void SetEntityID(int32_t entityID);
+
 		// 2D lighting (RendererSettings::Lighting). Queue lights for the view between BeginScene and
 		// EndScene, like quads. A view that gets at least one light is drawn lit: each light is drawn
 		// into the view's light buffer, which is then multiplied over the scene. Colours are linear RGB,
@@ -182,13 +187,14 @@ namespace Hydro
 		static void RegisterView(RenderViewData& view);
 		static void UnregisterView(RenderViewData& view);
 		// The render features `settings` ask for, in the order their passes run within a stage.
-		static std::vector<Scope<RenderFeature>> CreateRenderFeatures(const RenderFeatureSettings& settings);
+		// `editorView`: the Editor window's view, which also gets the entity-ID attachment.
+		static std::vector<Scope<RenderFeature>> CreateRenderFeatures(const RenderFeatureSettings& settings, bool editorView);
 		// Rebuilds the view's render graph when its features changed (and its target when they need
 		// other attachments).
 		static void UpdateRenderGraph(RenderViewData& view);
-		// Binds `pipeline` (a quad pipeline built for the view's attachments) and records `draws` (one of the
-		// view's quad lists). Nothing when empty or when the pipeline is null.
-		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, VulkanPipeline* pipeline);
+		// Records `draws` (one of the view's quad lists) with pipelines built for the view's attachments:
+		// `mode` picks the cut-out or the sprite pipeline, `overlay` the overlay's. Nothing when empty.
+		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay);
 		// TEMPORARY(S1): the view's spike boxes.
 		static void RecordSpikeBoxes(VkCommandBuffer commandBuffer, RenderViewData& view);
 		// The draw list quads go to now (overlay, or the current sprite draw mode's list).

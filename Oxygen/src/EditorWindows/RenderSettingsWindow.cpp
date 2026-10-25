@@ -230,6 +230,7 @@ namespace Hydro
 			StatsUI::Row("Quads per batch", "%u", stats.MaxQuadsPerBatch);
 			StatsUI::Row("Wireframe support", "%s", capabilities.Wireframe ? "yes" : "no");
 			StatsUI::Row("Wide lines support", "%s", capabilities.WideLines ? "yes" : "no");
+			StatsUI::Row("Independent blend", "%s", capabilities.IndependentBlend ? "yes" : "no");
 			StatsUI::Row("Dynamic rendering", "%s", capabilities.DynamicRendering ? "yes" : "no");
 			StatsUI::Row("Synchronization2", "%s", capabilities.Synchronization2 ? "yes" : "no");
 			StatsUI::Row("Sampler anisotropy", "%s (max %.0f)", capabilities.SamplerAnisotropy ? "yes" : "no", capabilities.MaxSamplerAnisotropy);

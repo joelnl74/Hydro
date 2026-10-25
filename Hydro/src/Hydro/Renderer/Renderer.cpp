@@ -22,8 +22,8 @@ namespace Hydro
 			capabilities.FramesInFlight);
 		HY_CORE_INFO("Renderer: required: dynamic rendering {0}, synchronization2 {1}",
 			yesNo(capabilities.DynamicRendering), yesNo(capabilities.Synchronization2));
-		HY_CORE_INFO("Renderer: optional: wireframe {0}, wide lines {1}, sampler anisotropy {2} (max {3}), descriptor indexing {4} (not enabled)",
-			yesNo(capabilities.Wireframe), yesNo(capabilities.WideLines), yesNo(capabilities.SamplerAnisotropy),
+		HY_CORE_INFO("Renderer: optional: wireframe {0}, wide lines {1}, independent blend {2}, sampler anisotropy {3} (max {4}), descriptor indexing {5} (not enabled)",
+			yesNo(capabilities.Wireframe), yesNo(capabilities.WideLines), yesNo(capabilities.IndependentBlend), yesNo(capabilities.SamplerAnisotropy),
 			capabilities.MaxSamplerAnisotropy, yesNo(capabilities.DescriptorIndexing));
 		HY_CORE_INFO("Renderer: limits: push constants {0} bytes, sampled images per stage {1}, depth D32F {2}, D24S8 {3}",
 			capabilities.MaxPushConstantsSize, capabilities.MaxSampledImagesPerStage,
@@ -71,6 +71,7 @@ namespace Hydro
 			capabilities.Synchronization2 = device.IsSynchronization2Enabled();
 			capabilities.Wireframe = device.IsFillModeNonSolidEnabled();
 			capabilities.WideLines = device.IsWideLinesEnabled();
+			capabilities.IndependentBlend = device.IsIndependentBlendEnabled();
 			capabilities.SamplerAnisotropy = device.IsSamplerAnisotropyEnabled();
 			capabilities.DescriptorIndexing = physicalDevice.GetVulkan12Features().descriptorIndexing == VK_TRUE;
 

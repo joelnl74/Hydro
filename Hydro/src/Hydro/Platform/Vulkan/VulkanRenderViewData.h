@@ -36,6 +36,9 @@ namespace Hydro
 		glm::vec4 Color;
 		glm::vec2 TexCoord;
 		float TexIndex;
+		// The entity the quad belongs to, written to the Editor view's entity-ID attachment (click-to-select,
+		// M7); -1 = none (particles, lines, lights, effects).
+		int32_t EntityID = -1;
 	};
 
 	struct UniformBufferObject
@@ -89,6 +92,7 @@ namespace Hydro
 		uint32_t FirstIndex = 0;  // first index in that batch (6 per quad)
 		uint32_t IndexCount = 0;
 		uint32_t TextureSet = 0;
+		bool Pickable = false;    // its quads write their entity IDs (an entity's sprite, not a particle or line)
 	};
 
 	// Everything one RenderView needs: its target, its camera and its quads.
@@ -143,6 +147,7 @@ namespace Hydro
 		std::vector<QuadDraw> OverlayDraws;
 		bool InOverlay = false; // quads currently go to OverlayDraws
 		SpriteDrawMode DrawMode = SpriteDrawMode::Translucent; // the list quads go to outside the overlay
+		int32_t EntityID = -1; // Renderer2D::SetEntityID: what the next quads carry
 		std::vector<SpikeBox> SpikeBoxes; // TEMPORARY(S1)
 
 		// ---- Lights ------------------------------------------------------------------

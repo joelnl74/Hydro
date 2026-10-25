@@ -224,6 +224,10 @@ namespace Hydro
 				Renderer2D::SetSpriteDrawMode(mode);
 			}
 
+			// An entity's sprite carries its ID (the Editor view writes it for click-to-select); particles don't,
+			// so clicks pass through them.
+			Renderer2D::SetEntityID(item.IsEmitter ? -1 : (int32_t)(uint32_t)item.Entity);
+
 			if (item.IsEmitter)
 			{
 				const ParticleEmitter2DComponent& emitter = m_Scene->m_Registry.get<ParticleEmitter2DComponent>(item.Entity);
@@ -233,6 +237,7 @@ namespace Hydro
 			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(item.Entity);
 			SubmitSprite(transform.GetTransform(), sprite, m_Camera);
 		}
+		Renderer2D::SetEntityID(-1);
 
 		if (sharedDepth)
 		{

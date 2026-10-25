@@ -53,6 +53,10 @@ namespace Hydro
 		bool Wireframe = false;
 		float LineWidth = 1.0f; // Values other than 1 need the GPU's wideLines feature.
 		BlendMode Blend = BlendMode::None;
+		// Integer colour attachments (the entity ID) are never blended. False: they aren't written at all
+		// (write mask 0), so draws that must not change them (particles, overlays, the light composite,
+		// shaders without an ID output) keep what earlier draws wrote.
+		bool WriteIntegerAttachments = true;
 	};
 
 	// A graphics pipeline and its layout. A resource: owns both (freed through

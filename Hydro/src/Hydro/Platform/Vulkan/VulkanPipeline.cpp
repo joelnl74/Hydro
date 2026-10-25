@@ -257,7 +257,12 @@ namespace Hydro
 			colorFormats.push_back(VulkanImage::GetImageFormat(format));
 			if (format == ImageFormat::R32I)
 			{
-				colorBlendAttachments.push_back(BlendModeToVulkan(BlendMode::None));
+				VkPipelineColorBlendAttachmentState state = BlendModeToVulkan(BlendMode::None);
+				if (spec.WriteIntegerAttachments == false)
+				{
+					state.colorWriteMask = 0;
+				}
+				colorBlendAttachments.push_back(state);
 			}
 			else
 			{
