@@ -2,8 +2,7 @@
 
 #include "Renderer2D.h"
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
-#include "Hydro/Platform/Vulkan/VulkanIndexBuffer.h"
-#include "Hydro/Platform/Vulkan/VulkanUniformBuffer.h"
+#include "Hydro/Platform/Vulkan/VulkanBuffer.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderTarget.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanImageReadback.h"
@@ -122,15 +121,15 @@ namespace Hydro
 		// colour in push constants.
 		Scope<VulkanShader> SpikeBoxShader;
 		FileWatcher SpikeBoxShaderWatcher;
-		Scope<VulkanVertexBuffer> SpikeBoxVertexBuffer;
-		Scope<VulkanIndexBuffer> SpikeBoxIndexBuffer;
+		Scope<VulkanBuffer> SpikeBoxVertexBuffer; // GpuOnly
+		Scope<VulkanBuffer> SpikeBoxIndexBuffer;  // GpuOnly
 
-		Scope<VulkanIndexBuffer> QuadIndexBuffer;    // shared by all batches of all views (every batch starts at vertex 0)
+		Scope<VulkanBuffer> QuadIndexBuffer;    // GpuOnly; shared by all batches of all views (every batch starts at vertex 0)
 
 		// The pipeline's set 0 layout. Every view's target has the same attachment format (ViewColorFormat)
 		// and its descriptor sets are built exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so
 		// they can be bound in its place.
-		Scope<VulkanUniformBuffer> LayoutUniformBuffer;
+		PerFrameBuffers LayoutUniformBuffers;
 		Scope<VulkanDescriptorBuilder> LayoutDescriptorSet;
 
 		// Slot 0 of every texture set; made in code (no file).
@@ -204,13 +203,13 @@ namespace Hydro
 
 	// Set 0 of the quad shader: binding 0 = camera (vertex), binding 1 = texture array (fragment).
 	// Every texture slot starts as the white texture; RecordView writes the real ones each frame.
-	static Scope<VulkanDescriptorBuilder> BuildViewDescriptorSet(const VulkanUniformBuffer& uniformBuffer)
+	static Scope<VulkanDescriptorBuilder> BuildViewDescriptorSet(const PerFrameBuffers& uniformBuffers)
 	{
 		const VulkanImageInfo& white = GetImageInfo(*s_Data->WhiteTexture);
 
 		Scope<VulkanDescriptorBuilder> descriptorSet = CreateScope<VulkanDescriptorBuilder>();
 		descriptorSet->Begin();
-		descriptorSet->BindBuffer(0, uniformBuffer, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+		descriptorSet->BindBuffer(0, uniformBuffers, sizeof(UniformBufferObject), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
 		descriptorSet->BindImage(1, white.ImageView, white.Sampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
 		descriptorSet->Build();
 		return descriptorSet;
@@ -456,8 +455,20 @@ namespace Hydro
 			}
 		}
 
-		s_Data->SpikeBoxVertexBuffer = CreateScope<VulkanVertexBuffer>(vertices.data(), (uint32_t)(vertices.size() * sizeof(QuadVertex)));
-		s_Data->SpikeBoxIndexBuffer = CreateScope<VulkanIndexBuffer>(indices.data(), (uint32_t)(indices.size() * sizeof(uint32_t)));
+		// Written once: GPU-only memory, filled through a staging buffer at Init.
+		BufferSpecification vertexSpecification;
+		vertexSpecification.Usage = BufferUsage::Vertex;
+		vertexSpecification.Memory = BufferMemory::GpuOnly;
+		vertexSpecification.Size = vertices.size() * sizeof(QuadVertex);
+		vertexSpecification.DebugName = "Spike box vertices";
+		s_Data->SpikeBoxVertexBuffer = CreateScope<VulkanBuffer>(vertexSpecification, vertices.data());
+
+		BufferSpecification indexSpecification;
+		indexSpecification.Usage = BufferUsage::Index;
+		indexSpecification.Memory = BufferMemory::GpuOnly;
+		indexSpecification.Size = indices.size() * sizeof(uint32_t);
+		indexSpecification.DebugName = "Spike box indices";
+		s_Data->SpikeBoxIndexBuffer = CreateScope<VulkanBuffer>(indexSpecification, indices.data());
 	}
 
 	// A pipeline for `key`, from the pipeline built at Init for that kind of draw (so shaders, vertex layout,
@@ -680,14 +691,25 @@ namespace Hydro
 			offset += 4;
 		}
 
-		s_Data->QuadIndexBuffer = CreateScope<VulkanIndexBuffer>(quadIndices, Renderer2DData::MaxIndices * (uint32_t)sizeof(uint32_t));
+		// Never changes: GPU-only memory, filled once through a staging buffer.
+		BufferSpecification indexSpecification;
+		indexSpecification.Usage = BufferUsage::Index;
+		indexSpecification.Memory = BufferMemory::GpuOnly;
+		indexSpecification.Size = Renderer2DData::MaxIndices * sizeof(uint32_t);
+		indexSpecification.DebugName = "Quad indices";
+		s_Data->QuadIndexBuffer = CreateScope<VulkanBuffer>(indexSpecification, quadIndices);
 		delete[] quadIndices;
 
 		// TEMPORARY(S1): uploaded here, not mid-frame when the first view with depth is drawn.
 		CreateSpikeBoxGeometry();
 
-		s_Data->LayoutUniformBuffer = CreateScope<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
-		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(*s_Data->LayoutUniformBuffer);
+		BufferSpecification layoutSpecification;
+		layoutSpecification.Usage = BufferUsage::Uniform;
+		layoutSpecification.Memory = BufferMemory::HostVisible;
+		layoutSpecification.Size = sizeof(UniformBufferObject);
+		layoutSpecification.DebugName = "Pipeline layout camera";
+		s_Data->LayoutUniformBuffers = CreatePerFrameBuffers(layoutSpecification);
+		s_Data->LayoutDescriptorSet = BuildViewDescriptorSet(s_Data->LayoutUniformBuffers);
 
 		PipelineSpecification specification;
 		specification.Layout = GetQuadVertexLayout();
@@ -773,7 +795,7 @@ namespace Hydro
 
 		s_Data->QuadPipeline.reset();
 		s_Data->LayoutDescriptorSet.reset();
-		s_Data->LayoutUniformBuffer.reset();
+		s_Data->LayoutUniformBuffers = {};
 		s_Data->QuadIndexBuffer.reset();
 		s_Data->SoftDotTexture.reset();
 		s_Data->WhiteTexture.reset();
@@ -789,12 +811,12 @@ namespace Hydro
 	{
 		view.QuadVertexBufferBases.push_back(new QuadVertex[Renderer2DData::MaxVertices]);
 
-		PerFrameVertexBuffers buffers;
-		for (auto& vertexBuffer : buffers)
-		{
-			vertexBuffer = CreateScope<VulkanVertexBuffer>(Renderer2DData::MaxVertices * (uint32_t)sizeof(QuadVertex));
-		}
-		view.QuadVertexBuffers.push_back(std::move(buffers));
+		BufferSpecification specification;
+		specification.Usage = BufferUsage::Vertex;
+		specification.Memory = BufferMemory::HostVisible;
+		specification.Size = Renderer2DData::MaxVertices * sizeof(QuadVertex);
+		specification.DebugName = view.DebugName + " quad batch " + std::to_string(view.QuadVertexBuffers.size());
+		view.QuadVertexBuffers.push_back(CreatePerFrameBuffers(specification));
 
 		view.QuadIndexCounts.push_back(0);
 	}
@@ -820,7 +842,7 @@ namespace Hydro
 		TextureSet set;
 		set.Slots[0] = s_Data->WhiteTexture;
 		set.SlotCount = 1;
-		set.DescriptorSet = BuildViewDescriptorSet(*view.UniformBuffer);
+		set.DescriptorSet = BuildViewDescriptorSet(view.UniformBuffers);
 		view.TextureSets.push_back(std::move(set));
 	}
 
@@ -1507,7 +1529,7 @@ namespace Hydro
 
 		UniformBufferObject ubo;
 		ubo.mvp = view.ViewProjection;
-		view.UniformBuffer->Update(&ubo, frame, (uint32_t)sizeof(UniformBufferObject));
+		view.UniformBuffers[frame]->SetData(&ubo, sizeof(UniformBufferObject));
 
 		// Point this frame's descriptor set of every texture set used at its textures. Descriptor
 		// sets can't change once bound in a command buffer, so this happens before the pass.
@@ -1531,7 +1553,7 @@ namespace Hydro
 			}
 
 			const uint32_t vertexCount = (indexCount / 6) * 4;
-			view.QuadVertexBuffers[i][frame]->SetData(view.QuadVertexBufferBases[i], vertexCount * (uint32_t)sizeof(QuadVertex));
+			view.QuadVertexBuffers[i][frame]->SetData(view.QuadVertexBufferBases[i], vertexCount * sizeof(QuadVertex));
 
 			s_Data->Stats.BatchCount++;
 			s_Data->Stats.VertexBytesUploaded += (uint64_t)vertexCount * sizeof(QuadVertex);
@@ -1577,7 +1599,7 @@ namespace Hydro
 
 		// Bound by every pass that draws quads: the pass before may have bound another pipeline (the composite).
 		// Viewport/scissor follow the view's size.
-		s_Data->QuadIndexBuffer->Bind(commandBuffer);
+		s_Data->QuadIndexBuffer->BindAsIndexBuffer(commandBuffer);
 		VulkanPipeline* pipeline = nullptr;
 
 		// One draw call per draw, in submission order. Vertex buffer and descriptor set are only
@@ -1603,7 +1625,7 @@ namespace Hydro
 
 			if (draw.Batch != boundBatch)
 			{
-				view.QuadVertexBuffers[draw.Batch][frame]->Bind(commandBuffer);
+				view.QuadVertexBuffers[draw.Batch][frame]->BindAsVertexBuffer(commandBuffer);
 				boundBatch = draw.Batch;
 			}
 
@@ -1634,8 +1656,8 @@ namespace Hydro
 		pipeline.Bind(commandBuffer, view.Target->GetExtent());
 		// Texture set 0's descriptor set has the view's camera at binding 0 (written in RecordView).
 		pipeline.BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
-		s_Data->SpikeBoxVertexBuffer->Bind(commandBuffer);
-		s_Data->SpikeBoxIndexBuffer->Bind(commandBuffer);
+		s_Data->SpikeBoxVertexBuffer->BindAsVertexBuffer(commandBuffer);
+		s_Data->SpikeBoxIndexBuffer->BindAsIndexBuffer(commandBuffer);
 		for (const SpikeBox& box : view.SpikeBoxes)
 		{
 			const SpikeBoxPushConstants constants{ box.Transform, box.Color };
@@ -1975,10 +1997,12 @@ namespace Hydro
 			lightSpecification.DebugName = view.DebugName + " light buffer";
 			view.LightTarget = CreateScope<VulkanRenderTarget>(lightSpecification);
 			view.LightBufferDescriptorSet = BuildLightBufferDescriptorSet();
-			for (Scope<VulkanVertexBuffer>& vertexBuffer : view.LightVertexBuffers)
-			{
-				vertexBuffer = CreateScope<VulkanVertexBuffer>((MaxLightsPerView + MaxShadowsPerView) * 4 * (uint32_t)sizeof(QuadVertex));
-			}
+			BufferSpecification vertexSpecification;
+			vertexSpecification.Usage = BufferUsage::Vertex;
+			vertexSpecification.Memory = BufferMemory::HostVisible;
+			vertexSpecification.Size = (MaxLightsPerView + MaxShadowsPerView) * 4 * sizeof(QuadVertex);
+			vertexSpecification.DebugName = view.DebugName + " lights";
+			view.LightVertexBuffers = CreatePerFrameBuffers(vertexSpecification);
 		}
 		else
 		{
@@ -2027,7 +2051,7 @@ namespace Hydro
 		const uint32_t shadowCount = drawShadows ? (uint32_t)view.Shadows.size() : 0;
 		if (lightCount + shadowCount > 0)
 		{
-			view.LightVertexBuffers[frame]->SetData(view.LightVertices.data(), (uint32_t)(view.LightVertices.size() * sizeof(QuadVertex)));
+			view.LightVertexBuffers[frame]->SetData(view.LightVertices.data(), view.LightVertices.size() * sizeof(QuadVertex));
 		}
 
 		// The composite samples this frame's light image. Written before the set is bound this frame.
@@ -2045,8 +2069,8 @@ namespace Hydro
 		view.LightTarget->Begin(commandBuffer, frame, RenderTargetBeginInfo::Clear(glm::vec4(view.AmbientLight, 1.0f)));
 		if (lightCount + shadowCount > 0)
 		{
-			s_Data->QuadIndexBuffer->Bind(commandBuffer);
-			view.LightVertexBuffers[frame]->Bind(commandBuffer);
+			s_Data->QuadIndexBuffer->BindAsIndexBuffer(commandBuffer);
+			view.LightVertexBuffers[frame]->BindAsVertexBuffer(commandBuffer);
 		}
 
 		if (lightCount > 0)

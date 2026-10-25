@@ -13,12 +13,13 @@
 #include "VulkanFrameContext.h"
 #include "VulkanImageReadback.h"
 #include "VulkanRenderTarget.h"
-#include "VulkanUniformBuffer.h"
-#include "VulkanVertexBuffer.h"
+#include "VulkanBuffer.h"
+#include "VulkanGPUData.h"
 
 #include <glm/glm.hpp>
 
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -40,11 +41,11 @@ namespace Hydro
 		// M7); -1 = none (particles, lines, lights, effects).
 		int32_t EntityID = -1;
 	};
-
-	struct UniformBufferObject
-	{
-		alignas(16) glm::mat4 mvp;
-	};
+	// Read by the vertex shader through Renderer2D's vertex layout (GetQuadVertexLayout), which packs the
+	// attributes in this order without padding.
+	static_assert(sizeof(QuadVertex) == 44, "QuadVertex: must match GetQuadVertexLayout");
+	static_assert(offsetof(QuadVertex, Color) == 12 && offsetof(QuadVertex, TexCoord) == 28
+		&& offsetof(QuadVertex, TexIndex) == 36 && offsetof(QuadVertex, EntityID) == 40, "QuadVertex: must match GetQuadVertexLayout");
 
 	// Textures one draw call can sample. The quad shader declares `sampler2D inTextures[32]` and the
 	// descriptor set's image array has VulkanDescriptorBuilder::MaxImageArraySize elements; all three agree.
@@ -54,7 +55,6 @@ namespace Hydro
 	// One GPU vertex buffer per frame in flight. While frame N is still being read by
 	// the GPU, frame N+1 writes into its own buffer, so the CPU never overwrites data
 	// the GPU is using.
-	using PerFrameVertexBuffers = std::array<Scope<VulkanVertexBuffer>, MAX_FRAMES_IN_FLIGHT>;
 
 	// Up to MaxTextureSlots textures that one or more draws sample from, and the set 0 descriptor sets
 	// (camera + texture array, one per frame in flight) that bind them. Slot 0 is always the white texture.
@@ -120,13 +120,13 @@ namespace Hydro
 
 		// ---- Camera ------------------------------------------------------------------
 		glm::mat4 ViewProjection{ 1.0f };
-		Scope<VulkanUniformBuffer> UniformBuffer;   // one buffer per frame in flight
+		PerFrameBuffers UniformBuffers;  // the camera (UniformBufferObject), one buffer per frame in flight
 
 		// ---- Batches -----------------------------------------------------------------
 		// Vertex storage. Index i in each vector belongs to batch i. Batches are never freed, only
 		// reused, so after the first heavy frame there are no more allocations.
 		std::vector<QuadVertex*> QuadVertexBufferBases;        // CPU staging, [batch]
-		std::vector<PerFrameVertexBuffers> QuadVertexBuffers;  // GPU,         [batch][frame]
+		std::vector<PerFrameBuffers> QuadVertexBuffers;        // GPU,         [batch][frame]
 		std::vector<uint32_t> QuadIndexCounts;                 // indices used, [batch]
 
 		uint32_t BatchIndex = 0;                     // batch currently being filled
@@ -159,7 +159,7 @@ namespace Hydro
 		// Made the first frame the view is lit, then kept and resized with the view.
 		Scope<VulkanRenderTarget> LightTarget;                    // the light buffer: RGBA16F, the size of Target
 		Scope<VulkanDescriptorBuilder> LightBufferDescriptorSet;  // the composite's input: LightTarget's image of each frame
-		PerFrameVertexBuffers LightVertexBuffers;                 // 4 vertices per light, then 4 per shadow
+		PerFrameBuffers LightVertexBuffers;                    // 4 vertices per light, then 4 per shadow
 		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
 
 		// ---- Capture (RenderView::RequestCapture) --------------------------------------

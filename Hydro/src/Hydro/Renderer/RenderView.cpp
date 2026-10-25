@@ -29,7 +29,12 @@ namespace Hydro
 		view.RequestedWidth = width;
 		view.RequestedHeight = height;
 
-		view.UniformBuffer = CreateScope<VulkanUniformBuffer>((uint32_t)sizeof(UniformBufferObject));
+		BufferSpecification cameraSpecification;
+		cameraSpecification.Usage = BufferUsage::Uniform;
+		cameraSpecification.Memory = BufferMemory::HostVisible;
+		cameraSpecification.Size = sizeof(UniformBufferObject);
+		cameraSpecification.DebugName = specification.DebugName + " camera";
+		view.UniformBuffers = CreatePerFrameBuffers(cameraSpecification);
 
 		// Batches, texture sets and the view list belong to Renderer2D.
 		Renderer2D::RegisterView(view);

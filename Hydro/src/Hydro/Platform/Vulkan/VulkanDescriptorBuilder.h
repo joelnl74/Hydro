@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include "VulkanUniformBuffer.h"
+#include "VulkanBuffer.h"
 
 #include <vector>
 #include <map>
@@ -25,8 +25,8 @@ namespace Hydro
 
 		// Creation methods.
 		void Begin();
-		// Each frame's set points at that frame's buffer. `buffer` must outlive the descriptor sets' use.
-		void BindBuffer(uint32_t binding, const VulkanUniformBuffer& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		// Each frame's set points at that frame's buffer. The buffers must outlive the descriptor sets' use.
+		void BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
 		// Binds an array of MaxImageArraySize images. Every slot is written with the given image,
 		// so a shader that indexes any slot always reads a valid descriptor.
 		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags);

@@ -29,7 +29,7 @@ namespace Hydro
 		});
 	}
 
-	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, const VulkanUniformBuffer& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
 	{
 		const uint32_t descriptorCount = 1;
 
@@ -52,7 +52,7 @@ namespace Hydro
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = buffer.GetVKBuffers()[i];
+			bufferInfo.buffer = buffers[i]->GetVulkanBuffer();
 			bufferInfo.offset = 0;
 			bufferInfo.range = (VkDeviceSize)size;
 

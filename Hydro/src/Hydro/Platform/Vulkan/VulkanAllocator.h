@@ -20,6 +20,9 @@ namespace Hydro
 		~VulkanAllocator();
 
 		VmaAllocation AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer);
+		// With VMA allocation flags (e.g. VMA_ALLOCATION_CREATE_MAPPED_BIT); `outInfo` (optional) receives
+		// the allocation's info, its persistent mapping included.
+		VmaAllocation AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer, VmaAllocationCreateFlags flags, VmaAllocationInfo* outInfo);
 		VmaAllocation AllocateImage(VkImageCreateInfo imageCreateInfo, VmaMemoryUsage usage, VkImage& outImage);
 		void Free(VmaAllocation allocation);
 		void DestroyImage(VkImage image, VmaAllocation allocation);

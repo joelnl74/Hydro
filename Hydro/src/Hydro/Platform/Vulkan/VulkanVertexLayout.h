@@ -3,10 +3,11 @@
 #include <string>
 #include <vector>
 #include <initializer_list>
-#include <vk_mem_alloc.h>
 
 namespace Hydro
 {
+	// The vertex attributes of a pipeline (PipelineSpecification::Layout): types, offsets and the stride,
+	// in the order of the shader's input locations. Vertex data itself lives in a VulkanBuffer.
 	enum class ShaderDataType
 	{
 		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
@@ -81,31 +82,5 @@ namespace Hydro
 	private:
 		std::vector<VertexBufferElement> m_Elements;
 		uint32_t m_Stride = 0;
-	};
-
-	// A host-visible vertex buffer. A resource: owns its buffer (freed through
-	// Renderer::SubmitResourceFree when it is destroyed, so it can go at any point in a frame) and is
-	// non-copyable; hold it in a Scope.
-	class VulkanVertexBuffer
-	{
-	public:
-		VulkanVertexBuffer(const void* data, uint32_t size);
-		explicit VulkanVertexBuffer(uint32_t size);
-		~VulkanVertexBuffer();
-
-		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
-		VulkanVertexBuffer& operator=(const VulkanVertexBuffer&) = delete;
-
-		// Writes `size` bytes from the start of the buffer. Only write a buffer the GPU is not reading
-		// (one buffer per frame in flight, written after that frame's fence).
-		void SetData(const void* data, uint32_t size);
-		void Bind(VkCommandBuffer commandBuffer);
-
-		uint32_t GetSize() const { return m_Size; }
-
-	private:
-		VkBuffer m_VertexBuffer = VK_NULL_HANDLE;
-		VmaAllocation m_MemoryAllocation = nullptr;
-		uint32_t m_Size = 0;
 	};
 }

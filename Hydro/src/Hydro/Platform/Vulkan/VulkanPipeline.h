@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "VulkanVertexBuffer.h"
+#include "VulkanVertexLayout.h"
 #include "VulkanShader.h"
 #include "VulkanDescriptorBuilder.h"
 #include "Hydro/Renderer/Image.h"

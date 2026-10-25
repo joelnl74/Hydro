@@ -1,6 +1,7 @@
 #include "hypch.h"
 
 #include "VulkanAllocator.h"
+#include "VulkanUtils.h"
 
 namespace Hydro {
 
@@ -45,11 +46,17 @@ namespace Hydro {
 
 	VmaAllocation VulkanAllocator::AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer)
 	{
+		return AllocateBuffer(bufferCreateInfo, usage, outBuffer, 0, nullptr);
+	}
+
+	VmaAllocation VulkanAllocator::AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer, VmaAllocationCreateFlags flags, VmaAllocationInfo* outInfo)
+	{
 		VmaAllocationCreateInfo allocCreateInfo = {};
 		allocCreateInfo.usage = usage;
+		allocCreateInfo.flags = flags;
 
 		VmaAllocation allocation;
-		vmaCreateBuffer(s_Data->Allocator, &bufferCreateInfo, &allocCreateInfo, &outBuffer, &allocation, nullptr);
+		VK_CHECK_RESULT(vmaCreateBuffer(s_Data->Allocator, &bufferCreateInfo, &allocCreateInfo, &outBuffer, &allocation, outInfo));
 
 		// TODO: Tracking
 		VmaAllocationInfo allocInfo;
