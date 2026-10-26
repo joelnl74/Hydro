@@ -314,6 +314,7 @@ namespace Hydro
 			SubmitSprite(transform.GetTransform(), sprite, m_Camera, castsShadow);
 		}
 		Renderer2D::SetEntityID(-1);
+		Renderer2D::SetEmission(glm::vec3(0.0f));
 
 		if (sharedDepth)
 		{
@@ -471,6 +472,7 @@ namespace Hydro
 		}
 		if (began)
 		{
+			Renderer2D::SetEmission(glm::vec3(0.0f));
 			Renderer2D::EndOverlay();
 		}
 	}
@@ -505,6 +507,7 @@ namespace Hydro
 			SubmitSprite(transform.GetTransform(), sprite, m_Camera);
 		}
 		Renderer2D::SetEntityID(-1);
+		Renderer2D::SetEmission(glm::vec3(0.0f));
 		Renderer2D::EndOverlay();
 	}
 
@@ -519,6 +522,9 @@ namespace Hydro
 		{
 			rect = loaded->GetSpriteUVRect(emitter.SpriteIndex);
 		}
+
+		// Emission (plan P3): each particle's own colour times the emitter's intensity.
+		Renderer2D::SetEmission(glm::vec3(std::max(emitter.EmissionIntensity, 0.0f)));
 
 		const ParticleScene::ParticleBuffer& buffer = runtime.Particles;
 		for (uint32_t i = 0; i < buffer.Count; i++)
@@ -724,6 +730,8 @@ namespace Hydro
 		const Ref<Texture2D> texture = GetSpriteImage(sprite, rect);
 		const glm::mat4 quad = GetSpriteQuadTransform(transform, texture.get(), sprite.SpriteIndex);
 		const glm::mat4 drawn = ApplyFacing(quad, sprite.Facing, camera);
+		// Emission (plan P3) travels in the vertices; the casters queued below are drawn later, after it is reset.
+		Renderer2D::SetEmission(sprite.EmissionColor * std::max(sprite.EmissionIntensity, 0.0f));
 		if (shadowCaster == false || m_SunShadows.Sprites == false)
 		{
 			Renderer2D::DrawQuad(drawn, texture, rect, sprite.Color);

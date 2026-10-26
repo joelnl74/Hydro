@@ -8,6 +8,7 @@ layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) flat in float texIndex;
 layout(location = 3) flat in int entityID;
+layout(location = 6) flat in vec3 fragEmission; // see fragment.frag
 
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out int outEntityID; // see fragment.frag
@@ -22,6 +23,6 @@ void main()
 	{
 		discard;
 	}
-	outColor = vec4(color.rgb, 1.0);
+	outColor = vec4(color.rgb + color.rgb * fragEmission, 1.0);
 	outEntityID = entityID;
 }

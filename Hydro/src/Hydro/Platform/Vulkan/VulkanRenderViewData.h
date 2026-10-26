@@ -57,13 +57,16 @@ namespace Hydro
 		// sprite that casts a sun-facing shadow (SpriteShadowMode::FaceSun): the same texel of that caster quad,
 		// so the sprite is never darkened by its own shadow, only by what stands between it and the sun.
 		glm::vec3 ShadowPosition{ 0.0f };
+		// Emission (post-processing plan P3): the sprite shaders add the pixel's colour times this after the
+		// lighting. 0 = none (Renderer2D::SetEmission).
+		glm::vec3 Emission{ 0.0f };
 	};
 	// Read by the vertex shader through Renderer2D's vertex layout (GetQuadVertexLayout), which packs the
 	// attributes in this order without padding.
-	static_assert(sizeof(QuadVertex) == 56, "QuadVertex: must match GetQuadVertexLayout");
+	static_assert(sizeof(QuadVertex) == 68, "QuadVertex: must match GetQuadVertexLayout");
 	static_assert(offsetof(QuadVertex, Color) == 12 && offsetof(QuadVertex, TexCoord) == 28
 		&& offsetof(QuadVertex, TexIndex) == 36 && offsetof(QuadVertex, EntityID) == 40
-		&& offsetof(QuadVertex, ShadowPosition) == 44, "QuadVertex: must match GetQuadVertexLayout");
+		&& offsetof(QuadVertex, ShadowPosition) == 44 && offsetof(QuadVertex, Emission) == 56, "QuadVertex: must match GetQuadVertexLayout");
 
 	// Textures one draw call can sample. The quad shader declares `sampler2D inTextures[32]` and the
 	// descriptor set's image array has VulkanDescriptorBuilder::MaxImageArraySize elements; all three agree.
@@ -185,6 +188,7 @@ namespace Hydro
 		bool InDebugLines = false;
 		SpriteDrawMode DrawMode = SpriteDrawMode::Translucent; // the list quads go to outside the overlay
 		int32_t EntityID = -1; // Renderer2D::SetEntityID: what the next quads carry
+		glm::vec3 Emission{ 0.0f }; // Renderer2D::SetEmission: what the next quads carry
 		std::vector<MeshDraw> MeshDraws;  // Renderer3D::DrawMesh, cleared with the batches
 		// Sun shadow casters (R14): quads made between BeginShadowCasters and EndShadowCasters (cut-out sprites,
 		// as drawn or turned to face the sun), drawn only into the shadow map.

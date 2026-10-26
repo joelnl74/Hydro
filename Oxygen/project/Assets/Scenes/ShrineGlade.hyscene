@@ -5360,6 +5360,8 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
+      EmissionColor: [1, 1, 1]
+      EmissionIntensity: 1.5
     SpriteAnimatorComponent:
       AnimationsHandle: 381359539372406047
       StartClip: Float

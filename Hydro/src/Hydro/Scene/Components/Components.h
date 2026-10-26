@@ -75,6 +75,12 @@ namespace Hydro
 		// Sun shadows: a cut-out Upright or Billboard sprite casts one (RenderFeatureSettings::SpriteShadows);
 		// off for grass, flowers and anything that shouldn't darken the ground.
 		bool CastShadows = true;
+		// Emission (post-processing plan P3): the sprite's own pixels (texture times Color) times EmissionColor
+		// times EmissionIntensity are added after the lighting, so a flame or a lit window glows at night and in
+		// shadow. Linear; above 1 it blooms (with the Bloom render feature). 0 = none, as before. The whole sprite
+		// emits: a torch is a body sprite and a flame sprite.
+		glm::vec3 EmissionColor{ 1.0f, 1.0f, 1.0f };
+		float EmissionIntensity = 0.0f;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -415,6 +421,7 @@ namespace Hydro
 		ParticleBlend Blend = ParticleBlend::Alpha;
 		ParticleLighting Lighting = ParticleLighting::Lit;
 		int32_t SortOrder = 0;                    // sorted with sprites (higher = on top)
+		float EmissionIntensity = 0.0f;           // a particle's own colour times this is added after the lighting (sparks, embers; plan P3)
 
 		// Light per emitter (Roadmap V4, optional; 0 radius = none)
 		float LightRadius = 0.0f;

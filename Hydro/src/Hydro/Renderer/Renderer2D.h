@@ -197,6 +197,10 @@ namespace Hydro
 		// negative value) = none: the quads don't change the IDs below them (particles, effects, lines).
 		// Overlay quads write it too (HUD sprites); editor lines carry -1.
 		static void SetEntityID(int32_t entityID);
+		// Emission (post-processing plan P3): the quads submitted next add their colour (texture times tint)
+		// times `emission` after the lighting, until the next call or EndScene (which goes back to 0). Linear;
+		// above 1 it blooms in an HDR view. Doesn't start a new draw: it travels in the vertices.
+		static void SetEmission(const glm::vec3& emission);
 
 		// 2D lighting (RendererSettings::Lighting). Queue lights for the view between BeginScene and
 		// EndScene, like quads. A view that gets at least one light is drawn lit: each light is drawn

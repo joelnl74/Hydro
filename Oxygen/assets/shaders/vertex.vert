@@ -8,6 +8,9 @@ layout(location = 3) in float inTexIndex;
 layout(location = 4) in int inEntityID;
 // Where this corner is looked up in the sun shadow map (QuadVertex::ShadowPosition).
 layout(location = 5) in vec3 inShadowPosition;
+// Emission (QuadVertex::Emission, post-processing plan P3): the sprite shaders add the pixel's colour times this
+// after the lighting. 0 = none.
+layout(location = 6) in vec3 inEmission;
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 mvp;
@@ -23,6 +26,8 @@ layout(location = 3) flat out int entityID;
 layout(location = 4) out vec3 fragWorldPos;
 // For the lit sprite shaders' sun shadow lookup.
 layout(location = 5) out vec3 fragShadowPos;
+// The same for the whole quad: flat.
+layout(location = 6) flat out vec3 fragEmission;
 
 void main() {
     gl_Position = ubo.mvp * vec4(inPosition, 1.0);
@@ -32,4 +37,5 @@ void main() {
 	entityID = inEntityID;
 	fragWorldPos = inPosition;
 	fragShadowPos = inShadowPosition;
+	fragEmission = inEmission;
 }

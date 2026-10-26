@@ -84,7 +84,7 @@ namespace Hydro
 		// RemoveTexture); they are rewritten for another texture once unused for a while.
 		std::vector<ImGuiTextureEntry> ImGuiTextures;
 
-		// Quads per batch (= per vertex buffer). 20k quads * 4 verts * 56 bytes = ~4.5 MB per buffer.
+		// Quads per batch (= per vertex buffer). 20k quads * 4 verts * 68 bytes = ~5.4 MB per buffer.
 		// When a frame needs more, extra batches are allocated on demand.
 		static const uint32_t MaxQuads = 20000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
@@ -305,6 +305,7 @@ namespace Hydro
 			{ "inTexIndex", ShaderDataType::Float, },
 			{ "inEntityID", ShaderDataType::Int, },
 			{ "inShadowPosition", ShaderDataType::Float3, },
+			{ "inEmission", ShaderDataType::Float3, },
 		};
 	}
 
@@ -1077,6 +1078,7 @@ namespace Hydro
 		view.LightingSubmitted = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
 		view.EntityID = -1;
+		view.Emission = glm::vec3(0.0f);
 		view.MeshDraws.clear();
 		StartDraw(view);
 	}
@@ -1131,6 +1133,10 @@ namespace Hydro
 		// An overlay left open and a sprite draw mode end with the scene, so the next BeginScene starts with
 		// translucent draws.
 		RenderViewData* view = s_Data->CurrentView;
+		if (view != nullptr)
+		{
+			view->Emission = glm::vec3(0.0f);
+		}
 		if (view != nullptr && (view->InOverlay || view->InDebugLines || view->InShadowCasters || view->DrawMode != SpriteDrawMode::Translucent || view->EntityID >= 0))
 		{
 			view->InOverlay = false;
@@ -1294,6 +1300,16 @@ namespace Hydro
 		{
 			StartDraw(*view);
 		}
+	}
+
+	void Renderer2D::SetEmission(const glm::vec3& emission)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::SetEmission outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+		{
+			return;
+		}
+		s_Data->CurrentView->Emission = glm::max(emission, glm::vec3(0.0f));
 	}
 
 
@@ -1603,6 +1619,7 @@ namespace Hydro
 			view.QuadVertexBufferPtr->TexIndex = textureIndex;
 			view.QuadVertexBufferPtr->EntityID = view.EntityID;
 			view.QuadVertexBufferPtr->ShadowPosition = shadowCorners != nullptr ? (*shadowCorners)[i] : corners[i];
+			view.QuadVertexBufferPtr->Emission = view.Emission;
 			view.QuadVertexBufferPtr++;
 		}
 

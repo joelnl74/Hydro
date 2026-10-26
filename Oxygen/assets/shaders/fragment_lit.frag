@@ -14,6 +14,7 @@ layout(location = 2) flat in float texIndex;
 layout(location = 3) flat in int entityID;
 layout(location = 4) in vec3 fragWorldPos;
 layout(location = 5) in vec3 fragShadowPos;
+layout(location = 6) flat in vec3 fragEmission;
 
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out int outEntityID; // see fragment.frag
@@ -30,6 +31,8 @@ void main()
 		discard;
 	}
 	vec3 lit = color.rgb * ComputeLighting(fragWorldPos, QuadNormal(fragWorldPos), SpriteWrap, SunShadowSprite(fragShadowPos));
+	// Emission (plan P3) after the lighting, so a flame isn't darkened by night or shadow; fogged like the rest.
+	lit += color.rgb * fragEmission;
 	outColor = vec4(ApplyFog(lit, fragWorldPos), color.a);
 	outEntityID = entityID;
 }

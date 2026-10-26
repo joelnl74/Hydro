@@ -810,6 +810,22 @@ namespace Hydro
 					ImGui::SetTooltip("Sun shadows (Render Settings > Rendering: Shadows = Sun): a cut-out Upright or Billboard\nsprite casts one, as set by Sprite shadows. Off for grass and flowers.");
 				}
 			});
+			DrawPropertyRow("Emission", [&]()
+			{
+				ImGui::ColorEdit3("##SpriteEmissionColor", glm::value_ptr(sprite.EmissionColor));
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Multiplies the sprite's own colours (white = the texture's colours) for its glow.");
+				}
+			});
+			DrawPropertyRow("Emission intensity", [&]()
+			{
+				InputFloatField("##SpriteEmissionIntensity", sprite.EmissionIntensity, "%.2f", 0.0f, 100.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("The sprite glows: its colours times Emission times this are added after the lighting,\nso it stays bright at night and in shadow (flames, candles, lit windows). 0 = none.\nAbove about 1 it blooms (Render Settings > Rendering: HDR and Bloom). The whole sprite glows:\ngive a torch's flame its own sprite.");
+				}
+			});
 			if (texture != nullptr && entity.HasComponent<TransformComponent>())
 			{
 				DrawPropertyRow("##NativeSize", [&]()
@@ -1243,6 +1259,15 @@ namespace Hydro
 				if (ImGui::InputInt("##EmitterSortOrder", &sortOrder))
 				{
 					emitter.SortOrder = (int32_t)sortOrder;
+				}
+			});
+
+			DrawPropertyRow("Emission", [&]()
+			{
+				InputFloatField("##EmitterEmissionIntensity", emitter.EmissionIntensity, "%.2f", 0.0f, 100.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Each particle's colour times this is added after the lighting: sparks and embers glow\nat night and bloom above about 1 (HDR and Bloom). 0 = none.");
 				}
 			});
 
