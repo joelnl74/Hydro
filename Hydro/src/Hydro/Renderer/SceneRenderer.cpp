@@ -71,7 +71,7 @@ namespace Hydro
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
-		Renderer2D::SetPostProcess(m_Scene->GetPostProcess());
+		Renderer2D::SetPostProcess(m_Scene->GetActivePostProcess());
 		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();
@@ -107,7 +107,7 @@ namespace Hydro
 
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
-		Renderer2D::SetPostProcess(m_Scene->GetPostProcess());
+		Renderer2D::SetPostProcess(m_Scene->GetActivePostProcess());
 		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();
@@ -645,7 +645,7 @@ namespace Hydro
 			lighting.Lights.push_back(forward);
 		}
 
-		const SceneEnvironment& environment = m_Scene->GetEnvironment();
+		const SceneEnvironment environment = m_Scene->GetActiveEnvironment();
 		if (environment.Override)
 		{
 			lighting.SkyAmbient = environment.SkyAmbient;

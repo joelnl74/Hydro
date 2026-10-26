@@ -357,12 +357,18 @@ namespace Hydro
 		{
 			Scene& scene = *GetEntity().GetScene();
 			const Preset& preset = GetPreset(m_Preset);
-			SceneEnvironment environment = scene.GetEnvironment();
+			// Starts from what is drawn (the scene's own environment or its render profile's) and makes it the
+			// scene's own for this run, so the preset shows whichever the scene uses. Plan P5 turns the presets
+			// into Day, Dusk and Night render profiles switched with Scene::SetRenderProfile.
+			SceneEnvironment environment = scene.GetActiveEnvironment();
 			environment.Override = true;
 			environment.SkyAmbient = preset.SkyAmbient;
 			environment.GroundAmbient = preset.GroundAmbient;
 			environment.FogColor = preset.FogColor;
 			scene.SetEnvironment(environment);
+			SceneLook look = scene.GetLook();
+			look.Environment = RenderLookSource::Scene;
+			scene.SetLook(look);
 
 			Entity sun = scene.GetMainLight();
 			if ((bool)sun)

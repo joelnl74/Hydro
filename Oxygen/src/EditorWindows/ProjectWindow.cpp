@@ -10,6 +10,8 @@
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
+#include <Hydro/Renderer/RenderProfile.h>
+#include <Hydro/Renderer/RenderProfileSerializer.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Scene/SceneSerializer.h>
 #include <Hydro/Scene/SpriteAnimation.h>
@@ -412,6 +414,10 @@ namespace Hydro
 			{
 				m_DeferredActions.push_back([this]() { CreateMaterial(); });
 			}
+			if (ImGui::MenuItem("New Render Profile"))
+			{
+				m_DeferredActions.push_back([this]() { CreateRenderProfile(); });
+			}
 			if (ImGui::MenuItem("Refresh"))
 				m_NeedsRescan = true;
 
@@ -434,7 +440,8 @@ namespace Hydro
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 		{
 			m_SelectedPath = item.Path;
-			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material || item.Type == ItemType::Model) && OnAssetSelected)
+			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material || item.Type == ItemType::Model
+				|| item.Type == ItemType::RenderProfile) && OnAssetSelected)
 			{
 				OnAssetSelected(item.Path);
 			}
@@ -454,7 +461,9 @@ namespace Hydro
 		const bool isAnimationSet = item.Type == ItemType::Animation;
 		const bool isMaterial = item.Type == ItemType::Material;
 		const bool isModel = item.Type == ItemType::Model;
-		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel) && ImGui::BeginDragDropSource())
+		const bool isRenderProfile = item.Type == ItemType::RenderProfile;
+		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel || isRenderProfile)
+			&& ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
@@ -469,6 +478,10 @@ namespace Hydro
 			else if (isMaterial)
 			{
 				ImGui::TextDisabled("Drop on a mesh's material Asset field");
+			}
+			else if (isRenderProfile)
+			{
+				ImGui::TextDisabled("Drop on Render Settings > Look (scene) > Render profile");
 			}
 			else if (isModel)
 			{
@@ -721,6 +734,40 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.95f, 0.55f, 0.20f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
+			case ItemType::RenderProfile:
+			{
+				// A little landscape: the sky ambient over the ground ambient, a fog band at the horizon. The
+				// colours are linear and dim: brightened so they read on the tile.
+				const Ref<RenderProfile> profile = FindAsset<RenderProfile>(item.Handle, m_PreviewLoadsLeft);
+				const ImVec2 viewMin = TilePoint(min, size, 0.14f, 0.14f);
+				const ImVec2 viewMax = TilePoint(min, size, 0.86f, 0.80f);
+				const float horizon = viewMin.y + (viewMax.y - viewMin.y) * 0.55f;
+				auto shown = [](const glm::vec3& linear)
+				{
+					const glm::vec3 c = glm::clamp(glm::sqrt(glm::max(linear, glm::vec3(0.0f))), glm::vec3(0.0f), glm::vec3(1.0f));
+					return ImGui::ColorConvertFloat4ToU32({ c.r, c.g, c.b, 1.0f });
+				};
+				if (profile != nullptr && profile->GetData().Environment.Override)
+				{
+					const SceneEnvironment& environment = profile->GetData().Environment;
+					drawList->AddRectFilled(viewMin, { viewMax.x, horizon }, shown(environment.SkyAmbient));
+					drawList->AddRectFilled({ viewMin.x, horizon }, viewMax, shown(environment.GroundAmbient));
+					if (environment.Fog)
+					{
+						const float band = (viewMax.y - viewMin.y) * 0.12f;
+						drawList->AddRectFilled({ viewMin.x, horizon - band }, { viewMax.x, horizon + band }, (shown(environment.FogColor) & 0x00FFFFFF) | 0xB0000000);
+					}
+				}
+				else
+				{
+					drawList->AddRectFilled(viewMin, viewMax, ToColor(0.45f, 0.45f, 0.48f));
+				}
+				drawList->AddRect(viewMin, viewMax, ToColor(0.0f, 0.0f, 0.0f, 0.5f), 0.0f, 0, 1.5f);
+
+				// Teal strip = render profile.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.20f, 0.75f, 0.70f), rounding, ImDrawFlags_RoundCornersBottom);
+				break;
+			}
 			case ItemType::Model:
 			{
 				// A cube seen from above the front-right: three shaded faces.
@@ -783,6 +830,9 @@ namespace Hydro
 				break;
 			case ItemType::Material:
 				ImGui::TextDisabled("Material (Standard) - drag onto a mesh's material Asset field");
+				break;
+			case ItemType::RenderProfile:
+				ImGui::TextDisabled("Render profile - a shared look; drag onto Render Settings > Look (scene)");
 				break;
 			case ItemType::Model:
 				ImGui::TextDisabled("Model (glTF) - drag into the viewport to place it");
@@ -878,6 +928,7 @@ namespace Hydro
 				break;
 			case ItemType::Material:
 			case ItemType::Model:
+			case ItemType::RenderProfile:
 				// Edited in the inspector.
 				if (OnAssetSelected)
 				{
@@ -1142,6 +1193,9 @@ namespace Hydro
 			case AssetType::Mesh:
 				itemType = ItemType::Model;
 				return true;
+			case AssetType::RenderProfile:
+				itemType = ItemType::RenderProfile;
+				return true;
 			default:
 				return false;
 		}
@@ -1193,6 +1247,33 @@ namespace Hydro
 		}
 
 		if (MaterialSerializer::Serialize(target, MaterialData{}) == false)
+		{
+			return;
+		}
+
+		HY_INFO("Created {}", target.filename().u8string());
+		m_SelectedPath = target;
+		m_NeedsRescan = true;
+		if (OnAssetSelected)
+		{
+			OnAssetSelected(target);
+		}
+	}
+
+	void ProjectWindow::CreateRenderProfile()
+	{
+		std::filesystem::path folder = m_CurrentDirectory.empty() ? m_RootDirectory : m_CurrentDirectory;
+		std::filesystem::path target = folder / std::filesystem::u8path(std::string("New Render Profile") + RenderProfileSerializer::FileExtension);
+		std::error_code error;
+		for (int number = 2; std::filesystem::exists(target, error); number++)
+		{
+			target = folder / std::filesystem::u8path("New Render Profile " + std::to_string(number) + RenderProfileSerializer::FileExtension);
+		}
+
+		// A starting point that shows something: its own environment (the defaults), default post-processing.
+		RenderProfileData data;
+		data.Environment.Override = true;
+		if (RenderProfileSerializer::Serialize(target, data) == false)
 		{
 			return;
 		}

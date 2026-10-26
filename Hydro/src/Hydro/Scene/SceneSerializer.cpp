@@ -5,6 +5,7 @@
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
 #include "Hydro/Renderer/RenderFeatureSerializer.h"
+#include "Hydro/Renderer/RenderProfileSerializer.h"
 #include "Hydro/Utils/YAMLConversions.h"
 
 namespace Hydro
@@ -34,31 +35,33 @@ namespace Hydro
 			RenderFeatureSerializer::Serialize(out, renderSettings.Features);
 			out << YAML::EndMap;
 		}
-		// Only written when the scene sets its own ambient and fog (forward lighting, M6).
+		// Only written when the scene uses a render profile (post-processing plan P4).
+		const SceneLook& look = m_Scene->GetLook();
+		if (look != SceneLook{})
+		{
+			out << YAML::Key << "Look" << YAML::Value << YAML::BeginMap;
+			if ((uint64_t)look.Profile != 0)
+			{
+				out << YAML::Key << "ProfileHandle" << YAML::Value << (uint64_t)look.Profile;
+			}
+			out << YAML::Key << "Environment" << YAML::Value << RenderProfileSerializer::LookSourceToString(look.Environment);
+			out << YAML::Key << "PostProcess" << YAML::Value << RenderProfileSerializer::LookSourceToString(look.PostProcess);
+			out << YAML::EndMap;
+		}
+		// The scene's own values, also when the look takes them from a profile (they come back when it
+		// stops). Only written when the scene sets its own ambient and fog (forward lighting, M6).
 		const SceneEnvironment& environment = m_Scene->GetEnvironment();
 		if (environment.Override)
 		{
-			out << YAML::Key << "Environment" << YAML::Value << YAML::BeginMap;
-			out << YAML::Key << "SkyAmbient" << YAML::Value << environment.SkyAmbient;
-			out << YAML::Key << "GroundAmbient" << YAML::Value << environment.GroundAmbient;
-			out << YAML::Key << "Fog" << YAML::Value << environment.Fog;
-			out << YAML::Key << "FogColor" << YAML::Value << environment.FogColor;
-			out << YAML::Key << "FogStart" << YAML::Value << environment.FogStart;
-			out << YAML::Key << "FogEnd" << YAML::Value << environment.FogEnd;
-			out << YAML::EndMap;
+			out << YAML::Key << "Environment" << YAML::Value;
+			RenderProfileSerializer::SerializeEnvironment(out, environment);
 		}
 		// Only when it differs from the defaults, so scenes that don't use it are saved as before.
 		const ScenePostProcess& postProcess = m_Scene->GetPostProcess();
 		if (postProcess != ScenePostProcess{})
 		{
-			out << YAML::Key << "PostProcess" << YAML::Value << YAML::BeginMap;
-			out << YAML::Key << "Exposure" << YAML::Value << postProcess.Exposure;
-			out << YAML::Key << "Bloom" << YAML::Value << postProcess.Bloom;
-			out << YAML::Key << "BloomThreshold" << YAML::Value << postProcess.BloomThreshold;
-			out << YAML::Key << "BloomKnee" << YAML::Value << postProcess.BloomKnee;
-			out << YAML::Key << "BloomIntensity" << YAML::Value << postProcess.BloomIntensity;
-			out << YAML::Key << "BloomRadius" << YAML::Value << postProcess.BloomRadius;
-			out << YAML::EndMap;
+			out << YAML::Key << "PostProcess" << YAML::Value;
+			RenderProfileSerializer::SerializePostProcess(out, postProcess);
 		}
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
@@ -129,50 +132,34 @@ namespace Hydro
 		m_Scene->SetRenderSettings(renderSettings);
 
 		// Missing: the Global lights are the ambient light and there is no fog.
-		SceneEnvironment environment;
-		YAML::Node environmentNode = data["Environment"];
-		if (environmentNode && environmentNode.IsMap())
-		{
-			environment.Override = true;
-			environment.SkyAmbient = environmentNode["SkyAmbient"].as<glm::vec3>(environment.SkyAmbient);
-			environment.GroundAmbient = environmentNode["GroundAmbient"].as<glm::vec3>(environment.GroundAmbient);
-			environment.Fog = environmentNode["Fog"].as<bool>(environment.Fog);
-			environment.FogColor = environmentNode["FogColor"].as<glm::vec3>(environment.FogColor);
-			environment.FogStart = environmentNode["FogStart"].as<float>(environment.FogStart);
-			environment.FogEnd = environmentNode["FogEnd"].as<float>(environment.FogEnd);
-		}
-		m_Scene->SetEnvironment(environment);
+		m_Scene->SetEnvironment(RenderProfileSerializer::DeserializeEnvironment(data["Environment"]));
+		m_Scene->SetPostProcess(RenderProfileSerializer::DeserializePostProcess(data["PostProcess"]));
 
-		ScenePostProcess postProcess;
-		YAML::Node postProcessNode = data["PostProcess"];
-		if (postProcessNode && postProcessNode.IsMap())
+		// Missing: no profile, the scene's own values (scenes from before P4).
+		SceneLook look;
+		YAML::Node lookNode = data["Look"];
+		if (lookNode && lookNode.IsMap())
 		{
-			if (auto exposure = postProcessNode["Exposure"])
+			if (auto profileNode = lookNode["ProfileHandle"])
 			{
-				postProcess.Exposure = exposure.as<float>(postProcess.Exposure);
+				look.Profile = AssetHandle(profileNode.as<uint64_t>(0));
 			}
-			if (auto bloom = postProcessNode["Bloom"])
+			if (auto environmentSource = lookNode["Environment"])
 			{
-				postProcess.Bloom = bloom.as<bool>(postProcess.Bloom);
+				look.Environment = RenderProfileSerializer::LookSourceFromString(environmentSource.as<std::string>("Scene"));
 			}
-			if (auto threshold = postProcessNode["BloomThreshold"])
+			if (auto postProcessSource = lookNode["PostProcess"])
 			{
-				postProcess.BloomThreshold = threshold.as<float>(postProcess.BloomThreshold);
-			}
-			if (auto knee = postProcessNode["BloomKnee"])
-			{
-				postProcess.BloomKnee = knee.as<float>(postProcess.BloomKnee);
-			}
-			if (auto intensity = postProcessNode["BloomIntensity"])
-			{
-				postProcess.BloomIntensity = intensity.as<float>(postProcess.BloomIntensity);
-			}
-			if (auto radius = postProcessNode["BloomRadius"])
-			{
-				postProcess.BloomRadius = radius.as<float>(postProcess.BloomRadius);
+				look.PostProcess = RenderProfileSerializer::LookSourceFromString(postProcessSource.as<std::string>("Scene"));
 			}
 		}
-		m_Scene->SetPostProcess(postProcess);
+		// Loaded now (a profile that can't be loaded is logged by the manager), so the renderer finds it.
+		// The handle is kept either way: the scene's own values are drawn until the file is back.
+		if ((uint64_t)look.Profile != 0)
+		{
+			AssetManager::GetAsset<RenderProfile>(look.Profile);
+		}
+		m_Scene->SetLook(look);
 
 		size_t count = 0;
 		if (auto entities = data["Entities"])

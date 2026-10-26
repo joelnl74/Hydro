@@ -21,9 +21,9 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `ImGUI/ImGuiLayer.*` | ImGui init/shutdown, fonts (`ImGuiLayerSpecification`), present-pass callback |
 | `Platform/Windows/*` | `WindowsWindow` (GLFW), `WindowsInput`, `WindowsUtilities` (`FileDialogs`) |
 | **Asset** | |
-| `Asset/Asset.*` | `AssetHandle` (= `UUID`), `AssetType` (to/from string, from a file extension), `Asset` base class (`Texture2D`, `SpriteAnimationSet`, `Prefab`, `MaterialAsset`) |
+| `Asset/Asset.*` | `AssetHandle` (= `UUID`), `AssetType` (to/from string, from a file extension), `Asset` base class (`Texture2D`, `SpriteAnimationSet`, `Prefab`, `MaterialAsset`, `Mesh`, `RenderProfile`) |
 | `Asset/AssetMetadata.h`, `Asset/AssetRegistry.*` | What is known about one asset; the handle ↔ path table (in memory, rebuilt by scanning) |
-| `Asset/AssetMetaSerializer.*` | Where a file keeps its handle: first line of scenes/prefabs/`.hyanim`/`.hymat`, `<file>.hymeta` sidecar for images (shared with the texture import config) |
+| `Asset/AssetMetaSerializer.*` | Where a file keeps its handle: first line of scenes/prefabs/`.hyanim`/`.hymat`/`.hyrender`, `<file>.hymeta` sidecar for images (shared with the texture import config) |
 | `Asset/AssetManager.*` | `AssetManager` subsystem: project open/close, scan (new handles, copies, missing files), `ImportAsset`, `MoveAsset` / `DeleteAsset`, `BindHandle`, lookups; texture cache: `GetAsset<T>`, `GetLoadedAsset<T>`, `ReloadAsset<T>`, `GetLoadState` |
 | **Renderer** (engine-facing, no Vulkan types in new headers) | |
 | `Renderer/Renderer.*` | `Renderer` subsystem: owns context, swapchain, frames; `RenderFrame`; deletion queue (`SubmitResourceFree`); `Get/SetSettings`, `GetCapabilities` |
@@ -49,6 +49,8 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Renderer/Renderer3D.*` | Static meshes (M4): `BeginScene(view)`, `DrawMesh`, `EndScene`; the Meshes pass (`RecordMeshes`); the Standard material cache (set 1) and built-in shape cache (`GetShapeMesh`), freed when unused; its mesh pipelines; `Renderer3DStatistics` |
 | `Renderer/Material.*` | `MaterialData` (the Standard material's fields) and `MaterialAsset` (a `.hymat` loaded by the `AssetManager`; editable data, `SetData`) |
 | `Renderer/MaterialSerializer.*` | Reads and writes `.hymat` files (handle first), and one material's fields as YAML for inline mesh slots |
+| `Renderer/RenderProfile.*` | Render profiles (post-processing plan P4), no Vulkan: `RenderProfileData` (environment + post-processing), `RenderLookSource`, `SceneLook` (a scene's profile and the source of each section), `RenderProfile` (a `.hyrender` loaded by the `AssetManager`; editable data, `SetData`) |
+| `Renderer/RenderProfileSerializer.*` | Reads and writes `.hyrender` files (handle first), and the environment and post-processing maps a scene saves too |
 | `Renderer/Mesh.*` | `MeshVertex`, `SubMesh` (with its source node for imports), `MeshData` (CPU), `MeshMaterialInfo`, `Mesh` (an `Asset` of type Mesh for models; GPU-only buffers, sub-meshes, bounds, the model's material slots; shared through `Ref`) |
 | `Renderer/MeshImporter.*` | glTF import through cgltf (M5): `ImportedModel` (nodes, meshes, materials, images), `Import`, `Flatten` (node transforms, Y-up to Z-up, winding, normals), `MeshImportConfig` / `MeshImportMapping` |
 | `Renderer/MeshAssetImport.cpp` | `MeshImporter::ImportAsset`: the asset side of a model import (extracts embedded images, makes a `.hymat` per material, keeps the mapping in the `.hymeta`) |
@@ -74,7 +76,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `VulkanGPUData.h` | GPU data layout rules (std140 / std430, static_asserts), `UniformBufferObject`, `ObjectPushConstants` |
 | `VulkanUtils.h` | `VK_CHECK_RESULT` |
 | **Scene** | |
-| `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor` (build a `SystemContext`, run the stages in order), `Copy` (play mode), primary camera |
+| `Scene/Scene.*` | Registry, `CreateEntity`, `OnUpdateRuntime`/`OnUpdateEditor` (build a `SystemContext`, run the stages in order), `Copy` (play mode), primary camera; its render settings and look (environment, post-processing, `SceneLook`; `GetActiveEnvironment` / `GetActivePostProcess` resolve the render profile) |
 | `Scene/SystemContext.h` | `SystemContext`: `DeltaTime`, `FixedDeltaTime`, `FrameIndex`, `IsPlaying`, passed to every engine system |
 | `Scene/ScriptSystem.*` | `UpdateScripts` system (creates script instances, runs `OnUpdate`) |
 | `Scene/Entity.*` | Handle (`entt::entity` + `Scene*`), component access |
@@ -105,16 +107,17 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `EditorLayer.*` | Editor scene + play copy, the two `RenderView`s, `EditorCamera`, all windows, menus and top bar, open/save project and scene, the scene stack for play mode (`ProcessSceneTransition`), asset drops, inspected asset, re-import of textures / reload of animation sets into the open scenes, click-to-select in the Editor view (`UpdateClickSelection`), galaxy demo; unattended runs from the command line (`EditorLaunchOptions`: open a project and scene, play, capture the Game view after n frames, validate every scene, exit with a code) |
 | `EditorSettings.*` | `EditorSettings` + `EditorSettingsSerializer` (`EditorSettings.yaml`, session) |
 | `EditorPaths.h` | Project-aware paths (scenes, prefabs, settings, captures) |
-| `EditorWindows/InspectorWindow.*` | Component UI, **Add Component**, script list, prefab button; the selected asset when no entity is selected (image import settings, `.hyanim` summary, `.hymat` fields); mesh material slots (asset picker, **Save as Material Asset**), saving edited materials |
+| `EditorWindows/InspectorWindow.*` | Component UI, **Add Component**, script list, prefab button; the selected asset when no entity is selected (image import settings, `.hyanim` summary, `.hymat` fields, `.hyrender` fields); mesh material slots (asset picker, **Save as Material Asset**), saving edited materials |
 | `EditorWindows/TextureImportPanel.*` | Inspector panel for an image: preview, `TextureImportConfig` (sprite mode, pixels per unit, filter, wrap, colour space, colour key), Apply / Revert |
 | `EditorWindows/SpriteEditorWindow.*` | **Sprite Editor**: slice a sheet (grid, detect grid, manual), row names, per-sprite name / rect / pivot, sprites drawn over the image |
 | `EditorWindows/SpriteAnimationWindow.*` | **Animation**: edit a `.hyanim` (sheet, clips, frames, durations, loop, flip, events, default clip), live preview, sprite picker; `MakeClipsFromSpriteNames` |
 | `EditorWindows/PropertyUI.h` | Shared label/value rows, number fields and `SpriteImage` for the asset editors |
 | `EditorWindows/HierachyWindow.*` | Entity list with search box, create/delete, prefab drops, double-click to focus (`OnEntityFocus`) |
-| `EditorWindows/ProjectWindow.*` | Asset browser listing the registry (plus folders), drag sources (prefabs, scenes, images, `.hyanim`), prefab previews (first animation frame or sprite image), `.hyanim` first frames, image thumbnails; selects / opens assets; **Create Sprite Animation** from a sheet; **New Material**; material swatch tiles; hides `.hymeta`; calls `AssetManager::Rescan` when the folder changes, handle in tooltips |
+| `EditorWindows/ProjectWindow.*` | Asset browser listing the registry (plus folders), drag sources (prefabs, scenes, images, `.hyanim`), prefab previews (first animation frame or sprite image), `.hyanim` first frames, image thumbnails; selects / opens assets; **Create Sprite Animation** from a sheet; **New Material**, **New Render Profile**; material swatch and render profile (sky over ground) tiles; hides `.hymeta`; calls `AssetManager::Rescan` when the folder changes, handle in tooltips |
 | `EditorWindows/ConsoleWindow.*` | Log view |
 | `EditorWindows/StatsWindow.*`, `RendererStatsWindow.*`, `StatsUI.h` | Frame timings; `Renderer2D` stats (forward lighting, debug lines, per-pass GPU times); shared table helpers; Scene tab: entity counts and the running scene's particle stats |
-| `EditorWindows/RenderSettingsWindow.*`, `ProjectSettingsWindow.*`, `EditorSettingsWindow.*` | Live `RendererSettings`, the scene's render features and environment (ambient, fog); project name/start scene; editor preferences pages |
+| `EditorWindows/RenderSettingsWindow.*`, `ProjectSettingsWindow.*`, `EditorSettingsWindow.*` | Live `RendererSettings`, the scene's render features and look (**Look (scene)**: render profile, **Save as profile**, the source and fields of the environment and post-processing); project name/start scene; editor preferences pages |
+| `EditorWindows/RenderLookUI.*` | The environment and post-processing fields shared by Render Settings and the inspector; editing a render profile (written once an edit is finished), making a new one in `RenderProfiles/` |
 | `EditorWindows/EditorStyle.*`, `Utilities/EditorChrome.*` | Themes from one accent colour; droplet, waterline, icon buttons, play tint |
 | `Utilities/AssetDragDrop.h` | Drag & drop payload (the asset's handle; `AcceptHandle` by type, `AcceptPayload` as a path) |
 | `Utilities/AssetPicker.*` | The asset reference field: file name, searchable popup of one asset type with thumbnails, drop target, clear |

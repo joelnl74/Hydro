@@ -2,6 +2,7 @@
 #include "../EditorPaths.h"
 #include "Utilities/AssetPicker.h"
 #include "PropertyUI.h"
+#include "RenderLookUI.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -12,6 +13,7 @@
 #include <Hydro/Renderer/Mesh.h>
 #include <Hydro/Renderer/MeshImporter.h>
 #include <Hydro/Renderer/MeshImportSerializer.h>
+#include <Hydro/Renderer/RenderProfileSerializer.h>
 #include <Hydro/Asset/AssetMetaSerializer.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
@@ -437,6 +439,7 @@ namespace Hydro
 				DrawAsset(asset);
 			}
 			SaveEditedMaterial(false);
+			RenderLookUI::SaveEditedProfile(false);
 			ImGui::End();
 			return;
 		}
@@ -452,6 +455,7 @@ namespace Hydro
 		DrawPrefabButton(entity);
 
 		SaveEditedMaterial(false);
+		RenderLookUI::SaveEditedProfile(false);
 		ImGui::End();
 	}
 
@@ -699,6 +703,25 @@ namespace Hydro
 		EditMaterialAsset(asset);
 		ImGui::Spacing();
 		ImGui::TextDisabled("Edits change every mesh that uses this material; saved when an edit is finished.");
+	}
+
+	void InspectorWindow::DrawRenderProfileAsset(const std::filesystem::path& path)
+	{
+		ImGui::TextUnformatted(path.filename().u8string().c_str());
+		ImGui::TextDisabled("Render profile");
+
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		const Ref<RenderProfile> profile = (uint64_t)handle != 0 ? AssetManager::GetAsset<RenderProfile>(handle) : nullptr;
+		if (profile == nullptr)
+		{
+			ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "Could not read the render profile (see the console).");
+			return;
+		}
+
+		ImGui::Separator();
+		RenderLookUI::EditProfile(profile);
+		ImGui::Spacing();
+		ImGui::TextDisabled("Edits change every scene that uses this profile; saved when an edit is finished.\nA scene uses it from Render Settings > Look (scene).");
 	}
 
 	void InspectorWindow::DrawEntityHeader(Entity entity)
@@ -1599,6 +1622,12 @@ namespace Hydro
 		if (GetAssetTypeFromExtension(asset) == AssetType::Mesh)
 		{
 			DrawModelAsset(asset);
+			return;
+		}
+
+		if (asset.extension() == RenderProfileSerializer::FileExtension)
+		{
+			DrawRenderProfileAsset(asset);
 			return;
 		}
 

@@ -11,6 +11,7 @@
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/Lighting.h"
 #include "Hydro/Renderer/PostProcess.h"
+#include "Hydro/Renderer/RenderProfile.h"
 #include "Components/Components.h"
 
 namespace Hydro
@@ -108,12 +109,28 @@ namespace Hydro
 		// How the scene is rendered: the project's render features, or its own (saved, copied on Play).
 		const SceneRenderSettings& GetRenderSettings() const { return m_RenderSettings; }
 		void SetRenderSettings(const SceneRenderSettings& settings) { m_RenderSettings = settings; }
-		// Ambient and fog under forward lighting (M6; saved, copied on Play).
+		// The scene's own ambient and fog under forward lighting (M6; saved, copied on Play). What is drawn
+		// is GetActiveEnvironment: these, or its render profile's.
 		const SceneEnvironment& GetEnvironment() const { return m_Environment; }
 		void SetEnvironment(const SceneEnvironment& environment) { m_Environment = environment; }
-		// Exposure (later bloom) of HDR views (post-processing plan P1; saved, copied on Play).
+		// The scene's own exposure and bloom of HDR views (post-processing plan P1, P2; saved, copied on Play).
+		// What is drawn is GetActivePostProcess.
 		const ScenePostProcess& GetPostProcess() const { return m_PostProcess; }
 		void SetPostProcess(const ScenePostProcess& postProcess) { m_PostProcess = postProcess; }
+		// Its render profile and which sections come from it (plan P4; saved as "Look", copied on Play).
+		const SceneLook& GetLook() const { return m_Look; }
+		void SetLook(const SceneLook& look) { m_Look = look; }
+		// Switches the profile (0 = none), keeping which sections use it: a script changes the look this way
+		// (day, dusk, night). Load the profile first (AssetManager::GetAsset<RenderProfile>), like any handle
+		// a component is given: the scene never loads.
+		void SetRenderProfile(AssetHandle profile) { m_Look.Profile = profile; }
+		// The profile if it is loaded, else nullptr (none, missing or not loaded yet).
+		Ref<RenderProfile> GetRenderProfile() const;
+		// What the frame uses: the profile's section when the look takes it from a loaded profile, else the
+		// scene's own values.
+		// Copies: the profile can be reloaded (its file changed) while the caller still holds the values.
+		SceneEnvironment GetActiveEnvironment() const;
+		ScenePostProcess GetActivePostProcess() const;
 		// The scene's sun (DirectionalLightComponent): the one marked IsMainLight, else the first in entity
 		// order; invalid when there is none. More than one marked logs a warning once.
 		Entity GetMainLight();
@@ -164,6 +181,7 @@ namespace Hydro
 		SceneRenderSettings m_RenderSettings;
 		SceneEnvironment m_Environment;
 		ScenePostProcess m_PostProcess;
+		SceneLook m_Look;
 		bool m_MainLightWarned = false;
 		std::vector<entt::entity> m_EntityOrder;
 		uint32_t m_ViewportWidth = 1280;
