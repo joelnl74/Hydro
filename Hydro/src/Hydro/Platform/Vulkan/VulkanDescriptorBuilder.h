@@ -1,15 +1,17 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include "VulkanUniformBuffer.h"
+#include "VulkanBuffer.h"
+#include "VulkanDescriptors.h"
 
 #include <vector>
 #include <map>
 
 namespace Hydro
 {
-	// A descriptor set layout, a pool and one descriptor set per frame in flight, described with
-	// Begin -> Bind... -> Build. A resource: owns the layout and pool (freed through
+	// One persistent descriptor set per frame in flight, described with Begin -> Bind... -> Build. The
+	// layout comes from VulkanDescriptorAllocator's cache (shared with every builder that has the same
+	// bindings), the sets from its persistent pools. A resource: owns its sets (freed through
 	// Renderer::SubmitResourceFree when it is destroyed) and is non-copyable; hold it in a Scope.
 	class VulkanDescriptorBuilder
 	{
@@ -25,11 +27,12 @@ namespace Hydro
 
 		// Creation methods.
 		void Begin();
-		// Each frame's set points at that frame's buffer. `buffer` must outlive the descriptor sets' use.
-		void BindBuffer(uint32_t binding, const VulkanUniformBuffer& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
-		// Binds an array of MaxImageArraySize images. Every slot is written with the given image,
-		// so a shader that indexes any slot always reads a valid descriptor.
-		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		// Each frame's set points at that frame's buffer. The buffers must outlive the descriptor sets' use.
+		void BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		// Binds an array of `count` images (MaxImageArraySize by default; 1 for a single sampler). Every slot is
+		// written with the given image, so a shader that indexes any slot always reads a valid descriptor.
+		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags,
+			uint32_t count = MaxImageArraySize);
 		bool Build();
 
 		// After Build: rewrites `count` (<= MaxImageArraySize) elements, starting at element 0, of the
@@ -51,14 +54,13 @@ namespace Hydro
 		};
 
 		std::vector<VkDescriptorSet> m_DescriptorSets;
+		std::vector<DescriptorAllocation> m_Allocations;
 		std::map<uint32_t, std::vector<PendingWrite>> m_writeDescriptorSets;
 		std::vector<VkDescriptorSetLayoutBinding> m_layoutBinding;
-		std::vector<VkDescriptorPoolSize> m_poolSizes;
 
 		std::vector<VkDescriptorBufferInfo> m_bufferInfo;
 		std::vector<VkDescriptorImageInfo> m_imageInfo;
 
-		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
-		VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE;
+		VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE; // owned by the layout cache
 	};
 }

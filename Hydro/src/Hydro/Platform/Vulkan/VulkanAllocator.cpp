@@ -1,6 +1,7 @@
 #include "hypch.h"
 
 #include "VulkanAllocator.h"
+#include "VulkanUtils.h"
 
 namespace Hydro {
 
@@ -45,11 +46,17 @@ namespace Hydro {
 
 	VmaAllocation VulkanAllocator::AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer)
 	{
+		return AllocateBuffer(bufferCreateInfo, usage, outBuffer, 0, nullptr);
+	}
+
+	VmaAllocation VulkanAllocator::AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer, VmaAllocationCreateFlags flags, VmaAllocationInfo* outInfo)
+	{
 		VmaAllocationCreateInfo allocCreateInfo = {};
 		allocCreateInfo.usage = usage;
+		allocCreateInfo.flags = flags;
 
 		VmaAllocation allocation;
-		vmaCreateBuffer(s_Data->Allocator, &bufferCreateInfo, &allocCreateInfo, &outBuffer, &allocation, nullptr);
+		VK_CHECK_RESULT(vmaCreateBuffer(s_Data->Allocator, &bufferCreateInfo, &allocCreateInfo, &outBuffer, &allocation, outInfo));
 
 		// TODO: Tracking
 		VmaAllocationInfo allocInfo;
@@ -135,6 +142,8 @@ namespace Hydro {
 
 		// Initialize VulkanMemoryAllocator
 		VmaAllocatorCreateInfo allocatorInfo = {};
+		// Stays 1.2 on the 1.3 device: the vendored VMA (3.0.0-development, 2021) asserts on anything
+		// above 1.2. It only decides which memory functions VMA loads, and those are the same.
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
 		allocatorInfo.physicalDevice = device.GetPhysicalDevice().GetVulkanPhysicalDevice();
 		allocatorInfo.device = device.GetDevice();

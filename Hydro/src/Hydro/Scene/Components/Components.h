@@ -11,6 +11,10 @@
 #include <Hydro/Core/UUID.h>
 #include <Hydro/Renderer/SceneCamera.h>
 #include <Hydro/Asset/Asset.h>
+#include <Hydro/Renderer/Image.h>
+#include <Hydro/Renderer/Material.h>
+
+#include <vector>
 #include <glm/gtx/quaternion.hpp>
 
 namespace Hydro
@@ -28,6 +32,15 @@ namespace Hydro
 		           // roll): trees, buildings, props, characters. With a top-down camera it lies flat, so
 		           // tilting the camera stands it up gradually
 		Billboard  // turns about its centre to face the camera fully: particles, glows, icons, world-space UI
+	};
+
+	// How a sprite is drawn in a view with shared depth (RenderFeatureSettings::Depth). Without it every sprite
+	// is translucent and drawn in sort order, as in the 2D preset.
+	enum class SpriteAlphaMode : uint8_t
+	{
+		Default = 0,  // the view's RenderFeatureSettings::DefaultSpriteAlpha (translucent in the 2D preset)
+		Cutout,       // pixels under half alpha are dropped, the rest are opaque: depth test and write, no blending
+		Translucent   // alpha blended: depth test, no depth write, sorted back to front (glows, water, effects)
 	};
 
 	// A quad drawn with the entity's TransformComponent: Texture (white when 0 or not loaded) multiplied by Color
@@ -55,12 +68,55 @@ namespace Hydro
 		bool FlipX = false;
 		bool FlipY = false;
 		SpriteFacing Facing = SpriteFacing::Flat;
+		SpriteAlphaMode AlphaMode = SpriteAlphaMode::Default;
+		// HUD: drawn in the view's overlay pass, after everything else and the lighting: unlit, never depth
+		// tested, in SortOrder among the overlay sprites. For world-space prompts and menus until runtime UI.
+		bool Overlay = false;
+		// Sun shadows: a cut-out Upright or Billboard sprite casts one (RenderFeatureSettings::SpriteShadows);
+		// off for grass, flowers and anything that shouldn't darken the ground.
+		bool CastShadows = true;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {
 		}
+	};
+
+	// A built-in shape of a MeshComponent (MeshFactory). Z-up, standing on its position.
+	enum class MeshShape : uint8_t
+	{
+		Box = 0,
+		Plane,
+		Ramp,
+		Stairs,
+		Cylinder
+	};
+
+	// One material slot of a MeshComponent: a material asset (.hymat, plan M4b), shared with every slot that
+	// names it, or the slot's own settings. Inline is drawn when there is no asset, or its file is missing.
+	struct MeshMaterialSlot
+	{
+		AssetHandle Material = 0; // a MaterialAsset; 0 = use Inline
+		MaterialData Inline;
+	};
+
+	// A static mesh drawn with shared depth when the view's render features have Meshes on (plan M4).
+	// Plain data: SceneRenderer turns it into a cached Mesh and materials every frame.
+	struct MeshComponent
+	{
+		// A model (a Mesh asset: .gltf / .glb, M5); 0 = the built-in Shape below.
+		AssetHandle Model = 0;
+		MeshShape Shape = MeshShape::Box;
+		// Width (X), depth (Y), height (Z) in metres, before the transform's scale. Built-in shapes stand on
+		// the entity's position (their base is centred there at z = 0).
+		glm::vec3 Size{ 1.0f };
+		uint32_t Steps = 4;     // Stairs
+		uint32_t Segments = 16; // Cylinder
+		// One per material slot (built-in shapes have one; a model has one per glTF material). A model's slots
+		// that aren't here use the model's own materials (the assets its import made): empty = all of them.
+		std::vector<MeshMaterialSlot> Materials{ MeshMaterialSlot{} };
+		bool CastShadows = true; // into the sun's shadow map (RenderFeatureSettings::Shadows = Sun)
 	};
 
 	struct TagComponent
@@ -164,7 +220,8 @@ namespace Hydro
 	enum class Light2DType : uint8_t
 	{
 		Point = 0, // lights the area around the entity, out to Radius
-		Global     // lights the whole view equally: the ambient light
+		Global,    // lights the whole view equally: the ambient light
+		Spot       // forward lighting only (M6): a cone along the entity's -Z, out to Radius
 	};
 
 	// A light for the 2D renderer. A point light is placed by the entity's TransformComponent; a global
@@ -183,9 +240,31 @@ namespace Hydro
 		// sprite does: Height units up the screen in a top-down view, that far up the standing sprite in a
 		// tilted one. 0 = on the ground.
 		float Height = 0.0f;
+		// Spot only: the cone's half angles in degrees; full light inside InnerAngle, none outside OuterAngle
+		// (InnerAngle <= OuterAngle). Its direction is the transform's -Z (a lamp over a door points down).
+		float InnerAngle = 20.0f;
+		float OuterAngle = 30.0f;
 
 		Light2DComponent() = default;
 		Light2DComponent(const Light2DComponent&) = default;
+	};
+
+	// The sun or moon of a scene with forward lighting (plan M6): parallel light shining along the
+	// transform's -Z (rotate the entity to aim it). One per scene is used: the one marked IsMainLight, else
+	// the first (Scene::GetMainLight). Ignored by the 2D light buffer.
+	struct DirectionalLightComponent
+	{
+		glm::vec3 Color{ 1.0f, 0.95f, 0.85f }; // linear RGB
+		float Intensity = 1.0f;
+		bool IsMainLight = false;
+		// Sun shadows (the main light only, when the render features have Shadows = Sun).
+		bool CastShadows = true;
+		float ShadowStrength = 1.0f;  // 0 = no shadow, 1 = no direct sun at all in the shadow (ambient stays)
+		float ShadowDistance = 24.0f; // metres from what the camera looks at that get shadows (the map's half width)
+		float ShadowBias = 1.0f;      // scales how far receivers are pushed out of their own shadow (acne vs. gaps)
+
+		DirectionalLightComponent() = default;
+		DirectionalLightComponent(const DirectionalLightComponent&) = default;
 	};
 
 	// A soft blob shadow under the entity, for the 2D renderer: an ellipse that darkens the light buffer of a
@@ -355,5 +434,5 @@ namespace Hydro
 	};
 
 	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent>;
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent>;
 }

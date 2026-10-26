@@ -8,8 +8,12 @@
 //   texIndex      the number of bands: 0 = a smooth fade, 2 or more = that many visible steps
 //                 (set from RendererSettings::LightFalloff and LightBands)
 //
-// This is a plain file: change the curve below and save, and the running editor picks it up
+// This is a plain file: change the curve (light_falloff.glsl) and save, and the running editor picks it up
 // (Render Settings > Shader hot reload).
+
+#extension GL_GOOGLE_include_directive : require
+
+#include "light_falloff.glsl"
 
 layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
@@ -26,15 +30,8 @@ void main()
 		discard;
 	}
 
-	// Bright near the light and exactly 0 at the radius, so there is no hard edge.
-	float d2 = distanceToLight * distanceToLight;
-	float falloff = (1.0 - d2) * (1.0 - d2) / (1.0 + 6.0 * d2);
-
-	float bands = texIndex;
-	if (bands >= 2.0)
-	{
-		falloff = floor(falloff * bands + 0.5) / bands;
-	}
+	// The curve is in light_falloff.glsl (shared with forward lighting).
+	float falloff = LightFalloff(distanceToLight, texIndex);
 
 	outColor = vec4(fragColor.rgb * falloff, 1.0);
 }

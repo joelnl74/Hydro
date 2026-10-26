@@ -5,6 +5,7 @@
 #include <Hydro/Renderer/Renderer.h>
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Project/Project.h>
+#include <Hydro/Scene/Scene.h>
 
 namespace Hydro
 {
@@ -12,7 +13,9 @@ namespace Hydro
 	{
 		return a.ClearColor == b.ClearColor && a.VSync == b.VSync && a.Wireframe == b.Wireframe
 			&& a.ShaderHotReload == b.ShaderHotReload
-			&& a.Lighting == b.Lighting && a.LightFalloff == b.LightFalloff && a.LightBands == b.LightBands && a.Shadows == b.Shadows;
+			&& a.Lighting == b.Lighting && a.LightFalloff == b.LightFalloff && a.LightBands == b.LightBands && a.Shadows == b.Shadows
+			&& a.SunShadowMapSize == b.SunShadowMapSize && a.SoftSunShadows == b.SoftSunShadows
+			&& a.Features == b.Features;
 	}
 
 	static void HelpMarker(const char* text)
@@ -23,7 +26,91 @@ namespace Hydro
 			ImGui::SetTooltip("%s", text);
 	}
 
-	void RenderSettingsWindow::OnImguiRender()
+	// Warning / error colours that stay readable on light and dark themes (as the Console's).
+	static ImVec4 GetValidationColor(RenderValidationSeverity severity)
+	{
+		const ImVec4& background = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+		const bool light = 0.2126f * background.x + 0.7152f * background.y + 0.0722f * background.z > 0.5f;
+		if (severity == RenderValidationSeverity::Error)
+		{
+			return light ? ImVec4(0.80f, 0.15f, 0.12f, 1.0f) : ImVec4(1.00f, 0.42f, 0.38f, 1.0f);
+		}
+		return light ? ImVec4(0.70f, 0.45f, 0.00f, 1.0f) : ImVec4(1.00f, 0.80f, 0.30f, 1.0f);
+	}
+
+	// A combo over `names`; true when the choice changed.
+	template<typename T>
+	static bool EnumCombo(const char* label, T& value, const char* const* names, int count)
+	{
+		int index = (int)value;
+		if (ImGui::Combo(label, &index, names, count))
+		{
+			value = (T)index;
+			return true;
+		}
+		return false;
+	}
+
+	// The preset, every render feature setting and what the render graph would report for them.
+	static bool DrawRenderFeatures(const char* id, RenderFeatureSettings& features)
+	{
+		ImGui::PushID(id);
+		bool changed = false;
+
+		const char* presetName = features.GetPresetName();
+		if (ImGui::BeginCombo("Preset", presetName))
+		{
+			if (ImGui::Selectable("2D", features == RenderFeatureSettings::Preset2D()))
+			{
+				features = RenderFeatureSettings::Preset2D();
+				changed = true;
+			}
+			if (ImGui::Selectable("3D", features == RenderFeatureSettings::Preset3D()))
+			{
+				features = RenderFeatureSettings::Preset3D();
+				changed = true;
+			}
+			ImGui::EndCombo();
+		}
+		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows.\nChanging a setting below makes it Custom.");
+
+		static const char* depthNames[] = { "Off", "Shared" };
+		changed |= EnumCombo("Depth", features.Depth, depthNames, 2);
+		static const char* sortNames[] = { "Sort order", "View depth" };
+		changed |= EnumCombo("Sprite sorting", features.SpriteSorting, sortNames, 2);
+		static const char* lightingNames[] = { "None", "2D light buffer", "Forward" };
+		changed |= EnumCombo("Lighting mode", features.Lighting, lightingNames, 3);
+		static const char* alphaNames[] = { "Translucent", "Cut-out" };
+		changed |= EnumCombo("Default sprite alpha", features.DefaultSpriteAlpha, alphaNames, 2);
+		changed |= ImGui::Checkbox("Meshes", &features.Meshes);
+		static const char* shadowNames[] = { "Off", "Sun" };
+		changed |= EnumCombo("Shadows", features.Shadows, shadowNames, 2);
+		HelpMarker("Sun: a shadow map for the main Directional Light (its Cast Shadows). Meshes cast with their Cast shadows;\nevery lit sprite and mesh receives. Needs forward lighting and shared depth.");
+		ImGui::BeginDisabled(features.Shadows == ShadowMode::Off);
+		static const char* spriteShadowNames[] = { "None", "As drawn", "Face the sun" };
+		changed |= EnumCombo("Sprite shadows", features.SpriteShadows, spriteShadowNames, 3);
+		HelpMarker("How cut-out Upright and Billboard sprites cast.\nNone: they don't (they still receive).\nAs drawn: the quad the camera sees; thin when the sun comes from the side.\nFace the sun: the quad turned about its feet to face the sun, so the shadow is always\nas wide as the sprite, and the sprite is never darkened by its own shadow.");
+		ImGui::EndDisabled();
+
+		// Errors leave the feature out (the frame still draws); warnings keep it.
+		const std::vector<RenderValidationMessage> messages = Renderer2D::ValidateRenderFeatures(features, false);
+		if (messages.empty())
+		{
+			ImGui::TextDisabled("No validation messages.");
+		}
+		for (const RenderValidationMessage& message : messages)
+		{
+			const char* severity = message.Severity == RenderValidationSeverity::Error ? "Error" : "Warning";
+			ImGui::PushStyleColor(ImGuiCol_Text, GetValidationColor(message.Severity));
+			ImGui::TextWrapped("%s, %s: %s", severity, message.Feature.c_str(), message.Text.c_str());
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::PopID();
+		return changed;
+	}
+
+	void RenderSettingsWindow::OnImguiRender(Scene* editorScene, Scene* activeScene)
 	{
 		if (m_Open == false)
 			return;
@@ -81,7 +168,98 @@ namespace Hydro
 
 			ImGui::EndDisabled();
 
-			ImGui::TextDisabled("The light curve is assets/shaders/light.frag. With Shader hot reload on,\nsaving it changes the look of the running editor.");
+			// Sun shadows (render features: Shadows = Sun).
+			static const char* mapSizeNames[] = { "1024", "2048", "4096" };
+			static const uint32_t mapSizes[] = { 1024, 2048, 4096 };
+			int mapSize = settings.SunShadowMapSize <= 1024 ? 0 : (settings.SunShadowMapSize <= 2048 ? 1 : 2);
+			if (ImGui::Combo("Sun shadow map", &mapSize, mapSizeNames, 3))
+			{
+				settings.SunShadowMapSize = mapSizes[mapSize];
+				changed = true;
+			}
+			HelpMarker("Texels across the sun's shadow map. It covers twice the sun's Shadow Distance:\n2048 over 48 m is about 2 cm per texel, finer than a 32-per-metre art pixel.");
+			changed |= ImGui::Checkbox("Soft sun shadows", &settings.SoftSunShadows);
+			HelpMarker("On: filtered shadow edges.\nOff: one texel per sample, crisp steps that suit pixel art.");
+
+			ImGui::TextDisabled("The light curve is assets/shaders/light_falloff.glsl (both lighting modes).\nWith Shader hot reload on, saving it changes the look of the running editor.");
+		}
+
+		// ---- Render features (project default) ----------------------------------
+		if (ImGui::CollapsingHeader("Rendering (project)", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::TextDisabled("Every scene uses these unless it overrides them below.");
+			changed |= DrawRenderFeatures("ProjectFeatures", settings.Features);
+		}
+
+		// ---- Render features (scene override) ----------------------------------
+		if (ImGui::CollapsingHeader("Rendering (scene)", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			if (editorScene == nullptr)
+			{
+				ImGui::TextDisabled("No scene open.");
+			}
+			else
+			{
+				// Edits go to the editor scene (what is saved) and, while playing, to the running copy too,
+				// so the change is visible at once. Saved with the scene (File > Save Scene).
+				SceneRenderSettings sceneSettings = editorScene->GetRenderSettings();
+				bool sceneChanged = ImGui::Checkbox("Override the project", &sceneSettings.OverrideProject);
+				HelpMarker("Give this scene its own render features (a 3D area in a 2D project, say).");
+				if (sceneSettings.OverrideProject)
+				{
+					sceneChanged |= DrawRenderFeatures("SceneFeatures", sceneSettings.Features);
+				}
+				else
+				{
+					ImGui::TextDisabled("Uses the project's render features (%s).", settings.Features.GetPresetName());
+				}
+
+				if (sceneChanged)
+				{
+					editorScene->SetRenderSettings(sceneSettings);
+					if (activeScene != nullptr && activeScene != editorScene)
+					{
+						activeScene->SetRenderSettings(sceneSettings);
+					}
+				}
+			}
+		}
+
+		// ---- Environment (scene) -----------------------------------------------
+		if (ImGui::CollapsingHeader("Environment (scene)", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			if (editorScene == nullptr)
+			{
+				ImGui::TextDisabled("No scene open.");
+			}
+			else
+			{
+				// Like the render features: edits go to the editor scene and the running copy.
+				SceneEnvironment environment = editorScene->GetEnvironment();
+				bool environmentChanged = ImGui::Checkbox("Own environment", &environment.Override);
+				HelpMarker("Forward lighting only. On: this scene's sky and ground ambient and fog.\nOff: its Global lights are the ambient light and there is no fog.");
+				if (environment.Override)
+				{
+					environmentChanged |= ImGui::ColorEdit3("Sky ambient", &environment.SkyAmbient.x, ImGuiColorEditFlags_Float);
+					HelpMarker("What surfaces facing up get (linear RGB). Facing sideways: half sky, half ground.");
+					environmentChanged |= ImGui::ColorEdit3("Ground ambient", &environment.GroundAmbient.x, ImGuiColorEditFlags_Float);
+					environmentChanged |= ImGui::Checkbox("Fog", &environment.Fog);
+					ImGui::BeginDisabled(environment.Fog == false);
+					environmentChanged |= ImGui::ColorEdit3("Fog color", &environment.FogColor.x, ImGuiColorEditFlags_Float);
+					environmentChanged |= ImGui::DragFloatRange2("Fog distance", &environment.FogStart, &environment.FogEnd, 0.25f, 0.0f, 10000.0f, "%.1f m", "%.1f m");
+					HelpMarker("Metres from the camera: where fog starts, and where it hides everything.");
+					ImGui::EndDisabled();
+				}
+
+				if (environmentChanged)
+				{
+					editorScene->SetEnvironment(environment);
+					if (activeScene != nullptr && activeScene != editorScene)
+					{
+						activeScene->SetEnvironment(environment);
+					}
+				}
+			}
 		}
 
 		// ---- Debug -------------------------------------------------------------
@@ -105,11 +283,20 @@ namespace Hydro
 		{
 			const Statistics stats = Renderer2D::GetStats();
 			StatsUI::Row("GPU", "%s", capabilities.GPUName);
+			StatsUI::Row("Vulkan", "%u.%u.%u", capabilities.VulkanVersionMajor, capabilities.VulkanVersionMinor, capabilities.VulkanVersionPatch);
 			StatsUI::Row("Frames in flight", "%u", capabilities.FramesInFlight);
 			StatsUI::Row("Viewport", "%u x %u", stats.ViewportWidth, stats.ViewportHeight);
 			StatsUI::Row("Quads per batch", "%u", stats.MaxQuadsPerBatch);
 			StatsUI::Row("Wireframe support", "%s", capabilities.Wireframe ? "yes" : "no");
 			StatsUI::Row("Wide lines support", "%s", capabilities.WideLines ? "yes" : "no");
+			StatsUI::Row("Independent blend", "%s", capabilities.IndependentBlend ? "yes" : "no");
+			StatsUI::Row("Dynamic rendering", "%s", capabilities.DynamicRendering ? "yes" : "no");
+			StatsUI::Row("Synchronization2", "%s", capabilities.Synchronization2 ? "yes" : "no");
+			StatsUI::Row("Sampler anisotropy", "%s (max %.0f)", capabilities.SamplerAnisotropy ? "yes" : "no", capabilities.MaxSamplerAnisotropy);
+			StatsUI::Row("Descriptor indexing", "%s", capabilities.DescriptorIndexing ? "supported (not enabled)" : "no");
+			StatsUI::Row("Push constants", "%u bytes", capabilities.MaxPushConstantsSize);
+			StatsUI::Row("Sampled images / stage", "%u", capabilities.MaxSampledImagesPerStage);
+			StatsUI::Row("Depth formats", "D32F %s, D24S8 %s", capabilities.DepthFormat32F ? "yes" : "no", capabilities.DepthFormat24Stencil8 ? "yes" : "no");
 			ImGui::EndTable();
 		}
 

@@ -59,9 +59,14 @@ namespace Hydro
 
 		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 		if (spec.Usage == ImageUsage::Attachment)
-			usage |= isDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		{
+			// Colour targets can be copied out (VulkanImageReadback: view captures, later picking).
+			usage |= isDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+		}
 		else
+		{
 			usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		}
 
 		CreateImage(usage);
 
@@ -228,6 +233,7 @@ namespace Hydro
 			case ImageFormat::RGBA16F:         return VK_FORMAT_R16G16B16A16_SFLOAT;
 			case ImageFormat::RGBA32F:         return VK_FORMAT_R32G32B32A32_SFLOAT;
 			case ImageFormat::RG32F:           return VK_FORMAT_R32G32_SFLOAT;
+			case ImageFormat::R32I:            return VK_FORMAT_R32_SINT;
 			case ImageFormat::DEPTH32F:        return VK_FORMAT_D32_SFLOAT;
 			case ImageFormat::DEPTH24STENCIL8: return VK_FORMAT_D24_UNORM_S8_UINT;
 			default:                           return VK_FORMAT_R8G8B8A8_UNORM;

@@ -131,9 +131,10 @@ namespace Hydro
 		layer->OnAttach();
 	}
 
-	void Application::Quit()
+	void Application::Quit(int exitCode)
 	{
 		m_Running = false;
+		m_ExitCode = exitCode;
 	}
 
 	void Application::Run()

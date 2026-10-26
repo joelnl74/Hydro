@@ -15,7 +15,8 @@
 
 namespace Hydro
 {
-	// Content browser for <project>/Assets: folders, scenes, prefabs, images and animation sets.
+	// Content browser for <project>/Assets: folders, scenes, prefabs, images, animation sets, materials and
+	// models (.gltf / .glb).
 	// It lists the AssetRegistry (every item that isn't a folder is a registered asset with a handle), plus
 	// the folders on disk. Images show a small cached thumbnail (ThumbnailManager). A prefab shows the
 	// first frame of its animation, or its sprite's image (a blue strip marks it as a prefab); an
@@ -48,7 +49,7 @@ namespace Hydro
 
 	private:
 		// What the window shows an item as (Hydro::AssetType, plus folders).
-		enum class ItemType { Folder, Scene, Prefab, Texture, Animation };
+		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model };
 
 		struct AssetItem
 		{
@@ -103,6 +104,8 @@ namespace Hydro
 		const PrefabPreview& GetPrefabPreview(const std::filesystem::path& path);
 		// Writes "<image name>.hyanim" next to a sprite sheet, one clip per sprite group, and opens it.
 		void CreateSpriteAnimation(const std::filesystem::path& imagePath);
+		// Writes "New Material.hymat" (a default Standard material) in the current folder and selects it.
+		void CreateMaterial();
 		// False for asset types the window doesn't show.
 		static bool ToItemType(AssetType type, ItemType& itemType);
 

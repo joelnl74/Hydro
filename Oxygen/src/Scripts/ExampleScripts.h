@@ -4,6 +4,7 @@
 #include "VillageScripts.h"
 #include "BattleScripts.h"
 #include "MvpScripts.h"
+#include "ShrineScripts.h"
 
 #include <algorithm>
 #include <cmath>
@@ -158,15 +159,19 @@ namespace Hydro
 			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
 				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
-				const glm::vec2 goal{ std::clamp(position.x, -m_BoundsX, m_BoundsX), std::clamp(position.y + m_LookAhead, -m_BoundsY, m_BoundsY) };
+				const float lead = m_LookAhead + DioramaView::SceneFocusLead * DioramaView::Blend;
+				const glm::vec2 goal = DioramaView::ClampFocus({ position.x, position.y + lead }, { m_BoundsX, m_BoundsY });
 
 				// Frame-rate independent smoothing: closes most of the gap in about a third of a second.
 				if (m_Snap)
 				{
 					m_Focus = goal;
+					m_FocusHeight = position.z;
 				}
 				const float t = 1.0f - std::exp(-m_Smoothing * deltaTime);
 				m_Focus += (goal - m_Focus) * t;
+				// The height of the ground the character stands on (a terrace, stairs), so it stays in frame.
+				m_FocusHeight += (position.z - m_FocusHeight) * t;
 				m_Snap = false;
 			}
 			else if (m_Snap)
@@ -176,7 +181,7 @@ namespace Hydro
 
 			if (self.HasComponent<CameraComponent>())
 			{
-				DioramaView::Apply(transform, GetComponent<CameraComponent>(), m_Focus);
+				DioramaView::Apply(transform, GetComponent<CameraComponent>(), m_Focus, m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend);
 			}
 		}
 
@@ -198,9 +203,12 @@ namespace Hydro
 		entt::entity m_Target = entt::null;
 		bool m_Snap = true;
 		glm::vec2 m_Focus{ 0.0f }; // where the camera looks, on the ground
+		float m_FocusHeight = 0.0f; // and how high that ground is (the target's z, smoothed)
 		float m_Smoothing = 8.0f;
 		float m_LookAhead = 1.5f;   // aim at the character's chest, not the feet
-		float m_BoundsX = 17.0f;    // LightingTest's ground is 60 x 60 units; the view is about 25 x 14
+		// Used when the scene sets no bounds of its own (DioramaView::SceneBounds*): LightingTest's ground is
+		// 60 x 60 units; the view is about 25 x 14.
+		float m_BoundsX = 17.0f;
 		float m_BoundsY = 23.0f;
 	};
 
@@ -215,5 +223,6 @@ namespace Hydro
 		ScriptRegistry::Register<MvpDirectorScript>("MvpDirector");
 		RegisterVillageScripts();
 		RegisterBattleScripts();
+		RegisterShrineScripts();
 	}
 }

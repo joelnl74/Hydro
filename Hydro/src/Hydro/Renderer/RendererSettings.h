@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include "Hydro/Renderer/RenderFeatures.h"
+
 #include <cstdint>
 
 namespace Hydro
@@ -38,6 +40,17 @@ namespace Hydro
 		// Blob shadows (Shadow2DComponent) in lit views: they darken the light buffer. Needs Lighting.
 		bool Shadows = true;
 
+		// Sun shadows (RenderFeatureSettings::Shadows = Sun): the shadow map's width and height in texels
+		// (clamped to 512..4096), and whether its edges are filtered (soft, 3 x 3 taps) or one texel per
+		// sample (hard: crisp pixel steps, which suit pixel art).
+		uint32_t SunShadowMapSize = 2048;
+		bool SoftSunShadows = true;
+
+		// The project's render features (RenderFeatures.h): what every scene uses unless it overrides
+		// them (SceneRenderSettings). Changing them rebuilds the views' render graphs. Missing from an
+		// older .hyproj: the 2D preset, today's frame.
+		RenderFeatureSettings Features;
+
 		// Rebuild shaders when their source files change (checked a few times per second).
 #ifdef HY_DIST
 		bool ShaderHotReload = false;
@@ -47,11 +60,35 @@ namespace Hydro
 	};
 
 	// What the GPU supports, for UI that offers settings. Read-only, filled by Renderer::Init.
+	// What the GPU and its driver can do, found when the renderer starts (Renderer::GetCapabilities).
+	// Read-only. Optional features are true only when they were enabled on the device.
 	struct RendererCapabilities
 	{
 		const char* GPUName = "";
-		bool Wireframe = false;  // fillModeNonSolid
-		bool WideLines = false;  // line widths other than 1
+		// The Vulkan version the driver reports for the GPU (at least 1.3: the renderer requires it).
+		uint32_t VulkanVersionMajor = 0;
+		uint32_t VulkanVersionMinor = 0;
+		uint32_t VulkanVersionPatch = 0;
 		uint32_t FramesInFlight = 0;
+
+		// Required (Vulkan 1.3 core), always true once the renderer runs.
+		bool DynamicRendering = false;
+		bool Synchronization2 = false;
+
+		// Optional, enabled when the GPU has them.
+		bool Wireframe = false;          // fillModeNonSolid
+		bool WideLines = false;          // line widths other than 1
+		bool IndependentBlend = false;   // a blend state per colour attachment (the entity-ID attachment needs it)
+		bool SamplerAnisotropy = false;
+
+		// Supported but not enabled yet (bindless textures, later).
+		bool DescriptorIndexing = false;
+
+		// Limits that the 3D work depends on.
+		uint32_t MaxPushConstantsSize = 0;        // bytes; Vulkan guarantees 128
+		uint32_t MaxSampledImagesPerStage = 0;    // maxPerStageDescriptorSampledImages
+		float MaxSamplerAnisotropy = 1.0f;
+		bool DepthFormat32F = false;              // DEPTH32F usable as a depth attachment
+		bool DepthFormat24Stencil8 = false;       // DEPTH24STENCIL8 usable as a depth attachment
 	};
 }

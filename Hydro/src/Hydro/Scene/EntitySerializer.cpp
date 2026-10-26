@@ -3,6 +3,8 @@
 #include "ScriptableEntity.h"
 
 #include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/MaterialSerializer.h"
+#include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -58,6 +60,68 @@ namespace Hydro
 		}
 
 		return "Flat";
+	}
+
+	static const char* SpriteAlphaModeToString(SpriteAlphaMode mode)
+	{
+		switch (mode)
+		{
+		case SpriteAlphaMode::Default: return "Default";
+		case SpriteAlphaMode::Cutout: return "Cutout";
+		case SpriteAlphaMode::Translucent: return "Translucent";
+		}
+
+		return "Default";
+	}
+
+	static SpriteAlphaMode SpriteAlphaModeFromString(const std::string& name)
+	{
+		if (name == "Cutout")
+		{
+			return SpriteAlphaMode::Cutout;
+		}
+		if (name == "Translucent")
+		{
+			return SpriteAlphaMode::Translucent;
+		}
+
+		return SpriteAlphaMode::Default;
+	}
+
+	static const char* MeshShapeToString(MeshShape shape)
+	{
+		switch (shape)
+		{
+		case MeshShape::Box: return "Box";
+		case MeshShape::Plane: return "Plane";
+		case MeshShape::Ramp: return "Ramp";
+		case MeshShape::Stairs: return "Stairs";
+		case MeshShape::Cylinder: return "Cylinder";
+		}
+
+		return "Box";
+	}
+
+	static MeshShape MeshShapeFromString(const std::string& name)
+	{
+		if (name == "Plane")
+		{
+			return MeshShape::Plane;
+		}
+		if (name == "Ramp")
+		{
+			return MeshShape::Ramp;
+		}
+		if (name == "Stairs")
+		{
+			return MeshShape::Stairs;
+		}
+		if (name == "Cylinder")
+		{
+			return MeshShape::Cylinder;
+		}
+
+		return MeshShape::Box;
 	}
 
 	static SpriteFacing SpriteFacingFromString(const std::string& name)
@@ -212,6 +276,19 @@ namespace Hydro
 			out << YAML::Key << "FlipX" << YAML::Value << sprite.FlipX;
 			out << YAML::Key << "FlipY" << YAML::Value << sprite.FlipY;
 			out << YAML::Key << "Facing" << YAML::Value << SpriteFacingToString(sprite.Facing);
+			// Only when set, so scenes that don't use them are saved as before.
+			if (sprite.AlphaMode != SpriteAlphaMode::Default)
+			{
+				out << YAML::Key << "AlphaMode" << YAML::Value << SpriteAlphaModeToString(sprite.AlphaMode);
+			}
+			if (sprite.Overlay)
+			{
+				out << YAML::Key << "Overlay" << YAML::Value << true;
+			}
+			if (sprite.CastShadows == false)
+			{
+				out << YAML::Key << "CastShadows" << YAML::Value << false;
+			}
 			out << YAML::EndMap;
 		}
 
@@ -256,11 +333,70 @@ namespace Hydro
 
 			out << YAML::Key << "Light2DComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Type" << YAML::Value << (light.Type == Light2DType::Global ? "Global" : "Point");
+			out << YAML::Key << "Type" << YAML::Value << (light.Type == Light2DType::Global ? "Global" : (light.Type == Light2DType::Spot ? "Spot" : "Point"));
 			out << YAML::Key << "Color" << YAML::Value << light.Color;
 			out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
 			out << YAML::Key << "Radius" << YAML::Value << light.Radius;
 			out << YAML::Key << "Height" << YAML::Value << light.Height;
+			if (light.Type == Light2DType::Spot)
+			{
+				out << YAML::Key << "InnerAngle" << YAML::Value << light.InnerAngle;
+				out << YAML::Key << "OuterAngle" << YAML::Value << light.OuterAngle;
+			}
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<DirectionalLightComponent>())
+		{
+			auto& light = entity.GetComponent<DirectionalLightComponent>();
+
+			out << YAML::Key << "DirectionalLightComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Color" << YAML::Value << light.Color;
+			out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
+			out << YAML::Key << "IsMainLight" << YAML::Value << light.IsMainLight;
+			out << YAML::Key << "CastShadows" << YAML::Value << light.CastShadows;
+			out << YAML::Key << "ShadowStrength" << YAML::Value << light.ShadowStrength;
+			out << YAML::Key << "ShadowDistance" << YAML::Value << light.ShadowDistance;
+			out << YAML::Key << "ShadowBias" << YAML::Value << light.ShadowBias;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<MeshComponent>())
+		{
+			auto& mesh = entity.GetComponent<MeshComponent>();
+
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap;
+			if ((uint64_t)mesh.Model != 0)
+			{
+				out << YAML::Key << "ModelHandle" << YAML::Value << (uint64_t)mesh.Model;
+			}
+			out << YAML::Key << "Shape" << YAML::Value << MeshShapeToString(mesh.Shape);
+			out << YAML::Key << "Size" << YAML::Value << mesh.Size;
+			if (mesh.Shape == MeshShape::Stairs)
+			{
+				out << YAML::Key << "Steps" << YAML::Value << mesh.Steps;
+			}
+			if (mesh.Shape == MeshShape::Cylinder)
+			{
+				out << YAML::Key << "Segments" << YAML::Value << mesh.Segments;
+			}
+			out << YAML::Key << "CastShadows" << YAML::Value << mesh.CastShadows;
+			out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
+			// Each slot: its material asset's handle (when it has one) and its inline settings, the fallback.
+			for (const MeshMaterialSlot& slot : mesh.Materials)
+			{
+				out << YAML::BeginMap;
+				if ((uint64_t)slot.Material != 0)
+				{
+					out << YAML::Key << "MaterialHandle" << YAML::Value << (uint64_t)slot.Material;
+				}
+				out << YAML::Key << "Inline" << YAML::Value;
+				MaterialSerializer::SerializeData(out, slot.Inline);
+				out << YAML::EndMap;
+			}
+			out << YAML::EndSeq;
 			out << YAML::EndMap;
 		}
 
@@ -421,6 +557,9 @@ namespace Hydro
 			sprite.FlipY = spriteNode["FlipY"].as<bool>(sprite.FlipY);
 			// Scenes from before facings have none: Flat, which draws as they always did.
 			sprite.Facing = SpriteFacingFromString(spriteNode["Facing"].as<std::string>("Flat"));
+			sprite.AlphaMode = SpriteAlphaModeFromString(spriteNode["AlphaMode"].as<std::string>("Default"));
+			sprite.Overlay = spriteNode["Overlay"].as<bool>(false);
+			sprite.CastShadows = spriteNode["CastShadows"].as<bool>(true);
 			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
 				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));
@@ -464,11 +603,60 @@ namespace Hydro
 		if (auto lightNode = entityNode["Light2DComponent"])
 		{
 			auto& light = entity.AddComponent<Light2DComponent>();
-			light.Type = lightNode["Type"].as<std::string>("Point") == "Global" ? Light2DType::Global : Light2DType::Point;
+			const std::string type = lightNode["Type"].as<std::string>("Point");
+			light.Type = type == "Global" ? Light2DType::Global : (type == "Spot" ? Light2DType::Spot : Light2DType::Point);
 			light.Color = lightNode["Color"].as<glm::vec3>(light.Color);
 			light.Intensity = lightNode["Intensity"].as<float>(light.Intensity);
 			light.Radius = lightNode["Radius"].as<float>(light.Radius);
 			light.Height = lightNode["Height"].as<float>(light.Height);
+			light.InnerAngle = lightNode["InnerAngle"].as<float>(light.InnerAngle);
+			light.OuterAngle = std::max(lightNode["OuterAngle"].as<float>(light.OuterAngle), light.InnerAngle);
+		}
+
+		if (auto sunNode = entityNode["DirectionalLightComponent"])
+		{
+			auto& light = entity.AddComponent<DirectionalLightComponent>();
+			light.Color = sunNode["Color"].as<glm::vec3>(light.Color);
+			light.Intensity = sunNode["Intensity"].as<float>(light.Intensity);
+			light.IsMainLight = sunNode["IsMainLight"].as<bool>(light.IsMainLight);
+			light.CastShadows = sunNode["CastShadows"].as<bool>(light.CastShadows);
+			light.ShadowStrength = sunNode["ShadowStrength"].as<float>(light.ShadowStrength);
+			light.ShadowDistance = sunNode["ShadowDistance"].as<float>(light.ShadowDistance);
+			light.ShadowBias = sunNode["ShadowBias"].as<float>(light.ShadowBias);
+		}
+
+		if (auto meshNode = entityNode["MeshComponent"])
+		{
+			auto& mesh = entity.AddComponent<MeshComponent>();
+			mesh.Model = AssetHandle(meshNode["ModelHandle"].as<uint64_t>(0));
+			if ((uint64_t)mesh.Model != 0)
+			{
+				// Imported now (its materials and textures too), so the renderer, which never loads, finds it.
+				AssetManager::GetAsset<Mesh>(mesh.Model);
+			}
+			mesh.Shape = MeshShapeFromString(meshNode["Shape"].as<std::string>("Box"));
+			mesh.Size = meshNode["Size"].as<glm::vec3>(mesh.Size);
+			mesh.Steps = meshNode["Steps"].as<uint32_t>(mesh.Steps);
+			mesh.Segments = meshNode["Segments"].as<uint32_t>(mesh.Segments);
+			mesh.CastShadows = meshNode["CastShadows"].as<bool>(mesh.CastShadows);
+			if (auto materialsNode = meshNode["Materials"]; materialsNode && materialsNode.IsSequence())
+			{
+				mesh.Materials.clear();
+				for (const YAML::Node& materialNode : materialsNode)
+				{
+					MeshMaterialSlot slot;
+					slot.Material = AssetHandle(materialNode["MaterialHandle"].as<uint64_t>(0));
+					// Scenes saved before material assets (M4) have the settings in the slot itself.
+					const YAML::Node inlineNode = materialNode["Inline"];
+					slot.Inline = MaterialSerializer::DeserializeData(inlineNode.IsDefined() ? inlineNode : materialNode);
+					// Loaded now (with its textures), so the renderer, which never loads, finds it.
+					if ((uint64_t)slot.Material != 0)
+					{
+						AssetManager::GetAsset<MaterialAsset>(slot.Material);
+					}
+					mesh.Materials.push_back(slot);
+				}
+			}
 		}
 
 		if (auto shadowNode = entityNode["Shadow2DComponent"])

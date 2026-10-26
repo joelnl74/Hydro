@@ -89,10 +89,12 @@ namespace Hydro
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "Hydro";
 		appInfo.pEngineName = "Hydro";
-		appInfo.apiVersion = VK_API_VERSION_1_2;
+		// The highest version the engine uses; the GPU must support it too (VulkanPhysicalDevice checks).
+		appInfo.apiVersion = HY_REQUIRED_VULKAN_VERSION;
 
 		// Start from what GLFW needs for the window surface (VK_KHR_surface + the platform surface),
-		// then add the debug-utils extension when validation is on.
+		// then add the debug-utils extension whenever the loader has it: validation messages need it, and
+		// so do the pass labels RenderDoc and other GPU debuggers show (Renderer2D, plan M7).
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 		std::vector<const char*> instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
@@ -101,6 +103,23 @@ namespace Hydro
 		if (s_ValidationRequested && CheckValidationLayerSupport())
 		{
 			m_ValidationActive = true;
+		}
+
+		uint32_t availableCount = 0;
+		vkEnumerateInstanceExtensionProperties(nullptr, &availableCount, nullptr);
+		std::vector<VkExtensionProperties> available(availableCount);
+		vkEnumerateInstanceExtensionProperties(nullptr, &availableCount, available.data());
+		bool hasDebugUtils = false;
+		for (const VkExtensionProperties& extension : available)
+		{
+			if (std::strcmp(extension.extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0)
+			{
+				hasDebugUtils = true;
+			}
+		}
+		if (hasDebugUtils || m_ValidationActive)
+		{
+			// The validation layer provides it itself when the loader doesn't.
 			instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
 

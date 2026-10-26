@@ -1,0 +1,6819 @@
+Handle: 6691017473909018354
+Scene: ShrineGlade
+RenderSettings:
+  OverrideProject: true
+  Features:
+    Depth: Shared
+    SpriteSorting: ViewDepth
+    Lighting: Forward
+    DefaultSpriteAlpha: Cutout
+    Meshes: true
+    Shadows: Sun
+    SpriteShadows: AsDrawn
+Environment:
+  SkyAmbient: [0.360000014, 0.280000001, 0.319999993]
+  GroundAmbient: [0.119999997, 0.0900000036, 0.0799999982]
+  Fog: true
+  FogColor: [0.660000026, 0.439999998, 0.360000014]
+  FogStart: 13
+  FogEnd: 38
+Entities:
+  - Entity: 3842390733436357399
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Orthographic
+      PerspectiveFOV: 45
+      PerspectiveNear: 0.00999999978
+      PerspectiveFar: 1000
+      OrthographicSize: 12
+      OrthographicNear: -1
+      OrthographicFar: 1
+    NativeScriptComponent:
+      Scripts:
+        - CameraFollow
+  - Entity: 3724182712688850303
+    TagComponent:
+      Tag: MVP Director
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+        - MvpDirector
+  - Entity: 6070344299463217815
+    TagComponent:
+      Tag: Shrine Director
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+        - ShrineGlade
+  - Entity: 9108433963357979718
+    TagComponent:
+      Tag: UI Fade
+    TransformComponent:
+      Translation: [0, 0, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [60, 40, 1]
+    SpriteRendererComponent:
+      Color: [0, 0, 0, 0]
+      TilingFactor: 1
+      SortOrder: 1000
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 1881452125780500469
+    TagComponent:
+      Tag: UI Prompt Panel
+    TransformComponent:
+      Translation: [0, 0, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [2.5999999, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 300
+      TextureHandle: 1876931991275611681
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 4213041989313072179
+    TagComponent:
+      Tag: UI Prompt Label
+    TransformComponent:
+      Translation: [0, 0, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [2.4000001, 0.200000003, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 301
+      TextureHandle: 746269551121266447
+      Sprite: ERead_0
+      SpriteIndex: 15
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 7644788912669098345
+    TagComponent:
+      Tag: UI Message Panel
+    TransformComponent:
+      Translation: [0, -4.4000001, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [7, 1.29999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 300
+      TextureHandle: 1876931991275611681
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 1793666315836771609
+    TagComponent:
+      Tag: UI Message Line 1
+    TransformComponent:
+      Translation: [0, -4.1500001, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 301
+      TextureHandle: 746269551121266447
+      Sprite: ShrineGladeInn_0
+      SpriteIndex: 21
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 9060510376179340146
+    TagComponent:
+      Tag: UI Message Line 2
+    TransformComponent:
+      Translation: [0, -4.6500001, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 301
+      TextureHandle: 746269551121266447
+      Sprite: Villagesouth_0
+      SpriteIndex: 22
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 2952274137208811576
+    TagComponent:
+      Tag: UI Menu Panel
+    TransformComponent:
+      Translation: [0, 0.200000003, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [6.4000001, 4.9000001, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 310
+      TextureHandle: 1876931991275611681
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 7561371796293084582
+    TagComponent:
+      Tag: UI Menu Title
+    TransformComponent:
+      Translation: [-0.400000006, 2.20000005, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: Inventory_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 7675747282319439727
+    TagComponent:
+      Tag: UI Menu Row 0
+    TransformComponent:
+      Translation: [0, 1.45000005, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: Potion_0
+      SpriteIndex: 3
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 1557307250241917458
+    TagComponent:
+      Tag: UI Menu Count 0
+    TransformComponent:
+      Translation: [2.5999999, 1.45000005, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 3328678694188945053
+      Sprite: Digit_0
+      SpriteIndex: 12
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 2655800613865198062
+    TagComponent:
+      Tag: UI Menu Row 1
+    TransformComponent:
+      Translation: [0, 0.899999976, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: HiPotion_0
+      SpriteIndex: 4
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 5743901496277402100
+    TagComponent:
+      Tag: UI Menu Count 1
+    TransformComponent:
+      Translation: [2.5999999, 0.899999976, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 3328678694188945053
+      Sprite: Digit_0
+      SpriteIndex: 12
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 1231640448829372538
+    TagComponent:
+      Tag: UI Menu Row 2
+    TransformComponent:
+      Translation: [0, 0.349999994, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: Ether_0
+      SpriteIndex: 5
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 7029210418774469135
+    TagComponent:
+      Tag: UI Menu Count 2
+    TransformComponent:
+      Translation: [2.5999999, 0.349999994, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 3328678694188945053
+      Sprite: Digit_0
+      SpriteIndex: 12
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 1700327180569898582
+    TagComponent:
+      Tag: UI Menu Row 3
+    TransformComponent:
+      Translation: [0, -0.200000003, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: IronSword_0
+      SpriteIndex: 6
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 5625549077704036498
+    TagComponent:
+      Tag: UI Menu Count 3
+    TransformComponent:
+      Translation: [2.5999999, -0.200000003, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 3328678694188945053
+      Sprite: Digit_0
+      SpriteIndex: 12
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 4607054638668625048
+    TagComponent:
+      Tag: UI Menu Row 4
+    TransformComponent:
+      Translation: [0, -0.75, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: HerbBundle_0
+      SpriteIndex: 7
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 5774784645564603758
+    TagComponent:
+      Tag: UI Menu Count 4
+    TransformComponent:
+      Translation: [2.5999999, -0.75, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 3328678694188945053
+      Sprite: Digit_0
+      SpriteIndex: 12
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 6949852128607234277
+    TagComponent:
+      Tag: UI Menu Row 5
+    TransformComponent:
+      Translation: [0, -1.29999995, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [4.80000019, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: PhoenixFeather_0
+      SpriteIndex: 8
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 3842857415734683861
+    TagComponent:
+      Tag: UI Menu Count 5
+    TransformComponent:
+      Translation: [2.5999999, -1.29999995, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 3328678694188945053
+      Sprite: Digit_0
+      SpriteIndex: 12
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 6195313152767682924
+    TagComponent:
+      Tag: UI Menu Highlight
+    TransformComponent:
+      Translation: [0, 1.45000005, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [5.5999999, 0.479999989, 1]
+    SpriteRendererComponent:
+      Color: [0.949999988, 0.720000029, 0.300000012, 0]
+      TilingFactor: 1
+      SortOrder: 311
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 3622399445451290076
+    TagComponent:
+      Tag: UI Menu Cursor
+    TransformComponent:
+      Translation: [-2.6500001, 1.45000005, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 3328678694188945053
+      Sprite: Icon_9
+      SpriteIndex: 9
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 5562863728992027575
+    TagComponent:
+      Tag: UI Menu Footer 1
+    TransformComponent:
+      Translation: [-1, -1.95000005, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [3.5999999, 0.300000012, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: Enteruse_0
+      SpriteIndex: 1
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 3669567961045857800
+    TagComponent:
+      Tag: UI Menu Footer 2
+    TransformComponent:
+      Translation: [1.60000002, -1.95000005, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [3.5999999, 0.300000012, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 312
+      TextureHandle: 746269551121266447
+      Sprite: Escclose_0
+      SpriteIndex: 2
+      FlipX: false
+      FlipY: false
+      Facing: Billboard
+      Overlay: true
+  - Entity: 6815564533557338110
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -3, -0.5]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [64, 32, 0.5]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8023819403869877598
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7458953749652738188
+    TagComponent:
+      Tag: Valley Floor
+    TransformComponent:
+      Translation: [0, 22, -3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [80, 18, 0]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 3002974362295055788
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8807538173640413050
+    TagComponent:
+      Tag: Ground Grass
+    TransformComponent:
+      Translation: [0, -9, 0.00400000019]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [64, 12, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8403729157865118956
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5753391315789227724
+    TagComponent:
+      Tag: Ground Grass Edge
+    TransformComponent:
+      Translation: [-25, -9, 0.00600000005]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [14, 12, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 3002974362295055788
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8189581117626086932
+    TagComponent:
+      Tag: Ground Grass Edge 2
+    TransformComponent:
+      Translation: [25, -9, 0.00600000005]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [14, 12, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 3002974362295055788
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7570037973066813213
+    TagComponent:
+      Tag: Path Front
+    TransformComponent:
+      Translation: [0, -8.30000019, 0.00800000038]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [3.79999995, 7.4000001, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8179354946758296038
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4955177502358802919
+    TagComponent:
+      Tag: Path Front Foot
+    TransformComponent:
+      Translation: [0, -5, 0.00899999961]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [6.4000001, 0.800000012, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8179354946758296038
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5803790203461660648
+    TagComponent:
+      Tag: Terrace Plaza
+    TransformComponent:
+      Translation: [0, 0.469999999, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [64, 6.94000006, 1]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 2755654548403116902
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7957815929213587826
+    TagComponent:
+      Tag: Terrace Plaza Grass
+    TransformComponent:
+      Translation: [0, -1, 1.00399995]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [64, 4, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8403729157865118956
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5432513094667077972
+    TagComponent:
+      Tag: Plaza Flagstones
+    TransformComponent:
+      Translation: [0, -1, 1.00800002]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [11, 3.70000005, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8179354946758296038
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4393578636301137422
+    TagComponent:
+      Tag: Terrace Shrine
+    TransformComponent:
+      Translation: [0, 8.47000027, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [64, 9.06000042, 3.0999999]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 2755654548403116902
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2281126974000708784
+    TagComponent:
+      Tag: Terrace Shrine Grass
+    TransformComponent:
+      Translation: [0, 8.47000027, 3.10400009]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [64, 9.06000042, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8403729157865118956
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5351118989706147307
+    TagComponent:
+      Tag: Terrace Shrine Wing
+    TransformComponent:
+      Translation: [-16.8500004, 2.47000003, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [30.2999992, 2.94000006, 3.0999999]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 2755654548403116902
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4899517776196063126
+    TagComponent:
+      Tag: Terrace Shrine Wing Grass
+    TransformComponent:
+      Translation: [-16.8500004, 2.47000003, 3.10400009]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [30.2999992, 2.94000006, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8403729157865118956
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2624562158415547146
+    TagComponent:
+      Tag: Stair Cheek
+    TransformComponent:
+      Translation: [-2.6500001, -3.79999995, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.10000002, 1.60000002, 1]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 2755654548403116902
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1729396566701569954
+    TagComponent:
+      Tag: Terrace Shrine Wing 2
+    TransformComponent:
+      Translation: [16.8500004, 2.47000003, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [30.2999992, 2.94000006, 3.0999999]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 2755654548403116902
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5353298771903886002
+    TagComponent:
+      Tag: Terrace Shrine Wing Grass 2
+    TransformComponent:
+      Translation: [16.8500004, 2.47000003, 3.10400009]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [30.2999992, 2.94000006, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8403729157865118956
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2320738562060352614
+    TagComponent:
+      Tag: Stair Cheek 2
+    TransformComponent:
+      Translation: [2.6500001, -3.79999995, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.10000002, 1.60000002, 1]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 2755654548403116902
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 6558869169972364186
+    TagComponent:
+      Tag: Shrine Court
+    TransformComponent:
+      Translation: [0, 5.53999996, 3.10800004]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [8.60000038, 3.20000005, 0]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 8179354946758296038
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8515305111740748694
+    TagComponent:
+      Tag: Stairs Lower
+    TransformComponent:
+      Translation: [0, -3.79999995, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Stairs
+      Size: [4.19999981, 1.60000002, 1]
+      Steps: 4
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 1486707618634482357
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7613471989851975182
+    TagComponent:
+      Tag: Stairs Upper
+    TransformComponent:
+      Translation: [0, 2.47000003, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Stairs
+      Size: [3.4000001, 2.94000006, 2.0999999]
+      Steps: 7
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 1486707618634482357
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 6311203232215681168
+    TagComponent:
+      Tag: Wall Cap Plaza
+    TransformComponent:
+      Translation: [-15.4440002, -2.68799996, 1]
+      Rotation: [0, 0, -0.105999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.02199996, 0.500999987, 0.221000001]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1505727454848945903
+    TagComponent:
+      Tag: Wall Cap Plaza 2
+    TransformComponent:
+      Translation: [-14.3249998, -2.67799997, 1]
+      Rotation: [0, 0, 0.00100000005]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.03699994, 0.460000008, 0.333000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5166945656330968641
+    TagComponent:
+      Tag: Wall Cap Plaza 3
+    TransformComponent:
+      Translation: [-13.2370005, -2.71099997, 1]
+      Rotation: [0, 0, 0.0829999968]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.966000021, 0.697000027, 0.370999992]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7425987203734965734
+    TagComponent:
+      Tag: Wall Cap Plaza 4
+    TransformComponent:
+      Translation: [-12.1459999, -2.64700007, 1]
+      Rotation: [0, 0, -0.0670000017]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.04200006, 0.456999987, 0.374000013]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 6662772201243757376
+    TagComponent:
+      Tag: Wall Cap Plaza 5
+    TransformComponent:
+      Translation: [-11.1940002, -2.64499998, 1]
+      Rotation: [0, 0, -0.0329999998]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.708999991, 0.660000026, 0.298999995]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7906522327163976691
+    TagComponent:
+      Tag: Wall Cap Plaza 6
+    TransformComponent:
+      Translation: [-10.2309999, -2.7249999, 1]
+      Rotation: [0, 0, 0.00999999978]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.06299996, 0.691999972, 0.186000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2527948357259927303
+    TagComponent:
+      Tag: Wall Cap Plaza 7
+    TransformComponent:
+      Translation: [-9.26900005, -2.68799996, 1]
+      Rotation: [0, 0, 0.0149999997]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.707000017, 0.451999992, 0.188999996]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 773123555178643788
+    TagComponent:
+      Tag: Wall Cap Plaza 8
+    TransformComponent:
+      Translation: [-8.31099987, -2.65799999, 1]
+      Rotation: [0, 0, -0.0719999969]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.05700004, 0.555999994, 0.349999994]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 845492964463967847
+    TagComponent:
+      Tag: Wall Cap Plaza 9
+    TransformComponent:
+      Translation: [-7.14400005, -2.71399999, 1]
+      Rotation: [0, 0, -0.0170000009]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.09000003, 0.685000002, 0.230000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7164320130199976604
+    TagComponent:
+      Tag: Wall Cap Plaza 10
+    TransformComponent:
+      Translation: [-6.05900002, -2.69499993, 1]
+      Rotation: [0, 0, 0.050999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.906000018, 0.469000012, 0.192000002]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3337124279908404704
+    TagComponent:
+      Tag: Wall Cap Plaza 11
+    TransformComponent:
+      Translation: [-5.20499992, -2.66599989, 1]
+      Rotation: [0, 0, 0.118000001]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.666999996, 0.541999996, 0.261000007]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5847559104597394918
+    TagComponent:
+      Tag: Wall Cap Plaza 12
+    TransformComponent:
+      Translation: [-4.46700001, -2.66599989, 1]
+      Rotation: [0, 0, 0.105999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.689999998, 0.476000011, 0.289000005]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1953418137308004398
+    TagComponent:
+      Tag: Wall Cap Plaza 13
+    TransformComponent:
+      Translation: [-3.5480001, -2.74799991, 1]
+      Rotation: [0, 0, -0.061999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.00100005, 0.460000008, 0.296000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 908369025737313716
+    TagComponent:
+      Tag: Wall Cap Plaza 14
+    TransformComponent:
+      Translation: [-2.63100004, -2.71799994, 1]
+      Rotation: [0, 0, 0.0979999974]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.685000002, 0.689999998, 0.207000002]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 6194520972437999494
+    TagComponent:
+      Tag: Wall Cap Plaza 15
+    TransformComponent:
+      Translation: [2.39100003, -2.69000006, 1]
+      Rotation: [0, 0, 0.0759999976]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.958000004, 0.569000006, 0.344000012]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4747281194309335822
+    TagComponent:
+      Tag: Wall Cap Plaza 16
+    TransformComponent:
+      Translation: [3.27099991, -2.7249999, 1]
+      Rotation: [0, 0, -0.0170000009]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.661000013, 0.556999981, 0.184]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7805224987371383176
+    TagComponent:
+      Tag: Wall Cap Plaza 17
+    TransformComponent:
+      Translation: [3.99799991, -2.68700004, 1]
+      Rotation: [0, 0, -0.112000003]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.675999999, 0.474999994, 0.214000002]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7155407756160490488
+    TagComponent:
+      Tag: Wall Cap Plaza 18
+    TransformComponent:
+      Translation: [4.72100019, -2.75699997, 1]
+      Rotation: [0, 0, 0.105999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.653999984, 0.555999994, 0.316000015]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1273806039289209297
+    TagComponent:
+      Tag: Wall Cap Plaza 19
+    TransformComponent:
+      Translation: [5.5619998, -2.69400001, 1]
+      Rotation: [0, 0, -0.0250000004]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.89200002, 0.611999989, 0.367000014]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4935017702404054395
+    TagComponent:
+      Tag: Wall Cap Plaza 20
+    TransformComponent:
+      Translation: [6.42399979, -2.72300005, 1]
+      Rotation: [0, 0, -0.0850000009]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.694999993, 0.560000002, 0.372999996]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3555136805284418759
+    TagComponent:
+      Tag: Wall Cap Plaza 21
+    TransformComponent:
+      Translation: [7.31599998, -2.66300011, 1]
+      Rotation: [0, 0, 0.0480000004]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.944999993, 0.550000012, 0.377000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7069448526951985673
+    TagComponent:
+      Tag: Wall Cap Plaza 22
+    TransformComponent:
+      Translation: [8.3210001, -2.64899993, 1]
+      Rotation: [0, 0, -0.108999997]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.904999971, 0.633000016, 0.31099999]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1278011063003308618
+    TagComponent:
+      Tag: Wall Cap Plaza 23
+    TransformComponent:
+      Translation: [9.20199966, -2.72600007, 1]
+      Rotation: [0, 0, -0.0160000008]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.717000008, 0.467000008, 0.228]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5016664434440846020
+    TagComponent:
+      Tag: Wall Cap Plaza 24
+    TransformComponent:
+      Translation: [10.0019999, -2.6500001, 1]
+      Rotation: [0, 0, 0.050999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.754000008, 0.451999992, 0.280000001]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 685913359080542988
+    TagComponent:
+      Tag: Wall Cap Plaza 25
+    TransformComponent:
+      Translation: [10.79, -2.74300003, 1]
+      Rotation: [0, 0, 0.0560000017]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.69599998, 0.638999999, 0.223000005]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 6930055733920663580
+    TagComponent:
+      Tag: Wall Cap Plaza 26
+    TransformComponent:
+      Translation: [11.5290003, -2.69499993, 1]
+      Rotation: [0, 0, 0.0710000023]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.662999988, 0.620000005, 0.30399999]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 34249273909459401
+    TagComponent:
+      Tag: Wall Cap Plaza 27
+    TransformComponent:
+      Translation: [12.4980001, -2.7019999, 1]
+      Rotation: [0, 0, -0.0920000002]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.11899996, 0.463, 0.377000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5867843396339236631
+    TagComponent:
+      Tag: Wall Cap Plaza 28
+    TransformComponent:
+      Translation: [13.6610003, -2.75300002, 1]
+      Rotation: [0, 0, -0.115999997]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.02100003, 0.492000014, 0.221000001]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 6543531299812066310
+    TagComponent:
+      Tag: Wall Cap Plaza 29
+    TransformComponent:
+      Translation: [14.6379995, -2.66199994, 1]
+      Rotation: [0, 0, 0.0529999994]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.776000023, 0.58099997, 0.218999997]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8866353264712754530
+    TagComponent:
+      Tag: Wall Cap Plaza 30
+    TransformComponent:
+      Translation: [15.4989996, -2.727, 1]
+      Rotation: [0, 0, 0.0359999985]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.808000028, 0.644999981, 0.231000006]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2885794085897668535
+    TagComponent:
+      Tag: Wall Cap Plaza 31
+    TransformComponent:
+      Translation: [16.5550003, -2.75399995, 1]
+      Rotation: [0, 0, -0.057]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.13499999, 0.568000019, 0.296000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3803385140129810928
+    TagComponent:
+      Tag: Wall Cap Shrine
+    TransformComponent:
+      Translation: [-15.3889999, 1.31200004, 3.0999999]
+      Rotation: [0, 0, -0.0460000001]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.12399995, 0.463999987, 0.191]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5887961172886319865
+    TagComponent:
+      Tag: Wall Cap Shrine 2
+    TransformComponent:
+      Translation: [-14.2629995, 1.26999998, 3.0999999]
+      Rotation: [0, 0, 0.050999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.947000027, 0.504999995, 0.225999996]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 356680169201318040
+    TagComponent:
+      Tag: Wall Cap Shrine 3
+    TransformComponent:
+      Translation: [-13.2080002, 1.33200002, 3.0999999]
+      Rotation: [0, 0, -0.00800000038]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.995000005, 0.626999974, 0.186000004]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8894935740019644716
+    TagComponent:
+      Tag: Wall Cap Shrine 4
+    TransformComponent:
+      Translation: [-12.2910004, 1.25199997, 3.0999999]
+      Rotation: [0, 0, -0.119999997]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.691999972, 0.694999993, 0.182999998]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2846680908690746388
+    TagComponent:
+      Tag: Wall Cap Shrine 5
+    TransformComponent:
+      Translation: [-11.5480003, 1.33099997, 3.0999999]
+      Rotation: [0, 0, 0.104999997]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.675000012, 0.699999988, 0.361999989]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4206092570406631770
+    TagComponent:
+      Tag: Wall Cap Shrine 6
+    TransformComponent:
+      Translation: [-10.6090002, 1.31700003, 3.0999999]
+      Rotation: [0, 0, 0.0450000018]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.05299997, 0.545000017, 0.194000006]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8326227920863824179
+    TagComponent:
+      Tag: Wall Cap Shrine 7
+    TransformComponent:
+      Translation: [-9.47700024, 1.28699994, 3.0999999]
+      Rotation: [0, 0, 0.107000001]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.03100002, 0.479999989, 0.317999989]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8735023156015568589
+    TagComponent:
+      Tag: Wall Cap Shrine 8
+    TransformComponent:
+      Translation: [-8.38899994, 1.35500002, 3.0999999]
+      Rotation: [0, 0, -0.057]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.970000029, 0.55400002, 0.217999995]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3454992027889865362
+    TagComponent:
+      Tag: Wall Cap Shrine 9
+    TransformComponent:
+      Translation: [-7.48400021, 1.28400004, 3.0999999]
+      Rotation: [0, 0, -0.00800000038]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.694999993, 0.612999976, 0.342000008]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 9166361167937593962
+    TagComponent:
+      Tag: Wall Cap Shrine 10
+    TransformComponent:
+      Translation: [-6.68400002, 1.30599999, 3.0999999]
+      Rotation: [0, 0, 0.101000004]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.778999984, 0.524999976, 0.317999989]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8630116035093661486
+    TagComponent:
+      Tag: Wall Cap Shrine 11
+    TransformComponent:
+      Translation: [-5.72900009, 1.29999995, 3.0999999]
+      Rotation: [0, 0, -0.108000003]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.976999998, 0.483999997, 0.25]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8547254777559575877
+    TagComponent:
+      Tag: Wall Cap Shrine 12
+    TransformComponent:
+      Translation: [-4.63600016, 1.27600002, 3.0999999]
+      Rotation: [0, 0, 0.0480000004]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.03499997, 0.561999977, 0.273000002]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2030860637933084364
+    TagComponent:
+      Tag: Wall Cap Shrine 13
+    TransformComponent:
+      Translation: [-3.60100007, 1.24899995, 3.0999999]
+      Rotation: [0, 0, -0.101999998]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.869000018, 0.501999974, 0.268000007]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 416527593288914124
+    TagComponent:
+      Tag: Wall Cap Shrine 14
+    TransformComponent:
+      Translation: [-2.71499991, 1.26300001, 3.0999999]
+      Rotation: [0, 0, -0.112000003]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.762000024, 0.615999997, 0.328000009]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4908159784227151078
+    TagComponent:
+      Tag: Wall Cap Shrine 15
+    TransformComponent:
+      Translation: [-1.87699997, 1.29499996, 3.0999999]
+      Rotation: [0, 0, -0.0920000002]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.779999971, 0.510999978, 0.317000002]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 2037198732528482752
+    TagComponent:
+      Tag: Wall Cap Shrine 16
+    TransformComponent:
+      Translation: [2.60500002, 1.31700003, 3.0999999]
+      Rotation: [0, 0, -0.104000002]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.11099994, 0.524999976, 0.289999992]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1684541796418389298
+    TagComponent:
+      Tag: Wall Cap Shrine 17
+    TransformComponent:
+      Translation: [3.82999992, 1.27600002, 3.0999999]
+      Rotation: [0, 0, 0.0299999993]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.14300001, 0.458000004, 0.280999988]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8652564143360849158
+    TagComponent:
+      Tag: Wall Cap Shrine 18
+    TransformComponent:
+      Translation: [5.03599977, 1.347, 3.0999999]
+      Rotation: [0, 0, 0.00200000009]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.07700002, 0.541000009, 0.363999993]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1940930316472422989
+    TagComponent:
+      Tag: Wall Cap Shrine 19
+    TransformComponent:
+      Translation: [6.12900019, 1.30799997, 3.0999999]
+      Rotation: [0, 0, -0.115999997]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.934000015, 0.629000008, 0.354000002]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3716253595337743614
+    TagComponent:
+      Tag: Wall Cap Shrine 20
+    TransformComponent:
+      Translation: [7.07999992, 1.24300003, 3.0999999]
+      Rotation: [0, 0, 0.0860000029]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.814999998, 0.55400002, 0.328999996]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7491804880912362847
+    TagComponent:
+      Tag: Wall Cap Shrine 21
+    TransformComponent:
+      Translation: [7.97300005, 1.28400004, 3.0999999]
+      Rotation: [0, 0, 0.0219999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.828000009, 0.537, 0.328000009]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 7123793936139557571
+    TagComponent:
+      Tag: Wall Cap Shrine 22
+    TransformComponent:
+      Translation: [8.91300011, 1.28199995, 3.0999999]
+      Rotation: [0, 0, 0.0130000003]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.903999984, 0.597000003, 0.36500001]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3784010921243725180
+    TagComponent:
+      Tag: Wall Cap Shrine 23
+    TransformComponent:
+      Translation: [9.96199989, 1.30200005, 3.0999999]
+      Rotation: [0, 0, 0.0949999988]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.02499998, 0.453999996, 0.326999992]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3874323033101327834
+    TagComponent:
+      Tag: Wall Cap Shrine 24
+    TransformComponent:
+      Translation: [10.9980001, 1.30400002, 3.0999999]
+      Rotation: [0, 0, 0.075000003]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.882000029, 0.486000001, 0.211999997]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 6677460425899615057
+    TagComponent:
+      Tag: Wall Cap Shrine 25
+    TransformComponent:
+      Translation: [12.0380001, 1.27699995, 3.0999999]
+      Rotation: [0, 0, 0.0219999999]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.03100002, 0.463, 0.259000003]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5544227745021545800
+    TagComponent:
+      Tag: Wall Cap Shrine 26
+    TransformComponent:
+      Translation: [13.0839996, 1.29400003, 3.0999999]
+      Rotation: [0, 0, -0.0820000023]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.893999994, 0.500999987, 0.25999999]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 8369709252544194314
+    TagComponent:
+      Tag: Wall Cap Shrine 27
+    TransformComponent:
+      Translation: [14.0950003, 1.352, 3.0999999]
+      Rotation: [0, 0, -0.114]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.966000021, 0.488000005, 0.209999993]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5229008243375619890
+    TagComponent:
+      Tag: Wall Cap Shrine 28
+    TransformComponent:
+      Translation: [15.0670004, 1.28299999, 3.0999999]
+      Rotation: [0, 0, 0.0930000022]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.823000014, 0.476000011, 0.279000014]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 5212864785955759564
+    TagComponent:
+      Tag: Wall Cap Shrine 29
+    TransformComponent:
+      Translation: [16.0760002, 1.273, 3.0999999]
+      Rotation: [0, 0, 0.0799999982]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.03299999, 0.546999991, 0.246999994]
+      CastShadows: true
+      Materials:
+        - MaterialHandle: 29202765111466157
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 1554060658117780648
+    TagComponent:
+      Tag: Wall Collider Plaza
+    TransformComponent:
+      Translation: [-7.0999999, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [7.80000019, 0.300000012]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5888645764482305797
+    TagComponent:
+      Tag: Wall Collider Plaza 2
+    TransformComponent:
+      Translation: [7.0999999, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [7.80000019, 0.300000012]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7905517575359651115
+    TagComponent:
+      Tag: Wall Collider Shrine
+    TransformComponent:
+      Translation: [-6.3499999, 1, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [9.30000019, 0.300000012]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4518005068882461278
+    TagComponent:
+      Tag: Wall Collider Shrine 2
+    TransformComponent:
+      Translation: [6.3499999, 1, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [9.30000019, 0.300000012]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7413762374198159990
+    TagComponent:
+      Tag: Edge Collider Path
+    TransformComponent:
+      Translation: [-9, -7.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.300000012, 9]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8532437754109950822
+    TagComponent:
+      Tag: Edge Collider Path 2
+    TransformComponent:
+      Translation: [9, -7.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.300000012, 9]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4996242501176892941
+    TagComponent:
+      Tag: Edge Collider Plaza
+    TransformComponent:
+      Translation: [-9, -1, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.300000012, 4]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4426207858467569186
+    TagComponent:
+      Tag: Edge Collider Plaza 2
+    TransformComponent:
+      Translation: [9, -1, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.300000012, 4]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8173915135289971587
+    TagComponent:
+      Tag: Edge Collider Shrine
+    TransformComponent:
+      Translation: [-9, 6.5, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.300000012, 11]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7779626026576073833
+    TagComponent:
+      Tag: Edge Collider Shrine 2
+    TransformComponent:
+      Translation: [9, 6.5, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.300000012, 11]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4377922040100137191
+    TagComponent:
+      Tag: Shrine
+    TransformComponent:
+      Translation: [0, 7.9000001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 2282559462705700462
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 551434808120924651
+    TagComponent:
+      Tag: Shrine Collider
+    TransformComponent:
+      Translation: [0, 7.9000001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [6.9000001, 5]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3569926238660948754
+    TagComponent:
+      Tag: Shrine Steps Collider
+    TransformComponent:
+      Translation: [0, 5, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [2, 0.800000012]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9074558629336959517
+    TagComponent:
+      Tag: Save Shrine
+    TransformComponent:
+      Translation: [0, 4.28999996, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 7964150790657466625
+    TagComponent:
+      Tag: Sacred Tree
+    TransformComponent:
+      Translation: [-5.5999999, 12.4799995, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [12.6875, 13, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7852483744401080896
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.453799993]
+      Size: [0.252200007, 0.0922999978]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5515472067107185271
+    TagComponent:
+      Tag: Stone Lantern Plaza
+    TransformComponent:
+      Translation: [-2.6500001, -3.8499999, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
+    MeshComponent:
+      ModelHandle: 6017387236698300047
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 2262075435441861790
+    TagComponent:
+      Tag: Light Lantern Plaza
+    TransformComponent:
+      Translation: [-2.6500001, -3.8499999, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.639999986, 0.300000012]
+      Intensity: 2.20000005
+      Radius: 3.4000001
+      Height: 1.33000004
+  - Entity: 6031282627385922262
+    TagComponent:
+      Tag: Stone Lantern Plaza 2
+    TransformComponent:
+      Translation: [2.6500001, -3.8499999, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
+    MeshComponent:
+      ModelHandle: 6017387236698300047
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 6937428809024089171
+    TagComponent:
+      Tag: Light Lantern Plaza 2
+    TransformComponent:
+      Translation: [2.6500001, -3.8499999, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.639999986, 0.300000012]
+      Intensity: 2.20000005
+      Radius: 3.4000001
+      Height: 1.33000004
+  - Entity: 2681392914589184468
+    TagComponent:
+      Tag: Stone Lantern Shrine
+    TransformComponent:
+      Translation: [-3.5, 4.84000015, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
+    MeshComponent:
+      ModelHandle: 6017387236698300047
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 139897495579264246
+    TagComponent:
+      Tag: Light Lantern Shrine
+    TransformComponent:
+      Translation: [-3.5, 4.84000015, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.639999986, 0.300000012]
+      Intensity: 2.20000005
+      Radius: 3.4000001
+      Height: 1.33000004
+  - Entity: 6996660646185389080
+    TagComponent:
+      Tag: Stone Lantern Shrine 2
+    TransformComponent:
+      Translation: [3.5, 4.84000015, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
+    MeshComponent:
+      ModelHandle: 6017387236698300047
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 2137775062052176025
+    TagComponent:
+      Tag: Light Lantern Shrine 2
+    TransformComponent:
+      Translation: [3.5, 4.84000015, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.639999986, 0.300000012]
+      Intensity: 2.20000005
+      Radius: 3.4000001
+      Height: 1.33000004
+  - Entity: 6660734423629550247
+    TagComponent:
+      Tag: Light Lantern Shrine Hall
+    TransformComponent:
+      Translation: [0, 6.5, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.699999988, 0.349999994]
+      Intensity: 1.39999998
+      Radius: 3.5999999
+      Height: 1.60000002
+  - Entity: 9117177838381037872
+    TagComponent:
+      Tag: Spot Shrine Door
+    TransformComponent:
+      Translation: [0, 5.03999996, 3.0999999]
+      Rotation: [-0.35779199, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Spot
+      Color: [1, 0.850000024, 0.600000024]
+      Intensity: 2.4000001
+      Radius: 5.5
+      Height: 2.5999999
+      InnerAngle: 18
+      OuterAngle: 32
+  - Entity: 1838021247458930411
+    TagComponent:
+      Tag: Sun
+    TransformComponent:
+      Translation: [6, -6, 8]
+      Rotation: [0.982620001, 0, 0.570722997]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 0.720000029, 0.460000008]
+      Intensity: 0.75
+      IsMainLight: true
+      CastShadows: true
+      ShadowStrength: 1
+      ShadowDistance: 24
+      ShadowBias: 1
+  - Entity: 6850123281660943099
+    TagComponent:
+      Tag: Backdrop Sunset
+    TransformComponent:
+      Translation: [0, 26, -9]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [64, 0.200000003, 24]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 4413571034817251968
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 3722109849929024717
+    TagComponent:
+      Tag: Tree Back
+    TransformComponent:
+      Translation: [-27.2583008, 32.350399, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.78389978, 17.0853004, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 529127158629928934
+    TagComponent:
+      Tag: Tree Back 2
+    TransformComponent:
+      Translation: [-24.7394009, 31.4578991, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.02169991, 15.1658001, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3549429008199398996
+    TagComponent:
+      Tag: Tree Back 3
+    TransformComponent:
+      Translation: [-23.1536999, 30.6415005, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.12909985, 14.3512001, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 68470958733428684
+    TagComponent:
+      Tag: Tree Back 4
+    TransformComponent:
+      Translation: [-20.1336994, 30.1518993, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.13269997, 14.3596001, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4204401521476837188
+    TagComponent:
+      Tag: Tree Back 5
+    TransformComponent:
+      Translation: [-19.0205994, 32.0446014, -3]
+      Rotation: [0, 0, 0]
+      Scale: [7.12360001, 16.6795998, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2292840058987170371
+    TagComponent:
+      Tag: Tree Back 6
+    TransformComponent:
+      Translation: [-17.0172997, 30.2374001, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.17959976, 13.0448999, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1843540409388984799
+    TagComponent:
+      Tag: Tree Back 7
+    TransformComponent:
+      Translation: [-13.9935999, 32.4006996, -3]
+      Rotation: [0, 0, 0]
+      Scale: [12.0553999, 16.8290997, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8713596781396061067
+    TagComponent:
+      Tag: Tree Back 8
+    TransformComponent:
+      Translation: [-12.0207005, 32.0065994, -3]
+      Rotation: [0, 0, 0]
+      Scale: [11.3949003, 15.9069004, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8051386747727097978
+    TagComponent:
+      Tag: Tree Back 9
+    TransformComponent:
+      Translation: [-10.0193005, 30.8533993, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.82579994, 14.6723003, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2824104422379082227
+    TagComponent:
+      Tag: Tree Back 10
+    TransformComponent:
+      Translation: [-7.85480022, 30.1595001, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.12879992, 12.9168997, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 5828278186785190484
+    TagComponent:
+      Tag: Tree Back 11
+    TransformComponent:
+      Translation: [-6.8743, 31.5464001, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.82719994, 15.9856997, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 389785298914131413
+    TagComponent:
+      Tag: Tree Back 12
+    TransformComponent:
+      Translation: [-4.59000015, 31.1208992, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.62190008, 15.5049, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8334329813365611131
+    TagComponent:
+      Tag: Tree Back 13
+    TransformComponent:
+      Translation: [-2.6645, 32.1110001, -3]
+      Rotation: [0, 0, 0]
+      Scale: [7.18970013, 16.8344994, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 643662218462017280
+    TagComponent:
+      Tag: Tree Back 14
+    TransformComponent:
+      Translation: [-0.592999995, 30.4864998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.53739977, 13.9461002, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5926871292621848630
+    TagComponent:
+      Tag: Tree Back 15
+    TransformComponent:
+      Translation: [1.74489999, 31.7460995, -3]
+      Rotation: [0, 0, 0]
+      Scale: [12.2316999, 17.0750999, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3018285252954214291
+    TagComponent:
+      Tag: Tree Back 16
+    TransformComponent:
+      Translation: [4.07690001, 31.4687996, -3]
+      Rotation: [0, 0, 0]
+      Scale: [10.5657997, 14.7495003, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6778129503045249662
+    TagComponent:
+      Tag: Tree Back 17
+    TransformComponent:
+      Translation: [13.0804005, 31.3875999, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.64020014, 15.5479002, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 1954676765638912024
+    TagComponent:
+      Tag: Tree Back 18
+    TransformComponent:
+      Translation: [13.9313002, 29.8530006, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.56239986, 13.0242004, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5518719822112935691
+    TagComponent:
+      Tag: Tree Back 19
+    TransformComponent:
+      Translation: [16.9099998, 31.1494999, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.74249983, 14.4624996, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6792668128069248409
+    TagComponent:
+      Tag: Tree Back 20
+    TransformComponent:
+      Translation: [18.0757008, 31.8213997, -3]
+      Rotation: [0, 0, 0]
+      Scale: [12.0632, 16.8398991, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 9072550619330490509
+    TagComponent:
+      Tag: Tree Back 21
+    TransformComponent:
+      Translation: [20.8852997, 30.4521999, -3]
+      Rotation: [0, 0, 0]
+      Scale: [9.88459969, 13.7987003, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 4294106695432007552
+    TagComponent:
+      Tag: Tree Back 22
+    TransformComponent:
+      Translation: [22.2887001, 32.2396011, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.62139988, 16.6760006, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3243812429587205745
+    TagComponent:
+      Tag: Tree Back 23
+    TransformComponent:
+      Translation: [25.4829006, 29.5310001, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.24410009, 13.2074003, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7475991706757063972
+    TagComponent:
+      Tag: Tree Back 24
+    TransformComponent:
+      Translation: [26.5051003, 31.4456997, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.60099983, 15.4560003, 1]
+    SpriteRendererComponent:
+      Color: [0.340000004, 0.300000012, 0.360000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6998621918315073847
+    TagComponent:
+      Tag: Tree Back 25
+    TransformComponent:
+      Translation: [-25.3087997, 26.3143005, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.46260023, 12.7905998, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7022375020448891388
+    TagComponent:
+      Tag: Tree Back 26
+    TransformComponent:
+      Translation: [-24.5482006, 27.6149998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.28459978, 14.7152004, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1737969727938725453
+    TagComponent:
+      Tag: Tree Back 27
+    TransformComponent:
+      Translation: [-21.7742996, 27.2070999, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.59009981, 14.0788002, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5101401289786961183
+    TagComponent:
+      Tag: Tree Back 28
+    TransformComponent:
+      Translation: [-20.2031002, 28.4983006, -3]
+      Rotation: [0, 0, 0]
+      Scale: [11.1655998, 15.5867996, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6346284042329195174
+    TagComponent:
+      Tag: Tree Back 29
+    TransformComponent:
+      Translation: [-18.2241001, 28.5564003, -3]
+      Rotation: [0, 0, 0]
+      Scale: [11.4345999, 15.9624004, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4486390805433663701
+    TagComponent:
+      Tag: Tree Back 30
+    TransformComponent:
+      Translation: [-15.8158998, 27.8166008, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.0388999, 15.2090998, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 4409266878513757527
+    TagComponent:
+      Tag: Tree Back 31
+    TransformComponent:
+      Translation: [-12.8624001, 28.219101, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.69610023, 14.3456001, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 1754995533052077621
+    TagComponent:
+      Tag: Tree Back 32
+    TransformComponent:
+      Translation: [-11.2861996, 26.5147991, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.10200024, 11.9462004, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 9195182953494234187
+    TagComponent:
+      Tag: Tree Back 33
+    TransformComponent:
+      Translation: [-9.40159988, 26.6627998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.31430006, 12.4433002, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5931940476675412498
+    TagComponent:
+      Tag: Tree Back 34
+    TransformComponent:
+      Translation: [-7.08059978, 27.7989998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.47739983, 15.1666002, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3555570456264319527
+    TagComponent:
+      Tag: Tree Back 35
+    TransformComponent:
+      Translation: [-5.3915, 26.8911991, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.93709993, 12.4341002, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 5409760053927074841
+    TagComponent:
+      Tag: Tree Back 36
+    TransformComponent:
+      Translation: [-2.8678, 27.2303009, -3]
+      Rotation: [0, 0, 0]
+      Scale: [9.62220001, 13.4323997, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2177029872002780807
+    TagComponent:
+      Tag: Tree Back 37
+    TransformComponent:
+      Translation: [-0.837800026, 27.3537006, -3]
+      Rotation: [0, 0, 0]
+      Scale: [10.4523001, 14.5911999, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 5586459076320584597
+    TagComponent:
+      Tag: Tree Back 38
+    TransformComponent:
+      Translation: [1.63929999, 27.4650993, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.75110006, 14.4841003, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6370557107679012856
+    TagComponent:
+      Tag: Tree Back 39
+    TransformComponent:
+      Translation: [2.54130006, 27.9668999, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.27180004, 15.7957001, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4778598460556629683
+    TagComponent:
+      Tag: Tree Back 40
+    TransformComponent:
+      Translation: [13.1022997, 26.7812996, -3]
+      Rotation: [0, 0, 0]
+      Scale: [9.55599976, 13.3399, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3609967522937735365
+    TagComponent:
+      Tag: Tree Back 41
+    TransformComponent:
+      Translation: [15.4441996, 27.7947998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [10.0598001, 14.0432997, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2809167006539845946
+    TagComponent:
+      Tag: Tree Back 42
+    TransformComponent:
+      Translation: [18.1627007, 28.0508995, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.2111001, 15.6427002, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3499358406542907855
+    TagComponent:
+      Tag: Tree Back 43
+    TransformComponent:
+      Translation: [19.0776997, 27.5361996, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.79349995, 14.5909004, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5182849278837317149
+    TagComponent:
+      Tag: Tree Back 44
+    TransformComponent:
+      Translation: [21.8985996, 26.8882008, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.16120005, 12.0847998, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3935856931005192532
+    TagComponent:
+      Tag: Tree Back 45
+    TransformComponent:
+      Translation: [23.844101, 26.2241993, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.1729002, 12.1120996, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8124470428291691139
+    TagComponent:
+      Tag: Tree Back 46
+    TransformComponent:
+      Translation: [25.5573997, 26.8054008, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.70100021, 13.3486004, 1]
+    SpriteRendererComponent:
+      Color: [0.460000008, 0.419999987, 0.460000008, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2353345444508963516
+    TagComponent:
+      Tag: Tree Back 47
+    TransformComponent:
+      Translation: [-24.8731003, 24.7437, -3]
+      Rotation: [0, 0, 0]
+      Scale: [9.8046999, 13.6871004, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 246742672101876305
+    TagComponent:
+      Tag: Tree Back 48
+    TransformComponent:
+      Translation: [-22.8386002, 24.0223007, -3]
+      Rotation: [0, 0, 0]
+      Scale: [8.76679993, 12.2382002, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6911948593654989646
+    TagComponent:
+      Tag: Tree Back 49
+    TransformComponent:
+      Translation: [-20.8125, 23.5858994, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.01859999, 12.6393003, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5898585769709739612
+    TagComponent:
+      Tag: Tree Back 50
+    TransformComponent:
+      Translation: [-18.0713005, 23.8810005, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.45539999, 13.7396002, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8248828471982577065
+    TagComponent:
+      Tag: Tree Back 51
+    TransformComponent:
+      Translation: [-16.1431999, 24.3344002, -3]
+      Rotation: [0, 0, 0]
+      Scale: [6.21610022, 14.5548, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 783024564328314654
+    TagComponent:
+      Tag: Tree Back 52
+    TransformComponent:
+      Translation: [-14.1618004, 23.6551991, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.11850023, 11.9848003, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7814596109753132697
+    TagComponent:
+      Tag: Tree Back 53
+    TransformComponent:
+      Translation: [-11.3154001, 23.3843002, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.89309978, 11.4569998, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 5245261524499229739
+    TagComponent:
+      Tag: Tree Back 54
+    TransformComponent:
+      Translation: [-9.44900036, 24.3899994, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.90049982, 14.8606005, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 714474740798553374
+    TagComponent:
+      Tag: Tree Back 55
+    TransformComponent:
+      Translation: [-7.29309988, 25.0398998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [10.5495005, 14.7268, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 874095199553622665
+    TagComponent:
+      Tag: Tree Back 56
+    TransformComponent:
+      Translation: [-4.89039993, 23.6657009, -3]
+      Rotation: [0, 0, 0]
+      Scale: [8.87370014, 12.3874998, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6222324864539599988
+    TagComponent:
+      Tag: Tree Back 57
+    TransformComponent:
+      Translation: [-3.58990002, 24.1284008, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.46880007, 13.7733002, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7206721581891350334
+    TagComponent:
+      Tag: Tree Back 58
+    TransformComponent:
+      Translation: [-1.59959996, 24.3971996, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.44140005, 13.7042999, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1374728711534238661
+    TagComponent:
+      Tag: Tree Back 59
+    TransformComponent:
+      Translation: [1.41729999, 24.2308998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.52080011, 12.9266996, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6459583156537385906
+    TagComponent:
+      Tag: Tree Back 60
+    TransformComponent:
+      Translation: [3.65989995, 22.9337006, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.91839981, 11.5163002, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 487956346242431249
+    TagComponent:
+      Tag: Tree Back 61
+    TransformComponent:
+      Translation: [14.5221996, 24.8390999, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.82210016, 14.6630001, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7517521996546931083
+    TagComponent:
+      Tag: Tree Back 62
+    TransformComponent:
+      Translation: [15.9365997, 24.3342991, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.23040009, 13.1729002, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 877086275179855636
+    TagComponent:
+      Tag: Tree Back 63
+    TransformComponent:
+      Translation: [17.9771996, 22.8164997, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.0019002, 11.7118998, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3566465092001736981
+    TagComponent:
+      Tag: Tree Back 64
+    TransformComponent:
+      Translation: [20.6977005, 24.8334007, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.86509991, 13.7328997, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6218872338480385140
+    TagComponent:
+      Tag: Tree Back 65
+    TransformComponent:
+      Translation: [22.6814003, 23.8568993, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.94960022, 11.5893002, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 870918415616437071
+    TagComponent:
+      Tag: Tree Back 66
+    TransformComponent:
+      Translation: [24.8589993, 24.0769997, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.84259987, 12.1962996, 1]
+    SpriteRendererComponent:
+      Color: [0.600000024, 0.560000002, 0.560000002, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2580226634256704035
+    TagComponent:
+      Tag: Tree Back 67
+    TransformComponent:
+      Translation: [-23.7681007, 19.3505001, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.2125001, 10.6093998, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2393321100157063421
+    TagComponent:
+      Tag: Tree Back 68
+    TransformComponent:
+      Translation: [-21.7392998, 20.1837997, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.04780006, 11.8191996, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6099791325593064454
+    TagComponent:
+      Tag: Tree Back 69
+    TransformComponent:
+      Translation: [-20.0482998, 21.1149998, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.12949991, 12.0105, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6962416639795930133
+    TagComponent:
+      Tag: Tree Back 70
+    TransformComponent:
+      Translation: [-17.8206997, 19.8696003, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.94140005, 11.5700998, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7987177543218883113
+    TagComponent:
+      Tag: Tree Back 71
+    TransformComponent:
+      Translation: [-15.3022003, 20.6373005, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.54629993, 11.4499998, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7589504765810633398
+    TagComponent:
+      Tag: Tree Back 72
+    TransformComponent:
+      Translation: [-13.0651999, 20.5585995, -3]
+      Rotation: [0, 0, 0]
+      Scale: [7.68120003, 10.7227001, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4191924498270807834
+    TagComponent:
+      Tag: Tree Back 73
+    TransformComponent:
+      Translation: [-10.9235001, 20.5515995, -3]
+      Rotation: [0, 0, 0]
+      Scale: [7.72119999, 10.7784996, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6032972768584616295
+    TagComponent:
+      Tag: Tree Back 74
+    TransformComponent:
+      Translation: [-8.94509983, 20.2723007, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.9698, 12.5165997, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8985964207703938302
+    TagComponent:
+      Tag: Tree Back 75
+    TransformComponent:
+      Translation: [-6.00449991, 21.6355, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.18720007, 13.0641003, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 9047135940363002229
+    TagComponent:
+      Tag: Tree Back 76
+    TransformComponent:
+      Translation: [-4.43909979, 20.2103996, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.96780014, 11.6317997, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 974016324921557554
+    TagComponent:
+      Tag: Tree Back 77
+    TransformComponent:
+      Translation: [4.60599995, 20.8847008, -3]
+      Rotation: [0, 0, 0]
+      Scale: [8.20670033, 11.4562998, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2174064193096126923
+    TagComponent:
+      Tag: Tree Back 78
+    TransformComponent:
+      Translation: [6.26959991, 20.5611, -3]
+      Rotation: [0, 0, 0]
+      Scale: [8.11690044, 11.3310003, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6275121619090541381
+    TagComponent:
+      Tag: Tree Back 79
+    TransformComponent:
+      Translation: [9.10099983, 19.9811993, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.56069994, 11.4861002, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2066935833663203147
+    TagComponent:
+      Tag: Tree Back 80
+    TransformComponent:
+      Translation: [11.2262001, 21.7500992, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.24560022, 13.2112999, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3416395768501798779
+    TagComponent:
+      Tag: Tree Back 81
+    TransformComponent:
+      Translation: [13.2578001, 20.4972, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.96290016, 11.6204004, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2676580255469477506
+    TagComponent:
+      Tag: Tree Back 82
+    TransformComponent:
+      Translation: [15.8271999, 20.7651997, -3]
+      Rotation: [0, 0, 0]
+      Scale: [5.32989979, 12.4798002, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6410098885973008502
+    TagComponent:
+      Tag: Tree Back 83
+    TransformComponent:
+      Translation: [17.2614994, 19.4545994, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.62639999, 10.8325005, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4916211739783764466
+    TagComponent:
+      Tag: Tree Back 84
+    TransformComponent:
+      Translation: [19.7996006, 20.5648003, -3]
+      Rotation: [0, 0, 0]
+      Scale: [4.34679985, 10.9474001, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4230376212814561823
+    TagComponent:
+      Tag: Tree Back 85
+    TransformComponent:
+      Translation: [22.0137005, 20.3467007, -3]
+      Rotation: [0, 0, 0]
+      Scale: [7.88009977, 11.0003996, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7532217039133046560
+    TagComponent:
+      Tag: Tree Back 86
+    TransformComponent:
+      Translation: [23.7987003, 20.5678005, -3]
+      Rotation: [0, 0, 0]
+      Scale: [7.78480005, 10.8674002, 1]
+    SpriteRendererComponent:
+      Color: [0.74000001, 0.699999988, 0.680000007, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 799216362402249347
+    TagComponent:
+      Tag: Tree Back 87
+    TransformComponent:
+      Translation: [-17.3027, 15.3600998, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.1170001, 7.29820013, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1840567436557625778
+    TagComponent:
+      Tag: Tree Back 88
+    TransformComponent:
+      Translation: [-13.4687996, 16.4883003, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.33590007, 8.40159988, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3140680528192642592
+    TagComponent:
+      Tag: Tree Back 89
+    TransformComponent:
+      Translation: [-9.92710018, 15.4932003, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [6.13780022, 8.56820011, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2268336321784850473
+    TagComponent:
+      Tag: Tree Back 90
+    TransformComponent:
+      Translation: [-5.72599983, 15.9858999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [6.70669985, 9.36229992, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2865689261987106399
+    TagComponent:
+      Tag: Tree Back 91
+    TransformComponent:
+      Translation: [10.1070004, 16.5790005, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.87210011, 9.06639957, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7027292229068825739
+    TagComponent:
+      Tag: Tree Back 92
+    TransformComponent:
+      Translation: [13.1480999, 16.0627003, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.47740006, 8.14220047, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8953779776163064125
+    TagComponent:
+      Tag: Tree Back 93
+    TransformComponent:
+      Translation: [16.5708008, 15.7421999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.93860006, 7.40089989, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3779063247688362880
+    TagComponent:
+      Tag: Tree Shrine
+    TransformComponent:
+      Translation: [-9.5, 15.75, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [11.8125, 10.5, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5805457290072020487
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1976153345894491558
+    TagComponent:
+      Tag: Tree Shrine 2
+    TransformComponent:
+      Translation: [-12.5, 12.75, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [10.6478996, 9.5, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2505759380645850351
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7557485298685233061
+    TagComponent:
+      Tag: Tree Shrine 3
+    TransformComponent:
+      Translation: [14, 11.5, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [8.74040031, 9, 1]
+    SpriteRendererComponent:
+      Color: [0.920000017, 0.899999976, 0.860000014, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7097444611785527993
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5595329087274221958
+    TagComponent:
+      Tag: Tree Blossom
+    TransformComponent:
+      Translation: [5.30000019, 11.3900003, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [7.39370012, 6.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5742470722704427371
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8430597741634628684
+    TagComponent:
+      Tag: Tree Edge
+    TransformComponent:
+      Translation: [-12.6000004, 9.89000034, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [10.6875, 9.5, 1]
+    SpriteRendererComponent:
+      Color: [0.819999993, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5805457290072020487
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.468400002]
+      Size: [0.112300001, 0.0631999969]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 699350774627236690
+    TagComponent:
+      Tag: Tree Edge 2
+    TransformComponent:
+      Translation: [13, 9.23999977, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [10.0874996, 9, 1]
+    SpriteRendererComponent:
+      Color: [0.819999993, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2505759380645850351
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.466699988]
+      Size: [0.119000003, 0.0666999966]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3393387075336188158
+    TagComponent:
+      Tag: Tree Edge 3
+    TransformComponent:
+      Translation: [-12.1999998, 3.25, 1]
+      Rotation: [0, 0, 0]
+      Scale: [8.25479984, 8.5, 1]
+    SpriteRendererComponent:
+      Color: [0.819999993, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7097444611785527993
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.464700013]
+      Size: [0.145400003, 0.070600003]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 295768166836184961
+    TagComponent:
+      Tag: Tree Edge 4
+    TransformComponent:
+      Translation: [12.1999998, 2.6500001, 1]
+      Rotation: [0, 0, 0]
+      Scale: [9.5625, 8.5, 1]
+    SpriteRendererComponent:
+      Color: [0.819999993, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5805457290072020487
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.464700013]
+      Size: [0.125499994, 0.070600003]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8823823183394312717
+    TagComponent:
+      Tag: Tree Edge 5
+    TransformComponent:
+      Translation: [-12, -3.3499999, 0]
+      Rotation: [0, 0, 0]
+      Scale: [9.52709961, 8.5, 1]
+    SpriteRendererComponent:
+      Color: [0.819999993, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2505759380645850351
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.464700013]
+      Size: [0.126000002, 0.070600003]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 713238376006688916
+    TagComponent:
+      Tag: Tree Edge 6
+    TransformComponent:
+      Translation: [12, -3.20000005, 0]
+      Rotation: [0, 0, 0]
+      Scale: [7.76919985, 8, 1]
+    SpriteRendererComponent:
+      Color: [0.819999993, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7097444611785527993
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.462500006]
+      Size: [0.154499993, 0.075000003]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5213298615977695097
+    TagComponent:
+      Tag: Tree Woods
+    TransformComponent:
+      Translation: [-15.0099001, 15.4249001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [10.7987003, 9.59879971, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5805457290072020487
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5424306393912958674
+    TagComponent:
+      Tag: Tree Woods 2
+    TransformComponent:
+      Translation: [21.5114002, 15.6850996, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [7.07919979, 9.88230038, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7379073570147678791
+    TagComponent:
+      Tag: Tree Woods 3
+    TransformComponent:
+      Translation: [-17.2075996, 10.757, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [11.8248997, 10.5501003, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2505759380645850351
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4353539682314559893
+    TagComponent:
+      Tag: Tree Woods 4
+    TransformComponent:
+      Translation: [21.4629993, 11.0558004, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [4.65700006, 11.7286997, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1084457227164133533
+    TagComponent:
+      Tag: Tree Woods 5
+    TransformComponent:
+      Translation: [-20.1194992, 10.7779999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [11.0529003, 11.3811998, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7097444611785527993
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5482556638244460800
+    TagComponent:
+      Tag: Tree Woods 6
+    TransformComponent:
+      Translation: [18.2754002, 17.4179993, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [5.24039984, 12.2701998, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2947374127598875977
+    TagComponent:
+      Tag: Tree Woods 7
+    TransformComponent:
+      Translation: [-15.6756001, 14.4287996, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [13.3025999, 11.8246002, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5805457290072020487
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1064611245574023765
+    TagComponent:
+      Tag: Tree Woods 8
+    TransformComponent:
+      Translation: [13.21, 16.7140007, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [8.88599968, 12.4046001, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5734405185651740290
+    TagComponent:
+      Tag: Tree Woods 9
+    TransformComponent:
+      Translation: [-24.5858002, 10.2494001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [11.4660997, 10.2299995, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2505759380645850351
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 435327847065311815
+    TagComponent:
+      Tag: Tree Woods 10
+    TransformComponent:
+      Translation: [22.6716995, 11.2185001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [4.21269989, 10.6097002, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2210456475263983977
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 1291329289482678829
+    TagComponent:
+      Tag: Tree Woods 11
+    TransformComponent:
+      Translation: [-15.0879002, 17.4487991, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [11.7981997, 12.1486998, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7097444611785527993
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 149575541296784900
+    TagComponent:
+      Tag: Tree Woods 12
+    TransformComponent:
+      Translation: [14.7643995, 12.7997999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [4.77370024, 11.1773996, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 962573779804548815
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2675401056718131138
+    TagComponent:
+      Tag: Tree Woods 13
+    TransformComponent:
+      Translation: [-20.0284996, 17.4438, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [11.6899004, 10.3909998, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5805457290072020487
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5876632307155951071
+    TagComponent:
+      Tag: Tree Woods 14
+    TransformComponent:
+      Translation: [25.1685009, 11.1533003, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [7.46869993, 10.4260998, 1]
+    SpriteRendererComponent:
+      Color: [0.779999971, 0.779999971, 0.75999999, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7715509536353744322
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 641176569800977408
+    TagComponent:
+      Tag: Banner
+    TransformComponent:
+      Translation: [-4.4000001, 1.17499995, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.0359, 2.54999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8312269749611804599
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.460799992]
+      Size: [0.289600015, 0.0784000009]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3234991372300481100
+    TagComponent:
+      Tag: Banner 2
+    TransformComponent:
+      Translation: [4.4000001, 1.17499995, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.0359, 2.54999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8312269749611804599
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.460799992]
+      Size: [0.289600015, 0.0784000009]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2351806747789743990
+    TagComponent:
+      Tag: Stone Jizo
+    TransformComponent:
+      Translation: [-3.4000001, 2.64910007, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.59379995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8571906672705332884
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.374500006]
+      Size: [0.899999976, 0.250999987]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9041148645977416914
+    TagComponent:
+      Tag: Grave Stone
+    TransformComponent:
+      Translation: [4.5999999, 5.69939995, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.3125, 1.6875, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3466774123752099384
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.4111]
+      Size: [0.609499991, 0.1778]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 8663925174146742235
+    TagComponent:
+      Tag: Grave Stone 2
+    TransformComponent:
+      Translation: [5.9000001, 6.51329994, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.50940001, 1.94060004, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3466774123752099384
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.422699988]
+      Size: [0.609499991, 0.154599994]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2126063777373702265
+    TagComponent:
+      Tag: Grave Stone 3
+    TransformComponent:
+      Translation: [7.19999981, 5.52339983, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.18130004, 1.51880002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3466774123752099384
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.401199996]
+      Size: [0.609499991, 0.197500005]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7993783122074570228
+    TagComponent:
+      Tag: Grave Jizo
+    TransformComponent:
+      Translation: [8.69999981, 5.10179996, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 1.19529998, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8571906672705332884
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.374500006]
+      Size: [0.666700006, 0.250999987]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6385243566750986607
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [-3, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7574286129711183763
+    TagComponent:
+      Tag: Fence 2
+    TransformComponent:
+      Translation: [-4.25, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7453084886519827924
+    TagComponent:
+      Tag: Fence 3
+    TransformComponent:
+      Translation: [-5.5, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1200767070766460179
+    TagComponent:
+      Tag: Fence 4
+    TransformComponent:
+      Translation: [-6.75, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1003594150906450496
+    TagComponent:
+      Tag: Fence 5
+    TransformComponent:
+      Translation: [-8, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4596083341498587596
+    TagComponent:
+      Tag: Fence 6
+    TransformComponent:
+      Translation: [3, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7440603027905974541
+    TagComponent:
+      Tag: Fence 7
+    TransformComponent:
+      Translation: [4.25, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6985565054017361923
+    TagComponent:
+      Tag: Fence 8
+    TransformComponent:
+      Translation: [5.5, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2293862965215481516
+    TagComponent:
+      Tag: Fence 9
+    TransformComponent:
+      Translation: [6.75, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3334285463536224685
+    TagComponent:
+      Tag: Fence 10
+    TransformComponent:
+      Translation: [8, 2.12750006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4369203868794246245
+    TagComponent:
+      Tag: Fence Shrine
+    TransformComponent:
+      Translation: [-4, 7.20200014, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.02499998, 1.04999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.404799998]
+      Size: [0.936600029, 0.190500006]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6890928409166240480
+    TagComponent:
+      Tag: Fence Shrine 2
+    TransformComponent:
+      Translation: [-5, 7.20200014, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.02499998, 1.04999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.404799998]
+      Size: [0.936600029, 0.190500006]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7026622945513857390
+    TagComponent:
+      Tag: Fence Shrine 3
+    TransformComponent:
+      Translation: [4, 7.20200014, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.02499998, 1.04999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.404799998]
+      Size: [0.936600029, 0.190500006]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6711044137532731020
+    TagComponent:
+      Tag: Fence Shrine 4
+    TransformComponent:
+      Translation: [5, 7.20200014, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.02499998, 1.04999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.404799998]
+      Size: [0.936600029, 0.190500006]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1060591098293658548
+    TagComponent:
+      Tag: Fence 11
+    TransformComponent:
+      Translation: [-3.5999999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7381649197389381211
+    TagComponent:
+      Tag: Fence 12
+    TransformComponent:
+      Translation: [-4.8499999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4198000979323352597
+    TagComponent:
+      Tag: Fence 13
+    TransformComponent:
+      Translation: [-6.0999999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1539389555572081855
+    TagComponent:
+      Tag: Fence 14
+    TransformComponent:
+      Translation: [-7.3499999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 9211926672918371901
+    TagComponent:
+      Tag: Fence 15
+    TransformComponent:
+      Translation: [-8.60000038, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 3755219560927740202
+    TagComponent:
+      Tag: Fence 16
+    TransformComponent:
+      Translation: [3.5999999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 520607614045277108
+    TagComponent:
+      Tag: Fence 17
+    TransformComponent:
+      Translation: [4.8499999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 175105537154289817
+    TagComponent:
+      Tag: Fence 18
+    TransformComponent:
+      Translation: [6.0999999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5003773439950378204
+    TagComponent:
+      Tag: Fence 19
+    TransformComponent:
+      Translation: [7.3499999, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1080028471873537911
+    TagComponent:
+      Tag: Fence 20
+    TransformComponent:
+      Translation: [8.60000038, -1.87249994, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7384853099756451139
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.423799992]
+      Size: [0.936600029, 0.152400002]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 5612979027964244988
+    TagComponent:
+      Tag: Chest Shrine
+    TransformComponent:
+      Translation: [7.19999981, 5.71500015, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 1223096506477277171
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    Shadow2DComponent:
+      Offset: [0, -0.330000013]
+      Size: [0.899999976, 0.300000012]
+      Strength: 0.449999988
+    BoxCollider2DComponent:
+      Offset: [0, -0.300000012]
+      Size: [0.899999976, 0.400000006]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 915656162424463572
+    TagComponent:
+      Tag: Torii
+    TransformComponent:
+      Translation: [0, -11.3999996, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 7009602151233614168
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 3321331343758281839
+    TagComponent:
+      Tag: Torii Post
+    TransformComponent:
+      Translation: [-1.60000002, -11.3999996, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6534739203578931046
+    TagComponent:
+      Tag: Torii Post 2
+    TransformComponent:
+      Translation: [1.60000002, -11.3999996, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1888277293012762830
+    TagComponent:
+      Tag: Stone Block
+    TransformComponent:
+      Translation: [-8.39999962, 0.703700006, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.309500009]
+      Size: [0.936600029, 0.381000012]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7525156853788916664
+    TagComponent:
+      Tag: Stone Block 2
+    TransformComponent:
+      Translation: [9.19999981, -3.48679996, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.0891, 1.11559999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.275900006]
+      Size: [0.918200016, 0.448199987]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 7707297636837786755
+    TagComponent:
+      Tag: Stone Block 3
+    TransformComponent:
+      Translation: [6.4000001, 0.56220001, 1]
+      Rotation: [0, 0, 0]
+      Scale: [0.768700004, 0.787500024, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.246000007]
+      Size: [0.910600007, 0.5079]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4271470499060943565
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [-1.20000005, -1.29999995, 1]
+      Rotation: [0, 0, 0]
+      Scale: [2, 2, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 96
+      TextureHandle: 7947839098198136297
+      Sprite: WalkDown_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8836529364116051673
+      StartClip: IdleRight
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.0500000007]
+      Size: [0.850000024, 0.319999993]
+      Strength: 0.550000012
+    NativeScriptComponent:
+      Scripts:
+        - DioramaWalk
+  - Entity: 1001152027262274208
+    TagComponent:
+      Tag: Npc Elder
+    TransformComponent:
+      Translation: [3.4000001, -0.400000006, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1.75, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 65
+      TextureHandle: 4427682999371818319
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 3363558919026677037
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.0500000007]
+      Size: [0.850000024, 0.319999993]
+      Strength: 0.550000012
+    BoxCollider2DComponent:
+      Offset: [0, 0.0856999978]
+      Size: [0.5, 0.171399996]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2618373224733743677
+    TagComponent:
+      Tag: Sign Shrine
+    TransformComponent:
+      Translation: [3.0999999, -6.30999994, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.78119993, 1.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5165221976718186001
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.416700006]
+      Size: [0.575299978, 0.166700006]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+  - Entity: 2521931026300517388
+    TagComponent:
+      Tag: Exit South
+    TransformComponent:
+      Translation: [0, -11, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 760177823632933339
+    TagComponent:
+      Tag: Wisp 1
+    TransformComponent:
+      Translation: [-5.5, -8.19999981, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.29999995, 1.29999995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 62
+      TextureHandle: 3546812827052914949
+      Sprite: Wisp_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 381359539372406047
+      StartClip: Float
+      PlayOnStart: true
+      Speed: 1
+    Light2DComponent:
+      Type: Point
+      Color: [0.349999994, 0.850000024, 1]
+      Intensity: 1.20000005
+      Radius: 3.20000005
+      Height: 0
+    Shadow2DComponent:
+      Offset: [0, 0.0500000007]
+      Size: [0.800000012, 0.280000001]
+      Strength: 0.300000012
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: true
+      IsBullet: false
+      GravityScale: 0
+      LinearDamping: 10
+      AngularDamping: 0.0500000007
+    BoxCollider2DComponent:
+      Offset: [0, 0.25]
+      Size: [0.550000012, 0.300000012]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+    NativeScriptComponent:
+      Scripts:
+        - EnemyChase
+        - VillageYSort
+  - Entity: 6389426620074096688
+    TagComponent:
+      Tag: Decor Wall Foot
+    TransformComponent:
+      Translation: [-9.05900002, -2.77509999, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.09850001, 0.9102, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 4287282078365465841
+    TagComponent:
+      Tag: Decor Wall Foot 2
+    TransformComponent:
+      Translation: [-8.36229992, -2.60170007, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.75909996, 1.60619998, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1484020808902068523
+    TagComponent:
+      Tag: Decor Wall Foot 3
+    TransformComponent:
+      Translation: [-8.81729984, -2.99029994, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.47619998, 0.773199975, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8113525878376696826
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 29573523418613608
+    TagComponent:
+      Tag: Decor Wall Foot 4
+    TransformComponent:
+      Translation: [-8.12590027, -2.96989989, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.01010001, 0.836899996, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8300974411687552180
+    TagComponent:
+      Tag: Decor Wall Foot 5
+    TransformComponent:
+      Translation: [-7.8375001, -2.83839989, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.09859991, 1.0302, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2698839835440085250
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 1935151011442348651
+    TagComponent:
+      Tag: Decor Wall Foot 6
+    TransformComponent:
+      Translation: [10.9696999, -3.35290003, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25650001, 0.658100009, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8113525878376696826
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6301974470883959186
+    TagComponent:
+      Tag: Decor Wall Foot 7
+    TransformComponent:
+      Translation: [-8.03489971, -2.93169999, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.66789997, 0.818799973, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2698839835440085250
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4888468975563466761
+    TagComponent:
+      Tag: Decor Wall Foot 8
+    TransformComponent:
+      Translation: [-7.91020012, -2.99239993, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.88540006, 0.925499976, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2698839835440085250
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7078334338425289237
+    TagComponent:
+      Tag: Decor Wall Foot 9
+    TransformComponent:
+      Translation: [4.8677001, -2.68260002, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.15919995, 0.960399985, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8142859916306259347
+    TagComponent:
+      Tag: Decor Front
+    TransformComponent:
+      Translation: [6.36689997, -7.67659998, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.28199995, 1.06219995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 609919489304792446
+    TagComponent:
+      Tag: Decor Wall Bush
+    TransformComponent:
+      Translation: [11.1304998, -2.92639995, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.6723001, 2.21420002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4456101239244515769
+    TagComponent:
+      Tag: Decor Wall Bush 2
+    TransformComponent:
+      Translation: [8.46049976, -3.54290009, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.93870002, 0.961600006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 676667337007952355
+    TagComponent:
+      Tag: Decor Wall Bush 3
+    TransformComponent:
+      Translation: [-11.8231001, -3.55859995, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.78009999, 1.62530005, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 552859329122860968
+    TagComponent:
+      Tag: Decor Wall Bush 4
+    TransformComponent:
+      Translation: [6.95319986, -3.01390004, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.59520006, 2.15030003, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7880683847257081743
+    TagComponent:
+      Tag: Decor Wall Bush 5
+    TransformComponent:
+      Translation: [8.06509972, -3.32450008, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.70539999, 1.55710006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2785374354433879236
+    TagComponent:
+      Tag: Decor Plaza Wall
+    TransformComponent:
+      Translation: [-2.34559989, 1.17610002, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.51320004, 1.38160002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 574810718956291702
+    TagComponent:
+      Tag: Decor Plaza Wall 2
+    TransformComponent:
+      Translation: [-5.49620008, 1.31599998, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.78410006, 1.62899995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7022679389956175193
+    TagComponent:
+      Tag: Decor Plaza Wall 3
+    TransformComponent:
+      Translation: [6.7507, 1.37600005, 1]
+      Rotation: [0, 0, 0]
+      Scale: [2.11159992, 1.03659999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2698839835440085250
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3597028269658689780
+    TagComponent:
+      Tag: Decor Plaza Wall 4
+    TransformComponent:
+      Translation: [4.6255002, 1.09759998, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.39260006, 1.15390003, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4689209354844996956
+    TagComponent:
+      Tag: Decor Plaza Wall 5
+    TransformComponent:
+      Translation: [10.4836998, 1.09749997, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.25530005, 1.04009998, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5681509022482803464
+    TagComponent:
+      Tag: Decor Plaza Wall 6
+    TransformComponent:
+      Translation: [9.55650043, 1.2687, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.58840001, 1.45019996, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5399846396165433827
+    TagComponent:
+      Tag: Decor Plaza Wall 7
+    TransformComponent:
+      Translation: [-7.96990013, 1.04990005, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.23090005, 1.01989996, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8877347541011218156
+    TagComponent:
+      Tag: Decor Plaza Wall 8
+    TransformComponent:
+      Translation: [-2.66020012, 1.25150001, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.69410002, 1.54680002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7108933879412066177
+    TagComponent:
+      Tag: Decor Plaza Wall 9
+    TransformComponent:
+      Translation: [-4.19859982, 1.29009998, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.3175, 1.20290005, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 450773846447120991
+    TagComponent:
+      Tag: Decor Plaza Edge
+    TransformComponent:
+      Translation: [4.59700012, -1.84200001, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.35409999, 1.12189996, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 759157030934755130
+    TagComponent:
+      Tag: Decor Plaza Edge 2
+    TransformComponent:
+      Translation: [-6.63019991, -2.0381, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.38020003, 1.26020002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 1213748683280620109
+    TagComponent:
+      Tag: Decor Plaza Edge 3
+    TransformComponent:
+      Translation: [2.60100007, -2.0933001, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.21829998, 1.00940001, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8179799659839668042
+    TagComponent:
+      Tag: Decor Plaza Edge 4
+    TransformComponent:
+      Translation: [-5.72629976, -2.29150009, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.75779998, 0.862900019, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2698839835440085250
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 4528418667084164075
+    TagComponent:
+      Tag: Decor Plaza Edge 5
+    TransformComponent:
+      Translation: [6.06720018, -2.09870005, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.3039, 1.08039999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8031496201300263853
+    TagComponent:
+      Tag: Decor Plaza Edge 6
+    TransformComponent:
+      Translation: [4.43400002, -2.26629996, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.09570003, 0.907899976, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2324782832345760575
+    TagComponent:
+      Tag: Decor Plaza Edge 7
+    TransformComponent:
+      Translation: [7.15929985, -2.13700008, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.14569998, 0.949299991, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2002750836707578940
+    TagComponent:
+      Tag: Decor Plaza Edge 8
+    TransformComponent:
+      Translation: [7.94840002, -1.66610003, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.79130006, 1.63549995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1734516111120992641
+    TagComponent:
+      Tag: Decor Shrine Edge
+    TransformComponent:
+      Translation: [8.78439999, 1.90480006, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.37689996, 1.2572, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5106778069466485909
+    TagComponent:
+      Tag: Decor Shrine Edge 2
+    TransformComponent:
+      Translation: [9.35350037, 2.01060009, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.17869997, 0.976599991, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 9045408753711605032
+    TagComponent:
+      Tag: Decor Shrine Edge 3
+    TransformComponent:
+      Translation: [-5.49959993, 1.8506, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.86080003, 0.913500011, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2698839835440085250
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5490432496170299511
+    TagComponent:
+      Tag: Decor Shrine Edge 4
+    TransformComponent:
+      Translation: [3.6494, 2.01659989, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.03569996, 0.858099997, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 9112019076117548154
+    TagComponent:
+      Tag: Decor Shrine Edge 5
+    TransformComponent:
+      Translation: [-2.38269997, 1.87290001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.97099996, 0.967599988, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2698839835440085250
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6115274274919844876
+    TagComponent:
+      Tag: Decor Shrine Edge 6
+    TransformComponent:
+      Translation: [3.7664001, 2.09179997, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.17519999, 0.973800004, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4128770617519603141
+    TagComponent:
+      Tag: Decor Shrine Edge 7
+    TransformComponent:
+      Translation: [11.8071003, 2.07179999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.39349997, 1.15460002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 997957949927456755
+    TagComponent:
+      Tag: Decor Shrine Edge 8
+    TransformComponent:
+      Translation: [7.27720022, 2.3118999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.30770004, 1.19400001, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7467864718423095009
+    TagComponent:
+      Tag: Decor Shrine Edge 9
+    TransformComponent:
+      Translation: [-9.61989975, 2.29419994, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.66610003, 1.52119994, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3562601995907036867
+    TagComponent:
+      Tag: Decor Shrine
+    TransformComponent:
+      Translation: [-9.14360046, 9.66740036, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.22440004, 0.596499979, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 6926694228897402769
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 429815071947817661
+    TagComponent:
+      Tag: Decor Shrine 2
+    TransformComponent:
+      Translation: [10.9254999, 10.7718, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.41270006, 0.941799998, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3795230639466418587
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1516325721436511756
+    TagComponent:
+      Tag: Decor Shrine 3
+    TransformComponent:
+      Translation: [8.12870026, 11.4910002, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.39950001, 1.15960002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7101163910796827038
+    TagComponent:
+      Tag: Decor Shrine 4
+    TransformComponent:
+      Translation: [9.99330044, 10.8002996, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.50779998, 0.872900009, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8276649552491953295
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8999908617590435923
+    TagComponent:
+      Tag: Decor Shrine Bush
+    TransformComponent:
+      Translation: [11.3837004, 9.21360016, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.12150002, 1.14890003, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7707118601334173326
+    TagComponent:
+      Tag: Decor Shrine Bush 2
+    TransformComponent:
+      Translation: [6.16219997, 11.2215996, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.25600004, 1.96879995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2701295029039167096
+    TagComponent:
+      Tag: Decor Hill Edge
+    TransformComponent:
+      Translation: [11.2003002, 13.6058998, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.47359991, 2.15869999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1852474952126191543
+    TagComponent:
+      Tag: Decor Hill Edge 2
+    TransformComponent:
+      Translation: [-10.2425003, 12.7210999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.24399996, 1.2744, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1751798912121755932
+    TagComponent:
+      Tag: Decor Hill Edge 3
+    TransformComponent:
+      Translation: [-2.37899995, 13.8397999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.90249991, 2.65009999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 9019067610155784444
+    TagComponent:
+      Tag: Decor Hill Edge 4
+    TransformComponent:
+      Translation: [-5.61100006, 13.4643002, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.53570008, 2.31520009, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 746697313304837171
+    TagComponent:
+      Tag: Decor Hill Edge 5
+    TransformComponent:
+      Translation: [7.76259995, 13.8865995, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.15739989, 2.75550008, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 4870351730073297226
+    TagComponent:
+      Tag: Decor Hill Edge 6
+    TransformComponent:
+      Translation: [-6.65689993, 13.7116003, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.02189994, 2.75909996, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 335830346442154474
+    TagComponent:
+      Tag: Decor Hill Edge 7
+    TransformComponent:
+      Translation: [-13.5107002, 13.2951002, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.1918, 1.22090006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6891174022631651750
+    TagComponent:
+      Tag: Decor Hill Edge 8
+    TransformComponent:
+      Translation: [-4.24599981, 13.0822001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.67190003, 1.71259999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8374495788875116621
+    TagComponent:
+      Tag: Decor Hill Edge 9
+    TransformComponent:
+      Translation: [-2.63630009, 14.1443996, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.45309997, 2.86109996, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2877793884066911947
+    TagComponent:
+      Tag: Decor Hill Edge 10
+    TransformComponent:
+      Translation: [-3.87299991, 13.3778, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.2335, 1.26359999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5695976193549132763
+    TagComponent:
+      Tag: Decor Hill Edge 11
+    TransformComponent:
+      Translation: [-10.3114996, 13.5812998, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.30139995, 2.7355001, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8375983693220925390
+    TagComponent:
+      Tag: Decor Hill Edge 12
+    TransformComponent:
+      Translation: [1.92229998, 14.0882998, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [4.41599989, 3.65899992, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5103394348372965492
+    TagComponent:
+      Tag: Decor Hill Edge 13
+    TransformComponent:
+      Translation: [8.07999992, 13.9807997, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [4.31529999, 3.57559991, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 735845302069624886
+    TagComponent:
+      Tag: Decor Hill Edge 14
+    TransformComponent:
+      Translation: [12.8189001, 13.2728004, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.10860002, 1.13559997, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 708284206782804475
+    TagComponent:
+      Tag: Decor Hill Edge 15
+    TransformComponent:
+      Translation: [2.79460001, 13.1585999, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.10220003, 1.12899995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3583041541154037120
+    TagComponent:
+      Tag: Decor Hill Edge 16
+    TransformComponent:
+      Translation: [8.07579994, 13.5485001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.26160002, 2.06500006, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2020083100823483412
+    TagComponent:
+      Tag: Decor Hill Edge 17
+    TransformComponent:
+      Translation: [2.32279992, 13.5313997, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.39630008, 2.18799996, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 9110736314116410108
+    TagComponent:
+      Tag: Decor Hill Edge 18
+    TransformComponent:
+      Translation: [-9.04360008, 13.5150003, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.77670002, 2.42330003, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 9200246522751595079
+    TagComponent:
+      Tag: Decor Hill Edge 19
+    TransformComponent:
+      Translation: [-14.5008001, 13.3249998, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.58669996, 2.25749993, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6201051591935336764
+    TagComponent:
+      Tag: Decor Hill Edge 20
+    TransformComponent:
+      Translation: [-3.60170007, 13.8586998, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.0473001, 2.65939999, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8406076639806234834
+    TagComponent:
+      Tag: Decor Hill Edge 21
+    TransformComponent:
+      Translation: [-9.15279961, 13.9453001, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.9762001, 3.29450011, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3485068613338979465
+    TagComponent:
+      Tag: Decor Hill Edge 22
+    TransformComponent:
+      Translation: [-1.16190004, 14.1267004, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [3.6795001, 3.2112, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1712060653907632781
+    TagComponent:
+      Tag: Decor Shrine Flowers
+    TransformComponent:
+      Translation: [-4.0999999, 6.52440023, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.15619993, 1.96879995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8278926632646702754
+    TagComponent:
+      Tag: Decor Shrine Flowers 2
+    TransformComponent:
+      Translation: [4.0999999, 6.42439985, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.15619993, 1.96879995, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6166110732241592166
+    TagComponent:
+      Tag: Decor Shrine Flowers 3
+    TransformComponent:
+      Translation: [-4.4000001, 5.27440023, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [1.53120005, 1.2687, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 268979081279308515
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6674761484810607486
+    TagComponent:
+      Tag: Decor Shrine Flowers 4
+    TransformComponent:
+      Translation: [-6.9000001, 5.33690023, 3.0999999]
+      Rotation: [0, 0, 0]
+      Scale: [2.40619993, 1.99380004, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 1989661402193555698
+    TagComponent:
+      Tag: Decor Shrine Flowers 5
+    TransformComponent:
+      Translation: [-2.5999999, 1.32500005, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.54690003, 1.35000002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7216863574807356806
+    TagComponent:
+      Tag: Decor Shrine Flowers 6
+    TransformComponent:
+      Translation: [2.5999999, 1.32500005, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1.54690003, 1.35000002, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7078799132378088511
+    TagComponent:
+      Tag: Rock
+    TransformComponent:
+      Translation: [-11, -3.05660009, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.15310001, 1.18130004, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5061178514271246099
+    TagComponent:
+      Tag: Rock 2
+    TransformComponent:
+      Translation: [11.3999996, -3.09619999, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.28120005, 1.3125, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 7805685482707567927
+    TagComponent:
+      Tag: Rock 3
+    TransformComponent:
+      Translation: [-5.5999999, 1.06219995, 1]
+      Rotation: [0, 0, 0]
+      Scale: [0.768700004, 0.787500024, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3602655544754203803
+    TagComponent:
+      Tag: Rock 4
+    TransformComponent:
+      Translation: [6.19999981, 0.98210001, 1]
+      Rotation: [0, 0, 0]
+      Scale: [0.704699993, 0.721899986, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3471202463790715305
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 743586560995587270
+    TagComponent:
+      Tag: Canopy Front
+    TransformComponent:
+      Translation: [-5.4000001, -4.19999981, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.84759998, 2.5999999, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8872176229017832976
+    TagComponent:
+      Tag: Canopy Front 2
+    TransformComponent:
+      Translation: [-7.5999999, -4.30000019, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.86209989, 3.20000005, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5363181629097023839
+    TagComponent:
+      Tag: Canopy Front 3
+    TransformComponent:
+      Translation: [-9.60000038, -3.9000001, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.20830011, 2.79999995, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 8973774948857512230
+    TagComponent:
+      Tag: Canopy Front 4
+    TransformComponent:
+      Translation: [5.5999999, -4.19999981, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.20830011, 2.79999995, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2304632357497663418
+    TagComponent:
+      Tag: Canopy Front 5
+    TransformComponent:
+      Translation: [7.80000019, -4.19999981, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.86209989, 3.20000005, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 9172118590466093380
+    TagComponent:
+      Tag: Canopy Front 6
+    TransformComponent:
+      Translation: [9.80000019, -3.9000001, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.84759998, 2.5999999, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6266079466458038552
+    TagComponent:
+      Tag: Canopy Front 7
+    TransformComponent:
+      Translation: [-6.4000001, -9.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.40949988, 2.20000005, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8451206556614315736
+    TagComponent:
+      Tag: Canopy Front 8
+    TransformComponent:
+      Translation: [-4.19999981, -10.1999998, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.89660001, 2.4000001, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7407627607183195403
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 647316421080007629
+    TagComponent:
+      Tag: Canopy Front 9
+    TransformComponent:
+      Translation: [6.19999981, -9.69999981, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.40949988, 2.20000005, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3109843078229128923
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6650543042686484141
+    TagComponent:
+      Tag: Canopy Front 10
+    TransformComponent:
+      Translation: [4.19999981, -10.3999996, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.75, 2.4000001, 1]
+    SpriteRendererComponent:
+      Color: [0.860000014, 0.839999974, 0.800000012, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 250417816214129350
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright

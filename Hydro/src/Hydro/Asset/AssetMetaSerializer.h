@@ -7,7 +7,7 @@ namespace Hydro
 {
 	// Reads and writes where a file keeps its asset handle:
 	//
-	// - Files Hydro writes (scenes, prefabs, sprite animation sets) store it in the file itself, as its first line:
+	// - Files Hydro writes (scenes, prefabs, sprite animation sets, materials) store it in the file itself, as its first line:
 	//     Handle: 1234567890
 	//     Scene: Level1
 	//     ...
@@ -23,7 +23,7 @@ namespace Hydro
 		// The key of the handle line in scenes, prefabs and sidecars.
 		static constexpr const char* HandleKey = "Handle";
 
-		// True for the types that keep their handle inside the file (scenes, prefabs).
+		// True for the types that keep their handle inside the file (scenes, prefabs, .hyanim, .hymat).
 		static bool StoresHandleInFile(AssetType type);
 		// "<file>.hymeta" for `file`.
 		static std::filesystem::path GetSidecarPath(const std::filesystem::path& file);

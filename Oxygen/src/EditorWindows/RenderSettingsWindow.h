@@ -3,13 +3,18 @@
 
 namespace Hydro
 {
+	class Scene;
+
 	// "Render Settings" window: edits Renderer::GetSettings() live (clear colour, vsync, wireframe,
-	// shader hot reload) and shows what the GPU supports. Changes apply immediately; they are
+	// shader hot reload, the project's render features), the open scene's render-feature override, and
+	// shows what the GPU supports. Changes apply immediately; they are
 	// written to the project (.hyproj) by File > Save Project or the Save button here.
 	class RenderSettingsWindow
 	{
 	public:
-		void OnImguiRender();
+		// `editorScene`: the scene that is edited and saved (its render settings are shown); `activeScene`:
+		// the one being drawn (the running copy while playing), which gets the same edits. Either may be null.
+		void OnImguiRender(Scene* editorScene, Scene* activeScene);
 
 		bool& IsOpen() { return m_Open; }
 

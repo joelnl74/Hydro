@@ -57,7 +57,11 @@ namespace Hydro
 		static void SetDepth(uint32_t depth) { s_Depth = depth; }
 
 	private:
-		static inline Request s_Request;
+		// Defined after the class: g++ can't initialise an inline static of a nested type with default
+		// member initialisers inside the class (MSVC can).
+		static Request s_Request;
 		static inline uint32_t s_Depth = 0;
 	};
+
+	inline SceneTransition::Request SceneTransition::s_Request;
 }

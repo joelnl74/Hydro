@@ -1,0 +1,9 @@
+Handle: 7527028390783369615
+Material:
+  Type: Standard
+  Tint: [0.920000017, 0.899999976, 0.839999974, 1]
+  Tiling: [1, 1]
+  EmissionColor: [0.0799999982, 0.0799999982, 0.0700000003]
+  EmissionIntensity: 1
+  AlphaCutoff: 0
+  Filter: Nearest

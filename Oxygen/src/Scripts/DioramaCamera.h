@@ -31,6 +31,41 @@ namespace Hydro
 		static inline bool Perspective = true;
 		static inline float Blend = 0.0f; // 0 top-down .. 1 diorama
 
+		// A scene's own framing (set by its director script when it starts, reset by ResetSceneFraming when it
+		// ends): the tilt in degrees (0 = TiltDegrees), the perspective camera's vertical field of view in
+		// degrees (0 = FieldOfView), how far ahead of the target, along the ground, the camera looks in the
+		// diorama view (added to the follow camera's look-ahead; 0 in top-down), how far above the target's
+		// ground it looks (a low camera then still shows what stands on the terraces above), and the area the follow
+		// camera's focus stays in (the map's walkable part, so the view never shows past its dressed edges;
+		// when HasSceneBounds is false the camera script's own bounds apply).
+		static inline float SceneTiltDegrees = 0.0f;
+		static inline float SceneFieldOfView = 0.0f;
+		static inline float SceneFocusLead = 0.0f;
+		static inline float SceneFocusRise = 0.0f;
+		static inline bool HasSceneBounds = false;
+		static inline glm::vec2 SceneBoundsMin{ 0.0f };
+		static inline glm::vec2 SceneBoundsMax{ 0.0f };
+		static void ResetSceneFraming()
+		{
+			SceneTiltDegrees = 0.0f;
+			SceneFieldOfView = 0.0f;
+			SceneFocusLead = 0.0f;
+			SceneFocusRise = 0.0f;
+			HasSceneBounds = false;
+			SceneBoundsMin = glm::vec2(0.0f);
+			SceneBoundsMax = glm::vec2(0.0f);
+		}
+
+		// The focus point kept inside the scene's bounds, or inside the given ones when the scene has none.
+		static glm::vec2 ClampFocus(const glm::vec2& focus, const glm::vec2& fallbackHalfSize)
+		{
+			if (HasSceneBounds)
+			{
+				return glm::clamp(focus, SceneBoundsMin, SceneBoundsMax);
+			}
+			return glm::clamp(focus, -fallbackHalfSize, fallbackHalfSize);
+		}
+
 		// Where the camera looks this frame, for world-space UI (MvpScripts.h): the focus point on the ground
 		// and the camera's right, up and back (towards the camera). Top-down: the camera's x, y at z 0; +X; +Y; +Z.
 		static inline glm::vec3 Focus{ 0.0f };
@@ -71,8 +106,9 @@ namespace Hydro
 			Blend = Blend < target ? std::min(target, Blend + step) : std::max(target, Blend - step);
 		}
 
-		// Places the camera looking at focus (a point on the ground) for the current blend.
-		static void Apply(TransformComponent& transform, CameraComponent& cameraComponent, const glm::vec2& focus)
+		// Places the camera looking at focus (a point on the ground, `height` above z 0: a raised terrace the
+		// player stands on) for the current blend.
+		static void Apply(TransformComponent& transform, CameraComponent& cameraComponent, const glm::vec2& focus, float height = 0.0f)
 		{
 			SceneCamera& camera = cameraComponent.Camera;
 
@@ -102,23 +138,24 @@ namespace Hydro
 
 			// Ease in and out, so the tilt starts and stops softly.
 			const float eased = Blend * Blend * (3.0f - 2.0f * Blend);
-			const float tilt = glm::radians(TiltDegrees) * eased;
+			const float tilt = glm::radians(SceneTiltDegrees > 0.0f ? SceneTiltDegrees : TiltDegrees) * eased;
 			const glm::vec3 forward{ 0.0f, std::sin(tilt), -std::cos(tilt) };
 			const glm::vec3 up{ 0.0f, std::cos(tilt), std::sin(tilt) };
 
 			// The distance at which the perspective camera sees OrthographicSize units vertically, so both
 			// projections show the same amount of the scene at the focus point.
+			const float fieldOfView = SceneFieldOfView > 0.0f ? SceneFieldOfView : FieldOfView;
 			const float viewHeight = camera.OrthographicSize;
-			const float distance = viewHeight / (2.0f * std::tan(glm::radians(FieldOfView) * 0.5f));
+			const float distance = viewHeight / (2.0f * std::tan(glm::radians(fieldOfView) * 0.5f));
 
 			camera.Projection = Perspective ? ProjectionType::Perspective : ProjectionType::Orthographic;
-			camera.PerspectiveFOV = FieldOfView;
+			camera.PerspectiveFOV = fieldOfView;
 			camera.PerspectiveNear = 0.5f;
 			camera.PerspectiveFar = distance + 200.0f;
 			camera.OrthographicNear = 0.1f;
 			camera.OrthographicFar = distance + 200.0f;
 
-			const glm::vec3 focusPoint{ focus.x, focus.y, 0.0f };
+			const glm::vec3 focusPoint{ focus.x, focus.y, height };
 			transform.Translation = focusPoint - forward * distance;
 			// A camera turned by +tilt about X looks from -Z towards +Y (north) and down.
 			transform.Rotation = { tilt, 0.0f, 0.0f };

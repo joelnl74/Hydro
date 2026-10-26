@@ -8,6 +8,8 @@
 
 #include "Hydro/Core/Base.h"
 #include "Hydro/Core/UUID.h"
+#include "Hydro/Renderer/RenderFeatures.h"
+#include "Hydro/Renderer/Lighting.h"
 #include "Components/Components.h"
 
 namespace Hydro
@@ -102,6 +104,16 @@ namespace Hydro
 		const std::string& GetName() const { return m_Name; }
 		void SetName(const std::string& name) { m_Name = name; }
 
+		// How the scene is rendered: the project's render features, or its own (saved, copied on Play).
+		const SceneRenderSettings& GetRenderSettings() const { return m_RenderSettings; }
+		void SetRenderSettings(const SceneRenderSettings& settings) { m_RenderSettings = settings; }
+		// Ambient and fog under forward lighting (M6; saved, copied on Play).
+		const SceneEnvironment& GetEnvironment() const { return m_Environment; }
+		void SetEnvironment(const SceneEnvironment& environment) { m_Environment = environment; }
+		// The scene's sun (DirectionalLightComponent): the one marked IsMainLight, else the first in entity
+		// order; invalid when there is none. More than one marked logs a warning once.
+		Entity GetMainLight();
+
 	public:
 		// THIS SHOULD BE PRIVATE AND EXPOSE A METHOD TO GET COMPONENTS/ENTITIES FROM REGISTRY.
 		entt::registry m_Registry;
@@ -145,6 +157,9 @@ namespace Hydro
 		Scope<ParticleScene> m_Particles; // exists while the game runs this scene
 
 		std::string m_Name;
+		SceneRenderSettings m_RenderSettings;
+		SceneEnvironment m_Environment;
+		bool m_MainLightWarned = false;
 		std::vector<entt::entity> m_EntityOrder;
 		uint32_t m_ViewportWidth = 1280;
 		uint32_t m_ViewportHeight = 720;

@@ -49,7 +49,7 @@ project "Hydro"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.stb}",
-		"%{IncludeDir.tinyobjloader}",
+		"%{IncludeDir.cgltf}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.box2d}",

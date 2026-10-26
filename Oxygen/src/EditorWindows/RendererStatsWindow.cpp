@@ -3,6 +3,7 @@
 
 #include <imgui/imgui.h>
 #include <Hydro/Renderer/Renderer2D.h>
+#include <Hydro/Renderer/Renderer3D.h>
 
 #include <cstdio>
 
@@ -22,6 +23,18 @@ namespace Hydro
 			StatsUI::Row("Triangles", "%u", stats.GetTriangleCount());
 			StatsUI::Row("Vertices", "%u", stats.GetTotalVertexCount());
 			StatsUI::Row("Indices", "%u", stats.GetTotalIndexCount());
+			ImGui::EndTable();
+		}
+
+		// ---- Meshes (Renderer3D) ----------------------------------------------
+		const Renderer3DStatistics meshStats = Renderer3D::GetStats();
+		if (ImGui::CollapsingHeader("Meshes", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##meshes"))
+		{
+			StatsUI::Row("Mesh draw calls", "%u", meshStats.MeshDraws);
+			StatsUI::Row("Mesh triangles", "%u", meshStats.Triangles);
+			StatsUI::Row("Mesh shadow draws", "%u (of the draw calls)", meshStats.ShadowDraws);
+			StatsUI::Row("Cached shapes", "%u", meshStats.CachedMeshes);
+			StatsUI::Row("Cached materials", "%u", meshStats.CachedMaterials);
 			ImGui::EndTable();
 		}
 
@@ -50,6 +63,34 @@ namespace Hydro
 			StatsUI::Row("Slots per draw", "%u (slot 0 = white)", stats.MaxTextureSlots);
 			StatsUI::Row("Slots used", "%u", stats.TextureSlotsUsed);
 			StatsUI::Row("Texture flushes", "%u", stats.TextureFlushes);
+			ImGui::EndTable();
+		}
+
+		// ---- Forward lighting and debug lines (M6, M7) ---------------------------
+		if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##lighting"))
+		{
+			StatsUI::Row("Forward-lit views", "%u", stats.ForwardLitViewCount);
+			StatsUI::Row("Forward lights", "%u (point and spot)", stats.ForwardLightCount);
+			StatsUI::Row("Lights dropped", "%u (beyond %u per view)", stats.ForwardLightsDropped, (uint32_t)MaxForwardLightsPerView);
+			StatsUI::Row("Light-buffer views", "%u (%u lights, %u shadows)", stats.LitViewCount, stats.LightCount, stats.ShadowCount);
+			StatsUI::Row("Debug lines", "%u", stats.DebugLineCount);
+			StatsUI::Row("Sun shadow maps", "%u", stats.SunShadowViewCount);
+			StatsUI::Row("Sprite shadow casters", "%u", stats.ShadowCasterQuads);
+			ImGui::EndTable();
+		}
+
+		// ---- Passes: GPU time per render-graph pass (summed over views, a couple of frames old) ----
+		const std::vector<PassTiming>& passes = Renderer2D::GetPassTimings();
+		if (ImGui::CollapsingHeader("Passes", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##passes"))
+		{
+			if (passes.empty())
+			{
+				StatsUI::Row("GPU time", "n/a (no timestamp support, or nothing drawn yet)");
+			}
+			for (const PassTiming& pass : passes)
+			{
+				StatsUI::Row(pass.Name.c_str(), "%.3f ms", pass.GPUMs);
+			}
 			ImGui::EndTable();
 		}
 

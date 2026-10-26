@@ -7,6 +7,7 @@
 #include "Hydro/Utils/PlatformUtils.h"
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "EditorPaths.h"
 #include "Utilities/AssetDragDrop.h"
@@ -14,42 +15,15 @@
 #include "Utilities/PathFollower.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <ctime>
 #include <map>
 #include <random>
 
 namespace Hydro
 {
-	// Per-star animation data for the demo galaxy (plain entt component).
-	struct GalaxyStar
-	{
-		float Radius;        // 0..1, scaled to the viewport each frame
-		float Angle;         // radians
-		float AngularSpeed;  // radians / second (inner stars orbit faster)
-		float TwinklePhase;
-		glm::vec3 BaseColor;
-		bool Bright;
-	};
-
-	// 20k quads per batch -> 50k stars = 3 batches / 3 draw calls (20k + 20k + 10k).
-	constexpr uint32_t GalaxyStarCount = 50000;
-	// World units: the galaxy fits the default 10-unit-high camera view.
-	constexpr float GalaxyRadius = 4.0f;
-	constexpr float StarSizeScale = 0.012f;
-	constexpr int GalaxyArms = 4;
-	constexpr float Pi = 3.14159265f;
-
 	static glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t) { return a + (b - a) * t; }
-
-	// Warm core -> pink mid -> blue rim.
-	static glm::vec3 GalaxyColor(float radius)
-	{
-		const glm::vec3 core(1.00f, 0.88f, 0.62f);
-		const glm::vec3 mid(0.92f, 0.45f, 0.85f);
-		const glm::vec3 rim(0.35f, 0.55f, 1.00f);
-		return radius < 0.35f ? Lerp(core, mid, radius / 0.35f)
-		                      : Lerp(mid, rim, std::min((radius - 0.35f) / 0.65f, 1.0f));
-	}
 
 	void EditorLayer::OnAttach()
 	{
@@ -60,6 +34,7 @@ namespace Hydro
 
 		RenderViewSpecification editorViewSpecification;
 		editorViewSpecification.DebugName = "Editor";
+		editorViewSpecification.EditorView = true;
 		m_EditorView = CreateScope<RenderView>(editorViewSpecification);
 
 		RenderViewSpecification gameViewSpecification;
@@ -104,105 +79,193 @@ namespace Hydro
 		RestoreOpenWindows();
 		m_EditorCamera.SetProjectionType(m_EditorSettings.CameraStartsIn2D ? ProjectionType::Orthographic : ProjectionType::Perspective);
 
-		CreateGalaxy();
 		CreateDefaultCamera();
 
 		// After the demo scene: a project with a start scene replaces it.
 		OpenStartupProject();
+		ApplyLaunchOptions();
 	}
 
-	void EditorLayer::CreateGalaxy()
+	EditorLaunchOptions EditorLaunchOptions::Parse(const ApplicationCommandLine& commandLine)
 	{
-		// One tagged entity so the galaxy shows up in the hierarchy. The stars themselves get
-		// no Tag/ID: the hierarchy window builds a tree node for every tagged entity each frame,
-		// which would be far too slow for 50k entities.
-		m_EditorScene->CreateEntity("Galaxy (" + std::to_string(GalaxyStarCount) + " stars)");
-
-		entt::registry& registry = m_EditorScene->m_Registry;
-
-		std::mt19937 rng(1337);
-		std::uniform_real_distribution<float> uniform(0.0f, 1.0f);
-		std::normal_distribution<float> gauss(0.0f, 1.0f);
-
-		for (uint32_t i = 0; i < GalaxyStarCount; i++)
+		EditorLaunchOptions options;
+		options.Project = commandLine.Get("--project");
+		options.Scene = commandLine.Get("--scene");
+		options.Play = commandLine.Has("--play");
+		const std::string frames = commandLine.Get("--frames");
+		if (frames.empty() == false)
 		{
-			float radius, angle;
+			options.Frames = (uint32_t)std::max(0, std::atoi(frames.c_str()));
+		}
+		options.Capture = commandLine.Get("--capture");
+		options.Validate = commandLine.Has("--validate");
+		options.Exit = commandLine.Has("--exit") || options.Capture.empty() == false || options.Validate;
+		return options;
+	}
 
-			if (uniform(rng) < 0.18f)
+	void EditorLayer::ApplyLaunchOptions()
+	{
+		if (m_Launch.Project.empty() == false)
+		{
+			std::error_code ec;
+			if (std::filesystem::exists(m_Launch.Project, ec))
 			{
-				// Dense core.
-				radius = std::min(std::abs(gauss(rng)) * 0.11f, 1.0f);
-				angle = uniform(rng) * 2.0f * Pi;
+				OpenProject(m_Launch.Project);
 			}
 			else
 			{
-				// Spiral arms: the angle offset grows with radius, plus some scatter.
-				int arm = (int)(uniform(rng) * GalaxyArms) % GalaxyArms;
-				radius = 0.06f + 0.94f * std::pow(uniform(rng), 0.85f);
-				radius = std::clamp(radius + gauss(rng) * 0.015f, 0.0f, 1.0f);
-				angle = arm * (2.0f * Pi / GalaxyArms) + radius * 5.5f + gauss(rng) * (0.12f + 0.18f * radius);
+				HY_ERROR("--project: {} doesn't exist", m_Launch.Project.string());
 			}
-
-			const bool bright = uniform(rng) < 0.01f;
-			const float size = StarSizeScale * (bright ? 4.0f + uniform(rng) * 3.0f : 1.5f + uniform(rng) * 2.0f);
-			const glm::vec3 color = GalaxyColor(radius) * (0.55f + 0.45f * uniform(rng));
-
-			GalaxyStar star;
-			star.Radius = radius;
-			star.Angle = angle;
-			star.AngularSpeed = 0.10f * (1.0f + 0.35f / (radius + 0.25f));
-			star.TwinklePhase = uniform(rng) * 2.0f * Pi;
-			star.BaseColor = bright ? glm::vec3(1.0f) : color;
-			star.Bright = bright;
-
-			entt::entity entity = registry.create();
-			registry.emplace<TransformComponent>(entity, glm::vec3(0.0f), glm::vec3(size, size, 1.0f));
-			registry.emplace<SpriteRendererComponent>(entity, glm::vec4(star.BaseColor, 1.0f));
-			registry.emplace<GalaxyStar>(entity, star);
 		}
-
-		// Place the stars without advancing them: the galaxy only moves while playing.
-		UpdateGalaxy(*m_EditorScene, 0.0f);
-	}
-
-	void EditorLayer::CopyGalaxyStars(Scene& source, Scene& destination)
-	{
-		entt::registry& from = source.m_Registry;
-		entt::registry& to = destination.m_Registry;
-
-		auto view = from.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
-		for (auto entity : view)
+		if (m_Launch.Scene.empty() == false)
 		{
-			entt::entity copy = to.create();
-			to.emplace<TransformComponent>(copy, view.get<TransformComponent>(entity));
-			to.emplace<SpriteRendererComponent>(copy, view.get<SpriteRendererComponent>(entity));
-			to.emplace<GalaxyStar>(copy, view.get<GalaxyStar>(entity));
-		}
-	}
-
-	void EditorLayer::UpdateGalaxy(Scene& scene, float deltaTime)
-	{
-		m_Time += deltaTime;
-
-		// Centred on the origin; Y is squashed a little so it reads as a tilted disc.
-
-		auto view = scene.m_Registry.view<GalaxyStar, TransformComponent, SpriteRendererComponent>();
-		for (auto entity : view)
-		{
-			GalaxyStar& star = view.get<GalaxyStar>(entity);
-			TransformComponent& transform = view.get<TransformComponent>(entity);
-
-			star.Angle += star.AngularSpeed * deltaTime;
-
-			const float r = star.Radius * GalaxyRadius;
-			transform.Translation.x = std::cos(star.Angle) * r;
-			transform.Translation.y = std::sin(star.Angle) * r * 0.78f;
-
-			if (star.Bright)
+			const std::filesystem::path scene = FindScene(m_Launch.Scene);
+			if (scene.empty())
 			{
-				SpriteRendererComponent& sprite = view.get<SpriteRendererComponent>(entity);
-				const float twinkle = 0.65f + 0.35f * std::sin(m_Time * 3.0f + star.TwinklePhase);
-				sprite.Color = glm::vec4(star.BaseColor * twinkle, 1.0f);
+				HY_ERROR("--scene: no scene '{}' in the project", m_Launch.Scene);
+			}
+			else
+			{
+				OpenScene(scene);
+			}
+		}
+
+		if (m_Launch.Validate)
+		{
+			const bool clean = ValidateProject();
+			Application::Get().Quit(clean ? 0 : 1);
+			return;
+		}
+		if (m_Launch.Play)
+		{
+			PlayScene();
+		}
+		if (m_Launch.IsAutomated())
+		{
+			// The Game view is drawn whatever the docking says, and at the capture size.
+			if (m_Launch.Capture.empty() == false)
+			{
+				SetGameFullscreen(true);
+				m_CaptureFixedSize = true;
+			}
+			m_LaunchStep = LaunchStep::Waiting;
+			m_LaunchFramesLeft = m_Launch.Frames;
+			HY_INFO("Unattended run: {} frames{}{}", m_Launch.Frames, m_Launch.Capture.empty() ? "" : ", then capture " + m_Launch.Capture.string(),
+				m_Launch.Exit ? ", then exit" : "");
+		}
+	}
+
+	std::filesystem::path EditorLayer::FindScene(const std::string& nameOrPath) const
+	{
+		std::error_code ec;
+		const std::filesystem::path given = nameOrPath;
+		if (given.extension().string() == SceneSerializer::FileExtension && std::filesystem::exists(given, ec))
+		{
+			return given;
+		}
+		if (Project::GetActive() == nullptr)
+		{
+			return {};
+		}
+		const std::filesystem::path inProject = EditorPaths::GetScenesDirectory() / (given.stem().string() + SceneSerializer::FileExtension);
+		if (std::filesystem::exists(inProject, ec))
+		{
+			return inProject;
+		}
+		return {};
+	}
+
+	bool EditorLayer::ValidateProject()
+	{
+		if (Project::GetActive() == nullptr)
+		{
+			HY_ERROR("--validate: no project is open");
+			return false;
+		}
+
+		std::vector<LogMessage> messages;
+		const uint64_t before = Log::GetMessagesSince(0, messages);
+		uint32_t scenes = 0;
+		std::error_code ec;
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(Project::GetActive()->GetAssetDirectory(), ec))
+		{
+			if (entry.is_regular_file() == false || entry.path().extension().string() != SceneSerializer::FileExtension)
+			{
+				continue;
+			}
+			// Into a scratch scene, like OpenScene; the serializer logs every missing asset and script.
+			Ref<Scene> scene = CreateRef<Scene>("Validate", true);
+			SceneSerializer serializer(scene);
+			if (serializer.Deserialize(entry.path()))
+			{
+				HY_INFO("Validated {}: {} entities", entry.path().filename().string(), scene->m_Registry.size<IDComponent>());
+			}
+			else
+			{
+				HY_ERROR("Validate: {} failed to load", entry.path().filename().string());
+			}
+			scenes++;
+		}
+
+		messages.clear();
+		Log::GetMessagesSince(before, messages);
+		uint32_t problems = 0;
+		for (const LogMessage& message : messages)
+		{
+			if (message.Level >= LogLevel::Warn)
+			{
+				problems++;
+			}
+		}
+		HY_INFO("Validated {} scenes: {} warnings or errors", scenes, problems);
+		return problems == 0;
+	}
+
+	void EditorLayer::UpdateLaunchAutomation()
+	{
+		switch (m_LaunchStep)
+		{
+			case LaunchStep::Waiting:
+			{
+				if (m_LaunchFramesLeft > 0)
+				{
+					m_LaunchFramesLeft--;
+					return;
+				}
+				if (m_Launch.Capture.empty())
+				{
+					m_LaunchStep = LaunchStep::Done;
+					return;
+				}
+				// Through the normal capture request, so the view is drawn at the capture size first.
+				std::error_code ec;
+				std::filesystem::create_directories(m_Launch.Capture.parent_path(), ec);
+				m_CaptureGameRequested = true;
+				m_LaunchStep = LaunchStep::Capturing;
+				return;
+			}
+			case LaunchStep::Capturing:
+			{
+				// The request is taken when the Game view is drawn, and the file is written after that frame.
+				if (m_CaptureGameRequested == false && m_GameView->IsCapturePending() == false)
+				{
+					HY_INFO("Captured the Game view to {}", m_Launch.Capture.string());
+					m_LaunchStep = LaunchStep::Done;
+				}
+				return;
+			}
+			case LaunchStep::Done:
+			{
+				if (m_Launch.Exit)
+				{
+					Application::Get().Quit(0);
+				}
+				m_LaunchStep = LaunchStep::None;
+				return;
+			}
+			case LaunchStep::None:
+			{
+				return;
 			}
 		}
 	}
@@ -260,7 +323,6 @@ namespace Hydro
 		{
 			// Scripts and engine systems, then the application's systems.
 			m_ActiveScene->OnUpdateRuntime(deltaTime);
-			UpdateGalaxy(*m_ActiveScene, deltaTime);
 
 			// A script may have asked for another scene (the scene was not touched while it ran).
 			ProcessSceneTransition();
@@ -279,7 +341,7 @@ namespace Hydro
 		// so a drag never jumps, but only takes new input over the Editor window. Its settings may
 		// have changed in the Editor Settings window (SetSettings does nothing when they didn't).
 		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
-		m_EditorCamera.Update(m_EditorViewVisible && m_EditorViewHovered);
+		m_EditorCamera.Update(deltaTime, m_EditorViewVisible && m_EditorViewHovered);
 
 		// In game full screen the Editor window is covered: don't draw it.
 		if (m_EditorViewVisible && m_GameFullscreen == false)
@@ -298,6 +360,8 @@ namespace Hydro
 	void EditorLayer::OnImGuiRender()
 	{
 		UpdateFullscreenKeys();
+		UpdateCaptureKeys();
+		UpdateLaunchAutomation();
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -404,6 +468,85 @@ namespace Hydro
 				ImGui::EndMenu();
 			}
 
+			if (ImGui::BeginMenu("Create"))
+			{
+				if (ImGui::MenuItem("Empty Entity"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Entity");
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+				if (ImGui::MenuItem("Sprite"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Sprite");
+					entity.AddComponent<TransformComponent>();
+					entity.AddComponent<SpriteRendererComponent>();
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+				if (ImGui::MenuItem("Camera"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Camera");
+					entity.AddComponent<TransformComponent>();
+					entity.AddComponent<CameraComponent>();
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+				if (ImGui::MenuItem("Light"))
+				{
+					Entity entity = m_ActiveScene->CreateEntity("Light");
+					entity.AddComponent<TransformComponent>();
+					// entity.AddComponent<LightComponent>();
+					m_HierarchyWindow->SetSelectedEntity(entity);
+				}
+				if (ImGui::BeginMenu("Meshes"))
+				{
+					if (ImGui::MenuItem("Box"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Box");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Box;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Cylinder"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Cylinder");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Cylinder;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Plane"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Plane");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Plane;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Stairs"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Stairs");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Stairs;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+					if (ImGui::MenuItem("Ramp"))
+					{
+						Entity entity = m_ActiveScene->CreateEntity("Ramp");
+						entity.AddComponent<TransformComponent>();
+						auto x = entity.AddComponent<MeshComponent>();
+						x.Shape = MeshShape::Ramp;
+						m_HierarchyWindow->SetSelectedEntity(entity);
+					}
+
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMenu();
+			}
+
+
 			DrawPlayControls();
 
 			// The waterline: the accent while editing, the play-mode tint while playing.
@@ -425,7 +568,7 @@ namespace Hydro
 		m_SpriteEditorWindow->OnImguiRender();
 		m_SpriteAnimationWindow->OnImguiRender();
 		m_StatsWindow->OnImguiRender(m_ActiveScene);
-		m_RenderSettingsWindow->OnImguiRender();
+		m_RenderSettingsWindow->OnImguiRender(m_EditorScene.get(), m_ActiveScene.get());
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
 		m_EditorSettingsWindow->OnImguiRender(m_EditorSettings);
 
@@ -501,19 +644,7 @@ namespace Hydro
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				if (ImGui::BeginMenu("Camera"))
-				{
-					const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
-					if (ImGui::MenuItem("2D (Orthographic)", nullptr, orthographic))
-						m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
-					if (ImGui::MenuItem("Reset View"))
-						m_EditorCamera.Reset();
-
-					ImGui::Separator();
-					ImGui::TextDisabled("Alt+LMB orbit, MMB pan, Alt+RMB / wheel zoom");
-
-					ImGui::EndMenu();
-				}
+				DrawEditorCameraMenu();
 
 				if (ImGui::BeginMenu("Overlays"))
 				{
@@ -526,19 +657,22 @@ namespace Hydro
 					ImGui::EndMenu();
 				}
 
+				DrawCaptureMenu();
+
 				ImGui::EndMenuBar();
 			}
 
 			const ImVec2 size = ImGui::GetContentRegionAvail();
 			if (size.x >= 1.0f && size.y >= 1.0f)
 			{
-				m_EditorView->SetSize((uint32_t)size.x, (uint32_t)size.y);
-				m_EditorCamera.SetViewportSize(size.x, size.y);
+				ResizeEditorView((uint32_t)size.x, (uint32_t)size.y);
 			}
 
 			// Camera projections flip Y for Vulkan, so the image is shown the right way up as is.
 			ImGui::Image((ImTextureID)m_EditorView->GetImGuiTexture(), size);
 			m_EditorViewHovered = ImGui::IsItemHovered();
+			DrawEditorCameraHint(ImGui::GetItemRectMin());
+			UpdateClickSelection(ImGui::GetItemRectMin(), size);
 			AcceptAssetDrop();
 
 			// F: look at the selected entity (edit mode only; play mode scripts may use F).
@@ -550,6 +684,133 @@ namespace Hydro
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::DrawEditorCameraMenu()
+	{
+		const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
+
+		if (ImGui::BeginMenu("Camera"))
+		{
+			if (ImGui::MenuItem("2D", "Orthographic, top-down", orthographic))
+			{
+				m_EditorCamera.SetProjectionType(ProjectionType::Orthographic);
+			}
+			if (ImGui::MenuItem("3D", "Perspective", orthographic == false))
+			{
+				m_EditorCamera.SetProjectionType(ProjectionType::Perspective);
+			}
+
+			ImGui::Separator();
+			// The standard views turn the camera around what it looks at (and switch to 3D).
+			struct ViewItem
+			{
+				const char* Label;
+				EditorCameraView View;
+			};
+			static const ViewItem views[] = {
+				{ "Top", EditorCameraView::Top }, { "Diorama (50 degrees)", EditorCameraView::Diorama },
+				{ "Front (looking north)", EditorCameraView::Front }, { "Back (looking south)", EditorCameraView::Back },
+				{ "Left (looking east)", EditorCameraView::Left }, { "Right (looking west)", EditorCameraView::Right }
+			};
+			for (const ViewItem& item : views)
+			{
+				if (ImGui::MenuItem(item.Label))
+				{
+					m_EditorCamera.SetView(item.View);
+				}
+			}
+
+			ImGui::Separator();
+			if (ImGui::MenuItem("Reset View"))
+			{
+				m_EditorCamera.Reset();
+			}
+
+			ImGui::Separator();
+			ImGui::TextDisabled("Alt+LMB orbit, MMB pan, wheel / Alt+RMB zoom");
+			ImGui::TextDisabled("3D: hold RMB to fly: mouse look, WASD move, Q/E down/up,");
+			ImGui::TextDisabled("Shift faster, wheel changes the speed");
+
+			ImGui::EndMenu();
+		}
+
+		// A one-click switch next to the menu: shows the mode you're in, switches to the other.
+		if (ImGui::MenuItem(orthographic ? "2D" : "3D"))
+		{
+			m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip(orthographic ? "2D view (orthographic, top-down). Click for 3D" : "3D view (perspective). Click for 2D");
+		}
+	}
+
+	void EditorLayer::DrawEditorCameraHint(const ImVec2& imageMin)
+	{
+		// While flying: the speed in the view's corner, so the wheel's change is visible.
+		if (m_EditorCamera.IsFlying() == false)
+		{
+			return;
+		}
+
+		char text[64];
+		std::snprintf(text, sizeof(text), "Fly %.1f m/s", m_EditorCamera.GetFlySpeed());
+		const ImVec2 position{ imageMin.x + 8.0f, imageMin.y + 6.0f };
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddText(ImVec2(position.x + 1.0f, position.y + 1.0f), ImGui::GetColorU32(ImGuiCol_WindowBg), text);
+		drawList->AddText(position, ImGui::GetColorU32(ImGuiCol_Text), text);
+	}
+
+	void EditorLayer::UpdateClickSelection(const ImVec2& imageMin, const ImVec2& imageSize)
+	{
+		// The answer to an earlier click: the entity drawn under it, or nothing (clears the selection).
+		int32_t picked = -1;
+		if (m_EditorView->TakeEntityIDResult(picked) && m_ActiveScene != nullptr)
+		{
+			const entt::entity handle = (entt::entity)(uint32_t)picked;
+			if (picked >= 0 && m_ActiveScene->m_Registry.valid(handle))
+			{
+				m_HierarchyWindow->SetSelectedEntity(Entity(handle, m_ActiveScene.get()));
+			}
+			else
+			{
+				m_HierarchyWindow->ClearSelection();
+			}
+		}
+
+		// A click is a press and release in the image without moving: a drag (orbit with Alt, a box
+		// later, an asset dropped) is not one, nor is anything with Alt held (camera controls).
+		const ImGuiIO& io = ImGui::GetIO();
+		const bool alt = io.KeyAlt;
+		if (m_EditorViewHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && alt == false && ImGui::GetDragDropPayload() == nullptr)
+		{
+			m_ClickPending = true;
+			m_ClickStart = io.MousePos;
+		}
+		if (m_ClickPending == false || ImGui::IsMouseReleased(ImGuiMouseButton_Left) == false)
+		{
+			return;
+		}
+		m_ClickPending = false;
+
+		const float dx = io.MousePos.x - m_ClickStart.x;
+		const float dy = io.MousePos.y - m_ClickStart.y;
+		if (m_EditorViewHovered == false || alt || dx * dx + dy * dy > 16.0f || imageSize.x < 1.0f || imageSize.y < 1.0f)
+		{
+			return;
+		}
+
+		// ImGui pixels to the view's own (the same unless the view hasn't caught up with a resize yet).
+		const float u = (io.MousePos.x - imageMin.x) / imageSize.x;
+		const float v = (io.MousePos.y - imageMin.y) / imageSize.y;
+		if (u < 0.0f || v < 0.0f || u >= 1.0f || v >= 1.0f)
+		{
+			return;
+		}
+		const uint32_t x = std::min((uint32_t)(u * (float)m_EditorView->GetWidth()), m_EditorView->GetWidth() - 1);
+		const uint32_t y = std::min((uint32_t)(v * (float)m_EditorView->GetHeight()), m_EditorView->GetHeight() - 1);
+		m_EditorView->RequestEntityIDReadback(x, y);
 	}
 
 	void EditorLayer::FocusEntity(Entity entity)
@@ -585,6 +846,7 @@ namespace Hydro
 				}
 				ImGui::EndMenu();
 			}
+			DrawCaptureMenu();
 			ImGui::EndMenuBar();
 		}
 
@@ -598,9 +860,7 @@ namespace Hydro
 			const ImVec2 size = ImGui::GetContentRegionAvail();
 			if (size.x >= 1.0f && size.y >= 1.0f)
 			{
-				// The game's cameras take their aspect ratio from the scene's viewport.
-				m_GameView->SetSize((uint32_t)size.x, (uint32_t)size.y);
-				m_ActiveScene->OnViewportResize((uint32_t)size.x, (uint32_t)size.y);
+				ResizeGameView((uint32_t)size.x, (uint32_t)size.y);
 			}
 
 			const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
@@ -686,8 +946,7 @@ namespace Hydro
 		const ImVec2 size = ImGui::GetContentRegionAvail();
 		if (size.x >= 1.0f && size.y >= 1.0f)
 		{
-			m_GameView->SetSize((uint32_t)size.x, (uint32_t)size.y);
-			m_ActiveScene->OnViewportResize((uint32_t)size.x, (uint32_t)size.y);
+			ResizeGameView((uint32_t)size.x, (uint32_t)size.y);
 		}
 
 		const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
@@ -717,6 +976,112 @@ namespace Hydro
 		}
 
 		ImGui::End();
+	}
+
+	void EditorLayer::ResizeGameView(uint32_t width, uint32_t height)
+	{
+		if (m_CaptureGameRequested)
+		{
+			if (m_CaptureFixedSize)
+			{
+				width = CaptureWidth;
+				height = CaptureHeight;
+			}
+			m_GameView->RequestCapture(m_LaunchStep == LaunchStep::Capturing ? m_Launch.Capture : MakeCapturePath("Game"));
+			m_CaptureGameRequested = false;
+		}
+
+		// The game's cameras take their aspect ratio from the scene's viewport.
+		m_GameView->SetSize(width, height);
+		m_ActiveScene->OnViewportResize(width, height);
+	}
+
+	void EditorLayer::ResizeEditorView(uint32_t width, uint32_t height)
+	{
+		if (m_CaptureEditorRequested)
+		{
+			if (m_CaptureFixedSize)
+			{
+				width = CaptureWidth;
+				height = CaptureHeight;
+			}
+			m_EditorView->RequestCapture(MakeCapturePath("Editor"));
+			m_CaptureEditorRequested = false;
+		}
+
+		m_EditorView->SetSize(width, height);
+		m_EditorCamera.SetViewportSize((float)width, (float)height);
+	}
+
+	void EditorLayer::DrawCaptureMenu()
+	{
+		if (ImGui::BeginMenu("Capture"))
+		{
+			if (ImGui::MenuItem("Capture Game View", "F9"))
+			{
+				m_CaptureGameRequested = true;
+			}
+			if (ImGui::MenuItem("Capture Editor View", "Shift+F9"))
+			{
+				m_CaptureEditorRequested = true;
+			}
+
+			ImGui::Separator();
+			ImGui::MenuItem("Fixed Size (1280 x 720)", nullptr, &m_CaptureFixedSize);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("Render the captured frame at 1280 x 720, whatever the window's size,\nso captures can be compared. Pause first so the scene stands still.");
+			}
+
+			ImGui::Separator();
+			ImGui::TextDisabled("Saved in <project>/.hydro/captures");
+			ImGui::EndMenu();
+		}
+	}
+
+	void EditorLayer::UpdateCaptureKeys()
+	{
+		// F9: the Game view (also in game full screen); Shift+F9: the Editor view. Holding captures once.
+		// Not F12: Windows reserves F12 for debuggers (UserDebuggerHotKey), so pressing it while a
+		// debugger is attached breaks into the debugger.
+		const bool captureKey = Input::IsKeyPressed(KeyCode::F9);
+		if (captureKey && m_CaptureKeyDown == false && ImGui::GetIO().WantTextInput == false)
+		{
+			const bool shift = Input::IsKeyPressed(KeyCode::LeftShift) || Input::IsKeyPressed(KeyCode::RightShift);
+			if (shift)
+			{
+				m_CaptureEditorRequested = true;
+			}
+			else
+			{
+				m_CaptureGameRequested = true;
+			}
+		}
+		m_CaptureKeyDown = captureKey;
+	}
+
+	std::filesystem::path EditorLayer::MakeCapturePath(const std::string& viewName) const
+	{
+		const std::string sceneName = m_ActiveScene != nullptr && m_ActiveScene->GetName().empty() == false
+			? m_ActiveScene->GetName() : std::string("Untitled");
+
+		const auto now = std::chrono::system_clock::now();
+		const std::time_t seconds = std::chrono::system_clock::to_time_t(now);
+		const long long milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+
+		std::tm local = {};
+#if defined(_WIN32)
+		localtime_s(&local, &seconds);
+#else
+		localtime_r(&seconds, &local);
+#endif
+		char stamp[32] = {};
+		std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", &local);
+		char suffix[8] = {};
+		std::snprintf(suffix, sizeof(suffix), "-%03lld", milliseconds);
+
+		const std::string fileName = EditorPaths::ToFileName(sceneName) + "_" + viewName + "_" + stamp + suffix + ".png";
+		return EditorPaths::GetCapturesDirectory() / fileName;
 	}
 
 	void EditorLayer::AcceptAssetDrop()
@@ -754,11 +1119,11 @@ namespace Hydro
 
 		m_RuntimeScene = Scene::Copy(m_EditorScene);
 		m_RuntimeScene->Init();
-		CopyGalaxyStars(*m_EditorScene, *m_RuntimeScene);
 		m_RuntimeScene->OnRuntimeStart(); // builds the physics world
 
 		m_ActiveScene = m_RuntimeScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_SceneState = SceneState::Play;
 		m_Paused = false;
 		m_StepFrames = 0;
@@ -792,6 +1157,7 @@ namespace Hydro
 
 		m_ActiveScene = m_EditorScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 
 		// Back to the editor scene's entity with the same UUID; cleared if it only existed while playing
 		// (made or destroyed by a script).
@@ -858,6 +1224,7 @@ namespace Hydro
 		m_ActiveScene = m_RuntimeScene;
 		m_ActiveScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_HierarchyWindow->ClearSelection();
 		SceneTransition::SetDepth((uint32_t)m_SuspendedScenes.size());
 	}
@@ -1183,6 +1550,7 @@ namespace Hydro
 		m_EditorScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
 		m_ActiveScene = m_EditorScene;
 		m_SceneRenderer->SetScene(m_ActiveScene);
+		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_HierarchyWindow->ClearSelection();
 	}
 
@@ -1325,6 +1693,25 @@ namespace Hydro
 		else if (extension == SceneSerializer::FileExtension)
 		{
 			OpenScene(path);
+		}
+		else if (GetAssetTypeFromExtension(path) == AssetType::Mesh)
+		{
+			// A model: an entity with a Mesh component at the editor camera's focus, on the ground, using the
+			// materials the import made (no slots of its own).
+			const AssetHandle handle = AssetManager::FindHandle(path);
+			const Ref<Mesh> model = (uint64_t)handle != 0 ? AssetManager::GetAsset<Mesh>(handle) : nullptr;
+			if (model == nullptr)
+			{
+				return;
+			}
+
+			Entity entity = m_ActiveScene->CreateEntity(path.stem().u8string());
+			const glm::vec3 focus = m_EditorCamera.GetFocalPoint();
+			entity.AddComponent<TransformComponent>().Translation = { focus.x, focus.y, 0.0f };
+			auto& mesh = entity.AddComponent<MeshComponent>();
+			mesh.Model = handle;
+			mesh.Materials.clear();
+			m_HierarchyWindow->SetSelectedEntity(entity);
 		}
 	}
 }

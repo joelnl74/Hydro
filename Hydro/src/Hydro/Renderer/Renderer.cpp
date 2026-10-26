@@ -5,6 +5,8 @@
 #include "Renderer3D.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
+#include "Hydro/Platform/Vulkan/VulkanDescriptors.h"
+#include "Hydro/Platform/Vulkan/VulkanShaderLibrary.h"
 #include "Hydro/Core/Time.h"
 
 namespace Hydro
@@ -12,6 +14,23 @@ namespace Hydro
 	Renderer* Renderer::s_Instance = nullptr;
 
 	RendererSettings Renderer::s_Settings;
+
+	// One line per group at startup, so a log from another machine says what its GPU can do.
+	static void LogCapabilities(const RendererCapabilities& capabilities)
+	{
+		const auto yesNo = [](bool value) { return value ? "yes" : "no"; };
+		HY_CORE_INFO("Renderer: {0}, Vulkan {1}.{2}.{3}, {4} frames in flight", capabilities.GPUName,
+			capabilities.VulkanVersionMajor, capabilities.VulkanVersionMinor, capabilities.VulkanVersionPatch,
+			capabilities.FramesInFlight);
+		HY_CORE_INFO("Renderer: required: dynamic rendering {0}, synchronization2 {1}",
+			yesNo(capabilities.DynamicRendering), yesNo(capabilities.Synchronization2));
+		HY_CORE_INFO("Renderer: optional: wireframe {0}, wide lines {1}, independent blend {2}, sampler anisotropy {3} (max {4}), descriptor indexing {5} (not enabled)",
+			yesNo(capabilities.Wireframe), yesNo(capabilities.WideLines), yesNo(capabilities.IndependentBlend), yesNo(capabilities.SamplerAnisotropy),
+			capabilities.MaxSamplerAnisotropy, yesNo(capabilities.DescriptorIndexing));
+		HY_CORE_INFO("Renderer: limits: push constants {0} bytes, sampled images per stage {1}, depth D32F {2}, D24S8 {3}",
+			capabilities.MaxPushConstantsSize, capabilities.MaxSampledImagesPerStage,
+			yesNo(capabilities.DepthFormat32F), yesNo(capabilities.DepthFormat24Stencil8));
+	}
 
 	void Renderer::Init(Window& window)
 	{
@@ -37,15 +56,34 @@ namespace Hydro
 			renderer.m_SwapChainDirty = true;
 		}
 
-		// What the GPU supports, for settings UI.
+		// What the GPU supports, for settings UI and for features that depend on it.
 		{
-			const VkPhysicalDeviceProperties& properties = device.GetPhysicalDevice().GetProperties();
+			const VulkanPhysicalDevice& physicalDevice = device.GetPhysicalDevice();
+			const VkPhysicalDeviceProperties& properties = physicalDevice.GetProperties();
 			memcpy(renderer.m_GPUName, properties.deviceName, sizeof(renderer.m_GPUName));
 
-			renderer.m_Capabilities.GPUName = renderer.m_GPUName;
-			renderer.m_Capabilities.Wireframe = device.IsFillModeNonSolidEnabled();
-			renderer.m_Capabilities.WideLines = device.IsWideLinesEnabled();
-			renderer.m_Capabilities.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
+			RendererCapabilities& capabilities = renderer.m_Capabilities;
+			capabilities.GPUName = renderer.m_GPUName;
+			capabilities.VulkanVersionMajor = VK_API_VERSION_MAJOR(properties.apiVersion);
+			capabilities.VulkanVersionMinor = VK_API_VERSION_MINOR(properties.apiVersion);
+			capabilities.VulkanVersionPatch = VK_API_VERSION_PATCH(properties.apiVersion);
+			capabilities.FramesInFlight = MAX_FRAMES_IN_FLIGHT;
+
+			capabilities.DynamicRendering = device.IsDynamicRenderingEnabled();
+			capabilities.Synchronization2 = device.IsSynchronization2Enabled();
+			capabilities.Wireframe = device.IsFillModeNonSolidEnabled();
+			capabilities.WideLines = device.IsWideLinesEnabled();
+			capabilities.IndependentBlend = device.IsIndependentBlendEnabled();
+			capabilities.SamplerAnisotropy = device.IsSamplerAnisotropyEnabled();
+			capabilities.DescriptorIndexing = physicalDevice.GetVulkan12Features().descriptorIndexing == VK_TRUE;
+
+			capabilities.MaxPushConstantsSize = properties.limits.maxPushConstantsSize;
+			capabilities.MaxSampledImagesPerStage = properties.limits.maxPerStageDescriptorSampledImages;
+			capabilities.MaxSamplerAnisotropy = properties.limits.maxSamplerAnisotropy;
+			capabilities.DepthFormat32F = physicalDevice.SupportsDepthAttachment(VK_FORMAT_D32_SFLOAT);
+			capabilities.DepthFormat24Stencil8 = physicalDevice.SupportsDepthAttachment(VK_FORMAT_D24_UNORM_S8_UINT);
+
+			LogCapabilities(capabilities);
 		}
 
 		// 3. Per-frame command buffers and sync objects.
@@ -53,6 +91,10 @@ namespace Hydro
 
 		// 4. GPU memory allocator.
 		VulkanAllocator::Init(renderer.m_RendererContext->GetInstance(), device);
+		// Descriptor set layouts and pools (persistent and per frame in flight).
+		VulkanDescriptorAllocator::Init();
+		// Shaders by name, with their hot reload (Renderer2D loads its own at Init).
+		VulkanShaderLibrary::Init();
 
 		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
 		Renderer2D::Init();
@@ -75,6 +117,8 @@ namespace Hydro
 		Renderer2D::Shutdown();
 		// The sub-renderers' resources went into the queue: free them while the allocator and device exist.
 		s_Instance->FlushResourceFrees(true);
+		VulkanShaderLibrary::Shutdown();
+		VulkanDescriptorAllocator::Shutdown();
 		VulkanAllocator::Shutdown();
 
 		s_Instance->m_Frames.Shutdown();
@@ -177,9 +221,11 @@ namespace Hydro
 
 		VkCommandBuffer commandBuffer = renderer->m_Frames.BeginCommandBuffer();
 
-		// Offscreen scene passes first. Their render passes make the results readable by fragment
-		// shaders, so the present pass below can sample them (the editor viewport does).
+		// Offscreen scene passes first (dynamic rendering). Their targets end in SHADER_READ_ONLY_OPTIMAL,
+		// so the present pass below can sample them (the editor viewport does).
 		Renderer2D::Render(commandBuffer);
+		// Its meshes were recorded by the views' Meshes passes; unused shapes and materials can go.
+		Renderer3D::EndFrame();
 
 		renderer->m_SwapChain->BeginRenderPass(commandBuffer, imageIndex);
 		if (renderer->m_PresentPassCallback)
@@ -209,6 +255,8 @@ namespace Hydro
 		m_Frames.WaitForFrame();
 		// The frame that used this slot before is done, and so is every frame before it.
 		FlushResourceFrees(false);
+		// Its per-frame descriptor sets can be handed out again.
+		VulkanDescriptorAllocator::ResetFrame(GetRenderFrame());
 
 		VkResult result = m_SwapChain->AcquireNextImage(m_Frames.GetImageAvailableSemaphore(), outImageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)

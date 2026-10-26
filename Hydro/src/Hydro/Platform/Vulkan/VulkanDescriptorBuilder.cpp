@@ -1,6 +1,7 @@
 #include "hypch.h"
 #include "VulkanDescriptorBuilder.h"
 #include "VulkanUtils.h"
+#include "VulkanDescriptors.h"
 #include "Hydro/Renderer/Renderer.h"
 
 namespace Hydro
@@ -15,30 +16,17 @@ namespace Hydro
 
 	VulkanDescriptorBuilder::~VulkanDescriptorBuilder()
 	{
-		if (m_DescriptorPool == VK_NULL_HANDLE && m_DescriptorSetLayout == VK_NULL_HANDLE)
+		// Frames in flight may still have the sets bound: they are freed through the deletion queue. The
+		// layout belongs to the cache.
+		for (const DescriptorAllocation& allocation : m_Allocations)
 		{
-			return;
+			VulkanDescriptorAllocator::FreePersistent(allocation);
 		}
-
-		// Frames in flight may still have the sets bound. Destroying the pool frees its sets.
-		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
-		Renderer::SubmitResourceFree([device, pool = m_DescriptorPool, layout = m_DescriptorSetLayout]()
-		{
-			vkDestroyDescriptorPool(device, pool, nullptr);
-			vkDestroyDescriptorSetLayout(device, layout, nullptr);
-		});
 	}
 
-	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, const VulkanUniformBuffer& buffer, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
 	{
 		const uint32_t descriptorCount = 1;
-
-		// One descriptor per set, one set per frame in flight.
-		VkDescriptorPoolSize poolSize{};
-		poolSize.type = type;
-		poolSize.descriptorCount = descriptorCount * static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-		m_poolSizes.push_back(poolSize);
 
 		VkDescriptorSetLayoutBinding uboLayoutBinding{};
 		uboLayoutBinding.binding = binding;
@@ -52,7 +40,7 @@ namespace Hydro
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = buffer.GetVKBuffers()[i];
+			bufferInfo.buffer = buffers[i]->GetVulkanBuffer();
 			bufferInfo.offset = 0;
 			bufferInfo.range = (VkDeviceSize)size;
 
@@ -70,16 +58,11 @@ namespace Hydro
 		}
 	}
 
-	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags,
+		uint32_t count)
 	{
-		const uint32_t descriptorCount = MaxImageArraySize;
-
-		// The binding is an array, so the pool needs the whole array for every frame's set.
-		VkDescriptorPoolSize poolSize{};
-		poolSize.type = type;
-		poolSize.descriptorCount = descriptorCount * static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-		m_poolSizes.push_back(poolSize);
+		HY_CORE_ASSERT(count > 0 && count <= MaxImageArraySize, "VulkanDescriptorBuilder::BindImage: count must be 1..MaxImageArraySize");
+		const uint32_t descriptorCount = count;
 
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 		samplerLayoutBinding.binding = binding;
@@ -121,30 +104,15 @@ namespace Hydro
 	{
 		auto device = Renderer::GetVulkanDevice().GetDevice();
 
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = static_cast<uint32_t>(m_layoutBinding.size());
-		layoutInfo.pBindings = m_layoutBinding.data();
+		HY_CORE_ASSERT(m_DescriptorSets.empty(), "VulkanDescriptorBuilder::Build called twice");
 
-		VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayout));
-
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = static_cast<uint32_t>(m_poolSizes.size());
-		poolInfo.pPoolSizes = m_poolSizes.data();
-		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-		VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool));
-
-		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = m_DescriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-		allocInfo.pSetLayouts = layouts.data();
-
-		m_DescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-		VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, m_DescriptorSets.data()));
+		m_DescriptorSetLayout = VulkanDescriptorAllocator::GetLayout(m_layoutBinding);
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			const DescriptorAllocation allocation = VulkanDescriptorAllocator::AllocatePersistent(m_DescriptorSetLayout);
+			m_Allocations.push_back(allocation);
+			m_DescriptorSets.push_back(allocation.Set);
+		}
 
 		// All Bind* calls are done, so the info vectors no longer move: resolve the pointers now.
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
