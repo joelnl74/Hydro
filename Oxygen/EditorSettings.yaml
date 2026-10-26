@@ -96,6 +96,7 @@ EditorSettings:
     OrbitSpeed: 1
     PanSpeed: 1
     ZoomSpeed: 1
+    FlySpeed: 5
   Console:
     AutoScroll: true
     ShowTimestamps: true
@@ -114,6 +115,6 @@ EditorSettings:
       Console: true
       Editor Settings: false
       Project Settings: false
-      Render Settings: false
+      Render Settings: true
       Sprite Editor: false
-      Stats: false
+      Stats: true

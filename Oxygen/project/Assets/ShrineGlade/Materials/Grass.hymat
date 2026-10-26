@@ -3,7 +3,7 @@ Material:
   Type: Standard
   AlbedoHandle: 8380609930318644698
   Tint: [1, 1, 1, 1]
-  Tiling: [0.177778, 0.178771]
+  Tiling: [0.1, 0.1]
   EmissionColor: [0, 0, 0]
   EmissionIntensity: 1
   AlphaCutoff: 0

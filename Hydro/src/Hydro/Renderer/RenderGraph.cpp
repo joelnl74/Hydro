@@ -150,4 +150,16 @@ namespace Hydro
 		}
 		return false;
 	}
+
+	bool RenderGraph::HasPass(const std::string& name) const
+	{
+		for (const RenderPassDeclaration& pass : m_Passes)
+		{
+			if (pass.Name == name)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }

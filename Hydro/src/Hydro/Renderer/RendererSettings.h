@@ -40,6 +40,12 @@ namespace Hydro
 		// Blob shadows (Shadow2DComponent) in lit views: they darken the light buffer. Needs Lighting.
 		bool Shadows = true;
 
+		// Sun shadows (RenderFeatureSettings::Shadows = Sun): the shadow map's width and height in texels
+		// (clamped to 512..4096), and whether its edges are filtered (soft, 3 x 3 taps) or one texel per
+		// sample (hard: crisp pixel steps, which suit pixel art).
+		uint32_t SunShadowMapSize = 2048;
+		bool SoftSunShadows = true;
+
 		// The project's render features (RenderFeatures.h): what every scene uses unless it overrides
 		// them (SceneRenderSettings). Changing them rebuilds the views' render graphs. Missing from an
 		// older .hyproj: the 2D preset, today's frame.

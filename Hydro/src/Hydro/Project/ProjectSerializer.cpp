@@ -41,6 +41,8 @@ namespace Hydro
 		out << YAML::Key << "LightFalloff" << YAML::Value << (renderer.LightFalloff == LightFalloffStyle::Banded ? "Banded" : "Smooth");
 		out << YAML::Key << "LightBands" << YAML::Value << renderer.LightBands;
 		out << YAML::Key << "Shadows" << YAML::Value << renderer.Shadows;
+		out << YAML::Key << "SunShadowMapSize" << YAML::Value << renderer.SunShadowMapSize;
+		out << YAML::Key << "SoftSunShadows" << YAML::Value << renderer.SoftSunShadows;
 		out << YAML::Key << "RenderFeatures" << YAML::Value;
 		RenderFeatureSerializer::Serialize(out, renderer.Features);
 		out << YAML::EndMap;
@@ -131,6 +133,15 @@ namespace Hydro
 				if (auto node = rendererNode["Shadows"])
 				{
 					renderer.Shadows = node.as<bool>(renderer.Shadows);
+				}
+				// Projects saved before sun shadows (R14) keep the defaults.
+				if (auto node = rendererNode["SunShadowMapSize"])
+				{
+					renderer.SunShadowMapSize = node.as<uint32_t>(renderer.SunShadowMapSize);
+				}
+				if (auto node = rendererNode["SoftSunShadows"])
+				{
+					renderer.SoftSunShadows = node.as<bool>(renderer.SoftSunShadows);
 				}
 
 				if (auto node = rendererNode["RenderFeatures"])

@@ -16,10 +16,14 @@ namespace Hydro
 	{
 		uint32_t Width = 1;
 		uint32_t Height = 1;
-		// One image per entry, in attachment order (location 0, 1, ... in the fragment shader).
+		// One image per entry, in attachment order (location 0, 1, ... in the fragment shader). May be empty
+		// for a depth-only target (a shadow map), which then needs a DepthFormat.
 		std::vector<ImageFormat> ColorFormats = { ImageFormat::SRGB };
 		// ImageFormat::None: no depth attachment.
 		ImageFormat DepthFormat = ImageFormat::None;
+		// The depth attachment is sampled after End (a shadow map): End moves it to SHADER_READ_ONLY_OPTIMAL.
+		// Otherwise it stays in its attachment layout.
+		bool SampledDepth = false;
 		// An extra R32I colour attachment after ColorFormats, for click-to-select (Editor view only).
 		bool EntityID = false;
 		std::string DebugName = "RenderTarget";

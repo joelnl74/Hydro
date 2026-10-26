@@ -802,6 +802,14 @@ namespace Hydro
 					ImGui::SetTooltip("HUD sprite: drawn last, on top of everything, unlit and never hidden by depth\n(world-space prompts and menus).");
 				}
 			});
+			DrawPropertyRow("Cast shadows", [&]()
+			{
+				ImGui::Checkbox("##SpriteCastShadows", &sprite.CastShadows);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Sun shadows (Render Settings > Rendering: Shadows = Sun): a cut-out Upright or Billboard\nsprite casts one, as set by Sprite shadows. Off for grass and flowers.");
+				}
+			});
 			if (texture != nullptr && entity.HasComponent<TransformComponent>())
 			{
 				DrawPropertyRow("##NativeSize", [&]()
@@ -944,6 +952,40 @@ namespace Hydro
 					ImGui::SetTooltip("The sun of the scene's forward lighting: the one marked, else the first.\nIt shines along the entity's -Z, turned by its rotation.");
 				}
 			});
+			DrawPropertyRow("Cast Shadows", [&]()
+			{
+				ImGui::Checkbox("##SunCastShadows", &light.CastShadows);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("The main light's shadow map, when the render features have Shadows = Sun.");
+				}
+			});
+			ImGui::BeginDisabled(light.CastShadows == false);
+			DrawPropertyRow("Shadow Strength", [&]()
+			{
+				InputFloatField("##SunShadowStrength", light.ShadowStrength, "%.2f", 0.0f, 1.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("1: no direct sun in the shadow (ambient and lamps still reach it). Lower: lighter shadows.");
+				}
+			});
+			DrawPropertyRow("Shadow Distance", [&]()
+			{
+				InputFloatField("##SunShadowDistance", light.ShadowDistance, "%.1f m", 1.0f, 500.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Metres around what the camera looks at that get shadows (the map's half width).\nSmaller: sharper shadows over less of the scene.");
+				}
+			});
+			DrawPropertyRow("Shadow Bias", [&]()
+			{
+				InputFloatField("##SunShadowBias", light.ShadowBias, "%.2f", 0.0f, 10.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How far surfaces are pushed out of their own shadow. Raise it for speckled\n(acne) surfaces, lower it when shadows float off the objects casting them.");
+				}
+			});
+			ImGui::EndDisabled();
 			ImGui::TextDisabled("Shines only under forward lighting (Render Settings > Lighting: Forward).");
 		});
 

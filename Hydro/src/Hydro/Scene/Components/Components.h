@@ -72,6 +72,9 @@ namespace Hydro
 		// HUD: drawn in the view's overlay pass, after everything else and the lighting: unlit, never depth
 		// tested, in SortOrder among the overlay sprites. For world-space prompts and menus until runtime UI.
 		bool Overlay = false;
+		// Sun shadows: a cut-out Upright or Billboard sprite casts one (RenderFeatureSettings::SpriteShadows);
+		// off for grass, flowers and anything that shouldn't darken the ground.
+		bool CastShadows = true;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -113,7 +116,7 @@ namespace Hydro
 		// One per material slot (built-in shapes have one; a model has one per glTF material). A model's slots
 		// that aren't here use the model's own materials (the assets its import made): empty = all of them.
 		std::vector<MeshMaterialSlot> Materials{ MeshMaterialSlot{} };
-		bool CastShadows = true; // kept for shadows (H6); nothing reads it yet
+		bool CastShadows = true; // into the sun's shadow map (RenderFeatureSettings::Shadows = Sun)
 	};
 
 	struct TagComponent
@@ -254,6 +257,11 @@ namespace Hydro
 		glm::vec3 Color{ 1.0f, 0.95f, 0.85f }; // linear RGB
 		float Intensity = 1.0f;
 		bool IsMainLight = false;
+		// Sun shadows (the main light only, when the render features have Shadows = Sun).
+		bool CastShadows = true;
+		float ShadowStrength = 1.0f;  // 0 = no shadow, 1 = no direct sun at all in the shadow (ambient stays)
+		float ShadowDistance = 24.0f; // metres from what the camera looks at that get shadows (the map's half width)
+		float ShadowBias = 1.0f;      // scales how far receivers are pushed out of their own shadow (acne vs. gaps)
 
 		DirectionalLightComponent() = default;
 		DirectionalLightComponent(const DirectionalLightComponent&) = default;

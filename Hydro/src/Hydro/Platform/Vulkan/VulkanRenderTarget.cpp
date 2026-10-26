@@ -94,7 +94,8 @@ namespace Hydro
 	VulkanRenderTarget::VulkanRenderTarget(const RenderTargetSpecification& specification)
 		: m_Specification(specification)
 	{
-		HY_CORE_ASSERT(specification.ColorFormats.empty() == false, "RenderTargetSpecification needs at least one colour format");
+		HY_CORE_ASSERT(specification.ColorFormats.empty() == false || specification.DepthFormat != ImageFormat::None,
+			"RenderTargetSpecification needs a colour format or a depth format");
 		HY_CORE_ASSERT(specification.DepthFormat == ImageFormat::None || VulkanImage::IsDepthFormat(specification.DepthFormat),
 			"RenderTargetSpecification::DepthFormat must be a depth format or None");
 
@@ -244,6 +245,14 @@ namespace Hydro
 			barriers.push_back(MakeTransition(frame.EntityID->GetVulkanImageInfo().Image, VK_IMAGE_ASPECT_COLOR_BIT,
 				frame.EntityIDLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
 			frame.EntityIDLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		}
+
+		// A shadow map is sampled next (the lit shaders, later in this command buffer).
+		if (frame.Depth != nullptr && m_Specification.SampledDepth)
+		{
+			barriers.push_back(MakeTransition(frame.Depth->GetVulkanImageInfo().Image, GetDepthAspect(m_Specification.DepthFormat),
+				frame.DepthLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+			frame.DepthLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 
 		SubmitBarriers(commandBuffer, barriers);

@@ -46,6 +46,21 @@ namespace Hydro
 		Cutout
 	};
 
+	// Cast shadows (Roadmap R14, Diorama RPG H6). Needs forward lighting and shared depth.
+	enum class ShadowMode : uint8_t
+	{
+		Off = 0,
+		Sun // one shadow map for the main directional light, fitted around what the camera looks at
+	};
+
+	// How cut-out standing sprites (Upright, Billboard) cast sun shadows. Every lit sprite receives them.
+	enum class SpriteShadowMode : uint8_t
+	{
+		None = 0, // sprites cast no shadow (meshes still do)
+		AsDrawn,  // the quad as the camera sees it: cheap, but thin when the sun comes from the side
+		FaceSun   // the quad turned about its feet to face the sun, so its shadow is always as wide as the sprite
+	};
+
 	struct RenderFeatureSettings
 	{
 		DepthMode Depth = DepthMode::Off;
@@ -53,17 +68,21 @@ namespace Hydro
 		LightingMode Lighting = LightingMode::LightBuffer2D;
 		SpriteAlphaDefault DefaultSpriteAlpha = SpriteAlphaDefault::Translucent;
 		bool Meshes = false; // MeshComponents are drawn; needs Depth = Shared
+		ShadowMode Shadows = ShadowMode::Off; // needs Lighting = Forward and Depth = Shared
+		SpriteShadowMode SpriteShadows = SpriteShadowMode::FaceSun; // only read with Shadows on
 
 		bool operator==(const RenderFeatureSettings& other) const
 		{
 			return Depth == other.Depth && SpriteSorting == other.SpriteSorting && Lighting == other.Lighting
-				&& DefaultSpriteAlpha == other.DefaultSpriteAlpha && Meshes == other.Meshes;
+				&& DefaultSpriteAlpha == other.DefaultSpriteAlpha && Meshes == other.Meshes
+				&& Shadows == other.Shadows && SpriteShadows == other.SpriteShadows;
 		}
 		bool operator!=(const RenderFeatureSettings& other) const { return (*this == other) == false; }
 
 		// Today's frame: painter's order, the 2D light buffer, no depth.
 		static RenderFeatureSettings Preset2D() { return {}; }
-		// Shared depth, view-depth sorting, forward lights, cut-out sprites, meshes.
+		// Shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows with
+		// sun-facing sprite shadows.
 		static RenderFeatureSettings Preset3D()
 		{
 			RenderFeatureSettings settings;
@@ -72,6 +91,8 @@ namespace Hydro
 			settings.Lighting = LightingMode::Forward;
 			settings.DefaultSpriteAlpha = SpriteAlphaDefault::Cutout;
 			settings.Meshes = true;
+			settings.Shadows = ShadowMode::Sun;
+			settings.SpriteShadows = SpriteShadowMode::FaceSun;
 			return settings;
 		}
 		// "2D", "3D" or "Custom".

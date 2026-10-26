@@ -6,10 +6,39 @@
 
 #include "Hydro/ImGUI/ImGuiLayer.h"
 
+#include <algorithm>
+#include <string>
+#include <vector>
+
 int main(int argc, char** argv);
 
 namespace Hydro
 {
+	// What main was started with (argv without the program), for the application to read its options
+	// from. Flags are "--name"; a value is the argument after its flag.
+	struct ApplicationCommandLine
+	{
+		std::vector<std::string> Arguments;
+
+		bool Has(const std::string& flag) const
+		{
+			return std::find(Arguments.begin(), Arguments.end(), flag) != Arguments.end();
+		}
+
+		// The argument after `flag`, or `fallback` when the flag isn't there or is the last argument.
+		std::string Get(const std::string& flag, const std::string& fallback = std::string()) const
+		{
+			for (size_t i = 0; i + 1 < Arguments.size(); i++)
+			{
+				if (Arguments[i] == flag)
+				{
+					return Arguments[i + 1];
+				}
+			}
+			return fallback;
+		}
+	};
+
 	struct ApplicationSpecification
 	{
 		std::string Name = "Hydro Application";
@@ -37,7 +66,9 @@ namespace Hydro
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
-		void Quit();
+		// Ends the frame loop after this frame; exitCode is what main returns (0 = fine).
+		void Quit(int exitCode = 0);
+		int GetExitCode() const { return m_ExitCode; }
 
 		inline Window& GetWindow() { return *m_Window; }
 		const ApplicationSpecification& GetSpecification() const { return m_Specification; }
@@ -57,11 +88,12 @@ namespace Hydro
 
 		bool m_Running = false;
 		bool m_Minimized = false;
+		int m_ExitCode = 0;
 
 	private:
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);
 	};
 
-	Application* CreateApplication();
+	Application* CreateApplication(const ApplicationCommandLine& commandLine);
 }

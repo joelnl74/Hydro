@@ -69,6 +69,10 @@ namespace Hydro
 		uint32_t ForwardLightsDropped = 0; // beyond MaxForwardLights (the farthest from the camera)
 		uint32_t DebugLineCount = 0;       // DrawLine3D quads (editor debug lines, M7)
 
+		// Sun shadows (R14), summed over the views that drew a shadow map.
+		uint32_t SunShadowViewCount = 0;
+		uint32_t ShadowCasterQuads = 0;    // sprite quads drawn into shadow maps (meshes: Renderer3DStatistics)
+
 		// Frame / target.
 		uint32_t ViewCount = 0;      // views rendered this frame
 		uint32_t ViewportWidth = 0;  // size of the first view rendered this frame
@@ -112,6 +116,11 @@ namespace Hydro
 		// quad and multiplied by tintColor. No tiling. Swap textureRect's Min.x and Max.x to flip it
 		// horizontally, Min.y and Max.y to flip it vertically.
 		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor = glm::vec4(1.0f));
+		// The same, but the lit shaders look its pixels up in the sun shadow map (R14) on the quad of
+		// `shadowLookupTransform` instead of on itself: the same texel of the quad that casts its shadow (a
+		// sprite turned to face the sun, SpriteShadowMode::FaceSun), so it is never darkened by its own shadow.
+		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor,
+			const glm::mat4& shadowLookupTransform);
 		// The fast path for many small quads (particles): a quad centred on `position`, `size` wide and
 		// high, turned `rotation` radians around Z, without building a matrix. Otherwise like the one above.
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor);
@@ -144,6 +153,14 @@ namespace Hydro
 		// view) drop them.
 		static void BeginDebugLines();
 		static void EndDebugLines();
+
+		// Sun shadows (R14, the SunShadows render feature): quads queued between BeginShadowCasters and
+		// EndShadowCasters are drawn only into the view's sun shadow map, alpha tested like cut-out sprites
+		// (pixels under 0.5 cast nothing). SceneRenderer queues the shadows of cut-out standing sprites here,
+		// as drawn or turned to face the sun (SpriteShadowMode). Views without the feature, or without a
+		// shadow-casting sun this frame, drop them. Meshes cast through Renderer3D (MeshComponent::CastShadows).
+		static void BeginShadowCasters();
+		static void EndShadowCasters();
 		// A line between two points anywhere in 3D: a quad that faces the camera, `thickness` pixels wide at
 		// its middle. For debug shapes (bounds, light ranges, cones); DrawLine stays the 2D one (XY).
 		static void DrawLine3D(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color, float thickness = 1.5f);
@@ -226,6 +243,11 @@ namespace Hydro
 		static void RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay, bool debugLines = false);
 		// Uploads the view's forward lighting (FrameLightingUniform, the light buffer) for `frame`.
 		static void UploadLighting(RenderViewData& view, uint32_t frame);
+		// Sun shadows (R14): whether `view` draws its shadow map this frame (the feature is in its graph and the
+		// scene has a shadow-casting sun), making or resizing the map; the matrix it is drawn with.
+		static void PrepareSunShadows(RenderViewData& view);
+		// The SunShadows pass (BeforeScene): meshes, then the queued sprite casters, into the view's shadow map.
+		static void RecordSunShadowPass(RenderPassContext& context);
 		// Runs one stage of the view's render graph: each pass in a debug label, timed when it can be.
 		static void ExecuteStage(RenderStage stage, RenderPassContext& context);
 		// The draw list quads go to now (overlay, or the current sprite draw mode's list).
@@ -242,7 +264,9 @@ namespace Hydro
 		static void StartDraw(RenderViewData& view);
 		static void SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color);
 		// Corners counter-clockwise from the bottom-left, like QuadVertexPositions.
-		static void SubmitQuadCorners(const glm::vec3 (&corners)[4], const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color);
+		// `shadowCorners`: where each corner looks up the sun shadow map (QuadVertex::ShadowPosition); null = the corners themselves.
+		static void SubmitQuadCorners(const glm::vec3 (&corners)[4], const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color,
+			const glm::vec3 (*shadowCorners)[4] = nullptr);
 		static void ApplyViewResize(RenderViewData& view);
 		// Points the ImGui texture handles of frame index `frame` that a resize left outdated at the
 		// view's new images (every view, or one).

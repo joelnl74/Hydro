@@ -58,12 +58,18 @@ namespace Hydro
 		return scene.OverrideProject ? scene.Features : Renderer::GetSettings().Features;
 	}
 
+	void SceneRenderer::RenderEditor(RenderView& view, const EditorCamera& camera)
+	{
+		RenderEditor(view, camera, EditorOverlay());
+	}
+
 	void SceneRenderer::RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay)
 	{
 		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		const glm::mat4 cameraWorld = glm::inverse(camera.GetView());
 		m_Camera = MakeCameraBasis(glm::mat3(cameraWorld));
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
+		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
 		SubmitMeshes(view);
 		SubmitSprites();
@@ -96,6 +102,7 @@ namespace Hydro
 		}
 		m_Camera = MakeCameraBasis(glm::mat3(cameraTransform));
 		m_Camera.Position = glm::vec3(cameraTransform[3]);
+		PrepareSunShadowCasting();
 
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
@@ -299,7 +306,10 @@ namespace Hydro
 				continue;
 			}
 			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(item.Entity);
-			SubmitSprite(transform.GetTransform(), sprite, m_Camera);
+			// Sun shadows (R14): cut-out standing sprites cast (the depth buffer holds them, so their shadow
+			// matches what is drawn); translucent ones and particles don't.
+			const bool castsShadow = m_SunShadows.Sprites && sharedDepth && item.Cutout && item.Standing && sprite.CastShadows;
+			SubmitSprite(transform.GetTransform(), sprite, m_Camera, castsShadow);
 		}
 		Renderer2D::SetEntityID(-1);
 
@@ -308,7 +318,54 @@ namespace Hydro
 			Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Translucent);
 		}
 
-		// TODO MESH RENDERING
+		// The casters queued above, in one block (one draw call per texture set).
+		if (m_ShadowCasters.empty() == false)
+		{
+			Renderer2D::BeginShadowCasters();
+			for (const ShadowCasterQuad& caster : m_ShadowCasters)
+			{
+				Renderer2D::DrawQuad(caster.Transform, caster.Texture, caster.Rect, caster.Color);
+			}
+			Renderer2D::EndShadowCasters();
+			m_ShadowCasters.clear();
+		}
+	}
+
+	void SceneRenderer::PrepareSunShadowCasting()
+	{
+		m_SunShadows = SunShadowCasting{};
+		m_ShadowCasters.clear();
+
+		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
+		if (features.Shadows != ShadowMode::Sun || features.Lighting != LightingMode::Forward || features.SpriteShadows == SpriteShadowMode::None
+			|| Renderer2D::HasSharedDepth(features) == false)
+		{
+			return;
+		}
+
+		Entity sun = m_Scene->GetMainLight();
+		if ((bool)sun == false || sun.HasComponent<TransformComponent>() == false || sun.GetComponent<DirectionalLightComponent>().CastShadows == false)
+		{
+			return;
+		}
+
+		m_SunShadows.Sprites = true;
+		m_SunShadows.Mode = features.SpriteShadows;
+
+		// FaceSun: the caster stands straight up (lean 90 degrees), turned about Z so the light hits it face on.
+		// Of the two ways round that do, the one closer to how the camera sees the sprite, so its left side
+		// casts on the left (a sun straight overhead: the camera's way round).
+		const glm::vec3 travel = glm::quat(sun.GetComponent<TransformComponent>().Rotation) * glm::vec3(0.0f, 0.0f, -1.0f);
+		glm::vec2 ground{ travel.x, travel.y };
+		const float groundLength = glm::length(ground);
+		ground = groundLength < 1.0e-4f ? m_Camera.GroundForward : ground / groundLength;
+		if (glm::dot(ground, m_Camera.GroundForward) < 0.0f)
+		{
+			ground = -ground;
+		}
+		const float yaw = std::atan2(-ground.x, ground.y);
+		m_SunShadows.SunUpright = glm::mat3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 0.0f, 1.0f)))
+			* glm::mat3(glm::rotate(glm::mat4(1.0f), glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)));
 	}
 
 	// What a mesh slot draws with: its material asset when it is loaded (scene loading and the inspector load
@@ -379,7 +436,7 @@ namespace Hydro
 			{
 				const uint32_t slot = mesh->GetSubMeshes()[i].MaterialSlot;
 				const MaterialData material = slot < meshComponent.Materials.size() ? ResolveMaterial(meshComponent.Materials[slot]) : ResolveModelMaterial(*mesh, slot);
-				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity);
+				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity, meshComponent.CastShadows);
 			}
 		}
 		Renderer3D::EndScene();
@@ -544,6 +601,11 @@ namespace Hydro
 			lighting.HasSun = true;
 			lighting.SunDirection = GetForwardDirection(sun.GetComponent<TransformComponent>());
 			lighting.SunColor = light.Color * light.Intensity;
+			// Drawn only when the view has the SunShadows feature (Renderer2D checks its graph).
+			lighting.SunShadows = light.CastShadows && GetEffectiveRenderFeatures().Shadows == ShadowMode::Sun;
+			lighting.ShadowStrength = light.ShadowStrength;
+			lighting.ShadowDistance = light.ShadowDistance;
+			lighting.ShadowBias = light.ShadowBias;
 		}
 
 		// Ambient: the scene's environment, else its Global lights (sky and ground alike).
@@ -627,39 +689,59 @@ namespace Hydro
 		}
 	}
 
-	void SceneRenderer::SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const CameraBasis& camera)
+	Ref<Texture2D> SceneRenderer::GetSpriteImage(const SpriteRendererComponent& sprite, TextureRect& rect)
 	{
 		// No texture, or one that isn't loaded, draws the white texture, i.e. a plain coloured quad. This
 		// never loads from disk: whoever assigned the handle loaded the asset (see the component).
-		const Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
-		if (loaded == nullptr)
+		Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
+		rect = TextureRect{};
+		if (loaded != nullptr && loaded->GetSpriteMode() == SpriteMode::Multiple)
 		{
-			Renderer2D::DrawQuad(ApplyFacing(transform, sprite.Facing, camera), nullptr, sprite.TilingFactor, sprite.Color);
-			return;
-		}
-
-		const Texture2D& texture = *loaded;
-		TextureRect rect;
-		const glm::mat4 quadTransform = ApplyFacing(GetSpriteQuadTransform(transform, &texture, sprite.SpriteIndex), sprite.Facing, camera);
-		if (texture.GetSpriteMode() == SpriteMode::Multiple)
-		{
-			rect = texture.GetSpriteUVRect(sprite.SpriteIndex);
+			rect = loaded->GetSpriteUVRect(sprite.SpriteIndex);
 		}
 		else
 		{
+			// The whole image, repeated TilingFactor times (the wrap mode repeats it).
 			rect.Max = glm::vec2(sprite.TilingFactor);
 		}
 
-		if (sprite.FlipX)
+		if (loaded != nullptr && sprite.FlipX)
 		{
 			std::swap(rect.Min.x, rect.Max.x);
 		}
-		if (sprite.FlipY)
+		if (loaded != nullptr && sprite.FlipY)
 		{
 			std::swap(rect.Min.y, rect.Max.y);
 		}
+		return loaded;
+	}
 
-		Renderer2D::DrawQuad(quadTransform, loaded, rect, sprite.Color);
+	void SceneRenderer::SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const CameraBasis& camera, bool shadowCaster)
+	{
+		TextureRect rect;
+		const Ref<Texture2D> texture = GetSpriteImage(sprite, rect);
+		const glm::mat4 quad = GetSpriteQuadTransform(transform, texture.get(), sprite.SpriteIndex);
+		const glm::mat4 drawn = ApplyFacing(quad, sprite.Facing, camera);
+		if (shadowCaster == false || m_SunShadows.Sprites == false)
+		{
+			Renderer2D::DrawQuad(drawn, texture, rect, sprite.Color);
+			return;
+		}
+
+		if (m_SunShadows.Mode == SpriteShadowMode::AsDrawn)
+		{
+			Renderer2D::DrawQuad(drawn, texture, rect, sprite.Color);
+			m_ShadowCasters.push_back({ drawn, texture, rect, sprite.Color });
+			return;
+		}
+
+		// FaceSun: the caster stands on the sprite's feet (the middle of its bottom edge; a Billboard's centre)
+		// turned to the sun, and the drawn sprite looks its pixels up on it, so it isn't shadowed by itself.
+		const bool upright = sprite.Facing == SpriteFacing::Upright;
+		const glm::vec3 pivot = glm::vec3(quad * (upright ? glm::vec4(0.0f, -0.5f, 0.0f, 1.0f) : glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
+		const glm::mat4 caster = glm::translate(glm::mat4(1.0f), pivot) * glm::mat4(m_SunShadows.SunUpright) * glm::translate(glm::mat4(1.0f), -pivot) * quad;
+		Renderer2D::DrawQuad(drawn, texture, rect, sprite.Color, caster);
+		m_ShadowCasters.push_back({ caster, texture, rect, sprite.Color });
 	}
 
 	glm::mat4 SceneRenderer::ApplyFacing(const glm::mat4& quad, SpriteFacing facing, const CameraBasis& camera)

@@ -6,6 +6,8 @@
 #include "Hydro/Scene/ParticleScene.h"
 #include "Hydro/Renderer/EditorCamera.h"
 #include "Hydro/Renderer/RenderView.h"
+#include "Hydro/Renderer/RenderFeatures.h"
+#include "Hydro/Renderer/Texture2D.h"
 
 #include <glm/glm.hpp>
 
@@ -39,7 +41,10 @@ namespace Hydro
 		const Ref<Scene>& GetScene() const { return m_Scene; }
 
 		// Editing: the scene seen through the editor's camera.
-		void RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay = {});
+		void RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay);
+		// Without an overlay (an overload, not a default argument: g++ can't default a nested type with
+		// default member initialisers inside the class; MSVC can).
+		void RenderEditor(RenderView& view, const EditorCamera& camera);
 		// Runtime: the scene seen through its primary CameraComponent, with the scene's viewport
 		// aspect ratio (keep Scene::OnViewportResize in step with the view's size). Draws nothing and
 		// returns false when the scene has no primary camera; the view is still cleared.
@@ -79,12 +84,33 @@ namespace Hydro
 		};
 		static CameraBasis MakeCameraBasis(const glm::mat3& rotation);
 
+		// How the sprites of the view being drawn cast sun shadows (R14). Made once per RenderEditor /
+		// RenderRuntime by PrepareSunShadowCasting.
+		struct SunShadowCasting
+		{
+			bool Sprites = false;                      // cut-out standing sprites cast (the feature is on, the sun casts)
+			SpriteShadowMode Mode = SpriteShadowMode::FaceSun;
+			glm::mat3 SunUpright{ 1.0f };              // FaceSun: what turns a flat quad to stand facing the sun
+		};
+		// One sprite's shadow caster, queued while the sprites are submitted and drawn after them in one block
+		// (so the casters don't split the sprites' draw calls).
+		struct ShadowCasterQuad
+		{
+			glm::mat4 Transform{ 1.0f };
+			Ref<Texture2D> Texture;
+			TextureRect Rect;
+			glm::vec4 Color{ 1.0f };
+		};
+
 		// Sorts the scene's sprites and lit particle emitters together (SortOrder; then Flat sprites by Z,
 		// then the standing ones, Upright, Billboard and emitters, from far to near along the camera's
 		// ground direction; then storage order) and submits them back to front. An emitter is one entry:
 		// its particles are drawn together. With shared depth it also picks each one's SpriteDrawMode (decal,
 		// cut-out or translucent).
 		void SubmitSprites();
+		// Whether and how sprites cast sun shadows this frame (m_SunShadows), from the render features and the
+		// scene's main light.
+		void PrepareSunShadowCasting();
 		// MeshComponents (Renderer3D), when the render features draw meshes; a warning once per scene otherwise.
 		void SubmitMeshes(RenderView& renderView);
 		// Unlit emitters (ParticleLighting::Unlit): drawn after the view's lighting is composited, so they
@@ -114,8 +140,11 @@ namespace Hydro
 		// centre; Flat (and any facing under a top-down camera) unchanged.
 		static glm::mat4 ApplyFacing(const glm::mat4& quad, SpriteFacing facing, const CameraBasis& camera);
 		// One sprite: the whole texture (tiled), or a sprite of a sheet placed by its pivot; flipped as asked,
-		// turned for its facing.
-		static void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const CameraBasis& camera);
+		// turned for its facing. `shadowCaster` (cut-out standing sprites with sun shadows): also queue its
+		// shadow caster, as drawn or turned to face the sun, and look its pixels up on that caster.
+		void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const CameraBasis& camera, bool shadowCaster = false);
+		// The texture a sprite draws (null = a plain colour quad) and the part of it, flipped as asked.
+		static Ref<Texture2D> GetSpriteImage(const SpriteRendererComponent& sprite, TextureRect& rect);
 
 	private:
 		struct SpriteDrawItem
@@ -135,6 +164,8 @@ namespace Hydro
 		CameraBasis m_Camera;
 		// Reused every frame (capacity kept), so sorting allocates nothing once the scene is drawn.
 		std::vector<SpriteDrawItem> m_SpriteQueue;
+		SunShadowCasting m_SunShadows;
+		std::vector<ShadowCasterQuad> m_ShadowCasters; // this frame's, reused
 		bool m_MeshWarningShown = false;
 	};
 }

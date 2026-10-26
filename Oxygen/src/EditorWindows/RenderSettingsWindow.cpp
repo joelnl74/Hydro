@@ -14,6 +14,7 @@ namespace Hydro
 		return a.ClearColor == b.ClearColor && a.VSync == b.VSync && a.Wireframe == b.Wireframe
 			&& a.ShaderHotReload == b.ShaderHotReload
 			&& a.Lighting == b.Lighting && a.LightFalloff == b.LightFalloff && a.LightBands == b.LightBands && a.Shadows == b.Shadows
+			&& a.SunShadowMapSize == b.SunShadowMapSize && a.SoftSunShadows == b.SoftSunShadows
 			&& a.Features == b.Features;
 	}
 
@@ -71,7 +72,7 @@ namespace Hydro
 			}
 			ImGui::EndCombo();
 		}
-		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes.\nChanging a setting below makes it Custom.");
+		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows.\nChanging a setting below makes it Custom.");
 
 		static const char* depthNames[] = { "Off", "Shared" };
 		changed |= EnumCombo("Depth", features.Depth, depthNames, 2);
@@ -82,6 +83,14 @@ namespace Hydro
 		static const char* alphaNames[] = { "Translucent", "Cut-out" };
 		changed |= EnumCombo("Default sprite alpha", features.DefaultSpriteAlpha, alphaNames, 2);
 		changed |= ImGui::Checkbox("Meshes", &features.Meshes);
+		static const char* shadowNames[] = { "Off", "Sun" };
+		changed |= EnumCombo("Shadows", features.Shadows, shadowNames, 2);
+		HelpMarker("Sun: a shadow map for the main Directional Light (its Cast Shadows). Meshes cast with their Cast shadows;\nevery lit sprite and mesh receives. Needs forward lighting and shared depth.");
+		ImGui::BeginDisabled(features.Shadows == ShadowMode::Off);
+		static const char* spriteShadowNames[] = { "None", "As drawn", "Face the sun" };
+		changed |= EnumCombo("Sprite shadows", features.SpriteShadows, spriteShadowNames, 3);
+		HelpMarker("How cut-out Upright and Billboard sprites cast.\nNone: they don't (they still receive).\nAs drawn: the quad the camera sees; thin when the sun comes from the side.\nFace the sun: the quad turned about its feet to face the sun, so the shadow is always\nas wide as the sprite, and the sprite is never darkened by its own shadow.");
+		ImGui::EndDisabled();
 
 		// Errors leave the feature out (the frame still draws); warnings keep it.
 		const std::vector<RenderValidationMessage> messages = Renderer2D::ValidateRenderFeatures(features, false);
@@ -158,6 +167,19 @@ namespace Hydro
 			HelpMarker("Draw blob shadows (Shadow 2D components) in lit views. They darken the light buffer.");
 
 			ImGui::EndDisabled();
+
+			// Sun shadows (render features: Shadows = Sun).
+			static const char* mapSizeNames[] = { "1024", "2048", "4096" };
+			static const uint32_t mapSizes[] = { 1024, 2048, 4096 };
+			int mapSize = settings.SunShadowMapSize <= 1024 ? 0 : (settings.SunShadowMapSize <= 2048 ? 1 : 2);
+			if (ImGui::Combo("Sun shadow map", &mapSize, mapSizeNames, 3))
+			{
+				settings.SunShadowMapSize = mapSizes[mapSize];
+				changed = true;
+			}
+			HelpMarker("Texels across the sun's shadow map. It covers twice the sun's Shadow Distance:\n2048 over 48 m is about 2 cm per texel, finer than a 32-per-metre art pixel.");
+			changed |= ImGui::Checkbox("Soft sun shadows", &settings.SoftSunShadows);
+			HelpMarker("On: filtered shadow edges.\nOff: one texel per sample, crisp steps that suit pixel art.");
 
 			ImGui::TextDisabled("The light curve is assets/shaders/light_falloff.glsl (both lighting modes).\nWith Shader hot reload on, saving it changes the look of the running editor.");
 		}

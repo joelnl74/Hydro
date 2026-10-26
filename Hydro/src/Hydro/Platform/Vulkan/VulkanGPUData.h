@@ -10,7 +10,7 @@
 //  - fields are vec4-sized: a vec3 is followed by a float that uses its padding, never by another vec3;
 //  - every struct has static_asserts on its size and offsets, so a C++ / GLSL mismatch fails the build
 //    instead of shading wrong.
-// Descriptor sets: set 0 = the frame / view (camera, texture array, forward lighting, lights), set 1 = the material (M4); per-object
+// Descriptor sets: set 0 = the frame / view (camera, texture array, forward lighting, lights, sun shadow map), set 1 = the material (M4); per-object
 // data (transform, entity ID, material index) goes in push constants. The 2D quad shader keeps its texture
 // array in set 0 until materials exist.
 namespace Hydro
@@ -23,8 +23,9 @@ namespace Hydro
 	static_assert(sizeof(UniformBufferObject) == 64, "UniformBufferObject: must match the std140 block in vertex.vert");
 	static_assert(offsetof(UniformBufferObject, mvp) == 0, "UniformBufferObject: must match the std140 block in vertex.vert");
 
-	// std140; `FrameLighting` in lighting.glsl (binding 2 of set 0, vertex and fragment): the view's forward
-	// lighting this frame (plan M6). Counts.y = 0 means the view isn't forward lit: shaders draw unlit.
+	// std140; `FrameLighting` in frame_lighting.glsl (binding 2 of set 0, vertex and fragment): the view's
+	// forward lighting this frame (plan M6) and its sun shadow map (R14). Counts.y = 0 means the view isn't
+	// forward lit: shaders draw unlit. Counts.z = 1 when binding 4 holds this frame's sun shadow map.
 	struct FrameLightingUniform
 	{
 		glm::vec4 CameraPosition{ 0.0f };   // xyz
@@ -36,11 +37,14 @@ namespace Hydro
 		glm::vec4 FogParams{ 0.0f };        // x start, y end (metres from FogOrigin), z = falloff bands (0 = smooth)
 		glm::ivec4 Counts{ 0 };             // x = lights in the storage buffer, y = 1 when forward lit
 		glm::vec4 FogOrigin{ 0.0f };        // xyz: where fog distance is measured from (what the camera looks at)
+		glm::mat4 ShadowMatrix{ 1.0f };     // world -> the sun shadow map's clip space (xy -1..1, z 0..1)
+		glm::vec4 ShadowParams{ 0.0f };     // x strength, y one texel in UV, z = 1 soft (3 x 3) / 0 hard, w normal offset (metres)
 	};
-	static_assert(sizeof(FrameLightingUniform) == 144, "FrameLightingUniform: must match the std140 block in lighting.glsl");
+	static_assert(sizeof(FrameLightingUniform) == 224, "FrameLightingUniform: must match the std140 block in frame_lighting.glsl");
 	static_assert(offsetof(FrameLightingUniform, FogParams) == 96 && offsetof(FrameLightingUniform, Counts) == 112
-		&& offsetof(FrameLightingUniform, FogOrigin) == 128,
-		"FrameLightingUniform: must match the std140 block in lighting.glsl");
+		&& offsetof(FrameLightingUniform, FogOrigin) == 128 && offsetof(FrameLightingUniform, ShadowMatrix) == 144
+		&& offsetof(FrameLightingUniform, ShadowParams) == 208,
+		"FrameLightingUniform: must match the std140 block in frame_lighting.glsl");
 
 	// std430; one element of `Lights` in lighting.glsl (binding 3 of set 0, fragment): a point or spot light.
 	struct GPULight

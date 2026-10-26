@@ -21,7 +21,8 @@ namespace Hydro
 	// Layouts are tracked per image. Begin moves every attachment to its attachment layout; End ends
 	// rendering and leaves the colour attachments (entity ID included) in SHADER_READ_ONLY_OPTIMAL,
 	// which is what everything that reads them expects (ImGui, the light composite, captures), and the
-	// depth attachment in DEPTH_STENCIL_ATTACHMENT_OPTIMAL.
+	// depth attachment in DEPTH_STENCIL_ATTACHMENT_OPTIMAL (SHADER_READ_ONLY_OPTIMAL with SampledDepth: a
+	// shadow map). A target may have no colour attachments (depth only).
 	class VulkanRenderTarget
 	{
 	public:

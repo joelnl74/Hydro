@@ -43,7 +43,8 @@ namespace Hydro
 		// The attachments the pipeline draws into (dynamic rendering, no VkRenderPass): the colour formats
 		// in attachment order and the depth format, as the target reports them
 		// (VulkanRenderTarget::GetPipelineColorFormats / GetPipelineDepthFormat). Must match the target
-		// exactly. Integer formats (R32I, the entity ID) are never blended.
+		// exactly. Integer formats (R32I, the entity ID) are never blended. Empty with a DepthFormat: a
+		// depth-only pipeline (shadow maps).
 		std::vector<ImageFormat> ColorFormats = { ImageFormat::SRGB };
 		ImageFormat DepthFormat = ImageFormat::None;
 		// Bytes of push constants, visible to the vertex and fragment stages. 0 = none. At most

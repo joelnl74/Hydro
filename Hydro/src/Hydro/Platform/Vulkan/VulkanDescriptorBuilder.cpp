@@ -58,9 +58,11 @@ namespace Hydro
 		}
 	}
 
-	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags,
+		uint32_t count)
 	{
-		const uint32_t descriptorCount = MaxImageArraySize;
+		HY_CORE_ASSERT(count > 0 && count <= MaxImageArraySize, "VulkanDescriptorBuilder::BindImage: count must be 1..MaxImageArraySize");
+		const uint32_t descriptorCount = count;
 
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 		samplerLayoutBinding.binding = binding;

@@ -33,6 +33,14 @@ namespace Hydro
 	static constexpr ImageFormat ViewColorFormat = ImageFormat::SRGB;
 	static constexpr ImageFormat LightBufferFormat = ImageFormat::RGBA16F;
 
+	// Sun shadows (R14): every view's shadow map (Renderer2D's SunShadows feature; Renderer3D draws the mesh
+	// casters into it too).
+	static constexpr ImageFormat ShadowMapFormat = ImageFormat::DEPTH32F;
+	// Rasteriser depth bias of shadow casters (meshes and sprites): away from the sun (forward Z), so a lit
+	// surface stays in front of its own entry in the map. The lit shaders add a normal offset on top.
+	static constexpr float ShadowCasterDepthBiasConstant = 1.25f;
+	static constexpr float ShadowCasterDepthBiasSlope = 1.75f;
+
 	struct QuadVertex
 	{
 		glm::vec3 Position;
@@ -42,12 +50,17 @@ namespace Hydro
 		// The entity the quad belongs to, written to the Editor view's entity-ID attachment (click-to-select,
 		// M7); -1 = none (particles, lines, lights, effects).
 		int32_t EntityID = -1;
+		// Where the lit shaders look this point up in the sun shadow map (R14). Its own position, except on a
+		// sprite that casts a sun-facing shadow (SpriteShadowMode::FaceSun): the same texel of that caster quad,
+		// so the sprite is never darkened by its own shadow, only by what stands between it and the sun.
+		glm::vec3 ShadowPosition{ 0.0f };
 	};
 	// Read by the vertex shader through Renderer2D's vertex layout (GetQuadVertexLayout), which packs the
 	// attributes in this order without padding.
-	static_assert(sizeof(QuadVertex) == 44, "QuadVertex: must match GetQuadVertexLayout");
+	static_assert(sizeof(QuadVertex) == 56, "QuadVertex: must match GetQuadVertexLayout");
 	static_assert(offsetof(QuadVertex, Color) == 12 && offsetof(QuadVertex, TexCoord) == 28
-		&& offsetof(QuadVertex, TexIndex) == 36 && offsetof(QuadVertex, EntityID) == 40, "QuadVertex: must match GetQuadVertexLayout");
+		&& offsetof(QuadVertex, TexIndex) == 36 && offsetof(QuadVertex, EntityID) == 40
+		&& offsetof(QuadVertex, ShadowPosition) == 44, "QuadVertex: must match GetQuadVertexLayout");
 
 	// Textures one draw call can sample. The quad shader declares `sampler2D inTextures[32]` and the
 	// descriptor set's image array has VulkanDescriptorBuilder::MaxImageArraySize elements; all three agree.
@@ -109,6 +122,7 @@ namespace Hydro
 		glm::mat4 Transform{ 1.0f };
 		int32_t EntityID = -1;
 		float SortDepth = 0.0f; // clip-space depth of the mesh's centre: front to back
+		bool CastShadows = true; // drawn into the sun shadow map too (MeshComponent::CastShadows)
 	};
 
 	struct RenderViewData
@@ -169,6 +183,10 @@ namespace Hydro
 		SpriteDrawMode DrawMode = SpriteDrawMode::Translucent; // the list quads go to outside the overlay
 		int32_t EntityID = -1; // Renderer2D::SetEntityID: what the next quads carry
 		std::vector<MeshDraw> MeshDraws;  // Renderer3D::DrawMesh, cleared with the batches
+		// Sun shadow casters (R14): quads made between BeginShadowCasters and EndShadowCasters (cut-out sprites,
+		// as drawn or turned to face the sun), drawn only into the shadow map.
+		std::vector<QuadDraw> ShadowCasterDraws;
+		bool InShadowCasters = false;
 
 		// ---- Lights ------------------------------------------------------------------
 		// Queued by DrawLight / DrawGlobalLight, drawn by RecordLightPass. Cleared with the batches.
@@ -181,6 +199,13 @@ namespace Hydro
 		VkDescriptorSet LightBufferSet = VK_NULL_HANDLE;  // the composite's input this frame (a per-frame set: LightTarget's image)
 		PerFrameBuffers LightVertexBuffers;                    // 4 vertices per light, then 4 per shadow
 		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
+
+		// ---- Sun shadows (R14) ------------------------------------------------------------
+		// The SunShadows feature's depth map (DEPTH32F, RendererSettings::SunShadowMapSize square), made the
+		// first frame the view draws one and kept. Sampled by the lit shaders at set 0 binding 4.
+		Scope<VulkanRenderTarget> ShadowTarget;
+		bool SunShadowsActive = false; // this frame: the feature is in the graph and the scene has a shadowing sun
+		glm::mat4 ShadowMatrix{ 1.0f }; // world -> the shadow map's clip space, this frame
 
 		// ---- Capture (RenderView::RequestCapture) --------------------------------------
 		std::filesystem::path RequestedCapture;  // empty = none; recorded after the view's next pass

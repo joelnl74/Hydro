@@ -58,6 +58,12 @@ namespace Hydro
 		bool HasSun = false;
 		glm::vec3 SunDirection{ 0.0f, 0.0f, -1.0f }; // where the light travels
 		glm::vec3 SunColor{ 0.0f };                   // times the intensity
+		// Sun shadows (DirectionalLightComponent): drawn when the view has the SunShadows render feature.
+		// The shadow map covers ShadowDistance metres around FogOrigin (what the camera looks at).
+		bool SunShadows = false;
+		float ShadowStrength = 1.0f;
+		float ShadowDistance = 24.0f;
+		float ShadowBias = 1.0f;
 		glm::vec3 SkyAmbient{ 0.0f };
 		glm::vec3 GroundAmbient{ 0.0f };
 		bool Fog = false;

@@ -50,7 +50,7 @@ void main()
 	{
 		normal = -normal;
 	}
-	vec3 lit = albedo.rgb * ComputeLighting(fragWorldPos, normal, 0.5) + emissive;
+	vec3 lit = albedo.rgb * ComputeLighting(fragWorldPos, normal, 0.5, SunShadowSurface(fragWorldPos, normal)) + emissive;
 	outColor = vec4(ApplyFog(lit, fragWorldPos), 1.0);
 	outEntityID = entityID;
 }

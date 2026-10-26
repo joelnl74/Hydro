@@ -1,21 +1,14 @@
-// Forward lighting (plan M6), shared by the lit sprite shaders (fragment_lit.frag, sprite_cutout_lit.frag)
-// and the mesh shader (mesh.frag). Set 0 bindings 2 and 3 are the view's, filled every frame by
-// Renderer2D::UploadLighting from SceneRenderer's SceneLighting. Included, not compiled on its own.
+// Forward lighting (plan M6) and sun shadows (R14), shared by the lit sprite shaders (fragment_lit.frag,
+// sprite_cutout_lit.frag) and the mesh shader (mesh.frag). Set 0 bindings 2, 3 and 4 are the view's, filled
+// every frame by Renderer2D from SceneRenderer's SceneLighting. Included, not compiled on its own.
 
 #include "light_falloff.glsl"
 
-// Must match FrameLightingUniform in VulkanGPUData.h (std140, 144 bytes).
-layout(set = 0, binding = 2) uniform FrameLighting {
-    vec4 cameraPosition;
-    vec4 sunDirection;  // xyz towards the sun (unit length), w = 1 when there is a sun
-    vec4 sunColor;      // rgb, times its intensity
-    vec4 skyAmbient;    // what surfaces facing up get
-    vec4 groundAmbient; // and facing down
-    vec4 fogColor;      // w = 1 when fog is on
-    vec4 fogParams;     // x start, y end (metres from fogOrigin), z bands of the point lights' falloff
-    ivec4 counts;       // x lights, y = 1 when the view is forward lit
-    vec4 fogOrigin;     // xyz: what the camera looks at (its point on the ground)
-} lighting;
+#include "frame_lighting.glsl"
+
+// The sun shadow map (R14): depth seen from the sun, compared in the sampler (1 = lit, 0 = in shadow).
+// Always bound (an empty map in views without one); read only when counts.z = 1.
+layout(set = 0, binding = 4) uniform sampler2DShadow sunShadowMap;
 
 // Must match GPULight in VulkanGPUData.h (std430, 64 bytes).
 struct Light {
@@ -33,9 +26,63 @@ bool IsForwardLit()
 	return lighting.counts.y == 1;
 }
 
+// How much sunlight reaches `position` (1 = all, 0 = none, less shadow with a lower strength), looked up
+// `offset` metres along `pushDirection` (out of the surface, or towards the sun for a sprite) so a surface
+// doesn't shadow itself. Outside the map: lit.
+float SunShadow(vec3 position, vec3 pushDirection, float offset)
+{
+	if (lighting.counts.z == 0)
+	{
+		return 1.0;
+	}
+	vec4 clip = lighting.shadowMatrix * vec4(position + pushDirection * offset, 1.0);
+	vec3 ndc = clip.xyz / clip.w;
+	vec2 uv = ndc.xy * 0.5 + 0.5;
+	if (uv.x <= 0.0 || uv.x >= 1.0 || uv.y <= 0.0 || uv.y >= 1.0 || ndc.z >= 1.0)
+	{
+		return 1.0;
+	}
+
+	float texel = lighting.shadowParams.y;
+	float visibility = 0.0;
+	if (lighting.shadowParams.z > 0.5)
+	{
+		// Soft: 3 x 3 taps, each blending 2 x 2 texels (linear comparison sampler).
+		for (int y = -1; y <= 1; y++)
+		{
+			for (int x = -1; x <= 1; x++)
+			{
+				visibility += texture(sunShadowMap, vec3(uv + vec2(x, y) * texel, ndc.z));
+			}
+		}
+		visibility /= 9.0;
+	}
+	else
+	{
+		// Hard: the texel's own result (sampled at its centre), so shadow edges are crisp texel steps.
+		vec2 snapped = (floor(uv / texel) + 0.5) * texel;
+		visibility = texture(sunShadowMap, vec3(snapped, ndc.z));
+	}
+	return mix(1.0, visibility, lighting.shadowParams.x);
+}
+
+// SunShadow for a mesh surface: pushed out along its normal.
+float SunShadowSurface(vec3 position, vec3 normal)
+{
+	return SunShadow(position, normal, lighting.shadowParams.w);
+}
+
+// SunShadow for a sprite pixel, looked up at `shadowPosition` (QuadVertex::ShadowPosition: the same texel of
+// the quad that casts the sprite's shadow) and pushed towards the sun, past its own entry in the map.
+float SunShadowSprite(vec3 shadowPosition)
+{
+	return SunShadow(shadowPosition, lighting.sunDirection.xyz, lighting.shadowParams.w * 1.5);
+}
+
 // The light reaching a surface at `position` with normal `normal`. `wrap` softens the terminator:
-// 0 = Lambert, 1 = lit all round (half-lambert style); sprites use more wrap than meshes.
-vec3 ComputeLighting(vec3 position, vec3 normal, float wrap)
+// 0 = Lambert, 1 = lit all round (half-lambert style); sprites use more wrap than meshes. `sunVisibility`
+// (SunShadow*) scales the sun only: ambient and point and spot lights reach into shadows.
+vec3 ComputeLighting(vec3 position, vec3 normal, float wrap, float sunVisibility)
 {
 	// Hemisphere ambient: Z is up.
 	vec3 light = mix(lighting.groundAmbient.rgb, lighting.skyAmbient.rgb, normal.z * 0.5 + 0.5);
@@ -43,7 +90,7 @@ vec3 ComputeLighting(vec3 position, vec3 normal, float wrap)
 	if (lighting.sunDirection.w > 0.5)
 	{
 		float ndl = dot(normal, lighting.sunDirection.xyz);
-		light += lighting.sunColor.rgb * max((ndl + wrap) / (1.0 + wrap), 0.0);
+		light += lighting.sunColor.rgb * max((ndl + wrap) / (1.0 + wrap), 0.0) * sunVisibility;
 	}
 
 	float bands = lighting.fogParams.z;

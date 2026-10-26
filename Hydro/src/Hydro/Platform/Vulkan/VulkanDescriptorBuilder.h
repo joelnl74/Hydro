@@ -29,9 +29,10 @@ namespace Hydro
 		void Begin();
 		// Each frame's set points at that frame's buffer. The buffers must outlive the descriptor sets' use.
 		void BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
-		// Binds an array of MaxImageArraySize images. Every slot is written with the given image,
-		// so a shader that indexes any slot always reads a valid descriptor.
-		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags);
+		// Binds an array of `count` images (MaxImageArraySize by default; 1 for a single sampler). Every slot is
+		// written with the given image, so a shader that indexes any slot always reads a valid descriptor.
+		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags,
+			uint32_t count = MaxImageArraySize);
 		bool Build();
 
 		// After Build: rewrites `count` (<= MaxImageArraySize) elements, starting at element 0, of the

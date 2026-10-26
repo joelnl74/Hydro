@@ -8,6 +8,7 @@
 #include "Hydro/Platform/Vulkan/VulkanGPUData.h"
 #include "Hydro/Platform/Vulkan/VulkanMeshData.h"
 #include "Hydro/Platform/Vulkan/VulkanPipeline.h"
+#include "Hydro/Platform/Vulkan/VulkanRenderTarget.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderViewData.h"
 #include "Hydro/Platform/Vulkan/VulkanShaderLibrary.h"
 #include "Hydro/Platform/Vulkan/VulkanTexture2DData.h"
@@ -70,10 +71,12 @@ namespace Hydro
 		ImageFormat DepthFormat = ImageFormat::None;
 		bool WriteEntityID = false;
 		bool Wireframe = false;
+		bool ShadowCaster = false; // depth only, into a sun shadow map (R14)
 
 		bool operator<(const MeshPipelineKey& other) const
 		{
-			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe) < std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe);
+			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster)
+				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster);
 		}
 	};
 
@@ -96,6 +99,7 @@ namespace Hydro
 	static Renderer3DData* s_Data3D = nullptr;
 
 	static constexpr const char* MeshShaderName = "Mesh";
+	static constexpr const char* MeshShadowCasterShaderName = "MeshShadowCaster";
 	// Shapes and materials no frame has used for this many frames are freed (the GPU is long done with them).
 	static constexpr uint64_t UnusedFramesBeforeFree = 120;
 
@@ -281,7 +285,8 @@ namespace Hydro
 		return materials.back().get();
 	}
 
-	void Renderer3D::DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID)
+	void Renderer3D::DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID,
+		bool castShadows)
 	{
 		HY_CORE_ASSERT(s_Data3D->CurrentView != nullptr, "Renderer3D::DrawMesh outside BeginScene/EndScene");
 		RenderViewData* view = s_Data3D->CurrentView;
@@ -307,6 +312,7 @@ namespace Hydro
 		draw.Transform = transform;
 		draw.EntityID = entityID < 0 ? -1 : entityID;
 		draw.SortDepth = clip.w != 0.0f ? clip.z / clip.w : clip.z;
+		draw.CastShadows = castShadows;
 		view->MeshDraws.push_back(std::move(draw));
 	}
 
@@ -350,13 +356,15 @@ namespace Hydro
 		return entry.MeshRef;
 	}
 
-	static VulkanPipeline* GetPipeline(const RenderViewData& view, bool writeEntityID)
+	// The mesh pipeline for `target` (the view's, or its shadow map for a shadow caster).
+	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID, bool shadowCaster = false)
 	{
 		MeshPipelineKey key;
-		key.ColorFormats = view.Target->GetPipelineColorFormats();
-		key.DepthFormat = view.Target->GetPipelineDepthFormat();
-		key.WriteEntityID = writeEntityID && view.Target->GetSpecification().EntityID;
-		key.Wireframe = Renderer::GetSettings().Wireframe && Renderer::GetCapabilities().Wireframe;
+		key.ColorFormats = target.GetPipelineColorFormats();
+		key.DepthFormat = target.GetPipelineDepthFormat();
+		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID && shadowCaster == false;
+		key.Wireframe = Renderer::GetSettings().Wireframe && Renderer::GetCapabilities().Wireframe && shadowCaster == false;
+		key.ShadowCaster = shadowCaster;
 
 		auto it = s_Data3D->Pipelines.find(key);
 		if (it != s_Data3D->Pipelines.end())
@@ -367,10 +375,13 @@ namespace Hydro
 		Scope<VulkanPipeline> pipeline;
 		try
 		{
-			VulkanShader* shader = VulkanShaderLibrary::Get(MeshShaderName);
+			const char* shaderName = shadowCaster ? MeshShadowCasterShaderName : MeshShaderName;
+			VulkanShader* shader = VulkanShaderLibrary::Get(shaderName);
 			if (shader == nullptr)
 			{
-				shader = &VulkanShaderLibrary::Load(MeshShaderName, "assets/shaders/mesh.vert", "assets/shaders/mesh.frag");
+				shader = shadowCaster
+					? &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "assets/shaders/mesh_shadow.vert", "assets/shaders/mesh_shadow.frag")
+					: &VulkanShaderLibrary::Load(MeshShaderName, "assets/shaders/mesh.vert", "assets/shaders/mesh.frag");
 			}
 
 			PipelineSpecification specification;
@@ -387,6 +398,13 @@ namespace Hydro
 			specification.Blend = BlendMode::None;
 			specification.Wireframe = key.Wireframe;
 			specification.WriteIntegerAttachments = key.WriteEntityID;
+			if (shadowCaster)
+			{
+				// Both faces cast (open shapes, leaf cards, a roof seen from below), pushed away from the sun a little.
+				specification.BackfaceCulling = false;
+				specification.DepthBiasConstant = ShadowCasterDepthBiasConstant;
+				specification.DepthBiasSlope = ShadowCasterDepthBiasSlope;
+			}
 			pipeline = CreateScope<VulkanPipeline>(specification);
 		}
 		catch (const std::exception& e)
@@ -424,8 +442,8 @@ namespace Hydro
 		});
 
 		const bool hasEntityID = view.Target->GetSpecification().EntityID;
-		VulkanPipeline* pickablePipeline = GetPipeline(view, true);
-		VulkanPipeline* otherPipeline = hasEntityID ? GetPipeline(view, false) : pickablePipeline;
+		VulkanPipeline* pickablePipeline = GetPipeline(view, *view.Target, true);
+		VulkanPipeline* otherPipeline = hasEntityID ? GetPipeline(view, *view.Target, false) : pickablePipeline;
 
 		VkCommandBuffer commandBuffer = context.CommandBuffer;
 		VulkanPipeline* boundPipeline = nullptr;
@@ -472,6 +490,59 @@ namespace Hydro
 		}
 	}
 
+	void Renderer3D::RecordShadowCasters(RenderPassContext& context)
+	{
+		RenderViewData& view = context.View;
+		if (view.ShadowTarget == nullptr || std::none_of(view.MeshDraws.begin(), view.MeshDraws.end(), [](const MeshDraw& draw) { return draw.CastShadows; }))
+		{
+			return;
+		}
+
+		VulkanPipeline* pipeline = GetPipeline(view, *view.ShadowTarget, false, true);
+		if (pipeline == nullptr)
+		{
+			return;
+		}
+
+		// In submission order (the shadow pass runs before RecordMeshes sorts them): the map has no colour, so
+		// order only costs overdraw.
+		VkCommandBuffer commandBuffer = context.CommandBuffer;
+		pipeline->Bind(commandBuffer, view.ShadowTarget->GetExtent());
+		// Set 0 for the shadow matrix (FrameLightingUniform, written in RecordView).
+		pipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
+		const MeshMaterial* boundMaterial = nullptr;
+		const Mesh* boundMesh = nullptr;
+		for (const MeshDraw& draw : view.MeshDraws)
+		{
+			if (draw.CastShadows == false)
+			{
+				continue;
+			}
+			if (draw.Material != boundMaterial)
+			{
+				pipeline->BindDescriptorSet(commandBuffer, 1, draw.Material->Set.Set);
+				boundMaterial = draw.Material;
+			}
+			if (draw.MeshRef.get() != boundMesh)
+			{
+				const MeshBuffers& buffers = draw.MeshRef->GetBuffers();
+				buffers.Vertices->BindAsVertexBuffer(commandBuffer);
+				buffers.Indices->BindAsIndexBuffer(commandBuffer);
+				boundMesh = draw.MeshRef.get();
+			}
+
+			ObjectPushConstants constants;
+			constants.Transform = draw.Transform;
+			constants.EntityID = -1;
+			pipeline->PushConstants(commandBuffer, &constants, (uint32_t)sizeof(constants));
+
+			const SubMesh& subMesh = draw.MeshRef->GetSubMeshes()[draw.SubMesh];
+			vkCmdDrawIndexed(commandBuffer, subMesh.IndexCount, 1, subMesh.FirstIndex, 0, 0);
+			s_Data3D->Stats.MeshDraws++;
+			s_Data3D->Stats.ShadowDraws++;
+		}
+	}
+
 	void Renderer3D::EndFrame()
 	{
 		if (s_Data3D == nullptr)
@@ -496,7 +567,7 @@ namespace Hydro
 
 	void Renderer3D::OnShaderReloaded(const std::string& name)
 	{
-		if (s_Data3D != nullptr && name == MeshShaderName)
+		if (s_Data3D != nullptr && (name == MeshShaderName || name == MeshShadowCasterShaderName))
 		{
 			s_Data3D->Pipelines.clear();
 		}

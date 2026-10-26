@@ -18,6 +18,7 @@
 
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Renderer/ImageWriter.h"
+#include "Hydro/Renderer/Camera.h"
 #include "Hydro/Core/FileWatcher.h"
 #include "Hydro/Core/Time.h"
 
@@ -52,7 +53,8 @@ namespace Hydro
 		Cutout,     // cut-out quads: depth test and write, alpha < 0.5 discarded, no blending
 		Overlay,    // overlay quads (editor outlines, HUD sprites): no depth test
 		Composite,  // the 2D light composite
-		DebugLines  // editor lines in the scene (M7): depth test, no depth write, never IDs
+		DebugLines, // editor lines in the scene (M7): depth test, no depth write, never IDs
+		ShadowCaster // sun shadow casters (R14): depth only, alpha tested, into a view's shadow map
 	};
 
 	// The pipeline cache's key: the attachment layout (colour formats in order, depth format; one sample per
@@ -78,7 +80,7 @@ namespace Hydro
 		// RemoveTexture); they are rewritten for another texture once unused for a while.
 		std::vector<ImGuiTextureEntry> ImGuiTextures;
 
-		// Quads per batch (= per vertex buffer). 20k quads * 4 verts * 40 bytes = ~3.2 MB per buffer.
+		// Quads per batch (= per vertex buffer). 20k quads * 4 verts * 56 bytes = ~4.5 MB per buffer.
 		// When a frame needs more, extra batches are allocated on demand.
 		static const uint32_t MaxQuads = 20000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
@@ -114,6 +116,12 @@ namespace Hydro
 
 
 		Scope<VulkanBuffer> QuadIndexBuffer;    // GpuOnly; shared by all batches of all views (every batch starts at vertex 0)
+
+		// Sun shadows (R14): the comparison sampler every view's shadow map is read with (set 0 binding 4),
+		// and a 1 x 1 map cleared to "nothing in the way" that the binding points at in views that don't draw
+		// one this frame (the lit shaders always declare it, so it must always be valid).
+		VkSampler ShadowSampler = VK_NULL_HANDLE;
+		Scope<VulkanRenderTarget> EmptyShadowMap;
 
 		// The pipeline's set 0 layout. Every view's target has the same attachment format (ViewColorFormat)
 		// and its descriptor sets are built exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so
@@ -228,11 +236,13 @@ namespace Hydro
 
 	// Set 0 of the quad and mesh shaders: binding 0 = camera (vertex), binding 1 = texture array (fragment),
 	// binding 2 = forward lighting (FrameLightingUniform, vertex and fragment), binding 3 = the point and spot
-	// lights (a storage buffer of GPULight, fragment). Every texture slot starts as the white texture;
+	// lights (a storage buffer of GPULight, fragment), binding 4 = the sun shadow map (a comparison sampler,
+	// fragment, R14). Every texture slot starts as the white texture and the shadow map as the empty one;
 	// RecordView writes the real ones and the lighting each frame.
 	static Scope<VulkanDescriptorBuilder> BuildViewDescriptorSet(const PerFrameBuffers& uniformBuffers, const PerFrameBuffers& lightingBuffers, const PerFrameBuffers& lightBuffers)
 	{
 		const VulkanImageInfo& white = GetImageInfo(*s_Data->WhiteTexture);
+		const VulkanImageInfo& emptyShadowMap = s_Data->EmptyShadowMap->GetDepthImage(0)->GetVulkanImageInfo();
 
 		Scope<VulkanDescriptorBuilder> descriptorSet = CreateScope<VulkanDescriptorBuilder>();
 		descriptorSet->Begin();
@@ -240,6 +250,7 @@ namespace Hydro
 		descriptorSet->BindImage(1, white.ImageView, white.Sampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
 		descriptorSet->BindBuffer(2, lightingBuffers, sizeof(FrameLightingUniform), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 		descriptorSet->BindBuffer(3, lightBuffers, sizeof(GPULight) * MaxForwardLights, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
+		descriptorSet->BindImage(4, emptyShadowMap.ImageView, s_Data->ShadowSampler, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1);
 		descriptorSet->Build();
 		return descriptorSet;
 	}
@@ -261,6 +272,19 @@ namespace Hydro
 		set.DescriptorSet->WriteImages(frame, 1, images.data(), MaxTextureSlots, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 	}
 
+	// Points `set`'s shadow-map binding (4) for `frame` at the view's sun shadow map when it draws one this
+	// frame, else at the empty one.
+	static void WriteShadowMapBinding(TextureSet& set, const RenderViewData& view, uint32_t frame)
+	{
+		const VulkanRenderTarget& map = (view.SunShadowsActive && view.ShadowTarget != nullptr) ? *view.ShadowTarget : *s_Data->EmptyShadowMap;
+		const uint32_t mapFrame = &map == s_Data->EmptyShadowMap.get() ? 0 : frame;
+		VkDescriptorImageInfo image{};
+		image.sampler = s_Data->ShadowSampler;
+		image.imageView = map.GetDepthImage(mapFrame)->GetVulkanImageInfo().ImageView;
+		image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		set.DescriptorSet->WriteImages(frame, 4, &image, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	}
+
 	// The vertex layout of QuadVertex (the quad shader's inputs). The light quads use it too.
 	static VertexBufferLayout GetQuadVertexLayout()
 	{
@@ -271,6 +295,7 @@ namespace Hydro
 			{ "inTexCoord", ShaderDataType::Float2, },
 			{ "inTexIndex", ShaderDataType::Float, },
 			{ "inEntityID", ShaderDataType::Int, },
+			{ "inShadowPosition", ShaderDataType::Float3, },
 		};
 	}
 
@@ -283,6 +308,10 @@ namespace Hydro
 	// Forward lit (M6): the same vertex shader, lit fragment shaders (lighting.glsl).
 	static constexpr const char* SpriteLitShaderName = "SpriteLit";
 	static constexpr const char* SpriteCutoutLitShaderName = "SpriteCutoutLit";
+	// The SunShadows feature's pass (looked up by name to know whether a view draws a shadow map).
+	static constexpr const char* SunShadowPassName = "SunShadows";
+	// Sun shadow casters (R14): quads into the shadow map, alpha tested.
+	static constexpr const char* SpriteShadowCasterShaderName = "SpriteShadowCaster";
 
 	// The shader loaded under `name`, loading it the first time. Throws when it doesn't compile.
 	static VulkanShader& GetOrLoadShader(const char* name, const char* vertexPath, const char* fragmentPath)
@@ -432,6 +461,7 @@ namespace Hydro
 		{
 			case ViewPipelineKind::Cutout: return lit ? SpriteCutoutLitShaderName : SpriteCutoutShaderName;
 			case ViewPipelineKind::Composite: return CompositeShaderName;
+			case ViewPipelineKind::ShadowCaster: return SpriteShadowCasterShaderName;
 			case ViewPipelineKind::Sprite:
 			case ViewPipelineKind::Decal: return lit ? SpriteLitShaderName : SpriteShaderName;
 			default: return SpriteShaderName;
@@ -492,6 +522,20 @@ namespace Hydro
 					specification.DepthBiasConstant = -4.0f;
 					specification.DepthBiasSlope = -1.0f;
 				}
+				break;
+
+			case ViewPipelineKind::ShadowCaster:
+				// Depth only, both faces (a sprite casts whichever way it is turned), alpha tested in the shader,
+				// pushed away from the sun a little so lit surfaces don't shadow themselves (acne).
+				specification = s_Data->QuadPipeline->GetSpecification();
+				specification.Shader = &GetOrLoadShader(SpriteShadowCasterShaderName, "assets/shaders/shadow_caster.vert", "assets/shaders/shadow_caster.frag");
+				specification.Blend = BlendMode::None;
+				specification.Wireframe = false;
+				specification.BackfaceCulling = false;
+				specification.DepthTest = true;
+				specification.DepthWrite = true;
+				specification.DepthBiasConstant = ShadowCasterDepthBiasConstant;
+				specification.DepthBiasSlope = ShadowCasterDepthBiasSlope;
 				break;
 
 			case ViewPipelineKind::Composite:
@@ -634,6 +678,39 @@ namespace Hydro
 		s_Data->QuadIndexBuffer = CreateScope<VulkanBuffer>(indexSpecification, quadIndices);
 		delete[] quadIndices;
 
+		// Sun shadows (R14): the comparison sampler (linear: the hardware compares four texels and blends the
+		// results, 2 x 2 PCF per tap) and the empty 1 x 1 map, cleared to the far plane ("nothing in the way").
+		{
+			VkSamplerCreateInfo samplerInfo{};
+			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerInfo.magFilter = VK_FILTER_LINEAR;
+			samplerInfo.minFilter = VK_FILTER_LINEAR;
+			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerInfo.compareEnable = VK_TRUE;
+			samplerInfo.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL; // lit (1) where the surface is no further than what the map holds
+			samplerInfo.maxLod = 0.0f;
+			samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+			VK_CHECK_RESULT(vkCreateSampler(Renderer::GetVulkanDevice().GetDevice(), &samplerInfo, nullptr, &s_Data->ShadowSampler));
+
+			RenderTargetSpecification emptySpecification;
+			emptySpecification.ColorFormats = {};
+			emptySpecification.DepthFormat = ShadowMapFormat;
+			emptySpecification.SampledDepth = true;
+			emptySpecification.DebugName = "Empty shadow map";
+			s_Data->EmptyShadowMap = CreateScope<VulkanRenderTarget>(emptySpecification);
+			Renderer::GetVulkanDevice().SubmitImmediate([](VkCommandBuffer commandBuffer)
+			{
+				for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
+				{
+					s_Data->EmptyShadowMap->Begin(commandBuffer, frame, RenderTargetBeginInfo::Clear(glm::vec4(0.0f)));
+					s_Data->EmptyShadowMap->End(commandBuffer, frame);
+				}
+			});
+		}
+
 		BufferSpecification layoutSpecification;
 		layoutSpecification.Usage = BufferUsage::Uniform;
 		layoutSpecification.Memory = BufferMemory::HostVisible;
@@ -756,6 +833,14 @@ namespace Hydro
 		s_Data->LayoutLightingBuffers = {};
 		s_Data->LayoutLightStorageBuffers = {};
 		s_Data->QuadIndexBuffer.reset();
+		s_Data->EmptyShadowMap.reset();
+		{
+			VkDevice device = Renderer::GetVulkanDevice().GetDevice();
+			Renderer::SubmitResourceFree([device, sampler = s_Data->ShadowSampler]()
+			{
+				vkDestroySampler(device, sampler, nullptr);
+			});
+		}
 		s_Data->SoftDotTexture.reset();
 		s_Data->WhiteTexture.reset();
 
@@ -910,6 +995,8 @@ namespace Hydro
 		view.InOverlay = false;
 		view.DebugDraws.clear();
 		view.InDebugLines = false;
+		view.ShadowCasterDraws.clear();
+		view.InShadowCasters = false;
 		view.Lighting = SceneLighting{};
 		view.LightingSubmitted = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
@@ -920,6 +1007,10 @@ namespace Hydro
 
 	std::vector<QuadDraw>& Renderer2D::GetCurrentDraws(RenderViewData& view)
 	{
+		if (view.InShadowCasters)
+		{
+			return view.ShadowCasterDraws;
+		}
 		if (view.InDebugLines)
 		{
 			return view.DebugDraws;
@@ -964,10 +1055,11 @@ namespace Hydro
 		// An overlay left open and a sprite draw mode end with the scene, so the next BeginScene starts with
 		// translucent draws.
 		RenderViewData* view = s_Data->CurrentView;
-		if (view != nullptr && (view->InOverlay || view->InDebugLines || view->DrawMode != SpriteDrawMode::Translucent || view->EntityID >= 0))
+		if (view != nullptr && (view->InOverlay || view->InDebugLines || view->InShadowCasters || view->DrawMode != SpriteDrawMode::Translucent || view->EntityID >= 0))
 		{
 			view->InOverlay = false;
 			view->InDebugLines = false;
+			view->InShadowCasters = false;
 			view->DrawMode = SpriteDrawMode::Translucent;
 			view->EntityID = -1;
 			StartDraw(*view);
@@ -1026,6 +1118,32 @@ namespace Hydro
 		StartDraw(*s_Data->CurrentView);
 	}
 
+	void Renderer2D::BeginShadowCasters()
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::BeginShadowCasters outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr || s_Data->CurrentView->InShadowCasters)
+		{
+			return;
+		}
+
+		// Casters carry no entity (the shadow map has no ID attachment).
+		SetEntityID(-1);
+		s_Data->CurrentView->InShadowCasters = true;
+		StartDraw(*s_Data->CurrentView);
+	}
+
+	void Renderer2D::EndShadowCasters()
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::EndShadowCasters outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr || s_Data->CurrentView->InShadowCasters == false)
+		{
+			return;
+		}
+
+		s_Data->CurrentView->InShadowCasters = false;
+		StartDraw(*s_Data->CurrentView);
+	}
+
 	void Renderer2D::SetSceneLighting(const SceneLighting& lighting)
 	{
 		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::SetSceneLighting outside BeginScene/EndScene");
@@ -1066,8 +1184,8 @@ namespace Hydro
 		}
 
 		view->DrawMode = mode;
-		// Inside an overlay the overlay list stays current; EndOverlay starts the draw in the new mode's list.
-		if (view->InOverlay == false)
+		// Inside an overlay (or the shadow casters) that list stays current; its End starts the draw in the new mode's list.
+		if (view->InOverlay == false && view->InShadowCasters == false)
 		{
 			StartDraw(*view);
 		}
@@ -1319,6 +1437,19 @@ namespace Hydro
 		}
 	}
 
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor,
+		const glm::mat4& shadowLookupTransform)
+	{
+		glm::vec3 corners[4];
+		glm::vec3 shadowCorners[4];
+		for (size_t i = 0; i < 4; i++)
+		{
+			corners[i] = glm::vec3(transform * s_Data->QuadVertexPositions[i]);
+			shadowCorners[i] = glm::vec3(shadowLookupTransform * s_Data->QuadVertexPositions[i]);
+		}
+		SubmitQuadCorners(corners, texture, textureRect, tintColor, &shadowCorners);
+	}
+
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& tintColor)
 	{
 		// The unit quad's corners scaled, turned and moved, without a 4x4 matrix per quad.
@@ -1349,7 +1480,8 @@ namespace Hydro
 		SubmitQuadCorners(corners, texture, textureRect, color);
 	}
 
-	void Renderer2D::SubmitQuadCorners(const glm::vec3 (&corners)[4], const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color)
+	void Renderer2D::SubmitQuadCorners(const glm::vec3 (&corners)[4], const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color,
+		const glm::vec3 (*shadowCorners)[4])
 	{
 		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawQuad outside BeginScene/EndScene");
 		if (s_Data->CurrentView == nullptr)
@@ -1384,12 +1516,17 @@ namespace Hydro
 			view.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			view.QuadVertexBufferPtr->TexIndex = textureIndex;
 			view.QuadVertexBufferPtr->EntityID = view.EntityID;
+			view.QuadVertexBufferPtr->ShadowPosition = shadowCorners != nullptr ? (*shadowCorners)[i] : corners[i];
 			view.QuadVertexBufferPtr++;
 		}
 
 		view.QuadIndexCounts[view.BatchIndex] += 6;
 		GetCurrentDraws(view).back().IndexCount += 6;
 		s_Data->Stats.QuadCount++;
+		if (view.InShadowCasters)
+		{
+			s_Data->Stats.ShadowCasterQuads++;
+		}
 	}
 
 	// ---- Frame ------------------------------------------------------------------
@@ -1687,6 +1824,11 @@ namespace Hydro
 	{
 		ApplyViewResize(view);
 
+		// Pass-list rebuild when the view's render features changed (never per frame otherwise). Before the
+		// uploads: what the graph holds decides whether the view draws a sun shadow map this frame.
+		UpdateRenderGraph(view);
+		PrepareSunShadows(view);
+
 		UniformBufferObject ubo;
 		ubo.mvp = view.ViewProjection;
 		view.UniformBuffers[frame]->SetData(&ubo, sizeof(UniformBufferObject));
@@ -1700,6 +1842,7 @@ namespace Hydro
 		{
 			TextureSet& set = view.TextureSets[s];
 			WriteTextureSet(set, frame);
+			WriteShadowMapBinding(set, view, frame);
 			s_Data->Stats.TextureSlotsUsed += set.SlotCount;
 		}
 
@@ -1720,8 +1863,6 @@ namespace Hydro
 			s_Data->Stats.VertexBytesUploaded += (uint64_t)vertexCount * sizeof(QuadVertex);
 		}
 
-		// Pass-list rebuild when the view's render features changed (never per frame otherwise).
-		UpdateRenderGraph(view);
 		RenderPassContext context{ commandBuffer, frame, view };
 
 		BeginDebugLabel(commandBuffer, ("View " + view.DebugName).c_str());
@@ -1840,12 +1981,123 @@ namespace Hydro
 			{
 				view.LightStorageBuffers[frame]->SetData(gpu.data(), sizeof(GPULight) * count);
 			}
-			uniform.Counts = glm::ivec4((int32_t)count, 1, 0, 0);
+			uniform.Counts = glm::ivec4((int32_t)count, 1, view.SunShadowsActive ? 1 : 0, 0);
+			if (view.SunShadowsActive)
+			{
+				const float mapSize = (float)view.ShadowTarget->GetWidth();
+				const float distance = std::max(lighting.ShadowDistance, 1.0f);
+				// One texel of the map in metres, and the receivers' push out of their own shadow: about a
+				// texel and a half (along the surface normal, or towards the sun for sprites).
+				const float texelWorld = 2.0f * distance / mapSize;
+				uniform.ShadowMatrix = view.ShadowMatrix;
+				uniform.ShadowParams = glm::vec4(std::clamp(lighting.ShadowStrength, 0.0f, 1.0f), 1.0f / mapSize,
+					Renderer::GetSettings().SoftSunShadows ? 1.0f : 0.0f, texelWorld * 1.5f * std::max(lighting.ShadowBias, 0.0f));
+			}
 			s_Data->Stats.ForwardLitViewCount++;
 			s_Data->Stats.ForwardLightCount += count;
 		}
 
 		view.LightingBuffers[frame]->SetData(&uniform, sizeof(FrameLightingUniform));
+	}
+
+	// How far beyond the shadowed area (towards the sun) the shadow camera starts, so casters outside it (a
+	// tall tree or a cliff up the hill) still throw their shadows into it. Metres.
+	static constexpr float ShadowCasterReach = 60.0f;
+
+	void Renderer2D::PrepareSunShadows(RenderViewData& view)
+	{
+		const SceneLighting& lighting = view.Lighting;
+		view.SunShadowsActive = view.Graph != nullptr && view.Graph->HasPass(SunShadowPassName) && view.LightingSubmitted
+			&& lighting.HasSun && lighting.SunShadows && glm::length(lighting.SunDirection) > 0.0f;
+		if (view.SunShadowsActive == false)
+		{
+			return;
+		}
+
+		// The map: made the first time, remade (old images through the deletion queue) when its size setting changes.
+		const uint32_t size = std::clamp(Renderer::GetSettings().SunShadowMapSize, 512u, 4096u);
+		if (view.ShadowTarget == nullptr)
+		{
+			RenderTargetSpecification specification;
+			specification.Width = size;
+			specification.Height = size;
+			specification.ColorFormats = {};
+			specification.DepthFormat = ShadowMapFormat;
+			specification.SampledDepth = true;
+			specification.DebugName = view.DebugName + " sun shadow map";
+			view.ShadowTarget = CreateScope<VulkanRenderTarget>(specification);
+		}
+		else
+		{
+			view.ShadowTarget->Resize(size, size);
+		}
+
+		// An orthographic camera looking along the sunlight at what the view's camera looks at (FogOrigin),
+		// covering ShadowDistance metres each way, starting ShadowCasterReach metres further towards the sun.
+		const float distance = std::max(lighting.ShadowDistance, 1.0f);
+		const glm::vec3 travel = glm::normalize(lighting.SunDirection); // where the light goes
+		const glm::vec3 up = std::abs(travel.z) > 0.99f ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(0.0f, 0.0f, 1.0f);
+		const glm::vec3 centre = lighting.FogOrigin;
+		const float back = distance + ShadowCasterReach;
+		const glm::mat4 lightView = glm::lookAt(centre - travel * back, centre, up);
+		glm::mat4 projection = Camera::Orthographic(-distance, distance, -distance, distance, 0.0f, back + distance);
+
+		// Texel snapping: move the projection by less than a texel so the world's origin lands on a texel
+		// corner. The map then slides over the world in whole texels as the camera moves, and shadow edges
+		// stay put instead of crawling (most visible on pixel art).
+		const glm::mat4 matrix = projection * lightView;
+		const float halfSize = (float)size * 0.5f;
+		const glm::vec4 origin = matrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		const glm::vec2 originTexels = glm::vec2(origin) * halfSize;
+		const glm::vec2 offset = (glm::round(originTexels) - originTexels) / halfSize;
+		projection[3][0] += offset.x;
+		projection[3][1] += offset.y;
+		view.ShadowMatrix = projection * lightView;
+	}
+
+	void Renderer2D::RecordSunShadowPass(RenderPassContext& context)
+	{
+		RenderViewData& view = context.View;
+		if (view.SunShadowsActive == false)
+		{
+			return;
+		}
+
+		// Cleared to the far plane: nothing casts. End leaves the map ready to be sampled by the scene pass.
+		view.ShadowTarget->Begin(context.CommandBuffer, context.Frame, RenderTargetBeginInfo::Clear(glm::vec4(0.0f)));
+		Renderer3D::RecordShadowCasters(context);
+
+		const bool hasCasters = std::any_of(view.ShadowCasterDraws.begin(), view.ShadowCasterDraws.end(), [](const QuadDraw& draw) { return draw.IndexCount != 0; });
+		VulkanPipeline* pipeline = hasCasters ? GetViewPipeline(ViewPipelineKind::ShadowCaster, *view.ShadowTarget, false) : nullptr;
+		if (pipeline != nullptr)
+		{
+			pipeline->Bind(context.CommandBuffer, view.ShadowTarget->GetExtent());
+			s_Data->QuadIndexBuffer->BindAsIndexBuffer(context.CommandBuffer);
+			uint32_t boundBatch = UINT32_MAX;
+			uint32_t boundTextureSet = UINT32_MAX;
+			for (const QuadDraw& draw : view.ShadowCasterDraws)
+			{
+				if (draw.IndexCount == 0)
+				{
+					continue;
+				}
+				if (draw.Batch != boundBatch)
+				{
+					view.QuadVertexBuffers[draw.Batch][context.Frame]->BindAsVertexBuffer(context.CommandBuffer);
+					boundBatch = draw.Batch;
+				}
+				if (draw.TextureSet != boundTextureSet)
+				{
+					pipeline->BindDescriptorSet(context.CommandBuffer, 0, *view.TextureSets[draw.TextureSet].DescriptorSet);
+					boundTextureSet = draw.TextureSet;
+				}
+				vkCmdDrawIndexed(context.CommandBuffer, draw.IndexCount, 1, draw.FirstIndex, 0, 0);
+				s_Data->Stats.DrawCalls++;
+			}
+		}
+
+		view.ShadowTarget->End(context.CommandBuffer, context.Frame);
+		s_Data->Stats.SunShadowViewCount++;
 	}
 
 	void Renderer2D::RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay, bool debugLines)
@@ -2153,6 +2405,41 @@ namespace Hydro
 						AddValidationMessage(out, feature, RenderValidationSeverity::Warning, "forward lighting without shared depth: sprites are lit, but sort in painter's order");
 					}
 				}, nullptr));
+		}
+
+		// Sun shadows (R14): one shadow map for the scene's main directional light, drawn before the scene from
+		// the meshes that cast shadows and the queued sprite casters, then read by the lit sprite and mesh
+		// shaders (set 0 binding 4). A pass that reads its own output later in the same frame, so v1's
+		// hand-written transition (VulkanRenderTarget::End with SampledDepth) does the synchronisation, as for
+		// the 2D light buffer. Skips itself on frame data (no shadow-casting sun).
+		if (settings.Shadows == ShadowMode::Sun)
+		{
+			features.push_back(CreateScope<FunctionRenderFeature>("SunShadows",
+				[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
+				{
+					if (context.Settings.Lighting != LightingMode::Forward)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Error, "sun shadows need Lighting = Forward");
+					}
+					if (context.Settings.Depth != DepthMode::Shared)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Error, "sun shadows need Depth = Shared");
+					}
+					if (context.Capabilities.DepthFormat32F == false)
+					{
+						AddValidationMessage(out, feature, RenderValidationSeverity::Error, "the GPU can't use DEPTH32F as a depth attachment");
+					}
+				},
+				[](RenderGraphBuilder& builder)
+				{
+					builder.ImportResource("MeshTextures");
+					builder.ImportResource("SpriteTextures");
+					builder.AddPass({ SunShadowPassName, RenderStage::BeforeScene, { "MeshTextures", "SpriteTextures" }, { "SunShadowMap" },
+						[](RenderPassContext& context)
+						{
+							RecordSunShadowPass(context);
+						} });
+				}));
 		}
 
 		// Editor debug lines (M7): selection bounds, light reach, spot cones, the sun's direction, depth tested.

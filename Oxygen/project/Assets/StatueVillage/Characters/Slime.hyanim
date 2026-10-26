@@ -1,0 +1,10 @@
+# Sprite animations of the slime (battle prototype).
+Handle: 6343476544001475930
+SpriteAnimationSet:
+  Texture: Slime.png
+  DefaultClip: Bounce
+  Clips:
+    - Name: Bounce
+      FrameRate: 5
+      Loop: Loop
+      Frames: [Slime_0, Slime_1, Slime_2, Slime_3]

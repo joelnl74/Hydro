@@ -6,6 +6,8 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in float inTexIndex;
 // The quad's entity (-1 = none), for the Editor view's entity-ID attachment.
 layout(location = 4) in int inEntityID;
+// Where this corner is looked up in the sun shadow map (QuadVertex::ShadowPosition).
+layout(location = 5) in vec3 inShadowPosition;
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 mvp;
@@ -19,6 +21,8 @@ layout(location = 2) flat out float texIndex;
 layout(location = 3) flat out int entityID;
 // World space (the quads' vertices are in world space already): read by the forward-lit sprite shaders.
 layout(location = 4) out vec3 fragWorldPos;
+// For the lit sprite shaders' sun shadow lookup.
+layout(location = 5) out vec3 fragShadowPos;
 
 void main() {
     gl_Position = ubo.mvp * vec4(inPosition, 1.0);
@@ -27,4 +31,5 @@ void main() {
 	texIndex = inTexIndex;
 	entityID = inEntityID;
 	fragWorldPos = inPosition;
+	fragShadowPos = inShadowPosition;
 }

@@ -108,9 +108,10 @@ namespace Hydro
 
 		VulkanDevice& vulkanDevice = Renderer::GetVulkanDevice();
 		VkDevice device = vulkanDevice.GetDevice();
-		if (spec.ColorFormats.empty())
+		// Depth-only pipelines (shadow maps) have no colour attachments.
+		if (spec.ColorFormats.empty() && spec.DepthFormat == ImageFormat::None)
 		{
-			throw std::runtime_error("PipelineSpecification::ColorFormats is empty.");
+			throw std::runtime_error("PipelineSpecification has neither ColorFormats nor a DepthFormat.");
 		}
 
 		// Setup vertex data.

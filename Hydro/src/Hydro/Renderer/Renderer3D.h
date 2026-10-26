@@ -17,6 +17,7 @@ namespace Hydro
 	struct Renderer3DStatistics
 	{
 		uint32_t MeshDraws = 0;       // draw calls (one per sub-mesh drawn)
+		uint32_t ShadowDraws = 0;     // of those, into sun shadow maps
 		uint32_t Triangles = 0;
 		uint32_t CachedMeshes = 0;    // built-in shapes kept on the GPU
 		uint32_t CachedMaterials = 0; // Standard materials (one descriptor set each)
@@ -44,14 +45,18 @@ namespace Hydro
 
 		// One sub-mesh with a Standard material. `entityID` is written to the Editor view's entity-ID
 		// attachment (-1 = not pickable). The material is cached by its data, so meshes with equal materials
-		// share one descriptor set.
-		static void DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID);
+		// share one descriptor set. `castShadows`: also drawn into the view's sun shadow map (R14), when it has one.
+		static void DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID,
+			bool castShadows = true);
 
 		// The built-in shape of `component` (shape, size, steps, segments), made once and kept while used.
 		static Ref<Mesh> GetShapeMesh(const MeshComponent& component);
 
 		// The Meshes feature's pass (Renderer2D's render graph). Records the view's queued meshes.
 		static void RecordMeshes(RenderPassContext& context);
+		// Part of the SunShadows pass (Renderer2D, R14): the view's queued meshes that cast shadows, depth only
+		// (cut out like their material), into the view's shadow map, which the pass has begun.
+		static void RecordShadowCasters(RenderPassContext& context);
 		// After the frame is recorded: frees shapes and materials no frame has used for a while, updates the stats.
 		static void EndFrame();
 		// A shader of the VulkanShaderLibrary was reloaded: drops the pipelines built from it.

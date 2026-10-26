@@ -17,10 +17,38 @@
 
 namespace Hydro
 {
+	// What Oxygen was started with (OxygenEditorApplication parses the command line), so a scene can be
+	// opened, played, captured and checked without anyone at the keyboard:
+	//
+	//   Oxygen [--project <file.hyproj>] [--scene <name | file.hyscene>] [--play] [--frames <n>]
+	//          [--capture <file.png>] [--validate] [--exit]
+	//
+	// --project opens that project instead of the last one; --scene a scene of it (a name looks in its
+	// Assets/Scenes). --play presses Play. After --frames frames (120 by default) --capture saves the Game
+	// view (1280 x 720) to that file, and --exit closes the editor (--capture and --validate imply it).
+	// --validate loads every scene of the project, logs what is missing, and exits with code 1 when any
+	// warned. All of it is logged (logs/Hydro.log and the console).
+	struct EditorLaunchOptions
+	{
+		std::filesystem::path Project;
+		std::string Scene;
+		bool Play = false;
+		uint32_t Frames = 120;
+		std::filesystem::path Capture;
+		bool Validate = false;
+		bool Exit = false;
+
+		static EditorLaunchOptions Parse(const ApplicationCommandLine& commandLine);
+		bool IsAutomated() const { return Capture.empty() == false || Validate || Exit; }
+	};
+
 	class EditorLayer : public Layer
 	{
 	public:
 		EditorLayer() {};
+		explicit EditorLayer(const EditorLaunchOptions& launch)
+			: m_Launch(launch) {
+		}
 		virtual ~EditorLayer() {};
 
 		virtual void OnAttach() override;
@@ -40,6 +68,14 @@ namespace Hydro
 		void OpenDefaultProject();
 		// At startup: the last project and scene (Editor Settings > Startup), else the default project.
 		void OpenStartupProject();
+		// The command line's project and scene, after the startup project; then --validate or --play.
+		void ApplyLaunchOptions();
+		// A scene by name (in the project's Assets/Scenes) or path; empty when there is none.
+		std::filesystem::path FindScene(const std::string& nameOrPath) const;
+		// --validate: loads every scene of the project into a scratch scene; true when none warned.
+		bool ValidateProject();
+		// Counts frames for --frames, then captures (--capture) and quits (--exit).
+		void UpdateLaunchAutomation();
 
 		// Editor settings (EditorSettings.yaml): loading applies them to ImGui and the editor camera.
 		void LoadEditorSettings();
@@ -204,6 +240,12 @@ namespace Hydro
 		bool m_CaptureEditorRequested = false;
 		bool m_CaptureKeyDown = false;         // F9 last frame, so holding it captures once
 		float m_Time = 0.0f;
+
+		// Unattended runs (EditorLaunchOptions): what was asked and how far it got.
+		enum class LaunchStep : uint8_t { None, Waiting, Capturing, Done };
+		EditorLaunchOptions m_Launch;
+		LaunchStep m_LaunchStep = LaunchStep::None;
+		uint32_t m_LaunchFramesLeft = 0;
 	};
 }
 

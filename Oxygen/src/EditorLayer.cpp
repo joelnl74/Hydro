@@ -83,6 +83,191 @@ namespace Hydro
 
 		// After the demo scene: a project with a start scene replaces it.
 		OpenStartupProject();
+		ApplyLaunchOptions();
+	}
+
+	EditorLaunchOptions EditorLaunchOptions::Parse(const ApplicationCommandLine& commandLine)
+	{
+		EditorLaunchOptions options;
+		options.Project = commandLine.Get("--project");
+		options.Scene = commandLine.Get("--scene");
+		options.Play = commandLine.Has("--play");
+		const std::string frames = commandLine.Get("--frames");
+		if (frames.empty() == false)
+		{
+			options.Frames = (uint32_t)std::max(0, std::atoi(frames.c_str()));
+		}
+		options.Capture = commandLine.Get("--capture");
+		options.Validate = commandLine.Has("--validate");
+		options.Exit = commandLine.Has("--exit") || options.Capture.empty() == false || options.Validate;
+		return options;
+	}
+
+	void EditorLayer::ApplyLaunchOptions()
+	{
+		if (m_Launch.Project.empty() == false)
+		{
+			std::error_code ec;
+			if (std::filesystem::exists(m_Launch.Project, ec))
+			{
+				OpenProject(m_Launch.Project);
+			}
+			else
+			{
+				HY_ERROR("--project: {} doesn't exist", m_Launch.Project.string());
+			}
+		}
+		if (m_Launch.Scene.empty() == false)
+		{
+			const std::filesystem::path scene = FindScene(m_Launch.Scene);
+			if (scene.empty())
+			{
+				HY_ERROR("--scene: no scene '{}' in the project", m_Launch.Scene);
+			}
+			else
+			{
+				OpenScene(scene);
+			}
+		}
+
+		if (m_Launch.Validate)
+		{
+			const bool clean = ValidateProject();
+			Application::Get().Quit(clean ? 0 : 1);
+			return;
+		}
+		if (m_Launch.Play)
+		{
+			PlayScene();
+		}
+		if (m_Launch.IsAutomated())
+		{
+			// The Game view is drawn whatever the docking says, and at the capture size.
+			if (m_Launch.Capture.empty() == false)
+			{
+				SetGameFullscreen(true);
+				m_CaptureFixedSize = true;
+			}
+			m_LaunchStep = LaunchStep::Waiting;
+			m_LaunchFramesLeft = m_Launch.Frames;
+			HY_INFO("Unattended run: {} frames{}{}", m_Launch.Frames, m_Launch.Capture.empty() ? "" : ", then capture " + m_Launch.Capture.string(),
+				m_Launch.Exit ? ", then exit" : "");
+		}
+	}
+
+	std::filesystem::path EditorLayer::FindScene(const std::string& nameOrPath) const
+	{
+		std::error_code ec;
+		const std::filesystem::path given = nameOrPath;
+		if (given.extension().string() == SceneSerializer::FileExtension && std::filesystem::exists(given, ec))
+		{
+			return given;
+		}
+		if (Project::GetActive() == nullptr)
+		{
+			return {};
+		}
+		const std::filesystem::path inProject = EditorPaths::GetScenesDirectory() / (given.stem().string() + SceneSerializer::FileExtension);
+		if (std::filesystem::exists(inProject, ec))
+		{
+			return inProject;
+		}
+		return {};
+	}
+
+	bool EditorLayer::ValidateProject()
+	{
+		if (Project::GetActive() == nullptr)
+		{
+			HY_ERROR("--validate: no project is open");
+			return false;
+		}
+
+		std::vector<LogMessage> messages;
+		const uint64_t before = Log::GetMessagesSince(0, messages);
+		uint32_t scenes = 0;
+		std::error_code ec;
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(Project::GetActive()->GetAssetDirectory(), ec))
+		{
+			if (entry.is_regular_file() == false || entry.path().extension().string() != SceneSerializer::FileExtension)
+			{
+				continue;
+			}
+			// Into a scratch scene, like OpenScene; the serializer logs every missing asset and script.
+			Ref<Scene> scene = CreateRef<Scene>("Validate", true);
+			SceneSerializer serializer(scene);
+			if (serializer.Deserialize(entry.path()))
+			{
+				HY_INFO("Validated {}: {} entities", entry.path().filename().string(), scene->m_Registry.size<IDComponent>());
+			}
+			else
+			{
+				HY_ERROR("Validate: {} failed to load", entry.path().filename().string());
+			}
+			scenes++;
+		}
+
+		messages.clear();
+		Log::GetMessagesSince(before, messages);
+		uint32_t problems = 0;
+		for (const LogMessage& message : messages)
+		{
+			if (message.Level >= LogLevel::Warn)
+			{
+				problems++;
+			}
+		}
+		HY_INFO("Validated {} scenes: {} warnings or errors", scenes, problems);
+		return problems == 0;
+	}
+
+	void EditorLayer::UpdateLaunchAutomation()
+	{
+		switch (m_LaunchStep)
+		{
+			case LaunchStep::Waiting:
+			{
+				if (m_LaunchFramesLeft > 0)
+				{
+					m_LaunchFramesLeft--;
+					return;
+				}
+				if (m_Launch.Capture.empty())
+				{
+					m_LaunchStep = LaunchStep::Done;
+					return;
+				}
+				// Through the normal capture request, so the view is drawn at the capture size first.
+				std::error_code ec;
+				std::filesystem::create_directories(m_Launch.Capture.parent_path(), ec);
+				m_CaptureGameRequested = true;
+				m_LaunchStep = LaunchStep::Capturing;
+				return;
+			}
+			case LaunchStep::Capturing:
+			{
+				// The request is taken when the Game view is drawn, and the file is written after that frame.
+				if (m_CaptureGameRequested == false && m_GameView->IsCapturePending() == false)
+				{
+					HY_INFO("Captured the Game view to {}", m_Launch.Capture.string());
+					m_LaunchStep = LaunchStep::Done;
+				}
+				return;
+			}
+			case LaunchStep::Done:
+			{
+				if (m_Launch.Exit)
+				{
+					Application::Get().Quit(0);
+				}
+				m_LaunchStep = LaunchStep::None;
+				return;
+			}
+			case LaunchStep::None:
+			{
+				return;
+			}
+		}
 	}
 
 	void EditorLayer::OnDetach()
@@ -176,6 +361,7 @@ namespace Hydro
 	{
 		UpdateFullscreenKeys();
 		UpdateCaptureKeys();
+		UpdateLaunchAutomation();
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -801,7 +987,7 @@ namespace Hydro
 				width = CaptureWidth;
 				height = CaptureHeight;
 			}
-			m_GameView->RequestCapture(MakeCapturePath("Game"));
+			m_GameView->RequestCapture(m_LaunchStep == LaunchStep::Capturing ? m_Launch.Capture : MakeCapturePath("Game"));
 			m_CaptureGameRequested = false;
 		}
 

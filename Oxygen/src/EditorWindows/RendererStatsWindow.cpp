@@ -32,6 +32,7 @@ namespace Hydro
 		{
 			StatsUI::Row("Mesh draw calls", "%u", meshStats.MeshDraws);
 			StatsUI::Row("Mesh triangles", "%u", meshStats.Triangles);
+			StatsUI::Row("Mesh shadow draws", "%u (of the draw calls)", meshStats.ShadowDraws);
 			StatsUI::Row("Cached shapes", "%u", meshStats.CachedMeshes);
 			StatsUI::Row("Cached materials", "%u", meshStats.CachedMaterials);
 			ImGui::EndTable();
@@ -73,6 +74,8 @@ namespace Hydro
 			StatsUI::Row("Lights dropped", "%u (beyond %u per view)", stats.ForwardLightsDropped, (uint32_t)MaxForwardLightsPerView);
 			StatsUI::Row("Light-buffer views", "%u (%u lights, %u shadows)", stats.LitViewCount, stats.LightCount, stats.ShadowCount);
 			StatsUI::Row("Debug lines", "%u", stats.DebugLineCount);
+			StatsUI::Row("Sun shadow maps", "%u", stats.SunShadowViewCount);
+			StatsUI::Row("Sprite shadow casters", "%u", stats.ShadowCasterQuads);
 			ImGui::EndTable();
 		}
 

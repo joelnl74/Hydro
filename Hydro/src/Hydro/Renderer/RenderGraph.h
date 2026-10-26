@@ -21,7 +21,7 @@ namespace Hydro
 	// begun; the others record into the view's one rendering pass, in this order.
 	enum class RenderStage : uint8_t
 	{
-		BeforeScene = 0, // the 2D light buffer
+		BeforeScene = 0, // the 2D light buffer, the sun shadow map
 		Opaque,          // opaque meshes, cut-out sprites
 		Translucent,     // the view's one sorted translucent list
 		AfterLighting,   // the 2D light composite
@@ -117,6 +117,8 @@ namespace Hydro
 		// Runs the passes of one stage, in the order they were added.
 		void ExecuteStage(RenderStage stage, RenderPassContext& context) const;
 		bool HasPasses(RenderStage stage) const;
+		// Whether a pass of that name made it into the graph (its feature passed validation).
+		bool HasPass(const std::string& name) const;
 		// Every pass, sorted by stage (stable), for backends that wrap each pass (debug labels, timers).
 		const std::vector<RenderPassDeclaration>& GetPasses() const { return m_Passes; }
 

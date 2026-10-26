@@ -285,6 +285,10 @@ namespace Hydro
 			{
 				out << YAML::Key << "Overlay" << YAML::Value << true;
 			}
+			if (sprite.CastShadows == false)
+			{
+				out << YAML::Key << "CastShadows" << YAML::Value << false;
+			}
 			out << YAML::EndMap;
 		}
 
@@ -351,6 +355,10 @@ namespace Hydro
 			out << YAML::Key << "Color" << YAML::Value << light.Color;
 			out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
 			out << YAML::Key << "IsMainLight" << YAML::Value << light.IsMainLight;
+			out << YAML::Key << "CastShadows" << YAML::Value << light.CastShadows;
+			out << YAML::Key << "ShadowStrength" << YAML::Value << light.ShadowStrength;
+			out << YAML::Key << "ShadowDistance" << YAML::Value << light.ShadowDistance;
+			out << YAML::Key << "ShadowBias" << YAML::Value << light.ShadowBias;
 			out << YAML::EndMap;
 		}
 
@@ -551,6 +559,7 @@ namespace Hydro
 			sprite.Facing = SpriteFacingFromString(spriteNode["Facing"].as<std::string>("Flat"));
 			sprite.AlphaMode = SpriteAlphaModeFromString(spriteNode["AlphaMode"].as<std::string>("Default"));
 			sprite.Overlay = spriteNode["Overlay"].as<bool>(false);
+			sprite.CastShadows = spriteNode["CastShadows"].as<bool>(true);
 			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
 				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));
@@ -610,6 +619,10 @@ namespace Hydro
 			light.Color = sunNode["Color"].as<glm::vec3>(light.Color);
 			light.Intensity = sunNode["Intensity"].as<float>(light.Intensity);
 			light.IsMainLight = sunNode["IsMainLight"].as<bool>(light.IsMainLight);
+			light.CastShadows = sunNode["CastShadows"].as<bool>(light.CastShadows);
+			light.ShadowStrength = sunNode["ShadowStrength"].as<float>(light.ShadowStrength);
+			light.ShadowDistance = sunNode["ShadowDistance"].as<float>(light.ShadowDistance);
+			light.ShadowBias = sunNode["ShadowBias"].as<float>(light.ShadowBias);
 		}
 
 		if (auto meshNode = entityNode["MeshComponent"])
