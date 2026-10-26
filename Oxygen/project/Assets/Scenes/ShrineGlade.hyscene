@@ -2297,7 +2297,7 @@ Entities:
     TagComponent:
       Tag: Sacred Tree
     TransformComponent:
-      Translation: [-5.5999999, 12.4799995, 3.0999999]
+      Translation: [-6, 12.4799995, 3]
       Rotation: [0, 0, 0]
       Scale: [12.6875, 13, 1]
     SpriteRendererComponent:
