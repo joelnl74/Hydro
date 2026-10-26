@@ -72,7 +72,7 @@ namespace Hydro
 			}
 			ImGui::EndCombo();
 		}
-		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows.\nChanging a setting below makes it Custom.");
+		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows, HDR.\nChanging a setting below makes it Custom.");
 
 		static const char* depthNames[] = { "Off", "Shared" };
 		changed |= EnumCombo("Depth", features.Depth, depthNames, 2);
@@ -91,6 +91,8 @@ namespace Hydro
 		changed |= EnumCombo("Sprite shadows", features.SpriteShadows, spriteShadowNames, 3);
 		HelpMarker("How cut-out Upright and Billboard sprites cast.\nNone: they don't (they still receive).\nAs drawn: the quad the camera sees; thin when the sun comes from the side.\nFace the sun: the quad turned about its feet to face the sun, so the shadow is always\nas wide as the sprite, and the sprite is never darkened by its own shadow.");
 		ImGui::EndDisabled();
+		changed |= ImGui::Checkbox("HDR", &features.HDR);
+		HelpMarker("The scene renders into a 16-bit float colour, so lanterns and emission can be brighter than white;\nthe scene's exposure and the PBR Neutral tonemap bring it to the screen (Post-processing (scene)).\nThe HUD and debug lines are drawn after the tonemap. Off: the 8-bit colour path.");
 
 		// Errors leave the feature out (the frame still draws); warnings keep it.
 		const std::vector<RenderValidationMessage> messages = Renderer2D::ValidateRenderFeatures(features, false);
@@ -220,6 +222,36 @@ namespace Hydro
 					if (activeScene != nullptr && activeScene != editorScene)
 					{
 						activeScene->SetRenderSettings(sceneSettings);
+					}
+				}
+			}
+		}
+
+		// ---- Post-processing (scene) -------------------------------------------
+		if (ImGui::CollapsingHeader("Post-processing (scene)", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			if (editorScene == nullptr)
+			{
+				ImGui::TextDisabled("No scene open.");
+			}
+			else
+			{
+				// Like the environment: edits go to the editor scene and the running copy.
+				ScenePostProcess postProcess = editorScene->GetPostProcess();
+				bool postProcessChanged = ImGui::DragFloat("Exposure", &postProcess.Exposure, 0.05f, -8.0f, 8.0f, "%.2f EV");
+				HelpMarker("HDR views only (render features: HDR). In stops: +1 twice as bright, -1 half. 0 = as lit.");
+				if (ImGui::Button("Reset##PostProcess"))
+				{
+					postProcess = ScenePostProcess{};
+					postProcessChanged = true;
+				}
+
+				if (postProcessChanged)
+				{
+					editorScene->SetPostProcess(postProcess);
+					if (activeScene != nullptr && activeScene != editorScene)
+					{
+						activeScene->SetPostProcess(postProcess);
 					}
 				}
 			}

@@ -54,7 +54,8 @@ namespace Hydro
 		Overlay,    // overlay quads (editor outlines, HUD sprites): no depth test
 		Composite,  // the 2D light composite
 		DebugLines, // editor lines in the scene (M7): depth test, no depth write, never IDs
-		ShadowCaster // sun shadow casters (R14): depth only, alpha tested, into a view's shadow map
+		ShadowCaster, // sun shadow casters (R14): depth only, alpha tested, into a view's shadow map
+		Tonemap       // HDR views (post-processing plan P1): the scene colour through exposure and PBR Neutral, a fullscreen triangle
 	};
 
 	// The pipeline cache's key: the attachment layout (colour formats in order, depth format; one sample per
@@ -122,6 +123,10 @@ namespace Hydro
 		// one this frame (the lit shaders always declare it, so it must always be valid).
 		VkSampler ShadowSampler = VK_NULL_HANDLE;
 		Scope<VulkanRenderTarget> EmptyShadowMap;
+
+		// HDR (post-processing plan P1): set 0 of tonemap.frag, the scene colour (one sampled image). Owned by the
+		// descriptor allocator's layout cache.
+		VkDescriptorSetLayout TonemapLayout = VK_NULL_HANDLE;
 
 		// The pipeline's set 0 layout. Every view's target has the same attachment format (ViewColorFormat)
 		// and its descriptor sets are built exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so
@@ -312,6 +317,10 @@ namespace Hydro
 	static constexpr const char* SunShadowPassName = "SunShadows";
 	// Sun shadow casters (R14): quads into the shadow map, alpha tested.
 	static constexpr const char* SpriteShadowCasterShaderName = "SpriteShadowCaster";
+	// HDR (post-processing plan P1): the tonemap, on composite.vert's fullscreen triangle.
+	static constexpr const char* TonemapShaderName = "Tonemap";
+	// The HDR feature's pass (looked up by name to know whether a view renders through the scene colour).
+	static constexpr const char* TonemapPassName = "Tonemap";
 
 	// The shader loaded under `name`, loading it the first time. Throws when it doesn't compile.
 	static VulkanShader& GetOrLoadShader(const char* name, const char* vertexPath, const char* fragmentPath)
@@ -462,6 +471,7 @@ namespace Hydro
 			case ViewPipelineKind::Cutout: return lit ? SpriteCutoutLitShaderName : SpriteCutoutShaderName;
 			case ViewPipelineKind::Composite: return CompositeShaderName;
 			case ViewPipelineKind::ShadowCaster: return SpriteShadowCasterShaderName;
+			case ViewPipelineKind::Tonemap: return TonemapShaderName;
 			case ViewPipelineKind::Sprite:
 			case ViewPipelineKind::Decal: return lit ? SpriteLitShaderName : SpriteShaderName;
 			default: return SpriteShaderName;
@@ -538,6 +548,18 @@ namespace Hydro
 				specification.DepthBiasSlope = ShadowCasterDepthBiasSlope;
 				break;
 
+			case ViewPipelineKind::Tonemap:
+				// No vertex buffer (composite.vert makes the triangle), the scene colour in set 0, the exposure in
+				// push constants; overwrites every pixel, never depth tested, never writes IDs.
+				specification.Shader = &GetOrLoadShader(TonemapShaderName, "assets/shaders/composite.vert", "assets/shaders/tonemap.frag");
+				specification.DescriptorSetLayouts = { s_Data->TonemapLayout };
+				specification.PushConstantSize = (uint32_t)sizeof(TonemapPushConstants);
+				specification.Blend = BlendMode::None;
+				specification.BackfaceCulling = false;
+				specification.DepthTest = false;
+				specification.DepthWrite = false;
+				break;
+
 			case ViewPipelineKind::Composite:
 				if (s_Data->CompositePipeline == nullptr)
 				{
@@ -558,18 +580,20 @@ namespace Hydro
 	}
 
 	// The pipeline that draws `kind` into `target`. `writeEntityID`: the draw writes its entity IDs (only
-	// meaningful when the target has the ID attachment). Null when it can't be built (logged once).
-	static VulkanPipeline* GetViewPipeline(ViewPipelineKind kind, const VulkanRenderTarget& target, bool writeEntityID, bool lit = false)
+	// meaningful when the target has the ID attachment). `colorTarget`: the pass was begun with another target's
+	// colour (the HDR scene colour, RenderViewData::PassColorTarget). Null when it can't be built (logged once).
+	static VulkanPipeline* GetViewPipeline(ViewPipelineKind kind, const VulkanRenderTarget& target, bool writeEntityID, bool lit = false,
+		const VulkanRenderTarget* colorTarget = nullptr)
 	{
 		ViewPipelineKey key;
 		key.Kind = kind;
-		key.ColorFormats = target.GetPipelineColorFormats();
+		key.ColorFormats = target.GetPipelineColorFormats(colorTarget);
 		key.DepthFormat = target.GetPipelineDepthFormat();
 		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID;
 		key.Lit = lit && (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Cutout);
 
 		// The plain 2D layout: the pipelines built at Init, exactly as before render features existed.
-		if (key.ColorFormats.size() == 1 && key.DepthFormat == ImageFormat::None && key.Lit == false)
+		if (key.ColorFormats.size() == 1 && key.ColorFormats[0] == ViewColorFormat && key.DepthFormat == ImageFormat::None && key.Lit == false)
 		{
 			if (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Overlay || kind == ViewPipelineKind::DebugLines)
 			{
@@ -709,6 +733,16 @@ namespace Hydro
 					s_Data->EmptyShadowMap->End(commandBuffer, frame);
 				}
 			});
+		}
+
+		// HDR: the tonemap's input, one sampled image.
+		{
+			VkDescriptorSetLayoutBinding binding{};
+			binding.binding = 0;
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			binding.descriptorCount = 1;
+			binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			s_Data->TonemapLayout = VulkanDescriptorAllocator::GetLayout({ binding });
 		}
 
 		BufferSpecification layoutSpecification;
@@ -997,6 +1031,8 @@ namespace Hydro
 		view.InDebugLines = false;
 		view.ShadowCasterDraws.clear();
 		view.InShadowCasters = false;
+		view.PostProcess = ScenePostProcess{};
+		view.TonemapSet = VK_NULL_HANDLE;
 		view.Lighting = SceneLighting{};
 		view.LightingSubmitted = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
@@ -1153,6 +1189,16 @@ namespace Hydro
 		}
 		s_Data->CurrentView->Lighting = lighting;
 		s_Data->CurrentView->LightingSubmitted = true;
+	}
+
+	void Renderer2D::SetPostProcess(const ScenePostProcess& postProcess)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::SetPostProcess outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+		{
+			return;
+		}
+		s_Data->CurrentView->PostProcess = postProcess;
 	}
 
 	const std::vector<PassTiming>& Renderer2D::GetPassTimings()
@@ -1870,15 +1916,49 @@ namespace Hydro
 		// BeforeScene passes draw into their own targets (the 2D light buffer) before the view's target is begun.
 		ExecuteStage(RenderStage::BeforeScene, context);
 
-		// One rendering pass per view per frame, so its target is cleared exactly once. Every later stage
-		// records into it, in stage order. End() moves the image to SHADER_READ_ONLY_OPTIMAL for ImGui,
-		// which samples it later in this command buffer.
-		view.Target->Begin(commandBuffer, frame, RenderTargetBeginInfo::Clear(Renderer::GetSettings().ClearColor));
-		for (uint8_t stage = (uint8_t)RenderStage::Opaque; stage < (uint8_t)RenderStage::Count; stage++)
+		const RenderTargetBeginInfo clear = RenderTargetBeginInfo::Clear(Renderer::GetSettings().ClearColor);
+		if (view.SceneColor != nullptr && view.Graph->HasPass(TonemapPassName))
 		{
-			ExecuteStage((RenderStage)stage, context);
+			// HDR (post-processing plan P1): the scene pass draws into the scene colour with the view's depth and
+			// entity ID (cleared once, here); PostProcess runs between the passes; the output pass loads depth and
+			// IDs again, the Tonemap pass fills the view's colour and the overlay and debug lines go on top.
+			view.PassColorTarget = view.SceneColor.get();
+			view.Target->Begin(commandBuffer, frame, clear, view.SceneColor.get());
+			for (uint8_t stage = (uint8_t)RenderStage::Opaque; stage <= (uint8_t)RenderStage::AfterLighting; stage++)
+			{
+				ExecuteStage((RenderStage)stage, context);
+			}
+			view.Target->End(commandBuffer, frame, view.SceneColor.get());
+			view.PassColorTarget = nullptr;
+
+			ExecuteStage(RenderStage::PostProcess, context);
+
+			RenderTargetBeginInfo output;
+			output.ColorLoad = AttachmentLoadOp::DontCare; // the tonemap writes every pixel
+			output.DepthLoad = AttachmentLoadOp::Load;
+			output.EntityIDLoad = AttachmentLoadOp::Load;
+			view.Target->Begin(commandBuffer, frame, output);
+			for (uint8_t stage = (uint8_t)RenderStage::Resolve; stage < (uint8_t)RenderStage::Count; stage++)
+			{
+				ExecuteStage((RenderStage)stage, context);
+			}
+			view.Target->End(commandBuffer, frame);
 		}
-		view.Target->End(commandBuffer, frame);
+		else
+		{
+			// One rendering pass per view per frame, so its target is cleared exactly once. Every later stage
+			// records into it, in stage order (PostProcess has nothing to run inside a pass). End() moves the
+			// image to SHADER_READ_ONLY_OPTIMAL for ImGui, which samples it later in this command buffer.
+			view.Target->Begin(commandBuffer, frame, clear);
+			for (uint8_t stage = (uint8_t)RenderStage::Opaque; stage < (uint8_t)RenderStage::Count; stage++)
+			{
+				if ((RenderStage)stage != RenderStage::PostProcess)
+				{
+					ExecuteStage((RenderStage)stage, context);
+				}
+			}
+			view.Target->End(commandBuffer, frame);
+		}
 
 		s_Data->Stats.BatchesAllocated += (uint32_t)view.QuadVertexBufferBases.size();
 
@@ -2100,6 +2180,50 @@ namespace Hydro
 		s_Data->Stats.SunShadowViewCount++;
 	}
 
+	void Renderer2D::RecordTonemap(RenderPassContext& context)
+	{
+		RenderViewData& view = context.View;
+		if (view.SceneColor == nullptr)
+		{
+			return;
+		}
+		VulkanPipeline* pipeline = GetViewPipeline(ViewPipelineKind::Tonemap, *view.Target, false);
+		if (pipeline == nullptr)
+		{
+			return;
+		}
+
+		// This frame's scene colour (left in SHADER_READ_ONLY_OPTIMAL by the scene pass's End), read texel for texel.
+		const VulkanImageInfo& image = view.SceneColor->GetImage(context.Frame).GetVulkanImageInfo();
+		view.TonemapSet = VulkanDescriptorAllocator::AllocateFrame(s_Data->TonemapLayout);
+		if (view.TonemapSet == VK_NULL_HANDLE)
+		{
+			return;
+		}
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.sampler = image.Sampler;
+		imageInfo.imageView = image.ImageView;
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = view.TonemapSet;
+		write.dstBinding = 0;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		write.descriptorCount = 1;
+		write.pImageInfo = &imageInfo;
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 1, &write, 0, nullptr);
+
+		TonemapPushConstants constants;
+		constants.ExposureScale = std::exp2(std::clamp(view.PostProcess.Exposure, -16.0f, 16.0f));
+
+		pipeline->Bind(context.CommandBuffer, view.Target->GetExtent());
+		pipeline->BindDescriptorSet(context.CommandBuffer, 0, view.TonemapSet);
+		pipeline->PushConstants(context.CommandBuffer, &constants, (uint32_t)sizeof(constants));
+		vkCmdDraw(context.CommandBuffer, 3, 1, 0, 0);
+		s_Data->Stats.DrawCalls++;
+		s_Data->Stats.HDRViewCount++;
+	}
+
 	void Renderer2D::RecordQuadDraws(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame, const std::vector<QuadDraw>& draws, SpriteDrawMode mode, bool overlay, bool debugLines)
 	{
 		const bool hasDraws = std::any_of(draws.begin(), draws.end(), [](const QuadDraw& draw) { return draw.IndexCount != 0; });
@@ -2131,8 +2255,8 @@ namespace Hydro
 		// Overlay quads can be pickable too: HUD sprites carry their entity (outlines and lines don't).
 		// Forward lit views shade sprites in their shaders (the overlay and debug lines stay unlit).
 		const bool lit = view.Features.Lighting == LightingMode::Forward && view.LightingSubmitted && overlay == false && debugLines == false;
-		VulkanPipeline* pickablePipeline = GetViewPipeline(kind, *view.Target, debugLines == false, lit);
-		VulkanPipeline* otherPipeline = hasEntityID ? GetViewPipeline(kind, *view.Target, false, lit) : pickablePipeline;
+		VulkanPipeline* pickablePipeline = GetViewPipeline(kind, *view.Target, debugLines == false, lit, view.PassColorTarget);
+		VulkanPipeline* otherPipeline = hasEntityID ? GetViewPipeline(kind, *view.Target, false, lit, view.PassColorTarget) : pickablePipeline;
 
 		// Bound by every pass that draws quads: the pass before may have bound another pipeline (the composite).
 		// Viewport/scissor follow the view's size.
@@ -2442,6 +2566,25 @@ namespace Hydro
 				}));
 		}
 
+		// HDR (post-processing plan P1): the scene renders into an RGBA16F scene colour; the Tonemap pass (first in
+		// the output pass) writes the view's sRGB colour from it through exposure and PBR Neutral; the overlay and
+		// debug lines are drawn after it, untouched by exposure and the tonemap.
+		if (settings.HDR)
+		{
+			features.push_back(CreateScope<FunctionRenderFeature>("HDR", nullptr,
+				[](RenderGraphBuilder& builder)
+				{
+					builder.RequireSceneColor(SceneColorFormat);
+					builder.ImportResource("HDRColor");
+					builder.ImportResource("SceneColor");
+					builder.AddPass({ TonemapPassName, RenderStage::Resolve, { "HDRColor" }, { "SceneColor" },
+						[](RenderPassContext& context)
+						{
+							RecordTonemap(context);
+						} });
+				}));
+		}
+
 		// Editor debug lines (M7): selection bounds, light reach, spot cones, the sun's direction, depth tested.
 		if (editorView)
 		{
@@ -2490,6 +2633,22 @@ namespace Hydro
 		context.Capabilities = Renderer::GetCapabilities();
 		context.EditorView = view.EditorView;
 		view.Graph = CreateScope<RenderGraph>(CreateRenderFeatures(view.Features, view.EditorView), context, view.DebugName);
+
+		// HDR: the scene colour, made or dropped with the feature (old images through the deletion queue).
+		const ImageFormat sceneColorFormat = view.Graph->GetSceneColorFormat();
+		if (sceneColorFormat == ImageFormat::None)
+		{
+			view.SceneColor.reset();
+		}
+		else if (view.SceneColor == nullptr || view.SceneColor->GetSpecification().ColorFormats[0] != sceneColorFormat)
+		{
+			RenderTargetSpecification specification;
+			specification.Width = view.Target->GetWidth();
+			specification.Height = view.Target->GetHeight();
+			specification.ColorFormats = { sceneColorFormat };
+			specification.DebugName = view.DebugName + " scene colour";
+			view.SceneColor = CreateScope<VulkanRenderTarget>(specification);
+		}
 
 		// A target recreation when the features need other attachments (depth, entity ID). The old images go
 		// through the deletion queue.
@@ -2683,7 +2842,7 @@ namespace Hydro
 	void Renderer2D::RecordComposite(VkCommandBuffer commandBuffer, RenderViewData& view, uint32_t frame)
 	{
 		// Built for the view's attachments (depth, entity ID); it never writes entity IDs.
-		VulkanPipeline* pipeline = GetViewPipeline(ViewPipelineKind::Composite, *view.Target, false);
+		VulkanPipeline* pipeline = GetViewPipeline(ViewPipelineKind::Composite, *view.Target, false, false, view.PassColorTarget);
 		if (pipeline == nullptr)
 		{
 			return;
@@ -2794,6 +2953,10 @@ namespace Hydro
 		// The old images and framebuffers go through the deletion queue: the other frame in flight
 		// may still be drawing into or sampling them, so there is no need to wait for the GPU.
 		view.Target->Resize(width, height);
+		if (view.SceneColor != nullptr)
+		{
+			view.SceneColor->Resize(width, height);
+		}
 		// A click made on the old size points at another pixel now.
 		view.PickGeneration++;
 

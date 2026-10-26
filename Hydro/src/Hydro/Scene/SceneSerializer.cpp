@@ -47,6 +47,14 @@ namespace Hydro
 			out << YAML::Key << "FogEnd" << YAML::Value << environment.FogEnd;
 			out << YAML::EndMap;
 		}
+		// Only when it differs from the defaults, so scenes that don't use it are saved as before.
+		const ScenePostProcess& postProcess = m_Scene->GetPostProcess();
+		if (postProcess != ScenePostProcess{})
+		{
+			out << YAML::Key << "PostProcess" << YAML::Value << YAML::BeginMap;
+			out << YAML::Key << "Exposure" << YAML::Value << postProcess.Exposure;
+			out << YAML::EndMap;
+		}
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
 		// The scene's list order (what the hierarchy shows). Only "real" entities (made through
@@ -129,6 +137,17 @@ namespace Hydro
 			environment.FogEnd = environmentNode["FogEnd"].as<float>(environment.FogEnd);
 		}
 		m_Scene->SetEnvironment(environment);
+
+		ScenePostProcess postProcess;
+		YAML::Node postProcessNode = data["PostProcess"];
+		if (postProcessNode && postProcessNode.IsMap())
+		{
+			if (auto exposure = postProcessNode["Exposure"])
+			{
+				postProcess.Exposure = exposure.as<float>(postProcess.Exposure);
+			}
+		}
+		m_Scene->SetPostProcess(postProcess);
 
 		size_t count = 0;
 		if (auto entities = data["Entities"])

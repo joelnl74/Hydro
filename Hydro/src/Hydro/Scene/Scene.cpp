@@ -75,6 +75,7 @@ namespace Hydro
 		copy->m_ViewportHeight = source->m_ViewportHeight;
 		copy->m_RenderSettings = source->m_RenderSettings;
 		copy->m_Environment = source->m_Environment;
+		copy->m_PostProcess = source->m_PostProcess;
 
 		const entt::registry& sourceRegistry = source->m_Registry;
 

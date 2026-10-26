@@ -13,6 +13,8 @@ namespace Hydro
 			case RenderStage::Opaque:        return "Opaque";
 			case RenderStage::Translucent:   return "Translucent";
 			case RenderStage::AfterLighting: return "AfterLighting";
+			case RenderStage::PostProcess:   return "PostProcess";
+			case RenderStage::Resolve:       return "Resolve";
 			case RenderStage::Overlay:       return "Overlay";
 			case RenderStage::Debug:         return "Debug";
 			default:                         return "?";
@@ -113,6 +115,7 @@ namespace Hydro
 
 		m_DepthFormat = builder.m_DepthFormat;
 		m_EntityID = builder.m_EntityID;
+		m_SceneColorFormat = builder.m_SceneColorFormat;
 
 		// Logged once per build (a pass-list rebuild happens only when the view's settings change).
 		for (const RenderValidationMessage& message : m_Messages)

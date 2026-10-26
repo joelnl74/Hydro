@@ -61,6 +61,14 @@ namespace Hydro
 	// dropped, the farthest from the camera first.
 	static constexpr uint32_t MaxForwardLights = MaxForwardLightsPerView;
 
+	// Push constants (std430) of the Tonemap pass (tonemap.frag, post-processing plan P1).
+	struct TonemapPushConstants
+	{
+		float ExposureScale = 1.0f; // 2^Exposure
+		float Padding[3] = { 0.0f, 0.0f, 0.0f };
+	};
+	static_assert(sizeof(TonemapPushConstants) == 16, "TonemapPushConstants: must match the push_constant block in tonemap.frag");
+
 	// Push constants (std430) of a drawn object: its transform, its entity (-1 = none) for the Editor view's
 	// entity-ID attachment, and its material's index. 80 bytes, within the 128 Vulkan guarantees. Used by
 	// meshes from M4 on.

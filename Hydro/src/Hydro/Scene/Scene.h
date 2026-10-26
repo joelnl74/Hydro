@@ -10,6 +10,7 @@
 #include "Hydro/Core/UUID.h"
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/Lighting.h"
+#include "Hydro/Renderer/PostProcess.h"
 #include "Components/Components.h"
 
 namespace Hydro
@@ -110,6 +111,9 @@ namespace Hydro
 		// Ambient and fog under forward lighting (M6; saved, copied on Play).
 		const SceneEnvironment& GetEnvironment() const { return m_Environment; }
 		void SetEnvironment(const SceneEnvironment& environment) { m_Environment = environment; }
+		// Exposure (later bloom) of HDR views (post-processing plan P1; saved, copied on Play).
+		const ScenePostProcess& GetPostProcess() const { return m_PostProcess; }
+		void SetPostProcess(const ScenePostProcess& postProcess) { m_PostProcess = postProcess; }
 		// The scene's sun (DirectionalLightComponent): the one marked IsMainLight, else the first in entity
 		// order; invalid when there is none. More than one marked logs a warning once.
 		Entity GetMainLight();
@@ -159,6 +163,7 @@ namespace Hydro
 		std::string m_Name;
 		SceneRenderSettings m_RenderSettings;
 		SceneEnvironment m_Environment;
+		ScenePostProcess m_PostProcess;
 		bool m_MainLightWarned = false;
 		std::vector<entt::entity> m_EntityOrder;
 		uint32_t m_ViewportWidth = 1280;

@@ -37,10 +37,13 @@ namespace Hydro
 		// ones. Does nothing when the size is unchanged; 0 is not allowed (callers skip minimised views).
 		void Resize(uint32_t width, uint32_t height);
 
-		// Transitions `frame`'s attachments and begins rendering into all of them.
-		void Begin(VkCommandBuffer commandBuffer, uint32_t frame, const RenderTargetBeginInfo& info);
-		// Ends rendering; colour attachments go to SHADER_READ_ONLY_OPTIMAL (see the class comment).
-		void End(VkCommandBuffer commandBuffer, uint32_t frame);
+		// Transitions `frame`'s attachments and begins rendering into all of them. `colorTarget` (the HDR scene
+		// colour, P1): draw into that target's colour images instead of this one's, with this target's depth and
+		// entity ID; it must be the same size. Its images' layouts are tracked by it, as always.
+		void Begin(VkCommandBuffer commandBuffer, uint32_t frame, const RenderTargetBeginInfo& info, VulkanRenderTarget* colorTarget = nullptr);
+		// Ends rendering; colour attachments (`colorTarget`'s when one was given to Begin) go to
+		// SHADER_READ_ONLY_OPTIMAL (see the class comment).
+		void End(VkCommandBuffer commandBuffer, uint32_t frame, VulkanRenderTarget* colorTarget = nullptr);
 
 		// Colour attachment 0 of `frame` (what views show and capture).
 		const VulkanImage& GetImage(uint32_t frame) const { return *m_Frames[frame].Colors[0]; }
@@ -56,7 +59,8 @@ namespace Hydro
 
 		// The attachment layout pipelines are built for: colour formats in order (the entity ID last when
 		// there is one) and the depth format. Two targets with equal layouts share pipelines.
-		std::vector<ImageFormat> GetPipelineColorFormats() const;
+		// With `colorTarget`: the layout of a pass begun with it (its colour formats, this target's entity ID).
+		std::vector<ImageFormat> GetPipelineColorFormats(const VulkanRenderTarget* colorTarget = nullptr) const;
 		ImageFormat GetPipelineDepthFormat() const { return m_Specification.DepthFormat; }
 
 	private:

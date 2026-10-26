@@ -71,6 +71,7 @@ namespace Hydro
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
+		Renderer2D::SetPostProcess(m_Scene->GetPostProcess());
 		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();
@@ -106,6 +107,7 @@ namespace Hydro
 
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
+		Renderer2D::SetPostProcess(m_Scene->GetPostProcess());
 		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();

@@ -7,6 +7,7 @@
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Image.h"
 #include "Hydro/Renderer/Lighting.h"
+#include "Hydro/Renderer/PostProcess.h"
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/RenderGraph.h"
 #include "Hydro/Renderer/Mesh.h"
@@ -32,6 +33,8 @@ namespace Hydro
 	// (PipelineSpecification::ColorFormats), so a target and the pipelines drawing into it must agree.
 	static constexpr ImageFormat ViewColorFormat = ImageFormat::SRGB;
 	static constexpr ImageFormat LightBufferFormat = ImageFormat::RGBA16F;
+	// The HDR scene colour (post-processing plan P1): linear, values above 1 kept for the tonemap and bloom.
+	static constexpr ImageFormat SceneColorFormat = ImageFormat::RGBA16F;
 
 	// Sun shadows (R14): every view's shadow map (Renderer2D's SunShadows feature; Renderer3D draws the mesh
 	// casters into it too).
@@ -199,6 +202,16 @@ namespace Hydro
 		VkDescriptorSet LightBufferSet = VK_NULL_HANDLE;  // the composite's input this frame (a per-frame set: LightTarget's image)
 		PerFrameBuffers LightVertexBuffers;                    // 4 vertices per light, then 4 per shadow
 		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
+
+		// ---- HDR (post-processing plan P1) -----------------------------------------------
+		// The scene colour the scene pass draws into when the graph asks for one (RenderGraph::GetSceneColorFormat;
+		// the HDR feature), with Target's depth and entity ID; the Tonemap pass writes Target's colour from it.
+		// The view's size, resized with it; null without HDR.
+		Scope<VulkanRenderTarget> SceneColor;
+		// While the HDR scene pass records: SceneColor (pipelines are built for its colour format). Null otherwise.
+		VulkanRenderTarget* PassColorTarget = nullptr;
+		ScenePostProcess PostProcess;     // Renderer2D::SetPostProcess this frame; reset with the batches
+		VkDescriptorSet TonemapSet = VK_NULL_HANDLE; // the Tonemap pass's input this frame (a per-frame set)
 
 		// ---- Sun shadows (R14) ------------------------------------------------------------
 		// The SunShadows feature's depth map (DEPTH32F, RendererSettings::SunShadowMapSize square), made the

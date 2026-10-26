@@ -76,6 +76,7 @@ namespace Hydro
 			StatsUI::Row("Debug lines", "%u", stats.DebugLineCount);
 			StatsUI::Row("Sun shadow maps", "%u", stats.SunShadowViewCount);
 			StatsUI::Row("Sprite shadow casters", "%u", stats.ShadowCasterQuads);
+			StatsUI::Row("HDR views", "%u (scene colour + tonemap)", stats.HDRViewCount);
 			ImGui::EndTable();
 		}
 

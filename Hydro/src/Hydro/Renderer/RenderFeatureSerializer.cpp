@@ -36,6 +36,7 @@ namespace Hydro
 		out << YAML::Key << "Meshes" << YAML::Value << settings.Meshes;
 		out << YAML::Key << "Shadows" << YAML::Value << ShadowsToString(settings.Shadows);
 		out << YAML::Key << "SpriteShadows" << YAML::Value << SpriteShadowsToString(settings.SpriteShadows);
+		out << YAML::Key << "HDR" << YAML::Value << settings.HDR;
 		out << YAML::EndMap;
 	}
 
@@ -114,6 +115,11 @@ namespace Hydro
 			{
 				settings.Shadows = ShadowMode::Off;
 			}
+		}
+		// Settings saved before HDR (P1) have no key: the 8-bit path, as before.
+		if (auto value = node["HDR"])
+		{
+			settings.HDR = value.as<bool>(settings.HDR);
 		}
 		if (auto value = node["SpriteShadows"])
 		{
