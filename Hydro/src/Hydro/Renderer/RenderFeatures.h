@@ -73,19 +73,22 @@ namespace Hydro
 		// HDR scene colour (post-processing plan P1): the scene renders into RGBA16F and a Tonemap pass (exposure,
 		// PBR Neutral) writes the view's sRGB colour; the overlay and debug lines are drawn after it.
 		bool HDR = false;
+		// Bloom (post-processing plan P2): a soft glow around what is brighter than the scene's threshold, added
+		// to the HDR scene colour before the tonemap. Needs HDR.
+		bool Bloom = false;
 
 		bool operator==(const RenderFeatureSettings& other) const
 		{
 			return Depth == other.Depth && SpriteSorting == other.SpriteSorting && Lighting == other.Lighting
 				&& DefaultSpriteAlpha == other.DefaultSpriteAlpha && Meshes == other.Meshes
-				&& Shadows == other.Shadows && SpriteShadows == other.SpriteShadows && HDR == other.HDR;
+				&& Shadows == other.Shadows && SpriteShadows == other.SpriteShadows && HDR == other.HDR && Bloom == other.Bloom;
 		}
 		bool operator!=(const RenderFeatureSettings& other) const { return (*this == other) == false; }
 
 		// Today's frame: painter's order, the 2D light buffer, no depth.
 		static RenderFeatureSettings Preset2D() { return {}; }
 		// Shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows with
-		// sun-facing sprite shadows, HDR with the Neutral tonemap.
+		// sun-facing sprite shadows, HDR with the Neutral tonemap, bloom.
 		static RenderFeatureSettings Preset3D()
 		{
 			RenderFeatureSettings settings;
@@ -97,6 +100,7 @@ namespace Hydro
 			settings.Shadows = ShadowMode::Sun;
 			settings.SpriteShadows = SpriteShadowMode::FaceSun;
 			settings.HDR = true;
+			settings.Bloom = true;
 			return settings;
 		}
 		// "2D", "3D" or "Custom".

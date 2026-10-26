@@ -76,6 +76,11 @@ namespace Hydro
 
 		// HDR (post-processing plan P1): views that rendered through an HDR scene colour and the tonemap.
 		uint32_t HDRViewCount = 0;
+		// Bloom (plan P2): views that drew it, and the levels of the last one (the first level's size).
+		uint32_t BloomViewCount = 0;
+		uint32_t BloomLevelCount = 0;
+		uint32_t BloomWidth = 0;
+		uint32_t BloomHeight = 0;
 
 		// Frame / target.
 		uint32_t ViewCount = 0;      // views rendered this frame
@@ -258,6 +263,9 @@ namespace Hydro
 		// The Tonemap pass (Resolve, HDR views): the scene colour times 2^exposure through PBR Neutral into the
 		// view's colour.
 		static void RecordTonemap(RenderPassContext& context);
+		// The Bloom pass (PostProcess, HDR views with the Bloom feature): prefilter with a soft threshold into half
+		// resolution, then down and up the level chain; level 0 ends up holding the glow the tonemap adds.
+		static void RecordBloom(RenderPassContext& context);
 		// Runs one stage of the view's render graph: each pass in a debug label, timed when it can be.
 		static void ExecuteStage(RenderStage stage, RenderPassContext& context);
 		// The draw list quads go to now (overlay, or the current sprite draw mode's list).

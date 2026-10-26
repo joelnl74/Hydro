@@ -55,7 +55,10 @@ namespace Hydro
 		Composite,  // the 2D light composite
 		DebugLines, // editor lines in the scene (M7): depth test, no depth write, never IDs
 		ShadowCaster, // sun shadow casters (R14): depth only, alpha tested, into a view's shadow map
-		Tonemap       // HDR views (post-processing plan P1): the scene colour through exposure and PBR Neutral, a fullscreen triangle
+		Tonemap,      // HDR views (post-processing plan P1): the scene colour through exposure and the tonemap, a fullscreen triangle
+		BloomPrefilter, // bloom (plan P2): the scene colour -> half resolution, soft threshold
+		BloomDown,      // bloom: one level -> the next, half the size
+		BloomUp         // bloom: one level, filtered, added onto the level above it
 	};
 
 	// The pipeline cache's key: the attachment layout (colour formats in order, depth format; one sample per
@@ -124,9 +127,10 @@ namespace Hydro
 		VkSampler ShadowSampler = VK_NULL_HANDLE;
 		Scope<VulkanRenderTarget> EmptyShadowMap;
 
-		// HDR (post-processing plan P1): set 0 of tonemap.frag, the scene colour (one sampled image). Owned by the
-		// descriptor allocator's layout cache.
+		// HDR (post-processing plan P1): set 0 of tonemap.frag, the scene colour and the bloom (two sampled images);
+		// set 0 of the bloom shaders, their source (one). Owned by the descriptor allocator's layout cache.
 		VkDescriptorSetLayout TonemapLayout = VK_NULL_HANDLE;
+		VkDescriptorSetLayout BloomLayout = VK_NULL_HANDLE;
 
 		// The pipeline's set 0 layout. Every view's target has the same attachment format (ViewColorFormat)
 		// and its descriptor sets are built exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so
@@ -321,6 +325,10 @@ namespace Hydro
 	static constexpr const char* TonemapShaderName = "Tonemap";
 	// The HDR feature's pass (looked up by name to know whether a view renders through the scene colour).
 	static constexpr const char* TonemapPassName = "Tonemap";
+	// Bloom (plan P2), on composite.vert's fullscreen triangle.
+	static constexpr const char* BloomPrefilterShaderName = "BloomPrefilter";
+	static constexpr const char* BloomDownShaderName = "BloomDown";
+	static constexpr const char* BloomUpShaderName = "BloomUp";
 
 	// The shader loaded under `name`, loading it the first time. Throws when it doesn't compile.
 	static VulkanShader& GetOrLoadShader(const char* name, const char* vertexPath, const char* fragmentPath)
@@ -472,6 +480,9 @@ namespace Hydro
 			case ViewPipelineKind::Composite: return CompositeShaderName;
 			case ViewPipelineKind::ShadowCaster: return SpriteShadowCasterShaderName;
 			case ViewPipelineKind::Tonemap: return TonemapShaderName;
+			case ViewPipelineKind::BloomPrefilter: return BloomPrefilterShaderName;
+			case ViewPipelineKind::BloomDown: return BloomDownShaderName;
+			case ViewPipelineKind::BloomUp: return BloomUpShaderName;
 			case ViewPipelineKind::Sprite:
 			case ViewPipelineKind::Decal: return lit ? SpriteLitShaderName : SpriteShaderName;
 			default: return SpriteShaderName;
@@ -555,6 +566,31 @@ namespace Hydro
 				specification.DescriptorSetLayouts = { s_Data->TonemapLayout };
 				specification.PushConstantSize = (uint32_t)sizeof(TonemapPushConstants);
 				specification.Blend = BlendMode::None;
+				specification.BackfaceCulling = false;
+				specification.DepthTest = false;
+				specification.DepthWrite = false;
+				break;
+
+			case ViewPipelineKind::BloomPrefilter:
+			case ViewPipelineKind::BloomDown:
+			case ViewPipelineKind::BloomUp:
+				// Fullscreen triangles into one bloom level: the source in set 0, its texel size and the pass's
+				// parameters in push constants. Up passes add onto the level they draw into.
+				if (key.Kind == ViewPipelineKind::BloomPrefilter)
+				{
+					specification.Shader = &GetOrLoadShader(BloomPrefilterShaderName, "assets/shaders/composite.vert", "assets/shaders/bloom_prefilter.frag");
+				}
+				else if (key.Kind == ViewPipelineKind::BloomDown)
+				{
+					specification.Shader = &GetOrLoadShader(BloomDownShaderName, "assets/shaders/composite.vert", "assets/shaders/bloom_down.frag");
+				}
+				else
+				{
+					specification.Shader = &GetOrLoadShader(BloomUpShaderName, "assets/shaders/composite.vert", "assets/shaders/bloom_up.frag");
+				}
+				specification.DescriptorSetLayouts = { s_Data->BloomLayout };
+				specification.PushConstantSize = (uint32_t)sizeof(BloomPushConstants);
+				specification.Blend = key.Kind == ViewPipelineKind::BloomUp ? BlendMode::Additive : BlendMode::None;
 				specification.BackfaceCulling = false;
 				specification.DepthTest = false;
 				specification.DepthWrite = false;
@@ -735,14 +771,17 @@ namespace Hydro
 			});
 		}
 
-		// HDR: the tonemap's input, one sampled image.
+		// HDR: the tonemap's inputs (scene colour, bloom) and a bloom pass's source, sampled images.
 		{
 			VkDescriptorSetLayoutBinding binding{};
 			binding.binding = 0;
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			binding.descriptorCount = 1;
 			binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-			s_Data->TonemapLayout = VulkanDescriptorAllocator::GetLayout({ binding });
+			s_Data->BloomLayout = VulkanDescriptorAllocator::GetLayout({ binding });
+			VkDescriptorSetLayoutBinding bloomBinding = binding;
+			bloomBinding.binding = 1;
+			s_Data->TonemapLayout = VulkanDescriptorAllocator::GetLayout({ binding, bloomBinding });
 		}
 
 		BufferSpecification layoutSpecification;
@@ -1033,6 +1072,7 @@ namespace Hydro
 		view.InShadowCasters = false;
 		view.PostProcess = ScenePostProcess{};
 		view.TonemapSet = VK_NULL_HANDLE;
+		view.BloomDrawn = false;
 		view.Lighting = SceneLighting{};
 		view.LightingSubmitted = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
@@ -2180,6 +2220,113 @@ namespace Hydro
 		s_Data->Stats.SunShadowViewCount++;
 	}
 
+	// Bloom levels: at most this many, each half the previous; none smaller than BloomMinLevelSize on either side.
+	static constexpr uint32_t BloomMaxLevels = 6;
+	static constexpr uint32_t BloomMinLevelSize = 8;
+
+	// One fullscreen pass of the bloom chain: `source` (sampled, SHADER_READ_ONLY_OPTIMAL) into `target`'s image of
+	// `frame`, cleared or added onto (`load`). Leaves `target` readable.
+	static void RecordBloomStep(VkCommandBuffer commandBuffer, uint32_t frame, ViewPipelineKind kind, const VulkanImage& source,
+		VulkanRenderTarget& target, bool load, const glm::vec2& extra)
+	{
+		VulkanPipeline* pipeline = GetViewPipeline(kind, target, false);
+		VkDescriptorSet set = VulkanDescriptorAllocator::AllocateFrame(s_Data->BloomLayout);
+		if (pipeline == nullptr || set == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		const VulkanImageInfo& image = source.GetVulkanImageInfo();
+		VkDescriptorImageInfo imageInfo{ image.Sampler, image.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = set;
+		write.dstBinding = 0;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		write.descriptorCount = 1;
+		write.pImageInfo = &imageInfo;
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 1, &write, 0, nullptr);
+
+		BloomPushConstants constants;
+		constants.Params = glm::vec4(1.0f / (float)source.GetWidth(), 1.0f / (float)source.GetHeight(), extra.x, extra.y);
+
+		RenderTargetBeginInfo begin = RenderTargetBeginInfo::Clear(glm::vec4(0.0f));
+		begin.ColorLoad = load ? AttachmentLoadOp::Load : AttachmentLoadOp::DontCare; // every pixel is drawn
+		target.Begin(commandBuffer, frame, begin);
+		pipeline->Bind(commandBuffer, target.GetExtent());
+		pipeline->BindDescriptorSet(commandBuffer, 0, set);
+		pipeline->PushConstants(commandBuffer, &constants, (uint32_t)sizeof(constants));
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		target.End(commandBuffer, frame);
+		s_Data->Stats.DrawCalls++;
+	}
+
+	void Renderer2D::RecordBloom(RenderPassContext& context)
+	{
+		RenderViewData& view = context.View;
+		view.BloomDrawn = false;
+		const ScenePostProcess& settings = view.PostProcess;
+		if (view.SceneColor == nullptr || settings.Bloom == false || settings.BloomIntensity <= 0.0f)
+		{
+			return;
+		}
+
+		// The chain for this size: made again (old images through the deletion queue) when the view's size changes.
+		const uint32_t width = view.SceneColor->GetWidth();
+		const uint32_t height = view.SceneColor->GetHeight();
+		uint32_t levelCount = 0;
+		while (levelCount < BloomMaxLevels && std::min(width, height) >> (levelCount + 1) >= BloomMinLevelSize)
+		{
+			levelCount++;
+		}
+		if (levelCount == 0)
+		{
+			return; // a view too small to bloom
+		}
+		const bool sizeMatches = view.BloomLevels.size() == levelCount && view.BloomLevels[0]->GetWidth() == std::max(width >> 1, 1u)
+			&& view.BloomLevels[0]->GetHeight() == std::max(height >> 1, 1u);
+		if (sizeMatches == false)
+		{
+			view.BloomLevels.clear();
+			for (uint32_t level = 0; level < levelCount; level++)
+			{
+				RenderTargetSpecification specification;
+				specification.Width = std::max(width >> (level + 1), 1u);
+				specification.Height = std::max(height >> (level + 1), 1u);
+				specification.ColorFormats = { SceneColorFormat };
+				specification.DebugName = view.DebugName + " bloom " + std::to_string(level);
+				view.BloomLevels.push_back(CreateScope<VulkanRenderTarget>(specification));
+			}
+		}
+
+		// Prefilter: the scene colour -> level 0, a 13-tap downsample (Karis-weighted against fireflies) with the
+		// soft threshold. Then each level -> the next. Then back up: each level filtered and added onto the one
+		// above it, so level 0 ends up with every level's glow.
+		VkCommandBuffer commandBuffer = context.CommandBuffer;
+		const uint32_t frame = context.Frame;
+		const float threshold = std::max(settings.BloomThreshold, 0.0f);
+		const float knee = std::clamp(settings.BloomKnee, 0.0f, 1.0f) * threshold;
+		RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomPrefilter, view.SceneColor->GetImage(frame), *view.BloomLevels[0], false,
+			glm::vec2(threshold, knee));
+		for (uint32_t level = 1; level < levelCount; level++)
+		{
+			RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomDown, view.BloomLevels[level - 1]->GetImage(frame), *view.BloomLevels[level],
+				false, glm::vec2(0.0f));
+		}
+		const float radius = std::clamp(settings.BloomRadius, 0.25f, 4.0f);
+		for (uint32_t level = levelCount - 1; level > 0; level--)
+		{
+			RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomUp, view.BloomLevels[level]->GetImage(frame), *view.BloomLevels[level - 1],
+				true, glm::vec2(radius, 0.0f));
+		}
+
+		view.BloomDrawn = true;
+		s_Data->Stats.BloomViewCount++;
+		s_Data->Stats.BloomLevelCount = levelCount;
+		s_Data->Stats.BloomWidth = view.BloomLevels[0]->GetWidth();
+		s_Data->Stats.BloomHeight = view.BloomLevels[0]->GetHeight();
+	}
+
 	void Renderer2D::RecordTonemap(RenderPassContext& context)
 	{
 		RenderViewData& view = context.View;
@@ -2193,28 +2340,34 @@ namespace Hydro
 			return;
 		}
 
-		// This frame's scene colour (left in SHADER_READ_ONLY_OPTIMAL by the scene pass's End), read texel for texel.
+		// This frame's scene colour (left in SHADER_READ_ONLY_OPTIMAL by the scene pass's End), read texel for texel,
+		// and the bloom's level 0 (filtered: half the size); without bloom binding 1 repeats the scene colour, unread.
 		const VulkanImageInfo& image = view.SceneColor->GetImage(context.Frame).GetVulkanImageInfo();
+		const VulkanImageInfo& bloom = view.BloomDrawn ? view.BloomLevels[0]->GetImage(context.Frame).GetVulkanImageInfo() : image;
 		view.TonemapSet = VulkanDescriptorAllocator::AllocateFrame(s_Data->TonemapLayout);
 		if (view.TonemapSet == VK_NULL_HANDLE)
 		{
 			return;
 		}
-		VkDescriptorImageInfo imageInfo{};
-		imageInfo.sampler = image.Sampler;
-		imageInfo.imageView = image.ImageView;
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		VkWriteDescriptorSet write{};
-		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		write.dstSet = view.TonemapSet;
-		write.dstBinding = 0;
-		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		write.descriptorCount = 1;
-		write.pImageInfo = &imageInfo;
-		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 1, &write, 0, nullptr);
+		VkDescriptorImageInfo imageInfos[2]{};
+		imageInfos[0] = { image.Sampler, image.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		imageInfos[1] = { bloom.Sampler, bloom.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		VkWriteDescriptorSet writes[2]{};
+		for (uint32_t i = 0; i < 2; i++)
+		{
+			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writes[i].dstSet = view.TonemapSet;
+			writes[i].dstBinding = i;
+			writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writes[i].descriptorCount = 1;
+			writes[i].pImageInfo = &imageInfos[i];
+		}
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 2, writes, 0, nullptr);
 
 		TonemapPushConstants constants;
 		constants.ExposureScale = std::exp2(std::clamp(view.PostProcess.Exposure, -16.0f, 16.0f));
+		// Level 0 holds every level added together (the up chain): divide by the count for one level's worth.
+		constants.BloomIntensity = view.BloomDrawn ? std::max(view.PostProcess.BloomIntensity, 0.0f) / (float)view.BloomLevels.size() : 0.0f;
 
 		pipeline->Bind(context.CommandBuffer, view.Target->GetExtent());
 		pipeline->BindDescriptorSet(context.CommandBuffer, 0, view.TonemapSet);
@@ -2571,18 +2724,49 @@ namespace Hydro
 		// debug lines are drawn after it, untouched by exposure and the tonemap.
 		if (settings.HDR)
 		{
+			// Bloom (plan P2): the chain at PostProcess, read by the Tonemap pass.
+			const bool bloom = settings.Bloom;
+			if (bloom)
+			{
+				features.push_back(CreateScope<FunctionRenderFeature>("Bloom", nullptr,
+					[](RenderGraphBuilder& builder)
+					{
+						builder.ImportResource("HDRColor");
+						builder.AddPass({ "Bloom", RenderStage::PostProcess, { "HDRColor" }, { "BloomTexture" },
+							[](RenderPassContext& context)
+							{
+								RecordBloom(context);
+							} });
+					}));
+			}
+
 			features.push_back(CreateScope<FunctionRenderFeature>("HDR", nullptr,
-				[](RenderGraphBuilder& builder)
+				[bloom](RenderGraphBuilder& builder)
 				{
 					builder.RequireSceneColor(SceneColorFormat);
 					builder.ImportResource("HDRColor");
 					builder.ImportResource("SceneColor");
-					builder.AddPass({ TonemapPassName, RenderStage::Resolve, { "HDRColor" }, { "SceneColor" },
+					std::vector<std::string> reads = { "HDRColor" };
+					if (bloom)
+					{
+						reads.push_back("BloomTexture");
+					}
+					builder.AddPass({ TonemapPassName, RenderStage::Resolve, reads, { "SceneColor" },
 						[](RenderPassContext& context)
 						{
 							RecordTonemap(context);
 						} });
 				}));
+		}
+		else if (settings.Bloom)
+		{
+			// Only to report it: bloom needs the HDR scene colour.
+			features.push_back(CreateScope<FunctionRenderFeature>("Bloom",
+				[](const RenderFeature& feature, const RenderGraphContext&, std::vector<RenderValidationMessage>& out)
+				{
+					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "bloom needs HDR");
+				},
+				[](RenderGraphBuilder&) {}));
 		}
 
 		// Editor debug lines (M7): selection bounds, light reach, spot cones, the sun's direction, depth tested.

@@ -77,6 +77,7 @@ namespace Hydro
 			StatsUI::Row("Sun shadow maps", "%u", stats.SunShadowViewCount);
 			StatsUI::Row("Sprite shadow casters", "%u", stats.ShadowCasterQuads);
 			StatsUI::Row("HDR views", "%u (scene colour + tonemap)", stats.HDRViewCount);
+			StatsUI::Row("Bloom", "%u views, %u levels from %u x %u", stats.BloomViewCount, stats.BloomLevelCount, stats.BloomWidth, stats.BloomHeight);
 			ImGui::EndTable();
 		}
 

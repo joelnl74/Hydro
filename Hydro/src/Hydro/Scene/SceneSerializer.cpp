@@ -53,6 +53,11 @@ namespace Hydro
 		{
 			out << YAML::Key << "PostProcess" << YAML::Value << YAML::BeginMap;
 			out << YAML::Key << "Exposure" << YAML::Value << postProcess.Exposure;
+			out << YAML::Key << "Bloom" << YAML::Value << postProcess.Bloom;
+			out << YAML::Key << "BloomThreshold" << YAML::Value << postProcess.BloomThreshold;
+			out << YAML::Key << "BloomKnee" << YAML::Value << postProcess.BloomKnee;
+			out << YAML::Key << "BloomIntensity" << YAML::Value << postProcess.BloomIntensity;
+			out << YAML::Key << "BloomRadius" << YAML::Value << postProcess.BloomRadius;
 			out << YAML::EndMap;
 		}
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
@@ -145,6 +150,26 @@ namespace Hydro
 			if (auto exposure = postProcessNode["Exposure"])
 			{
 				postProcess.Exposure = exposure.as<float>(postProcess.Exposure);
+			}
+			if (auto bloom = postProcessNode["Bloom"])
+			{
+				postProcess.Bloom = bloom.as<bool>(postProcess.Bloom);
+			}
+			if (auto threshold = postProcessNode["BloomThreshold"])
+			{
+				postProcess.BloomThreshold = threshold.as<float>(postProcess.BloomThreshold);
+			}
+			if (auto knee = postProcessNode["BloomKnee"])
+			{
+				postProcess.BloomKnee = knee.as<float>(postProcess.BloomKnee);
+			}
+			if (auto intensity = postProcessNode["BloomIntensity"])
+			{
+				postProcess.BloomIntensity = intensity.as<float>(postProcess.BloomIntensity);
+			}
+			if (auto radius = postProcessNode["BloomRadius"])
+			{
+				postProcess.BloomRadius = radius.as<float>(postProcess.BloomRadius);
 			}
 		}
 		m_Scene->SetPostProcess(postProcess);

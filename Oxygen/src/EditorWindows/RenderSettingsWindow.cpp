@@ -72,7 +72,7 @@ namespace Hydro
 			}
 			ImGui::EndCombo();
 		}
-		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows, HDR.\nChanging a setting below makes it Custom.");
+		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows, HDR, bloom.\nChanging a setting below makes it Custom.");
 
 		static const char* depthNames[] = { "Off", "Shared" };
 		changed |= EnumCombo("Depth", features.Depth, depthNames, 2);
@@ -92,7 +92,11 @@ namespace Hydro
 		HelpMarker("How cut-out Upright and Billboard sprites cast.\nNone: they don't (they still receive).\nAs drawn: the quad the camera sees; thin when the sun comes from the side.\nFace the sun: the quad turned about its feet to face the sun, so the shadow is always\nas wide as the sprite, and the sprite is never darkened by its own shadow.");
 		ImGui::EndDisabled();
 		changed |= ImGui::Checkbox("HDR", &features.HDR);
-		HelpMarker("The scene renders into a 16-bit float colour, so lanterns and emission can be brighter than white;\nthe scene's exposure and the PBR Neutral tonemap bring it to the screen (Post-processing (scene)).\nThe HUD and debug lines are drawn after the tonemap. Off: the 8-bit colour path.");
+		HelpMarker("The scene renders into a 16-bit float colour, so lanterns and emission can be brighter than white;\nthe scene's exposure and the tonemap bring it to the screen (Post-processing (scene)).\nThe HUD and debug lines are drawn after the tonemap. Off: the 8-bit colour path.");
+		ImGui::BeginDisabled(features.HDR == false);
+		changed |= ImGui::Checkbox("Bloom", &features.Bloom);
+		ImGui::EndDisabled();
+		HelpMarker("A soft glow around what is brighter than the scene's bloom threshold (lantern flames, lit windows,\nemissive materials). Needs HDR. Strength and threshold: Post-processing (scene).");
 
 		// Errors leave the feature out (the frame still draws); warnings keep it.
 		const std::vector<RenderValidationMessage> messages = Renderer2D::ValidateRenderFeatures(features, false);
@@ -240,6 +244,22 @@ namespace Hydro
 				ScenePostProcess postProcess = editorScene->GetPostProcess();
 				bool postProcessChanged = ImGui::DragFloat("Exposure", &postProcess.Exposure, 0.05f, -8.0f, 8.0f, "%.2f EV");
 				HelpMarker("HDR views only (render features: HDR). In stops: +1 twice as bright, -1 half. 0 = as lit.");
+
+				// A plain separator and label: the vendored ImGui (1.89 WIP) has no SeparatorText.
+				ImGui::Separator();
+				ImGui::TextDisabled("Bloom");
+				postProcessChanged |= ImGui::Checkbox("Bloom on", &postProcess.Bloom);
+				HelpMarker("With the Bloom render feature. Off: a quick before/after comparison (the feature stays on).");
+				ImGui::BeginDisabled(postProcess.Bloom == false);
+				postProcessChanged |= ImGui::DragFloat("Threshold", &postProcess.BloomThreshold, 0.01f, 0.0f, 16.0f, "%.2f");
+				HelpMarker("Linear brightness where the glow starts. Above 1: only emission and very bright lights glow.");
+				postProcessChanged |= ImGui::SliderFloat("Knee", &postProcess.BloomKnee, 0.0f, 1.0f, "%.2f");
+				HelpMarker("How softly the glow fades in below the threshold (part of the threshold). 0: a hard cut.");
+				postProcessChanged |= ImGui::DragFloat("Intensity", &postProcess.BloomIntensity, 0.01f, 0.0f, 8.0f, "%.2f");
+				HelpMarker("How much glow is added. Keep it low: a halo around lamps, not a haze over the scene.");
+				postProcessChanged |= ImGui::SliderFloat("Radius", &postProcess.BloomRadius, 0.5f, 2.0f, "%.2f");
+				HelpMarker("How far the glow spreads.");
+				ImGui::EndDisabled();
 				if (ImGui::Button("Reset##PostProcess"))
 				{
 					postProcess = ScenePostProcess{};

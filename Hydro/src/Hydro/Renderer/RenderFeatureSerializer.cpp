@@ -37,6 +37,7 @@ namespace Hydro
 		out << YAML::Key << "Shadows" << YAML::Value << ShadowsToString(settings.Shadows);
 		out << YAML::Key << "SpriteShadows" << YAML::Value << SpriteShadowsToString(settings.SpriteShadows);
 		out << YAML::Key << "HDR" << YAML::Value << settings.HDR;
+		out << YAML::Key << "Bloom" << YAML::Value << settings.Bloom;
 		out << YAML::EndMap;
 	}
 
@@ -120,6 +121,10 @@ namespace Hydro
 		if (auto value = node["HDR"])
 		{
 			settings.HDR = value.as<bool>(settings.HDR);
+		}
+		if (auto value = node["Bloom"])
+		{
+			settings.Bloom = value.as<bool>(settings.Bloom);
 		}
 		if (auto value = node["SpriteShadows"])
 		{

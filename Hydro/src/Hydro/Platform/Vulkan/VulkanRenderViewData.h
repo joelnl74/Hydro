@@ -212,6 +212,10 @@ namespace Hydro
 		VulkanRenderTarget* PassColorTarget = nullptr;
 		ScenePostProcess PostProcess;     // Renderer2D::SetPostProcess this frame; reset with the batches
 		VkDescriptorSet TonemapSet = VK_NULL_HANDLE; // the Tonemap pass's input this frame (a per-frame set)
+		// Bloom (plan P2): the chain, level 0 at half the view's size, each next one half again (RGBA16F), made by
+		// the Bloom pass when the view's size or level count changes. After the pass level 0 holds the glow.
+		std::vector<Scope<VulkanRenderTarget>> BloomLevels;
+		bool BloomDrawn = false; // this frame: the Tonemap pass adds level 0
 
 		// ---- Sun shadows (R14) ------------------------------------------------------------
 		// The SunShadows feature's depth map (DEPTH32F, RendererSettings::SunShadowMapSize square), made the

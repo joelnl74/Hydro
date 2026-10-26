@@ -2,18 +2,20 @@
 
 // The Tonemap pass of HDR views (post-processing plan P1; Renderer2D::RecordTonemap): the HDR scene colour,
 // times the scene's exposure, through the highlight roll-off of Khronos PBR Neutral, into the view's sRGB colour. Uses
-// composite.vert's fullscreen triangle. Linear in, linear out: the sRGB attachment encodes it (no gamma here).
+// composite.vert's fullscreen triangle. The bloom is added first (plan P2). Linear in, linear out: the sRGB attachment encodes it (no gamma here).
 
-// The scene colour (RGBA16F, the view's size), read texel for texel.
+// The scene colour (RGBA16F, the view's size), read texel for texel, and the bloom (plan P2: level 0 of the chain,
+// half the size, filtered up; the scene colour again, unread, without bloom).
 layout(set = 0, binding = 0) uniform sampler2D sceneColor;
+layout(set = 0, binding = 1) uniform sampler2D bloomColor;
 
 // Must match TonemapPushConstants in VulkanGPUData.h (std430, 16 bytes). Padding as three floats: a vec3 would
 // be aligned to 16 bytes and make the block 28 bytes long.
 layout(push_constant) uniform TonemapPushConstants {
-    float exposureScale; // 2^exposure
+    float exposureScale;  // 2^exposure
+    float bloomIntensity; // 0 = no bloom
     float padding0;
     float padding1;
-    float padding2;
 } tonemap;
 
 layout(location = 0) in vec2 fragUV;
@@ -47,6 +49,11 @@ vec3 NeutralHighlightRolloff(vec3 color)
 void main()
 {
 	vec3 hdr = texelFetch(sceneColor, ivec2(gl_FragCoord.xy), 0).rgb;
+	// The glow is added to the scene before exposure and the tonemap, in linear HDR, so it rolls off with it.
+	if (tonemap.bloomIntensity > 0.0)
+	{
+		hdr += texture(bloomColor, fragUV).rgb * tonemap.bloomIntensity;
+	}
 	vec3 exposed = max(hdr * tonemap.exposureScale, vec3(0.0));
 	outColor = vec4(NeutralHighlightRolloff(exposed), 1.0);
 }
