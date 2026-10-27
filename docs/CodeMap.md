@@ -92,7 +92,8 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 | `Scene/Prefab.*` | `Prefab` asset: a `.hyprefab` read into memory (name + saved entity), loaded and cached by the `AssetManager` |
 | `Scene/Vfx.*` | `Vfx::Play(scene, effect, position)`: instantiates a loaded effect prefab as a one-shot |
 | **Physics** | |
-| `Physics/PhysicsEngine.*` | `PhysicsEngine` subsystem: Box2D assert hook and length unit, version, a Debug-build self test (floor + falling box) |
+| `Physics/PhysicsEngine.*` | `PhysicsEngine` subsystem: Box2D assert hook and length unit, Jolt's allocator / trace and assert hooks / type registration, versions, Debug-build self tests (Box2D: floor + falling box) |
+| `Physics/JoltSelfTest.cpp` | `PhysicsEngine::RunJoltSelfTest`: MVP0 spike, a Z-up Jolt world with a floor, a falling box and a `CharacterVirtual` walking up a ramp. Remove once `PhysicsScene3D` has tests |
 | `Physics/PhysicsScene.*` | `PhysicsScene`: the Box2D world of one running `Scene` (created by `Scene::OnRuntimeStart`, destroyed on stop). Bodies from Rigidbody2D / collider components, 60 Hz fixed steps (max 4 a frame), dynamic results written back to transforms, kinematic bodies carried to their transforms; `Physics2D::SetLinearVelocity` for game code; bodies for entities spawned during play (`CreateNewBodies`, `EnsureBody`). Collision and trigger events are collected after each step and delivered by `Scene::DispatchPhysicsEvents` to `ScriptableEntity::OnCollisionEnter/Exit`, `OnTriggerEnter/Exit`. No interpolation yet |
 | **Project, Utils** | |
 | `Project/Project.*`, `ProjectSerializer.*` | Active project, `ProjectConfig` (`.hyproj`) |
@@ -170,6 +171,7 @@ Dead files (delete when convenient): `Core/DeltaTime.h`, `Core/LayerController.*
 ## Gotchas
 
 - **Box2D** is a git submodule at `Hydro/vendor/box2d`, pinned to v3.1.1 (`git submodule update --init Hydro/vendor/box2d`). `Hydro/vendor/box2d.premake5.lua` builds it as a C17 static library; Debug is optimised on purpose (see the comment there). Only `Physics/` includes `<box2d/box2d.h>`.
+- **Jolt Physics** is a git submodule at `Hydro/vendor/JoltPhysics`, pinned to v5.6.0 (`git submodule update --init Hydro/vendor/JoltPhysics`). `Hydro/vendor/JoltPhysics.premake5.lua` builds it as a C++17 static library with no debug renderer, profiler, object stream or AVX; the same defines (`JoltDefines()` in `Dependencies.lua`) must be used by every project that includes Jolt headers. Only `Physics/` includes `<Jolt/...>`.
 - **cgltf** (vendored single header `Hydro/vendor/cgltf/cgltf.h`, v1.14, MIT): the glTF reader; its implementation is compiled in `Renderer/MeshImporter.cpp` (`CGLTF_IMPLEMENTATION`). It replaced tinyobjloader (`Hydro/vendor/Obj-loader`, unused).
 - **ImGuizmo** (vendored `Hydro/vendor/ImGuizmo/ImGuizmo.h` / `.cpp`, MIT; commit in its `README.txt`): the Editor window's transform gizmo. Compiled into **Oxygen** only (`Oxygen/premake5.lua`, warnings off), included as `<ImGuizmo.h>` (`IncludeDir.ImGuizmo`); the engine never uses it.
 - **Old EnTT** (vendored single header `Hydro/vendor/entt/entt.hpp`, no version macro): `registry.has<T>`, `view.get<A, B>(e)`; no `all_of`/`any_of` (upgrade is Roadmap E2).

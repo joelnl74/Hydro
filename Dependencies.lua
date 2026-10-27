@@ -9,6 +9,7 @@ IncludeDir["ImGuizmo"] = "%{wks.location}/Hydro/vendor/ImGuizmo" -- Oxygen only 
 IncludeDir["glm"] = "%{wks.location}/Hydro/vendor/glm"
 IncludeDir["yaml_cpp"] = "%{wks.location}/Hydro/vendor/yaml-cpp/include"
 IncludeDir["box2d"] = "%{wks.location}/Hydro/vendor/box2d/include"
+IncludeDir["JoltPhysics"] = "%{wks.location}/Hydro/vendor/JoltPhysics" -- Jolt headers are included as <Jolt/Jolt.h>
 IncludeDir["VMA"] = "%{wks.location}/Hydro/vendor/VulkanMemoryAllocator"
 IncludeDir["entt"] = "%{wks.location}/Hydro/vendor/entt"
 IncludeDir["spdlog"] = "%{wks.location}/Hydro/vendor/spdlog/include"
@@ -44,6 +45,22 @@ function ExternalIncludeDirs(dirs)
 		end
 		buildoptions(options)
 	end
+end
+
+-- Jolt's compile options. They change class layouts, so EVERY project that includes Jolt headers
+-- (the JoltPhysics library and Hydro) must use exactly these; JPH::RegisterTypes() reports a mismatch.
+-- Mirrors Jolt's own CMake defaults except: no debug renderer, no profiler, no object stream, no
+-- floating point exceptions and no AVX (see Hydro/vendor/JoltPhysics.premake5.lua).
+function JoltDefines()
+	filter "configurations:Debug"
+		defines { "JPH_ENABLE_ASSERTS" }
+
+	-- Jolt's own switch for its extra debug code (its CMake uses NDEBUG, which would also change
+	-- assert() in all of Hydro).
+	filter "configurations:Release or configurations:Dist"
+		defines { "JPH_NO_DEBUG" }
+
+	filter {}
 end
 
 -- Warnings as errors (/WX) when FatalWarnings is set in the root premake5.lua.

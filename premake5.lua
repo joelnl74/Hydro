@@ -39,6 +39,7 @@ group "Dependencies"
 	include "Hydro/vendor/imgui"
 	include "Hydro/vendor/yaml-cpp"
 	include "Hydro/vendor/box2d.premake5.lua"
+	include "Hydro/vendor/JoltPhysics.premake5.lua"
 group ""
 
 include "Hydro"
