@@ -508,6 +508,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7458953749652738188
     TagComponent:
       Tag: Valley Floor
@@ -528,6 +530,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8807538173640413050
     TagComponent:
       Tag: Ground Grass
@@ -548,6 +552,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5753391315789227724
     TagComponent:
       Tag: Ground Grass Edge
@@ -568,6 +574,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8189581117626086932
     TagComponent:
       Tag: Ground Grass Edge 2
@@ -588,6 +596,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7570037973066813213
     TagComponent:
       Tag: Path Front
@@ -608,6 +618,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4955177502358802919
     TagComponent:
       Tag: Path Front Foot
@@ -628,6 +640,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5803790203461660648
     TagComponent:
       Tag: Terrace Plaza
@@ -648,6 +662,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7957815929213587826
     TagComponent:
       Tag: Terrace Plaza Grass
@@ -668,6 +684,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5432513094667077972
     TagComponent:
       Tag: Plaza Flagstones
@@ -688,6 +706,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4393578636301137422
     TagComponent:
       Tag: Terrace Shrine
@@ -708,6 +728,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2281126974000708784
     TagComponent:
       Tag: Terrace Shrine Grass
@@ -728,6 +750,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5351118989706147307
     TagComponent:
       Tag: Terrace Shrine Wing
@@ -748,6 +772,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4899517776196063126
     TagComponent:
       Tag: Terrace Shrine Wing Grass
@@ -768,6 +794,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2624562158415547146
     TagComponent:
       Tag: Stair Cheek
@@ -788,6 +816,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1729396566701569954
     TagComponent:
       Tag: Terrace Shrine Wing 2
@@ -808,6 +838,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5353298771903886002
     TagComponent:
       Tag: Terrace Shrine Wing Grass 2
@@ -828,6 +860,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2320738562060352614
     TagComponent:
       Tag: Stair Cheek 2
@@ -848,6 +882,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6558869169972364186
     TagComponent:
       Tag: Shrine Court
@@ -868,6 +904,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8515305111740748694
     TagComponent:
       Tag: Stairs Lower
@@ -889,6 +927,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7613471989851975182
     TagComponent:
       Tag: Stairs Upper
@@ -910,6 +950,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6311203232215681168
     TagComponent:
       Tag: Wall Cap Plaza
@@ -930,6 +972,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1505727454848945903
     TagComponent:
       Tag: Wall Cap Plaza 2
@@ -950,6 +994,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5166945656330968641
     TagComponent:
       Tag: Wall Cap Plaza 3
@@ -970,6 +1016,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7425987203734965734
     TagComponent:
       Tag: Wall Cap Plaza 4
@@ -990,6 +1038,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6662772201243757376
     TagComponent:
       Tag: Wall Cap Plaza 5
@@ -1010,6 +1060,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7906522327163976691
     TagComponent:
       Tag: Wall Cap Plaza 6
@@ -1030,6 +1082,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2527948357259927303
     TagComponent:
       Tag: Wall Cap Plaza 7
@@ -1050,6 +1104,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 773123555178643788
     TagComponent:
       Tag: Wall Cap Plaza 8
@@ -1070,6 +1126,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 845492964463967847
     TagComponent:
       Tag: Wall Cap Plaza 9
@@ -1090,6 +1148,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7164320130199976604
     TagComponent:
       Tag: Wall Cap Plaza 10
@@ -1110,6 +1170,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3337124279908404704
     TagComponent:
       Tag: Wall Cap Plaza 11
@@ -1130,6 +1192,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5847559104597394918
     TagComponent:
       Tag: Wall Cap Plaza 12
@@ -1150,6 +1214,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1953418137308004398
     TagComponent:
       Tag: Wall Cap Plaza 13
@@ -1170,6 +1236,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 908369025737313716
     TagComponent:
       Tag: Wall Cap Plaza 14
@@ -1190,6 +1258,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6194520972437999494
     TagComponent:
       Tag: Wall Cap Plaza 15
@@ -1210,6 +1280,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4747281194309335822
     TagComponent:
       Tag: Wall Cap Plaza 16
@@ -1230,6 +1302,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7805224987371383176
     TagComponent:
       Tag: Wall Cap Plaza 17
@@ -1250,6 +1324,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7155407756160490488
     TagComponent:
       Tag: Wall Cap Plaza 18
@@ -1270,6 +1346,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1273806039289209297
     TagComponent:
       Tag: Wall Cap Plaza 19
@@ -1290,6 +1368,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4935017702404054395
     TagComponent:
       Tag: Wall Cap Plaza 20
@@ -1310,6 +1390,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3555136805284418759
     TagComponent:
       Tag: Wall Cap Plaza 21
@@ -1330,6 +1412,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7069448526951985673
     TagComponent:
       Tag: Wall Cap Plaza 22
@@ -1350,6 +1434,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1278011063003308618
     TagComponent:
       Tag: Wall Cap Plaza 23
@@ -1370,6 +1456,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5016664434440846020
     TagComponent:
       Tag: Wall Cap Plaza 24
@@ -1390,6 +1478,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 685913359080542988
     TagComponent:
       Tag: Wall Cap Plaza 25
@@ -1410,6 +1500,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6930055733920663580
     TagComponent:
       Tag: Wall Cap Plaza 26
@@ -1430,6 +1522,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 34249273909459401
     TagComponent:
       Tag: Wall Cap Plaza 27
@@ -1450,6 +1544,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5867843396339236631
     TagComponent:
       Tag: Wall Cap Plaza 28
@@ -1470,6 +1566,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6543531299812066310
     TagComponent:
       Tag: Wall Cap Plaza 29
@@ -1490,6 +1588,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8866353264712754530
     TagComponent:
       Tag: Wall Cap Plaza 30
@@ -1510,6 +1610,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2885794085897668535
     TagComponent:
       Tag: Wall Cap Plaza 31
@@ -1530,6 +1632,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3803385140129810928
     TagComponent:
       Tag: Wall Cap Shrine
@@ -1550,6 +1654,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5887961172886319865
     TagComponent:
       Tag: Wall Cap Shrine 2
@@ -1570,6 +1676,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 356680169201318040
     TagComponent:
       Tag: Wall Cap Shrine 3
@@ -1590,6 +1698,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8894935740019644716
     TagComponent:
       Tag: Wall Cap Shrine 4
@@ -1610,6 +1720,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2846680908690746388
     TagComponent:
       Tag: Wall Cap Shrine 5
@@ -1630,6 +1742,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4206092570406631770
     TagComponent:
       Tag: Wall Cap Shrine 6
@@ -1650,6 +1764,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8326227920863824179
     TagComponent:
       Tag: Wall Cap Shrine 7
@@ -1670,6 +1786,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8735023156015568589
     TagComponent:
       Tag: Wall Cap Shrine 8
@@ -1690,6 +1808,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3454992027889865362
     TagComponent:
       Tag: Wall Cap Shrine 9
@@ -1710,6 +1830,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 9166361167937593962
     TagComponent:
       Tag: Wall Cap Shrine 10
@@ -1730,6 +1852,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8630116035093661486
     TagComponent:
       Tag: Wall Cap Shrine 11
@@ -1750,6 +1874,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8547254777559575877
     TagComponent:
       Tag: Wall Cap Shrine 12
@@ -1770,6 +1896,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2030860637933084364
     TagComponent:
       Tag: Wall Cap Shrine 13
@@ -1790,6 +1918,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 416527593288914124
     TagComponent:
       Tag: Wall Cap Shrine 14
@@ -1810,6 +1940,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4908159784227151078
     TagComponent:
       Tag: Wall Cap Shrine 15
@@ -1830,6 +1962,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2037198732528482752
     TagComponent:
       Tag: Wall Cap Shrine 16
@@ -1850,6 +1984,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1684541796418389298
     TagComponent:
       Tag: Wall Cap Shrine 17
@@ -1870,6 +2006,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8652564143360849158
     TagComponent:
       Tag: Wall Cap Shrine 18
@@ -1890,6 +2028,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1940930316472422989
     TagComponent:
       Tag: Wall Cap Shrine 19
@@ -1910,6 +2050,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3716253595337743614
     TagComponent:
       Tag: Wall Cap Shrine 20
@@ -1930,6 +2072,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7491804880912362847
     TagComponent:
       Tag: Wall Cap Shrine 21
@@ -1950,6 +2094,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7123793936139557571
     TagComponent:
       Tag: Wall Cap Shrine 22
@@ -1970,6 +2116,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3784010921243725180
     TagComponent:
       Tag: Wall Cap Shrine 23
@@ -1990,6 +2138,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3874323033101327834
     TagComponent:
       Tag: Wall Cap Shrine 24
@@ -2010,6 +2160,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6677460425899615057
     TagComponent:
       Tag: Wall Cap Shrine 25
@@ -2030,6 +2182,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5544227745021545800
     TagComponent:
       Tag: Wall Cap Shrine 26
@@ -2050,6 +2204,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8369709252544194314
     TagComponent:
       Tag: Wall Cap Shrine 27
@@ -2070,6 +2226,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5229008243375619890
     TagComponent:
       Tag: Wall Cap Shrine 28
@@ -2090,6 +2248,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5212864785955759564
     TagComponent:
       Tag: Wall Cap Shrine 29
@@ -2110,6 +2270,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1554060658117780648
     TagComponent:
       Tag: Wall Collider Plaza
@@ -2124,6 +2286,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [7.8, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5888645764482305797
     TagComponent:
       Tag: Wall Collider Plaza 2
@@ -2138,6 +2305,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [7.8, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7905517575359651115
     TagComponent:
       Tag: Wall Collider Shrine
@@ -2152,6 +2324,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [9.3, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4518005068882461278
     TagComponent:
       Tag: Wall Collider Shrine 2
@@ -2166,6 +2343,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [9.3, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7413762374198159990
     TagComponent:
       Tag: Edge Collider Path
@@ -2180,6 +2362,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 9, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8532437754109950822
     TagComponent:
       Tag: Edge Collider Path 2
@@ -2194,6 +2381,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 9, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4996242501176892941
     TagComponent:
       Tag: Edge Collider Plaza
@@ -2208,6 +2400,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4426207858467569186
     TagComponent:
       Tag: Edge Collider Plaza 2
@@ -2222,6 +2419,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8173915135289971587
     TagComponent:
       Tag: Edge Collider Shrine
@@ -2236,6 +2438,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 11, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7779626026576073833
     TagComponent:
       Tag: Edge Collider Shrine 2
@@ -2250,6 +2457,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 11, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4377922040100137191
     TagComponent:
       Tag: Shrine
@@ -2264,6 +2476,8 @@ Entities:
       CastShadows: true
       Materials:
         []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 551434808120924651
     TagComponent:
       Tag: Shrine Collider
@@ -2278,6 +2492,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [6.9, 5, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3569926238660948754
     TagComponent:
       Tag: Shrine Steps Collider
@@ -2292,6 +2511,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [2, 0.8, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 9074558629336959517
     TagComponent:
       Tag: Save Shrine
@@ -2322,6 +2546,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4538, 0.8]
+      Size: [0.2522, 0.0923, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5515472067107185271
     TagComponent:
       Tag: Stone Lantern Plaza
@@ -2336,6 +2565,8 @@ Entities:
       CastShadows: true
       Materials:
         []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2262075435441861790
     TagComponent:
       Tag: Light Lantern Plaza
@@ -2363,6 +2594,8 @@ Entities:
       CastShadows: true
       Materials:
         []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6937428809024089171
     TagComponent:
       Tag: Light Lantern Plaza 2
@@ -2390,6 +2623,8 @@ Entities:
       CastShadows: true
       Materials:
         []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 139897495579264246
     TagComponent:
       Tag: Light Lantern Shrine
@@ -2417,6 +2652,8 @@ Entities:
       CastShadows: true
       Materials:
         []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2137775062052176025
     TagComponent:
       Tag: Light Lantern Shrine 2
@@ -4068,6 +4305,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4684, 0.8]
+      Size: [0.1123, 0.0632, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 699350774627236690
     TagComponent:
       Tag: Tree Edge 2
@@ -4091,6 +4333,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4667, 0.8]
+      Size: [0.119, 0.0667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3393387075336188158
     TagComponent:
       Tag: Tree Edge 3
@@ -4114,6 +4361,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4647, 0.8]
+      Size: [0.1454, 0.0706, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 295768166836184961
     TagComponent:
       Tag: Tree Edge 4
@@ -4137,6 +4389,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4647, 0.8]
+      Size: [0.1255, 0.0706, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8823823183394312717
     TagComponent:
       Tag: Tree Edge 5
@@ -4160,6 +4417,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4647, 0.8]
+      Size: [0.126, 0.0706, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 713238376006688916
     TagComponent:
       Tag: Tree Edge 6
@@ -4183,6 +4445,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4625, 0.8]
+      Size: [0.1545, 0.075, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5213298615977695097
     TagComponent:
       Tag: Tree Woods
@@ -4430,6 +4697,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4608, 0.8]
+      Size: [0.2896, 0.0784, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3234991372300481100
     TagComponent:
       Tag: Banner 2
@@ -4453,6 +4725,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4608, 0.8]
+      Size: [0.2896, 0.0784, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2351806747789743990
     TagComponent:
       Tag: Stone Jizo
@@ -4476,6 +4753,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.3745, 0.8]
+      Size: [0.9, 0.251, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7993783122074570228
     TagComponent:
       Tag: Grave Jizo
@@ -4499,6 +4781,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.3745, 0.8]
+      Size: [0.6667, 0.251, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6385243566750986607
     TagComponent:
       Tag: Fence
@@ -4522,6 +4809,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7574286129711183763
     TagComponent:
       Tag: Fence 2
@@ -4545,6 +4837,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7453084886519827924
     TagComponent:
       Tag: Fence 3
@@ -4568,6 +4865,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1200767070766460179
     TagComponent:
       Tag: Fence 4
@@ -4591,6 +4893,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1003594150906450496
     TagComponent:
       Tag: Fence 5
@@ -4614,6 +4921,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4596083341498587596
     TagComponent:
       Tag: Fence 6
@@ -4637,6 +4949,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7440603027905974541
     TagComponent:
       Tag: Fence 7
@@ -4660,6 +4977,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6985565054017361923
     TagComponent:
       Tag: Fence 8
@@ -4683,6 +5005,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2293862965215481516
     TagComponent:
       Tag: Fence 9
@@ -4706,6 +5033,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3334285463536224685
     TagComponent:
       Tag: Fence 10
@@ -4729,6 +5061,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4369203868794246245
     TagComponent:
       Tag: Fence Shrine
@@ -4752,6 +5089,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4048, 0.8]
+      Size: [0.9366, 0.1905, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6890928409166240480
     TagComponent:
       Tag: Fence Shrine 2
@@ -4775,6 +5117,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4048, 0.8]
+      Size: [0.9366, 0.1905, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7026622945513857390
     TagComponent:
       Tag: Fence Shrine 3
@@ -4798,6 +5145,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4048, 0.8]
+      Size: [0.9366, 0.1905, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6711044137532731020
     TagComponent:
       Tag: Fence Shrine 4
@@ -4821,6 +5173,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4048, 0.8]
+      Size: [0.9366, 0.1905, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1060591098293658548
     TagComponent:
       Tag: Fence 11
@@ -4844,6 +5201,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7381649197389381211
     TagComponent:
       Tag: Fence 12
@@ -4867,6 +5229,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4198000979323352597
     TagComponent:
       Tag: Fence 13
@@ -4890,6 +5257,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1539389555572081855
     TagComponent:
       Tag: Fence 14
@@ -4913,6 +5285,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 9211926672918371901
     TagComponent:
       Tag: Fence 15
@@ -4936,6 +5313,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3755219560927740202
     TagComponent:
       Tag: Fence 16
@@ -4959,6 +5341,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 520607614045277108
     TagComponent:
       Tag: Fence 17
@@ -4982,6 +5369,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 175105537154289817
     TagComponent:
       Tag: Fence 18
@@ -5005,6 +5397,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5003773439950378204
     TagComponent:
       Tag: Fence 19
@@ -5028,6 +5425,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1080028471873537911
     TagComponent:
       Tag: Fence 20
@@ -5051,6 +5453,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4238, 0.8]
+      Size: [0.9366, 0.1524, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5612979027964244988
     TagComponent:
       Tag: Chest Shrine
@@ -5079,6 +5486,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.15, 0.8]
+      Size: [0.9, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 915656162424463572
     TagComponent:
       Tag: Torii
@@ -5107,6 +5519,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [1, 1, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6534739203578931046
     TagComponent:
       Tag: Torii Post 2
@@ -5121,6 +5538,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [1, 1, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1888277293012762830
     TagComponent:
       Tag: Stone Block
@@ -5144,6 +5566,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.3095, 0.8]
+      Size: [0.9366, 0.381, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7525156853788916664
     TagComponent:
       Tag: Stone Block 2
@@ -5167,6 +5594,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2759, 0.8]
+      Size: [0.9182, 0.4482, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7707297636837786755
     TagComponent:
       Tag: Stone Block 3
@@ -5190,6 +5622,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.246, 0.8]
+      Size: [0.9106, 0.5079, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4271470499060943565
     TagComponent:
       Tag: Player
@@ -5219,6 +5656,13 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - DioramaWalk
+    CharacterBodyComponent:
+      Radius: 0.25
+      Height: 1.4
+      MaxSlopeDegrees: 50
+      StepHeight: 0.35
+      StaysOnLedges: true
+      Layer: Player
   - Entity: 1001152027262274208
     TagComponent:
       Tag: Npc Elder
@@ -5252,6 +5696,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.1, 0.8]
+      Size: [0.5, 0.2, 1.6]
+      Layer: Npc
+      IsTrigger: false
   - Entity: 2618373224733743677
     TagComponent:
       Tag: Sign Shrine
@@ -5275,6 +5724,11 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4167, 0.8]
+      Size: [0.5753, 0.1667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2521931026300517388
     TagComponent:
       Tag: Exit FarmVillage
@@ -5282,6 +5736,11 @@ Entities:
       Translation: [0, -11, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    BoxColliderComponent:
+      Offset: [0, 0, 1]
+      Size: [3, 3, 2]
+      Layer: Trigger
+      IsTrigger: true
   - Entity: 760177823632933339
     TagComponent:
       Tag: Wisp 1
@@ -5334,6 +5793,11 @@ Entities:
       Scripts:
         - EnemyChase
         - VillageYSort
+    BoxColliderComponent:
+      Offset: [0, 0.25, 0.8]
+      Size: [0.55, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6389426620074096688
     TagComponent:
       Tag: Decor Wall Foot
@@ -6778,6 +7242,13 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.5]
+      Size: [0.5, 0.3438, 1]
+      Layer: World
+      IsTrigger: false
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1265149911633745423
     TagComponent:
       Tag: Glade Memorial Small
@@ -6798,6 +7269,13 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.5161]
+      Size: [0.4, 0.2903, 1.0323]
+      Layer: World
+      IsTrigger: false
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4070499645035965011
     TagComponent:
       Tag: Glade Memorial Rounded
@@ -6818,6 +7296,13 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.5]
+      Size: [0.4125, 0.3, 1]
+      Layer: World
+      IsTrigger: false
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6418856515910437563
     TagComponent:
       Tag: Glade Memorial Stone
@@ -6838,6 +7323,13 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.5]
+      Size: [0.375, 0.2812, 1]
+      Layer: World
+      IsTrigger: false
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4132993618227586471
     TagComponent:
       Tag: Glade Offering Bowl
@@ -6851,6 +7343,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3210491131678398033
     TagComponent:
       Tag: Glade Plaque Rack
@@ -6864,6 +7358,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4662439202797745297
     TagComponent:
       Tag: Glade Monk Stool
@@ -6877,6 +7373,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7472300625950887743
     TagComponent:
       Tag: Glade Tea Cup
@@ -6890,6 +7388,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1842999460752541794
     TagComponent:
       Tag: Glade Monk Broom
@@ -6903,6 +7403,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5488526121304600793
     TagComponent:
       Tag: Glade Path Stone
@@ -6916,6 +7418,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6128804450866246028
     TagComponent:
       Tag: Glade Path Stone 2
@@ -6929,6 +7433,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2999846457730276259
     TagComponent:
       Tag: Glade Path Stone 3
@@ -6942,6 +7448,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3356960588077542404
     TagComponent:
       Tag: Glade Path Stone 4
@@ -6955,6 +7463,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8878894406950823129
     TagComponent:
       Tag: Glade Path Stone 5
@@ -6968,6 +7478,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1868628247324371885
     TagComponent:
       Tag: Glade Path Stone 6
@@ -6981,6 +7493,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6214249066076496935
     TagComponent:
       Tag: Glade Path Stone 7
@@ -6994,6 +7508,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3928662666590038833
     TagComponent:
       Tag: Glade Path Stone 8
@@ -7007,6 +7523,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4081058176968086610
     TagComponent:
       Tag: Glade Memorial Candle

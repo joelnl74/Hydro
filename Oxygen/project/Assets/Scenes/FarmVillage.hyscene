@@ -508,6 +508,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2323996406661236207
     TagComponent:
       Tag: Ground North
@@ -528,6 +530,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4789573882939174087
     TagComponent:
       Tag: Stream Bed
@@ -548,6 +552,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4988115523901806813
     TagComponent:
       Tag: Stream Water
@@ -588,6 +594,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5356795822647539340
     TagComponent:
       Tag: Ground Grass South Edge
@@ -608,6 +616,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1809452173059469400
     TagComponent:
       Tag: Ground Grass South Edge 2
@@ -628,6 +638,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 9109405529943747424
     TagComponent:
       Tag: Ground Grass North
@@ -648,6 +660,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 546679311850632967
     TagComponent:
       Tag: Ground Grass North Edge
@@ -668,6 +682,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1245541200443752694
     TagComponent:
       Tag: Ground Grass North Edge 2
@@ -688,6 +704,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3369114694293898628
     TagComponent:
       Tag: Terrace Square
@@ -708,6 +726,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3441544533198919754
     TagComponent:
       Tag: Terrace Square Grass
@@ -728,6 +748,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1966089514330402883
     TagComponent:
       Tag: Terrace North
@@ -748,6 +770,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6253700872493565609
     TagComponent:
       Tag: Terrace North Grass
@@ -768,6 +792,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5036528793411209954
     TagComponent:
       Tag: Terrace Edge Shade
@@ -788,6 +814,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8719019205146168471
     TagComponent:
       Tag: Terrace Edge Shade 2
@@ -808,6 +836,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6579584893309183429
     TagComponent:
       Tag: Terrace Edge Shade 3
@@ -828,6 +858,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 880065840406868425
     TagComponent:
       Tag: Terrace Edge Shade 4
@@ -848,6 +880,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2702878289117538285
     TagComponent:
       Tag: Terrace Far Shade
@@ -868,6 +902,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5770361219158421211
     TagComponent:
       Tag: Stairs Square
@@ -889,6 +925,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 419905763133002748
     TagComponent:
       Tag: Stairs North
@@ -910,6 +948,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4720932221107017421
     TagComponent:
       Tag: Stair Cheek
@@ -930,6 +970,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6096022623203653287
     TagComponent:
       Tag: Stair Cheek 2
@@ -950,6 +992,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5842984691563302421
     TagComponent:
       Tag: Wall Cap
@@ -970,6 +1014,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3259077987921135153
     TagComponent:
       Tag: Wall Cap 2
@@ -990,6 +1036,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8639626683450248100
     TagComponent:
       Tag: Wall Cap 3
@@ -1010,6 +1058,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1682695495715304101
     TagComponent:
       Tag: Wall Cap 4
@@ -1030,6 +1080,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 9099625107647576181
     TagComponent:
       Tag: Wall Cap 5
@@ -1050,6 +1102,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8391610862435914813
     TagComponent:
       Tag: Wall Cap 6
@@ -1070,6 +1124,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7643984880308488234
     TagComponent:
       Tag: Wall Cap 7
@@ -1090,6 +1146,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3171804561531071715
     TagComponent:
       Tag: Wall Cap 8
@@ -1110,6 +1168,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1042430250592983479
     TagComponent:
       Tag: Wall Cap 9
@@ -1130,6 +1190,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4537860998431422763
     TagComponent:
       Tag: Wall Cap 10
@@ -1150,6 +1212,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2205682959693079932
     TagComponent:
       Tag: Wall Cap 11
@@ -1170,6 +1234,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 359570065731056964
     TagComponent:
       Tag: Wall Cap 12
@@ -1190,6 +1256,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5049365838905368629
     TagComponent:
       Tag: Wall Cap 13
@@ -1210,6 +1278,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7267591400424332660
     TagComponent:
       Tag: Wall Cap 14
@@ -1230,6 +1300,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6754428390700483582
     TagComponent:
       Tag: Wall Cap 15
@@ -1250,6 +1322,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1547634335221691263
     TagComponent:
       Tag: Wall Cap 16
@@ -1270,6 +1344,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1509634132156051621
     TagComponent:
       Tag: Wall Cap 17
@@ -1290,6 +1366,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6971897488849867170
     TagComponent:
       Tag: Wall Cap 18
@@ -1310,6 +1388,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2537211938336435131
     TagComponent:
       Tag: Wall Cap 19
@@ -1330,6 +1410,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3330151314498928502
     TagComponent:
       Tag: Wall Cap 20
@@ -1350,6 +1432,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2334185932819036394
     TagComponent:
       Tag: Wall Cap 21
@@ -1370,6 +1454,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5627022680945641281
     TagComponent:
       Tag: Wall Cap 22
@@ -1390,6 +1476,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3079564571512095579
     TagComponent:
       Tag: Wall Cap 23
@@ -1410,6 +1498,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5864999279416221574
     TagComponent:
       Tag: Wall Cap 24
@@ -1430,6 +1520,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6469054390370936616
     TagComponent:
       Tag: Wall Cap 25
@@ -1450,6 +1542,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4211958358747934870
     TagComponent:
       Tag: Wall Cap 26
@@ -1470,6 +1564,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3201440307062656083
     TagComponent:
       Tag: Wall Cap 27
@@ -1490,6 +1586,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6553360549528393677
     TagComponent:
       Tag: Wall Cap 28
@@ -1510,6 +1608,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4456447806438725016
     TagComponent:
       Tag: Wall Cap 29
@@ -1530,6 +1630,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1200904006957576952
     TagComponent:
       Tag: Wall Cap 30
@@ -1550,6 +1652,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6475940037551073380
     TagComponent:
       Tag: Wall Cap 31
@@ -1570,6 +1674,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7428798374104585920
     TagComponent:
       Tag: Wall Cap 32
@@ -1590,6 +1696,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4121623655350239540
     TagComponent:
       Tag: Wall Cap 33
@@ -1610,6 +1718,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 533631851180665546
     TagComponent:
       Tag: Wall Cap 34
@@ -1630,6 +1740,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2117541769584512463
     TagComponent:
       Tag: Wall Cap 35
@@ -1650,6 +1762,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7196472683334916145
     TagComponent:
       Tag: Wall Cap 36
@@ -1670,6 +1784,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5176194523165454012
     TagComponent:
       Tag: Wall Cap 37
@@ -1690,6 +1806,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4444638084294822017
     TagComponent:
       Tag: Wall Cap 38
@@ -1710,6 +1828,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 38728508479457132
     TagComponent:
       Tag: Wall Cap 39
@@ -1730,6 +1850,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4856405938987302022
     TagComponent:
       Tag: Wall Cap 40
@@ -1750,6 +1872,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 599589958201414084
     TagComponent:
       Tag: Wall Cap 41
@@ -1770,6 +1894,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5241705222477307171
     TagComponent:
       Tag: Wall Cap 42
@@ -1790,6 +1916,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5922743011917154898
     TagComponent:
       Tag: Wall Cap 43
@@ -1810,6 +1938,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5190837012375624425
     TagComponent:
       Tag: Wall Cap 44
@@ -1830,6 +1960,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8102656373993090171
     TagComponent:
       Tag: Wall Cap 45
@@ -1850,6 +1982,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8034721351149920330
     TagComponent:
       Tag: Wall Cap 46
@@ -1870,6 +2004,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4875003956028065809
     TagComponent:
       Tag: Wall Cap 47
@@ -1890,6 +2026,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2362119091265527095
     TagComponent:
       Tag: Wall Cap 48
@@ -1910,6 +2048,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3970600981809308951
     TagComponent:
       Tag: Wall Cap 49
@@ -1930,6 +2070,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3926539286798619121
     TagComponent:
       Tag: Wall Cap 50
@@ -1950,6 +2092,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1523211583430145931
     TagComponent:
       Tag: Wall Cap 51
@@ -1970,6 +2114,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7772958976099033571
     TagComponent:
       Tag: Wall Cap 52
@@ -1990,6 +2136,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 790573750227044130
     TagComponent:
       Tag: Wall Cap 53
@@ -2010,6 +2158,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3588155702221021657
     TagComponent:
       Tag: Wall Cap 54
@@ -2030,6 +2180,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6062024799631837225
     TagComponent:
       Tag: Wall Cap 55
@@ -2050,6 +2202,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7512938739937576742
     TagComponent:
       Tag: Wall Cap 56
@@ -2070,6 +2224,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4571339557132125820
     TagComponent:
       Tag: Wall Cap 57
@@ -2090,6 +2246,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6222416200843153234
     TagComponent:
       Tag: Wall Cap 58
@@ -2110,6 +2268,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4004198581022903695
     TagComponent:
       Tag: Wall Cap 59
@@ -2130,6 +2290,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6840784285789774388
     TagComponent:
       Tag: Wall Cap 60
@@ -2150,6 +2312,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5525548119403110648
     TagComponent:
       Tag: Wall Cap 61
@@ -2170,6 +2334,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4025033845552229843
     TagComponent:
       Tag: Wall Cap 62
@@ -2190,6 +2356,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8271342048474157555
     TagComponent:
       Tag: Wall Cap 63
@@ -2210,6 +2378,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2599450943839899155
     TagComponent:
       Tag: Wall Cap 64
@@ -2230,6 +2400,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2852863528950643833
     TagComponent:
       Tag: Wall Cap 65
@@ -2250,6 +2422,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4409840358173441264
     TagComponent:
       Tag: Wall Cap 66
@@ -2270,6 +2444,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2400933411000576577
     TagComponent:
       Tag: Wall Cap 67
@@ -2290,6 +2466,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1097761329350033300
     TagComponent:
       Tag: Wall Cap 68
@@ -2310,6 +2488,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2741140125355624210
     TagComponent:
       Tag: Wall Cap 69
@@ -2330,6 +2510,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7847071437001870103
     TagComponent:
       Tag: Wall Cap 70
@@ -2350,6 +2532,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6615943268419306843
     TagComponent:
       Tag: Wall Cap 71
@@ -2370,6 +2554,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2799646602786980758
     TagComponent:
       Tag: Wall Cap 72
@@ -2390,6 +2576,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1113082935516657771
     TagComponent:
       Tag: Wall Cap 73
@@ -2410,6 +2598,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 212506405286929714
     TagComponent:
       Tag: Wall Cap 74
@@ -2430,6 +2620,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 679706068389737941
     TagComponent:
       Tag: Wall Cap 75
@@ -2450,6 +2642,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5666886185012871009
     TagComponent:
       Tag: Wall Cap 76
@@ -2470,6 +2664,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5767964549238606256
     TagComponent:
       Tag: Wall Cap 77
@@ -2490,6 +2686,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 286267397332183018
     TagComponent:
       Tag: Wall Cap 78
@@ -2510,6 +2708,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7919594788181347247
     TagComponent:
       Tag: Wall Cap 79
@@ -2530,6 +2730,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 70330513006893301
     TagComponent:
       Tag: Wall Cap 80
@@ -2550,6 +2752,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1760128127895255904
     TagComponent:
       Tag: Wall Cap 81
@@ -2570,6 +2774,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2502254641194338911
     TagComponent:
       Tag: Wall Cap 82
@@ -2590,6 +2796,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5744273421127246021
     TagComponent:
       Tag: Bank North
@@ -2603,6 +2811,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6488017186200048424
     TagComponent:
       Tag: Bank South
@@ -2616,6 +2826,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 161463494201960330
     TagComponent:
       Tag: Bank North 2
@@ -2629,6 +2841,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7649597752803827982
     TagComponent:
       Tag: Bank South 2
@@ -2642,6 +2856,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1301301997646569563
     TagComponent:
       Tag: Bank North 3
@@ -2655,6 +2871,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7646258047040717339
     TagComponent:
       Tag: Bank South 3
@@ -2668,6 +2886,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 697844722308881868
     TagComponent:
       Tag: Bank North 4
@@ -2681,6 +2901,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1650804299618376932
     TagComponent:
       Tag: Bank South 4
@@ -2694,6 +2916,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5290687397436441596
     TagComponent:
       Tag: Bank North 5
@@ -2707,6 +2931,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6625029235335760554
     TagComponent:
       Tag: Bank South 5
@@ -2720,6 +2946,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5799655610578662617
     TagComponent:
       Tag: Bank North 6
@@ -2733,6 +2961,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 746588014028873446
     TagComponent:
       Tag: Bank South 6
@@ -2746,6 +2976,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 9166359447885950915
     TagComponent:
       Tag: Bank North 7
@@ -2759,6 +2991,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2284527458093112718
     TagComponent:
       Tag: Bank South 7
@@ -2772,6 +3006,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6084730576851708357
     TagComponent:
       Tag: Bank North 8
@@ -2785,6 +3021,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3205386141154707476
     TagComponent:
       Tag: Bank South 8
@@ -2798,6 +3036,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1937942191476465347
     TagComponent:
       Tag: Bank North 9
@@ -2811,6 +3051,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1705940823129730171
     TagComponent:
       Tag: Bank South 9
@@ -2824,6 +3066,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7366585220087901092
     TagComponent:
       Tag: Bank North 10
@@ -2837,6 +3081,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4700383578774173793
     TagComponent:
       Tag: Bank South 10
@@ -2850,6 +3096,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6494493924824527736
     TagComponent:
       Tag: Bank North 11
@@ -2863,6 +3111,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2512182706447772057
     TagComponent:
       Tag: Bank South 11
@@ -2876,6 +3126,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3567992408812280947
     TagComponent:
       Tag: Bank North 12
@@ -2889,6 +3141,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3469644882396406404
     TagComponent:
       Tag: Bank South 12
@@ -2902,6 +3156,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4523377972007159551
     TagComponent:
       Tag: Bank North 13
@@ -2915,6 +3171,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 9184661797084615055
     TagComponent:
       Tag: Bank South 13
@@ -2928,6 +3186,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1000994790252906915
     TagComponent:
       Tag: Bank North 14
@@ -2941,6 +3201,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 417064966227838101
     TagComponent:
       Tag: Bank South 14
@@ -2954,6 +3216,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8613549766346055123
     TagComponent:
       Tag: Bank North 15
@@ -2967,6 +3231,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7794441228430736930
     TagComponent:
       Tag: Bank South 15
@@ -2980,6 +3246,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3501700384017777332
     TagComponent:
       Tag: Bank North 16
@@ -2993,6 +3261,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7754520844972033595
     TagComponent:
       Tag: Bank South 16
@@ -3006,6 +3276,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2986761063749547358
     TagComponent:
       Tag: Bank North 17
@@ -3019,6 +3291,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4731369904947535690
     TagComponent:
       Tag: Bank South 17
@@ -3032,6 +3306,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4455222683590303536
     TagComponent:
       Tag: Bank North 18
@@ -3045,6 +3321,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 542786846630898295
     TagComponent:
       Tag: Bank South 18
@@ -3058,6 +3336,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1955129199587703381
     TagComponent:
       Tag: Stream Collider
@@ -3072,6 +3352,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [38.6, 2.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3962818100671041578
     TagComponent:
       Tag: Stream Collider 2
@@ -3086,6 +3371,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [38.6, 2.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4901246806680770591
     TagComponent:
       Tag: Road Cobble
@@ -3099,6 +3389,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5844876667527386647
     TagComponent:
       Tag: Road South
@@ -3112,6 +3404,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 169229396948599453
     TagComponent:
       Tag: Road Bend
@@ -3125,6 +3419,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5746774718326630184
     TagComponent:
       Tag: Road East
@@ -3138,6 +3434,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3344020254892912484
     TagComponent:
       Tag: Road East 2
@@ -3151,6 +3449,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4412006238263476901
     TagComponent:
       Tag: Road East 3
@@ -3164,6 +3464,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4482477831713892323
     TagComponent:
       Tag: Road East 4
@@ -3177,6 +3479,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6981945902333321833
     TagComponent:
       Tag: Road Track
@@ -3190,6 +3494,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 727139491934548465
     TagComponent:
       Tag: Road Track 2
@@ -3203,6 +3509,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7780497436295040361
     TagComponent:
       Tag: Road Track 3
@@ -3216,6 +3524,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 281089220308284940
     TagComponent:
       Tag: Road Track 4
@@ -3229,6 +3539,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1494171969121841720
     TagComponent:
       Tag: Road Track 5
@@ -3242,6 +3554,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2086825912516333107
     TagComponent:
       Tag: Road Track 6
@@ -3255,6 +3569,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3865089727900329785
     TagComponent:
       Tag: Lane Fields
@@ -3275,6 +3591,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3570966846938732256
     TagComponent:
       Tag: Square Flagstones
@@ -3295,6 +3613,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1771509329368361678
     TagComponent:
       Tag: Path Inn
@@ -3315,6 +3635,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6224047959268551287
     TagComponent:
       Tag: Path North
@@ -3335,6 +3657,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8981226616329474305
     TagComponent:
       Tag: Yard North
@@ -3355,6 +3679,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1099895472670896626
     TagComponent:
       Tag: Yard Barn
@@ -3375,6 +3701,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6533197419827889722
     TagComponent:
       Tag: Visual Bridge
@@ -3408,6 +3736,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4702294869683216784
     TagComponent:
       Tag: Bridge Walk Ramp
@@ -3428,6 +3758,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5273777533869804323
     TagComponent:
       Tag: Bridge Walk Ramp 2
@@ -3448,6 +3780,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8627894876695182889
     TagComponent:
       Tag: Inn
@@ -3461,6 +3795,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7644305390704417332
     TagComponent:
       Tag: Shop
@@ -3474,6 +3810,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3501342870499281069
     TagComponent:
       Tag: House
@@ -3487,6 +3825,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3439033893737533017
     TagComponent:
       Tag: Barn
@@ -3500,6 +3840,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5853304892901319412
     TagComponent:
       Tag: Door Inn
@@ -3611,6 +3953,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4560857560981642274
     TagComponent:
       Tag: Save Well
@@ -3631,6 +3975,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5999480270081370232
     TagComponent:
       Tag: Stall Produce
@@ -3660,6 +4006,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4664211117303076988
     TagComponent:
       Tag: Cart Sacks
@@ -3689,6 +4037,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6414565357983787909
     TagComponent:
       Tag: Lantern Post Collider
@@ -3703,6 +4053,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.4, 0.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4752112475220594458
     TagComponent:
       Tag: Light Lantern Post
@@ -3729,6 +4084,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5916495719435962031
     TagComponent:
       Tag: Lantern Post Collider 2
@@ -3743,6 +4100,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.4, 0.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4498189678130792772
     TagComponent:
       Tag: Light Lantern Post 2
@@ -3769,6 +4131,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4245133973026064742
     TagComponent:
       Tag: Lantern Post Collider 3
@@ -3783,6 +4147,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.4, 0.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5165507796839873469
     TagComponent:
       Tag: Light Lantern Post 3
@@ -3809,6 +4178,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 852871161604882946
     TagComponent:
       Tag: Lantern Post Collider 4
@@ -3823,6 +4194,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.4, 0.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 565299241059999252
     TagComponent:
       Tag: Light Lantern Post 4
@@ -3849,6 +4225,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3895758867179532553
     TagComponent:
       Tag: Lantern Post Collider 5
@@ -3863,6 +4241,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.4, 0.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3488146083375452039
     TagComponent:
       Tag: Light Lantern Post 5
@@ -3889,6 +4272,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5589737754649202191
     TagComponent:
       Tag: Lantern Post Collider 6
@@ -3903,6 +4288,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.4, 0.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3756002106636490454
     TagComponent:
       Tag: Light Lantern Post 6
@@ -3939,6 +4329,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2867, 0.8]
+      Size: [0.8, 0.4267, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8235033586653422903
     TagComponent:
       Tag: Square Planter 2
@@ -3962,6 +4357,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2867, 0.8]
+      Size: [0.8, 0.4267, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2360311244912119033
     TagComponent:
       Tag: Inn Planter
@@ -3985,6 +4385,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2867, 0.8]
+      Size: [0.8, 0.4267, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6134696207160130303
     TagComponent:
       Tag: Inn Planter 2
@@ -4008,6 +4413,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2867, 0.8]
+      Size: [0.8, 0.4267, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3724816771173146573
     TagComponent:
       Tag: Shop Goods
@@ -4031,6 +4441,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2867, 0.8]
+      Size: [0.9333, 0.4267, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 904363986269377303
     TagComponent:
       Tag: Shop Goods 2
@@ -4054,6 +4469,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2867, 0.8]
+      Size: [0.9333, 0.4267, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6915395823355172818
     TagComponent:
       Tag: Shop Goods 3
@@ -4077,6 +4497,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2538, 0.8]
+      Size: [0.8, 0.4923, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2885142104944174120
     TagComponent:
       Tag: Shop Goods 4
@@ -4100,6 +4525,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2538, 0.8]
+      Size: [0.8, 0.4923, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8102034822729224222
     TagComponent:
       Tag: Shop Goods 5
@@ -4123,6 +4553,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2333, 0.8]
+      Size: [0.5895, 0.5333, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8260549631821479211
     TagComponent:
       Tag: Window Flowers
@@ -4194,6 +4629,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4167, 0.8]
+      Size: [0.5753, 0.1667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2955095963414962577
     TagComponent:
       Tag: Yard Goods
@@ -4217,6 +4657,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2429, 0.8]
+      Size: [0.5565, 0.5143, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 532636787185403560
     TagComponent:
       Tag: Yard Goods 2
@@ -4240,6 +4685,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2429, 0.8]
+      Size: [0.5565, 0.5143, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5047532075182029593
     TagComponent:
       Tag: Yard Goods 3
@@ -4263,6 +4713,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.26, 0.8]
+      Size: [0.6095, 0.48, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5014902896673624640
     TagComponent:
       Tag: Yard Goods 4
@@ -4286,6 +4741,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.26, 0.8]
+      Size: [0.6095, 0.48, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1460755485796746523
     TagComponent:
       Tag: Yard Goods 5
@@ -4309,6 +4769,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.26, 0.8]
+      Size: [0.6095, 0.48, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6203428758158676509
     TagComponent:
       Tag: Yard Goods 6
@@ -4332,6 +4797,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.26, 0.8]
+      Size: [1.0667, 0.48, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4493611264217473793
     TagComponent:
       Tag: Yard Goods 7
@@ -4355,6 +4825,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2, 0.8]
+      Size: [0.6737, 0.6, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3296146486939906885
     TagComponent:
       Tag: Yard Goods 8
@@ -4378,6 +4853,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.26, 0.8]
+      Size: [1.0667, 0.48, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5129271015928546763
     TagComponent:
       Tag: Chest Barn
@@ -4406,6 +4886,11 @@ Entities:
       Friction: 0.4
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.15, 0.8]
+      Size: [0.9, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1275817546299256066
     TagComponent:
       Tag: Yard Bucket
@@ -4442,6 +4927,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1693979314602210695
     TagComponent:
       Tag: Crop Wheat
@@ -5095,6 +5582,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7009218211363900993
     TagComponent:
       Tag: Fence Field 2
@@ -5108,6 +5597,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3257958710406612357
     TagComponent:
       Tag: Fence Field 3
@@ -5121,6 +5612,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 778026682627299642
     TagComponent:
       Tag: Fence Field 4
@@ -5134,6 +5627,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2142442760135277239
     TagComponent:
       Tag: Fence Field 5
@@ -5147,6 +5642,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7732567348955693473
     TagComponent:
       Tag: Fence Field 6
@@ -5160,6 +5657,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5984174211714473142
     TagComponent:
       Tag: Fence Field 7
@@ -5173,6 +5672,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1345254716554443323
     TagComponent:
       Tag: Fence Field 8
@@ -5186,6 +5687,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8426596794380270244
     TagComponent:
       Tag: Fence Field 9
@@ -5199,6 +5702,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6127515667896635443
     TagComponent:
       Tag: Fence Field 10
@@ -5212,6 +5717,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8676117726701463760
     TagComponent:
       Tag: Fence Field 11
@@ -5225,6 +5732,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7268424997714742445
     TagComponent:
       Tag: Fence Field 12
@@ -5238,6 +5747,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2155466876596913362
     TagComponent:
       Tag: Fence Field 13
@@ -5251,6 +5762,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 747019978902476255
     TagComponent:
       Tag: Fence Field 14
@@ -5264,6 +5777,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5879458228225564502
     TagComponent:
       Tag: Fence Field 15
@@ -5277,6 +5792,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1025860310925653423
     TagComponent:
       Tag: Field Garden Soil
@@ -5297,6 +5814,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3981561206142144255
     TagComponent:
       Tag: Crop Tomato
@@ -5624,6 +6143,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4273, 0.8]
+      Size: [0.2909, 0.1455, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7729792155870391407
     TagComponent:
       Tag: Fence Garden
@@ -5637,6 +6161,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7355494630894610451
     TagComponent:
       Tag: Fence Garden 2
@@ -5650,6 +6176,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3640993637052639113
     TagComponent:
       Tag: Fence Garden 3
@@ -5663,6 +6191,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4834494690452645872
     TagComponent:
       Tag: Fence Garden 4
@@ -5676,6 +6206,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4797894682998967902
     TagComponent:
       Tag: Fence Garden 5
@@ -5689,6 +6221,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5280590756287683
     TagComponent:
       Tag: Fence Garden 6
@@ -5702,6 +6236,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4094368505569640596
     TagComponent:
       Tag: Fence Garden 7
@@ -5715,6 +6251,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3291472817302176643
     TagComponent:
       Tag: Fence Garden 8
@@ -5728,6 +6266,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2065443553238291812
     TagComponent:
       Tag: Fence Garden 9
@@ -5741,6 +6281,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1088980488762646459
     TagComponent:
       Tag: Fence Garden 10
@@ -5754,6 +6296,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1498408490278385595
     TagComponent:
       Tag: Fence Garden 11
@@ -5767,6 +6311,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5652803304181649842
     TagComponent:
       Tag: Fence Garden 12
@@ -5780,6 +6326,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7451688366959970573
     TagComponent:
       Tag: Fence Garden 13
@@ -5793,6 +6341,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6106452294984873394
     TagComponent:
       Tag: Fence Garden 14
@@ -5806,6 +6356,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5139334912139811812
     TagComponent:
       Tag: Fence Garden 15
@@ -5819,6 +6371,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2818663933098688061
     TagComponent:
       Tag: Fence Garden 16
@@ -5832,6 +6386,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 333666262866447369
     TagComponent:
       Tag: Fence Garden 17
@@ -5845,6 +6401,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7084054369380818457
     TagComponent:
       Tag: Field Hay
@@ -5868,6 +6426,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2333, 0.8]
+      Size: [0.7619, 0.5333, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 424826019691963358
     TagComponent:
       Tag: Crop Wheat Wild
@@ -5936,6 +6499,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3595170945268598560
     TagComponent:
       Tag: Terrace Farm Grass
@@ -5956,6 +6521,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 116720633823087164
     TagComponent:
       Tag: Terrace Farm Shade
@@ -5976,6 +6543,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3762769932486239994
     TagComponent:
       Tag: Farm Wall
@@ -5989,6 +6558,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7430254533149503066
     TagComponent:
       Tag: Farm Wall 2
@@ -6002,6 +6573,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5471273817273532816
     TagComponent:
       Tag: Farm Wall 3
@@ -6015,6 +6588,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5869060972652996907
     TagComponent:
       Tag: Farm Wall 4
@@ -6028,6 +6603,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3152259365079267019
     TagComponent:
       Tag: Farm Wall 5
@@ -6041,6 +6618,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5678113543781431078
     TagComponent:
       Tag: Farm Wall 6
@@ -6054,6 +6633,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1158283519684188432
     TagComponent:
       Tag: Farm Wall 7
@@ -6067,6 +6648,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3950741829104379532
     TagComponent:
       Tag: Farm Wall 8
@@ -6080,6 +6663,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8165166053652985211
     TagComponent:
       Tag: Visual Farm Stairs
@@ -6114,6 +6699,8 @@ Entities:
             EmissionIntensity: 1
             AlphaCutoff: 0
             Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5485610420043722449
     TagComponent:
       Tag: Farm Cottage
@@ -6127,6 +6714,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1457303343817436675
     TagComponent:
       Tag: Light Window Cottage
@@ -6153,6 +6742,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5897933051267265026
     TagComponent:
       Tag: Farm Goods 2
@@ -6166,6 +6757,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 25175800401337330
     TagComponent:
       Tag: Farm Goods 3
@@ -6179,6 +6772,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5979977400049250604
     TagComponent:
       Tag: Farm Goods 4
@@ -6192,6 +6787,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6098953313105720053
     TagComponent:
       Tag: Farm Goods 5
@@ -6205,6 +6802,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5704635584043748209
     TagComponent:
       Tag: Farm Goods 6
@@ -6218,6 +6817,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7317860280130872033
     TagComponent:
       Tag: Farm Goods 7
@@ -6231,6 +6832,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6044767628672046746
     TagComponent:
       Tag: Farm Firewood
@@ -6254,6 +6857,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2143, 0.8]
+      Size: [0.8348, 0.5714, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 422856573053543473
     TagComponent:
       Tag: Decor Farm Bed
@@ -6443,6 +7051,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3906584212690172581
     TagComponent:
       Tag: Lantern Post Collider 7
@@ -6457,6 +7067,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.4, 0.4, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6208034724843923537
     TagComponent:
       Tag: Light Lantern Post 7
@@ -6483,6 +7098,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2330156979707913458
     TagComponent:
       Tag: Crop Wheat 41
@@ -6560,6 +7177,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1048686095386602561
     TagComponent:
       Tag: Crop Tomato 7
@@ -6637,6 +7256,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 9177090180056982924
     TagComponent:
       Tag: Crop Wheat 45
@@ -6714,6 +7335,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1005043295757797998
     TagComponent:
       Tag: Crop Cabbage 7
@@ -6791,6 +7414,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5193500258340486088
     TagComponent:
       Tag: Crop Greens 6
@@ -6868,6 +7493,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5650341846265170084
     TagComponent:
       Tag: Crop Wheat 49
@@ -6945,6 +7572,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6217579204725401881
     TagComponent:
       Tag: Crop Tomato 11
@@ -7022,6 +7651,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6385877990034749829
     TagComponent:
       Tag: Crop Cabbage 11
@@ -7125,6 +7756,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4273, 0.8]
+      Size: [0.2909, 0.1455, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5564226126158601498
     TagComponent:
       Tag: Fence Farm
@@ -7138,6 +7774,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4288565630189280286
     TagComponent:
       Tag: Fence Farm 2
@@ -7151,6 +7789,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 974869861499717195
     TagComponent:
       Tag: Fence Farm 3
@@ -7164,6 +7804,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 379705444393058054
     TagComponent:
       Tag: Fence Farm 4
@@ -7177,6 +7819,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3703443435628141797
     TagComponent:
       Tag: Fence Farm 5
@@ -7190,6 +7834,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4888375820195430496
     TagComponent:
       Tag: Fence Farm 6
@@ -7203,6 +7849,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3917767205813617569
     TagComponent:
       Tag: Fence Farm 7
@@ -7216,6 +7864,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4016498897420065562
     TagComponent:
       Tag: Fence Farm 8
@@ -7229,6 +7879,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1324254826297347336
     TagComponent:
       Tag: Fence Farm 9
@@ -7242,6 +7894,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6166649917459624109
     TagComponent:
       Tag: Fence Farm 10
@@ -7255,6 +7909,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3438930700565096901
     TagComponent:
       Tag: Fence Farm 11
@@ -7268,6 +7924,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7359437491474064356
     TagComponent:
       Tag: Fence Farm 12
@@ -7281,6 +7939,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3168767018217474975
     TagComponent:
       Tag: Fence Farm 13
@@ -7294,6 +7954,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8551814732031657455
     TagComponent:
       Tag: Fence Farm 14
@@ -7307,6 +7969,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 1277115697521105246
     TagComponent:
       Tag: Fence Farm 15
@@ -7320,6 +7984,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 7023322573695938767
     TagComponent:
       Tag: Fence Farm 16
@@ -7333,6 +7999,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8927901114367336361
     TagComponent:
       Tag: Fence Farm 17
@@ -7346,6 +8014,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 8658420371832032229
     TagComponent:
       Tag: Fence Farm 18
@@ -7359,6 +8029,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4824722954576391834
     TagComponent:
       Tag: Fence Farm 19
@@ -7372,6 +8044,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 174804461731403425
     TagComponent:
       Tag: Fence Farm 20
@@ -7385,6 +8059,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3528698106651414645
     TagComponent:
       Tag: Fence Farm 21
@@ -7398,6 +8074,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4881435192746883692
     TagComponent:
       Tag: Fence Farm 22
@@ -7411,6 +8089,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 5933662447012256282
     TagComponent:
       Tag: Fence Farm 23
@@ -7424,6 +8104,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 2507350960410371635
     TagComponent:
       Tag: Visual Farm Gate
@@ -7450,6 +8132,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 3387432729319364204
     TagComponent:
       Tag: Farm Goods 9
@@ -7463,6 +8147,8 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials: []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 6915283685641051988
     TagComponent:
       Tag: Decor Farm Meadow
@@ -7550,6 +8236,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4674, 0.8]
+      Size: [0.1159, 0.0652, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8351252090750025480
     TagComponent:
       Tag: Tree Edge South 2
@@ -7573,6 +8264,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4667, 0.8]
+      Size: [0.119, 0.0667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7104255640290018972
     TagComponent:
       Tag: Tree Edge South 3
@@ -7596,6 +8292,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4643, 0.8]
+      Size: [0.1471, 0.0714, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7822501682104366186
     TagComponent:
       Tag: Tree Edge South 4
@@ -7619,6 +8320,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4667, 0.8]
+      Size: [0.1185, 0.0667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4118034752839796535
     TagComponent:
       Tag: Slime Field
@@ -7662,6 +8368,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - EnemyChase
+    BoxColliderComponent:
+      Offset: [0, 0.2, 0.8]
+      Size: [0.6, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2916192736470914814
     TagComponent:
       Tag: Slime Field 2
@@ -7705,6 +8416,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - EnemyChase
+    BoxColliderComponent:
+      Offset: [0, 0.2, 0.8]
+      Size: [0.6, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8129842920303604943
     TagComponent:
       Tag: Slime Field 3
@@ -7748,6 +8464,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - EnemyChase
+    BoxColliderComponent:
+      Offset: [0, 0.2, 0.8]
+      Size: [0.6, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8424734646338290992
     TagComponent:
       Tag: Slime Field 4
@@ -7791,6 +8512,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - EnemyChase
+    BoxColliderComponent:
+      Offset: [0, 0.2, 0.8]
+      Size: [0.6, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3599446327940459019
     TagComponent:
       Tag: Wisp Field
@@ -7842,6 +8568,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - EnemyChase
+    BoxColliderComponent:
+      Offset: [0, 0.25, 0.8]
+      Size: [0.55, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4587674101149369724
     TagComponent:
       Tag: Wisp Field 2
@@ -7893,6 +8624,11 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - EnemyChase
+    BoxColliderComponent:
+      Offset: [0, 0.25, 0.8]
+      Size: [0.55, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1972171254915927073
     TagComponent:
       Tag: Player
@@ -7922,6 +8658,13 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - DioramaWalk
+    CharacterBodyComponent:
+      Radius: 0.25
+      Height: 1.4
+      MaxSlopeDegrees: 50
+      StepHeight: 0.35
+      StaysOnLedges: true
+      Layer: Player
   - Entity: 5673764658242325092
     TagComponent:
       Tag: Npc Farmer
@@ -7955,6 +8698,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
   - Entity: 8717119164346888820
     TagComponent:
       Tag: Npc Gatherer
@@ -7988,6 +8736,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
   - Entity: 9109172108304677435
     TagComponent:
       Tag: Npc Barmaid
@@ -8021,6 +8774,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
   - Entity: 6855218742982841420
     TagComponent:
       Tag: Npc Blacksmith
@@ -8054,6 +8812,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
   - Entity: 669918511539378228
     TagComponent:
       Tag: Exit ShrineGlade
@@ -8061,6 +8824,11 @@ Entities:
       Translation: [0, 21, 2.2]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    BoxColliderComponent:
+      Offset: [0, 0, 1]
+      Size: [3, 3, 2]
+      Layer: Trigger
+      IsTrigger: true
   - Entity: 3851820712013120030
     TagComponent:
       Tag: Edge Collider Fields
@@ -8075,6 +8843,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 37, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6979471609518782541
     TagComponent:
       Tag: Edge Collider Fields 2
@@ -8089,6 +8862,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 37, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 9215663983049620854
     TagComponent:
       Tag: Edge Collider Square
@@ -8103,6 +8881,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 12, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5713184898074856363
     TagComponent:
       Tag: Edge Collider Square 2
@@ -8117,6 +8900,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 12, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4240905526631848184
     TagComponent:
       Tag: Edge Collider North
@@ -8131,6 +8919,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 10.6, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3434698722647583251
     TagComponent:
       Tag: Edge Collider North 2
@@ -8145,6 +8938,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [0.3, 10.6, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4311231708064308052
     TagComponent:
       Tag: Edge Collider South
@@ -8159,6 +8957,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [28.4, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5004495589469130217
     TagComponent:
       Tag: Edge Collider Forest
@@ -8173,6 +8976,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0.8]
+      Size: [28.4, 0.3, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7782094251805892672
     TagComponent:
       Tag: Sun
@@ -9639,6 +10447,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4667, 0.8]
+      Size: [0.1185, 0.0667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1023401132562474550
     TagComponent:
       Tag: Tree Edge 2
@@ -9662,6 +10475,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4659, 0.8]
+      Size: [0.1217, 0.0682, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8942152326683875744
     TagComponent:
       Tag: Tree Edge 3
@@ -9685,6 +10503,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4681, 0.8]
+      Size: [0.1135, 0.0638, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3208470474576246097
     TagComponent:
       Tag: Tree Edge 4
@@ -9708,6 +10531,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4674, 0.8]
+      Size: [0.1164, 0.0652, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5744233072038920158
     TagComponent:
       Tag: Tree Edge 5
@@ -9731,6 +10559,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4625, 0.8]
+      Size: [0.1545, 0.075, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4770130429812934235
     TagComponent:
       Tag: Tree Edge 6
@@ -9754,6 +10587,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4667, 0.8]
+      Size: [0.1185, 0.0667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4846617285762842252
     TagComponent:
       Tag: Tree Edge 7
@@ -9777,6 +10615,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4667, 0.8]
+      Size: [0.119, 0.0667, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7336547142509731446
     TagComponent:
       Tag: Tree Edge 8
@@ -9800,6 +10643,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4625, 0.8]
+      Size: [0.1545, 0.075, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5584418765744540339
     TagComponent:
       Tag: Tree Edge 9
@@ -9823,6 +10671,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.45, 0.8]
+      Size: [0.1892, 0.1, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2033002654396972095
     TagComponent:
       Tag: Tree Edge 10
@@ -9846,6 +10699,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4483, 0.8]
+      Size: [0.2529, 0.1034, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 8462972845487847507
     TagComponent:
       Tag: Tree Edge 11
@@ -9869,6 +10727,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4388, 0.8]
+      Size: [0.3282, 0.1224, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1268627480930688052
     TagComponent:
       Tag: Tree Edge 12
@@ -9892,6 +10755,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4388, 0.8]
+      Size: [0.3115, 0.1224, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1941361959146335524
     TagComponent:
       Tag: Tree Village
@@ -9915,6 +10783,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.451, 0.8]
+      Size: [0.1986, 0.098, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 1170969932580202813
     TagComponent:
       Tag: Tree Village 2
@@ -9938,6 +10811,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.45, 0.8]
+      Size: [0.2481, 0.1, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 3624882218500791006
     TagComponent:
       Tag: Tree Village 3
@@ -9961,6 +10839,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4479, 0.8]
+      Size: [0.3095, 0.1042, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 4954616133562495612
     TagComponent:
       Tag: Tree Village 4
@@ -9984,6 +10867,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4359, 0.8]
+      Size: [0.3048, 0.1282, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2387257677702835325
     TagComponent:
       Tag: Tree Village 5
@@ -10007,6 +10895,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4342, 0.8]
+      Size: [0.3128, 0.1316, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 7898816772407013686
     TagComponent:
       Tag: Decor Wall Foot
@@ -14750,6 +15643,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2143, 0.8]
+      Size: [0.8348, 0.5714, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 6787605058691822814
     TagComponent:
       Tag: Square Goods
@@ -14773,6 +15671,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2867, 0.8]
+      Size: [0.8, 0.4267, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 362970025010227185
     TagComponent:
       Tag: Square Goods 2
@@ -14796,6 +15699,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.2538, 0.8]
+      Size: [0.8, 0.4923, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 5104695121867402311
     TagComponent:
       Tag: Tree Square
@@ -14819,6 +15727,11 @@ Entities:
       Friction: 0
       Restitution: 0
       IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.4545, 0.8]
+      Size: [0.2023, 0.0909, 1.6]
+      Layer: World
+      IsTrigger: false
   - Entity: 2455249762424820970
     TagComponent:
       Tag: Canopy Front

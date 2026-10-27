@@ -6,6 +6,7 @@
 #include "SpriteAnimator.h"
 #include "SystemContext.h"
 #include "Hydro/Physics/PhysicsScene.h"
+#include "Hydro/Physics/PhysicsScene3D.h"
 #include "ParticleScene.h"
 
 #include "../Renderer/Renderer2D.h"
@@ -45,6 +46,7 @@ namespace Hydro
 		m_Deferred.clear();
 		m_PendingDestroy.clear();
 		m_Particles.reset();
+		m_Physics3D.reset();
 		m_Physics.reset();
 	}
 
@@ -351,6 +353,10 @@ namespace Hydro
 		// Its physics body goes with it (a body whose entity is gone would be written back to nothing).
 		if (m_Physics != nullptr)
 			m_Physics->OnEntityDestroyed((entt::entity)entity);
+		if (m_Physics3D != nullptr)
+		{
+			m_Physics3D->OnEntityDestroyed((entt::entity)entity);
+		}
 		// Let native scripts clean up before their entity disappears.
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
@@ -529,13 +535,16 @@ namespace Hydro
 
 	void Scene::DispatchPhysicsEvents()
 	{
-		if (m_Physics == nullptr || m_Physics->GetEvents().empty())
+		const bool events2D = m_Physics != nullptr && m_Physics->GetEvents().empty() == false;
+		const bool events3D = m_Physics3D != nullptr && m_Physics3D->GetEvents().empty() == false;
+		if (events2D == false && events3D == false)
 		{
 			return;
 		}
 
-		// Copied: nothing may change the list while scripts run, but a copy costs little and can't dangle.
-		const std::vector<PhysicsScene::Event> events = m_Physics->GetEvents();
+		// Copied: nothing may change the lists while scripts run, but a copy costs little and can't dangle.
+		const std::vector<PhysicsScene::Event> events = events2D ? m_Physics->GetEvents() : std::vector<PhysicsScene::Event>();
+		const std::vector<PhysicsScene3D::Event> events3DCopy = events3D ? m_Physics3D->GetEvents() : std::vector<PhysicsScene3D::Event>();
 
 		BeginStage();
 		for (const PhysicsScene::Event& event : events)
@@ -560,6 +569,14 @@ namespace Hydro
 				break;
 			}
 		}
+		// 3D: a character walking into or out of a trigger. Both get the hook, as in 2D.
+		for (const PhysicsScene3D::Event& event : events3DCopy)
+		{
+			const bool begin = event.Kind == PhysicsScene3D::Event::Type::TriggerBegin;
+			void (ScriptableEntity::*hook)(Entity) = begin ? &ScriptableEntity::OnTriggerEnter : &ScriptableEntity::OnTriggerExit;
+			NotifyScripts(event.A, event.B, hook);
+			NotifyScripts(event.B, event.A, hook);
+		}
 		EndStage();
 	}
 
@@ -568,6 +585,10 @@ namespace Hydro
 		if (m_Physics == nullptr)
 		{
 			m_Physics = CreateScope<PhysicsScene>(*this);
+		}
+		if (m_Physics3D == nullptr)
+		{
+			m_Physics3D = CreateScope<PhysicsScene3D>(*this);
 		}
 		if (m_Particles == nullptr)
 		{
@@ -580,6 +601,7 @@ namespace Hydro
 	void Scene::OnRuntimeStop()
 	{
 		m_Particles.reset();
+		m_Physics3D.reset();
 		m_Physics.reset();
 	}
 
@@ -597,9 +619,10 @@ namespace Hydro
 		// 1. Native scripts. Instances are created lazily on their first update.
 		UpdateScripts(*this, context);
 
-		// 2. Physics: after the scripts have set velocities and moved kinematic bodies, before animation
-		// and transforms read the result.
+		// 2. Physics: after the scripts have set velocities, moved kinematic bodies and told characters where to
+		// go, before animation and transforms read the result. 2D (Box2D), then 3D (Jolt); their events together.
 		m_Physics->Step(context);
+		m_Physics3D->Step(context);
 		DispatchPhysicsEvents();
 
 		// 3. Sprite animation, after the scripts so what a script started this frame shows this frame.

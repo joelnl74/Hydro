@@ -32,6 +32,7 @@
 
 // PHYSICS.
 #include "Hydro/Physics/PhysicsScene.h"
+#include "Hydro/Physics/Physics3D.h"
 
 // ASSETS.
 #include "Hydro/Asset/Asset.h"

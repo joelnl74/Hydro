@@ -106,7 +106,7 @@ And:
 - **Platform implementations** are `<Platform><Name>`: `WindowsWindow`, `VulkanRendererContext`, `VulkanAllocator`. Engine code talks to the platform-free name.
 - **Configuration** follows [Resource creation](ResourceCreation.md#naming): `<Name>Specification` passed to `Init` (`WindowSpecification`, `ApplicationSpecification`) and fixed for the subsystem's lifetime; `<Name>Settings` for live options changed while running through `Get<...>Settings` / `Set<...>Settings` (`RendererSettings`); `<Name>Config` only for what is saved to disk (`ProjectConfig`, which holds a `RendererSettings`).
 - **Capabilities** a subsystem discovers at `Init` (what the hardware supports) are `<Name>Capabilities` (`RendererCapabilities`), read-only.
-- **Per-scene counterparts** of a subsystem take the `Scene` prefix or suffix (`SceneRenderer` submits one scene to the `Renderer`; `PhysicsScene` is one scene's Box2D world, hosted by the `PhysicsEngine`). They are owned by a layer or scene, not by `Application`.
+- **Per-scene counterparts** of a subsystem take the `Scene` prefix or suffix (`SceneRenderer` submits one scene to the `Renderer`; `PhysicsScene` is one scene's Box2D world and `PhysicsScene3D` its Jolt world, both hosted by the `PhysicsEngine`). They are owned by a layer or scene, not by `Application`.
 
 ### Names we checked
 
@@ -125,7 +125,10 @@ Every current name was checked against the table. Only one changed:
 | `ScriptRegistry` | New, not a subsystem | A name → script lookup table. It has no lifecycle or OS/GPU resources (a function-local static, filled before scenes load), so it isn't a `Manager` subsystem; becomes part of a `ScriptEngine` if one is added |
 | `Texture2D` | New, a resource (Oct 20, 2026) | A texture sprites are drawn with, made from `ImageSpecification` + `TextureProperties`; `LoadFromFile` shares textures by file until the `AssetManager` takes that over. Named for what it is, like `RenderView` |
 | `AssetHandle` | New (Oct 24, 2026), a value | `using AssetHandle = UUID;`: names an asset file across renames and moves; components will hold one instead of a `Ref<Texture2D>` |
-| `PhysicsEngine` | New (Oct 24, 2026), a subsystem | Runtime-style (`Engine`): it hosts the Box2D physics library. Position 7, after `AssetManager`. The simulation is per scene (`PhysicsScene`), not here |
+| `PhysicsEngine` | New (Oct 24, 2026), a subsystem | Runtime-style (`Engine`): it hosts the Box2D and (Oct 28, 2026) Jolt physics libraries. Position 7, after `AssetManager`. The simulation is per scene (`PhysicsScene`, `PhysicsScene3D`), not here |
+| `PhysicsScene3D` | New (Oct 28, 2026), per-scene | The scene's Jolt world: the 3D counterpart of `PhysicsScene`, owned by `Scene` while it runs |
+| `Physics3D`, `CharacterBody` | New (Oct 28, 2026), facades | What game code asks of the 3D world (queries) and of a character (move, ground), like `Physics2D`. Not `CharacterController` (the plan's name): `Controller` is a name we don't use; it is the character's body, and the component is `CharacterBodyComponent` |
+| `ColliderShapes`, `ColliderShape` | New (Oct 28, 2026), a helper and its data | The 3D collider components as shapes in the entity's space; in `Scene/` so the physics world and the editor outlines share one definition without the renderer depending on `Physics/` |
 | `AssetManager` | New (Oct 24, 2026), a subsystem | Registry-style (`Manager`): others look assets up by handle. Position 6, after `Renderer` |
 | `AssetRegistry` | New, data | The handle ↔ path table the manager holds; not a subsystem and not a `Manager` (no lifecycle), rebuilt by scanning |
 | `AssetMetadata`, `AssetScanInfo` | New, plain structs | What is known about one asset; what a scan found (`Info` = output, see [Resource creation](ResourceCreation.md#naming)) |
@@ -162,7 +165,7 @@ Every current name was checked against the table. Only one changed:
 | Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache, components and the project's start scene by handle, move / delete that keep handles ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
 | Audio | `AudioEngine` | Planned | after `AssetManager` |
 | Scripting | `ScriptEngine` | Planned | after `AssetManager`, before the client's `OnInit` |
-| Physics | `PhysicsEngine` (per scene: `PhysicsScene`) | Started (Oct 24, 2026): Box2D v3.1.1 linked, assert hook, length unit, a Debug-build self test. Each runtime scene owns a `PhysicsScene` that steps at a fixed 60 Hz and delivers collision and trigger events to scripts | after `AssetManager` (there is no `ScriptEngine` yet) |
+| Physics | `PhysicsEngine` (per scene: `PhysicsScene`, `PhysicsScene3D`) | Started (Oct 24, 2026): Box2D v3.1.1 linked, assert hook, length unit, a Debug-build self test. Jolt v5.6.0 (Oct 28, 2026): allocator, trace and assert hooks, type registration, a Debug-build self test. Each runtime scene owns a `PhysicsScene` and a `PhysicsScene3D` that step at a fixed 60 Hz and deliver collision and trigger events to scripts | after `AssetManager` (there is no `ScriptEngine` yet) |
 
 ## Adding a subsystem
 

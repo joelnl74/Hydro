@@ -194,6 +194,11 @@ namespace Hydro
 		static constexpr int VisibleRows = 6;
 		static constexpr float InteractRange = 1.7f;
 		static constexpr float MaxReachHeight = 1.0f;   // metres between the player's ground and the item's
+		static constexpr float FacingCosine = 0.17f;    // within about 80 degrees either side of where the player faces
+		static constexpr float CloseRange = 0.6f;       // this close, an item is in reach whichever way the player faces
+		static constexpr float SwitchMargin = 0.3f;     // another item must be this much closer to take over the prompt
+		static constexpr float EyeHeight = 1.0f;        // line of sight: from the player's chest...
+		static constexpr float ItemHeight = 0.6f;       // ...to this high on the item
 		static constexpr float MessageTime = 3.0f;
 		static constexpr float LeaveTime = 0.6f;
 		static constexpr float ArriveTime = 0.6f;
@@ -204,28 +209,53 @@ namespace Hydro
 		void UpdateInteraction(Scene& scene)
 		{
 			const glm::vec2 player = Position(scene, m_Player);
-			// The ground the player stands on: a terrace in the Shrine Glade (DioramaWalk), 0 elsewhere.
+			// The ground the player stands on (the character's feet in the field scenes).
 			const float playerHeight = Height(scene, m_Player);
+
+			// Where the player faces: the way it last walked.
+			const glm::vec2 walked = player - m_LastPlayer;
+			if (glm::dot(walked, walked) > 1.0e-6f)
+			{
+				m_Facing = glm::normalize(walked);
+			}
+			m_LastPlayer = player;
+
+			// The triggers the player stands in (an exit's area), from the 3D world's colliders.
+			std::vector<Entity> inside;
+			Physics3D::OverlapSphere(scene, glm::vec3(player, playerHeight + 0.5f), 0.3f, Physics3D::LayerBit(PhysicsLayer::Trigger), inside);
+
 			Interactable* nearest = nullptr;
 			float best = InteractRange;
+			float currentDistance = -1.0f;
 			for (Interactable& item : m_Interactables)
 			{
-				if (Alive(scene, item.Entity) == false)
+				float distance = 0.0f;
+				if (InReach(scene, item, player, playerHeight, inside, distance) == false)
 				{
 					continue;
 				}
-				// Not through a terrace wall: a save stone on the level above is out of reach.
-				if (std::abs(Height(scene, item.Entity) - playerHeight) > MaxReachHeight)
+				if (item.Entity == m_Current)
 				{
-					continue;
+					currentDistance = distance;
 				}
-				const float distance = glm::length(item.Position - player);
 				if (distance < best)
 				{
 					best = distance;
 					nearest = &item;
 				}
 			}
+			// Stable: the prompt stays on what it shows until something else is clearly closer.
+			if (nearest != nullptr && nearest->Entity != m_Current && currentDistance >= 0.0f && best > currentDistance - SwitchMargin)
+			{
+				for (Interactable& item : m_Interactables)
+				{
+					if (item.Entity == m_Current)
+					{
+						nearest = &item;
+					}
+				}
+			}
+			m_Current = nearest != nullptr ? nearest->Entity : entt::null;
 
 			ShowPrompt(nearest != nullptr);
 			if (nearest == nullptr)
@@ -288,6 +318,64 @@ namespace Hydro
 					m_NpcLine = (m_NpcLine + 1) % 3;
 					break;
 			}
+		}
+
+		// Whether the player can use `item` now, and how far it is (the prompt goes to the nearest). An exit with a
+		// trigger collider is in reach while the player stands in it. Anything else must be within InteractRange, at
+		// about the player's height (not on the terrace above), in front of the player (unless very close) and in
+		// sight: a ray from the player's chest to the item hits nothing solid before it (Physics3D).
+		bool InReach(Scene& scene, const Interactable& item, const glm::vec2& player, float playerHeight, const std::vector<Entity>& inside, float& distance) const
+		{
+			if (Alive(scene, item.Entity) == false)
+			{
+				return false;
+			}
+
+			const Entity entity{ item.Entity, &scene };
+			const bool hasTrigger = (entity.HasComponent<BoxColliderComponent>() && entity.GetComponent<BoxColliderComponent>().IsTrigger)
+				|| (entity.HasComponent<SphereColliderComponent>() && entity.GetComponent<SphereColliderComponent>().IsTrigger);
+			if (item.Type == Kind::Exit && hasTrigger && Physics3D::HasBody(entity))
+			{
+				distance = 0.0f;
+				for (const Entity& trigger : inside)
+				{
+					if ((entt::entity)trigger == item.Entity)
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+
+			const float itemHeight = Height(scene, item.Entity);
+			if (std::abs(itemHeight - playerHeight) > MaxReachHeight)
+			{
+				return false;
+			}
+			const glm::vec2 offset = item.Position - player;
+			distance = glm::length(offset);
+			if (distance >= InteractRange)
+			{
+				return false;
+			}
+			if (distance > CloseRange && glm::dot(offset / distance, m_Facing) < FacingCosine)
+			{
+				return false;
+			}
+
+			const glm::vec3 eye{ player, playerHeight + EyeHeight };
+			const glm::vec3 target{ item.Position, itemHeight + ItemHeight };
+			RaycastHit3D hit;
+			if (Physics3D::Raycast(scene, eye, target, Physics3D::SolidLayers, hit))
+			{
+				const bool hitItem = (entt::entity)hit.HitEntity == item.Entity;
+				const bool pastItem = hit.Distance >= glm::length(target - eye) - 0.15f;
+				if (hitItem == false && pastItem == false)
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 
 		// An exit's tag names the scene it leads to ("Exit FarmVillage"). Field scenes connect in a line for now
@@ -629,6 +717,9 @@ namespace Hydro
 		glm::vec2 m_RowOffset{ 0.0f };
 		float m_RowStep = -0.55f;
 		std::vector<Interactable> m_Interactables;
+		entt::entity m_Current = entt::null; // what the prompt shows
+		glm::vec2 m_LastPlayer{ 0.0f };
+		glm::vec2 m_Facing{ 0.0f, 1.0f };
 		std::vector<Item> m_Items;
 		int m_Selected = 0;
 		int m_Scroll = 0;
