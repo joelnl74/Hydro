@@ -15,6 +15,7 @@ namespace Hydro
 			case AssetType::SpriteAnimation: return "SpriteAnimation";
 			case AssetType::Material: return "Material";
 			case AssetType::Mesh: return "Mesh";
+			case AssetType::RenderProfile: return "RenderProfile";
 			case AssetType::None: return "None";
 		}
 
@@ -46,6 +47,10 @@ namespace Hydro
 		if (name == "Mesh")
 		{
 			return AssetType::Mesh;
+		}
+		if (name == "RenderProfile")
+		{
+			return AssetType::RenderProfile;
 		}
 
 		return AssetType::None;
@@ -84,6 +89,10 @@ namespace Hydro
 		if (extension == ".gltf" || extension == ".glb")
 		{
 			return AssetType::Mesh;
+		}
+		if (extension == ".hyrender") // RenderProfileSerializer::FileExtension
+		{
+			return AssetType::RenderProfile;
 		}
 
 		return AssetType::None;

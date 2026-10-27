@@ -69,9 +69,6 @@ project "Hydro"
 		"%{Library.Vulkan}",
 	}
 
-	filter "files:vendor/ImGuizmo/**.cpp"
-		flags { "NoPCH" }
-
 	-- Vendored sources compiled into Hydro, including the ImGui backend copies in Platform/Vulkan.
 	filter { "files:vendor/** or src/Hydro/Platform/Vulkan/imgui_impl_*.cpp" }
 		warnings "Off"

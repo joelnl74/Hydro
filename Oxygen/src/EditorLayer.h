@@ -162,6 +162,15 @@ namespace Hydro
 		void UpdateCaptureKeys();
 		// <project>/.hydro/captures/<scene>_<view>_<yyyymmdd-hhmmss-mmm>.png
 		std::filesystem::path MakeCapturePath(const std::string& viewName) const;
+		// The transform gizmo (ImGuizmo) over the Editor view's image (at `imageMin`, `imageSize` ImGui
+		// pixels), on the selected entity, in edit mode only. Dragging it changes the editor scene's
+		// TransformComponent; holding Ctrl snaps to EditorSettings::Gizmo.
+		void DrawTransformGizmo(const ImVec2& imageMin, const ImVec2& imageSize);
+		// The gizmo's switches in the Editor window's menu bar: Move / Rotate / Scale and Local / World.
+		void DrawGizmoMenu();
+		// W move, E rotate, R scale, Q no gizmo, T local / world: over the Editor window, in edit mode,
+		// while the camera isn't dragging (W/E/Q fly it) and nothing takes text.
+		void UpdateGizmoKeys();
 		// Moves the editor camera to the entity and zooms to frame it (the selection outline shows which).
 		void FocusEntity(Entity entity);
 		// Click-to-select: a left click in the Editor view's image (at `imageMin`, `imageSize` ImGui pixels)
@@ -220,6 +229,12 @@ namespace Hydro
 		bool m_ShowSelectionOutline = true;
 		bool m_ShowColliders = false;
 		bool m_FocusKeyDown = false; // F pressed last frame, so holding it focuses once
+		// Transform gizmo (this session only). None hides it.
+		enum class GizmoOperation : uint8_t { None, Translate, Rotate, Scale };
+		GizmoOperation m_GizmoOperation = GizmoOperation::Translate;
+		bool m_GizmoLocal = false;   // the entity's own axes instead of the world's (scaling always uses its own)
+		bool m_GizmoHovered = false; // the mouse is over a handle or drags one: a click there doesn't select
+		bool m_GizmoUsing = false;   // a handle is being dragged: the editor camera takes no new drags
 		// Click-to-select in the Editor view (M7): a left press in the image, a release without moving.
 		bool m_ClickPending = false;
 		ImVec2 m_ClickStart{ 0.0f, 0.0f };

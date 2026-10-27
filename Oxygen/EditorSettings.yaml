@@ -97,6 +97,10 @@ EditorSettings:
     PanSpeed: 1
     ZoomSpeed: 1
     FlySpeed: 5
+  Gizmo:
+    TranslateSnap: 0.5
+    RotateSnap: 15
+    ScaleSnap: 0.100000001
   Console:
     AutoScroll: true
     ShowTimestamps: true

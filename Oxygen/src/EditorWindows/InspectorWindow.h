@@ -41,6 +41,8 @@ namespace Hydro
 		void DrawAsset(const std::filesystem::path& asset);
 		void DrawAnimationSetAsset(const std::filesystem::path& path);
 		void DrawMaterialAsset(const std::filesystem::path& path);
+		// A selected .hyrender: its environment and post-processing (RenderLookUI), shared by every scene using it.
+		void DrawRenderProfileAsset(const std::filesystem::path& path);
 		// A mesh's material slot: its material asset (picked or dropped), whose fields edit the shared asset,
 		// or its inline settings with "Save as Material Asset".
 		void DrawMeshMaterialSlot(Entity entity, MeshMaterialSlot& slot);

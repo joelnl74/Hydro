@@ -1,0 +1,18 @@
+# The old monk at the shrine: a slow idle (four frames of breathing, his robe and topknot moving).
+Handle: 141492955996310980
+SpriteAnimationSet:
+  TextureHandle: 8794668877336673630
+  Texture: Monk.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      Loop: Loop
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4

@@ -7,6 +7,7 @@
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Image.h"
 #include "Hydro/Renderer/Lighting.h"
+#include "Hydro/Renderer/PostProcess.h"
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/RenderGraph.h"
 #include "Hydro/Renderer/Mesh.h"
@@ -32,6 +33,8 @@ namespace Hydro
 	// (PipelineSpecification::ColorFormats), so a target and the pipelines drawing into it must agree.
 	static constexpr ImageFormat ViewColorFormat = ImageFormat::SRGB;
 	static constexpr ImageFormat LightBufferFormat = ImageFormat::RGBA16F;
+	// The HDR scene colour (post-processing plan P1): linear, values above 1 kept for the tonemap and bloom.
+	static constexpr ImageFormat SceneColorFormat = ImageFormat::RGBA16F;
 
 	// Sun shadows (R14): every view's shadow map (Renderer2D's SunShadows feature; Renderer3D draws the mesh
 	// casters into it too).
@@ -54,13 +57,16 @@ namespace Hydro
 		// sprite that casts a sun-facing shadow (SpriteShadowMode::FaceSun): the same texel of that caster quad,
 		// so the sprite is never darkened by its own shadow, only by what stands between it and the sun.
 		glm::vec3 ShadowPosition{ 0.0f };
+		// Emission (post-processing plan P3): the sprite shaders add the pixel's colour times this after the
+		// lighting. 0 = none (Renderer2D::SetEmission).
+		glm::vec3 Emission{ 0.0f };
 	};
 	// Read by the vertex shader through Renderer2D's vertex layout (GetQuadVertexLayout), which packs the
 	// attributes in this order without padding.
-	static_assert(sizeof(QuadVertex) == 56, "QuadVertex: must match GetQuadVertexLayout");
+	static_assert(sizeof(QuadVertex) == 68, "QuadVertex: must match GetQuadVertexLayout");
 	static_assert(offsetof(QuadVertex, Color) == 12 && offsetof(QuadVertex, TexCoord) == 28
 		&& offsetof(QuadVertex, TexIndex) == 36 && offsetof(QuadVertex, EntityID) == 40
-		&& offsetof(QuadVertex, ShadowPosition) == 44, "QuadVertex: must match GetQuadVertexLayout");
+		&& offsetof(QuadVertex, ShadowPosition) == 44 && offsetof(QuadVertex, Emission) == 56, "QuadVertex: must match GetQuadVertexLayout");
 
 	// Textures one draw call can sample. The quad shader declares `sampler2D inTextures[32]` and the
 	// descriptor set's image array has VulkanDescriptorBuilder::MaxImageArraySize elements; all three agree.
@@ -182,6 +188,7 @@ namespace Hydro
 		bool InDebugLines = false;
 		SpriteDrawMode DrawMode = SpriteDrawMode::Translucent; // the list quads go to outside the overlay
 		int32_t EntityID = -1; // Renderer2D::SetEntityID: what the next quads carry
+		glm::vec3 Emission{ 0.0f }; // Renderer2D::SetEmission: what the next quads carry
 		std::vector<MeshDraw> MeshDraws;  // Renderer3D::DrawMesh, cleared with the batches
 		// Sun shadow casters (R14): quads made between BeginShadowCasters and EndShadowCasters (cut-out sprites,
 		// as drawn or turned to face the sun), drawn only into the shadow map.
@@ -199,6 +206,20 @@ namespace Hydro
 		VkDescriptorSet LightBufferSet = VK_NULL_HANDLE;  // the composite's input this frame (a per-frame set: LightTarget's image)
 		PerFrameBuffers LightVertexBuffers;                    // 4 vertices per light, then 4 per shadow
 		std::vector<QuadVertex> LightVertices;                    // CPU staging, reused every frame
+
+		// ---- HDR (post-processing plan P1) -----------------------------------------------
+		// The scene colour the scene pass draws into when the graph asks for one (RenderGraph::GetSceneColorFormat;
+		// the HDR feature), with Target's depth and entity ID; the Tonemap pass writes Target's colour from it.
+		// The view's size, resized with it; null without HDR.
+		Scope<VulkanRenderTarget> SceneColor;
+		// While the HDR scene pass records: SceneColor (pipelines are built for its colour format). Null otherwise.
+		VulkanRenderTarget* PassColorTarget = nullptr;
+		ScenePostProcess PostProcess;     // Renderer2D::SetPostProcess this frame; reset with the batches
+		VkDescriptorSet TonemapSet = VK_NULL_HANDLE; // the Tonemap pass's input this frame (a per-frame set)
+		// Bloom (plan P2): the chain, level 0 at half the view's size, each next one half again (RGBA16F), made by
+		// the Bloom pass when the view's size or level count changes. After the pass level 0 holds the glow.
+		std::vector<Scope<VulkanRenderTarget>> BloomLevels;
+		bool BloomDrawn = false; // this frame: the Tonemap pass adds level 0
 
 		// ---- Sun shadows (R14) ------------------------------------------------------------
 		// The SunShadows feature's depth map (DEPTH32F, RendererSettings::SunShadowMapSize square), made the

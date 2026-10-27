@@ -10,6 +10,12 @@ RenderSettings:
     Meshes: true
     Shadows: Sun
     SpriteShadows: AsDrawn
+    HDR: true
+    Bloom: true
+Look:
+  ProfileHandle: 7825868437817689624
+  Environment: Profile
+  PostProcess: Profile
 Environment:
   SkyAmbient: [0.360000014, 0.280000001, 0.319999993]
   GroundAmbient: [0.119999997, 0.0900000036, 0.0799999982]
@@ -22,8 +28,8 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0, -2, 0]
-      Rotation: [0, 0, 0]
+      Translation: [1.09180093, -2, 0]
+      Rotation: [0, 0, 0.436332315]
       Scale: [1, 1, 1]
     CameraComponent:
       Primary: true
@@ -2297,7 +2303,7 @@ Entities:
     TagComponent:
       Tag: Sacred Tree
     TransformComponent:
-      Translation: [-5.5999999, 12.4799995, 3.0999999]
+      Translation: [-6, 12.4799995, 3]
       Rotation: [0, 0, 0]
       Scale: [12.6875, 13, 1]
     SpriteRendererComponent:
@@ -4470,75 +4476,6 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
-  - Entity: 9041148645977416914
-    TagComponent:
-      Tag: Grave Stone
-    TransformComponent:
-      Translation: [4.5999999, 5.69939995, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.3125, 1.6875, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3466774123752099384
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    BoxCollider2DComponent:
-      Offset: [0, -0.4111]
-      Size: [0.609499991, 0.1778]
-      Density: 1
-      Friction: 0.400000006
-      Restitution: 0
-      IsSensor: false
-  - Entity: 8663925174146742235
-    TagComponent:
-      Tag: Grave Stone 2
-    TransformComponent:
-      Translation: [5.9000001, 6.51329994, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.50940001, 1.94060004, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3466774123752099384
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-    BoxCollider2DComponent:
-      Offset: [0, -0.422699988]
-      Size: [0.609499991, 0.154599994]
-      Density: 1
-      Friction: 0.400000006
-      Restitution: 0
-      IsSensor: false
-  - Entity: 2126063777373702265
-    TagComponent:
-      Tag: Grave Stone 3
-    TransformComponent:
-      Translation: [7.19999981, 5.52339983, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.18130004, 1.51880002, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3466774123752099384
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    BoxCollider2DComponent:
-      Offset: [0, -0.401199996]
-      Size: [0.609499991, 0.197500005]
-      Density: 1
-      Friction: 0.400000006
-      Restitution: 0
-      IsSensor: false
   - Entity: 7993783122074570228
     TagComponent:
       Tag: Grave Jizo
@@ -5118,25 +5055,26 @@ Entities:
     TagComponent:
       Tag: Chest Shrine
     TransformComponent:
-      Translation: [7.19999981, 5.71500015, 3.0999999]
+      Translation: [7.19999981, 5.34000015, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [1, 0.75, 1]
+      Scale: [1.25, 1.0625, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 54
-      TextureHandle: 1223096506477277171
+      TextureHandle: 1176879926922654480
+      Sprite: Chest_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     Shadow2DComponent:
-      Offset: [0, -0.330000013]
+      Offset: [0, 0.0299999993]
       Size: [0.899999976, 0.300000012]
       Strength: 0.449999988
     BoxCollider2DComponent:
-      Offset: [0, -0.300000012]
-      Size: [0.899999976, 0.400000006]
+      Offset: [0, 0.150000006]
+      Size: [0.899999976, 0.300000012]
       Density: 1
       Friction: 0.400000006
       Restitution: 0
@@ -5285,20 +5223,21 @@ Entities:
     TagComponent:
       Tag: Npc Elder
     TransformComponent:
-      Translation: [3.4000001, -0.400000006, 1]
+      Translation: [1.71964085, 4.12040806, 3.16380525]
       Rotation: [0, 0, 0]
-      Scale: [1, 1.75, 1]
+      Scale: [2, 2, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 65
-      TextureHandle: 4427682999371818319
+      TextureHandle: 8794668877336673630
+      Sprite: IdleDown_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     SpriteAnimatorComponent:
-      AnimationsHandle: 3363558919026677037
+      AnimationsHandle: 141492955996310980
       StartClip: IdleDown
       PlayOnStart: true
       Speed: 1
@@ -5307,8 +5246,8 @@ Entities:
       Size: [0.850000024, 0.319999993]
       Strength: 0.550000012
     BoxCollider2DComponent:
-      Offset: [0, 0.0856999978]
-      Size: [0.5, 0.171399996]
+      Offset: [0, 0.100000001]
+      Size: [0.5, 0.200000003]
       Density: 1
       Friction: 0.400000006
       Restitution: 0
@@ -5338,7 +5277,7 @@ Entities:
       IsSensor: false
   - Entity: 2521931026300517388
     TagComponent:
-      Tag: Exit South
+      Tag: Exit FarmVillage
     TransformComponent:
       Translation: [0, -11, 0]
       Rotation: [0, 0, 0]
@@ -5360,6 +5299,8 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
+      EmissionColor: [1, 1, 1]
+      EmissionIntensity: 1.5
     SpriteAnimatorComponent:
       AnimationsHandle: 381359539372406047
       StartClip: Float
@@ -5605,14 +5546,14 @@ Entities:
     TagComponent:
       Tag: Decor Wall Bush 4
     TransformComponent:
-      Translation: [6.95319986, -3.01390004, 0]
+      Translation: [6.9532, -3.0891, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.59520006, 2.15030003, 1]
+      Scale: [2.1176, 2, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7407627607183195403
+      TextureHandle: 730890692254335057
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -5653,14 +5594,14 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 2
     TransformComponent:
-      Translation: [-5.49620008, 1.31599998, 1]
+      Translation: [-5.4962, 1.0015, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.78410006, 1.62899995, 1]
+      Scale: [2.2593, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 3109843078229128923
+      TextureHandle: 5349124620621949254
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6133,14 +6074,14 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Bush 2
     TransformComponent:
-      Translation: [6.16219997, 11.2215996, 3.0999999]
+      Translation: [6.1622, 11.0872, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [2.25600004, 1.96879995, 1]
+      Scale: [2.5905, 1.7, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 250417816214129350
+      TextureHandle: 8646059172126202674
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6277,14 +6218,14 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 9
     TransformComponent:
-      Translation: [-2.63630009, 14.1443996, 3.0999999]
+      Translation: [-2.6363, 14.2138, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.45309997, 2.86109996, 1]
+      Scale: [0.9403, 3, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7407627607183195403
+      TextureHandle: 2366333483141869441
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -6341,14 +6282,14 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 13
     TransformComponent:
-      Translation: [8.07999992, 13.9807997, 3.0999999]
+      Translation: [8.08, 13.693, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [4.31529999, 3.57559991, 1]
+      Scale: [3.1765, 3, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7407627607183195403
+      TextureHandle: 730890692254335057
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6453,14 +6394,14 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 20
     TransformComponent:
-      Translation: [-3.60170007, 13.8586998, 3.0999999]
+      Translation: [-3.6017, 13.829, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [3.0473001, 2.65939999, 1]
+      Scale: [2.6578, 2.6, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 250417816214129350
+      TextureHandle: 9134991345259463836
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6549,14 +6490,14 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Flowers 4
     TransformComponent:
-      Translation: [-6.9000001, 5.33690023, 3.0999999]
+      Translation: [-6.9, 5.09, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [2.40619993, 1.99380004, 1]
+      Scale: [1.7027, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7407627607183195403
+      TextureHandle: 4193365687079308340
       SpriteIndex: 0
       FlipX: true
       FlipY: false
@@ -6677,14 +6618,14 @@ Entities:
     TagComponent:
       Tag: Canopy Front 2
     TransformComponent:
-      Translation: [-7.5999999, -4.30000019, 0]
+      Translation: [-7.6, -4.65, 0]
       Rotation: [0, 0, 0]
-      Scale: [3.86209989, 3.20000005, 1]
+      Scale: [3.8095, 2.5, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.839999974, 0.800000012, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 7407627607183195403
+      TextureHandle: 8646059172126202674
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6709,14 +6650,14 @@ Entities:
     TagComponent:
       Tag: Canopy Front 4
     TransformComponent:
-      Translation: [5.5999999, -4.19999981, 0]
+      Translation: [5.6, -4.55, 0]
       Rotation: [0, 0, 0]
-      Scale: [3.20830011, 2.79999995, 1]
+      Scale: [2.3838, 2.1, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.839999974, 0.800000012, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 250417816214129350
+      TextureHandle: 4193365687079308340
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -6805,15 +6746,613 @@ Entities:
     TagComponent:
       Tag: Canopy Front 10
     TransformComponent:
-      Translation: [4.19999981, -10.3999996, 0]
+      Translation: [4.2, -10.95, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.75, 2.4000001, 1]
+      Scale: [2.937, 1.3, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.839999974, 0.800000012, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 250417816214129350
+      TextureHandle: 5349124620621949254
       SpriteIndex: 0
       FlipX: true
       FlipY: false
       Facing: Upright
+  - Entity: 2408359067631529845
+    TagComponent:
+      Tag: Glade Memorial Medium
+    TransformComponent:
+      Translation: [6, 7.25, 3.1]
+      Rotation: [0, 0, 0.122173]
+      Scale: [1.6, 1.6, 1.6]
+    MeshComponent:
+      ModelHandle: 6656534145309784850
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.3438]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 1265149911633745423
+    TagComponent:
+      Tag: Glade Memorial Small
+    TransformComponent:
+      Translation: [5.1, 6.75, 3.1]
+      Rotation: [0, 0, -0.244346]
+      Scale: [1.55, 1.55, 1.55]
+    MeshComponent:
+      ModelHandle: 3826708707717588095
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.4, 0.2903]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4070499645035965011
+    TagComponent:
+      Tag: Glade Memorial Rounded
+    TransformComponent:
+      Translation: [8.05, 6.65, 3.1]
+      Rotation: [0, 0, 0.191986]
+      Scale: [1.6, 1.6, 1.6]
+    MeshComponent:
+      ModelHandle: 7110886203829915727
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.4125, 0.3]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 6418856515910437563
+    TagComponent:
+      Tag: Glade Memorial Stone
+    TransformComponent:
+      Translation: [7.15, 7.6, 3.1]
+      Rotation: [0, 0, -0.383972]
+      Scale: [1.6, 1.6, 1.6]
+    MeshComponent:
+      ModelHandle: 2684446994534599676
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.375, 0.2812]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+  - Entity: 4132993618227586471
+    TagComponent:
+      Tag: Glade Offering Bowl
+    TransformComponent:
+      Translation: [6.02, 6.72, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1.5, 1.5]
+    MeshComponent:
+      ModelHandle: 5934216473902716961
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 3210491131678398033
+    TagComponent:
+      Tag: Glade Plaque Rack
+    TransformComponent:
+      Translation: [8.75, 7.55, 3.1]
+      Rotation: [0, 0, -0.314159]
+      Scale: [1.4, 1.4, 1.4]
+    MeshComponent:
+      ModelHandle: 2180732391540852967
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 4662439202797745297
+    TagComponent:
+      Tag: Glade Monk Stool
+    TransformComponent:
+      Translation: [2.5, 4.62, 3.1]
+      Rotation: [0, 0, 0.20944]
+      Scale: [1.4, 1.4, 1.4]
+    MeshComponent:
+      ModelHandle: 6637071425901403360
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 7472300625950887743
+    TagComponent:
+      Tag: Glade Tea Cup
+    TransformComponent:
+      Translation: [2.56, 4.6, 3.66]
+      Rotation: [0, 0, 0]
+      Scale: [1.4, 1.4, 1.4]
+    MeshComponent:
+      ModelHandle: 9157831052250990419
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 1842999460752541794
+    TagComponent:
+      Tag: Glade Monk Broom
+    TransformComponent:
+      Translation: [3.1, 4.72, 3.1]
+      Rotation: [0, 0.3, 0]
+      Scale: [1.3, 1.3, 1.3]
+    MeshComponent:
+      ModelHandle: 3025788120135779416
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 5488526121304600793
+    TagComponent:
+      Tag: Glade Path Stone
+    TransformComponent:
+      Translation: [-1.95, -6.3, 0]
+      Rotation: [0, 0, 0.139626]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 4663219348195522013
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 6128804450866246028
+    TagComponent:
+      Tag: Glade Path Stone 2
+    TransformComponent:
+      Translation: [1.92, -7.5, 0]
+      Rotation: [0, 0, -0.191986]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 8106759842334242398
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 2999846457730276259
+    TagComponent:
+      Tag: Glade Path Stone 3
+    TransformComponent:
+      Translation: [-1.88, -9.2, 0]
+      Rotation: [0, 0, -0.087266]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 8087344668629873487
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 3356960588077542404
+    TagComponent:
+      Tag: Glade Path Stone 4
+    TransformComponent:
+      Translation: [1.98, -10.1, 0]
+      Rotation: [0, 0, 0.366519]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 1358067340528843913
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 8878894406950823129
+    TagComponent:
+      Tag: Glade Path Stone 5
+    TransformComponent:
+      Translation: [5.45, -2.2, 1]
+      Rotation: [0, 0, 0.244346]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 1170341211963298043
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 1868628247324371885
+    TagComponent:
+      Tag: Glade Path Stone 6
+    TransformComponent:
+      Translation: [-5.5, -0.3, 1]
+      Rotation: [0, 0, -0.15708]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 6498929321602821478
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 6214249066076496935
+    TagComponent:
+      Tag: Glade Path Stone 7
+    TransformComponent:
+      Translation: [4.28, 4.6, 3.112]
+      Rotation: [0, 0, 0.575959]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 8106759842334242398
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 3928662666590038833
+    TagComponent:
+      Tag: Glade Path Stone 8
+    TransformComponent:
+      Translation: [-4.32, 6.5, 3.112]
+      Rotation: [0, 0, -0.296706]
+      Scale: [1.15, 1.15, 1.15]
+    MeshComponent:
+      ModelHandle: 1358067340528843913
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+  - Entity: 4081058176968086610
+    TagComponent:
+      Tag: Glade Memorial Candle
+    TransformComponent:
+      Translation: [6.02, 6.72, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.66, 0.34]
+      Intensity: 1.1
+      Radius: 2.4
+      Height: 0.4
+  - Entity: 2125461056901860693
+    TagComponent:
+      Tag: Glade Root
+    TransformComponent:
+      Translation: [-5.3, 6.275, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.4167, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8695497276963604411
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 308483017260594018
+    TagComponent:
+      Tag: Glade Root 2
+    TransformComponent:
+      Translation: [-8.1, 6.05, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [1.6786, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 6313049450135323884
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 9026534825676076001
+    TagComponent:
+      Tag: Glade Root Rock
+    TransformComponent:
+      Translation: [-7.65, 5.575, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.525, 0.55, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 6041862433090863084
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1404370309518800635
+    TagComponent:
+      Tag: Glade Root Grass
+    TransformComponent:
+      Translation: [-5, 5.775, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.7526, 0.55, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8597620230523949458
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7230211234733927122
+    TagComponent:
+      Tag: Glade Edge Fern
+    TransformComponent:
+      Translation: [-2.35, -5.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.2615, 0.8, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4607322758261483897
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 46113684689352002
+    TagComponent:
+      Tag: Glade Edge Tuft
+    TransformComponent:
+      Translation: [-2.75, -4.925, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.6947, 0.55, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8021622353636888719
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7590021687819472514
+    TagComponent:
+      Tag: Glade Edge Flowers
+    TransformComponent:
+      Translation: [2.45, -8.425, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9167, 0.55, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 258909959966937588
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2217633599823727734
+    TagComponent:
+      Tag: Glade Edge Stem
+    TransformComponent:
+      Translation: [2.85, -8.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5091, 0.7, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5186976138038454563
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 3470478518887006333
+    TagComponent:
+      Tag: Glade Lantern Flowers
+    TransformComponent:
+      Translation: [-3.95, 4.75, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.7812, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 9187534983264561675
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7250345250442637454
+    TagComponent:
+      Tag: Glade Memorial Fern
+    TransformComponent:
+      Translation: [5.35, 6.525, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.7621, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5334584178668688366
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3144099046953036919
+    TagComponent:
+      Tag: Glade Memorial Flowers
+    TransformComponent:
+      Translation: [8.35, 6.9, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.7895, 0.6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 43997812283136609
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 2694675473305711182
+    TagComponent:
+      Tag: Glade Memorial Bush
+    TransformComponent:
+      Translation: [9, 6.65, 3.1]
+      Rotation: [0, 0, 0]
+      Scale: [0.8923, 0.8, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 1999058837883826902
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2816783307503247314
+    TagComponent:
+      Tag: Glade Wall Flowers
+    TransformComponent:
+      Translation: [-6.25, 1.5, 1]
+      Rotation: [0, 0, 0]
+      Scale: [0.6316, 0.6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 6535156859702413002
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2858903896025581334
+    TagComponent:
+      Tag: Glade Wall Rock
+    TransformComponent:
+      Translation: [-6.75, 1.46, 1]
+      Rotation: [0, 0, 0]
+      Scale: [0.5815, 0.42, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 6477553587821467186
+      SpriteIndex: 0
+      FlipX: true
+      FlipY: false
+      Facing: Upright
+  - Entity: 6397452061017538252
+    TagComponent:
+      Tag: Glade Petals
+    TransformComponent:
+      Translation: [5.2, 7.95, 3.118]
+      Rotation: [0, 0, 0.174533]
+      Scale: [1.8262, 1.3, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 2387970243623547605
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 5817245892238265650
+    TagComponent:
+      Tag: Glade Petals 2
+    TransformComponent:
+      Translation: [6.9, 7.85, 3.118]
+      Rotation: [0, 0, -0.436332]
+      Scale: [1.6059, 1.05, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5396447801382016704
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 2006656002003339811
+    TagComponent:
+      Tag: Glade Petals 3
+    TransformComponent:
+      Translation: [6.6, 6.3, 3.118]
+      Rotation: [0, 0, 0.698132]
+      Scale: [1.3529, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 7421978121264167086
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 827240693955666416
+    TagComponent:
+      Tag: Glade Petals 4
+    TransformComponent:
+      Translation: [4.75, 5.35, 3.118]
+      Rotation: [0, 0, -0.261799]
+      Scale: [1.8889, 0.85, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 8526769923609699496
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 3866136504513909193
+    TagComponent:
+      Tag: Glade Petals 5
+    TransformComponent:
+      Translation: [3.85, 6.55, 3.118]
+      Rotation: [0, 0, 1.22173]
+      Scale: [1.2444, 0.8, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4456582435797180356
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 1310715488559188980
+    TagComponent:
+      Tag: Glade Petals 6
+    TransformComponent:
+      Translation: [7.6, 5.55, 3.118]
+      Rotation: [0, 0, 0.349066]
+      Scale: [1.4, 0.7, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 3004517650141882723
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat
+  - Entity: 7904172048340867225
+    TagComponent:
+      Tag: Glade Petals 7
+    TransformComponent:
+      Translation: [2.95, 4.35, 3.118]
+      Rotation: [0, 0, -0.698132]
+      Scale: [1.0111, 0.65, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4456582435797180356
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Flat

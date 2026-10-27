@@ -360,7 +360,8 @@ namespace Hydro
 	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID, bool shadowCaster = false)
 	{
 		MeshPipelineKey key;
-		key.ColorFormats = target.GetPipelineColorFormats();
+		// In the HDR scene pass the view's target draws into the scene colour (post-processing plan P1).
+		key.ColorFormats = target.GetPipelineColorFormats(&target == view.Target.get() ? view.PassColorTarget : nullptr);
 		key.DepthFormat = target.GetPipelineDepthFormat();
 		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID && shadowCaster == false;
 		key.Wireframe = Renderer::GetSettings().Wireframe && Renderer::GetCapabilities().Wireframe && shadowCaster == false;

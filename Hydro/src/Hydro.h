@@ -49,6 +49,7 @@
 #include "Hydro/Renderer/Renderer2D.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Renderer/Material.h"
+#include "Hydro/Renderer/RenderProfile.h"
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/TextureImport.h"
 #include "Hydro/Renderer/TextureImportSerializer.h"

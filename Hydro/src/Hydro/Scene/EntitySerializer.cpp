@@ -289,6 +289,12 @@ namespace Hydro
 			{
 				out << YAML::Key << "CastShadows" << YAML::Value << false;
 			}
+			// Emission (plan P3), only when the sprite glows.
+			if (sprite.EmissionIntensity > 0.0f)
+			{
+				out << YAML::Key << "EmissionColor" << YAML::Value << sprite.EmissionColor;
+				out << YAML::Key << "EmissionIntensity" << YAML::Value << sprite.EmissionIntensity;
+			}
 			out << YAML::EndMap;
 		}
 
@@ -489,6 +495,10 @@ namespace Hydro
 			out << YAML::Key << "Blend" << YAML::Value << (emitter.Blend == ParticleBlend::Additive ? "Additive" : "Alpha");
 			out << YAML::Key << "Lighting" << YAML::Value << (emitter.Lighting == ParticleLighting::Unlit ? "Unlit" : "Lit");
 			out << YAML::Key << "SortOrder" << YAML::Value << emitter.SortOrder;
+			if (emitter.EmissionIntensity > 0.0f)
+			{
+				out << YAML::Key << "EmissionIntensity" << YAML::Value << emitter.EmissionIntensity;
+			}
 			out << YAML::Key << "LightRadius" << YAML::Value << emitter.LightRadius;
 			out << YAML::Key << "LightIntensity" << YAML::Value << emitter.LightIntensity;
 			out << YAML::Key << "MaxLights" << YAML::Value << emitter.MaxLights;
@@ -560,6 +570,8 @@ namespace Hydro
 			sprite.AlphaMode = SpriteAlphaModeFromString(spriteNode["AlphaMode"].as<std::string>("Default"));
 			sprite.Overlay = spriteNode["Overlay"].as<bool>(false);
 			sprite.CastShadows = spriteNode["CastShadows"].as<bool>(true);
+			sprite.EmissionColor = glm::max(spriteNode["EmissionColor"].as<glm::vec3>(sprite.EmissionColor), glm::vec3(0.0f));
+			sprite.EmissionIntensity = AtLeast(0.0f, spriteNode["EmissionIntensity"].as<float>(sprite.EmissionIntensity));
 			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
 				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));
@@ -731,6 +743,7 @@ namespace Hydro
 			emitter.Blend = emitterNode["Blend"].as<std::string>("Alpha") == "Additive" ? ParticleBlend::Additive : ParticleBlend::Alpha;
 			emitter.Lighting = emitterNode["Lighting"].as<std::string>("Lit") == "Unlit" ? ParticleLighting::Unlit : ParticleLighting::Lit;
 			emitter.SortOrder = emitterNode["SortOrder"].as<int32_t>(emitter.SortOrder);
+			emitter.EmissionIntensity = AtLeast(0.0f, emitterNode["EmissionIntensity"].as<float>(emitter.EmissionIntensity));
 			emitter.LightRadius = AtLeast(0.0f, emitterNode["LightRadius"].as<float>(emitter.LightRadius));
 			emitter.LightIntensity = AtLeast(0.0f, emitterNode["LightIntensity"].as<float>(emitter.LightIntensity));
 			emitter.MaxLights = ReadCount(emitterNode["MaxLights"], emitter.MaxLights, 0, limit);

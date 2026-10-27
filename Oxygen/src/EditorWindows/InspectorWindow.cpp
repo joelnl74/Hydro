@@ -2,6 +2,7 @@
 #include "../EditorPaths.h"
 #include "Utilities/AssetPicker.h"
 #include "PropertyUI.h"
+#include "RenderLookUI.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -12,6 +13,7 @@
 #include <Hydro/Renderer/Mesh.h>
 #include <Hydro/Renderer/MeshImporter.h>
 #include <Hydro/Renderer/MeshImportSerializer.h>
+#include <Hydro/Renderer/RenderProfileSerializer.h>
 #include <Hydro/Asset/AssetMetaSerializer.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Scene/PrefabSerializer.h>
@@ -437,6 +439,7 @@ namespace Hydro
 				DrawAsset(asset);
 			}
 			SaveEditedMaterial(false);
+			RenderLookUI::SaveEditedProfile(false);
 			ImGui::End();
 			return;
 		}
@@ -452,6 +455,7 @@ namespace Hydro
 		DrawPrefabButton(entity);
 
 		SaveEditedMaterial(false);
+		RenderLookUI::SaveEditedProfile(false);
 		ImGui::End();
 	}
 
@@ -701,6 +705,25 @@ namespace Hydro
 		ImGui::TextDisabled("Edits change every mesh that uses this material; saved when an edit is finished.");
 	}
 
+	void InspectorWindow::DrawRenderProfileAsset(const std::filesystem::path& path)
+	{
+		ImGui::TextUnformatted(path.filename().u8string().c_str());
+		ImGui::TextDisabled("Render profile");
+
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		const Ref<RenderProfile> profile = (uint64_t)handle != 0 ? AssetManager::GetAsset<RenderProfile>(handle) : nullptr;
+		if (profile == nullptr)
+		{
+			ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "Could not read the render profile (see the console).");
+			return;
+		}
+
+		ImGui::Separator();
+		RenderLookUI::EditProfile(profile);
+		ImGui::Spacing();
+		ImGui::TextDisabled("Edits change every scene that uses this profile; saved when an edit is finished.\nA scene uses it from Render Settings > Look (scene).");
+	}
+
 	void InspectorWindow::DrawEntityHeader(Entity entity)
 	{
 		if (entity.HasComponent<TagComponent>())
@@ -808,6 +831,22 @@ namespace Hydro
 				if (ImGui::IsItemHovered())
 				{
 					ImGui::SetTooltip("Sun shadows (Render Settings > Rendering: Shadows = Sun): a cut-out Upright or Billboard\nsprite casts one, as set by Sprite shadows. Off for grass and flowers.");
+				}
+			});
+			DrawPropertyRow("Emission", [&]()
+			{
+				ImGui::ColorEdit3("##SpriteEmissionColor", glm::value_ptr(sprite.EmissionColor));
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Multiplies the sprite's own colours (white = the texture's colours) for its glow.");
+				}
+			});
+			DrawPropertyRow("Emission intensity", [&]()
+			{
+				InputFloatField("##SpriteEmissionIntensity", sprite.EmissionIntensity, "%.2f", 0.0f, 100.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("The sprite glows: its colours times Emission times this are added after the lighting,\nso it stays bright at night and in shadow (flames, candles, lit windows). 0 = none.\nAbove about 1 it blooms (Render Settings > Rendering: HDR and Bloom). The whole sprite glows:\ngive a torch's flame its own sprite.");
 				}
 			});
 			if (texture != nullptr && entity.HasComponent<TransformComponent>())
@@ -1246,6 +1285,15 @@ namespace Hydro
 				}
 			});
 
+			DrawPropertyRow("Emission", [&]()
+			{
+				InputFloatField("##EmitterEmissionIntensity", emitter.EmissionIntensity, "%.2f", 0.0f, 100.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Each particle's colour times this is added after the lighting: sparks and embers glow\nat night and bloom above about 1 (HDR and Bloom). 0 = none.");
+				}
+			});
+
 			DrawSubheading("Light (optional)");
 			DrawPropertyRow("Light Radius", [&]() { InputFloatField("##EmitterLightRadius", emitter.LightRadius, "%.2f", 0.0f, 10000.0f); });
 			if (emitter.LightRadius > 0.0f)
@@ -1574,6 +1622,12 @@ namespace Hydro
 		if (GetAssetTypeFromExtension(asset) == AssetType::Mesh)
 		{
 			DrawModelAsset(asset);
+			return;
+		}
+
+		if (asset.extension() == RenderProfileSerializer::FileExtension)
+		{
+			DrawRenderProfileAsset(asset);
 			return;
 		}
 

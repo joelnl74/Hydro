@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-// The MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test; the scene is written by
-// scripts/diorama_rpg/mvp.py): interact prompts (a sign, a chest, the inn's door, a save point, the map's
+// The MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the
+// Shrine Glade, the Farm Village): interact prompts (a sign, a chest, the inn's door, a save point, the map's
 // exits, an NPC) and a sample inventory menu that gates the player's input while it is open. Prototype
 // code, like BattleScripts.h: one script holds it all and the UI is sprites in the scene, placed relative
 // to the camera every frame, until the UI system (U1) and text land.
@@ -87,7 +87,7 @@ namespace Hydro
 				else if (tag.rfind("Chest", 0) == 0) { item.Type = Kind::Chest; }
 				else if (tag.rfind("Door", 0) == 0) { item.Type = Kind::Door; }
 				else if (tag.rfind("Save", 0) == 0) { item.Type = Kind::Save; }
-				else if (tag.rfind("Exit", 0) == 0) { item.Type = Kind::Exit; }
+				else if (tag.rfind("Exit", 0) == 0) { item.Type = Kind::Exit; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Npc", 0) == 0) { item.Type = Kind::Npc; }
 				else { continue; }
 				const glm::vec3& position = view.get<TransformComponent>(entity).Translation;
@@ -114,6 +114,9 @@ namespace Hydro
 			ShowPrompt(false);
 			m_Message.Time = 0.0f;
 			PresentMessage();
+			// Arriving (the scene was just loaded, or the player came back to it): fade in from black.
+			m_Arriving = ArriveTime;
+			SetAlpha(scene, m_Fade, 1.0f);
 			HY_INFO("MVP: WASD walk, E interact, Tab inventory (Up/Down select, Enter use, Esc close), 1/2/3 day-dusk-night");
 		}
 
@@ -130,9 +133,16 @@ namespace Hydro
 				SetAlpha(scene, m_Fade, 1.0f - m_Leaving / LeaveTime);
 				if (m_Leaving <= 0.0f)
 				{
-					SceneTransition::Push("StatueVillage");
+					Leave(m_LeavingTo);
+					// Kept as it is while the next scene runs: when the player comes back here it fades in.
+					m_Arriving = ArriveTime;
 				}
 				return;
+			}
+			if (m_Arriving > 0.0f)
+			{
+				m_Arriving = std::max(0.0f, m_Arriving - deltaTime);
+				SetAlpha(scene, m_Fade, m_Arriving / ArriveTime);
 			}
 			// a rest at the inn: a dip to black and back
 			if (m_Resting > 0.0f)
@@ -171,6 +181,7 @@ namespace Hydro
 			Kind Type = Kind::Sign;
 			glm::vec2 Position{ 0.0f };
 			bool Used = false;   // chests open once
+			std::string Target;  // exits: the scene they lead to (the tag after "Exit ")
 		};
 
 		struct Item
@@ -185,6 +196,7 @@ namespace Hydro
 		static constexpr float MaxReachHeight = 1.0f;   // metres between the player's ground and the item's
 		static constexpr float MessageTime = 3.0f;
 		static constexpr float LeaveTime = 0.6f;
+		static constexpr float ArriveTime = 0.6f;
 		static constexpr float RestTime = 1.2f;
 
 		// ---- Interaction --------------------------------------------------------------------------------
@@ -261,14 +273,36 @@ namespace Hydro
 					HY_INFO("MVP: save point: saving is not implemented yet (DioramaRPG.md J5)");
 					break;
 				case Kind::Exit:
-					ShowMessage(MvpLabel::RoadGoesOn, MvpLabel::ToTheVillage);
+					if (nearest->Target.empty())
+					{
+						ShowMessage(MvpLabel::RoadGoesOn);
+						break;
+					}
+					ShowMessage(MvpLabel::RoadGoesOn, nearest->Target == "FarmVillage" ? MvpLabel::ToTheVillage : MvpLabel::Count);
+					m_LeavingTo = nearest->Target;
 					m_Leaving = LeaveTime;
-					HY_INFO("MVP: leaving for the Statue Village");
+					HY_INFO("MVP: leaving for {}", m_LeavingTo);
 					break;
 				case Kind::Npc:
 					ShowMessage((MvpLabel)((uint32_t)MvpLabel::NpcLine1 + m_NpcLine));
 					m_NpcLine = (m_NpcLine + 1) % 3;
 					break;
+			}
+		}
+
+		// An exit's tag names the scene it leads to ("Exit FarmVillage"). Field scenes connect in a line for now
+		// (the Shrine Glade <-> the Farm Village), so a scene that was pushed by another goes back to it (Pop: the
+		// one below is exactly as the player left it, at that exit), and the first scene pushes the next. A world
+		// map or scene graph replaces this when there are more than two field scenes.
+		static void Leave(const std::string& target)
+		{
+			if (SceneTransition::GetDepth() > 0)
+			{
+				SceneTransition::Pop();
+			}
+			else
+			{
+				SceneTransition::Push(target);
 			}
 		}
 
@@ -601,7 +635,9 @@ namespace Hydro
 		int m_NpcLine = 0;
 		float m_Time = 0.0f;
 		float m_Leaving = 0.0f;
+		float m_Arriving = 0.0f;
 		float m_Resting = 0.0f;
+		std::string m_LeavingTo;
 		bool m_Previous[9] = {};
 	};
 }

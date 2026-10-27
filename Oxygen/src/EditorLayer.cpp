@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <imgui/imgui.h>
+#include <ImGuizmo.h>
 #include <string>
 
 #include "Hydro/Utils/PlatformUtils.h"
@@ -13,6 +14,10 @@
 #include "Utilities/AssetDragDrop.h"
 #include "Utilities/EditorChrome.h"
 #include "Utilities/PathFollower.h"
+
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -341,7 +346,7 @@ namespace Hydro
 		// so a drag never jumps, but only takes new input over the Editor window. Its settings may
 		// have changed in the Editor Settings window (SetSettings does nothing when they didn't).
 		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
-		m_EditorCamera.Update(deltaTime, m_EditorViewVisible && m_EditorViewHovered);
+		m_EditorCamera.Update(deltaTime, m_EditorViewVisible && m_EditorViewHovered && m_GizmoUsing == false);
 
 		// In game full screen the Editor window is covered: don't draw it.
 		if (m_EditorViewVisible && m_GameFullscreen == false)
@@ -359,6 +364,7 @@ namespace Hydro
 
 	void EditorLayer::OnImGuiRender()
 	{
+		ImGuizmo::BeginFrame();
 		UpdateFullscreenKeys();
 		UpdateCaptureKeys();
 		UpdateLaunchAutomation();
@@ -639,12 +645,15 @@ namespace Hydro
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		m_EditorViewVisible = ImGui::Begin("Editor", nullptr, ImGuiWindowFlags_MenuBar);
 		m_EditorViewHovered = false;
+		m_GizmoHovered = false;
+		m_GizmoUsing = false;
 
 		if (m_EditorViewVisible)
 		{
 			if (ImGui::BeginMenuBar())
 			{
 				DrawEditorCameraMenu();
+				DrawGizmoMenu();
 
 				if (ImGui::BeginMenu("Overlays"))
 				{
@@ -671,8 +680,12 @@ namespace Hydro
 			// Camera projections flip Y for Vulkan, so the image is shown the right way up as is.
 			ImGui::Image((ImTextureID)m_EditorView->GetImGuiTexture(), size);
 			m_EditorViewHovered = ImGui::IsItemHovered();
-			DrawEditorCameraHint(ImGui::GetItemRectMin());
-			UpdateClickSelection(ImGui::GetItemRectMin(), size);
+			const ImVec2 imageMin = ImGui::GetItemRectMin();
+			DrawEditorCameraHint(imageMin);
+			// The gizmo first: a click on one of its handles is not a click to select.
+			DrawTransformGizmo(imageMin, size);
+			UpdateClickSelection(imageMin, size);
+			UpdateGizmoKeys();
 			AcceptAssetDrop();
 
 			// F: look at the selected entity (edit mode only; play mode scripts may use F).
@@ -783,7 +796,8 @@ namespace Hydro
 		// later, an asset dropped) is not one, nor is anything with Alt held (camera controls).
 		const ImGuiIO& io = ImGui::GetIO();
 		const bool alt = io.KeyAlt;
-		if (m_EditorViewHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && alt == false && ImGui::GetDragDropPayload() == nullptr)
+		if (m_EditorViewHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && alt == false && m_GizmoHovered == false
+			&& ImGui::GetDragDropPayload() == nullptr)
 		{
 			m_ClickPending = true;
 			m_ClickStart = io.MousePos;
@@ -823,6 +837,177 @@ namespace Hydro
 		const TransformComponent& transform = entity.GetComponent<TransformComponent>();
 		const float extent = std::max({ std::abs(transform.Scale.x), std::abs(transform.Scale.y), 1.0f });
 		m_EditorCamera.Frame(transform.Translation, extent);
+	}
+
+	// Each angle moved by whole turns to the one nearest `previous`, so a rotation the gizmo hands back
+	// as -90 degrees stays 270 when it was 265 (radians).
+	static glm::vec3 NearestAngles(glm::vec3 angles, const glm::vec3& previous)
+	{
+		const float turn = glm::two_pi<float>();
+		for (int axis = 0; axis < 3; axis++)
+		{
+			angles[axis] += turn * std::round((previous[axis] - angles[axis]) / turn);
+		}
+		return angles;
+	}
+
+	void EditorLayer::DrawTransformGizmo(const ImVec2& imageMin, const ImVec2& imageSize)
+	{
+		// Edits go to the editor scene, so there is no gizmo while playing.
+		Entity selected = m_HierarchyWindow->GetSelectedEntity();
+		if (m_GizmoOperation == GizmoOperation::None || IsPlaying() || m_ActiveScene == nullptr || selected.IsValid() == false
+			|| selected.HasComponent<TransformComponent>() == false || imageSize.x < 1.0f || imageSize.y < 1.0f)
+		{
+			return;
+		}
+
+		ImGuizmo::SetOrthographic(m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic);
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::SetRect(imageMin.x, imageMin.y, imageSize.x, imageSize.y);
+		// Alt + left drag belongs to the camera (orbit / pan), and so does the mouse while a camera drag lasts.
+		ImGuizmo::Enable(ImGui::GetIO().KeyAlt == false && m_EditorCamera.IsDragging() == false);
+		ImGuizmo::GetStyle().Colors[ImGuizmo::SELECTION] = m_EditorSettings.Style.GetHighlightColor();
+
+		// ImGuizmo works with OpenGL's Y-up clip space: take out the Y flip Camera::Perspective /
+		// Orthographic add for Vulkan. Their zero-to-one depth range doesn't matter to it.
+		glm::mat4 projection = m_EditorCamera.GetProjection();
+		projection[1][1] *= -1.0f;
+		const glm::mat4& view = m_EditorCamera.GetView();
+
+		ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+		float snapStep = m_EditorSettings.Gizmo.TranslateSnap;
+		switch (m_GizmoOperation)
+		{
+		case GizmoOperation::Rotate:
+			operation = ImGuizmo::ROTATE;
+			snapStep = m_EditorSettings.Gizmo.RotateSnap;
+			break;
+		case GizmoOperation::Scale:
+			operation = ImGuizmo::SCALE;
+			snapStep = m_EditorSettings.Gizmo.ScaleSnap;
+			break;
+		default:
+			break;
+		}
+		// ImGuizmo scales along the entity's own axes only.
+		const ImGuizmo::MODE mode = (m_GizmoLocal || m_GizmoOperation == GizmoOperation::Scale) ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
+		const float snap[3] = { snapStep, snapStep, snapStep };
+		const bool snapping = ImGui::GetIO().KeyCtrl;
+
+		TransformComponent& transform = selected.GetComponent<TransformComponent>();
+		glm::mat4 matrix = transform.GetTransform();
+		const bool changed = ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode,
+			glm::value_ptr(matrix), nullptr, snapping ? snap : nullptr);
+
+		m_GizmoUsing = ImGuizmo::IsUsing();
+		m_GizmoHovered = m_GizmoUsing || ImGuizmo::IsOver();
+		if (changed == false || m_GizmoUsing == false)
+		{
+			return;
+		}
+
+		// Only the part being dragged is written back, so the others keep their exact values. The matrix
+		// is translate * rotate * scale (TransformComponent::GetTransform): column i is the rotation's
+		// axis i times Scale[i], signs included (a sprite mirrored with a negative scale stays mirrored).
+		switch (m_GizmoOperation)
+		{
+		case GizmoOperation::Translate:
+			transform.Translation = glm::vec3(matrix[3]);
+			break;
+		case GizmoOperation::Rotate:
+		{
+			const glm::vec3& scale = transform.Scale;
+			if (scale.x == 0.0f || scale.y == 0.0f || scale.z == 0.0f)
+			{
+				break;
+			}
+			const glm::mat3 rotation(glm::vec3(matrix[0]) / scale.x, glm::vec3(matrix[1]) / scale.y, glm::vec3(matrix[2]) / scale.z);
+			transform.Rotation = NearestAngles(glm::eulerAngles(glm::normalize(glm::quat_cast(rotation))), transform.Rotation);
+			break;
+		}
+		case GizmoOperation::Scale:
+			for (int axis = 0; axis < 3; axis++)
+			{
+				const float length = glm::length(glm::vec3(matrix[axis]));
+				transform.Scale[axis] = transform.Scale[axis] < 0.0f ? -length : length;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	void EditorLayer::DrawGizmoMenu()
+	{
+		// One-click switches like the 2D / 3D one; the active tool shows selected, a second click hides the gizmo.
+		struct GizmoItem
+		{
+			const char* Label;
+			const char* Tooltip;
+			GizmoOperation Operation;
+		};
+		static const GizmoItem items[] = {
+			{ "Move", "Move the selected entity (W). Ctrl snaps.", GizmoOperation::Translate },
+			{ "Rotate", "Rotate the selected entity (E). Ctrl snaps.", GizmoOperation::Rotate },
+			{ "Scale", "Scale the selected entity (R). Ctrl snaps.", GizmoOperation::Scale }
+		};
+
+		ImGui::Separator();
+		ImGui::BeginDisabled(IsPlaying());
+		for (const GizmoItem& item : items)
+		{
+			const bool active = m_GizmoOperation == item.Operation;
+			if (ImGui::MenuItem(item.Label, nullptr, active))
+			{
+				m_GizmoOperation = active ? GizmoOperation::None : item.Operation;
+			}
+			if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			{
+				ImGui::SetTooltip("%s", IsPlaying() ? "The gizmo edits the editor scene: stop playing to use it" : item.Tooltip);
+			}
+		}
+
+		if (ImGui::MenuItem(m_GizmoLocal ? "Local" : "World"))
+		{
+			m_GizmoLocal = m_GizmoLocal == false;
+		}
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+		{
+			ImGui::SetTooltip(m_GizmoLocal ? "Gizmo along the entity's own axes. Click or T for the world's" : "Gizmo along the world's axes. Click or T for the entity's own (Scale always uses its own)");
+		}
+		ImGui::EndDisabled();
+		ImGui::Separator();
+	}
+
+	void EditorLayer::UpdateGizmoKeys()
+	{
+		// Ctrl+key belongs to menu shortcuts; while the camera drags (flying), W/E/Q move it.
+		const ImGuiIO& io = ImGui::GetIO();
+		if (m_EditorViewHovered == false || IsPlaying() || io.WantTextInput || io.KeyCtrl || m_EditorCamera.IsDragging() || m_GizmoUsing)
+		{
+			return;
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Q, false))
+		{
+			m_GizmoOperation = GizmoOperation::None;
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_W, false))
+		{
+			m_GizmoOperation = GizmoOperation::Translate;
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_E, false))
+		{
+			m_GizmoOperation = GizmoOperation::Rotate;
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_R, false))
+		{
+			m_GizmoOperation = GizmoOperation::Scale;
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_T, false))
+		{
+			m_GizmoLocal = m_GizmoLocal == false;
+		}
 	}
 
 	void EditorLayer::DrawGameWindow()

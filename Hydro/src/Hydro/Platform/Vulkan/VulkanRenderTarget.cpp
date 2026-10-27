@@ -150,9 +150,9 @@ namespace Hydro
 		CreateImages();
 	}
 
-	std::vector<ImageFormat> VulkanRenderTarget::GetPipelineColorFormats() const
+	std::vector<ImageFormat> VulkanRenderTarget::GetPipelineColorFormats(const VulkanRenderTarget* colorTarget) const
 	{
-		std::vector<ImageFormat> formats = m_Specification.ColorFormats;
+		std::vector<ImageFormat> formats = colorTarget != nullptr ? colorTarget->m_Specification.ColorFormats : m_Specification.ColorFormats;
 		if (m_Specification.EntityID)
 		{
 			formats.push_back(ImageFormat::R32I);
@@ -160,10 +160,14 @@ namespace Hydro
 		return formats;
 	}
 
-	void VulkanRenderTarget::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex, const RenderTargetBeginInfo& info)
+	void VulkanRenderTarget::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex, const RenderTargetBeginInfo& info, VulkanRenderTarget* colorTarget)
 	{
 		HY_CORE_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "VulkanRenderTarget::Begin: frame index out of range");
+		HY_CORE_ASSERT(colorTarget == nullptr || (colorTarget->GetWidth() == GetWidth() && colorTarget->GetHeight() == GetHeight()),
+			"VulkanRenderTarget::Begin: the colour target must be the same size");
 		FrameImages& frame = m_Frames[frameIndex];
+		// The colour images drawn into: this target's, or the borrowed ones (with their layout tracking).
+		FrameImages& colors = colorTarget != nullptr ? colorTarget->m_Frames[frameIndex] : frame;
 
 		std::vector<VkImageMemoryBarrier2> barriers;
 		std::vector<VkRenderingAttachmentInfo> colorAttachments;
@@ -185,9 +189,9 @@ namespace Hydro
 
 		VkClearValue clearColor{};
 		clearColor.color = { { info.ClearColor.r, info.ClearColor.g, info.ClearColor.b, info.ClearColor.a } };
-		for (size_t i = 0; i < frame.Colors.size(); i++)
+		for (size_t i = 0; i < colors.Colors.size(); i++)
 		{
-			addColor(*frame.Colors[i], frame.ColorLayouts[i], info.ColorLoad, clearColor);
+			addColor(*colors.Colors[i], colors.ColorLayouts[i], info.ColorLoad, clearColor);
 		}
 
 		if (frame.EntityID != nullptr)
@@ -225,19 +229,20 @@ namespace Hydro
 		vkCmdBeginRendering(commandBuffer, &rendering);
 	}
 
-	void VulkanRenderTarget::End(VkCommandBuffer commandBuffer, uint32_t frameIndex)
+	void VulkanRenderTarget::End(VkCommandBuffer commandBuffer, uint32_t frameIndex, VulkanRenderTarget* colorTarget)
 	{
 		HY_CORE_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "VulkanRenderTarget::End: frame index out of range");
 		vkCmdEndRendering(commandBuffer);
 
-		// Colour attachments are read next (ImGui, the composite, captures); depth stays where it is.
+		// Colour attachments are read next (ImGui, the composite, the tonemap, captures); depth stays where it is.
 		FrameImages& frame = m_Frames[frameIndex];
+		FrameImages& colors = colorTarget != nullptr ? colorTarget->m_Frames[frameIndex] : frame;
 		std::vector<VkImageMemoryBarrier2> barriers;
-		for (size_t i = 0; i < frame.Colors.size(); i++)
+		for (size_t i = 0; i < colors.Colors.size(); i++)
 		{
-			barriers.push_back(MakeTransition(frame.Colors[i]->GetVulkanImageInfo().Image, VK_IMAGE_ASPECT_COLOR_BIT,
-				frame.ColorLayouts[i], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-			frame.ColorLayouts[i] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			barriers.push_back(MakeTransition(colors.Colors[i]->GetVulkanImageInfo().Image, VK_IMAGE_ASPECT_COLOR_BIT,
+				colors.ColorLayouts[i], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+			colors.ColorLayouts[i] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 
 		if (frame.EntityID != nullptr)

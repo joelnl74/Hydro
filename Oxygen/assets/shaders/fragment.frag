@@ -8,6 +8,8 @@ layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) flat in float texIndex;
 layout(location = 3) flat in int entityID;
+// Emission (QuadVertex::Emission, plan P3): added to the colour; 0 = none.
+layout(location = 6) flat in vec3 fragEmission;
 
 layout(location = 0) out vec4 outColor;
 // The Editor view's entity-ID attachment (R32_SINT, never blended). Views without it ignore this output,
@@ -23,6 +25,6 @@ void main()
 	{
 		discard;
 	}
-	outColor = color;
+	outColor = vec4(color.rgb + color.rgb * fragEmission, color.a);
 	outEntityID = entityID;
 }

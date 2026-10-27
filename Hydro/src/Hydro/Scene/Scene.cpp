@@ -9,6 +9,7 @@
 #include "ParticleScene.h"
 
 #include "../Renderer/Renderer2D.h"
+#include "Hydro/Asset/AssetManager.h"
 #include <Hydro/Core/Time.h>
 #include <Hydro/Core/UUID.h>
 
@@ -68,6 +69,35 @@ namespace Hydro
 		}(), ...);
 	}
 
+	Ref<RenderProfile> Scene::GetRenderProfile() const
+	{
+		return (uint64_t)m_Look.Profile != 0 ? AssetManager::GetLoadedAsset<RenderProfile>(m_Look.Profile) : nullptr;
+	}
+
+	SceneEnvironment Scene::GetActiveEnvironment() const
+	{
+		if (m_Look.Environment == RenderLookSource::Profile)
+		{
+			if (const Ref<RenderProfile> profile = GetRenderProfile(); profile != nullptr)
+			{
+				return profile->GetData().Environment;
+			}
+		}
+		return m_Environment;
+	}
+
+	ScenePostProcess Scene::GetActivePostProcess() const
+	{
+		if (m_Look.PostProcess == RenderLookSource::Profile)
+		{
+			if (const Ref<RenderProfile> profile = GetRenderProfile(); profile != nullptr)
+			{
+				return profile->GetData().PostProcess;
+			}
+		}
+		return m_PostProcess;
+	}
+
 	Ref<Scene> Scene::Copy(const Ref<Scene>& source)
 	{
 		Ref<Scene> copy = CreateRef<Scene>(source->GetName());
@@ -75,6 +105,8 @@ namespace Hydro
 		copy->m_ViewportHeight = source->m_ViewportHeight;
 		copy->m_RenderSettings = source->m_RenderSettings;
 		copy->m_Environment = source->m_Environment;
+		copy->m_PostProcess = source->m_PostProcess;
+		copy->m_Look = source->m_Look;
 
 		const entt::registry& sourceRegistry = source->m_Registry;
 

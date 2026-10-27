@@ -9,6 +9,7 @@
 #include "Hydro/Core/Base.h"
 #include "Hydro/Renderer/Camera.h"
 #include "Hydro/Renderer/Lighting.h"
+#include "Hydro/Renderer/PostProcess.h"
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/RenderGraph.h"
 #include "Hydro/Renderer/RenderView.h"
@@ -35,7 +36,8 @@ namespace Hydro
 		uint32_t LineCount = 0;           // of QuadCount: the quads that are lines (DrawLine, DrawRect, DrawCircle)
 
 		// Batching.
-		uint32_t BatchCount = 0;          // vertex batches used this frame (each holds up to MaxQuadsPerBatch quads)
+		uint32_t BatchCount = 0;          // vertex batches used this frame, summed over the views (each holds up to MaxQuadsPerBatch quads)
+		uint32_t FullestBatchQuads = 0;   // quads in the fullest batch this frame (any view): how close one is to needing another
 		uint32_t BatchesAllocated = 0;    // batches kept alive for reuse
 		uint32_t MaxQuadsPerBatch = 0;
 		uint64_t VertexBytesUploaded = 0; // CPU -> GPU vertex upload this frame
@@ -72,6 +74,14 @@ namespace Hydro
 		// Sun shadows (R14), summed over the views that drew a shadow map.
 		uint32_t SunShadowViewCount = 0;
 		uint32_t ShadowCasterQuads = 0;    // sprite quads drawn into shadow maps (meshes: Renderer3DStatistics)
+
+		// HDR (post-processing plan P1): views that rendered through an HDR scene colour and the tonemap.
+		uint32_t HDRViewCount = 0;
+		// Bloom (plan P2): views that drew it, and the levels of the last one (the first level's size).
+		uint32_t BloomViewCount = 0;
+		uint32_t BloomLevelCount = 0;
+		uint32_t BloomWidth = 0;
+		uint32_t BloomHeight = 0;
 
 		// Frame / target.
 		uint32_t ViewCount = 0;      // views rendered this frame
@@ -170,6 +180,9 @@ namespace Hydro
 		// meshes are shaded with it in their shaders. The nearest MaxForwardLights point and spot lights to
 		// the camera are kept.
 		static void SetSceneLighting(const SceneLighting& lighting);
+		// Post-processing (plan P1): the current view's exposure this frame, between BeginScene and EndScene
+		// (SceneRenderer hands it the scene's). Used by views whose render features have HDR on.
+		static void SetPostProcess(const ScenePostProcess& postProcess);
 
 		// Shared depth (RenderFeatureSettings::Depth): how the quads submitted next are drawn, until the next
 		// call or EndScene (which goes back to Translucent). Decal and Cutout quads go to their own lists,
@@ -185,6 +198,10 @@ namespace Hydro
 		// negative value) = none: the quads don't change the IDs below them (particles, effects, lines).
 		// Overlay quads write it too (HUD sprites); editor lines carry -1.
 		static void SetEntityID(int32_t entityID);
+		// Emission (post-processing plan P3): the quads submitted next add their colour (texture times tint)
+		// times `emission` after the lighting, until the next call or EndScene (which goes back to 0). Linear;
+		// above 1 it blooms in an HDR view. Doesn't start a new draw: it travels in the vertices.
+		static void SetEmission(const glm::vec3& emission);
 
 		// 2D lighting (RendererSettings::Lighting). Queue lights for the view between BeginScene and
 		// EndScene, like quads. A view that gets at least one light is drawn lit: each light is drawn
@@ -248,6 +265,12 @@ namespace Hydro
 		static void PrepareSunShadows(RenderViewData& view);
 		// The SunShadows pass (BeforeScene): meshes, then the queued sprite casters, into the view's shadow map.
 		static void RecordSunShadowPass(RenderPassContext& context);
+		// The Tonemap pass (Resolve, HDR views): the scene colour times 2^exposure through PBR Neutral into the
+		// view's colour.
+		static void RecordTonemap(RenderPassContext& context);
+		// The Bloom pass (PostProcess, HDR views with the Bloom feature): prefilter with a soft threshold into half
+		// resolution, then down and up the level chain; level 0 ends up holding the glow the tonemap adds.
+		static void RecordBloom(RenderPassContext& context);
 		// Runs one stage of the view's render graph: each pass in a debug label, timed when it can be.
 		static void ExecuteStage(RenderStage stage, RenderPassContext& context);
 		// The draw list quads go to now (overlay, or the current sprite draw mode's list).

@@ -178,6 +178,12 @@ namespace Hydro
 		out << YAML::Key << "FlySpeed" << YAML::Value << camera.FlySpeed;
 		out << YAML::EndMap;
 
+		out << YAML::Key << "Gizmo" << YAML::Value << YAML::BeginMap;
+		out << YAML::Key << "TranslateSnap" << YAML::Value << settings.Gizmo.TranslateSnap;
+		out << YAML::Key << "RotateSnap" << YAML::Value << settings.Gizmo.RotateSnap;
+		out << YAML::Key << "ScaleSnap" << YAML::Value << settings.Gizmo.ScaleSnap;
+		out << YAML::EndMap;
+
 		out << YAML::Key << "Console" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "AutoScroll" << YAML::Value << settings.Console.AutoScroll;
 		out << YAML::Key << "ShowTimestamps" << YAML::Value << settings.Console.ShowTimestamps;
@@ -316,6 +322,13 @@ namespace Hydro
 			ReadFloat(camera, "PanSpeed", loaded.Camera.PanSpeed);
 			ReadFloat(camera, "ZoomSpeed", loaded.Camera.ZoomSpeed);
 			ReadFloat(camera, "FlySpeed", loaded.Camera.FlySpeed);
+		}
+
+		if (const YAML::Node gizmo = node["Gizmo"])
+		{
+			ReadFloat(gizmo, "TranslateSnap", loaded.Gizmo.TranslateSnap);
+			ReadFloat(gizmo, "RotateSnap", loaded.Gizmo.RotateSnap);
+			ReadFloat(gizmo, "ScaleSnap", loaded.Gizmo.ScaleSnap);
 		}
 
 		if (const YAML::Node console = node["Console"])

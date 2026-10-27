@@ -6,6 +6,7 @@
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Renderer/Material.h"
 #include "Hydro/Renderer/Mesh.h"
+#include "Hydro/Renderer/RenderProfile.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -619,6 +620,10 @@ namespace Hydro
 			{
 				// The first import writes its textures, materials and .hymeta (registered through this manager).
 				return Mesh::LoadUncached(absolute);
+			}
+			case AssetType::RenderProfile:
+			{
+				return RenderProfile::LoadUncached(absolute);
 			}
 			default:
 				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",

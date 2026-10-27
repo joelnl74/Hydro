@@ -17,14 +17,20 @@ namespace Hydro
 	// (the dependency-aware graph, Roadmap RA6, comes later). Layout transitions stay hand-written in the
 	// few places listed in the plan.
 
-	// Where a pass runs. BeforeScene passes render into their own targets before the view's target is
-	// begun; the others record into the view's one rendering pass, in this order.
+	// Where a pass runs, in this order. BeforeScene passes render into their own targets before the view's
+	// target is begun. Without HDR every other stage records into the view's one rendering pass (PostProcess
+	// and Resolve have no passes then). With HDR (a Resolve pass in the graph) the frame is split:
+	//   the scene pass   Opaque, Translucent, AfterLighting into the HDR scene colour (and the view's depth and ID),
+	//   PostProcess      outside any pass (bloom: their own targets, reading the scene colour),
+	//   the output pass  Resolve, Overlay, Debug into the view's colour (its depth and ID loaded).
 	enum class RenderStage : uint8_t
 	{
 		BeforeScene = 0, // the 2D light buffer, the sun shadow map
 		Opaque,          // opaque meshes, cut-out sprites
 		Translucent,     // the view's one sorted translucent list
 		AfterLighting,   // the 2D light composite
+		PostProcess,     // HDR only, outside any pass: bloom
+		Resolve,         // HDR only, first in the output pass: the tonemap (HDR scene colour -> the view's colour)
 		Overlay,         // HUD sprites, editor outlines
 		Debug,           // gizmos
 		Count
@@ -67,6 +73,8 @@ namespace Hydro
 		// Attachments a feature needs on the view's target.
 		void RequireDepthAttachment(ImageFormat format) { m_DepthFormat = format; }
 		void RequireEntityIDAttachment() { m_EntityID = true; }
+		// An HDR scene colour target the scene pass draws into (P1), instead of the view's own colour.
+		void RequireSceneColor(ImageFormat format) { m_SceneColorFormat = format; }
 
 	private:
 		std::vector<std::string> m_Imported;
@@ -75,6 +83,7 @@ namespace Hydro
 		std::string m_CurrentFeature;
 		ImageFormat m_DepthFormat = ImageFormat::None;
 		bool m_EntityID = false;
+		ImageFormat m_SceneColorFormat = ImageFormat::None;
 
 		friend class RenderGraph;
 	};
@@ -127,6 +136,8 @@ namespace Hydro
 		// Attachments the view's target needs (target recreation when they change).
 		ImageFormat GetDepthFormat() const { return m_DepthFormat; }
 		bool NeedsEntityID() const { return m_EntityID; }
+		// None: the scene draws into the view's colour (no HDR).
+		ImageFormat GetSceneColorFormat() const { return m_SceneColorFormat; }
 
 		// Validation only, for settings UI: the messages a graph built from `context` would report.
 		static std::vector<RenderValidationMessage> Validate(const std::vector<Scope<RenderFeature>>& features, const RenderGraphContext& context);
@@ -138,5 +149,6 @@ namespace Hydro
 		std::vector<RenderValidationMessage> m_Messages;
 		ImageFormat m_DepthFormat = ImageFormat::None;
 		bool m_EntityID = false;
+		ImageFormat m_SceneColorFormat = ImageFormat::None;
 	};
 }

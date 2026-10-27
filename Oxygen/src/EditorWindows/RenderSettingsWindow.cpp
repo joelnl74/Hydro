@@ -1,10 +1,13 @@
 #include "RenderSettingsWindow.h"
 #include "StatsUI.h"
+#include "RenderLookUI.h"
+#include "Utilities/AssetPicker.h"
 
 #include <imgui/imgui.h>
 #include <Hydro/Renderer/Renderer.h>
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Project/Project.h>
+#include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Scene/Scene.h>
 
 namespace Hydro
@@ -72,7 +75,7 @@ namespace Hydro
 			}
 			ImGui::EndCombo();
 		}
-		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows.\nChanging a setting below makes it Custom.");
+		HelpMarker("2D: painter's order and the 2D light buffer (today's frame).\n3D: shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows, HDR, bloom.\nChanging a setting below makes it Custom.");
 
 		static const char* depthNames[] = { "Off", "Shared" };
 		changed |= EnumCombo("Depth", features.Depth, depthNames, 2);
@@ -91,6 +94,12 @@ namespace Hydro
 		changed |= EnumCombo("Sprite shadows", features.SpriteShadows, spriteShadowNames, 3);
 		HelpMarker("How cut-out Upright and Billboard sprites cast.\nNone: they don't (they still receive).\nAs drawn: the quad the camera sees; thin when the sun comes from the side.\nFace the sun: the quad turned about its feet to face the sun, so the shadow is always\nas wide as the sprite, and the sprite is never darkened by its own shadow.");
 		ImGui::EndDisabled();
+		changed |= ImGui::Checkbox("HDR", &features.HDR);
+		HelpMarker("The scene renders into a 16-bit float colour, so lanterns and emission can be brighter than white;\nthe scene's exposure and the tonemap bring it to the screen (Look (scene)).\nThe HUD and debug lines are drawn after the tonemap. Off: the 8-bit colour path.");
+		ImGui::BeginDisabled(features.HDR == false);
+		changed |= ImGui::Checkbox("Bloom", &features.Bloom);
+		ImGui::EndDisabled();
+		HelpMarker("A soft glow around what is brighter than the scene's bloom threshold (lantern flames, lit windows,\nemissive materials). Needs HDR. Strength and threshold: Look (scene).");
 
 		// Errors leave the feature out (the frame still draws); warnings keep it.
 		const std::vector<RenderValidationMessage> messages = Renderer2D::ValidateRenderFeatures(features, false);
@@ -108,6 +117,137 @@ namespace Hydro
 
 		ImGui::PopID();
 		return changed;
+	}
+
+	// Applies a look change to the edited scene and the running copy.
+	static void SetLook(Scene& editorScene, Scene* activeScene, const SceneLook& look)
+	{
+		editorScene.SetLook(look);
+		if (activeScene != nullptr && activeScene != &editorScene)
+		{
+			activeScene->SetLook(look);
+		}
+	}
+
+	void RenderSettingsWindow::DrawLook(Scene& editorScene, Scene* activeScene)
+	{
+		SceneLook look = editorScene.GetLook();
+		const Ref<RenderProfile> profile = (uint64_t)look.Profile != 0 ? AssetManager::GetAsset<RenderProfile>(look.Profile) : nullptr;
+
+		// The profile: picked, dropped from the Project window, or cleared.
+		ImGui::TextUnformatted("Render profile");
+		HelpMarker("A shared look (.hyrender): environment and post-processing that several scenes can use.\nEditing it changes every scene that uses it. Below, choose which sections come from it.");
+		const std::string detail = (uint64_t)look.Profile != 0 && profile == nullptr
+			? "The profile is missing or couldn't be loaded (see the console); the scene's own values are drawn." : std::string();
+		const AssetPickerResult picked = AssetPicker::DrawField("##RenderProfile", look.Profile, AssetType::RenderProfile, detail);
+		if (picked.Changed)
+		{
+			// Loading logs why a file couldn't be loaded; a handle that doesn't load is not taken.
+			if ((uint64_t)picked.Handle == 0 || AssetManager::GetAsset<RenderProfile>(picked.Handle) != nullptr)
+			{
+				const bool hadProfile = (uint64_t)look.Profile != 0;
+				look.Profile = picked.Handle;
+				// A first profile is used for both sections; clearing it goes back to the scene's own values.
+				if ((uint64_t)look.Profile == 0)
+				{
+					look.Environment = RenderLookSource::Scene;
+					look.PostProcess = RenderLookSource::Scene;
+				}
+				else if (hadProfile == false)
+				{
+					look.Environment = RenderLookSource::Profile;
+					look.PostProcess = RenderLookSource::Profile;
+				}
+				SetLook(editorScene, activeScene, look);
+			}
+		}
+
+		// Turns what the scene shows now into a new profile it then uses.
+		if (AssetManager::IsProjectOpen() && ImGui::Button("Save as profile"))
+		{
+			RenderProfileData data;
+			data.Environment = editorScene.GetActiveEnvironment();
+			data.PostProcess = editorScene.GetActivePostProcess();
+			const AssetHandle created = RenderLookUI::CreateProfile(editorScene.GetName(), data);
+			if ((uint64_t)created != 0)
+			{
+				look.Profile = created;
+				look.Environment = RenderLookSource::Profile;
+				look.PostProcess = RenderLookSource::Profile;
+				SetLook(editorScene, activeScene, look);
+			}
+		}
+		HelpMarker("Writes the environment and post-processing shown now to RenderProfiles/<scene>.hyrender\nand makes this scene use it for both.");
+		if ((uint64_t)look.Profile == 0)
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled("No profile: the scene's own values.");
+		}
+
+		// One section: where it comes from, then its fields (the profile's or the scene's own).
+		static const char* sourceNames[] = { "Scene", "Profile" };
+		auto drawSource = [&](const char* label, RenderLookSource& source)
+		{
+			ImGui::BeginDisabled((uint64_t)look.Profile == 0);
+			const bool changed = EnumCombo(label, source, sourceNames, 2);
+			ImGui::EndDisabled();
+			HelpMarker("Scene: this scene's own values (kept in the scene file).\nProfile: the render profile's (shared); the scene's own values come back when you switch back.");
+			if (changed)
+			{
+				SetLook(editorScene, activeScene, look);
+			}
+		};
+
+		ImGui::Separator();
+		ImGui::TextDisabled("Environment");
+		drawSource("Environment from", look.Environment);
+		if (look.Environment == RenderLookSource::Profile && profile != nullptr)
+		{
+			ImGui::TextDisabled("Shared: edits change every scene using %s.", AssetManager::GetAbsolutePath(look.Profile).filename().u8string().c_str());
+			RenderLookUI::EditProfile(profile, true, false);
+		}
+		else
+		{
+			if (look.Environment == RenderLookSource::Profile)
+			{
+				ImGui::TextDisabled("Profile missing: the scene's own values are drawn.");
+			}
+			// Like the render features: edits go to the editor scene and the running copy.
+			SceneEnvironment environment = editorScene.GetEnvironment();
+			if (RenderLookUI::DrawEnvironment(environment))
+			{
+				editorScene.SetEnvironment(environment);
+				if (activeScene != nullptr && activeScene != &editorScene)
+				{
+					activeScene->SetEnvironment(environment);
+				}
+			}
+		}
+
+		ImGui::Separator();
+		ImGui::TextDisabled("Post-processing");
+		drawSource("Post-processing from", look.PostProcess);
+		if (look.PostProcess == RenderLookSource::Profile && profile != nullptr)
+		{
+			ImGui::TextDisabled("Shared: edits change every scene using %s.", AssetManager::GetAbsolutePath(look.Profile).filename().u8string().c_str());
+			RenderLookUI::EditProfile(profile, false, true);
+		}
+		else
+		{
+			if (look.PostProcess == RenderLookSource::Profile)
+			{
+				ImGui::TextDisabled("Profile missing: the scene's own values are drawn.");
+			}
+			ScenePostProcess postProcess = editorScene.GetPostProcess();
+			if (RenderLookUI::DrawPostProcess(postProcess))
+			{
+				editorScene.SetPostProcess(postProcess);
+				if (activeScene != nullptr && activeScene != &editorScene)
+				{
+					activeScene->SetPostProcess(postProcess);
+				}
+			}
+		}
 	}
 
 	void RenderSettingsWindow::OnImguiRender(Scene* editorScene, Scene* activeScene)
@@ -225,8 +365,8 @@ namespace Hydro
 			}
 		}
 
-		// ---- Environment (scene) -----------------------------------------------
-		if (ImGui::CollapsingHeader("Environment (scene)", ImGuiTreeNodeFlags_DefaultOpen))
+		// ---- Look (scene) ------------------------------------------------------
+		if (ImGui::CollapsingHeader("Look (scene)", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (editorScene == nullptr)
 			{
@@ -234,33 +374,10 @@ namespace Hydro
 			}
 			else
 			{
-				// Like the render features: edits go to the editor scene and the running copy.
-				SceneEnvironment environment = editorScene->GetEnvironment();
-				bool environmentChanged = ImGui::Checkbox("Own environment", &environment.Override);
-				HelpMarker("Forward lighting only. On: this scene's sky and ground ambient and fog.\nOff: its Global lights are the ambient light and there is no fog.");
-				if (environment.Override)
-				{
-					environmentChanged |= ImGui::ColorEdit3("Sky ambient", &environment.SkyAmbient.x, ImGuiColorEditFlags_Float);
-					HelpMarker("What surfaces facing up get (linear RGB). Facing sideways: half sky, half ground.");
-					environmentChanged |= ImGui::ColorEdit3("Ground ambient", &environment.GroundAmbient.x, ImGuiColorEditFlags_Float);
-					environmentChanged |= ImGui::Checkbox("Fog", &environment.Fog);
-					ImGui::BeginDisabled(environment.Fog == false);
-					environmentChanged |= ImGui::ColorEdit3("Fog color", &environment.FogColor.x, ImGuiColorEditFlags_Float);
-					environmentChanged |= ImGui::DragFloatRange2("Fog distance", &environment.FogStart, &environment.FogEnd, 0.25f, 0.0f, 10000.0f, "%.1f m", "%.1f m");
-					HelpMarker("Metres from the camera: where fog starts, and where it hides everything.");
-					ImGui::EndDisabled();
-				}
-
-				if (environmentChanged)
-				{
-					editorScene->SetEnvironment(environment);
-					if (activeScene != nullptr && activeScene != editorScene)
-					{
-						activeScene->SetEnvironment(environment);
-					}
-				}
+				DrawLook(*editorScene, activeScene);
 			}
 		}
+		RenderLookUI::SaveEditedProfile(false);
 
 		// ---- Debug -------------------------------------------------------------
 		if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen))

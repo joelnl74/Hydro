@@ -49,7 +49,7 @@ namespace Hydro
 
 	private:
 		// What the window shows an item as (Hydro::AssetType, plus folders).
-		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model };
+		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model, RenderProfile };
 
 		struct AssetItem
 		{
@@ -106,6 +106,9 @@ namespace Hydro
 		void CreateSpriteAnimation(const std::filesystem::path& imagePath);
 		// Writes "New Material.hymat" (a default Standard material) in the current folder and selects it.
 		void CreateMaterial();
+		// Writes "New Render Profile.hyrender" (its own environment, default post-processing) in the current
+		// folder and selects it (post-processing plan P4).
+		void CreateRenderProfile();
 		// False for asset types the window doesn't show.
 		static bool ToItemType(AssetType type, ItemType& itemType);
 

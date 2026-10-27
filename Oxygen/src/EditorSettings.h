@@ -22,6 +22,15 @@ namespace Hydro
 		bool LeaveFullscreenOnStop = true;
 	};
 
+	// The Editor window's transform gizmo (W move, E rotate, R scale, Q off). Holding Ctrl while
+	// dragging it snaps to these steps.
+	struct GizmoSettings
+	{
+		float TranslateSnap = 0.5f; // world units
+		float RotateSnap = 15.0f;   // degrees
+		float ScaleSnap = 0.1f;
+	};
+
 	struct ConsoleSettings
 	{
 		bool AutoScroll = true;
@@ -68,6 +77,7 @@ namespace Hydro
 
 		EditorCameraSettings Camera;
 		bool CameraStartsIn2D = true;
+		GizmoSettings Gizmo;
 
 		ConsoleSettings Console;
 		EditorStartupSettings Startup;
