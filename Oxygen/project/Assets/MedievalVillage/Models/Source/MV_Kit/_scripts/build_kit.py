@@ -22,7 +22,7 @@ scene.unit_settings.scale_length = 1.0
 ROOTCOL = bpy.data.collections.new("EONLORE_MedievalVillage")
 scene.collection.children.link(ROOTCOL)
 CNAMES = ["00_Blockout", "01_Foundations", "02_Walls", "03_Beams", "04_Doors", "05_Windows", "06_Roofs",
-          "07_Chimneys", "08_Balconies", "09_Props_3D", "10_Collision", "20_Atlases", "90_PrefabExamples"]
+          "07_Chimneys", "08_Balconies", "09_Props_3D", "10_Collision", "11_Terrain_Route", "20_Atlases", "90_PrefabExamples"]
 COL = {}
 for n in CNAMES:
     c = bpy.data.collections.new(n); ROOTCOL.children.link(c); COL[n] = c
@@ -45,6 +45,10 @@ MATDEFS = [
     ("MAT_Sign_Tavern", "MV_Sign_Tavern.png", (1.0, 0.75), {}),
     ("MAT_Stone_Chimney", "MV_Stone_Chimney.png", (2.0, 2.0), {}),
     ("MAT_Wood_Planks", "MV_Wood_Planks.png", (2.0, 2.0), {}),
+    ("MAT_Roof_Thatch", "MV_Roof_Thatch.png", (2.0, 2.0), {}),
+    ("MAT_Soil_Tilled", "MV_Soil_Tilled.png", (2.0, 2.0), {}),
+    ("MAT_Water_Stream", "MV_Water_Stream.png", (2.0, 2.0), {}),
+    ("MAT_Dirt_Road", "MV_Dirt_Road.png", (2.0, 2.0), {}),
 ]
 MAT = {}
 TEXSIZE = {}
@@ -349,7 +353,8 @@ def window_small():
 SLAB_T = 0.16
 
 
-def roof_slab(mb, x0, x1, roofmat, span=SPAN, eave=EAVE, pitch=PITCH, slab=SLAB_T, ridge=True, fascia=True):
+def roof_slab(mb, x0, x1, roofmat, span=SPAN, eave=EAVE, pitch=PITCH, slab=SLAB_T, ridge=True, fascia=True,
+              ridgemat=None, basemat="MAT_Wood_DarkBeam"):
     """Both slopes between x0..x1. Local roof frame: front wall face y=0, back y=span, wall top z=0."""
     t = math.tan(math.radians(pitch)); c = math.cos(math.radians(pitch))
     rise = (span / 2) * t
@@ -359,11 +364,11 @@ def roof_slab(mb, x0, x1, roofmat, span=SPAN, eave=EAVE, pitch=PITCH, slab=SLAB_
     Mf = T(0, eave_y, eave_z) @ R('X', pitch)
     Mb = T((x0 + x1), span, 0) @ R('Z', 180) @ Mf  # the back slope: turned about the ridge line's centre
     for M in (Mf, Mb):
-        mb.box(x0, 0, 0, x1, slope_len, slab, "MAT_Wood_DarkBeam", M=M, facemat={'+z': roofmat})
+        mb.box(x0, 0, 0, x1, slope_len, slab, basemat, M=M, facemat={'+z': roofmat})
     if ridge:  # square timber turned 45 degrees, roof-dark faces
         s = 0.14 * (slab / SLAB_T) ** 0.5
         Mr = T(0, span / 2, rise + slab / c - 0.06) @ R('X', 45)
-        mb.box(x0, -s, -s, x1, s, s, "MAT_Roof_SlateDark", M=Mr)
+        mb.box(x0, -s, -s, x1, s, s, ridgemat or roofmat, M=Mr)
     if fascia:  # thick outer edge along both eaves
         for M in (Matrix.Identity(4), T(x0 + x1, span, 0) @ R('Z', 180)):
             mb.box(x0, eave_y - 0.06, eave_z - 0.18, x1, eave_y + 0.04, eave_z + 0.06, "MAT_Wood_DarkBeam", M=M)
@@ -386,7 +391,7 @@ def roof_gable_end(roofmat="MAT_Roof_SlateDark", tag="GableEnd"):
     return mb.to_object("MV_Roof_%s_A" % tag, COL["06_Roofs"])
 
 
-def roof_leanto(L=2.0, run=2.2, pitch=22.0, roofmat="MAT_Roof_ShingleDark"):
+def roof_leanto(L=2.0, run=2.2, pitch=22.0, roofmat="MAT_Roof_ShingleDark", tag=""):
     """Single slope from a wall (local y=0 face, top edge z=0) out to -Y; hangs on any wall. Posts are MV_Post_Timber_A."""
     mb = MeshBuilder()
     t = math.tan(math.radians(pitch))
@@ -396,7 +401,7 @@ def roof_leanto(L=2.0, run=2.2, pitch=22.0, roofmat="MAT_Roof_ShingleDark"):
     mb.box(0, 0, 0, L, slope + 0.05, 0.12, "MAT_Wood_DarkBeam", M=M, facemat={'+z': roofmat})
     mb.box(0, -run - 0.05, -run * t - 0.16, L, -run + 0.05, -run * t + 0.04, "MAT_Wood_DarkBeam")  # fascia
     mb.box(0, -0.12, -0.2, L, 0.0, 0.02, "MAT_Wood_DarkBeam")                                      # wall plate
-    return mb.to_object("MV_Roof_LeanTo_%dm_A" % L, COL["06_Roofs"])
+    return mb.to_object("MV_Roof_LeanTo%s_%dm_A" % (tag, L), COL["06_Roofs"])
 
 
 def post_timber(h=2.5):
@@ -638,6 +643,14 @@ def cart():
     return ob
 
 
+SCRIPTS = Path(__file__).resolve().parent
+def farm(phase):
+    g = globals(); g["FARM_PHASE"] = phase
+    exec(compile((SCRIPTS / "farm_kit.py").read_text(encoding="utf-8"), "farm_kit.py", "exec"), g)
+
+
+farm("A")
+
 # ------------------------------------------------------------------ library
 mods = {}
 LIBROWS = [
@@ -651,6 +664,7 @@ LIBROWS = [
     [("chim", chimney(7.0, "A")), ("chimB", chimney(10.0, "B"))],
     [("fence", fence()), ("sign", hanging_sign()), ("well", well()), ("lantern", lantern_post()), ("stall", market_stall()), ("cart", cart())],
 ]
+LIBROWS += FARM_ROWS
 LIBRARY_ORIGIN = Vector((-40, 0, 0))
 for row, items in enumerate(LIBROWS):
     for col, (key, ob) in enumerate(items):
@@ -683,7 +697,7 @@ def place(root, key, x, y, z, rot=0, sx=1.0):
     for ch in src.children:  # carry collision proxies
         c = bpy.data.objects.new(ch.name.replace(src.name, ob.name), ch.data)
         COL["90_PrefabExamples"].objects.link(c)
-        c.parent = ob; c.display_type = 'WIRE'; c.hide_render = True
+        c.parent = ob; c.display_type = 'WIRE'; c.hide_render = True; c["hydro_kind"] = ch.get("hydro_kind", "COL")
     return ob
 
 
@@ -732,7 +746,8 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
                 P("fbeam", W + 0.02, 2 * i, z - 0.11, 90)
     gable = "gableK" if plank_gable else "gable"
     P(gable, 0, D, WT, -90); P(gable, W, 0, WT, 90)
-    rk, ek = ("roof2", "roofEnd") if roof == "slate" else ("roofK2", "roofKEnd")
+    rk, ek = {"slate": ("roof2", "roofEnd"), "thatch": ("roofT2", "roofTEnd")}.get(roof, ("roofK2", "roofKEnd"))
+    lk = {"slate": "leanS", "thatch": "leanT"}.get(roof, "lean")   # lean-to uses the house's own roof material
     for i in range(int(W // 2)):
         P(rk, 2 * i, 0, WT)
     P(ek, 0, 0, WT); P(ek, W, D, WT, 180)
@@ -759,9 +774,9 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
         top = F + 2.75 if side == "front" else F + 2.9
         for i in range(n):
             if side == "right":
-                P("lean", W, x0 + 2 * i, top, 90)
+                P(lk, W, x0 + 2 * i, top, 90)
             else:
-                P("lean", x0 + 2 * i, 0, top)
+                P(lk, x0 + 2 * i, 0, top)
         run, pitch = 2.2, 22.0
         drop = run * math.tan(math.radians(pitch))
         post_h = top - drop - 0.16
@@ -799,6 +814,9 @@ house("MV_Shop_A", 6, 1, front=["BBB"], right=["PB"], roof="slate", chimney="rig
 for key, pname in (("fence", "MV_Fence"), ("well", "MV_Well"), ("lantern", "MV_LanternPost"), ("stall", "MV_MarketStall"), ("cart", "MV_Cart")):
     root = new_prefab(pname, (0, -30 - 4 * len(PREFABS), 0))
     place(root, key, 0, 0, 0)
+
+
+farm("B")
 
 
 # ------------------------------------------------------------------ preview stage (not exported)
@@ -881,6 +899,8 @@ sprite("RoundBush.png", 10.5, -8.0, -0.2, 1.6)
 
 # NPC placeholders (simple 1 x 1.75 m cards)
 # (NPC cards come with the Phase 3 street; the shrine maiden sheet is an atlas, not a single frame)
+
+farm("C")
 
 # ------------------------------------------------------------------ lighting (dusk, matches Shrine Glade)
 world = bpy.data.worlds.new("MV_World"); scene.world = world
@@ -968,7 +988,10 @@ scene.view_settings.exposure = -0.3
 # scene components. Each prefab's root is moved to the origin for its export.
 OUT = ROOT / "Models"
 EXPORTED = []
+ROOF_FIX = ("MV_House_B", "MV_Shop_A", "MV_Barn_A", "MV_Well")   # re-exported: their lean-to roofs now match the main roof
 for pname, root in PREFABS.items():
+    if pname not in NEW_PREFABS and pname not in ROOF_FIX and not os.environ.get("MV_REEXPORT"):
+        continue  # existing glbs stay as they are
     bpy.ops.object.select_all(action='DESELECT')
     for ob in [root] + list(root.children_recursive):
         if ob.name.startswith("COL_") or ob.display_type == 'WIRE':

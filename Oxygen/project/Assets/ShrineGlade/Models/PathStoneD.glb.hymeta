@@ -1,0 +1,10 @@
+Handle: 8106759842334242398
+Type: Mesh
+MeshImport:
+  Scale: 1
+  ConvertYUpToZUp: true
+  GenerateNormals: true
+  Images:
+    0: 16539196907326782737
+  Materials:
+    0: 4510703149446442986

@@ -17,7 +17,9 @@ namespace Hydro
 	// The walkable ground of a scene, read from its MeshComponents every time it is asked: the top of the
 	// highest built-in shape (or model, as its bounding box) under a point. Shapes may be turned about Z only
 	// (their Rotation.z), as blockout is. A model whose geometry starts well above its entity's base (a tree's
-	// crown) is overhead, not ground: things walk under it. Game code for now; a collision system replaces it.
+	// crown) is overhead, not ground: things walk under it. A mesh whose tag starts "Visual " is only seen (a
+	// bridge whose bounds include its parapets): hidden walk shapes inside it are the ground instead. Game code
+	// for now; a collision system replaces it (wiki: World collision plan).
 	struct DioramaGround
 	{
 		// No ground at all here (outside the map).
@@ -31,6 +33,10 @@ namespace Hydro
 			auto meshes = scene.m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto entity : meshes)
 			{
+				if (IsVisualOnly(scene, entity))
+				{
+					continue;
+				}
 				const auto [transform, mesh] = meshes.get<TransformComponent, MeshComponent>(entity);
 				height = std::max(height, SurfaceAt(transform, mesh, point));
 			}
@@ -38,6 +44,11 @@ namespace Hydro
 		}
 
 	private:
+		static bool IsVisualOnly(Scene& scene, entt::entity entity)
+		{
+			return scene.m_Registry.has<TagComponent>(entity) && scene.m_Registry.get<TagComponent>(entity).Tag.rfind("Visual ", 0) == 0;
+		}
+
 		// The top of one mesh at `point`, or None when the point isn't over it.
 		static float SurfaceAt(const TransformComponent& transform, const MeshComponent& mesh, const glm::vec2& point)
 		{
@@ -463,7 +474,7 @@ namespace Hydro
 		}
 		DioramaSceneFraming GetFraming() const override
 		{
-			return { 55.0f, 30.0f, 2.0f, 1.2f, { -6.5f, -12.0f }, { 6.5f, 16.0f } };
+			return { 55.0f, 30.0f, 2.0f, 1.2f, { -6.5f, -34.0f }, { 6.5f, 16.0f } };
 		}
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
