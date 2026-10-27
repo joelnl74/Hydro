@@ -44,14 +44,14 @@ namespace Hydro
 			StatsUI::Row("Batches used", "%u / %u allocated", stats.BatchCount, stats.BatchesAllocated);
 			StatsUI::Row("Quads per batch", "%u max", stats.MaxQuadsPerBatch);
 
-			// How full the last batch is - tells you how close you are to another draw call.
-			uint32_t quadsInLast = stats.BatchCount == 0 || stats.MaxQuadsPerBatch == 0 ? 0
-				: stats.QuadCount - (stats.BatchCount - 1) * stats.MaxQuadsPerBatch;
-			float fill = stats.MaxQuadsPerBatch ? (float)quadsInLast / stats.MaxQuadsPerBatch : 0.0f;
+			// How full the fullest batch is - how close a view is to another batch (and draw call). Every view has
+			// its own batches, so this can't be worked out from the totals (that underflowed with two views).
+			const uint32_t fullest = stats.FullestBatchQuads;
+			const float fill = stats.MaxQuadsPerBatch ? (float)fullest / stats.MaxQuadsPerBatch : 0.0f;
 
 			char fillText[32];
-			snprintf(fillText, sizeof(fillText), "%u (%.0f%%)", quadsInLast, fill * 100.0f);
-			StatsUI::BarRow("Last batch fill", fill, fillText);
+			snprintf(fillText, sizeof(fillText), "%u (%.0f%%)", fullest, fill * 100.0f);
+			StatsUI::BarRow("Fullest batch", fill, fillText);
 
 			StatsUI::Row("Vertex upload", "%s / frame", StatsUI::FormatBytes(stats.VertexBytesUploaded, a, sizeof(a)));
 			ImGui::EndTable();

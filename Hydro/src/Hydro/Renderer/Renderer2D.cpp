@@ -1963,6 +1963,7 @@ namespace Hydro
 			view.QuadVertexBuffers[i][frame]->SetData(view.QuadVertexBufferBases[i], vertexCount * sizeof(QuadVertex));
 
 			s_Data->Stats.BatchCount++;
+			s_Data->Stats.FullestBatchQuads = std::max(s_Data->Stats.FullestBatchQuads, indexCount / 6);
 			s_Data->Stats.VertexBytesUploaded += (uint64_t)vertexCount * sizeof(QuadVertex);
 		}
 

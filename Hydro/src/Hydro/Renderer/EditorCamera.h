@@ -86,6 +86,8 @@ namespace Hydro
 		// True while the right mouse button flies the camera: W/A/S/D/Q/E belong to it, so the editor
 		// shouldn't treat them as shortcuts.
 		bool IsFlying() const { return m_DragMode == DragMode::Fly; }
+		// A mouse drag (orbit, pan, zoom or fly) is going on: the editor keeps other mouse tools (the gizmo) out of it.
+		bool IsDragging() const { return m_DragMode != DragMode::None; }
 		// The fly speed this session, in metres per second (the setting times the wheel's multiplier).
 		float GetFlySpeed() const;
 

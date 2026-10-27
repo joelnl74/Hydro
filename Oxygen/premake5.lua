@@ -12,6 +12,10 @@ project "Oxygen"
 		"src/**.h",
 		"src/**.cpp",
 
+		-- ImGuizmo (the Editor window's transform gizmo) is editor-only, so it is compiled here, not into Hydro.
+		"%{wks.location}/Hydro/vendor/ImGuizmo/ImGuizmo.h",
+		"%{wks.location}/Hydro/vendor/ImGuizmo/ImGuizmo.cpp",
+
 		-- GLSL sources, compiled to SPIR-V by Visual Studio as part of the build (see filter below).
 		"assets/shaders/**.vert",
 		"assets/shaders/**.frag",
@@ -33,6 +37,7 @@ project "Oxygen"
 		"%{wks.location}/Hydro/vendor",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.entt}",
@@ -63,6 +68,10 @@ project "Oxygen"
 			'"$(VULKAN_SDK)\\Bin\\glslc.exe" "%{file.relpath}" -o "%{file.relpath}.spv"'
 		}
 		buildoutputs { "%{file.relpath}.spv" }
+
+	-- Vendored sources compiled into Oxygen: no warnings from them.
+	filter "files:**/vendor/ImGuizmo/**.cpp"
+		warnings "Off"
 
 	-- Hydro compiles GLSL at runtime with shaderc: put its DLL next to the executable.
 	filter {}

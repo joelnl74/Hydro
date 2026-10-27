@@ -23,7 +23,7 @@ namespace Hydro
 		{ "Play Mode",     "How the editor shows that the game is running." },
 		{ "Layout",        "Rounding, borders and spacing of the theme." },
 		{ "Colors",        "Every ImGui colour of the theme." },
-		{ "Editor Camera", "The camera of the Editor window." },
+		{ "Editor Camera", "The camera of the Editor window and its transform gizmo." },
 		{ "Console",       "What each log line shows." },
 		{ "Startup",       "What opens when Oxygen starts, and autosave." },
 	};
@@ -490,11 +490,22 @@ namespace Hydro
 		ImGui::TextDisabled("Controls: Alt+LMB orbit, MMB pan, Alt+RMB or the wheel to zoom.");
 		ImGui::TextDisabled("3D: hold RMB to fly (mouse look, WASD, Q/E down/up, Shift faster, wheel = speed).");
 
+		SectionHeading("Transform gizmo");
+		if (BeginSettingsTable("##gizmo"))
+		{
+			changed |= FloatRow("Move snap (units)", settings.Gizmo.TranslateSnap, 0.001f, 1000.0f, "%.3f");
+			changed |= FloatRow("Rotate snap (degrees)", settings.Gizmo.RotateSnap, 0.1f, 180.0f, "%.1f");
+			changed |= FloatRow("Scale snap", settings.Gizmo.ScaleSnap, 0.001f, 100.0f, "%.3f");
+			ImGui::EndTable();
+		}
+		ImGui::TextDisabled("W move, E rotate, R scale, Q hide the gizmo; T switches local / world. Hold Ctrl to snap.");
+
 		ImGui::Spacing();
 		if (ImGui::Button("Reset camera settings"))
 		{
 			camera = EditorCameraSettings();
 			settings.CameraStartsIn2D = true;
+			settings.Gizmo = GizmoSettings();
 			changed = true;
 		}
 

@@ -6,6 +6,6 @@ Material:
   Tint: [1, 1, 1, 1]
   Tiling: [1, 1]
   EmissionColor: [1, 1, 1]
-  EmissionIntensity: 1.5
+  EmissionIntensity: 4
   AlphaCutoff: 0
   Filter: Nearest

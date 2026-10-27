@@ -10,7 +10,8 @@
 
 // The Shrine Glade (Assets/Scenes/ShrineGlade.hyscene): the first scene that mixes meshes (terraces,
 // retaining walls, stairs, the imported shrine and stone lanterns) with upright sprites (trees, props,
-// characters). See docs/TestBed.md, "Shrine Glade".
+// characters), and the Farm Village below it (Assets/Scenes/FarmVillage.hyscene), built the same way from the
+// medieval village kit. See docs/TestBed.md, "Shrine Glade" and "Farm Village".
 namespace Hydro
 {
 	// The walkable ground of a scene, read from its MeshComponents every time it is asked: the top of the
@@ -241,31 +242,61 @@ namespace Hydro
 		float m_HeightEasing = 18.0f;
 	};
 
-	// On the Shrine Glade's director entity: the scene's framing and its light.
-	//   - Starts in the tilted diorama view, much lower than the other field scenes (70 degrees from straight
-	//     down, 20 below the horizon, with a wider 35 degree lens): the terrace walls, the steps and the
-	//     shrine face the camera and the sunset shows over the valley's pines, as in the concept. The follow
-	//     camera looks 3 m ahead up the stairs and 2.2 m above the player's ground, and its focus stays on the
-	//     dressed stage (SceneBounds). All of it is reset when the scene ends. Keep in step with
-	//     scripts/shrine_glade/preview.py (TILT_DEGREES, FOV_DEGREES, FOCUS_LEAD, FOCUS_RISE, BOUNDS).
-	//   - Owns the light (the scene is forward lit, M6): the scene's Environment (sky and ground ambient, fog),
-	//     the main light (the sun's DirectionalLightComponent) and every point light whose tag starts
-	//     "Light Lantern" (flickering amber pools). Keys 1 / 2 / 3: day, golden dusk (the default, the
-	//     concept's), night; L lanterns on/off. The scene file's Environment and sun are the dusk preset.
-	class ShrineGladeScript : public ScriptableEntity
+	// One time of day for a diorama scene: the sun's colour and strength, how much of their strength the
+	// lanterns keep, and its render profile (post-processing plan P5: the ambient, fog, exposure and bloom).
+	// The ambient and fog colours are the fallback when the profile file is missing; keep them in step with the
+	// profiles (written by the scene's build script).
+	struct DioramaScenePreset
+	{
+		const char* Name;
+		const char* Profile; // relative to the asset folder
+		glm::vec3 SunColor;
+		float SunIntensity;
+		glm::vec3 SkyAmbient;
+		glm::vec3 GroundAmbient;
+		glm::vec3 FogColor;
+		float LanternFactor;
+	};
+
+	// A scene's camera framing in the tilted view (DioramaView's Scene* settings).
+	struct DioramaSceneFraming
+	{
+		float TiltDegrees = 0.0f;
+		float FieldOfView = 0.0f;
+		float FocusLead = 0.0f;
+		float FocusRise = 0.0f;
+		glm::vec2 BoundsMin{ 0.0f };
+		glm::vec2 BoundsMax{ 0.0f };
+	};
+
+	// On a diorama scene's director entity: the scene's framing and its light. A scene's director derives from
+	// it and gives its framing and three presets (ShrineGladeScript, FarmVillageScript).
+	//   - Starts in the tilted diorama view with the scene's framing; reset when the scene ends.
+	//   - Owns the light (forward lit, M6): the render profile (environment and post-processing), the main
+	//     light (the sun's DirectionalLightComponent) and every point light whose tag starts "Light Lantern"
+	//     (flickering amber pools). Keys 1 / 2 / 3 switch the presets, L the lanterns on/off.
+	class DioramaDirectorScript : public ScriptableEntity
 	{
 	protected:
+		virtual const char* GetSceneName() const = 0;
+		virtual const char* GetHelp() const = 0;
+		virtual DioramaSceneFraming GetFraming() const = 0;
+		// index 0..2: keys 1, 2 and 3
+		virtual const DioramaScenePreset& GetPreset(int index) const = 0;
+		virtual int GetStartPreset() const { return 1; }
+
 		void OnCreate() override
 		{
+			const DioramaSceneFraming framing = GetFraming();
 			DioramaView::Enabled = true;
 			DioramaView::Blend = 1.0f;
-			DioramaView::SceneTiltDegrees = 70.0f;
-			DioramaView::SceneFieldOfView = 35.0f;
-			DioramaView::SceneFocusLead = 3.0f;
-			DioramaView::SceneFocusRise = 2.2f;
+			DioramaView::SceneTiltDegrees = framing.TiltDegrees;
+			DioramaView::SceneFieldOfView = framing.FieldOfView;
+			DioramaView::SceneFocusLead = framing.FocusLead;
+			DioramaView::SceneFocusRise = framing.FocusRise;
 			DioramaView::HasSceneBounds = true;
-			DioramaView::SceneBoundsMin = { -2.0f, -8.0f };
-			DioramaView::SceneBoundsMax = { 2.0f, 6.0f };
+			DioramaView::SceneBoundsMin = framing.BoundsMin;
+			DioramaView::SceneBoundsMax = framing.BoundsMax;
 
 			Scene& scene = *GetEntity().GetScene();
 			auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
@@ -278,8 +309,9 @@ namespace Hydro
 					m_Lanterns.push_back({ entity, light.Intensity, light.Radius, (float)m_Lanterns.size() * 1.9f });
 				}
 			}
+			m_Preset = GetStartPreset();
 			ApplyPreset();
-			HY_INFO("Shrine Glade: WASD walk up the stairs to the shrine, E interact, 1/2/3 day-dusk-night, L lanterns, V top-down / tilted, O perspective / orthographic");
+			HY_INFO("{}: {}", GetSceneName(), GetHelp());
 		}
 
 		void OnDestroy() override
@@ -330,45 +362,37 @@ namespace Hydro
 			float Phase = 0.0f;
 		};
 
-		// One time of day: the sun's colour and strength, the hemisphere ambient, the fog, and how much of their
-		// strength the lanterns keep. Dusk is what build.py writes into the scene; keep them in step (and
-		// scripts/shrine_glade/preview.py's PRESETS, which approximates them).
-		struct Preset
-		{
-			const char* Name;
-			glm::vec3 SunColor;
-			float SunIntensity;
-			glm::vec3 SkyAmbient;
-			glm::vec3 GroundAmbient;
-			glm::vec3 FogColor;
-			float LanternFactor;
-		};
-		static const Preset& GetPreset(int index)
-		{
-			static const Preset presets[3] = {
-				{ "Day", { 1.00f, 0.95f, 0.85f }, 1.10f, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, 0.0f },
-				{ "Dusk", { 1.00f, 0.72f, 0.46f }, 0.75f, { 0.36f, 0.28f, 0.32f }, { 0.12f, 0.09f, 0.08f }, { 0.66f, 0.44f, 0.36f }, 1.0f },
-				{ "Night", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
-			};
-			return presets[index];
-		}
-
 		void ApplyPreset()
 		{
 			Scene& scene = *GetEntity().GetScene();
-			const Preset& preset = GetPreset(m_Preset);
-			// Starts from what is drawn (the scene's own environment or its render profile's) and makes it the
-			// scene's own for this run, so the preset shows whichever the scene uses. Plan P5 turns the presets
-			// into Day, Dusk and Night render profiles switched with Scene::SetRenderProfile.
-			SceneEnvironment environment = scene.GetActiveEnvironment();
-			environment.Override = true;
-			environment.SkyAmbient = preset.SkyAmbient;
-			environment.GroundAmbient = preset.GroundAmbient;
-			environment.FogColor = preset.FogColor;
-			scene.SetEnvironment(environment);
-			SceneLook look = scene.GetLook();
-			look.Environment = RenderLookSource::Scene;
-			scene.SetLook(look);
+			const DioramaScenePreset& preset = GetPreset(m_Preset);
+
+			// The look: the preset's render profile for the environment and post-processing. A script loads a
+			// handle before giving it to the scene (the scene never loads).
+			const AssetHandle profile = AssetManager::IsProjectOpen()
+				? AssetManager::FindHandle(AssetManager::GetAssetDirectory() / preset.Profile) : AssetHandle(0);
+			if ((uint64_t)profile != 0 && AssetManager::GetAsset<RenderProfile>(profile) != nullptr)
+			{
+				scene.SetRenderProfile(profile);
+				SceneLook look = scene.GetLook();
+				look.Environment = RenderLookSource::Profile;
+				look.PostProcess = RenderLookSource::Profile;
+				scene.SetLook(look);
+			}
+			else
+			{
+				// No profile file: the preset's colours become the scene's own environment for this run.
+				HY_WARN("{}: render profile '{}' not found; setting the environment directly", GetSceneName(), preset.Profile);
+				SceneEnvironment environment = scene.GetActiveEnvironment();
+				environment.Override = true;
+				environment.SkyAmbient = preset.SkyAmbient;
+				environment.GroundAmbient = preset.GroundAmbient;
+				environment.FogColor = preset.FogColor;
+				scene.SetEnvironment(environment);
+				SceneLook look = scene.GetLook();
+				look.Environment = RenderLookSource::Scene;
+				scene.SetLook(look);
+			}
 
 			Entity sun = scene.GetMainLight();
 			if ((bool)sun)
@@ -377,7 +401,7 @@ namespace Hydro
 				light.Color = preset.SunColor;
 				light.Intensity = preset.SunIntensity;
 			}
-			HY_INFO("Shrine Glade: {}", preset.Name);
+			HY_INFO("{}: {}", GetSceneName(), preset.Name);
 		}
 
 		static bool KeyPressed(KeyCode key, bool& previous)
@@ -395,10 +419,68 @@ namespace Hydro
 		float m_Time = 0.0f;
 	};
 
+	// On the Shrine Glade's director entity. Starts much lower than the other field scenes (70 degrees from
+	// straight down, 20 below the horizon, with a wider 35 degree lens): the terrace walls, the steps and the
+	// shrine face the camera and the sunset shows over the valley's pines, as in the concept. The follow camera
+	// looks 3 m ahead up the stairs and 2.2 m above the player's ground. Keep in step with
+	// scripts/shrine_glade/preview.py (TILT_DEGREES, FOV_DEGREES, FOCUS_LEAD, FOCUS_RISE, BOUNDS). Presets: day,
+	// golden dusk (the default, the concept's), night.
+	class ShrineGladeScript : public DioramaDirectorScript
+	{
+	protected:
+		const char* GetSceneName() const override { return "Shrine Glade"; }
+		const char* GetHelp() const override
+		{
+			return "WASD walk up the stairs to the shrine, E interact, 1/2/3 day-dusk-night, L lanterns, V top-down / tilted, O perspective / orthographic";
+		}
+		DioramaSceneFraming GetFraming() const override
+		{
+			return { 70.0f, 35.0f, 3.0f, 2.2f, { -2.0f, -8.0f }, { 2.0f, 6.0f } };
+		}
+		const DioramaScenePreset& GetPreset(int index) const override
+		{
+			static const DioramaScenePreset presets[3] = {
+				{ "Day", "ShrineGlade/RenderProfiles/Day.hyrender", { 1.00f, 0.95f, 0.85f }, 1.10f, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, 0.0f },
+				{ "Dusk", "ShrineGlade/RenderProfiles/Dusk.hyrender", { 1.00f, 0.72f, 0.46f }, 0.75f, { 0.36f, 0.28f, 0.32f }, { 0.12f, 0.09f, 0.08f }, { 0.66f, 0.44f, 0.36f }, 1.0f },
+				{ "Night", "ShrineGlade/RenderProfiles/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
+			};
+			return presets[std::clamp(index, 0, 2)];
+		}
+	};
+
+	// On the Farm Village's director entity (Assets/Scenes/FarmVillage.hyscene, scripts/farm_village/build.py).
+	// A higher camera than the shrine's (55 degrees from straight down, a 30 degree lens), so the fields, the
+	// square and the roofs read like the concept art; the focus stays on the village (the lane from the bridge to
+	// the forest path). Keep in step with scripts/farm_village/build.py (BOUNDS_MIN, BOUNDS_MAX, CAMERA_ORTHO).
+	// Presets: day, golden hour (the default), night.
+	class FarmVillageScript : public DioramaDirectorScript
+	{
+	protected:
+		const char* GetSceneName() const override { return "Farm Village"; }
+		const char* GetHelp() const override
+		{
+			return "WASD walk, E talk / read / rest at the inn, the forest path north leads back to the shrine, 1/2/3 day-golden-night, L lanterns, V top-down / tilted";
+		}
+		DioramaSceneFraming GetFraming() const override
+		{
+			return { 55.0f, 30.0f, 2.0f, 1.2f, { -6.5f, -12.0f }, { 6.5f, 16.0f } };
+		}
+		const DioramaScenePreset& GetPreset(int index) const override
+		{
+			static const DioramaScenePreset presets[3] = {
+				{ "Day", "FarmVillage/RenderProfiles/Day.hyrender", { 1.00f, 0.95f, 0.86f }, 1.15f, { 0.55f, 0.6f, 0.66f }, { 0.22f, 0.2f, 0.15f }, { 0.72f, 0.76f, 0.74f }, 0.0f },
+				{ "Golden", "FarmVillage/RenderProfiles/Golden.hyrender", { 1.00f, 0.80f, 0.56f }, 1.0f, { 0.42f, 0.36f, 0.3f }, { 0.16f, 0.12f, 0.08f }, { 0.78f, 0.6f, 0.38f }, 0.8f },
+				{ "Night", "FarmVillage/RenderProfiles/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
+			};
+			return presets[std::clamp(index, 0, 2)];
+		}
+	};
+
 	inline void RegisterShrineScripts()
 	{
 		// The names are what scenes save: keep them stable.
 		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalk");
 		ScriptRegistry::Register<ShrineGladeScript>("ShrineGlade");
+		ScriptRegistry::Register<FarmVillageScript>("FarmVillage");
 	}
 }

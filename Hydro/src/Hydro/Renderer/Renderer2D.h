@@ -36,7 +36,8 @@ namespace Hydro
 		uint32_t LineCount = 0;           // of QuadCount: the quads that are lines (DrawLine, DrawRect, DrawCircle)
 
 		// Batching.
-		uint32_t BatchCount = 0;          // vertex batches used this frame (each holds up to MaxQuadsPerBatch quads)
+		uint32_t BatchCount = 0;          // vertex batches used this frame, summed over the views (each holds up to MaxQuadsPerBatch quads)
+		uint32_t FullestBatchQuads = 0;   // quads in the fullest batch this frame (any view): how close one is to needing another
 		uint32_t BatchesAllocated = 0;    // batches kept alive for reuse
 		uint32_t MaxQuadsPerBatch = 0;
 		uint64_t VertexBytesUploaded = 0; // CPU -> GPU vertex upload this frame
