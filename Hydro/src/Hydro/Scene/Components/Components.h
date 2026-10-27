@@ -406,8 +406,10 @@ namespace Hydro
 
 	// The entity's MeshComponent collides as what it is (3D). A built-in shape collides as its own shape, except
 	// Stairs, which collide as a ramp through the middle of their treads (smooth to walk, the camera doesn't bob)
-	// and Plane, a thin slab under its surface. A model collides as its bounding box for now (World collision
-	// plan WC3 adds _COL / _WALK proxy nodes); it needs the model loaded. Never the render triangles.
+	// and Plane, a thin slab under its surface. A model collides through its collision nodes (World collision plan
+	// WC3): every node named "..._COL" as a solid convex hull and every "..._WALK" as walkable triangles, both
+	// authored in Blender next to the drawn mesh and never drawn. A model without such nodes collides as its
+	// bounding box. It needs the model loaded. Never the render triangles.
 	struct MeshColliderComponent
 	{
 		PhysicsLayer Layer = PhysicsLayer::World;

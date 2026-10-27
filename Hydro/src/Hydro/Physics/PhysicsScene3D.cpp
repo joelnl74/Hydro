@@ -21,6 +21,7 @@
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/Collision/Shape/CylinderShape.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
@@ -276,7 +277,34 @@ namespace Hydro
 					part = new JPH::CylinderShape(shape.HalfHeight, shape.Radius, ConvexRadiusFor(std::min(shape.HalfHeight, shape.Radius)));
 					rotation = StandUp();
 					break;
+				case ColliderShapeType::TriangleMesh:
+				{
+					// Walkable ground as it was modelled (a bridge's arch, a slope): hollow triangles, which only
+					// static and game-moved bodies may have (which is all there are).
+					JPH::VertexList vertices;
+					vertices.reserve(shape.Points.size());
+					for (const glm::vec3& point : shape.Points)
+					{
+						vertices.push_back(JPH::Float3(point.x, point.y, point.z));
+					}
+					JPH::IndexedTriangleList triangles;
+					triangles.reserve(shape.Indices.size() / 3);
+					for (size_t i = 0; i + 2 < shape.Indices.size(); i += 3)
+					{
+						triangles.push_back(JPH::IndexedTriangle(shape.Indices[i], shape.Indices[i + 1], shape.Indices[i + 2]));
+					}
+					position = JPH::Vec3::sZero();
+					const JPH::ShapeSettings::ShapeResult result = JPH::MeshShapeSettings(std::move(vertices), std::move(triangles)).Create();
+					if (result.HasError())
+					{
+						HY_CORE_WARN("Physics 3D: '{}': a walk mesh could not be built ({})", entityName, result.GetError().c_str());
+						continue;
+					}
+					part = result.Get();
+					break;
+				}
 				case ColliderShapeType::Prism:
+				case ColliderShapeType::ConvexHull:
 				{
 					JPH::Array<JPH::Vec3> points;
 					for (const glm::vec3& point : shape.Points)

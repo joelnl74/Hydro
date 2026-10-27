@@ -1050,6 +1050,21 @@ namespace Hydro
 				}
 				break;
 			}
+			case ColliderShapeType::ConvexHull:
+			case ColliderShapeType::TriangleMesh:
+			{
+				// A model's collision node: its triangles' edges (shared edges drawn twice; cheap enough for proxies).
+				for (size_t i = 0; i + 2 < shape.Indices.size(); i += 3)
+				{
+					const glm::vec3 a = toWorld(shape.Points[shape.Indices[i]]);
+					const glm::vec3 b = toWorld(shape.Points[shape.Indices[i + 1]]);
+					const glm::vec3 c = toWorld(shape.Points[shape.Indices[i + 2]]);
+					Renderer2D::DrawLine3D(a, b, color);
+					Renderer2D::DrawLine3D(b, c, color);
+					Renderer2D::DrawLine3D(c, a, color);
+				}
+				break;
+			}
 			case ColliderShapeType::Prism:
 			{
 				// Two rings of the same size: each ring's loop and the edges joining them.

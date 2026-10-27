@@ -15,7 +15,9 @@ namespace Hydro
 		Sphere,
 		Capsule,  // along Z
 		Cylinder, // along Z
-		Prism     // a convex solid from two rings of points (Points)
+		Prism,    // a convex solid from two rings of points (Points)
+		ConvexHull,  // the convex hull of Points (a model's _COL node); Indices are its triangles, for outlines
+		TriangleMesh // Points and Indices as triangles, hollow: walkable ground (a model's _WALK node)
 	};
 
 	// One collision shape of an entity, in the entity's own space with its scale already applied: the body adds the
@@ -31,6 +33,7 @@ namespace Hydro
 		// Prism: two rings of the same size; point i of the first ring is joined to point i of the second. The solid
 		// is their convex hull, so the rings describe a convex shape (a ramp, the stairs' ramp, an oval post).
 		std::vector<glm::vec3> Points;
+		std::vector<uint32_t> Indices; // ConvexHull, TriangleMesh: triangles into Points
 		PhysicsLayer Layer = PhysicsLayer::World;
 		bool IsTrigger = false;
 	};

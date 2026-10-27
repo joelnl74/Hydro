@@ -161,11 +161,27 @@ namespace Hydro
 			const MeshComponent& mesh = registry.get<MeshComponent>(entity);
 			if ((uint64_t)mesh.Model != 0)
 			{
-				// A model: its bounding box until proxy nodes exist (World collision plan WC3).
+				// A model: its collision nodes (_COL, _WALK), else its bounding box.
 				const Ref<Mesh> model = AssetManager::GetLoadedAsset<Mesh>(mesh.Model);
 				if (model == nullptr)
 				{
 					complete = false;
+				}
+				else if (model->GetCollisionProxies().empty() == false)
+				{
+					for (const MeshCollisionProxy& proxy : model->GetCollisionProxies())
+					{
+						ColliderShape shape;
+						shape.Type = proxy.Kind == MeshCollisionKind::Walk ? ColliderShapeType::TriangleMesh : ColliderShapeType::ConvexHull;
+						shape.Points.reserve(proxy.Positions.size());
+						for (const glm::vec3& position : proxy.Positions)
+						{
+							shape.Points.push_back(position * scale);
+						}
+						shape.Indices = proxy.Indices;
+						shape.Layer = collider.Layer;
+						shapes.push_back(std::move(shape));
+					}
 				}
 				else
 				{

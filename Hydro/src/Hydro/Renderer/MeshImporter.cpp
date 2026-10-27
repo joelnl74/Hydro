@@ -7,6 +7,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <algorithm>
+#include <cctype>
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <set>
@@ -377,6 +380,42 @@ namespace Hydro
 		return transform;
 	}
 
+	bool MeshImporter::GetCollisionKind(const std::string& nodeName, MeshCollisionKind& kind)
+	{
+		std::string name = nodeName;
+		// Blender numbers copies "Name.001": the suffix comes before that.
+		const size_t dot = name.find_last_of('.');
+		if (dot != std::string::npos && dot + 1 < name.size()
+			&& std::all_of(name.begin() + (std::ptrdiff_t)dot + 1, name.end(), [](char c) { return c >= '0' && c <= '9'; }))
+		{
+			name.resize(dot);
+		}
+		std::transform(name.begin(), name.end(), name.begin(), [](char c) { return (char)std::toupper((unsigned char)c); });
+
+		// The kit's prefix: "COL_<object><suffix>", walkable when the suffix says so.
+		if (name.size() > 4 && name.compare(0, 4, "COL_") == 0)
+		{
+			kind = name.find("_WALK", 3) != std::string::npos ? MeshCollisionKind::Walk : MeshCollisionKind::Convex;
+			return true;
+		}
+
+		const auto endsWith = [&name](const std::string& suffix)
+		{
+			return name.size() > suffix.size() && name.compare(name.size() - suffix.size(), suffix.size(), suffix) == 0;
+		};
+		if (endsWith("_WALK"))
+		{
+			kind = MeshCollisionKind::Walk;
+			return true;
+		}
+		if (endsWith("_COL"))
+		{
+			kind = MeshCollisionKind::Convex;
+			return true;
+		}
+		return false;
+	}
+
 	MeshData MeshImporter::Flatten(const ImportedModel& model, const MeshImportConfig& config)
 	{
 		MeshData data;
@@ -419,6 +458,46 @@ namespace Hydro
 			const bool flipWinding = glm::determinant(glm::mat3(world)) < 0.0f;
 
 			const ImportedMesh& mesh = model.Meshes[node.MeshIndex];
+
+			// A collision proxy: all its primitives' triangles, transformed like the drawn ones, kept apart.
+			MeshCollisionKind collisionKind = MeshCollisionKind::Convex;
+			if (GetCollisionKind(node.Name, collisionKind))
+			{
+				MeshCollisionProxy proxy;
+				proxy.Name = node.Name;
+				proxy.Kind = collisionKind;
+				for (const ImportedPrimitive& primitive : mesh.Primitives)
+				{
+					const uint32_t baseVertex = (uint32_t)proxy.Positions.size();
+					const uint32_t vertexCount = (uint32_t)primitive.Positions.size();
+					for (const glm::vec3& position : primitive.Positions)
+					{
+						proxy.Positions.push_back(glm::vec3(world * glm::vec4(position, 1.0f)));
+					}
+					for (size_t t = 0; t + 2 < primitive.Indices.size(); t += 3)
+					{
+						uint32_t corner[3] = { primitive.Indices[t], primitive.Indices[t + 1], primitive.Indices[t + 2] };
+						if (corner[0] >= vertexCount || corner[1] >= vertexCount || corner[2] >= vertexCount)
+						{
+							continue;
+						}
+						if (flipWinding)
+						{
+							std::swap(corner[1], corner[2]);
+						}
+						for (int c = 0; c < 3; c++)
+						{
+							proxy.Indices.push_back(baseVertex + corner[c]);
+						}
+					}
+				}
+				if (proxy.Indices.empty() == false)
+				{
+					data.CollisionProxies.push_back(std::move(proxy));
+				}
+				continue;
+			}
+
 			for (uint32_t p = 0; p < (uint32_t)mesh.Primitives.size(); p++)
 			{
 				const ImportedPrimitive& primitive = mesh.Primitives[p];

@@ -184,7 +184,7 @@ namespace Hydro
 		MeshData data = Flatten(model, config);
 		if (data.Vertices.empty() || data.Indices.empty())
 		{
-			HY_CORE_ERROR("MeshImporter: '{}' has no triangles in its scene", path.string());
+			HY_CORE_ERROR("MeshImporter: '{}' has no triangles to draw in its scene (only _COL / _WALK collision nodes, or none)", path.string());
 			return nullptr;
 		}
 
@@ -226,8 +226,8 @@ namespace Hydro
 
 		Ref<Mesh> mesh = CreateRef<Mesh>(data, path.stem().u8string());
 		mesh->SetMaterials(materials);
-		HY_CORE_INFO("MeshImporter: imported '{}': {} sub-meshes, {} triangles, {} materials", path.filename().u8string(),
-			mesh->GetSubMeshes().size(), mesh->GetIndexCount() / 3, slotCount);
+		HY_CORE_INFO("MeshImporter: imported '{}': {} sub-meshes, {} triangles, {} materials, {} collision shapes", path.filename().u8string(),
+			mesh->GetSubMeshes().size(), mesh->GetIndexCount() / 3, slotCount, mesh->GetCollisionProxies().size());
 		return mesh;
 	}
 }

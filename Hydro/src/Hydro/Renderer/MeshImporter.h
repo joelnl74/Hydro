@@ -98,7 +98,9 @@ namespace Hydro
 	//
 	// One model file = one Mesh asset = one MeshComponent: the selected scene's nodes are flattened into one
 	// Mesh, every (node, primitive) pair a sub-mesh with the node's world transform baked in and a material
-	// slot per glTF material (plus one default slot for primitives without a material). The ImportedModel
+	// slot per glTF material (plus one default slot for primitives without a material). Nodes whose name ends in
+	// _COL or _WALK are collision proxies instead (MeshCollisionProxy, World collision plan WC3): kept for the
+	// physics world, never drawn, not in the bounds. The ImportedModel
 	// keeps the node tree, so "import as hierarchy" can be added later.
 	class MeshImporter
 	{
@@ -110,6 +112,13 @@ namespace Hydro
 		// One MeshData from the model: sub-meshes in node order, positions in metres, Z-up, counter-clockwise
 		// (a node with a mirroring transform has its winding flipped), normals generated when missing.
 		static MeshData Flatten(const ImportedModel& model, const MeshImportConfig& config);
+
+		// Whether a glTF node is a collision proxy, and which kind (any case):
+		//  - its name ends in "_COL" or "_WALK", optionally followed by Blender's ".001" numbering
+		//    ("Torii_Pillar_L_COL", "Bridge_WALK.001");
+		//  - or it starts with "COL_" (the medieval village kit's proxies): walk when "_WALK" is in its name
+		//    ("COL_MV_Bridge_Stone_A_WALK_Deck"), else convex ("COL_MV_Bridge_Stone_A_COL_RailS").
+		static bool GetCollisionKind(const std::string& nodeName, MeshCollisionKind& kind);
 
 		// The engine's axis and unit conversion for `config` (applied once, after the node transforms).
 		static glm::mat4 GetImportTransform(const MeshImportConfig& config);
