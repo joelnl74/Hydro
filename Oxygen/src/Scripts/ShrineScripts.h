@@ -300,6 +300,7 @@ namespace Hydro
 	// square and the roofs read like the concept art; the focus stays on the village (the lane from the bridge to
 	// the forest path). Keep in step with scripts/farm_village/build.py (BOUNDS_MIN, BOUNDS_MAX, CAMERA_ORTHO).
 	// Presets: day, golden hour (the default), night.
+	HY_SCRIPT()
 	class FarmVillageScript : public DioramaDirectorScript
 	{
 	protected:

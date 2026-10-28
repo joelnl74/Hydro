@@ -37,10 +37,12 @@ namespace Hydro
 
 		ScriptRegistry::Register<MvpDirectorScript>("MvpDirectorScript");
 
-		ScriptRegistry::Register<DioramaDirectorScript>("DioramaDirectorScript");
-
 		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalkScript")
 			.Property("m_Speed", "m_Speed", &DioramaWalkScript::m_Speed);
+
+		ScriptRegistry::Register<FarmVillageScript>("FarmVillageScript");
+
+		ScriptRegistry::Register<ShrineGladeScript>("ShrineGladeScript");
 
 		ScriptRegistry::Register<PartyFollowScript>("PartyFollowScript");
 

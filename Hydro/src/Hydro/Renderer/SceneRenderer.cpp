@@ -11,7 +11,7 @@
 #include "Hydro/Scene/ColliderShapes.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Entity.h"
-#include "Hydro/Scene/ScriptableEntity.h"
+#include "Hydro/Scene/Scripting/ScriptableEntity.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/constants.hpp>

@@ -4,8 +4,8 @@
 #include "Hydro/Core/Assert.h"
 #include "Hydro/Scene/ColliderShapes.h"
 #include "Hydro/Scene/Scene.h"
-#include "Hydro/Scene/ScriptableEntity.h"
 #include "Hydro/Scene/SystemContext.h"
+#include "Hydro/Scene/Scripting/ScriptableEntity.h"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Core/JobSystemSingleThreaded.h>

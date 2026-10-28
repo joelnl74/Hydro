@@ -219,14 +219,14 @@ def parse_header(header: Path, include_path: str) -> list[ReflectedScript]:
         declaration_match = re.search(
             r"\b(?P<kind>class|struct)\s+"
             r"(?P<name>[A-Za-z_]\w*)\s*"
-            r":\s*public\s+ScriptableEntity\b",
-            text[close_paren + 1 :],
+			r":\s*public\s+(?P<base>[A-Za-z_][\w:]*)\b",
+			text[close_paren + 1 :],
         )
 
         if declaration_match is None:
             raise ValueError(
-                f"{header}: HY_SCRIPT must be followed by a class/struct "
-                f"publicly deriving from ScriptableEntity"
+				f"{header}: HY_SCRIPT must be followed by a class/struct "
+				f"publicly deriving from ScriptableEntity"
             )
 
         decl_abs_start = close_paren + 1 + declaration_match.start()
