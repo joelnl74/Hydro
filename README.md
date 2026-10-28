@@ -1,5 +1,4 @@
-<img width="1917" height="1030" alt="Screenshot 2026-10-29 062732" src="https://github.com/user-attachments/assets/00643bf6-6ad4-435d-bf2e-f65ba6bbf80e" />
-# Hydro Engine
+<img width="1280" height="720" alt="ShrineGlade_Game_20261029-063801-893" src="https://github.com/user-attachments/assets/729ff831-a2de-49b2-ae1a-08a9b3e07a63" /># Hydro Engine
 
 **Hydro** is an experimental C++ game and rendering engine for Windows, built around **Vulkan** and accompanied by the **Oxygen Editor**.
 
@@ -573,6 +572,20 @@ The engine roadmap is intentionally project-driven. Systems are generally expand
 ## Oxgen Editor / 3D/2D Renderer
 
 <img width="1917" height="1030" alt="Screenshot 2026-10-29 062732" src="https://github.com/user-attachments/assets/25265b94-bbda-464f-8cc5-8be10cb7b8ea" />
+
+## Game view / Runtime tests
+
+### Day-time
+
+<img width="1280" height="720" alt="ShrineGlade_Game_20261029-063759-492" src="https://github.com/user-attachments/assets/91d0ad53-0ef5-4025-a218-bd20a069a0c4" />
+
+### Noon
+
+<img width="1280" height="720" alt="ShrineGlade_Game_20261029-063800-790" src="https://github.com/user-attachments/assets/6eab4f3c-5df3-45a8-91c0-cf84e6160b44" />
+
+### Night
+
+<img width="1280" height="720" alt="ShrineGlade_Game_20261029-063801-893" src="https://github.com/user-attachments/assets/04b6a645-7364-4920-88ee-6d1730c48b86" />
 
 More screenshots and examples will be added as the 3D renderer and editor tooling mature.
 
