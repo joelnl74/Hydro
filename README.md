@@ -42,7 +42,8 @@ If the repository was cloned non-recursively previously, use git submodule updat
 - Artificial Intelligence
 - Audio system
 
-Example image 2d renderer and editor view
+Example image of the 3d and 2d renderer and editor
 
-<img width="1918" height="1026" alt="Screenshot 2026-10-20 000205" src="https://github.com/user-attachments/assets/b58f0bf9-0ad8-4fef-a4db-531a8177d873" />
+<img width="1917" height="1030" alt="Screenshot 2026-10-29 062732" src="https://github.com/user-attachments/assets/8d809ca6-54fc-4b96-92d2-6ca16bce0b05" />
+
 
