@@ -83,7 +83,6 @@ namespace Hydro
 		}
 
 	public:
-		HY_PROPERTY()
 		std::string m_Facing = "Up";
 		HY_PROPERTY()
 		float m_Speed = 3.5f; // metres per second
@@ -326,8 +325,6 @@ namespace Hydro
 	inline void RegisterShrineScripts()
 	{
 		// The names are what scenes save: keep them stable.
-		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalk").Property(
-				"Move Speed", &DioramaWalkScript::m_Speed);
 		ScriptRegistry::Register<ShrineGladeScript>("ShrineGlade");
 		ScriptRegistry::Register<FarmVillageScript>("FarmVillage");
 	}

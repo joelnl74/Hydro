@@ -9,7 +9,7 @@ namespace Hydro
 	template<typename>
 	inline constexpr bool ScriptAlwaysFalse = false;
 
-template<typename T>
+	template<typename T>
 	class ScriptRegistration
 	{
 	public:
@@ -19,27 +19,56 @@ template<typename T>
 		{
 		}
 
+		// Existing/manual registration:
+		//
+		// .Property(
+		//     "Move Speed",
+		//     &DioramaWalkScript::MoveSpeed)
 		template<typename Field>
 		ScriptRegistration& Property(
 			const std::string& name,
 			Field T::* member)
 		{
+			return Property(
+				name,
+				name,
+				member);
+		}
+
+		// Generated reflection:
+		//
+		// .Property(
+		//     "MoveSpeed",
+		//     "Move Speed",
+		//     &DioramaWalkScript::MoveSpeed)
+		template<typename Field>
+		ScriptRegistration& Property(
+			const std::string& name,
+			const std::string& displayName,
+			Field T::* member)
+		{
 			ScriptProperty property;
 
 			property.Name = name;
-			property.DisplayName = name;
+			property.DisplayName = displayName;
 
-			if constexpr (std::is_same_v<Field, bool>)
+			if constexpr (
+				std::is_same_v<Field, bool>)
 			{
-				property.Type = ScriptPropertyType::Bool;
+				property.Type =
+					ScriptPropertyType::Bool;
 			}
-			else if constexpr (std::is_same_v<Field, int>)
+			else if constexpr (
+				std::is_same_v<Field, int>)
 			{
-				property.Type = ScriptPropertyType::Int;
+				property.Type =
+					ScriptPropertyType::Int;
 			}
-			else if constexpr (std::is_same_v<Field, float>)
+			else if constexpr (
+				std::is_same_v<Field, float>)
 			{
-				property.Type = ScriptPropertyType::Float;
+				property.Type =
+					ScriptPropertyType::Float;
 			}
 			else
 			{
@@ -64,7 +93,8 @@ template<typename T>
 
 				if (typedValue != nullptr)
 				{
-					script.*member = *typedValue;
+					script.*member =
+						*typedValue;
 				}
 			};
 
@@ -77,7 +107,6 @@ template<typename T>
 	private:
 		ScriptTypeInfo& m_TypeInfo;
 
-		// One default object for the whole registration chain.
 		T m_DefaultInstance{};
 	};
 }

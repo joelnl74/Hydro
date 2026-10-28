@@ -267,8 +267,13 @@ def iter_headers(source_root: Path) -> Iterable[Path]:
         return []
 
     headers: list[Path] = []
+
     for pattern in ("*.h", "*.hpp"):
         headers.extend(source_root.rglob(pattern))
+
+    excluded_files = {
+        "ReflectionMacros.h",
+    }
 
     return sorted(
         (
@@ -276,6 +281,7 @@ def iter_headers(source_root: Path) -> Iterable[Path]:
             for header in headers
             if "Generated" not in header.parts
             and "vendor" not in header.parts
+            and header.name not in excluded_files
         ),
         key=lambda p: p.as_posix().lower(),
     )

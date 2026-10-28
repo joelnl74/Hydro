@@ -222,7 +222,6 @@ namespace Hydro
 		ScriptRegistry::Register<CameraFollowScript>("CameraFollow");
 		ScriptRegistry::Register<MvpDirectorScript>("MvpDirector");
 		RegisterVillageScripts();
-		RegisterBattleScripts();
 		RegisterShrineScripts();
 	}
 }

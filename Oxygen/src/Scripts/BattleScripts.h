@@ -1771,11 +1771,4 @@ namespace Hydro
 		entt::entity m_Message = entt::null;
 		entt::entity m_Overlay = entt::null;
 	};
-
-	inline void RegisterBattleScripts()
-	{
-		// The names are what scenes save: keep them stable.
-		ScriptRegistry::Register<EnemyChaseScript>("EnemyChase");
-		ScriptRegistry::Register<BattleScript>("Battle");
-	}
 }

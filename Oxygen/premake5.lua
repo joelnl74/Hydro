@@ -28,7 +28,7 @@ project "Oxygen"
 	prebuildmessage "Generating Hydro native-script reflection"
 	prebuildcommands
 	{
-		'python "%{wks.location}/Tools/ReflectionGenerator/generate_reflection.py" "%{wks.location}"'
+		'py "%{wks.location}/Tools/ReflectionGenerator/generate_reflection.py" "%{wks.location}/."'
 	}
 
 	includedirs
