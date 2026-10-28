@@ -5,7 +5,10 @@
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
 
 #include "Scripts/BattleScripts.h"
+#include "Scripts/ExampleScripts.h"
+#include "Scripts/MvpScripts.h"
 #include "Scripts/ShrineScripts.h"
+#include "Scripts/VillageScripts.h"
 
 namespace Hydro
 {
@@ -22,7 +25,35 @@ namespace Hydro
 
 		ScriptRegistry::Register<EnemyChaseScript>("EnemyChaseScript");
 
+		ScriptRegistry::Register<BobScript>("BobScript");
+
+		ScriptRegistry::Register<CameraFollowScript>("CameraFollowScript");
+
+		ScriptRegistry::Register<SpinScript>("SpinScript");
+
+		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalkScript");
+
+		ScriptRegistry::Register<YSortScript>("YSortScript");
+
+		ScriptRegistry::Register<MvpDirectorScript>("MvpDirectorScript");
+
+		ScriptRegistry::Register<DioramaDirectorScript>("DioramaDirectorScript");
+
 		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalkScript")
 			.Property("m_Speed", "m_Speed", &DioramaWalkScript::m_Speed);
+
+		ScriptRegistry::Register<PartyFollowScript>("PartyFollowScript");
+
+		ScriptRegistry::Register<VillageCameraScript>("VillageCameraScript");
+
+		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawnerScript");
+
+		ScriptRegistry::Register<VillageDirectorScript>("VillageDirectorScript");
+
+		ScriptRegistry::Register<VillageYSortScript>("VillageYSortScript");
+
+		ScriptRegistry::Register<VillageZoneScript>("VillageZoneScript");
+
+		ScriptRegistry::Register<WaypointWalkScript>("WaypointWalkScript");
 	}
 }

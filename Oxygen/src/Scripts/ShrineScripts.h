@@ -121,6 +121,7 @@ namespace Hydro
 	//   - Owns the light (forward lit, M6): the render profile (environment and post-processing), the main
 	//     light (the sun's DirectionalLightComponent) and every point light whose tag starts "Light Lantern"
 	//     (flickering amber pools). Keys 1 / 2 / 3 switch the presets, L the lanterns on/off.
+	HY_SCRIPT()
 	class DioramaDirectorScript : public ScriptableEntity
 	{
 	protected:
@@ -271,6 +272,7 @@ namespace Hydro
 	// looks 3 m ahead up the stairs and 2.2 m above the player's ground. Keep in step with
 	// scripts/shrine_glade/preview.py (TILT_DEGREES, FOV_DEGREES, FOCUS_LEAD, FOCUS_RISE, BOUNDS). Presets: day,
 	// golden dusk (the default, the concept's), night.
+	HY_SCRIPT()
 	class ShrineGladeScript : public DioramaDirectorScript
 	{
 	protected:
@@ -321,11 +323,4 @@ namespace Hydro
 			return presets[std::clamp(index, 0, 2)];
 		}
 	};
-
-	inline void RegisterShrineScripts()
-	{
-		// The names are what scenes save: keep them stable.
-		ScriptRegistry::Register<ShrineGladeScript>("ShrineGlade");
-		ScriptRegistry::Register<FarmVillageScript>("FarmVillage");
-	}
 }

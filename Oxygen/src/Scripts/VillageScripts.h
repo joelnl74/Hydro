@@ -62,6 +62,7 @@ namespace Hydro
 	// sprites are written with the same rule (SortOrder = 4 * tile y of the feet), so a character walking past
 	// a tree or house is drawn in front of it or behind it correctly. Needs a feet pivot (a sprite sheet whose
 	// DefaultPivot is [0.5, 0]), so that the entity's y is the feet's y.
+	HY_SCRIPT()
 	class VillageYSortScript : public ScriptableEntity
 	{
 	protected:
@@ -86,6 +87,7 @@ namespace Hydro
 	// without Seconds it waits 1 s). Only the waypoints' positions are used. After the last waypoint it walks
 	// back to the first. Plays "Walk<Facing>" / "Idle<Facing>" from the entity's Sprite Animator. Every
 	// walker gets a slightly different pace from its name, so a crowd does not move in step.
+	HY_SCRIPT()
 	class WaypointWalkScript : public ScriptableEntity
 	{
 	protected:
@@ -228,6 +230,7 @@ namespace Hydro
 	// Put it on a sensor collider named "Zone <Name>": logs when the player (the entity tagged "Player") enters
 	// and leaves, and does what the zone is for: the Bridge slows the player down, the Statue Plaza lights the
 	// brazier (the Director reads VillageState), the Finish logs the finish line. The other zones only log.
+	HY_SCRIPT()
 	class VillageZoneScript : public ScriptableEntity
 	{
 	protected:
@@ -289,6 +292,7 @@ namespace Hydro
 	// player, a copy of the first entity tagged "crate" (same sprite, body and scripts). At most MaxCrates
 	// dropped crates exist; the oldest is destroyed when another is dropped. It shows physics bodies being
 	// created and destroyed while the game plays: the new crate is solid from the next physics step.
+	HY_SCRIPT()	
 	class VillageCrateSpawnerScript : public ScriptableEntity
 	{
 	protected:
@@ -401,6 +405,7 @@ namespace Hydro
 	// top-down view never shows past the edge) and zooms with - and = (the camera's OrthographicSize, the world
 	// units seen vertically). V tilts it into the diorama view and back, O switches the diorama between
 	// perspective and orthographic (DioramaCamera.h). Scripts run in play mode only.
+	HY_SCRIPT()
 	class VillageCameraScript : public ScriptableEntity
 	{
 	protected:
@@ -482,6 +487,7 @@ namespace Hydro
 	// A party member who follows the entity tagged "Player" along the path it walked (Diorama RPG: Lila
 	// follows Orin), a little behind, with the same Walk<Facing> / Idle<Facing> clips as VillagerWalk. It has
 	// no physics body, so it never blocks the player or starts a battle; it walks where the player walked.
+	HY_SCRIPT()
 	class PartyFollowScript : public ScriptableEntity
 	{
 	protected:
@@ -582,6 +588,7 @@ namespace Hydro
 	// views, light and shadow counts and their GPU time. Tags it looks for: "Ambient Light" (the global
 	// light), "Light Lamp / Window / Market / Torch / Pond / Brazier ..." (point lights), and sprites whose tag
 	// starts with "Statue" or "Brazier".
+	HY_SCRIPT()
 	class VillageDirectorScript : public ScriptableEntity
 	{
 	protected:
@@ -909,16 +916,4 @@ namespace Hydro
 		float m_Time = 0.0f;
 		bool m_Previous[9] = {};
 	};
-
-	inline void RegisterVillageScripts()
-	{
-		// The names are what scenes save: keep them stable.
-		ScriptRegistry::Register<VillageYSortScript>("VillageYSort");
-		ScriptRegistry::Register<WaypointWalkScript>("WaypointWalk");
-		ScriptRegistry::Register<VillageCameraScript>("VillageCamera");
-		ScriptRegistry::Register<VillageDirectorScript>("VillageDirector");
-		ScriptRegistry::Register<VillageZoneScript>("VillageZone");
-		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawner");
-		ScriptRegistry::Register<PartyFollowScript>("PartyFollow");
-	}
 }

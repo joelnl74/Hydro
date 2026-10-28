@@ -27,6 +27,7 @@ namespace Hydro
 		Count
 	};
 
+	HY_SCRIPT()
 	class MvpDirectorScript : public ScriptableEntity
 	{
 	protected:
