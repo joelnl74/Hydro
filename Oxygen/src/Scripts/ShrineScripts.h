@@ -121,7 +121,6 @@ namespace Hydro
 	//   - Owns the light (forward lit, M6): the render profile (environment and post-processing), the main
 	//     light (the sun's DirectionalLightComponent) and every point light whose tag starts "Light Lantern"
 	//     (flickering amber pools). Keys 1 / 2 / 3 switch the presets, L the lanterns on/off.
-	HY_SCRIPT()
 	class DioramaDirectorScript : public ScriptableEntity
 	{
 	protected:
