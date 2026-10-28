@@ -20,7 +20,7 @@
 #include <Hydro/Scene/SpriteAnimation.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Scene/SpriteAnimator.h>
-#include <Hydro/Scene/ScriptableEntity.h>
+#include <Hydro/Scene/Scripting/ScriptableEntity.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -1426,9 +1426,10 @@ namespace Hydro
 		{
 			for (int i = 0; i < (int)scripts.Scripts.size(); i++)
 			{
-				const NativeScriptComponent::Script& script = scripts.Scripts[i];
+				NativeScriptComponent::Script& script = scripts.Scripts[i];
 				ImGui::PushID(i);
 
+				// Script name + remove button.
 				ImGui::AlignTextToFramePadding();
 				if (script.Name.empty())
 					ImGui::TextDisabled("(bound in code, not saved)");
@@ -1444,9 +1445,66 @@ namespace Hydro
 				if (ImGui::Button("X", { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }))
 					scriptToRemove = i;
 
+				// Exposed script fields are drawn directly under the script name.
+				ScriptTypeInfo* typeInfo = ScriptRegistry::FindType(script.Name);
+				if (typeInfo != nullptr && typeInfo->Properties.empty() == false)
+				{
+					ImGui::Spacing();
+
+					for (const ScriptProperty& property : typeInfo->Properties)
+					{
+						auto valueIt = script.Properties.find(property.Name);
+						if (valueIt == script.Properties.end())
+							continue;
+
+						ScriptPropertyValue& value = valueIt->second;
+
+						switch (property.Type)
+						{
+						case ScriptPropertyType::Bool:
+						{
+							bool& current = std::get<bool>(value);
+							DrawPropertyRow(property.DisplayName.c_str(), [&]()
+							{
+								ImGui::Checkbox("##value", &current);
+							});
+							break;
+						}
+
+						case ScriptPropertyType::Int:
+						{
+							int& current = std::get<int>(value);
+							DrawPropertyRow(property.DisplayName.c_str(), [&]()
+							{
+								ImGui::InputInt("##value", &current);
+							});
+							break;
+						}
+
+						case ScriptPropertyType::Float:
+						{
+							float& current = std::get<float>(value);
+							DrawPropertyRow(property.DisplayName.c_str(), [&]()
+							{
+								InputFloatField("##value", current);
+							});
+							break;
+						}
+						}
+					}
+				}
+
+				if (i < (int)scripts.Scripts.size() - 1)
+				{
+					ImGui::Spacing();
+					ImGui::Separator();
+					ImGui::Spacing();
+				}
+
 				ImGui::PopID();
 			}
 
+			ImGui::Spacing();
 			if (ImGui::Button("Add Script", { ImGui::GetContentRegionAvail().x, 0.0f }))
 				ImGui::OpenPopup("AddScript");
 

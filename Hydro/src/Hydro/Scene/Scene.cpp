@@ -1,8 +1,8 @@
 #include <hypch.h>
 #include "Scene.h"
 #include "Entity.h"
-#include "ScriptableEntity.h"
-#include "ScriptSystem.h"
+#include "Scripting/ScriptableEntity.h"
+#include "Scripting/ScriptSystem.h"
 #include "SpriteAnimator.h"
 #include "SystemContext.h"
 #include "Hydro/Physics/PhysicsScene.h"
@@ -142,6 +142,7 @@ namespace Hydro
 				NativeScriptComponent::Script binding;
 				binding.Name = script.Name;
 				binding.Instantiate = script.Instantiate;
+				binding.Properties = script.Properties;
 				copied.Scripts.push_back(std::move(binding));
 			}
 		}

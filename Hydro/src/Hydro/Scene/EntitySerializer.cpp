@@ -1,6 +1,6 @@
 #include "hypch.h"
 #include "EntitySerializer.h"
-#include "ScriptableEntity.h"
+#include "Scripting/ScriptableEntity.h"
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/MaterialSerializer.h"
@@ -633,18 +633,51 @@ namespace Hydro
 		{
 			auto& scripts = entity.GetComponent<NativeScriptComponent>();
 
-			// Scripts are saved by their ScriptRegistry name. Ones bound in code without a name can't
-			// be found again on load, so they are left out.
 			out << YAML::Key << "NativeScriptComponent";
 			out << YAML::BeginMap;
+
 			out << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
+
 			for (const auto& script : scripts.Scripts)
 			{
 				if (script.Name.empty())
-					HY_CORE_WARN("Entity '{}': a script bound in code without a ScriptRegistry name isn't saved", entity.GetName());
-				else
-					out << script.Name;
+				{
+					HY_CORE_WARN(
+						"Entity '{}': a script bound in code without a ScriptRegistry name isn't saved",
+						entity.GetName());
+
+					continue;
+				}
+
+				out << YAML::BeginMap;
+
+				out << YAML::Key << "Name"
+					<< YAML::Value << script.Name;
+
+				if (script.Properties.empty() == false)
+				{
+					out << YAML::Key << "Properties"
+						<< YAML::Value << YAML::BeginMap;
+
+					for (const auto& [propertyName, propertyValue] :
+						script.Properties)
+					{
+						out << YAML::Key << propertyName;
+
+						std::visit(
+							[&out](const auto& value)
+						{
+							out << YAML::Value << value;
+						},
+							propertyValue);
+					}
+
+					out << YAML::EndMap;
+				}
+
+				out << YAML::EndMap;
 			}
+
 			out << YAML::EndSeq;
 			out << YAML::EndMap;
 		}
@@ -904,20 +937,117 @@ namespace Hydro
 			emitter.ShapeSize.x = AtLeast(0.0f, emitter.ShapeSize.x);
 			emitter.ShapeSize.y = AtLeast(0.0f, emitter.ShapeSize.y);
 			emitter.Lifetime = ReadRange(emitterNode["Lifetime"], emitter.Lifetime, 0.01f);
-			emitter.Speed = ReadRange(emitterNode["Speed"], emitter.Speed);
-			emitter.Direction = emitterNode["Direction"].as<float>(emitter.Direction);
-			emitter.Spread = std::clamp(emitterNode["Spread"].as<float>(emitter.Spread), 0.0f, 180.0f);
-			emitter.StartSize = ReadRange(emitterNode["StartSize"], emitter.StartSize, 0.0f);
-			emitter.StartRotation = ReadRange(emitterNode["StartRotation"], emitter.StartRotation);
-			emitter.AngularVelocity = ReadRange(emitterNode["AngularVelocity"], emitter.AngularVelocity);
-			emitter.EndSizeScale = AtLeast(0.0f, emitterNode["EndSizeScale"].as<float>(emitter.EndSizeScale));
-			emitter.StartColor = emitterNode["StartColor"].as<glm::vec4>(emitter.StartColor);
-			emitter.EndColor = emitterNode["EndColor"].as<glm::vec4>(emitter.EndColor);
-			emitter.Gravity = emitterNode["Gravity"].as<glm::vec2>(emitter.Gravity);
-			emitter.Drag = AtLeast(0.0f, emitterNode["Drag"].as<float>(emitter.Drag));
-			emitter.Turbulence = AtLeast(0.0f, emitterNode["Turbulence"].as<float>(emitter.Turbulence));
-			emitter.SpriteIndex = emitterNode["SpriteIndex"].as<uint32_t>(emitter.SpriteIndex);
-			emitter.Blend = emitterNode["Blend"].as<std::string>("Alpha") == "Additive" ? ParticleBlend::Additive : ParticleBlend::Alpha;
+			if (auto scriptNode =
+					entityNode["NativeScriptComponent"])
+			{
+				auto& scripts =
+					entity.AddComponent<NativeScriptComponent>();
+
+				if (auto scriptsNode = scriptNode["Scripts"];
+					scriptsNode && scriptsNode.IsSequence())
+				{
+					for (const YAML::Node& savedScript :
+						scriptsNode)
+					{
+						std::string name;
+
+						// Backwards compatibility:
+						//
+						// Old format:
+						// Scripts:
+						//   - DioramaWalk
+						//
+						// New format:
+						// Scripts:
+						//   - Name: DioramaWalk
+						//     Properties: ...
+						if (savedScript.IsScalar())
+						{
+							name =
+								savedScript.as<std::string>("");
+						}
+						else if (savedScript.IsMap())
+						{
+							name =
+								savedScript["Name"]
+									.as<std::string>("");
+						}
+
+						if (name.empty())
+						{
+							continue;
+						}
+
+						// Bind initializes the current registered
+						// defaults first.
+						scripts.Bind(name);
+
+						NativeScriptComponent::Script&
+							binding = scripts.Scripts.back();
+
+						// Then saved values override those defaults.
+						if (savedScript.IsMap())
+						{
+							const YAML::Node propertiesNode =
+								savedScript["Properties"];
+
+							if (propertiesNode &&
+								propertiesNode.IsMap())
+							{
+								ScriptTypeInfo* typeInfo =
+									ScriptRegistry::FindType(name);
+
+								if (typeInfo != nullptr)
+								{
+									for (const ScriptProperty& property :
+										typeInfo->Properties)
+									{
+										YAML::Node valueNode =
+											propertiesNode[property.Name];
+
+										if (!valueNode)
+										{
+											continue;
+										}
+
+										switch (property.Type)
+										{
+										case ScriptPropertyType::Bool:
+											binding.Properties[property.Name] =
+												valueNode.as<bool>(
+													std::get<bool>(
+														property.DefaultValue));
+											break;
+
+										case ScriptPropertyType::Int:
+											binding.Properties[property.Name] =
+												valueNode.as<int>(
+													std::get<int>(
+														property.DefaultValue));
+											break;
+
+										case ScriptPropertyType::Float:
+											binding.Properties[property.Name] =
+												valueNode.as<float>(
+													std::get<float>(
+														property.DefaultValue));
+											break;
+										}
+									}
+								}
+							}
+						}
+
+						if (ScriptRegistry::Find(name) == nullptr)
+						{
+							HY_CORE_WARN(
+								"Entity '{}': script '{}' isn't registered; it is kept but won't run",
+								entity.GetName(),
+								name);
+						}
+					}
+				}
+			}
 			emitter.Lighting = emitterNode["Lighting"].as<std::string>("Lit") == "Unlit" ? ParticleLighting::Unlit : ParticleLighting::Lit;
 			emitter.SortOrder = emitterNode["SortOrder"].as<int32_t>(emitter.SortOrder);
 			emitter.EmissionIntensity = AtLeast(0.0f, emitterNode["EmissionIntensity"].as<float>(emitter.EmissionIntensity));

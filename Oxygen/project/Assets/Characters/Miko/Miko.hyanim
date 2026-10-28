@@ -1,0 +1,38 @@
+Handle: 9503405222623168017
+SpriteAnimationSet:
+  TextureHandle: 16527506524077974322
+  Texture: Miko.png
+  DefaultClip: Idle
+  Clips:
+    - Name: Idle
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Miko_0, Miko_1, Miko_2, Miko_3]
+    - Name: WalkDown
+      Loop: Loop
+      FrameRate: 10
+      Frames: [Miko_8, Miko_9, Miko_10, Miko_11, Miko_12, Miko_13, Miko_14, Miko_15]
+    - Name: WalkRight
+      Loop: Loop
+      FrameRate: 10
+      Frames: [Miko_16, Miko_17, Miko_18, Miko_19, Miko_20, Miko_21, Miko_22, Miko_23]
+    - Name: WalkUp
+      Loop: Loop
+      FrameRate: 10
+      Frames: [Miko_24, Miko_25, Miko_26, Miko_27, Miko_28, Miko_29, Miko_30, Miko_31]
+    - Name: WalkLeft
+      Loop: Loop
+      FrameRate: 10
+      Frames: [Miko_32, Miko_33, Miko_34, Miko_35, Miko_36, Miko_37, Miko_38, Miko_39]
+    - Name: Kick
+      Loop: Once
+      FrameRate: 10
+      Frames: [Miko_40, Miko_41, Miko_42, Miko_43, Miko_44, Miko_45, Miko_46]
+    - Name: Puinch
+      Loop: Once
+      FrameRate: 10
+      Frames: [Miko_48, Miko_49, Miko_50, Miko_51, Miko_52, Miko_53]
+    - Name: Death
+      Loop: Once
+      FrameRate: 10
+      Frames: [Miko_56, Miko_57, Miko_58, Miko_59, Miko_60, Miko_61, Miko_62]

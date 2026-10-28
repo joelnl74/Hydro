@@ -42,7 +42,7 @@ Entities:
       OrthographicFar: 1
     NativeScriptComponent:
       Scripts:
-        - CameraFollow
+        - Name: CameraFollow
   - Entity: 3724182712688850303
     TagComponent:
       Tag: MVP Director
@@ -52,7 +52,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        - MvpDirector
+        - Name: MvpDirector
   - Entity: 6070344299463217815
     TagComponent:
       Tag: Shrine Director
@@ -62,7 +62,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        - ShrineGlade
+        - Name: ShrineGlade
   - Entity: 9108433963357979718
     TagComponent:
       Tag: UI Fade
@@ -2287,8 +2287,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [7.8, 0.3, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [7.80000019, 0.300000012, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 5888645764482305797
@@ -2306,8 +2306,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [7.8, 0.3, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [7.80000019, 0.300000012, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7905517575359651115
@@ -2325,8 +2325,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [9.3, 0.3, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [9.30000019, 0.300000012, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4518005068882461278
@@ -2344,8 +2344,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [9.3, 0.3, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [9.30000019, 0.300000012, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7413762374198159990
@@ -2363,8 +2363,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [0.3, 9, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [0.300000012, 9, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 8532437754109950822
@@ -2382,8 +2382,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [0.3, 9, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [0.300000012, 9, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4996242501176892941
@@ -2401,8 +2401,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [0.3, 4, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [0.300000012, 4, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4426207858467569186
@@ -2420,8 +2420,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [0.3, 4, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [0.300000012, 4, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 8173915135289971587
@@ -2439,8 +2439,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [0.3, 11, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [0.300000012, 11, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7779626026576073833
@@ -2458,8 +2458,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [0.3, 11, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [0.300000012, 11, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4377922040100137191
@@ -2493,8 +2493,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [6.9, 5, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [6.9000001, 5, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 3569926238660948754
@@ -2512,8 +2512,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [2, 0.8, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [2, 0.800000012, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 9074558629336959517
@@ -2547,8 +2547,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4538, 0.8]
-      Size: [0.2522, 0.0923, 1.6]
+      Offset: [0, -0.453799993, 0.800000012]
+      Size: [0.252200007, 0.0922999978, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 5515472067107185271
@@ -4306,8 +4306,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4684, 0.8]
-      Size: [0.1123, 0.0632, 1.6]
+      Offset: [0, -0.468400002, 0.800000012]
+      Size: [0.112300001, 0.0631999969, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 699350774627236690
@@ -4334,8 +4334,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4667, 0.8]
-      Size: [0.119, 0.0667, 1.6]
+      Offset: [0, -0.466699988, 0.800000012]
+      Size: [0.119000003, 0.0666999966, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 3393387075336188158
@@ -4362,8 +4362,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4647, 0.8]
-      Size: [0.1454, 0.0706, 1.6]
+      Offset: [0, -0.464700013, 0.800000012]
+      Size: [0.145400003, 0.070600003, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 295768166836184961
@@ -4390,8 +4390,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4647, 0.8]
-      Size: [0.1255, 0.0706, 1.6]
+      Offset: [0, -0.464700013, 0.800000012]
+      Size: [0.125499994, 0.070600003, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 8823823183394312717
@@ -4418,8 +4418,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4647, 0.8]
-      Size: [0.126, 0.0706, 1.6]
+      Offset: [0, -0.464700013, 0.800000012]
+      Size: [0.126000002, 0.070600003, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 713238376006688916
@@ -4446,8 +4446,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4625, 0.8]
-      Size: [0.1545, 0.075, 1.6]
+      Offset: [0, -0.462500006, 0.800000012]
+      Size: [0.154499993, 0.075000003, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 5213298615977695097
@@ -4698,8 +4698,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4608, 0.8]
-      Size: [0.2896, 0.0784, 1.6]
+      Offset: [0, -0.460799992, 0.800000012]
+      Size: [0.289600015, 0.0784000009, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 3234991372300481100
@@ -4726,8 +4726,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4608, 0.8]
-      Size: [0.2896, 0.0784, 1.6]
+      Offset: [0, -0.460799992, 0.800000012]
+      Size: [0.289600015, 0.0784000009, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 2351806747789743990
@@ -4754,8 +4754,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.3745, 0.8]
-      Size: [0.9, 0.251, 1.6]
+      Offset: [0, -0.374500006, 0.800000012]
+      Size: [0.899999976, 0.250999987, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7993783122074570228
@@ -4782,8 +4782,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.3745, 0.8]
-      Size: [0.6667, 0.251, 1.6]
+      Offset: [0, -0.374500006, 0.800000012]
+      Size: [0.666700006, 0.250999987, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 6385243566750986607
@@ -4810,8 +4810,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7574286129711183763
@@ -4838,8 +4838,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7453084886519827924
@@ -4866,8 +4866,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1200767070766460179
@@ -4894,8 +4894,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1003594150906450496
@@ -4922,8 +4922,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4596083341498587596
@@ -4950,8 +4950,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7440603027905974541
@@ -4978,8 +4978,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 6985565054017361923
@@ -5006,8 +5006,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 2293862965215481516
@@ -5034,8 +5034,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 3334285463536224685
@@ -5062,8 +5062,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4369203868794246245
@@ -5090,8 +5090,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4048, 0.8]
-      Size: [0.9366, 0.1905, 1.6]
+      Offset: [0, -0.404799998, 0.800000012]
+      Size: [0.936600029, 0.190500006, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 6890928409166240480
@@ -5118,8 +5118,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4048, 0.8]
-      Size: [0.9366, 0.1905, 1.6]
+      Offset: [0, -0.404799998, 0.800000012]
+      Size: [0.936600029, 0.190500006, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7026622945513857390
@@ -5146,8 +5146,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4048, 0.8]
-      Size: [0.9366, 0.1905, 1.6]
+      Offset: [0, -0.404799998, 0.800000012]
+      Size: [0.936600029, 0.190500006, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 6711044137532731020
@@ -5174,8 +5174,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4048, 0.8]
-      Size: [0.9366, 0.1905, 1.6]
+      Offset: [0, -0.404799998, 0.800000012]
+      Size: [0.936600029, 0.190500006, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1060591098293658548
@@ -5202,8 +5202,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7381649197389381211
@@ -5230,8 +5230,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4198000979323352597
@@ -5258,8 +5258,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1539389555572081855
@@ -5286,8 +5286,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 9211926672918371901
@@ -5314,8 +5314,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 3755219560927740202
@@ -5342,8 +5342,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 520607614045277108
@@ -5370,8 +5370,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 175105537154289817
@@ -5398,8 +5398,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 5003773439950378204
@@ -5426,8 +5426,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1080028471873537911
@@ -5454,8 +5454,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4238, 0.8]
-      Size: [0.9366, 0.1524, 1.6]
+      Offset: [0, -0.423799992, 0.800000012]
+      Size: [0.936600029, 0.152400002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 5612979027964244988
@@ -5487,8 +5487,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0.15, 0.8]
-      Size: [0.9, 0.3, 1.6]
+      Offset: [0, 0.150000006, 0.800000012]
+      Size: [0.899999976, 0.300000012, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 915656162424463572
@@ -5520,8 +5520,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [1, 1, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [1, 1, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 6534739203578931046
@@ -5539,8 +5539,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.8]
-      Size: [1, 1, 1.6]
+      Offset: [0, 0, 0.800000012]
+      Size: [1, 1, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1888277293012762830
@@ -5567,8 +5567,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.3095, 0.8]
-      Size: [0.9366, 0.381, 1.6]
+      Offset: [0, -0.309500009, 0.800000012]
+      Size: [0.936600029, 0.381000012, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7525156853788916664
@@ -5595,8 +5595,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.2759, 0.8]
-      Size: [0.9182, 0.4482, 1.6]
+      Offset: [0, -0.275900006, 0.800000012]
+      Size: [0.918200016, 0.448199987, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7707297636837786755
@@ -5623,8 +5623,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.246, 0.8]
-      Size: [0.9106, 0.5079, 1.6]
+      Offset: [0, -0.246000007, 0.800000012]
+      Size: [0.910600007, 0.5079, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 4271470499060943565
@@ -5633,19 +5633,19 @@ Entities:
     TransformComponent:
       Translation: [-1.20000005, -1.29999995, 1]
       Rotation: [0, 0, 0]
-      Scale: [2, 2, 1]
+      Scale: [2.20000005, 2.20000005, 2.20000005]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 96
-      TextureHandle: 7947839098198136297
-      Sprite: WalkDown_0
+      TextureHandle: 16527506524077974322
+      Sprite: Miko_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     SpriteAnimatorComponent:
-      AnimationsHandle: 8836529364116051673
+      AnimationsHandle: 9503405222623168017
       StartClip: IdleRight
       PlayOnStart: true
       Speed: 1
@@ -5653,16 +5653,18 @@ Entities:
       Offset: [0, 0.0500000007]
       Size: [0.850000024, 0.319999993]
       Strength: 0.550000012
-    NativeScriptComponent:
-      Scripts:
-        - DioramaWalk
     CharacterBodyComponent:
       Radius: 0.25
-      Height: 1.4
+      Height: 1.39999998
       MaxSlopeDegrees: 50
-      StepHeight: 0.35
+      StepHeight: 0.349999994
       StaysOnLedges: true
       Layer: Player
+    NativeScriptComponent:
+      Scripts:
+        - Name: DioramaWalk
+          Properties:
+            Move Speed: 3.5
   - Entity: 1001152027262274208
     TagComponent:
       Tag: Npc Elder
@@ -5697,8 +5699,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0.1, 0.8]
-      Size: [0.5, 0.2, 1.6]
+      Offset: [0, 0.100000001, 0.800000012]
+      Size: [0.5, 0.200000003, 1.60000002]
       Layer: Npc
       IsTrigger: false
   - Entity: 2618373224733743677
@@ -5725,8 +5727,8 @@ Entities:
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.4167, 0.8]
-      Size: [0.5753, 0.1667, 1.6]
+      Offset: [0, -0.416700006, 0.800000012]
+      Size: [0.575299978, 0.166700006, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 2521931026300517388
@@ -5789,15 +5791,15 @@ Entities:
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
-    NativeScriptComponent:
-      Scripts:
-        - EnemyChase
-        - VillageYSort
     BoxColliderComponent:
-      Offset: [0, 0.25, 0.8]
-      Size: [0.55, 0.3, 1.6]
+      Offset: [0, 0.25, 0.800000012]
+      Size: [0.550000012, 0.300000012, 1.60000002]
       Layer: World
       IsTrigger: false
+    NativeScriptComponent:
+      Scripts:
+        - Name: EnemyChase
+        - Name: VillageYSort
   - Entity: 6389426620074096688
     TagComponent:
       Tag: Decor Wall Foot
@@ -6010,9 +6012,9 @@ Entities:
     TagComponent:
       Tag: Decor Wall Bush 4
     TransformComponent:
-      Translation: [6.9532, -3.0891, 0]
+      Translation: [6.95319986, -3.08909988, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.1176, 2, 1]
+      Scale: [2.11759996, 2, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6058,9 +6060,9 @@ Entities:
     TagComponent:
       Tag: Decor Plaza Wall 2
     TransformComponent:
-      Translation: [-5.4962, 1.0015, 1]
+      Translation: [-5.49620008, 1.00150001, 1]
       Rotation: [0, 0, 0]
-      Scale: [2.2593, 1, 1]
+      Scale: [2.25929999, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6538,9 +6540,9 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Bush 2
     TransformComponent:
-      Translation: [6.1622, 11.0872, 3.1]
+      Translation: [6.16219997, 11.0872002, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [2.5905, 1.7, 1]
+      Scale: [2.59050012, 1.70000005, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6682,9 +6684,9 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 9
     TransformComponent:
-      Translation: [-2.6363, 14.2138, 3.1]
+      Translation: [-2.63630009, 14.2138004, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [0.9403, 3, 1]
+      Scale: [0.940299988, 3, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6746,9 +6748,9 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 13
     TransformComponent:
-      Translation: [8.08, 13.693, 3.1]
+      Translation: [8.07999992, 13.6929998, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [3.1765, 3, 1]
+      Scale: [3.17650008, 3, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6858,9 +6860,9 @@ Entities:
     TagComponent:
       Tag: Decor Hill Edge 20
     TransformComponent:
-      Translation: [-3.6017, 13.829, 3.1]
+      Translation: [-3.60170007, 13.8290005, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [2.6578, 2.6, 1]
+      Scale: [2.65779996, 2.5999999, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6954,9 +6956,9 @@ Entities:
     TagComponent:
       Tag: Decor Shrine Flowers 4
     TransformComponent:
-      Translation: [-6.9, 5.09, 3.1]
+      Translation: [-6.9000001, 5.09000015, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [1.7027, 1.5, 1]
+      Scale: [1.70270002, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7082,9 +7084,9 @@ Entities:
     TagComponent:
       Tag: Canopy Front 2
     TransformComponent:
-      Translation: [-7.6, -4.65, 0]
+      Translation: [-7.5999999, -4.6500001, 0]
       Rotation: [0, 0, 0]
-      Scale: [3.8095, 2.5, 1]
+      Scale: [3.80949998, 2.5, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.839999974, 0.800000012, 1]
       TilingFactor: 1
@@ -7114,9 +7116,9 @@ Entities:
     TagComponent:
       Tag: Canopy Front 4
     TransformComponent:
-      Translation: [5.6, -4.55, 0]
+      Translation: [5.5999999, -4.55000019, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.3838, 2.1, 1]
+      Scale: [2.38380003, 2.0999999, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.839999974, 0.800000012, 1]
       TilingFactor: 1
@@ -7210,9 +7212,9 @@ Entities:
     TagComponent:
       Tag: Canopy Front 10
     TransformComponent:
-      Translation: [4.2, -10.95, 0]
+      Translation: [4.19999981, -10.9499998, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.937, 1.3, 1]
+      Scale: [2.93700004, 1.29999995, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.839999974, 0.800000012, 1]
       TilingFactor: 1
@@ -7226,25 +7228,26 @@ Entities:
     TagComponent:
       Tag: Glade Memorial Medium
     TransformComponent:
-      Translation: [6, 7.25, 3.1]
-      Rotation: [0, 0, 0.122173]
-      Scale: [1.6, 1.6, 1.6]
+      Translation: [6, 7.25, 3.0999999]
+      Rotation: [0, 0, 0.122172996]
+      Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
       ModelHandle: 6656534145309784850
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     BoxCollider2DComponent:
       Offset: [0, 0]
-      Size: [0.5, 0.3438]
+      Size: [0.5, 0.343800008]
       Density: 1
-      Friction: 0.4
+      Friction: 0.400000006
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
       Offset: [0, 0, 0.5]
-      Size: [0.5, 0.3438, 1]
+      Size: [0.5, 0.343800008, 1]
       Layer: World
       IsTrigger: false
     MeshColliderComponent:
@@ -7253,25 +7256,26 @@ Entities:
     TagComponent:
       Tag: Glade Memorial Small
     TransformComponent:
-      Translation: [5.1, 6.75, 3.1]
-      Rotation: [0, 0, -0.244346]
-      Scale: [1.55, 1.55, 1.55]
+      Translation: [5.0999999, 6.75, 3.0999999]
+      Rotation: [0, 0, -0.244345993]
+      Scale: [1.54999995, 1.54999995, 1.54999995]
     MeshComponent:
       ModelHandle: 3826708707717588095
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     BoxCollider2DComponent:
       Offset: [0, 0]
-      Size: [0.4, 0.2903]
+      Size: [0.400000006, 0.290300012]
       Density: 1
-      Friction: 0.4
+      Friction: 0.400000006
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, 0, 0.5161]
-      Size: [0.4, 0.2903, 1.0323]
+      Offset: [0, 0, 0.516099989]
+      Size: [0.400000006, 0.290300012, 1.0323]
       Layer: World
       IsTrigger: false
     MeshColliderComponent:
@@ -7280,25 +7284,26 @@ Entities:
     TagComponent:
       Tag: Glade Memorial Rounded
     TransformComponent:
-      Translation: [8.05, 6.65, 3.1]
-      Rotation: [0, 0, 0.191986]
-      Scale: [1.6, 1.6, 1.6]
+      Translation: [8.05000019, 6.6500001, 3.0999999]
+      Rotation: [0, 0, 0.191985995]
+      Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
       ModelHandle: 7110886203829915727
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     BoxCollider2DComponent:
       Offset: [0, 0]
-      Size: [0.4125, 0.3]
+      Size: [0.412499994, 0.300000012]
       Density: 1
-      Friction: 0.4
+      Friction: 0.400000006
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
       Offset: [0, 0, 0.5]
-      Size: [0.4125, 0.3, 1]
+      Size: [0.412499994, 0.300000012, 1]
       Layer: World
       IsTrigger: false
     MeshColliderComponent:
@@ -7307,25 +7312,26 @@ Entities:
     TagComponent:
       Tag: Glade Memorial Stone
     TransformComponent:
-      Translation: [7.15, 7.6, 3.1]
-      Rotation: [0, 0, -0.383972]
-      Scale: [1.6, 1.6, 1.6]
+      Translation: [7.1500001, 7.5999999, 3.0999999]
+      Rotation: [0, 0, -0.383971989]
+      Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
       ModelHandle: 2684446994534599676
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     BoxCollider2DComponent:
       Offset: [0, 0]
-      Size: [0.375, 0.2812]
+      Size: [0.375, 0.281199992]
       Density: 1
-      Friction: 0.4
+      Friction: 0.400000006
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
       Offset: [0, 0, 0.5]
-      Size: [0.375, 0.2812, 1]
+      Size: [0.375, 0.281199992, 1]
       Layer: World
       IsTrigger: false
     MeshColliderComponent:
@@ -7334,7 +7340,7 @@ Entities:
     TagComponent:
       Tag: Glade Offering Bowl
     TransformComponent:
-      Translation: [6.02, 6.72, 3.1]
+      Translation: [6.01999998, 6.71999979, 3.0999999]
       Rotation: [0, 0, 0]
       Scale: [1.5, 1.5, 1.5]
     MeshComponent:
@@ -7342,209 +7348,222 @@ Entities:
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 3210491131678398033
     TagComponent:
       Tag: Glade Plaque Rack
     TransformComponent:
-      Translation: [8.75, 7.55, 3.1]
-      Rotation: [0, 0, -0.314159]
-      Scale: [1.4, 1.4, 1.4]
+      Translation: [8.75, 7.55000019, 3.0999999]
+      Rotation: [0, 0, -0.314159006]
+      Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
       ModelHandle: 2180732391540852967
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 4662439202797745297
     TagComponent:
       Tag: Glade Monk Stool
     TransformComponent:
-      Translation: [2.5, 4.62, 3.1]
-      Rotation: [0, 0, 0.20944]
-      Scale: [1.4, 1.4, 1.4]
+      Translation: [2.5, 4.61999989, 3.0999999]
+      Rotation: [0, 0, 0.209439993]
+      Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
       ModelHandle: 6637071425901403360
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 7472300625950887743
     TagComponent:
       Tag: Glade Tea Cup
     TransformComponent:
-      Translation: [2.56, 4.6, 3.66]
+      Translation: [2.55999994, 4.5999999, 3.66000009]
       Rotation: [0, 0, 0]
-      Scale: [1.4, 1.4, 1.4]
+      Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
       ModelHandle: 9157831052250990419
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 1842999460752541794
     TagComponent:
       Tag: Glade Monk Broom
     TransformComponent:
-      Translation: [3.1, 4.72, 3.1]
-      Rotation: [0, 0.3, 0]
-      Scale: [1.3, 1.3, 1.3]
+      Translation: [3.0999999, 4.71999979, 3.0999999]
+      Rotation: [0, 0.300000012, 0]
+      Scale: [1.29999995, 1.29999995, 1.29999995]
     MeshComponent:
       ModelHandle: 3025788120135779416
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 5488526121304600793
     TagComponent:
       Tag: Glade Path Stone
     TransformComponent:
-      Translation: [-1.95, -6.3, 0]
-      Rotation: [0, 0, 0.139626]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [-1.95000005, -6.30000019, 0]
+      Rotation: [0, 0, 0.139625996]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 4663219348195522013
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 6128804450866246028
     TagComponent:
       Tag: Glade Path Stone 2
     TransformComponent:
-      Translation: [1.92, -7.5, 0]
-      Rotation: [0, 0, -0.191986]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [1.91999996, -7.5, 0]
+      Rotation: [0, 0, -0.191985995]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 8106759842334242398
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 2999846457730276259
     TagComponent:
       Tag: Glade Path Stone 3
     TransformComponent:
-      Translation: [-1.88, -9.2, 0]
-      Rotation: [0, 0, -0.087266]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [-1.88, -9.19999981, 0]
+      Rotation: [0, 0, -0.0872659981]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 8087344668629873487
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 3356960588077542404
     TagComponent:
       Tag: Glade Path Stone 4
     TransformComponent:
-      Translation: [1.98, -10.1, 0]
-      Rotation: [0, 0, 0.366519]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [1.98000002, -10.1000004, 0]
+      Rotation: [0, 0, 0.366519004]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 1358067340528843913
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 8878894406950823129
     TagComponent:
       Tag: Glade Path Stone 5
     TransformComponent:
-      Translation: [5.45, -2.2, 1]
-      Rotation: [0, 0, 0.244346]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [5.44999981, -2.20000005, 1]
+      Rotation: [0, 0, 0.244345993]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 1170341211963298043
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 1868628247324371885
     TagComponent:
       Tag: Glade Path Stone 6
     TransformComponent:
-      Translation: [-5.5, -0.3, 1]
-      Rotation: [0, 0, -0.15708]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [-5.5, -0.300000012, 1]
+      Rotation: [0, 0, -0.157079995]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 6498929321602821478
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 6214249066076496935
     TagComponent:
       Tag: Glade Path Stone 7
     TransformComponent:
-      Translation: [4.28, 4.6, 3.112]
-      Rotation: [0, 0, 0.575959]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [4.28000021, 4.5999999, 3.11199999]
+      Rotation: [0, 0, 0.575959027]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 8106759842334242398
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 3928662666590038833
     TagComponent:
       Tag: Glade Path Stone 8
     TransformComponent:
-      Translation: [-4.32, 6.5, 3.112]
-      Rotation: [0, 0, -0.296706]
-      Scale: [1.15, 1.15, 1.15]
+      Translation: [-4.32000017, 6.5, 3.11199999]
+      Rotation: [0, 0, -0.296705991]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
       ModelHandle: 1358067340528843913
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
-      Materials: []
+      Materials:
+        []
     MeshColliderComponent:
       Layer: World
   - Entity: 4081058176968086610
     TagComponent:
       Tag: Glade Memorial Candle
     TransformComponent:
-      Translation: [6.02, 6.72, 3.1]
+      Translation: [6.01999998, 6.71999979, 3.0999999]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
-      Color: [1, 0.66, 0.34]
-      Intensity: 1.1
-      Radius: 2.4
-      Height: 0.4
+      Color: [1, 0.660000026, 0.340000004]
+      Intensity: 1.10000002
+      Radius: 2.4000001
+      Height: 0.400000006
   - Entity: 2125461056901860693
     TagComponent:
       Tag: Glade Root
     TransformComponent:
-      Translation: [-5.3, 6.275, 3.1]
+      Translation: [-5.30000019, 6.2750001, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [1.4167, 0.85, 1]
+      Scale: [1.41670001, 0.850000024, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7558,9 +7577,9 @@ Entities:
     TagComponent:
       Tag: Glade Root 2
     TransformComponent:
-      Translation: [-8.1, 6.05, 3.1]
+      Translation: [-8.10000038, 6.05000019, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [1.6786, 0.5, 1]
+      Scale: [1.67859995, 0.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7574,9 +7593,9 @@ Entities:
     TagComponent:
       Tag: Glade Root Rock
     TransformComponent:
-      Translation: [-7.65, 5.575, 3.1]
+      Translation: [-7.6500001, 5.57499981, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [0.525, 0.55, 1]
+      Scale: [0.524999976, 0.550000012, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7590,9 +7609,9 @@ Entities:
     TagComponent:
       Tag: Glade Root Grass
     TransformComponent:
-      Translation: [-5, 5.775, 3.1]
+      Translation: [-5, 5.7750001, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [0.7526, 0.55, 1]
+      Scale: [0.752600014, 0.550000012, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7606,9 +7625,9 @@ Entities:
     TagComponent:
       Tag: Glade Edge Fern
     TransformComponent:
-      Translation: [-2.35, -5.15, 0]
+      Translation: [-2.3499999, -5.1500001, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.2615, 0.8, 1]
+      Scale: [1.2615, 0.800000012, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7622,9 +7641,9 @@ Entities:
     TagComponent:
       Tag: Glade Edge Tuft
     TransformComponent:
-      Translation: [-2.75, -4.925, 0]
+      Translation: [-2.75, -4.92500019, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.6947, 0.55, 1]
+      Scale: [0.694700003, 0.550000012, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7638,9 +7657,9 @@ Entities:
     TagComponent:
       Tag: Glade Edge Flowers
     TransformComponent:
-      Translation: [2.45, -8.425, 0]
+      Translation: [2.45000005, -8.42500019, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.9167, 0.55, 1]
+      Scale: [0.916700006, 0.550000012, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7654,9 +7673,9 @@ Entities:
     TagComponent:
       Tag: Glade Edge Stem
     TransformComponent:
-      Translation: [2.85, -8.7, 0]
+      Translation: [2.8499999, -8.69999981, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.5091, 0.7, 1]
+      Scale: [0.50910002, 0.699999988, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7670,9 +7689,9 @@ Entities:
     TagComponent:
       Tag: Glade Lantern Flowers
     TransformComponent:
-      Translation: [-3.95, 4.75, 3.1]
+      Translation: [-3.95000005, 4.75, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [0.7812, 0.5, 1]
+      Scale: [0.781199992, 0.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7686,9 +7705,9 @@ Entities:
     TagComponent:
       Tag: Glade Memorial Fern
     TransformComponent:
-      Translation: [5.35, 6.525, 3.1]
+      Translation: [5.3499999, 6.5250001, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [0.7621, 0.85, 1]
+      Scale: [0.762099981, 0.850000024, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7702,9 +7721,9 @@ Entities:
     TagComponent:
       Tag: Glade Memorial Flowers
     TransformComponent:
-      Translation: [8.35, 6.9, 3.1]
+      Translation: [8.35000038, 6.9000001, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [0.7895, 0.6, 1]
+      Scale: [0.789499998, 0.600000024, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7718,9 +7737,9 @@ Entities:
     TagComponent:
       Tag: Glade Memorial Bush
     TransformComponent:
-      Translation: [9, 6.65, 3.1]
+      Translation: [9, 6.6500001, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [0.8923, 0.8, 1]
+      Scale: [0.89230001, 0.800000012, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7736,7 +7755,7 @@ Entities:
     TransformComponent:
       Translation: [-6.25, 1.5, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.6316, 0.6, 1]
+      Scale: [0.631600022, 0.600000024, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7750,9 +7769,9 @@ Entities:
     TagComponent:
       Tag: Glade Wall Rock
     TransformComponent:
-      Translation: [-6.75, 1.46, 1]
+      Translation: [-6.75, 1.46000004, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.5815, 0.42, 1]
+      Scale: [0.581499994, 0.419999987, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7766,9 +7785,9 @@ Entities:
     TagComponent:
       Tag: Glade Petals
     TransformComponent:
-      Translation: [5.2, 7.95, 3.118]
-      Rotation: [0, 0, 0.174533]
-      Scale: [1.8262, 1.3, 1]
+      Translation: [5.19999981, 7.94999981, 3.11800003]
+      Rotation: [0, 0, 0.174532995]
+      Scale: [1.82620001, 1.29999995, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7782,9 +7801,9 @@ Entities:
     TagComponent:
       Tag: Glade Petals 2
     TransformComponent:
-      Translation: [6.9, 7.85, 3.118]
-      Rotation: [0, 0, -0.436332]
-      Scale: [1.6059, 1.05, 1]
+      Translation: [6.9000001, 7.8499999, 3.11800003]
+      Rotation: [0, 0, -0.436331987]
+      Scale: [1.60590005, 1.04999995, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7798,9 +7817,9 @@ Entities:
     TagComponent:
       Tag: Glade Petals 3
     TransformComponent:
-      Translation: [6.6, 6.3, 3.118]
-      Rotation: [0, 0, 0.698132]
-      Scale: [1.3529, 1, 1]
+      Translation: [6.5999999, 6.30000019, 3.11800003]
+      Rotation: [0, 0, 0.698131979]
+      Scale: [1.35290003, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7814,9 +7833,9 @@ Entities:
     TagComponent:
       Tag: Glade Petals 4
     TransformComponent:
-      Translation: [4.75, 5.35, 3.118]
-      Rotation: [0, 0, -0.261799]
-      Scale: [1.8889, 0.85, 1]
+      Translation: [4.75, 5.3499999, 3.11800003]
+      Rotation: [0, 0, -0.261799008]
+      Scale: [1.88890004, 0.850000024, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7830,9 +7849,9 @@ Entities:
     TagComponent:
       Tag: Glade Petals 5
     TransformComponent:
-      Translation: [3.85, 6.55, 3.118]
-      Rotation: [0, 0, 1.22173]
-      Scale: [1.2444, 0.8, 1]
+      Translation: [3.8499999, 6.55000019, 3.11800003]
+      Rotation: [0, 0, 1.22172999]
+      Scale: [1.24440002, 0.800000012, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7846,9 +7865,9 @@ Entities:
     TagComponent:
       Tag: Glade Petals 6
     TransformComponent:
-      Translation: [7.6, 5.55, 3.118]
-      Rotation: [0, 0, 0.349066]
-      Scale: [1.4, 0.7, 1]
+      Translation: [7.5999999, 5.55000019, 3.11800003]
+      Rotation: [0, 0, 0.349065989]
+      Scale: [1.39999998, 0.699999988, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7862,9 +7881,9 @@ Entities:
     TagComponent:
       Tag: Glade Petals 7
     TransformComponent:
-      Translation: [2.95, 4.35, 3.118]
-      Rotation: [0, 0, -0.698132]
-      Scale: [1.0111, 0.65, 1]
+      Translation: [2.95000005, 4.3499999, 3.11800003]
+      Rotation: [0, 0, -0.698131979]
+      Scale: [1.01110005, 0.649999976, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1

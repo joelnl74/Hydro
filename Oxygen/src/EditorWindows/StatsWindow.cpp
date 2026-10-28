@@ -6,7 +6,7 @@
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Scene/Scene.h>
 #include <Hydro/Scene/ParticleScene.h>
-#include <Hydro/Scene/ScriptableEntity.h>
+#include <Hydro/Scene/Scripting/ScriptableEntity.h>
 
 #include <algorithm>
 #include <cstdio>

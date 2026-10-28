@@ -70,7 +70,7 @@ namespace Hydro
 			}
 
 			const bool moving = move.x != 0.0f || move.y != 0.0f;
-			SpriteAnimator::Play(GetEntity(), (moving ? "Walk" : "Idle") + m_Facing);
+			SpriteAnimator::Play(GetEntity(), (moving ? "Walk" + m_Facing : "Idle"));
 
 			glm::vec3 velocity{ 0.0f };
 			if (moving)
@@ -81,7 +81,7 @@ namespace Hydro
 			CharacterBody::Move(GetEntity(), velocity);
 		}
 
-	private:
+	public:
 		std::string m_Facing = "Up";
 		float m_Speed = 3.5f; // metres per second
 	};
@@ -323,7 +323,8 @@ namespace Hydro
 	inline void RegisterShrineScripts()
 	{
 		// The names are what scenes save: keep them stable.
-		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalk");
+		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalk").Property(
+				"Move Speed", &DioramaWalkScript::m_Speed);
 		ScriptRegistry::Register<ShrineGladeScript>("ShrineGlade");
 		ScriptRegistry::Register<FarmVillageScript>("FarmVillage");
 	}
