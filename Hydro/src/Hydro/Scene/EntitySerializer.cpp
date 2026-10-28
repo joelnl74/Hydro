@@ -635,7 +635,6 @@ namespace Hydro
 
 			out << YAML::Key << "NativeScriptComponent";
 			out << YAML::BeginMap;
-
 			out << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
 
 			for (const auto& script : scripts.Scripts)
@@ -645,30 +644,24 @@ namespace Hydro
 					HY_CORE_WARN(
 						"Entity '{}': a script bound in code without a ScriptRegistry name isn't saved",
 						entity.GetName());
-
 					continue;
 				}
 
 				out << YAML::BeginMap;
+				out << YAML::Key << "Name" << YAML::Value << script.Name;
 
-				out << YAML::Key << "Name"
-					<< YAML::Value << script.Name;
-
-				if (script.Properties.empty() == false)
+				if (!script.Properties.empty())
 				{
-					out << YAML::Key << "Properties"
-						<< YAML::Value << YAML::BeginMap;
+					out << YAML::Key << "Properties" << YAML::Value << YAML::BeginMap;
 
-					for (const auto& [propertyName, propertyValue] :
-						script.Properties)
+					for (const auto& [propertyName, propertyValue] : script.Properties)
 					{
 						out << YAML::Key << propertyName;
-
 						std::visit(
 							[&out](const auto& value)
-						{
-							out << YAML::Value << value;
-						},
+							{
+								out << YAML::Value << value;
+							},
 							propertyValue);
 					}
 
@@ -937,117 +930,20 @@ namespace Hydro
 			emitter.ShapeSize.x = AtLeast(0.0f, emitter.ShapeSize.x);
 			emitter.ShapeSize.y = AtLeast(0.0f, emitter.ShapeSize.y);
 			emitter.Lifetime = ReadRange(emitterNode["Lifetime"], emitter.Lifetime, 0.01f);
-			if (auto scriptNode =
-					entityNode["NativeScriptComponent"])
-			{
-				auto& scripts =
-					entity.AddComponent<NativeScriptComponent>();
-
-				if (auto scriptsNode = scriptNode["Scripts"];
-					scriptsNode && scriptsNode.IsSequence())
-				{
-					for (const YAML::Node& savedScript :
-						scriptsNode)
-					{
-						std::string name;
-
-						// Backwards compatibility:
-						//
-						// Old format:
-						// Scripts:
-						//   - DioramaWalk
-						//
-						// New format:
-						// Scripts:
-						//   - Name: DioramaWalk
-						//     Properties: ...
-						if (savedScript.IsScalar())
-						{
-							name =
-								savedScript.as<std::string>("");
-						}
-						else if (savedScript.IsMap())
-						{
-							name =
-								savedScript["Name"]
-									.as<std::string>("");
-						}
-
-						if (name.empty())
-						{
-							continue;
-						}
-
-						// Bind initializes the current registered
-						// defaults first.
-						scripts.Bind(name);
-
-						NativeScriptComponent::Script&
-							binding = scripts.Scripts.back();
-
-						// Then saved values override those defaults.
-						if (savedScript.IsMap())
-						{
-							const YAML::Node propertiesNode =
-								savedScript["Properties"];
-
-							if (propertiesNode &&
-								propertiesNode.IsMap())
-							{
-								ScriptTypeInfo* typeInfo =
-									ScriptRegistry::FindType(name);
-
-								if (typeInfo != nullptr)
-								{
-									for (const ScriptProperty& property :
-										typeInfo->Properties)
-									{
-										YAML::Node valueNode =
-											propertiesNode[property.Name];
-
-										if (!valueNode)
-										{
-											continue;
-										}
-
-										switch (property.Type)
-										{
-										case ScriptPropertyType::Bool:
-											binding.Properties[property.Name] =
-												valueNode.as<bool>(
-													std::get<bool>(
-														property.DefaultValue));
-											break;
-
-										case ScriptPropertyType::Int:
-											binding.Properties[property.Name] =
-												valueNode.as<int>(
-													std::get<int>(
-														property.DefaultValue));
-											break;
-
-										case ScriptPropertyType::Float:
-											binding.Properties[property.Name] =
-												valueNode.as<float>(
-													std::get<float>(
-														property.DefaultValue));
-											break;
-										}
-									}
-								}
-							}
-						}
-
-						if (ScriptRegistry::Find(name) == nullptr)
-						{
-							HY_CORE_WARN(
-								"Entity '{}': script '{}' isn't registered; it is kept but won't run",
-								entity.GetName(),
-								name);
-						}
-					}
-				}
-			}
+			emitter.Speed = ReadRange(emitterNode["Speed"], emitter.Speed);
+			emitter.Direction = emitterNode["Direction"].as<float>(emitter.Direction);
+			emitter.Spread = std::clamp(emitterNode["Spread"].as<float>(emitter.Spread), 0.0f, 180.0f);
+			emitter.StartSize = ReadRange(emitterNode["StartSize"], emitter.StartSize, 0.0f);
+			emitter.StartRotation = ReadRange(emitterNode["StartRotation"], emitter.StartRotation);
+			emitter.AngularVelocity = ReadRange(emitterNode["AngularVelocity"], emitter.AngularVelocity);
+			emitter.EndSizeScale = AtLeast(0.0f, emitterNode["EndSizeScale"].as<float>(emitter.EndSizeScale));
+			emitter.StartColor = emitterNode["StartColor"].as<glm::vec4>(emitter.StartColor);
+			emitter.EndColor = emitterNode["EndColor"].as<glm::vec4>(emitter.EndColor);
+			emitter.Gravity = emitterNode["Gravity"].as<glm::vec2>(emitter.Gravity);
+			emitter.Drag = AtLeast(0.0f, emitterNode["Drag"].as<float>(emitter.Drag));
+			emitter.Turbulence = AtLeast(0.0f, emitterNode["Turbulence"].as<float>(emitter.Turbulence));
+			emitter.SpriteIndex = emitterNode["SpriteIndex"].as<uint32_t>(emitter.SpriteIndex);
+			emitter.Blend = emitterNode["Blend"].as<std::string>("Alpha") == "Additive" ? ParticleBlend::Additive : ParticleBlend::Alpha;
 			emitter.Lighting = emitterNode["Lighting"].as<std::string>("Lit") == "Unlit" ? ParticleLighting::Unlit : ParticleLighting::Lit;
 			emitter.SortOrder = emitterNode["SortOrder"].as<int32_t>(emitter.SortOrder);
 			emitter.EmissionIntensity = AtLeast(0.0f, emitterNode["EmissionIntensity"].as<float>(emitter.EmissionIntensity));
@@ -1070,17 +966,83 @@ namespace Hydro
 		if (auto scriptNode = entityNode["NativeScriptComponent"])
 		{
 			auto& scripts = entity.AddComponent<NativeScriptComponent>();
-			for (auto nameNode : scriptNode["Scripts"])
-			{
-				const std::string name = nameNode.as<std::string>("");
-				if (name.empty())
-					continue;
 
-				scripts.Bind(name);
-				if (ScriptRegistry::Find(name) == nullptr)
-					HY_CORE_WARN("Entity '{}': script '{}' isn't registered; it is kept but won't run", entity.GetName(), name);
+			if (auto scriptsNode = scriptNode["Scripts"]; scriptsNode && scriptsNode.IsSequence())
+			{
+				for (const YAML::Node& savedScript : scriptsNode)
+				{
+					std::string scriptName;
+
+					// Backwards compatibility with the original string-only format.
+					if (savedScript.IsScalar())
+					{
+						scriptName = savedScript.as<std::string>("");
+					}
+					else if (savedScript.IsMap())
+					{
+						scriptName = savedScript["Name"].as<std::string>("");
+					}
+
+					if (scriptName.empty())
+						continue;
+
+					// Bind resolves Instantiate and fills the current reflected defaults.
+					scripts.Bind(scriptName);
+
+					NativeScriptComponent::Script& binding = scripts.Scripts.back();
+
+					// Saved values override the defaults. Missing/new fields keep their
+					// current C++ defaults from the registry.
+					if (savedScript.IsMap())
+					{
+						const YAML::Node propertiesNode = savedScript["Properties"];
+
+						if (propertiesNode && propertiesNode.IsMap())
+						{
+							ScriptTypeInfo* typeInfo = ScriptRegistry::FindType(scriptName);
+
+							if (typeInfo != nullptr)
+							{
+								for (const ScriptProperty& property : typeInfo->Properties)
+								{
+									const YAML::Node valueNode = propertiesNode[property.Name];
+
+									if (!valueNode)
+										continue;
+
+									switch (property.Type)
+									{
+									case ScriptPropertyType::Bool:
+										binding.Properties[property.Name] =
+											valueNode.as<bool>(std::get<bool>(property.DefaultValue));
+										break;
+
+									case ScriptPropertyType::Int:
+										binding.Properties[property.Name] =
+											valueNode.as<int>(std::get<int>(property.DefaultValue));
+										break;
+
+									case ScriptPropertyType::Float:
+										binding.Properties[property.Name] =
+											valueNode.as<float>(std::get<float>(property.DefaultValue));
+										break;
+									}
+								}
+							}
+						}
+					}
+
+					if (binding.Instantiate == nullptr)
+					{
+						HY_CORE_WARN(
+							"Entity '{}': script '{}' isn't registered; it is kept but won't run",
+							entity.GetName(),
+							scriptName);
+					}
+				}
 			}
 		}
+
 
 		return entity;
 	}
