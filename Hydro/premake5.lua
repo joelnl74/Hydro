@@ -53,8 +53,11 @@ project "Hydro"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.box2d}",
+		"%{IncludeDir.JoltPhysics}",
 		"%{IncludeDir.VMA}"
 	}
+
+	JoltDefines()
 
 	warnings "Extra"
 	FatalWarningsIfEnabled()
@@ -65,6 +68,7 @@ project "Hydro"
 		"ImGui",
 		"yaml-cpp",
 		"box2d",
+		"JoltPhysics",
 
 		"%{Library.Vulkan}",
 	}

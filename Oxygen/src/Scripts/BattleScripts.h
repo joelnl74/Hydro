@@ -162,6 +162,7 @@ namespace Hydro
 	// wisps (faster, they lead a group of wisps and slimes), everything else is a slime. After a battle the
 	// player did not win it goes home and ignores the player for a few seconds; after a win it disappears.
 	// Put it on a Dynamic Rigidbody2D (GravityScale 0, high LinearDamping, FixedRotation) with a Box collider.
+	HY_SCRIPT()
 	class EnemyChaseScript : public ScriptableEntity
 	{
 	protected:
@@ -422,6 +423,7 @@ namespace Hydro
 	//     an attack hits once more per point, a skill gets stronger.
 	//   - Weaknesses show as "?" until hit with them, and stay known for the rest of the game.
 	// It finds the scene's entities by tag (see scripts/shrine_glade/battle.py, which edits the scene).
+	HY_SCRIPT()
 	class BattleScript : public ScriptableEntity
 	{
 	protected:
@@ -1769,11 +1771,4 @@ namespace Hydro
 		entt::entity m_Message = entt::null;
 		entt::entity m_Overlay = entt::null;
 	};
-
-	inline void RegisterBattleScripts()
-	{
-		// The names are what scenes save: keep them stable.
-		ScriptRegistry::Register<EnemyChaseScript>("EnemyChase");
-		ScriptRegistry::Register<BattleScript>("Battle");
-	}
 }

@@ -19,7 +19,6 @@
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Scene.h"
-#include "Hydro/Scene/ScriptableEntity.h"
 #include "Hydro/Scene/SceneSerializer.h"
 #include "Hydro/Scene/SceneTransition.h"
 #include "Hydro/Scene/PrefabSerializer.h"
@@ -30,8 +29,13 @@
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/Vfx.h"
 
+// Scripting
+#include "Hydro/Scene/Scripting/ScriptableEntity.h"
+#include "Hydro/Scene/Scripting/ReflectionMacros.h"
+
 // PHYSICS.
 #include "Hydro/Physics/PhysicsScene.h"
+#include "Hydro/Physics/Physics3D.h"
 
 // ASSETS.
 #include "Hydro/Asset/Asset.h"

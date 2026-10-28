@@ -20,7 +20,7 @@
 #include <Hydro/Scene/SpriteAnimation.h>
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Scene/SpriteAnimator.h>
-#include <Hydro/Scene/ScriptableEntity.h>
+#include <Hydro/Scene/Scripting/ScriptableEntity.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -391,6 +391,40 @@ namespace Hydro
 		});
 	}
 
+	// Which layer a 3D collider or character is on (PhysicsLayer).
+	static void DrawPhysicsLayerRow(PhysicsLayer& layer)
+	{
+		const char* names[] = { "World", "Player", "Npc", "Trigger" };
+		int index = (int)layer;
+		DrawPropertyRow("Layer", [&]()
+		{
+			if (ImGui::Combo("##PhysicsLayer", &index, names, 4))
+			{
+				layer = (PhysicsLayer)index;
+			}
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("World: ground, walls, props. Player / Npc: characters and what walks with them.\nTrigger: blocks nothing; found by queries.");
+			}
+		});
+	}
+
+	// The rows every 3D collider shares: its layer, and whether it only detects characters walking in and out.
+	static void DrawCollider3DRows(Entity entity, PhysicsLayer& layer, bool& isTrigger)
+	{
+		DrawPhysicsLayerRow(layer);
+		DrawPropertyRow("Is Trigger", [&]()
+		{
+			ImGui::Checkbox("##IsTrigger", &isTrigger);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("A trigger blocks nothing: characters walking in and out send OnTriggerEnter / OnTriggerExit.");
+			}
+		});
+		ImGui::TextDisabled(entity.HasComponent<NativeScriptComponent>() ? "Scripted: the collider follows the transform while playing."
+			: "A static collider. Offset is its centre, before the transform's scale.");
+	}
+
 	// Collapsible section for one component type. Right-click the header to remove it.
 	// Removal is only *requested* here; the caller applies it after drawing, so no
 	// component reference is held while EnTT storage changes.
@@ -755,6 +789,12 @@ namespace Hydro
 		bool removeRigidbody = false;
 		bool removeBoxCollider = false;
 		bool removeCircleCollider = false;
+		bool removeBoxCollider3D = false;
+		bool removeSphereCollider = false;
+		bool removeCapsuleCollider = false;
+		bool removeCylinderCollider = false;
+		bool removeMeshCollider = false;
+		bool removeCharacterBody = false;
 		bool removeEmitter = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
@@ -1191,6 +1231,72 @@ namespace Hydro
 			}
 		});
 
+		DrawComponent<BoxColliderComponent>("Box Collider", entity, removeBoxCollider3D, [&](BoxColliderComponent& collider)
+		{
+			DrawVec3Control("Offset", collider.Offset);
+			DrawVec3Control("Size", collider.Size, 1.0f);
+			collider.Size = glm::max(collider.Size, glm::vec3(0.001f));
+			DrawCollider3DRows(entity, collider.Layer, collider.IsTrigger);
+		});
+
+		DrawComponent<SphereColliderComponent>("Sphere Collider", entity, removeSphereCollider, [&](SphereColliderComponent& collider)
+		{
+			DrawVec3Control("Offset", collider.Offset);
+			DrawPropertyRow("Radius", [&]() { InputFloatField("##SphereRadius", collider.Radius, "%.2f", 0.001f, 10000.0f); });
+			DrawCollider3DRows(entity, collider.Layer, collider.IsTrigger);
+		});
+
+		DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, removeCapsuleCollider, [&](CapsuleColliderComponent& collider)
+		{
+			DrawVec3Control("Offset", collider.Offset);
+			DrawPropertyRow("Radius", [&]() { InputFloatField("##CapsuleRadius", collider.Radius, "%.2f", 0.001f, 10000.0f); });
+			DrawPropertyRow("Height", [&]() { InputFloatField("##CapsuleHeight", collider.Height, "%.2f", 0.001f, 10000.0f); });
+			DrawCollider3DRows(entity, collider.Layer, collider.IsTrigger);
+		});
+
+		DrawComponent<CylinderColliderComponent>("Cylinder Collider", entity, removeCylinderCollider, [&](CylinderColliderComponent& collider)
+		{
+			DrawVec3Control("Offset", collider.Offset);
+			DrawPropertyRow("Radius", [&]() { InputFloatField("##CylinderRadius", collider.Radius, "%.2f", 0.001f, 10000.0f); });
+			DrawPropertyRow("Height", [&]() { InputFloatField("##CylinderHeight", collider.Height, "%.2f", 0.001f, 10000.0f); });
+			DrawCollider3DRows(entity, collider.Layer, collider.IsTrigger);
+		});
+
+		DrawComponent<MeshColliderComponent>("Mesh Collider", entity, removeMeshCollider, [&](MeshColliderComponent& collider)
+		{
+			DrawPhysicsLayerRow(collider.Layer);
+			if (entity.HasComponent<MeshComponent>() == false)
+			{
+				ImGui::TextDisabled("Needs a Mesh on the entity.");
+			}
+			else if ((uint64_t)entity.GetComponent<MeshComponent>().Model != 0)
+			{
+				ImGui::TextDisabled("A model collides as its bounding box for now.");
+			}
+			else
+			{
+				ImGui::TextDisabled("The built-in shape collides as itself (stairs as a ramp).");
+			}
+		});
+
+		DrawComponent<CharacterBodyComponent>("Character Body", entity, removeCharacterBody, [&](CharacterBodyComponent& body)
+		{
+			DrawPropertyRow("Radius", [&]() { InputFloatField("##CharacterRadius", body.Radius, "%.2f", 0.05f, 100.0f); });
+			DrawPropertyRow("Height", [&]() { InputFloatField("##CharacterHeight", body.Height, "%.2f", 0.2f, 100.0f); });
+			DrawPropertyRow("Max Slope", [&]() { InputFloatField("##CharacterMaxSlope", body.MaxSlopeDegrees, "%.1f", 0.0f, 89.0f); });
+			DrawPropertyRow("Step Height", [&]() { InputFloatField("##CharacterStepHeight", body.StepHeight, "%.2f", 0.0f, 10.0f); });
+			DrawPropertyRow("Stays On Ledges", [&]()
+			{
+				ImGui::Checkbox("##CharacterStaysOnLedges", &body.StaysOnLedges);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Never walks off a drop higher than Step Height: it stops at the edge instead of falling.");
+				}
+			});
+			DrawPhysicsLayerRow(body.Layer);
+			ImGui::TextDisabled("A capsule on the entity's feet; scripts move it with CharacterBody::Move.");
+		});
+
 		DrawComponent<ParticleEmitter2DComponent>("Particle Emitter 2D", entity, removeEmitter, [&](ParticleEmitter2DComponent& emitter)
 		{
 			const float limit = (float)ParticleEmitter2DComponent::MaxParticlesLimit;
@@ -1320,9 +1426,10 @@ namespace Hydro
 		{
 			for (int i = 0; i < (int)scripts.Scripts.size(); i++)
 			{
-				const NativeScriptComponent::Script& script = scripts.Scripts[i];
+				NativeScriptComponent::Script& script = scripts.Scripts[i];
 				ImGui::PushID(i);
 
+				// Script name + remove button.
 				ImGui::AlignTextToFramePadding();
 				if (script.Name.empty())
 					ImGui::TextDisabled("(bound in code, not saved)");
@@ -1338,9 +1445,66 @@ namespace Hydro
 				if (ImGui::Button("X", { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }))
 					scriptToRemove = i;
 
+				// Exposed script fields are drawn directly under the script name.
+				ScriptTypeInfo* typeInfo = ScriptRegistry::FindType(script.Name);
+				if (typeInfo != nullptr && typeInfo->Properties.empty() == false)
+				{
+					ImGui::Spacing();
+
+					for (const ScriptProperty& property : typeInfo->Properties)
+					{
+						auto valueIt = script.Properties.find(property.Name);
+						if (valueIt == script.Properties.end())
+							continue;
+
+						ScriptPropertyValue& value = valueIt->second;
+
+						switch (property.Type)
+						{
+						case ScriptPropertyType::Bool:
+						{
+							bool& current = std::get<bool>(value);
+							DrawPropertyRow(property.DisplayName.c_str(), [&]()
+							{
+								ImGui::Checkbox("##value", &current);
+							});
+							break;
+						}
+
+						case ScriptPropertyType::Int:
+						{
+							int& current = std::get<int>(value);
+							DrawPropertyRow(property.DisplayName.c_str(), [&]()
+							{
+								ImGui::InputInt("##value", &current);
+							});
+							break;
+						}
+
+						case ScriptPropertyType::Float:
+						{
+							float& current = std::get<float>(value);
+							DrawPropertyRow(property.DisplayName.c_str(), [&]()
+							{
+								InputFloatField("##value", current);
+							});
+							break;
+						}
+						}
+					}
+				}
+
+				if (i < (int)scripts.Scripts.size() - 1)
+				{
+					ImGui::Spacing();
+					ImGui::Separator();
+					ImGui::Spacing();
+				}
+
 				ImGui::PopID();
 			}
 
+			ImGui::Spacing();
 			if (ImGui::Button("Add Script", { ImGui::GetContentRegionAvail().x, 0.0f }))
 				ImGui::OpenPopup("AddScript");
 
@@ -1392,6 +1556,30 @@ namespace Hydro
 		if (removeCircleCollider)
 		{
 			entity.RemoveComponent<CircleCollider2DComponent>();
+		}
+		if (removeBoxCollider3D)
+		{
+			entity.RemoveComponent<BoxColliderComponent>();
+		}
+		if (removeSphereCollider)
+		{
+			entity.RemoveComponent<SphereColliderComponent>();
+		}
+		if (removeCapsuleCollider)
+		{
+			entity.RemoveComponent<CapsuleColliderComponent>();
+		}
+		if (removeCylinderCollider)
+		{
+			entity.RemoveComponent<CylinderColliderComponent>();
+		}
+		if (removeMeshCollider)
+		{
+			entity.RemoveComponent<MeshColliderComponent>();
+		}
+		if (removeCharacterBody)
+		{
+			entity.RemoveComponent<CharacterBodyComponent>();
 		}
 		if (removeEmitter)
 		{
@@ -1555,6 +1743,46 @@ namespace Hydro
 					{
 						entity.AddComponent<TransformComponent>();
 					}
+				}
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Physics 3D"))
+			{
+				// Every one is placed by the entity's transform.
+				const auto addWithTransform = [&entity](auto add)
+				{
+					add();
+					if (entity.HasComponent<TransformComponent>() == false)
+					{
+						entity.AddComponent<TransformComponent>();
+					}
+				};
+
+				if (ImGui::MenuItem("Box Collider", nullptr, false, entity.HasComponent<BoxColliderComponent>() == false))
+				{
+					addWithTransform([&]() { entity.AddComponent<BoxColliderComponent>(); });
+				}
+				if (ImGui::MenuItem("Sphere Collider", nullptr, false, entity.HasComponent<SphereColliderComponent>() == false))
+				{
+					addWithTransform([&]() { entity.AddComponent<SphereColliderComponent>(); });
+				}
+				if (ImGui::MenuItem("Capsule Collider", nullptr, false, entity.HasComponent<CapsuleColliderComponent>() == false))
+				{
+					addWithTransform([&]() { entity.AddComponent<CapsuleColliderComponent>(); });
+				}
+				if (ImGui::MenuItem("Cylinder Collider", nullptr, false, entity.HasComponent<CylinderColliderComponent>() == false))
+				{
+					addWithTransform([&]() { entity.AddComponent<CylinderColliderComponent>(); });
+				}
+				if (ImGui::MenuItem("Mesh Collider", nullptr, false, entity.HasComponent<MeshColliderComponent>() == false && entity.HasComponent<MeshComponent>()))
+				{
+					entity.AddComponent<MeshColliderComponent>();
+				}
+				if (ImGui::MenuItem("Character Body", nullptr, false, entity.HasComponent<CharacterBodyComponent>() == false))
+				{
+					addWithTransform([&]() { entity.AddComponent<CharacterBodyComponent>(); });
 				}
 
 				ImGui::EndMenu();

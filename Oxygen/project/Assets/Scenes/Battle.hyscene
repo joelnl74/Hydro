@@ -1434,7 +1434,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        - Battle
+        - Name: BattleScript
   - Entity: 2717703238488551711
     TagComponent:
       Tag: Party Panel

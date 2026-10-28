@@ -134,6 +134,8 @@ namespace Hydro
 		// Depth-tested 3D lines for the selection (Renderer2D::DrawLine3D, plan M7): a mesh's bounds, a light's
 		// reach or cone, the sun's direction.
 		void SubmitSelectionDebugLines(Entity selected);
+		// The 3D colliders (ColliderShapes) and character capsules, depth tested (Overlays > Collider Outlines).
+		void SubmitColliderDebugLines();
 		// The sprite's quad: the entity transform, moved so a sprite sheet's pivot sits on the entity.
 		static glm::mat4 GetSpriteQuadTransform(const glm::mat4& transform, const Texture2D* texture, uint32_t spriteIndex);
 		// The quad turned for its facing: Upright about the middle of its bottom edge, Billboard about its

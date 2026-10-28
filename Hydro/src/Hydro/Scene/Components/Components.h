@@ -346,6 +346,93 @@ namespace Hydro
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
 
+	// What a 3D collider is, for which things meet it (PhysicsScene3D) and which a query looks for (Physics3D).
+	// One layer per entity: the first of its colliders decides.
+	//  - World: ground, walls and props. Characters stand on it and are blocked by it.
+	//  - Player, Npc: what characters and the things that walk with them are.
+	//  - Trigger: an area that blocks nothing; queries find it, and characters walking in and out of it send
+	//    OnTriggerEnter / OnTriggerExit. Colliders with IsTrigger are always on this layer.
+	enum class PhysicsLayer : uint8_t
+	{
+		World = 0,
+		Player,
+		Npc,
+		Trigger
+	};
+
+	// A box that collides in the 3D physics world (Jolt) while the game plays. Offset is the box's centre and
+	// Size its full width (X), depth (Y) and height (Z), both in the entity's local space before its scale: the
+	// transform's scale multiplies them and its rotation turns the box when the body is made (changing them later
+	// has no effect on the body). An entity with 3D colliders is a static body, or a kinematic one that follows
+	// its transform when it has native scripts (it moves). The 3D colliders are read by Physics/PhysicsScene3D;
+	// their shapes come from Scene/ColliderShapes.
+	struct BoxColliderComponent
+	{
+		glm::vec3 Offset{ 0.0f, 0.0f, 0.5f };
+		glm::vec3 Size{ 1.0f, 1.0f, 1.0f };
+		PhysicsLayer Layer = PhysicsLayer::World;
+		bool IsTrigger = false; // detects characters walking in and out; blocks nothing
+	};
+
+	// A sphere that collides (3D). Radius in world units at scale 1: the largest of the entity's scales multiplies it.
+	struct SphereColliderComponent
+	{
+		glm::vec3 Offset{ 0.0f, 0.0f, 0.5f };
+		float Radius = 0.5f;
+		PhysicsLayer Layer = PhysicsLayer::World;
+		bool IsTrigger = false;
+	};
+
+	// A capsule standing along the entity's Z (3D). Height is from the bottom of the lower half sphere to the top
+	// of the upper one; Offset is its centre. The larger of the X and Y scales multiplies the radius, Z the height.
+	struct CapsuleColliderComponent
+	{
+		glm::vec3 Offset{ 0.0f, 0.0f, 0.9f };
+		float Radius = 0.3f;
+		float Height = 1.8f;
+		PhysicsLayer Layer = PhysicsLayer::World;
+		bool IsTrigger = false;
+	};
+
+	// A cylinder standing along the entity's Z (3D): a tree trunk, a post. Offset is its centre.
+	struct CylinderColliderComponent
+	{
+		glm::vec3 Offset{ 0.0f, 0.0f, 1.0f };
+		float Radius = 0.3f;
+		float Height = 2.0f;
+		PhysicsLayer Layer = PhysicsLayer::World;
+		bool IsTrigger = false;
+	};
+
+	// The entity's MeshComponent collides as what it is (3D). A built-in shape collides as its own shape, except
+	// Stairs, which collide as a ramp through the middle of their treads (smooth to walk, the camera doesn't bob)
+	// and Plane, a thin slab under its surface. A model collides through its collision nodes (World collision plan
+	// WC3): every node named "..._COL" as a solid convex hull and every "..._WALK" as walkable triangles, both
+	// authored in Blender next to the drawn mesh and never drawn. A model without such nodes collides as its
+	// bounding box. It needs the model loaded. Never the render triangles.
+	struct MeshColliderComponent
+	{
+		PhysicsLayer Layer = PhysicsLayer::World;
+	};
+
+	// A character that walks over the 3D collision world (Jolt's CharacterVirtual): a capsule standing on the
+	// entity's position (its feet), that slides along walls, walks up slopes up to MaxSlopeDegrees and steps up
+	// and down StepHeight, and sticks to the ground. Game code says where it wants to go with
+	// CharacterBody::Move (Physics/Physics3D.h); the physics stage moves it and writes the result to the
+	// transform, blended between fixed steps so it moves smoothly at any frame rate. The capsule never depends on
+	// the sprite or its animation. Runtime state lives in PhysicsScene3D, not here.
+	struct CharacterBodyComponent
+	{
+		float Radius = 0.25f;
+		float Height = 1.4f;          // feet to the top of the head
+		float MaxSlopeDegrees = 50.0f; // steeper is a wall
+		float StepHeight = 0.35f;     // the highest step it walks up or down without falling
+		// It never walks off a drop higher than StepHeight: at a terrace's edge it stops (or slides along the edge)
+		// instead of falling, as a JRPG field character does. Off: it walks off and falls.
+		bool StaysOnLedges = false;
+		PhysicsLayer Layer = PhysicsLayer::Player;
+	};
+
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
 	// How a particle's colour is combined with what is already drawn.
@@ -441,5 +528,6 @@ namespace Hydro
 	};
 
 	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent>;
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent,
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent>;
 }

@@ -33,12 +33,31 @@ namespace Hydro
 		std::string SourceName;
 	};
 
+	// What a model's collision proxy is (World collision plan WC3).
+	enum class MeshCollisionKind : uint8_t
+	{
+		Convex = 0, // a "_COL" node: solid, the convex hull of its points (a pillar, a rock, a building's block)
+		Walk        // a "_WALK" node: its triangles as they are, walkable ground (a bridge's arch, a slope, a floor)
+	};
+
+	// A collision shape a model carries for the 3D physics world: the triangles of a glTF node whose name ends in
+	// _COL or _WALK (MeshImporter), authored in Blender next to the pretty mesh. Not drawn and not part of the
+	// bounds. In the model's space (Z up, metres), like its vertices.
+	struct MeshCollisionProxy
+	{
+		std::string Name; // the glTF node's name
+		MeshCollisionKind Kind = MeshCollisionKind::Convex;
+		std::vector<glm::vec3> Positions;
+		std::vector<uint32_t> Indices; // triangles, counter-clockwise seen from outside
+	};
+
 	// A mesh on the CPU: what MeshFactory and the glTF importer (MeshImporter) make, and what Mesh uploads.
 	struct MeshData
 	{
 		std::vector<MeshVertex> Vertices;
 		std::vector<uint32_t> Indices; // triangles, counter-clockwise seen from outside
 		std::vector<SubMesh> SubMeshes;
+		std::vector<MeshCollisionProxy> CollisionProxies; // kept on the CPU by Mesh; never uploaded
 	};
 
 	// A material slot of an imported mesh: its name in the model and the material asset (.hymat) the import
@@ -75,6 +94,9 @@ namespace Hydro
 		Mesh& operator=(const Mesh&) = delete;
 
 		const std::vector<SubMesh>& GetSubMeshes() const { return m_SubMeshes; }
+		// The model's _COL / _WALK nodes (WC3), for the physics world and the collider outlines; empty for built-in
+		// shapes and for models without any (they collide as their bounding box).
+		const std::vector<MeshCollisionProxy>& GetCollisionProxies() const { return m_CollisionProxies; }
 		const glm::vec3& GetBoundsMin() const { return m_BoundsMin; }
 		const glm::vec3& GetBoundsMax() const { return m_BoundsMax; }
 		uint32_t GetVertexCount() const { return m_VertexCount; }
@@ -91,6 +113,7 @@ namespace Hydro
 		std::vector<MeshMaterialInfo> m_Materials;
 		Scope<MeshBuffers> m_Buffers;
 		std::vector<SubMesh> m_SubMeshes;
+		std::vector<MeshCollisionProxy> m_CollisionProxies;
 		glm::vec3 m_BoundsMin{ 0.0f };
 		glm::vec3 m_BoundsMax{ 0.0f };
 		uint32_t m_VertexCount = 0;

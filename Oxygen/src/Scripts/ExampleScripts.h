@@ -15,6 +15,7 @@
 namespace Hydro
 {
 	// Turns the entity around Z.
+	HY_SCRIPT()
 	class SpinScript : public ScriptableEntity
 	{
 	protected:
@@ -29,6 +30,7 @@ namespace Hydro
 	};
 
 	// Moves the entity up and down around where it started.
+	HY_SCRIPT()
 	class BobScript : public ScriptableEntity
 	{
 	protected:
@@ -52,6 +54,7 @@ namespace Hydro
 	// Walks a character with WASD or the arrow keys and picks its animation by direction:
 	// "Walk<Facing>" while moving, "Idle<Facing>" when standing, Facing = Down/Right/Up/Left.
 	// Needs a Sprite Animator whose set has those clips (Assets/Characters/*.hyanim in the Sandbox).
+	HY_SCRIPT()
 	class VillagerWalkScript : public ScriptableEntity
 	{
 	protected:
@@ -120,6 +123,7 @@ namespace Hydro
 	// Sorts a sprite among the others by its height on screen: the lower it stands, the more in front it is
 	// (SortOrder = round(10 - y), the same rule the LightingTest scene uses for its static sprites). For
 	// characters that move; put it next to a script that walks them.
+	HY_SCRIPT()
 	class YSortScript : public ScriptableEntity
 	{
 	protected:
@@ -140,6 +144,7 @@ namespace Hydro
 	// and its focus stays inside the bounds. V switches between top-down and the tilted diorama view, O
 	// between perspective and orthographic in the diorama (DioramaCamera.h). It follows in play mode only,
 	// because scripts only run there.
+	HY_SCRIPT()
 	class CameraFollowScript : public ScriptableEntity
 	{
 	protected:
@@ -202,27 +207,13 @@ namespace Hydro
 
 		entt::entity m_Target = entt::null;
 		bool m_Snap = true;
-		glm::vec2 m_Focus{ 0.0f }; // where the camera looks, on the ground
+		glm::vec2 m_Focus{ 0.0f };  // where the camera looks, on the ground
 		float m_FocusHeight = 0.0f; // and how high that ground is (the target's z, smoothed)
 		float m_Smoothing = 8.0f;
-		float m_LookAhead = 1.5f;   // aim at the character's chest, not the feet
+		float m_LookAhead = 1.5f; // aim at the character's chest, not the feet
 		// Used when the scene sets no bounds of its own (DioramaView::SceneBounds*): LightingTest's ground is
 		// 60 x 60 units; the view is about 25 x 14.
 		float m_BoundsX = 17.0f;
 		float m_BoundsY = 23.0f;
 	};
-
-	inline void RegisterExampleScripts()
-	{
-		// The names are what scenes save: keep them stable.
-		ScriptRegistry::Register<SpinScript>("Spin");
-		ScriptRegistry::Register<BobScript>("Bob");
-		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalk");
-		ScriptRegistry::Register<YSortScript>("YSort");
-		ScriptRegistry::Register<CameraFollowScript>("CameraFollow");
-		ScriptRegistry::Register<MvpDirectorScript>("MvpDirector");
-		RegisterVillageScripts();
-		RegisterBattleScripts();
-		RegisterShrineScripts();
-	}
 }

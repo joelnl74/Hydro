@@ -20,8 +20,6 @@ public:
 	virtual void OnInit() override
 	{
 		// Scripts must be registered before the editor opens a scene that uses them.
-		Hydro::RegisterExampleScripts();
-
 		PushLayer(new Hydro::EditorLayer(m_Launch));
 	}
 

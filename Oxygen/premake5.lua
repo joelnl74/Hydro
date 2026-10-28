@@ -25,6 +25,12 @@ project "Oxygen"
 		"assets/shaders/**.tese"
 	}
 
+	prebuildmessage "Generating Hydro native-script reflection"
+	prebuildcommands
+	{
+		'py "%{wks.location}/Tools/ReflectionGenerator/generate_reflection.py" "%{wks.location}/."'
+	}
+
 	includedirs
 	{
 		"src",

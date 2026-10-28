@@ -11,6 +11,7 @@
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "EditorPaths.h"
+#include "Generated/GeneratedScriptReflection.h"
 #include "Utilities/AssetDragDrop.h"
 #include "Utilities/EditorChrome.h"
 #include "Utilities/PathFollower.h"
@@ -32,6 +33,8 @@ namespace Hydro
 
 	void EditorLayer::OnAttach()
 	{
+		RegisterGeneratedScriptReflection();
+
 		m_EditorScene = CreateRef<Scene>("Scene", false);
 		m_EditorScene->Init();
 		m_ActiveScene = m_EditorScene;

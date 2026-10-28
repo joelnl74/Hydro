@@ -8,8 +8,10 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Scene/ColliderShapes.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Entity.h"
+#include "Hydro/Scene/Scripting/ScriptableEntity.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/constants.hpp>
@@ -873,6 +875,10 @@ namespace Hydro
 
 		Renderer2D::EndOverlay();
 
+		if (overlay.Colliders)
+		{
+			SubmitColliderDebugLines();
+		}
 		if (drawSelected)
 		{
 			SubmitSelectionDebugLines(selected);
@@ -984,5 +990,158 @@ namespace Hydro
 		}
 
 		Renderer2D::EndDebugLines();
+	}
+
+	// One collider shape's edges. `world` places the shape's space (the entity's translation and rotation; the shape
+	// already carries the scale).
+	static void DrawColliderShape(const glm::mat4& world, const ColliderShape& shape, const glm::vec4& color)
+	{
+		const auto toWorld = [&world](const glm::vec3& local) { return glm::vec3(world * glm::vec4(local, 1.0f)); };
+		const glm::vec3 axisX = glm::normalize(glm::vec3(world[0]));
+		const glm::vec3 axisY = glm::normalize(glm::vec3(world[1]));
+		const glm::vec3 axisZ = glm::normalize(glm::vec3(world[2]));
+
+		switch (shape.Type)
+		{
+			case ColliderShapeType::Box:
+			{
+				glm::vec3 corners[8];
+				for (int i = 0; i < 8; i++)
+				{
+					const glm::vec3 sign{ (i & 1) ? 1.0f : -1.0f, (i & 2) ? 1.0f : -1.0f, (i & 4) ? 1.0f : -1.0f };
+					corners[i] = toWorld(shape.Centre + sign * shape.HalfExtents);
+				}
+				const int edges[12][2] = { { 0, 1 }, { 2, 3 }, { 4, 5 }, { 6, 7 }, { 0, 2 }, { 1, 3 }, { 4, 6 }, { 5, 7 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 } };
+				for (const auto& edge : edges)
+				{
+					Renderer2D::DrawLine3D(corners[edge[0]], corners[edge[1]], color);
+				}
+				break;
+			}
+			case ColliderShapeType::Sphere:
+			{
+				const glm::vec3 centre = toWorld(shape.Centre);
+				DrawCircle3D(centre, axisX, axisY, shape.Radius, color, 32);
+				DrawCircle3D(centre, axisX, axisZ, shape.Radius, color, 32);
+				DrawCircle3D(centre, axisY, axisZ, shape.Radius, color, 32);
+				break;
+			}
+			case ColliderShapeType::Capsule:
+			case ColliderShapeType::Cylinder:
+			{
+				// Both stand along Z: a ring at each end of the straight part and four lines between them; a capsule
+				// also shows its rounded ends as rings across.
+				const glm::vec3 bottom = toWorld(shape.Centre - glm::vec3(0.0f, 0.0f, shape.HalfHeight));
+				const glm::vec3 top = toWorld(shape.Centre + glm::vec3(0.0f, 0.0f, shape.HalfHeight));
+				DrawCircle3D(bottom, axisX, axisY, shape.Radius, color, 24);
+				DrawCircle3D(top, axisX, axisY, shape.Radius, color, 24);
+				for (int i = 0; i < 4; i++)
+				{
+					const float angle = glm::half_pi<float>() * (float)i;
+					const glm::vec3 side = (axisX * std::cos(angle) + axisY * std::sin(angle)) * shape.Radius;
+					Renderer2D::DrawLine3D(bottom + side, top + side, color);
+				}
+				if (shape.Type == ColliderShapeType::Capsule)
+				{
+					DrawCircle3D(bottom, axisX, axisZ, shape.Radius, color, 24);
+					DrawCircle3D(bottom, axisY, axisZ, shape.Radius, color, 24);
+					DrawCircle3D(top, axisX, axisZ, shape.Radius, color, 24);
+					DrawCircle3D(top, axisY, axisZ, shape.Radius, color, 24);
+				}
+				break;
+			}
+			case ColliderShapeType::ConvexHull:
+			case ColliderShapeType::TriangleMesh:
+			{
+				// A model's collision node: its triangles' edges (shared edges drawn twice; cheap enough for proxies).
+				for (size_t i = 0; i + 2 < shape.Indices.size(); i += 3)
+				{
+					const glm::vec3 a = toWorld(shape.Points[shape.Indices[i]]);
+					const glm::vec3 b = toWorld(shape.Points[shape.Indices[i + 1]]);
+					const glm::vec3 c = toWorld(shape.Points[shape.Indices[i + 2]]);
+					Renderer2D::DrawLine3D(a, b, color);
+					Renderer2D::DrawLine3D(b, c, color);
+					Renderer2D::DrawLine3D(c, a, color);
+				}
+				break;
+			}
+			case ColliderShapeType::Prism:
+			{
+				// Two rings of the same size: each ring's loop and the edges joining them.
+				const size_t count = shape.Points.size() / 2;
+				for (size_t i = 0; i < count; i++)
+				{
+					const size_t next = (i + 1) % count;
+					Renderer2D::DrawLine3D(toWorld(shape.Points[i]), toWorld(shape.Points[next]), color);
+					Renderer2D::DrawLine3D(toWorld(shape.Points[count + i]), toWorld(shape.Points[count + next]), color);
+					Renderer2D::DrawLine3D(toWorld(shape.Points[i]), toWorld(shape.Points[count + i]), color);
+				}
+				break;
+			}
+		}
+	}
+
+	void SceneRenderer::SubmitColliderDebugLines()
+	{
+		// The same colours as the 2D outlines: static green, game-moved cyan, triggers yellow; characters magenta.
+		const glm::vec4 staticColor{ 0.3f, 0.9f, 0.3f, 1.0f };
+		const glm::vec4 kinematicColor{ 0.3f, 0.9f, 0.9f, 1.0f };
+		const glm::vec4 triggerColor{ 1.0f, 0.9f, 0.2f, 1.0f };
+		const glm::vec4 characterColor{ 1.0f, 0.4f, 0.9f, 1.0f };
+
+		entt::registry& registry = m_Scene->m_Registry;
+		std::vector<ColliderShape> shapes;
+		bool begun = false;
+		const auto begin = [&begun]()
+		{
+			if (begun == false)
+			{
+				Renderer2D::BeginDebugLines();
+				begun = true;
+			}
+		};
+
+		for (entt::entity entity : m_Scene->GetEntityOrder())
+		{
+			if (registry.has<TransformComponent>(entity) == false)
+			{
+				continue;
+			}
+			const TransformComponent& transform = registry.get<TransformComponent>(entity);
+			const glm::mat4 world = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(glm::quat(transform.Rotation));
+
+			// A character: its capsule on the entity's feet (the transform's scale doesn't size it).
+			if (registry.has<CharacterBodyComponent>(entity))
+			{
+				const CharacterBodyComponent& body = registry.get<CharacterBodyComponent>(entity);
+				ColliderShape capsule;
+				capsule.Type = ColliderShapeType::Capsule;
+				capsule.Radius = std::max(body.Radius, 0.05f);
+				const float height = std::max(body.Height, 2.0f * capsule.Radius + 0.05f);
+				capsule.HalfHeight = 0.5f * height - capsule.Radius;
+				capsule.Centre = glm::vec3(0.0f, 0.0f, 0.5f * height);
+				begin();
+				DrawColliderShape(glm::translate(glm::mat4(1.0f), transform.Translation), capsule, characterColor);
+				continue;
+			}
+
+			if (ColliderShapes::HasColliders(registry, entity) == false)
+			{
+				continue;
+			}
+			shapes.clear();
+			ColliderShapes::Get(registry, entity, shapes);
+			const bool kinematic = registry.has<NativeScriptComponent>(entity);
+			for (const ColliderShape& shape : shapes)
+			{
+				begin();
+				DrawColliderShape(world, shape, shape.IsTrigger ? triggerColor : (kinematic ? kinematicColor : staticColor));
+			}
+		}
+
+		if (begun)
+		{
+			Renderer2D::EndDebugLines();
+		}
 	}
 }

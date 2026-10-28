@@ -14,7 +14,7 @@ namespace Hydro
 		"MeshVertex: must match GetMeshVertexLayout");
 
 	Mesh::Mesh(const MeshData& data, const std::string& debugName)
-		: m_Buffers(CreateScope<MeshBuffers>()), m_SubMeshes(data.SubMeshes)
+		: m_Buffers(CreateScope<MeshBuffers>()), m_SubMeshes(data.SubMeshes), m_CollisionProxies(data.CollisionProxies)
 	{
 		HY_CORE_ASSERT(data.Vertices.empty() == false && data.Indices.empty() == false, "Mesh: no vertices or indices");
 		m_VertexCount = (uint32_t)data.Vertices.size();

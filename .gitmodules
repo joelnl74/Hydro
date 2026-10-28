@@ -15,3 +15,9 @@
 [submodule "Hydro/vendor/box2d"]
 	path = Hydro/vendor/box2d
 	url = https://github.com/erincatto/box2d.git
+[submodule "vendor/JoltPhysics"]
+	path = vendor/JoltPhysics
+	url = https://github.com/jrouwe/JoltPhysics.git
+[submodule "Hydro/vendor/JoltPhysics"]
+	path = Hydro/vendor/JoltPhysics
+	url = https://github.com/jrouwe/JoltPhysics.git

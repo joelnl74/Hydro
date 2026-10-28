@@ -18,6 +18,7 @@ namespace Hydro
 {
 	class Entity;
 	class PhysicsScene;
+	class PhysicsScene3D;
 	class ParticleScene;
 	class ScriptableEntity;
 	struct SystemContext;
@@ -36,14 +37,16 @@ namespace Hydro
 		// IDComponent are not copied. Also copies the name and the viewport size.
 		static Ref<Scene> Copy(const Ref<Scene>& source);
 
-		// The game starts / stops running this scene: creates / destroys its 2D physics world (see
-		// PhysicsScene for which entities become bodies) and its ParticleScene; starting also resets
+		// The game starts / stops running this scene: creates / destroys its 2D and 3D physics worlds (see
+		// PhysicsScene and PhysicsScene3D for which entities become bodies) and its ParticleScene; starting also resets
 		// every animator's playback (ResetSpriteAnimations). OnUpdateRuntime starts it by itself, before its first stage,
 		// if it was not started, and the destructor stops it; the editor calls both around Play and Stop.
 		void OnRuntimeStart();
 		void OnRuntimeStop();
 		// The running physics world, or null while editing / before OnRuntimeStart.
 		PhysicsScene* GetPhysicsScene() { return m_Physics.get(); }
+		// The running 3D physics world (Jolt), or null while editing / before OnRuntimeStart.
+		PhysicsScene3D* GetPhysicsScene3D() { return m_Physics3D.get(); }
 		// The live particles (ParticleScene), or null while editing / before OnRuntimeStart.
 		ParticleScene* GetParticleScene() { return m_Particles.get(); }
 
@@ -140,7 +143,7 @@ namespace Hydro
 		entt::registry m_Registry;
 
 	private:
-		// Delivers the physics step's collision and trigger events to the entities' scripts (inside a stage).
+		// Delivers the physics steps' collision and trigger events (2D and 3D) to the entities' scripts (inside a stage).
 		void DispatchPhysicsEvents();
 		// Calls one ScriptableEntity hook on every running script of `self`, with `other` as the argument.
 		void NotifyScripts(entt::entity self, entt::entity other, void (ScriptableEntity::*hook)(Entity));
@@ -175,6 +178,7 @@ namespace Hydro
 		std::unordered_set<entt::entity> m_PendingDestroy;
 
 		Scope<PhysicsScene> m_Physics; // exists while the game runs this scene
+		Scope<PhysicsScene3D> m_Physics3D; // exists while the game runs this scene
 		Scope<ParticleScene> m_Particles; // exists while the game runs this scene
 
 		std::string m_Name;

@@ -1,6 +1,6 @@
 #include "hypch.h"
 #include "EntitySerializer.h"
-#include "ScriptableEntity.h"
+#include "Scripting/ScriptableEntity.h"
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/MaterialSerializer.h"
@@ -169,6 +169,54 @@ namespace Hydro
 	static float AtLeast(float minimum, float value)
 	{
 		return std::max(minimum, value);
+	}
+
+	static const char* PhysicsLayerToString(PhysicsLayer layer)
+	{
+		switch (layer)
+		{
+		case PhysicsLayer::World: return "World";
+		case PhysicsLayer::Player: return "Player";
+		case PhysicsLayer::Npc: return "Npc";
+		case PhysicsLayer::Trigger: return "Trigger";
+		}
+
+		return "World";
+	}
+
+	static PhysicsLayer PhysicsLayerFromString(const std::string& name, PhysicsLayer fallback)
+	{
+		if (name == "World")
+		{
+			return PhysicsLayer::World;
+		}
+		if (name == "Player")
+		{
+			return PhysicsLayer::Player;
+		}
+		if (name == "Npc")
+		{
+			return PhysicsLayer::Npc;
+		}
+		if (name == "Trigger")
+		{
+			return PhysicsLayer::Trigger;
+		}
+
+		return fallback;
+	}
+
+	// The keys every 3D collider has.
+	static void SerializeCollider3D(YAML::Emitter& out, PhysicsLayer layer, bool isTrigger)
+	{
+		out << YAML::Key << "Layer" << YAML::Value << PhysicsLayerToString(layer);
+		out << YAML::Key << "IsTrigger" << YAML::Value << isTrigger;
+	}
+
+	static void DeserializeCollider3D(const YAML::Node& node, PhysicsLayer& layer, bool& isTrigger)
+	{
+		layer = PhysicsLayerFromString(node["Layer"].as<std::string>(PhysicsLayerToString(layer)), layer);
+		isTrigger = node["IsTrigger"].as<bool>(isTrigger);
 	}
 
 	static void SerializeMaterial(YAML::Emitter& out, const PhysicsMaterial2D& material)
@@ -459,6 +507,81 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<BoxColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<BoxColliderComponent>();
+
+			out << YAML::Key << "BoxColliderComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << collider.Offset;
+			out << YAML::Key << "Size" << YAML::Value << collider.Size;
+			SerializeCollider3D(out, collider.Layer, collider.IsTrigger);
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<SphereColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<SphereColliderComponent>();
+
+			out << YAML::Key << "SphereColliderComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << collider.Offset;
+			out << YAML::Key << "Radius" << YAML::Value << collider.Radius;
+			SerializeCollider3D(out, collider.Layer, collider.IsTrigger);
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<CapsuleColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CapsuleColliderComponent>();
+
+			out << YAML::Key << "CapsuleColliderComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << collider.Offset;
+			out << YAML::Key << "Radius" << YAML::Value << collider.Radius;
+			out << YAML::Key << "Height" << YAML::Value << collider.Height;
+			SerializeCollider3D(out, collider.Layer, collider.IsTrigger);
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<CylinderColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CylinderColliderComponent>();
+
+			out << YAML::Key << "CylinderColliderComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Offset" << YAML::Value << collider.Offset;
+			out << YAML::Key << "Radius" << YAML::Value << collider.Radius;
+			out << YAML::Key << "Height" << YAML::Value << collider.Height;
+			SerializeCollider3D(out, collider.Layer, collider.IsTrigger);
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<MeshColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<MeshColliderComponent>();
+
+			out << YAML::Key << "MeshColliderComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Layer" << YAML::Value << PhysicsLayerToString(collider.Layer);
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<CharacterBodyComponent>())
+		{
+			auto& body = entity.GetComponent<CharacterBodyComponent>();
+
+			out << YAML::Key << "CharacterBodyComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Radius" << YAML::Value << body.Radius;
+			out << YAML::Key << "Height" << YAML::Value << body.Height;
+			out << YAML::Key << "MaxSlopeDegrees" << YAML::Value << body.MaxSlopeDegrees;
+			out << YAML::Key << "StepHeight" << YAML::Value << body.StepHeight;
+			out << YAML::Key << "StaysOnLedges" << YAML::Value << body.StaysOnLedges;
+			out << YAML::Key << "Layer" << YAML::Value << PhysicsLayerToString(body.Layer);
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<ParticleEmitter2DComponent>())
 		{
 			auto& emitter = entity.GetComponent<ParticleEmitter2DComponent>();
@@ -510,18 +633,44 @@ namespace Hydro
 		{
 			auto& scripts = entity.GetComponent<NativeScriptComponent>();
 
-			// Scripts are saved by their ScriptRegistry name. Ones bound in code without a name can't
-			// be found again on load, so they are left out.
 			out << YAML::Key << "NativeScriptComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
+
 			for (const auto& script : scripts.Scripts)
 			{
 				if (script.Name.empty())
-					HY_CORE_WARN("Entity '{}': a script bound in code without a ScriptRegistry name isn't saved", entity.GetName());
-				else
-					out << script.Name;
+				{
+					HY_CORE_WARN(
+						"Entity '{}': a script bound in code without a ScriptRegistry name isn't saved",
+						entity.GetName());
+					continue;
+				}
+
+				out << YAML::BeginMap;
+				out << YAML::Key << "Name" << YAML::Value << script.Name;
+
+				if (!script.Properties.empty())
+				{
+					out << YAML::Key << "Properties" << YAML::Value << YAML::BeginMap;
+
+					for (const auto& [propertyName, propertyValue] : script.Properties)
+					{
+						out << YAML::Key << propertyName;
+						std::visit(
+							[&out](const auto& value)
+							{
+								out << YAML::Value << value;
+							},
+							propertyValue);
+					}
+
+					out << YAML::EndMap;
+				}
+
+				out << YAML::EndMap;
 			}
+
 			out << YAML::EndSeq;
 			out << YAML::EndMap;
 		}
@@ -710,6 +859,60 @@ namespace Hydro
 			collider.IsSensor = circleNode["IsSensor"].as<bool>(collider.IsSensor);
 		}
 
+		if (auto boxNode = entityNode["BoxColliderComponent"])
+		{
+			auto& collider = entity.AddComponent<BoxColliderComponent>();
+			collider.Offset = boxNode["Offset"].as<glm::vec3>(collider.Offset);
+			collider.Size = boxNode["Size"].as<glm::vec3>(collider.Size);
+			collider.Size.x = AtLeast(0.001f, collider.Size.x);
+			collider.Size.y = AtLeast(0.001f, collider.Size.y);
+			collider.Size.z = AtLeast(0.001f, collider.Size.z);
+			DeserializeCollider3D(boxNode, collider.Layer, collider.IsTrigger);
+		}
+
+		if (auto sphereNode = entityNode["SphereColliderComponent"])
+		{
+			auto& collider = entity.AddComponent<SphereColliderComponent>();
+			collider.Offset = sphereNode["Offset"].as<glm::vec3>(collider.Offset);
+			collider.Radius = AtLeast(0.001f, sphereNode["Radius"].as<float>(collider.Radius));
+			DeserializeCollider3D(sphereNode, collider.Layer, collider.IsTrigger);
+		}
+
+		if (auto capsuleNode = entityNode["CapsuleColliderComponent"])
+		{
+			auto& collider = entity.AddComponent<CapsuleColliderComponent>();
+			collider.Offset = capsuleNode["Offset"].as<glm::vec3>(collider.Offset);
+			collider.Radius = AtLeast(0.001f, capsuleNode["Radius"].as<float>(collider.Radius));
+			collider.Height = AtLeast(0.001f, capsuleNode["Height"].as<float>(collider.Height));
+			DeserializeCollider3D(capsuleNode, collider.Layer, collider.IsTrigger);
+		}
+
+		if (auto cylinderNode = entityNode["CylinderColliderComponent"])
+		{
+			auto& collider = entity.AddComponent<CylinderColliderComponent>();
+			collider.Offset = cylinderNode["Offset"].as<glm::vec3>(collider.Offset);
+			collider.Radius = AtLeast(0.001f, cylinderNode["Radius"].as<float>(collider.Radius));
+			collider.Height = AtLeast(0.001f, cylinderNode["Height"].as<float>(collider.Height));
+			DeserializeCollider3D(cylinderNode, collider.Layer, collider.IsTrigger);
+		}
+
+		if (auto meshColliderNode = entityNode["MeshColliderComponent"])
+		{
+			auto& collider = entity.AddComponent<MeshColliderComponent>();
+			collider.Layer = PhysicsLayerFromString(meshColliderNode["Layer"].as<std::string>("World"), collider.Layer);
+		}
+
+		if (auto characterNode = entityNode["CharacterBodyComponent"])
+		{
+			auto& body = entity.AddComponent<CharacterBodyComponent>();
+			body.Radius = AtLeast(0.05f, characterNode["Radius"].as<float>(body.Radius));
+			body.Height = AtLeast(0.2f, characterNode["Height"].as<float>(body.Height));
+			body.MaxSlopeDegrees = std::clamp(characterNode["MaxSlopeDegrees"].as<float>(body.MaxSlopeDegrees), 0.0f, 89.0f);
+			body.StepHeight = AtLeast(0.0f, characterNode["StepHeight"].as<float>(body.StepHeight));
+			body.StaysOnLedges = characterNode["StaysOnLedges"].as<bool>(body.StaysOnLedges);
+			body.Layer = PhysicsLayerFromString(characterNode["Layer"].as<std::string>("Player"), body.Layer);
+		}
+
 		if (auto emitterNode = entityNode["ParticleEmitter2DComponent"])
 		{
 			// Missing keys keep the defaults; values that would break the simulation are pulled into range.
@@ -763,17 +966,83 @@ namespace Hydro
 		if (auto scriptNode = entityNode["NativeScriptComponent"])
 		{
 			auto& scripts = entity.AddComponent<NativeScriptComponent>();
-			for (auto nameNode : scriptNode["Scripts"])
-			{
-				const std::string name = nameNode.as<std::string>("");
-				if (name.empty())
-					continue;
 
-				scripts.Bind(name);
-				if (ScriptRegistry::Find(name) == nullptr)
-					HY_CORE_WARN("Entity '{}': script '{}' isn't registered; it is kept but won't run", entity.GetName(), name);
+			if (auto scriptsNode = scriptNode["Scripts"]; scriptsNode && scriptsNode.IsSequence())
+			{
+				for (const YAML::Node& savedScript : scriptsNode)
+				{
+					std::string scriptName;
+
+					// Backwards compatibility with the original string-only format.
+					if (savedScript.IsScalar())
+					{
+						scriptName = savedScript.as<std::string>("");
+					}
+					else if (savedScript.IsMap())
+					{
+						scriptName = savedScript["Name"].as<std::string>("");
+					}
+
+					if (scriptName.empty())
+						continue;
+
+					// Bind resolves Instantiate and fills the current reflected defaults.
+					scripts.Bind(scriptName);
+
+					NativeScriptComponent::Script& binding = scripts.Scripts.back();
+
+					// Saved values override the defaults. Missing/new fields keep their
+					// current C++ defaults from the registry.
+					if (savedScript.IsMap())
+					{
+						const YAML::Node propertiesNode = savedScript["Properties"];
+
+						if (propertiesNode && propertiesNode.IsMap())
+						{
+							ScriptTypeInfo* typeInfo = ScriptRegistry::FindType(scriptName);
+
+							if (typeInfo != nullptr)
+							{
+								for (const ScriptProperty& property : typeInfo->Properties)
+								{
+									const YAML::Node valueNode = propertiesNode[property.Name];
+
+									if (!valueNode)
+										continue;
+
+									switch (property.Type)
+									{
+									case ScriptPropertyType::Bool:
+										binding.Properties[property.Name] =
+											valueNode.as<bool>(std::get<bool>(property.DefaultValue));
+										break;
+
+									case ScriptPropertyType::Int:
+										binding.Properties[property.Name] =
+											valueNode.as<int>(std::get<int>(property.DefaultValue));
+										break;
+
+									case ScriptPropertyType::Float:
+										binding.Properties[property.Name] =
+											valueNode.as<float>(std::get<float>(property.DefaultValue));
+										break;
+									}
+								}
+							}
+						}
+					}
+
+					if (binding.Instantiate == nullptr)
+					{
+						HY_CORE_WARN(
+							"Entity '{}': script '{}' isn't registered; it is kept but won't run",
+							entity.GetName(),
+							scriptName);
+					}
+				}
 			}
 		}
+
 
 		return entity;
 	}
