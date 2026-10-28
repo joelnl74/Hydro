@@ -1,3 +1,4 @@
+<img width="1917" height="1030" alt="Screenshot 2026-10-29 062732" src="https://github.com/user-attachments/assets/00643bf6-6ad4-435d-bf2e-f65ba6bbf80e" />
 # Hydro Engine
 
 **Hydro** is an experimental C++ game and rendering engine for Windows, built around **Vulkan** and accompanied by the **Oxygen Editor**.
@@ -570,6 +571,8 @@ The engine roadmap is intentionally project-driven. Systems are generally expand
 <img width="1918" height="1026" alt="Hydro Oxygen Editor" src="https://github.com/user-attachments/assets/b58f0bf9-0ad8-4fef-a4db-531a8177d873" />
 
 ## Oxgen Editor / 3D/2D Renderer
+
+<img width="1917" height="1030" alt="Screenshot 2026-10-29 062732" src="https://github.com/user-attachments/assets/25265b94-bbda-464f-8cc5-8be10cb7b8ea" />
 
 More screenshots and examples will be added as the 3D renderer and editor tooling mature.
 
