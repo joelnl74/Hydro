@@ -31,7 +31,7 @@
 
 // Scripting
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"
-
+#include "Hydro/Scene/Scripting/ReflectionMacros.h"
 
 // PHYSICS.
 #include "Hydro/Physics/PhysicsScene.h"
