@@ -19,6 +19,7 @@ namespace Hydro
 	// bridge and down slopes, and is blocked by walls, trees, posts and people (their 3D colliders). The script
 	// only says where it wants to go (CharacterBody::Move); the physics stage moves it and writes the transform.
 	// The scene's build script gives the player its Character Body (scripts/shrine_glade/collision.py).
+	HY_SCRIPT()
 	class DioramaWalkScript : public ScriptableEntity
 	{
 	protected:
@@ -82,7 +83,9 @@ namespace Hydro
 		}
 
 	public:
+		HY_PROPERTY()
 		std::string m_Facing = "Up";
+		HY_PROPERTY()
 		float m_Speed = 3.5f; // metres per second
 	};
 
