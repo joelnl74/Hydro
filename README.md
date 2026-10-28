@@ -1,4 +1,4 @@
-<img width="1280" height="720" alt="ShrineGlade_Game_20261029-063801-893" src="https://github.com/user-attachments/assets/729ff831-a2de-49b2-ae1a-08a9b3e07a63" /># Hydro Engine
+# Hydro Engine
 
 **Hydro** is an experimental C++ game and rendering engine for Windows, built around **Vulkan** and accompanied by the **Oxygen Editor**.
 
