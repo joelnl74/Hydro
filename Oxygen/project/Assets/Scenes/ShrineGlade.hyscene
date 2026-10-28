@@ -42,7 +42,7 @@ Entities:
       OrthographicFar: 1
     NativeScriptComponent:
       Scripts:
-        []
+        - Name: CameraFollowScript
   - Entity: 3724182712688850303
     TagComponent:
       Tag: MVP Director
@@ -52,7 +52,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        []
+        - Name: MvpDirectorScript
   - Entity: 6070344299463217815
     TagComponent:
       Tag: Shrine Director
@@ -62,7 +62,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        []
+        - Name: ShrineGladeScript
   - Entity: 9108433963357979718
     TagComponent:
       Tag: UI Fade
@@ -5662,7 +5662,9 @@ Entities:
       Layer: Player
     NativeScriptComponent:
       Scripts:
-        []
+        - Name: DioramaWalkScript
+          Properties:
+            m_Speed: 3.5
   - Entity: 1001152027262274208
     TagComponent:
       Tag: Npc Elder
@@ -5796,7 +5798,8 @@ Entities:
       IsTrigger: false
     NativeScriptComponent:
       Scripts:
-        []
+        - Name: EnemyChaseScript
+        - Name: VillageYSortScript
   - Entity: 6389426620074096688
     TagComponent:
       Tag: Decor Wall Foot

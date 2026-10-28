@@ -42,7 +42,7 @@ Entities:
       OrthographicFar: 1
     NativeScriptComponent:
       Scripts:
-        - CameraFollow
+        - Name: CameraFollowScript
   - Entity: 6178613411381188003
     TagComponent:
       Tag: MVP Director
@@ -52,7 +52,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        - MvpDirector
+        - Name: MvpDirectorScript
   - Entity: 1770785467411347100
     TagComponent:
       Tag: Village Director
@@ -62,7 +62,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        - FarmVillage
+        - Name: FarmVillageScript
   - Entity: 8816745383897571771
     TagComponent:
       Tag: UI Fade
@@ -8367,7 +8367,7 @@ Entities:
       IsSensor: false
     NativeScriptComponent:
       Scripts:
-        - EnemyChase
+        - Name: EnemyChaseScript
     BoxColliderComponent:
       Offset: [0, 0.2, 0.8]
       Size: [0.6, 0.3, 1.6]
@@ -8415,7 +8415,7 @@ Entities:
       IsSensor: false
     NativeScriptComponent:
       Scripts:
-        - EnemyChase
+        - Name: EnemyChaseScript
     BoxColliderComponent:
       Offset: [0, 0.2, 0.8]
       Size: [0.6, 0.3, 1.6]
@@ -8463,7 +8463,7 @@ Entities:
       IsSensor: false
     NativeScriptComponent:
       Scripts:
-        - EnemyChase
+        - Name: EnemyChaseScript
     BoxColliderComponent:
       Offset: [0, 0.2, 0.8]
       Size: [0.6, 0.3, 1.6]
@@ -8511,7 +8511,7 @@ Entities:
       IsSensor: false
     NativeScriptComponent:
       Scripts:
-        - EnemyChase
+        - Name: EnemyChaseScript
     BoxColliderComponent:
       Offset: [0, 0.2, 0.8]
       Size: [0.6, 0.3, 1.6]
@@ -8567,7 +8567,7 @@ Entities:
       IsSensor: false
     NativeScriptComponent:
       Scripts:
-        - EnemyChase
+        - Name: EnemyChaseScript
     BoxColliderComponent:
       Offset: [0, 0.25, 0.8]
       Size: [0.55, 0.3, 1.6]
@@ -8623,7 +8623,7 @@ Entities:
       IsSensor: false
     NativeScriptComponent:
       Scripts:
-        - EnemyChase
+        - Name: EnemyChaseScript
     BoxColliderComponent:
       Offset: [0, 0.25, 0.8]
       Size: [0.55, 0.3, 1.6]
@@ -8657,7 +8657,7 @@ Entities:
       Strength: 0.55
     NativeScriptComponent:
       Scripts:
-        - DioramaWalk
+        - Name: DioramaWalkScript
     CharacterBodyComponent:
       Radius: 0.25
       Height: 1.4
