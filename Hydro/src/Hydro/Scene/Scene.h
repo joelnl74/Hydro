@@ -63,6 +63,19 @@ namespace Hydro
 		void OnUpdateEditor(float deltaTime);
 		void OnRender();
 
+		// Where the pointer is over the view the game is shown in (the Game window), for the runtime UI (UI3b): view
+		// pixels from its bottom-left corner (Y up, the scene's viewport), whether it is over the view, and whether the
+		// primary button is down. The layer sets it every frame it shows the view, before OnUpdateRuntime, the way it
+		// calls OnViewportResize; UIScene reads it at stage 0.
+		struct UIPointer
+		{
+			glm::vec2 Position{ 0.0f, 0.0f };
+			bool Inside = false;
+			bool Down = false;
+		};
+		void SetUIPointer(const glm::vec2& position, bool inside, bool down) { m_UIPointer = { position, inside, down }; }
+		const UIPointer& GetUIPointer() const { return m_UIPointer; }
+
 		// The size the scene is viewed at; scene cameras take their aspect ratio from it.
 		void OnViewportResize(uint32_t width, uint32_t height);
 		uint32_t GetViewportWidth() const { return m_ViewportWidth; }
@@ -305,6 +318,7 @@ namespace Hydro
 		Scope<ParticleScene> m_Particles; // exists while the game runs this scene
 		Scope<UIScene> m_UI; // exists while the game runs this scene
 		std::vector<UIEvent> m_UIEvents; // this frame's, reused
+		UIPointer m_UIPointer;
 
 		std::string m_Name;
 		SceneRenderSettings m_RenderSettings;

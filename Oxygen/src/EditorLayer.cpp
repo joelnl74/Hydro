@@ -1066,6 +1066,12 @@ namespace Hydro
 			ImGui::EndMenuBar();
 		}
 
+		// The pointer is off the game until the Game view's image says otherwise (UpdateGamePointer).
+		if (m_ActiveScene != nullptr)
+		{
+			m_ActiveScene->SetUIPointer(m_ActiveScene->GetUIPointer().Position, false, ImGui::IsMouseDown(ImGuiMouseButton_Left));
+		}
+
 		if (m_GameViewVisible && m_GameFullscreen)
 		{
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + 8.0f, ImGui::GetCursorPosY() + 8.0f));
@@ -1081,6 +1087,7 @@ namespace Hydro
 
 			const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
 			ImGui::Image((ImTextureID)m_GameView->GetImGuiTexture(), size);
+			UpdateGamePointer(imagePosition, size);
 			if (IsPlaying() && m_EditorSettings.PlayMode.Tint)
 				EditorChrome::OutlineLastItem(m_EditorSettings.PlayMode.TintColor, 2.0f);
 			AcceptAssetDrop();
@@ -1095,6 +1102,22 @@ namespace Hydro
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::UpdateGamePointer(const ImVec2& imagePosition, const ImVec2& imageSize)
+	{
+		if (m_ActiveScene == nullptr || imageSize.x < 1.0f || imageSize.y < 1.0f)
+		{
+			return;
+		}
+
+		// The image is drawn at the view's size; scale anyway, in case they differ for a frame after a resize.
+		const ImVec2 mouse = ImGui::GetMousePos();
+		const float scaleX = (float)m_GameView->GetWidth() / imageSize.x;
+		const float scaleY = (float)m_GameView->GetHeight() / imageSize.y;
+		const glm::vec2 position{ (mouse.x - imagePosition.x) * scaleX, (imagePosition.y + imageSize.y - mouse.y) * scaleY };
+		const bool inside = ImGui::IsItemHovered();
+		m_ActiveScene->SetUIPointer(position, inside, ImGui::IsMouseDown(ImGuiMouseButton_Left));
 	}
 
 	void EditorLayer::SetGameFullscreen(bool fullscreen)
@@ -1167,6 +1190,7 @@ namespace Hydro
 
 		const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
 		ImGui::Image((ImTextureID)m_GameView->GetImGuiTexture(), size);
+		UpdateGamePointer(imagePosition, size);
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		const ImVec2 textPosition = { imagePosition.x + 12.0f, imagePosition.y + 12.0f };

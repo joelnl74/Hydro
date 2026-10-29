@@ -5,6 +5,9 @@
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/SystemContext.h"
 #include "Hydro/Scene/UI/UI.h"
+#include "Hydro/Scene/UI/UILayout.h"
+
+#include <algorithm>
 
 #include <cmath>
 #include <limits>
@@ -55,7 +58,7 @@ namespace Hydro
 		return focused.IsValid() ? focused : Entity{};
 	}
 
-	UIInteractionState UIScene::GetState(Scene& scene, Entity button) const
+	UIInteractionState UIScene::GetState([[maybe_unused]] Scene& scene, Entity button) const
 	{
 		if (button.IsValid() == false || button.HasComponent<UIButtonComponent>() == false)
 		{
@@ -65,11 +68,135 @@ namespace Hydro
 		{
 			return UIInteractionState::Disabled;
 		}
-		if ((uint64_t)m_Focused != 0 && GetFocused(scene) == button)
+		const uint64_t id = (uint64_t)button.GetUUID();
+		if ((uint64_t)m_Pressed == id && (uint64_t)m_Hovered == id)
+		{
+			return UIInteractionState::Pressed;
+		}
+		if ((uint64_t)m_Focused == id)
 		{
 			return UIInteractionState::Focused;
 		}
 		return UIInteractionState::Normal;
+	}
+
+	Entity UIScene::HitTest(Scene& scene, const glm::vec2& viewPosition) const
+	{
+		// The canvases that take the pointer, topmost first: the capturing one alone while it is shown (it is modal),
+		// else every visible top-level canvas shown since the last update, by SortOrder and then hierarchy order.
+		struct Candidate
+		{
+			int32_t SortOrder = 0;
+			uint32_t Index = 0;
+			Entity Canvas;
+		};
+		std::vector<Candidate> canvases;
+		const Entity capturing = FindTopCapturingCanvas(scene);
+		if ((bool)capturing)
+		{
+			canvases.push_back({ 0, 0, capturing });
+		}
+		else
+		{
+			const std::vector<entt::entity>& order = scene.GetEntityOrder();
+			for (uint32_t i = 0; i < (uint32_t)order.size(); i++)
+			{
+				if (scene.m_Registry.has<UICanvasComponent>(order[i]) == false)
+				{
+					continue;
+				}
+				Entity canvas{ order[i], &scene };
+				const UICanvasComponent& component = canvas.GetComponent<UICanvasComponent>();
+				bool nested = false;
+				UI::FindCanvas(canvas, nested);
+				if (component.Visible && nested == false && m_ShownCanvases.count((uint64_t)canvas.GetUUID()) != 0)
+				{
+					canvases.push_back({ component.SortOrder, i, canvas });
+				}
+			}
+			std::sort(canvases.begin(), canvases.end(), [](const Candidate& a, const Candidate& b)
+			{
+				return a.SortOrder != b.SortOrder ? a.SortOrder > b.SortOrder : a.Index > b.Index;
+			});
+		}
+
+		const glm::vec2 viewSize{ (float)scene.GetViewportWidth(), (float)scene.GetViewportHeight() };
+		std::vector<Entity> subtree;
+		for (const Candidate& candidate : canvases)
+		{
+			const UICanvasMetrics metrics = UILayout::GetCanvasMetrics(candidate.Canvas.GetComponent<UICanvasComponent>(), viewSize);
+			const glm::vec2 point = (viewPosition - metrics.Offset) / metrics.Scale; // canvas pixels
+			const uint64_t canvasID = (uint64_t)candidate.Canvas.GetUUID();
+
+			// Later in the hierarchy is drawn on top: walk it backwards.
+			scene.GetSubtree(candidate.Canvas, subtree);
+			for (auto it = subtree.rbegin(); it != subtree.rend(); ++it)
+			{
+				Entity element = *it;
+				if (element.HasComponent<UIButtonComponent>() == false || element.GetComponent<UIButtonComponent>().Interactable == false
+					|| element.HasComponent<UIResolvedRectComponent>() == false)
+				{
+					continue;
+				}
+				const UIResolvedRectComponent& rect = element.GetComponent<UIResolvedRectComponent>();
+				if (rect.Visible && (uint64_t)rect.Canvas == canvasID && point.x >= rect.Min.x && point.x < rect.Max.x
+					&& point.y >= rect.Min.y && point.y < rect.Max.y)
+				{
+					return element;
+				}
+			}
+		}
+		return {};
+	}
+
+	bool UIScene::UpdatePointer(Scene& scene, std::vector<UIEvent>& events)
+	{
+		const Scene::UIPointer& pointer = scene.GetUIPointer();
+		const Entity hit = pointer.Inside ? HitTest(scene, pointer.Position) : Entity{};
+		m_Hovered = (bool)hit ? hit.GetUUID() : UUID(0);
+
+		// Real movement (not a pointer resting where it was) or a click hands the focus to the pointer.
+		const bool moved = m_PointerKnown && pointer.Inside && glm::length(pointer.Position - m_PointerPosition) > 1.0f;
+		const bool pressedNow = pointer.Down && m_PointerDown == false && pointer.Inside;
+		const bool releasedNow = pointer.Down == false && m_PointerDown;
+		if (moved || pressedNow)
+		{
+			m_Modality = UIInputModality::Pointer;
+		}
+
+		// A press on a button that has gone (destroyed, hidden, disabled) is over.
+		Entity pressed = (uint64_t)m_Pressed != 0 ? scene.GetEntityByUUID(m_Pressed) : Entity{};
+		if ((uint64_t)m_Pressed != 0 && (IsUsable(pressed) == false || pressed.GetComponent<UIButtonComponent>().Interactable == false))
+		{
+			m_Pressed = 0;
+			pressed = {};
+		}
+
+		if (pressedNow && (bool)hit)
+		{
+			m_Pressed = hit.GetUUID();
+			pressed = hit;
+			SetFocus(scene, hit, events);
+		}
+		else if (moved && (bool)hit && (uint64_t)m_Pressed == 0)
+		{
+			SetFocus(scene, hit, events);
+		}
+
+		if (releasedNow && (bool)pressed)
+		{
+			// Released over the button it started on: Submit, once. Anywhere else: the press is dropped quietly.
+			if (hit == pressed)
+			{
+				events.push_back({ UIEventType::Submit, pressed, pressed.GetComponent<UIButtonComponent>().Event });
+			}
+			m_Pressed = 0;
+		}
+
+		m_PointerDown = pointer.Down;
+		m_PointerPosition = pointer.Position;
+		m_PointerKnown = pointer.Inside;
+		return (uint64_t)m_Pressed != 0;
 	}
 
 	void UIScene::SetFocus(Scene& scene, Entity button, std::vector<UIEvent>& events)
@@ -240,6 +367,10 @@ namespace Hydro
 			focused = {};
 		}
 
+		// The pointer first: hover, press and release can move the focus and send Submit.
+		const bool pointerHeld = UpdatePointer(scene, events);
+		focused = GetFocused(scene);
+
 		// UI keys only while something is focused on a canvas shown since the last update, or a capturing canvas is.
 		// The topmost capturing canvas is modal: a focus left on another canvas behind it takes no keys meanwhile.
 		const Entity capturing = FindTopCapturingCanvas(scene);
@@ -262,7 +393,8 @@ namespace Hydro
 					focused = next;
 				}
 			}
-			if (pressed[ActionSubmit])
+			// A Submit key while a pointer press is held is ignored, so one action can't submit twice.
+			if (pressed[ActionSubmit] && pointerHeld == false)
 			{
 				if (focusUsable)
 				{

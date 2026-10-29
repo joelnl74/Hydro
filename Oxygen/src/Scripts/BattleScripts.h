@@ -1765,7 +1765,9 @@ namespace Hydro
 		bool Pressed(int index, KeyCode key)
 		{
 			const bool down = Input::IsKeyPressed(key);
-			const bool pressed = down && m_Previous[index] == false;
+			// While a runtime UI canvas captures the keyboard (a menu or dialogue, UI::CapturesInput) the battle's keys
+			// don't count; they are still tracked, so a key held when it closes doesn't fire then.
+			const bool pressed = down && m_Previous[index] == false && UI::CapturesInput(*GetEntity().GetScene()) == false;
 			m_Previous[index] = down;
 			return pressed;
 		}

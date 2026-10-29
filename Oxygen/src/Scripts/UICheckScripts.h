@@ -4,16 +4,16 @@
 #include <string>
 #include <vector>
 
-// Test bed checks for the runtime UI's keyboard step (UI3a): a 3 x 3 button grid and a dialogue without buttons, on
-// capturing canvases in the Shrine Glade (docs/TestBed.md, "Runtime UI"). Placeholders until the UI5 screens
-// (inventory, battle commands, the Elder's dialogue) replace them.
+// Test bed checks for the runtime UI's keyboard and pointer steps (UI3a, UI3b): a 3 x 3 button grid and a dialogue
+// without buttons, on capturing canvases in the Battle scene, the runtime UI's test scene (docs/TestBed.md, "Runtime
+// UI"). Placeholders until UI5 turns the battle's own command menu into UI.
 namespace Hydro
 {
 	// On "UI Grid Canvas" (hidden, captures input). U shows and hides it, focusing the first button. Arrows / WASD
-	// move the focus (held: repeat), Enter / Space / Z press a button, Esc / Backspace / X close the grid. The status
-	// line says what the canvas's script heard (every button's events bubble up to it). "Off" is not interactable;
-	// "Msg" opens "UI Message Canvas" on top. The player doesn't walk while the grid is shown; U is this script's
-	// own key, so it still works then.
+	// move the focus (held: repeat), Enter / Space / Z press a button, Esc / Backspace / X close the grid; the mouse
+	// hovers and clicks. The status line says what the canvas's script heard (every button's events bubble up to it).
+	// "Off" is not interactable; "Msg" opens "UI Message Canvas" on top. Gameplay keys (the battle's commands) do
+	// nothing while the grid is shown; U is this script's own key, so it still works then.
 	HY_SCRIPT()
 	class UIGridCheckScript : public ScriptableEntity
 	{
