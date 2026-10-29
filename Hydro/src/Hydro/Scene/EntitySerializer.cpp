@@ -3,6 +3,7 @@
 #include "Scripting/ScriptableEntity.h"
 
 #include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/Font.h"
 #include "Hydro/Renderer/MaterialSerializer.h"
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/Texture2D.h"
@@ -234,50 +235,50 @@ namespace Hydro
 		return UIScaleMode::IntegerScale;
 	}
 
-	static const char* UITextAlignHToString(UITextAlignH align)
+	static const char* UITextAlignHToString(TextAlignH align)
 	{
 		switch (align)
 		{
-		case UITextAlignH::Center: return "Center";
-		case UITextAlignH::Right: return "Right";
+		case TextAlignH::Center: return "Center";
+		case TextAlignH::Right: return "Right";
 		default: return "Left";
 		}
 	}
 
-	static UITextAlignH UITextAlignHFromString(const std::string& name)
+	static TextAlignH UITextAlignHFromString(const std::string& name)
 	{
 		if (name == "Center")
 		{
-			return UITextAlignH::Center;
+			return TextAlignH::Center;
 		}
 		if (name == "Right")
 		{
-			return UITextAlignH::Right;
+			return TextAlignH::Right;
 		}
-		return UITextAlignH::Left;
+		return TextAlignH::Left;
 	}
 
-	static const char* UITextAlignVToString(UITextAlignV align)
+	static const char* UITextAlignVToString(TextAlignV align)
 	{
 		switch (align)
 		{
-		case UITextAlignV::Middle: return "Middle";
-		case UITextAlignV::Bottom: return "Bottom";
+		case TextAlignV::Middle: return "Middle";
+		case TextAlignV::Bottom: return "Bottom";
 		default: return "Top";
 		}
 	}
 
-	static UITextAlignV UITextAlignVFromString(const std::string& name)
+	static TextAlignV UITextAlignVFromString(const std::string& name)
 	{
 		if (name == "Middle")
 		{
-			return UITextAlignV::Middle;
+			return TextAlignV::Middle;
 		}
 		if (name == "Bottom")
 		{
-			return UITextAlignV::Bottom;
+			return TextAlignV::Bottom;
 		}
-		return UITextAlignV::Top;
+		return TextAlignV::Top;
 	}
 
 	static const char* UINavigationToString(UINavigation navigation)
@@ -1235,7 +1236,12 @@ namespace Hydro
 		{
 			auto& text = entity.AddComponent<UITextComponent>();
 			text.Text = textNode["Text"].as<std::string>(text.Text);
-			text.Font = AssetHandle(textNode["FontHandle"].as<uint64_t>(0)); // loaded with the font asset (UI2)
+			// Loaded now, like a sprite's texture, so the renderer (which never loads) finds it.
+			text.Font = AssetHandle(textNode["FontHandle"].as<uint64_t>(0));
+			if ((uint64_t)text.Font != 0)
+			{
+				AssetManager::GetAsset<Font>(text.Font);
+			}
 			text.Color = textNode["Color"].as<glm::vec4>(text.Color);
 			text.Scale = std::max(textNode["Scale"].as<uint32_t>(text.Scale), 1u);
 			text.AlignH = UITextAlignHFromString(textNode["AlignH"].as<std::string>("Left"));

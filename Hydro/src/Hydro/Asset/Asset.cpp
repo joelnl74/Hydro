@@ -16,6 +16,7 @@ namespace Hydro
 			case AssetType::Material: return "Material";
 			case AssetType::Mesh: return "Mesh";
 			case AssetType::RenderProfile: return "RenderProfile";
+			case AssetType::Font: return "Font";
 			case AssetType::None: return "None";
 		}
 
@@ -51,6 +52,10 @@ namespace Hydro
 		if (name == "RenderProfile")
 		{
 			return AssetType::RenderProfile;
+		}
+		if (name == "Font")
+		{
+			return AssetType::Font;
 		}
 
 		return AssetType::None;
@@ -93,6 +98,10 @@ namespace Hydro
 		if (extension == ".hyrender") // RenderProfileSerializer::FileExtension
 		{
 			return AssetType::RenderProfile;
+		}
+		if (extension == ".fnt") // a BMFont (text format), Font
+		{
+			return AssetType::Font;
 		}
 
 		return AssetType::None;

@@ -782,6 +782,19 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.20f, 0.70f, 0.70f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
+			case ItemType::Font:
+			{
+				// A page with "Aa" on it.
+				DrawPageIcon(drawList, min, size);
+				const char* sample = "Aa";
+				const ImVec2 textSize = ImGui::CalcTextSize(sample);
+				const ImVec2 centre = TilePoint(min, size, 0.5f, 0.5f);
+				drawList->AddText({ centre.x - textSize.x * 0.5f, centre.y - textSize.y * 0.5f }, ToColor(0.10f, 0.10f, 0.12f), sample);
+
+				// Gold strip = font.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.90f, 0.75f, 0.30f), rounding, ImDrawFlags_RoundCornersBottom);
+				break;
+			}
 		}
 	}
 
@@ -836,6 +849,9 @@ namespace Hydro
 				break;
 			case ItemType::Model:
 				ImGui::TextDisabled("Model (glTF) - drag into the viewport to place it");
+				break;
+			case ItemType::Font:
+				ImGui::TextDisabled("Font (BMFont) - pick it in a UI Text's Font field");
 				break;
 		}
 
@@ -925,6 +941,8 @@ namespace Hydro
 				{
 					OnOpenAsset(item.Path);
 				}
+				break;
+			case ItemType::Font:
 				break;
 			case ItemType::Material:
 			case ItemType::Model:
@@ -1195,6 +1213,9 @@ namespace Hydro
 				return true;
 			case AssetType::RenderProfile:
 				itemType = ItemType::RenderProfile;
+				return true;
+			case AssetType::Font:
+				itemType = ItemType::Font;
 				return true;
 			default:
 				return false;

@@ -55,6 +55,8 @@
 #include "Hydro/Renderer/Material.h"
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Hydro/Renderer/Mesh.h"
+#include "Hydro/Renderer/Font.h"
+#include "Hydro/Renderer/TextLayout.h"
 #include "Hydro/Renderer/TextureImport.h"
 #include "Hydro/Renderer/TextureImportSerializer.h"
 #include "Hydro/Renderer/SpriteSlicer.h"

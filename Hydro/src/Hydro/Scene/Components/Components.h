@@ -13,6 +13,7 @@
 #include <Hydro/Asset/Asset.h>
 #include <Hydro/Renderer/Image.h>
 #include <Hydro/Renderer/Material.h>
+#include <Hydro/Renderer/TextLayout.h>
 
 #include <vector>
 #include <glm/gtx/quaternion.hpp>
@@ -634,18 +635,16 @@ namespace Hydro
 		UIImageComponent(const UIImageComponent&) = default;
 	};
 
-	enum class UITextAlignH : uint8_t { Left = 0, Center, Right };
-	enum class UITextAlignV : uint8_t { Top = 0, Middle, Bottom };
-
-	// Text in the element's rect, in a bitmap font (drawn from UI2 on; UI1 saves and edits it).
+	// Text in the element's rect, in a bitmap font (Font, laid out by TextLayout, drawn by SceneRenderer::SubmitUI).
+	// The alignment enums are TextLayout's (TextAlignH / TextAlignV).
 	struct UITextComponent
 	{
 		std::string Text;                   // UTF-8; \n breaks a line
-		AssetHandle Font = 0;               // a BMFont asset (UI2)
+		AssetHandle Font = 0;               // a Font asset (.fnt). Load it before assigning (the renderer never loads)
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		uint32_t Scale = 1;                 // whole multiples of the font's pixel size
-		UITextAlignH AlignH = UITextAlignH::Left;
-		UITextAlignV AlignV = UITextAlignV::Top;
+		TextAlignH AlignH = TextAlignH::Left;
+		TextAlignV AlignV = TextAlignV::Top;
 		bool Wrap = true;                   // at the rect's width, on spaces
 		float LineSpacing = 1.0f;           // times the font's line height
 		int32_t VisibleCharacters = -1;     // -1 = all; a typewriter counts this up (the layout never changes)

@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Hydro/Asset/AssetManager.h>
+#include <Hydro/Renderer/Font.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
 #include <Hydro/Renderer/Mesh.h>
@@ -287,6 +288,24 @@ namespace Hydro
 		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<Texture2D>(result.Handle) != nullptr)
 		{
 			textureHandle = result.Handle;
+		}
+	}
+
+	// A font field (UI text): pick one of the project's .fnt fonts, or drop one from the Project window; X clears it.
+	static void DrawFontField(const char* id, AssetHandle& fontHandle)
+	{
+		const Ref<Font> font = AssetManager::GetAsset<Font>(fontHandle);
+		const std::string detail = font != nullptr ? font->GetData().Face + ", " + std::to_string((int)font->GetData().Size) + " px, " + std::to_string(font->GetData().Glyphs.size()) + " characters"
+			: (static_cast<uint64_t>(fontHandle) != 0 ? "The font is missing or couldn't be loaded (see the console)." : std::string());
+
+		const AssetPickerResult result = AssetPicker::DrawField(id, fontHandle, AssetType::Font, detail);
+		if (result.Changed == false)
+		{
+			return;
+		}
+		if (static_cast<uint64_t>(result.Handle) == 0 || AssetManager::GetAsset<Font>(result.Handle) != nullptr)
+		{
+			fontHandle = result.Handle;
 		}
 	}
 
@@ -2041,6 +2060,7 @@ namespace Hydro
 
 		DrawComponent<UITextComponent>("UI Text", entity, removeText, [&](UITextComponent& text)
 		{
+			DrawPropertyRow("Font", [&]() { DrawFontField("##UITextFont", text.Font); });
 			DrawPropertyRow("Text", [&]()
 			{
 				ImGui::InputTextMultiline("##UIText", text.Text.data(), text.Text.capacity() + 1, { -1.0f, ImGui::GetTextLineHeight() * 4.0f },
@@ -2065,13 +2085,13 @@ namespace Hydro
 				ImGui::SetNextItemWidth(half);
 				if (ImGui::Combo("##UITextAlignH", &alignH, horizontal, 3))
 				{
-					text.AlignH = (UITextAlignH)alignH;
+					text.AlignH = (TextAlignH)alignH;
 				}
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(half);
 				if (ImGui::Combo("##UITextAlignV", &alignV, vertical, 3))
 				{
-					text.AlignV = (UITextAlignV)alignV;
+					text.AlignV = (TextAlignV)alignV;
 				}
 			});
 			DrawPropertyRow("Wrap", [&]() { ImGui::Checkbox("##UITextWrap", &text.Wrap); });
@@ -2088,7 +2108,24 @@ namespace Hydro
 					ImGui::SetTooltip("-1 shows all of it; a typewriter counts this up without the text moving.");
 				}
 			});
-			ImGui::TextDisabled("Fonts and text drawing come with UI2 (BMFont).");
+			const Ref<Font> font = AssetManager::GetLoadedAsset<Font>(text.Font);
+			if (font == nullptr)
+			{
+				ImGui::TextDisabled("Pick a font (.fnt) to draw it.");
+			}
+			else if (entity.HasComponent<UIResolvedRectComponent>())
+			{
+				// What the Game view draws, at the rect's current width.
+				const UIResolvedRectComponent& rect = entity.GetComponent<UIResolvedRectComponent>();
+				TextLayoutProperties settings;
+				settings.Scale = text.Scale;
+				settings.BoxWidth = rect.Max.x - rect.Min.x;
+				settings.Wrap = text.Wrap;
+				settings.LineSpacing = text.LineSpacing;
+				TextLayoutResult layout;
+				TextLayout::Layout(text.Text, font->GetData(), settings, layout);
+				ImGui::TextDisabled("%u lines, %u characters, %.0f px tall (rect %.0f)", layout.LineCount, layout.CharacterCount, layout.Size.y, rect.Max.y - rect.Min.y);
+			}
 		});
 
 		DrawComponent<UIButtonComponent>("UI Button", entity, removeButton, [&](UIButtonComponent& button)

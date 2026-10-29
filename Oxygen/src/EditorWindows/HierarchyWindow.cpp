@@ -7,7 +7,9 @@
 #include <cctype>
 #include <cstdint>
 #include <vector>
+#include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Core/UUID.h>
+#include <Hydro/Renderer/Font.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Utils/PlatformUtils.h>
 
@@ -19,6 +21,31 @@ namespace Hydro
 	// The share of a row's height, at its top and its bottom, that drops before / after it as a sibling; the
 	// middle makes the dragged entity its child.
 	static constexpr float SiblingDropEdge = 0.25f;
+
+	// The project's first font (by path), loaded, so new UI text shows at once; 0 when the project has none.
+	static AssetHandle FindDefaultFont()
+	{
+		AssetHandle found = 0;
+		std::string foundPath;
+		for (const auto& [handle, metadata] : AssetManager::GetRegistry().GetAll())
+		{
+			if (metadata.Type != AssetType::Font || metadata.IsMissing)
+			{
+				continue;
+			}
+			const std::string path = metadata.Path.generic_string();
+			if ((uint64_t)found == 0 || path < foundPath)
+			{
+				found = handle;
+				foundPath = path;
+			}
+		}
+		if ((uint64_t)found != 0 && AssetManager::GetAsset<Font>(found) == nullptr)
+		{
+			return 0;
+		}
+		return found;
+	}
 
 	HierarchyWindow::HierarchyWindow()
 	{
@@ -427,9 +454,13 @@ namespace Hydro
 			element.AddComponent<UIImageComponent>().Color = { 0.08f, 0.07f, 0.06f, 0.85f };
 			break;
 		case PendingEdit::Template::UIText:
+		{
 			rect.SizeDelta = { 160.0f, 24.0f };
-			element.AddComponent<UITextComponent>().Text = "Text";
+			UITextComponent& text = element.AddComponent<UITextComponent>();
+			text.Text = "Text";
+			text.Font = FindDefaultFont();
 			break;
+		}
 		case PendingEdit::Template::UIButton:
 		{
 			rect.SizeDelta = { 96.0f, 24.0f };
@@ -443,8 +474,9 @@ namespace Hydro
 			labelRect.SizeDelta = { 0.0f, 0.0f };
 			UITextComponent& text = label.AddComponent<UITextComponent>();
 			text.Text = "Button";
-			text.AlignH = UITextAlignH::Center;
-			text.AlignV = UITextAlignV::Middle;
+			text.Font = FindDefaultFont();
+			text.AlignH = TextAlignH::Center;
+			text.AlignV = TextAlignV::Middle;
 			text.Wrap = false;
 			scene.SetParent(label, element, false);
 			break;

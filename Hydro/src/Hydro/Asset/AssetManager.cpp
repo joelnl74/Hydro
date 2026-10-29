@@ -5,6 +5,7 @@
 #include "Hydro/Renderer/TextureImporter.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Renderer/Material.h"
+#include "Hydro/Renderer/Font.h"
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Hydro/Scene/Prefab.h"
@@ -624,6 +625,11 @@ namespace Hydro
 			case AssetType::RenderProfile:
 			{
 				return RenderProfile::LoadUncached(absolute);
+			}
+			case AssetType::Font:
+			{
+				// Loads its page images through this manager.
+				return Font::LoadUncached(absolute);
 			}
 			default:
 				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",

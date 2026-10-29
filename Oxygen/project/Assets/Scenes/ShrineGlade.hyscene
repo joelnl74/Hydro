@@ -9134,7 +9134,7 @@ Entities:
       AnchorMax: [1, 0]
       Pivot: [1, 0]
       AnchoredPosition: [-8, 8]
-      SizeDelta: [120, 40]
+      SizeDelta: [176, 48]
       Visible: true
     UIImageComponent:
       TextureHandle: 1876931991275611681
@@ -9143,3 +9143,25 @@ Entities:
       NineSlice: [4, 4, 4, 4]
       FlipX: false
       FlipY: false
+  - Entity: 7976506428490396114
+    TagComponent:
+      Tag: UI Check Text
+    RelationshipComponent:
+      Parent: 1469451895500975090
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [-16, -10]
+      Visible: true
+    UITextComponent:
+      Text: Pixel text in a nine-slice frame, wrapped at its width.
+      FontHandle: 1106964726588590453
+      Color: [0.949999988, 0.899999976, 0.779999971, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: true
+      LineSpacing: 1
+      VisibleCharacters: -1

@@ -7,6 +7,7 @@
 #include <glm/ext/matrix_transform.hpp>
 
 #include "Hydro/Asset/AssetManager.h"
+#include "Hydro/Renderer/Font.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/ColliderShapes.h"
 #include "Hydro/Scene/Components/Components.h"
@@ -604,14 +605,22 @@ namespace Hydro
 			scene.GetSubtree(Entity{ item.Entity, &scene }, m_UISubtree);
 			for (Entity element : m_UISubtree)
 			{
-				if (element.HasComponent<UIResolvedRectComponent>() == false || element.HasComponent<UIImageComponent>() == false)
+				if (element.HasComponent<UIResolvedRectComponent>() == false)
 				{
 					continue;
 				}
 				const UIResolvedRectComponent& rect = element.GetComponent<UIResolvedRectComponent>();
-				if (rect.Visible)
+				if (rect.Visible == false)
+				{
+					continue;
+				}
+				if (element.HasComponent<UIImageComponent>())
 				{
 					SubmitUIImage(element.GetComponent<UIImageComponent>(), rect.Min, rect.Max, metrics);
+				}
+				if (element.HasComponent<UITextComponent>())
+				{
+					SubmitUIText(element.GetComponent<UITextComponent>(), rect.Min, rect.Max, metrics);
 				}
 			}
 
@@ -697,6 +706,62 @@ namespace Hydro
 			rect.Min += inset * direction;
 			rect.Max -= inset * direction;
 			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color);
+		}
+	}
+
+	void SceneRenderer::SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics)
+	{
+		// Never loads, like images: whoever assigned the handle loaded the font.
+		const Ref<Font> font = AssetManager::GetLoadedAsset<Font>(text.Font);
+		if (font == nullptr || text.Text.empty() || text.VisibleCharacters == 0)
+		{
+			return;
+		}
+
+		TextLayoutProperties settings;
+		settings.Scale = text.Scale;
+		settings.BoxWidth = max.x - min.x;
+		settings.Wrap = text.Wrap;
+		settings.AlignH = text.AlignH;
+		settings.LineSpacing = text.LineSpacing;
+		TextLayout::Layout(text.Text, font->GetData(), settings, m_TextLayout, font.get());
+
+		// The text's top edge in canvas pixels (Y up), from its vertical alignment in the rect; whole pixels.
+		float top = max.y;
+		if (text.AlignV == TextAlignV::Middle)
+		{
+			top = max.y - std::floor((max.y - min.y - m_TextLayout.Size.y) * 0.5f);
+		}
+		else if (text.AlignV == TextAlignV::Bottom)
+		{
+			top = min.y + m_TextLayout.Size.y;
+		}
+
+		for (const TextGlyphQuad& glyph : m_TextLayout.Glyphs)
+		{
+			// The typewriter: later characters aren't drawn, but everything stays where the full text puts it.
+			if (text.VisibleCharacters >= 0 && glyph.CharacterIndex >= (uint32_t)text.VisibleCharacters)
+			{
+				continue;
+			}
+			const Ref<Texture2D>& page = font->GetPage(glyph.Page);
+			if (page == nullptr)
+			{
+				continue;
+			}
+
+			// Layout Y runs down from the text's top; the canvas's runs up.
+			const glm::vec2 viewMin = CanvasToViewPixels(metrics, { min.x + glyph.Min.x, top - glyph.Max.y });
+			const glm::vec2 viewMax = CanvasToViewPixels(metrics, { min.x + glyph.Max.x, top - glyph.Min.y });
+			if (viewMax.x <= viewMin.x || viewMax.y <= viewMin.y)
+			{
+				continue;
+			}
+			const glm::vec2 pageSize = glm::max(glm::vec2((float)page->GetWidth(), (float)page->GetHeight()), glm::vec2(1.0f));
+			TextureRect rect;
+			rect.Min = glyph.SourceMin / pageSize;
+			rect.Max = glyph.SourceMax / pageSize;
+			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), page, rect, text.Color);
 		}
 	}
 
