@@ -130,14 +130,16 @@ protected:
     void OnCreate() override {}
     void OnUpdate(float deltaTime) override
     {
-        auto& transform = GetComponent<TransformComponent>();
-        transform.Translation.x += MoveSpeed * deltaTime; // world units per second
+        // In the world, whatever the entity's parents (TransformComponent is relative to its parent).
+        SetWorldPosition(GetWorldPosition() + glm::vec3(MoveSpeed * deltaTime, 0.0f, 0.0f)); // world units per second
     }
 };
 
 // Bind by type in code, or by name (what loading a scene and the editor do):
 entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>().Bind("HealthScript");
 ```
+
+**Positions in scripts are world positions** (Oct 29, 2026). `TransformComponent` is relative to the entity's parent, so a script that places something in the world, or compares positions (distances, interaction range, following, camera framing, waypoints, sorting by height on screen), uses `ScriptableEntity::GetWorldPosition()` / `SetWorldPosition(position)` for its own entity and `Scene::GetWorldPosition(entity)` / `SetWorldPosition(entity, position)` for others. Read `Translation` directly only for motion that should stay relative to the parent (a bob or a spin that moves along with what it is attached to). A camera placed by a script goes through `DioramaView::Apply(cameraEntity, ...)` / `PlaceInWorld` (Oxygen's `DioramaCamera.h`), which write its local transform from the world one. An entity created during play is a root, so its `Translation` is its world position. Sizes (`Scale`) are still read and written locally: scripts assume their entity's parents are not scaled (folders and units are not).
 
 ### Script reflection (`HY_SCRIPT` / `HY_PROPERTY`, Oct 28, 2026)
 
@@ -188,7 +190,7 @@ Roadmap S3, [Hierarchy and UI plan](https://github.com/joelnl74/Hydro/wiki/Hiera
   - `UpdateParticles` (stage 5): emitter origins, from `WorldTransformComponent` (stage 4 has run).
   - Physics (stage 2, before stage 4) reads where an entity is **now**: a root's `TransformComponent` exactly as before, a child's `Scene::GetWorldTransform` (a child spawned this frame would otherwise start at the origin). Collider shapes are sized by the world scale (`ColliderShapes::Get` takes it). Results go back to a root's `TransformComponent` as before; a dynamic 2D child gets `SetWorldTransform`, a character `SetWorldPosition`. Physics bodies should be roots or under parents with an even scale: the inspector warns otherwise.
   - The editor: the transform gizmo sits on the world transform and writes the local one back (`inverse(parentWorld) * result`); focus on selection frames the world position; the inspector's Transform section is local and says which parent it is relative to.
-  - **Scripts** read and write `TransformComponent`, which is local. For an entity with a parent, use `Scene::GetWorldPosition` / `SetWorldPosition` (or `GetWorldTransform` / `SetWorldTransform`) when the position in the world matters. Every entity in today's scenes is a root, where the two are the same.
+  - **Scripts** (Oct 29): every Oxygen script reads and writes positions in the world (see [Scripts](#scripts)): interactables, NPCs, walkers, enemies, the party follower, the crate spawner, cameras, the battle's actors, HUD and effects work under any parent.
 - **Loading repairs, never rejects.** `SceneSerializer` creates every entity first, then calls `Scene::RepairHierarchy`: a missing parent, an entity that is its own parent and one entity of every cycle (the one listed first) become roots, each with a warning, and the list is rebuilt depth-first, keeping roots and each entity's children in file order. A file Hydro wrote comes out unchanged.
 - **Validation.** `Scene::ValidateHierarchy()` checks the rule and logs every entity that breaks it. Debug builds run it after every edit (create, destroy, move, reparent, duplicate, repair), so a mistake shows where it happens.
 - **Prefabs** (H3) hold the entity and its whole subtree. `PrefabSerializer::Save` writes `Entities:` depth-first, the root without its parent. `Instantiate(scene, prefab, parent = {})` creates them with new UUIDs, links each to its copied parent (`SetParent`, local values kept), runs `Scene::RemapEntityReferences` over them, and puts the root last among the roots or as the last child of `parent` (its saved transform is then relative to that parent). `Prefab::LoadUncached` is the only reader of the format; files with one `Entity:` (before hierarchies) load as a prefab without children.
@@ -304,7 +306,7 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
   - Saved values of a script that isn't registered (renamed or deleted class) are dropped on load, so saving loses them; there are no rename aliases for script or property names ([#143](https://github.com/joelnl74/Hydro/issues/143)).
   - The generator is a text scanner, not a C++ parser: macros, `#if` blocks and templates around a script are not understood.
   - Exposed fields keep their member names as saved keys (`DioramaWalkScript::m_Speed`, now labelled "Speed"); public fields should be `PascalCase`, but renaming one needs #143's aliases first.
-- Hierarchy (S3) is in (H1a-H3) but nothing in the test bed uses a parent yet (H4: street lamps, shrine lanterns). A dynamic 2D child under a rotated parent with non-uniform scale gets the closest transform without shear (the inspector warns). 3D rigid bodies don't exist yet; when they come they write back through `SetWorldTransform` like 2D. Prefabs are copies (no link back to the prefab asset, no overrides: G4). No undo for hierarchy edits yet (#165). [Hierarchy and UI plan](https://github.com/joelnl74/Hydro/wiki/Hierarchy-and-UI-Plan).
+- Hierarchy (S3) is in (H1a-H4; the field scenes and the battle are grouped into folders and units, the street lamp prefab is still to save). Scripts read sizes (`Scale`) locally: under a scaled parent a script-placed sprite's size and feet offset are off. A dynamic 2D child under a rotated parent with non-uniform scale gets the closest transform without shear (the inspector warns). 3D rigid bodies don't exist yet; when they come they write back through `SetWorldTransform` like 2D. Prefabs are copies (no link back to the prefab asset, no overrides: G4). No undo for hierarchy edits yet (#165). [Hierarchy and UI plan](https://github.com/joelnl74/Hydro/wiki/Hierarchy-and-UI-Plan).
 - The editor camera reads the keyboard through `Input`, not ImGui: in play mode, flying the Editor view (right button held) also sends W/A/S/D/Q/E to the game's scripts. The camera's pose isn't saved with the session (a reopened editor starts at the default view).
 - `SpriteAnimatorComponent` keeps its playback in the component ([component state rule](#where-runtime-state-lives-component-state-rule) 2). Move it to a `...Scene` object (rule 3) only if animation gains state rule 2 can't hold, such as blend layers or the AN1 state machine's parameters.
 - The stage order lives in `OnUpdateRuntime` / `OnUpdateEditor` code as plain calls, not a registered list; the application's own systems (`UpdateGalaxy`) still take `(registry, deltaTime)` and are migrated when touched.

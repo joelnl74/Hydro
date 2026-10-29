@@ -15,7 +15,7 @@
 // their HY_PROPERTY fields are edited in the inspector.
 namespace Hydro
 {
-	// Turns the entity around Z.
+	// Turns the entity around Z (its own rotation, relative to its parent).
 	HY_SCRIPT()
 	class SpinScript : public ScriptableEntity
 	{
@@ -31,7 +31,8 @@ namespace Hydro
 		float Speed = 1.5f;
 	};
 
-	// Moves the entity up and down around where it started.
+	// Moves the entity up and down around where it started (relative to its parent: it bobs along with whatever it
+	// is attached to).
 	HY_SCRIPT()
 	class BobScript : public ScriptableEntity
 	{
@@ -117,9 +118,7 @@ namespace Hydro
 			const glm::vec2 velocity = moving ? glm::normalize(move) * (Speed + increasedSpeed * VillageState::PlayerSpeedScale()) : glm::vec2(0.0f);
 			if (Physics2D::SetLinearVelocity(GetEntity(), velocity) == false && moving)
 			{
-				auto& transform = GetComponent<TransformComponent>();
-				transform.Translation.x += velocity.x * deltaTime;
-				transform.Translation.y += velocity.y * deltaTime;
+				SetWorldPosition(GetWorldPosition() + glm::vec3(velocity * deltaTime, 0.0f));
 			}
 		}
 
@@ -146,7 +145,7 @@ namespace Hydro
 				return;
 			}
 
-			const float y = GetComponent<TransformComponent>().Translation.y;
+			const float y = GetWorldPosition().y;
 			GetComponent<SpriteRendererComponent>().SortOrder = (int32_t)std::lround(10.0f - y);
 		}
 	};
@@ -163,7 +162,6 @@ namespace Hydro
 		{
 			Entity self = GetEntity();
 			Scene* scene = self.GetScene();
-			auto& transform = GetComponent<TransformComponent>();
 
 			DioramaView::Update(deltaTime);
 			if (m_Target == entt::null || scene->m_Registry.valid(m_Target) == false)
@@ -174,7 +172,7 @@ namespace Hydro
 
 			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
-				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
+				const glm::vec3 position = scene->GetWorldPosition(Entity{ m_Target, scene });
 				const float lead = LookAhead + DioramaView::SceneFocusLead * DioramaView::Blend;
 				const glm::vec2 goal = DioramaView::ClampFocus({ position.x, position.y + lead }, Bounds);
 
@@ -192,12 +190,12 @@ namespace Hydro
 			}
 			else if (m_Snap)
 			{
-				m_Focus = { transform.Translation.x, transform.Translation.y };
+				m_Focus = glm::vec2(GetWorldPosition());
 			}
 
 			if (self.HasComponent<CameraComponent>())
 			{
-				DioramaView::Apply(transform, GetComponent<CameraComponent>(), m_Focus, m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend);
+				DioramaView::Apply(self, m_Focus, m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend);
 			}
 		}
 

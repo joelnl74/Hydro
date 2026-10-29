@@ -81,13 +81,12 @@ namespace Hydro
 				m_Menu.Count[i] = Find(scene, "UI Menu Count " + std::to_string(i));
 			}
 
-			// The UI entities are authored around the origin: their positions are offsets from the camera.
+			// The UI entities are authored around the origin: their positions (in the world) are offsets from the camera.
 			auto remember = [&](entt::entity entity)
 			{
 				if (Alive(scene, entity))
 				{
-					const glm::vec3& position = scene.m_Registry.get<TransformComponent>(entity).Translation;
-					m_Offsets.push_back({ entity, { position.x, position.y } });
+					m_Offsets.push_back({ entity, Position(scene, entity) });
 				}
 			};
 			remember(m_Fade);
@@ -118,12 +117,10 @@ namespace Hydro
 				else if (tag.rfind("Exit", 0) == 0) { item.Type = Kind::Exit; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Npc", 0) == 0) { item.Type = Kind::Npc; }
 				else { continue; }
-				const glm::vec3& position = view.get<TransformComponent>(entity).Translation;
-				item.Position = { position.x, position.y };
 				if (scene.m_Registry.has<SpriteRendererComponent>(entity))
 				{
 					// a sprite's entity sits at its middle; the player talks to its feet
-					item.Position.y -= 0.5f * view.get<TransformComponent>(entity).Scale.y;
+					item.FeetDrop = 0.5f * view.get<TransformComponent>(entity).Scale.y;
 				}
 				m_Interactables.push_back(item);
 			}
@@ -207,7 +204,7 @@ namespace Hydro
 		{
 			entt::entity Entity = entt::null;
 			Kind Type = Kind::Sign;
-			glm::vec2 Position{ 0.0f };
+			float FeetDrop = 0.0f; // from its position (in the world, read when needed: it may have a parent) to its feet
 			bool Used = false;   // chests open once
 			std::string Target;  // exits: the scene they lead to (the tag after "Exit ")
 		};
@@ -369,7 +366,8 @@ namespace Hydro
 			{
 				return false;
 			}
-			const glm::vec2 offset = item.Position - player;
+			const glm::vec2 position = Position(scene, item.Entity) - glm::vec2(0.0f, item.FeetDrop);
+			const glm::vec2 offset = position - player;
 			distance = glm::length(offset);
 			if (distance >= InteractRange)
 			{
@@ -381,7 +379,7 @@ namespace Hydro
 			}
 
 			const glm::vec3 eye{ player, playerHeight + EyeHeight };
-			const glm::vec3 target{ item.Position, itemHeight + ItemHeight };
+			const glm::vec3 target{ position, itemHeight + ItemHeight };
 			RaycastHit3D hit;
 			if (Physics3D::Raycast(scene, eye, target, Physics3D::SolidLayers, hit))
 			{
@@ -643,12 +641,13 @@ namespace Hydro
 			return entity != entt::null && scene.m_Registry.valid(entity);
 		}
 
+		// Positions are in the world (Scene::GetWorldPosition / SetWorldPosition), so these entities may sit under
+		// any parent.
 		static glm::vec2 Position(Scene& scene, entt::entity entity)
 		{
 			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
 			{
-				const glm::vec3& position = scene.m_Registry.get<TransformComponent>(entity).Translation;
-				return { position.x, position.y };
+				return glm::vec2(scene.GetWorldPosition(Entity{ entity, &scene }));
 			}
 			return glm::vec2(0.0f);
 		}
@@ -657,7 +656,7 @@ namespace Hydro
 		{
 			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
 			{
-				return scene.m_Registry.get<TransformComponent>(entity).Translation.z;
+				return scene.GetWorldPosition(Entity{ entity, &scene }).z;
 			}
 			return 0.0f;
 		}
@@ -666,9 +665,9 @@ namespace Hydro
 		{
 			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
 			{
-				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
-				transform.Translation.x = position.x;
-				transform.Translation.y = position.y;
+				const Entity handle{ entity, &scene };
+				const float height = scene.GetWorldPosition(handle).z;
+				scene.SetWorldPosition(handle, glm::vec3(position, height));
 			}
 		}
 
@@ -676,7 +675,7 @@ namespace Hydro
 		{
 			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
 			{
-				scene.m_Registry.get<TransformComponent>(entity).Translation = position;
+				scene.SetWorldPosition(Entity{ entity, &scene }, position);
 			}
 		}
 

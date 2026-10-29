@@ -4,6 +4,8 @@
 #include "Hydro/Scene/Scripting/ScriptProperty.h"
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
 
+#include <glm/glm.hpp>
+
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -28,6 +30,21 @@ namespace Hydro
 		Entity GetEntity() const
 		{
 			return m_Entity;
+		}
+
+		// Where the entity is in the world, whatever its parents. TransformComponent::Translation is relative to the
+		// parent, so a script that places things in the world, or compares positions, uses these; for another entity,
+		// Scene::GetWorldPosition / SetWorldPosition.
+		glm::vec3 GetWorldPosition()
+		{
+			return m_Entity.GetScene()->GetWorldPosition(m_Entity);
+		}
+
+		// Moves the entity so its world position becomes `position`; only its local Translation changes (see
+		// Scene::SetWorldPosition). False, moving nothing, without a TransformComponent.
+		bool SetWorldPosition(const glm::vec3& position)
+		{
+			return m_Entity.GetScene()->SetWorldPosition(m_Entity, position);
 		}
 
 	protected:

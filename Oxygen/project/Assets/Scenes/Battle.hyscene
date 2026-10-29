@@ -24,9 +24,58 @@ Environment:
   FogStart: 13
   FogEnd: 38
 Entities:
+- Entity: 4325148912690108353
+  TagComponent:
+    Tag: Camera
+  TransformComponent:
+    Translation: [0.0, -12.3449, 5.4557]
+    Rotation: [1.2741, 0.0, 0.0]
+    Scale: [1, 1, 1]
+  CameraComponent:
+    Primary: true
+    Projection: Perspective
+    PerspectiveFOV: 30.0
+    PerspectiveNear: 0.5
+    PerspectiveFar: 218.66
+    OrthographicSize: 10.0
+    OrthographicNear: 0.1
+    OrthographicFar: 218.66
+- Entity: 4440101092385176297
+  TagComponent:
+    Tag: Battle Director
+  TransformComponent:
+    Translation: [0, 0, 0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  NativeScriptComponent:
+    Scripts:
+    - Name: BattleScript
+      Properties:
+        CameraTilt: 73.0
+        CameraFieldOfView: 30.0
+        CameraFocus: [0.0, 5.5, 0.0]
+        ViewHeight: 10.0
+- Entity: 8674584132115888050
+  TagComponent:
+    Tag: Arena Stage
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+- Entity: 2580805204906110976
+  TagComponent:
+    Tag: Arena Floor
+  RelationshipComponent:
+    Parent: 8674584132115888050
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 6563107757448970278
   TagComponent:
     Tag: Arena Ground
+  RelationshipComponent:
+    Parent: 2580805204906110976
   TransformComponent:
     Translation: [0.0, 12.0, -0.5]
     Rotation: [0, 0, 0]
@@ -47,6 +96,8 @@ Entities:
 - Entity: 5402207464262584888
   TagComponent:
     Tag: Arena Grass Shade
+  RelationshipComponent:
+    Parent: 2580805204906110976
   TransformComponent:
     Translation: [0.0, 12.0, 0.002]
     Rotation: [0, 0, 0]
@@ -67,6 +118,8 @@ Entities:
 - Entity: 137707622130092602
   TagComponent:
     Tag: Arena Grass
+  RelationshipComponent:
+    Parent: 2580805204906110976
   TransformComponent:
     Translation: [0.0, 2.0, 0.004]
     Rotation: [0, 0, 0]
@@ -87,6 +140,8 @@ Entities:
 - Entity: 8918443499694945682
   TagComponent:
     Tag: Arena Clearing
+  RelationshipComponent:
+    Parent: 2580805204906110976
   TransformComponent:
     Translation: [-0.4, -0.25, 0.008]
     Rotation: [0, 0, 0]
@@ -107,6 +162,8 @@ Entities:
 - Entity: 9068310116238937521
   TagComponent:
     Tag: Arena Path
+  RelationshipComponent:
+    Parent: 2580805204906110976
   TransformComponent:
     Translation: [0.0, 8.6, 0.012]
     Rotation: [0, 0, 0]
@@ -127,6 +184,8 @@ Entities:
 - Entity: 3146992673531203430
   TagComponent:
     Tag: Arena Path Pad
+  RelationshipComponent:
+    Parent: 2580805204906110976
   TransformComponent:
     Translation: [0.0, 3.4, 0.012]
     Rotation: [0, 0, 0]
@@ -144,24 +203,139 @@ Entities:
         EmissionIntensity: 1
         AlphaCutoff: 0
         Filter: Nearest
-- Entity: 6996322625144633389
+- Entity: 2087316721574072905
   TagComponent:
-    Tag: Arena Torii
+    Tag: Arena Petals 0
+  RelationshipComponent:
+    Parent: 2580805204906110976
   TransformComponent:
-    Translation: [0.0, 13.5, 0.0]
+    Translation: [-6.5, 2.6, 0.016]
+    Rotation: [0.0, 0.0, 0.4]
+    Scale: [1.82620001, 1.29999995, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2387970243623547605
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 3519382144382631419
+  TagComponent:
+    Tag: Arena Petals 1
+  RelationshipComponent:
+    Parent: 2580805204906110976
+  TransformComponent:
+    Translation: [5.8, 3.0, 0.016]
+    Rotation: [0.0, 0.0, -0.3]
+    Scale: [1.60590005, 1.04999995, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 5396447801382016704
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 8879134741100504044
+  TagComponent:
+    Tag: Arena Petals 2
+  RelationshipComponent:
+    Parent: 2580805204906110976
+  TransformComponent:
+    Translation: [-3.0, -4.6, 0.016]
+    Rotation: [0.0, 0.0, 0.9]
+    Scale: [1.35290003, 1, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7421978121264167086
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 6691660065153249185
+  TagComponent:
+    Tag: Arena Petals 3
+  RelationshipComponent:
+    Parent: 2580805204906110976
+  TransformComponent:
+    Translation: [7.5, -3.8, 0.016]
+    Rotation: [0.0, 0.0, 0.2]
+    Scale: [1.88890004, 0.850000024, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8526769923609699496
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 3113723597127807704
+  TagComponent:
+    Tag: Arena Petals 4
+  RelationshipComponent:
+    Parent: 2580805204906110976
+  TransformComponent:
+    Translation: [-8.2, -0.8, 0.016]
+    Rotation: [0.0, 0.0, -0.6]
+    Scale: [1.24440002, 0.800000012, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4456582435797180356
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 4223645738840175814
+  TagComponent:
+    Tag: Arena Petals 5
+  RelationshipComponent:
+    Parent: 2580805204906110976
+  TransformComponent:
+    Translation: [0.8, 5.6, 0.016]
+    Rotation: [0.0, 0.0, 0.1]
+    Scale: [1.39999998, 0.699999988, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3004517650141882723
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 4146833617544079589
+  TagComponent:
+    Tag: Arena Lanterns
+  RelationshipComponent:
+    Parent: 8674584132115888050
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1, 1, 1]
-  MeshComponent:
-    ModelHandle: 7009602151233614168
-    Shape: Box
-    Size: [1, 1, 1]
-    CastShadows: true
-    Materials: []
+- Entity: 9203476291384877914
+  TagComponent:
+    Tag: Arena Lantern Path Left
+  RelationshipComponent:
+    Parent: 4146833617544079589
+  TransformComponent:
+    Translation: [-2.7, 11.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 890322896975647149
   TagComponent:
     Tag: Arena Stone Lantern Path Left
+  RelationshipComponent:
+    Parent: 9203476291384877914
   TransformComponent:
-    Translation: [-2.7, 11.6, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1.14999998, 1.14999998, 1.14999998]
   MeshComponent:
@@ -173,8 +347,10 @@ Entities:
 - Entity: 2534020856717998252
   TagComponent:
     Tag: Arena Light Lantern Path Left
+  RelationshipComponent:
+    Parent: 9203476291384877914
   TransformComponent:
-    Translation: [-2.7, 11.6, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1, 1, 1]
   Light2DComponent:
@@ -183,11 +359,22 @@ Entities:
     Intensity: 2.20000005
     Radius: 3.4000001
     Height: 1.33
+- Entity: 1639293182766787737
+  TagComponent:
+    Tag: Arena Lantern Path Right
+  RelationshipComponent:
+    Parent: 4146833617544079589
+  TransformComponent:
+    Translation: [2.7, 11.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 3952264657971904574
   TagComponent:
     Tag: Arena Stone Lantern Path Right
+  RelationshipComponent:
+    Parent: 1639293182766787737
   TransformComponent:
-    Translation: [2.7, 11.6, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1.14999998, 1.14999998, 1.14999998]
   MeshComponent:
@@ -199,8 +386,10 @@ Entities:
 - Entity: 2122953270814205162
   TagComponent:
     Tag: Arena Light Lantern Path Right
+  RelationshipComponent:
+    Parent: 1639293182766787737
   TransformComponent:
-    Translation: [2.7, 11.6, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1, 1, 1]
   Light2DComponent:
@@ -209,11 +398,22 @@ Entities:
     Intensity: 2.20000005
     Radius: 3.4000001
     Height: 1.33
+- Entity: 2989467966895082216
+  TagComponent:
+    Tag: Arena Lantern Clearing Left
+  RelationshipComponent:
+    Parent: 4146833617544079589
+  TransformComponent:
+    Translation: [-9.0, 2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 4888566766828707059
   TagComponent:
     Tag: Arena Stone Lantern Clearing Left
+  RelationshipComponent:
+    Parent: 2989467966895082216
   TransformComponent:
-    Translation: [-9.0, 2.6, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1.14999998, 1.14999998, 1.14999998]
   MeshComponent:
@@ -225,8 +425,10 @@ Entities:
 - Entity: 1630422484540516096
   TagComponent:
     Tag: Arena Light Lantern Clearing Left
+  RelationshipComponent:
+    Parent: 2989467966895082216
   TransformComponent:
-    Translation: [-9.0, 2.6, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1, 1, 1]
   Light2DComponent:
@@ -235,11 +437,22 @@ Entities:
     Intensity: 2.20000005
     Radius: 3.4000001
     Height: 1.33
+- Entity: 8478321691705903576
+  TagComponent:
+    Tag: Arena Lantern Clearing Right
+  RelationshipComponent:
+    Parent: 4146833617544079589
+  TransformComponent:
+    Translation: [9.2, 2.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 2179150161263740913
   TagComponent:
     Tag: Arena Stone Lantern Clearing Right
+  RelationshipComponent:
+    Parent: 8478321691705903576
   TransformComponent:
-    Translation: [9.2, 2.2, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1.14999998, 1.14999998, 1.14999998]
   MeshComponent:
@@ -251,8 +464,10 @@ Entities:
 - Entity: 2168098546826097189
   TagComponent:
     Tag: Arena Light Lantern Clearing Right
+  RelationshipComponent:
+    Parent: 8478321691705903576
   TransformComponent:
-    Translation: [9.2, 2.2, 0.0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1, 1, 1]
   Light2DComponent:
@@ -261,9 +476,35 @@ Entities:
     Intensity: 2.20000005
     Radius: 3.4000001
     Height: 1.33
+- Entity: 6932241548351544618
+  TagComponent:
+    Tag: Arena Landmarks
+  RelationshipComponent:
+    Parent: 8674584132115888050
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+- Entity: 6996322625144633389
+  TagComponent:
+    Tag: Arena Torii
+  RelationshipComponent:
+    Parent: 6932241548351544618
+  TransformComponent:
+    Translation: [0.0, 13.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    ModelHandle: 7009602151233614168
+    Shape: Box
+    Size: [1, 1, 1]
+    CastShadows: true
+    Materials: []
 - Entity: 7403391124065642624
   TagComponent:
     Tag: Arena Sacred Tree
+  RelationshipComponent:
+    Parent: 6932241548351544618
   TransformComponent:
     Translation: [-8.5, 15.5, 0.0]
     Rotation: [0, 0, 0]
@@ -280,6 +521,8 @@ Entities:
 - Entity: 504284047837075309
   TagComponent:
     Tag: Arena Blossom Tree
+  RelationshipComponent:
+    Parent: 6932241548351544618
   TransformComponent:
     Translation: [8.8, 16.5, 0.0]
     Rotation: [0, 0, 0]
@@ -293,9 +536,20 @@ Entities:
     FlipX: false
     FlipY: false
     Facing: Upright
+- Entity: 7490262109798441069
+  TagComponent:
+    Tag: Arena Trees
+  RelationshipComponent:
+    Parent: 8674584132115888050
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 8404182026185645653
   TagComponent:
     Tag: Arena Tree Left Front
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [-13.5, -5.5, 0.0]
     Rotation: [0, 0, 0]
@@ -312,6 +566,8 @@ Entities:
 - Entity: 7983211803332599980
   TagComponent:
     Tag: Arena Tree Left Middle
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [-15.5, 1.5, 0.0]
     Rotation: [0, 0, 0]
@@ -328,6 +584,8 @@ Entities:
 - Entity: 3758364444190049621
   TagComponent:
     Tag: Arena Tree Left Back
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [-14.0, 8.5, 0.0]
     Rotation: [0, 0, 0]
@@ -344,6 +602,8 @@ Entities:
 - Entity: 8666389829552204740
   TagComponent:
     Tag: Arena Tree Left Far
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [-19.0, 13.0, 0.0]
     Rotation: [0, 0, 0]
@@ -360,6 +620,8 @@ Entities:
 - Entity: 2135198182042391338
   TagComponent:
     Tag: Arena Tree Right Front
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [13.8, -5.0, 0.0]
     Rotation: [0, 0, 0]
@@ -376,6 +638,8 @@ Entities:
 - Entity: 3529754568870337246
   TagComponent:
     Tag: Arena Tree Right Middle
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [16.0, 2.0, 0.0]
     Rotation: [0, 0, 0]
@@ -392,6 +656,8 @@ Entities:
 - Entity: 5714530325518723507
   TagComponent:
     Tag: Arena Tree Right Back
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [14.5, 9.0, 0.0]
     Rotation: [0, 0, 0]
@@ -408,6 +674,8 @@ Entities:
 - Entity: 8270111924401032121
   TagComponent:
     Tag: Arena Tree Right Far
+  RelationshipComponent:
+    Parent: 7490262109798441069
   TransformComponent:
     Translation: [19.5, 13.5, 0.0]
     Rotation: [0, 0, 0]
@@ -421,9 +689,20 @@ Entities:
     FlipX: true
     FlipY: false
     Facing: Upright
+- Entity: 2808881612223941564
+  TagComponent:
+    Tag: Arena Pines
+  RelationshipComponent:
+    Parent: 8674584132115888050
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 4698631503652897974
   TagComponent:
     Tag: Arena Pine 0 0
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-27.0667, 21.0, 0.0]
     Rotation: [0, 0, 0]
@@ -440,6 +719,8 @@ Entities:
 - Entity: 1147939164296727553
   TagComponent:
     Tag: Arena Pine 0 1
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-18.9, 22.8, 0.0]
     Rotation: [0, 0, 0]
@@ -456,6 +737,8 @@ Entities:
 - Entity: 6569753161499425409
   TagComponent:
     Tag: Arena Pine 0 2
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-17.7333, 21.6, 0.0]
     Rotation: [0, 0, 0]
@@ -472,6 +755,8 @@ Entities:
 - Entity: 9192447345524281364
   TagComponent:
     Tag: Arena Pine 0 3
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-9.5667, 23.4, 0.0]
     Rotation: [0, 0, 0]
@@ -488,6 +773,8 @@ Entities:
 - Entity: 6932668237225686516
   TagComponent:
     Tag: Arena Pine 0 4
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-8.4, 22.2, 0.0]
     Rotation: [0, 0, 0]
@@ -504,6 +791,8 @@ Entities:
 - Entity: 196225146435191881
   TagComponent:
     Tag: Arena Pine 0 7
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [9.1, 21.6, 0.0]
     Rotation: [0, 0, 0]
@@ -520,6 +809,8 @@ Entities:
 - Entity: 2170852911941445693
   TagComponent:
     Tag: Arena Pine 0 8
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [10.2667, 23.4, 0.0]
     Rotation: [0, 0, 0]
@@ -536,6 +827,8 @@ Entities:
 - Entity: 1651107181597235524
   TagComponent:
     Tag: Arena Pine 0 9
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [18.4333, 22.2, 0.0]
     Rotation: [0, 0, 0]
@@ -552,6 +845,8 @@ Entities:
 - Entity: 6905151725138978024
   TagComponent:
     Tag: Arena Pine 0 10
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [19.6, 21.0, 0.0]
     Rotation: [0, 0, 0]
@@ -568,6 +863,8 @@ Entities:
 - Entity: 8244506259504463845
   TagComponent:
     Tag: Arena Pine 0 11
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [27.7667, 22.8, 0.0]
     Rotation: [0, 0, 0]
@@ -584,6 +881,8 @@ Entities:
 - Entity: 9159475769827163693
   TagComponent:
     Tag: Arena Pine 1 0
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-28.5429, 26.0, 0.0]
     Rotation: [0, 0, 0]
@@ -600,6 +899,8 @@ Entities:
 - Entity: 5058397768742109439
   TagComponent:
     Tag: Arena Pine 1 1
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-27.3286, 27.8, 0.0]
     Rotation: [0, 0, 0]
@@ -616,6 +917,8 @@ Entities:
 - Entity: 245290854931231162
   TagComponent:
     Tag: Arena Pine 1 2
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-19.1143, 26.6, 0.0]
     Rotation: [0, 0, 0]
@@ -632,6 +935,8 @@ Entities:
 - Entity: 6184117003983768561
   TagComponent:
     Tag: Arena Pine 1 3
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-17.9, 28.4, 0.0]
     Rotation: [0, 0, 0]
@@ -648,6 +953,8 @@ Entities:
 - Entity: 3927973040661242920
   TagComponent:
     Tag: Arena Pine 1 4
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-9.6857, 27.2, 0.0]
     Rotation: [0, 0, 0]
@@ -664,6 +971,8 @@ Entities:
 - Entity: 4934684301437589036
   TagComponent:
     Tag: Arena Pine 1 5
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-8.4714, 26.0, 0.0]
     Rotation: [0, 0, 0]
@@ -680,6 +989,8 @@ Entities:
 - Entity: 8753104865799053056
   TagComponent:
     Tag: Arena Pine 1 6
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-0.2571, 27.8, 0.0]
     Rotation: [0, 0, 0]
@@ -696,6 +1007,8 @@ Entities:
 - Entity: 4896325199724095560
   TagComponent:
     Tag: Arena Pine 1 7
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [0.9571, 26.6, 0.0]
     Rotation: [0, 0, 0]
@@ -712,6 +1025,8 @@ Entities:
 - Entity: 2228517966230778944
   TagComponent:
     Tag: Arena Pine 1 8
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [9.1714, 28.4, 0.0]
     Rotation: [0, 0, 0]
@@ -728,6 +1043,8 @@ Entities:
 - Entity: 3210580795829345372
   TagComponent:
     Tag: Arena Pine 1 9
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [10.3857, 27.2, 0.0]
     Rotation: [0, 0, 0]
@@ -744,6 +1061,8 @@ Entities:
 - Entity: 2623517391823434936
   TagComponent:
     Tag: Arena Pine 1 10
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [18.6, 26.0, 0.0]
     Rotation: [0, 0, 0]
@@ -760,6 +1079,8 @@ Entities:
 - Entity: 1573694440170470568
   TagComponent:
     Tag: Arena Pine 1 11
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [19.8143, 27.8, 0.0]
     Rotation: [0, 0, 0]
@@ -776,6 +1097,8 @@ Entities:
 - Entity: 2581804254213029560
   TagComponent:
     Tag: Arena Pine 1 12
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [28.0286, 26.6, 0.0]
     Rotation: [0, 0, 0]
@@ -792,6 +1115,8 @@ Entities:
 - Entity: 3885028854464449505
   TagComponent:
     Tag: Arena Pine 1 13
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [29.2429, 28.4, 0.0]
     Rotation: [0, 0, 0]
@@ -808,6 +1133,8 @@ Entities:
 - Entity: 6642322834607412635
   TagComponent:
     Tag: Arena Pine 2 0
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-37.025, 31.0, 0.0]
     Rotation: [0, 0, 0]
@@ -824,6 +1151,8 @@ Entities:
 - Entity: 5361671084699139169
   TagComponent:
     Tag: Arena Pine 2 1
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-28.775, 32.8, 0.0]
     Rotation: [0, 0, 0]
@@ -840,6 +1169,8 @@ Entities:
 - Entity: 6525905407626745068
   TagComponent:
     Tag: Arena Pine 2 2
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-27.525, 31.6, 0.0]
     Rotation: [0, 0, 0]
@@ -856,6 +1187,8 @@ Entities:
 - Entity: 6095552614052978531
   TagComponent:
     Tag: Arena Pine 2 3
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-19.275, 33.4, 0.0]
     Rotation: [0, 0, 0]
@@ -872,6 +1205,8 @@ Entities:
 - Entity: 3388881978294003787
   TagComponent:
     Tag: Arena Pine 2 4
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-18.025, 32.2, 0.0]
     Rotation: [0, 0, 0]
@@ -888,6 +1223,8 @@ Entities:
 - Entity: 3959908114156119617
   TagComponent:
     Tag: Arena Pine 2 5
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-9.775, 31.0, 0.0]
     Rotation: [0, 0, 0]
@@ -904,6 +1241,8 @@ Entities:
 - Entity: 4603771046582904023
   TagComponent:
     Tag: Arena Pine 2 6
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-8.525, 32.8, 0.0]
     Rotation: [0, 0, 0]
@@ -920,6 +1259,8 @@ Entities:
 - Entity: 5154739773517804696
   TagComponent:
     Tag: Arena Pine 2 7
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [-0.275, 31.6, 0.0]
     Rotation: [0, 0, 0]
@@ -936,6 +1277,8 @@ Entities:
 - Entity: 7812027602593361263
   TagComponent:
     Tag: Arena Pine 2 8
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [0.975, 33.4, 0.0]
     Rotation: [0, 0, 0]
@@ -952,6 +1295,8 @@ Entities:
 - Entity: 6684974515909803062
   TagComponent:
     Tag: Arena Pine 2 9
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [9.225, 32.2, 0.0]
     Rotation: [0, 0, 0]
@@ -968,6 +1313,8 @@ Entities:
 - Entity: 8694798810854035797
   TagComponent:
     Tag: Arena Pine 2 10
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [10.475, 31.0, 0.0]
     Rotation: [0, 0, 0]
@@ -984,6 +1331,8 @@ Entities:
 - Entity: 1946318195447384238
   TagComponent:
     Tag: Arena Pine 2 11
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [18.725, 32.8, 0.0]
     Rotation: [0, 0, 0]
@@ -1000,6 +1349,8 @@ Entities:
 - Entity: 5511252274522182139
   TagComponent:
     Tag: Arena Pine 2 12
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [19.975, 31.6, 0.0]
     Rotation: [0, 0, 0]
@@ -1016,6 +1367,8 @@ Entities:
 - Entity: 8598263114188203889
   TagComponent:
     Tag: Arena Pine 2 13
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [28.225, 33.4, 0.0]
     Rotation: [0, 0, 0]
@@ -1032,6 +1385,8 @@ Entities:
 - Entity: 97910363447842903
   TagComponent:
     Tag: Arena Pine 2 14
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [29.475, 32.2, 0.0]
     Rotation: [0, 0, 0]
@@ -1048,6 +1403,8 @@ Entities:
 - Entity: 8269895456079571881
   TagComponent:
     Tag: Arena Pine 2 15
+  RelationshipComponent:
+    Parent: 2808881612223941564
   TransformComponent:
     Translation: [37.725, 31.0, 0.0]
     Rotation: [0, 0, 0]
@@ -1061,9 +1418,713 @@ Entities:
     FlipX: false
     FlipY: false
     Facing: Upright
+- Entity: 4555267347239555586
+  TagComponent:
+    Tag: Arena Undergrowth
+  RelationshipComponent:
+    Parent: 8674584132115888050
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+- Entity: 5373738625870130847
+  TagComponent:
+    Tag: Arena Decor Back 0
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-6.6, 4.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.4238, 1.3, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 5006942097349555378
+  TagComponent:
+    Tag: Arena Decor Back 1
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-4.3, 4.9, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.8334, 1.6, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1094557795298247722
+  TagComponent:
+    Tag: Arena Decor Back 2
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-2.6, 4.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9655, 0.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 268979081279308515
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 5130930201393201317
+  TagComponent:
+    Tag: Arena Decor Back 3
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [2.7, 4.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9655, 0.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 268979081279308515
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 598344405430278206
+  TagComponent:
+    Tag: Arena Decor Back 4
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [4.6, 5.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.1724, 1.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7407627607183195403
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1511848797788634382
+  TagComponent:
+    Tag: Arena Decor Back 5
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [6.8, 4.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.4238, 1.3, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 810535138197559010
+  TagComponent:
+    Tag: Arena Decor Back 6
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-11.0, 5.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.591, 1.5, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8276649552491953295
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 7355472648287115349
+  TagComponent:
+    Tag: Arena Decor Back 7
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [11.2, 5.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4, 1.6, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3795230639466418587
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 4676317302267964869
+  TagComponent:
+    Tag: Arena Decor Back 8
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-7.8, 7.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.1772, 1.9, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 5390891849074597557
+  TagComponent:
+    Tag: Arena Decor Back 9
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [7.6, 7.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4137, 2.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7407627607183195403
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5677080228680364445
+  TagComponent:
+    Tag: Arena Decor Back 10
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-1.9, 10.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.0953, 1.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 4009030027929966723
+  TagComponent:
+    Tag: Arena Decor Back 11
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [1.9, 10.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.0953, 1.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5604157395063429756
+  TagComponent:
+    Tag: Arena Decor Side 0
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-11.2, -1.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.5334, 1.4, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2237166087706208231
+  TagComponent:
+    Tag: Arena Decor Side 1
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-10.6, -4.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4183, 1.4, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8276649552491953295
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 7949592539452156357
+  TagComponent:
+    Tag: Arena Decor Side 2
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-9.6, -2.9, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9761, 1.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3471202463790715305
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1602781194332657485
+  TagComponent:
+    Tag: Arena Decor Side 3
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [11.0, -1.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.5334, 1.4, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8291547105992116279
+  TagComponent:
+    Tag: Arena Decor Side 4
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [10.4, -4.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4, 1.6, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3795230639466418587
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2153423235963775933
+  TagComponent:
+    Tag: Arena Decor Side 5
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [9.9, -2.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8785, 0.9, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3471202463790715305
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2492464209848217237
+  TagComponent:
+    Tag: Arena Decor Side 6
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-12.4, 3.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.0626, 1.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1790994607385386138
+  TagComponent:
+    Tag: Arena Decor Side 7
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [12.6, 3.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.0626, 1.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1040133311033279044
+  TagComponent:
+    Tag: Arena Edge 0
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-5.6, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8673, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1312505620698727174
+  TagComponent:
+    Tag: Arena Edge 1
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-4.1, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1667, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8357162906848885379
+  TagComponent:
+    Tag: Arena Edge 2
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-2.7, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1631, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2225186027744207386
+  TagComponent:
+    Tag: Arena Edge 3
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-1.4, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.6947, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 4138442976386436961
+  TagComponent:
+    Tag: Arena Edge 4
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [0.9, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1038, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 6825284100394449368
+  TagComponent:
+    Tag: Arena Edge 5
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [2.2, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.4167, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 6478458526330334399
+  TagComponent:
+    Tag: Arena Edge 6
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [3.6, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.7526, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5175185779697415582
+  TagComponent:
+    Tag: Arena Edge 7
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [4.9, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8842, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1466026107322867634
+  TagComponent:
+    Tag: Arena Edge 8
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-6.25, 1.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.3403, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 4281448923734181955
+  TagComponent:
+    Tag: Arena Edge 9
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-6.25, -0.3, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9167, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1707721370068438218
+  TagComponent:
+    Tag: Arena Edge 10
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-6.25, -1.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9579, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 639232585883532006
+  TagComponent:
+    Tag: Arena Edge 11
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [5.45, 1.3, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.0736, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 9197168765399280359
+  TagComponent:
+    Tag: Arena Edge 12
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [5.45, -0.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8673, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5299922658290223000
+  TagComponent:
+    Tag: Arena Edge 13
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [5.45, -1.7, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1667, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8158333279546345783
+  TagComponent:
+    Tag: Arena Edge 14
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-5.2, -2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1631, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 7702693071821964596
+  TagComponent:
+    Tag: Arena Edge 15
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-2.9, -2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.6947, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1173280391425543582
+  TagComponent:
+    Tag: Arena Edge 16
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [3.9, -2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1038, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 20555122017126875
+  TagComponent:
+    Tag: Arena Canopy 0
+  RelationshipComponent:
+    Parent: 4555267347239555586
+  TransformComponent:
+    Translation: [-6.4, -3.3, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.6552, 2.2, 1.0]
+  SpriteRendererComponent:
+    Color: [0.82, 0.82, 0.82, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7407627607183195403
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 9139167837712664630
+  TagComponent:
+    Tag: Arena Sky
+  RelationshipComponent:
+    Parent: 8674584132115888050
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 902287137463232693
   TagComponent:
     Tag: Arena Backdrop Sunset
+  RelationshipComponent:
+    Parent: 9139167837712664630
   TransformComponent:
     Translation: [0.0, 40.0, -9.0]
     Rotation: [0, 0, 0]
@@ -1081,713 +2142,11 @@ Entities:
         EmissionIntensity: 1
         AlphaCutoff: 0
         Filter: Nearest
-- Entity: 5373738625870130847
-  TagComponent:
-    Tag: Arena Decor Back 0
-  TransformComponent:
-    Translation: [-6.6, 4.2, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.4238, 1.3, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3109843078229128923
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 5006942097349555378
-  TagComponent:
-    Tag: Arena Decor Back 1
-  TransformComponent:
-    Translation: [-4.3, 4.9, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.8334, 1.6, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 250417816214129350
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 1094557795298247722
-  TagComponent:
-    Tag: Arena Decor Back 2
-  TransformComponent:
-    Translation: [-2.6, 4.4, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.9655, 0.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 268979081279308515
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 5130930201393201317
-  TagComponent:
-    Tag: Arena Decor Back 3
-  TransformComponent:
-    Translation: [2.7, 4.5, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.9655, 0.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 268979081279308515
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 598344405430278206
-  TagComponent:
-    Tag: Arena Decor Back 4
-  TransformComponent:
-    Translation: [4.6, 5.0, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.1724, 1.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 7407627607183195403
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 1511848797788634382
-  TagComponent:
-    Tag: Arena Decor Back 5
-  TransformComponent:
-    Translation: [6.8, 4.0, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.4238, 1.3, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3109843078229128923
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 810535138197559010
-  TagComponent:
-    Tag: Arena Decor Back 6
-  TransformComponent:
-    Translation: [-11.0, 5.5, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.591, 1.5, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8276649552491953295
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 7355472648287115349
-  TagComponent:
-    Tag: Arena Decor Back 7
-  TransformComponent:
-    Translation: [11.2, 5.8, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.4, 1.6, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3795230639466418587
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 4676317302267964869
-  TagComponent:
-    Tag: Arena Decor Back 8
-  TransformComponent:
-    Translation: [-7.8, 7.5, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.1772, 1.9, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 250417816214129350
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 5390891849074597557
-  TagComponent:
-    Tag: Arena Decor Back 9
-  TransformComponent:
-    Translation: [7.6, 7.8, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.4137, 2.0, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 7407627607183195403
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 5677080228680364445
-  TagComponent:
-    Tag: Arena Decor Back 10
-  TransformComponent:
-    Translation: [-1.9, 10.4, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.0953, 1.0, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3109843078229128923
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 4009030027929966723
-  TagComponent:
-    Tag: Arena Decor Back 11
-  TransformComponent:
-    Translation: [1.9, 10.5, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.0953, 1.0, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3109843078229128923
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 5604157395063429756
-  TagComponent:
-    Tag: Arena Decor Side 0
-  TransformComponent:
-    Translation: [-11.2, -1.5, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.5334, 1.4, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3109843078229128923
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 2237166087706208231
-  TagComponent:
-    Tag: Arena Decor Side 1
-  TransformComponent:
-    Translation: [-10.6, -4.8, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.4183, 1.4, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8276649552491953295
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 7949592539452156357
-  TagComponent:
-    Tag: Arena Decor Side 2
-  TransformComponent:
-    Translation: [-9.6, -2.9, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.9761, 1.0, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3471202463790715305
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 1602781194332657485
-  TagComponent:
-    Tag: Arena Decor Side 3
-  TransformComponent:
-    Translation: [11.0, -1.0, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.5334, 1.4, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3109843078229128923
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 8291547105992116279
-  TagComponent:
-    Tag: Arena Decor Side 4
-  TransformComponent:
-    Translation: [10.4, -4.4, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.4, 1.6, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3795230639466418587
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 2153423235963775933
-  TagComponent:
-    Tag: Arena Decor Side 5
-  TransformComponent:
-    Translation: [9.9, -2.4, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.8785, 0.9, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3471202463790715305
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 2492464209848217237
-  TagComponent:
-    Tag: Arena Decor Side 6
-  TransformComponent:
-    Translation: [-12.4, 3.0, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.0626, 1.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 250417816214129350
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 1790994607385386138
-  TagComponent:
-    Tag: Arena Decor Side 7
-  TransformComponent:
-    Translation: [12.6, 3.4, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.0626, 1.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 250417816214129350
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 1040133311033279044
-  TagComponent:
-    Tag: Arena Edge 0
-  TransformComponent:
-    Translation: [-5.6, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.8673, 0.55, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 4607322758261483897
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 1312505620698727174
-  TagComponent:
-    Tag: Arena Edge 1
-  TransformComponent:
-    Translation: [-4.1, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.1667, 0.7, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 258909959966937588
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 8357162906848885379
-  TagComponent:
-    Tag: Arena Edge 2
-  TransformComponent:
-    Translation: [-2.7, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.1631, 0.85, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8597620230523949458
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 2225186027744207386
-  TagComponent:
-    Tag: Arena Edge 3
-  TransformComponent:
-    Translation: [-1.4, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.6947, 0.55, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8021622353636888719
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 4138442976386436961
-  TagComponent:
-    Tag: Arena Edge 4
-  TransformComponent:
-    Translation: [0.9, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.1038, 0.7, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 4607322758261483897
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 6825284100394449368
-  TagComponent:
-    Tag: Arena Edge 5
-  TransformComponent:
-    Translation: [2.2, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.4167, 0.85, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 258909959966937588
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 6478458526330334399
-  TagComponent:
-    Tag: Arena Edge 6
-  TransformComponent:
-    Translation: [3.6, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.7526, 0.55, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8597620230523949458
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 5175185779697415582
-  TagComponent:
-    Tag: Arena Edge 7
-  TransformComponent:
-    Translation: [4.9, 2.05, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.8842, 0.7, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8021622353636888719
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 1466026107322867634
-  TagComponent:
-    Tag: Arena Edge 8
-  TransformComponent:
-    Translation: [-6.25, 1.2, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.3403, 0.85, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 4607322758261483897
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 4281448923734181955
-  TagComponent:
-    Tag: Arena Edge 9
-  TransformComponent:
-    Translation: [-6.25, -0.3, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.9167, 0.55, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 258909959966937588
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 1707721370068438218
-  TagComponent:
-    Tag: Arena Edge 10
-  TransformComponent:
-    Translation: [-6.25, -1.8, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.9579, 0.7, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8597620230523949458
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 639232585883532006
-  TagComponent:
-    Tag: Arena Edge 11
-  TransformComponent:
-    Translation: [5.45, 1.3, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.0736, 0.85, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8021622353636888719
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 9197168765399280359
-  TagComponent:
-    Tag: Arena Edge 12
-  TransformComponent:
-    Translation: [5.45, -0.2, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.8673, 0.55, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 4607322758261483897
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 5299922658290223000
-  TagComponent:
-    Tag: Arena Edge 13
-  TransformComponent:
-    Translation: [5.45, -1.7, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.1667, 0.7, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 258909959966937588
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 8158333279546345783
-  TagComponent:
-    Tag: Arena Edge 14
-  TransformComponent:
-    Translation: [-5.2, -2.6, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.1631, 0.85, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8597620230523949458
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 7702693071821964596
-  TagComponent:
-    Tag: Arena Edge 15
-  TransformComponent:
-    Translation: [-2.9, -2.6, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [0.6947, 0.55, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8021622353636888719
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 1173280391425543582
-  TagComponent:
-    Tag: Arena Edge 16
-  TransformComponent:
-    Translation: [3.9, -2.6, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1.1038, 0.7, 1.0]
-  SpriteRendererComponent:
-    Color: [1.0, 1.0, 1.0, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 4607322758261483897
-    SpriteIndex: 0
-    FlipX: true
-    FlipY: false
-    Facing: Upright
-- Entity: 20555122017126875
-  TagComponent:
-    Tag: Arena Canopy 0
-  TransformComponent:
-    Translation: [-6.4, -3.3, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [2.6552, 2.2, 1.0]
-  SpriteRendererComponent:
-    Color: [0.82, 0.82, 0.82, 1.0]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 7407627607183195403
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-- Entity: 2087316721574072905
-  TagComponent:
-    Tag: Arena Petals 0
-  TransformComponent:
-    Translation: [-6.5, 2.6, 0.016]
-    Rotation: [0.0, 0.0, 0.4]
-    Scale: [1.82620001, 1.29999995, 1]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 2387970243623547605
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Flat
-- Entity: 3519382144382631419
-  TagComponent:
-    Tag: Arena Petals 1
-  TransformComponent:
-    Translation: [5.8, 3.0, 0.016]
-    Rotation: [0.0, 0.0, -0.3]
-    Scale: [1.60590005, 1.04999995, 1]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 5396447801382016704
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Flat
-- Entity: 8879134741100504044
-  TagComponent:
-    Tag: Arena Petals 2
-  TransformComponent:
-    Translation: [-3.0, -4.6, 0.016]
-    Rotation: [0.0, 0.0, 0.9]
-    Scale: [1.35290003, 1, 1]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 7421978121264167086
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Flat
-- Entity: 6691660065153249185
-  TagComponent:
-    Tag: Arena Petals 3
-  TransformComponent:
-    Translation: [7.5, -3.8, 0.016]
-    Rotation: [0.0, 0.0, 0.2]
-    Scale: [1.88890004, 0.850000024, 1]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 8526769923609699496
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Flat
-- Entity: 3113723597127807704
-  TagComponent:
-    Tag: Arena Petals 4
-  TransformComponent:
-    Translation: [-8.2, -0.8, 0.016]
-    Rotation: [0.0, 0.0, -0.6]
-    Scale: [1.24440002, 0.800000012, 1]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 4456582435797180356
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Flat
-- Entity: 4223645738840175814
-  TagComponent:
-    Tag: Arena Petals 5
-  TransformComponent:
-    Translation: [0.8, 5.6, 0.016]
-    Rotation: [0.0, 0.0, 0.1]
-    Scale: [1.39999998, 0.699999988, 1]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 0
-    TextureHandle: 3004517650141882723
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Flat
 - Entity: 9149868439536366341
   TagComponent:
     Tag: Arena Motes
+  RelationshipComponent:
+    Parent: 9139167837712664630
   TransformComponent:
     Translation: [0, 3, 1.4]
     Rotation: [0, 0, 0]
@@ -1829,6 +2188,8 @@ Entities:
 - Entity: 1578980066223935718
   TagComponent:
     Tag: Arena Sun
+  RelationshipComponent:
+    Parent: 9139167837712664630
   TransformComponent:
     Translation: [6, 6, 8]
     Rotation: [0.982620001, 0, 0.570722997]
@@ -1841,25 +2202,18 @@ Entities:
     ShadowStrength: 1
     ShadowDistance: 24
     ShadowBias: 1
-- Entity: 4325148912690108353
+- Entity: 8270864528797613753
   TagComponent:
-    Tag: Camera
+    Tag: Party
   TransformComponent:
-    Translation: [0.0, -12.3449, 5.4557]
-    Rotation: [1.2741, 0.0, 0.0]
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
     Scale: [1, 1, 1]
-  CameraComponent:
-    Primary: true
-    Projection: Perspective
-    PerspectiveFOV: 30.0
-    PerspectiveNear: 0.5
-    PerspectiveFar: 218.66
-    OrthographicSize: 10.0
-    OrthographicNear: 0.1
-    OrthographicFar: 218.66
 - Entity: 2354502644069435857
   TagComponent:
     Tag: Hero Miko
+  RelationshipComponent:
+    Parent: 8270864528797613753
   TransformComponent:
     Translation: [3.1759, 0.2007, -0.3586]
     Rotation: [0, 0, 0]
@@ -1879,9 +2233,31 @@ Entities:
     StartClip: Idle
     PlayOnStart: true
     Speed: 1
+- Entity: 4024635480654513838
+  TagComponent:
+    Tag: Hero Miko Shadow
+  RelationshipComponent:
+    Parent: 8270864528797613753
+  TransformComponent:
+    Translation: [3.1759, -0.8897, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.36]
+    Strength: 0.55
+- Entity: 7783783273345144696
+  TagComponent:
+    Tag: Party HUD
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 543380005528913907
   TagComponent:
     Tag: Hero Miko HP Back
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [6.2222, 3.3206, -3.7082]
     Rotation: [0, 0, 0]
@@ -1899,6 +2275,8 @@ Entities:
 - Entity: 1048460277824663231
   TagComponent:
     Tag: Hero Miko HP Fill
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [6.2222, 3.3206, -3.7082]
     Rotation: [0, 0, 0]
@@ -1916,6 +2294,8 @@ Entities:
 - Entity: 2419822650444914979
   TagComponent:
     Tag: Hero Miko MP Back
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [6.2222, 3.2605, -3.9047]
     Rotation: [0, 0, 0]
@@ -1933,6 +2313,8 @@ Entities:
 - Entity: 1503637125276567477
   TagComponent:
     Tag: Hero Miko MP Fill
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [6.2222, 3.2605, -3.9047]
     Rotation: [0, 0, 0]
@@ -1950,6 +2332,8 @@ Entities:
 - Entity: 1265686853645913135
   TagComponent:
     Tag: Hero Miko HP Digit 0
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [7.3889, 3.3206, -3.7082]
     Rotation: [0, 0, 0]
@@ -1969,6 +2353,8 @@ Entities:
 - Entity: 208350898532652517
   TagComponent:
     Tag: Hero Miko HP Digit 1
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [7.6222, 3.3206, -3.7082]
     Rotation: [0, 0, 0]
@@ -1988,6 +2374,8 @@ Entities:
 - Entity: 1424454468408906631
   TagComponent:
     Tag: Hero Miko HP Digit 2
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [7.8556, 3.3206, -3.7082]
     Rotation: [0, 0, 0]
@@ -2007,6 +2395,8 @@ Entities:
 - Entity: 3803698164477593767
   TagComponent:
     Tag: Hero Miko Name
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [4.7222, 3.3255, -3.6922]
     Rotation: [0, 0, 0]
@@ -2026,6 +2416,8 @@ Entities:
 - Entity: 2167776218256150105
   TagComponent:
     Tag: Hero Miko Pip 0
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [4.2778, 3.2524, -3.9313]
     Rotation: [0, 0, 0]
@@ -2045,6 +2437,8 @@ Entities:
 - Entity: 2979164332911855329
   TagComponent:
     Tag: Hero Miko Pip 1
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [4.5111, 3.2524, -3.9313]
     Rotation: [0, 0, 0]
@@ -2064,6 +2458,8 @@ Entities:
 - Entity: 4452058484974239225
   TagComponent:
     Tag: Hero Miko Pip 2
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [4.7444, 3.2524, -3.9313]
     Rotation: [0, 0, 0]
@@ -2083,6 +2479,8 @@ Entities:
 - Entity: 2636810904870439275
   TagComponent:
     Tag: Hero Miko Pip 3
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [4.9778, 3.2524, -3.9313]
     Rotation: [0, 0, 0]
@@ -2102,6 +2500,8 @@ Entities:
 - Entity: 3057690109097756637
   TagComponent:
     Tag: Hero Miko Pip 4
+  RelationshipComponent:
+    Parent: 7783783273345144696
   TransformComponent:
     Translation: [5.2111, 3.2524, -3.9313]
     Rotation: [0, 0, 0]
@@ -2118,9 +2518,38 @@ Entities:
     Facing: Billboard
     Overlay: true
     CastShadows: false
+- Entity: 2717703238488551711
+  TagComponent:
+    Tag: Party Panel
+  RelationshipComponent:
+    Parent: 7783783273345144696
+  TransformComponent:
+    Translation: [6.2778, 3.2897, -3.8091]
+    Rotation: [0, 0, 0]
+    Scale: [4.7778, 0.7222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0.920000017]
+    TilingFactor: 1
+    SortOrder: 195
+    TextureHandle: 1876931991275611681
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 6972421333850721569
+  TagComponent:
+    Tag: Enemy Slot 0
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 3342933287778753463
   TagComponent:
     Tag: Enemy 0 Slime
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-2.9684, 1.4291, -0.1482]
     Rotation: [0, 0, 0]
@@ -2142,6 +2571,8 @@ Entities:
 - Entity: 1067477410088102697
   TagComponent:
     Tag: Enemy 0 Wisp
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-2.9684, 1.4171, -0.14]
     Rotation: [0, 0, 0]
@@ -2164,6 +2595,8 @@ Entities:
 - Entity: 1872439065298645799
   TagComponent:
     Tag: Enemy 0 Light
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-3.3825, 3.4584, 0.0]
     Rotation: [0, 0, 0]
@@ -2177,6 +2610,8 @@ Entities:
 - Entity: 3664971844750471499
   TagComponent:
     Tag: Enemy 0 HP Back
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-3.6998, 4.5701, 0.3788]
     Rotation: [0, 0, 0]
@@ -2194,6 +2629,8 @@ Entities:
 - Entity: 523611656152946079
   TagComponent:
     Tag: Enemy 0 HP Fill
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-3.6998, 4.5701, 0.3788]
     Rotation: [0, 0, 0]
@@ -2211,6 +2648,8 @@ Entities:
 - Entity: 2344966513632724177
   TagComponent:
     Tag: Enemy 0 Shield
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-4.7553, 4.6107, 0.5116]
     Rotation: [0, 0, 0]
@@ -2230,6 +2669,8 @@ Entities:
 - Entity: 2975353965683647685
   TagComponent:
     Tag: Enemy 0 Shield Digit
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-4.7553, 4.6221, 0.5488]
     Rotation: [0, 0, 0]
@@ -2249,6 +2690,8 @@ Entities:
 - Entity: 3578729033148614401
   TagComponent:
     Tag: Enemy 0 Weak 0
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-4.1998, 4.6595, 0.671]
     Rotation: [0, 0, 0]
@@ -2268,6 +2711,8 @@ Entities:
 - Entity: 1396949757501771079
   TagComponent:
     Tag: Enemy 0 Weak 1
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-3.8387, 4.6595, 0.671]
     Rotation: [0, 0, 0]
@@ -2287,6 +2732,8 @@ Entities:
 - Entity: 666325545167806197
   TagComponent:
     Tag: Enemy 0 Weak 2
+  RelationshipComponent:
+    Parent: 6972421333850721569
   TransformComponent:
     Translation: [-3.4776, 4.6595, 0.671]
     Rotation: [0, 0, 0]
@@ -2303,9 +2750,44 @@ Entities:
     Facing: Billboard
     Overlay: true
     CastShadows: false
+- Entity: 6978008996652402207
+  TagComponent:
+    Tag: Enemy 0 Slime Shadow
+  RelationshipComponent:
+    Parent: 6972421333850721569
+  TransformComponent:
+    Translation: [-2.9684, 1.3194, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.32]
+    Strength: 0.5
+- Entity: 2351504118028936728
+  TagComponent:
+    Tag: Enemy 0 Wisp Shadow
+  RelationshipComponent:
+    Parent: 6972421333850721569
+  TransformComponent:
+    Translation: [-2.9684, 1.3194, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.0, 0.32]
+    Strength: 0.300000012
+- Entity: 2989891105357014596
+  TagComponent:
+    Tag: Enemy Slot 1
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 1023646738949003259
   TagComponent:
     Tag: Enemy 1 Slime
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-1.1923, -1.5866, -0.1482]
     Rotation: [0, 0, 0]
@@ -2327,6 +2809,8 @@ Entities:
 - Entity: 2839042781894498169
   TagComponent:
     Tag: Enemy 1 Wisp
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-1.1923, -1.5986, -0.14]
     Rotation: [0, 0, 0]
@@ -2349,6 +2833,8 @@ Entities:
 - Entity: 1535014961905056575
   TagComponent:
     Tag: Enemy 1 Light
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-1.3223, -0.3529, 0.0]
     Rotation: [0, 0, 0]
@@ -2362,6 +2848,8 @@ Entities:
 - Entity: 2691855884825161267
   TagComponent:
     Tag: Enemy 1 HP Back
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-1.7778, 4.138, -1.0347]
     Rotation: [0, 0, 0]
@@ -2379,6 +2867,8 @@ Entities:
 - Entity: 1085163206976032369
   TagComponent:
     Tag: Enemy 1 HP Fill
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-1.7778, 4.138, -1.0347]
     Rotation: [0, 0, 0]
@@ -2396,6 +2886,8 @@ Entities:
 - Entity: 668027511869699031
   TagComponent:
     Tag: Enemy 1 Shield
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-2.8333, 4.1786, -0.9019]
     Rotation: [0, 0, 0]
@@ -2415,6 +2907,8 @@ Entities:
 - Entity: 1059971111004204979
   TagComponent:
     Tag: Enemy 1 Shield Digit
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-2.8333, 4.1899, -0.8647]
     Rotation: [0, 0, 0]
@@ -2434,6 +2928,8 @@ Entities:
 - Entity: 1737427458561910665
   TagComponent:
     Tag: Enemy 1 Weak 0
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-2.2778, 4.2273, -0.7425]
     Rotation: [0, 0, 0]
@@ -2453,6 +2949,8 @@ Entities:
 - Entity: 3406627396318602413
   TagComponent:
     Tag: Enemy 1 Weak 1
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-1.9167, 4.2273, -0.7425]
     Rotation: [0, 0, 0]
@@ -2472,6 +2970,8 @@ Entities:
 - Entity: 4213791766793925241
   TagComponent:
     Tag: Enemy 1 Weak 2
+  RelationshipComponent:
+    Parent: 2989891105357014596
   TransformComponent:
     Translation: [-1.5556, 4.2273, -0.7425]
     Rotation: [0, 0, 0]
@@ -2488,9 +2988,44 @@ Entities:
     Facing: Billboard
     Overlay: true
     CastShadows: false
+- Entity: 4336146536690289183
+  TagComponent:
+    Tag: Enemy 1 Slime Shadow
+  RelationshipComponent:
+    Parent: 2989891105357014596
+  TransformComponent:
+    Translation: [-1.1923, -1.6963, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.32]
+    Strength: 0.5
+- Entity: 3375354729992267411
+  TagComponent:
+    Tag: Enemy 1 Wisp Shadow
+  RelationshipComponent:
+    Parent: 2989891105357014596
+  TransformComponent:
+    Translation: [-1.1923, -1.6963, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.0, 0.32]
+    Strength: 0.300000012
+- Entity: 8960088604025558754
+  TagComponent:
+    Tag: Enemy Slot 2
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 3220867481356510017
   TagComponent:
     Tag: Enemy 2 Slime
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-4.005, -1.115, -0.1482]
     Rotation: [0, 0, 0]
@@ -2512,6 +3047,8 @@ Entities:
 - Entity: 1126483171896878523
   TagComponent:
     Tag: Enemy 2 Wisp
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-4.005, -1.127, -0.14]
     Rotation: [0, 0, 0]
@@ -2534,6 +3071,8 @@ Entities:
 - Entity: 3754412435989424019
   TagComponent:
     Tag: Enemy 2 Light
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-4.4605, 0.2296, 0.0]
     Rotation: [0, 0, 0]
@@ -2547,6 +3086,8 @@ Entities:
 - Entity: 3633289450062964969
   TagComponent:
     Tag: Enemy 2 HP Back
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-6.1171, 4.2194, -0.7685]
     Rotation: [0, 0, 0]
@@ -2564,6 +3105,8 @@ Entities:
 - Entity: 2075504677839347763
   TagComponent:
     Tag: Enemy 2 HP Fill
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-6.1171, 4.2194, -0.7685]
     Rotation: [0, 0, 0]
@@ -2581,6 +3124,8 @@ Entities:
 - Entity: 2554741734565481117
   TagComponent:
     Tag: Enemy 2 Shield
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-7.1727, 4.26, -0.6356]
     Rotation: [0, 0, 0]
@@ -2600,6 +3145,8 @@ Entities:
 - Entity: 1419781065135675077
   TagComponent:
     Tag: Enemy 2 Shield Digit
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-7.1727, 4.2713, -0.5985]
     Rotation: [0, 0, 0]
@@ -2619,6 +3166,8 @@ Entities:
 - Entity: 473519217997946627
   TagComponent:
     Tag: Enemy 2 Weak 0
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-6.6171, 4.3087, -0.4763]
     Rotation: [0, 0, 0]
@@ -2638,6 +3187,8 @@ Entities:
 - Entity: 1398064115850411373
   TagComponent:
     Tag: Enemy 2 Weak 1
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-6.256, 4.3087, -0.4763]
     Rotation: [0, 0, 0]
@@ -2657,6 +3208,8 @@ Entities:
 - Entity: 2088967229790623149
   TagComponent:
     Tag: Enemy 2 Weak 2
+  RelationshipComponent:
+    Parent: 8960088604025558754
   TransformComponent:
     Translation: [-5.8949, 4.3087, -0.4763]
     Rotation: [0, 0, 0]
@@ -2673,9 +3226,44 @@ Entities:
     Facing: Billboard
     Overlay: true
     CastShadows: false
+- Entity: 3834656240265409327
+  TagComponent:
+    Tag: Enemy 2 Slime Shadow
+  RelationshipComponent:
+    Parent: 8960088604025558754
+  TransformComponent:
+    Translation: [-4.005, -1.2247, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.32]
+    Strength: 0.5
+- Entity: 7351522842169587370
+  TagComponent:
+    Tag: Enemy 2 Wisp Shadow
+  RelationshipComponent:
+    Parent: 8960088604025558754
+  TransformComponent:
+    Translation: [-4.005, -1.2247, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.0, 0.32]
+    Strength: 0.300000012
+- Entity: 7221315575435828512
+  TagComponent:
+    Tag: HUD
+  TransformComponent:
+    Translation: [0.0, 0.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
 - Entity: 4332944653959389197
   TagComponent:
     Tag: Order Chip 0
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-5.5556, 5.8594, 4.5957]
     Rotation: [0, 0, 0]
@@ -2695,6 +3283,8 @@ Entities:
 - Entity: 857888808662015479
   TagComponent:
     Tag: Order Chip 1
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-3.3333, 5.8594, 4.5957]
     Rotation: [0, 0, 0]
@@ -2714,6 +3304,8 @@ Entities:
 - Entity: 126150385849760757
   TagComponent:
     Tag: Order Chip 2
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-1.1111, 5.8594, 4.5957]
     Rotation: [0, 0, 0]
@@ -2733,6 +3325,8 @@ Entities:
 - Entity: 4010738463145047473
   TagComponent:
     Tag: Order Chip 3
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [1.1111, 5.8594, 4.5957]
     Rotation: [0, 0, 0]
@@ -2752,6 +3346,8 @@ Entities:
 - Entity: 4158808738284465657
   TagComponent:
     Tag: Order Chip 4
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [3.3333, 5.8594, 4.5957]
     Rotation: [0, 0, 0]
@@ -2771,6 +3367,8 @@ Entities:
 - Entity: 4189512304645367447
   TagComponent:
     Tag: Order Chip 5
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [5.5556, 5.8594, 4.5957]
     Rotation: [0, 0, 0]
@@ -2790,6 +3388,8 @@ Entities:
 - Entity: 303675179249933599
   TagComponent:
     Tag: Order Panel
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 5.8594, 4.5957]
     Rotation: [0, 0, 0]
@@ -2807,6 +3407,8 @@ Entities:
 - Entity: 2503594637117990557
   TagComponent:
     Tag: Message
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 5.567, 3.6394]
     Rotation: [0, 0, 0]
@@ -2826,6 +3428,8 @@ Entities:
 - Entity: 1412399333282199361
   TagComponent:
     Tag: Target Cursor
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -2845,6 +3449,8 @@ Entities:
 - Entity: 1873083660300769013
   TagComponent:
     Tag: Turn Marker
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -2864,6 +3470,8 @@ Entities:
 - Entity: 3687469943115966723
   TagComponent:
     Tag: Command Panel
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-0.5556, 3.2849, -3.8251]
     Rotation: [0, 0, 0]
@@ -2882,6 +3490,8 @@ Entities:
 - Entity: 2426494286836293121
   TagComponent:
     Tag: Command Key 0
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-3.8333, 3.358, -3.586]
     Rotation: [0, 0, 0]
@@ -2901,6 +3511,8 @@ Entities:
 - Entity: 956000144609049515
   TagComponent:
     Tag: Command 0
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-2.75, 3.358, -3.586]
     Rotation: [0, 0, 0]
@@ -2920,6 +3532,8 @@ Entities:
 - Entity: 2036138797124235843
   TagComponent:
     Tag: Command Key 1
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-1.2778, 3.358, -3.586]
     Rotation: [0, 0, 0]
@@ -2939,6 +3553,8 @@ Entities:
 - Entity: 780931092413700237
   TagComponent:
     Tag: Command 1
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-0.1944, 3.358, -3.586]
     Rotation: [0, 0, 0]
@@ -2958,6 +3574,8 @@ Entities:
 - Entity: 2671831323181636189
   TagComponent:
     Tag: Command Key 2
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [1.2778, 3.358, -3.586]
     Rotation: [0, 0, 0]
@@ -2977,6 +3595,8 @@ Entities:
 - Entity: 985982571770060221
   TagComponent:
     Tag: Command 2
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [2.3611, 3.358, -3.586]
     Rotation: [0, 0, 0]
@@ -2996,6 +3616,8 @@ Entities:
 - Entity: 4417725511485728381
   TagComponent:
     Tag: Command Key 3
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-3.8333, 3.2037, -4.0907]
     Rotation: [0, 0, 0]
@@ -3015,6 +3637,8 @@ Entities:
 - Entity: 4468166853701226901
   TagComponent:
     Tag: Command 3
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-2.75, 3.2037, -4.0907]
     Rotation: [0, 0, 0]
@@ -3034,6 +3658,8 @@ Entities:
 - Entity: 1436508340468887079
   TagComponent:
     Tag: Command Key 4
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-1.2778, 3.2037, -4.0907]
     Rotation: [0, 0, 0]
@@ -3053,6 +3679,8 @@ Entities:
 - Entity: 2684677144518850305
   TagComponent:
     Tag: Command 4
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-0.1944, 3.2037, -4.0907]
     Rotation: [0, 0, 0]
@@ -3072,6 +3700,8 @@ Entities:
 - Entity: 962705506745262457
   TagComponent:
     Tag: Command Key 5
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [1.2778, 3.2037, -4.0907]
     Rotation: [0, 0, 0]
@@ -3091,6 +3721,8 @@ Entities:
 - Entity: 4606989629720687839
   TagComponent:
     Tag: Command 5
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [2.3611, 3.2037, -4.0907]
     Rotation: [0, 0, 0]
@@ -3110,6 +3742,8 @@ Entities:
 - Entity: 479522812321223319
   TagComponent:
     Tag: Boost Label
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-3.8889, 3.5529, -2.9484]
     Rotation: [0, 0, 0]
@@ -3129,6 +3763,8 @@ Entities:
 - Entity: 1145468260433655573
   TagComponent:
     Tag: Boost Digit
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [-2.9444, 3.5529, -2.9484]
     Rotation: [0, 0, 0]
@@ -3148,6 +3784,8 @@ Entities:
 - Entity: 1889869138271743303
   TagComponent:
     Tag: Popup 0 Digit 0
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3167,6 +3805,8 @@ Entities:
 - Entity: 1570343578560431039
   TagComponent:
     Tag: Popup 0 Digit 1
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3186,6 +3826,8 @@ Entities:
 - Entity: 2723254937496717579
   TagComponent:
     Tag: Popup 0 Digit 2
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3205,6 +3847,8 @@ Entities:
 - Entity: 3598088787663941157
   TagComponent:
     Tag: Popup 1 Digit 0
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3224,6 +3868,8 @@ Entities:
 - Entity: 4422076111181459827
   TagComponent:
     Tag: Popup 1 Digit 1
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3243,6 +3889,8 @@ Entities:
 - Entity: 2018005335998494927
   TagComponent:
     Tag: Popup 1 Digit 2
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3262,6 +3910,8 @@ Entities:
 - Entity: 4415784830397713951
   TagComponent:
     Tag: Popup 2 Digit 0
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3281,6 +3931,8 @@ Entities:
 - Entity: 2723510240245860637
   TagComponent:
     Tag: Popup 2 Digit 1
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3300,6 +3952,8 @@ Entities:
 - Entity: 807060539347502325
   TagComponent:
     Tag: Popup 2 Digit 2
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3319,6 +3973,8 @@ Entities:
 - Entity: 3087013420501047885
   TagComponent:
     Tag: Battle Overlay
+  RelationshipComponent:
+    Parent: 7221315575435828512
   TransformComponent:
     Translation: [0.0, 4.5437, 0.2924]
     Rotation: [0, 0, 0]
@@ -3333,42 +3989,18 @@ Entities:
     Facing: Billboard
     Overlay: true
     CastShadows: false
-- Entity: 4440101092385176297
+- Entity: 888291769089932226
   TagComponent:
-    Tag: Battle Director
+    Tag: FX
   TransformComponent:
-    Translation: [0, 0, 0]
+    Translation: [0.0, 0.0, 0.0]
     Rotation: [0, 0, 0]
     Scale: [1, 1, 1]
-  NativeScriptComponent:
-    Scripts:
-    - Name: BattleScript
-      Properties:
-        CameraTilt: 73.0
-        CameraFieldOfView: 30.0
-        CameraFocus: [0.0, 5.5, 0.0]
-        ViewHeight: 10.0
-- Entity: 2717703238488551711
-  TagComponent:
-    Tag: Party Panel
-  TransformComponent:
-    Translation: [6.2778, 3.2897, -3.8091]
-    Rotation: [0, 0, 0]
-    Scale: [4.7778, 0.7222, 1.0]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 0.920000017]
-    TilingFactor: 1
-    SortOrder: 195
-    TextureHandle: 1876931991275611681
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Billboard
-    Overlay: true
-    CastShadows: false
 - Entity: 3606704619762678601
   TagComponent:
     Tag: FX Strike
+  RelationshipComponent:
+    Parent: 888291769089932226
   TransformComponent:
     Translation: [0.0, 0.0, -20.0]
     Rotation: [0, 0, 0]
@@ -3401,6 +4033,8 @@ Entities:
 - Entity: 4463077264953172967
   TagComponent:
     Tag: FX Heal
+  RelationshipComponent:
+    Parent: 888291769089932226
   TransformComponent:
     Translation: [0.0, 0.0, -20.0]
     Rotation: [0, 0, 0]
@@ -3430,80 +4064,3 @@ Entities:
     Intensity: 0
     Radius: 3.0
     Height: 0.0
-- Entity: 4024635480654513838
-  TagComponent:
-    Tag: Hero Miko Shadow
-  TransformComponent:
-    Translation: [3.1759, -0.8897, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.15, 0.36]
-    Strength: 0.55
-- Entity: 6978008996652402207
-  TagComponent:
-    Tag: Enemy 0 Slime Shadow
-  TransformComponent:
-    Translation: [-2.9684, 1.3194, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.15, 0.32]
-    Strength: 0.5
-- Entity: 2351504118028936728
-  TagComponent:
-    Tag: Enemy 0 Wisp Shadow
-  TransformComponent:
-    Translation: [-2.9684, 1.3194, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.0, 0.32]
-    Strength: 0.300000012
-- Entity: 4336146536690289183
-  TagComponent:
-    Tag: Enemy 1 Slime Shadow
-  TransformComponent:
-    Translation: [-1.1923, -1.6963, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.15, 0.32]
-    Strength: 0.5
-- Entity: 3375354729992267411
-  TagComponent:
-    Tag: Enemy 1 Wisp Shadow
-  TransformComponent:
-    Translation: [-1.1923, -1.6963, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.0, 0.32]
-    Strength: 0.300000012
-- Entity: 3834656240265409327
-  TagComponent:
-    Tag: Enemy 2 Slime Shadow
-  TransformComponent:
-    Translation: [-4.005, -1.2247, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.15, 0.32]
-    Strength: 0.5
-- Entity: 7351522842169587370
-  TagComponent:
-    Tag: Enemy 2 Wisp Shadow
-  TransformComponent:
-    Translation: [-4.005, -1.2247, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.0, 0.32]
-    Strength: 0.300000012
