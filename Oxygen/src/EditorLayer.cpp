@@ -11,7 +11,6 @@
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "EditorPaths.h"
-#include "Generated/GeneratedScriptReflection.h"
 #include "Utilities/AssetDragDrop.h"
 #include "Utilities/EditorChrome.h"
 #include "Utilities/PathFollower.h"
@@ -31,10 +30,28 @@ namespace Hydro
 {
 	static glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t) { return a + (b - a) * t; }
 
+	// The registered scene that comes first by path, or 0 when the project has none (or only missing ones).
+	static AssetHandle FindFirstScene()
+	{
+		AssetHandle first = 0;
+		std::filesystem::path firstPath;
+		for (const auto& [handle, metadata] : AssetManager::GetRegistry().GetAll())
+		{
+			if (metadata.Type != AssetType::Scene || metadata.IsMissing)
+			{
+				continue;
+			}
+			if ((uint64_t)first == 0 || metadata.Path < firstPath)
+			{
+				first = handle;
+				firstPath = metadata.Path;
+			}
+		}
+		return first;
+	}
+
 	void EditorLayer::OnAttach()
 	{
-		RegisterGeneratedScriptReflection();
-
 		m_EditorScene = CreateRef<Scene>("Scene", false);
 		m_EditorScene->Init();
 		m_ActiveScene = m_EditorScene;
@@ -1480,14 +1497,31 @@ namespace Hydro
 		}
 
 		if ((uint64_t)config.StartScene == 0)
+		{
 			return;
+		}
 
 		const std::filesystem::path startScene = AssetManager::GetAbsolutePath(config.StartScene);
 		std::error_code ec;
 		if (AssetManager::IsAssetHandleValid(config.StartScene) && std::filesystem::exists(startScene, ec))
+		{
 			OpenScene(startScene);
-		else
-			HY_WARN("Project start scene (asset handle {}) is missing", (uint64_t)config.StartScene);
+			return;
+		}
+
+		// The start scene was deleted (#160): open the first scene of the project instead, so the editor doesn't
+		// keep the previous project's scene. The project file is left as it is; pick a start scene in Project Settings.
+		const AssetHandle fallback = FindFirstScene();
+		if ((uint64_t)fallback == 0)
+		{
+			HY_WARN("Project start scene (asset handle {}) is missing and the project has no other scene", (uint64_t)config.StartScene);
+			return;
+		}
+
+		const std::filesystem::path fallbackScene = AssetManager::GetAbsolutePath(fallback);
+		HY_WARN("Project start scene (asset handle {}) is missing; opening {} instead (set the start scene in Project Settings)",
+			(uint64_t)config.StartScene, AssetManager::GetMetadata(fallback)->Path.generic_u8string());
+		OpenScene(fallbackScene);
 	}
 	
 	void EditorLayer::SaveProject()

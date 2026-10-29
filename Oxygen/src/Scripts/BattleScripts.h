@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <random>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 // Native scripts of the Diorama RPG battle prototype (docs/DioramaRPG.md): enemies that wander and chase the
@@ -14,9 +15,9 @@
 // meadow and the field), and the party battle they start (Assets/Scenes/Battle.hyscene). The village is pushed
 // down on the scene stack while the battle runs (SceneTransition) and carries on when it ends.
 //
-// The party is the shrine maiden Miko alone (HeroCount): the hero table, the scene's "Hero <Name>" entities and
-// the sheets in Assets/DioramaRPG/Battle come from scripts/shrine_glade/battle.py. The code is written for any
-// HeroCount, so a second hero is a row in GetHero, its entities in the scene and HeroCount + 1.
+// The party is the shrine maiden Miko alone (HeroCount), with her field sheet Characters/Miko (Idle, Walk*, Punch,
+// Kick, Death). The battle is a 3D forest arena (scripts/battle/build_arena.py builds Battle.hyscene); the code is
+// written for any HeroCount, so a second hero is a row in GetHero, its entities in the scene and HeroCount + 1.
 //
 // Quick prototype code for play testing: the rules, the data and the presentation live together here. There
 // is no text rendering yet, so the labels, icons and numbers are sprites from Assets/DioramaRPG/UI.
@@ -70,21 +71,25 @@ namespace Hydro
 		int SkillCost[2];
 		float SkillPower[2];
 		bool SkillHeals[2];
-		// Battle sheet clips (DioramaRPG/Battle/<Name>_Battle.hyanim) for the two skills and for using an item.
+		// The hero's clips (Characters/<Name>/<Name>.hyanim) for the two skills ("Punch" / "Kick"), whether a skill
+		// walks up to its target first (a strike) or is used from where the hero stands, and the item clip.
 		const char* SkillClip[2];
+		bool SkillApproach[2];
 		const char* ItemClip;
 	};
 
-	// The party: Miko, the shrine maiden, fighting bare-handed (Blunt). Flame Kick is the spinning strike of her
-	// Attack clip (contact at FirstHitTime); Holy Palm the palm thrust of her Cast clip (its peak at SpellPeakTime).
-	// Alone she carries the party's HP and MP, so she is sturdier than Orin and Lila were on their own.
+	// The party: Miko, the shrine maiden, fighting bare-handed (Blunt). Her Attack walks up to the target and
+	// punches (a boost adds a kick, a punch, a kick); Flame Kick walks up and lands her spinning kick in fire;
+	// Holy Palm walks up and strikes with her palm in light. The impacts land on
+	// the clips' contact frames (BattleScript PunchImpactTime, KickImpactTime). Alone she carries the party's HP
+	// and MP, so she is sturdier than Orin and Lila were on their own.
 	constexpr int HeroCount = 1;
 
 	inline const HeroDefinition& GetHero(int index)
 	{
 		static const HeroDefinition heroes[HeroCount] = {
 			{ "Miko", BattleLabel::Miko, 90, 32, 10, 8, 9, DamageType::Blunt,
-				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Attack", "Cast" }, "Cast" },
+				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Kick", "Punch" }, { true, true }, "Idle" },
 		};
 		return heroes[index];
 	}
@@ -165,6 +170,24 @@ namespace Hydro
 	HY_SCRIPT()
 	class EnemyChaseScript : public ScriptableEntity
 	{
+	public:
+		HY_PROPERTY(Range(0, 50), Tooltip("Metres: the player this close wakes it up"))
+		float AggroRange = 5.5f;
+		HY_PROPERTY(Range(0, 5), Tooltip("Metres: a player without a physics body this close starts the battle"))
+		float TouchRange = 0.7f;
+		HY_PROPERTY(Range(0, 100), Tooltip("Metres: the player this far away makes it give up"))
+		float LeashRange = 10.0f;
+		HY_PROPERTY(Range(0, 100), Tooltip("Metres from home before it gives up the chase"))
+		float MaxFromHome = 16.0f;
+		HY_PROPERTY(Range(0, 50), Tooltip("Metres around home it wanders"))
+		float WanderRadius = 3.0f;
+		HY_PROPERTY(Range(0, 20), Tooltip("Metres per second while wandering (wisps move 15% faster)"))
+		float WanderSpeed = 0.8f;
+		HY_PROPERTY(Range(0, 20), Tooltip("Metres per second while chasing (the player walks at about 3.5)"))
+		float ChaseSpeed = 2.2f;
+		HY_PROPERTY(Range(0, 20), Tooltip("Metres per second walking back home"))
+		float ReturnSpeed = 1.8f;
+
 	protected:
 		void OnCreate() override
 		{
@@ -361,14 +384,6 @@ namespace Hydro
 
 		enum class State : uint8_t { Wander, Chase, Return };
 
-		static constexpr float AggroRange = 5.5f;   // the player this close wakes it up
-		static constexpr float TouchRange = 0.7f;   // a player without a body this close is touched
-		static constexpr float LeashRange = 10.0f;  // and this far makes it give up
-		static constexpr float MaxFromHome = 16.0f;
-		static constexpr float WanderRadius = 3.0f;
-		static constexpr float WanderSpeed = 0.8f;
-		static constexpr float ChaseSpeed = 2.2f;   // the player walks at 3
-		static constexpr float ReturnSpeed = 1.8f;
 
 		static entt::entity FindPlayer(Scene& scene)
 		{
@@ -426,15 +441,52 @@ namespace Hydro
 	HY_SCRIPT()
 	class BattleScript : public ScriptableEntity
 	{
+	public:
+		HY_PROPERTY(Range(0, 99), Tooltip("Potions the party has in this battle (shown live while playing)"))
+		int Potions = 3;
+
+		// The stage camera (see "Stage camera" below). The scene's positions were baked with these values by
+		// scripts/battle/build_arena.py (keep its CAMERA in step); changing them moves the view, the HUD stays put.
+		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down (the field's is 50 to 70)"))
+		float CameraTilt = 73.0f;
+		HY_PROPERTY(Range(5, 90), Tooltip("Vertical field of view in degrees"))
+		float CameraFieldOfView = 30.0f;
+		HY_PROPERTY(Tooltip("The world point at the centre of the screen"))
+		glm::vec3 CameraFocus{ 0.0f, 5.5f, 0.0f };
+		HY_PROPERTY(Range(1, 100), Tooltip("Metres seen from the bottom of the screen to the top at the focus point"))
+		float ViewHeight = 10.0f;
+
+		// The hero's strikes: she walks up to the target, strikes on the clip's contact frame and walks back.
+		HY_PROPERTY(Range(0.5, 30), Tooltip("Metres per second walking up to the target"))
+		float WalkSpeed = 4.5f;
+		HY_PROPERTY(Range(0.5, 30), Tooltip("Metres per second walking back"))
+		float ReturnSpeed = 5.5f;
+		HY_PROPERTY(Range(0, 5), Tooltip("Metres right of the target where she stops to strike"))
+		float StrikeDistance = 1.0f;
+		HY_PROPERTY(Range(0, 2), Tooltip("Seconds into the Punch clip when the fist lands (Miko: its last frame, 0.5 s at 10 fps)"))
+		float PunchImpactTime = 0.5f;
+		HY_PROPERTY(Range(0, 2), Tooltip("Seconds into the Kick clip when the foot lands (Miko: frame 4, 0.4 s at 10 fps)"))
+		float KickImpactTime = 0.4f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Length of the Punch clip in seconds; the next strike or the walk back starts after it"))
+		float PunchLength = 0.65f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Length of the Kick clip in seconds"))
+		float KickLength = 0.75f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Camera shake on impacts (0 = none)"))
+		float ShakeStrength = 1.0f;
+
 	protected:
 		void OnCreate() override
 		{
 			Scene& scene = *GetEntity().GetScene();
+			m_Camera = Find(scene, "Camera");
+			UpdateStageCamera(scene);
+			CaptureLayout(scene);
 			for (int h = 0; h < HeroCount; h++)
 			{
 				const std::string prefix = std::string("Hero ") + GetHero(h).Name;
 				Hero& hero = m_Heroes[h];
 				hero.Sprite = Find(scene, prefix);
+				hero.Shadow = Find(scene, prefix + " Shadow");
 				hero.HPBack = Find(scene, prefix + " HP Back");
 				hero.HPFill = Find(scene, prefix + " HP Fill");
 				hero.MPBack = Find(scene, prefix + " MP Back");
@@ -447,7 +499,8 @@ namespace Hydro
 				{
 					hero.Pips[p] = Find(scene, prefix + " Pip " + std::to_string(p));
 				}
-				hero.Base = Position(scene, hero.Sprite);
+				hero.Base = ActorLayout(scene, hero.Sprite, HeroFoot, HeroPivot);
+				hero.Size = ActorSize(scene, hero.Sprite);
 				hero.Momentum = 1;
 				if (BattleState::HeroHP[h] <= 0)
 				{
@@ -463,6 +516,8 @@ namespace Hydro
 				enemy.Kind = BattleState::Encounter[e];
 				enemy.Sprites[0] = Find(scene, prefix + " Slime");
 				enemy.Sprites[1] = Find(scene, prefix + " Wisp");
+				enemy.Shadows[0] = Find(scene, prefix + " Slime Shadow");
+				enemy.Shadows[1] = Find(scene, prefix + " Wisp Shadow");
 				enemy.Light = Find(scene, prefix + " Light");
 				enemy.HPBack = Find(scene, prefix + " HP Back");
 				enemy.HPFill = Find(scene, prefix + " HP Fill");
@@ -472,7 +527,9 @@ namespace Hydro
 				{
 					enemy.WeakIcons[w] = Find(scene, prefix + " Weak " + std::to_string(w));
 				}
-				enemy.Base = Position(scene, enemy.Sprites[0]);
+				enemy.Base = ActorLayout(scene, enemy.Sprites[0], EnemyFoot, EnemyPivot[0]);
+				enemy.Size[0] = ActorSize(scene, enemy.Sprites[0]);
+				enemy.Size[1] = ActorSize(scene, enemy.Sprites[1]);
 				if (enemy.Kind != EnemyKind::None)
 				{
 					const EnemyDefinition& definition = GetEnemy(enemy.Kind);
@@ -501,7 +558,7 @@ namespace Hydro
 			m_BoostDigit = Find(scene, "Boost Digit");
 			m_Message = Find(scene, "Message");
 			m_Overlay = Find(scene, "Battle Overlay");
-			m_SlashEffect.Entity = Find(scene, "FX Slash");
+			m_StrikeEffect.Entity = Find(scene, "FX Strike");
 			m_HealEffect.Entity = Find(scene, "FX Heal");
 
 			// Keys held when the battle opens (the player was still walking) do not count.
@@ -519,6 +576,8 @@ namespace Hydro
 			Scene& scene = *GetEntity().GetScene();
 			m_Time += deltaTime;
 			m_DeltaTime = deltaTime;
+			m_ShakeTime = std::max(0.0f, m_ShakeTime - deltaTime);
+			UpdateStageCamera(scene);
 			m_PhaseTime += deltaTime;
 			m_MessageTime = std::max(0.0f, m_MessageTime - deltaTime);
 			for (Hero& hero : m_Heroes)
@@ -579,10 +638,13 @@ namespace Hydro
 		struct Hero
 		{
 			entt::entity Sprite = entt::null;
+			entt::entity Shadow = entt::null; // "<name> Shadow": the contact shadow on the floor under her feet
 			entt::entity HPBack = entt::null, HPFill = entt::null, MPBack = entt::null, MPFill = entt::null;
 			entt::entity HPDigits[3] = { entt::null, entt::null, entt::null };
 			entt::entity Pips[BattleState::MaxMomentum] = { entt::null, entt::null, entt::null, entt::null, entt::null };
-			glm::vec2 Base{ 0.0f };
+			glm::vec2 Base{ 0.0f };   // where she stands, in layout units (see "Stage camera")
+			glm::vec2 Offset{ 0.0f }; // from Base while she walks up to a target and back (layout units)
+			float Size = 2.4f;        // the sprite's height in metres
 			int Momentum = 1;
 			bool BoostedLastRound = false;
 			bool Guarding = false;
@@ -593,16 +655,17 @@ namespace Hydro
 		{
 			EnemyKind Kind = EnemyKind::None;
 			entt::entity Sprites[2] = { entt::null, entt::null }; // slime, wisp
+			entt::entity Shadows[2] = { entt::null, entt::null }; // their contact shadows ("<sprite> Shadow")
 			entt::entity Light = entt::null;
 			entt::entity HPBack = entt::null, HPFill = entt::null, ShieldIcon = entt::null, ShieldDigit = entt::null;
 			entt::entity WeakIcons[3] = { entt::null, entt::null, entt::null };
 			glm::vec2 Base{ 0.0f };
+			float Size[2] = { 1.3f, 1.3f }; // the sprites' heights in metres (slime, wisp)
 			int HP = 0;
 			int Shield = 0;
 			int BrokenUntilRound = -1; // broken while m_Round <= this
 			float Flash = 0.0f;
 			float Fade = 1.0f;         // 1 alive, falls to 0 when defeated
-			float ShadowBaseY[2] = { -1000.0f, -1000.0f }; // the shadows' authored offsets (slime, wisp)
 			bool Alive() const { return Kind != EnemyKind::None && HP > 0; }
 		};
 
@@ -628,7 +691,21 @@ namespace Hydro
 			int Boost = 0;
 			int HitsDone = 0;
 			int Hits = 1;
+
+			// A hero's strike sequence (UpdateHeroStrikes): walk up, strikes, walk back.
+			enum class Stage : uint8_t { Approach, Strike, Return };
+			Stage Step = Stage::Strike;
+			float StepTime = 0.0f;
+			float StepDuration = 0.0f;
+			int Strike = 0;          // strikes started
+			bool EffectStarted = false;
+			bool Landed = false;
+			glm::vec2 From{ 0.0f };  // the hero's offset at the start of a walk
+			glm::vec2 To{ 0.0f };    // and at its end
 		};
+
+		// What a strike looks like: the hero's clip, and the effect that goes with it.
+		enum class StrikeMove : uint8_t { Punch, Kick };
 
 		// ---- Flow -----------------------------------------------------------------------------------------
 
@@ -833,12 +910,12 @@ namespace Hydro
 				}
 				else if (command == Command::Potion)
 				{
-					if (m_Potions <= 0)
+					if (Potions <= 0)
 					{
 						ShowMessage(BattleLabel::NoPotions);
 						continue;
 					}
-					m_Potions--;
+					Potions--;
 					m_Action.Target = MostHurtHero();
 				}
 				else if (command == Command::Run)
@@ -873,32 +950,240 @@ namespace Hydro
 		void BeginHeroAction()
 		{
 			const int h = m_Action.Actor;
-			m_StrikesPlayed = 0;
 			Entity sprite = EntityOf(m_Heroes[h].Sprite);
+			const HeroDefinition& definition = GetHero(h);
 			switch (m_Action.Kind)
 			{
 				case Command::Attack:
-					SpriteAnimator::Play(sprite, "Attack", true);
+					BeginApproach();
 					break;
 				case Command::SkillA:
 				case Command::SkillB:
-				case Command::Potion:
 				{
-					const HeroDefinition& definition = GetHero(h);
-					const char* clip = m_Action.Kind == Command::Potion ? definition.ItemClip : definition.SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1];
-					SpriteAnimator::Play(sprite, clip, true);
-					ShowMessage(m_Action.Kind == Command::Potion ? BattleLabel::Potion : GetHero(h).SkillLabel[m_Action.Kind == Command::SkillA ? 0 : 1], 0.9f);
+					const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
+					ShowMessage(definition.SkillLabel[s], 0.9f);
+					if (definition.SkillHeals[s] == false && definition.SkillApproach[s])
+					{
+						BeginApproach();
+					}
+					else
+					{
+						BeginStrike();
+					}
 					break;
 				}
+				case Command::Potion:
+					SpriteAnimator::Play(sprite, definition.ItemClip, true);
+					ShowMessage(BattleLabel::Potion, 0.9f);
+					break;
 				case Command::Guard:
 					m_Heroes[h].Guarding = true;
-					SpriteAnimator::Play(sprite, "Guard", true);
+					SpriteAnimator::Play(sprite, "Idle", true);
 					ShowMessage(BattleLabel::Guarding, 0.7f);
 					break;
 				default:
 					break;
 			}
 			SetPhase(Phase::Acting);
+		}
+
+		// ---- The hero's strikes -----------------------------------------------------------------------------
+		// Attack and the strike skills: walk up to the target (Walk<Facing>), one strike per hit on the clip's
+		// contact frame (Punch / Kick), walk back, Idle. Spells (Holy Palm) strike from where she stands.
+
+		StrikeMove CurrentMove() const
+		{
+			if (m_Action.Kind == Command::Attack)
+			{
+				return m_Action.Strike % 2 == 0 ? StrikeMove::Punch : StrikeMove::Kick; // punch, kick, punch, kick
+			}
+			const HeroDefinition& definition = GetHero(m_Action.Actor);
+			return std::string(definition.SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1]) == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
+		}
+
+		DamageType CurrentDamageType() const
+		{
+			const HeroDefinition& definition = GetHero(m_Action.Actor);
+			if (m_Action.Kind == Command::Attack)
+			{
+				return definition.WeaponType;
+			}
+			return definition.SkillType[m_Action.Kind == Command::SkillA ? 0 : 1];
+		}
+
+		float ImpactTime(StrikeMove move) const { return move == StrikeMove::Punch ? PunchImpactTime : KickImpactTime; }
+		float StrikeLength(StrikeMove move) const { return std::max(move == StrikeMove::Punch ? PunchLength : KickLength, ImpactTime(move) + 0.05f); }
+
+		// Where the hero stands to strike the target: StrikeDistance to its right, on the floor.
+		glm::vec2 StrikeOffset(int target) const
+		{
+			const glm::vec3 enemy = GroundPoint(m_Enemies[target].Base);
+			return LayoutOf(enemy + glm::vec3(StrikeDistance, 0.0f, 0.0f)) - m_Heroes[m_Action.Actor].Base;
+		}
+
+		// Seconds to walk between two offsets of the hero at `speed` metres per second (measured on the floor).
+		float WalkTime(const glm::vec2& from, const glm::vec2& to, float speed) const
+		{
+			const glm::vec2 base = m_Heroes[m_Action.Actor].Base;
+			const float metres = glm::length(GroundPoint(base + to) - GroundPoint(base + from));
+			return metres / std::max(speed, 0.1f);
+		}
+
+		void BeginApproach()
+		{
+			Hero& hero = m_Heroes[m_Action.Actor];
+			m_Action.Step = Action::Stage::Approach;
+			m_Action.StepTime = 0.0f;
+			m_Action.From = hero.Offset;
+			m_Action.To = StrikeOffset(m_Action.Target);
+			m_Action.StepDuration = WalkTime(m_Action.From, m_Action.To, WalkSpeed);
+			const glm::vec2 direction = m_Action.To - m_Action.From;
+			SpriteAnimator::Play(EntityOf(hero.Sprite), direction.x <= 0.0f ? "WalkLeft" : "WalkRight", true);
+			PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, StepDust(), ParticleSpace::Ground);
+		}
+
+		void BeginStrike()
+		{
+			m_Action.Step = Action::Stage::Strike;
+			m_Action.StepTime = 0.0f;
+			m_Action.EffectStarted = false;
+			m_Action.Landed = false;
+			SpriteAnimator::Play(EntityOf(m_Heroes[m_Action.Actor].Sprite), CurrentMove() == StrikeMove::Punch ? "Punch" : "Kick", true);
+			m_Action.Strike++;
+		}
+
+		void BeginReturn()
+		{
+			Hero& hero = m_Heroes[m_Action.Actor];
+			m_Action.Step = Action::Stage::Return;
+			m_Action.StepTime = 0.0f;
+			m_Action.From = hero.Offset;
+			m_Action.To = glm::vec2(0.0f);
+			m_Action.StepDuration = WalkTime(m_Action.From, m_Action.To, ReturnSpeed);
+			if (m_Action.StepDuration > 0.01f)
+			{
+				SpriteAnimator::Play(EntityOf(hero.Sprite), m_Action.From.x > 0.0f ? "WalkLeft" : "WalkRight", true);
+			}
+		}
+
+		void UpdateHeroStrikes()
+		{
+			Hero& hero = m_Heroes[m_Action.Actor];
+			m_Action.StepTime += m_DeltaTime;
+			const float k = m_Action.StepDuration > 0.0f ? std::clamp(m_Action.StepTime / m_Action.StepDuration, 0.0f, 1.0f) : 1.0f;
+			switch (m_Action.Step)
+			{
+				case Action::Stage::Approach:
+				{
+					const float eased = 1.0f - (1.0f - k) * (1.0f - k); // brisk start, settles into place
+					hero.Offset = m_Action.From + (m_Action.To - m_Action.From) * eased;
+					if (k >= 1.0f)
+					{
+						PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, StepDust(), ParticleSpace::Ground);
+						BeginStrike();
+					}
+					break;
+				}
+				case Action::Stage::Strike:
+				{
+					const StrikeMove move = CurrentMove();
+					const float impact = ImpactTime(move);
+					// The effect's sprite starts early enough that its burst frame meets the impact.
+					if (m_Action.EffectStarted == false && m_Action.StepTime >= impact - EffectLead(move, CurrentDamageType()))
+					{
+						m_Action.EffectStarted = true;
+						const int target = m_Enemies[m_Action.Target].Alive() ? m_Action.Target : FirstLivingEnemy(m_Action.Target);
+						if (target >= 0 && IsHealing() == false)
+						{
+							PlayStrikeEffect(move, CurrentDamageType(), target);
+						}
+					}
+					if (m_Action.Landed == false && m_Action.StepTime >= impact)
+					{
+						m_Action.Landed = true;
+						LandStrike(move);
+					}
+					if (m_Action.StepTime >= StrikeLength(move))
+					{
+						const bool moreHits = m_Action.Kind == Command::Attack && m_Action.HitsDone < m_Action.Hits;
+						const int next = FirstLivingEnemy(m_Action.Target);
+						if (moreHits && next >= 0)
+						{
+							if (next != m_Action.Target)
+							{
+								// The target fell: walk over to the next one.
+								m_Action.Target = next;
+								BeginApproach();
+							}
+							else
+							{
+								BeginStrike();
+							}
+						}
+						else
+						{
+							BeginReturn();
+						}
+					}
+					break;
+				}
+				case Action::Stage::Return:
+				{
+					const float eased = k * k * (3.0f - 2.0f * k);
+					hero.Offset = m_Action.From + (m_Action.To - m_Action.From) * eased;
+					if (k >= 1.0f)
+					{
+						hero.Offset = glm::vec2(0.0f);
+						EndAction();
+					}
+					break;
+				}
+			}
+		}
+
+		bool IsHealing() const
+		{
+			return (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB)
+				&& GetHero(m_Action.Actor).SkillHeals[m_Action.Kind == Command::SkillA ? 0 : 1];
+		}
+
+		// The strike lands: damage (or a heal), the impact's particles, light and shake.
+		void LandStrike(StrikeMove move)
+		{
+			const HeroDefinition& definition = GetHero(m_Action.Actor);
+			if (IsHealing())
+			{
+				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
+				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
+				HealHero(m_Action.Target, (int)std::lround(definition.SkillPower[s] * (float)definition.Magic * boost * (0.9f + 0.2f * Random01())));
+				m_Action.HitsDone++;
+				return;
+			}
+
+			if (m_Enemies[m_Action.Target].Alive() == false)
+			{
+				m_Action.Target = FirstLivingEnemy(m_Action.Target);
+				if (m_Action.Target < 0)
+				{
+					return;
+				}
+			}
+
+			bool strong = false;
+			const DamageType type = CurrentDamageType();
+			if (m_Action.Kind == Command::Attack)
+			{
+				strong = HitEnemy(m_Action.Target, type, (float)definition.Attack, 1.0f);
+			}
+			else
+			{
+				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
+				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
+				const float stat = type == DamageType::Light || type == DamageType::Fire ? (float)std::max(definition.Magic, definition.Attack) : (float)definition.Attack;
+				strong = HitEnemy(m_Action.Target, type, stat, definition.SkillPower[s] * boost);
+			}
+			m_Action.HitsDone++;
+			PlayImpact(move, type, m_Action.Target, strong);
 		}
 
 		void BeginEnemyAction()
@@ -933,79 +1218,15 @@ namespace Hydro
 		void UpdateAction(Scene& scene)
 		{
 			const bool hero = IsHero(m_Action.Actor);
-			if (hero && m_Action.Kind == Command::Attack)
+			if (hero && (m_Action.Kind == Command::Attack || m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB))
 			{
-				// Lunge, then the hits HitSpacing apart, then back. The first hit lands on the Attack clip's contact
-				// frame (anticipation, then the swing); each extra hit of a boost replays the swing alone (Strike),
-				// started so its contact frame meets the hit.
-				const float firstHit = FirstHitTime;
-				const int next = m_Action.HitsDone;
-				if (next > 0 && next < m_Action.Hits && m_StrikesPlayed < next && m_PhaseTime >= firstHit + HitSpacing * (float)next - StrikeContact)
-				{
-					SpriteAnimator::Play(EntityOf(m_Heroes[m_Action.Actor].Sprite), "Strike", true);
-					m_StrikesPlayed = next;
-				}
-				while (m_Action.HitsDone < m_Action.Hits && m_PhaseTime >= firstHit + HitSpacing * (float)m_Action.HitsDone)
-				{
-					if (m_Enemies[m_Action.Target].Alive() == false)
-					{
-						m_Action.Target = FirstLivingEnemy(m_Action.Target);
-						if (m_Action.Target < 0)
-						{
-							break;
-						}
-					}
-					HitEnemy(m_Action.Target, GetHero(m_Action.Actor).WeaponType, (float)GetHero(m_Action.Actor).Attack, 1.0f);
-					m_Action.HitsDone++;
-				}
-				const float end = firstHit + HitSpacing * (float)(m_Action.Hits - 1) + 0.55f;
-				if (m_PhaseTime >= end || m_Action.Target < 0)
-				{
-					EndAction();
-				}
-				return;
-			}
-
-			if (hero && (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB))
-			{
-				// Skills on the Attack clip (a strike) land at FirstHitTime; spells on the Cast / Heal clip at its peak.
-				const HeroDefinition& skillHero = GetHero(m_Action.Actor);
-				const char* skillClip = skillHero.SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1];
-				const float resolveAt = std::string(skillClip) == "Attack" ? FirstHitTime : SpellPeakTime;
-				if (m_Action.HitsDone == 0 && m_PhaseTime >= resolveAt)
-				{
-					m_Action.HitsDone = 1;
-					const HeroDefinition& definition = skillHero;
-					const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
-					const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-					if (definition.SkillHeals[s])
-					{
-						HealHero(m_Action.Target, (int)std::lround(definition.SkillPower[s] * (float)definition.Magic * boost * (0.9f + 0.2f * Random01())));
-					}
-					else
-					{
-						if (m_Enemies[m_Action.Target].Alive() == false)
-						{
-							m_Action.Target = FirstLivingEnemy(m_Action.Target);
-						}
-						if (m_Action.Target >= 0)
-						{
-							const float stat = definition.SkillType[s] == DamageType::Light || definition.SkillType[s] == DamageType::Fire
-								? (float)std::max(definition.Magic, definition.Attack) : (float)definition.Attack;
-							HitEnemy(m_Action.Target, definition.SkillType[s], stat, definition.SkillPower[s] * boost);
-						}
-					}
-				}
-				if (m_PhaseTime >= 1.2f)
-				{
-					EndAction();
-				}
+				UpdateHeroStrikes();
 				return;
 			}
 
 			if (hero && m_Action.Kind == Command::Potion)
 			{
-				if (m_Action.HitsDone == 0 && m_PhaseTime >= SpellPeakTime)
+				if (m_Action.HitsDone == 0 && m_PhaseTime >= ItemTime)
 				{
 					m_Action.HitsDone = 1;
 					HealHero(m_Action.Target, 25);
@@ -1040,17 +1261,14 @@ namespace Hydro
 				}
 				BattleState::HeroHP[m_Action.Target] = std::max(0, BattleState::HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
-				SpawnPopup(target.Base + glm::vec2(0.0f, 4.5f), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-				PlayEffect("Effect Hit Sparks", target.Base + glm::vec2(0.0f, 2.0f), HitSparks(DamageType::Blunt, target.Guarding == false));
+				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, HitSparks(DamageType::Blunt, target.Guarding == false), ParticleSpace::View);
+				Shake(target.Guarding ? 0.04f : 0.08f);
 				Entity sprite = EntityOf(target.Sprite);
 				if (BattleState::HeroHP[m_Action.Target] <= 0)
 				{
-					SpriteAnimator::Play(sprite, "Down", true);
+					SpriteAnimator::Play(sprite, "Death", true);
 					HY_INFO("Battle: {} falls!", GetHero(m_Action.Target).Name);
-				}
-				else if (target.Guarding == false)
-				{
-					SpriteAnimator::Play(sprite, "Hurt", true);
 				}
 				HY_INFO("Battle: {} hits {} for {}{}", GetEnemy(enemy.Kind).Name, GetHero(m_Action.Target).Name, damage, target.Guarding ? " (guarded)" : "");
 			}
@@ -1066,14 +1284,15 @@ namespace Hydro
 			if (IsHero(m_Action.Actor))
 			{
 				Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
-				if (m_Heroes[m_Action.Actor].Guarding == false)
+				m_Heroes[m_Action.Actor].Offset = glm::vec2(0.0f);
+				if (BattleState::HeroHP[m_Action.Actor] > 0)
 				{
 					SpriteAnimator::Play(sprite, "Idle");
 				}
 			}
 			for (int h = 0; h < HeroCount; h++)
 			{
-				if (BattleState::HeroHP[h] > 0 && m_Heroes[h].Guarding == false && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
+				if (BattleState::HeroHP[h] > 0 && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
 				{
 					SpriteAnimator::Play(EntityOf(m_Heroes[h].Sprite), "Idle");
 				}
@@ -1081,7 +1300,9 @@ namespace Hydro
 			SetPhase(Phase::NextTurn);
 		}
 
-		void HitEnemy(int index, DamageType type, float stat, float power)
+		// Damage to an enemy, its popup and, when it falls, the defeat puff. Returns whether the hit was strong
+		// (weak or critical): the impact effects (PlayImpact) are bigger then.
+		bool HitEnemy(int index, DamageType type, float stat, float power)
 		{
 			Enemy& enemy = m_Enemies[index];
 			const EnemyDefinition& definition = GetEnemy(enemy.Kind);
@@ -1146,40 +1367,51 @@ namespace Hydro
 				ShowMessage(BattleLabel::Critical, 0.6f);
 			}
 
-			SpawnPopup(enemy.Base + glm::vec2(0.0f, 3.2f), damage, color);
-			PlayEffect("Effect Hit Sparks", enemy.Base + glm::vec2(0.0f, 1.2f), HitSparks(type, weak || critical));
-			PlaySpriteEffect(m_SlashEffect, enemy.Base + glm::vec2(0.2f, 1.6f), "Slash", SlashEffectTime);
+			SpawnPopup(ScreenAbove(enemy.Base, EnemyPopupHeight), damage, color);
 			HY_INFO("Battle: {} takes {}{}{}{} ({} HP left, shield {})", definition.Name, damage, weak ? " (weak)" : "", resisted ? " (resisted)" : "",
 				critical ? " (critical)" : "", enemy.HP, enemy.Shield);
 			if (enemy.HP <= 0)
 			{
 				HY_INFO("Battle: {} is defeated", definition.Name);
-				PlayEffect("Effect Defeat Puff", enemy.Base + glm::vec2(0.0f, 1.0f), DefeatPuff(enemy.Kind));
+				PlayEffect("Effect Defeat Puff", enemy.Base, 0.5f, DefeatPuff(enemy.Kind), ParticleSpace::View);
 			}
+			return weak || critical;
 		}
 
-		// One-shot effect sprites (Battle.hyscene: "FX Slash", "FX Heal"): placed, restarted, shown while their clip runs;
-		// a point light on the same entity flares with it (PresentSpriteEffect fades both). They play alongside the
-		// particle effects below: the sprite gives the authored shape, the particles the spray.
+		// One-shot effect sprites (Battle.hyscene: "FX Strike", "FX Heal"): billboards in the world, placed,
+		// restarted and shown while their clip runs; a point light on the same entity flares with them
+		// (PresentSpriteEffect fades both), so the impact lights the floor and the actors around it (V9: a strong
+		// effect alters the scene around it). They play alongside the particle effects below: the sprite gives the
+		// authored shape, the particles the spray.
 		struct SpriteEffect
 		{
 			entt::entity Entity = entt::null;
 			float Time = 0.0f;     // seconds left
 			float Duration = 1.0f;
-			float LightBase = 0.0f;
+			float LightPeak = 0.0f;  // the light's intensity at its flare
+			float LightTime = 0.0f;  // seconds left of the flare
 		};
 
-		void PlaySpriteEffect(SpriteEffect& effect, const glm::vec2& position, const char* clip, float duration)
+		static constexpr float LightFlareTime = 0.35f;
+
+		void PlaySpriteEffect(SpriteEffect& effect, const glm::vec3& position, const char* clip, float duration,
+			const glm::vec3& lightColor = glm::vec3(1.0f), float lightIntensity = 0.0f)
 		{
 			Scene& scene = *GetEntity().GetScene();
 			if (Alive(scene, effect.Entity) == false)
 			{
 				return;
 			}
-			SetPosition(scene, effect.Entity, position);
+			scene.m_Registry.get<TransformComponent>(effect.Entity).Translation = position;
 			SpriteAnimator::Play(EntityOf(effect.Entity), clip, true);
 			effect.Time = duration;
 			effect.Duration = duration;
+			effect.LightPeak = lightIntensity;
+			effect.LightTime = lightIntensity > 0.0f ? LightFlareTime : 0.0f;
+			if (scene.m_Registry.has<Light2DComponent>(effect.Entity))
+			{
+				scene.m_Registry.get<Light2DComponent>(effect.Entity).Color = lightColor;
+			}
 		}
 
 		void PresentSpriteEffect(Scene& scene, SpriteEffect& effect)
@@ -1189,17 +1421,91 @@ namespace Hydro
 				return;
 			}
 			effect.Time = std::max(0.0f, effect.Time - m_DeltaTime);
-			const float k = effect.Time > 0.0f ? std::min(1.0f, effect.Time / (0.5f * effect.Duration)) : 0.0f;
+			effect.LightTime = std::max(0.0f, effect.LightTime - m_DeltaTime);
 			SetColor(scene, effect.Entity, glm::vec4(1.0f, 1.0f, 1.0f, effect.Time > 0.0f ? 1.0f : 0.0f));
 			if (scene.m_Registry.has<Light2DComponent>(effect.Entity))
 			{
-				Light2DComponent& light = scene.m_Registry.get<Light2DComponent>(effect.Entity);
-				if (effect.LightBase <= 0.0f)
-				{
-					effect.LightBase = std::max(light.Intensity, 0.8f);
-				}
-				light.Intensity = effect.LightBase * k;
+				const float k = effect.LightTime / LightFlareTime;
+				scene.m_Registry.get<Light2DComponent>(effect.Entity).Intensity = effect.LightPeak * k * k;
 			}
+		}
+
+		// The clip on FX Strike (Battle/FX_Strikes.hyanim, scripts/battle/fx_strikes.py) for a strike: the punch's
+		// starburst or the kick's swoosh, in fire for Fire (Flame Kick), as light for Light (Holy Palm).
+		static const char* StrikeClip(StrikeMove move, DamageType type)
+		{
+			if (type == DamageType::Light)
+			{
+				return "Holy";
+			}
+			if (move == StrikeMove::Kick)
+			{
+				return type == DamageType::Fire ? "Flame" : "Kick";
+			}
+			return type == DamageType::Fire ? "Flame" : "Punch";
+		}
+
+		// Seconds the effect's sprite starts before the impact, so its burst frame meets it: the kick's swoosh
+		// first follows the leg over the top (4 frames at 14 fps), the punch's burst is on its second frame.
+		static float EffectLead(StrikeMove move, DamageType type)
+		{
+			const std::string clip = StrikeClip(move, type);
+			if (clip == "Kick" || clip == "Flame")
+			{
+				return 4.0f / 14.0f;
+			}
+			return clip == "Holy" ? 1.0f / 12.0f : 1.0f / 14.0f;
+		}
+
+		// The effect's sprite at the target, lifted towards the camera so it is drawn over the enemy. The kick's
+		// burst is left of its cell's centre (where the leg lands), so the cell sits a little to the right.
+		void PlayStrikeEffect(StrikeMove move, DamageType type, int target)
+		{
+			const std::string clip = StrikeClip(move, type);
+			const Enemy& enemy = m_Enemies[target];
+			const float size = enemy.Size[enemy.Kind == EnemyKind::Wisp ? 1 : 0];
+			glm::vec3 position = Above(enemy.Base, 0.55f * size) + m_Stage.Back * 0.6f;
+			float duration = 6.0f / 14.0f;
+			if (clip == "Kick" || clip == "Flame")
+			{
+				position += m_Stage.Right * 0.5f;
+				duration = 7.0f / 14.0f;
+			}
+			else if (clip == "Holy")
+			{
+				position = Above(enemy.Base, 0.75f * size) + m_Stage.Back * 0.6f;
+				duration = 8.0f / 12.0f;
+			}
+			PlaySpriteEffect(m_StrikeEffect, position, clip.c_str(), duration, StrikeLightColor(type, move), 0.0f);
+		}
+
+		static glm::vec3 StrikeLightColor(DamageType type, StrikeMove move)
+		{
+			switch (type)
+			{
+				case DamageType::Fire: return { 1.0f, 0.55f, 0.2f };
+				case DamageType::Light: return { 1.0f, 0.93f, 0.7f };
+				default: return move == StrikeMove::Kick ? glm::vec3(0.85f, 0.95f, 1.0f) : glm::vec3(1.0f, 0.85f, 0.55f);
+			}
+		}
+
+		// The moment of impact: sparks in the effect's colours, the light flaring on the floor, a dust kick for a
+		// kick, and the camera shake (stronger for weak and critical hits and for skills).
+		void PlayImpact(StrikeMove move, DamageType type, int target, bool strong)
+		{
+			const Enemy& enemy = m_Enemies[target];
+			const float size = enemy.Size[enemy.Kind == EnemyKind::Wisp ? 1 : 0];
+			PlayEffect("Effect Hit Sparks", enemy.Base, 0.55f * size, HitSparks(type, strong), ParticleSpace::View);
+			if (move == StrikeMove::Kick)
+			{
+				PlayEffect("Effect Dust", enemy.Base, 0.05f, KickDust(), ParticleSpace::Ground);
+			}
+			const bool skill = m_Action.Kind != Command::Attack;
+			m_StrikeEffect.LightPeak = (skill ? 7.0f : 4.0f) * (strong ? 1.3f : 1.0f);
+			m_StrikeEffect.LightTime = LightFlareTime;
+			float shake = move == StrikeMove::Kick ? 0.09f : 0.06f;
+			shake *= skill ? 1.8f : 1.0f;
+			Shake(strong ? shake * 1.4f : shake);
 		}
 
 		void HealHero(int h, int amount)
@@ -1210,9 +1516,10 @@ namespace Hydro
 			}
 			const int before = BattleState::HeroHP[h];
 			BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + amount);
-			SpawnPopup(m_Heroes[h].Base + glm::vec2(0.0f, 4.5f), BattleState::HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
-			PlayEffect("Effect Heal", m_Heroes[h].Base + glm::vec2(0.0f, 0.8f), HealMotes());
-			PlaySpriteEffect(m_HealEffect, m_Heroes[h].Base + glm::vec2(0.0f, 1.2f), "Heal", HealEffectTime);
+			SpawnPopup(ScreenAbove(m_Heroes[h].Base, HeroPopupHeight), BattleState::HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
+			PlayEffect("Effect Heal", m_Heroes[h].Base, 0.35f, HealMotes(), ParticleSpace::View);
+			PlaySpriteEffect(m_HealEffect, Above(m_Heroes[h].Base, 0.6f) + m_Stage.Back * 0.6f, "Heal", HealEffectTime,
+				glm::vec3(0.55f, 1.0f, 0.6f), 2.5f);
 			HY_INFO("Battle: {} recovers {} HP", GetHero(h).Name, BattleState::HeroHP[h] - before);
 		}
 
@@ -1290,7 +1597,9 @@ namespace Hydro
 		// Each effect is a short-lived entity with a ParticleEmitter2DComponent: one burst, then it destroys
 		// itself (DestroyWhenFinished). The presets are plain component values (Roadmap: prefabs later, V5).
 
-		// Sparks where a hit lands, coloured by the damage type. Unlit, so they stay bright in a dark battle.
+		// Sparks where a hit lands, coloured by the damage type. Lit but glowing (emission, so they bloom), sprayed
+		// in the plane facing the camera (PlayEffect makes battle effects View space). Sizes and speeds are in
+		// layout units, like the rest of the battle: PlayEffect scales them to metres.
 		static ParticleEmitter2DComponent HitSparks(DamageType type, bool strong)
 		{
 			ParticleEmitter2DComponent sparks;
@@ -1309,7 +1618,8 @@ namespace Hydro
 			sparks.EndSizeScale = 0.2f;
 			sparks.Gravity = { 0.0f, -9.0f };
 			sparks.Drag = 3.0f;
-			sparks.Lighting = ParticleLighting::Unlit;
+			sparks.Lighting = ParticleLighting::Lit;
+			sparks.EmissionIntensity = 3.0f;
 			sparks.Blend = ParticleBlend::Additive; // drawn alpha until the additive pipeline (Roadmap V4)
 			sparks.SortOrder = 200;
 			sparks.DestroyWhenFinished = true;
@@ -1367,7 +1677,45 @@ namespace Hydro
 			return puff;
 		}
 
-		// Green motes rising from a healed hero. Unlit.
+		// Dust kicked up by a footstep (the hero setting off and stopping). On the floor (Ground space).
+		static ParticleEmitter2DComponent StepDust()
+		{
+			ParticleEmitter2DComponent dust;
+			dust.Looping = false;
+			dust.Duration = 0.05f;
+			dust.Rate = 0.0f;
+			dust.BurstCount = 10;
+			dust.MaxParticles = 16;
+			dust.Shape = EmitterShape::Circle;
+			dust.ShapeSize = { 0.4f, 0.4f };
+			dust.Lifetime = { 0.35f, 0.6f };
+			dust.Speed = { 0.6f, 1.6f };
+			dust.Direction = 90.0f;
+			dust.Spread = 180.0f;
+			dust.StartSize = { 0.3f, 0.55f };
+			dust.EndSizeScale = 1.8f;
+			dust.Drag = 3.0f;
+			dust.StartColor = { 0.62f, 0.52f, 0.42f, 0.55f };
+			dust.EndColor = { 0.55f, 0.48f, 0.4f, 0.0f };
+			dust.SortOrder = 20;
+			dust.DestroyWhenFinished = true;
+			return dust;
+		}
+
+		// A bigger burst of dust and grass bits where a kick lands.
+		static ParticleEmitter2DComponent KickDust()
+		{
+			ParticleEmitter2DComponent dust = StepDust();
+			dust.BurstCount = 18;
+			dust.MaxParticles = 24;
+			dust.Speed = { 1.5f, 3.5f };
+			dust.Direction = 180.0f; // away from the hero, who strikes from the right
+			dust.Spread = 70.0f;
+			dust.StartSize = { 0.35f, 0.7f };
+			return dust;
+		}
+
+		// Green motes rising from a healed hero.
 		static ParticleEmitter2DComponent HealMotes()
 		{
 			ParticleEmitter2DComponent motes;
@@ -1388,18 +1736,28 @@ namespace Hydro
 			motes.Turbulence = 2.0f;
 			motes.StartColor = { 0.55f, 1.0f, 0.6f, 1.0f };
 			motes.EndColor = { 0.8f, 1.0f, 0.7f, 0.0f };
-			motes.Lighting = ParticleLighting::Unlit;
+			motes.EmissionIntensity = 2.0f;
 			motes.SortOrder = 200;
 			motes.DestroyWhenFinished = true;
 			return motes;
 		}
 
-		// Creates the effect entity at `position`. Creating entities is allowed while scripts run; the
-		// emitter starts in this frame's particle stage.
-		void PlayEffect(const char* name, const glm::vec2& position, const ParticleEmitter2DComponent& settings)
+		// Creates the effect entity `height` metres above `ground` (layout units), a little towards the camera.
+		// The preset's lengths are layout units: scaled to metres here. Creating entities is allowed while scripts
+		// run; the emitter starts in this frame's particle stage.
+		void PlayEffect(const char* name, const glm::vec2& ground, float height, ParticleEmitter2DComponent settings, ParticleSpace space)
 		{
+			const float k = m_Stage.Scale;
+			settings.Space = space;
+			settings.ShapeSize *= k;
+			settings.Speed.Min *= k;
+			settings.Speed.Max *= k;
+			settings.StartSize.Min *= k;
+			settings.StartSize.Max *= k;
+			settings.Gravity *= k;
+			settings.Turbulence *= k;
 			Entity effect = GetEntity().GetScene()->CreateEntity(name);
-			effect.AddComponent<TransformComponent>().Translation = { position.x, position.y, 0.0f };
+			effect.AddComponent<TransformComponent>().Translation = Above(ground, height) + m_Stage.Back * 0.4f;
 			effect.AddComponent<ParticleEmitter2DComponent>(settings);
 		}
 
@@ -1435,15 +1793,219 @@ namespace Hydro
 			return entity != entt::null && scene.m_Registry.valid(entity);
 		}
 
-		static glm::vec2 Position(Scene& scene, entt::entity entity)
-		{
-			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
-			{
-				const glm::vec3& position = scene.m_Registry.get<TransformComponent>(entity).Translation;
-				return { position.x, position.y };
-			}
+		// ---- Stage camera -----------------------------------------------------------------------------------
+		// The battle keeps its rules and its HUD in layout units (L): the 2D layout it had before the 3D stage,
+		// LayoutHeight units from the bottom of the screen to the top, (0, 0) in the middle. The stage camera maps
+		// them to the world every frame (scripts/battle/stage.py does the same for the builder):
+		//   - HUD sprites (Overlay) sit on the plane facing the camera through the focus point (ScreenPoint), so
+		//     they stay on screen whatever the camera does (shake, a changed tilt);
+		//   - actors stand where the camera ray through their layout point meets the floor (GroundPoint), so they
+		//     stand where the 2D battle had them on screen, on the 3D floor;
+		//   - effects and popups go a height in metres above an actor (Above, ScreenAbove).
+		static constexpr float LayoutHeight = 18.0f;
+		static constexpr float HudLift = 1.0f;       // metres from the view plane towards the camera
+		static constexpr float GroundHeight = 0.0f;  // the arena floor
+		// Where the feet are in a cell, as a fraction of its height from the bottom, and the sheet's pivot (its
+		// .hymeta): Characters/Miko, DioramaRPG/Enemies (slime, wisp). An Upright sprite stands on its quad's
+		// bottom edge, which a pivot moves back by Pivot x height, so StandOffset moves the sprite until the
+		// feet are on the floor at its ground point (keep in step with scripts/battle/build_arena.py).
+		static constexpr float HeroFoot = 15.0f / 96.0f;
+		static constexpr float HeroPivot = 0.5f;
+		static constexpr float EnemyFoot = 4.0f / 32.0f;
+		static constexpr float EnemyPivot[2] = { 0.125f, 0.12f };
+		// Metres above the floor: damage numbers, the turn marker and the target cursor.
+		static constexpr float HeroPopupHeight = 1.7f;
+		static constexpr float HeroMarkerHeight = 2.05f;
+		static constexpr float EnemyPopupHeight = 1.35f;
+		static constexpr float EnemyCursorHeight = 1.5f;
 
-			return glm::vec2(0.0f);
+		struct StageCamera
+		{
+			glm::vec3 Focus{ 0.0f };
+			glm::vec3 Right{ 1.0f, 0.0f, 0.0f };
+			glm::vec3 Up{ 0.0f, 1.0f, 0.0f };
+			glm::vec3 Forward{ 0.0f, 0.0f, -1.0f };
+			glm::vec3 Back{ 0.0f, 0.0f, 1.0f };
+			glm::vec3 Position{ 0.0f };
+			float Distance = 1.0f;
+			float Scale = 1.0f; // metres per layout unit at the focus point
+		};
+
+		// Places the camera from the properties (and the shake) and sets up the mapping for this frame.
+		void UpdateStageCamera(Scene& scene)
+		{
+			const float tilt = glm::radians(std::clamp(CameraTilt, 0.0f, 89.0f));
+			const float fieldOfView = std::clamp(CameraFieldOfView, 5.0f, 90.0f);
+			StageCamera& stage = m_Stage;
+			stage.Forward = { 0.0f, std::sin(tilt), -std::cos(tilt) };
+			stage.Up = { 0.0f, std::cos(tilt), std::sin(tilt) };
+			stage.Right = { 1.0f, 0.0f, 0.0f };
+			stage.Back = -stage.Forward;
+			stage.Distance = std::max(ViewHeight, 0.1f) / (2.0f * std::tan(glm::radians(fieldOfView) * 0.5f));
+			stage.Scale = std::max(ViewHeight, 0.1f) / LayoutHeight;
+			stage.Focus = CameraFocus;
+			if (m_ShakeTime > 0.0f)
+			{
+				// A short, decaying jitter of the whole view (the HUD moves with the camera, so it stays still).
+				const float amount = m_ShakeAmount * (m_ShakeTime / ShakeTime);
+				stage.Focus += stage.Right * (std::sin(m_Time * 91.0f) * amount) + stage.Up * (std::cos(m_Time * 73.0f) * amount * 0.6f);
+			}
+			stage.Position = stage.Focus - stage.Forward * stage.Distance;
+
+			if (Alive(scene, m_Camera) && scene.m_Registry.has<CameraComponent>(m_Camera))
+			{
+				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(m_Camera);
+				transform.Translation = stage.Position;
+				transform.Rotation = { tilt, 0.0f, 0.0f };
+				SceneCamera& camera = scene.m_Registry.get<CameraComponent>(m_Camera).Camera;
+				camera.Projection = ProjectionType::Perspective;
+				camera.PerspectiveFOV = fieldOfView;
+				camera.PerspectiveNear = 0.5f;
+				camera.PerspectiveFar = stage.Distance + 200.0f;
+				camera.OrthographicSize = ViewHeight;
+			}
+		}
+
+		void Shake(float metres)
+		{
+			m_ShakeAmount = std::max(m_ShakeAmount * (m_ShakeTime / ShakeTime), metres * ShakeStrength);
+			m_ShakeTime = ShakeTime;
+		}
+
+		glm::vec3 ScreenPoint(const glm::vec2& layout, float lift = HudLift) const
+		{
+			return m_Stage.Focus + (m_Stage.Right * layout.x + m_Stage.Up * layout.y) * m_Stage.Scale + m_Stage.Back * lift;
+		}
+
+		glm::vec3 GroundPoint(const glm::vec2& layout) const
+		{
+			const glm::vec3 onPlane = ScreenPoint(layout, 0.0f);
+			const glm::vec3 direction = onPlane - m_Stage.Position;
+			if (std::abs(direction.z) < 1.0e-5f)
+			{
+				return onPlane;
+			}
+			const float t = (GroundHeight - m_Stage.Position.z) / direction.z;
+			return m_Stage.Position + direction * t;
+		}
+
+		// Any world point back to layout units: where it shows on screen.
+		glm::vec2 LayoutOf(const glm::vec3& world) const
+		{
+			const glm::vec3 direction = world - m_Stage.Position;
+			const float along = glm::dot(direction, m_Stage.Forward);
+			if (std::abs(along) < 1.0e-5f)
+			{
+				return glm::vec2(0.0f);
+			}
+			const glm::vec3 offset = m_Stage.Position + direction * (m_Stage.Distance / along) - m_Stage.Focus;
+			return glm::vec2(glm::dot(offset, m_Stage.Right), glm::dot(offset, m_Stage.Up)) / m_Stage.Scale;
+		}
+
+		// A point on (or lifted off) the view plane back to layout units.
+		glm::vec2 PlaneLayoutOf(const glm::vec3& world) const
+		{
+			const glm::vec3 offset = world - m_Stage.Focus;
+			return glm::vec2(glm::dot(offset, m_Stage.Right), glm::dot(offset, m_Stage.Up)) / m_Stage.Scale;
+		}
+
+		// `metres` above where an actor at `ground` (layout units) stands: up the standing sprite (Upright sprites
+		// turn to face the camera, so their up is the camera's up).
+		glm::vec3 Above(const glm::vec2& ground, float metres) const
+		{
+			return GroundPoint(ground) + m_Stage.Up * metres;
+		}
+
+		glm::vec2 ScreenAbove(const glm::vec2& ground, float metres) const
+		{
+			return LayoutOf(Above(ground, metres));
+		}
+
+		// From the point an Upright sprite's feet should stand on to its entity's position: back by the pivot,
+		// then down the leaning sprite (the camera's up) by the feet's height in the cell. `size` in metres.
+		glm::vec3 StandOffset(float foot, float pivot, float size) const
+		{
+			return glm::vec3(0.0f, pivot * size, 0.0f) - m_Stage.Up * (foot * size);
+		}
+
+		// Where an actor stands (its feet on the floor), in layout units; and its sprite's height in metres.
+		glm::vec2 ActorLayout(Scene& scene, entt::entity entity, float foot, float pivot) const
+		{
+			if (Alive(scene, entity) == false)
+			{
+				return glm::vec2(0.0f);
+			}
+			const TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
+			const glm::vec3 feet = transform.Translation - StandOffset(foot, pivot, transform.Scale.y);
+			return LayoutOf(glm::vec3(feet.x, feet.y, GroundHeight));
+		}
+
+		static float ActorSize(Scene& scene, entt::entity entity)
+		{
+			return Alive(scene, entity) ? scene.m_Registry.get<TransformComponent>(entity).Scale.y : 1.0f;
+		}
+
+		// An actor's sprite with its feet at `ground` (layout units), `lift` metres up (a wisp floats); its contact
+		// shadow (an entity of its own, so it stays on the floor) under the feet.
+		void PlaceActor(Scene& scene, entt::entity entity, entt::entity shadow, const glm::vec2& ground, float lift, float foot, float pivot)
+		{
+			const glm::vec3 feet = GroundPoint(ground);
+			if (Alive(scene, entity))
+			{
+				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
+				transform.Translation = feet + StandOffset(foot, pivot, transform.Scale.y) + glm::vec3(0.0f, 0.0f, lift);
+			}
+			if (Alive(scene, shadow))
+			{
+				scene.m_Registry.get<TransformComponent>(shadow).Translation = feet;
+			}
+		}
+
+		// Every HUD sprite (Overlay) with its place and size in layout units, read from where the builder put it.
+		struct LayoutItem
+		{
+			glm::vec2 Position{ 0.0f };
+			glm::vec2 Size{ 1.0f };
+		};
+
+		void CaptureLayout(Scene& scene)
+		{
+			m_Layout.clear();
+			auto view = scene.m_Registry.view<TransformComponent, SpriteRendererComponent>();
+			for (auto entity : view)
+			{
+				if (view.get<SpriteRendererComponent>(entity).Overlay == false)
+				{
+					continue;
+				}
+				const TransformComponent& transform = view.get<TransformComponent>(entity);
+				LayoutItem item;
+				item.Position = PlaneLayoutOf(transform.Translation);
+				item.Size = glm::vec2(transform.Scale) / m_Stage.Scale;
+				m_Layout[entity] = item;
+			}
+		}
+
+		LayoutItem LayoutItemOf(entt::entity entity) const
+		{
+			const auto found = m_Layout.find(entity);
+			return found != m_Layout.end() ? found->second : LayoutItem{};
+		}
+
+		// Puts every HUD sprite at its layout place for this frame's camera (last in Present).
+		void ApplyLayout(Scene& scene)
+		{
+			for (const auto& [entity, item] : m_Layout)
+			{
+				if (Alive(scene, entity) == false)
+				{
+					continue;
+				}
+				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
+				transform.Translation = ScreenPoint(item.Position);
+				transform.Scale.x = item.Size.x * m_Stage.Scale;
+				transform.Scale.y = item.Size.y * m_Stage.Scale;
+			}
 		}
 
 		static void SetColor(Scene& scene, entt::entity entity, const glm::vec4& color)
@@ -1462,39 +2024,38 @@ namespace Hydro
 			}
 		}
 
-		static void SetPosition(Scene& scene, entt::entity entity, const glm::vec2& position)
+		// Moves a HUD sprite to `position` (layout units); ApplyLayout puts it in the world.
+		void SetPosition([[maybe_unused]] Scene& scene, entt::entity entity, const glm::vec2& position)
 		{
-			if (Alive(scene, entity))
+			const auto found = m_Layout.find(entity);
+			if (found != m_Layout.end())
 			{
-				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
-				transform.Translation.x = position.x;
-				transform.Translation.y = position.y;
+				found->second.Position = position;
 			}
 		}
 
 		// A bar made of two quads: the back one is as wide as a full bar, the fill sticks to its left end.
-		static void SetBar(Scene& scene, entt::entity back, entt::entity fill, float fraction, const glm::vec4& color, float alpha)
+		void SetBar(Scene& scene, entt::entity back, entt::entity fill, float fraction, const glm::vec4& color, float alpha)
 		{
-			if (Alive(scene, back) == false || Alive(scene, fill) == false)
+			const auto backItem = m_Layout.find(back);
+			const auto fillItem = m_Layout.find(fill);
+			if (backItem == m_Layout.end() || fillItem == m_Layout.end())
 			{
 				return;
 			}
 
-			const TransformComponent& backTransform = scene.m_Registry.get<TransformComponent>(back);
-			TransformComponent& fillTransform = scene.m_Registry.get<TransformComponent>(fill);
 			const float inset = 0.12f;
-			const float width = backTransform.Scale.x - inset;
+			const float width = backItem->second.Size.x - inset;
 			const float length = std::max(0.0f, width * std::clamp(fraction, 0.0f, 1.0f));
-			fillTransform.Scale.x = std::max(0.001f, length);
-			fillTransform.Scale.y = backTransform.Scale.y - inset;
-			fillTransform.Translation.x = backTransform.Translation.x - 0.5f * width + 0.5f * length;
-			fillTransform.Translation.y = backTransform.Translation.y;
+			fillItem->second.Size.x = std::max(0.001f, length);
+			fillItem->second.Size.y = backItem->second.Size.y - inset;
+			fillItem->second.Position = backItem->second.Position + glm::vec2(-0.5f * width + 0.5f * length, 0.0f);
 			SetColor(scene, back, glm::vec4(0.08f, 0.07f, 0.05f, alpha));
 			SetColor(scene, fill, glm::vec4(color.r, color.g, color.b, length > 0.0f ? alpha : 0.0f));
 		}
 
 		// A number as up to three digit sprites, centred on `centre`; unused digits are hidden.
-		static void SetNumber(Scene& scene, const entt::entity (&digits)[3], int value, const glm::vec2& centre, float spacing, const glm::vec4& color)
+		void SetNumber(Scene& scene, const entt::entity (&digits)[3], int value, const glm::vec2& centre, float spacing, const glm::vec4& color)
 		{
 			const std::string text = std::to_string(std::clamp(value, 0, 999));
 			const int count = (int)text.size();
@@ -1520,24 +2081,16 @@ namespace Hydro
 			const bool acting = m_Phase == Phase::Acting;
 			const int actor = m_Action.Actor;
 
-			// Heroes: lunge on attacks, shake when hit.
+			// Heroes: where their strikes take them (UpdateHeroStrikes), a shake when hit.
 			for (int h = 0; h < HeroCount; h++)
 			{
 				Hero& hero = m_Heroes[h];
-				glm::vec2 offset{ 0.0f };
-				if (acting && actor == h && m_Action.Kind == Command::Attack && m_Action.Target >= 0)
-				{
-					const float total = FirstHitTime + HitSpacing * (float)(m_Action.Hits - 1) + 0.55f;
-					const float t = std::clamp(m_PhaseTime / total, 0.0f, 1.0f);
-					const float reach = std::sin(std::min(1.0f, t * 1.15f) * 3.1415927f);
-					const glm::vec2 goal = m_Enemies[m_Action.Target].Base + glm::vec2(3.2f, 0.0f);
-					offset = (goal - hero.Base) * std::min(1.0f, reach * 1.2f);
-				}
+				glm::vec2 offset = hero.Offset;
 				if (hero.Flash > 0.0f)
 				{
 					offset.x += std::sin(m_Time * 70.0f) * 0.2f;
 				}
-				SetPosition(scene, hero.Sprite, hero.Base + offset);
+				PlaceActor(scene, hero.Sprite, hero.Shadow, hero.Base + offset, 0.0f, HeroFoot, HeroPivot);
 				const float heat = std::clamp(hero.Flash / 0.35f, 0.0f, 1.0f);
 				SetColor(scene, hero.Sprite, glm::vec4(1.0f, 1.0f - 0.6f * heat, 1.0f - 0.6f * heat, 1.0f));
 
@@ -1546,8 +2099,8 @@ namespace Hydro
 				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.45f, 0.85f, 0.35f, 1.0f) : hpFraction > 0.25f ? glm::vec4(0.95f, 0.78f, 0.25f, 1.0f) : glm::vec4(0.9f, 0.25f, 0.2f, 1.0f);
 				SetBar(scene, hero.HPBack, hero.HPFill, hpFraction, hpColor, 1.0f);
 				SetBar(scene, hero.MPBack, hero.MPFill, (float)BattleState::HeroMP[h] / (float)definition.MaxMP, glm::vec4(0.35f, 0.6f, 0.95f, 1.0f), 1.0f);
-				const glm::vec2 hpBack = Position(scene, hero.HPBack);
-				const float barWidth = Alive(scene, hero.HPBack) ? scene.m_Registry.get<TransformComponent>(hero.HPBack).Scale.x : 2.0f;
+				const glm::vec2 hpBack = LayoutItemOf(hero.HPBack).Position;
+				const float barWidth = LayoutItemOf(hero.HPBack).Size.x;
 				SetNumber(scene, hero.HPDigits, BattleState::HeroHP[h], hpBack + glm::vec2(0.5f * barWidth + 0.75f, 0.0f), 0.42f, glm::vec4(1.0f));
 				for (int p = 0; p < BattleState::MaxMomentum; p++)
 				{
@@ -1579,24 +2132,13 @@ namespace Hydro
 				{
 					offset.x += std::sin(m_Time * 70.0f) * 0.2f;
 				}
-				float bob = 0.0f;
-				if (enemy.Kind == EnemyKind::Wisp)
-				{
-					bob = std::sin(m_Time * 2.2f + (float)e) * 0.25f;
-					offset.y += bob;
-				}
-				// The contact shadow stays on the ground: it does not follow the float.
+				// A wisp floats (metres above the floor); its contact shadow stays on the ground.
+				const float bob = enemy.Kind == EnemyKind::Wisp ? 0.35f + std::sin(m_Time * 2.2f + (float)e) * 0.12f : 0.0f;
 				for (int s = 0; s < 2; s++)
 				{
-					if (Alive(scene, enemy.Sprites[s]) && scene.m_Registry.has<Shadow2DComponent>(enemy.Sprites[s]))
+					if (Alive(scene, enemy.Shadows[s]) && scene.m_Registry.has<Shadow2DComponent>(enemy.Shadows[s]))
 					{
-						Shadow2DComponent& shadow = scene.m_Registry.get<Shadow2DComponent>(enemy.Sprites[s]);
-						if (enemy.ShadowBaseY[s] < -100.0f)
-						{
-							enemy.ShadowBaseY[s] = shadow.Offset.y;
-						}
-						shadow.Offset.y = enemy.ShadowBaseY[s] - bob;
-						shadow.Strength = (int)enemy.Kind == s + 1 ? 0.45f * enemy.Fade : 0.0f;
+						scene.m_Registry.get<Shadow2DComponent>(enemy.Shadows[s]).Strength = (int)enemy.Kind == s + 1 ? 0.45f * enemy.Fade : 0.0f;
 					}
 				}
 
@@ -1605,13 +2147,13 @@ namespace Hydro
 				for (int s = 0; s < 2; s++)
 				{
 					const bool shown = present && (int)enemy.Kind == s + 1;
-					SetPosition(scene, enemy.Sprites[s], enemy.Base + offset);
+					PlaceActor(scene, enemy.Sprites[s], enemy.Shadows[s], enemy.Base + offset, s == 1 ? bob : 0.0f, EnemyFoot, EnemyPivot[s]);
 					const float tint = broken ? 0.65f : 1.0f;
 					SetColor(scene, enemy.Sprites[s], shown ? glm::vec4(tint + (1.0f - tint) * heat, tint * (1.0f - 0.6f * heat), tint * (1.0f - 0.6f * heat), enemy.Fade) : glm::vec4(0.0f));
 				}
 				if (Alive(scene, enemy.Light) && scene.m_Registry.has<Light2DComponent>(enemy.Light))
 				{
-					SetPosition(scene, enemy.Light, enemy.Base + offset + glm::vec2(0.0f, 1.6f));
+					PlaceActor(scene, enemy.Light, entt::null, enemy.Base + offset, bob, 0.0f, 0.0f);
 					scene.m_Registry.get<Light2DComponent>(enemy.Light).Intensity = enemy.Kind == EnemyKind::Wisp ? 1.1f * enemy.Fade * (0.85f + 0.15f * std::sin(m_Time * 3.0f)) : 0.0f;
 				}
 
@@ -1637,14 +2179,15 @@ namespace Hydro
 			if (Alive(scene, m_TurnMarker))
 			{
 				const bool show = (choosing || acting) && IsHero(actor);
-				SetPosition(scene, m_TurnMarker, m_Heroes[std::min(actor, HeroCount - 1)].Base + glm::vec2(0.0f, 6.3f + 0.15f * std::sin(m_Time * 6.0f)));
+				const Hero& marked = m_Heroes[std::min(actor, HeroCount - 1)];
+				SetPosition(scene, m_TurnMarker, ScreenAbove(marked.Base + marked.Offset, HeroMarkerHeight) + glm::vec2(0.0f, 0.15f * std::sin(m_Time * 6.0f)));
 				SetColor(scene, m_TurnMarker, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
 			}
 			if (Alive(scene, m_Cursor))
 			{
 				const bool show = choosing && m_Action.Target >= 0 && m_Enemies[m_Action.Target].Alive();
 				const glm::vec2 base = m_Action.Target >= 0 ? m_Enemies[m_Action.Target].Base : glm::vec2(0.0f);
-				SetPosition(scene, m_Cursor, base + glm::vec2(0.0f, 3.4f + 0.15f * std::sin(m_Time * 8.0f)));
+				SetPosition(scene, m_Cursor, ScreenAbove(base, EnemyCursorHeight) + glm::vec2(0.0f, 0.15f * std::sin(m_Time * 8.0f)));
 				SetColor(scene, m_Cursor, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
 			}
 
@@ -1661,7 +2204,7 @@ namespace Hydro
 				}
 				if (c == 4)
 				{
-					usable = m_Potions > 0;
+					usable = Potions > 0;
 				}
 				const float strength = choosing ? (usable ? 1.0f : 0.35f) : 0.3f;
 				SetColor(scene, m_Commands[c], glm::vec4(strength, strength, strength, 1.0f));
@@ -1691,7 +2234,7 @@ namespace Hydro
 				}
 			}
 
-			PresentSpriteEffect(scene, m_SlashEffect);
+			PresentSpriteEffect(scene, m_StrikeEffect);
 			PresentSpriteEffect(scene, m_HealEffect);
 
 			// The message banner, damage numbers and the fade.
@@ -1727,29 +2270,29 @@ namespace Hydro
 				overlay = 1.0f;
 			}
 			SetColor(scene, m_Overlay, m_Phase == Phase::Defeat ? glm::vec4(0.35f, 0.0f, 0.0f, overlay) : glm::vec4(0.0f, 0.0f, 0.0f, overlay));
+
+			ApplyLayout(scene);
 		}
 
 		Phase m_Phase = Phase::Intro;
 		float m_PhaseTime = 0.0f;
 		float m_Time = 0.0f;
 		float m_DeltaTime = 0.0f;
-		int m_StrikesPlayed = 0;   // extra swings of a boosted attack already started
-		SpriteEffect m_SlashEffect;
+		SpriteEffect m_StrikeEffect;
 		SpriteEffect m_HealEffect;
 
-		// Timing that matches the battle sheets (scripts/shrine_glade/battle.py TIMING): the Attack clip's
-		// contact frame starts after the anticipation (0.10 + 0.12) and the first two swing frames (0.07 + 0.06);
-		// Strike is the swing alone. Spells peak on the Cast / Heal clip's third frame.
-		static constexpr float FirstHitTime = 0.35f;
-		static constexpr float StrikeContact = 0.13f;
-		static constexpr float HitSpacing = 0.3f;
-		static constexpr float SpellPeakTime = 0.38f;
-		static constexpr float SlashEffectTime = 0.42f;
+		// A potion is used this far into its (Idle) clip; the heal sprite's clip lasts HealEffectTime.
+		static constexpr float ItemTime = 0.35f;
 		static constexpr float HealEffectTime = 0.66f;
+		static constexpr float ShakeTime = 0.22f;
+		float m_ShakeTime = 0.0f;
+		float m_ShakeAmount = 0.0f;
+		entt::entity m_Camera = entt::null;
+		StageCamera m_Stage;
+		std::unordered_map<entt::entity, LayoutItem> m_Layout;
 		int m_Round = 0;
 		int m_Turn = -1;
 		int m_Target = 0;   // the last target, kept for the next hero
-		int m_Potions = 3;
 		std::vector<int> m_Order;
 		Action m_Action;
 		std::array<Hero, HeroCount> m_Heroes;

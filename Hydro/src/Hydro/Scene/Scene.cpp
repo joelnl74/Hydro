@@ -184,6 +184,7 @@ namespace Hydro
 				NativeScriptComponent::Script binding;
 				binding.Name = script.Name;
 				binding.Instantiate = script.Instantiate;
+				binding.Properties = script.Properties; // HY_PROPERTY values (#141)
 				bindings.push_back(std::move(binding));
 			}
 
@@ -343,20 +344,40 @@ namespace Hydro
 		}
 
 		DestroyEntityNow(entity);
+
+		// What the hooks DestroyEntityNow ran (trigger exits) asked for was queued: apply it now.
+		if (m_Deferred.empty() == false)
+		{
+			ApplyDeferred();
+		}
 	}
 
 	void Scene::DestroyEntityNow(Entity entity)
 	{
 		if ((bool)entity == false || m_Registry.valid(entity) == false)
+		{
+			m_PendingDestroy.erase((entt::entity)entity);
 			return;
+		}
 
 		m_PendingDestroy.erase((entt::entity)entity);
 		// Its physics body goes with it (a body whose entity is gone would be written back to nothing).
 		if (m_Physics != nullptr)
+		{
 			m_Physics->OnEntityDestroyed((entt::entity)entity);
+		}
 		if (m_Physics3D != nullptr)
 		{
-			m_Physics3D->OnEntityDestroyed((entt::entity)entity);
+			// A character destroyed inside triggers leaves them (#150): their scripts get OnTriggerExit now, while the
+			// character is still valid. Like a deferred stage, what they do to the scene is queued (applied by the
+			// ApplyDeferred round this runs in, or by DestroyEntity), so the entity can't be destroyed twice.
+			const std::vector<entt::entity> triggersLeft = m_Physics3D->OnEntityDestroyed((entt::entity)entity);
+			m_StageDepth++;
+			for (entt::entity trigger : triggersLeft)
+			{
+				NotifyScripts(trigger, (entt::entity)entity, &ScriptableEntity::OnTriggerExit);
+			}
+			m_StageDepth--;
 		}
 		// Let native scripts clean up before their entity disappears.
 		if (entity.HasComponent<NativeScriptComponent>())

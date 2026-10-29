@@ -123,6 +123,8 @@ Every current name was checked against the table. Only one changed:
 | `Project` | Keep | Data the application opens and closes (`Load`/`New`, `Close`), not a subsystem |
 | `SceneRenderer` | Keep | Per-scene counterpart of `Renderer` |
 | `ScriptRegistry` | New, not a subsystem | A name → script lookup table. It has no lifecycle or OS/GPU resources (a function-local static, filled before scenes load), so it isn't a `Manager` subsystem; becomes part of a `ScriptEngine` if one is added |
+| `ScriptTypeInfo`, `ScriptProperty`, `ScriptRegistration<T>` | Kept (Oct 28, 2026) | Script reflection data: `...Info` is read-only output about a type (the struct-suffix table), `ScriptProperty` is a plain description, `ScriptRegistration` is the builder `Register<T>` returns. Not a `...Specification`: nothing is created from them |
+| `ReflectionGenerator` (`Tools/`) | Kept | A doer (`-or`) build tool, not engine code |
 | `Texture2D` | New, a resource (Oct 20, 2026) | A texture sprites are drawn with, made from `ImageSpecification` + `TextureProperties`; `LoadFromFile` shares textures by file until the `AssetManager` takes that over. Named for what it is, like `RenderView` |
 | `AssetHandle` | New (Oct 24, 2026), a value | `using AssetHandle = UUID;`: names an asset file across renames and moves; components will hold one instead of a `Ref<Texture2D>` |
 | `PhysicsEngine` | New (Oct 24, 2026), a subsystem | Runtime-style (`Engine`): it hosts the Box2D and (Oct 28, 2026) Jolt physics libraries. Position 7, after `AssetManager`. The simulation is per scene (`PhysicsScene`, `PhysicsScene3D`), not here |

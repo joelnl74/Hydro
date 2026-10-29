@@ -306,7 +306,7 @@ namespace Hydro
 			if (item.IsEmitter)
 			{
 				const ParticleEmitter2DComponent& emitter = m_Scene->m_Registry.get<ParticleEmitter2DComponent>(item.Entity);
-				SubmitParticles(emitter, *particles->Find(item.Entity), item.Z, m_Camera);
+				SubmitParticles(emitter, *particles->Find(item.Entity), m_Scene->m_Registry.get<TransformComponent>(item.Entity).Translation, m_Camera);
 				continue;
 			}
 			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(item.Entity);
@@ -470,7 +470,7 @@ namespace Hydro
 				Renderer2D::BeginOverlay();
 				began = true;
 			}
-			SubmitParticles(emitter, *runtime, transform.Translation.z, m_Camera);
+			SubmitParticles(emitter, *runtime, transform.Translation, m_Camera);
 		}
 		if (began)
 		{
@@ -513,7 +513,7 @@ namespace Hydro
 		Renderer2D::EndOverlay();
 	}
 
-	void SceneRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, float z, const CameraBasis& camera)
+	void SceneRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera)
 	{
 		// The emitter's texture when it is loaded (whoever assigned it loaded it), else the soft dot.
 		// TODO(V4): ParticleBlend::Additive needs the premultiplied quad pipeline; until then it draws alpha.
@@ -529,6 +529,10 @@ namespace Hydro
 		Renderer2D::SetEmission(glm::vec3(std::max(emitter.EmissionIntensity, 0.0f)));
 
 		const ParticleScene::ParticleBuffer& buffer = runtime.Particles;
+		const float z = origin.z;
+		// View space: a particle's offset from the emitter goes along the camera's right and up, so a burst
+		// sprays in the plane facing the camera (ParticleSpace).
+		const bool viewSpace = emitter.Space == ParticleSpace::View && camera.IsTopDown() == false;
 		for (uint32_t i = 0; i < buffer.Count; i++)
 		{
 			const float t = std::clamp(buffer.Age[i] / buffer.Lifetime[i], 0.0f, 1.0f);
@@ -539,9 +543,12 @@ namespace Hydro
 				Renderer2D::DrawQuad(glm::vec3(buffer.Position[i], z), glm::vec2(size), buffer.Rotation[i], texture, rect, color);
 				continue;
 			}
-			// A tilted camera: each particle faces it (a billboard), still moving on the ground plane (H10
-			// gives particles a height).
-			const glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(buffer.Position[i], z))
+			// A tilted camera: each particle faces it (a billboard), moving on the ground plane (Ground; H10
+			// gives particles a height) or in the plane facing the camera (View).
+			const glm::vec3 position = viewSpace
+				? origin + camera.Rotation[0] * (buffer.Position[i].x - origin.x) + camera.Rotation[1] * (buffer.Position[i].y - origin.y)
+				: glm::vec3(buffer.Position[i], z);
+			const glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 				* glm::mat4(camera.Rotation)
 				* glm::rotate(glm::mat4(1.0f), buffer.Rotation[i], glm::vec3(0.0f, 0.0f, 1.0f))
 				* glm::scale(glm::mat4(1.0f), glm::vec3(size, size, 1.0f));

@@ -23,7 +23,7 @@ namespace Hydro
 		ScriptTypeInfo&& typeInfo)
 	{
 		HY_CORE_ASSERT(
-			!typeInfo.Name.empty(),
+			typeInfo.Name.empty() == false,
 			"A script needs a name");
 
 		HY_CORE_ASSERT(

@@ -120,7 +120,7 @@ namespace Hydro
 		// Sprites marked Overlay (HUD): in the overlay pass, after the unlit particles, in SortOrder; unlit, no depth test.
 		void SubmitOverlaySprites();
 		// One emitter's live particles, at the emitter's Z; billboards when the camera is tilted.
-		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, float z, const CameraBasis& camera);
+		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera);
 		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
 		// A point light's Height moves it up along the camera's up, as a point on an Upright sprite moves.
 		void SubmitLights();

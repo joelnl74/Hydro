@@ -104,7 +104,7 @@ namespace Hydro
 								continue;
 							}
 
-							if (!property.Apply)
+							if (property.Apply == nullptr)
 							{
 								continue;
 							}

@@ -14,9 +14,9 @@ The `hydro-engine-architecture` skill has the rules and the before-finishing che
 
 ## Test bed
 
-`Oxygen/project/Assets/Scenes/StatueVillage.hyscene` is the engine's gameplay test bed: a playable village (see `docs/TestBed.md`). When a new or drastic system lands (physics, audio, tilemaps, UI...), add it to the village as a gameplay element (colliders on buildings and the player, trigger zones, sound sources), not as a separate demo area, add a row to the Features table in `docs/TestBed.md`, and say in the summary what to check by pressing Play.
+The gameplay test bed is the field scenes `Oxygen/project/Assets/Scenes/ShrineGlade.hyscene` and `FarmVillage.hyscene` (plus `Battle.hyscene`; the old `StatueVillage` scene was deleted, see `docs/TestBed.md`). When a new or drastic system lands (physics, audio, tilemaps, UI...), add it to those scenes as a gameplay element (colliders on buildings and the player, trigger zones, sound sources), not as a separate demo area, add a row to the Features table in `docs/TestBed.md`, and say in the summary what to check by pressing Play.
 
-3D renderer work (meshes, lighting, shadows, post-processing) is checked in `Oxygen/project/Assets/Scenes/ShrineGlade.hyscene` instead: a hillside shrine mixing meshes and upright sprites, built by `scripts/shrine_glade/build.py` (see `docs/TestBed.md`, "Shrine Glade"). Change the builder and run it, rather than editing the scene by hand.
+3D renderer work (meshes, lighting, shadows, post-processing) is checked in `Oxygen/project/Assets/Scenes/ShrineGlade.hyscene` instead: a hillside shrine mixing meshes and upright sprites, built by `scripts/shrine_glade/build.py` (see `docs/TestBed.md`, "Shrine Glade"). **That builder (and `scripts/farm_village/`) is not in the repository or the user's folder right now**; until it is restored, edit the scenes in the editor and say so.
 
 ## Working from a cloud session
 

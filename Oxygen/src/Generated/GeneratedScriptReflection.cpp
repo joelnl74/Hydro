@@ -21,34 +21,96 @@ namespace Hydro
 		}
 		registered = true;
 
-		ScriptRegistry::Register<BattleScript>("BattleScript");
+		ScriptRegistry::Register<BattleScript>("BattleScript")
+			.Property("Potions", "Potions", &BattleScript::Potions).Range(0.0f, 99.0f).Tooltip("Potions the party has in this battle (shown live while playing)")
+			.Property("CameraTilt", "Camera Tilt", &BattleScript::CameraTilt).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down (the field's is 50 to 70)")
+			.Property("CameraFieldOfView", "Camera Field Of View", &BattleScript::CameraFieldOfView).Range(5.0f, 90.0f).Tooltip("Vertical field of view in degrees")
+			.Property("CameraFocus", "Camera Focus", &BattleScript::CameraFocus).Tooltip("The world point at the centre of the screen")
+			.Property("ViewHeight", "View Height", &BattleScript::ViewHeight).Range(1.0f, 100.0f).Tooltip("Metres seen from the bottom of the screen to the top at the focus point")
+			.Property("WalkSpeed", "Walk Speed", &BattleScript::WalkSpeed).Range(0.5f, 30.0f).Tooltip("Metres per second walking up to the target")
+			.Property("ReturnSpeed", "Return Speed", &BattleScript::ReturnSpeed).Range(0.5f, 30.0f).Tooltip("Metres per second walking back")
+			.Property("StrikeDistance", "Strike Distance", &BattleScript::StrikeDistance).Range(0.0f, 5.0f).Tooltip("Metres right of the target where she stops to strike")
+			.Property("PunchImpactTime", "Punch Impact Time", &BattleScript::PunchImpactTime).Range(0.0f, 2.0f).Tooltip("Seconds into the Punch clip when the fist lands (Miko: its last frame, 0.5 s at 10 fps)")
+			.Property("KickImpactTime", "Kick Impact Time", &BattleScript::KickImpactTime).Range(0.0f, 2.0f).Tooltip("Seconds into the Kick clip when the foot lands (Miko: frame 4, 0.4 s at 10 fps)")
+			.Property("PunchLength", "Punch Length", &BattleScript::PunchLength).Range(0.0f, 3.0f).Tooltip("Length of the Punch clip in seconds; the next strike or the walk back starts after it")
+			.Property("KickLength", "Kick Length", &BattleScript::KickLength).Range(0.0f, 3.0f).Tooltip("Length of the Kick clip in seconds")
+			.Property("ShakeStrength", "Shake Strength", &BattleScript::ShakeStrength).Range(0.0f, 3.0f).Tooltip("Camera shake on impacts (0 = none)");
 
-		ScriptRegistry::Register<EnemyChaseScript>("EnemyChaseScript");
+		ScriptRegistry::Register<EnemyChaseScript>("EnemyChaseScript")
+			.Property("AggroRange", "Aggro Range", &EnemyChaseScript::AggroRange).Range(0.0f, 50.0f).Tooltip("Metres: the player this close wakes it up")
+			.Property("TouchRange", "Touch Range", &EnemyChaseScript::TouchRange).Range(0.0f, 5.0f).Tooltip("Metres: a player without a physics body this close starts the battle")
+			.Property("LeashRange", "Leash Range", &EnemyChaseScript::LeashRange).Range(0.0f, 100.0f).Tooltip("Metres: the player this far away makes it give up")
+			.Property("MaxFromHome", "Max From Home", &EnemyChaseScript::MaxFromHome).Range(0.0f, 100.0f).Tooltip("Metres from home before it gives up the chase")
+			.Property("WanderRadius", "Wander Radius", &EnemyChaseScript::WanderRadius).Range(0.0f, 50.0f).Tooltip("Metres around home it wanders")
+			.Property("WanderSpeed", "Wander Speed", &EnemyChaseScript::WanderSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while wandering (wisps move 15% faster)")
+			.Property("ChaseSpeed", "Chase Speed", &EnemyChaseScript::ChaseSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while chasing (the player walks at about 3.5)")
+			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home");
 
-		ScriptRegistry::Register<BobScript>("BobScript");
+		ScriptRegistry::Register<BobScript>("BobScript")
+			.Property("Height", "Height", &BobScript::Height).Range(0.0f, 10.0f).Tooltip("Metres up and down from where it started")
+			.Property("Frequency", "Frequency", &BobScript::Frequency).Range(0.0f, 20.0f).Tooltip("How fast it bobs (radians per second: 2 is about one bob every 3 seconds)");
 
-		ScriptRegistry::Register<CameraFollowScript>("CameraFollowScript");
+		ScriptRegistry::Register<CameraFollowScript>("CameraFollowScript")
+			.Property("Smoothing", "Smoothing", &CameraFollowScript::Smoothing).Range(0.0f, 50.0f).Tooltip("How quickly the camera catches up with the target (higher is snappier)")
+			.Property("LookAhead", "Look Ahead", &CameraFollowScript::LookAhead).Range(-10.0f, 10.0f).Tooltip("Metres ahead of the target's feet to aim at (its chest)")
+			.Property("Bounds", "Bounds", &CameraFollowScript::Bounds).Min(0.0f).Tooltip("Half-size of the area the focus stays in, when the scene sets no bounds of its own");
 
-		ScriptRegistry::Register<SpinScript>("SpinScript");
+		ScriptRegistry::Register<SpinScript>("SpinScript")
+			.Property("Speed", "Speed", &SpinScript::Speed).Range(-50.0f, 50.0f).Tooltip("Radians per second around Z; negative turns the other way");
 
-		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalkScript");
+		ScriptRegistry::Register<VillagerWalkScript>("VillagerWalkScript")
+			.Property("Speed", "Speed", &VillagerWalkScript::Speed).Range(0.0f, 20.0f).Tooltip("Units per second; Shift walks faster");
 
 		ScriptRegistry::Register<YSortScript>("YSortScript");
 
-		ScriptRegistry::Register<MvpDirectorScript>("MvpDirectorScript");
+		ScriptRegistry::Register<MvpDirectorScript>("MvpDirectorScript")
+			.Property("InteractRange", "Interact Range", &MvpDirectorScript::InteractRange).Range(0.0f, 20.0f).Tooltip("Metres: farther items get no prompt")
+			.Property("MaxReachHeight", "Max Reach Height", &MvpDirectorScript::MaxReachHeight).Range(0.0f, 10.0f).Tooltip("Metres between the player's ground and the item's (another terrace is out of reach)")
+			.Property("FacingDegrees", "Facing Degrees", &MvpDirectorScript::FacingDegrees).Range(0.0f, 180.0f).Tooltip("Degrees either side of where the player faces")
+			.Property("CloseRange", "Close Range", &MvpDirectorScript::CloseRange).Range(0.0f, 10.0f).Tooltip("Metres: this close, an item is in reach whichever way the player faces")
+			.Property("SwitchMargin", "Switch Margin", &MvpDirectorScript::SwitchMargin).Range(0.0f, 5.0f).Tooltip("Metres another item must be closer by to take the prompt over (stops flicker)")
+			.Property("EyeHeight", "Eye Height", &MvpDirectorScript::EyeHeight).Range(0.0f, 5.0f).Tooltip("Line of sight starts this high above the player's ground (the chest)")
+			.Property("ItemHeight", "Item Height", &MvpDirectorScript::ItemHeight).Range(0.0f, 5.0f).Tooltip("...and ends this high on the item")
+			.Property("MessageTime", "Message Time", &MvpDirectorScript::MessageTime).Range(0.1f, 30.0f).Tooltip("How long a message stays up")
+			.Property("LeaveTime", "Leave Time", &MvpDirectorScript::LeaveTime).Range(0.05f, 5.0f).Tooltip("Fade out when leaving through an exit")
+			.Property("ArriveTime", "Arrive Time", &MvpDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
+			.Property("RestTime", "Rest Time", &MvpDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point");
 
 		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalkScript")
-			.Property("m_Speed", "m_Speed", &DioramaWalkScript::m_Speed);
+			.Property("m_Speed", "Speed", &DioramaWalkScript::m_Speed).Range(0.0f, 20.0f).Tooltip("Walking speed in metres per second")
+			.Property("RunMultiplier", "Run Multiplier", &DioramaWalkScript::RunMultiplier).Range(1.0f, 5.0f).Tooltip("Shift multiplies the speed by this");
 
-		ScriptRegistry::Register<FarmVillageScript>("FarmVillageScript");
+		ScriptRegistry::Register<FarmVillageScript>("FarmVillageScript")
+			.Property("TiltDegrees", "Tilt Degrees", &FarmVillageScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down")
+			.Property("FieldOfView", "Field Of View", &FarmVillageScript::FieldOfView).Range(5.0f, 120.0f).Tooltip("Vertical field of view in degrees (perspective)")
+			.Property("FocusLead", "Focus Lead", &FarmVillageScript::FocusLead).Range(-20.0f, 20.0f).Tooltip("Metres the camera looks ahead of the player (up the screen)")
+			.Property("FocusRise", "Focus Rise", &FarmVillageScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
+			.Property("BoundsMin", "Bounds Min", &FarmVillageScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
+			.Property("BoundsMax", "Bounds Max", &FarmVillageScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
+			.Property("StartPreset", "Start Preset", &FarmVillageScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 golden hour, 2 night (keys 1 / 2 / 3)");
 
-		ScriptRegistry::Register<ShrineGladeScript>("ShrineGladeScript");
+		ScriptRegistry::Register<ShrineGladeScript>("ShrineGladeScript")
+			.Property("TiltDegrees", "Tilt Degrees", &ShrineGladeScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down")
+			.Property("FieldOfView", "Field Of View", &ShrineGladeScript::FieldOfView).Range(5.0f, 120.0f).Tooltip("Vertical field of view in degrees (perspective)")
+			.Property("FocusLead", "Focus Lead", &ShrineGladeScript::FocusLead).Range(-20.0f, 20.0f).Tooltip("Metres the camera looks ahead of the player (up the screen)")
+			.Property("FocusRise", "Focus Rise", &ShrineGladeScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
+			.Property("BoundsMin", "Bounds Min", &ShrineGladeScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
+			.Property("BoundsMax", "Bounds Max", &ShrineGladeScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
+			.Property("StartPreset", "Start Preset", &ShrineGladeScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)");
 
-		ScriptRegistry::Register<PartyFollowScript>("PartyFollowScript");
+		ScriptRegistry::Register<PartyFollowScript>("PartyFollowScript")
+			.Property("FollowDistance", "Follow Distance", &PartyFollowScript::FollowDistance).Range(0.0f, 10.0f).Tooltip("Metres behind the player, measured along the path it walked");
 
-		ScriptRegistry::Register<VillageCameraScript>("VillageCameraScript");
+		ScriptRegistry::Register<VillageCameraScript>("VillageCameraScript")
+			.Property("Smoothing", "Smoothing", &VillageCameraScript::Smoothing).Range(0.0f, 50.0f).Tooltip("How quickly the camera catches up with the player (higher is snappier)")
+			.Property("LookAhead", "Look Ahead", &VillageCameraScript::LookAhead).Range(-10.0f, 10.0f).Tooltip("Metres ahead of the player's feet to aim at (the chest)")
+			.Property("MinZoom", "Min Zoom", &VillageCameraScript::MinZoom).Range(1.0f, 36.0f).Tooltip("Closest zoom: world units visible vertically")
+			.Property("ZoomSpeed", "Zoom Speed", &VillageCameraScript::ZoomSpeed).Range(0.0f, 100.0f).Tooltip("World units per second while - or = is held");
 
-		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawnerScript");
+		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawnerScript")
+			.Property("MaxCrates", "Max Crates", &VillageCrateSpawnerScript::MaxCrates).Range(1.0f, 100.0f).Tooltip("Crates kept at once; the oldest disappears")
+			.Property("DropDistance", "Drop Distance", &VillageCrateSpawnerScript::DropDistance).Range(0.0f, 10.0f).Tooltip("Metres in front of the player a crate lands")
+			.Property("DustEffect", "Dust Effect", &VillageCrateSpawnerScript::DustEffect).Tooltip("The puff played where a crate lands or vanishes; empty uses Effects/DustPuff.hyprefab").AssetFilter(AssetType::Prefab);
 
 		ScriptRegistry::Register<VillageDirectorScript>("VillageDirectorScript");
 
@@ -56,6 +118,7 @@ namespace Hydro
 
 		ScriptRegistry::Register<VillageZoneScript>("VillageZoneScript");
 
-		ScriptRegistry::Register<WaypointWalkScript>("WaypointWalkScript");
+		ScriptRegistry::Register<WaypointWalkScript>("WaypointWalkScript")
+			.Property("Speed", "Speed", &WaypointWalkScript::Speed).Range(0.0f, 20.0f).Tooltip("Units per second between waypoints (1.4 is a stroll)");
 	}
 }

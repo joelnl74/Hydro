@@ -449,6 +449,14 @@ namespace Hydro
 		Unlit    // not darkened by scene lighting (Roadmap V4; drawn lit until then)
 	};
 
+	// How a tilted camera shows the particles. They are simulated in 2D either way (X, Y and Gravity, as authored).
+	enum class ParticleSpace : uint8_t
+	{
+		Ground = 0, // on the ground plane, where they move: dust, leaves, fireflies, puddle splashes (as in a top-down view)
+		View        // in the plane facing the camera through the emitter: X right and Y up the screen, so a burst
+		            // sprays and falls like it does top-down (hit sparks, impacts, magic; H10 gives Ground a height)
+	};
+
 	// Where new particles appear, around the entity's position. A cone is a Point with a narrow Spread.
 	enum class EmitterShape : uint8_t
 	{
@@ -507,6 +515,7 @@ namespace Hydro
 		uint32_t SpriteIndex = 0;                 // for a sprite sheet texture
 		ParticleBlend Blend = ParticleBlend::Alpha;
 		ParticleLighting Lighting = ParticleLighting::Lit;
+		ParticleSpace Space = ParticleSpace::Ground; // with a tilted camera: on the ground or facing the camera
 		int32_t SortOrder = 0;                    // sorted with sprites (higher = on top)
 		float EmissionIntensity = 0.0f;           // a particle's own colour times this is added after the lighting (sparks, embers; plan P3)
 
@@ -521,6 +530,82 @@ namespace Hydro
 		ParticleEmitter2DComponent() = default;
 		ParticleEmitter2DComponent(const ParticleEmitter2DComponent&) = default;
 	};
+	/*
+
+	enum class UIState : uint8_t
+	{
+		Normal = 0,
+		Hovered,
+		Pressed,
+		Focused,
+		Disabled
+	};
+
+	struct UIFocusable
+	{
+		bool AutoNavigation = true;
+	};
+	*/
+
+	struct UICanvasComponent
+	{
+		glm::vec2 Size{ 800.0f, 600.0f }; // in pixels, before the transform's scale
+		bool PixelPerfect = true;         // snap to whole pixels when drawing children (UIElementComponent)
+		bool DrawDebug = false;           // draw the canvas' outline and its children's bounds
+		UICanvasComponent() = default;
+		UICanvasComponent(const UICanvasComponent&) = default;
+	};
+
+	struct UIRectComponent
+	{
+		glm::vec2 Size{ 100.0f, 100.0f }; // in pixels, before the transform's scale
+		glm::vec2 Pivot{ 0.5f, 0.5f };    // 0 = left/top, 1 = right/bottom
+		bool DrawDebug = false;           // draw the rect's outline
+		UIRectComponent() = default;
+		UIRectComponent(const UIRectComponent&) = default;
+	};
+
+	struct UIImageComponent
+	{
+		AssetHandle Texture = 0;          // 0 = none
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		float TilingFactor = 1.0f;        // Single textures only
+		uint32_t SpriteIndex = 0;         // for a sprite sheet texture
+		bool FlipX = false;
+		bool FlipY = false;
+		UIImageComponent() = default;
+		UIImageComponent(const UIImageComponent&) = default;
+	};
+
+	struct UIButtonComponent
+	{
+		AssetHandle NormalTexture = 0;    // 0 = none
+		AssetHandle HoverTexture = 0;     // 0 = none
+		AssetHandle PressedTexture = 0;   // 0 = none
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		float TilingFactor = 1.0f;        // Single textures only
+		uint32_t SpriteIndex = 0;         // for a sprite sheet texture
+		bool FlipX = false;
+		bool FlipY = false;
+		UIButtonComponent() = default;
+		UIButtonComponent(const UIButtonComponent&) = default;
+	};
+
+	struct UITextComponent
+	{
+		std::string Text;
+		AssetHandle Font = 0;             // 0 = none
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		float Size = 16.0f;               // in pixels
+		bool Wrap = false;                // wrap to the rect's width (UIRectComponent)
+		bool Bold = false;
+		bool Italic = false;
+		bool Underline = false;
+		bool Strikethrough = false;
+		bool DrawDebug = false;           // draw the text's bounds
+		UITextComponent() = default;
+		UITextComponent(const UITextComponent&) = default;
+	};
 
 	template<typename... Component>
 	struct ComponentGroup
@@ -529,5 +614,5 @@ namespace Hydro
 
 	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent>;
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent>;
 }

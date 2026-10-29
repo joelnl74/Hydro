@@ -4,7 +4,7 @@
 #include "EditorLayer.h"
 #include "EditorPaths.h"
 #include "EditorSettings.h"
-#include "Scripts/ExampleScripts.h"
+#include "Generated/GeneratedScriptReflection.h"
 
 #include <cstdio>
 
@@ -19,7 +19,9 @@ public:
 	// Engine subsystems are up when this runs; layers pushed here are detached in Application::Shutdown.
 	virtual void OnInit() override
 	{
-		// Scripts must be registered before the editor opens a scene that uses them.
+		// Scripts must be registered before the editor opens a scene that uses them: once, here (#147). The
+		// registration is generated from HY_SCRIPT / HY_PROPERTY by Oxygen's pre-build step.
+		Hydro::RegisterGeneratedScriptReflection();
 		PushLayer(new Hydro::EditorLayer(m_Launch));
 	}
 

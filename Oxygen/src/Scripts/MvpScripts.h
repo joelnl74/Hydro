@@ -30,6 +30,33 @@ namespace Hydro
 	HY_SCRIPT()
 	class MvpDirectorScript : public ScriptableEntity
 	{
+	public:
+		// Interaction: what counts as in reach of the player.
+		HY_PROPERTY(Range(0, 20), Tooltip("Metres: farther items get no prompt"))
+		float InteractRange = 1.7f;
+		HY_PROPERTY(Range(0, 10), Tooltip("Metres between the player's ground and the item's (another terrace is out of reach)"))
+		float MaxReachHeight = 1.0f;
+		HY_PROPERTY(Range(0, 180), Tooltip("Degrees either side of where the player faces"))
+		float FacingDegrees = 80.0f;
+		HY_PROPERTY(Range(0, 10), Tooltip("Metres: this close, an item is in reach whichever way the player faces"))
+		float CloseRange = 0.6f;
+		HY_PROPERTY(Range(0, 5), Tooltip("Metres another item must be closer by to take the prompt over (stops flicker)"))
+		float SwitchMargin = 0.3f;
+		HY_PROPERTY(Range(0, 5), Tooltip("Line of sight starts this high above the player's ground (the chest)"))
+		float EyeHeight = 1.0f;
+		HY_PROPERTY(Range(0, 5), Tooltip("...and ends this high on the item"))
+		float ItemHeight = 0.6f;
+
+		// Timing, in seconds.
+		HY_PROPERTY(Range(0.1, 30), Tooltip("How long a message stays up"))
+		float MessageTime = 3.0f;
+		HY_PROPERTY(Range(0.05, 5), Tooltip("Fade out when leaving through an exit"))
+		float LeaveTime = 0.6f;
+		HY_PROPERTY(Range(0.05, 5), Tooltip("Fade in after arriving"))
+		float ArriveTime = 0.6f;
+		HY_PROPERTY(Range(0.05, 10), Tooltip("Fade out and in when resting at a save point"))
+		float RestTime = 1.2f;
+
 	protected:
 		void OnCreate() override
 		{
@@ -193,17 +220,6 @@ namespace Hydro
 		};
 
 		static constexpr int VisibleRows = 6;
-		static constexpr float InteractRange = 1.7f;
-		static constexpr float MaxReachHeight = 1.0f;   // metres between the player's ground and the item's
-		static constexpr float FacingCosine = 0.17f;    // within about 80 degrees either side of where the player faces
-		static constexpr float CloseRange = 0.6f;       // this close, an item is in reach whichever way the player faces
-		static constexpr float SwitchMargin = 0.3f;     // another item must be this much closer to take over the prompt
-		static constexpr float EyeHeight = 1.0f;        // line of sight: from the player's chest...
-		static constexpr float ItemHeight = 0.6f;       // ...to this high on the item
-		static constexpr float MessageTime = 3.0f;
-		static constexpr float LeaveTime = 0.6f;
-		static constexpr float ArriveTime = 0.6f;
-		static constexpr float RestTime = 1.2f;
 
 		// ---- Interaction --------------------------------------------------------------------------------
 
@@ -359,7 +375,7 @@ namespace Hydro
 			{
 				return false;
 			}
-			if (distance > CloseRange && glm::dot(offset / distance, m_Facing) < FacingCosine)
+			if (distance > CloseRange && glm::dot(offset / distance, m_Facing) < std::cos(glm::radians(FacingDegrees)))
 			{
 				return false;
 			}

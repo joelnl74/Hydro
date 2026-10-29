@@ -2243,15 +2243,16 @@ namespace Hydro
 	static constexpr uint32_t BloomMinLevelSize = 8;
 
 	// One fullscreen pass of the bloom chain: `source` (sampled, SHADER_READ_ONLY_OPTIMAL) into `target`'s image of
-	// `frame`, cleared or added onto (`load`). Leaves `target` readable.
-	static void RecordBloomStep(VkCommandBuffer commandBuffer, uint32_t frame, ViewPipelineKind kind, const VulkanImage& source,
+	// `frame`, cleared or added onto (`load`). Leaves `target` readable. False when the step couldn't be recorded (no
+	// pipeline, e.g. after a failed hot reload, or no descriptor set): then `target` wasn't written.
+	static bool RecordBloomStep(VkCommandBuffer commandBuffer, uint32_t frame, ViewPipelineKind kind, const VulkanImage& source,
 		VulkanRenderTarget& target, bool load, const glm::vec2& extra)
 	{
 		VulkanPipeline* pipeline = GetViewPipeline(kind, target, false);
 		VkDescriptorSet set = VulkanDescriptorAllocator::AllocateFrame(s_Data->BloomLayout);
 		if (pipeline == nullptr || set == VK_NULL_HANDLE)
 		{
-			return;
+			return false;
 		}
 
 		const VulkanImageInfo& image = source.GetVulkanImageInfo();
@@ -2277,6 +2278,7 @@ namespace Hydro
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		target.End(commandBuffer, frame);
 		s_Data->Stats.DrawCalls++;
+		return true;
 	}
 
 	void Renderer2D::RecordBloom(RenderPassContext& context)
@@ -2286,6 +2288,8 @@ namespace Hydro
 		const ScenePostProcess& settings = view.PostProcess;
 		if (view.SceneColor == nullptr || settings.Bloom == false || settings.BloomIntensity <= 0.0f)
 		{
+			// Bloom is off for this view: don't keep its chain (#157). The images go through the deletion queue.
+			view.BloomLevels.clear();
 			return;
 		}
 
@@ -2324,18 +2328,33 @@ namespace Hydro
 		const uint32_t frame = context.Frame;
 		const float threshold = std::max(settings.BloomThreshold, 0.0f);
 		const float knee = std::clamp(settings.BloomKnee, 0.0f, 1.0f) * threshold;
-		RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomPrefilter, view.SceneColor->GetImage(frame), *view.BloomLevels[0], false,
-			glm::vec2(threshold, knee));
+		// Each step reads what the one before it wrote, so the chain stops at the first step that can't be recorded,
+		// and the tonemap only samples level 0 when every step ran (#156): otherwise it could read an image that was
+		// never written this frame (or ever, on a view's first frame).
+		if (RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomPrefilter, view.SceneColor->GetImage(frame), *view.BloomLevels[0],
+				false, glm::vec2(threshold, knee))
+			== false)
+		{
+			return;
+		}
 		for (uint32_t level = 1; level < levelCount; level++)
 		{
-			RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomDown, view.BloomLevels[level - 1]->GetImage(frame), *view.BloomLevels[level],
-				false, glm::vec2(0.0f));
+			if (RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomDown, view.BloomLevels[level - 1]->GetImage(frame),
+					*view.BloomLevels[level], false, glm::vec2(0.0f))
+				== false)
+			{
+				return;
+			}
 		}
 		const float radius = std::clamp(settings.BloomRadius, 0.25f, 4.0f);
 		for (uint32_t level = levelCount - 1; level > 0; level--)
 		{
-			RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomUp, view.BloomLevels[level]->GetImage(frame), *view.BloomLevels[level - 1],
-				true, glm::vec2(radius, 0.0f));
+			if (RecordBloomStep(commandBuffer, frame, ViewPipelineKind::BloomUp, view.BloomLevels[level]->GetImage(frame),
+					*view.BloomLevels[level - 1], true, glm::vec2(radius, 0.0f))
+				== false)
+			{
+				return;
+			}
 		}
 
 		view.BloomDrawn = true;
@@ -2841,6 +2860,7 @@ namespace Hydro
 		if (sceneColorFormat == ImageFormat::None)
 		{
 			view.SceneColor.reset();
+			view.BloomLevels.clear(); // no HDR, no bloom: free the chain too (#157)
 		}
 		else if (view.SceneColor == nullptr || view.SceneColor->GetSpecification().ColorFormats[0] != sceneColorFormat)
 		{

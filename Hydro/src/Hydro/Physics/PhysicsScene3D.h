@@ -81,8 +81,9 @@ namespace Hydro
 		// characters' blended positions to their transforms.
 		void Step(const SystemContext& context);
 
-		// Scene::DestroyEntity calls this so a destroyed entity's bodies and character go with it.
-		void OnEntityDestroyed(entt::entity handle);
+		// Scene::DestroyEntity calls this so a destroyed entity's bodies and character go with it. Returns the
+		// triggers a destroyed character was inside, so the scene can send them OnTriggerExit (#150).
+		std::vector<entt::entity> OnEntityDestroyed(entt::entity handle);
 
 		bool HasBody(entt::entity handle) const;
 		bool HasCharacter(entt::entity handle) const;

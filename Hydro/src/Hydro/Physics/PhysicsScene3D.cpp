@@ -193,6 +193,9 @@ namespace Hydro
 		std::vector<Character> Characters;
 		std::unordered_map<entt::entity, size_t> CharacterIndex; // entity -> position in Characters
 		std::unordered_set<entt::entity> WarnedMissingModel;
+		// Entities whose shapes or capsule could not be built: not tried again this run, so the warning isn't
+		// repeated every frame (#148). Fix the model or the collider and press Play again.
+		std::unordered_set<entt::entity> FailedBodies;
 		size_t BodyCount = 0;
 		float Accumulator = 0.0f;
 	};
@@ -399,6 +402,11 @@ namespace Hydro
 		{
 			return false;
 		}
+		// Failed before: it already said why.
+		if (m_Data->FailedBodies.find(handle) != m_Data->FailedBodies.end())
+		{
+			return false;
+		}
 
 		const TransformComponent& transform = registry.get<TransformComponent>(handle);
 		const char* name = registry.has<TagComponent>(handle) ? registry.get<TagComponent>(handle).Tag.c_str() : "Entity";
@@ -426,7 +434,9 @@ namespace Hydro
 				new JPH::CapsuleShape(cylinderHalfHeight, character.Radius)).Create();
 			if (shape.HasError())
 			{
-				HY_CORE_WARN("Physics 3D: '{}': its character capsule could not be built ({})", name, shape.GetError().c_str());
+				HY_CORE_WARN("Physics 3D: '{}': its character capsule could not be built ({}); it won't move this run", name,
+					shape.GetError().c_str());
+				m_Data->FailedBodies.insert(handle);
 				return false;
 			}
 
@@ -466,6 +476,7 @@ namespace Hydro
 		}
 		if (shapes.empty())
 		{
+			m_Data->FailedBodies.insert(handle);
 			return false;
 		}
 
@@ -499,6 +510,14 @@ namespace Hydro
 				ToObjectLayer(layer, kinematic));
 			settings.mIsSensor = triggers;
 			settings.mUserData = (JPH::uint64)(uint32_t)handle;
+			if (kinematic)
+			{
+				// A moving body needs a mass, and hollow shapes (a _WALK mesh) have none: Jolt asserts "Invalid mass"
+				// (#149). Kinematic bodies are only moved by the game, so any mass will do.
+				settings.mOverrideMassProperties = JPH::EOverrideMassProperties::MassAndInertiaProvided;
+				settings.mMassPropertiesOverride.mMass = 1.0f;
+				settings.mMassPropertiesOverride.mInertia = JPH::Mat44::sIdentity();
+			}
 
 			const JPH::BodyID id = bodies.CreateAndAddBody(settings, JPH::EActivation::DontActivate);
 			if (id.IsInvalid())
@@ -515,6 +534,11 @@ namespace Hydro
 		{
 			m_Data->Bodies[handle] = entry;
 			m_Data->WarnedMissingModel.erase(handle);
+		}
+		else
+		{
+			HY_CORE_WARN("Physics 3D: '{}' has no collision this run (see the warnings above)", name);
+			m_Data->FailedBodies.insert(handle);
 		}
 		return created;
 	}
@@ -768,8 +792,10 @@ namespace Hydro
 		WriteCharacterTransforms(std::clamp(m_Data->Accumulator / fixed, 0.0f, 1.0f));
 	}
 
-	void PhysicsScene3D::OnEntityDestroyed(entt::entity handle)
+	std::vector<entt::entity> PhysicsScene3D::OnEntityDestroyed(entt::entity handle)
 	{
+		std::vector<entt::entity> triggersLeft;
+
 		const auto bodies = m_Data->Bodies.find(handle);
 		if (bodies != m_Data->Bodies.end())
 		{
@@ -789,8 +815,11 @@ namespace Hydro
 		const auto found = m_Data->CharacterIndex.find(handle);
 		if (found != m_Data->CharacterIndex.end())
 		{
-			// Swap-remove, keeping the index map in step.
+			// The triggers it was inside get their exit from the scene (#150).
 			const size_t index = found->second;
+			triggersLeft = std::move(m_Data->Characters[index].Triggers);
+
+			// Swap-remove, keeping the index map in step.
 			const size_t last = m_Data->Characters.size() - 1;
 			if (index != last)
 			{
@@ -807,6 +836,11 @@ namespace Hydro
 			character.Triggers.erase(std::remove(character.Triggers.begin(), character.Triggers.end(), handle), character.Triggers.end());
 		}
 		m_Data->WarnedMissingModel.erase(handle);
+		m_Data->FailedBodies.erase(handle);
+
+		// An entity that was both a character and a trigger doesn't exit itself.
+		triggersLeft.erase(std::remove(triggersLeft.begin(), triggersLeft.end(), handle), triggersLeft.end());
+		return triggersLeft;
 	}
 
 	bool PhysicsScene3D::HasBody(entt::entity handle) const

@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cfloat>
+#include <climits>
 #include <cstdio>
 #include <string>
 
@@ -49,15 +50,17 @@ namespace Hydro
 		return changed;
 	}
 
-	// One row: label on the left, X/Y/Z input fields on the right. Clicking an axis button
-	// resets that axis. Returns true when a value changed.
-	static bool DrawVec3Control(const char* label, glm::vec3& values, float resetValue = 0.0f)
+	// One row: label on the left, X/Y(/Z/W) input fields on the right. Clicking an axis button
+	// resets that axis. Each component is clamped to [min, max] when its field is left.
+	// Returns true when a value changed.
+	static bool DrawVectorControl(const char* label, float* values, int count, float resetValue = 0.0f,
+		float min = -FLT_MAX, float max = FLT_MAX)
 	{
 		bool changed = false;
 
 		ImGui::PushID(label);
 
-		if (ImGui::BeginTable("##vec3", 2, ImGuiTableFlags_None))
+		if (ImGui::BeginTable("##vector", 2, ImGuiTableFlags_None))
 		{
 			ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, LabelColumnWidth);
 			ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
@@ -72,18 +75,20 @@ namespace Hydro
 			const ImGuiStyle& style = ImGui::GetStyle();
 			const float lineHeight = ImGui::GetFrameHeight();
 			const ImVec2 buttonSize = { lineHeight, lineHeight };
-			const float fieldWidth = (ImGui::GetContentRegionAvail().x - 3.0f * buttonSize.x - 2.0f * style.ItemSpacing.x) / 3.0f;
+			const float fieldWidth = (ImGui::GetContentRegionAvail().x - (float)count * buttonSize.x - (float)(count - 1) * style.ItemSpacing.x)
+				/ (float)count;
 
 			struct Axis { const char* Name; ImVec4 Color; ImVec4 Hovered; };
-			const Axis axes[3] =
+			const Axis axes[4] =
 			{
 				{ "X", { 0.80f, 0.10f, 0.15f, 1.0f }, { 0.90f, 0.20f, 0.20f, 1.0f } },
 				{ "Y", { 0.20f, 0.70f, 0.20f, 1.0f }, { 0.30f, 0.80f, 0.30f, 1.0f } },
 				{ "Z", { 0.10f, 0.25f, 0.80f, 1.0f }, { 0.20f, 0.35f, 0.90f, 1.0f } },
+				{ "W", { 0.45f, 0.45f, 0.50f, 1.0f }, { 0.55f, 0.55f, 0.60f, 1.0f } },
 			};
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, style.ItemSpacing.y });
-			for (int i = 0; i < 3; i++)
+			for (int i = 0; i < count; i++)
 			{
 				ImGui::PushStyleColor(ImGuiCol_Button, axes[i].Color);
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, axes[i].Hovered);
@@ -98,10 +103,10 @@ namespace Hydro
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(fieldWidth);
 				ImGui::PushID(i);
-				changed |= InputFloatField("##value", values[i], "%.3f");
+				changed |= InputFloatField("##value", values[i], "%.3f", min, max);
 				ImGui::PopID();
 
-				if (i < 2)
+				if (i < count - 1)
 				{
 					ImGui::SameLine(0.0f, style.ItemSpacing.x);
 				}
@@ -113,6 +118,11 @@ namespace Hydro
 
 		ImGui::PopID();
 		return changed;
+	}
+
+	static bool DrawVec3Control(const char* label, glm::vec3& values, float resetValue = 0.0f)
+	{
+		return DrawVectorControl(label, glm::value_ptr(values), 3, resetValue);
 	}
 
 	// A label column + one widget, matching the Vec3 rows.
@@ -137,6 +147,125 @@ namespace Hydro
 			ImGui::EndTable();
 		}
 		ImGui::PopID();
+	}
+
+	// ImGui::InputText on a std::string that grows as you type (what imgui_stdlib does).
+	static int StringResizeCallback(ImGuiInputTextCallbackData* data)
+	{
+		if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+		{
+			std::string* text = static_cast<std::string*>(data->UserData);
+			text->resize((size_t)data->BufTextLen);
+			data->Buf = text->data();
+		}
+		return 0;
+	}
+
+	static bool InputTextField(const char* id, std::string& text)
+	{
+		return ImGui::InputText(id, text.data(), text.capacity() + 1, ImGuiInputTextFlags_CallbackResize, StringResizeCallback, &text);
+	}
+
+	// One HY_PROPERTY field of a script (#144, #145): the widget for its type, its range, colour picker, asset
+	// filter, tooltip and read-only flag. `value` must hold the property's type. Returns true when it changed.
+	static bool DrawScriptPropertyField(const ScriptProperty& property, ScriptPropertyValue& value)
+	{
+		bool changed = false;
+		const char* label = property.DisplayName.c_str();
+
+		ImGui::PushID(property.Name.c_str());
+		ImGui::BeginDisabled(property.ReadOnly);
+
+		switch (property.Type)
+		{
+			case ScriptPropertyType::Bool:
+			{
+				bool& current = std::get<bool>(value);
+				DrawPropertyRow(label, [&]() { changed = ImGui::Checkbox("##value", &current); });
+				break;
+			}
+			case ScriptPropertyType::Int:
+			{
+				int& current = std::get<int>(value);
+				DrawPropertyRow(label, [&]()
+				{
+					changed = ImGui::InputInt("##value", &current);
+					if (ImGui::IsItemDeactivatedAfterEdit())
+					{
+						const int clamped = (int)std::clamp((float)current, std::max(property.Min, (float)INT_MIN), std::min(property.Max, (float)INT_MAX));
+						changed |= clamped != current;
+						current = clamped;
+					}
+				});
+				break;
+			}
+			case ScriptPropertyType::Float:
+			{
+				float& current = std::get<float>(value);
+				DrawPropertyRow(label, [&]() { changed = InputFloatField("##value", current, "%.3f", property.Min, property.Max); });
+				break;
+			}
+			case ScriptPropertyType::Vec2:
+			{
+				glm::vec2& current = std::get<glm::vec2>(value);
+				changed = DrawVectorControl(label, glm::value_ptr(current), 2, 0.0f, property.Min, property.Max);
+				break;
+			}
+			case ScriptPropertyType::Vec3:
+			{
+				glm::vec3& current = std::get<glm::vec3>(value);
+				if (property.IsColor)
+				{
+					DrawPropertyRow(label, [&]() { changed = ImGui::ColorEdit3("##value", glm::value_ptr(current)); });
+				}
+				else
+				{
+					changed = DrawVectorControl(label, glm::value_ptr(current), 3, 0.0f, property.Min, property.Max);
+				}
+				break;
+			}
+			case ScriptPropertyType::Vec4:
+			{
+				glm::vec4& current = std::get<glm::vec4>(value);
+				if (property.IsColor)
+				{
+					DrawPropertyRow(label, [&]() { changed = ImGui::ColorEdit4("##value", glm::value_ptr(current)); });
+				}
+				else
+				{
+					changed = DrawVectorControl(label, glm::value_ptr(current), 4, 0.0f, property.Min, property.Max);
+				}
+				break;
+			}
+			case ScriptPropertyType::String:
+			{
+				std::string& current = std::get<std::string>(value);
+				DrawPropertyRow(label, [&]() { changed = InputTextField("##value", current); });
+				break;
+			}
+			case ScriptPropertyType::Asset:
+			{
+				AssetHandle& current = std::get<AssetHandle>(value);
+				DrawPropertyRow(label, [&]()
+				{
+					const AssetPickerResult result = AssetPicker::DrawField("##value", current, property.AssetFilter);
+					if (result.Changed)
+					{
+						current = result.Handle;
+						changed = true;
+					}
+				});
+				break;
+			}
+		}
+
+		ImGui::EndDisabled();
+		if (property.Tooltip.empty() == false && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+		{
+			ImGui::SetTooltip("%s", property.Tooltip.c_str());
+		}
+		ImGui::PopID();
+		return changed;
 	}
 
 	// A texture field (sprites, particle emitters): pick one of the project's images, or drop one from the
@@ -1382,6 +1511,19 @@ namespace Hydro
 					ImGui::SetTooltip("Unlit: not darkened by scene lighting. Unlit + Additive stays bright at night.");
 				}
 			});
+			const char* spaceNames[] = { "Ground", "View" };
+			int space = (int)emitter.Space;
+			DrawPropertyRow("Space", [&]()
+			{
+				if (ImGui::Combo("##EmitterSpace", &space, spaceNames, 2))
+				{
+					emitter.Space = (ParticleSpace)space;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("With a tilted camera: Ground keeps the particles on the ground plane (dust, leaves);\nView sprays them in the plane facing the camera (sparks, impacts).");
+				}
+			});
 			DrawPropertyRow("Sort Order", [&]()
 			{
 				int sortOrder = (int)emitter.SortOrder;
@@ -1451,46 +1593,42 @@ namespace Hydro
 				{
 					ImGui::Spacing();
 
+					// While the game runs, the fields show what the script holds now and edits go straight into it
+					// (#146). They are made on the play copy, so Stop discards them like every other Play edit.
+					ScriptableEntity* instance = script.Instance.get();
 					for (const ScriptProperty& property : typeInfo->Properties)
 					{
+						if (property.HideInInspector)
+						{
+							continue;
+						}
+
+						// A property the binding has no value for yet (added to the class since), or one whose type
+						// changed: start from the default.
 						auto valueIt = script.Properties.find(property.Name);
 						if (valueIt == script.Properties.end())
-							continue;
+						{
+							valueIt = script.Properties.emplace(property.Name, property.DefaultValue).first;
+						}
+						else if (ScriptPropertyHasType(valueIt->second, property.Type) == false)
+						{
+							valueIt->second = property.DefaultValue;
+						}
 
 						ScriptPropertyValue& value = valueIt->second;
-
-						switch (property.Type)
+						if (instance != nullptr && property.Read != nullptr)
 						{
-						case ScriptPropertyType::Bool:
-						{
-							bool& current = std::get<bool>(value);
-							DrawPropertyRow(property.DisplayName.c_str(), [&]()
-							{
-								ImGui::Checkbox("##value", &current);
-							});
-							break;
+							value = property.Read(*instance);
 						}
 
-						case ScriptPropertyType::Int:
+						if (DrawScriptPropertyField(property, value) && instance != nullptr && property.Apply != nullptr)
 						{
-							int& current = std::get<int>(value);
-							DrawPropertyRow(property.DisplayName.c_str(), [&]()
-							{
-								ImGui::InputInt("##value", &current);
-							});
-							break;
+							property.Apply(*instance, value);
 						}
-
-						case ScriptPropertyType::Float:
-						{
-							float& current = std::get<float>(value);
-							DrawPropertyRow(property.DisplayName.c_str(), [&]()
-							{
-								InputFloatField("##value", current);
-							});
-							break;
-						}
-						}
+					}
+					if (instance != nullptr)
+					{
+						ImGui::TextDisabled("Playing: edits apply now and are discarded on Stop.");
 					}
 				}
 
@@ -1804,7 +1942,7 @@ namespace Hydro
 		if (names.empty())
 		{
 			ImGui::TextDisabled("No scripts registered");
-			ImGui::TextDisabled("Register them with ScriptRegistry::Register<T>(\"Name\")");
+			ImGui::TextDisabled("Mark a ScriptableEntity class HY_SCRIPT() and build");
 			return;
 		}
 

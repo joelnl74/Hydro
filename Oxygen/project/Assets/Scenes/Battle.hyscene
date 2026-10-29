@@ -1,1509 +1,3509 @@
 Handle: 4192300476115817309
 Scene: Battle
+RenderSettings:
+  OverrideProject: true
+  Features:
+    Depth: Shared
+    SpriteSorting: ViewDepth
+    Lighting: Forward
+    DefaultSpriteAlpha: Cutout
+    Meshes: true
+    Shadows: Sun
+    SpriteShadows: AsDrawn
+    HDR: true
+    Bloom: true
+Look:
+  ProfileHandle: 7825868437817689624
+  Environment: Profile
+  PostProcess: Profile
+Environment:
+  SkyAmbient: [0.360000014, 0.280000001, 0.319999993]
+  GroundAmbient: [0.119999997, 0.0900000036, 0.0799999982]
+  Fog: true
+  FogColor: [0.660000026, 0.439999998, 0.360000014]
+  FogStart: 13
+  FogEnd: 38
 Entities:
-  - Entity: 4325148912690108353
-    TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Primary: true
-      Projection: Orthographic
-      PerspectiveFOV: 45
-      PerspectiveNear: 0.00999999978
-      PerspectiveFar: 1000
-      OrthographicSize: 18
-      OrthographicNear: -1
-      OrthographicFar: 1
-  - Entity: 1358916543685330173
-    TagComponent:
-      Tag: Ambient Light
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Global
-      Color: [1, 0.970000029, 0.920000017]
-      Intensity: 0.5
-      Radius: 5
-      Height: 0
-  - Entity: 963283108631774735
-    TagComponent:
-      Tag: Warm Light
-    TransformComponent:
-      Translation: [15, -2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [1, 0.620000005, 0.25]
-      Intensity: 0.349999994
-      Radius: 16
-      Height: 0
-  - Entity: 486820049553113447
-    TagComponent:
-      Tag: Battle Background
-    TransformComponent:
-      Translation: [0, 0, -0.5]
-      Rotation: [0, 0, 0]
-      Scale: [32, 18, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: -100
-      TextureHandle: 5369526070388541847
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2354502644069435857
-    TagComponent:
-      Tag: Hero Miko
-    TransformComponent:
-      Translation: [8.5, -5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [4, 4, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 30
-      TextureHandle: 6973643223218288539
-      Sprite: Idle_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 5638056826991381621
-      StartClip: Idle
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.150000006]
-      Size: [2.20000005, 0.600000024]
-      Strength: 0.550000012
-  - Entity: 543380005528913907
-    TagComponent:
-      Tag: Hero Miko HP Back
-    TransformComponent:
-      Translation: [11.1999998, -7.53000021, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5999999, 0.319999993, 1]
-    SpriteRendererComponent:
-      Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
-      TilingFactor: 1
-      SortOrder: 200
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1048460277824663231
-    TagComponent:
-      Tag: Hero Miko HP Fill
-    TransformComponent:
-      Translation: [11.1999998, -7.53000021, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 0.219999999, 1]
-    SpriteRendererComponent:
-      Color: [0.449999988, 0.850000024, 0.349999994, 1]
-      TilingFactor: 1
-      SortOrder: 201
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2419822650444914979
-    TagComponent:
-      Tag: Hero Miko MP Back
-    TransformComponent:
-      Translation: [11.1999998, -7.9000001, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5999999, 0.219999999, 1]
-    SpriteRendererComponent:
-      Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
-      TilingFactor: 1
-      SortOrder: 200
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1503637125276567477
-    TagComponent:
-      Tag: Hero Miko MP Fill
-    TransformComponent:
-      Translation: [11.1999998, -7.9000001, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 0.119999997, 1]
-    SpriteRendererComponent:
-      Color: [0.349999994, 0.600000024, 0.949999988, 1]
-      TilingFactor: 1
-      SortOrder: 201
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1265686853645913135
-    TagComponent:
-      Tag: Hero Miko HP Digit 0
-    TransformComponent:
-      Translation: [13.3000002, -7.53000021, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 208350898532652517
-    TagComponent:
-      Tag: Hero Miko HP Digit 1
-    TransformComponent:
-      Translation: [13.7200003, -7.53000021, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1424454468408906631
-    TagComponent:
-      Tag: Hero Miko HP Digit 2
-    TransformComponent:
-      Translation: [14.1400003, -7.53000021, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3803698164477593767
-    TagComponent:
-      Tag: Hero Miko Name
-    TransformComponent:
-      Translation: [8.5, -7.5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.4000001, 0.300000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 1605799077072840019
-      Sprite: Miko_0
-      SpriteIndex: 24
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2167776218256150105
-    TagComponent:
-      Tag: Hero Miko Pip 0
-    TransformComponent:
-      Translation: [7.69999981, -7.94999981, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.379999995, 0.379999995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_7
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2979164332911855329
-    TagComponent:
-      Tag: Hero Miko Pip 1
-    TransformComponent:
-      Translation: [8.11999989, -7.94999981, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.379999995, 0.379999995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_7
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4452058484974239225
-    TagComponent:
-      Tag: Hero Miko Pip 2
-    TransformComponent:
-      Translation: [8.53999996, -7.94999981, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.379999995, 0.379999995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_7
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2636810904870439275
-    TagComponent:
-      Tag: Hero Miko Pip 3
-    TransformComponent:
-      Translation: [8.96000004, -7.94999981, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.379999995, 0.379999995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_7
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3057690109097756637
-    TagComponent:
-      Tag: Hero Miko Pip 4
-    TransformComponent:
-      Translation: [9.38000011, -7.94999981, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.379999995, 0.379999995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 205
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_7
-      SpriteIndex: 7
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3342933287778753463
-    TagComponent:
-      Tag: Enemy 0 Slime
-    TransformComponent:
-      Translation: [-6.80000019, -2.79999995, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 3.5999999, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 20
-      TextureHandle: 3596799573489577125
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 2173924343473726646
-      StartClip: Bounce
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.300000012]
-      Size: [2.5999999, 0.699999988]
-      Strength: 0.5
-  - Entity: 1067477410088102697
-    TagComponent:
-      Tag: Enemy 0 Wisp
-    TransformComponent:
-      Translation: [-6.80000019, -2.79999995, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.4000001, 3.4000001, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 21
-      TextureHandle: 3546812827052914949
-      Sprite: Wisp_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 381359539372406047
-      StartClip: Float
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.200000003]
-      Size: [1.79999995, 0.5]
-      Strength: 0.300000012
-  - Entity: 1872439065298645799
-    TagComponent:
-      Tag: Enemy 0 Light
-    TransformComponent:
-      Translation: [-6.80000019, -1.20000005, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [0.349999994, 0.850000024, 1]
-      Intensity: 0
-      Radius: 4.5
-      Height: 0
-  - Entity: 3664971844750471499
-    TagComponent:
-      Tag: Enemy 0 HP Back
-    TransformComponent:
-      Translation: [-6.5, 1.5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5999999, 0.300000012, 1]
-    SpriteRendererComponent:
-      Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
-      TilingFactor: 1
-      SortOrder: 200
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 523611656152946079
-    TagComponent:
-      Tag: Enemy 0 HP Fill
-    TransformComponent:
-      Translation: [-6.5, 1.5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 0.200000003, 1]
-    SpriteRendererComponent:
-      Color: [0.850000024, 0.300000012, 0.25, 1]
-      TilingFactor: 1
-      SortOrder: 201
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2344966513632724177
-    TagComponent:
-      Tag: Enemy 0 Shield
-    TransformComponent:
-      Translation: [-8.39999962, 1.75, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.949999988, 0.949999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_6
-      SpriteIndex: 6
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2975353965683647685
-    TagComponent:
-      Tag: Enemy 0 Shield Digit
-    TransformComponent:
-      Translation: [-8.39999962, 1.82000005, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 207
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_2
-      SpriteIndex: 14
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3578729033148614401
-    TagComponent:
-      Tag: Enemy 0 Weak 0
-    TransformComponent:
-      Translation: [-7.4000001, 2.04999995, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1396949757501771079
-    TagComponent:
-      Tag: Enemy 0 Weak 1
-    TransformComponent:
-      Translation: [-6.75, 2.04999995, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 666325545167806197
-    TagComponent:
-      Tag: Enemy 0 Weak 2
-    TransformComponent:
-      Translation: [-6.0999999, 2.04999995, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1023646738949003259
-    TagComponent:
-      Tag: Enemy 1 Slime
-    TransformComponent:
-      Translation: [-3.4000001, -6, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 3.5999999, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 22
-      TextureHandle: 3596799573489577125
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 2173924343473726646
-      StartClip: Bounce
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.300000012]
-      Size: [2.5999999, 0.699999988]
-      Strength: 0.5
-  - Entity: 2839042781894498169
-    TagComponent:
-      Tag: Enemy 1 Wisp
-    TransformComponent:
-      Translation: [-3.4000001, -6, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.4000001, 3.4000001, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 23
-      TextureHandle: 3546812827052914949
-      Sprite: Wisp_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 381359539372406047
-      StartClip: Float
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.200000003]
-      Size: [1.79999995, 0.5]
-      Strength: 0.300000012
-  - Entity: 1535014961905056575
-    TagComponent:
-      Tag: Enemy 1 Light
-    TransformComponent:
-      Translation: [-3.4000001, -4.4000001, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [0.349999994, 0.850000024, 1]
-      Intensity: 0
-      Radius: 4.5
-      Height: 0
-  - Entity: 2691855884825161267
-    TagComponent:
-      Tag: Enemy 1 HP Back
-    TransformComponent:
-      Translation: [-3.0999999, -1.70000005, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5999999, 0.300000012, 1]
-    SpriteRendererComponent:
-      Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
-      TilingFactor: 1
-      SortOrder: 200
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1085163206976032369
-    TagComponent:
-      Tag: Enemy 1 HP Fill
-    TransformComponent:
-      Translation: [-3.0999999, -1.70000005, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 0.200000003, 1]
-    SpriteRendererComponent:
-      Color: [0.850000024, 0.300000012, 0.25, 1]
-      TilingFactor: 1
-      SortOrder: 201
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 668027511869699031
-    TagComponent:
-      Tag: Enemy 1 Shield
-    TransformComponent:
-      Translation: [-5, -1.45000005, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.949999988, 0.949999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_6
-      SpriteIndex: 6
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1059971111004204979
-    TagComponent:
-      Tag: Enemy 1 Shield Digit
-    TransformComponent:
-      Translation: [-5, -1.38, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 207
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_2
-      SpriteIndex: 14
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1737427458561910665
-    TagComponent:
-      Tag: Enemy 1 Weak 0
-    TransformComponent:
-      Translation: [-4, -1.14999998, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3406627396318602413
-    TagComponent:
-      Tag: Enemy 1 Weak 1
-    TransformComponent:
-      Translation: [-3.3499999, -1.14999998, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4213791766793925241
-    TagComponent:
-      Tag: Enemy 1 Weak 2
-    TransformComponent:
-      Translation: [-2.70000005, -1.14999998, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3220867481356510017
-    TagComponent:
-      Tag: Enemy 2 Slime
-    TransformComponent:
-      Translation: [-11, -5.4000001, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 3.5999999, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 24
-      TextureHandle: 3596799573489577125
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 2173924343473726646
-      StartClip: Bounce
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.300000012]
-      Size: [2.5999999, 0.699999988]
-      Strength: 0.5
-  - Entity: 1126483171896878523
-    TagComponent:
-      Tag: Enemy 2 Wisp
-    TransformComponent:
-      Translation: [-11, -5.4000001, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.4000001, 3.4000001, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 25
-      TextureHandle: 3546812827052914949
-      Sprite: Wisp_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 381359539372406047
-      StartClip: Float
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, 0.200000003]
-      Size: [1.79999995, 0.5]
-      Strength: 0.300000012
-  - Entity: 3754412435989424019
-    TagComponent:
-      Tag: Enemy 2 Light
-    TransformComponent:
-      Translation: [-11, -3.79999995, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [0.349999994, 0.850000024, 1]
-      Intensity: 0
-      Radius: 4.5
-      Height: 0
-  - Entity: 3633289450062964969
-    TagComponent:
-      Tag: Enemy 2 HP Back
-    TransformComponent:
-      Translation: [-10.6999998, -1.10000002, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5999999, 0.300000012, 1]
-    SpriteRendererComponent:
-      Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
-      TilingFactor: 1
-      SortOrder: 200
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2075504677839347763
-    TagComponent:
-      Tag: Enemy 2 HP Fill
-    TransformComponent:
-      Translation: [-10.6999998, -1.10000002, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 0.200000003, 1]
-    SpriteRendererComponent:
-      Color: [0.850000024, 0.300000012, 0.25, 1]
-      TilingFactor: 1
-      SortOrder: 201
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2554741734565481117
-    TagComponent:
-      Tag: Enemy 2 Shield
-    TransformComponent:
-      Translation: [-12.6000004, -0.850000024, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.949999988, 0.949999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_6
-      SpriteIndex: 6
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1419781065135675077
-    TagComponent:
-      Tag: Enemy 2 Shield Digit
-    TransformComponent:
-      Translation: [-12.6000004, -0.779999971, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 207
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_2
-      SpriteIndex: 14
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 473519217997946627
-    TagComponent:
-      Tag: Enemy 2 Weak 0
-    TransformComponent:
-      Translation: [-11.6000004, -0.550000012, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1398064115850411373
-    TagComponent:
-      Tag: Enemy 2 Weak 1
-    TransformComponent:
-      Translation: [-10.9499998, -0.550000012, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2088967229790623149
-    TagComponent:
-      Tag: Enemy 2 Weak 2
-    TransformComponent:
-      Translation: [-10.3000002, -0.550000012, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.600000024, 0.600000024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 206
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_5
-      SpriteIndex: 5
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4332944653959389197
-    TagComponent:
-      Tag: Order Chip 0
-    TransformComponent:
-      Translation: [-10, 8.10000038, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 0.449999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 210
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 857888808662015479
-    TagComponent:
-      Tag: Order Chip 1
-    TransformComponent:
-      Translation: [-6, 8.10000038, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 0.449999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 210
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 126150385849760757
-    TagComponent:
-      Tag: Order Chip 2
-    TransformComponent:
-      Translation: [-2, 8.10000038, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 0.449999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 210
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4010738463145047473
-    TagComponent:
-      Tag: Order Chip 3
-    TransformComponent:
-      Translation: [2, 8.10000038, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 0.449999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 210
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4158808738284465657
-    TagComponent:
-      Tag: Order Chip 4
-    TransformComponent:
-      Translation: [6, 8.10000038, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 0.449999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 210
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4189512304645367447
-    TagComponent:
-      Tag: Order Chip 5
-    TransformComponent:
-      Translation: [10, 8.10000038, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.5999999, 0.449999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 210
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 303675179249933599
-    TagComponent:
-      Tag: Order Panel
-    TransformComponent:
-      Translation: [0, 8.10000038, 0]
-      Rotation: [0, 0, 0]
-      Scale: [25, 0.850000024, 1]
-    SpriteRendererComponent:
-      Color: [0.0799999982, 0.0649999976, 0.0450000018, 0.800000012]
-      TilingFactor: 1
-      SortOrder: 209
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2503594637117990557
-    TagComponent:
-      Tag: Message
-    TransformComponent:
-      Translation: [0, 6.30000019, 0]
-      Rotation: [0, 0, 0]
-      Scale: [7.19999981, 0.899999976, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 230
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1412399333282199361
-    TagComponent:
-      Tag: Target Cursor
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.699999988, 0.699999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 220
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_9
-      SpriteIndex: 9
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1873083660300769013
-    TagComponent:
-      Tag: Turn Marker
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.699999988, 0.699999988, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 220
-      TextureHandle: 3328678694188945053
-      Sprite: Icon_9
-      SpriteIndex: 9
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3687469943115966723
-    TagComponent:
-      Tag: Command Panel
-    TransformComponent:
-      Translation: [-1, -7.75, 0]
-      Rotation: [0, 0, 0]
-      Scale: [15.5, 2.29999995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0.920000017]
-      TilingFactor: 1
-      SortOrder: 209
-      TextureHandle: 1876931991275611681
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2426494286836293121
-    TagComponent:
-      Tag: Command Key 0
-    TransformComponent:
-      Translation: [-6.9000001, -7.30000019, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_1
-      SpriteIndex: 13
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 956000144609049515
-    TagComponent:
-      Tag: Command 0
-    TransformComponent:
-      Translation: [-4.94999981, -7.30000019, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.20000005, 0.400000006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2036138797124235843
-    TagComponent:
-      Tag: Command Key 1
-    TransformComponent:
-      Translation: [-2.29999995, -7.30000019, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_2
-      SpriteIndex: 14
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 780931092413700237
-    TagComponent:
-      Tag: Command 1
-    TransformComponent:
-      Translation: [-0.349999994, -7.30000019, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.20000005, 0.400000006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2671831323181636189
-    TagComponent:
-      Tag: Command Key 2
-    TransformComponent:
-      Translation: [2.29999995, -7.30000019, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_3
-      SpriteIndex: 15
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 985982571770060221
-    TagComponent:
-      Tag: Command 2
-    TransformComponent:
-      Translation: [4.25, -7.30000019, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.20000005, 0.400000006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4417725511485728381
-    TagComponent:
-      Tag: Command Key 3
-    TransformComponent:
-      Translation: [-6.9000001, -8.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_4
-      SpriteIndex: 16
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4468166853701226901
-    TagComponent:
-      Tag: Command 3
-    TransformComponent:
-      Translation: [-4.94999981, -8.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.20000005, 0.400000006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1436508340468887079
-    TagComponent:
-      Tag: Command Key 4
-    TransformComponent:
-      Translation: [-2.29999995, -8.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_5
-      SpriteIndex: 17
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2684677144518850305
-    TagComponent:
-      Tag: Command 4
-    TransformComponent:
-      Translation: [-0.349999994, -8.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.20000005, 0.400000006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 962705506745262457
-    TagComponent:
-      Tag: Command Key 5
-    TransformComponent:
-      Translation: [2.29999995, -8.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_6
-      SpriteIndex: 18
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4606989629720687839
-    TagComponent:
-      Tag: Command 5
-    TransformComponent:
-      Translation: [4.25, -8.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.20000005, 0.400000006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 1605799077072840019
-      Sprite: Attack_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 479522812321223319
-    TagComponent:
-      Tag: Boost Label
-    TransformComponent:
-      Translation: [-7, -6.0999999, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.20000005, 0.400000006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 1605799077072840019
-      Sprite: Boost_0
-      SpriteIndex: 18
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1145468260433655573
-    TagComponent:
-      Tag: Boost Digit
-    TransformComponent:
-      Translation: [-5.30000019, -6.0999999, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.550000012, 0.550000012, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 212
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1889869138271743303
-    TagComponent:
-      Tag: Popup 0 Digit 0
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 1570343578560431039
-    TagComponent:
-      Tag: Popup 0 Digit 1
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2723254937496717579
-    TagComponent:
-      Tag: Popup 0 Digit 2
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3598088787663941157
-    TagComponent:
-      Tag: Popup 1 Digit 0
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4422076111181459827
-    TagComponent:
-      Tag: Popup 1 Digit 1
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2018005335998494927
-    TagComponent:
-      Tag: Popup 1 Digit 2
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4415784830397713951
-    TagComponent:
-      Tag: Popup 2 Digit 0
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 2723510240245860637
-    TagComponent:
-      Tag: Popup 2 Digit 1
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 807060539347502325
-    TagComponent:
-      Tag: Popup 2 Digit 2
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.75, 0.75, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 240
-      TextureHandle: 3328678694188945053
-      Sprite: Digit_0
-      SpriteIndex: 12
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3087013420501047885
-    TagComponent:
-      Tag: Battle Overlay
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [40, 24, 1]
-    SpriteRendererComponent:
-      Color: [0, 0, 0, 1]
-      TilingFactor: 1
-      SortOrder: 1000
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 4440101092385176297
-    TagComponent:
-      Tag: Battle Director
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: BattleScript
-  - Entity: 2717703238488551711
-    TagComponent:
-      Tag: Party Panel
-    TransformComponent:
-      Translation: [11.3000002, -7.71999979, 0]
-      Rotation: [0, 0, 0]
-      Scale: [8.60000038, 1.29999995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0.920000017]
-      TilingFactor: 1
-      SortOrder: 195
-      TextureHandle: 1876931991275611681
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-  - Entity: 3606704619762678601
-    TagComponent:
-      Tag: FX Slash
-    TransformComponent:
-      Translation: [0, -20, 0]
-      Rotation: [0, 0, 0]
-      Scale: [4, 4, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 60
-      TextureHandle: 2640737163067251553
-      Sprite: Slash_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 2558487333698803989
-      StartClip: Slash
-      PlayOnStart: false
-      Speed: 1
-    Light2DComponent:
-      Type: Point
-      Color: [1, 0.75, 0.400000006]
-      Intensity: 0
-      Radius: 3.5
-      Height: 0
-  - Entity: 4463077264953172967
-    TagComponent:
-      Tag: FX Heal
-    TransformComponent:
-      Translation: [0, -20, 0]
-      Rotation: [0, 0, 0]
-      Scale: [4, 4, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0]
-      TilingFactor: 1
-      SortOrder: 61
-      TextureHandle: 76619594864854401
-      Sprite: Heal_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Flat
-    SpriteAnimatorComponent:
-      AnimationsHandle: 700814717632547411
-      StartClip: Heal
-      PlayOnStart: false
-      Speed: 1
-    Light2DComponent:
-      Type: Point
-      Color: [0.600000024, 0.949999988, 1]
-      Intensity: 0
-      Radius: 4.5
-      Height: 0
+- Entity: 6563107757448970278
+  TagComponent:
+    Tag: Arena Ground
+  TransformComponent:
+    Translation: [0.0, 12.0, -0.5]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    Shape: Box
+    Size: [90.0, 70.0, 0.5]
+    CastShadows: true
+    Materials:
+    - MaterialHandle: 8023819403869877598
+      Inline:
+        Tint: [1.0, 1.0, 1.0, 1.0]
+        Tiling: [1.0, 1.0]
+        EmissionColor: [0, 0, 0]
+        EmissionIntensity: 1
+        AlphaCutoff: 0
+        Filter: Nearest
+- Entity: 5402207464262584888
+  TagComponent:
+    Tag: Arena Grass Shade
+  TransformComponent:
+    Translation: [0.0, 12.0, 0.002]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    Shape: Plane
+    Size: [90.0, 70.0, 0.0]
+    CastShadows: true
+    Materials:
+    - MaterialHandle: 3002974362295055788
+      Inline:
+        Tint: [1.0, 1.0, 1.0, 1.0]
+        Tiling: [1.0, 1.0]
+        EmissionColor: [0, 0, 0]
+        EmissionIntensity: 1
+        AlphaCutoff: 0
+        Filter: Nearest
+- Entity: 137707622130092602
+  TagComponent:
+    Tag: Arena Grass
+  TransformComponent:
+    Translation: [0.0, 2.0, 0.004]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    Shape: Plane
+    Size: [30.0, 22.0, 0.0]
+    CastShadows: true
+    Materials:
+    - MaterialHandle: 8403729157865118956
+      Inline:
+        Tint: [1.0, 1.0, 1.0, 1.0]
+        Tiling: [1.0, 1.0]
+        EmissionColor: [0, 0, 0]
+        EmissionIntensity: 1
+        AlphaCutoff: 0
+        Filter: Nearest
+- Entity: 8918443499694945682
+  TagComponent:
+    Tag: Arena Clearing
+  TransformComponent:
+    Translation: [-0.4, -0.25, 0.008]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    Shape: Plane
+    Size: [11.6, 4.6, 0.0]
+    CastShadows: true
+    Materials:
+    - MaterialHandle: 8023819403869877598
+      Inline:
+        Tint: [0.9, 0.88, 0.82, 1.0]
+        Tiling: [1.0, 1.0]
+        EmissionColor: [0, 0, 0]
+        EmissionIntensity: 1
+        AlphaCutoff: 0
+        Filter: Nearest
+- Entity: 9068310116238937521
+  TagComponent:
+    Tag: Arena Path
+  TransformComponent:
+    Translation: [0.0, 8.6, 0.012]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    Shape: Plane
+    Size: [3.2, 10.4, 0.0]
+    CastShadows: true
+    Materials:
+    - MaterialHandle: 8179354946758296038
+      Inline:
+        Tint: [1.0, 1.0, 1.0, 1.0]
+        Tiling: [1.0, 1.0]
+        EmissionColor: [0, 0, 0]
+        EmissionIntensity: 1
+        AlphaCutoff: 0
+        Filter: Nearest
+- Entity: 3146992673531203430
+  TagComponent:
+    Tag: Arena Path Pad
+  TransformComponent:
+    Translation: [0.0, 3.4, 0.012]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    Shape: Plane
+    Size: [5.5, 1.4, 0.0]
+    CastShadows: true
+    Materials:
+    - MaterialHandle: 8179354946758296038
+      Inline:
+        Tint: [1.0, 1.0, 1.0, 1.0]
+        Tiling: [1.0, 1.0]
+        EmissionColor: [0, 0, 0]
+        EmissionIntensity: 1
+        AlphaCutoff: 0
+        Filter: Nearest
+- Entity: 6996322625144633389
+  TagComponent:
+    Tag: Arena Torii
+  TransformComponent:
+    Translation: [0.0, 13.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    ModelHandle: 7009602151233614168
+    Shape: Box
+    Size: [1, 1, 1]
+    CastShadows: true
+    Materials: []
+- Entity: 890322896975647149
+  TagComponent:
+    Tag: Arena Stone Lantern Path Left
+  TransformComponent:
+    Translation: [-2.7, 11.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.14999998, 1.14999998, 1.14999998]
+  MeshComponent:
+    ModelHandle: 6017387236698300047
+    Shape: Box
+    Size: [1, 1, 1]
+    CastShadows: true
+    Materials: []
+- Entity: 2534020856717998252
+  TagComponent:
+    Tag: Arena Light Lantern Path Left
+  TransformComponent:
+    Translation: [-2.7, 11.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Light2DComponent:
+    Type: Point
+    Color: [1, 0.639999986, 0.300000012]
+    Intensity: 2.20000005
+    Radius: 3.4000001
+    Height: 1.33
+- Entity: 3952264657971904574
+  TagComponent:
+    Tag: Arena Stone Lantern Path Right
+  TransformComponent:
+    Translation: [2.7, 11.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.14999998, 1.14999998, 1.14999998]
+  MeshComponent:
+    ModelHandle: 6017387236698300047
+    Shape: Box
+    Size: [1, 1, 1]
+    CastShadows: true
+    Materials: []
+- Entity: 2122953270814205162
+  TagComponent:
+    Tag: Arena Light Lantern Path Right
+  TransformComponent:
+    Translation: [2.7, 11.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Light2DComponent:
+    Type: Point
+    Color: [1, 0.639999986, 0.300000012]
+    Intensity: 2.20000005
+    Radius: 3.4000001
+    Height: 1.33
+- Entity: 4888566766828707059
+  TagComponent:
+    Tag: Arena Stone Lantern Clearing Left
+  TransformComponent:
+    Translation: [-9.0, 2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.14999998, 1.14999998, 1.14999998]
+  MeshComponent:
+    ModelHandle: 6017387236698300047
+    Shape: Box
+    Size: [1, 1, 1]
+    CastShadows: true
+    Materials: []
+- Entity: 1630422484540516096
+  TagComponent:
+    Tag: Arena Light Lantern Clearing Left
+  TransformComponent:
+    Translation: [-9.0, 2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Light2DComponent:
+    Type: Point
+    Color: [1, 0.639999986, 0.300000012]
+    Intensity: 2.20000005
+    Radius: 3.4000001
+    Height: 1.33
+- Entity: 2179150161263740913
+  TagComponent:
+    Tag: Arena Stone Lantern Clearing Right
+  TransformComponent:
+    Translation: [9.2, 2.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.14999998, 1.14999998, 1.14999998]
+  MeshComponent:
+    ModelHandle: 6017387236698300047
+    Shape: Box
+    Size: [1, 1, 1]
+    CastShadows: true
+    Materials: []
+- Entity: 2168098546826097189
+  TagComponent:
+    Tag: Arena Light Lantern Clearing Right
+  TransformComponent:
+    Translation: [9.2, 2.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Light2DComponent:
+    Type: Point
+    Color: [1, 0.639999986, 0.300000012]
+    Intensity: 2.20000005
+    Radius: 3.4000001
+    Height: 1.33
+- Entity: 7403391124065642624
+  TagComponent:
+    Tag: Arena Sacred Tree
+  TransformComponent:
+    Translation: [-8.5, 15.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [12.7, 13.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7852483744401080896
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 504284047837075309
+  TagComponent:
+    Tag: Arena Blossom Tree
+  TransformComponent:
+    Translation: [8.8, 16.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.39370012, 6.5, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 5742470722704427371
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8404182026185645653
+  TagComponent:
+    Tag: Arena Tree Left Front
+  TransformComponent:
+    Translation: [-13.5, -5.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [10.2942, 10.6, 1.0]
+  SpriteRendererComponent:
+    Color: [0.86, 0.86, 0.8342, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7097444611785527993
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 7983211803332599980
+  TagComponent:
+    Tag: Arena Tree Left Middle
+  TransformComponent:
+    Translation: [-15.5, 1.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [12.9375, 11.5, 1.0]
+  SpriteRendererComponent:
+    Color: [0.8, 0.8, 0.776, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 5805457290072020487
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 3758364444190049621
+  TagComponent:
+    Tag: Arena Tree Left Back
+  TransformComponent:
+    Translation: [-14.0, 8.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [12.3292, 11.0, 1.0]
+  SpriteRendererComponent:
+    Color: [0.72, 0.72, 0.6984, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2505759380645850351
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 8666389829552204740
+  TagComponent:
+    Tag: Arena Tree Left Far
+  TransformComponent:
+    Translation: [-19.0, 13.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [11.6538, 12.0, 1.0]
+  SpriteRendererComponent:
+    Color: [0.62, 0.62, 0.6014, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7097444611785527993
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 2135198182042391338
+  TagComponent:
+    Tag: Arena Tree Right Front
+  TransformComponent:
+    Translation: [13.8, -5.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [11.925, 10.6, 1.0]
+  SpriteRendererComponent:
+    Color: [0.86, 0.86, 0.8342, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 5805457290072020487
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 3529754568870337246
+  TagComponent:
+    Tag: Arena Tree Right Middle
+  TransformComponent:
+    Translation: [16.0, 2.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [12.8896, 11.5, 1.0]
+  SpriteRendererComponent:
+    Color: [0.8, 0.8, 0.776, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2505759380645850351
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5714530325518723507
+  TagComponent:
+    Tag: Arena Tree Right Back
+  TransformComponent:
+    Translation: [14.5, 9.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [10.6827, 11.0, 1.0]
+  SpriteRendererComponent:
+    Color: [0.72, 0.72, 0.6984, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7097444611785527993
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8270111924401032121
+  TagComponent:
+    Tag: Arena Tree Right Far
+  TransformComponent:
+    Translation: [19.5, 13.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [13.5, 12.0, 1.0]
+  SpriteRendererComponent:
+    Color: [0.62, 0.62, 0.6014, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 5805457290072020487
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 4698631503652897974
+  TagComponent:
+    Tag: Arena Pine 0 0
+  TransformComponent:
+    Translation: [-27.0667, 21.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [4.3875, 11.05, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1147939164296727553
+  TagComponent:
+    Tag: Arena Pine 0 1
+  TransformComponent:
+    Translation: [-18.9, 22.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [9.8713, 13.78, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 6569753161499425409
+  TagComponent:
+    Tag: Arena Pine 0 2
+  TransformComponent:
+    Translation: [-17.7333, 21.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [9.0331, 12.61, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 9192447345524281364
+  TagComponent:
+    Tag: Arena Pine 0 3
+  TransformComponent:
+    Translation: [-9.5667, 23.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [4.5424, 11.44, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 6932668237225686516
+  TagComponent:
+    Tag: Arena Pine 0 4
+  TransformComponent:
+    Translation: [-8.4, 22.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [10.1506, 14.17, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 196225146435191881
+  TagComponent:
+    Tag: Arena Pine 0 7
+  TransformComponent:
+    Translation: [9.1, 21.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.7811, 14.56, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 2170852911941445693
+  TagComponent:
+    Tag: Arena Pine 0 8
+  TransformComponent:
+    Translation: [10.2667, 23.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.3166, 13.39, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1651107181597235524
+  TagComponent:
+    Tag: Arena Pine 0 9
+  TransformComponent:
+    Translation: [18.4333, 22.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.219, 12.22, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 6905151725138978024
+  TagComponent:
+    Tag: Arena Pine 0 10
+  TransformComponent:
+    Translation: [19.6, 21.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [4.3875, 11.05, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 8244506259504463845
+  TagComponent:
+    Tag: Arena Pine 0 11
+  TransformComponent:
+    Translation: [27.7667, 22.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [9.8712, 13.78, 1.0]
+  SpriteRendererComponent:
+    Color: [0.5, 0.465, 0.525, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 9159475769827163693
+  TagComponent:
+    Tag: Arena Pine 1 0
+  TransformComponent:
+    Translation: [-28.5429, 26.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [9.4558, 13.2, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5058397768742109439
+  TagComponent:
+    Tag: Arena Pine 1 1
+  TransformComponent:
+    Translation: [-27.3286, 27.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.9828, 16.35, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 245290854931231162
+  TagComponent:
+    Tag: Arena Pine 1 2
+  TransformComponent:
+    Translation: [-19.1143, 26.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.9559, 15.0, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 6184117003983768561
+  TagComponent:
+    Tag: Arena Pine 1 3
+  TransformComponent:
+    Translation: [-17.9, 28.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.8297, 13.65, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 3927973040661242920
+  TagComponent:
+    Tag: Arena Pine 1 4
+  TransformComponent:
+    Translation: [-9.6857, 27.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [12.0346, 16.8, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 4934684301437589036
+  TagComponent:
+    Tag: Arena Pine 1 5
+  TransformComponent:
+    Translation: [-8.4714, 26.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.1345, 15.45, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8753104865799053056
+  TagComponent:
+    Tag: Arena Pine 1 6
+  TransformComponent:
+    Translation: [-0.2571, 27.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.0219, 14.1, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 4896325199724095560
+  TagComponent:
+    Tag: Arena Pine 1 7
+  TransformComponent:
+    Translation: [0.9571, 26.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [9.1334, 12.75, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 2228517966230778944
+  TagComponent:
+    Tag: Arena Pine 1 8
+  TransformComponent:
+    Translation: [9.1714, 28.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [11.3899, 15.9, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 3210580795829345372
+  TagComponent:
+    Tag: Arena Pine 1 9
+  TransformComponent:
+    Translation: [10.3857, 27.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [10.4229, 14.55, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 2623517391823434936
+  TagComponent:
+    Tag: Arena Pine 1 10
+  TransformComponent:
+    Translation: [18.6, 26.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.2412, 13.2, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1573694440170470568
+  TagComponent:
+    Tag: Arena Pine 1 11
+  TransformComponent:
+    Translation: [19.8143, 27.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.9828, 16.35, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 2581804254213029560
+  TagComponent:
+    Tag: Arena Pine 1 12
+  TransformComponent:
+    Translation: [28.0286, 26.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.4063, 15.0, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 3885028854464449505
+  TagComponent:
+    Tag: Arena Pine 1 13
+  TransformComponent:
+    Translation: [29.2429, 28.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.8297, 13.65, 1.0]
+  SpriteRendererComponent:
+    Color: [0.42, 0.3906, 0.441, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 6642322834607412635
+  TagComponent:
+    Tag: Arena Pine 2 0
+  TransformComponent:
+    Translation: [-37.025, 31.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [11.082, 15.47, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7715509536353744322
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5361671084699139169
+  TagComponent:
+    Tag: Arena Pine 2 1
+  TransformComponent:
+    Translation: [-28.775, 32.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [8.1316, 19.04, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 6525905407626745068
+  TagComponent:
+    Tag: Arena Pine 2 2
+  TransformComponent:
+    Translation: [-27.525, 31.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.4782, 17.51, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 6095552614052978531
+  TagComponent:
+    Tag: Arena Pine 2 3
+  TransformComponent:
+    Translation: [-19.275, 33.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.8248, 15.98, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 3388881978294003787
+  TagComponent:
+    Tag: Arena Pine 2 4
+  TransformComponent:
+    Translation: [-18.025, 32.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.1713, 14.45, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 3959908114156119617
+  TagComponent:
+    Tag: Arena Pine 2 5
+  TransformComponent:
+    Translation: [-9.775, 31.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.696, 18.02, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 4603771046582904023
+  TagComponent:
+    Tag: Arena Pine 2 6
+  TransformComponent:
+    Translation: [-8.525, 32.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.5475, 16.49, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5154739773517804696
+  TagComponent:
+    Tag: Arena Pine 2 7
+  TransformComponent:
+    Translation: [-0.275, 31.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.3892, 14.96, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 7812027602593361263
+  TagComponent:
+    Tag: Arena Pine 2 8
+  TransformComponent:
+    Translation: [0.975, 33.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.9139, 18.53, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 6684974515909803062
+  TagComponent:
+    Tag: Arena Pine 2 9
+  TransformComponent:
+    Translation: [9.225, 32.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.2604, 17.0, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8694798810854035797
+  TagComponent:
+    Tag: Arena Pine 2 10
+  TransformComponent:
+    Translation: [10.475, 31.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.1424, 15.47, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1946318195447384238
+  TagComponent:
+    Tag: Arena Pine 2 11
+  TransformComponent:
+    Translation: [18.725, 32.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.56, 19.04, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 5511252274522182139
+  TagComponent:
+    Tag: Arena Pine 2 12
+  TransformComponent:
+    Translation: [19.975, 31.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.4783, 17.51, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 962573779804548815
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 8598263114188203889
+  TagComponent:
+    Tag: Arena Pine 2 13
+  TransformComponent:
+    Translation: [28.225, 33.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [6.3449, 15.98, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 97910363447842903
+  TagComponent:
+    Tag: Arena Pine 2 14
+  TransformComponent:
+    Translation: [29.475, 32.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [5.7375, 14.45, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 8269895456079571881
+  TagComponent:
+    Tag: Arena Pine 2 15
+  TransformComponent:
+    Translation: [37.725, 31.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [7.155, 18.02, 1.0]
+  SpriteRendererComponent:
+    Color: [0.36, 0.3348, 0.378, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2210456475263983977
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 902287137463232693
+  TagComponent:
+    Tag: Arena Backdrop Sunset
+  TransformComponent:
+    Translation: [0.0, 40.0, -9.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  MeshComponent:
+    Shape: Box
+    Size: [110.0, 0.2, 30.0]
+    CastShadows: false
+    Materials:
+    - MaterialHandle: 4413571034817251968
+      Inline:
+        Tint: [1.0, 1.0, 1.0, 1.0]
+        Tiling: [1.0, 1.0]
+        EmissionColor: [0, 0, 0]
+        EmissionIntensity: 1
+        AlphaCutoff: 0
+        Filter: Nearest
+- Entity: 5373738625870130847
+  TagComponent:
+    Tag: Arena Decor Back 0
+  TransformComponent:
+    Translation: [-6.6, 4.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.4238, 1.3, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 5006942097349555378
+  TagComponent:
+    Tag: Arena Decor Back 1
+  TransformComponent:
+    Translation: [-4.3, 4.9, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.8334, 1.6, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1094557795298247722
+  TagComponent:
+    Tag: Arena Decor Back 2
+  TransformComponent:
+    Translation: [-2.6, 4.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9655, 0.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 268979081279308515
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 5130930201393201317
+  TagComponent:
+    Tag: Arena Decor Back 3
+  TransformComponent:
+    Translation: [2.7, 4.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9655, 0.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 268979081279308515
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 598344405430278206
+  TagComponent:
+    Tag: Arena Decor Back 4
+  TransformComponent:
+    Translation: [4.6, 5.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.1724, 1.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7407627607183195403
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1511848797788634382
+  TagComponent:
+    Tag: Arena Decor Back 5
+  TransformComponent:
+    Translation: [6.8, 4.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.4238, 1.3, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 810535138197559010
+  TagComponent:
+    Tag: Arena Decor Back 6
+  TransformComponent:
+    Translation: [-11.0, 5.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.591, 1.5, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8276649552491953295
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 7355472648287115349
+  TagComponent:
+    Tag: Arena Decor Back 7
+  TransformComponent:
+    Translation: [11.2, 5.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4, 1.6, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3795230639466418587
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 4676317302267964869
+  TagComponent:
+    Tag: Arena Decor Back 8
+  TransformComponent:
+    Translation: [-7.8, 7.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.1772, 1.9, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 5390891849074597557
+  TagComponent:
+    Tag: Arena Decor Back 9
+  TransformComponent:
+    Translation: [7.6, 7.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4137, 2.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7407627607183195403
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5677080228680364445
+  TagComponent:
+    Tag: Arena Decor Back 10
+  TransformComponent:
+    Translation: [-1.9, 10.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.0953, 1.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 4009030027929966723
+  TagComponent:
+    Tag: Arena Decor Back 11
+  TransformComponent:
+    Translation: [1.9, 10.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.0953, 1.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5604157395063429756
+  TagComponent:
+    Tag: Arena Decor Side 0
+  TransformComponent:
+    Translation: [-11.2, -1.5, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.5334, 1.4, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2237166087706208231
+  TagComponent:
+    Tag: Arena Decor Side 1
+  TransformComponent:
+    Translation: [-10.6, -4.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4183, 1.4, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8276649552491953295
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 7949592539452156357
+  TagComponent:
+    Tag: Arena Decor Side 2
+  TransformComponent:
+    Translation: [-9.6, -2.9, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9761, 1.0, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3471202463790715305
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1602781194332657485
+  TagComponent:
+    Tag: Arena Decor Side 3
+  TransformComponent:
+    Translation: [11.0, -1.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.5334, 1.4, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3109843078229128923
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8291547105992116279
+  TagComponent:
+    Tag: Arena Decor Side 4
+  TransformComponent:
+    Translation: [10.4, -4.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.4, 1.6, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3795230639466418587
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2153423235963775933
+  TagComponent:
+    Tag: Arena Decor Side 5
+  TransformComponent:
+    Translation: [9.9, -2.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8785, 0.9, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3471202463790715305
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2492464209848217237
+  TagComponent:
+    Tag: Arena Decor Side 6
+  TransformComponent:
+    Translation: [-12.4, 3.0, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.0626, 1.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1790994607385386138
+  TagComponent:
+    Tag: Arena Decor Side 7
+  TransformComponent:
+    Translation: [12.6, 3.4, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.0626, 1.8, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 250417816214129350
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1040133311033279044
+  TagComponent:
+    Tag: Arena Edge 0
+  TransformComponent:
+    Translation: [-5.6, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8673, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 1312505620698727174
+  TagComponent:
+    Tag: Arena Edge 1
+  TransformComponent:
+    Translation: [-4.1, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1667, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8357162906848885379
+  TagComponent:
+    Tag: Arena Edge 2
+  TransformComponent:
+    Translation: [-2.7, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1631, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 2225186027744207386
+  TagComponent:
+    Tag: Arena Edge 3
+  TransformComponent:
+    Translation: [-1.4, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.6947, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 4138442976386436961
+  TagComponent:
+    Tag: Arena Edge 4
+  TransformComponent:
+    Translation: [0.9, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1038, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 6825284100394449368
+  TagComponent:
+    Tag: Arena Edge 5
+  TransformComponent:
+    Translation: [2.2, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.4167, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 6478458526330334399
+  TagComponent:
+    Tag: Arena Edge 6
+  TransformComponent:
+    Translation: [3.6, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.7526, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5175185779697415582
+  TagComponent:
+    Tag: Arena Edge 7
+  TransformComponent:
+    Translation: [4.9, 2.05, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8842, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1466026107322867634
+  TagComponent:
+    Tag: Arena Edge 8
+  TransformComponent:
+    Translation: [-6.25, 1.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.3403, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 4281448923734181955
+  TagComponent:
+    Tag: Arena Edge 9
+  TransformComponent:
+    Translation: [-6.25, -0.3, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9167, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1707721370068438218
+  TagComponent:
+    Tag: Arena Edge 10
+  TransformComponent:
+    Translation: [-6.25, -1.8, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.9579, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 639232585883532006
+  TagComponent:
+    Tag: Arena Edge 11
+  TransformComponent:
+    Translation: [5.45, 1.3, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.0736, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 9197168765399280359
+  TagComponent:
+    Tag: Arena Edge 12
+  TransformComponent:
+    Translation: [5.45, -0.2, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.8673, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 5299922658290223000
+  TagComponent:
+    Tag: Arena Edge 13
+  TransformComponent:
+    Translation: [5.45, -1.7, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1667, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 258909959966937588
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 8158333279546345783
+  TagComponent:
+    Tag: Arena Edge 14
+  TransformComponent:
+    Translation: [-5.2, -2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1631, 0.85, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8597620230523949458
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 7702693071821964596
+  TagComponent:
+    Tag: Arena Edge 15
+  TransformComponent:
+    Translation: [-2.9, -2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [0.6947, 0.55, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8021622353636888719
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 1173280391425543582
+  TagComponent:
+    Tag: Arena Edge 16
+  TransformComponent:
+    Translation: [3.9, -2.6, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1.1038, 0.7, 1.0]
+  SpriteRendererComponent:
+    Color: [1.0, 1.0, 1.0, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4607322758261483897
+    SpriteIndex: 0
+    FlipX: true
+    FlipY: false
+    Facing: Upright
+- Entity: 20555122017126875
+  TagComponent:
+    Tag: Arena Canopy 0
+  TransformComponent:
+    Translation: [-6.4, -3.3, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.6552, 2.2, 1.0]
+  SpriteRendererComponent:
+    Color: [0.82, 0.82, 0.82, 1.0]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7407627607183195403
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+- Entity: 2087316721574072905
+  TagComponent:
+    Tag: Arena Petals 0
+  TransformComponent:
+    Translation: [-6.5, 2.6, 0.016]
+    Rotation: [0.0, 0.0, 0.4]
+    Scale: [1.82620001, 1.29999995, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 2387970243623547605
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 3519382144382631419
+  TagComponent:
+    Tag: Arena Petals 1
+  TransformComponent:
+    Translation: [5.8, 3.0, 0.016]
+    Rotation: [0.0, 0.0, -0.3]
+    Scale: [1.60590005, 1.04999995, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 5396447801382016704
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 8879134741100504044
+  TagComponent:
+    Tag: Arena Petals 2
+  TransformComponent:
+    Translation: [-3.0, -4.6, 0.016]
+    Rotation: [0.0, 0.0, 0.9]
+    Scale: [1.35290003, 1, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 7421978121264167086
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 6691660065153249185
+  TagComponent:
+    Tag: Arena Petals 3
+  TransformComponent:
+    Translation: [7.5, -3.8, 0.016]
+    Rotation: [0.0, 0.0, 0.2]
+    Scale: [1.88890004, 0.850000024, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 8526769923609699496
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 3113723597127807704
+  TagComponent:
+    Tag: Arena Petals 4
+  TransformComponent:
+    Translation: [-8.2, -0.8, 0.016]
+    Rotation: [0.0, 0.0, -0.6]
+    Scale: [1.24440002, 0.800000012, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 4456582435797180356
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 4223645738840175814
+  TagComponent:
+    Tag: Arena Petals 5
+  TransformComponent:
+    Translation: [0.8, 5.6, 0.016]
+    Rotation: [0.0, 0.0, 0.1]
+    Scale: [1.39999998, 0.699999988, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 0
+    TextureHandle: 3004517650141882723
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Flat
+- Entity: 9149868439536366341
+  TagComponent:
+    Tag: Arena Motes
+  TransformComponent:
+    Translation: [0, 3, 1.4]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  ParticleEmitter2DComponent:
+    PlayOnStart: true
+    Looping: true
+    Duration: 4
+    Rate: 5
+    BurstCount: 14
+    MaxParticles: 48
+    Seed: 0
+    Shape: Box
+    ShapeSize: [26, 14]
+    Lifetime: [4, 7]
+    Speed: [0.05, 0.3]
+    Direction: 90
+    Spread: 180
+    StartSize: [0.05, 0.11]
+    StartRotation: [0, 0]
+    AngularVelocity: [0, 0]
+    EndSizeScale: 0.6
+    StartColor: [1, 0.86, 0.5, 0.9]
+    EndColor: [1, 0.75, 0.4, 0]
+    Gravity: [0, 0]
+    Drag: 0.6
+    Turbulence: 0.6
+    TextureHandle: 0
+    SpriteIndex: 0
+    Blend: Additive
+    Lighting: Lit
+    Space: Ground
+    SortOrder: 0
+    EmissionIntensity: 3
+    LightRadius: 0
+    LightIntensity: 1
+    MaxLights: 0
+    DestroyWhenFinished: false
+- Entity: 1578980066223935718
+  TagComponent:
+    Tag: Arena Sun
+  TransformComponent:
+    Translation: [6, 6, 8]
+    Rotation: [0.982620001, 0, 0.570722997]
+    Scale: [1, 1, 1]
+  DirectionalLightComponent:
+    Color: [1, 0.720000029, 0.460000008]
+    Intensity: 0.75
+    IsMainLight: true
+    CastShadows: true
+    ShadowStrength: 1
+    ShadowDistance: 24
+    ShadowBias: 1
+- Entity: 4325148912690108353
+  TagComponent:
+    Tag: Camera
+  TransformComponent:
+    Translation: [0.0, -12.3449, 5.4557]
+    Rotation: [1.2741, 0.0, 0.0]
+    Scale: [1, 1, 1]
+  CameraComponent:
+    Primary: true
+    Projection: Perspective
+    PerspectiveFOV: 30.0
+    PerspectiveNear: 0.5
+    PerspectiveFar: 218.66
+    OrthographicSize: 10.0
+    OrthographicNear: 0.1
+    OrthographicFar: 218.66
+- Entity: 2354502644069435857
+  TagComponent:
+    Tag: Hero Miko
+  TransformComponent:
+    Translation: [3.1759, 0.2007, -0.3586]
+    Rotation: [0, 0, 0]
+    Scale: [2.4, 2.4, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 30
+    TextureHandle: 16527506524077974322
+    Sprite: Miko_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+  SpriteAnimatorComponent:
+    AnimationsHandle: 9503405222623168017
+    StartClip: Idle
+    PlayOnStart: true
+    Speed: 1
+- Entity: 543380005528913907
+  TagComponent:
+    Tag: Hero Miko HP Back
+  TransformComponent:
+    Translation: [6.2222, 3.3206, -3.7082]
+    Rotation: [0, 0, 0]
+    Scale: [1.4444, 0.1778, 1.0]
+  SpriteRendererComponent:
+    Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
+    TilingFactor: 1
+    SortOrder: 200
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1048460277824663231
+  TagComponent:
+    Tag: Hero Miko HP Fill
+  TransformComponent:
+    Translation: [6.2222, 3.3206, -3.7082]
+    Rotation: [0, 0, 0]
+    Scale: [1.3889, 0.1222, 1.0]
+  SpriteRendererComponent:
+    Color: [0.449999988, 0.850000024, 0.349999994, 1]
+    TilingFactor: 1
+    SortOrder: 201
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2419822650444914979
+  TagComponent:
+    Tag: Hero Miko MP Back
+  TransformComponent:
+    Translation: [6.2222, 3.2605, -3.9047]
+    Rotation: [0, 0, 0]
+    Scale: [1.4444, 0.1222, 1.0]
+  SpriteRendererComponent:
+    Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
+    TilingFactor: 1
+    SortOrder: 200
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1503637125276567477
+  TagComponent:
+    Tag: Hero Miko MP Fill
+  TransformComponent:
+    Translation: [6.2222, 3.2605, -3.9047]
+    Rotation: [0, 0, 0]
+    Scale: [1.3889, 0.0667, 1.0]
+  SpriteRendererComponent:
+    Color: [0.349999994, 0.600000024, 0.949999988, 1]
+    TilingFactor: 1
+    SortOrder: 201
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1265686853645913135
+  TagComponent:
+    Tag: Hero Miko HP Digit 0
+  TransformComponent:
+    Translation: [7.3889, 3.3206, -3.7082]
+    Rotation: [0, 0, 0]
+    Scale: [0.2778, 0.2778, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 208350898532652517
+  TagComponent:
+    Tag: Hero Miko HP Digit 1
+  TransformComponent:
+    Translation: [7.6222, 3.3206, -3.7082]
+    Rotation: [0, 0, 0]
+    Scale: [0.2778, 0.2778, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1424454468408906631
+  TagComponent:
+    Tag: Hero Miko HP Digit 2
+  TransformComponent:
+    Translation: [7.8556, 3.3206, -3.7082]
+    Rotation: [0, 0, 0]
+    Scale: [0.2778, 0.2778, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3803698164477593767
+  TagComponent:
+    Tag: Hero Miko Name
+  TransformComponent:
+    Translation: [4.7222, 3.3255, -3.6922]
+    Rotation: [0, 0, 0]
+    Scale: [1.3333, 0.1667, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 1605799077072840019
+    Sprite: Miko_0
+    SpriteIndex: 24
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2167776218256150105
+  TagComponent:
+    Tag: Hero Miko Pip 0
+  TransformComponent:
+    Translation: [4.2778, 3.2524, -3.9313]
+    Rotation: [0, 0, 0]
+    Scale: [0.2111, 0.2111, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_7
+    SpriteIndex: 7
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2979164332911855329
+  TagComponent:
+    Tag: Hero Miko Pip 1
+  TransformComponent:
+    Translation: [4.5111, 3.2524, -3.9313]
+    Rotation: [0, 0, 0]
+    Scale: [0.2111, 0.2111, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_7
+    SpriteIndex: 7
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4452058484974239225
+  TagComponent:
+    Tag: Hero Miko Pip 2
+  TransformComponent:
+    Translation: [4.7444, 3.2524, -3.9313]
+    Rotation: [0, 0, 0]
+    Scale: [0.2111, 0.2111, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_7
+    SpriteIndex: 7
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2636810904870439275
+  TagComponent:
+    Tag: Hero Miko Pip 3
+  TransformComponent:
+    Translation: [4.9778, 3.2524, -3.9313]
+    Rotation: [0, 0, 0]
+    Scale: [0.2111, 0.2111, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_7
+    SpriteIndex: 7
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3057690109097756637
+  TagComponent:
+    Tag: Hero Miko Pip 4
+  TransformComponent:
+    Translation: [5.2111, 3.2524, -3.9313]
+    Rotation: [0, 0, 0]
+    Scale: [0.2111, 0.2111, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 205
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_7
+    SpriteIndex: 7
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3342933287778753463
+  TagComponent:
+    Tag: Enemy 0 Slime
+  TransformComponent:
+    Translation: [-2.9684, 1.4291, -0.1482]
+    Rotation: [0, 0, 0]
+    Scale: [1.24, 1.24, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 20
+    TextureHandle: 3596799573489577125
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+  SpriteAnimatorComponent:
+    AnimationsHandle: 2173924343473726646
+    StartClip: Bounce
+    PlayOnStart: true
+    Speed: 1
+- Entity: 1067477410088102697
+  TagComponent:
+    Tag: Enemy 0 Wisp
+  TransformComponent:
+    Translation: [-2.9684, 1.4171, -0.14]
+    Rotation: [0, 0, 0]
+    Scale: [1.1711, 1.1711, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 21
+    TextureHandle: 3546812827052914949
+    Sprite: Wisp_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+  SpriteAnimatorComponent:
+    AnimationsHandle: 381359539372406047
+    StartClip: Float
+    PlayOnStart: true
+    Speed: 1
+- Entity: 1872439065298645799
+  TagComponent:
+    Tag: Enemy 0 Light
+  TransformComponent:
+    Translation: [-3.3825, 3.4584, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Light2DComponent:
+    Type: Point
+    Color: [0.349999994, 0.850000024, 1]
+    Intensity: 0
+    Radius: 3.0
+    Height: 1.0
+- Entity: 3664971844750471499
+  TagComponent:
+    Tag: Enemy 0 HP Back
+  TransformComponent:
+    Translation: [-3.6998, 4.5701, 0.3788]
+    Rotation: [0, 0, 0]
+    Scale: [1.4444, 0.1667, 1.0]
+  SpriteRendererComponent:
+    Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
+    TilingFactor: 1
+    SortOrder: 200
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 523611656152946079
+  TagComponent:
+    Tag: Enemy 0 HP Fill
+  TransformComponent:
+    Translation: [-3.6998, 4.5701, 0.3788]
+    Rotation: [0, 0, 0]
+    Scale: [1.3889, 0.1111, 1.0]
+  SpriteRendererComponent:
+    Color: [0.850000024, 0.300000012, 0.25, 1]
+    TilingFactor: 1
+    SortOrder: 201
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2344966513632724177
+  TagComponent:
+    Tag: Enemy 0 Shield
+  TransformComponent:
+    Translation: [-4.7553, 4.6107, 0.5116]
+    Rotation: [0, 0, 0]
+    Scale: [0.5278, 0.5278, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_6
+    SpriteIndex: 6
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2975353965683647685
+  TagComponent:
+    Tag: Enemy 0 Shield Digit
+  TransformComponent:
+    Translation: [-4.7553, 4.6221, 0.5488]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 207
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_2
+    SpriteIndex: 14
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3578729033148614401
+  TagComponent:
+    Tag: Enemy 0 Weak 0
+  TransformComponent:
+    Translation: [-4.1998, 4.6595, 0.671]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1396949757501771079
+  TagComponent:
+    Tag: Enemy 0 Weak 1
+  TransformComponent:
+    Translation: [-3.8387, 4.6595, 0.671]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 666325545167806197
+  TagComponent:
+    Tag: Enemy 0 Weak 2
+  TransformComponent:
+    Translation: [-3.4776, 4.6595, 0.671]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1023646738949003259
+  TagComponent:
+    Tag: Enemy 1 Slime
+  TransformComponent:
+    Translation: [-1.1923, -1.5866, -0.1482]
+    Rotation: [0, 0, 0]
+    Scale: [1.24, 1.24, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 22
+    TextureHandle: 3596799573489577125
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+  SpriteAnimatorComponent:
+    AnimationsHandle: 2173924343473726646
+    StartClip: Bounce
+    PlayOnStart: true
+    Speed: 1
+- Entity: 2839042781894498169
+  TagComponent:
+    Tag: Enemy 1 Wisp
+  TransformComponent:
+    Translation: [-1.1923, -1.5986, -0.14]
+    Rotation: [0, 0, 0]
+    Scale: [1.1711, 1.1711, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 23
+    TextureHandle: 3546812827052914949
+    Sprite: Wisp_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+  SpriteAnimatorComponent:
+    AnimationsHandle: 381359539372406047
+    StartClip: Float
+    PlayOnStart: true
+    Speed: 1
+- Entity: 1535014961905056575
+  TagComponent:
+    Tag: Enemy 1 Light
+  TransformComponent:
+    Translation: [-1.3223, -0.3529, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Light2DComponent:
+    Type: Point
+    Color: [0.349999994, 0.850000024, 1]
+    Intensity: 0
+    Radius: 3.0
+    Height: 1.0
+- Entity: 2691855884825161267
+  TagComponent:
+    Tag: Enemy 1 HP Back
+  TransformComponent:
+    Translation: [-1.7778, 4.138, -1.0347]
+    Rotation: [0, 0, 0]
+    Scale: [1.4444, 0.1667, 1.0]
+  SpriteRendererComponent:
+    Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
+    TilingFactor: 1
+    SortOrder: 200
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1085163206976032369
+  TagComponent:
+    Tag: Enemy 1 HP Fill
+  TransformComponent:
+    Translation: [-1.7778, 4.138, -1.0347]
+    Rotation: [0, 0, 0]
+    Scale: [1.3889, 0.1111, 1.0]
+  SpriteRendererComponent:
+    Color: [0.850000024, 0.300000012, 0.25, 1]
+    TilingFactor: 1
+    SortOrder: 201
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 668027511869699031
+  TagComponent:
+    Tag: Enemy 1 Shield
+  TransformComponent:
+    Translation: [-2.8333, 4.1786, -0.9019]
+    Rotation: [0, 0, 0]
+    Scale: [0.5278, 0.5278, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_6
+    SpriteIndex: 6
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1059971111004204979
+  TagComponent:
+    Tag: Enemy 1 Shield Digit
+  TransformComponent:
+    Translation: [-2.8333, 4.1899, -0.8647]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 207
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_2
+    SpriteIndex: 14
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1737427458561910665
+  TagComponent:
+    Tag: Enemy 1 Weak 0
+  TransformComponent:
+    Translation: [-2.2778, 4.2273, -0.7425]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3406627396318602413
+  TagComponent:
+    Tag: Enemy 1 Weak 1
+  TransformComponent:
+    Translation: [-1.9167, 4.2273, -0.7425]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4213791766793925241
+  TagComponent:
+    Tag: Enemy 1 Weak 2
+  TransformComponent:
+    Translation: [-1.5556, 4.2273, -0.7425]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3220867481356510017
+  TagComponent:
+    Tag: Enemy 2 Slime
+  TransformComponent:
+    Translation: [-4.005, -1.115, -0.1482]
+    Rotation: [0, 0, 0]
+    Scale: [1.24, 1.24, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 24
+    TextureHandle: 3596799573489577125
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+  SpriteAnimatorComponent:
+    AnimationsHandle: 2173924343473726646
+    StartClip: Bounce
+    PlayOnStart: true
+    Speed: 1
+- Entity: 1126483171896878523
+  TagComponent:
+    Tag: Enemy 2 Wisp
+  TransformComponent:
+    Translation: [-4.005, -1.127, -0.14]
+    Rotation: [0, 0, 0]
+    Scale: [1.1711, 1.1711, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 25
+    TextureHandle: 3546812827052914949
+    Sprite: Wisp_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Upright
+  SpriteAnimatorComponent:
+    AnimationsHandle: 381359539372406047
+    StartClip: Float
+    PlayOnStart: true
+    Speed: 1
+- Entity: 3754412435989424019
+  TagComponent:
+    Tag: Enemy 2 Light
+  TransformComponent:
+    Translation: [-4.4605, 0.2296, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Light2DComponent:
+    Type: Point
+    Color: [0.349999994, 0.850000024, 1]
+    Intensity: 0
+    Radius: 3.0
+    Height: 1.0
+- Entity: 3633289450062964969
+  TagComponent:
+    Tag: Enemy 2 HP Back
+  TransformComponent:
+    Translation: [-6.1171, 4.2194, -0.7685]
+    Rotation: [0, 0, 0]
+    Scale: [1.4444, 0.1667, 1.0]
+  SpriteRendererComponent:
+    Color: [0.0799999982, 0.0700000003, 0.0500000007, 1]
+    TilingFactor: 1
+    SortOrder: 200
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2075504677839347763
+  TagComponent:
+    Tag: Enemy 2 HP Fill
+  TransformComponent:
+    Translation: [-6.1171, 4.2194, -0.7685]
+    Rotation: [0, 0, 0]
+    Scale: [1.3889, 0.1111, 1.0]
+  SpriteRendererComponent:
+    Color: [0.850000024, 0.300000012, 0.25, 1]
+    TilingFactor: 1
+    SortOrder: 201
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2554741734565481117
+  TagComponent:
+    Tag: Enemy 2 Shield
+  TransformComponent:
+    Translation: [-7.1727, 4.26, -0.6356]
+    Rotation: [0, 0, 0]
+    Scale: [0.5278, 0.5278, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_6
+    SpriteIndex: 6
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1419781065135675077
+  TagComponent:
+    Tag: Enemy 2 Shield Digit
+  TransformComponent:
+    Translation: [-7.1727, 4.2713, -0.5985]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 207
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_2
+    SpriteIndex: 14
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 473519217997946627
+  TagComponent:
+    Tag: Enemy 2 Weak 0
+  TransformComponent:
+    Translation: [-6.6171, 4.3087, -0.4763]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1398064115850411373
+  TagComponent:
+    Tag: Enemy 2 Weak 1
+  TransformComponent:
+    Translation: [-6.256, 4.3087, -0.4763]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2088967229790623149
+  TagComponent:
+    Tag: Enemy 2 Weak 2
+  TransformComponent:
+    Translation: [-5.8949, 4.3087, -0.4763]
+    Rotation: [0, 0, 0]
+    Scale: [0.3333, 0.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 206
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_5
+    SpriteIndex: 5
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4332944653959389197
+  TagComponent:
+    Tag: Order Chip 0
+  TransformComponent:
+    Translation: [-5.5556, 5.8594, 4.5957]
+    Rotation: [0, 0, 0]
+    Scale: [2.0, 0.25, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 210
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 857888808662015479
+  TagComponent:
+    Tag: Order Chip 1
+  TransformComponent:
+    Translation: [-3.3333, 5.8594, 4.5957]
+    Rotation: [0, 0, 0]
+    Scale: [2.0, 0.25, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 210
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 126150385849760757
+  TagComponent:
+    Tag: Order Chip 2
+  TransformComponent:
+    Translation: [-1.1111, 5.8594, 4.5957]
+    Rotation: [0, 0, 0]
+    Scale: [2.0, 0.25, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 210
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4010738463145047473
+  TagComponent:
+    Tag: Order Chip 3
+  TransformComponent:
+    Translation: [1.1111, 5.8594, 4.5957]
+    Rotation: [0, 0, 0]
+    Scale: [2.0, 0.25, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 210
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4158808738284465657
+  TagComponent:
+    Tag: Order Chip 4
+  TransformComponent:
+    Translation: [3.3333, 5.8594, 4.5957]
+    Rotation: [0, 0, 0]
+    Scale: [2.0, 0.25, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 210
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4189512304645367447
+  TagComponent:
+    Tag: Order Chip 5
+  TransformComponent:
+    Translation: [5.5556, 5.8594, 4.5957]
+    Rotation: [0, 0, 0]
+    Scale: [2.0, 0.25, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 210
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 303675179249933599
+  TagComponent:
+    Tag: Order Panel
+  TransformComponent:
+    Translation: [0.0, 5.8594, 4.5957]
+    Rotation: [0, 0, 0]
+    Scale: [13.8889, 0.4722, 1.0]
+  SpriteRendererComponent:
+    Color: [0.0799999982, 0.0649999976, 0.0450000018, 0.800000012]
+    TilingFactor: 1
+    SortOrder: 209
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2503594637117990557
+  TagComponent:
+    Tag: Message
+  TransformComponent:
+    Translation: [0.0, 5.567, 3.6394]
+    Rotation: [0, 0, 0]
+    Scale: [4.0, 0.5, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 230
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1412399333282199361
+  TagComponent:
+    Tag: Target Cursor
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.3889, 0.3889, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 220
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_9
+    SpriteIndex: 9
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1873083660300769013
+  TagComponent:
+    Tag: Turn Marker
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.3889, 0.3889, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 220
+    TextureHandle: 3328678694188945053
+    Sprite: Icon_9
+    SpriteIndex: 9
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3687469943115966723
+  TagComponent:
+    Tag: Command Panel
+  TransformComponent:
+    Translation: [-0.5556, 3.2849, -3.8251]
+    Rotation: [0, 0, 0]
+    Scale: [8.6111, 1.2778, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0.920000017]
+    TilingFactor: 1
+    SortOrder: 209
+    TextureHandle: 1876931991275611681
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2426494286836293121
+  TagComponent:
+    Tag: Command Key 0
+  TransformComponent:
+    Translation: [-3.8333, 3.358, -3.586]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_1
+    SpriteIndex: 13
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 956000144609049515
+  TagComponent:
+    Tag: Command 0
+  TransformComponent:
+    Translation: [-2.75, 3.358, -3.586]
+    Rotation: [0, 0, 0]
+    Scale: [1.7778, 0.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2036138797124235843
+  TagComponent:
+    Tag: Command Key 1
+  TransformComponent:
+    Translation: [-1.2778, 3.358, -3.586]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_2
+    SpriteIndex: 14
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 780931092413700237
+  TagComponent:
+    Tag: Command 1
+  TransformComponent:
+    Translation: [-0.1944, 3.358, -3.586]
+    Rotation: [0, 0, 0]
+    Scale: [1.7778, 0.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2671831323181636189
+  TagComponent:
+    Tag: Command Key 2
+  TransformComponent:
+    Translation: [1.2778, 3.358, -3.586]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_3
+    SpriteIndex: 15
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 985982571770060221
+  TagComponent:
+    Tag: Command 2
+  TransformComponent:
+    Translation: [2.3611, 3.358, -3.586]
+    Rotation: [0, 0, 0]
+    Scale: [1.7778, 0.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4417725511485728381
+  TagComponent:
+    Tag: Command Key 3
+  TransformComponent:
+    Translation: [-3.8333, 3.2037, -4.0907]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_4
+    SpriteIndex: 16
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4468166853701226901
+  TagComponent:
+    Tag: Command 3
+  TransformComponent:
+    Translation: [-2.75, 3.2037, -4.0907]
+    Rotation: [0, 0, 0]
+    Scale: [1.7778, 0.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1436508340468887079
+  TagComponent:
+    Tag: Command Key 4
+  TransformComponent:
+    Translation: [-1.2778, 3.2037, -4.0907]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_5
+    SpriteIndex: 17
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2684677144518850305
+  TagComponent:
+    Tag: Command 4
+  TransformComponent:
+    Translation: [-0.1944, 3.2037, -4.0907]
+    Rotation: [0, 0, 0]
+    Scale: [1.7778, 0.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 962705506745262457
+  TagComponent:
+    Tag: Command Key 5
+  TransformComponent:
+    Translation: [1.2778, 3.2037, -4.0907]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_6
+    SpriteIndex: 18
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4606989629720687839
+  TagComponent:
+    Tag: Command 5
+  TransformComponent:
+    Translation: [2.3611, 3.2037, -4.0907]
+    Rotation: [0, 0, 0]
+    Scale: [1.7778, 0.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 1]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 1605799077072840019
+    Sprite: Attack_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 479522812321223319
+  TagComponent:
+    Tag: Boost Label
+  TransformComponent:
+    Translation: [-3.8889, 3.5529, -2.9484]
+    Rotation: [0, 0, 0]
+    Scale: [1.7778, 0.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 1605799077072840019
+    Sprite: Boost_0
+    SpriteIndex: 18
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1145468260433655573
+  TagComponent:
+    Tag: Boost Digit
+  TransformComponent:
+    Translation: [-2.9444, 3.5529, -2.9484]
+    Rotation: [0, 0, 0]
+    Scale: [0.3056, 0.3056, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 212
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1889869138271743303
+  TagComponent:
+    Tag: Popup 0 Digit 0
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 1570343578560431039
+  TagComponent:
+    Tag: Popup 0 Digit 1
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2723254937496717579
+  TagComponent:
+    Tag: Popup 0 Digit 2
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3598088787663941157
+  TagComponent:
+    Tag: Popup 1 Digit 0
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4422076111181459827
+  TagComponent:
+    Tag: Popup 1 Digit 1
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2018005335998494927
+  TagComponent:
+    Tag: Popup 1 Digit 2
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4415784830397713951
+  TagComponent:
+    Tag: Popup 2 Digit 0
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 2723510240245860637
+  TagComponent:
+    Tag: Popup 2 Digit 1
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 807060539347502325
+  TagComponent:
+    Tag: Popup 2 Digit 2
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [0.4167, 0.4167, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 240
+    TextureHandle: 3328678694188945053
+    Sprite: Digit_0
+    SpriteIndex: 12
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3087013420501047885
+  TagComponent:
+    Tag: Battle Overlay
+  TransformComponent:
+    Translation: [0.0, 4.5437, 0.2924]
+    Rotation: [0, 0, 0]
+    Scale: [22.2222, 13.3333, 1.0]
+  SpriteRendererComponent:
+    Color: [0, 0, 0, 1]
+    TilingFactor: 1
+    SortOrder: 1000
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 4440101092385176297
+  TagComponent:
+    Tag: Battle Director
+  TransformComponent:
+    Translation: [0, 0, 0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  NativeScriptComponent:
+    Scripts:
+    - Name: BattleScript
+      Properties:
+        CameraTilt: 73.0
+        CameraFieldOfView: 30.0
+        CameraFocus: [0.0, 5.5, 0.0]
+        ViewHeight: 10.0
+- Entity: 2717703238488551711
+  TagComponent:
+    Tag: Party Panel
+  TransformComponent:
+    Translation: [6.2778, 3.2897, -3.8091]
+    Rotation: [0, 0, 0]
+    Scale: [4.7778, 0.7222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0.920000017]
+    TilingFactor: 1
+    SortOrder: 195
+    TextureHandle: 1876931991275611681
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    Overlay: true
+    CastShadows: false
+- Entity: 3606704619762678601
+  TagComponent:
+    Tag: FX Strike
+  TransformComponent:
+    Translation: [0.0, 0.0, -20.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.6, 2.6, 1]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 60
+    TextureHandle: 1544027104837468690
+    Sprite: Punch_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    AlphaMode: Translucent
+    CastShadows: false
+    EmissionColor: [1, 1, 1]
+    EmissionIntensity: 2.5
+  SpriteAnimatorComponent:
+    AnimationsHandle: 6873842806531822277
+    StartClip: Punch
+    PlayOnStart: false
+    Speed: 1
+  Light2DComponent:
+    Type: Point
+    Color: [1, 0.75, 0.400000006]
+    Intensity: 0
+    Radius: 4.0
+    Height: 0.0
+- Entity: 4463077264953172967
+  TagComponent:
+    Tag: FX Heal
+  TransformComponent:
+    Translation: [0.0, 0.0, -20.0]
+    Rotation: [0, 0, 0]
+    Scale: [2.2222, 2.2222, 1.0]
+  SpriteRendererComponent:
+    Color: [1, 1, 1, 0]
+    TilingFactor: 1
+    SortOrder: 61
+    TextureHandle: 76619594864854401
+    Sprite: Heal_0
+    SpriteIndex: 0
+    FlipX: false
+    FlipY: false
+    Facing: Billboard
+    AlphaMode: Translucent
+    CastShadows: false
+    EmissionColor: [1, 1, 1]
+    EmissionIntensity: 1.5
+  SpriteAnimatorComponent:
+    AnimationsHandle: 700814717632547411
+    StartClip: Heal
+    PlayOnStart: false
+    Speed: 1
+  Light2DComponent:
+    Type: Point
+    Color: [0.600000024, 0.949999988, 1]
+    Intensity: 0
+    Radius: 3.0
+    Height: 0.0
+- Entity: 4024635480654513838
+  TagComponent:
+    Tag: Hero Miko Shadow
+  TransformComponent:
+    Translation: [3.1759, -0.8897, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.36]
+    Strength: 0.55
+- Entity: 6978008996652402207
+  TagComponent:
+    Tag: Enemy 0 Slime Shadow
+  TransformComponent:
+    Translation: [-2.9684, 1.3194, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.32]
+    Strength: 0.5
+- Entity: 2351504118028936728
+  TagComponent:
+    Tag: Enemy 0 Wisp Shadow
+  TransformComponent:
+    Translation: [-2.9684, 1.3194, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.0, 0.32]
+    Strength: 0.300000012
+- Entity: 4336146536690289183
+  TagComponent:
+    Tag: Enemy 1 Slime Shadow
+  TransformComponent:
+    Translation: [-1.1923, -1.6963, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.32]
+    Strength: 0.5
+- Entity: 3375354729992267411
+  TagComponent:
+    Tag: Enemy 1 Wisp Shadow
+  TransformComponent:
+    Translation: [-1.1923, -1.6963, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.0, 0.32]
+    Strength: 0.300000012
+- Entity: 3834656240265409327
+  TagComponent:
+    Tag: Enemy 2 Slime Shadow
+  TransformComponent:
+    Translation: [-4.005, -1.2247, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.15, 0.32]
+    Strength: 0.5
+- Entity: 7351522842169587370
+  TagComponent:
+    Tag: Enemy 2 Wisp Shadow
+  TransformComponent:
+    Translation: [-4.005, -1.2247, 0.0]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  Shadow2DComponent:
+    Offset: [0, 0]
+    Size: [1.0, 0.32]
+    Strength: 0.300000012

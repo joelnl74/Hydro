@@ -10,10 +10,10 @@ A scene is an [EnTT](https://github.com/skypjack/entt) registry. Entities are ID
 | --- | --- | --- |
 | `Scene` | `Scene/Scene.h` | Owns the `entt::registry`; creates and destroys entities (`CreateEntity`, `DestroyEntity`); runs the scene's systems in `OnUpdateRuntime` / `OnUpdateEditor`; knows its viewport size (`OnViewportResize`) and primary camera (`GetPrimaryCameraEntity`) |
 | `Entity` | `Scene/Entity.h` | A handle (`entt::entity` + `Scene*`). Cheap to copy, store it by value |
-| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent` (Point, Global, Spot), `DirectionalLightComponent` (the sun of forward lighting), `MeshComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`, the 3D colliders (`BoxColliderComponent`, `SphereColliderComponent`, `CapsuleColliderComponent`, `CylinderColliderComponent`, `MeshColliderComponent`), `CharacterBodyComponent`, `ParticleEmitter2DComponent` (settings only; its particles are in the `ParticleScene`), `NativeScriptComponent` |
+| Components | `Scene/Components/Components.h` (`NativeScriptComponent`: `Scene/Scripting/ScriptableEntity.h`) | Plain structs: `TagComponent`, `IDComponent`, `TransformComponent`, `SpriteRendererComponent`, `SpriteAnimatorComponent`, `CameraComponent`, `Light2DComponent` (Point, Global, Spot), `DirectionalLightComponent` (the sun of forward lighting), `MeshComponent`, `Shadow2DComponent`, `Rigidbody2DComponent`, `BoxCollider2DComponent`, `CircleCollider2DComponent`, the 3D colliders (`BoxColliderComponent`, `SphereColliderComponent`, `CapsuleColliderComponent`, `CylinderColliderComponent`, `MeshColliderComponent`), `CharacterBodyComponent`, `ParticleEmitter2DComponent` (settings only; its particles are in the `ParticleScene`), `NativeScriptComponent` |
 | Systems | `Scene::OnUpdateRuntime` / `OnUpdateEditor`, `SceneRenderer`, application layers | Functions over registry views |
 | `SceneRenderer` | `Renderer/SceneRenderer.h` | Submits a scene to `Renderer2D`, into a `RenderView`, through a camera: `RenderEditor(view, editorCamera, overlay)` or `RenderRuntime(view)` (primary camera) |
-| Scripts | `Scene/ScriptableEntity.h`, `Scene/ScriptRegistry.h` | Per-entity C++ behaviour, run by the script system; registered by name so they can be saved and added in the editor |
+| Scripts | `Scene/Scripting/` (`ScriptableEntity.h`, `ScriptRegistry.h`, `ScriptSystem.h`, reflection types) | Per-entity C++ behaviour, run by the script system; registered by name (generated from `HY_SCRIPT`) so they can be saved and added in the editor; `HY_PROPERTY` fields are edited in the inspector and saved |
 | Serialization | `Scene/SceneSerializer.h`, `Scene/PrefabSerializer.h`, `Scene/EntitySerializer.h` | Saves scenes (`.hyscene`) and prefabs (`.hyprefab`) as YAML |
 
 Every entity created with `Scene::CreateEntity` gets a `TagComponent` (its name) and an `IDComponent` (a 64-bit `UUID` that stays the same across saves).
@@ -115,26 +115,44 @@ Oxygen edits one scene and plays a copy of it, so nothing that happens while pla
 Scripts are the per-entity escape hatch. Write a system instead when the logic applies to many entities the same way.
 
 ```cpp
+#include "Hydro/Scene/Scripting/ReflectionMacros.h"
+
+HY_SCRIPT()
 class PlayerController : public Hydro::ScriptableEntity
 {
+public:
+    HY_PROPERTY()
+    float MoveSpeed = 2.0f; // shown as "Move Speed" in the inspector, saved with the scene
+
 protected:
     void OnCreate() override {}
     void OnUpdate(float deltaTime) override
     {
         auto& transform = GetComponent<TransformComponent>();
-        transform.Translation.x += 2.0f * deltaTime; // world units per second
+        transform.Translation.x += MoveSpeed * deltaTime; // world units per second
     }
 };
 
-// Once, before any scene is loaded (Application::OnInit):
-Hydro::ScriptRegistry::Register<PlayerController>("PlayerController");
-
-// Then bind by type in code, or by name (what loading a scene and the editor do):
-entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>().Bind("Health");
+// Bind by type in code, or by name (what loading a scene and the editor do):
+entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>().Bind("HealthScript");
 ```
 
-- `NativeScriptComponent` is data: a list of scripts (name, factory, instance). An entity has one `NativeScriptComponent` but any number of scripts in it. Instances are created on the scene's next runtime update, live on the heap, and hold their `Entity` by value.
-- **`ScriptRegistry`** maps a name to a script's factory. Scenes and prefabs save the names (`NativeScriptComponent: { Scripts: [Spin, Bob] }`) and loading binds them again by name. Register every script before a scene that uses it is loaded; names must stay stable once saved. A script bound in code but not registered still runs, but isn't saved. A saved name that isn't registered is kept (so the file saves back unchanged) but doesn't run, and the editor shows it in red.
+### Script reflection (`HY_SCRIPT` / `HY_PROPERTY`, Oct 28, 2026)
+
+Scripts are no longer registered by hand. A code generator finds annotated classes and writes their registration:
+
+- **`HY_SCRIPT()`** above a class that derives publicly from `ScriptableEntity` registers it under its **class name** (`SpinScript`, `DioramaWalkScript`). That name is what scenes and prefabs save, so renaming the class breaks saved scenes (there are no aliases yet).
+- **`HY_PROPERTY()`** above a **public** field of such a class exposes it: the inspector shows it under the script's name, the value is saved per binding in the scene, and it is pushed into the instance before `OnCreate`. Types (V2, Oct 29, 2026): `bool`, `int`, `float`, `glm::vec2`, `glm::vec3`, `glm::vec4`, `std::string` and `AssetHandle`. One field per declaration. The saved key is the field name; the label is the field name without `m_`, split at capitals (`m_MoveSpeed` -> "Move Speed").
+- **Arguments** (V2, any order, all optional): `Range(min, max)`, `Min(v)`, `Max(v)` (int, float and each vector component, clamped when the field is left), `Tooltip("...")`, `DisplayName("...")`, `Color` (a `vec3` / `vec4` edited with a colour picker), `Asset(Texture2D)` (required for an `AssetHandle`: the `AssetType` its picker lists), `ReadOnly`, `Hidden` (saved and applied, not shown). Example: `HY_PROPERTY(Range(0, 20), Tooltip("Metres per second")) float Speed = 3.5f;`. The full list is in `ReflectionMacros.h`.
+- **During Play** the inspector shows each field's live value (read back from the running instance with `ScriptProperty::Read`) and an edit is applied to the instance at once (`Apply`). The edits are made on the play copy, so Stop discards them like every other Play edit.
+- **Asset handles** are only stored: the script loads what it needs (`AssetManager::GetAsset<Texture2D>(Icon)`), typically in `OnCreate`.
+- The macros (`Scene/Scripting/ReflectionMacros.h`) expand to nothing; they are only markers for `Tools/ReflectionGenerator/generate_reflection.py`. Oxygen runs it as a **pre-build step** (`Oxygen/premake5.lua`), it scans `Hydro/src` and `Oxygen/src` headers and writes `Oxygen/src/Generated/GeneratedScriptReflection.cpp` (`RegisterGeneratedScriptReflection()`, safe to call twice) only when the output changes. Another application passes its own folders and file: `--source <dir>` (repeatable) and `--output <file>`; `--check` only reports whether the file is up to date (exit 1 if not, for CI). Comments are ignored, `final` classes are fine, and the build fails with the file and line on anything it doesn't understand: a non-public or static field, an unsupported type, a comma declaration (`float A, B;`), `HY_PROPERTY` inside a nested type, an unknown argument, a `HY_SCRIPT()` not directly above its class.
+- **Default values** come from a default-constructed instance (`ScriptRegistration<T>` keeps one), so the initialiser in the class (`= 2.0f`) is the default. A scene that saved no value for a property, or was saved before the property existed, gets the default.
+- **Manual registration** still works and goes through the same path: `ScriptRegistry::Register<T>("Name").Property("Speed", &T::Speed)` (or with a separate display name), followed by modifiers that change the property just added: `.Range(min, max)`, `.Min`, `.Max`, `.Tooltip("...")`, `.Color()`, `.AssetFilter(AssetType::Texture2D)`, `.ReadOnly()`, `.Hidden()`. Use it for scripts the generator can't see.
+- **Types**: `ScriptTypeInfo` (name, `std::type_index`, factory, `std::vector<ScriptProperty>`), `ScriptProperty` (name, display name, `ScriptPropertyType`, default, the inspector options, `Apply` that writes the value into an instance and `Read` that reads it back), `ScriptPropertyValue` (`std::variant<bool, int, float, glm::vec2, glm::vec3, glm::vec4, std::string, AssetHandle>`, in the order of `ScriptPropertyType`), `ScriptPropertyMap` (name -> value, one per binding in `NativeScriptComponent::Script::Properties`).
+
+- `NativeScriptComponent` is data: a list of scripts (name, factory, instance, and the binding's property values). An entity has one `NativeScriptComponent` but any number of scripts in it. Instances are created on the scene's next runtime update, live on the heap, and hold their `Entity` by value.
+- **`ScriptRegistry`** maps a name to a script's `ScriptTypeInfo` (factory and properties). Scenes and prefabs save each binding as `{ Name: SpinScript, Properties: { Speed: 3.5 } }` (the old list of plain names still loads) and loading binds them again by name. Every script must be registered before a scene that uses it is loaded (Oxygen calls `RegisterGeneratedScriptReflection()` in `OxygenEditorApplication::OnInit`, before it pushes the editor layer); names must stay stable once saved. A script bound in code but not registered still runs, but isn't saved. A saved name that isn't registered is kept (so the file saves back unchanged) but doesn't run, and the editor shows it in red.
 - Remove scripts with `Scene::RemoveScript(entity, index)` / `Scene::RemoveScripts(entity)`, which call `OnDestroy` on running ones. Oxygen's inspector lists an entity's scripts, removes them, and adds registered ones (**Add Component > Script** or **Add Script**).
 - **Scripts can change the scene.** From `OnCreate`/`OnUpdate` a script may create entities, add components, bind scripts, and destroy entities or remove scripts, including its own. The script stage (`UpdateScripts`) walks a snapshot of the entities that had scripts when it began, and two rules keep it safe ([#40](https://github.com/joelnl74/Hydro/issues/40)):
   - **Created things start next update.** An entity made during the stage exists at once (you can add components to it), but its scripts first run on the next update. A script bound to an existing entity does the same.
@@ -160,7 +178,7 @@ Scenes and prefabs are YAML files written with yaml-cpp.
 - **Prefabs as loaded assets (Oct 25, 2026).** `AssetManager::GetAsset<Prefab>(handle)` reads a `.hyprefab` once into a `Prefab` (`Scene/Prefab.h`: its name and the saved entity as YAML) and keeps it like a texture; it loads again when the file changes. `PrefabSerializer::Instantiate(scene, prefab)` makes a copy from a loaded `Prefab` without reading the file or logging; `Instantiate(scene, handle)` loads it first when needed. The path-based `Instantiate` / `Load` still read the file every time (the editor's drag and drop and thumbnails use them).
 - **Effects (`Vfx`, Oct 25, 2026).** `Vfx::Play(scene, effectHandle, position)` (`Scene/Vfx.h`) instantiates a loaded effect prefab at `position`, makes its emitter a one-shot (`DestroyWhenFinished`) and returns the entity; it never loads (load the prefab once, e.g. in a script's `OnCreate`), so a prefab nobody loaded logs once and returns `{}`. Creating entities is allowed while scripts run, so it can be called from `OnUpdate` and collision callbacks.
 - **Missing fields keep their defaults**, so older files still load after a component gains a field.
-- Native scripts are saved by their `ScriptRegistry` name; scripts' own variables aren't saved.
+- Native scripts are saved by their `ScriptRegistry` name with their `HY_PROPERTY` values (`Properties`, only when the script has any). Loading reads only the properties the registered script still has; other fields of the script aren't saved.
 - **Physics components** are saved by value (`Rigidbody2DComponent`: body type by name, flags, scales and damping; `BoxCollider2DComponent` / `CircleCollider2DComponent`: offset, size or radius, density, friction, restitution, `IsSensor`; the 3D colliders: offset, size / radius / height, `Layer` by name, `IsTrigger`; `MeshColliderComponent`: `Layer`; `CharacterBodyComponent`: radius, height, `MaxSlopeDegrees`, `StepHeight`, `StaysOnLedges`, `Layer`). Loading pulls values into range (sizes at least 0.001, density, friction, restitution and damping at least 0, NaN becomes the minimum). They are in `CopyableComponents`, so Play and Duplicate copy them. Runtime body handles will not be saved or copied.
 - **Sprite textures and animation sets** are saved as `TextureHandle: <id>` (plus the sprite's name) and `AnimationsHandle: <id>`, and loaded through `AssetManager::GetAsset`, so sprites using one file share one texture. Scenes saved before handles have `Texture: <path>` / `Animations: <path>`; those are still read (the file is imported to get its handle) and are replaced by the handle keys the next time the scene is saved. A handle the registry doesn't know keeps its value when saved again, so a texture that is missing today can come back.
 
@@ -192,7 +210,7 @@ struct SystemContext
     bool IsPlaying = false;       // true in OnUpdateRuntime, false while editing
 };
 
-void UpdateScripts(Scene& scene, const SystemContext& context);          // Scene/ScriptSystem.h
+void UpdateScripts(Scene& scene, const SystemContext& context);          // Scene/Scripting/ScriptSystem.h
 void UpdateSpriteAnimations(Scene& scene, const SystemContext& context); // Scene/SpriteAnimator.h
 ```
 
@@ -219,6 +237,8 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 
 ## Test bed scene
 
+> **Oct 29, 2026:** `StatueVillage.hyscene` and its builder scripts were deleted. Until the rules below are rewritten for it, the gameplay test bed is the field scenes (`ShrineGlade.hyscene`, `FarmVillage.hyscene`, `Battle.hyscene`); read "the village" below as those scenes.
+
 `Oxygen/project/Assets/Scenes/StatueVillage.hyscene` (Sandbox project, the start scene) is the engine's gameplay test bed: a small playable village where every system can be seen working. It is a game scene, not a test area. When a new or drastic system lands (physics, audio, tilemaps, UI...), it is added to the village as a gameplay element, so it is checked in the place it will be used and nothing falls out of date: physics means colliders on buildings, trees and props, a body on the player and trigger zones; audio means footsteps and ambience; a tilemap means the paths. The full list of features, controls and what to check is on the [Test bed](TestBed.md) page.
 
 **Rules for changing it**
@@ -239,17 +259,23 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 4. **Saving**: if the component should persist, add it to `EntitySerializer` (both directions).
 5. **Play mode**: if it should be in the play copy, add it to `CopyableComponents` in `Components.h`.
 6. **Editor**: show and edit the component in the inspector window.
-7. **Test bed**: add the feature to the village in `StatueVillage.hyscene` as a gameplay element and a row to the [Test bed](TestBed.md) Features table.
+7. **Test bed**: add the feature to the field scenes (`ShrineGlade` / `FarmVillage`) as a gameplay element and a row to the [Test bed](TestBed.md) Features table.
 
 ## Known gaps
 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
-- Scripts must be compiled into the application and registered in code: there's no separate game module or hot reload, and scripts can't expose fields to the inspector yet.
+- Scripts must be compiled into the application: there's no separate game module or hot reload.
+- Script reflection (open points):
+  - No `enum class`, `Entity` / `UUID` references, arrays or nested structs as properties yet; an `AssetHandle` isn't checked against the asset's type when the scene loads.
+  - No `OnValidate` / property-changed hook: a script that derives state from a property in `OnCreate` doesn't see a live edit until it reads the field again.
+  - Saved values of a script that isn't registered (renamed or deleted class) are dropped on load, so saving loses them; there are no rename aliases for script or property names ([#143](https://github.com/joelnl74/Hydro/issues/143)).
+  - The generator is a text scanner, not a C++ parser: macros, `#if` blocks and templates around a script are not understood.
+  - Exposed fields keep their member names as saved keys (`DioramaWalkScript::m_Speed`, now labelled "Speed"); public fields should be `PascalCase`, but renaming one needs #143's aliases first.
 - There is no parent/child hierarchy yet.
 - The editor camera reads the keyboard through `Input`, not ImGui: in play mode, flying the Editor view (right button held) also sends W/A/S/D/Q/E to the game's scripts. The camera's pose isn't saved with the session (a reopened editor starts at the default view).
 - `SpriteAnimatorComponent` keeps its playback in the component ([component state rule](#where-runtime-state-lives-component-state-rule) 2). Move it to a `...Scene` object (rule 3) only if animation gains state rule 2 can't hold, such as blend layers or the AN1 state machine's parameters.
 - The stage order lives in `OnUpdateRuntime` / `OnUpdateEditor` code as plain calls, not a registered list; the application's own systems (`UpdateGalaxy`) still take `(registry, deltaTime)` and are migrated when touched.
 - Each component is listed separately in the serializer, `CopyableComponents` and the inspector (A6).
-- 3D physics (Jolt physics MVP): no rigid bodies, joints or character-versus-character collision; a model without collision nodes collides as its bounding box; collision nodes ignore a mirroring scale; the layer matrix is fixed in code (WC6); inspector edits to colliders during play don't reach the bodies; only characters send trigger events. Scenes with 3D colliders keep their 2D footprints for Box2D bodies (the wisps).
+- 3D physics (Jolt physics MVP): no rigid bodies, joints or character-versus-character collision; a model without collision nodes collides as its bounding box; collision nodes ignore a mirroring scale; the layer matrix is fixed in code (WC6); inspector edits to colliders during play don't reach the bodies; only characters send trigger events (a character destroyed inside a trigger sends the trigger `OnTriggerExit` from `Scene::DestroyEntityNow`, Oct 29; a destroyed trigger sends nothing); 3D bodies never send `OnCollisionEnter` / `OnCollisionExit` (no contact listener, [#152](https://github.com/joelnl74/Hydro/issues/152)); kinematic bodies are teleported (zero velocity), so characters don't ride or get pushed by them ([#153](https://github.com/joelnl74/Hydro/issues/153)); a collider whose shape fails to build has no collision for the rest of the run (warned once; press Play again after fixing it); removing a collider or Character Body during Play leaves its body in the world ([#151](https://github.com/joelnl74/Hydro/issues/151)). Remaining WC4-WC7 items: [#154](https://github.com/joelnl74/Hydro/issues/154). Scenes with 3D colliders keep their 2D footprints for Box2D bodies (the wisps).
 - Sprite textures are referenced by path until the asset system: `EntitySerializer` loads them and reads `Project` for the asset folder, a texture whose file is missing at load is dropped when the scene is saved again, and sampling options aren't saved (see [Architecture](Architecture.md#asset-system)).

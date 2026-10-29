@@ -164,6 +164,51 @@ namespace Hydro
 		return Rigidbody2DType::Dynamic;
 	}
 
+	// A script property's value (HY_PROPERTY): scalars and strings as they are, vectors as [x, y, z], an asset as
+	// its handle number.
+	static void WriteScriptPropertyValue(YAML::Emitter& out, const ScriptPropertyValue& value)
+	{
+		std::visit(
+			[&out](const auto& typed)
+			{
+				using Value = std::decay_t<decltype(typed)>;
+				if constexpr (std::is_same_v<Value, AssetHandle>)
+				{
+					out << (uint64_t)typed;
+				}
+				else
+				{
+					out << typed;
+				}
+			},
+			value);
+	}
+
+	// A saved value of `property`; its default when the node holds something else (a property whose type changed).
+	static ScriptPropertyValue ReadScriptPropertyValue(const YAML::Node& node, const ScriptProperty& property)
+	{
+		const ScriptPropertyValue& fallback = property.DefaultValue;
+		try
+		{
+			switch (property.Type)
+			{
+				case ScriptPropertyType::Bool: return node.as<bool>(std::get<bool>(fallback));
+				case ScriptPropertyType::Int: return node.as<int>(std::get<int>(fallback));
+				case ScriptPropertyType::Float: return node.as<float>(std::get<float>(fallback));
+				case ScriptPropertyType::Vec2: return node.as<glm::vec2>(std::get<glm::vec2>(fallback));
+				case ScriptPropertyType::Vec3: return node.as<glm::vec3>(std::get<glm::vec3>(fallback));
+				case ScriptPropertyType::Vec4: return node.as<glm::vec4>(std::get<glm::vec4>(fallback));
+				case ScriptPropertyType::String: return node.as<std::string>(std::get<std::string>(fallback));
+				case ScriptPropertyType::Asset: return AssetHandle(node.as<uint64_t>((uint64_t)std::get<AssetHandle>(fallback)));
+			}
+		}
+		catch (const YAML::Exception&)
+		{
+			// A vector saved with the wrong number of components, or a scalar where a list was expected.
+		}
+		return fallback;
+	}
+
 	// Saved values the physics engine would choke on are pulled into range. Written as max(minimum, value)
 	// so that NaN (which compares false with everything) also becomes the minimum.
 	static float AtLeast(float minimum, float value)
@@ -617,6 +662,7 @@ namespace Hydro
 			out << YAML::Key << "SpriteIndex" << YAML::Value << emitter.SpriteIndex;
 			out << YAML::Key << "Blend" << YAML::Value << (emitter.Blend == ParticleBlend::Additive ? "Additive" : "Alpha");
 			out << YAML::Key << "Lighting" << YAML::Value << (emitter.Lighting == ParticleLighting::Unlit ? "Unlit" : "Lit");
+			out << YAML::Key << "Space" << YAML::Value << (emitter.Space == ParticleSpace::View ? "View" : "Ground");
 			out << YAML::Key << "SortOrder" << YAML::Value << emitter.SortOrder;
 			if (emitter.EmissionIntensity > 0.0f)
 			{
@@ -650,19 +696,23 @@ namespace Hydro
 				out << YAML::BeginMap;
 				out << YAML::Key << "Name" << YAML::Value << script.Name;
 
-				if (!script.Properties.empty())
+				if (script.Properties.empty() == false)
 				{
 					out << YAML::Key << "Properties" << YAML::Value << YAML::BeginMap;
 
-					for (const auto& [propertyName, propertyValue] : script.Properties)
+					// Sorted by name, so a scene saves the same way every time (the map is unordered).
+					std::vector<const std::pair<const std::string, ScriptPropertyValue>*> sorted;
+					sorted.reserve(script.Properties.size());
+					for (const auto& entry : script.Properties)
 					{
-						out << YAML::Key << propertyName;
-						std::visit(
-							[&out](const auto& value)
-							{
-								out << YAML::Value << value;
-							},
-							propertyValue);
+						sorted.push_back(&entry);
+					}
+					std::sort(sorted.begin(), sorted.end(), [](const auto* a, const auto* b) { return a->first < b->first; });
+
+					for (const auto* entry : sorted)
+					{
+						out << YAML::Key << entry->first << YAML::Value;
+						WriteScriptPropertyValue(out, entry->second);
 					}
 
 					out << YAML::EndMap;
@@ -945,6 +995,7 @@ namespace Hydro
 			emitter.SpriteIndex = emitterNode["SpriteIndex"].as<uint32_t>(emitter.SpriteIndex);
 			emitter.Blend = emitterNode["Blend"].as<std::string>("Alpha") == "Additive" ? ParticleBlend::Additive : ParticleBlend::Alpha;
 			emitter.Lighting = emitterNode["Lighting"].as<std::string>("Lit") == "Unlit" ? ParticleLighting::Unlit : ParticleLighting::Lit;
+			emitter.Space = emitterNode["Space"].as<std::string>("Ground") == "View" ? ParticleSpace::View : ParticleSpace::Ground;
 			emitter.SortOrder = emitterNode["SortOrder"].as<int32_t>(emitter.SortOrder);
 			emitter.EmissionIntensity = AtLeast(0.0f, emitterNode["EmissionIntensity"].as<float>(emitter.EmissionIntensity));
 			emitter.LightRadius = AtLeast(0.0f, emitterNode["LightRadius"].as<float>(emitter.LightRadius));
@@ -1005,27 +1056,9 @@ namespace Hydro
 							{
 								for (const ScriptProperty& property : typeInfo->Properties)
 								{
-									const YAML::Node valueNode = propertiesNode[property.Name];
-
-									if (!valueNode)
-										continue;
-
-									switch (property.Type)
+									if (const YAML::Node valueNode = propertiesNode[property.Name])
 									{
-									case ScriptPropertyType::Bool:
-										binding.Properties[property.Name] =
-											valueNode.as<bool>(std::get<bool>(property.DefaultValue));
-										break;
-
-									case ScriptPropertyType::Int:
-										binding.Properties[property.Name] =
-											valueNode.as<int>(std::get<int>(property.DefaultValue));
-										break;
-
-									case ScriptPropertyType::Float:
-										binding.Properties[property.Name] =
-											valueNode.as<float>(std::get<float>(property.DefaultValue));
-										break;
+										binding.Properties[property.Name] = ReadScriptPropertyValue(valueNode, property);
 									}
 								}
 							}

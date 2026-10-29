@@ -12,8 +12,9 @@
 # Needs: git, g++ (C++17), cmake + a C++ compiler for glslang (built once).
 # Downloads (once, into $HYDRO_CHECK_CACHE, default /tmp/hydro-check): Vulkan-Headers, shaderc
 # (headers only), glslang.
-# Uses the repository's own vendored libraries; initialises the glm, imgui, spdlog and glfw
-# submodules shallowly if they are empty.
+# Uses the repository's own vendored libraries; initialises the glm, imgui, spdlog, glfw, box2d and
+# JoltPhysics submodules shallowly if they are empty. Several runs can share the cache at once: each
+# has its own copy of the sources and its own log.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -27,6 +28,10 @@ log() { printf '\033[1m== %s\033[0m\n' "$*"; }
 if [ -z "$(ls -A "$ROOT/Hydro/vendor/glm" 2>/dev/null)" ] || [ -z "$(ls -A "$ROOT/Hydro/vendor/imgui" 2>/dev/null)" ] || [ -z "$(ls -A "$ROOT/Hydro/vendor/spdlog" 2>/dev/null)" ]; then
 	log "Initialising submodules (shallow)"
 	git -C "$ROOT" submodule update --init --depth 1 Hydro/vendor/glm Hydro/vendor/imgui Hydro/vendor/spdlog Hydro/vendor/glfw
+fi
+if [ -z "$(ls -A "$ROOT/Hydro/vendor/box2d" 2>/dev/null)" ] || [ -z "$(ls -A "$ROOT/Hydro/vendor/JoltPhysics" 2>/dev/null)" ]; then
+	log "Initialising the physics submodules (shallow)"
+	git -C "$ROOT" submodule update --init --depth 1 Hydro/vendor/box2d Hydro/vendor/JoltPhysics
 fi
 
 if [ ! -f "$CACHE/Vulkan-Headers/include/vulkan/vulkan.h" ]; then
@@ -57,12 +62,13 @@ check_shaders() {
 	local failed=0
 	for shader in "$ROOT"/Oxygen/assets/shaders/*.vert "$ROOT"/Oxygen/assets/shaders/*.frag; do
 		[ -f "$shader" ] || continue
-		if "$GLSLANG" -V "$shader" -o "$CACHE/$(basename "$shader").spv" > "$CACHE/shader.log" 2>&1; then
+		if "$GLSLANG" -V "$shader" -o "$CACHE/$(basename "$shader").$$.spv" > "$CACHE/shader.$$.log" 2>&1; then
 			echo "ok    ${shader#$ROOT/}"
 		else
-			echo "FAIL  ${shader#$ROOT/}"; sed 's/^/      /' "$CACHE/shader.log"; failed=1
+			echo "FAIL  ${shader#$ROOT/}"; sed 's/^/      /' "$CACHE/shader.$$.log"; failed=1
 		fi
 	done
+	rm -f "$CACHE"/*.$$.spv "$CACHE/shader.$$.log"
 	return $failed
 }
 
@@ -74,7 +80,9 @@ fi
 # ---- Sources ------------------------------------------------------------------
 # The engine refuses to compile on Linux (PlatformDetection.h #error), so check a copy of the
 # sources with that one line turned into a define. The copy is refreshed every run.
-SRC="$CACHE/src"
+SRC="$CACHE/src.$$"
+LOG="$CACHE/sources.$$.log"
+trap 'rm -rf "$SRC"' EXIT
 rm -rf "$SRC"; mkdir -p "$SRC"
 cp -r "$ROOT/Hydro/src" "$SRC/Hydro"
 cp -r "$ROOT/Oxygen/src" "$SRC/Oxygen"
@@ -85,7 +93,9 @@ COMMON=(-std=c++17 -fsyntax-only -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFI
 	-isystem "$CACHE/Vulkan-Headers/include" -isystem "$V" -isystem "$V/glm" -isystem "$V/imgui" -isystem "$V/imgui/backends"
 	-isystem "$V/spdlog/include" -isystem "$V/yaml-cpp/include" -isystem "$V/entt" -isystem "$V/stb/include"
 	-isystem "$V/cgltf" -isystem "$V/VulkanMemoryAllocator" -isystem "$V/glfw/include"
-	-isystem "$CACHE/shaderc/libshaderc/include")
+	-isystem "$V/box2d/include" -isystem "$V/JoltPhysics" -isystem "$V/ImGuizmo"
+	-isystem "$CACHE/shaderc/libshaderc/include"
+	-DJPH_ENABLE_ASSERTS) # Jolt's Debug defines: JoltDefines() in Dependencies.lua
 export SRC
 HYDRO_FLAGS="${COMMON[*]} -I$SRC/Hydro -include $SRC/Hydro/hypch.h"
 OXYGEN_FLAGS="${COMMON[*]} -I$SRC/Oxygen -I$SRC/Hydro"
@@ -107,7 +117,7 @@ else
 fi
 
 log "Sources (${#files[@]} files, $JOBS jobs)"
-printf '%s\n' "${files[@]}" | while IFS= read -r f; do skip "$f" || echo "${f#$ROOT/}"; done > "$CACHE/files.txt"
+printf '%s\n' "${files[@]}" | while IFS= read -r f; do skip "$f" || echo "${f#$ROOT/}"; done > "$CACHE/files.$$.txt"
 
 check_one() {
 	local rel="$1" copy flags
@@ -121,11 +131,12 @@ check_one() {
 	if [ -z "$out" ]; then echo "ok    $rel"; else echo "FAIL  $rel"; echo "$out" | sed "s|$SRC/Hydro/|Hydro/src/|; s|$SRC/Oxygen/|Oxygen/src/|; s/^/      /" | head -20; fi
 }
 export -f check_one
-xargs -a "$CACHE/files.txt" -P "$JOBS" -I{} bash -c 'check_one "$@"' _ {} | tee "$CACHE/sources.log" | grep -v '^ok' || true
-echo "$(grep -c '^ok' "$CACHE/sources.log") ok, $(grep -c '^FAIL' "$CACHE/sources.log" || true) with errors or warnings (full log: $CACHE/sources.log)"
+xargs -a "$CACHE/files.$$.txt" -P "$JOBS" -I{} bash -c 'check_one "$@"' _ {} | tee "$LOG" | grep -v '^ok' || true
+echo "$(grep -c '^ok' "$LOG") ok, $(grep -c '^FAIL' "$LOG" || true) with errors or warnings (full log: $LOG)"
 
 shader_status=0
 check_shaders || shader_status=1
-if grep -q '^FAIL' "$CACHE/sources.log" || [ $shader_status -ne 0 ]; then
+rm -f "$CACHE/files.$$.txt"
+if grep -q '^FAIL' "$LOG" || [ $shader_status -ne 0 ]; then
 	exit 1
 fi

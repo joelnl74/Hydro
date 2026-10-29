@@ -10,8 +10,9 @@
 #include <cmath>
 #include <string>
 
-// Small native scripts to try play mode with. They're registered in OxygenEditorApplication::OnInit,
-// so they show up under Add Component > Script in the inspector and are saved with the scene.
+// Small native scripts to try play mode with. HY_SCRIPT() registers them (the generated registration runs in
+// OxygenEditorApplication::OnInit), so they show up under Add Component > Script and are saved with the scene;
+// their HY_PROPERTY fields are edited in the inspector.
 namespace Hydro
 {
 	// Turns the entity around Z.
@@ -22,11 +23,12 @@ namespace Hydro
 		void OnUpdate(float deltaTime) override
 		{
 			auto& transform = GetComponent<TransformComponent>();
-			transform.Rotation.z += m_Speed * deltaTime;
+			transform.Rotation.z += Speed * deltaTime;
 		}
 
-	private:
-		float m_Speed = 1.5f; // radians per second
+	public:
+		HY_PROPERTY(Range(-50, 50), Tooltip("Radians per second around Z; negative turns the other way"))
+		float Speed = 1.5f;
 	};
 
 	// Moves the entity up and down around where it started.
@@ -43,8 +45,14 @@ namespace Hydro
 		{
 			m_Time += deltaTime;
 			auto& transform = GetComponent<TransformComponent>();
-			transform.Translation.y = m_StartY + std::sin(m_Time * 2.0f) * 0.5f;
+			transform.Translation.y = m_StartY + std::sin(m_Time * Frequency) * Height;
 		}
+
+	public:
+		HY_PROPERTY(Range(0, 10), Tooltip("Metres up and down from where it started"))
+		float Height = 0.5f;
+		HY_PROPERTY(Range(0, 20), Tooltip("How fast it bobs (radians per second: 2 is about one bob every 3 seconds)"))
+		float Frequency = 2.0f;
 
 	private:
 		float m_StartY = 0.0f;
@@ -106,7 +114,7 @@ namespace Hydro
 			// without one (or while no world runs) it just slides the transform.
 
 			uint32_t increasedSpeed = Input::IsKeyPressed(KeyCode::LeftShift) ? 2 : 1;
-			const glm::vec2 velocity = moving ? glm::normalize(move) * (m_Speed + increasedSpeed * VillageState::PlayerSpeedScale()) : glm::vec2(0.0f);
+			const glm::vec2 velocity = moving ? glm::normalize(move) * (Speed + increasedSpeed * VillageState::PlayerSpeedScale()) : glm::vec2(0.0f);
 			if (Physics2D::SetLinearVelocity(GetEntity(), velocity) == false && moving)
 			{
 				auto& transform = GetComponent<TransformComponent>();
@@ -115,9 +123,12 @@ namespace Hydro
 			}
 		}
 
+	public:
+		HY_PROPERTY(Range(0, 20), Tooltip("Units per second; Shift walks faster"))
+		float Speed = 3.0f;
+
 	private:
 		std::string m_Facing = "Down";
-		float m_Speed = 3.0f; // units per second
 	};
 
 	// Sorts a sprite among the others by its height on screen: the lower it stands, the more in front it is
@@ -164,8 +175,8 @@ namespace Hydro
 			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
 				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
-				const float lead = m_LookAhead + DioramaView::SceneFocusLead * DioramaView::Blend;
-				const glm::vec2 goal = DioramaView::ClampFocus({ position.x, position.y + lead }, { m_BoundsX, m_BoundsY });
+				const float lead = LookAhead + DioramaView::SceneFocusLead * DioramaView::Blend;
+				const glm::vec2 goal = DioramaView::ClampFocus({ position.x, position.y + lead }, Bounds);
 
 				// Frame-rate independent smoothing: closes most of the gap in about a third of a second.
 				if (m_Snap)
@@ -173,7 +184,7 @@ namespace Hydro
 					m_Focus = goal;
 					m_FocusHeight = position.z;
 				}
-				const float t = 1.0f - std::exp(-m_Smoothing * deltaTime);
+				const float t = 1.0f - std::exp(-Smoothing * deltaTime);
 				m_Focus += (goal - m_Focus) * t;
 				// The height of the ground the character stands on (a terrace, stairs), so it stays in frame.
 				m_FocusHeight += (position.z - m_FocusHeight) * t;
@@ -189,6 +200,14 @@ namespace Hydro
 				DioramaView::Apply(transform, GetComponent<CameraComponent>(), m_Focus, m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend);
 			}
 		}
+
+	public:
+		HY_PROPERTY(Range(0, 50), Tooltip("How quickly the camera catches up with the target (higher is snappier)"))
+		float Smoothing = 8.0f;
+		HY_PROPERTY(Range(-10, 10), Tooltip("Metres ahead of the target's feet to aim at (its chest)"))
+		float LookAhead = 1.5f;
+		HY_PROPERTY(Min(0), Tooltip("Half-size of the area the focus stays in, when the scene sets no bounds of its own"))
+		glm::vec2 Bounds{ 17.0f, 23.0f };
 
 	private:
 		entt::entity FindTarget(Scene& scene) const
@@ -209,11 +228,5 @@ namespace Hydro
 		bool m_Snap = true;
 		glm::vec2 m_Focus{ 0.0f };  // where the camera looks, on the ground
 		float m_FocusHeight = 0.0f; // and how high that ground is (the target's z, smoothed)
-		float m_Smoothing = 8.0f;
-		float m_LookAhead = 1.5f; // aim at the character's chest, not the feet
-		// Used when the scene sets no bounds of its own (DioramaView::SceneBounds*): LightingTest's ground is
-		// 60 x 60 units; the view is about 25 x 14.
-		float m_BoundsX = 17.0f;
-		float m_BoundsY = 23.0f;
 	};
 }

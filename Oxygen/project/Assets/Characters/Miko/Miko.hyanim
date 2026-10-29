@@ -28,7 +28,7 @@ SpriteAnimationSet:
       Loop: Once
       FrameRate: 10
       Frames: [Miko_40, Miko_41, Miko_42, Miko_43, Miko_44, Miko_45, Miko_46]
-    - Name: Puinch
+    - Name: Punch
       Loop: Once
       FrameRate: 10
       Frames: [Miko_48, Miko_49, Miko_50, Miko_51, Miko_52, Miko_53]

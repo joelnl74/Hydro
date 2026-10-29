@@ -76,7 +76,7 @@ namespace Hydro
 			glm::vec3 velocity{ 0.0f };
 			if (moving)
 			{
-				const float speed = Input::IsKeyPressed(KeyCode::LeftShift) ? m_Speed * 1.7f : m_Speed;
+				const float speed = Input::IsKeyPressed(KeyCode::LeftShift) ? m_Speed * RunMultiplier : m_Speed;
 				velocity = glm::vec3(glm::normalize(move) * speed, 0.0f);
 			}
 			CharacterBody::Move(GetEntity(), velocity);
@@ -84,8 +84,10 @@ namespace Hydro
 
 	public:
 		std::string m_Facing = "Up";
-		HY_PROPERTY()
-		float m_Speed = 3.5f; // metres per second
+		HY_PROPERTY(Range(0, 20), Tooltip("Walking speed in metres per second"))
+		float m_Speed = 3.5f; // the saved key stays m_Speed (renaming it needs #143's FormerNames)
+		HY_PROPERTY(Range(1, 5), Tooltip("Shift multiplies the speed by this"))
+		float RunMultiplier = 1.7f;
 	};
 
 	// One time of day for a diorama scene: the sun's colour and strength, how much of their strength the
@@ -133,16 +135,9 @@ namespace Hydro
 
 		void OnCreate() override
 		{
-			const DioramaSceneFraming framing = GetFraming();
 			DioramaView::Enabled = true;
 			DioramaView::Blend = 1.0f;
-			DioramaView::SceneTiltDegrees = framing.TiltDegrees;
-			DioramaView::SceneFieldOfView = framing.FieldOfView;
-			DioramaView::SceneFocusLead = framing.FocusLead;
-			DioramaView::SceneFocusRise = framing.FocusRise;
-			DioramaView::HasSceneBounds = true;
-			DioramaView::SceneBoundsMin = framing.BoundsMin;
-			DioramaView::SceneBoundsMax = framing.BoundsMax;
+			ApplyFraming();
 
 			Scene& scene = *GetEntity().GetScene();
 			auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
@@ -167,6 +162,8 @@ namespace Hydro
 
 		void OnUpdate(float deltaTime) override
 		{
+			// Every frame, so the director's framing fields can be tuned in the inspector while playing.
+			ApplyFraming();
 			m_Time += deltaTime;
 			const KeyCode keys[3] = { KeyCode::D1, KeyCode::D2, KeyCode::D3 };
 			for (int i = 0; i < 3; i++)
@@ -207,6 +204,18 @@ namespace Hydro
 			float BaseRadius = 1.0f;
 			float Phase = 0.0f;
 		};
+
+		void ApplyFraming()
+		{
+			const DioramaSceneFraming framing = GetFraming();
+			DioramaView::SceneTiltDegrees = framing.TiltDegrees;
+			DioramaView::SceneFieldOfView = framing.FieldOfView;
+			DioramaView::SceneFocusLead = framing.FocusLead;
+			DioramaView::SceneFocusRise = framing.FocusRise;
+			DioramaView::HasSceneBounds = true;
+			DioramaView::SceneBoundsMin = framing.BoundsMin;
+			DioramaView::SceneBoundsMax = framing.BoundsMax;
+		}
 
 		void ApplyPreset()
 		{
@@ -274,6 +283,23 @@ namespace Hydro
 	HY_SCRIPT()
 	class ShrineGladeScript : public DioramaDirectorScript
 	{
+	public:
+		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
+		float TiltDegrees = 70.0f;
+		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
+		float FieldOfView = 35.0f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres the camera looks ahead of the player (up the screen)"))
+		float FocusLead = 3.0f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres above the player's ground the camera aims at"))
+		float FocusRise = 2.2f;
+		HY_PROPERTY(Tooltip("Lowest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMin{ -2.0f, -8.0f };
+		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMax{ 2.0f, 6.0f };
+		HY_PROPERTY(Range(0, 2), Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)"))
+		int StartPreset = 1;
+
 	protected:
 		const char* GetSceneName() const override { return "Shrine Glade"; }
 		const char* GetHelp() const override
@@ -282,8 +308,9 @@ namespace Hydro
 		}
 		DioramaSceneFraming GetFraming() const override
 		{
-			return { 70.0f, 35.0f, 3.0f, 2.2f, { -2.0f, -8.0f }, { 2.0f, 6.0f } };
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
 		}
+		int GetStartPreset() const override { return StartPreset; }
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {
@@ -303,6 +330,23 @@ namespace Hydro
 	HY_SCRIPT()
 	class FarmVillageScript : public DioramaDirectorScript
 	{
+	public:
+		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
+		float TiltDegrees = 55.0f;
+		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
+		float FieldOfView = 30.0f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres the camera looks ahead of the player (up the screen)"))
+		float FocusLead = 2.0f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres above the player's ground the camera aims at"))
+		float FocusRise = 1.2f;
+		HY_PROPERTY(Tooltip("Lowest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMin{ -6.5f, -34.0f };
+		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMax{ 6.5f, 16.0f };
+		HY_PROPERTY(Range(0, 2), Tooltip("The light at the start: 0 day, 1 golden hour, 2 night (keys 1 / 2 / 3)"))
+		int StartPreset = 1;
+
 	protected:
 		const char* GetSceneName() const override { return "Farm Village"; }
 		const char* GetHelp() const override
@@ -311,8 +355,9 @@ namespace Hydro
 		}
 		DioramaSceneFraming GetFraming() const override
 		{
-			return { 55.0f, 30.0f, 2.0f, 1.2f, { -6.5f, -34.0f }, { 6.5f, 16.0f } };
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
 		}
+		int GetStartPreset() const override { return StartPreset; }
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {

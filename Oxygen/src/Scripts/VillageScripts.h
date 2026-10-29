@@ -144,7 +144,7 @@ namespace Hydro
 			{
 				hash = (hash ^ (uint8_t)c) * 16777619u;
 			}
-			m_Speed = 1.1f + (float)(hash % 100) / 200.0f;
+			Speed = 1.1f + (float)(hash % 100) / 200.0f;
 
 			// Starts on the first waypoint, waits there, then walks to the second.
 			m_Index = 0;
@@ -182,7 +182,7 @@ namespace Hydro
 			const Stop& target = m_Stops[m_Index];
 			const glm::vec2 toTarget = target.Position - position;
 			const float distance = glm::length(toTarget);
-			const float step = m_Speed * deltaTime;
+			const float step = Speed * deltaTime;
 
 			if (distance <= step)
 			{
@@ -212,6 +212,10 @@ namespace Hydro
 			SpriteAnimator::Play(self, "Walk" + m_Facing);
 		}
 
+	public:
+		HY_PROPERTY(Range(0, 20), Tooltip("Units per second between waypoints (1.4 is a stroll)"))
+		float Speed = 1.4f;
+
 	private:
 		struct Stop
 		{
@@ -223,7 +227,6 @@ namespace Hydro
 		std::vector<Stop> m_Stops;
 		int m_Index = 0;
 		float m_Pause = 0.0f;
-		float m_Speed = 1.4f;   // units (tiles) per second: a stroll
 		std::string m_Facing = "Down";
 	};
 
@@ -299,7 +302,7 @@ namespace Hydro
 		void OnCreate() override
 		{
 			// The dust effect (a prefab with a particle emitter), loaded once here: Vfx::Play never reads the disk.
-			m_Dust = AssetManager::FindHandle("Effects/DustPuff.hyprefab");
+			m_Dust = (uint64_t)DustEffect != 0 ? DustEffect : AssetManager::FindHandle("Effects/DustPuff.hyprefab");
 			if ((uint64_t)m_Dust != 0)
 			{
 				AssetManager::GetAsset<Prefab>(m_Dust);
@@ -344,12 +347,12 @@ namespace Hydro
 
 			const glm::vec3& playerPosition = player.GetComponent<TransformComponent>().Translation;
 			TransformComponent& transform = crate.GetComponent<TransformComponent>();
-			transform.Translation.x = playerPosition.x + m_Direction.x * 1.4f;
-			transform.Translation.y = playerPosition.y + m_Direction.y * 1.4f;
+			transform.Translation.x = playerPosition.x + m_Direction.x * DropDistance;
+			transform.Translation.y = playerPosition.y + m_Direction.y * DropDistance;
 			PlayDust(*scene, transform.Translation);
 
 			m_Dropped.push_back(crate.GetUUID());
-			while (m_Dropped.size() > MaxCrates)
+			while (m_Dropped.size() > (size_t)std::max(MaxCrates, 1))
 			{
 				Entity oldest = scene->GetEntityByUUID(m_Dropped.front());
 				if (oldest.IsValid())
@@ -363,8 +366,15 @@ namespace Hydro
 			HY_INFO("Crates: dropped one ({} of {} dropped crates)", m_Dropped.size(), MaxCrates);
 		}
 
+	public:
+		HY_PROPERTY(Range(1, 100), Tooltip("Crates kept at once; the oldest disappears"))
+		int MaxCrates = 10;
+		HY_PROPERTY(Range(0, 10), Tooltip("Metres in front of the player a crate lands"))
+		float DropDistance = 1.4f;
+		HY_PROPERTY(Asset(Prefab), Tooltip("The puff played where a crate lands or vanishes; empty uses Effects/DustPuff.hyprefab"))
+		AssetHandle DustEffect = 0;
+
 	private:
-		static constexpr size_t MaxCrates = 10;
 
 		// A puff of dust at a crate's base, sorted just in front of it (the village's Y-sort rule).
 		void PlayDust(Scene& scene, const glm::vec3& crate)
@@ -419,13 +429,13 @@ namespace Hydro
 			DioramaView::Update(deltaTime);
 			if (Input::IsKeyPressed(KeyCode::Minus))
 			{
-				camera.Camera.OrthographicSize += m_ZoomSpeed * deltaTime;
+				camera.Camera.OrthographicSize += ZoomSpeed * deltaTime;
 			}
 			if (Input::IsKeyPressed(KeyCode::Equal))
 			{
-				camera.Camera.OrthographicSize -= m_ZoomSpeed * deltaTime;
+				camera.Camera.OrthographicSize -= ZoomSpeed * deltaTime;
 			}
-			camera.Camera.OrthographicSize = std::clamp(camera.Camera.OrthographicSize, m_MinSize, VillageMap::Height);
+			camera.Camera.OrthographicSize = std::clamp(camera.Camera.OrthographicSize, MinZoom, VillageMap::Height);
 
 			if (m_Target == entt::null || scene->m_Registry.valid(m_Target) == false)
 			{
@@ -441,7 +451,7 @@ namespace Hydro
 			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
 				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
-				goal = { position.x, position.y + m_LookAhead };
+				goal = { position.x, position.y + LookAhead };
 			}
 
 			// Keep the whole view inside the map; when it is larger than the map, centre on it.
@@ -453,12 +463,22 @@ namespace Hydro
 			goal.x = std::clamp(goal.x, VillageMap::CentreX - limitX, VillageMap::CentreX + limitX);
 			goal.y = std::clamp(goal.y, VillageMap::CentreY - limitY, VillageMap::CentreY + limitY);
 
-			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-m_Smoothing * deltaTime);
+			const float t = m_Snap ? 1.0f : 1.0f - std::exp(-Smoothing * deltaTime);
 			m_Focus += (goal - m_Focus) * t;
 			m_Snap = false;
 
 			DioramaView::Apply(transform, camera, m_Focus);
 		}
+
+	public:
+		HY_PROPERTY(Range(0, 50), Tooltip("How quickly the camera catches up with the player (higher is snappier)"))
+		float Smoothing = 8.0f;
+		HY_PROPERTY(Range(-10, 10), Tooltip("Metres ahead of the player's feet to aim at (the chest)"))
+		float LookAhead = 1.5f;
+		HY_PROPERTY(Range(1, 36), Tooltip("Closest zoom: world units visible vertically"))
+		float MinZoom = 8.0f;
+		HY_PROPERTY(Range(0, 100), Tooltip("World units per second while - or = is held"))
+		float ZoomSpeed = 10.0f;
 
 	private:
 		static entt::entity FindTarget(Scene& scene)
@@ -478,10 +498,6 @@ namespace Hydro
 		entt::entity m_Target = entt::null;
 		bool m_Snap = true;
 		glm::vec2 m_Focus{ 0.0f }; // where the camera looks, on the ground
-		float m_Smoothing = 8.0f;
-		float m_LookAhead = 1.5f;   // aim at the player's chest, not the feet
-		float m_MinSize = 8.0f;     // closest zoom, world units visible vertically
-		float m_ZoomSpeed = 10.0f;  // units per second while - or = is held
 	};
 
 	// A party member who follows the entity tagged "Player" along the path it walked (Diorama RPG: Lila
@@ -568,8 +584,11 @@ namespace Hydro
 			SpriteAnimator::Play(self, (moving ? "Walk" : "Idle") + m_Facing);
 		}
 
+	public:
+		HY_PROPERTY(Range(0, 10), Tooltip("Metres behind the player, measured along the path it walked"))
+		float FollowDistance = 1.1f;
+
 	private:
-		static constexpr float FollowDistance = 1.1f;
 
 		entt::entity m_Player = entt::null;
 		std::vector<glm::vec2> m_Trail;

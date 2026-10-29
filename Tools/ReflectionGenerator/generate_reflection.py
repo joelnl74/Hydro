@@ -1,31 +1,79 @@
 #!/usr/bin/env python3
+"""Hydro script reflection generator.
+
+Reads C++ headers for HY_SCRIPT() classes and their HY_PROPERTY(...) fields and writes one .cpp with
+RegisterGeneratedScriptReflection(), which registers them with ScriptRegistry. Run by Oxygen's pre-build
+step; see Hydro/src/Hydro/Scene/Scripting/ReflectionMacros.h for what the macros accept.
+
+    generate_reflection.py [repo_root] [--source DIR]... [--output FILE] [--check]
+
+Without --source it scans <repo_root>/Hydro/src and <repo_root>/Oxygen/src; without --output it writes
+<repo_root>/Oxygen/src/Generated/GeneratedScriptReflection.cpp. Include paths in the output are relative
+to the first of Hydro/src, Oxygen/src or a --source directory that contains the header. --check writes
+nothing and exits with 1 when the output is out of date (for CI).
+
+It is a text scanner, not a C++ parser: one field per HY_PROPERTY declaration, the class declaration right
+after HY_SCRIPT(). Anything it doesn't understand is an error with the file and the declaration.
+"""
 from __future__ import annotations
 
 import argparse
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
-SUPPORTED_TYPES = {"bool", "int", "float"}
+# C++ type as written -> (type used in the generated code, ScriptPropertyType name)
+SUPPORTED_TYPES = {
+    "bool": "Bool",
+    "int": "Int",
+    "float": "Float",
+    "glm::vec2": "Vec2",
+    "glm::vec3": "Vec3",
+    "glm::vec4": "Vec4",
+    "std::string": "String",
+    "AssetHandle": "Asset",
+    "Hydro::AssetHandle": "Asset",
+}
+
+NUMERIC_KINDS = {"Int", "Float", "Vec2", "Vec3", "Vec4"}
+COLOR_KINDS = {"Vec3", "Vec4"}
+
+# AssetType enumerators (Hydro/src/Hydro/Asset/Asset.h) an Asset(...) argument may name.
+ASSET_TYPES = {"Texture2D", "Scene", "Prefab", "SpriteAnimation", "Material", "Mesh", "RenderProfile"}
 
 
-@dataclass(frozen=True)
+@dataclass
 class Property:
     type_name: str
+    kind: str
     name: str
     display_name: str
+    tooltip: str | None = None
+    minimum: str | None = None
+    maximum: str | None = None
+    color: bool = False
+    asset_type: str | None = None
+    read_only: bool = False
+    hidden: bool = False
 
 
-@dataclass(frozen=True)
+@dataclass
 class ReflectedScript:
     class_name: str
     include_path: str
-    properties: tuple[Property, ...]
+    properties: list[Property] = field(default_factory=list)
+
+
+class ReflectionError(ValueError):
+    pass
 
 
 def make_display_name(name: str) -> str:
+    # m_MoveSpeed -> MoveSpeed: the member prefix isn't part of the label.
+    if name.startswith("m_") and len(name) > 2:
+        name = name[2:]
     if not name:
         return name
 
@@ -43,59 +91,60 @@ def make_display_name(name: str) -> str:
             ):
                 result.append(" ")
         result.append(ch)
-    return "".join(result)
+    return "".join(result).replace("_", " ").strip()
 
 
-def find_matching(text: str, start: int, opening: str, closing: str) -> int:
-    assert text[start] == opening
-    depth = 0
-    i = start
-    in_string: str | None = None
-    escaped = False
-    line_comment = False
-    block_comment = False
-
-    while i < len(text):
+def strip_comments(text: str) -> str:
+    """Comments become spaces (newlines kept), so offsets and line numbers stay the same; strings stay."""
+    out: list[str] = []
+    i = 0
+    n = len(text)
+    while i < n:
         ch = text[i]
-        nxt = text[i + 1] if i + 1 < len(text) else ""
-
-        if line_comment:
-            if ch == "\n":
-                line_comment = False
-            i += 1
-            continue
-
-        if block_comment:
-            if ch == "*" and nxt == "/":
-                block_comment = False
-                i += 2
-            else:
+        nxt = text[i + 1] if i + 1 < n else ""
+        if ch == "/" and nxt == "/":
+            while i < n and text[i] != "\n":
+                out.append(" ")
                 i += 1
             continue
-
-        if in_string is not None:
-            if escaped:
-                escaped = False
-            elif ch == "\\":
-                escaped = True
-            elif ch == in_string:
-                in_string = None
-            i += 1
-            continue
-
-        if ch == "/" and nxt == "/":
-            line_comment = True
-            i += 2
-            continue
         if ch == "/" and nxt == "*":
-            block_comment = True
+            out.append("  ")
+            i += 2
+            while i < n and not (text[i] == "*" and i + 1 < n and text[i + 1] == "/"):
+                out.append("\n" if text[i] == "\n" else " ")
+                i += 1
+            out.append("  ")
             i += 2
             continue
         if ch in ('"', "'"):
-            in_string = ch
+            quote = ch
+            out.append(ch)
             i += 1
+            while i < n and text[i] != quote:
+                if text[i] == "\\" and i + 1 < n:
+                    out.append(text[i])
+                    i += 1
+                out.append(text[i])
+                i += 1
+            if i < n:
+                out.append(text[i])
+                i += 1
             continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
 
+
+def find_matching(text: str, start: int, opening: str, closing: str) -> int:
+    """Index of the bracket closing the one at `start`, skipping string and character literals."""
+    assert text[start] == opening
+    depth = 0
+    i = start
+    while i < len(text):
+        ch = text[i]
+        if ch in ('"', "'"):
+            i = skip_literal(text, i)
+            continue
         if ch == opening:
             depth += 1
         elif ch == closing:
@@ -103,161 +152,285 @@ def find_matching(text: str, start: int, opening: str, closing: str) -> int:
             if depth == 0:
                 return i
         i += 1
+    raise ReflectionError(f"Unmatched '{opening}' at offset {start}")
 
-    raise ValueError(f"Unmatched '{opening}' at offset {start}")
+
+def skip_literal(text: str, start: int) -> int:
+    quote = text[start]
+    i = start + 1
+    while i < len(text) and text[i] != quote:
+        i += 2 if text[i] == "\\" else 1
+    return i + 1
 
 
-def access_at(body: str, offset: int, default_access: str) -> str:
+def split_top_level(text: str, separator: str = ",") -> list[str]:
+    """Splits at `separator` outside brackets and literals."""
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch in ('"', "'"):
+            end = skip_literal(text, i)
+            current.append(text[i:end])
+            i = end
+            continue
+        if ch in "([{<":
+            depth += 1
+        elif ch in ")]}>":
+            depth -= 1
+        if ch == separator and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+        i += 1
+    tail = "".join(current).strip()
+    if tail or parts:
+        parts.append(tail)
+    return parts
+
+
+def line_of(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+def find_statement_end(text: str, start: int) -> int:
+    """Index of the ';' ending the declaration at `start`, outside brackets and literals."""
+    depth = 0
+    i = start
+    while i < len(text):
+        ch = text[i]
+        if ch in ('"', "'"):
+            i = skip_literal(text, i)
+            continue
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == ";" and depth == 0:
+            return i
+        i += 1
+    return -1
+
+
+def cpp_float(number: str) -> str:
+    """A float literal for a number read by parse_number: 0 -> 0.0f, 2.5 -> 2.5f, 1e3 -> 1e3f."""
+    if re.search(r"[.eE]", number) is None:
+        number += ".0"
+    elif number.endswith("."):
+        number += "0"
+    return number + "f"
+
+
+def cpp_string(value: str) -> str:
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def parse_string_argument(argument: str, where: str) -> str:
+    match = re.fullmatch(r'"((?:[^"\\]|\\.)*)"', argument.strip())
+    if match is None:
+        raise ReflectionError(f"{where}: expected a string literal, got {argument}")
+    return match.group(1).replace('\\"', '"').replace("\\\\", "\\")
+
+
+def parse_number(argument: str, where: str) -> str:
+    text = argument.strip()
+    if re.fullmatch(r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?f?", text) is None:
+        raise ReflectionError(f"{where}: expected a number, got {argument}")
+    return text.rstrip("f")
+
+
+def apply_arguments(prop: Property, arguments: str, where: str) -> None:
+    for argument in split_top_level(arguments):
+        if not argument:
+            continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)\s*(?:\((.*)\))?", argument, flags=re.DOTALL)
+        if match is None:
+            raise ReflectionError(f"{where}: can't read HY_PROPERTY argument '{argument}'")
+        name, inner = match.group(1), match.group(2)
+        values = split_top_level(inner) if inner is not None else []
+
+        def expect(count: int) -> None:
+            if len(values) != count:
+                raise ReflectionError(f"{where}: {name}(...) takes {count} argument(s), got '{argument}'")
+
+        if name == "Range":
+            expect(2)
+            prop.minimum = parse_number(values[0], where)
+            prop.maximum = parse_number(values[1], where)
+        elif name == "Min":
+            expect(1)
+            prop.minimum = parse_number(values[0], where)
+        elif name == "Max":
+            expect(1)
+            prop.maximum = parse_number(values[0], where)
+        elif name == "Tooltip":
+            expect(1)
+            prop.tooltip = parse_string_argument(values[0], where)
+        elif name == "DisplayName":
+            expect(1)
+            prop.display_name = parse_string_argument(values[0], where)
+        elif name == "Color":
+            expect(0)
+            prop.color = True
+        elif name == "Asset":
+            expect(1)
+            asset_type = values[0].strip().removeprefix("AssetType::")
+            if asset_type not in ASSET_TYPES:
+                raise ReflectionError(f"{where}: Asset({values[0]}): use one of {', '.join(sorted(ASSET_TYPES))}")
+            prop.asset_type = asset_type
+        elif name == "ReadOnly":
+            expect(0)
+            prop.read_only = True
+        elif name == "Hidden":
+            expect(0)
+            prop.hidden = True
+        else:
+            raise ReflectionError(
+                f"{where}: unknown HY_PROPERTY argument '{name}' "
+                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, ReadOnly, Hidden)"
+            )
+
+    if (prop.minimum is not None or prop.maximum is not None) and prop.kind not in NUMERIC_KINDS:
+        raise ReflectionError(f"{where}: Range / Min / Max need an int, float or vector field")
+    if prop.color and prop.kind not in COLOR_KINDS:
+        raise ReflectionError(f"{where}: Color needs a glm::vec3 or glm::vec4 field")
+    if prop.asset_type is not None and prop.kind != "Asset":
+        raise ReflectionError(f"{where}: Asset(...) needs an AssetHandle field")
+    if prop.kind == "Asset" and prop.asset_type is None:
+        raise ReflectionError(f"{where}: an AssetHandle needs Asset(<AssetType>), e.g. HY_PROPERTY(Asset(Texture2D))")
+
+
+def body_depths(body: str) -> list[int]:
+    """Brace depth at every offset of a class body (literals skipped), to tell its own members from nested types'."""
+    depths = [0] * (len(body) + 1)
+    depth = 0
+    i = 0
+    while i < len(body):
+        ch = body[i]
+        if ch in ('"', "'"):
+            end = skip_literal(body, i)
+            for j in range(i, min(end, len(body))):
+                depths[j] = depth
+            i = end
+            continue
+        if ch == "{":
+            depth += 1
+        depths[i] = depth
+        if ch == "}":
+            depth -= 1
+            depths[i] = depth
+        i += 1
+    depths[len(body)] = depth
+    return depths
+
+
+def access_at(body: str, depths: list[int], offset: int, default_access: str) -> str:
     access = default_access
-    token_re = re.compile(r"\b(public|private|protected)\s*:")
-    for match in token_re.finditer(body, 0, offset):
-        access = match.group(1)
+    for match in re.finditer(r"\b(public|private|protected)\s*:", body[:offset]):
+        if depths[match.start()] == 0:
+            access = match.group(1)
     return access
 
 
-def parse_properties(
-    body: str,
-    class_name: str,
-    default_access: str,
-    source: Path,
-) -> tuple[Property, ...]:
+def parse_properties(body: str, body_offset: int, text: str, class_name: str, default_access: str, source: Path) -> list[Property]:
     properties: list[Property] = []
-    cursor = 0
+    depths = body_depths(body)
 
-    while True:
-        marker = re.search(r"\bHY_PROPERTY\s*\(", body[cursor:])
-        if marker is None:
-            break
+    for marker in re.finditer(r"\bHY_PROPERTY\s*\(", body):
+        where = f"{source}:{line_of(text, body_offset + marker.start())}: {class_name}"
+        if depths[marker.start()] != 0:
+            raise ReflectionError(f"{where}: HY_PROPERTY inside a nested type; put the field on the script itself")
 
-        marker_start = cursor + marker.start()
-        open_paren = cursor + marker.end() - 1
-        close_paren = find_matching(body, open_paren, "(", ")")
-
-        current_access = access_at(body, marker_start, default_access)
+        current_access = access_at(body, depths, marker.start(), default_access)
         if current_access != "public":
-            raise ValueError(
-                f"{source}: {class_name}: HY_PROPERTY fields must be public "
-                f"(found under {current_access}:)"
-            )
+            raise ReflectionError(f"{where}: HY_PROPERTY fields must be public (found under {current_access}:)")
+
+        open_paren = marker.end() - 1
+        close_paren = find_matching(body, open_paren, "(", ")")
+        arguments = body[open_paren + 1 : close_paren]
 
         decl_start = close_paren + 1
-        while decl_start < len(body) and body[decl_start].isspace():
-            decl_start += 1
-
-        semicolon = body.find(";", decl_start)
+        semicolon = find_statement_end(body, decl_start)
         if semicolon < 0:
-            raise ValueError(
-                f"{source}: {class_name}: HY_PROPERTY is not followed by a field declaration"
-            )
+            raise ReflectionError(f"{where}: HY_PROPERTY is not followed by a field declaration")
+        declaration = " ".join(body[decl_start : semicolon + 1].split())
 
-        declaration = body[decl_start : semicolon + 1].strip()
+        if re.search(r"\bstatic\b", declaration):
+            raise ReflectionError(f"{where}: static fields are not supported: {declaration}")
+        if len(split_top_level(declaration[:-1])) > 1:
+            raise ReflectionError(f"{where}: one field per HY_PROPERTY declaration: {declaration}")
 
-        if "(" in declaration:
-            raise ValueError(
-                f"{source}: {class_name}: HY_PROPERTY can only annotate fields, got: {declaration}"
-            )
-
-        if declaration.startswith("static ") or " static " in f" {declaration} ":
-            raise ValueError(
-                f"{source}: {class_name}: static fields are not supported: {declaration}"
-            )
-
-        # V1 deliberately supports simple declarations only.
-        # Examples:
-        #   float MoveSpeed = 3.5f;
-        #   int MaxHealth = 100;
-        #   bool CanRun = true;
+        # float MoveSpeed = 3.5f;   glm::vec3 Offset{ 0.0f };   std::string Name = "x";   AssetHandle Icon = 0;
         field_match = re.fullmatch(
-            r"(?P<type>[A-Za-z_][\w:]*)\s+"
+            r"(?:const\s+)?(?P<type>[A-Za-z_][\w:]*)\s+"
             r"(?P<name>[A-Za-z_]\w*)\s*"
-            r"(?:=[^;]*)?;",
+            r"(?:=.*|\{.*\})?;",
             declaration,
             flags=re.DOTALL,
         )
-
         if field_match is None:
-            raise ValueError(
-                f"{source}: {class_name}: unsupported HY_PROPERTY declaration: {declaration}"
-            )
+            raise ReflectionError(f"{where}: HY_PROPERTY can only mark a plain field, got: {declaration}")
+        if declaration.startswith("const "):
+            raise ReflectionError(f"{where}: const fields can't be set from the inspector: {declaration}")
 
         type_name = field_match.group("type")
         field_name = field_match.group("name")
+        kind = SUPPORTED_TYPES.get(type_name)
+        if kind is None:
+            supported = ", ".join(sorted({t for t in SUPPORTED_TYPES if not t.startswith("Hydro::")}))
+            raise ReflectionError(f"{where}.{field_name}: unsupported property type '{type_name}'. Supported: {supported}")
 
-        if type_name not in SUPPORTED_TYPES:
-            supported = ", ".join(sorted(SUPPORTED_TYPES))
-            raise ValueError(
-                f"{source}: {class_name}.{field_name}: unsupported property type "
-                f"'{type_name}'. V1 supports: {supported}"
-            )
+        prop = Property(type_name=type_name, kind=kind, name=field_name, display_name=make_display_name(field_name))
+        apply_arguments(prop, arguments, f"{where}.{field_name}")
+        properties.append(prop)
 
-        properties.append(
-            Property(
-                type_name=type_name,
-                name=field_name,
-                display_name=make_display_name(field_name),
-            )
-        )
-
-        cursor = semicolon + 1
-
-    return tuple(properties)
+    return properties
 
 
 def parse_header(header: Path, include_path: str) -> list[ReflectedScript]:
-    text = header.read_text(encoding="utf-8")
+    text = strip_comments(header.read_text(encoding="utf-8"))
     scripts: list[ReflectedScript] = []
-    cursor = 0
 
-    while True:
-        marker = re.search(r"\bHY_SCRIPT\s*\(", text[cursor:])
-        if marker is None:
-            break
+    for marker in re.finditer(r"\bHY_SCRIPT\s*\(", text):
+        where = f"{header}:{line_of(text, marker.start())}"
+        close_paren = find_matching(text, marker.end() - 1, "(", ")")
 
-        open_paren = cursor + marker.end() - 1
-        close_paren = find_matching(text, open_paren, "(", ")")
-
-        declaration_match = re.search(
-            r"\b(?P<kind>class|struct)\s+"
+        # The class must come right after the marker (no other declaration in between).
+        declaration = re.compile(
+            r"\s*(?P<kind>class|struct)\s+"
+            r"(?:alignas\s*\([^)]*\)\s*)?"
             r"(?P<name>[A-Za-z_]\w*)\s*"
-			r":\s*public\s+(?P<base>[A-Za-z_][\w:]*)\b",
-			text[close_paren + 1 :],
-        )
+            r"(?:final\s*)?"
+            r":\s*public\s+(?P<base>[A-Za-z_][\w:]*)"
+        ).match(text, close_paren + 1)
+        if declaration is None:
+            raise ReflectionError(f"{where}: HY_SCRIPT() must be right above a class/struct that derives publicly from ScriptableEntity")
 
-        if declaration_match is None:
-            raise ValueError(
-				f"{header}: HY_SCRIPT must be followed by a class/struct "
-				f"publicly deriving from ScriptableEntity"
-            )
-
-        decl_abs_start = close_paren + 1 + declaration_match.start()
-        decl_abs_end = close_paren + 1 + declaration_match.end()
-        class_kind = declaration_match.group("kind")
-        class_name = declaration_match.group("name")
-
-        brace = text.find("{", decl_abs_end)
+        class_kind = declaration.group("kind")
+        class_name = declaration.group("name")
+        brace = text.find("{", declaration.end())
         if brace < 0:
-            raise ValueError(f"{header}: {class_name}: class body not found")
-
+            raise ReflectionError(f"{where}: {class_name}: class body not found")
         body_end = find_matching(text, brace, "{", "}")
         body = text[brace + 1 : body_end]
-        default_access = "private" if class_kind == "class" else "public"
-
-        properties = parse_properties(
-            body=body,
-            class_name=class_name,
-            default_access=default_access,
-            source=header,
-        )
 
         scripts.append(
             ReflectedScript(
                 class_name=class_name,
                 include_path=include_path,
-                properties=properties,
+                properties=parse_properties(
+                    body=body,
+                    body_offset=brace + 1,
+                    text=text,
+                    class_name=class_name,
+                    default_access="private" if class_kind == "class" else "public",
+                    source=header,
+                ),
             )
         )
-
-        cursor = body_end + 1
 
     return scripts
 
@@ -267,14 +440,10 @@ def iter_headers(source_root: Path) -> Iterable[Path]:
         return []
 
     headers: list[Path] = []
-
     for pattern in ("*.h", "*.hpp"):
         headers.extend(source_root.rglob(pattern))
 
-    excluded_files = {
-        "ReflectionMacros.h",
-    }
-
+    excluded_files = {"ReflectionMacros.h"}
     return sorted(
         (
             header
@@ -287,26 +456,14 @@ def iter_headers(source_root: Path) -> Iterable[Path]:
     )
 
 
-def include_path_for(header: Path, repo_root: Path) -> str:
-    hydro_src = (repo_root / "Hydro" / "src").resolve()
-    oxygen_src = (repo_root / "Oxygen" / "src").resolve()
+def include_path_for(header: Path, include_roots: list[Path]) -> str:
     resolved = header.resolve()
-
-    try:
-        return resolved.relative_to(hydro_src).as_posix()
-    except ValueError:
-        pass
-
-    try:
-        return resolved.relative_to(oxygen_src).as_posix()
-    except ValueError:
-        pass
-
-    raise ValueError(f"Header is outside supported source roots: {header}")
-
-
-def escape_cpp(value: str) -> str:
-    return value.replace("\\", "\\\\").replace('"', '\\"')
+    for root in include_roots:
+        try:
+            return resolved.relative_to(root.resolve()).as_posix()
+        except ValueError:
+            pass
+    raise ReflectionError(f"Header is outside the include roots: {header}")
 
 
 def generate_cpp(scripts: list[ReflectedScript]) -> str:
@@ -322,7 +479,7 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
     if include_paths:
         lines.append("")
         for include_path in include_paths:
-            lines.append(f'#include "{escape_cpp(include_path)}"')
+            lines.append(f"#include {cpp_string(include_path)}")
 
     lines.extend(
         [
@@ -342,40 +499,35 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
 
     for script in scripts:
         lines.append("")
-        if script.properties:
-            lines.append(
-                f'\t\tScriptRegistry::Register<{script.class_name}>("{escape_cpp(script.class_name)}")'
-            )
-            for prop in script.properties:
-                lines.append(
-                    f'\t\t\t.Property("{escape_cpp(prop.name)}", '
-                    f'"{escape_cpp(prop.display_name)}", '
-                    f'&{script.class_name}::{prop.name})'
-                )
-            lines[-1] += ";"
-        else:
-            lines.append(
-                f'\t\tScriptRegistry::Register<{script.class_name}>("{escape_cpp(script.class_name)}");'
-            )
+        lines.append(f"\t\tScriptRegistry::Register<{script.class_name}>({cpp_string(script.class_name)})")
+        for prop in script.properties:
+            call = f"\t\t\t.Property({cpp_string(prop.name)}, {cpp_string(prop.display_name)}, &{script.class_name}::{prop.name})"
+            if prop.minimum is not None and prop.maximum is not None:
+                call += f".Range({cpp_float(prop.minimum)}, {cpp_float(prop.maximum)})"
+            elif prop.minimum is not None:
+                call += f".Min({cpp_float(prop.minimum)})"
+            elif prop.maximum is not None:
+                call += f".Max({cpp_float(prop.maximum)})"
+            if prop.tooltip is not None:
+                call += f".Tooltip({cpp_string(prop.tooltip)})"
+            if prop.color:
+                call += ".Color()"
+            if prop.asset_type is not None:
+                call += f".AssetFilter(AssetType::{prop.asset_type})"
+            if prop.read_only:
+                call += ".ReadOnly()"
+            if prop.hidden:
+                call += ".Hidden()"
+            lines.append(call)
+        lines[-1] += ";"
 
     lines.extend(["\t}", "}", ""])
-    return "\n".join(lines)
-
-
-def write_if_changed(path: Path, content: str) -> bool:
-    old = path.read_text(encoding="utf-8") if path.exists() else None
-    if old == content:
-        return False
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8", newline="\n")
-    return True
+    # CRLF, like the rest of the repository (.editorconfig).
+    return "\r\n".join(lines)
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Generate Hydro native-script reflection registration."
-    )
+    parser = argparse.ArgumentParser(description="Generate Hydro native-script reflection registration.")
     parser.add_argument(
         "repo_root",
         nargs="?",
@@ -383,52 +535,53 @@ def main() -> int:
         type=Path,
         help="Hydro repository root (defaults to two directories above this script)",
     )
+    parser.add_argument("--source", action="append", type=Path, default=[], help="header folder to scan (repeatable)")
+    parser.add_argument("--output", type=Path, help="the .cpp to write")
+    parser.add_argument("--check", action="store_true", help="write nothing; exit 1 when the output is out of date")
     args = parser.parse_args()
 
     repo_root: Path = args.repo_root.resolve()
-    source_roots = [
-        repo_root / "Hydro" / "src",
-        repo_root / "Oxygen" / "src",
-    ]
-
-    scripts: list[ReflectedScript] = []
+    default_roots = [repo_root / "Hydro" / "src", repo_root / "Oxygen" / "src"]
+    source_roots = [p.resolve() for p in args.source] or default_roots
+    include_roots = default_roots + [p for p in source_roots if p not in default_roots]
+    output: Path = (args.output or repo_root / "Oxygen" / "src" / "Generated" / "GeneratedScriptReflection.cpp").resolve()
 
     try:
+        scripts: list[ReflectedScript] = []
         for source_root in source_roots:
             for header in iter_headers(source_root):
-                include_path = include_path_for(header, repo_root)
-                scripts.extend(parse_header(header, include_path))
+                scripts.extend(parse_header(header, include_path_for(header, include_roots)))
 
         seen: dict[str, str] = {}
         for script in scripts:
             previous = seen.get(script.class_name)
             if previous is not None:
-                raise ValueError(
-                    f"Duplicate HY_SCRIPT class name '{script.class_name}' in "
-                    f"{previous} and {script.include_path}"
+                raise ReflectionError(
+                    f"Duplicate HY_SCRIPT class name '{script.class_name}' in {previous} and {script.include_path}"
                 )
             seen[script.class_name] = script.include_path
 
         scripts.sort(key=lambda s: (s.include_path.lower(), s.class_name.lower()))
+        content = generate_cpp(scripts)
+        old = output.read_bytes().decode("utf-8") if output.exists() else None
+        changed = old != content
+        try:
+            shown = output.relative_to(repo_root)
+        except ValueError:
+            shown = output
 
-        output = (
-            repo_root
-            / "Oxygen"
-            / "src"
-            / "Generated"
-            / "GeneratedScriptReflection.cpp"
-        )
-        changed = write_if_changed(output, generate_cpp(scripts))
+        summary = f"{len(scripts)} script(s), {sum(len(s.properties) for s in scripts)} property/properties"
+        if args.check:
+            print(f"Hydro reflection: {summary}; {shown} {'OUT OF DATE' if changed else 'up to date'}.")
+            return 1 if changed else 0
 
-        status = "updated" if changed else "unchanged"
-        print(
-            f"Hydro reflection: {len(scripts)} script(s), "
-            f"{sum(len(s.properties) for s in scripts)} property/properties; "
-            f"{output.relative_to(repo_root)} {status}."
-        )
+        if changed:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(content.encode("utf-8"))
+        print(f"Hydro reflection: {summary}; {shown} {'updated' if changed else 'unchanged'}.")
         return 0
 
-    except (OSError, ValueError) as exc:
+    except (OSError, ReflectionError) as exc:
         print(f"Hydro reflection error: {exc}", file=sys.stderr)
         return 1
 
