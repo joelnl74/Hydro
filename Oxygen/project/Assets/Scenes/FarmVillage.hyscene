@@ -4997,6 +4997,15 @@ Entities:
       Size: [0.834800005, 0.571399987, 1.60000002]
       Layer: World
       IsTrigger: false
+  - Entity: 5853304892901319412
+    TagComponent:
+      Tag: Door Inn
+    RelationshipComponent:
+      Parent: 5985181188369936727
+    TransformComponent:
+      Translation: [0, -1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 2584343944383921225
     TagComponent:
       Tag: Building Shop
@@ -5597,6 +5606,41 @@ Entities:
       Size: [0.609499991, 0.479999989, 1.60000002]
       Layer: World
       IsTrigger: false
+  - Entity: 5129271015928546763
+    TagComponent:
+      Tag: Chest Barn
+    RelationshipComponent:
+      Parent: 5336971927162819763
+    TransformComponent:
+      Translation: [4.6, 3.7312, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.25, 1.0625, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 54
+      TextureHandle: 1176879926922654480
+      Sprite: Chest_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    Shadow2DComponent:
+      Offset: [0, 0.0299999993]
+      Size: [0.899999976, 0.300000012]
+      Strength: 0.449999988
+    BoxCollider2DComponent:
+      Offset: [0, 0.150000006]
+      Size: [0.899999976, 0.300000012]
+      Density: 1
+      Friction: 0.400000006
+      Restitution: 0
+      IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.150000006, 0.800000012]
+      Size: [0.899999976, 0.300000012, 1.60000002]
+      Layer: World
+      IsTrigger: false
   - Entity: 6083459514190433006
     TagComponent:
       Tag: Building Cottage
@@ -6028,6 +6072,45 @@ Entities:
     BoxColliderComponent:
       Offset: [0, -0.253800005, 0.800000012]
       Size: [0.800000012, 0.492300004, 1.60000002]
+      Layer: World
+      IsTrigger: false
+  - Entity: 4560857560981642274
+    TagComponent:
+      Tag: Save Well
+    RelationshipComponent:
+      Parent: 2725450033952318246
+    TransformComponent:
+      Translation: [0, 3.9, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 6219298665678335213
+    TagComponent:
+      Tag: Sign Village
+    RelationshipComponent:
+      Parent: 2725450033952318246
+    TransformComponent:
+      Translation: [-2.6, 0.95, 1]
+      Rotation: [0, 0, 0]
+      Scale: [2.78119993, 1.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5165221976718186001
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxCollider2DComponent:
+      Offset: [0, -0.416700006]
+      Size: [0.575299978, 0.166700006]
+      Density: 1
+      Friction: 0
+      Restitution: 0
+      IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, -0.416700006, 0.800000012]
+      Size: [0.575299978, 0.166700006, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1147483132140197130
@@ -11740,89 +11823,6 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 5853304892901319412
-    TagComponent:
-      Tag: Door Inn
-    RelationshipComponent:
-      Parent: 2641295551215151261
-    TransformComponent:
-      Translation: [-10, 2.5999999, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 4560857560981642274
-    TagComponent:
-      Tag: Save Well
-    RelationshipComponent:
-      Parent: 2641295551215151261
-    TransformComponent:
-      Translation: [0, 3.9000001, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 6219298665678335213
-    TagComponent:
-      Tag: Sign Village
-    RelationshipComponent:
-      Parent: 2641295551215151261
-    TransformComponent:
-      Translation: [-2.5999999, 0.949999988, 1]
-      Rotation: [0, 0, 0]
-      Scale: [2.78119993, 1.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 5165221976718186001
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    BoxCollider2DComponent:
-      Offset: [0, -0.416700006]
-      Size: [0.575299978, 0.166700006]
-      Density: 1
-      Friction: 0
-      Restitution: 0
-      IsSensor: false
-    BoxColliderComponent:
-      Offset: [0, -0.416700006, 0.800000012]
-      Size: [0.575299978, 0.166700006, 1.60000002]
-      Layer: World
-      IsTrigger: false
-  - Entity: 5129271015928546763
-    TagComponent:
-      Tag: Chest Barn
-    RelationshipComponent:
-      Parent: 2641295551215151261
-    TransformComponent:
-      Translation: [13.1999998, 17.7311993, 2.20000005]
-      Rotation: [0, 0, 0]
-      Scale: [1.25, 1.0625, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 54
-      TextureHandle: 1176879926922654480
-      Sprite: Chest_0
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, 0.0299999993]
-      Size: [0.899999976, 0.300000012]
-      Strength: 0.449999988
-    BoxCollider2DComponent:
-      Offset: [0, 0.150000006]
-      Size: [0.899999976, 0.300000012]
-      Density: 1
-      Friction: 0.400000006
-      Restitution: 0
-      IsSensor: false
-    BoxColliderComponent:
-      Offset: [0, 0.150000006, 0.800000012]
-      Size: [0.899999976, 0.300000012, 1.60000002]
-      Layer: World
-      IsTrigger: false
   - Entity: 669918511539378228
     TagComponent:
       Tag: Exit ShrineGlade

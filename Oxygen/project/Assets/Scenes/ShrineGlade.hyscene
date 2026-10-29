@@ -3218,6 +3218,15 @@ Entities:
       Size: [0.936600029, 0.190500006, 1.60000002]
       Layer: World
       IsTrigger: false
+  - Entity: 9074558629336959517
+    TagComponent:
+      Tag: Save Shrine
+    RelationshipComponent:
+      Parent: 4072379458563128263
+    TransformComponent:
+      Translation: [0, -3.61, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 5748929972263781963
     TagComponent:
       Tag: Shrine Gate
@@ -4998,15 +5007,6 @@ Entities:
       Tag: Interactables
     TransformComponent:
       Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 9074558629336959517
-    TagComponent:
-      Tag: Save Shrine
-    RelationshipComponent:
-      Parent: 2454612650505723552
-    TransformComponent:
-      Translation: [0, 4.28999996, 3.0999999]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 5612979027964244988
