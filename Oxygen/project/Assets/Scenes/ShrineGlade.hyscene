@@ -9081,3 +9081,31 @@ Entities:
       FlipX: true
       FlipY: false
       Facing: Upright
+  - Entity: 6671358830863249934
+    TagComponent:
+      Tag: UI Check Canvas
+    UICanvasComponent:
+      ReferenceResolution: [480, 270]
+      ScaleMode: IntegerScale
+      SortOrder: 0
+      Visible: true
+      BlocksGameplayInput: false
+  - Entity: 1469451895500975090
+    TagComponent:
+      Tag: UI Check Panel
+    RelationshipComponent:
+      Parent: 6671358830863249934
+    UIRectComponent:
+      AnchorMin: [1, 0]
+      AnchorMax: [1, 0]
+      Pivot: [1, 0]
+      AnchoredPosition: [-8, 8]
+      SizeDelta: [120, 40]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 1876931991275611681
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [4, 4, 4, 4]
+      FlipX: false
+      FlipY: false

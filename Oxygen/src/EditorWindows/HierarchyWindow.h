@@ -35,7 +35,7 @@ namespace Hydro
 		struct PendingEdit
 		{
 			enum class Type : uint8_t { None = 0, MoveBefore, MoveAfter, MakeChild, MakeRoot, Duplicate, Delete, CreateChild, InstantiatePrefab };
-			enum class Template : uint8_t { Empty = 0, Sprite, Light };
+			enum class Template : uint8_t { Empty = 0, Sprite, Light, UICanvas, UIPanel, UIImage, UIText, UIButton };
 
 			Type Kind = Type::None;
 			Entity Subject;   // the entity moved, duplicated or deleted
@@ -73,6 +73,11 @@ namespace Hydro
 		void DrawRowContextMenu(Scene& scene, Entity entity);
 		void ApplyPendingEdit(Scene& scene);
 		Entity CreateFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent);
+		// The UI templates (Create > UI): a canvas, or an element under `parent`. An element with no canvas at or
+		// above `parent` gets a new canvas (a root) to sit on.
+		Entity CreateUIFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent);
+		// The Create > UI menu items, creating under `parent` (empty: a root).
+		void DrawCreateUIMenu(Entity parent);
 
 		void SaveAsPrefab(Entity entity);
 		// True when the entity's name contains the search text (case-insensitive); an empty search matches all.

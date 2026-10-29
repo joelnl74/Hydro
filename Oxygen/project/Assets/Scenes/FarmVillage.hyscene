@@ -5255,7 +5255,106 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials:
-        []
+        - MaterialHandle: 12375677073073042581
+          Inline:
+            AlbedoHandle: 11472633808676980112
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 16877781464204601561
+          Inline:
+            AlbedoHandle: 15693551514454814254
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 6424572878125693913
+          Inline:
+            AlbedoHandle: 15693551514454814254
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 12443318596187807519
+          Inline:
+            AlbedoHandle: 15804680588437788143
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 15233643784461087831
+          Inline:
+            AlbedoHandle: 11796504063949153447
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 15759406601756243231
+          Inline:
+            AlbedoHandle: 8303934797510901812
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 14219761850402778462
+          Inline:
+            AlbedoHandle: 17119333170710613626
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 8063391039496383081
+          Inline:
+            AlbedoHandle: 15693551514454814254
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 17937782728030755578
+          Inline:
+            AlbedoHandle: 11237981772390860442
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 15514575927860946165
+          Inline:
+            AlbedoHandle: 7525162275516964175
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 15211934878538018018
+          Inline:
+            AlbedoHandle: 13648806515460784593
+            EmissiveHandle: 6110385338040437237
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [1, 1, 1]
+            EmissionIntensity: 4
+            AlphaCutoff: 0
+            Filter: Nearest
     MeshColliderComponent:
       Layer: World
   - Entity: 6887444365274191517
@@ -5612,7 +5711,7 @@ Entities:
     RelationshipComponent:
       Parent: 5336971927162819763
     TransformComponent:
-      Translation: [4.6, 3.7312, 0]
+      Translation: [4.5999999, 3.73119998, 0]
       Rotation: [0, 0, 0]
       Scale: [1.25, 1.0625, 1]
     SpriteRendererComponent:
@@ -5665,7 +5764,106 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials:
-        []
+        - MaterialHandle: 5115414854980662160
+          Inline:
+            AlbedoHandle: 5901619381645009839
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 18030902545020806967
+          Inline:
+            AlbedoHandle: 13311578384839123593
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 7241857954963591779
+          Inline:
+            AlbedoHandle: 727261120073167854
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 4762109909902797116
+          Inline:
+            AlbedoHandle: 584075616323048702
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 8936676234019167319
+          Inline:
+            AlbedoHandle: 11524372645538115762
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 7555139576646680582
+          Inline:
+            AlbedoHandle: 4566497753165182078
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 7290154857713441212
+          Inline:
+            AlbedoHandle: 14644590230884137224
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 12136081988239861112
+          Inline:
+            AlbedoHandle: 9024577575937982802
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 16327237514879543901
+          Inline:
+            AlbedoHandle: 14455310367701669270
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 10003965867142845263
+          Inline:
+            AlbedoHandle: 6839244145138292935
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 17469900044948703480
+          Inline:
+            AlbedoHandle: 9103536702086769386
+            EmissiveHandle: 11746379994323841648
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [1, 1, 1]
+            EmissionIntensity: 4
+            AlphaCutoff: 0
+            Filter: Nearest
     MeshColliderComponent:
       Layer: World
   - Entity: 1457303343817436675
@@ -6080,7 +6278,7 @@ Entities:
     RelationshipComponent:
       Parent: 2725450033952318246
     TransformComponent:
-      Translation: [0, 3.9, 1]
+      Translation: [0, 3.9000001, 1]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 6219298665678335213
@@ -6089,7 +6287,7 @@ Entities:
     RelationshipComponent:
       Parent: 2725450033952318246
     TransformComponent:
-      Translation: [-2.6, 0.95, 1]
+      Translation: [-2.5999999, 0.949999988, 1]
       Rotation: [0, 0, 0]
       Scale: [2.78119993, 1.5, 1]
     SpriteRendererComponent:

@@ -167,6 +167,16 @@ namespace Hydro
 		// Physics writes positions back through it.
 		bool SetWorldPosition(Entity entity, const glm::vec3& position);
 
+		// ---- Runtime UI (#164) ----------------------------------------------------------------------
+		// Writes every UIResolvedRectComponent from the UIRectComponents, in canvas pixels: one pass over the entity
+		// list, parents first, like ResolveTransforms. A canvas (UICanvasComponent) covers the viewport at its scale
+		// (UILayout::GetCanvasMetrics); each element resolves against its nearest UI ancestor's rect (entities without
+		// a rect in between pass it on). An element with no canvas above it, or under a canvas that is itself under
+		// another canvas (not supported: logged once), gets Canvas = 0 and isn't drawn. Runs as stage 6 in both
+		// updates, at the start of the game and at the start of SceneRenderer::RenderEditor / RenderRuntime, after
+		// ResolveTransforms. docs/SceneAndECS.md#runtime-ui.
+		void ResolveUILayout();
+
 		// Removes one of the entity's native scripts (or its whole NativeScriptComponent), calling
 		// OnDestroy on scripts that are running.
 		void RemoveScript(Entity entity, size_t index);
@@ -265,6 +275,18 @@ namespace Hydro
 		bool m_HierarchyDirty = true;
 		// ResolveTransforms' world matrix per list entry (kept so the pass allocates nothing once warm).
 		std::vector<glm::mat4> m_WorldMatrices;
+		// ResolveUILayout's rect per list entry: what that entry's UI children resolve against.
+		struct UILayoutEntry
+		{
+			glm::vec2 Min{ 0.0f, 0.0f };
+			glm::vec2 Max{ 0.0f, 0.0f };
+			bool Visible = false;
+			bool InCanvas = false; // below a canvas (even an ignored, nested one)
+			UUID Canvas = 0;       // the canvas its UI children are drawn on (0 = none)
+		};
+		std::vector<UILayoutEntry> m_UILayout;
+		// Nested canvases already warned about, so the log isn't flooded.
+		std::unordered_set<entt::entity> m_NestedCanvasWarned;
 		// Entities SetWorldTransform already warned about (shear), so the log isn't flooded.
 		std::unordered_set<entt::entity> m_ShearWarned;
 		int m_StageDepth = 0;

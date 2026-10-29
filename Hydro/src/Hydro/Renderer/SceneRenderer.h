@@ -4,6 +4,7 @@
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/ParticleScene.h"
+#include "Hydro/Scene/UI/UILayout.h"
 #include "Hydro/Renderer/EditorCamera.h"
 #include "Hydro/Renderer/RenderView.h"
 #include "Hydro/Renderer/RenderFeatures.h"
@@ -46,8 +47,8 @@ namespace Hydro
 		// default member initialisers inside the class; MSVC can).
 		void RenderEditor(RenderView& view, const EditorCamera& camera);
 		// Runtime: the scene seen through its primary CameraComponent, with the scene's viewport
-		// aspect ratio (keep Scene::OnViewportResize in step with the view's size). Draws nothing and
-		// returns false when the scene has no primary camera; the view is still cleared.
+		// aspect ratio (keep Scene::OnViewportResize in step with the view's size), and its UI canvases on top.
+		// Without a primary camera it draws only the UI and returns false.
 		bool RenderRuntime(RenderView& view);
 
 		// The scene's render features when it overrides the project's, else RendererSettings::Features.
@@ -119,6 +120,14 @@ namespace Hydro
 		void SubmitUnlitParticles();
 		// Sprites marked Overlay (HUD): in the overlay pass, after the unlit particles, in SortOrder; unlit, no depth test.
 		void SubmitOverlaySprites();
+		// The runtime UI (#164): every visible canvas in SortOrder (equal orders in hierarchy order), each drawing its
+		// elements' images in hierarchy order (parents behind children) at its resolved rects, in screen space
+		// (Renderer2D::BeginScreenOverlay) after the overlay sprites: after the tonemap, untouched by lighting, bloom and
+		// grading. Positions are whole view pixels. A canvas with DrawDebug also outlines itself and its rects.
+		// RenderRuntime only (the Game view): a screen-space canvas has no place in the Editor view.
+		void SubmitUI();
+		// One image over a resolved rect (canvas pixels), whole or nine-sliced.
+		static void SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics);
 		// One emitter's live particles, at the emitter's Z; billboards when the camera is tilted.
 		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera);
 		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
@@ -168,6 +177,15 @@ namespace Hydro
 		std::vector<SpriteDrawItem> m_SpriteQueue;
 		SunShadowCasting m_SunShadows;
 		std::vector<ShadowCasterQuad> m_ShadowCasters; // this frame's, reused
+		// SubmitUI's canvases this frame (SortOrder, first place in the hierarchy, entity), reused.
+		struct UICanvasItem
+		{
+			int32_t SortOrder = 0;
+			uint32_t Index = 0;
+			entt::entity Entity = entt::null;
+		};
+		std::vector<UICanvasItem> m_UICanvases;
+		std::vector<Entity> m_UISubtree; // the canvas being drawn and its descendants, reused
 		bool m_MeshWarningShown = false;
 	};
 }

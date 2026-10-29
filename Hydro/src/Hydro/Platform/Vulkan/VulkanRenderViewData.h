@@ -182,6 +182,11 @@ namespace Hydro
 		// composited, so lights and shadows don't darken them (editor outlines, debug shapes).
 		std::vector<QuadDraw> OverlayDraws;
 		bool InOverlay = false; // quads currently go to OverlayDraws
+		// Renderer2D::BeginScreenOverlay: quad corners come in screen space and are taken to the scene's world by
+		// ScreenToWorld (inverse view-projection times the screen projection, in double so pixels stay exact).
+		bool InScreenSpace = false;
+		bool ScreenSpaceValid = false; // the view-projection could be inverted (else screen-space quads are dropped)
+		glm::dmat4 ScreenToWorld{ 1.0 };
 		// Draws made between BeginDebugLines and EndDebugLines (M7): editor shapes in the scene (bounds, light
 		// reach, spot cones), depth tested against it, never writing depth or IDs. Editor views only.
 		std::vector<QuadDraw> DebugDraws;

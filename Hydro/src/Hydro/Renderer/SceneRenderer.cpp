@@ -69,6 +69,7 @@ namespace Hydro
 	{
 		// Application systems run after the scene update and may have moved things: draw where they are now.
 		m_Scene->ResolveTransforms();
+		m_Scene->ResolveUILayout();
 		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		const glm::mat4 cameraWorld = glm::inverse(camera.GetView());
 		m_Camera = MakeCameraBasis(glm::mat3(cameraWorld));
@@ -90,12 +91,14 @@ namespace Hydro
 	{
 		// Application systems run after the scene update and may have moved things: draw where they are now.
 		m_Scene->ResolveTransforms();
+		m_Scene->ResolveUILayout();
 		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		Entity cameraEntity = m_Scene->GetPrimaryCameraEntity();
 		if ((bool)cameraEntity == false)
 		{
-			// Nothing to look through: begin the view anyway so it is cleared, not left stale.
+			// Nothing to look through: begin the view anyway so it is cleared, not left stale. The UI doesn't need a camera.
 			Renderer2D::BeginScene(view, glm::mat4(1.0f));
+			SubmitUI();
 			Renderer2D::EndScene();
 			return false;
 		}
@@ -120,6 +123,7 @@ namespace Hydro
 		SubmitShadows();
 		SubmitUnlitParticles();
 		SubmitOverlaySprites();
+		SubmitUI();
 		Renderer2D::EndScene();
 		return true;
 	}
@@ -515,6 +519,185 @@ namespace Hydro
 		Renderer2D::SetEntityID(-1);
 		Renderer2D::SetEmission(glm::vec3(0.0f));
 		Renderer2D::EndOverlay();
+	}
+
+	// A view-pixel rect (min..max) as the transform of Renderer2D's unit quad.
+	static glm::mat4 GetPixelQuadTransform(const glm::vec2& min, const glm::vec2& max)
+	{
+		const glm::vec2 centre = (min + max) * 0.5f;
+		return glm::translate(glm::mat4(1.0f), glm::vec3(centre, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(max - min, 1.0f));
+	}
+
+	// A canvas-pixel point in view pixels, on a whole pixel.
+	static glm::vec2 CanvasToViewPixels(const UICanvasMetrics& metrics, const glm::vec2& point)
+	{
+		return glm::round(metrics.Offset + point * metrics.Scale);
+	}
+
+	// A one-pixel outline just inside a view-pixel rect, as four thin quads (Renderer2D's lines go through the scene's
+	// camera, which screen space doesn't use).
+	static void DrawPixelOutline(const glm::vec2& min, const glm::vec2& max, const glm::vec4& color)
+	{
+		if (max.x - min.x < 1.0f || max.y - min.y < 1.0f)
+		{
+			return;
+		}
+		Renderer2D::DrawQuad(GetPixelQuadTransform({ min.x, min.y }, { max.x, min.y + 1.0f }), color);
+		Renderer2D::DrawQuad(GetPixelQuadTransform({ min.x, max.y - 1.0f }, { max.x, max.y }), color);
+		Renderer2D::DrawQuad(GetPixelQuadTransform({ min.x, min.y + 1.0f }, { min.x + 1.0f, max.y - 1.0f }), color);
+		Renderer2D::DrawQuad(GetPixelQuadTransform({ max.x - 1.0f, min.y + 1.0f }, { max.x, max.y - 1.0f }), color);
+	}
+
+	void SceneRenderer::SubmitUI()
+	{
+		Scene& scene = *m_Scene;
+		auto canvases = scene.m_Registry.view<UICanvasComponent>();
+		if (canvases.empty())
+		{
+			return;
+		}
+
+		// The visible top-level canvases, in SortOrder and then hierarchy order. A canvas inside another isn't drawn
+		// (Scene::ResolveUILayout warns about it).
+		m_UICanvases.clear();
+		const std::vector<entt::entity>& order = scene.GetEntityOrder();
+		for (uint32_t i = 0; i < (uint32_t)order.size(); i++)
+		{
+			const entt::entity handle = order[i];
+			if (canvases.contains(handle) == false || canvases.get<UICanvasComponent>(handle).Visible == false)
+			{
+				continue;
+			}
+			bool nested = false;
+			for (Entity parent = scene.GetParent(Entity{ handle, &scene }); (bool)parent; parent = scene.GetParent(parent))
+			{
+				if (parent.HasComponent<UICanvasComponent>())
+				{
+					nested = true;
+					break;
+				}
+			}
+			if (nested == false)
+			{
+				m_UICanvases.push_back({ canvases.get<UICanvasComponent>(handle).SortOrder, i, handle });
+			}
+		}
+		if (m_UICanvases.empty())
+		{
+			return;
+		}
+		std::sort(m_UICanvases.begin(), m_UICanvases.end(), [](const UICanvasItem& a, const UICanvasItem& b)
+		{
+			return a.SortOrder != b.SortOrder ? a.SortOrder < b.SortOrder : a.Index < b.Index;
+		});
+
+		// Screen space in view pixels, Y up, origin at the bottom-left: the same viewport the layout was resolved for.
+		const glm::vec2 viewSize{ (float)scene.GetViewportWidth(), (float)scene.GetViewportHeight() };
+		Renderer2D::BeginScreenOverlay(Camera::Orthographic(0.0f, viewSize.x, 0.0f, viewSize.y, -1.0f, 1.0f));
+		const glm::vec4 canvasOutline{ 1.0f, 0.85f, 0.2f, 1.0f };
+		const glm::vec4 rectOutline{ 0.3f, 0.85f, 1.0f, 0.9f };
+		for (const UICanvasItem& item : m_UICanvases)
+		{
+			const UICanvasComponent& canvas = canvases.get<UICanvasComponent>(item.Entity);
+			const UICanvasMetrics metrics = UILayout::GetCanvasMetrics(canvas, viewSize);
+
+			scene.GetSubtree(Entity{ item.Entity, &scene }, m_UISubtree);
+			for (Entity element : m_UISubtree)
+			{
+				if (element.HasComponent<UIResolvedRectComponent>() == false || element.HasComponent<UIImageComponent>() == false)
+				{
+					continue;
+				}
+				const UIResolvedRectComponent& rect = element.GetComponent<UIResolvedRectComponent>();
+				if (rect.Visible)
+				{
+					SubmitUIImage(element.GetComponent<UIImageComponent>(), rect.Min, rect.Max, metrics);
+				}
+			}
+
+			if (canvas.DrawDebug)
+			{
+				for (Entity element : m_UISubtree)
+				{
+					if (element.HasComponent<UIResolvedRectComponent>())
+					{
+						const UIResolvedRectComponent& rect = element.GetComponent<UIResolvedRectComponent>();
+						if (rect.Visible)
+						{
+							DrawPixelOutline(CanvasToViewPixels(metrics, rect.Min), CanvasToViewPixels(metrics, rect.Max), rectOutline);
+						}
+					}
+				}
+				DrawPixelOutline(CanvasToViewPixels(metrics, glm::vec2(0.0f)), CanvasToViewPixels(metrics, metrics.Size), canvasOutline);
+			}
+		}
+		Renderer2D::EndScreenOverlay();
+	}
+
+	void SceneRenderer::SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics)
+	{
+		// Never loads: whoever assigned the handle loaded it. No texture (or one not loaded) is a flat colour.
+		const Ref<Texture2D> texture = AssetManager::GetLoadedAsset<Texture2D>(image.Texture);
+		if (texture == nullptr || UILayout::IsNineSliced(image) == false)
+		{
+			TextureRect rect;
+			if (texture != nullptr)
+			{
+				if (texture->GetSpriteMode() == SpriteMode::Multiple)
+				{
+					rect = texture->GetSpriteUVRect(image.SpriteIndex);
+				}
+				if (image.FlipX)
+				{
+					std::swap(rect.Min.x, rect.Max.x);
+				}
+				if (image.FlipY)
+				{
+					std::swap(rect.Min.y, rect.Max.y);
+				}
+			}
+			const glm::vec2 viewMin = CanvasToViewPixels(metrics, min);
+			const glm::vec2 viewMax = CanvasToViewPixels(metrics, max);
+			if (viewMax.x > viewMin.x && viewMax.y > viewMin.y)
+			{
+				Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color);
+			}
+			return;
+		}
+
+		// Nine slices of the sprite's region (the whole image for a single texture).
+		glm::vec2 sourcePosition{ 0.0f };
+		glm::vec2 sourceSize{ (float)texture->GetWidth(), (float)texture->GetHeight() };
+		if (texture->GetSpriteMode() == SpriteMode::Multiple)
+		{
+			const SpriteRegion& region = texture->GetSprite(image.SpriteIndex);
+			sourcePosition = glm::vec2(region.Position);
+			sourceSize = glm::vec2(region.Size);
+		}
+
+		UINineSliceCell cells[9];
+		const uint32_t count = UILayout::BuildNineSlice(min, max, sourcePosition, sourceSize, image.NineSlice, image.FlipX, image.FlipY, cells);
+		const glm::vec2 imageSize = glm::max(glm::vec2((float)texture->GetWidth(), (float)texture->GetHeight()), glm::vec2(1.0f));
+		// A thousandth of a texel in from every edge of a cell, so nearest sampling at its edge never reads the next cell.
+		const glm::vec2 inset = glm::vec2(0.001f) / imageSize;
+		for (uint32_t i = 0; i < count; i++)
+		{
+			const UINineSliceCell& cell = cells[i];
+			const glm::vec2 viewMin = CanvasToViewPixels(metrics, cell.DestinationMin);
+			const glm::vec2 viewMax = CanvasToViewPixels(metrics, cell.DestinationMax);
+			if (viewMax.x <= viewMin.x || viewMax.y <= viewMin.y)
+			{
+				continue;
+			}
+
+			TextureRect rect;
+			rect.Min = cell.SourceMin / imageSize;
+			rect.Max = cell.SourceMax / imageSize;
+			const glm::vec2 direction = glm::sign(rect.Max - rect.Min); // -1 on a mirrored axis
+			rect.Min += inset * direction;
+			rect.Max -= inset * direction;
+			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color);
+		}
 	}
 
 	void SceneRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera)

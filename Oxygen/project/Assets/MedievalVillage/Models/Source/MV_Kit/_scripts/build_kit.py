@@ -708,8 +708,11 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
           sign=False, step_x=None, plank_gable=False, loc=(0, 0, 0)):
     """A rectangular building W x 4 m (W even), its origin at the front wall's centre at the ground, front facing -Y.
     floors: storeys. front/right/left/back: per storey, a string of 2 m panel letters (A braced timber, B timber opening,
-    P plaster, S stone, K plank), left to right as seen from outside. opens: (key, side, x along that wall, storey, z in storey).
-    chimney: 'left'/'right'. leanto: ('right'|'front', x along the wall (left end), length in 2 m pieces)."""
+    P plaster, S stone, K plank), left to right as seen from outside; left/back default to braced timber. opens: (key, side,
+    x along that wall, storey, z in storey). chimney: 'left'/'right'. leanto: ('right'|'front', x along the wall (left end),
+    length in 2 m pieces).
+    Material rule (Oct 29, 2026): houses are timber frame over plaster (A, B) all round, barns and sheds planks (K);
+    stone is for foundations, chimneys and steps only, so S and plain P panels are left in the library but unused."""
     D = SPAN
     root = new_prefab(name, loc)
     ox = -W / 2.0
@@ -725,8 +728,8 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
         P("fnd2", 2 * i, 0, 0); P("fnd2", W - 2 * i, D, 0, 180)
     for i in range(int(D // 2)):
         P("fnd2", 0, D - 2 * i, 0, -90); P("fnd2", W, 2 * i, 0, 90)
-    left = left or ["P" * int(D // 2)] * nf
-    back = back or ["P" * int(W // 2)] * nf
+    left = left or ["A" * int(D // 2)] * nf
+    back = back or ["A" * int(W // 2)] * nf
     for s in range(nf):
         z = F + WALL_H * s
         for i, k in enumerate(front[s]):
@@ -796,8 +799,8 @@ W6, F = 6.0, FND_H
 house("MV_House_A", 6, 1, front=["BBA"], right=["AB"], chimney="left", sign=True, step_x=3.0,
       opens=[("win", "front", 1.0, 0, 1.25), ("door", "front", 3.0, 0, 0.0), ("win", "right", 3.0, 0, 1.25),
              ("win", "gable_right", 2.0, 0, 0.35)], loc=(3.0, 0, 0))
-# House B: two storeys, stone ground floor, timber upper floor, shingle lean-to on the right (store / woodshed).
-house("MV_House_B", 6, 2, front=["SSS", "BAB"], right=["SS", "AB"], left=["SS", "PP"], back=["SSS", "PPP"],
+# House B: two storeys of timber frame over plaster with a floor band, a lean-to on the right (store / woodshed).
+house("MV_House_B", 6, 2, front=["BBB", "BAB"], right=["AA", "AB"], left=["AA", "AA"], back=["AAA", "AAA"],
       chimney="left", step_x=3.0, leanto=("right", 0.0, 2),
       opens=[("door", "front", 3.0, 0, 0.0), ("winS", "front", 1.0, 0, 1.2), ("winS", "front", 5.0, 0, 1.2),
              ("win", "front", 1.0, 1, 1.0), ("win", "front", 5.0, 1, 1.0), ("win", "right", 3.0, 1, 1.0),
@@ -805,8 +808,8 @@ house("MV_House_B", 6, 2, front=["SSS", "BAB"], right=["SS", "AB"], left=["SS", 
 # Barn: plank walls, shingle roof, big double door, lean-to on the right for hay and firewood.
 house("MV_Barn_A", 8, 1, front=["KKKK"], right=["KK"], left=["KK"], back=["KKKK"], roof="shingle", plank_gable=True,
       leanto=("right", 0.0, 2), opens=[("doorBarn", "front", 4.0, 0, 0.0), ("winS", "front", 1.2, 0, 1.3)], loc=(16.0, 0, 0))
-# Workshop / shop: plaster and timber, shuttered windows, a shingle awning over the front.
-house("MV_Shop_A", 6, 1, front=["BBB"], right=["PB"], roof="slate", chimney="right", step_x=3.0, leanto=("front", 0.0, 3),
+# Workshop / shop: timber frame over plaster, shuttered windows, an awning over the front (slate, like its roof).
+house("MV_Shop_A", 6, 1, front=["BBB"], right=["AB"], roof="slate", chimney="right", step_x=3.0, leanto=("front", 0.0, 3),
       opens=[("winS", "front", 1.0, 0, 1.2), ("door", "front", 3.0, 0, 0.0), ("winS", "front", 5.0, 0, 1.2),
              ("winS", "right", 3.0, 0, 1.2), ("fbox", "front", 1.0, 0, 1.0)], loc=(16.0, 14.0, 0))
 
@@ -988,7 +991,9 @@ scene.view_settings.exposure = -0.3
 # scene components. Each prefab's root is moved to the origin for its export.
 OUT = ROOT / "Models"
 EXPORTED = []
-ROOF_FIX = ("MV_House_B", "MV_Shop_A", "MV_Barn_A", "MV_Well")   # re-exported: their lean-to roofs now match the main roof
+# Re-exported on every run (the rest keep their glbs unless MV_REEXPORT is set): the buildings, after the Oct 29, 2026
+# material pass (timber frame and plaster or planks for walls, stone only for foundations and chimneys).
+ROOF_FIX = ("MV_House_A", "MV_House_B", "MV_Shop_A", "MV_Barn_A", "MV_Cottage_Thatch_A", "MV_Well")
 for pname, root in PREFABS.items():
     if pname not in NEW_PREFABS and pname not in ROOF_FIX and not os.environ.get("MV_REEXPORT"):
         continue  # existing glbs stay as they are

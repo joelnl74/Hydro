@@ -9,6 +9,7 @@
 #include "Hydro/Physics/PhysicsScene.h"
 #include "Hydro/Physics/PhysicsScene3D.h"
 #include "ParticleScene.h"
+#include "UI/UILayout.h"
 
 #include "../Renderer/Renderer2D.h"
 #include "Hydro/Asset/AssetManager.h"
@@ -32,11 +33,24 @@ namespace Hydro
 		registry.remove_if_exists<WorldTransformComponent>(entity);
 	}
 
+	// UIResolvedRectComponent comes and goes with UIRectComponent the same way, so ResolveUILayout only writes values.
+	static void AddResolvedRect(entt::registry& registry, entt::entity entity)
+	{
+		registry.emplace_or_replace<UIResolvedRectComponent>(entity);
+	}
+
+	static void RemoveResolvedRect(entt::registry& registry, entt::entity entity)
+	{
+		registry.remove_if_exists<UIResolvedRectComponent>(entity);
+	}
+
 	Scene::Scene(const std::string& debugName, [[maybe_unused]] bool isEditorScene)
 		: m_Name(debugName)
 	{
 		m_Registry.on_construct<TransformComponent>().connect<&AddWorldTransform>();
 		m_Registry.on_destroy<TransformComponent>().connect<&RemoveWorldTransform>();
+		m_Registry.on_construct<UIRectComponent>().connect<&AddResolvedRect>();
+		m_Registry.on_destroy<UIRectComponent>().connect<&RemoveResolvedRect>();
 	}
 
 	Scene::~Scene()
@@ -223,6 +237,14 @@ namespace Hydro
 					relationship.Parent = parent;
 					m_HierarchyDirty = true;
 				}
+			}
+			if (m_Registry.has<UIButtonComponent>(entity))
+			{
+				UIButtonComponent& button = m_Registry.get<UIButtonComponent>(entity);
+				button.Up = remapped(button.Up);
+				button.Down = remapped(button.Down);
+				button.Left = remapped(button.Left);
+				button.Right = remapped(button.Right);
 			}
 		}
 	}
@@ -641,6 +663,99 @@ namespace Hydro
 				if (m_OrderIndex.find(handle) == m_OrderIndex.end())
 				{
 					WriteWorldTransform(view.get<WorldTransformComponent>(handle), view.get<TransformComponent>(handle).GetTransform());
+				}
+			}
+		}
+	}
+
+	void Scene::ResolveUILayout()
+	{
+		EnsureHierarchy();
+
+		const glm::vec2 viewSize{ (float)m_ViewportWidth, (float)m_ViewportHeight };
+		const size_t count = m_EntityOrder.size();
+		m_UILayout.resize(count);
+		size_t written = 0;
+		for (size_t i = 0; i < count; i++)
+		{
+			const entt::entity handle = m_EntityOrder[i];
+			const int32_t parent = m_Hierarchy.GetParentIndex(i);
+			const UILayoutEntry inherited = parent >= 0 ? m_UILayout[(size_t)parent] : UILayoutEntry{};
+			UILayoutEntry& entry = m_UILayout[i];
+			entry = inherited; // an entity without a rect passes its parent's on
+
+			if (m_Registry.has<UICanvasComponent>(handle))
+			{
+				if (inherited.InCanvas)
+				{
+					// Nested canvases aren't supported: this one and everything on it is left out.
+					if (m_NestedCanvasWarned.insert(handle).second)
+					{
+						const std::string name = m_Registry.has<TagComponent>(handle) ? m_Registry.get<TagComponent>(handle).Tag : std::string("?");
+						HY_CORE_WARN("UI: canvas '{}' is inside another canvas; nested canvases aren't supported, it isn't drawn", name);
+					}
+					entry.Canvas = 0;
+					entry.Visible = false;
+				}
+				else
+				{
+					const UICanvasComponent& canvas = m_Registry.get<UICanvasComponent>(handle);
+					const UICanvasMetrics metrics = UILayout::GetCanvasMetrics(canvas, viewSize);
+					entry.Min = glm::vec2(0.0f);
+					entry.Max = metrics.Size;
+					entry.Visible = canvas.Visible;
+					entry.Canvas = m_Registry.has<IDComponent>(handle) ? m_Registry.get<IDComponent>(handle).Id : UUID(0);
+				}
+				entry.InCanvas = true;
+
+				// A rect on the canvas itself is the whole canvas.
+				if (m_Registry.has<UIRectComponent>(handle))
+				{
+					UIResolvedRectComponent& resolved = m_Registry.get<UIResolvedRectComponent>(handle);
+					resolved.Min = entry.Min;
+					resolved.Max = entry.Max;
+					resolved.Visible = entry.Visible && m_Registry.get<UIRectComponent>(handle).Visible;
+					resolved.Canvas = entry.Canvas;
+					written++;
+				}
+				continue;
+			}
+
+			if (m_Registry.has<UIRectComponent>(handle) == false)
+			{
+				continue;
+			}
+
+			HY_CORE_ASSERT(m_Registry.has<UIResolvedRectComponent>(handle), "Scene: an entity has a UIRectComponent but no UIResolvedRectComponent");
+			const UIRectComponent& rect = m_Registry.get<UIRectComponent>(handle);
+			UIResolvedRectComponent& resolved = m_Registry.get<UIResolvedRectComponent>(handle);
+			if ((uint64_t)inherited.Canvas == 0)
+			{
+				// No canvas above it: laid out as nothing, never drawn.
+				resolved = UIResolvedRectComponent{};
+				entry.Visible = false;
+			}
+			else
+			{
+				UILayout::ResolveRect(rect, inherited.Min, inherited.Max, entry.Min, entry.Max);
+				entry.Visible = inherited.Visible && rect.Visible;
+				resolved.Min = entry.Min;
+				resolved.Max = entry.Max;
+				resolved.Visible = entry.Visible;
+				resolved.Canvas = entry.Canvas;
+			}
+			written++;
+		}
+
+		// Elements outside the list (raw registry entities without an IDComponent) have no canvas.
+		if (written < m_Registry.size<UIRectComponent>())
+		{
+			auto view = m_Registry.view<UIRectComponent, UIResolvedRectComponent>();
+			for (entt::entity handle : view)
+			{
+				if (m_OrderIndex.find(handle) == m_OrderIndex.end())
+				{
+					view.get<UIResolvedRectComponent>(handle) = UIResolvedRectComponent{};
 				}
 			}
 		}
@@ -1147,8 +1262,10 @@ namespace Hydro
 
 	void Scene::OnRuntimeStart()
 	{
-		// The physics worlds are built from world transforms: a parented collider starts where it is drawn.
+		// The physics worlds are built from world transforms: a parented collider starts where it is drawn. The UI is
+		// laid out too, so the first frame's UI input works on real rects.
 		ResolveTransforms();
+		ResolveUILayout();
 		if (m_Physics == nullptr)
 		{
 			m_Physics = CreateScope<PhysicsScene>(*this);
@@ -1201,6 +1318,9 @@ namespace Hydro
 		// 5. Particles, after transforms so emitters read their final position this frame. Finished
 		// one-shot effects (DestroyWhenFinished) are destroyed here, after the emitter loop.
 		UpdateParticles(*this, context);
+
+		// 6. UI layout: every UI element's rect, after the scripts changed rects and visibility this frame.
+		ResolveUILayout();
 	}
 
 	void Scene::OnUpdateEditor([[maybe_unused]] float deltaTime)
@@ -1208,6 +1328,8 @@ namespace Hydro
 		// Only the stages that keep the scene consistent while editing: no scripts, physics or animation.
 		// 4. Transforms (world transforms from the hierarchy).
 		ResolveTransforms();
+		// 6. UI layout.
+		ResolveUILayout();
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)

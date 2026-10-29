@@ -1137,6 +1137,10 @@ namespace Hydro
 		{
 			view->Emission = glm::vec3(0.0f);
 		}
+		if (view != nullptr)
+		{
+			view->InScreenSpace = false;
+		}
 		if (view != nullptr && (view->InOverlay || view->InDebugLines || view->InShadowCasters || view->DrawMode != SpriteDrawMode::Translucent || view->EntityID >= 0))
 		{
 			view->InOverlay = false;
@@ -1172,6 +1176,36 @@ namespace Hydro
 
 		s_Data->CurrentView->InOverlay = false;
 		StartDraw(*s_Data->CurrentView);
+	}
+
+	void Renderer2D::BeginScreenOverlay(const glm::mat4& screenProjection)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::BeginScreenOverlay outside BeginScene/EndScene");
+		RenderViewData* view = s_Data->CurrentView;
+		if (view == nullptr || view->InScreenSpace)
+		{
+			return;
+		}
+
+		BeginOverlay();
+		view->InScreenSpace = true;
+		const glm::dmat4 viewProjection(view->ViewProjection);
+		const double determinant = glm::determinant(viewProjection);
+		view->ScreenSpaceValid = std::isfinite(determinant) && std::abs(determinant) > 1.0e-30;
+		view->ScreenToWorld = view->ScreenSpaceValid ? glm::inverse(viewProjection) * glm::dmat4(screenProjection) : glm::dmat4(1.0);
+	}
+
+	void Renderer2D::EndScreenOverlay()
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::EndScreenOverlay outside BeginScene/EndScene");
+		RenderViewData* view = s_Data->CurrentView;
+		if (view == nullptr || view->InScreenSpace == false)
+		{
+			return;
+		}
+
+		view->InScreenSpace = false;
+		EndOverlay();
 	}
 
 	void Renderer2D::BeginDebugLines()
@@ -1425,7 +1459,8 @@ namespace Hydro
 	void Renderer2D::DrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color, float thickness)
 	{
 		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawLine outside BeginScene/EndScene");
-		if (s_Data->CurrentView == nullptr)
+		// Line widths are worked out through the scene's camera, which screen-space quads don't use.
+		if (s_Data->CurrentView == nullptr || s_Data->CurrentView->InScreenSpace)
 		{
 			return;
 		}
@@ -1452,6 +1487,12 @@ namespace Hydro
 		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::DrawLine3D outside BeginScene/EndScene");
 		RenderViewData* view = s_Data->CurrentView;
 		if (view == nullptr)
+		{
+			return;
+		}
+
+		// Line widths are worked out through the scene's camera, which screen-space quads don't use.
+		if (view->InScreenSpace)
 		{
 			return;
 		}
@@ -1593,6 +1634,28 @@ namespace Hydro
 
 		RenderViewData& view = *s_Data->CurrentView;
 
+		// Screen space (BeginScreenOverlay): each corner back through the scene's view-projection. The corners all
+		// sit at the same depth, so the quad is drawn without perspective, exactly over the screen pixels asked for.
+		glm::vec3 screenCorners[4];
+		const glm::vec3 (*drawnCorners)[4] = &corners;
+		if (view.InScreenSpace)
+		{
+			if (view.ScreenSpaceValid == false)
+			{
+				return;
+			}
+			for (size_t i = 0; i < 4; i++)
+			{
+				const glm::dvec4 world = view.ScreenToWorld * glm::dvec4(glm::dvec3(corners[i]), 1.0);
+				if (std::abs(world.w) <= 1.0e-12)
+				{
+					return;
+				}
+				screenCorners[i] = glm::vec3(glm::dvec3(world) / world.w);
+			}
+			drawnCorners = &screenCorners;
+		}
+
 		constexpr size_t quadVertexCount = 4;
 		// Vulkan's v = 0 is the first (top) row of the image, and vertex 0 is the quad's bottom-left
 		// corner, so v runs Max.y -> Min.y from bottom to top and the image appears upright.
@@ -1613,12 +1676,12 @@ namespace Hydro
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			view.QuadVertexBufferPtr->Position = corners[i];
+			view.QuadVertexBufferPtr->Position = (*drawnCorners)[i];
 			view.QuadVertexBufferPtr->Color = color;
 			view.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			view.QuadVertexBufferPtr->TexIndex = textureIndex;
 			view.QuadVertexBufferPtr->EntityID = view.EntityID;
-			view.QuadVertexBufferPtr->ShadowPosition = shadowCorners != nullptr ? (*shadowCorners)[i] : corners[i];
+			view.QuadVertexBufferPtr->ShadowPosition = shadowCorners != nullptr ? (*shadowCorners)[i] : (*drawnCorners)[i];
 			view.QuadVertexBufferPtr->Emission = view.Emission;
 			view.QuadVertexBufferPtr++;
 		}

@@ -21,6 +21,7 @@
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Scene/SpriteAnimator.h>
 #include <Hydro/Scene/Scripting/ScriptableEntity.h>
+#include <Hydro/Scene/UI/UILayout.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -386,9 +387,9 @@ namespace Hydro
 	}
 
 	// For a sprite sheet (a Multiple texture): which of its sprites to draw.
-	static void DrawSpriteField(SpriteRendererComponent& sprite, const Texture2D& texture)
+	static void DrawSpriteField(uint32_t& spriteIndex, const Texture2D& texture)
 	{
-		const uint32_t current = sprite.SpriteIndex < texture.GetSpriteCount() ? sprite.SpriteIndex : 0;
+		const uint32_t current = spriteIndex < texture.GetSpriteCount() ? spriteIndex : 0;
 
 		char preview[160];
 		std::snprintf(preview, sizeof(preview), "%u: %s", current, texture.GetSprite(current).Name.c_str());
@@ -401,7 +402,7 @@ namespace Hydro
 				const bool selected = i == current;
 				if (ImGui::Selectable(label, selected))
 				{
-					sprite.SpriteIndex = i;
+					spriteIndex = i;
 				}
 				if (selected)
 				{
@@ -953,32 +954,42 @@ namespace Hydro
 		bool removeMeshCollider = false;
 		bool removeCharacterBody = false;
 		bool removeEmitter = false;
+		bool removeUICanvas = false;
+		bool removeUIRect = false;
+		bool removeUIImage = false;
+		bool removeUIText = false;
+		bool removeUIButton = false;
 		bool removeScripts = false;
 		bool makePrimary = false;
 
-		DrawComponent<TransformComponent>("Transform", entity, removeTransform, [&](TransformComponent& transform)
+		// A UI element is placed by its rect; a transform it may still carry is ignored, so it isn't shown.
+		const bool isUIElement = entity.HasComponent<UIRectComponent>();
+		if (isUIElement == false)
 		{
-			DrawVec3Control("Translation", transform.Translation);
-
-			// Stored in radians, edited in degrees.
-			glm::vec3 rotation = glm::degrees(transform.Rotation);
-			if (DrawVec3Control("Rotation", rotation, 0.0f))
+			DrawComponent<TransformComponent>("Transform", entity, removeTransform, [&](TransformComponent& transform)
 			{
-				transform.Rotation = glm::radians(rotation);
-			}
+				DrawVec3Control("Translation", transform.Translation);
 
-			DrawVec3Control("Scale", transform.Scale, 1.0f);
-
-			// The values are local: relative to the parent (S3).
-			if (Entity parent = entity.GetScene()->GetParent(entity))
-			{
-				ImGui::TextDisabled("Relative to its parent, %s.", parent.GetName().c_str());
-				if (HasPhysicsBody(entity) && HasNonUniformlyScaledParent(entity))
+				// Stored in radians, edited in degrees.
+				glm::vec3 rotation = glm::degrees(transform.Rotation);
+				if (DrawVec3Control("Rotation", rotation, 0.0f))
 				{
-					ImGui::TextWrapped("A parent has a non-uniform scale: when rotated, this entity's collider can't match what is drawn. Keep physics bodies under parents with an even scale.");
+					transform.Rotation = glm::radians(rotation);
 				}
-			}
-		});
+
+				DrawVec3Control("Scale", transform.Scale, 1.0f);
+
+				// The values are local: relative to the parent (S3).
+				if (Entity parent = entity.GetScene()->GetParent(entity))
+				{
+					ImGui::TextDisabled("Relative to its parent, %s.", parent.GetName().c_str());
+					if (HasPhysicsBody(entity) && HasNonUniformlyScaledParent(entity))
+					{
+						ImGui::TextWrapped("A parent has a non-uniform scale: when rotated, this entity's collider can't match what is drawn. Keep physics bodies under parents with an even scale.");
+					}
+				}
+			});
+		}
 
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, removeSprite, [&](SpriteRendererComponent& sprite)
 		{
@@ -988,7 +999,7 @@ namespace Hydro
 			const bool isSheet = texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple;
 			if (isSheet)
 			{
-				DrawPropertyRow("Sprite", [&]() { DrawSpriteField(sprite, *texture); });
+				DrawPropertyRow("Sprite", [&]() { DrawSpriteField(sprite.SpriteIndex, *texture); });
 			}
 			else
 			{
@@ -1603,6 +1614,8 @@ namespace Hydro
 			ImGui::TextDisabled("Settings only for now: particles are simulated and drawn from Roadmap V2.");
 		});
 
+		DrawUIComponents(entity, removeUICanvas, removeUIRect, removeUIImage, removeUIText, removeUIButton);
+
 		int scriptToRemove = -1;
 		DrawComponent<NativeScriptComponent>("Scripts", entity, removeScripts, [&](NativeScriptComponent& scripts)
 		{
@@ -1771,12 +1784,332 @@ namespace Hydro
 		{
 			entity.RemoveComponent<DirectionalLightComponent>();
 		}
+		if (removeUICanvas)
+		{
+			entity.RemoveComponent<UICanvasComponent>();
+		}
+		if (removeUIRect)
+		{
+			entity.RemoveComponent<UIRectComponent>();
+		}
+		if (removeUIImage)
+		{
+			entity.RemoveComponent<UIImageComponent>();
+		}
+		if (removeUIText)
+		{
+			entity.RemoveComponent<UITextComponent>();
+		}
+		if (removeUIButton)
+		{
+			entity.RemoveComponent<UIButtonComponent>();
+		}
 
 		// Scripts that are running (play mode) get OnDestroy before they go.
 		if (removeScripts)
 			entity.GetScene()->RemoveScripts(entity);
 		else if (scriptToRemove >= 0)
 			entity.GetScene()->RemoveScript(entity, (size_t)scriptToRemove);
+	}
+
+	// ---- Runtime UI --------------------------------------------------------------------------------
+
+	// The canvas the entity is drawn on: the nearest ancestor with a UICanvasComponent (the entity itself counts).
+	// `nested` is set when that canvas is inside another one (not supported: it isn't drawn).
+	static Entity FindUICanvas(Entity entity, bool& nested)
+	{
+		nested = false;
+		Scene* scene = entity.GetScene();
+		Entity canvas;
+		for (Entity current = entity; (bool)current; current = scene->GetParent(current))
+		{
+			if (current.HasComponent<UICanvasComponent>())
+			{
+				if ((bool)canvas)
+				{
+					nested = true;
+					break;
+				}
+				canvas = current;
+			}
+		}
+		return canvas;
+	}
+
+	// One axis of the anchor presets: Unity's left / centre / right / stretch (min, max).
+	struct UIAnchorPreset
+	{
+		const char* Name;
+		float Min;
+		float Max;
+	};
+
+	static const UIAnchorPreset s_HorizontalAnchors[4] = { { "Left", 0.0f, 0.0f }, { "Center", 0.5f, 0.5f }, { "Right", 1.0f, 1.0f }, { "Stretch", 0.0f, 1.0f } };
+	static const UIAnchorPreset s_VerticalAnchors[4] = { { "Top", 1.0f, 1.0f }, { "Middle", 0.5f, 0.5f }, { "Bottom", 0.0f, 0.0f }, { "Stretch", 0.0f, 1.0f } };
+
+	// The preset an axis matches, or -1 (custom anchors).
+	static int FindAnchorPreset(const UIAnchorPreset (&presets)[4], float min, float max)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			if (std::abs(presets[i].Min - min) < 1.0e-4f && std::abs(presets[i].Max - max) < 1.0e-4f)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	// One axis of a preset onto the rect. A stretched axis fills the parent (no extra size, no offset). With
+	// `setPivot` (Alt) the pivot goes to the anchors too and the element moves onto them.
+	static void ApplyAnchorPreset(UIRectComponent& rect, int axis, const UIAnchorPreset& preset, bool setPivot)
+	{
+		rect.AnchorMin[axis] = preset.Min;
+		rect.AnchorMax[axis] = preset.Max;
+		const bool stretch = preset.Max > preset.Min;
+		if (stretch)
+		{
+			rect.SizeDelta[axis] = 0.0f;
+			rect.AnchoredPosition[axis] = 0.0f;
+		}
+		if (setPivot)
+		{
+			rect.Pivot[axis] = stretch ? 0.5f : preset.Min;
+			rect.AnchoredPosition[axis] = 0.0f;
+		}
+	}
+
+	// A button showing the rect's anchors that opens the 4 x 4 grid of presets (rows: top, middle, bottom, stretch;
+	// columns: left, centre, right, stretch). Hold Alt to set the pivot as well.
+	static void DrawAnchorPresets(UIRectComponent& rect)
+	{
+		const int horizontal = FindAnchorPreset(s_HorizontalAnchors, rect.AnchorMin.x, rect.AnchorMax.x);
+		const int vertical = FindAnchorPreset(s_VerticalAnchors, rect.AnchorMin.y, rect.AnchorMax.y);
+		char current[64];
+		if (horizontal >= 0 && vertical >= 0)
+		{
+			std::snprintf(current, sizeof(current), "%s %s", s_VerticalAnchors[vertical].Name, s_HorizontalAnchors[horizontal].Name);
+		}
+		else
+		{
+			std::snprintf(current, sizeof(current), "Custom");
+		}
+
+		if (ImGui::Button(current, { -1.0f, 0.0f }))
+		{
+			ImGui::OpenPopup("AnchorPresets");
+		}
+		if (ImGui::BeginPopup("AnchorPresets"))
+		{
+			ImGui::TextDisabled("Anchor presets (hold Alt to set the pivot too)");
+			const bool setPivot = ImGui::GetIO().KeyAlt;
+			const float cell = ImGui::GetFrameHeight() * 2.0f;
+			for (int row = 0; row < 4; row++)
+			{
+				for (int column = 0; column < 4; column++)
+				{
+					const UIAnchorPreset& h = s_HorizontalAnchors[column];
+					const UIAnchorPreset& v = s_VerticalAnchors[row];
+					char label[32];
+					std::snprintf(label, sizeof(label), "%c%c##preset%d", v.Name[0], h.Name[0], row * 4 + column);
+					const bool selected = row == vertical && column == horizontal;
+					if (selected)
+					{
+						ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+					}
+					if (ImGui::Button(label, { cell, cell }))
+					{
+						ApplyAnchorPreset(rect, 0, h, setPivot);
+						ApplyAnchorPreset(rect, 1, v, setPivot);
+						ImGui::CloseCurrentPopup();
+					}
+					if (selected)
+					{
+						ImGui::PopStyleColor();
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("%s, %s", v.Name, h.Name);
+					}
+					if (column < 3)
+					{
+						ImGui::SameLine();
+					}
+				}
+			}
+			ImGui::EndPopup();
+		}
+	}
+
+	void InspectorWindow::DrawUIComponents(Entity entity, bool& removeCanvas, bool& removeRect, bool& removeImage, bool& removeText, bool& removeButton)
+	{
+		DrawComponent<UICanvasComponent>("UI Canvas", entity, removeCanvas, [&](UICanvasComponent& canvas)
+		{
+			DrawVectorControl("Reference", glm::value_ptr(canvas.ReferenceResolution), 2, 0.0f, 1.0f, 16384.0f);
+			DrawPropertyRow("Scale Mode", [&]()
+			{
+				const char* modes[] = { "Integer scale", "Scale with screen", "Constant pixel size" };
+				int mode = (int)canvas.ScaleMode;
+				if (ImGui::Combo("##ScaleMode", &mode, modes, 3))
+				{
+					canvas.ScaleMode = (UIScaleMode)mode;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("Integer scale: the largest whole multiple of the reference that fits, at least 1 (pixel UI stays crisp);\nthe leftover space widens the canvas, and a view smaller than the reference crops it.\nScale with screen: a fractional scale that fits the reference (smooth UI).\nConstant pixel size: one canvas pixel per view pixel.");
+				}
+			});
+			DrawPropertyRow("Sort Order", [&]() { ImGui::InputInt("##CanvasSortOrder", &canvas.SortOrder); });
+			DrawPropertyRow("Visible", [&]() { ImGui::Checkbox("##CanvasVisible", &canvas.Visible); });
+			DrawPropertyRow("Blocks Input", [&]()
+			{
+				ImGui::Checkbox("##CanvasBlocksInput", &canvas.BlocksGameplayInput);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("While the canvas is visible, gameplay scripts don't get keyboard input (menus, dialogue).");
+				}
+			});
+			DrawPropertyRow("Draw Debug", [&]() { ImGui::Checkbox("##CanvasDrawDebug", &canvas.DrawDebug); });
+
+			Scene* scene = entity.GetScene();
+			const glm::vec2 viewSize{ (float)scene->GetViewportWidth(), (float)scene->GetViewportHeight() };
+			const UICanvasMetrics metrics = UILayout::GetCanvasMetrics(canvas, viewSize);
+			ImGui::TextDisabled("Game view %.0f x %.0f: canvas %.0f x %.0f at x%.2f", viewSize.x, viewSize.y, metrics.Size.x, metrics.Size.y, metrics.Scale);
+			bool nested = false;
+			FindUICanvas(entity, nested);
+			if (nested)
+			{
+				ImGui::TextWrapped("This canvas is inside another canvas. Nested canvases aren't supported: it isn't drawn.");
+			}
+		});
+
+		DrawComponent<UIRectComponent>("UI Rect", entity, removeRect, [&](UIRectComponent& rect)
+		{
+			DrawPropertyRow("Anchors", [&]() { DrawAnchorPresets(rect); });
+			DrawVectorControl("Position", glm::value_ptr(rect.AnchoredPosition), 2, 0.0f);
+			// Added to the anchors' span: the size itself when the anchors meet, a margin on a stretched axis.
+			DrawVectorControl("Size", glm::value_ptr(rect.SizeDelta), 2, 100.0f);
+			DrawVectorControl("Anchor Min", glm::value_ptr(rect.AnchorMin), 2, 0.5f, 0.0f, 1.0f);
+			DrawVectorControl("Anchor Max", glm::value_ptr(rect.AnchorMax), 2, 0.5f, 0.0f, 1.0f);
+			DrawVectorControl("Pivot", glm::value_ptr(rect.Pivot), 2, 0.5f);
+			DrawPropertyRow("Visible", [&]() { ImGui::Checkbox("##RectVisible", &rect.Visible); });
+
+			bool nested = false;
+			const Entity canvas = FindUICanvas(entity, nested);
+			if ((bool)canvas == false)
+			{
+				ImGui::TextWrapped("No canvas above this element: it isn't drawn. Put it under an entity with a UI Canvas.");
+			}
+			else if (nested)
+			{
+				ImGui::TextWrapped("Its canvas is inside another canvas. Nested canvases aren't supported: it isn't drawn.");
+			}
+			else
+			{
+				ImGui::TextDisabled("Canvas pixels, Y up, on %s. Size adds to the anchors' span.", canvas.GetName().c_str());
+			}
+#ifdef HY_DEBUG
+			if (entity.HasComponent<UIResolvedRectComponent>())
+			{
+				const UIResolvedRectComponent& resolved = entity.GetComponent<UIResolvedRectComponent>();
+				ImGui::TextDisabled("Resolved (%.0f, %.0f) - (%.0f, %.0f)%s", resolved.Min.x, resolved.Min.y, resolved.Max.x, resolved.Max.y, resolved.Visible ? "" : ", hidden");
+			}
+#endif
+		});
+
+		DrawComponent<UIImageComponent>("UI Image", entity, removeImage, [&](UIImageComponent& image)
+		{
+			DrawPropertyRow("Texture", [&]() { DrawTextureField("##UIImageTexture", image.Texture); });
+			const Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(image.Texture);
+			if (texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple)
+			{
+				DrawPropertyRow("Sprite", [&]() { DrawSpriteField(image.SpriteIndex, *texture); });
+			}
+			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##UIImageColor", glm::value_ptr(image.Color)); });
+			DrawPropertyRow("Slice Left", [&]() { InputFloatField("##SliceLeft", image.NineSlice.x, "%.0f px", 0.0f, 4096.0f); });
+			DrawPropertyRow("Slice Bottom", [&]() { InputFloatField("##SliceBottom", image.NineSlice.y, "%.0f px", 0.0f, 4096.0f); });
+			DrawPropertyRow("Slice Right", [&]() { InputFloatField("##SliceRight", image.NineSlice.z, "%.0f px", 0.0f, 4096.0f); });
+			DrawPropertyRow("Slice Top", [&]() { InputFloatField("##SliceTop", image.NineSlice.w, "%.0f px", 0.0f, 4096.0f); });
+			DrawPropertyRow("Flip", [&]()
+			{
+				ImGui::Checkbox("X##UIImageFlipX", &image.FlipX);
+				ImGui::SameLine();
+				ImGui::Checkbox("Y##UIImageFlipY", &image.FlipY);
+			});
+			ImGui::TextDisabled(UILayout::IsNineSliced(image) ? "Nine-sliced: the borders (texture pixels) keep their size." : "Stretched over the rect (set slice borders for a nine-slice frame).");
+		});
+
+		DrawComponent<UITextComponent>("UI Text", entity, removeText, [&](UITextComponent& text)
+		{
+			DrawPropertyRow("Text", [&]()
+			{
+				ImGui::InputTextMultiline("##UIText", text.Text.data(), text.Text.capacity() + 1, { -1.0f, ImGui::GetTextLineHeight() * 4.0f },
+					ImGuiInputTextFlags_CallbackResize, StringResizeCallback, &text.Text);
+			});
+			DrawPropertyRow("Color", [&]() { ImGui::ColorEdit4("##UITextColor", glm::value_ptr(text.Color)); });
+			DrawPropertyRow("Scale", [&]()
+			{
+				int scale = (int)text.Scale;
+				if (ImGui::InputInt("##UITextScale", &scale))
+				{
+					text.Scale = (uint32_t)std::clamp(scale, 1, 64);
+				}
+			});
+			DrawPropertyRow("Align", [&]()
+			{
+				const float half = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+				const char* horizontal[] = { "Left", "Center", "Right" };
+				const char* vertical[] = { "Top", "Middle", "Bottom" };
+				int alignH = (int)text.AlignH;
+				int alignV = (int)text.AlignV;
+				ImGui::SetNextItemWidth(half);
+				if (ImGui::Combo("##UITextAlignH", &alignH, horizontal, 3))
+				{
+					text.AlignH = (UITextAlignH)alignH;
+				}
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(half);
+				if (ImGui::Combo("##UITextAlignV", &alignV, vertical, 3))
+				{
+					text.AlignV = (UITextAlignV)alignV;
+				}
+			});
+			DrawPropertyRow("Wrap", [&]() { ImGui::Checkbox("##UITextWrap", &text.Wrap); });
+			DrawPropertyRow("Line Spacing", [&]() { InputFloatField("##UITextLineSpacing", text.LineSpacing, "%.2f", 0.0f, 10.0f); });
+			DrawPropertyRow("Visible Chars", [&]()
+			{
+				int visible = (int)text.VisibleCharacters;
+				if (ImGui::InputInt("##UITextVisible", &visible))
+				{
+					text.VisibleCharacters = std::max(visible, -1);
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("-1 shows all of it; a typewriter counts this up without the text moving.");
+				}
+			});
+			ImGui::TextDisabled("Fonts and text drawing come with UI2 (BMFont).");
+		});
+
+		DrawComponent<UIButtonComponent>("UI Button", entity, removeButton, [&](UIButtonComponent& button)
+		{
+			DrawPropertyRow("Interactable", [&]() { ImGui::Checkbox("##ButtonInteractable", &button.Interactable); });
+			DrawPropertyRow("Event", [&]() { InputTextField("##ButtonEvent", button.Event); });
+			DrawPropertyRow("Normal", [&]() { ImGui::ColorEdit4("##ButtonNormal", glm::value_ptr(button.NormalTint)); });
+			DrawPropertyRow("Focused", [&]() { ImGui::ColorEdit4("##ButtonFocused", glm::value_ptr(button.FocusedTint)); });
+			DrawPropertyRow("Pressed", [&]() { ImGui::ColorEdit4("##ButtonPressed", glm::value_ptr(button.PressedTint)); });
+			DrawPropertyRow("Disabled", [&]() { ImGui::ColorEdit4("##ButtonDisabled", glm::value_ptr(button.DisabledTint)); });
+			DrawPropertyRow("Navigation", [&]()
+			{
+				const char* modes[] = { "Auto", "Explicit", "None" };
+				int mode = (int)button.Navigation;
+				if (ImGui::Combo("##ButtonNavigation", &mode, modes, 3))
+				{
+					button.Navigation = (UINavigation)mode;
+				}
+			});
+			ImGui::TextDisabled("Focus, Submit and pointer input come with UI3.");
+		});
 	}
 
 	void InspectorWindow::DrawAddComponentButton(Entity entity)
@@ -1963,6 +2296,41 @@ namespace Hydro
 					addWithTransform([&]() { entity.AddComponent<CharacterBodyComponent>(); });
 				}
 
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("UI"))
+			{
+				// Elements are placed by a rect: every visual gets one with it. A canvas needs none.
+				const auto addWithRect = [&entity](auto add)
+				{
+					add();
+					if (entity.HasComponent<UIRectComponent>() == false)
+					{
+						entity.AddComponent<UIRectComponent>();
+					}
+				};
+
+				if (ImGui::MenuItem("Canvas", nullptr, false, entity.HasComponent<UICanvasComponent>() == false))
+				{
+					entity.AddComponent<UICanvasComponent>();
+				}
+				if (ImGui::MenuItem("Rect", nullptr, false, entity.HasComponent<UIRectComponent>() == false))
+				{
+					entity.AddComponent<UIRectComponent>();
+				}
+				if (ImGui::MenuItem("Image", nullptr, false, entity.HasComponent<UIImageComponent>() == false))
+				{
+					addWithRect([&]() { entity.AddComponent<UIImageComponent>(); });
+				}
+				if (ImGui::MenuItem("Text", nullptr, false, entity.HasComponent<UITextComponent>() == false))
+				{
+					addWithRect([&]() { entity.AddComponent<UITextComponent>(); });
+				}
+				if (ImGui::MenuItem("Button", nullptr, false, entity.HasComponent<UIButtonComponent>() == false))
+				{
+					addWithRect([&]() { entity.AddComponent<UIButtonComponent>(); });
+				}
 				ImGui::EndMenu();
 			}
 

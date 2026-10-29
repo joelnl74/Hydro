@@ -302,7 +302,7 @@ elif FARM_PHASE == 'B':
         root = new_prefab(name, loc); root["hydro_status"] = "PLACEHOLDER"; NEW_PREFABS.append(name)
         return root
 
-    house("MV_Cottage_Thatch_A", 6, 1, front=["BBP"], right=["PB"], roof="thatch", chimney="right", step_x=3.0,
+    house("MV_Cottage_Thatch_A", 6, 1, front=["BBA"], right=["AB"], roof="thatch", chimney="right", step_x=3.0,
           opens=[("win", "front", 1.0, 0, 1.25), ("door", "front", 3.0, 0, 0.0), ("winS", "right", 3.0, 0, 1.2), ("fbox", "front", 1.0, 0, 1.0)],
           loc=(28.0, 0, 0))
     PREFABS["MV_Cottage_Thatch_A"]["hydro_status"] = "PLACEHOLDER"; NEW_PREFABS.append("MV_Cottage_Thatch_A")

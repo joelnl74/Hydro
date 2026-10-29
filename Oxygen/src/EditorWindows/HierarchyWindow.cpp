@@ -154,6 +154,12 @@ namespace Hydro
 				m_Pending = PendingEdit::Creating(PendingEdit::Template::Light, {});
 			}
 
+			if (ImGui::BeginMenu("Create UI"))
+			{
+				DrawCreateUIMenu({});
+				ImGui::EndMenu();
+			}
+
 			if (ImGui::MenuItem("Create Camera"))
 			{
 				m_SelectedEntity = scene->CreateEntity("Camera");
@@ -322,6 +328,11 @@ namespace Hydro
 			{
 				m_Pending = PendingEdit::Creating(PendingEdit::Template::Light, entity);
 			}
+			if (ImGui::BeginMenu("UI"))
+			{
+				DrawCreateUIMenu(entity);
+				ImGui::EndMenu();
+			}
 			ImGui::EndMenu();
 		}
 		if ((bool)scene.GetParent(entity) && ImGui::MenuItem("Unparent"))
@@ -348,8 +359,113 @@ namespace Hydro
 		ImGui::EndPopup();
 	}
 
+	void HierarchyWindow::DrawCreateUIMenu(Entity parent)
+	{
+		struct Item
+		{
+			const char* Name;
+			PendingEdit::Template Kind;
+		};
+		const Item items[] = {
+			{ "Canvas", PendingEdit::Template::UICanvas },
+			{ "Panel", PendingEdit::Template::UIPanel },
+			{ "Image", PendingEdit::Template::UIImage },
+			{ "Text", PendingEdit::Template::UIText },
+			{ "Button", PendingEdit::Template::UIButton } };
+		for (const Item& item : items)
+		{
+			if (ImGui::MenuItem(item.Name))
+			{
+				m_Pending = PendingEdit::Creating(item.Kind, parent);
+			}
+		}
+	}
+
+	Entity HierarchyWindow::CreateUIFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent)
+	{
+		if (kind == PendingEdit::Template::UICanvas)
+		{
+			Entity canvas = scene.CreateEntity("Canvas");
+			canvas.AddComponent<UICanvasComponent>();
+			if (parent)
+			{
+				scene.SetParent(canvas, parent, false);
+			}
+			return canvas;
+		}
+
+		// Elements sit on a canvas: the one at or above `parent`, else a new one.
+		bool onCanvas = false;
+		for (Entity current = parent; (bool)current; current = scene.GetParent(current))
+		{
+			if (current.HasComponent<UICanvasComponent>())
+			{
+				onCanvas = true;
+				break;
+			}
+		}
+		if (onCanvas == false)
+		{
+			parent = CreateUIFromTemplate(scene, PendingEdit::Template::UICanvas, {});
+		}
+
+		const char* name = "Image";
+		switch (kind)
+		{
+		case PendingEdit::Template::UIPanel: name = "Panel"; break;
+		case PendingEdit::Template::UIText: name = "Text"; break;
+		case PendingEdit::Template::UIButton: name = "Button"; break;
+		default: break;
+		}
+
+		Entity element = scene.CreateEntity(name);
+		UIRectComponent& rect = element.AddComponent<UIRectComponent>();
+		switch (kind)
+		{
+		case PendingEdit::Template::UIPanel:
+			rect.SizeDelta = { 200.0f, 120.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.08f, 0.07f, 0.06f, 0.85f };
+			break;
+		case PendingEdit::Template::UIText:
+			rect.SizeDelta = { 160.0f, 24.0f };
+			element.AddComponent<UITextComponent>().Text = "Text";
+			break;
+		case PendingEdit::Template::UIButton:
+		{
+			rect.SizeDelta = { 96.0f, 24.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.25f, 0.22f, 0.18f, 1.0f };
+			element.AddComponent<UIButtonComponent>();
+			// Its label fills it.
+			Entity label = scene.CreateEntity("Text");
+			UIRectComponent& labelRect = label.AddComponent<UIRectComponent>();
+			labelRect.AnchorMin = { 0.0f, 0.0f };
+			labelRect.AnchorMax = { 1.0f, 1.0f };
+			labelRect.SizeDelta = { 0.0f, 0.0f };
+			UITextComponent& text = label.AddComponent<UITextComponent>();
+			text.Text = "Button";
+			text.AlignH = UITextAlignH::Center;
+			text.AlignV = UITextAlignV::Middle;
+			text.Wrap = false;
+			scene.SetParent(label, element, false);
+			break;
+		}
+		default:
+			rect.SizeDelta = { 64.0f, 64.0f };
+			element.AddComponent<UIImageComponent>();
+			break;
+		}
+
+		scene.SetParent(element, parent, false);
+		return element;
+	}
+
 	Entity HierarchyWindow::CreateFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent)
 	{
+		if (kind >= PendingEdit::Template::UICanvas)
+		{
+			return CreateUIFromTemplate(scene, kind, parent);
+		}
+
 		const char* name = kind == PendingEdit::Template::Sprite ? "Sprite" : (kind == PendingEdit::Template::Light ? "Light" : "Empty Entity");
 		Entity entity = scene.CreateEntity(name);
 		entity.AddComponent<TransformComponent>();

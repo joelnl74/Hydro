@@ -156,6 +156,14 @@ namespace Hydro
 		// shapes, gizmos. Overlay quads keep their order among themselves.
 		static void BeginOverlay();
 		static void EndOverlay();
+		// An overlay in screen space (runtime UI): like BeginOverlay, but the quads queued until EndScreenOverlay are
+		// placed through `screenProjection` (Camera::Orthographic over the view's pixels, say) instead of the scene's
+		// camera, so they land on the same pixels whatever the camera does. Each corner is taken back through the
+		// scene's view-projection on the CPU, so nothing changes on the GPU. Only quads: lines and outlines (DrawLine,
+		// DrawRect, DrawCircle) are skipped inside it. Nothing is drawn when the scene's view-projection can't be
+		// inverted. EndScene ends it too.
+		static void BeginScreenOverlay(const glm::mat4& screenProjection);
+		static void EndScreenOverlay();
 
 		// Editor shapes in the scene (M7, the DebugLines feature of the Editor view): quads queued between
 		// BeginDebugLines and EndDebugLines are drawn last, depth tested against the scene (hidden behind

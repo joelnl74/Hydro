@@ -211,6 +211,98 @@ namespace Hydro
 
 	// Saved values the physics engine would choke on are pulled into range. Written as max(minimum, value)
 	// so that NaN (which compares false with everything) also becomes the minimum.
+	static const char* UIScaleModeToString(UIScaleMode mode)
+	{
+		switch (mode)
+		{
+		case UIScaleMode::ScaleWithScreen: return "ScaleWithScreen";
+		case UIScaleMode::ConstantPixelSize: return "ConstantPixelSize";
+		default: return "IntegerScale";
+		}
+	}
+
+	static UIScaleMode UIScaleModeFromString(const std::string& name)
+	{
+		if (name == "ScaleWithScreen")
+		{
+			return UIScaleMode::ScaleWithScreen;
+		}
+		if (name == "ConstantPixelSize")
+		{
+			return UIScaleMode::ConstantPixelSize;
+		}
+		return UIScaleMode::IntegerScale;
+	}
+
+	static const char* UITextAlignHToString(UITextAlignH align)
+	{
+		switch (align)
+		{
+		case UITextAlignH::Center: return "Center";
+		case UITextAlignH::Right: return "Right";
+		default: return "Left";
+		}
+	}
+
+	static UITextAlignH UITextAlignHFromString(const std::string& name)
+	{
+		if (name == "Center")
+		{
+			return UITextAlignH::Center;
+		}
+		if (name == "Right")
+		{
+			return UITextAlignH::Right;
+		}
+		return UITextAlignH::Left;
+	}
+
+	static const char* UITextAlignVToString(UITextAlignV align)
+	{
+		switch (align)
+		{
+		case UITextAlignV::Middle: return "Middle";
+		case UITextAlignV::Bottom: return "Bottom";
+		default: return "Top";
+		}
+	}
+
+	static UITextAlignV UITextAlignVFromString(const std::string& name)
+	{
+		if (name == "Middle")
+		{
+			return UITextAlignV::Middle;
+		}
+		if (name == "Bottom")
+		{
+			return UITextAlignV::Bottom;
+		}
+		return UITextAlignV::Top;
+	}
+
+	static const char* UINavigationToString(UINavigation navigation)
+	{
+		switch (navigation)
+		{
+		case UINavigation::Explicit: return "Explicit";
+		case UINavigation::None: return "None";
+		default: return "Auto";
+		}
+	}
+
+	static UINavigation UINavigationFromString(const std::string& name)
+	{
+		if (name == "Explicit")
+		{
+			return UINavigation::Explicit;
+		}
+		if (name == "None")
+		{
+			return UINavigation::None;
+		}
+		return UINavigation::Auto;
+	}
+
 	static float AtLeast(float minimum, float value)
 	{
 		return std::max(minimum, value);
@@ -636,6 +728,110 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		// Runtime UI. UIResolvedRectComponent is derived (Scene::ResolveUILayout) and never saved.
+		if (entity.HasComponent<UICanvasComponent>())
+		{
+			auto& canvas = entity.GetComponent<UICanvasComponent>();
+
+			out << YAML::Key << "UICanvasComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "ReferenceResolution" << YAML::Value << canvas.ReferenceResolution;
+			out << YAML::Key << "ScaleMode" << YAML::Value << UIScaleModeToString(canvas.ScaleMode);
+			out << YAML::Key << "SortOrder" << YAML::Value << canvas.SortOrder;
+			out << YAML::Key << "Visible" << YAML::Value << canvas.Visible;
+			out << YAML::Key << "BlocksGameplayInput" << YAML::Value << canvas.BlocksGameplayInput;
+			if (canvas.DrawDebug)
+			{
+				out << YAML::Key << "DrawDebug" << YAML::Value << true;
+			}
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<UIRectComponent>())
+		{
+			auto& rect = entity.GetComponent<UIRectComponent>();
+
+			out << YAML::Key << "UIRectComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "AnchorMin" << YAML::Value << rect.AnchorMin;
+			out << YAML::Key << "AnchorMax" << YAML::Value << rect.AnchorMax;
+			out << YAML::Key << "Pivot" << YAML::Value << rect.Pivot;
+			out << YAML::Key << "AnchoredPosition" << YAML::Value << rect.AnchoredPosition;
+			out << YAML::Key << "SizeDelta" << YAML::Value << rect.SizeDelta;
+			out << YAML::Key << "Visible" << YAML::Value << rect.Visible;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<UIImageComponent>())
+		{
+			auto& image = entity.GetComponent<UIImageComponent>();
+
+			out << YAML::Key << "UIImageComponent";
+			out << YAML::BeginMap;
+			if ((uint64_t)image.Texture != 0)
+			{
+				out << YAML::Key << "TextureHandle" << YAML::Value << (uint64_t)image.Texture;
+				// By name, like a sprite's, so slicing the sheet again keeps it; the index is the fallback.
+				const Ref<Texture2D> texture = AssetManager::GetLoadedAsset<Texture2D>(image.Texture);
+				if (texture != nullptr && texture->GetSpriteMode() == SpriteMode::Multiple)
+				{
+					out << YAML::Key << "Sprite" << YAML::Value << texture->GetSprite(image.SpriteIndex).Name;
+				}
+			}
+			out << YAML::Key << "SpriteIndex" << YAML::Value << image.SpriteIndex;
+			out << YAML::Key << "Color" << YAML::Value << image.Color;
+			out << YAML::Key << "NineSlice" << YAML::Value << image.NineSlice;
+			out << YAML::Key << "FlipX" << YAML::Value << image.FlipX;
+			out << YAML::Key << "FlipY" << YAML::Value << image.FlipY;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<UITextComponent>())
+		{
+			auto& text = entity.GetComponent<UITextComponent>();
+
+			out << YAML::Key << "UITextComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Text" << YAML::Value << text.Text;
+			if ((uint64_t)text.Font != 0)
+			{
+				out << YAML::Key << "FontHandle" << YAML::Value << (uint64_t)text.Font;
+			}
+			out << YAML::Key << "Color" << YAML::Value << text.Color;
+			out << YAML::Key << "Scale" << YAML::Value << text.Scale;
+			out << YAML::Key << "AlignH" << YAML::Value << UITextAlignHToString(text.AlignH);
+			out << YAML::Key << "AlignV" << YAML::Value << UITextAlignVToString(text.AlignV);
+			out << YAML::Key << "Wrap" << YAML::Value << text.Wrap;
+			out << YAML::Key << "LineSpacing" << YAML::Value << text.LineSpacing;
+			out << YAML::Key << "VisibleCharacters" << YAML::Value << text.VisibleCharacters;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<UIButtonComponent>())
+		{
+			auto& button = entity.GetComponent<UIButtonComponent>();
+
+			out << YAML::Key << "UIButtonComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Interactable" << YAML::Value << button.Interactable;
+			out << YAML::Key << "Event" << YAML::Value << button.Event;
+			out << YAML::Key << "NormalTint" << YAML::Value << button.NormalTint;
+			out << YAML::Key << "FocusedTint" << YAML::Value << button.FocusedTint;
+			out << YAML::Key << "PressedTint" << YAML::Value << button.PressedTint;
+			out << YAML::Key << "DisabledTint" << YAML::Value << button.DisabledTint;
+			out << YAML::Key << "Navigation" << YAML::Value << UINavigationToString(button.Navigation);
+			// Explicit navigation's neighbours, only when set.
+			const std::pair<const char*, UUID> neighbours[] = { { "Up", button.Up }, { "Down", button.Down }, { "Left", button.Left }, { "Right", button.Right } };
+			for (const auto& neighbour : neighbours)
+			{
+				if ((uint64_t)neighbour.second != 0)
+				{
+					out << YAML::Key << neighbour.first << YAML::Value << (uint64_t)neighbour.second;
+				}
+			}
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<ParticleEmitter2DComponent>())
 		{
 			auto& emitter = entity.GetComponent<ParticleEmitter2DComponent>();
@@ -985,6 +1181,84 @@ namespace Hydro
 			body.StepHeight = AtLeast(0.0f, characterNode["StepHeight"].as<float>(body.StepHeight));
 			body.StaysOnLedges = characterNode["StaysOnLedges"].as<bool>(body.StaysOnLedges);
 			body.Layer = PhysicsLayerFromString(characterNode["Layer"].as<std::string>("Player"), body.Layer);
+		}
+
+		// Runtime UI: missing keys keep the defaults.
+		if (auto canvasNode = entityNode["UICanvasComponent"])
+		{
+			auto& canvas = entity.AddComponent<UICanvasComponent>();
+			canvas.ReferenceResolution = glm::max(canvasNode["ReferenceResolution"].as<glm::vec2>(canvas.ReferenceResolution), glm::vec2(1.0f));
+			canvas.ScaleMode = UIScaleModeFromString(canvasNode["ScaleMode"].as<std::string>("IntegerScale"));
+			canvas.SortOrder = canvasNode["SortOrder"].as<int32_t>(canvas.SortOrder);
+			canvas.Visible = canvasNode["Visible"].as<bool>(canvas.Visible);
+			canvas.BlocksGameplayInput = canvasNode["BlocksGameplayInput"].as<bool>(canvas.BlocksGameplayInput);
+			canvas.DrawDebug = canvasNode["DrawDebug"].as<bool>(false);
+		}
+
+		if (auto rectNode = entityNode["UIRectComponent"])
+		{
+			auto& rect = entity.AddComponent<UIRectComponent>();
+			rect.AnchorMin = rectNode["AnchorMin"].as<glm::vec2>(rect.AnchorMin);
+			rect.AnchorMax = rectNode["AnchorMax"].as<glm::vec2>(rect.AnchorMax);
+			rect.Pivot = rectNode["Pivot"].as<glm::vec2>(rect.Pivot);
+			rect.AnchoredPosition = rectNode["AnchoredPosition"].as<glm::vec2>(rect.AnchoredPosition);
+			rect.SizeDelta = rectNode["SizeDelta"].as<glm::vec2>(rect.SizeDelta);
+			rect.Visible = rectNode["Visible"].as<bool>(rect.Visible);
+		}
+
+		if (auto imageNode = entityNode["UIImageComponent"])
+		{
+			auto& image = entity.AddComponent<UIImageComponent>();
+			// Loaded now, like a sprite's texture, so the renderer (which never loads) finds it.
+			Ref<Texture2D> texture;
+			if (auto textureNode = imageNode["TextureHandle"])
+			{
+				image.Texture = AssetHandle(textureNode.as<uint64_t>(0));
+				texture = (uint64_t)image.Texture != 0 ? AssetManager::GetAsset<Texture2D>(image.Texture) : nullptr;
+			}
+			image.SpriteIndex = imageNode["SpriteIndex"].as<uint32_t>(image.SpriteIndex);
+			if (auto spriteNameNode = imageNode["Sprite"]; spriteNameNode && texture != nullptr)
+			{
+				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));
+				if (found >= 0)
+				{
+					image.SpriteIndex = (uint32_t)found;
+				}
+			}
+			image.Color = imageNode["Color"].as<glm::vec4>(image.Color);
+			image.NineSlice = glm::max(imageNode["NineSlice"].as<glm::vec4>(image.NineSlice), glm::vec4(0.0f));
+			image.FlipX = imageNode["FlipX"].as<bool>(image.FlipX);
+			image.FlipY = imageNode["FlipY"].as<bool>(image.FlipY);
+		}
+
+		if (auto textNode = entityNode["UITextComponent"])
+		{
+			auto& text = entity.AddComponent<UITextComponent>();
+			text.Text = textNode["Text"].as<std::string>(text.Text);
+			text.Font = AssetHandle(textNode["FontHandle"].as<uint64_t>(0)); // loaded with the font asset (UI2)
+			text.Color = textNode["Color"].as<glm::vec4>(text.Color);
+			text.Scale = std::max(textNode["Scale"].as<uint32_t>(text.Scale), 1u);
+			text.AlignH = UITextAlignHFromString(textNode["AlignH"].as<std::string>("Left"));
+			text.AlignV = UITextAlignVFromString(textNode["AlignV"].as<std::string>("Top"));
+			text.Wrap = textNode["Wrap"].as<bool>(text.Wrap);
+			text.LineSpacing = AtLeast(0.0f, textNode["LineSpacing"].as<float>(text.LineSpacing));
+			text.VisibleCharacters = std::max(textNode["VisibleCharacters"].as<int32_t>(text.VisibleCharacters), -1);
+		}
+
+		if (auto buttonNode = entityNode["UIButtonComponent"])
+		{
+			auto& button = entity.AddComponent<UIButtonComponent>();
+			button.Interactable = buttonNode["Interactable"].as<bool>(button.Interactable);
+			button.Event = buttonNode["Event"].as<std::string>(button.Event);
+			button.NormalTint = buttonNode["NormalTint"].as<glm::vec4>(button.NormalTint);
+			button.FocusedTint = buttonNode["FocusedTint"].as<glm::vec4>(button.FocusedTint);
+			button.PressedTint = buttonNode["PressedTint"].as<glm::vec4>(button.PressedTint);
+			button.DisabledTint = buttonNode["DisabledTint"].as<glm::vec4>(button.DisabledTint);
+			button.Navigation = UINavigationFromString(buttonNode["Navigation"].as<std::string>("Auto"));
+			button.Up = UUID(buttonNode["Up"].as<uint64_t>(0));
+			button.Down = UUID(buttonNode["Down"].as<uint64_t>(0));
+			button.Left = UUID(buttonNode["Left"].as<uint64_t>(0));
+			button.Right = UUID(buttonNode["Right"].as<uint64_t>(0));
 		}
 
 		if (auto emitterNode = entityNode["ParticleEmitter2DComponent"])
