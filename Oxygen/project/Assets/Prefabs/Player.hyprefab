@@ -1,0 +1,42 @@
+Handle: 15317464665787874710
+Prefab: Player
+Entities:
+  - Entity: 4271470499060943565
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [-1.20000005, -1.29999995, 1]
+      Rotation: [0, 0, 0]
+      Scale: [2.20000005, 2.20000005, 2.20000005]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 96
+      TextureHandle: 16527506524077974322
+      Sprite: Miko_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 9503405222623168017
+      StartClip: IdleRight
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.0500000007]
+      Size: [0.850000024, 0.319999993]
+      Strength: 0.550000012
+    CharacterBodyComponent:
+      Radius: 0.25
+      Height: 1.39999998
+      MaxSlopeDegrees: 50
+      StepHeight: 0.349999994
+      StaysOnLedges: true
+      Layer: Player
+    NativeScriptComponent:
+      Scripts:
+        - Name: DioramaWalkScript
+          Properties:
+            RunMultiplier: 1.70000005
+            m_Speed: 3.5

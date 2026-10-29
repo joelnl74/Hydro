@@ -5,10 +5,11 @@
 
 #include <filesystem>
 #include <string>
+#include <vector>
 
 namespace Hydro
 {
-	// A .hyprefab file read into memory: the saved entity (as YAML), ready to be instantiated any number of
+	// A .hyprefab file read into memory: the saved entities (as YAML), ready to be instantiated any number of
 	// times without touching the disk. The AssetManager loads it once and shares it until the project closes
 	// (AssetManager::GetAsset<Prefab>(handle)), or again when its file changes. Instantiate it with
 	// PrefabSerializer::Instantiate(scene, prefab) or Vfx::Play.
@@ -27,15 +28,17 @@ namespace Hydro
 		static AssetType GetStaticType() { return AssetType::Prefab; }
 		AssetType GetType() const override { return GetStaticType(); }
 
-		// The name it was saved with (the entity's tag).
+		// The name it was saved with (the root entity's tag).
 		const std::string& GetName() const { return m_Name; }
-		// The saved entity, as EntitySerializer::Serialize wrote it.
-		const YAML::Node& GetEntityNode() const { return m_Entity; }
+		// The saved entities as EntitySerializer::Serialize wrote them: the root first, then its subtree in
+		// depth-first order (each parent before its children). One entry for a prefab without children, and for
+		// prefabs saved before hierarchies (an `Entity:` key instead of `Entities:`).
+		const std::vector<YAML::Node>& GetEntityNodes() const { return m_Entities; }
 
 	private:
 		Prefab() = default;
 
 		std::string m_Name;
-		YAML::Node m_Entity;
+		std::vector<YAML::Node> m_Entities;
 	};
 }

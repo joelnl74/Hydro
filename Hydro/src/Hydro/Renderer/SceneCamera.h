@@ -6,7 +6,7 @@
 namespace Hydro
 {
 	// The projection settings of a camera in a scene (held by CameraComponent). Plain data: the
-	// camera's position and rotation come from the entity's TransformComponent, and its aspect ratio
+	// camera's position and rotation come from the entity's WorldTransformComponent, and its aspect ratio
 	// from the scene's viewport (Scene::OnViewportResize), so nothing here has to be kept in sync.
 	struct SceneCamera
 	{

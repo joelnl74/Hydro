@@ -66,7 +66,7 @@ namespace Hydro
 		gameViewSpecification.DebugName = "Game";
 		m_GameView = CreateScope<RenderView>(gameViewSpecification);
 
-		m_HierarchyWindow = CreateRef<HierachyWindow>();
+		m_HierarchyWindow = CreateRef<HierarchyWindow>();
 		m_StatsWindow = CreateRef<StatsWindow>();
 		m_ConsoleWindow = CreateRef<ConsoleWindow>();
 		m_InspectorWindow = CreateRef<InspectorWindow>();
@@ -854,9 +854,10 @@ namespace Hydro
 			return;
 		}
 
-		const TransformComponent& transform = entity.GetComponent<TransformComponent>();
-		const float extent = std::max({ std::abs(transform.Scale.x), std::abs(transform.Scale.y), 1.0f });
-		m_EditorCamera.Frame(transform.Translation, extent);
+		// Where it is in the world (a child's transform is relative to its parent).
+		const glm::mat4 world = entity.GetScene()->GetWorldTransform(entity);
+		const float extent = std::max({ glm::length(glm::vec3(world[0])), glm::length(glm::vec3(world[1])), 1.0f });
+		m_EditorCamera.Frame(glm::vec3(world[3]), extent);
 	}
 
 	// Each angle moved by whole turns to the one nearest `previous`, so a rotation the gizmo hands back
@@ -914,8 +915,13 @@ namespace Hydro
 		const float snap[3] = { snapStep, snapStep, snapStep };
 		const bool snapping = ImGui::GetIO().KeyCtrl;
 
+		// The gizmo sits where the entity is drawn (its world transform) and is moved in the world; the result goes
+		// back into the parent's space, so the write-back below works on the local transform. A root's parent
+		// space is the world.
+		Scene& scene = *selected.GetScene();
+		const glm::mat4 parentWorld = scene.GetWorldTransform(scene.GetParent(selected));
 		TransformComponent& transform = selected.GetComponent<TransformComponent>();
-		glm::mat4 matrix = transform.GetTransform();
+		glm::mat4 matrix = parentWorld * transform.GetTransform();
 		const bool changed = ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode,
 			glm::value_ptr(matrix), nullptr, snapping ? snap : nullptr);
 
@@ -925,6 +931,11 @@ namespace Hydro
 		{
 			return;
 		}
+		if (std::abs(glm::determinant(glm::mat3(parentWorld))) < 1e-12f)
+		{
+			return; // a parent with a zero scale: there is no local transform to go back to
+		}
+		matrix = glm::inverse(parentWorld) * matrix;
 
 		// Only the part being dragged is written back, so the others keep their exact values. The matrix
 		// is translate * rotate * scale (TransformComponent::GetTransform): column i is the rotation's

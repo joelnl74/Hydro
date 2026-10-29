@@ -13,7 +13,8 @@ namespace Hydro
 	{
 	public:
 		// Writes one entity as a YAML map: { Entity: <uuid>, TagComponent: ..., TransformComponent: ..., ... }
-		static void Serialize(YAML::Emitter& out, Entity entity);
+		// Without includeParent its RelationshipComponent is left out (a prefab's root: its parent isn't in the file).
+		static void Serialize(YAML::Emitter& out, Entity entity, bool includeParent = true);
 
 		// Creates an entity in `scene` from a map written by Serialize().
 		// keepUUID = true  -> reuse the saved UUID (loading a scene).

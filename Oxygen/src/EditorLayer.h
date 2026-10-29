@@ -1,6 +1,6 @@
 #pragma once
 #include "Hydro.h"
-#include "EditorWindows/HierachyWindow.h"
+#include "EditorWindows/HierarchyWindow.h"
 #include "EditorWindows/StatsWindow.h"
 #include "EditorWindows/ConsoleWindow.h"
 #include "EditorWindows/InspectorWindow.h"
@@ -200,7 +200,7 @@ namespace Hydro
 		uint32_t m_StepFrames = 0; // runtime frames still to run while paused (Step button)
 
 		// Editor Windows.
-		Hydro::Ref<HierachyWindow> m_HierarchyWindow;
+		Hydro::Ref<HierarchyWindow> m_HierarchyWindow;
 		Hydro::Ref<StatsWindow> m_StatsWindow;
 		Hydro::Ref<ConsoleWindow> m_ConsoleWindow;
 		Hydro::Ref<InspectorWindow> m_InspectorWindow;

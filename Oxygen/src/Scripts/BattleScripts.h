@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro.h"
+#include "DioramaCamera.h"
 
 #include <algorithm>
 #include <array>
@@ -191,7 +192,7 @@ namespace Hydro
 	protected:
 		void OnCreate() override
 		{
-			const glm::vec3& position = GetComponent<TransformComponent>().Translation;
+			const glm::vec3 position = GetWorldPosition();
 			m_Home = { position.x, position.y };
 			m_Target = m_Home;
 			m_Seed = 2463534242u ^ (uint32_t)((uint64_t)GetEntity().GetUUID() >> 7);
@@ -227,8 +228,8 @@ namespace Hydro
 				m_State = State::Return;
 			}
 
-			auto& transform = GetComponent<TransformComponent>();
-			const glm::vec2 position{ transform.Translation.x, transform.Translation.y };
+			const glm::vec3 world = GetWorldPosition();
+			const glm::vec2 position{ world.x, world.y };
 			m_Cooldown = std::max(0.0f, m_Cooldown - deltaTime);
 
 			if (m_Player == entt::null || scene->m_Registry.valid(m_Player) == false)
@@ -239,14 +240,14 @@ namespace Hydro
 			float playerDistance = 1.0e9f;
 			if (m_Player != entt::null && scene->m_Registry.has<TransformComponent>(m_Player))
 			{
-				const glm::vec3& playerPosition = scene->m_Registry.get<TransformComponent>(m_Player).Translation;
+				const glm::vec3 playerPosition = scene->GetWorldPosition(Entity{ m_Player, scene });
 				m_PlayerPosition = { playerPosition.x, playerPosition.y };
 				playerDistance = glm::length(m_PlayerPosition - position);
 
 				// A player without a physics body (DioramaWalk in the Shrine Glade) never collides: touching
 				// is being this close on the same level.
 				if (scene->m_Registry.has<Rigidbody2DComponent>(m_Player) == false && playerDistance < TouchRange
-					&& std::abs(playerPosition.z - transform.Translation.z) < 0.5f)
+					&& std::abs(playerPosition.z - world.z) < 0.5f)
 				{
 					StartBattle();
 					return;
@@ -328,8 +329,7 @@ namespace Hydro
 
 			if (Physics2D::SetLinearVelocity(self, velocity) == false)
 			{
-				transform.Translation.x += velocity.x * deltaTime;
-				transform.Translation.y += velocity.y * deltaTime;
+				SetWorldPosition(world + glm::vec3(velocity * deltaTime, 0.0f));
 			}
 
 			SpriteAnimator::SetSpeed(self, animationSpeed);
@@ -1402,7 +1402,7 @@ namespace Hydro
 			{
 				return;
 			}
-			scene.m_Registry.get<TransformComponent>(effect.Entity).Translation = position;
+			scene.SetWorldPosition(EntityOf(effect.Entity), position);
 			SpriteAnimator::Play(EntityOf(effect.Entity), clip, true);
 			effect.Time = duration;
 			effect.Duration = duration;
@@ -1757,6 +1757,7 @@ namespace Hydro
 			settings.Gravity *= k;
 			settings.Turbulence *= k;
 			Entity effect = GetEntity().GetScene()->CreateEntity(name);
+			// A new entity is a root, so its Translation is its place in the world.
 			effect.AddComponent<TransformComponent>().Translation = Above(ground, height) + m_Stage.Back * 0.4f;
 			effect.AddComponent<ParticleEmitter2DComponent>(settings);
 		}
@@ -1854,9 +1855,7 @@ namespace Hydro
 
 			if (Alive(scene, m_Camera) && scene.m_Registry.has<CameraComponent>(m_Camera))
 			{
-				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(m_Camera);
-				transform.Translation = stage.Position;
-				transform.Rotation = { tilt, 0.0f, 0.0f };
+				DioramaView::PlaceInWorld(Entity{ m_Camera, &scene }, stage.Position, { tilt, 0.0f, 0.0f });
 				SceneCamera& camera = scene.m_Registry.get<CameraComponent>(m_Camera).Camera;
 				camera.Projection = ProjectionType::Perspective;
 				camera.PerspectiveFOV = fieldOfView;
@@ -1936,7 +1935,7 @@ namespace Hydro
 				return glm::vec2(0.0f);
 			}
 			const TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
-			const glm::vec3 feet = transform.Translation - StandOffset(foot, pivot, transform.Scale.y);
+			const glm::vec3 feet = scene.GetWorldPosition(Entity{ entity, &scene }) - StandOffset(foot, pivot, transform.Scale.y);
 			return LayoutOf(glm::vec3(feet.x, feet.y, GroundHeight));
 		}
 
@@ -1952,12 +1951,12 @@ namespace Hydro
 			const glm::vec3 feet = GroundPoint(ground);
 			if (Alive(scene, entity))
 			{
-				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
-				transform.Translation = feet + StandOffset(foot, pivot, transform.Scale.y) + glm::vec3(0.0f, 0.0f, lift);
+				const float size = scene.m_Registry.get<TransformComponent>(entity).Scale.y;
+				scene.SetWorldPosition(Entity{ entity, &scene }, feet + StandOffset(foot, pivot, size) + glm::vec3(0.0f, 0.0f, lift));
 			}
 			if (Alive(scene, shadow))
 			{
-				scene.m_Registry.get<TransformComponent>(shadow).Translation = feet;
+				scene.SetWorldPosition(Entity{ shadow, &scene }, feet);
 			}
 		}
 
@@ -1980,7 +1979,7 @@ namespace Hydro
 				}
 				const TransformComponent& transform = view.get<TransformComponent>(entity);
 				LayoutItem item;
-				item.Position = PlaneLayoutOf(transform.Translation);
+				item.Position = PlaneLayoutOf(scene.GetWorldPosition(Entity{ entity, &scene }));
 				item.Size = glm::vec2(transform.Scale) / m_Stage.Scale;
 				m_Layout[entity] = item;
 			}
@@ -2001,8 +2000,8 @@ namespace Hydro
 				{
 					continue;
 				}
+				scene.SetWorldPosition(Entity{ entity, &scene }, ScreenPoint(item.Position));
 				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
-				transform.Translation = ScreenPoint(item.Position);
 				transform.Scale.x = item.Size.x * m_Stage.Scale;
 				transform.Scale.y = item.Size.y * m_Stage.Scale;
 			}

@@ -106,8 +106,39 @@ namespace Hydro
 			Blend = Blend < target ? std::min(target, Blend + step) : std::max(target, Blend - step);
 		}
 
-		// Places the camera looking at focus (a point on the ground, `height` above z 0: a raised terrace the
-		// player stands on) for the current blend.
+		// Places the camera entity looking at focus (a point on the ground, `height` above z 0: a raised terrace the
+		// player stands on) for the current blend. Works in the world, so the camera may sit under a parent.
+		static void Apply(Entity cameraEntity, const glm::vec2& focus, float height = 0.0f)
+		{
+			Scene& scene = *cameraEntity.GetScene();
+			TransformComponent placed = cameraEntity.GetComponent<TransformComponent>();
+			placed.Translation = scene.GetWorldPosition(cameraEntity);
+			Apply(placed, cameraEntity.GetComponent<CameraComponent>(), focus, height);
+			PlaceInWorld(cameraEntity, placed.Translation, placed.Rotation);
+		}
+
+		// Puts the entity at `translation` with `rotation` (Euler angles, radians) in the world, whatever its parents.
+		// A root gets them written as they are; under a parent its local transform is worked out (Scene::
+		// SetWorldTransform) and its scale in the world kept.
+		static void PlaceInWorld(Entity entity, const glm::vec3& translation, const glm::vec3& rotation)
+		{
+			Scene& scene = *entity.GetScene();
+			TransformComponent& transform = entity.GetComponent<TransformComponent>();
+			if ((bool)scene.GetParent(entity) == false)
+			{
+				transform.Translation = translation;
+				transform.Rotation = rotation;
+				return;
+			}
+			const glm::mat4 current = scene.GetWorldTransform(entity);
+			TransformComponent world;
+			world.Translation = translation;
+			world.Rotation = rotation;
+			world.Scale = { glm::length(glm::vec3(current[0])), glm::length(glm::vec3(current[1])), glm::length(glm::vec3(current[2])) };
+			scene.SetWorldTransform(entity, world.GetTransform());
+		}
+
+		// The same on a transform holding world values (the entity is a root, or the caller converts).
 		static void Apply(TransformComponent& transform, CameraComponent& cameraComponent, const glm::vec2& focus, float height = 0.0f)
 		{
 			SceneCamera& camera = cameraComponent.Camera;

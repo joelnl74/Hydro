@@ -13,6 +13,7 @@
 #include "Hydro/Renderer/PostProcess.h"
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Components/Components.h"
+#include "SceneHierarchy.h"
 
 namespace Hydro
 {
@@ -77,21 +78,94 @@ namespace Hydro
 		// reference over to another scene: Play makes a copy of the scene with the same UUIDs.
 		// An entity pending destruction is still found; check Entity::IsValid for that.
 		Entity GetEntityByUUID(UUID uuid);
+		// Destroys the entity and its whole subtree (children first). During a stage the whole subtree stops
+		// running at once and is removed when the stage ends (see below).
 		void DestroyEntity(Entity entity);
 
 		// Every entity made with CreateEntity, in list order: the order the hierarchy shows them,
-		// scenes save them and Copy recreates them. New entities go last. The reference is
-		// invalidated by creating, destroying or moving entities.
+		// scenes save them and Copy recreates them. The list is the hierarchy in depth-first order: a
+		// parent comes before its children and its whole subtree follows it directly (see "Hierarchy"
+		// below). New entities go last, as roots. The reference is invalidated by creating, destroying,
+		// moving or reparenting entities.
 		const std::vector<entt::entity>& GetEntityOrder();
 
-		// Moves `entity` directly before (or, with placeAfter, directly after) `target` in the list.
+		// Moves `entity` with its subtree directly before `target` (or, with placeAfter, directly after
+		// target's subtree), as target's sibling: it takes target's parent, keeping its place in the world
+		// (as SetParent with keepWorldTransform). Ignored (logged) when target is inside entity's subtree.
 		// Don't call it while iterating GetEntityOrder().
 		void MoveEntity(Entity entity, Entity target, bool placeAfter);
 
-		// A new entity (new UUID, same name) in this scene with a copy of the entity's
-		// CopyableComponents and native script bindings. Returns an empty Entity if `entity` is
-		// not valid. Don't call it while iterating the registry.
+		// A copy of the entity and its whole subtree: new entities (new UUIDs, same names) with copies of
+		// their CopyableComponents and native script bindings, placed right after the original's subtree
+		// with the same parent. References inside the copied set (children's parents) point to the copies;
+		// references to entities outside it are kept. Returns the copy of `entity`, or an empty Entity if
+		// `entity` isn't an entity of this scene's list. Don't call it while iterating the registry.
 		Entity DuplicateEntity(Entity entity);
+
+		// Entities copied together (DuplicateEntity, prefab instantiation) get new UUIDs. This makes every
+		// reference from one of `entities` to another entity of the copied set follow the copy (`remap`: old
+		// UUID -> new UUID); references to entities outside the set stay as they are. It covers every component
+		// field that holds an entity's UUID (today RelationshipComponent::Parent).
+		void RemapEntityReferences(const std::vector<Entity>& entities, const std::unordered_map<UUID, UUID>& remap);
+
+		// ---- Hierarchy (Roadmap S3) -------------------------------------------------------------
+		// An entity's parent is its RelationshipComponent (none = a root). The entity list is the tree in
+		// depth-first pre-order, and these functions keep it that way: change parents only through
+		// SetParent and MoveEntity. The tree's rules and layout are SceneHierarchy; the scene maps entities
+		// to list indices. docs/SceneAndECS.md#hierarchy.
+
+		// Makes `child` the last child of `parent` (an empty Entity makes it a root, last in the list); its
+		// whole subtree moves with it. With keepWorldTransform the child's local transform is rewritten so it
+		// stays where it is in the world (see SetWorldTransform); without, the local values are kept and it
+		// moves with its new parent. Refused (logged, false) when `parent` is `child` or inside its subtree,
+		// or either isn't an entity of this scene. Don't call it while iterating GetEntityOrder().
+		bool SetParent(Entity child, Entity parent, bool keepWorldTransform = true);
+		// Its parent, or an empty Entity for a root (or an entity that isn't in the list).
+		Entity GetParent(Entity entity);
+		// Its direct children, in list order (cleared first).
+		void GetChildren(Entity entity, std::vector<Entity>& children);
+		bool HasChildren(Entity entity);
+		// The entity and every descendant, in list order, the entity first (cleared first).
+		void GetSubtree(Entity entity, std::vector<Entity>& subtree);
+		// True when `entity` is somewhere below `ancestor` (not when they are the same entity).
+		bool IsAncestorOf(Entity ancestor, Entity entity);
+		// 0 for a root.
+		uint32_t GetDepth(Entity entity);
+
+		// Restores the rule after entities were added with their parents already set (loading a scene):
+		// a missing parent, an entity that is its own parent and one entity of every cycle become roots
+		// (each logged), and the list is rebuilt depth-first, keeping roots and each entity's children in
+		// their current order. A list that already keeps the rule is left as it is.
+		void RepairHierarchy();
+		// Checks the rule and logs every entity that breaks it; true when it holds. Debug builds also run
+		// it after every edit of the hierarchy (create, destroy, move, reparent, duplicate, repair).
+		bool ValidateHierarchy();
+
+		// ---- World transforms ---------------------------------------------------------------------
+		// TransformComponent is local (relative to the parent); WorldTransformComponent is the result of the
+		// whole chain. An entity without a TransformComponent passes its parent's world on to its children.
+
+		// Writes every WorldTransformComponent from the TransformComponents, parents first: one pass over the
+		// entity list, no dirty flags. Runs as stage 4 in both updates, at the start of the game (before the
+		// physics worlds are built from it) and at the start of SceneRenderer::RenderEditor / RenderRuntime
+		// (application systems run after the scene update). Entities outside the list are roots.
+		void ResolveTransforms();
+		// The entity's world transform computed now from its chain of parents: always current, unlike
+		// WorldTransformComponent. Identity for an empty entity.
+		glm::mat4 GetWorldTransform(Entity entity);
+		// Writes the entity's TransformComponent so its world transform becomes `world`. Under a rotated parent
+		// with non-uniform scale `world` may need shear, which a TransformComponent can't hold: then the
+		// closest translation / rotation / scale is written, a warning is logged (once per entity) and it
+		// returns false. Also false, writing nothing, without a TransformComponent or under a parent with a
+		// zero scale. Its WorldTransformComponent catches up at the next ResolveTransforms.
+		bool SetWorldTransform(Entity entity, const glm::mat4& world);
+		// Its position in the world now (GetWorldTransform's translation).
+		glm::vec3 GetWorldPosition(Entity entity);
+		// Moves it so its position in the world becomes `position`, changing only its local Translation: its
+		// rotation and scale are left exactly as they are (no shear can appear). For a root this is a plain write of
+		// Translation. False, writing nothing, without a TransformComponent or under a parent with a zero scale.
+		// Physics writes positions back through it.
+		bool SetWorldPosition(Entity entity, const glm::vec3& position);
 
 		// Removes one of the entity's native scripts (or its whole NativeScriptComponent), calling
 		// OnDestroy on scripts that are running.
@@ -148,9 +222,6 @@ namespace Hydro
 		// Calls one ScriptableEntity hook on every running script of `self`, with `other` as the argument.
 		void NotifyScripts(entt::entity self, entt::entity other, void (ScriptableEntity::*hook)(Entity));
 
-		// Stage 4: world-transform propagation, once there is a hierarchy (S3). Runs in both updates.
-		void UpdateTransforms(const SystemContext& context);
-
 		// Stages that run user code (scripts, later physics callbacks) bracket their work with these.
 		// While a stage is open, structural changes that would pull an entity or script out from under
 		// the running code are queued; EndStage applies them once the outermost stage ends.
@@ -172,7 +243,30 @@ namespace Hydro
 		// scene's back and adds ones that got an IDComponent without CreateEntity.
 		void RebuildEntityMap();
 
+		// Hierarchy: m_Hierarchy is the layout of m_EntityOrder, rebuilt (with m_OrderIndex) on first use
+		// after anything changed the list or a parent (m_HierarchyDirty).
+		void EnsureHierarchy();
+		std::vector<SceneHierarchy::Node> MakeHierarchyNodes();
+		// The entity's index in m_EntityOrder, or -1. Rebuilds the layout first if needed.
+		int32_t GetOrderIndex(entt::entity handle);
+		// Sets or (parent 0) removes the RelationshipComponent; doesn't move anything in the list.
+		void SetParentUUID(entt::entity handle, UUID parent);
+		// Moves the subtree at `index` to `insertAt` (an index in the list before the move: from
+		// SceneHierarchy::GetLastChildInsertIndex / GetSiblingInsertIndex).
+		void MoveSubtree(size_t index, size_t insertAt);
+		// Debug builds: ValidateHierarchy after an edit. Release: nothing.
+		void CheckHierarchyAfterEdit();
+		// Destroys one entity (not its children) at once: DestroyEntityNow's body before hierarchies.
+		void DestroySingleEntityNow(Entity entity);
+
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
+		SceneHierarchy m_Hierarchy;
+		std::unordered_map<entt::entity, uint32_t> m_OrderIndex;
+		bool m_HierarchyDirty = true;
+		// ResolveTransforms' world matrix per list entry (kept so the pass allocates nothing once warm).
+		std::vector<glm::mat4> m_WorldMatrices;
+		// Entities SetWorldTransform already warned about (shear), so the log isn't flooded.
+		std::unordered_set<entt::entity> m_ShearWarned;
 		int m_StageDepth = 0;
 		std::vector<DeferredCommand> m_Deferred;
 		std::unordered_set<entt::entity> m_PendingDestroy;

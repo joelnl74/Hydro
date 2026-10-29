@@ -95,14 +95,14 @@ namespace Hydro
 			|| (registry.has<MeshColliderComponent>(entity) && registry.has<MeshComponent>(entity));
 	}
 
-	bool ColliderShapes::Get(entt::registry& registry, entt::entity entity, std::vector<ColliderShape>& shapes)
+	bool ColliderShapes::Get(entt::registry& registry, entt::entity entity, const glm::vec3& worldScale, std::vector<ColliderShape>& shapes)
 	{
 		if (registry.valid(entity) == false || registry.has<TransformComponent>(entity) == false)
 		{
 			return true;
 		}
 
-		const glm::vec3 scale = glm::abs(registry.get<TransformComponent>(entity).Scale);
+		const glm::vec3 scale = glm::abs(worldScale);
 		const float largest = std::max(scale.x, std::max(scale.y, scale.z));
 		const float largestXY = std::max(scale.x, scale.y);
 		bool complete = true;

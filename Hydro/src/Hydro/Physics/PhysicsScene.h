@@ -26,8 +26,10 @@ namespace Hydro
 	// get their body at the start of the next physics step, or at once when game code asks for it
 	// (Physics2D::SetLinearVelocity / HasBody). The components are read when the body is made: changing
 	// them later has no effect on the body.
-	// Position (Translation.xy) and angle (Rotation.z) come from the TransformComponent when the world is
-	// built; Z, and the sprite, are never touched.
+	// Position (x, y), angle about Z and scale come from the entity's place in the world when the body is made: a
+	// root's TransformComponent (Translation.xy, Rotation.z), a child's world transform (Scene::GetWorldTransform,
+	// current even before the transforms stage). Z, and the sprite, are never touched. Results are written back to
+	// a root's TransformComponent, and to a child through Scene::SetWorldTransform.
 	//
 	// Who owns the transform while playing:
 	//  - Dynamic: the simulation. After each update the transform is overwritten with the body's.

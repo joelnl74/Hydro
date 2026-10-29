@@ -154,6 +154,7 @@ void UpdateSpin(entt::registry& registry, float deltaTime)
 - Systems never call Vulkan. Render systems only submit to the renderer.
 - Don't keep a `T&` from `GetComponent<T>()` across code that adds or removes components; EnTT moves storage.
 - **Scripts** are for one-off per-entity behaviour: derive from `ScriptableEntity`, register the type once before scenes load (`ScriptRegistry::Register<T>("Name")` in `OnInit`), and bind with `AddComponent<NativeScriptComponent>().Bind<T>()` or `.Bind("Name")`. One `NativeScriptComponent` per entity holds any number of scripts. Registered names are saved with scenes; keep them stable. Remove scripts with `Scene::RemoveScript` / `RemoveScripts` (they call `OnDestroy`). If the same logic applies to many entities, write a system instead. Never store `this` or stack addresses in components, and don't add/remove script components or destroy entities from inside a script callback.
+- **Positions in scripts are world positions.** `TransformComponent` is relative to the parent. A script that places something in the world or compares positions uses `GetWorldPosition()` / `SetWorldPosition(p)` (its own entity) or `Scene::GetWorldPosition(entity)` / `SetWorldPosition(entity, p)` (others); cameras go through `DioramaView::Apply(cameraEntity, ...)` / `PlaceInWorld`. Read `Translation` directly only for motion relative to the parent (bob, spin). Never assume an entity is a root.
 
 ## 5. Renderer and frame
 
@@ -209,6 +210,7 @@ Check the change against this list:
 - [ ] New behaviour is a system over a view (or a script, if it's truly per-entity), in a deliberate place in the frame order
 - [ ] Components stay plain data, with no pointers to other components or entities; new ones are saved, in `CopyableComponents`, and in the inspector; runtime state placed by the component state rule
 - [ ] Projections come from `Camera::Perspective` / `Camera::Orthographic`
+- [ ] Scripts read and write world positions (`GetWorldPosition` / `SetWorldPosition`), never `Translation` as a world position
 - [ ] GPU work is recorded in the frame's command buffer; per-frame resources exist per frame in flight
 - [ ] No `!` operators; every `if` / `else` / loop body in `{ }`; forward-slash includes from `src` (no `../`, no `vendor/` paths); `#pragma once`
 - [ ] Names follow the rules (`m_PascalCase`, PascalCase fields, `enum class`, `explicit`, `const` getters, `[[maybe_unused]]`); no new warnings at `/W4`; formatted with `.clang-format`

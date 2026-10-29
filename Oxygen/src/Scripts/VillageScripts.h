@@ -74,7 +74,7 @@ namespace Hydro
 				return;
 			}
 
-			const float feetY = GetComponent<TransformComponent>().Translation.y;
+			const float feetY = GetWorldPosition().y;
 			GetComponent<SpriteRendererComponent>().SortOrder = (int32_t)std::lround((VillageMap::SortOriginY - feetY) * 4.0f);
 		}
 	};
@@ -108,7 +108,7 @@ namespace Hydro
 					continue;
 				}
 
-				const glm::vec3& position = view.get<TransformComponent>(entity).Translation;
+				const glm::vec3 position = scene->GetWorldPosition(Entity{ entity, scene });
 				Stop stop;
 				stop.Position = glm::vec2(position.x, position.y);
 				const char* rest = other.c_str() + prefix.size();
@@ -177,8 +177,8 @@ namespace Hydro
 				return;
 			}
 
-			auto& transform = GetComponent<TransformComponent>();
-			const glm::vec2 position{ transform.Translation.x, transform.Translation.y };
+			const glm::vec3 world = GetWorldPosition();
+			const glm::vec2 position{ world.x, world.y };
 			const Stop& target = m_Stops[m_Index];
 			const glm::vec2 toTarget = target.Position - position;
 			const float distance = glm::length(toTarget);
@@ -186,8 +186,7 @@ namespace Hydro
 
 			if (distance <= step)
 			{
-				transform.Translation.x = target.Position.x;
-				transform.Translation.y = target.Position.y;
+				SetWorldPosition(glm::vec3(target.Position, world.z));
 				if (target.Facing.empty() == false)
 				{
 					m_Facing = target.Facing;
@@ -198,8 +197,7 @@ namespace Hydro
 			}
 
 			const glm::vec2 direction = toTarget / distance;
-			transform.Translation.x += direction.x * step;
-			transform.Translation.y += direction.y * step;
+			SetWorldPosition(glm::vec3(position + direction * step, world.z));
 			if (std::abs(direction.y) > std::abs(direction.x))
 			{
 				m_Facing = direction.y < 0.0f ? "Down" : "Up";
@@ -345,11 +343,12 @@ namespace Hydro
 				return;
 			}
 
-			const glm::vec3& playerPosition = player.GetComponent<TransformComponent>().Translation;
-			TransformComponent& transform = crate.GetComponent<TransformComponent>();
-			transform.Translation.x = playerPosition.x + m_Direction.x * DropDistance;
-			transform.Translation.y = playerPosition.y + m_Direction.y * DropDistance;
-			PlayDust(*scene, transform.Translation);
+			const glm::vec3 playerPosition = scene->GetWorldPosition(player);
+			glm::vec3 dropAt = scene->GetWorldPosition(crate);
+			dropAt.x = playerPosition.x + m_Direction.x * DropDistance;
+			dropAt.y = playerPosition.y + m_Direction.y * DropDistance;
+			scene->SetWorldPosition(crate, dropAt);
+			PlayDust(*scene, dropAt);
 
 			m_Dropped.push_back(crate.GetUUID());
 			while (m_Dropped.size() > (size_t)std::max(MaxCrates, 1))
@@ -357,7 +356,7 @@ namespace Hydro
 				Entity oldest = scene->GetEntityByUUID(m_Dropped.front());
 				if (oldest.IsValid())
 				{
-					PlayDust(*scene, oldest.GetComponent<TransformComponent>().Translation);
+					PlayDust(*scene, scene->GetWorldPosition(oldest));
 					scene->DestroyEntity(oldest);
 				}
 				m_Dropped.erase(m_Dropped.begin());
@@ -423,7 +422,6 @@ namespace Hydro
 		{
 			Entity self = GetEntity();
 			Scene* scene = self.GetScene();
-			auto& transform = GetComponent<TransformComponent>();
 			auto& camera = GetComponent<CameraComponent>();
 
 			DioramaView::Update(deltaTime);
@@ -445,12 +443,12 @@ namespace Hydro
 
 			if (m_Snap && m_Target == entt::null)
 			{
-				m_Focus = { transform.Translation.x, transform.Translation.y };
+				m_Focus = glm::vec2(GetWorldPosition());
 			}
 			glm::vec2 goal = m_Focus;
 			if (m_Target != entt::null && scene->m_Registry.has<TransformComponent>(m_Target))
 			{
-				const glm::vec3& position = scene->m_Registry.get<TransformComponent>(m_Target).Translation;
+				const glm::vec3 position = scene->GetWorldPosition(Entity{ m_Target, scene });
 				goal = { position.x, position.y + LookAhead };
 			}
 
@@ -467,7 +465,7 @@ namespace Hydro
 			m_Focus += (goal - m_Focus) * t;
 			m_Snap = false;
 
-			DioramaView::Apply(transform, camera, m_Focus);
+			DioramaView::Apply(self, m_Focus);
 		}
 
 	public:
@@ -529,13 +527,13 @@ namespace Hydro
 				m_Trail.clear();
 			}
 
-			auto& transform = GetComponent<TransformComponent>();
-			const glm::vec3& playerPosition = scene->m_Registry.get<TransformComponent>(m_Player).Translation;
+			const glm::vec3 world = GetWorldPosition();
+			const glm::vec3 playerPosition = scene->GetWorldPosition(Entity{ m_Player, scene });
 			const glm::vec2 player{ playerPosition.x, playerPosition.y };
 			if (m_Trail.empty())
 			{
 				// Start right behind the player.
-				m_Trail.push_back({ transform.Translation.x, transform.Translation.y });
+				m_Trail.push_back({ world.x, world.y });
 			}
 			if (glm::length(player - m_Trail.back()) > 0.08f)
 			{
@@ -563,15 +561,14 @@ namespace Hydro
 				m_Trail.erase(m_Trail.begin(), m_Trail.begin() + (std::ptrdiff_t)keepFrom);
 			}
 
-			const glm::vec2 position{ transform.Translation.x, transform.Translation.y };
+			const glm::vec2 position{ world.x, world.y };
 			const glm::vec2 step = goal - position;
 			const bool moving = glm::length(step) > 0.02f;
 			if (moving)
 			{
 				// Follow closely but smoothly; a big gap (after a teleport or a scene change) closes at once.
 				const glm::vec2 next = glm::length(step) > 4.0f ? goal : position + step * std::min(1.0f, 12.0f * deltaTime);
-				transform.Translation.x = next.x;
-				transform.Translation.y = next.y;
+				SetWorldPosition(glm::vec3(next, world.z));
 				if (std::abs(step.x) > std::abs(step.y))
 				{
 					m_Facing = step.x < 0.0f ? "Left" : "Right";

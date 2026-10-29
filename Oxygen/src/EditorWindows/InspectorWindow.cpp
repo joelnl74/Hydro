@@ -905,6 +905,34 @@ namespace Hydro
 			ImGui::TextDisabled("UUID %llu", (unsigned long long)(uint64_t)entity.GetComponent<IDComponent>().Id);
 	}
 
+	// Physics bodies are made from the world transform, but under a rotated parent with non-uniform scale a shape
+	// would need shear to match what is drawn, which it can't have.
+	static bool HasNonUniformlyScaledParent(Entity entity)
+	{
+		Scene* scene = entity.GetScene();
+		for (Entity parent = scene->GetParent(entity); (bool)parent; parent = scene->GetParent(parent))
+		{
+			if (parent.HasComponent<TransformComponent>())
+			{
+				const glm::vec3 scale = glm::abs(parent.GetComponent<TransformComponent>().Scale);
+				if (std::abs(scale.x - scale.y) > 1e-4f || std::abs(scale.y - scale.z) > 1e-4f)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	static bool HasPhysicsBody(Entity entity)
+	{
+		return entity.HasComponent<Rigidbody2DComponent>() || entity.HasComponent<BoxCollider2DComponent>()
+			|| entity.HasComponent<CircleCollider2DComponent>() || entity.HasComponent<BoxColliderComponent>()
+			|| entity.HasComponent<SphereColliderComponent>() || entity.HasComponent<CapsuleColliderComponent>()
+			|| entity.HasComponent<CylinderColliderComponent>() || entity.HasComponent<MeshColliderComponent>()
+			|| entity.HasComponent<CharacterBodyComponent>();
+	}
+
 	void InspectorWindow::DrawComponents(Entity entity)
 	{
 		bool removeTransform = false;
@@ -928,16 +956,28 @@ namespace Hydro
 		bool removeScripts = false;
 		bool makePrimary = false;
 
-		DrawComponent<TransformComponent>("Transform", entity, removeTransform, [](TransformComponent& transform)
+		DrawComponent<TransformComponent>("Transform", entity, removeTransform, [&](TransformComponent& transform)
 		{
 			DrawVec3Control("Translation", transform.Translation);
 
 			// Stored in radians, edited in degrees.
 			glm::vec3 rotation = glm::degrees(transform.Rotation);
 			if (DrawVec3Control("Rotation", rotation, 0.0f))
+			{
 				transform.Rotation = glm::radians(rotation);
+			}
 
 			DrawVec3Control("Scale", transform.Scale, 1.0f);
+
+			// The values are local: relative to the parent (S3).
+			if (Entity parent = entity.GetScene()->GetParent(entity))
+			{
+				ImGui::TextDisabled("Relative to its parent, %s.", parent.GetName().c_str());
+				if (HasPhysicsBody(entity) && HasNonUniformlyScaledParent(entity))
+				{
+					ImGui::TextWrapped("A parent has a non-uniform scale: when rotated, this entity's collider can't match what is drawn. Keep physics bodies under parents with an even scale.");
+				}
+			}
 		});
 
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, removeSprite, [&](SpriteRendererComponent& sprite)

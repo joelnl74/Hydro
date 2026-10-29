@@ -179,6 +179,11 @@ namespace Hydro
 			}
 		}
 
+		// Every entity exists now, so every parent can be found: put the list in depth-first order and make
+		// entities with impossible parents (missing, themselves, a cycle) roots, with a warning. A file Hydro
+		// wrote comes out unchanged.
+		m_Scene->RepairHierarchy();
+
 		HY_CORE_INFO("Loaded scene '{}' ({} entities) from {}", m_Scene->GetName(), count, filepath.string());
 		return true;
 	}
