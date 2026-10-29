@@ -177,7 +177,9 @@ namespace Hydro
 				SetAlpha(scene, m_Fade, k > 0.5f ? (1.0f - k) * 2.0f : k * 2.0f);
 			}
 
-			if (KeyPressed(KeyCode::Tab, m_Previous[0]))
+			// A runtime UI canvas that captures input (UI::CapturesInput) owns the keys: no menu, no interaction.
+			const bool uiCaptures = UI::CapturesInput(scene);
+			if (KeyPressed(KeyCode::Tab, m_Previous[0]) && uiCaptures == false)
 			{
 				ShowMenu(UIState::MenuOpen == false);
 			}
@@ -185,7 +187,7 @@ namespace Hydro
 			{
 				UpdateMenu(scene);
 			}
-			else
+			else if (uiCaptures == false)
 			{
 				UpdateInteraction(scene);
 			}

@@ -10,6 +10,7 @@
 #include "Hydro/Physics/PhysicsScene3D.h"
 #include "ParticleScene.h"
 #include "UI/UILayout.h"
+#include "UI/UIScene.h"
 
 #include "../Renderer/Renderer2D.h"
 #include "Hydro/Asset/AssetManager.h"
@@ -1213,6 +1214,48 @@ namespace Hydro
 		}
 	}
 
+	void Scene::DispatchUIEvents(std::vector<UIEvent>& events)
+	{
+		if (events.empty())
+		{
+			return;
+		}
+
+		BeginStage();
+		std::vector<ScriptableEntity*> instances;
+		for (const UIEvent& event : events)
+		{
+			bool handled = false;
+			for (Entity current = event.Target; (bool)current && handled == false; current = GetParent(current))
+			{
+				if (m_Registry.valid(current) == false || IsPendingDestroy(current))
+				{
+					break;
+				}
+				if (m_Registry.has<NativeScriptComponent>(current) == false)
+				{
+					continue;
+				}
+
+				// A snapshot, as in NotifyScripts: a script may change the script list while it is walked.
+				instances.clear();
+				for (auto& script : m_Registry.get<NativeScriptComponent>(current).Scripts)
+				{
+					if (script.Instance != nullptr && script.PendingRemove == false)
+					{
+						instances.push_back(script.Instance.get());
+					}
+				}
+				for (ScriptableEntity* instance : instances)
+				{
+					handled |= instance->OnUIEvent(event);
+				}
+			}
+		}
+		events.clear();
+		EndStage();
+	}
+
 	void Scene::DispatchPhysicsEvents()
 	{
 		const bool events2D = m_Physics != nullptr && m_Physics->GetEvents().empty() == false;
@@ -1278,12 +1321,18 @@ namespace Hydro
 		{
 			m_Particles = CreateScope<ParticleScene>();
 		}
+		if (m_UI == nullptr)
+		{
+			m_UI = CreateScope<UIScene>();
+		}
 		// The play copy carries the editor scene's runtime state; the game starts from the saved settings.
 		ResetSpriteAnimations(*this);
 	}
 
 	void Scene::OnRuntimeStop()
 	{
+		m_UI.reset();
+		m_UIEvents.clear();
 		m_Particles.reset();
 		m_Physics3D.reset();
 		m_Physics.reset();
@@ -1299,6 +1348,10 @@ namespace Hydro
 		{
 			OnRuntimeStart();
 		}
+
+		// 0. UI input: focus moves, Submit and Cancel reach the scripts (OnUIEvent) before their OnUpdate.
+		m_UI->Update(*this, context, m_UIEvents);
+		DispatchUIEvents(m_UIEvents);
 
 		// 1. Native scripts. Instances are created lazily on their first update.
 		UpdateScripts(*this, context);

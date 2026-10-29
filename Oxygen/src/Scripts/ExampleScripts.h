@@ -70,8 +70,9 @@ namespace Hydro
 		void OnUpdate(float deltaTime) override
 		{
 			glm::vec2 move{ 0.0f };
-			// A modal menu owns the keys: the character stands still (and faces the way it was).
-			const bool inputAllowed = UIState::MenuOpen == false;
+			// A modal menu owns the keys: the character stands still (and faces the way it was). Runtime UI canvases
+			// that capture input (UI::CapturesInput) do the same.
+			const bool inputAllowed = UIState::MenuOpen == false && UI::CapturesInput(*GetEntity().GetScene()) == false;
 			if (inputAllowed && (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left)))
 			{
 				move.x -= 1.0f;

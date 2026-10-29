@@ -21,6 +21,8 @@ namespace Hydro
 	class PhysicsScene;
 	class PhysicsScene3D;
 	class ParticleScene;
+	class UIScene;
+	struct UIEvent;
 	class ScriptableEntity;
 	struct SystemContext;
 
@@ -50,9 +52,11 @@ namespace Hydro
 		PhysicsScene3D* GetPhysicsScene3D() { return m_Physics3D.get(); }
 		// The live particles (ParticleScene), or null while editing / before OnRuntimeStart.
 		ParticleScene* GetParticleScene() { return m_Particles.get(); }
+		// The running UI's state (focus, keys; UIScene), or null while editing / before OnRuntimeStart.
+		UIScene* GetUIScene() { return m_UI.get(); }
 
 		// Runtime (the game is running): builds a SystemContext (IsPlaying = true) and runs the
-		// stages in order: scripts, physics, sprite animation, transforms, particles.
+		// stages in order: UI input, scripts, physics, sprite animation, transforms, particles, UI layout.
 		void OnUpdateRuntime(float deltaTime);
 		// Editing: builds a SystemContext (IsPlaying = false) and runs only the stages that keep the
 		// scene consistent while editing (transforms), without scripts or animation.
@@ -229,6 +233,9 @@ namespace Hydro
 	private:
 		// Delivers the physics steps' collision and trigger events (2D and 3D) to the entities' scripts (inside a stage).
 		void DispatchPhysicsEvents();
+		// Delivers the UI's events (stage 0) to the scripts of each target and then its ancestors, until one handles it;
+		// clears `events`.
+		void DispatchUIEvents(std::vector<UIEvent>& events);
 		// Calls one ScriptableEntity hook on every running script of `self`, with `other` as the argument.
 		void NotifyScripts(entt::entity self, entt::entity other, void (ScriptableEntity::*hook)(Entity));
 
@@ -296,6 +303,8 @@ namespace Hydro
 		Scope<PhysicsScene> m_Physics; // exists while the game runs this scene
 		Scope<PhysicsScene3D> m_Physics3D; // exists while the game runs this scene
 		Scope<ParticleScene> m_Particles; // exists while the game runs this scene
+		Scope<UIScene> m_UI; // exists while the game runs this scene
+		std::vector<UIEvent> m_UIEvents; // this frame's, reused
 
 		std::string m_Name;
 		SceneRenderSettings m_RenderSettings;

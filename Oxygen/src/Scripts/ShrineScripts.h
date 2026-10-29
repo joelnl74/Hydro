@@ -35,7 +35,8 @@ namespace Hydro
 		void OnUpdate([[maybe_unused]] float deltaTime) override
 		{
 			glm::vec2 move{ 0.0f };
-			const bool inputAllowed = UIState::MenuOpen == false;
+			// A menu or a runtime UI canvas that captures input owns the keys: she stands still.
+			const bool inputAllowed = UIState::MenuOpen == false && UI::CapturesInput(*GetEntity().GetScene()) == false;
 			if (inputAllowed && (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left)))
 			{
 				move.x -= 1.0f;

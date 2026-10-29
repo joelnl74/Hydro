@@ -28,6 +28,10 @@
 #include "Hydro/Scene/ParticleScene.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/Vfx.h"
+#include "Hydro/Scene/UI/UI.h"
+#include "Hydro/Scene/UI/UIEvent.h"
+#include "Hydro/Scene/UI/UIScene.h"
+#include "Hydro/Scene/UI/UILayout.h"
 
 // Scripting
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"

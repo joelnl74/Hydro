@@ -8,6 +8,7 @@
 #include "Scripts/ExampleScripts.h"
 #include "Scripts/MvpScripts.h"
 #include "Scripts/ShrineScripts.h"
+#include "Scripts/UICheckScripts.h"
 #include "Scripts/VillageScripts.h"
 
 namespace Hydro
@@ -97,6 +98,10 @@ namespace Hydro
 			.Property("BoundsMin", "Bounds Min", &ShrineGladeScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
 			.Property("BoundsMax", "Bounds Max", &ShrineGladeScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
 			.Property("StartPreset", "Start Preset", &ShrineGladeScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)");
+
+		ScriptRegistry::Register<UIGridCheckScript>("UIGridCheckScript");
+
+		ScriptRegistry::Register<UIMessageCheckScript>("UIMessageCheckScript");
 
 		ScriptRegistry::Register<PartyFollowScript>("PartyFollowScript")
 			.Property("FollowDistance", "Follow Distance", &PartyFollowScript::FollowDistance).Range(0.0f, 10.0f).Tooltip("Metres behind the player, measured along the path it walked");

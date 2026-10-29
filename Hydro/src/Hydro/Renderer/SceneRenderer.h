@@ -122,16 +122,18 @@ namespace Hydro
 		// Sprites marked Overlay (HUD): in the overlay pass, after the unlit particles, in SortOrder; unlit, no depth test.
 		void SubmitOverlaySprites();
 		// The runtime UI (#164): every visible canvas in SortOrder (equal orders in hierarchy order), each drawing its
-		// elements in hierarchy order (parents behind children; an element's image, then its text) at its resolved rects, in screen space
+		// elements in hierarchy order (parents behind children; an element's image, then its text) at its resolved rects,
+		// tinted by the state of the button they belong to (the nearest UIButtonComponent at or above them: its
+		// Normal / Focused / Pressed / Disabled tint, from the running UIScene; Normal or Disabled while editing), in screen space
 		// (Renderer2D::BeginScreenOverlay) after the overlay sprites: after the tonemap, untouched by lighting, bloom and
 		// grading. Positions are whole view pixels. A canvas with DrawDebug also outlines itself and its rects.
 		// RenderRuntime only (the Game view): a screen-space canvas has no place in the Editor view.
 		void SubmitUI();
 		// One image over a resolved rect (canvas pixels), whole or nine-sliced.
-		static void SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics);
+		static void SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint);
 		// One text in a resolved rect: laid out in its font (TextLayout, wrapped at the rect's width), placed by its
 		// vertical alignment, glyphs past VisibleCharacters left out. Nothing without a loaded font.
-		void SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics);
+		void SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint);
 		// One emitter's live particles, at the emitter's Z; billboards when the camera is tilted.
 		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera);
 		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
@@ -191,6 +193,7 @@ namespace Hydro
 		std::vector<UICanvasItem> m_UICanvases;
 		std::vector<Entity> m_UISubtree; // the canvas being drawn and its descendants, reused
 		TextLayoutResult m_TextLayout;   // SubmitUIText's, reused
+		std::vector<std::pair<uint32_t, glm::vec4>> m_UITints; // SubmitUI's button tints by depth (a stack), reused
 		bool m_MeshWarningShown = false;
 	};
 }

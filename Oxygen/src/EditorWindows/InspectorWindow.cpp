@@ -22,7 +22,9 @@
 #include <Hydro/Scene/SpriteAnimationSerializer.h>
 #include <Hydro/Scene/SpriteAnimator.h>
 #include <Hydro/Scene/Scripting/ScriptableEntity.h>
+#include <Hydro/Scene/UI/UI.h>
 #include <Hydro/Scene/UI/UILayout.h>
+#include <Hydro/Scene/UI/UIScene.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -1960,6 +1962,40 @@ namespace Hydro
 		}
 	}
 
+	// A button's explicit neighbour: one of the other buttons on the same canvas, by name; (none) clears it.
+	static void DrawButtonReferenceField(const char* id, Entity entity, UUID& reference)
+	{
+		Scene& scene = *entity.GetScene();
+		bool nested = false;
+		const Entity canvas = UI::FindCanvas(entity, nested);
+		Entity current = (uint64_t)reference != 0 ? scene.GetEntityByUUID(reference) : Entity{};
+		const std::string preview = (bool)current ? current.GetName() : ((uint64_t)reference != 0 ? std::string("(missing)") : std::string("(none)"));
+		if (ImGui::BeginCombo(id, preview.c_str()))
+		{
+			if (ImGui::Selectable("(none)", (uint64_t)reference == 0))
+			{
+				reference = 0;
+			}
+			auto buttons = scene.m_Registry.view<UIButtonComponent>();
+			for (entt::entity handle : buttons)
+			{
+				Entity other{ handle, &scene };
+				bool otherNested = false;
+				if (other == entity || other.HasComponent<IDComponent>() == false || UI::FindCanvas(other, otherNested) != canvas)
+				{
+					continue;
+				}
+				ImGui::PushID((int)(uint32_t)handle);
+				if (ImGui::Selectable(other.GetName().c_str(), other == current))
+				{
+					reference = other.GetUUID();
+				}
+				ImGui::PopID();
+			}
+			ImGui::EndCombo();
+		}
+	}
+
 	void InspectorWindow::DrawUIComponents(Entity entity, bool& removeCanvas, bool& removeRect, bool& removeImage, bool& removeText, bool& removeButton)
 	{
 		DrawComponent<UICanvasComponent>("UI Canvas", entity, removeCanvas, [&](UICanvasComponent& canvas)
@@ -2145,9 +2181,27 @@ namespace Hydro
 					button.Navigation = (UINavigation)mode;
 				}
 			});
-			ImGui::TextDisabled("Focus, Submit and pointer input come with UI3.");
+			if (button.Navigation == UINavigation::Explicit)
+			{
+				DrawPropertyRow("Up", [&]() { DrawButtonReferenceField("##ButtonUp", entity, button.Up); });
+				DrawPropertyRow("Down", [&]() { DrawButtonReferenceField("##ButtonDown", entity, button.Down); });
+				DrawPropertyRow("Left", [&]() { DrawButtonReferenceField("##ButtonLeft", entity, button.Left); });
+				DrawPropertyRow("Right", [&]() { DrawButtonReferenceField("##ButtonRight", entity, button.Right); });
+			}
+
+			Scene& scene = *entity.GetScene();
+			if (const UIScene* ui = scene.GetUIScene())
+			{
+				const char* states[] = { "Normal", "Focused", "Pressed", "Disabled" };
+				ImGui::TextDisabled("Now: %s", states[(int)ui->GetState(scene, entity)]);
+			}
+			else
+			{
+				ImGui::TextDisabled("Arrows / WASD move the focus, Enter / Space / Z press, Esc / Backspace / X cancel.");
+			}
 		});
 	}
+
 
 	void InspectorWindow::DrawAddComponentButton(Entity entity)
 	{

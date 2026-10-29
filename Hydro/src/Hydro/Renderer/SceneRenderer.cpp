@@ -13,6 +13,7 @@
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"
+#include "Hydro/Scene/UI/UIScene.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/constants.hpp>
@@ -603,8 +604,34 @@ namespace Hydro
 			const UICanvasMetrics metrics = UILayout::GetCanvasMetrics(canvas, viewSize);
 
 			scene.GetSubtree(Entity{ item.Entity, &scene }, m_UISubtree);
+			m_UITints.clear();
 			for (Entity element : m_UISubtree)
 			{
+				// The tint of the button this element belongs to: the stack holds the buttons above it, by depth.
+				const uint32_t depth = scene.GetDepth(element);
+				while (m_UITints.empty() == false && m_UITints.back().first >= depth)
+				{
+					m_UITints.pop_back();
+				}
+				glm::vec4 tint = m_UITints.empty() ? glm::vec4(1.0f) : m_UITints.back().second;
+				if (element.HasComponent<UIButtonComponent>())
+				{
+					const UIButtonComponent& button = element.GetComponent<UIButtonComponent>();
+					UIInteractionState state = button.Interactable ? UIInteractionState::Normal : UIInteractionState::Disabled;
+					if (const UIScene* ui = scene.GetUIScene())
+					{
+						state = ui->GetState(scene, element);
+					}
+					switch (state)
+					{
+					case UIInteractionState::Focused: tint *= button.FocusedTint; break;
+					case UIInteractionState::Pressed: tint *= button.PressedTint; break;
+					case UIInteractionState::Disabled: tint *= button.DisabledTint; break;
+					default: tint *= button.NormalTint; break;
+					}
+					m_UITints.emplace_back(depth, tint);
+				}
+
 				if (element.HasComponent<UIResolvedRectComponent>() == false)
 				{
 					continue;
@@ -616,11 +643,11 @@ namespace Hydro
 				}
 				if (element.HasComponent<UIImageComponent>())
 				{
-					SubmitUIImage(element.GetComponent<UIImageComponent>(), rect.Min, rect.Max, metrics);
+					SubmitUIImage(element.GetComponent<UIImageComponent>(), rect.Min, rect.Max, metrics, tint);
 				}
 				if (element.HasComponent<UITextComponent>())
 				{
-					SubmitUIText(element.GetComponent<UITextComponent>(), rect.Min, rect.Max, metrics);
+					SubmitUIText(element.GetComponent<UITextComponent>(), rect.Min, rect.Max, metrics, tint);
 				}
 			}
 
@@ -643,7 +670,7 @@ namespace Hydro
 		Renderer2D::EndScreenOverlay();
 	}
 
-	void SceneRenderer::SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics)
+	void SceneRenderer::SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint)
 	{
 		// Never loads: whoever assigned the handle loaded it. No texture (or one not loaded) is a flat colour.
 		const Ref<Texture2D> texture = AssetManager::GetLoadedAsset<Texture2D>(image.Texture);
@@ -669,7 +696,7 @@ namespace Hydro
 			const glm::vec2 viewMax = CanvasToViewPixels(metrics, max);
 			if (viewMax.x > viewMin.x && viewMax.y > viewMin.y)
 			{
-				Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color);
+				Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color * tint);
 			}
 			return;
 		}
@@ -705,11 +732,11 @@ namespace Hydro
 			const glm::vec2 direction = glm::sign(rect.Max - rect.Min); // -1 on a mirrored axis
 			rect.Min += inset * direction;
 			rect.Max -= inset * direction;
-			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color);
+			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color * tint);
 		}
 	}
 
-	void SceneRenderer::SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics)
+	void SceneRenderer::SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint)
 	{
 		// Never loads, like images: whoever assigned the handle loaded the font.
 		const Ref<Font> font = AssetManager::GetLoadedAsset<Font>(text.Font);
@@ -761,7 +788,7 @@ namespace Hydro
 			TextureRect rect;
 			rect.Min = glyph.SourceMin / pageSize;
 			rect.Max = glyph.SourceMax / pageSize;
-			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), page, rect, text.Color);
+			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), page, rect, text.Color * tint);
 		}
 	}
 
