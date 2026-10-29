@@ -318,7 +318,7 @@ namespace Hydro
 		return std::clamp(node.as<uint32_t>(fallback), minimum, maximum);
 	}
 
-	void EntitySerializer::Serialize(YAML::Emitter& out, Entity entity)
+	void EntitySerializer::Serialize(YAML::Emitter& out, Entity entity, bool includeParent)
 	{
 		out << YAML::BeginMap; // Entity
 		out << YAML::Key << "Entity" << YAML::Value << (uint64_t)entity.GetUUID();
@@ -330,6 +330,15 @@ namespace Hydro
 			out << YAML::Key << "TagComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Tag" << YAML::Value << tag.Tag;
+			out << YAML::EndMap;
+		}
+
+		// Roots have none (and nothing is written).
+		if (includeParent && entity.HasComponent<RelationshipComponent>() && (uint64_t)entity.GetComponent<RelationshipComponent>().Parent != 0)
+		{
+			out << YAML::Key << "RelationshipComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Parent" << YAML::Value << (uint64_t)entity.GetComponent<RelationshipComponent>().Parent;
 			out << YAML::EndMap;
 		}
 
@@ -740,6 +749,21 @@ namespace Hydro
 
 		// CreateEntityWithUUID adds the Tag + ID components.
 		Entity entity = scene.CreateEntityWithUUID(uuid, name);
+
+		// Only when loading a scene: the parent is another entity of the same file, and the scene's loader puts
+		// the list in order afterwards (Scene::RepairHierarchy). Instantiating a prefab links its entities itself
+		// (PrefabSerializer::Instantiate), since they get new UUIDs.
+		if (keepUUID)
+		{
+			if (auto relationshipNode = entityNode["RelationshipComponent"])
+			{
+				const uint64_t parent = relationshipNode["Parent"].as<uint64_t>(0);
+				if (parent != 0)
+				{
+					entity.AddComponent<RelationshipComponent>(UUID(parent));
+				}
+			}
+		}
 
 		if (auto transformNode = entityNode["TransformComponent"])
 		{

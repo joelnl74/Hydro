@@ -179,10 +179,11 @@ namespace Hydro
 		uint32_t dropped = 0;
 
 		m_Finished.clear();
-		auto view = scene.m_Registry.view<TransformComponent, ParticleEmitter2DComponent>();
+		// Stage 5 runs after the transforms stage, so the world transforms are this frame's.
+		auto view = scene.m_Registry.view<WorldTransformComponent, ParticleEmitter2DComponent>();
 		for (auto entity : view)
 		{
-			const auto [transform, emitter] = view.get<TransformComponent, ParticleEmitter2DComponent>(entity);
+			const auto [transform, emitter] = view.get<WorldTransformComponent, ParticleEmitter2DComponent>(entity);
 			EmitterRuntime& runtime = GetOrCreate(entity);
 
 			if (runtime.Random == 0)

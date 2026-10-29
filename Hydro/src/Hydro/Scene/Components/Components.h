@@ -150,6 +150,21 @@ namespace Hydro
 		}
 	};
 
+	// The entity's parent in the scene's hierarchy (Roadmap S3), by UUID. An entity without this component is
+	// a root; the component is removed rather than set to 0. Saved with scenes and copied on Play.
+	// Change it only through Scene::SetParent / Scene::MoveEntity: they keep the scene's entity list in
+	// depth-first order, which the hierarchy relies on (docs/SceneAndECS.md#hierarchy).
+	struct RelationshipComponent
+	{
+		UUID Parent = 0;
+
+		RelationshipComponent() = default;
+		RelationshipComponent(const RelationshipComponent&) = default;
+		explicit RelationshipComponent(const UUID& parent)
+			: Parent(parent) {
+		}
+	};
+
 	struct TransformComponent
 	{
 		glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
@@ -176,6 +191,25 @@ namespace Hydro
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+	};
+
+	// The entity's transform in the world: its TransformComponent (local, relative to its parent) combined with
+	// every ancestor's. Derived data: added and removed together with the TransformComponent (Scene connects
+	// to the registry's construct / destroy signals), written only by Scene::ResolveTransforms, never saved,
+	// copied on Play or shown in the inspector. Read it instead of TransformComponent wherever the position in
+	// the world matters (rendering, lights, particles, the editor's outlines). It is as of the last ResolveTransforms
+	// (stage 4, the start of the game, the start of rendering); Scene::GetWorldTransform is always current.
+	struct WorldTransformComponent
+	{
+		glm::mat4 Matrix{ 1.0f };
+		// Matrix split once here, so readers don't each decompose it (TransformMath::Decompose; a mirror is a
+		// negative Scale.x).
+		glm::vec3 Translation{ 0.0f, 0.0f, 0.0f };
+		glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+		glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
+
+		WorldTransformComponent() = default;
+		WorldTransformComponent(const WorldTransformComponent&) = default;
 	};
 
 	// A camera the scene can be viewed through. Its position and rotation come from the entity's
@@ -612,7 +646,7 @@ namespace Hydro
 	{
 	};
 
-	using CopyableComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
+	using CopyableComponents = ComponentGroup<RelationshipComponent, TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent,
 		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent>;
 }

@@ -51,8 +51,10 @@ namespace Hydro
 		// True when the entity has any 3D collider component.
 		static bool HasColliders(entt::registry& registry, entt::entity entity);
 
-		// Appends the entity's shapes. Returns false when a MeshColliderComponent names a model that isn't loaded
-		// (AssetManager): that shape is missing, ask again later. An entity without a TransformComponent has none.
-		static bool Get(entt::registry& registry, entt::entity entity, std::vector<ColliderShape>& shapes);
+		// Appends the entity's shapes, sized by `scale`: the entity's scale in the world (WorldTransformComponent::Scale,
+		// or Scene::GetWorldTransform's when it must be current), so a child of a scaled parent collides at its drawn
+		// size. Returns false when a MeshColliderComponent names a model that isn't loaded (AssetManager): that shape
+		// is missing, ask again later. An entity without a TransformComponent has none.
+		static bool Get(entt::registry& registry, entt::entity entity, const glm::vec3& scale, std::vector<ColliderShape>& shapes);
 	};
 }

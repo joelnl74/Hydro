@@ -36,6 +36,9 @@ namespace Hydro
 	// Jolt's types stay in PhysicsScene3D.cpp.
 	//
 	// Which entities are in it (World collision plan, Jolt physics MVP):
+	//  - Bodies are placed (and kinematic ones follow) where the entity is in the world: a root's TransformComponent, a
+	//    child's Scene::GetWorldTransform; colliders are sized by the world scale. Characters are written back with
+	//    Scene::SetWorldPosition (a child's local Translation changes, its rotation and scale stay).
 	//  - Every entity with a TransformComponent and 3D collider components (ColliderShapes) is a body: static, or
 	//    kinematic when it has a NativeScriptComponent (the game moves it; the body follows its transform, so a
 	//    walking villager blocks the player where it is). Colliders with IsTrigger make a second body of the entity

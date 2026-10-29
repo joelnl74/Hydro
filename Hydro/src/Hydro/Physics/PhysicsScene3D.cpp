@@ -5,6 +5,7 @@
 #include "Hydro/Scene/ColliderShapes.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/SystemContext.h"
+#include "Hydro/Scene/TransformMath.h"
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"
 
 #include <Jolt/Jolt.h>
@@ -156,8 +157,8 @@ namespace Hydro
 			JPH::BodyID Solid;
 			JPH::BodyID Trigger;
 			bool Kinematic = false;
-			glm::vec3 Translation{ 0.0f }; // the transform the bodies were last put at (kinematic)
-			glm::vec3 Rotation{ 0.0f };
+			glm::vec3 Translation{ 0.0f }; // the world pose the bodies were last put at (kinematic)
+			glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
 		};
 
 		struct Character
@@ -222,11 +223,43 @@ namespace Hydro
 		return { (float)value.GetX(), (float)value.GetY(), (float)value.GetZ() };
 	}
 
-	// The transform's rotation (Euler angles in radians, as TransformComponent::GetTransform uses them).
-	static JPH::Quat ToJoltRotation(const glm::vec3& euler)
+	static JPH::Quat ToJoltRotation(const glm::quat& rotation)
 	{
-		const glm::quat rotation(euler);
 		return JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w).Normalized();
+	}
+
+	// An entity's pose in the world now. A root's comes from its TransformComponent, exactly as before hierarchies
+	// (rotation: its Euler angles as TransformComponent::GetTransform uses them). A child's from Scene::
+	// GetWorldTransform, which is current: WorldTransformComponent is from the last transforms stage, which runs
+	// after physics, so a child spawned this frame would start at the origin.
+	struct Pose3D
+	{
+		glm::vec3 Translation{ 0.0f };
+		glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+		glm::vec3 Scale{ 1.0f };
+	};
+
+	static Pose3D GetWorldPose(Scene& scene, entt::entity handle)
+	{
+		Pose3D pose;
+		const entt::registry& registry = scene.m_Registry;
+		if (registry.has<RelationshipComponent>(handle) == false)
+		{
+			const TransformComponent& transform = registry.get<TransformComponent>(handle);
+			pose.Translation = transform.Translation;
+			pose.Rotation = glm::quat(transform.Rotation);
+			pose.Scale = transform.Scale;
+			return pose;
+		}
+
+		const glm::mat4 world = scene.GetWorldTransform(Entity{ handle, &scene });
+		if (TransformMath::Decompose(world, pose.Translation, pose.Rotation, pose.Scale) == false)
+		{
+			pose.Translation = glm::vec3(world[3]);
+			pose.Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+			pose.Scale = glm::vec3(0.0f);
+		}
+		return pose;
 	}
 
 	static entt::entity GetBodyEntity(const JPH::BodyInterface& bodies, const JPH::BodyID& id)
@@ -408,7 +441,7 @@ namespace Hydro
 			return false;
 		}
 
-		const TransformComponent& transform = registry.get<TransformComponent>(handle);
+		const Pose3D pose = GetWorldPose(*m_Scene, handle);
 		const char* name = registry.has<TagComponent>(handle) ? registry.get<TagComponent>(handle).Tag.c_str() : "Entity";
 		bool created = false;
 
@@ -447,10 +480,10 @@ namespace Hydro
 			// Contacts below the lower half sphere's centre hold the character up (Jolt's default plane is for Y up).
 			settings.mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisZ(), -character.Radius);
 
-			character.Current = transform.Translation;
-			character.Previous = transform.Translation;
-			character.Written = transform.Translation;
-			character.Body = new JPH::CharacterVirtual(&settings, ToJoltPosition(transform.Translation), JPH::Quat::sIdentity(),
+			character.Current = pose.Translation;
+			character.Previous = pose.Translation;
+			character.Written = pose.Translation;
+			character.Body = new JPH::CharacterVirtual(&settings, ToJoltPosition(pose.Translation), JPH::Quat::sIdentity(),
 				(JPH::uint64)(uint32_t)handle, &m_Data->System);
 
 			m_Data->CharacterIndex[handle] = m_Data->Characters.size();
@@ -465,7 +498,7 @@ namespace Hydro
 		}
 
 		std::vector<ColliderShape> shapes;
-		if (ColliderShapes::Get(registry, handle, shapes) == false)
+		if (ColliderShapes::Get(registry, handle, pose.Scale, shapes) == false)
 		{
 			// A model that isn't loaded yet: try again next step (say so once, in case it never is).
 			if (m_Data->WarnedMissingModel.insert(handle).second)
@@ -481,14 +514,14 @@ namespace Hydro
 		}
 
 		const bool kinematic = registry.has<NativeScriptComponent>(handle);
-		const JPH::RVec3 position = ToJoltPosition(transform.Translation);
-		const JPH::Quat rotation = ToJoltRotation(transform.Rotation);
+		const JPH::RVec3 position = ToJoltPosition(pose.Translation);
+		const JPH::Quat rotation = ToJoltRotation(pose.Rotation);
 		JPH::BodyInterface& bodies = m_Data->System.GetBodyInterface();
 
 		Data::EntityBodies entry;
 		entry.Kinematic = kinematic;
-		entry.Translation = transform.Translation;
-		entry.Rotation = transform.Rotation;
+		entry.Translation = pose.Translation;
+		entry.Rotation = pose.Rotation;
 
 		for (bool triggers : { false, true })
 		{
@@ -585,15 +618,16 @@ namespace Hydro
 				continue;
 			}
 
-			const TransformComponent& transform = registry.get<TransformComponent>(handle);
-			if (transform.Translation == entry.Translation && transform.Rotation == entry.Rotation)
+			const Pose3D pose = GetWorldPose(*m_Scene, handle);
+			if (pose.Translation == entry.Translation && pose.Rotation == entry.Rotation)
 			{
 				continue;
 			}
 
-			// The game moved it: the bodies are put where it is. Nothing is pushed by them, so no velocity is needed.
-			const JPH::RVec3 position = ToJoltPosition(transform.Translation);
-			const JPH::Quat rotation = ToJoltRotation(transform.Rotation);
+			// The game moved it (or its parent): the bodies are put where it is. Nothing is pushed by them, so no
+			// velocity is needed.
+			const JPH::RVec3 position = ToJoltPosition(pose.Translation);
+			const JPH::Quat rotation = ToJoltRotation(pose.Rotation);
 			for (const JPH::BodyID& id : { entry.Solid, entry.Trigger })
 			{
 				if (id.IsInvalid() == false)
@@ -601,8 +635,8 @@ namespace Hydro
 					bodies.SetPositionAndRotation(id, position, rotation, JPH::EActivation::DontActivate);
 				}
 			}
-			entry.Translation = transform.Translation;
-			entry.Rotation = transform.Rotation;
+			entry.Translation = pose.Translation;
+			entry.Rotation = pose.Rotation;
 		}
 	}
 
@@ -730,7 +764,8 @@ namespace Hydro
 				continue;
 			}
 			const glm::vec3 position = glm::mix(character.Previous, character.Current, blend);
-			registry.get<TransformComponent>(character.Handle).Translation = position;
+			// A root's Translation, or a child's local Translation that puts it there (its rotation and scale stay).
+			m_Scene->SetWorldPosition(Entity{ character.Handle, m_Scene }, position);
 			character.Written = position;
 		}
 	}
@@ -757,7 +792,7 @@ namespace Hydro
 			{
 				continue;
 			}
-			const glm::vec3& translation = registry.get<TransformComponent>(character.Handle).Translation;
+			const glm::vec3 translation = m_Scene->GetWorldPosition(Entity{ character.Handle, m_Scene });
 			if (glm::length(translation - character.Written) > 1.0e-4f)
 			{
 				character.Body->SetPosition(ToJoltPosition(translation));

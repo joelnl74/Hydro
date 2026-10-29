@@ -67,6 +67,8 @@ namespace Hydro
 
 	void SceneRenderer::RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay)
 	{
+		// Application systems run after the scene update and may have moved things: draw where they are now.
+		m_Scene->ResolveTransforms();
 		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		const glm::mat4 cameraWorld = glm::inverse(camera.GetView());
 		m_Camera = MakeCameraBasis(glm::mat3(cameraWorld));
@@ -86,6 +88,8 @@ namespace Hydro
 
 	bool SceneRenderer::RenderRuntime(RenderView& view)
 	{
+		// Application systems run after the scene update and may have moved things: draw where they are now.
+		m_Scene->ResolveTransforms();
 		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		Entity cameraEntity = m_Scene->GetPrimaryCameraEntity();
 		if ((bool)cameraEntity == false)
@@ -98,10 +102,10 @@ namespace Hydro
 
 		// The camera's position and rotation; scale would distort the view, so it's ignored.
 		glm::mat4 cameraTransform(1.0f);
-		if (cameraEntity.HasComponent<TransformComponent>())
+		if (cameraEntity.HasComponent<WorldTransformComponent>())
 		{
-			const TransformComponent& transform = cameraEntity.GetComponent<TransformComponent>();
-			cameraTransform = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(glm::quat(transform.Rotation));
+			const WorldTransformComponent& transform = cameraEntity.GetComponent<WorldTransformComponent>();
+			cameraTransform = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(transform.Rotation);
 		}
 		m_Camera = MakeCameraBasis(glm::mat3(cameraTransform));
 		m_Camera.Position = glm::vec3(cameraTransform[3]);
@@ -122,7 +126,7 @@ namespace Hydro
 
 	void SceneRenderer::SubmitSprites()
 	{
-		auto view = m_Scene->m_Registry.view<TransformComponent, SpriteRendererComponent>();
+		auto view = m_Scene->m_Registry.view<WorldTransformComponent, SpriteRendererComponent>();
 
 		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
 		const bool sharedDepth = Renderer2D::HasSharedDepth(features);
@@ -202,7 +206,7 @@ namespace Hydro
 		uint32_t index = 0;
 		for (auto entity : view)
 		{
-			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+			const auto [transform, sprite] = view.get<WorldTransformComponent, SpriteRendererComponent>(entity);
 			if (sprite.Overlay)
 			{
 				continue; // SubmitOverlaySprites
@@ -217,7 +221,7 @@ namespace Hydro
 			{
 				// Where it stands: the bottom edge of an Upright quad, the centre of a Billboard.
 				const Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
-				const glm::mat4 quad = GetSpriteQuadTransform(transform.GetTransform(), loaded.get(), sprite.SpriteIndex);
+				const glm::mat4 quad = GetSpriteQuadTransform(transform.Matrix, loaded.get(), sprite.SpriteIndex);
 				const glm::vec4 local = sprite.Facing == SpriteFacing::Upright ? glm::vec4(0.0f, -0.5f, 0.0f, 1.0f) : glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 				const glm::vec3 standsAt = glm::vec3(quad * local);
 				item.Standing = true;
@@ -240,10 +244,10 @@ namespace Hydro
 		const ParticleScene* particles = m_Scene->GetParticleScene();
 		if (particles != nullptr)
 		{
-			auto emitters = m_Scene->m_Registry.view<TransformComponent, ParticleEmitter2DComponent>();
+			auto emitters = m_Scene->m_Registry.view<WorldTransformComponent, ParticleEmitter2DComponent>();
 			for (auto entity : emitters)
 			{
-				const auto [transform, emitter] = emitters.get<TransformComponent, ParticleEmitter2DComponent>(entity);
+				const auto [transform, emitter] = emitters.get<WorldTransformComponent, ParticleEmitter2DComponent>(entity);
 				const ParticleScene::EmitterRuntime* runtime = particles->Find(entity);
 				if (emitter.Lighting == ParticleLighting::Unlit || runtime == nullptr || runtime->Particles.Count == 0)
 				{
@@ -306,14 +310,14 @@ namespace Hydro
 			if (item.IsEmitter)
 			{
 				const ParticleEmitter2DComponent& emitter = m_Scene->m_Registry.get<ParticleEmitter2DComponent>(item.Entity);
-				SubmitParticles(emitter, *particles->Find(item.Entity), m_Scene->m_Registry.get<TransformComponent>(item.Entity).Translation, m_Camera);
+				SubmitParticles(emitter, *particles->Find(item.Entity), m_Scene->m_Registry.get<WorldTransformComponent>(item.Entity).Translation, m_Camera);
 				continue;
 			}
-			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(item.Entity);
+			const auto [transform, sprite] = view.get<WorldTransformComponent, SpriteRendererComponent>(item.Entity);
 			// Sun shadows (R14): cut-out standing sprites cast (the depth buffer holds them, so their shadow
 			// matches what is drawn); translucent ones and particles don't.
 			const bool castsShadow = m_SunShadows.Sprites && sharedDepth && item.Cutout && item.Standing && sprite.CastShadows;
-			SubmitSprite(transform.GetTransform(), sprite, m_Camera, castsShadow);
+			SubmitSprite(transform.Matrix, sprite, m_Camera, castsShadow);
 		}
 		Renderer2D::SetEntityID(-1);
 		Renderer2D::SetEmission(glm::vec3(0.0f));
@@ -349,7 +353,7 @@ namespace Hydro
 		}
 
 		Entity sun = m_Scene->GetMainLight();
-		if ((bool)sun == false || sun.HasComponent<TransformComponent>() == false || sun.GetComponent<DirectionalLightComponent>().CastShadows == false)
+		if ((bool)sun == false || sun.HasComponent<WorldTransformComponent>() == false || sun.GetComponent<DirectionalLightComponent>().CastShadows == false)
 		{
 			return;
 		}
@@ -360,7 +364,7 @@ namespace Hydro
 		// FaceSun: the caster stands straight up (lean 90 degrees), turned about Z so the light hits it face on.
 		// Of the two ways round that do, the one closer to how the camera sees the sprite, so its left side
 		// casts on the left (a sun straight overhead: the camera's way round).
-		const glm::vec3 travel = glm::quat(sun.GetComponent<TransformComponent>().Rotation) * glm::vec3(0.0f, 0.0f, -1.0f);
+		const glm::vec3 travel = sun.GetComponent<WorldTransformComponent>().Rotation * glm::vec3(0.0f, 0.0f, -1.0f);
 		glm::vec2 ground{ travel.x, travel.y };
 		const float groundLength = glm::length(ground);
 		ground = groundLength < 1.0e-4f ? m_Camera.GroundForward : ground / groundLength;
@@ -405,7 +409,7 @@ namespace Hydro
 
 	void SceneRenderer::SubmitMeshes(RenderView& renderView)
 	{
-		auto meshes = m_Scene->m_Registry.view<TransformComponent, MeshComponent>();
+		auto meshes = m_Scene->m_Registry.view<WorldTransformComponent, MeshComponent>();
 		if (meshes.begin() == meshes.end())
 		{
 			return;
@@ -426,7 +430,7 @@ namespace Hydro
 		Renderer3D::BeginScene(renderView);
 		for (auto entity : meshes)
 		{
-			const auto [transform, meshComponent] = meshes.get<TransformComponent, MeshComponent>(entity);
+			const auto [transform, meshComponent] = meshes.get<WorldTransformComponent, MeshComponent>(entity);
 			// A model that isn't loaded (missing, or failed to import: logged when it was loaded) draws nothing.
 			const Ref<Mesh> mesh = (uint64_t)meshComponent.Model != 0 ? AssetManager::GetLoadedAsset<Mesh>(meshComponent.Model)
 				: Renderer3D::GetShapeMesh(meshComponent);
@@ -435,7 +439,7 @@ namespace Hydro
 				continue;
 			}
 
-			const glm::mat4 world = transform.GetTransform();
+			const glm::mat4 world = transform.Matrix;
 			const uint32_t subMeshCount = (uint32_t)mesh->GetSubMeshes().size();
 			for (uint32_t i = 0; i < subMeshCount; i++)
 			{
@@ -456,10 +460,10 @@ namespace Hydro
 		}
 
 		bool began = false;
-		auto emitters = m_Scene->m_Registry.view<TransformComponent, ParticleEmitter2DComponent>();
+		auto emitters = m_Scene->m_Registry.view<WorldTransformComponent, ParticleEmitter2DComponent>();
 		for (auto entity : emitters)
 		{
-			const auto [transform, emitter] = emitters.get<TransformComponent, ParticleEmitter2DComponent>(entity);
+			const auto [transform, emitter] = emitters.get<WorldTransformComponent, ParticleEmitter2DComponent>(entity);
 			const ParticleScene::EmitterRuntime* runtime = particles->Find(entity);
 			if (emitter.Lighting != ParticleLighting::Unlit || runtime == nullptr || runtime->Particles.Count == 0)
 			{
@@ -482,7 +486,7 @@ namespace Hydro
 	void SceneRenderer::SubmitOverlaySprites()
 	{
 		// Rare (a few HUD sprites), so collected fresh each frame.
-		auto view = m_Scene->m_Registry.view<TransformComponent, SpriteRendererComponent>();
+		auto view = m_Scene->m_Registry.view<WorldTransformComponent, SpriteRendererComponent>();
 		std::vector<std::pair<int32_t, entt::entity>> overlay;
 		for (auto entity : view)
 		{
@@ -504,9 +508,9 @@ namespace Hydro
 		for (const auto& item : overlay)
 		{
 			const entt::entity entity = item.second;
-			const auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+			const auto [transform, sprite] = view.get<WorldTransformComponent, SpriteRendererComponent>(entity);
 			Renderer2D::SetEntityID((int32_t)(uint32_t)entity);
-			SubmitSprite(transform.GetTransform(), sprite, m_Camera);
+			SubmitSprite(transform.Matrix, sprite, m_Camera);
 		}
 		Renderer2D::SetEntityID(-1);
 		Renderer2D::SetEmission(glm::vec3(0.0f));
@@ -565,10 +569,10 @@ namespace Hydro
 			return;
 		}
 
-		auto view = m_Scene->m_Registry.view<TransformComponent, Light2DComponent>();
+		auto view = m_Scene->m_Registry.view<WorldTransformComponent, Light2DComponent>();
 		for (auto entity : view)
 		{
-			const auto [transform, light] = view.get<TransformComponent, Light2DComponent>(entity);
+			const auto [transform, light] = view.get<WorldTransformComponent, Light2DComponent>(entity);
 
 			if (light.Type == Light2DType::Global)
 			{
@@ -590,9 +594,9 @@ namespace Hydro
 	}
 
 	// The direction an entity's -Z points to (spot lights, the sun): its full 3D rotation.
-	static glm::vec3 GetForwardDirection(const TransformComponent& transform)
+	static glm::vec3 GetForwardDirection(const WorldTransformComponent& transform)
 	{
-		const glm::vec3 direction = glm::quat(transform.Rotation) * glm::vec3(0.0f, 0.0f, -1.0f);
+		const glm::vec3 direction = transform.Rotation * glm::vec3(0.0f, 0.0f, -1.0f);
 		const float length = glm::length(direction);
 		return length > 0.0f ? direction / length : glm::vec3(0.0f, 0.0f, -1.0f);
 	}
@@ -612,11 +616,11 @@ namespace Hydro
 
 		// The sun.
 		Entity sun = m_Scene->GetMainLight();
-		if ((bool)sun && sun.HasComponent<TransformComponent>())
+		if ((bool)sun && sun.HasComponent<WorldTransformComponent>())
 		{
 			const DirectionalLightComponent& light = sun.GetComponent<DirectionalLightComponent>();
 			lighting.HasSun = true;
-			lighting.SunDirection = GetForwardDirection(sun.GetComponent<TransformComponent>());
+			lighting.SunDirection = GetForwardDirection(sun.GetComponent<WorldTransformComponent>());
 			lighting.SunColor = light.Color * light.Intensity;
 			// Drawn only when the view has the SunShadows feature (Renderer2D checks its graph).
 			lighting.SunShadows = light.CastShadows && GetEffectiveRenderFeatures().Shadows == ShadowMode::Sun;
@@ -627,10 +631,10 @@ namespace Hydro
 
 		// Ambient: the scene's environment, else its Global lights (sky and ground alike).
 		glm::vec3 globalAmbient{ 0.0f };
-		auto lights = m_Scene->m_Registry.view<TransformComponent, Light2DComponent>();
+		auto lights = m_Scene->m_Registry.view<WorldTransformComponent, Light2DComponent>();
 		for (auto entity : lights)
 		{
-			const auto [transform, light] = lights.get<TransformComponent, Light2DComponent>(entity);
+			const auto [transform, light] = lights.get<WorldTransformComponent, Light2DComponent>(entity);
 			if (light.Type == Light2DType::Global)
 			{
 				globalAmbient += light.Color * light.Intensity;
@@ -675,7 +679,7 @@ namespace Hydro
 
 	void SceneRenderer::SubmitShadows()
 	{
-		auto view = m_Scene->m_Registry.view<TransformComponent, Shadow2DComponent>();
+		auto view = m_Scene->m_Registry.view<WorldTransformComponent, Shadow2DComponent>();
 		const RenderFeatureSettings features = GetEffectiveRenderFeatures();
 		const bool forward = features.Lighting == LightingMode::Forward;
 		if (forward)
@@ -687,7 +691,7 @@ namespace Hydro
 
 		for (auto entity : view)
 		{
-			const auto [transform, shadow] = view.get<TransformComponent, Shadow2DComponent>(entity);
+			const auto [transform, shadow] = view.get<WorldTransformComponent, Shadow2DComponent>(entity);
 
 			const glm::vec3 position = transform.Translation + glm::vec3(shadow.Offset, 0.0f);
 			if (forward)
@@ -799,7 +803,7 @@ namespace Hydro
 	{
 		Entity selected = overlay.Selected; // a copy: Entity::GetScene is not const
 		const bool drawSelected = overlay.SelectionOutline && selected.IsValid()
-			&& selected.GetScene() == m_Scene.get() && selected.HasComponent<TransformComponent>();
+			&& selected.GetScene() == m_Scene.get() && selected.HasComponent<WorldTransformComponent>();
 		if (drawSelected == false && overlay.Colliders == false)
 		{
 			return;
@@ -832,21 +836,21 @@ namespace Hydro
 				}
 			};
 
-			auto boxes = m_Scene->m_Registry.view<TransformComponent, BoxCollider2DComponent>();
+			auto boxes = m_Scene->m_Registry.view<WorldTransformComponent, BoxCollider2DComponent>();
 			for (auto entity : boxes)
 			{
-				const auto [transform, box] = boxes.get<TransformComponent, BoxCollider2DComponent>(entity);
-				const glm::mat4 shape = transform.GetTransform()
+				const auto [transform, box] = boxes.get<WorldTransformComponent, BoxCollider2DComponent>(entity);
+				const glm::mat4 shape = transform.Matrix
 					* glm::translate(glm::mat4(1.0f), glm::vec3(box.Offset, 0.0f))
 					* glm::scale(glm::mat4(1.0f), glm::vec3(box.Size, 1.0f));
 				Renderer2D::DrawRect(shape, colorFor(entity, box.IsSensor), 1.5f);
 			}
 
-			auto circles = m_Scene->m_Registry.view<TransformComponent, CircleCollider2DComponent>();
+			auto circles = m_Scene->m_Registry.view<WorldTransformComponent, CircleCollider2DComponent>();
 			for (auto entity : circles)
 			{
-				const auto [transform, circle] = circles.get<TransformComponent, CircleCollider2DComponent>(entity);
-				const glm::vec3 centre = glm::vec3(transform.GetTransform() * glm::vec4(circle.Offset, 0.0f, 1.0f));
+				const auto [transform, circle] = circles.get<WorldTransformComponent, CircleCollider2DComponent>(entity);
+				const glm::vec3 centre = glm::vec3(transform.Matrix * glm::vec4(circle.Offset, 0.0f, 1.0f));
 				const float scale = std::max(std::abs(transform.Scale.x), std::abs(transform.Scale.y));
 				Renderer2D::DrawCircle(centre, circle.Radius * scale, colorFor(entity, circle.IsSensor), 1.5f);
 			}
@@ -856,8 +860,8 @@ namespace Hydro
 		{
 			const glm::vec4 selectionColor{ 1.0f, 0.65f, 0.1f, 1.0f };
 			const float thickness = 2.5f;
-			const TransformComponent& transform = selected.GetComponent<TransformComponent>();
-			const glm::mat4 matrix = transform.GetTransform();
+			const WorldTransformComponent& transform = selected.GetComponent<WorldTransformComponent>();
+			const glm::mat4 matrix = transform.Matrix;
 
 			if (selected.HasComponent<SpriteRendererComponent>())
 			{
@@ -915,7 +919,7 @@ namespace Hydro
 
 	void SceneRenderer::SubmitSelectionDebugLines(Entity selected)
 	{
-		const TransformComponent& transform = selected.GetComponent<TransformComponent>();
+		const WorldTransformComponent& transform = selected.GetComponent<WorldTransformComponent>();
 		const glm::vec4 boundsColor{ 1.0f, 0.65f, 0.1f, 1.0f };
 		const glm::vec4 lightColor{ 1.0f, 0.9f, 0.4f, 0.9f };
 
@@ -929,7 +933,7 @@ namespace Hydro
 				: Renderer3D::GetShapeMesh(meshComponent);
 			if (mesh != nullptr)
 			{
-				const glm::mat4 world = transform.GetTransform();
+				const glm::mat4 world = transform.Matrix;
 				const glm::vec3 low = mesh->GetBoundsMin();
 				const glm::vec3 high = mesh->GetBoundsMax();
 				glm::vec3 corners[8];
@@ -1110,12 +1114,12 @@ namespace Hydro
 
 		for (entt::entity entity : m_Scene->GetEntityOrder())
 		{
-			if (registry.has<TransformComponent>(entity) == false)
+			if (registry.has<WorldTransformComponent>(entity) == false)
 			{
 				continue;
 			}
-			const TransformComponent& transform = registry.get<TransformComponent>(entity);
-			const glm::mat4 world = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(glm::quat(transform.Rotation));
+			const WorldTransformComponent& transform = registry.get<WorldTransformComponent>(entity);
+			const glm::mat4 world = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(transform.Rotation);
 
 			// A character: its capsule on the entity's feet (the transform's scale doesn't size it).
 			if (registry.has<CharacterBodyComponent>(entity))
@@ -1137,7 +1141,7 @@ namespace Hydro
 				continue;
 			}
 			shapes.clear();
-			ColliderShapes::Get(registry, entity, shapes);
+			ColliderShapes::Get(registry, entity, transform.Scale, shapes);
 			const bool kinematic = registry.has<NativeScriptComponent>(entity);
 			for (const ColliderShape& shape : shapes)
 			{

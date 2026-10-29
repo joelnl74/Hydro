@@ -5,6 +5,7 @@
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/SystemContext.h"
+#include "Hydro/Scene/TransformMath.h"
 
 #include <box2d/box2d.h>
 
@@ -16,20 +17,61 @@
 
 namespace Hydro
 {
-	namespace
-	{
-		constexpr float Pi = 3.14159265358979f;
-		// Box2D asserts on shapes thinner than its linear slop (0.005), so colliders are never smaller.
-		constexpr float MinHalfExtent = 0.01f;
+	static constexpr float Pi = 3.14159265358979f;
+	// Box2D asserts on shapes thinner than its linear slop (0.005), so colliders are never smaller.
+	static constexpr float MinHalfExtent = 0.01f;
 
-		float WrapAngle(float radians)
+	static float WrapAngle(float radians)
+	{
+		while (radians > Pi)
 		{
-			while (radians > Pi)
-				radians -= 2.0f * Pi;
-			while (radians < -Pi)
-				radians += 2.0f * Pi;
-			return radians;
+			radians -= 2.0f * Pi;
 		}
+		while (radians < -Pi)
+		{
+			radians += 2.0f * Pi;
+		}
+		return radians;
+	}
+
+	// An entity's 2D pose in the world now: position (x, y), angle about Z and scale (x, y). A root's are its
+	// TransformComponent's, exactly as before hierarchies. A child's come from Scene::GetWorldTransform, which is
+	// current: WorldTransformComponent is from the last transforms stage, which runs after physics, so a child
+	// spawned this frame would start at the origin.
+	struct Pose2D
+	{
+		glm::vec2 Position{ 0.0f };
+		float Angle = 0.0f;
+		glm::vec2 Scale{ 1.0f };
+	};
+
+	static Pose2D GetWorldPose(Scene& scene, entt::entity handle)
+	{
+		Pose2D pose;
+		const entt::registry& registry = scene.m_Registry;
+		if (registry.has<RelationshipComponent>(handle) == false)
+		{
+			const TransformComponent& transform = registry.get<TransformComponent>(handle);
+			pose.Position = glm::vec2(transform.Translation);
+			pose.Angle = transform.Rotation.z;
+			pose.Scale = glm::vec2(transform.Scale);
+			return pose;
+		}
+
+		const glm::mat4 world = scene.GetWorldTransform(Entity{ handle, &scene });
+		glm::vec3 translation;
+		glm::quat rotation;
+		glm::vec3 scale;
+		if (TransformMath::Decompose(world, translation, rotation, scale) == false)
+		{
+			pose.Position = glm::vec2(world[3]);
+			pose.Scale = glm::vec2(0.0f);
+			return pose;
+		}
+		pose.Position = glm::vec2(translation);
+		pose.Angle = glm::eulerAngles(rotation).z;
+		pose.Scale = glm::vec2(scale);
+		return pose;
 	}
 
 	struct PhysicsScene::Data
@@ -48,10 +90,10 @@ namespace Hydro
 	};
 
 	// Adds the entity's collider components as shapes of the body.
-	static void CreateShapes(b2BodyId body, b2BodyType bodyType, entt::registry& registry, entt::entity handle, const TransformComponent& transform)
+	static void CreateShapes(b2BodyId body, b2BodyType bodyType, entt::registry& registry, entt::entity handle, const glm::vec2& scale)
 	{
-		const float scaleX = std::abs(transform.Scale.x);
-		const float scaleY = std::abs(transform.Scale.y);
+		const float scaleX = std::abs(scale.x);
+		const float scaleY = std::abs(scale.y);
 
 		const auto makeShapeDef = [bodyType](const PhysicsMaterial2D& material, bool isSensor)
 		{
@@ -126,7 +168,7 @@ namespace Hydro
 			return false;
 		}
 
-		const TransformComponent& transform = registry.get<TransformComponent>(handle);
+		const Pose2D pose = GetWorldPose(*m_Scene, handle);
 
 		b2BodyDef bodyDef = b2DefaultBodyDef();
 		bodyDef.type = b2_staticBody;
@@ -145,13 +187,13 @@ namespace Hydro
 			bodyDef.linearDamping = rigidbody.LinearDamping;
 			bodyDef.angularDamping = rigidbody.AngularDamping;
 		}
-		bodyDef.position = { transform.Translation.x, transform.Translation.y };
-		bodyDef.rotation = b2MakeRot(transform.Rotation.z);
+		bodyDef.position = { pose.Position.x, pose.Position.y };
+		bodyDef.rotation = b2MakeRot(pose.Angle);
 		// For the collision callbacks (E2): the entity this body belongs to.
 		bodyDef.userData = reinterpret_cast<void*>(static_cast<std::uintptr_t>(static_cast<uint32_t>(handle)));
 
 		const b2BodyId body = b2CreateBody(m_Data->World, &bodyDef);
-		CreateShapes(body, bodyDef.type, registry, handle, transform);
+		CreateShapes(body, bodyDef.type, registry, handle, pose.Scale);
 
 		Data::Body entry;
 		entry.Handle = handle;
@@ -230,12 +272,12 @@ namespace Hydro
 				continue;
 			}
 
-			const TransformComponent& transform = registry.get<TransformComponent>(body.Handle);
+			const Pose2D pose = GetWorldPose(*m_Scene, body.Handle);
 			const b2Vec2 position = b2Body_GetPosition(body.Id);
 			const float angle = b2Rot_GetAngle(b2Body_GetRotation(body.Id));
 
-			b2Body_SetLinearVelocity(body.Id, { (transform.Translation.x - position.x) / span, (transform.Translation.y - position.y) / span });
-			b2Body_SetAngularVelocity(body.Id, WrapAngle(transform.Rotation.z - angle) / span);
+			b2Body_SetLinearVelocity(body.Id, { (pose.Position.x - position.x) / span, (pose.Position.y - position.y) / span });
+			b2Body_SetAngularVelocity(body.Id, WrapAngle(pose.Angle - angle) / span);
 		}
 
 		for (int i = 0; i < steps; i++)
@@ -258,11 +300,32 @@ namespace Hydro
 				continue;
 			}
 
-			TransformComponent& transform = registry.get<TransformComponent>(body.Handle);
 			const b2Vec2 position = b2Body_GetPosition(body.Id);
-			transform.Translation.x = position.x;
-			transform.Translation.y = position.y;
-			transform.Rotation.z = b2Rot_GetAngle(b2Body_GetRotation(body.Id));
+			const float angle = b2Rot_GetAngle(b2Body_GetRotation(body.Id));
+			if (registry.has<RelationshipComponent>(body.Handle) == false)
+			{
+				TransformComponent& transform = registry.get<TransformComponent>(body.Handle);
+				transform.Translation.x = position.x;
+				transform.Translation.y = position.y;
+				transform.Rotation.z = angle;
+				continue;
+			}
+
+			// A child: turn its world transform about Z to the body's angle and move it to the body's position
+			// (keeping its height and its scale); the local transform that gives that is written back.
+			const Entity entity{ body.Handle, m_Scene };
+			glm::mat4 world = m_Scene->GetWorldTransform(entity);
+			glm::vec3 translation;
+			glm::quat rotation;
+			glm::vec3 scale;
+			if (TransformMath::Decompose(world, translation, rotation, scale) == false)
+			{
+				continue;
+			}
+			const float turn = WrapAngle(angle - glm::eulerAngles(rotation).z);
+			rotation = glm::angleAxis(turn, glm::vec3(0.0f, 0.0f, 1.0f)) * rotation;
+			world = TransformMath::Compose(glm::vec3(position.x, position.y, translation.z), rotation, scale);
+			m_Scene->SetWorldTransform(entity, world);
 		}
 	}
 
