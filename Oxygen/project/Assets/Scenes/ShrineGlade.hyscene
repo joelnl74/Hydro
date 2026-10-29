@@ -28,21 +28,25 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [1.09180093, -2, 0]
-      Rotation: [0, 0, 0.436332315]
+      Translation: [-1.20000005, -14, 9]
+      Rotation: [1.22173047, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       Primary: true
-      Projection: Orthographic
-      PerspectiveFOV: 45
-      PerspectiveNear: 0.00999999978
-      PerspectiveFar: 1000
+      Projection: Perspective
+      PerspectiveFOV: 35
+      PerspectiveNear: 0.5
+      PerspectiveFar: 220
       OrthographicSize: 12
       OrthographicNear: -1
       OrthographicFar: 1
     NativeScriptComponent:
       Scripts:
         - Name: CameraFollowScript
+          Properties:
+            Bounds: [17, 23]
+            LookAhead: 1.5
+            Smoothing: 8
   - Entity: 4271470499060943565
     TagComponent:
       Tag: Player
@@ -80,6 +84,7 @@ Entities:
       Scripts:
         - Name: DioramaWalkScript
           Properties:
+            RunMultiplier: 1.70000005
             m_Speed: 3.5
   - Entity: 8193067209988477087
     TagComponent:
@@ -100,6 +105,18 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - Name: MvpDirectorScript
+          Properties:
+            ArriveTime: 0.600000024
+            CloseRange: 0.600000024
+            EyeHeight: 1
+            FacingDegrees: 80
+            InteractRange: 1.70000005
+            ItemHeight: 0.600000024
+            LeaveTime: 0.600000024
+            MaxReachHeight: 1
+            MessageTime: 3
+            RestTime: 1.20000005
+            SwitchMargin: 0.300000012
   - Entity: 6070344299463217815
     TagComponent:
       Tag: Shrine Director
@@ -112,6 +129,14 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - Name: ShrineGladeScript
+          Properties:
+            BoundsMax: [2, 6]
+            BoundsMin: [-2, -8]
+            FieldOfView: 35
+            FocusLead: 3
+            FocusRise: 2.20000005
+            StartPreset: 1
+            TiltDegrees: 70
   - Entity: 8816398440347559045
     TagComponent:
       Tag: Sky
@@ -3003,7 +3028,7 @@ Entities:
     TagComponent:
       Tag: Shrine Building
     TransformComponent:
-      Translation: [0, 7.9, 3.1]
+      Translation: [0, 7.9000001, 3.0999999]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 4377922040100137191
@@ -3051,7 +3076,7 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [0, -2.9, 0]
+      Translation: [0, -2.9000001, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     BoxCollider2DComponent:
@@ -3072,7 +3097,7 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [0, -1.4, 0]
+      Translation: [0, -1.39999998, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3087,7 +3112,7 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [0, -2.86, 0]
+      Translation: [0, -2.8599999, 0]
       Rotation: [-0.35779199, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3104,7 +3129,7 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [-4, -0.698, 0]
+      Translation: [-4, -0.698000014, 0]
       Rotation: [0, 0, 0]
       Scale: [1.02499998, 1.04999995, 1]
     SpriteRendererComponent:
@@ -3134,7 +3159,7 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [-5, -0.698, 0]
+      Translation: [-5, -0.698000014, 0]
       Rotation: [0, 0, 0]
       Scale: [1.02499998, 1.04999995, 1]
     SpriteRendererComponent:
@@ -3164,7 +3189,7 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [4, -0.698, 0]
+      Translation: [4, -0.698000014, 0]
       Rotation: [0, 0, 0]
       Scale: [1.02499998, 1.04999995, 1]
     SpriteRendererComponent:
@@ -3194,7 +3219,7 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [5, -0.698, 0]
+      Translation: [5, -0.698000014, 0]
       Rotation: [0, 0, 0]
       Scale: [1.02499998, 1.04999995, 1]
     SpriteRendererComponent:
@@ -3224,14 +3249,14 @@ Entities:
     RelationshipComponent:
       Parent: 4072379458563128263
     TransformComponent:
-      Translation: [0, -3.61, 0]
+      Translation: [0, -3.6099999, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 5748929972263781963
     TagComponent:
       Tag: Shrine Gate
     TransformComponent:
-      Translation: [0, -11.4, 0]
+      Translation: [0, -11.3999996, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 915656162424463572
@@ -3256,7 +3281,7 @@ Entities:
     RelationshipComponent:
       Parent: 5748929972263781963
     TransformComponent:
-      Translation: [-1.6, 0, 0]
+      Translation: [-1.60000002, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     BoxCollider2DComponent:
@@ -3277,7 +3302,7 @@ Entities:
     RelationshipComponent:
       Parent: 5748929972263781963
     TransformComponent:
-      Translation: [1.6, 0, 0]
+      Translation: [1.60000002, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     BoxCollider2DComponent:
@@ -3305,7 +3330,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [-2.65, -3.85, 1]
+      Translation: [-2.6500001, -3.8499999, 1]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 5515472067107185271
@@ -3347,7 +3372,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [2.65, -3.85, 1]
+      Translation: [2.6500001, -3.8499999, 1]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 6031282627385922262
@@ -3389,7 +3414,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [-3.5, 4.84, 3.1]
+      Translation: [-3.5, 4.84000015, 3.0999999]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 2681392914589184468
@@ -3431,7 +3456,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [3.5, 4.84, 3.1]
+      Translation: [3.5, 4.84000015, 3.0999999]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 6996660646185389080
@@ -5193,6 +5218,15 @@ Entities:
     NativeScriptComponent:
       Scripts:
         - Name: EnemyChaseScript
+          Properties:
+            AggroRange: 5.5
+            ChaseSpeed: 2.20000005
+            LeashRange: 10
+            MaxFromHome: 16
+            ReturnSpeed: 1.79999995
+            TouchRange: 0.699999988
+            WanderRadius: 3
+            WanderSpeed: 0.800000012
         - Name: VillageYSortScript
   - Entity: 5414607533744380849
     TagComponent:
