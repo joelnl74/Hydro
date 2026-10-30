@@ -2,7 +2,7 @@
 
 The art direction of **EONLORE: The Verdant Heir** in the Hydro engine. It covers the look we are aiming for, the rules every new asset follows, and how assets are made and imported today. The target is **HD-2D**, the style of *Octopath Traveler II* and *Final Fantasy Resonance*: pixel-art characters and props inside 3D places, lit and framed like a miniature diorama.
 
-Updated October 30, 2026 (V3: HD-2D direction; replaces the V2 2D-renderer guide of Oct 25). Read [Sprite sizes](SpriteSizes.md) before changing asset dimensions. Engine features this page depends on are marked **(engine: done)** or **(engine: to do, #issue)**.
+Updated October 30, 2026 (V3: HD-2D direction; replaces the V2 2D-renderer guide of Oct 25. V3.1, same day: cluster scale, outlines for actors only, 3D hedges, single-plant crops, retaining walls). Read [Sprite sizes](SpriteSizes.md) before changing asset dimensions. Engine features this page depends on are marked **(engine: done)** or **(engine: to do, #issue)**.
 
 ## The look in one paragraph
 
@@ -30,6 +30,7 @@ References are for principles, never for copying. Use original designs, and neve
 | Characters | Adults 50–58 px tall (1.6–1.8 m), Miko 52 px. Children about 40 px. Proportions about 3 heads. |
 | Props | Real-world size: barrel 0.6 x 0.9 m (about 20 x 29 px), crate 0.8 m, hay bale 0.9 x 0.65 m, door 1.1 x 2.2 m, a one-storey cottage 6–7 m wide. A prop may be shown down to 26 px/m to keep a footprint; never above 38. Approved barrels (Oct 30, 2026, at 30 px/m, never mirrored): `FarmVillage/Props/BarrelA`-`D`, `BarrelSideA`-`D`, `BarrelKeg`, `BarrelStackA`-`C`, `RainBarrelA`-`B`; plain brown wood with dark iron hoops only. |
 | Exceptions | Written in the [Sprite sizes](SpriteSizes.md) audit table, with a reason (today: the wheat at about 42 px/m). |
+| Cluster scale (decided Oct 30, 2026) | Same density is not enough: the **shapes painted inside** must be on Miko's scale too, or an asset still reads as "bigger pixels". Measured Oct 30: every kit texture, the thatch included, is exactly 32 texels/m, yet the thatch looked twice as coarse because it is painted as 16 px bundles in two flat tones. Rule: the repeating motif (a shingle, a stone, a straw bundle, a leaf clump) is **4–10 px** across; no flat single-colour area larger than about **6 x 6 px** except deliberate shadow; every material uses a 4–5 shade ramp so edges step through a mid-tone. Miko's sprite and the cut-stone wall (`MV_Stone_Cut`) are the reference for how fine a surface should look. |
 
 ## Camera
 
@@ -55,6 +56,8 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 | Colour grading | One grade per region and time of day (render profiles, then a LUT). | profiles done; LUT to do, #137 |
 | Atmosphere | Light shafts through trees and windows, dust motes, falling petals or leaves, chimney smoke. | to do (H9) |
 | Pixel stability | Sprite and texture pixels must not shimmer while the camera moves. | to do, #136 |
+| Player occlusion | When a roof, awning, tree or other foreground object covers the player, it fades or dithers out around her, so Miko is never lost behind scenery. | to do |
+| Water | Animated stream and pond shader: depth ramp, moving highlights and glints, edge line, reflection of banks and bridge, darker under bridges. | to do |
 
 **Times of day.** **Dusk** is the default look. Day is clear and bright with soft haze; night is blue-teal (never black), carried by the lanterns and windows. Each scene has `Day`, `Dusk` and `Night` render profiles.
 
@@ -69,10 +72,13 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 ## Pixel rules (all sprites and textures)
 
 1. **Binary alpha.** A pixel is opaque or empty. Check the alpha channel of anything a tool exports; a painted checkerboard is not transparency.
-2. **Selective outline.** Characters and props get a 1 px outline in a darker shade of their own colour (dark brown or deep green), not pure black. Inner detail lines only where they explain form.
+2. **Outlines are for actors only (decided Oct 30, 2026).** HD-2D separates the two layers this way: the *characters* are outlined pixel sprites, and the *world* around them is lineless, its shapes defined by light and shadow. So:
+   - **Actors** (the party, NPCs, enemies, summons): a selective 1 px outline in a darker shade of their own colour (dark brown, deep green, deep red), never pure black; lighter on the lit upper-left edge. Inner lines only where they explain form.
+   - **Everything else** (trees, bushes, flowers, crops, free-standing prop sprites, decals, every texture): **no outline**. The silhouette is read from value: a lit upper-left edge, a dark lower-right shadow side, and the darkest shade only where the object meets the ground or an overhang.
+   - Check: in an environment sprite, fewer than 20 % of the silhouette's edge pixels may be darker than luma 45. An Oct 30 scan of `FarmVillage/Crops` and `FarmVillage/Foliage` found 90–100 % on nearly every crop and prop (black outlines from the old farm-game style); the wheat (0–24 %) and the ShrineGlade foliage pass. Those sprites are being regenerated (`EONLORE_Visual_Production_Guide_V9/Prompts/FARM_REGEN_PROMPTS.md` in the project docs).
 3. **Clusters, not noise.** Large deliberate pixel groups, 3–5 shades per material, dithering only on large surfaces and never on faces.
 4. **Shading follows the light:** lit upper-left, shaded lower-right, a darker band under every overhang.
-5. **Made at the final size.** Generate or draw at the size it will be used. A 2x downscale with outlines kept is allowed as a rescue (characters, props), but not for thin shapes like wheat or grass. Never use a blurry or fractional upscale.
+5. **Made at the final size.** Generate or draw at the size it will be used. A 2x downscale with outlines kept is allowed as a rescue (characters; a lineless prop may be downscaled if its edges stay clean), but not for thin shapes like wheat or grass. Never use a blurry or fractional upscale.
 6. **Feet or base on the bottom row** of the cell, pivot `[0.5, 0]` for characters. Single-image props end on their bottom row.
 
 ## Characters
@@ -99,8 +105,11 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 | Roofs | Rows of shingles or thatch with variation (moss, repairs, darker patches), a ridge cap and deep shadow under the eaves. Roofs fill much of the screen; give them detail. |
 | Contact shading | Darker at the foot of walls, under eaves and in corners (vertex colour AO in the kit). |
 | Terrain | Blended materials, never straight borders (terrain system, to do). Grass overhangs path edges; pebbles, tufts and darker soil where ground meets walls. |
-| Water | Stylised and animated: a dark-to-light ramp, moving highlights, a light line along the edges, darker under bridges and overhangs. |
-| Vegetation | Trees, bushes, flowers and crops are upright sprites at 32 px/m (26 px/m allowed to keep a big tree's footprint). Their sun is painted on the upper left, so **never mirror them** (FlipX off); variety comes from more variants, at least 3 per kind. Approved style (Oct 30, 2026): `ShrineGlade/Foliage/OakSunA`, `OakSunB`, `OakSunC`, `OakGnarledSmall`, `OakYoungB`, `LindenAutumnA`-`F`, `FirTallA`-`D`, `FirSmallA`-`G`, `SakuraWeeping`, `BushDense01`-`32`, `BushSmall01`-`12`, `ShrubLargeA`-`D`, `FlowerBush01`-`28`, `TopiaryA`-`D`, `Lavender01`-`28`, `HedgeA`-`P`, `GrassTuft01`-`24`, `Fern01`-`16`, `Wildflowers01`-`24`, `FlowerClump01`-`24`, `LeafyPatch01`-`16`, `Seedling01`-`08`, `LowGrass01`-`12`, `LowGrassShade01`-`06`, `LowGrassFlower01`-`12` (low grass strips for wall feet and edges, 26-38 px/m); generate plants with `art_incoming/style_refs/palette_foliage_32.png`, not the 48-colour palette (it pulls mint and lemon); the prompts for the rest are in `art_incoming/style_refs/FOLIAGE_PROMPTS.md`. Later: 3D trees (trunk mesh, cut-out leaf cards with outward normals) for foreground and village trees. |
+| Water | Stylised and animated: a dark-to-light ramp, moving highlights, a light line along the edges, darker under bridges and overhangs. (Engine: water system and shader to do; the stream is a flat textured plane today.) |
+| Retaining walls | A wall face in the sun's shadow must still read as stone, never as a black band: base value at least the mid-tone of `MV_Stone_Field`, darker only toward its foot (contact shading), hanging ivy and moss decals every few metres, a grass fringe on the cap. |
+| Hedges (decided Oct 30, 2026) | A **long trimmed hedge is 3D**, not a row of sprites: a kit module with a bevelled, lumpy top, a lighter top material and a darker side material (both 32 texels/m, no outline), plus a few cut-out leaf cards along the top edge to break the line. Upright sprite cards lined up in a row show no top plane from the field camera, so they read as a flat green box. Free-standing round bushes stay upright sprites. `HedgeA`-`P` are retired from rows; no lemon or yellow-green tops (the foliage palette's lightest green is the limit). |
+| Crops | One plant per sprite, never a pre-made row of copies (`CabbageRow`, `TomatoRow`... are retired). Fields are built from single plants with at least 3 variants and 2 growth stages per crop, small scale jitter (±8 %) and tint jitter (±5 %), and a gap or a harvested plant here and there. No mirroring (the light is painted in). |
+| Vegetation | Trees, bushes, flowers and crops are upright sprites at 32 px/m (26 px/m allowed to keep a big tree's footprint). Their sun is painted on the upper left, so **never mirror them** (FlipX off); variety comes from more variants, at least 3 per kind. Approved style (Oct 30, 2026): `ShrineGlade/Foliage/OakSunA`, `OakSunB`, `OakSunC`, `OakGnarledSmall`, `OakYoungB`, `FirTallA`-`D`, `FirSmallA`-`G`, `SakuraWeeping`, `BushDense01`-`32`, `BushSmall01`-`12`, `ShrubLargeA`-`D`, `FlowerBush01`-`28`, `TopiaryA`-`D`, `Lavender01`-`28`, `GrassTuft01`-`24`, `Fern01`-`16`, `Wildflowers01`-`24`, `FlowerClump01`-`24`, `LeafyPatch01`-`16`, `Seedling01`-`08`, `LowGrass01`-`12`, `LowGrassShade01`-`06`, `LowGrassFlower01`-`12` (low grass strips for wall feet and edges, 26-38 px/m). Retired Oct 30, 2026 (kept on disk, not placed): `LindenAutumnA`-`F` (drawn at about 26 px/m with big flat orange clusters, they read coarser than everything around them; the village is summer-into-harvest, not autumn) and `HedgeA`-`P` in rows (see Hedges); generate plants with `art_incoming/style_refs/palette_foliage_32.png`, not the 48-colour palette (it pulls mint and lemon); the prompts for the rest are in `art_incoming/style_refs/FOLIAGE_PROMPTS.md`. Later: 3D trees (trunk mesh, cut-out leaf cards with outward normals) for foreground and village trees. |
 | Ground details | Small decal sprites (pebbles, leaves, flowers, cracks) break up every large surface. |
 
 **3D or sprite for a prop?** Pick one per kind of prop for the whole game:
@@ -137,7 +146,7 @@ The village's barrels are sprites now; `MV_Barrel` is left only behind the inn's
 - Props, crops and foliage: **create image** at the final size (for example 32 x 32 for a barrel, 64 x 64 for a tree clump); one object per image, or one row of objects on a transparent background.
 - Export the PNG (and the JSON for characters) into `art_incoming/` and let Claude import it.
 
-Shared style block:
+Shared style block for **actors** (characters, NPCs, enemies). For plants, crops and props use the lineless block in the project's `FOLIAGE_GENERATION_PROMPTS.md` / `FARM_REGEN_PROMPTS.md` and set PixelLab's Outline to "Lineless":
 
 ```text
 Authentic hand-pixeled 32-bit JRPG sprite in the HD-2D style of Octopath Traveler, semi-chibi proportions
@@ -164,7 +173,7 @@ Code-generated art (`scripts/diorama_rpg/`, `scripts/shrine_glade/`, `scripts/fa
 1. Binary alpha, no painted checkerboard, nearest filtering.
 2. Density 32 px/m (±20 %) or an exception written in [Sprite sizes](SpriteSizes.md); `check_texel_density.py` passes.
 3. Feet or base on the bottom row; correct pivot; it stands on the ground in a capture (`Oxygen --scene <Scene> --play --capture out.png`).
-4. Outline, shading direction and palette match Miko and the villagers side by side.
+4. Outline, shading direction and palette match Miko and the villagers side by side: actors outlined, environment lineless (under 20 % dark edge pixels); motifs 4–10 px, no flat areas over about 6 x 6 px.
 5. Seen in the game at dusk and at night: still readable, lights placed where the art shows sources.
 6. `Oxygen --validate` reports no missing assets.
 
