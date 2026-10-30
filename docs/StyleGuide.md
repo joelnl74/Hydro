@@ -94,7 +94,8 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 
 | Element | Rule |
 | --- | --- |
-| Buildings | One material language per storey: a stone ground floor, a timber-and-plaster upper floor, then the roof; no random mixing within a wall. Read depth from the architecture: deep window frames with the glass set back, jettied upper floors on joists, thick sills, chimneys with caps. |
+| Buildings | **One wall material for the whole building (decided Oct 30, 2026):** every storey and all four sides use the same wall set: timber frame over plaster, dressed stone, or planks (barns and sheds), and the gables match. A house of two or more floors never has a stone floor under a plaster one. `house()` in `build_kit.py` refuses a mix. Read depth from the architecture: deep window frames with the glass set back, jettied upper floors on joists, thick sills, dormers, chimneys with caps. |
+| Stone | **One stone texture per building or structure:** a building's foundation, doorstep, sills and chimney all use the kit's cut stone (`MAT_Stone_Cut`). A bridge uses at most two: cut stone for its masonry (sides, parapets, arch) and road cobbles (`MAT_Cobble_Road`) for the deck and ramps. The stream banks beside it are cut stone too. |
 | Roofs | Rows of shingles or thatch with variation (moss, repairs, darker patches), a ridge cap and deep shadow under the eaves. Roofs fill much of the screen; give them detail. |
 | Contact shading | Darker at the foot of walls, under eaves and in corners (vertex colour AO in the kit). |
 | Terrain | Blended materials, never straight borders (terrain system, to do). Grass overhangs path edges; pebbles, tufts and darker soil where ground meets walls. |

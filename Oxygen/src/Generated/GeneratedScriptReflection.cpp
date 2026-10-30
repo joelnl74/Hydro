@@ -8,6 +8,7 @@
 #include "Scripts/DialogueScripts.h"
 #include "Scripts/ExampleScripts.h"
 #include "Scripts/MvpScripts.h"
+#include "Scripts/QuestScripts.h"
 #include "Scripts/ShrineScripts.h"
 #include "Scripts/UICheckScripts.h"
 #include "Scripts/VillageScripts.h"
@@ -46,7 +47,8 @@ namespace Hydro
 			.Property("WanderRadius", "Wander Radius", &EnemyChaseScript::WanderRadius).Range(0.0f, 50.0f).Tooltip("Metres around home it wanders")
 			.Property("WanderSpeed", "Wander Speed", &EnemyChaseScript::WanderSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while wandering (wisps move 15% faster)")
 			.Property("ChaseSpeed", "Chase Speed", &EnemyChaseScript::ChaseSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while chasing (the player walks at about 3.5)")
-			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home");
+			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home")
+			.Property("Dormant", "Dormant", &EnemyChaseScript::Dormant).Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)");
 
 		ScriptRegistry::Register<DialogueScript>("DialogueScript")
 			.Property("CharactersPerSecond", "Characters Per Second", &DialogueScript::CharactersPerSecond).Range(1.0f, 200.0f).Tooltip("How fast the lines type in, in characters per second");
@@ -80,6 +82,24 @@ namespace Hydro
 			.Property("LeaveTime", "Leave Time", &MvpDirectorScript::LeaveTime).Range(0.05f, 5.0f).Tooltip("Fade out when leaving through an exit")
 			.Property("ArriveTime", "Arrive Time", &MvpDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
 			.Property("RestTime", "Rest Time", &MvpDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point");
+
+		ScriptRegistry::Register<QuestTrackerScript>("QuestTrackerScript")
+			.Property("BannerHoldTime", "Banner Hold Time", &QuestTrackerScript::BannerHoldTime).Range(0.5f, 20.0f).Tooltip("Seconds a banner stays fully shown")
+			.Property("BannerOpenTime", "Banner Open Time", &QuestTrackerScript::BannerOpenTime).Range(0.05f, 5.0f).Tooltip("Seconds a banner takes to open (and a little longer to fade out)");
+
+		ScriptRegistry::Register<ShrineQuestScript>("ShrineQuestScript")
+			.Property("MonkName", "Monk Name", &ShrineQuestScript::MonkName).Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag")
+			.Property("SlimePrefix", "Slime Prefix", &ShrineQuestScript::SlimePrefix).Tooltip("Tag prefix of the quest's slimes")
+			.Property("TreeFocusOffset", "Tree Focus Offset", &ShrineQuestScript::TreeFocusOffset).Tooltip("Metres from the Sacred Tree's foot to where the camera looks, on the ground")
+			.Property("TreeFocusRise", "Tree Focus Rise", &ShrineQuestScript::TreeFocusRise).Range(0.0f, 20.0f).Tooltip("Metres above the tree's foot the camera looks at")
+			.Property("TreeZoom", "Tree Zoom", &ShrineQuestScript::TreeZoom).Range(0.3f, 2.0f).Tooltip("How much the camera sees at the end of the slow push in (1 = as in play)")
+			.Property("GlideTime", "Glide Time", &ShrineQuestScript::GlideTime).Range(0.1f, 10.0f).Tooltip("Seconds the camera takes to glide to the tree (and a little less back)")
+			.Property("ShakeStrength", "Shake Strength", &ShrineQuestScript::ShakeStrength).Range(0.0f, 2.0f).Tooltip("Metres the camera shakes at the tremor's peak")
+			.Property("TremorStart", "Tremor Start", &ShrineQuestScript::TremorStart).Range(0.0f, 30.0f).Tooltip("Seconds into the cutscene the ground starts to move")
+			.Property("TremorTime", "Tremor Time", &ShrineQuestScript::TremorTime).Range(0.1f, 30.0f).Tooltip("Seconds the ground moves (it stops dead, not fading)")
+			.Property("AwakenTime", "Awaken Time", &ShrineQuestScript::AwakenTime).Range(0.1f, 30.0f).Tooltip("Seconds the tree takes to wake, from the tremor's start")
+			.Property("AfterTremor", "After Tremor", &ShrineQuestScript::AfterTremor).Range(0.0f, 30.0f).Tooltip("Seconds of stillness after the tremor before the monk speaks")
+			.Property("GlowColor", "Glow Color", &ShrineQuestScript::GlowColor).Color();
 
 		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalkScript")
 			.Property("m_Speed", "Speed", &DioramaWalkScript::m_Speed).Range(0.0f, 20.0f).Tooltip("Walking speed in metres per second")

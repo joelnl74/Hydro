@@ -33,5 +33,9 @@
 
 #define HY_SCRIPT(...)
 #define HY_PROPERTY(...)
+// Reserved for data types (definitions and data tables, not read by the generator yet): HY_DATA() above a
+// struct of HY_PROPERTY fields, HY_DATA(Definition) / HY_DATA(Table) for the ones that can be created as
+// .hydef / .hytable assets, HY_ENUM() above an enum class. See the wiki's Definitions and data tables plan
+// (issues #168 to #172).
 #define HY_DATA(...)
 #define HY_REFLECT(...)

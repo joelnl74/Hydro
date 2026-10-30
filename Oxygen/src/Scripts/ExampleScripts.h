@@ -196,7 +196,12 @@ namespace Hydro
 
 			if (self.HasComponent<CameraComponent>())
 			{
-				DioramaView::Apply(self, m_Focus, m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend);
+				// A cutscene may hold the camera (DioramaView::CinematicWeight); the follow goes on underneath, so
+				// letting go glides back to the target.
+				glm::vec2 focus = m_Focus;
+				float height = m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend;
+				DioramaView::MixCinematic(focus, height);
+				DioramaView::Apply(self, focus, height);
 			}
 		}
 

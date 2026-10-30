@@ -3,6 +3,7 @@
 #include "VillageScripts.h"
 #include "BattleScripts.h"
 #include "DialogueScripts.h"
+#include "QuestScripts.h"
 
 #include <algorithm>
 #include <array>
@@ -533,6 +534,12 @@ namespace Hydro
 					StartLeaving(nearest->Target, false);
 					break;
 				case Kind::Npc:
+					// A quest may have its own words for this NPC (QuestLog::Talk, QuestScripts.h).
+					if (QuestLog::Talk(nearest->Target))
+					{
+						ShowPrompt(false);
+						break;
+					}
 					if (DialogueScript* dialogue = FindDialogue(scene))
 					{
 						dialogue->Open(nearest->Target, GetNpcLines(nearest->Target));

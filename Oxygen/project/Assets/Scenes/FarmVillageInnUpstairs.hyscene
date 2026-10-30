@@ -5694,6 +5694,286 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
+  - Entity: 8264789257628575989
+    TagComponent:
+      Tag: Quest Canvas
+    RelationshipComponent:
+      Parent: 4736815029286298403
+    UICanvasComponent:
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: ScaleWithScreen
+      SortOrder: 22
+      Visible: true
+      BlocksGameplayInput: false
+    NativeScriptComponent:
+      Scripts:
+      - Name: QuestTrackerScript
+        Properties:
+          BannerHoldTime: 2.4
+          BannerOpenTime: 0.5
+  - Entity: 8700998747717014371
+    TagComponent:
+      Tag: Quest Tracker
+    RelationshipComponent:
+      Parent: 8264789257628575989
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-28, -28]
+      SizeDelta: [560, 170]
+      Visible: false
+  - Entity: 9164879187313320097
+    TagComponent:
+      Tag: Quest Tracker Back
+    RelationshipComponent:
+      Parent: 8700998747717014371
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 7877762661020090692
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.92]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: true
+      FlipY: false
+  - Entity: 4978857777479809650
+    TagComponent:
+      Tag: Quest Tracker Label
+    RelationshipComponent:
+      Parent: 8700998747717014371
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-28, -10]
+      SizeDelta: [400, 30]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3511969359124258818
+    TagComponent:
+      Tag: Quest Tracker Title
+    RelationshipComponent:
+      Parent: 8700998747717014371
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-28, -40]
+      SizeDelta: [520, 44]
+      Visible: true
+    UITextComponent:
+      Text: Clearing the Grounds
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 9007326115708576316
+    TagComponent:
+      Tag: Quest Tracker Rule
+    RelationshipComponent:
+      Parent: 8700998747717014371
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-20, -88]
+      SizeDelta: [440, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.8]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8798085543863496346
+    TagComponent:
+      Tag: Quest Tracker Objective
+    RelationshipComponent:
+      Parent: 8700998747717014371
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-28, -102]
+      SizeDelta: [520, 32]
+      Visible: true
+    UITextComponent:
+      Text: Drive the slimes from the lower path
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3214419945387090728
+    TagComponent:
+      Tag: Quest Tracker Count
+    RelationshipComponent:
+      Parent: 8700998747717014371
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-28, -134]
+      SizeDelta: [300, 30]
+      Visible: true
+    UITextComponent:
+      Text: 0 / 3
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7089470009478202442
+    TagComponent:
+      Tag: Quest Banner
+    RelationshipComponent:
+      Parent: 8264789257628575989
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 150]
+      SizeDelta: [1920, 240]
+      Visible: false
+  - Entity: 7366744560383584117
+    TagComponent:
+      Tag: Quest Banner Band
+    RelationshipComponent:
+      Parent: 7089470009478202442
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [1500, 176]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 3694927114380388256
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.95]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4357298560711958387
+    TagComponent:
+      Tag: Quest Banner Rule Top
+    RelationshipComponent:
+      Parent: 7089470009478202442
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 66]
+      SizeDelta: [880, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 480046895715880768
+    TagComponent:
+      Tag: Quest Banner Header
+    RelationshipComponent:
+      Parent: 7089470009478202442
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 36]
+      SizeDelta: [900, 34]
+      Visible: true
+    UITextComponent:
+      Text: New Quest
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4463223943008593366
+    TagComponent:
+      Tag: Quest Banner Title
+    RelationshipComponent:
+      Parent: 7089470009478202442
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, -8]
+      SizeDelta: [1300, 56]
+      Visible: true
+    UITextComponent:
+      Text: Clearing the Grounds
+      FontHandle: 8758314776354146223
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1678622086718596133
+    TagComponent:
+      Tag: Quest Banner Rule Bottom
+    RelationshipComponent:
+      Parent: 7089470009478202442
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, -54]
+      SizeDelta: [880, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
   - Entity: 8489563768597255343
     TagComponent:
       Tag: Fade Canvas

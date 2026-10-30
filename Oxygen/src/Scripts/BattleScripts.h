@@ -210,6 +210,7 @@ namespace Hydro
 	// (OnCollisionEnter: both need a body). Its tag decides what it is: tags starting with "Wisp" are spirit
 	// wisps (faster, they lead a group of wisps and slimes), everything else is a slime. After a battle the
 	// player did not win it goes home and ignores the player for a few seconds; after a win it disappears.
+	// A Dormant one waits hidden until a quest wakes it (Wake(), the Shrine Glade's slimes, QuestScripts.h).
 	// Put it on a Dynamic Rigidbody2D (GravityScale 0, high LinearDamping, FixedRotation) with a Box collider.
 	HY_SCRIPT()
 	class EnemyChaseScript : public ScriptableEntity
@@ -231,6 +232,24 @@ namespace Hydro
 		float ChaseSpeed = 2.2f;
 		HY_PROPERTY(Range(0, 20), Tooltip("Metres per second walking back home"))
 		float ReturnSpeed = 1.8f;
+		HY_PROPERTY(Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)"))
+		bool Dormant = false;
+
+		// A dormant enemy appears where it was placed (fading in) and starts wandering. Nothing when it is awake.
+		void Wake()
+		{
+			if (Dormant == false)
+			{
+				return;
+			}
+			Dormant = false;
+			SetWorldPosition(m_DormantPlace);
+			m_Appear = 0.0f;
+			m_Wait = 0.6f;
+			SetAlpha(0.0f);
+		}
+
+		bool IsDormant() const { return Dormant; }
 
 	protected:
 		void OnCreate() override
@@ -245,6 +264,15 @@ namespace Hydro
 				m_Kind = EnemyKind::Wisp;
 			}
 			BattleState::Reset();
+
+			// Dormant: parked far below the map, so its collider (kinematic, it has a script) blocks nobody, and
+			// invisible.
+			m_DormantPlace = position;
+			if (Dormant)
+			{
+				SetWorldPosition(position - glm::vec3(0.0f, 0.0f, 100.0f));
+				SetAlpha(0.0f);
+			}
 		}
 
 		void OnUpdate(float deltaTime) override
@@ -252,6 +280,22 @@ namespace Hydro
 			Entity self = GetEntity();
 			Scene* scene = self.GetScene();
 			m_Time += deltaTime;
+
+			if (Dormant)
+			{
+				Physics2D::SetLinearVelocity(self, glm::vec2(0.0f));
+				return;
+			}
+			// Just woken: fades in over half a second, harmless meanwhile.
+			if (m_Appear < 1.0f)
+			{
+				m_Appear = std::min(1.0f, m_Appear + deltaTime * 2.0f);
+				SetAlpha(m_Appear);
+				if (m_Appear < 1.0f)
+				{
+					return;
+				}
+			}
 
 			// The battle this enemy started is over: the scene below carries on and reads the result.
 			if (BattleState::Active && BattleState::EnemyId == (uint64_t)self.GetUUID() && BattleState::Outcome != BattleState::Result::None)
@@ -451,6 +495,24 @@ namespace Hydro
 			return (float)(m_Seed & 0xFFFFFF) / (float)0x1000000;
 		}
 
+		// The sprite's and its blob shadow's opacity (a dormant enemy is invisible, a woken one fades in).
+		void SetAlpha(float alpha)
+		{
+			Entity self = GetEntity();
+			if (self.HasComponent<SpriteRendererComponent>())
+			{
+				GetComponent<SpriteRendererComponent>().Color.a = alpha;
+			}
+			if (self.HasComponent<Shadow2DComponent>())
+			{
+				if (m_ShadowStrength < 0.0f)
+				{
+					m_ShadowStrength = GetComponent<Shadow2DComponent>().Strength;
+				}
+				GetComponent<Shadow2DComponent>().Strength = m_ShadowStrength * alpha;
+			}
+		}
+
 		EnemyKind m_Kind = EnemyKind::Slime;
 		State m_State = State::Wander;
 		entt::entity m_Player = entt::null;
@@ -462,6 +524,9 @@ namespace Hydro
 		float m_Cooldown = 0.0f; // seconds the enemy ignores the player (after a battle)
 		float m_Time = 0.0f;
 		float m_LightBase = -1.0f;
+		float m_ShadowStrength = -1.0f;
+		float m_Appear = 1.0f;          // 0..1 while a woken enemy fades in
+		glm::vec3 m_DormantPlace{ 0.0f }; // where it was placed (a dormant one waits below it)
 		uint32_t m_Seed = 1;
 	};
 

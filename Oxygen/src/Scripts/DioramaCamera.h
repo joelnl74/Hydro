@@ -54,6 +54,38 @@ namespace Hydro
 			HasSceneBounds = false;
 			SceneBoundsMin = glm::vec2(0.0f);
 			SceneBoundsMax = glm::vec2(0.0f);
+			ResetCinematic();
+		}
+
+		// A cutscene's hold on the follow camera (QuestScripts.h): while CinematicWeight > 0 the camera looks at
+		// CinematicFocus (a point on the ground, CinematicHeight above z 0) instead of its target, mixed by the
+		// weight (0 = the target, 1 = the cutscene's point; the caller eases it), outside the scene's bounds too.
+		// CinematicZoom scales how much the camera sees (below 1 = closer) and CinematicShake is how far it
+		// jitters in metres, in the view plane (an earthquake). Reset with the scene's framing.
+		static inline float CinematicWeight = 0.0f;
+		static inline glm::vec2 CinematicFocus{ 0.0f };
+		static inline float CinematicHeight = 0.0f;
+		static inline float CinematicZoom = 1.0f;
+		static inline float CinematicShake = 0.0f;
+		static void ResetCinematic()
+		{
+			CinematicWeight = 0.0f;
+			CinematicFocus = glm::vec2(0.0f);
+			CinematicHeight = 0.0f;
+			CinematicZoom = 1.0f;
+			CinematicShake = 0.0f;
+		}
+
+		// The follow camera's focus and height with the cutscene's mixed in.
+		static void MixCinematic(glm::vec2& focus, float& height)
+		{
+			const float w = std::clamp(CinematicWeight, 0.0f, 1.0f);
+			if (w <= 0.0f)
+			{
+				return;
+			}
+			focus += (CinematicFocus - focus) * w;
+			height += (CinematicHeight - height) * w;
 		}
 
 		// The focus point kept inside the scene's bounds, or inside the given ones when the scene has none.
@@ -104,6 +136,7 @@ namespace Hydro
 			const float target = Enabled ? 1.0f : 0.0f;
 			const float step = BlendSpeed * deltaTime;
 			Blend = Blend < target ? std::min(target, Blend + step) : std::max(target, Blend - step);
+			s_ShakeTime += deltaTime;
 		}
 
 		// Places the camera entity looking at focus (a point on the ground, `height` above z 0: a raised terrace the
@@ -114,6 +147,7 @@ namespace Hydro
 			TransformComponent placed = cameraEntity.GetComponent<TransformComponent>();
 			placed.Translation = scene.GetWorldPosition(cameraEntity);
 			Apply(placed, cameraEntity.GetComponent<CameraComponent>(), focus, height);
+			placed.Translation += GetShakeOffset();
 			PlaceInWorld(cameraEntity, placed.Translation, placed.Rotation);
 		}
 
@@ -176,7 +210,7 @@ namespace Hydro
 			// The distance at which the perspective camera sees OrthographicSize units vertically, so both
 			// projections show the same amount of the scene at the focus point.
 			const float fieldOfView = SceneFieldOfView > 0.0f ? SceneFieldOfView : FieldOfView;
-			const float viewHeight = camera.OrthographicSize;
+			const float viewHeight = camera.OrthographicSize * std::max(0.1f, CinematicZoom);
 			const float distance = viewHeight / (2.0f * std::tan(glm::radians(fieldOfView) * 0.5f));
 
 			camera.Projection = Perspective ? ProjectionType::Perspective : ProjectionType::Orthographic;
@@ -199,6 +233,20 @@ namespace Hydro
 		}
 
 	private:
+		// CinematicShake as an offset along the view plane: a few sines of different speeds, so it reads as a
+		// rumble rather than a wobble; the camera's rotation is left alone (the focus point stays where it is).
+		static glm::vec3 GetShakeOffset()
+		{
+			if (CinematicShake <= 0.0f)
+			{
+				return glm::vec3(0.0f);
+			}
+			const float t = s_ShakeTime;
+			const float x = 0.6f * std::sin(t * 47.0f) + 0.3f * std::sin(t * 89.0f + 1.3f) + 0.1f * std::sin(t * 151.0f + 0.4f);
+			const float y = 0.6f * std::sin(t * 53.0f + 2.1f) + 0.3f * std::sin(t * 97.0f + 0.7f) + 0.1f * std::sin(t * 139.0f + 2.9f);
+			return (Right * x + Up * y) * CinematicShake;
+		}
+
 		static bool KeyPressed(KeyCode key, bool& previous)
 		{
 			const bool down = Input::IsKeyPressed(key);
@@ -212,5 +260,6 @@ namespace Hydro
 		static inline bool s_Tilted = false;
 		static inline SceneCamera s_TopDown;
 		static inline float s_TopDownZ = 0.0f;
+		static inline float s_ShakeTime = 0.0f;
 	};
 }

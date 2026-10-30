@@ -278,7 +278,7 @@ def lib(ob, x, y):
 # ---- A. foundation -------------------------------------------------------------
 def foundation(L):
     mb = MeshBuilder()
-    mb.box(-0.05, -0.06, 0, L + 0.05, WALL_T + 0.05, FND_H, "MAT_Stone_Field", facemat={'+z': "MAT_Stone_Cut"})
+    mb.box(-0.05, -0.06, 0, L + 0.05, WALL_T + 0.05, FND_H, "MAT_Stone_Cut")   # one stone per building: cut stone (as chimney, steps, sills)
     ob = mb.to_object("MV_Foundation_Stone_%dm_A" % L, COL["01_Foundations"])
     col_box(ob, -0.05, -0.06, 0, L + 0.05, WALL_T + 0.05, FND_H)
     return ob
@@ -287,7 +287,7 @@ def foundation(L):
 def doorstep():
     mb = MeshBuilder()
     mb.box(-0.75, -0.55, 0, 0.75, 0.0, 0.3, "MAT_Stone_Cut")
-    mb.box(-0.85, -0.95, 0, 0.85, -0.5, 0.15, "MAT_Stone_Field")
+    mb.box(-0.85, -0.95, 0, 0.85, -0.5, 0.15, "MAT_Stone_Cut")
     ob = mb.to_object("MV_Foundation_DoorStep_A", COL["01_Foundations"])
     col_box(ob, -0.85, -0.95, 0, 0.85, 0, 0.3)
     return ob
@@ -475,7 +475,7 @@ def post_timber(h=2.5):
 # ---- 8. chimney ----------------------------------------------------------------
 def chimney(total_h, tag="A"):
     mb = MeshBuilder()
-    m = "MAT_Stone_Chimney"
+    m = "MAT_Stone_Cut"   # Oct 30, 2026: one stone texture per chimney (was cool rubble + cut-stone caps)
     base_h = min(3.9, total_h - 2.6)
     # Phase 2: slimmer (0.9 m breast, 0.6 m stack), a projecting cap course and two pots
     mb.box(-0.45, 0, 0, 0.45, 0.7, base_h, m, facemat={'+z': "MAT_Stone_Cut"})          # breast
@@ -849,12 +849,15 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
     P plaster, S stone, K plank), left to right as seen from outside; left/back default to braced timber. opens: (key, side,
     x along that wall, storey, z in storey). chimney: 'left'/'right'. leanto: ('right'|'front', x along the wall (left end),
     length in 2 m pieces).
-    Material rule (HD-2D pass, Oct 30, 2026, StyleGuide "Buildings"): ONE material per storey on all four sides:
-    stone (S, dressed ashlar with quoins at the corners), timber frame over plaster (A, B) or planks (K, barns).
-    A timber storey over a stone one juts out on joists. The gable takes the material of the storey below it.
+    Material rule (Oct 30, 2026, StyleGuide "Buildings"): ONE wall material for the whole building, on every storey and
+    all four sides: stone (S, dressed ashlar with quoins at the corners), timber frame over plaster (A, B) or planks
+    (K, barns). Never a stone storey under a plaster one. Upper timber storeys jut out on joists. The gable matches.
     Plain plaster panels (P) stay in the library unused. dormers: x positions of dormers on the front slope (slate /
     shingle roofs)."""
     D = SPAN
+    family = {"A": "timber", "B": "timber", "P": "timber", "S": "stone", "K": "plank"}
+    used = {family[k] for side in (front, right, left or [], back or []) for st in side for k in st}
+    assert len(used) == 1, "%s mixes wall materials %s: one material for the whole building" % (name, sorted(used))
     root = new_prefab(name, loc)
     ox = -W / 2.0
     F = FND_H
@@ -959,9 +962,9 @@ W6, F = 6.0, FND_H
 house("MV_House_A", 6, 1, front=["BBA"], right=["AB"], chimney="left", sign=True, step_x=3.0, dormers=(4.6,),
       opens=[("win", "front", 1.0, 0, 1.25), ("door", "front", 3.0, 0, 0.0), ("win", "right", 3.0, 0, 1.25),
              ("win", "gable_right", 2.0, 0, 0.35)], loc=(3.0, 0, 0))
-# House B: HD-2D pass - a dressed-stone ground floor with quoins, a jettied timber-and-plaster upper floor, a dormer,
-# a lean-to on the right (store / woodshed).
-house("MV_House_B", 6, 2, front=["SSS", "BAB"], right=["SS", "AB"], left=["SS", "AA"], back=["SSS", "AAA"],
+# House B: two storeys of timber frame over plaster (one material for the whole house), the upper floor jettied on
+# joists, a dormer, a lean-to on the right (store / woodshed).
+house("MV_House_B", 6, 2, front=["BBB", "BAB"], right=["AA", "AB"], left=["AA", "AA"], back=["AAA", "AAA"],
       chimney="left", step_x=3.0, leanto=("right", 0.0, 2), dormers=(3.0,),
       opens=[("door", "front", 3.0, 0, 0.0), ("winS", "front", 1.0, 0, 1.2), ("winS", "front", 5.0, 0, 1.2),
              ("win", "front", 1.0, 1, 1.0), ("win", "front", 5.0, 1, 1.0), ("win", "right", 3.0, 1, 1.0),

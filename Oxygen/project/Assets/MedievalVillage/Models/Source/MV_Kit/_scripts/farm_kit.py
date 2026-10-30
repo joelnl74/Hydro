@@ -69,7 +69,7 @@ if FARM_PHASE == 'A':
         for i in range(n):
             x0 = -HL + i * step; x1 = x0 + step; xm = (x0 + x1) / 2
             zb = zs if abs(xm) >= a else zs + b * math.sqrt(1 - (xm / a) ** 2)
-            mb.box(x0, -HW, zb, x1, HW, DT, "MAT_Stone_Field", facemat={'+z': "MAT_Stone_Cut"})
+            mb.box(x0, -HW, zb, x1, HW, DT, "MAT_Stone_Cut", facemat={'+z': "MAT_Cobble_Road"})   # deck: cobbles on top
         ring, nseg = 0.28, 10
         for i in range(nseg):
             t0 = math.pi * i / nseg; t1 = math.pi * (i + 1) / nseg
@@ -77,17 +77,17 @@ if FARM_PHASE == 'A':
             pts = [e(t0, a, b), e(t1, a, b), e(t1, a + ring, b + ring), e(t0, a + ring, b + ring)]
             if area(pts) < 0:
                 pts.reverse()
-            m = "MAT_Stone_Cut" if i % 2 == 0 else "MAT_Stone_Chimney"
+            m = "MAT_Stone_Cut"   # Oct 30, 2026: two stone textures on the bridge (masonry + walking surface)
             mb.prism_xz(pts, -HW - 0.07, -HW, m)
             mb.prism_xz(pts, HW, HW + 0.07, m)
         for y0 in (-HW, HW - 0.25):
-            mb.box(-HL, y0, DT, HL, y0 + 0.25, DT + 0.5, "MAT_Stone_Field", facemat={'+z': "MAT_Stone_Cut"})
+            mb.box(-HL, y0, DT, HL, y0 + 0.25, DT + 0.5, "MAT_Stone_Cut")
             mb.box(-HL - 0.05, y0 - 0.04, DT + 0.5, HL + 0.05, y0 + 0.29, DT + 0.6, "MAT_Stone_Cut")
             for x0 in (-HL - 0.05, HL - 0.4):
                 mb.box(x0, y0 - 0.07, DT, x0 + 0.45, y0 + 0.32, DT + 0.8, "MAT_Stone_Cut")
         ramp = 1.6
-        mb.prism_xz([(-HL - ramp, 0), (-HL, 0), (-HL, DT)], -HW, HW, "MAT_Stone_Cut", capmat="MAT_Stone_Field")
-        mb.prism_xz([(HL, 0), (HL + ramp, 0), (HL, DT)], -HW, HW, "MAT_Stone_Cut", capmat="MAT_Stone_Field")
+        mb.prism_xz([(-HL - ramp, 0), (-HL, 0), (-HL, DT)], -HW, HW, "MAT_Stone_Cut", capmat="MAT_Cobble_Road")   # ramps: cobbled
+        mb.prism_xz([(HL, 0), (HL + ramp, 0), (HL, DT)], -HW, HW, "MAT_Stone_Cut", capmat="MAT_Cobble_Road")
         ob = mb.to_object("MV_Bridge_Stone_A", COL["11_Terrain_Route"])
         cbox(ob, -HL, -HW + 0.25, BED_Z, HL, HW - 0.25, DT, "_WALK_Deck", "WALK")
         col_prism(ob, [(-HL - ramp, 0), (-HL, 0), (-HL, DT)], -HW + 0.25, HW - 0.25, "_WALK_RampW", "WALK")
@@ -102,7 +102,7 @@ if FARM_PHASE == 'A':
         """4 m dressed-stone stream bank, face towards -Y, from the bed (z -1.0) to the ground; irregular cap stones."""
         r = random.Random(11)
         mb = MeshBuilder()
-        mb.box(0, 0, BED_Z, 4, 0.5, 0.0, "MAT_Stone_Field")
+        mb.box(0, 0, BED_Z, 4, 0.5, 0.0, "MAT_Stone_Cut")   # Oct 30, 2026: same masonry as the bridge
         x = 0.0
         while x < 4 - 1e-6:
             w = min(r.uniform(0.7, 1.3), 4 - x)
@@ -110,7 +110,7 @@ if FARM_PHASE == 'A':
             x += w
         for _ in range(4):
             sx = r.uniform(0.1, 3.0)
-            mb.box(sx, -0.05, r.uniform(-0.85, -0.35), sx + r.uniform(0.5, 0.9), 0.0, r.uniform(-0.3, -0.05), "MAT_Stone_Field")
+            mb.box(sx, -0.05, r.uniform(-0.85, -0.35), sx + r.uniform(0.5, 0.9), 0.0, r.uniform(-0.3, -0.05), "MAT_Stone_Cut")
         ob = mb.to_object("MV_Bank_Stone_4m_A", COL["11_Terrain_Route"])
         cbox(ob, 0, -0.05, BED_Z, 4, 0.55, 0.15, "_COL")
         return tag(ob)
@@ -288,7 +288,7 @@ if FARM_PHASE == 'A':
          ("roadA", road_piece("MV_Road_Dirt_4m_Straight_A", road_straight(3), -0.05, 0.03, "MAT_Dirt_Road", "MAT_Dirt_Road")),
          ("roadB", road_piece("MV_Road_Dirt_4m_Straight_B", road_straight(8), -0.05, 0.03, "MAT_Dirt_Road", "MAT_Dirt_Road")),
          ("bend", road_piece("MV_Road_Dirt_Bend_A", road_bend(), -0.05, 0.03, "MAT_Dirt_Road", "MAT_Dirt_Road")),
-         ("cobble", road_piece("MV_Road_Cobble_2m_A", road_straight(5, L=2.0, Wd=2.6, jit=0.05), -0.05, 0.07, "MAT_Cobble_Road", "MAT_Stone_Field"))],
+         ("cobble", road_piece("MV_Road_Cobble_2m_A", road_straight(5, L=2.0, Wd=2.6, jit=0.05), -0.05, 0.07, "MAT_Cobble_Road", "MAT_Stone_Cut"))],
         [("roofT2", roof_thatch(2)), ("roofTEnd", roof_thatch_end()),
          ("leanS", roof_leanto(roofmat="MAT_Roof_SlateDark", tag="Slate")), ("leanT", roof_leanto(roofmat="MAT_Roof_Thatch", tag="Thatch")),
          ("gate", fence_gate()), ("plot", field_plot())],
