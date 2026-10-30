@@ -36,3 +36,7 @@ SpriteAnimationSet:
       Loop: Once
       FrameRate: 10
       Frames: [Miko_56, Miko_57, Miko_58, Miko_59, Miko_60, Miko_61, Miko_62]
+    - Name: BattleIdle
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Miko_64, Miko_65, Miko_66, Miko_67, Miko_68, Miko_69, Miko_70, Miko_71]

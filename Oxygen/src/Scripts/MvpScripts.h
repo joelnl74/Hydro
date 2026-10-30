@@ -7,12 +7,14 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <string>
 #include <vector>
 
 // The MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the
-// Shrine Glade, the Farm Village): interact prompts (a sign, a chest, the inn's door, a save point, the map's
-// exits, an NPC) and a sample inventory menu that gates the player's input while it is open. Prototype
+// Shrine Glade, the Farm Village) and the interiors (the Farm Village's inn): interact prompts (a sign, a chest,
+// a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and a sample
+// inventory menu that gates the player's input while it is open. Prototype
 // code, like BattleScripts.h: one script holds it all. The UI is runtime UI under the MVP Director on the 1920 x 1080
 // canvas (scripts/ui/build_game_ui.py builds it): the inventory (a scrolling list, the item's details, the party, a
 // help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
@@ -87,6 +89,30 @@ namespace Hydro
 				"If you're weary, the inn down in the village is warm. Rest there before you go on."
 			};
 		}
+		if (name == "Village Elder")
+		{
+			return {
+				"Ah, the shrine maiden. So the tremor reached the mountain too. It cracked the old arch under our bridge.",
+				"Last night the well hummed. Low and steady, like the bell at your shrine. Seventy years, and I never heard it do that.",
+				"If the old monk sent you down, he fears what I fear. Look to the bridge, and the stones beneath it."
+			};
+		}
+		if (name == "Farm Wife")
+		{
+			return {
+				"Mind the rows, love. The cabbages are nearly ready and the slimes know it.",
+				"The ground split right across the east field in the quake. Straight as a plough line, it was.",
+				"My husband swears he saw a light down in that crack. I told him it was the cider."
+			};
+		}
+		if (name == "Pilgrim")
+		{
+			return {
+				"You're from the shrine on the mountain? I've walked twelve days to leave an offering there.",
+				"They say the shrine bell rang by itself when the earth shook. The old songs call that a seal waking.",
+				"Go carefully, child. Old roads remember old things."
+			};
+		}
 		if (name == "Farmer")
 		{
 			return {
@@ -113,6 +139,21 @@ namespace Hydro
 			return {
 				"Mind the sparks. An iron sword takes a week if you want it done properly.",
 				"Bring me copper ore and I'll see what I can do. Not today, though."
+			};
+		}
+		if (name == "Innkeeper")
+		{
+			return {
+				"Welcome to the Golden Sheaf. Warm yourself by the hearth, the stew's nearly ready.",
+				"Your room's up the stairs, the first one past the landing. Rest whenever you like, there's no charge for the shrine's people.",
+				"The ground shook again last night. Knocked two mugs off the shelf. Strange times."
+			};
+		}
+		if (name == "Patron")
+		{
+			return {
+				"Best stew this side of the mountain. Don't tell the innkeeper I said so.",
+				"You're from the shrine? My grandmother swore the old stones under the bridge were carved by the same hands."
 			};
 		}
 		return { "Lovely evening.", "Beware the wisps.", "The inn is warm." };
@@ -186,7 +227,8 @@ namespace Hydro
 				item.Entity = entity;
 				if (tag.rfind("Sign", 0) == 0) { item.Type = Kind::Sign; }
 				else if (tag.rfind("Chest", 0) == 0) { item.Type = Kind::Chest; }
-				else if (tag.rfind("Door", 0) == 0) { item.Type = Kind::Door; }
+				else if (tag.rfind("Door", 0) == 0) { item.Type = Kind::Door; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
+				else if (tag.rfind("Rest", 0) == 0) { item.Type = Kind::Rest; }
 				else if (tag.rfind("Save", 0) == 0) { item.Type = Kind::Save; }
 				else if (tag.rfind("Exit", 0) == 0) { item.Type = Kind::Exit; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Npc", 0) == 0) { item.Type = Kind::Npc; item.Target = tag.size() > 4 ? tag.substr(4) : std::string(); }
@@ -200,29 +242,34 @@ namespace Hydro
 			}
 
 			// The sample inventory: twenty items, more than the list shows, so it scrolls (the first is the Potion the
-			// chest adds to). HP and MP restore every hero; 0 = not usable here.
-			m_Items = {
-				{ "Potion", "A bitter brew of the shrine's herbs. Restores 25 HP.", 3, 25, 0 },
-				{ "Hi-Potion", "A stronger draught, sealed with wax. Restores 60 HP.", 1, 60, 0 },
-				{ "Ether", "Water drawn at dawn from the sacred spring. Restores 10 MP.", 2, 0, 10 },
-				{ "Herb Tea", "Warm tea of mountain herbs. Restores 15 HP.", 2, 15, 0 },
-				{ "Iron Sword", "A plain blade from the village smithy. Miko fights bare-handed.", 1, 0, 0 },
-				{ "Herb Bundle", "Fresh herbs tied with twine. Someone in the village may want them.", 4, 0, 0 },
-				{ "Phoenix Feather", "A feather that is warm to the touch. What it is for, nobody knows yet.", 1, 0, 0 },
-				{ "Crystal Shard", "A shard that hums faintly near the shrine.", 2, 0, 0 },
-				{ "Leather Boots", "Sturdy boots for the mountain road.", 1, 0, 0 },
-				{ "Antidote", "Cures poison. Nothing here is poisoned.", 2, 0, 0 },
-				{ "Ancient Key", "An old bronze key with a lantern crest.", 1, 0, 0 },
-				{ "Copper Ore", "A lump of ore for the blacksmith.", 5, 0, 0 },
-				{ "Old Map", "A faded map. The road east is marked in red.", 1, 0, 0 },
-				{ "Shrine Charm", "A paper charm from the shrine. It keeps the wisps at a distance, they say.", 1, 0, 0 },
-				{ "Lantern Oil", "Oil for the stone lanterns along the path.", 3, 0, 0 },
-				{ "Rope", "A coil of hemp rope.", 1, 0, 0 },
-				{ "Smoked Fish", "Smoked river trout, wrapped in leaves.", 2, 0, 0 },
-				{ "Spring Water", "Cold water from the shrine spring.", 3, 0, 0 },
-				{ "Pine Resin", "Sticky resin from the glade's pines.", 2, 0, 0 },
-				{ "Fox Mask", "A festival mask, painted white and red.", 1, 0, 0 }
-			};
+			// chest adds to). HP and MP restore every hero; 0 = not usable here. Shared by every field scene and
+			// interior, so what is used in the inn is gone in the village too; the first scene of a run (depth 0)
+			// starts it afresh.
+			if (SceneTransition::GetDepth() == 0 || s_Items.empty())
+			{
+				s_Items = {
+					{ "Potion", "A bitter brew of the shrine's herbs. Restores 25 HP.", 3, 25, 0 },
+					{ "Hi-Potion", "A stronger draught, sealed with wax. Restores 60 HP.", 1, 60, 0 },
+					{ "Ether", "Water drawn at dawn from the sacred spring. Restores 10 MP.", 2, 0, 10 },
+					{ "Herb Tea", "Warm tea of mountain herbs. Restores 15 HP.", 2, 15, 0 },
+					{ "Iron Sword", "A plain blade from the village smithy. Miko fights bare-handed.", 1, 0, 0 },
+					{ "Herb Bundle", "Fresh herbs tied with twine. Someone in the village may want them.", 4, 0, 0 },
+					{ "Phoenix Feather", "A feather that is warm to the touch. What it is for, nobody knows yet.", 1, 0, 0 },
+					{ "Crystal Shard", "A shard that hums faintly near the shrine.", 2, 0, 0 },
+					{ "Leather Boots", "Sturdy boots for the mountain road.", 1, 0, 0 },
+					{ "Antidote", "Cures poison. Nothing here is poisoned.", 2, 0, 0 },
+					{ "Ancient Key", "An old bronze key with a lantern crest.", 1, 0, 0 },
+					{ "Copper Ore", "A lump of ore for the blacksmith.", 5, 0, 0 },
+					{ "Old Map", "A faded map. The road east is marked in red.", 1, 0, 0 },
+					{ "Shrine Charm", "A paper charm from the shrine. It keeps the wisps at a distance, they say.", 1, 0, 0 },
+					{ "Lantern Oil", "Oil for the stone lanterns along the path.", 3, 0, 0 },
+					{ "Rope", "A coil of hemp rope.", 1, 0, 0 },
+					{ "Smoked Fish", "Smoked river trout, wrapped in leaves.", 2, 0, 0 },
+					{ "Spring Water", "Cold water from the shrine spring.", 3, 0, 0 },
+					{ "Pine Resin", "Sticky resin from the glade's pines.", 2, 0, 0 },
+					{ "Fox Mask", "A festival mask, painted white and red.", 1, 0, 0 }
+				};
+			}
 
 			ShowMenu(false);
 			ShowPrompt(false);
@@ -246,7 +293,14 @@ namespace Hydro
 				SetFade(1.0f - m_Leaving / LeaveTime);
 				if (m_Leaving <= 0.0f)
 				{
-					Leave(m_LeavingTo);
+					if (m_LeavingPush)
+					{
+						SceneTransition::Push(m_LeavingTo);
+					}
+					else
+					{
+						Leave(m_LeavingTo);
+					}
 					// Kept as it is while the next scene runs: when the player comes back here it fades in.
 					m_Arriving = ArriveTime;
 				}
@@ -324,7 +378,7 @@ namespace Hydro
 		}
 
 	private:
-		enum class Kind : uint8_t { Sign, Chest, Door, Save, Exit, Npc };
+		enum class Kind : uint8_t { Sign, Chest, Door, Rest, Save, Exit, Npc };
 
 		struct Interactable
 		{
@@ -332,7 +386,8 @@ namespace Hydro
 			Kind Type = Kind::Sign;
 			float FeetDrop = 0.0f; // from its position (in the world, read when needed: it may have a parent) to its feet
 			bool Used = false;   // chests open once
-			std::string Target;  // exits: the scene they lead to (the tag after "Exit "); NPCs: their name (after "Npc ")
+			std::string Target;  // exits: the scene they lead to (the tag after "Exit "); doors: the building (after "Door ",
+			                     // "Out" in an interior); NPCs: their name (after "Npc ")
 		};
 
 		struct Item
@@ -405,7 +460,7 @@ namespace Hydro
 			{
 				return;
 			}
-			UI::SetText(EntityOf(m_Prompt.Text), PromptFor(nearest->Type));
+			UI::SetText(EntityOf(m_Prompt.Text), PromptFor(*nearest));
 			// Above the player's head, in either camera view (DioramaCamera.h): the World canvas sits on that point.
 			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, playerHeight), 2.35f);
 			SetPosition(scene, m_Prompt.Canvas, overHead);
@@ -428,16 +483,40 @@ namespace Hydro
 					{
 						nearest->Used = true;
 						SetSprite(scene, nearest->Entity, 1);   // the open lid
-						m_Items[0].Count += 1;
+						s_Items[0].Count += 1;
 						ShowMessage(MvpLabel::FoundPotion);
-						HY_INFO("MVP: found a potion ({} now)", m_Items[0].Count);
+						HY_INFO("MVP: found a potion ({} now)", s_Items[0].Count);
 					}
 					break;
 				case Kind::Door:
-					BattleState::RestoreParty();
-					m_Resting = RestTime;
-					ShowMessage(MvpLabel::Rested, MvpLabel::RestedLine2);
-					HY_INFO("MVP: the party rests at the inn: HP and MP restored");
+				{
+					// "Door Out": back to the scene below (the one the player came in from, exactly as it was left).
+					if (nearest->Target == "Out")
+					{
+						if (SceneTransition::GetDepth() == 0)
+						{
+							HY_WARN("MVP: '{}' leads out, but this scene was not entered from another (play it from the field scene)",
+								scene.m_Registry.get<TagComponent>(nearest->Entity).Tag);
+							break;
+						}
+						StartLeaving(std::string(), false);
+						break;
+					}
+					// "Door <Name>": into the building's interior scene.
+					const std::string interior = FindInteriorScene(scene, nearest->Target);
+					if (interior.empty())
+					{
+						// No interior scene for it (yet): the door rests the party, as the inn's door did before interiors.
+						HY_WARN("MVP: no interior scene for '{}' (looked for {}{} and {}); resting instead",
+							scene.m_Registry.get<TagComponent>(nearest->Entity).Tag, scene.GetName(), nearest->Target, nearest->Target);
+						Rest();
+						break;
+					}
+					StartLeaving(interior, true);
+					break;
+				}
+				case Kind::Rest:
+					Rest();
 					break;
 				case Kind::Save:
 					// J5 (a save slot) is not written yet: the save point only says so.
@@ -451,9 +530,7 @@ namespace Hydro
 						break;
 					}
 					ShowMessage(MvpLabel::RoadGoesOn, nearest->Target == "FarmVillage" ? MvpLabel::ToTheVillage : MvpLabel::Count);
-					m_LeavingTo = nearest->Target;
-					m_Leaving = LeaveTime;
-					HY_INFO("MVP: leaving for {}", m_LeavingTo);
+					StartLeaving(nearest->Target, false);
 					break;
 				case Kind::Npc:
 					if (DialogueScript* dialogue = FindDialogue(scene))
@@ -546,12 +623,55 @@ namespace Hydro
 			}
 		}
 
-		static const char* PromptFor(Kind kind)
+		// Fades out, then goes: Push(scene) into an interior, or Leave(scene) through an exit (and "Door Out").
+		void StartLeaving(const std::string& scene, bool push)
 		{
-			switch (kind)
+			m_LeavingTo = scene;
+			m_LeavingPush = push;
+			m_Leaving = LeaveTime;
+			HY_INFO("MVP: {} {}", push ? "entering" : "leaving for", scene.empty() ? std::string("the scene below") : scene);
+		}
+
+		// A dip to black and back that restores the party (a bed, the inn).
+		void Rest()
+		{
+			BattleState::RestoreParty();
+			m_Resting = RestTime;
+			ShowMessage(MvpLabel::Rested, MvpLabel::RestedLine2);
+			HY_INFO("MVP: the party rests: HP and MP restored");
+		}
+
+		// The interior scene a door leads to: "<this scene><Name>" (the Farm Village's "Door Inn" is FarmVillageInn, so
+		// every village can have its own inn), else "<Name>"; empty when neither file is in the project's scenes folder.
+		static std::string FindInteriorScene(Scene& scene, const std::string& name)
+		{
+			if (name.empty() || AssetManager::IsProjectOpen() == false)
+			{
+				return std::string();
+			}
+			const std::filesystem::path scenes = AssetManager::GetAssetDirectory() / "Scenes";
+			const std::string candidates[2] = { scene.GetName() + name, name };
+			for (const std::string& candidate : candidates)
+			{
+				std::error_code error;
+				if (std::filesystem::exists(scenes / (candidate + ".hyscene"), error))
+				{
+					return candidate;
+				}
+			}
+			return std::string();
+		}
+
+		static const char* PromptFor(const Interactable& item)
+		{
+			switch (item.Type)
 			{
 				case Kind::Chest: return "E  Open";
-				case Kind::Door: return "E  Enter";
+				case Kind::Door:
+					if (item.Target == "Out") { return "E  Leave"; }
+					if (item.Target == "Upstairs") { return "E  Go upstairs"; }
+					return "E  Enter";
+				case Kind::Rest: return "E  Rest";
 				case Kind::Save: return "E  Save";
 				case Kind::Exit: return "E  Leave";
 				case Kind::Npc: return "E  Talk";
@@ -618,18 +738,18 @@ namespace Hydro
 				ShowPrompt(false);
 				PresentMenu();
 				// The selection is kept between opens.
-				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)m_Items.size(), MaxRows) - 1));
+				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)s_Items.size(), MaxRows) - 1));
 				UI::Focus(EntityOf(m_Menu.Row[m_Selected]));
 			}
 		}
 
 		void UseSelected()
 		{
-			if (m_Selected < 0 || m_Selected >= (int)m_Items.size())
+			if (m_Selected < 0 || m_Selected >= (int)s_Items.size())
 			{
 				return;
 			}
-			Item& item = m_Items[m_Selected];
+			Item& item = s_Items[m_Selected];
 			if (item.IsUsable() == false)
 			{
 				ShowMessage(MvpLabel::NotUsableHere);
@@ -660,7 +780,7 @@ namespace Hydro
 		{
 			for (int i = 0; i < MaxRows; i++)
 			{
-				const bool used = i < (int)m_Items.size();
+				const bool used = i < (int)s_Items.size();
 				Entity row = EntityOf(m_Menu.Row[i]);
 				if (UI::IsVisible(row) != used)
 				{
@@ -670,7 +790,7 @@ namespace Hydro
 				{
 					continue;
 				}
-				const Item& item = m_Items[i];
+				const Item& item = s_Items[i];
 				Entity name = EntityOf(m_Menu.Name[i]);
 				UI::SetText(name, item.Name);
 				UI::SetText(EntityOf(m_Menu.Count[i]), "x" + std::to_string(item.Count));
@@ -695,11 +815,11 @@ namespace Hydro
 		// The selected item's name and description, and the help line.
 		void PresentDetails()
 		{
-			if (m_Selected < 0 || m_Selected >= (int)m_Items.size())
+			if (m_Selected < 0 || m_Selected >= (int)s_Items.size())
 			{
 				return;
 			}
-			const Item& item = m_Items[m_Selected];
+			const Item& item = s_Items[m_Selected];
 			UI::SetText(EntityOf(m_Menu.DetailName), item.Name);
 			UI::SetText(EntityOf(m_Menu.DetailText), item.Description);
 			UI::SetText(EntityOf(m_Menu.Help), item.IsUsable() ? (item.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
@@ -875,7 +995,8 @@ namespace Hydro
 		entt::entity m_Current = entt::null; // what the prompt shows
 		glm::vec2 m_LastPlayer{ 0.0f };
 		glm::vec2 m_Facing{ 0.0f, 1.0f };
-		std::vector<Item> m_Items;
+		// The party's items, shared by every field scene and interior of a run (see OnCreate).
+		static inline std::vector<Item> s_Items;
 		int m_Selected = 0;
 		int m_NpcLine = 0;
 		float m_Time = 0.0f;
@@ -883,6 +1004,7 @@ namespace Hydro
 		float m_Arriving = 0.0f;
 		float m_Resting = 0.0f;
 		std::string m_LeavingTo;
+		bool m_LeavingPush = false; // into an interior (Push) rather than out through an exit (Leave)
 		bool m_Previous[9] = {};
 	};
 }

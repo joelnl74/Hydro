@@ -17,13 +17,13 @@ Every field asset is drawn at **one density: 32 texture pixels per metre**, with
 
 | Asset | Texels per metre | Action |
 |---|---:|---|
-| Medieval kit models, roads, plots, ground, walls, flagstones | 32 (stairs 40) | In range; keep. `StepStone.hymat` Tiling 0.248 -> 0.199 |
-| Miko (`Characters/Miko/Miko.png`, 96 x 96 cells, body 52 px) | 43.6 (scale 2.2: she is 1.19 m, the door 1.8x her height) | Scale **3.0** (1.63 m). Her cells have 16 px of empty space under the feet and pivot `[0.5, 0.5]`; an Upright sprite stands on the quad's bottom edge, so fix the pivot/rect at the same time (feet on the bottom row, pivot `[0.5, 0]`) and check in the editor |
-| Villagers (`Characters/Villagers.png`, 256 x 384 cells) | 178 | Old high-resolution art, 5.5x finer than everything else: redraw at the field size (50-56 px adults, 96 x 96 cells like Miko) |
-| Pines, oaks (`ShrineGlade/Foliage`) | 19-31 (median 23-28) | Redraw the trees at 32 (a 10 m pine is 320 px tall), or as a stopgap shrink the outliers until they are at least 25.6 |
-| Bushes, moss, lavender | 22-41 | Normalise the scale per sprite (Set Native Size), vary with flips and different sprites, not with scale |
-| Grass tufts, flowers, ferns, meadow strips | 25-46 | Same: one scale per sprite; most are scaled down too far |
-| Wheat (`FarmVillage/Foliage/wheat_*`, 64 px) | 40-48 | Redraw at 32-40 px tall (1.0-1.25 m wheat); scaling the 64 px art up to 32 would make 2 m clumps |
+| Medieval kit models, roads, plots, ground, walls, flagstones | 32 (stairs 40) | In range; keep. `StepStone.hymat` Tiling 0.248 -> 0.199 (**done**) |
+| Miko (`Characters/Miko/Miko_Field.png` + `Miko_Field.hyanim`) | 32 | **Done (Oct 30)**: a field copy of `Miko.png` whose frames are 96 x 72 windows ending at each animation's lowest feet (the walk bob kept), pivot `[0.5, 0]`, drawn at 3 x 2.25 m, so she is 1.63 m and stands where her character body is. Used by the Farm Village and Shrine Glade players and `Prefabs/Player`; the Battle scene keeps `Miko.png` |
+| Villagers (`Characters/Villagers/<Name>.png`, 96 x 72 cells) | 32 | Redrawn Oct 30, 2026 (PixelLab): Blacksmith, Barmaid, Farmer, Gatherer (4 directions, idle + walk) and the idle-only Village Elder, Farm Wife, Pilgrim (drawn at 2x, halved with an outline-keeping downscale). Adults 50-59 px, feet on the cell's bottom row, pivot `[0.5, 0]`, scale 3 x 2.25. The old `Villagers.png` (178) was deleted |
+| Pines, oaks (`ShrineGlade/Foliage`) | 26 (were 19-31) | **Clamped in the Farm Village (Oct 30)**: outliers scaled to the nearest edge of the range, standing point kept. Still worth redrawing the trees at 32 |
+| Bushes, moss, lavender, grass tufts, flowers, ferns, meadow strips | 26-38 | **Clamped in the Farm Village (Oct 30)**, 157 sprites in total with the trees |
+| Wheat (`FarmVillage/Foliage/Wheat_<stage><A-D>`, 64 px) | 40-48 | New set Oct 30, 2026 (four growth stages x four clumps; the field uses stages 3-4, the wild clumps stage 2), kept at the old world size (about 1.5 m quads), so still about 42 texels per metre: an accepted exception, halving the thin stalks smeared them. The old `wheat_r*` files were deleted |
+| Farm props and crop rows (`FarmVillage/Foliage/*`, `FarmVillage/Crops/*`) | 26-34 | New set Oct 30, 2026, drawn at 2x and halved. Rows are 96 px wide (3 m, or 2.85 m in the south plots) composed from single plants (`FarmVillage/Crops/<Plant>.png`, also usable one by one); props keep their old footprint where that stays between 26 and 32 texels per metre |
 | Slime, Wisp | 23-25 | Within reach: scale down to 32 |
 | Sunset backdrop | 19.5 | Far background; exempt (distance makes it finer on screen) |
 
@@ -34,7 +34,7 @@ What is in the repository today, against the targets below.
 | Asset | Now | Target | Status |
 |---|---|---|---|
 | Field heroes, villagers (`StatueVillage/Characters`, `DioramaRPG/Characters`) | 32 x 56 cells, 32 PPU, pivot `[0.5, 0]` | Profile A | Done |
-| Old `StatueVillage/Player.png`, `Villagers.png` | 256 x 384 cells, 128 PPU | Profile A | Old art; not used by the Diorama RPG scenes |
+| Old `StatueVillage/Player.png` | 256 x 384 cells, 128 PPU | Profile A | Old art; not used by the Diorama RPG scenes (`Characters/Villagers.png` was deleted Oct 30, 2026) |
 | Battle hero Miko (`DioramaRPG/Battle/Miko_Battle`) | **128 x 128** cells, 64 PPU, drawn at 8 x 8 units (she stands about 110 px, 7 units); pivot at the feet `[0.6, 0.031]`, right of centre so the strike has room in front | Battle V2 | Done (October 26, 2026). Cut from her 181 px source atlas by `scripts/shrine_glade/battle.py` (the west-facing action swing; the stance with a breath for Idle, recoil shifts for Hurt, the stance turned on its back for Down), one 32 colour palette. Rows: Idle 4, Anticipation 2, Attack 6, Cast 5, Hurt 3, Guard 2, Down 3, with Orin's per-frame timing so the code's contact and peak times hold |
 | Battle heroes Orin, Lila (`DioramaRPG/Battle`, no longer in the party) | **96 x 128** cells, 64 PPU, drawn at 6 x 8 units; pivot at the feet (Orin `[0.656, 0.031]`, Lila `[0.677, 0.031]`, the body stands right of centre so the weapon has room in front) | Battle V2 | Done (Milestone B). Rows: Idle 4, Anticipation 2, Attack 6, Cast 5, Hurt 3, Guard 2, Down 3, and Heal 4 for Lila. Per-frame timing in the `.hyanim` |
 | Slime | 32 x 32, pivot `[0.5, 0.125]` | 96 x 96 | Not started |

@@ -1,0 +1,5725 @@
+Handle: 4425004516706123401
+Scene: FarmVillageInnUpstairs
+RenderSettings:
+  OverrideProject: true
+  Features:
+    Depth: Shared
+    SpriteSorting: ViewDepth
+    Lighting: Forward
+    DefaultSpriteAlpha: Cutout
+    Meshes: true
+    Shadows: Off
+    SpriteShadows: AsDrawn
+    HDR: true
+    Bloom: true
+Look:
+  ProfileHandle: 6276585983680921063
+  Environment: Profile
+  PostProcess: Profile
+Environment:
+  SkyAmbient: [0.26, 0.2, 0.16]
+  GroundAmbient: [0.1, 0.07, 0.05]
+  Fog: false
+  FogColor: [0, 0, 0]
+  FogStart: 40
+  FogEnd: 80
+Entities:
+  - Entity: 201755012106147879
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [-4.5, 1.75, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 2.25, 3]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 96
+      TextureHandle: 5407845820862445765
+      Sprite: Miko_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4798671707330513403
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, 0.05]
+      Size: [0.85, 0.32]
+      Strength: 0.55
+    CharacterBodyComponent:
+      Radius: 0.25
+      Height: 1.4
+      MaxSlopeDegrees: 50
+      StepHeight: 0.35
+      StaysOnLedges: true
+      Layer: Player
+    NativeScriptComponent:
+      Scripts:
+      - Name: DioramaWalkScript
+        Properties:
+          RunMultiplier: 1.7
+          m_Speed: 3.0
+  - Entity: 2879246998596694555
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [-4.5, 1.75, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Orthographic
+      PerspectiveFOV: 45
+      PerspectiveNear: 0.01
+      PerspectiveFar: 1000
+      OrthographicSize: 7
+      OrthographicNear: -1
+      OrthographicFar: 1
+    NativeScriptComponent:
+      Scripts:
+      - Name: CameraFollowScript
+        Properties:
+          Bounds: [3, 3]
+          LookAhead: 0.5
+          Smoothing: 8
+  - Entity: 3715085833381592688
+    TagComponent:
+      Tag: Room
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 8326847160113541269
+    TagComponent:
+      Tag: Floor
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0.475, 0, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [9.05, 7, 0.3]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1825364669782025773
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6890997070849595046
+    TagComponent:
+      Tag: Floor Stairwell South
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [-4.525, -2.25, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.95, 2.5, 0.3]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1825364669782025773
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 8197796187354487237
+    TagComponent:
+      Tag: Floor Stairwell North
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [-4.525, 2.4, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.95, 2.2, 0.3]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1825364669782025773
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 3726848577519441893
+    TagComponent:
+      Tag: Wall North
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, 3.65, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [10.6, 0.3, 3.0999999999999996]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 900579623202718983
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 8746019284913360660
+    TagComponent:
+      Tag: Wall West
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [-5.15, 0, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.3, 7.6, 3.0999999999999996]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 900579623202718983
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6703690143026712200
+    TagComponent:
+      Tag: Wall East
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [5.15, 0, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.3, 7.6, 3.0999999999999996]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 900579623202718983
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 3293699559546570089
+    TagComponent:
+      Tag: Timber
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 7588594845770059329
+    TagComponent:
+      Tag: Post North 0
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [-4.85, 3.42, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.24, 0.16, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8729670982993403269
+    TagComponent:
+      Tag: Post North 1
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [-2.4, 3.42, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.24, 0.16, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3709698005199645834
+    TagComponent:
+      Tag: Post North 2
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [1.3, 3.42, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.24, 0.16, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8119482554685559168
+    TagComponent:
+      Tag: Post North 3
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [4.85, 3.42, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.24, 0.16, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 6289613432693253459
+    TagComponent:
+      Tag: Post West 0
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [-4.92, 3.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.16, 0.24, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 7436500900656928639
+    TagComponent:
+      Tag: Post East 0
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [4.92, 3.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.16, 0.24, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8423051908054010019
+    TagComponent:
+      Tag: Post West 1
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [-4.92, -2.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.16, 0.24, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3391190007917957404
+    TagComponent:
+      Tag: Post East 1
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [4.92, -2.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.16, 0.24, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8182512003166305598
+    TagComponent:
+      Tag: Beam North
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [-5.0, 3.42, 2.3499999999999996]
+      Rotation: [0, 1.5707963, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.22, 0.18, 10.0]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 4275066498317460244
+    TagComponent:
+      Tag: Rail North
+    RelationshipComponent:
+      Parent: 3293699559546570089
+    TransformComponent:
+      Translation: [-5.0, 3.44, 0.95]
+      Rotation: [0, 1.5707963, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.14, 0.14, 10.0]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 7823607581735263367
+    TagComponent:
+      Tag: Front Sill
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, -3.6, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [10.6, 0.3, 0.5]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 7320204614350181627
+    TagComponent:
+      Tag: Front Blocker
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, -3.75, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxColliderComponent:
+      Offset: [0, 0, 1.2]
+      Size: [10.6, 0.3, 2.4]
+      Layer: World
+      IsTrigger: false
+  - Entity: 8285230319352904307
+    TagComponent:
+      Tag: Stairwell
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 611181177826160772
+    TagComponent:
+      Tag: Stairs Down
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.5, -0.40000000000000013, -3.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Stairs
+      Size: [0.9, 3.4, 3.0]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+      Steps: 14
+  - Entity: 9021503408541632116
+    TagComponent:
+      Tag: Stairwell Blocker
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.525, 0.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    BoxColliderComponent:
+      Offset: [0, 0, 1.0]
+      Size: [0.95, 2.2, 2.0]
+      Layer: World
+      IsTrigger: false
+  - Entity: 478118870393160346
+    TagComponent:
+      Tag: Banister East
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.0, 0.12, 0.9]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.07, 2.3, 0.07]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 9131617048082795489
+    TagComponent:
+      Tag: Banister South
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.5, -1.0, 0.9]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.0, 0.07, 0.07]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 4070641536331111097
+    TagComponent:
+      Tag: Banister Newel 0
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.0, -1.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.12, 0.12, 1.05]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4587809722026878969
+    TagComponent:
+      Tag: Banister Newel 1
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.0, 1.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.12, 0.12, 1.05]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4621156972041319191
+    TagComponent:
+      Tag: Baluster 0
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.0, -0.55, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.05, 0.05, 0.9]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3243109387239990290
+    TagComponent:
+      Tag: Baluster 1
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.0, -0.1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.05, 0.05, 0.9]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8964604434537283514
+    TagComponent:
+      Tag: Baluster 2
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.0, 0.35, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.05, 0.05, 0.9]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 4076562498486273362
+    TagComponent:
+      Tag: Baluster 3
+    RelationshipComponent:
+      Parent: 8285230319352904307
+    TransformComponent:
+      Translation: [-4.0, 0.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.05, 0.05, 0.9]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 5332584042634066875
+    TagComponent:
+      Tag: Partitions
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 6958286821937979264
+    TagComponent:
+      Tag: Partition Hall
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [-2.4, 0.75, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.16, 5.5, 3.0999999999999996]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 900579623202718983
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 2795602516775767729
+    TagComponent:
+      Tag: Partition Hall Post
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [-2.4, -2.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.22, 0.22, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 1299246135989352934
+    TagComponent:
+      Tag: Partition Hall Beam
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [-2.4, -2.0, 2.3499999999999996]
+      Rotation: [-1.5707963, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.2, 0.2, 5.5]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8090519706320059020
+    TagComponent:
+      Tag: Partition Rooms
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [1.3, 0.75, -0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.16, 5.5, 3.0999999999999996]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 900579623202718983
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 2375092883286696929
+    TagComponent:
+      Tag: Partition Rooms Post
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [1.3, -2.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.22, 0.22, 2.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 6324426795114003121
+    TagComponent:
+      Tag: Partition Rooms Beam
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [1.3, -2.0, 2.3499999999999996]
+      Rotation: [-1.5707963, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.2, 0.2, 5.5]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3350724429059934270
+    TagComponent:
+      Tag: Room 1 Sill West
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [-1.6349999999999998, -2.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.3699999999999999, 0.16, 0.2]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    BoxColliderComponent:
+      Offset: [0, 0, 1.1]
+      Size: [1.3699999999999999, 0.16, 2.2]
+      Layer: World
+      IsTrigger: false
+  - Entity: 8237899358398567609
+    TagComponent:
+      Tag: Room 1 Sill East
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [0.6849999999999999, -2.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.07, 0.16, 0.2]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    BoxColliderComponent:
+      Offset: [0, 0, 1.1]
+      Size: [1.07, 0.16, 2.2]
+      Layer: World
+      IsTrigger: false
+  - Entity: 7503466493538010909
+    TagComponent:
+      Tag: Room 1 Threshold
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [-0.39999999999999997, -2.0, 0.004]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [1.0999999999999999, 0.2, 0]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 2064037840175124999
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 6164814174561966934
+    TagComponent:
+      Tag: Room 1 Door
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [0.2, -1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.06, 0.95, 2.0]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1513950393665961383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 9147211085133218040
+    TagComponent:
+      Tag: Room 2 Sill West
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [2.04, -2.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.3200000000000003, 0.16, 0.2]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    BoxColliderComponent:
+      Offset: [0, 0, 1.1]
+      Size: [1.3200000000000003, 0.16, 2.2]
+      Layer: World
+      IsTrigger: false
+  - Entity: 3920526537175872160
+    TagComponent:
+      Tag: Room 2 Sill East
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [4.4, -2.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.2000000000000002, 0.16, 0.2]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    BoxColliderComponent:
+      Offset: [0, 0, 1.1]
+      Size: [1.2000000000000002, 0.16, 2.2]
+      Layer: World
+      IsTrigger: false
+  - Entity: 5772943725163180903
+    TagComponent:
+      Tag: Room 2 Threshold
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [3.25, -2.0, 0.004]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [1.0999999999999996, 0.2, 0]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 2064037840175124999
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 6950547841136946317
+    TagComponent:
+      Tag: Room 2 Door
+    RelationshipComponent:
+      Parent: 5332584042634066875
+    TransformComponent:
+      Translation: [3.8499999999999996, -1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.06, 0.95, 2.0]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1513950393665961383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 3537696289727104095
+    TagComponent:
+      Tag: Hall
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 147276656525458043
+    TagComponent:
+      Tag: Linen Press
+    RelationshipComponent:
+      Parent: 3537696289727104095
+    TransformComponent:
+      Translation: [-3.25, 3.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.2, 0.45, 1.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 8475571440101144325
+    TagComponent:
+      Tag: Linen Press Cloth
+    RelationshipComponent:
+      Parent: 3537696289727104095
+    TransformComponent:
+      Translation: [-3.25, 3.0, 0.9]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.9, 0.05, 0.6]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 2229626555206723383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3189294255675591498
+    TagComponent:
+      Tag: Hall Lamp
+    RelationshipComponent:
+      Parent: 3537696289727104095
+    TransformComponent:
+      Translation: [-4.93, 0.2, 1.6]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.08, 0.14, 0.2]
+      CastShadows: false
+      Materials:
+      - Inline:
+          Tint: [1, 0.8, 0.5, 1]
+          Tiling: [1, 1]
+          EmissionColor: [1.0, 0.7, 0.35]
+          EmissionIntensity: 4
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 2256595979283829841
+    TagComponent:
+      Tag: Hall Lamp Bracket
+    RelationshipComponent:
+      Parent: 3537696289727104095
+    TransformComponent:
+      Translation: [-4.95, 0.2, 1.45]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.1, 0.2, 0.08]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3397742327183532366
+    TagComponent:
+      Tag: Passage Runner
+    RelationshipComponent:
+      Parent: 3537696289727104095
+    TransformComponent:
+      Translation: [0.0, -2.8, 0.004]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [8.6, 0.8, 0]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 1106504293463342197
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 1465102673577151861
+    TagComponent:
+      Tag: Room 1
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 5824077124915832667
+    TagComponent:
+      Tag: Bed Room 1
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [-1.35, 2.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2133295163571928199
+    TagComponent:
+      Tag: Bed Room 1 Frame
+    RelationshipComponent:
+      Parent: 5824077124915832667
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.1, 2.1, 0.42]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6551947329376083836
+    TagComponent:
+      Tag: Bed Room 1 Blanket
+    RelationshipComponent:
+      Parent: 5824077124915832667
+    TransformComponent:
+      Translation: [0, -0.2, 0.42]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.04, 1.6, 0.1]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1106504293463342197
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 2755725058160975036
+    TagComponent:
+      Tag: Bed Room 1 Pillow
+    RelationshipComponent:
+      Parent: 5824077124915832667
+    TransformComponent:
+      Translation: [0, 0.75, 0.42]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.8, 0.4, 0.16]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 2229626555206723383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 4191174143477640228
+    TagComponent:
+      Tag: Bed Room 1 Head
+    RelationshipComponent:
+      Parent: 5824077124915832667
+    TransformComponent:
+      Translation: [0, 1.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.1, 0.1, 0.9]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 6331614605724434038
+    TagComponent:
+      Tag: Room 1 Side Table
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [-0.42, 3.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 7188398860676408009
+    TagComponent:
+      Tag: Room 1 Side Table Top
+    RelationshipComponent:
+      Parent: 6331614605724434038
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.5, 0.45, 0.6]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 7424680437859502783
+    TagComponent:
+      Tag: Room 1 Side Table Candle
+    RelationshipComponent:
+      Parent: 6331614605724434038
+    TransformComponent:
+      Translation: [0.05, 0, 0.6]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Cylinder
+      Size: [0.07, 0.07, 0.14]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 2229626555206723383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+      Segments: 6
+  - Entity: 225036596244464164
+    TagComponent:
+      Tag: Room 1 Side Table Flame
+    RelationshipComponent:
+      Parent: 6331614605724434038
+    TransformComponent:
+      Translation: [0.05, 0, 0.74]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.03, 0.03, 0.06]
+      CastShadows: false
+      Materials:
+      - Inline:
+          Tint: [1, 0.8, 0.5, 1]
+          Tiling: [1, 1]
+          EmissionColor: [1.0, 0.7, 0.35]
+          EmissionIntensity: 4
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 3850027596008312169
+    TagComponent:
+      Tag: Room 1 Chest
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [-1.35, 0.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.9, 0.5, 0.48]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 7948354141505219078
+    TagComponent:
+      Tag: Room 1 Chest Lid
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [-1.35, 0.95, 0.48]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.94, 0.54, 0.06]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 9007755577116708962
+    TagComponent:
+      Tag: Room 1 Washstand
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [0.9, 2.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.5, 0.5, 0.8]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 1657969457132822173
+    TagComponent:
+      Tag: Room 1 Basin
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [0.9, 2.2, 0.8]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Cylinder
+      Size: [0.4, 0.4, 0.1]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 2064037840175124999
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+      Segments: 10
+  - Entity: 3956413482848920215
+    TagComponent:
+      Tag: Room 1 Cloak
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [1.17, 0.7, 0.75]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.06, 0.4, 1.0]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1106504293463342197
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 874215522938060800
+    TagComponent:
+      Tag: Room 1 Rug
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [-0.3, 0.2, 0.004]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [1.6, 1.0, 0]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 2229626555206723383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8379863726760286280
+    TagComponent:
+      Tag: Window Room 1
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [0.35, 3.47, 1.2000000000000002]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.0, 0.06, 1.0]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 8169443999239105143
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8221206409397850600
+    TagComponent:
+      Tag: Window Room 1 Sill
+    RelationshipComponent:
+      Parent: 1465102673577151861
+    TransformComponent:
+      Translation: [0.35, 3.4000000000000004, 1.12]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.2, 0.2, 0.08]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 5259478766723802036
+    TagComponent:
+      Tag: Room 2
+    RelationshipComponent:
+      Parent: 3715085833381592688
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2869729886134939799
+    TagComponent:
+      Tag: Bed Room 2 West
+    RelationshipComponent:
+      Parent: 5259478766723802036
+    TransformComponent:
+      Translation: [2.05, 2.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3586332258316683455
+    TagComponent:
+      Tag: Bed Room 2 West Frame
+    RelationshipComponent:
+      Parent: 2869729886134939799
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.9, 2.0, 0.42]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 8973087557752726078
+    TagComponent:
+      Tag: Bed Room 2 West Blanket
+    RelationshipComponent:
+      Parent: 2869729886134939799
+    TransformComponent:
+      Translation: [0, -0.2, 0.42]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.8400000000000001, 1.5, 0.1]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1106504293463342197
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 4659337169344656501
+    TagComponent:
+      Tag: Bed Room 2 West Pillow
+    RelationshipComponent:
+      Parent: 2869729886134939799
+    TransformComponent:
+      Translation: [0, 0.7, 0.42]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.6000000000000001, 0.4, 0.16]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 2229626555206723383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 6360354645809216283
+    TagComponent:
+      Tag: Bed Room 2 West Head
+    RelationshipComponent:
+      Parent: 2869729886134939799
+    TransformComponent:
+      Translation: [0, 0.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.9, 0.1, 0.9]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 4873924866314169383
+    TagComponent:
+      Tag: Bed Room 2 East
+    RelationshipComponent:
+      Parent: 5259478766723802036
+    TransformComponent:
+      Translation: [4.35, 2.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4490875875597833823
+    TagComponent:
+      Tag: Bed Room 2 East Frame
+    RelationshipComponent:
+      Parent: 4873924866314169383
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.9, 2.0, 0.42]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 200633218385825190
+    TagComponent:
+      Tag: Bed Room 2 East Blanket
+    RelationshipComponent:
+      Parent: 4873924866314169383
+    TransformComponent:
+      Translation: [0, -0.2, 0.42]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.8400000000000001, 1.5, 0.1]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1106504293463342197
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 1461938614715385357
+    TagComponent:
+      Tag: Bed Room 2 East Pillow
+    RelationshipComponent:
+      Parent: 4873924866314169383
+    TransformComponent:
+      Translation: [0, 0.7, 0.42]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.6000000000000001, 0.4, 0.16]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 2229626555206723383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 657348105929821910
+    TagComponent:
+      Tag: Bed Room 2 East Head
+    RelationshipComponent:
+      Parent: 4873924866314169383
+    TransformComponent:
+      Translation: [0, 0.95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.9, 0.1, 0.9]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 1859255984697434032
+    TagComponent:
+      Tag: Room 2 Table
+    RelationshipComponent:
+      Parent: 5259478766723802036
+    TransformComponent:
+      Translation: [3.2, 3.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 5332440294118101551
+    TagComponent:
+      Tag: Room 2 Table Top
+    RelationshipComponent:
+      Parent: 1859255984697434032
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.55, 0.45, 0.65]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 920173354354875516
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4667010949360943876
+    TagComponent:
+      Tag: Room 2 Table Candle
+    RelationshipComponent:
+      Parent: 1859255984697434032
+    TransformComponent:
+      Translation: [0.05, 0, 0.65]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Cylinder
+      Size: [0.07, 0.07, 0.14]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 2229626555206723383
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+      Segments: 6
+  - Entity: 6821444324258983268
+    TagComponent:
+      Tag: Room 2 Table Flame
+    RelationshipComponent:
+      Parent: 1859255984697434032
+    TransformComponent:
+      Translation: [0.05, 0, 0.79]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.03, 0.03, 0.06]
+      CastShadows: false
+      Materials:
+      - Inline:
+          Tint: [1, 0.8, 0.5, 1]
+          Tiling: [1, 1]
+          EmissionColor: [1.0, 0.7, 0.35]
+          EmissionIntensity: 4
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 356490209919226264
+    TagComponent:
+      Tag: Room 2 Crate
+    RelationshipComponent:
+      Parent: 5259478766723802036
+    TransformComponent:
+      Translation: [4.45, 0.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.8, 0.8, 0.8]
+    MeshComponent:
+      ModelHandle: 12764871677073270564
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials: []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 3107196561252495621
+    TagComponent:
+      Tag: Room 2 Pack
+    RelationshipComponent:
+      Parent: 5259478766723802036
+    TransformComponent:
+      Translation: [3.75, 0.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [0.45, 0.3, 0.55]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 1106504293463342197
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 3627163593851965188
+    TagComponent:
+      Tag: Window Room 2
+    RelationshipComponent:
+      Parent: 5259478766723802036
+    TransformComponent:
+      Translation: [3.2, 3.47, 1.2000000000000002]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.0, 0.06, 1.0]
+      CastShadows: false
+      Materials:
+      - MaterialHandle: 8169443999239105143
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 7736083497393778052
+    TagComponent:
+      Tag: Window Room 2 Sill
+    RelationshipComponent:
+      Parent: 5259478766723802036
+    TransformComponent:
+      Translation: [3.2, 3.4000000000000004, 1.12]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [1.2, 0.2, 0.08]
+      CastShadows: true
+      Materials:
+      - MaterialHandle: 7380761138706783126
+        Inline:
+          Tint: [1, 1, 1, 1]
+          Tiling: [1, 1]
+          EmissionColor: [0, 0, 0]
+          EmissionIntensity: 1
+          AlphaCutoff: 0
+          Filter: Nearest
+  - Entity: 8297900448288477511
+    TagComponent:
+      Tag: Lights
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 222834163465810553
+    TagComponent:
+      Tag: Light Window Room 1
+    RelationshipComponent:
+      Parent: 8297900448288477511
+    TransformComponent:
+      Translation: [0.35, 2.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.66, 0.38]
+      Intensity: 1.1
+      Radius: 3.4
+      Height: 1.8
+  - Entity: 887921538521607247
+    TagComponent:
+      Tag: Light Window Room 2
+    RelationshipComponent:
+      Parent: 8297900448288477511
+    TransformComponent:
+      Translation: [3.2, 2.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.66, 0.38]
+      Intensity: 1.1
+      Radius: 3.4
+      Height: 1.8
+  - Entity: 7423762000963214757
+    TagComponent:
+      Tag: Light Fire Candle Room 1
+    RelationshipComponent:
+      Parent: 8297900448288477511
+    TransformComponent:
+      Translation: [-0.37, 3.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.7, 0.4]
+      Intensity: 1.0
+      Radius: 2.8
+      Height: 0.85
+  - Entity: 5446102739565456825
+    TagComponent:
+      Tag: Light Fire Candle Room 2
+    RelationshipComponent:
+      Parent: 8297900448288477511
+    TransformComponent:
+      Translation: [3.25, 3.15, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.7, 0.4]
+      Intensity: 0.9
+      Radius: 2.8
+      Height: 0.9
+  - Entity: 4861068266168757780
+    TagComponent:
+      Tag: Light Fire Lamp Hall
+    RelationshipComponent:
+      Parent: 8297900448288477511
+    TransformComponent:
+      Translation: [-4.6, 0.2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.7, 0.4]
+      Intensity: 1.0
+      Radius: 3.2
+      Height: 1.6
+  - Entity: 3926106891397660514
+    TagComponent:
+      Tag: Interactables
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 5872324249197868768
+    TagComponent:
+      Tag: Rest Bed
+    RelationshipComponent:
+      Parent: 3926106891397660514
+    TransformComponent:
+      Translation: [-0.45, 1.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2555707875794445376
+    TagComponent:
+      Tag: Door Out
+    RelationshipComponent:
+      Parent: 3926106891397660514
+    TransformComponent:
+      Translation: [-4.5, 1.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 6949725447282519779
+    TagComponent:
+      Tag: Directors
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1761358104643152618
+    TagComponent:
+      Tag: Inn Director
+    RelationshipComponent:
+      Parent: 6949725447282519779
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+      - Name: InteriorScript
+        Properties:
+          RoomName: Golden Sheaf Inn, upstairs
+          TiltDegrees: 52
+          FieldOfView: 30
+          FocusLead: 0.6
+          FocusRise: 0.8
+          BoundsMin: [-1.5, -1.2]
+          BoundsMax: [1.5, 1.2]
+          StartPreset: 1
+  - Entity: 4736815029286298403
+    TagComponent:
+      Tag: MVP Director
+    RelationshipComponent:
+      Parent: 6949725447282519779
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+      - Name: MvpDirectorScript
+        Properties:
+          ArriveTime: 0.6
+          CloseRange: 0.6
+          EyeHeight: 1
+          FacingDegrees: 80
+          InteractRange: 1.7
+          ItemHeight: 0.6
+          LeaveTime: 0.6
+          MaxReachHeight: 1
+          MessageTime: 3
+          RestTime: 1.2
+          SwitchMargin: 0.3
+  - Entity: 330158425763481597
+    TagComponent:
+      Tag: Prompt Canvas
+    RelationshipComponent:
+      Parent: 4736815029286298403
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    UICanvasComponent:
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: ScaleWithScreen
+      SortOrder: 5
+      Visible: true
+      BlocksGameplayInput: false
+      Space: World
+      WorldSize: [220, 52]
+      WorldPivot: [0.5, 0]
+  - Entity: 2488163354708933516
+    TagComponent:
+      Tag: Prompt Plate
+    RelationshipComponent:
+      Parent: 330158425763481597
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5694801276301171080
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [16, 8, 16, 8]
+      FlipX: false
+      FlipY: false
+  - Entity: 5824626559727454060
+    TagComponent:
+      Tag: Prompt Text
+    RelationshipComponent:
+      Parent: 330158425763481597
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-32, 0]
+      Visible: true
+    UITextComponent:
+      Text: E  Talk
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2138235551952246348
+    TagComponent:
+      Tag: Field HUD Canvas
+    RelationshipComponent:
+      Parent: 4736815029286298403
+    UICanvasComponent:
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: ScaleWithScreen
+      SortOrder: 20
+      Visible: true
+      BlocksGameplayInput: false
+  - Entity: 2863902395285418690
+    TagComponent:
+      Tag: Field Message Panel
+    RelationshipComponent:
+      Parent: 2138235551952246348
+    UIRectComponent:
+      AnchorMin: [0.5, 1]
+      AnchorMax: [0.5, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -110]
+      SizeDelta: [760, 104]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 438144325533312877
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [26, 12, 26, 12]
+      FlipX: false
+      FlipY: false
+  - Entity: 7835897504872029246
+    TagComponent:
+      Tag: Field Message Text
+    RelationshipComponent:
+      Parent: 2863902395285418690
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-96, -16]
+      Visible: true
+    UITextComponent:
+      Text: Found a Potion!
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3127991231838966849
+    TagComponent:
+      Tag: Inventory Canvas
+    RelationshipComponent:
+      Parent: 4736815029286298403
+    UICanvasComponent:
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: ScaleWithScreen
+      SortOrder: 10
+      Visible: false
+      BlocksGameplayInput: true
+  - Entity: 820012190129389372
+    TagComponent:
+      Tag: Inventory Dim
+    RelationshipComponent:
+      Parent: 3127991231838966849
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.03, 0.04, 0.06, 0.55]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4369311214476932146
+    TagComponent:
+      Tag: Inventory Title
+    RelationshipComponent:
+      Parent: 3127991231838966849
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [72, -40]
+      SizeDelta: [480, 60]
+      Visible: true
+    UITextComponent:
+      Text: Inventory
+      FontHandle: 8758314776354146223
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5710653210151916395
+    TagComponent:
+      Tag: Inventory Title Rule
+    RelationshipComponent:
+      Parent: 3127991231838966849
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [56, -100]
+      SizeDelta: [560, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 3175380984138109024
+    TagComponent:
+      Tag: Inventory Panel
+    RelationshipComponent:
+      Parent: 3127991231838966849
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [56, -130]
+      SizeDelta: [760, 800]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 7195109086456300409
+    TagComponent:
+      Tag: Inventory Header
+    RelationshipComponent:
+      Parent: 3175380984138109024
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -26]
+      SizeDelta: [-52, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5694801276301171080
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [16, 8, 16, 8]
+      FlipX: false
+      FlipY: false
+  - Entity: 3799222974560411346
+    TagComponent:
+      Tag: Inventory Header Text
+    RelationshipComponent:
+      Parent: 7195109086456300409
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-56, 0]
+      Visible: true
+    UITextComponent:
+      Text: Items
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1445393950500339202
+    TagComponent:
+      Tag: Inventory Header Count
+    RelationshipComponent:
+      Parent: 7195109086456300409
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-56, 0]
+      Visible: true
+    UITextComponent:
+      Text: Owned
+      FontHandle: 634835381053794282
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5320667756074801955
+    TagComponent:
+      Tag: Item Scroll Track
+    RelationshipComponent:
+      Parent: 3175380984138109024
+    UIRectComponent:
+      AnchorMin: [1, 0]
+      AnchorMax: [1, 1]
+      Pivot: [1, 0.5]
+      AnchoredPosition: [-22, -18]
+      SizeDelta: [6, -136]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.12]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 9074012896492155180
+    TagComponent:
+      Tag: Item Scroll Thumb
+    RelationshipComponent:
+      Parent: 5320667756074801955
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.86, 0.7, 0.42, 0.9]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4185736583536501735
+    TagComponent:
+      Tag: Item List View
+    RelationshipComponent:
+      Parent: 3175380984138109024
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [-10, -18]
+      SizeDelta: [-76, -136]
+      Visible: true
+    UIScrollViewComponent:
+      ScrollPosition: 0
+      FollowFocus: true
+      Scrollbar: 9074012896492155180
+  - Entity: 612488706829183257
+    TagComponent:
+      Tag: Item List
+    RelationshipComponent:
+      Parent: 4185736583536501735
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 100]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Vertical
+      Spacing: 4
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: Start
+      StretchCrossAxis: true
+      FitContent: true
+  - Entity: 8513102453626037038
+    TagComponent:
+      Tag: Item 0
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 8673379432884885516
+    TagComponent:
+      Tag: Item 0 Ribbon
+    RelationshipComponent:
+      Parent: 8513102453626037038
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 6624363506584139369
+    TagComponent:
+      Tag: Item 0 Glow
+    RelationshipComponent:
+      Parent: 8513102453626037038
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 164394130414324632
+    TagComponent:
+      Tag: Item 0 Cursor
+    RelationshipComponent:
+      Parent: 8513102453626037038
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6153155684256784317
+    TagComponent:
+      Tag: Item 0 Name
+    RelationshipComponent:
+      Parent: 8513102453626037038
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Potion
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3559086480261434935
+    TagComponent:
+      Tag: Item 0 Count
+    RelationshipComponent:
+      Parent: 8513102453626037038
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x3
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4902835989951637276
+    TagComponent:
+      Tag: Item 1
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 3238927024568317960
+    TagComponent:
+      Tag: Item 1 Ribbon
+    RelationshipComponent:
+      Parent: 4902835989951637276
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 3054569426531084706
+    TagComponent:
+      Tag: Item 1 Glow
+    RelationshipComponent:
+      Parent: 4902835989951637276
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3084183007077048810
+    TagComponent:
+      Tag: Item 1 Cursor
+    RelationshipComponent:
+      Parent: 4902835989951637276
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 4416596794067784051
+    TagComponent:
+      Tag: Item 1 Name
+    RelationshipComponent:
+      Parent: 4902835989951637276
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Hi-Potion
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6966277514620858702
+    TagComponent:
+      Tag: Item 1 Count
+    RelationshipComponent:
+      Parent: 4902835989951637276
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7770729465050570915
+    TagComponent:
+      Tag: Item 2
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 3649299653348461973
+    TagComponent:
+      Tag: Item 2 Ribbon
+    RelationshipComponent:
+      Parent: 7770729465050570915
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 5446644730035148190
+    TagComponent:
+      Tag: Item 2 Glow
+    RelationshipComponent:
+      Parent: 7770729465050570915
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 8905996154295291475
+    TagComponent:
+      Tag: Item 2 Cursor
+    RelationshipComponent:
+      Parent: 7770729465050570915
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3878779984693773115
+    TagComponent:
+      Tag: Item 2 Name
+    RelationshipComponent:
+      Parent: 7770729465050570915
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Ether
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3567601621729000689
+    TagComponent:
+      Tag: Item 2 Count
+    RelationshipComponent:
+      Parent: 7770729465050570915
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x2
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6093244931044130221
+    TagComponent:
+      Tag: Item 3
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 214429058575865452
+    TagComponent:
+      Tag: Item 3 Ribbon
+    RelationshipComponent:
+      Parent: 6093244931044130221
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 1571414822674848765
+    TagComponent:
+      Tag: Item 3 Glow
+    RelationshipComponent:
+      Parent: 6093244931044130221
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6440796545307377599
+    TagComponent:
+      Tag: Item 3 Cursor
+    RelationshipComponent:
+      Parent: 6093244931044130221
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1181445911127122342
+    TagComponent:
+      Tag: Item 3 Name
+    RelationshipComponent:
+      Parent: 6093244931044130221
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Herb Tea
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1552516465798152067
+    TagComponent:
+      Tag: Item 3 Count
+    RelationshipComponent:
+      Parent: 6093244931044130221
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x2
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7600075272103667313
+    TagComponent:
+      Tag: Item 4
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 7269483367414145794
+    TagComponent:
+      Tag: Item 4 Ribbon
+    RelationshipComponent:
+      Parent: 7600075272103667313
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 8785069900389654184
+    TagComponent:
+      Tag: Item 4 Glow
+    RelationshipComponent:
+      Parent: 7600075272103667313
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 339957714958841943
+    TagComponent:
+      Tag: Item 4 Cursor
+    RelationshipComponent:
+      Parent: 7600075272103667313
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 79053356199015251
+    TagComponent:
+      Tag: Item 4 Name
+    RelationshipComponent:
+      Parent: 7600075272103667313
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Iron Sword
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3008823640646901893
+    TagComponent:
+      Tag: Item 4 Count
+    RelationshipComponent:
+      Parent: 7600075272103667313
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1596210119842336179
+    TagComponent:
+      Tag: Item 5
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 1840596646325917007
+    TagComponent:
+      Tag: Item 5 Ribbon
+    RelationshipComponent:
+      Parent: 1596210119842336179
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 1918521153078638504
+    TagComponent:
+      Tag: Item 5 Glow
+    RelationshipComponent:
+      Parent: 1596210119842336179
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5800760064877130883
+    TagComponent:
+      Tag: Item 5 Cursor
+    RelationshipComponent:
+      Parent: 1596210119842336179
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5157789598792065805
+    TagComponent:
+      Tag: Item 5 Name
+    RelationshipComponent:
+      Parent: 1596210119842336179
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Herb Bundle
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7928213964322031308
+    TagComponent:
+      Tag: Item 5 Count
+    RelationshipComponent:
+      Parent: 1596210119842336179
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x4
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7686750871809646970
+    TagComponent:
+      Tag: Item 6
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 798022223717438747
+    TagComponent:
+      Tag: Item 6 Ribbon
+    RelationshipComponent:
+      Parent: 7686750871809646970
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 348623552636296322
+    TagComponent:
+      Tag: Item 6 Glow
+    RelationshipComponent:
+      Parent: 7686750871809646970
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1933823178294333983
+    TagComponent:
+      Tag: Item 6 Cursor
+    RelationshipComponent:
+      Parent: 7686750871809646970
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3670547717654969784
+    TagComponent:
+      Tag: Item 6 Name
+    RelationshipComponent:
+      Parent: 7686750871809646970
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Phoenix Feather
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4044469015529817132
+    TagComponent:
+      Tag: Item 6 Count
+    RelationshipComponent:
+      Parent: 7686750871809646970
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4593681559368567125
+    TagComponent:
+      Tag: Item 7
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 439710042958800524
+    TagComponent:
+      Tag: Item 7 Ribbon
+    RelationshipComponent:
+      Parent: 4593681559368567125
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 5112029108080579103
+    TagComponent:
+      Tag: Item 7 Glow
+    RelationshipComponent:
+      Parent: 4593681559368567125
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7878143815357057498
+    TagComponent:
+      Tag: Item 7 Cursor
+    RelationshipComponent:
+      Parent: 4593681559368567125
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 9073577487180454558
+    TagComponent:
+      Tag: Item 7 Name
+    RelationshipComponent:
+      Parent: 4593681559368567125
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Crystal Shard
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6245465966563949288
+    TagComponent:
+      Tag: Item 7 Count
+    RelationshipComponent:
+      Parent: 4593681559368567125
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x2
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 567795492934425800
+    TagComponent:
+      Tag: Item 8
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 4734306997934352958
+    TagComponent:
+      Tag: Item 8 Ribbon
+    RelationshipComponent:
+      Parent: 567795492934425800
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 1323718055313594266
+    TagComponent:
+      Tag: Item 8 Glow
+    RelationshipComponent:
+      Parent: 567795492934425800
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1869815641018718775
+    TagComponent:
+      Tag: Item 8 Cursor
+    RelationshipComponent:
+      Parent: 567795492934425800
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3212191584721612835
+    TagComponent:
+      Tag: Item 8 Name
+    RelationshipComponent:
+      Parent: 567795492934425800
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Leather Boots
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6838594859662681319
+    TagComponent:
+      Tag: Item 8 Count
+    RelationshipComponent:
+      Parent: 567795492934425800
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1246503043068295605
+    TagComponent:
+      Tag: Item 9
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 7691692256884146603
+    TagComponent:
+      Tag: Item 9 Ribbon
+    RelationshipComponent:
+      Parent: 1246503043068295605
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 671632992043895495
+    TagComponent:
+      Tag: Item 9 Glow
+    RelationshipComponent:
+      Parent: 1246503043068295605
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1092693797758952794
+    TagComponent:
+      Tag: Item 9 Cursor
+    RelationshipComponent:
+      Parent: 1246503043068295605
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5728271591982971695
+    TagComponent:
+      Tag: Item 9 Name
+    RelationshipComponent:
+      Parent: 1246503043068295605
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Antidote
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 667539012003315660
+    TagComponent:
+      Tag: Item 9 Count
+    RelationshipComponent:
+      Parent: 1246503043068295605
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x2
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3186813943128210304
+    TagComponent:
+      Tag: Item 10
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 5511612658438931894
+    TagComponent:
+      Tag: Item 10 Ribbon
+    RelationshipComponent:
+      Parent: 3186813943128210304
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 4307002212356343982
+    TagComponent:
+      Tag: Item 10 Glow
+    RelationshipComponent:
+      Parent: 3186813943128210304
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5308158791520581688
+    TagComponent:
+      Tag: Item 10 Cursor
+    RelationshipComponent:
+      Parent: 3186813943128210304
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6611397875983778501
+    TagComponent:
+      Tag: Item 10 Name
+    RelationshipComponent:
+      Parent: 3186813943128210304
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Ancient Key
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6395513499900773997
+    TagComponent:
+      Tag: Item 10 Count
+    RelationshipComponent:
+      Parent: 3186813943128210304
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7482342959063418439
+    TagComponent:
+      Tag: Item 11
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 782167943541976505
+    TagComponent:
+      Tag: Item 11 Ribbon
+    RelationshipComponent:
+      Parent: 7482342959063418439
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 3404090297919307891
+    TagComponent:
+      Tag: Item 11 Glow
+    RelationshipComponent:
+      Parent: 7482342959063418439
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6993499847963394064
+    TagComponent:
+      Tag: Item 11 Cursor
+    RelationshipComponent:
+      Parent: 7482342959063418439
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1471304615640850105
+    TagComponent:
+      Tag: Item 11 Name
+    RelationshipComponent:
+      Parent: 7482342959063418439
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Copper Ore
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7484894375287974585
+    TagComponent:
+      Tag: Item 11 Count
+    RelationshipComponent:
+      Parent: 7482342959063418439
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x5
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6438457717363808430
+    TagComponent:
+      Tag: Item 12
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 2558603927258217292
+    TagComponent:
+      Tag: Item 12 Ribbon
+    RelationshipComponent:
+      Parent: 6438457717363808430
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 4363316954828311260
+    TagComponent:
+      Tag: Item 12 Glow
+    RelationshipComponent:
+      Parent: 6438457717363808430
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 4865209828463116120
+    TagComponent:
+      Tag: Item 12 Cursor
+    RelationshipComponent:
+      Parent: 6438457717363808430
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6551458974421697179
+    TagComponent:
+      Tag: Item 12 Name
+    RelationshipComponent:
+      Parent: 6438457717363808430
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Old Map
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 668354789105723611
+    TagComponent:
+      Tag: Item 12 Count
+    RelationshipComponent:
+      Parent: 6438457717363808430
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4426338374080306194
+    TagComponent:
+      Tag: Item 13
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 4853800283391900485
+    TagComponent:
+      Tag: Item 13 Ribbon
+    RelationshipComponent:
+      Parent: 4426338374080306194
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 6104076213064817697
+    TagComponent:
+      Tag: Item 13 Glow
+    RelationshipComponent:
+      Parent: 4426338374080306194
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3935336716477051610
+    TagComponent:
+      Tag: Item 13 Cursor
+    RelationshipComponent:
+      Parent: 4426338374080306194
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 9209331957372912275
+    TagComponent:
+      Tag: Item 13 Name
+    RelationshipComponent:
+      Parent: 4426338374080306194
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Shrine Charm
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2879896606324600239
+    TagComponent:
+      Tag: Item 13 Count
+    RelationshipComponent:
+      Parent: 4426338374080306194
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6318813268985604641
+    TagComponent:
+      Tag: Item 14
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 7611771586084299445
+    TagComponent:
+      Tag: Item 14 Ribbon
+    RelationshipComponent:
+      Parent: 6318813268985604641
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 7964450476492469777
+    TagComponent:
+      Tag: Item 14 Glow
+    RelationshipComponent:
+      Parent: 6318813268985604641
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1037606675747263213
+    TagComponent:
+      Tag: Item 14 Cursor
+    RelationshipComponent:
+      Parent: 6318813268985604641
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7663027883381219327
+    TagComponent:
+      Tag: Item 14 Name
+    RelationshipComponent:
+      Parent: 6318813268985604641
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Lantern Oil
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 8197184619413964895
+    TagComponent:
+      Tag: Item 14 Count
+    RelationshipComponent:
+      Parent: 6318813268985604641
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x3
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2607839098177117318
+    TagComponent:
+      Tag: Item 15
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 7208123989711266455
+    TagComponent:
+      Tag: Item 15 Ribbon
+    RelationshipComponent:
+      Parent: 2607839098177117318
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 5271135582636567757
+    TagComponent:
+      Tag: Item 15 Glow
+    RelationshipComponent:
+      Parent: 2607839098177117318
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 8123696981749258381
+    TagComponent:
+      Tag: Item 15 Cursor
+    RelationshipComponent:
+      Parent: 2607839098177117318
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 8377172447930853146
+    TagComponent:
+      Tag: Item 15 Name
+    RelationshipComponent:
+      Parent: 2607839098177117318
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Rope
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2443256263926632661
+    TagComponent:
+      Tag: Item 15 Count
+    RelationshipComponent:
+      Parent: 2607839098177117318
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5914801839173788307
+    TagComponent:
+      Tag: Item 16
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 2586509854084900437
+    TagComponent:
+      Tag: Item 16 Ribbon
+    RelationshipComponent:
+      Parent: 5914801839173788307
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 2649643368824597728
+    TagComponent:
+      Tag: Item 16 Glow
+    RelationshipComponent:
+      Parent: 5914801839173788307
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2384359651916611385
+    TagComponent:
+      Tag: Item 16 Cursor
+    RelationshipComponent:
+      Parent: 5914801839173788307
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7776116121023421773
+    TagComponent:
+      Tag: Item 16 Name
+    RelationshipComponent:
+      Parent: 5914801839173788307
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Smoked Fish
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 84717407249618680
+    TagComponent:
+      Tag: Item 16 Count
+    RelationshipComponent:
+      Parent: 5914801839173788307
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x2
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3340366717806723589
+    TagComponent:
+      Tag: Item 17
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 2205050424283905660
+    TagComponent:
+      Tag: Item 17 Ribbon
+    RelationshipComponent:
+      Parent: 3340366717806723589
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 5913443363142435992
+    TagComponent:
+      Tag: Item 17 Glow
+    RelationshipComponent:
+      Parent: 3340366717806723589
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 8919157448851382954
+    TagComponent:
+      Tag: Item 17 Cursor
+    RelationshipComponent:
+      Parent: 3340366717806723589
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6035065542778780928
+    TagComponent:
+      Tag: Item 17 Name
+    RelationshipComponent:
+      Parent: 3340366717806723589
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Spring Water
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 221064024892671180
+    TagComponent:
+      Tag: Item 17 Count
+    RelationshipComponent:
+      Parent: 3340366717806723589
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x3
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 937854564549425435
+    TagComponent:
+      Tag: Item 18
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 5405741101023929336
+    TagComponent:
+      Tag: Item 18 Ribbon
+    RelationshipComponent:
+      Parent: 937854564549425435
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 238099826717812610
+    TagComponent:
+      Tag: Item 18 Glow
+    RelationshipComponent:
+      Parent: 937854564549425435
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 4820759658713921110
+    TagComponent:
+      Tag: Item 18 Cursor
+    RelationshipComponent:
+      Parent: 937854564549425435
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 4422378162687638323
+    TagComponent:
+      Tag: Item 18 Name
+    RelationshipComponent:
+      Parent: 937854564549425435
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Pine Resin
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 951542054990631949
+    TagComponent:
+      Tag: Item 18 Count
+    RelationshipComponent:
+      Parent: 937854564549425435
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x2
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 188225691023947402
+    TagComponent:
+      Tag: Item 19
+    RelationshipComponent:
+      Parent: 612488706829183257
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [640, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: UseItem
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 617701390565460322
+    TagComponent:
+      Tag: Item 19 Ribbon
+    RelationshipComponent:
+      Parent: 188225691023947402
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 8295006754824530911
+    TagComponent:
+      Tag: Item 19 Glow
+    RelationshipComponent:
+      Parent: 188225691023947402
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7435927733377440526
+    TagComponent:
+      Tag: Item 19 Cursor
+    RelationshipComponent:
+      Parent: 188225691023947402
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3480937998716605664
+    TagComponent:
+      Tag: Item 19 Name
+    RelationshipComponent:
+      Parent: 188225691023947402
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Fox Mask
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4624350583810958226
+    TagComponent:
+      Tag: Item 19 Count
+    RelationshipComponent:
+      Parent: 188225691023947402
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: x1
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 9003119967954398169
+    TagComponent:
+      Tag: Item Detail Panel
+    RelationshipComponent:
+      Parent: 3127991231838966849
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [852, -130]
+      SizeDelta: [560, 300]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 5381087455718149527
+    TagComponent:
+      Tag: Item Detail Name
+    RelationshipComponent:
+      Parent: 9003119967954398169
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -28]
+      SizeDelta: [-72, 48]
+      Visible: true
+    UITextComponent:
+      Text: Potion
+      FontHandle: 8758314776354146223
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 793196634833800748
+    TagComponent:
+      Tag: Item Detail Rule
+    RelationshipComponent:
+      Parent: 9003119967954398169
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -80]
+      SizeDelta: [-60, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.7]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 9201145608338863197
+    TagComponent:
+      Tag: Item Detail Text
+    RelationshipComponent:
+      Parent: 9003119967954398169
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, -35.0]
+      SizeDelta: [-72, -130]
+      Visible: true
+    UITextComponent:
+      Text: Restores 25 HP to every hero.
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6348498008662313410
+    TagComponent:
+      Tag: Menu Party
+    RelationshipComponent:
+      Parent: 3127991231838966849
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-40, -130]
+      SizeDelta: [440, 10]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Vertical
+      Spacing: 10
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: Start
+      StretchCrossAxis: true
+      FitContent: true
+  - Entity: 307850256982518574
+    TagComponent:
+      Tag: Menu Status Miko
+    RelationshipComponent:
+      Parent: 6348498008662313410
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [440, 176]
+      Visible: true
+  - Entity: 741720975330486653
+    TagComponent:
+      Tag: Menu Status Miko Back
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 7877762661020090692
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.9]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: true
+      FlipY: false
+  - Entity: 1083817576388805006
+    TagComponent:
+      Tag: Menu Status Miko Name
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -6]
+      SizeDelta: [-48, 46]
+      Visible: true
+    UITextComponent:
+      Text: Miko
+      FontHandle: 8758314776354146223
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2104152144308828198
+    TagComponent:
+      Tag: Menu Status Miko Pips
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-24, -20]
+      SizeDelta: [150, 20]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Horizontal
+      Spacing: 6
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: End
+      StretchCrossAxis: false
+      FitContent: false
+  - Entity: 7651362233297383561
+    TagComponent:
+      Tag: Menu Status Miko Pip 0
+    RelationshipComponent:
+      Parent: 2104152144308828198
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6434538448108975545
+    TagComponent:
+      Tag: Menu Status Miko Pip 1
+    RelationshipComponent:
+      Parent: 2104152144308828198
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 3197446553214990847
+    TagComponent:
+      Tag: Menu Status Miko Pip 2
+    RelationshipComponent:
+      Parent: 2104152144308828198
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 5440115943839350576
+    TagComponent:
+      Tag: Menu Status Miko Pip 3
+    RelationshipComponent:
+      Parent: 2104152144308828198
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 5509214548439132974
+    TagComponent:
+      Tag: Menu Status Miko Pip 4
+    RelationshipComponent:
+      Parent: 2104152144308828198
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6069899123187698675
+    TagComponent:
+      Tag: Menu Status Miko HP Label
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [26, -58]
+      SizeDelta: [70, 40]
+      Visible: true
+    UITextComponent:
+      Text: HP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 613666698754413797
+    TagComponent:
+      Tag: Menu Status Miko HP
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -58]
+      SizeDelta: [-48, 40]
+      Visible: true
+    UITextComponent:
+      Text: 90 / 90
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7367671152032041108
+    TagComponent:
+      Tag: Menu Status Miko HP Back
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -98]
+      SizeDelta: [-48, 6]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8088090579196231566
+    TagComponent:
+      Tag: Menu Status Miko HP Fill
+    RelationshipComponent:
+      Parent: 7367671152032041108
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.5, 0.72, 0.4, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4640445515887867891
+    TagComponent:
+      Tag: Menu Status Miko MP Label
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [26, -112]
+      SizeDelta: [70, 40]
+      Visible: true
+    UITextComponent:
+      Text: MP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5966412489327064924
+    TagComponent:
+      Tag: Menu Status Miko MP
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -112]
+      SizeDelta: [-48, 40]
+      Visible: true
+    UITextComponent:
+      Text: 32 / 32
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5921227486963249694
+    TagComponent:
+      Tag: Menu Status Miko MP Back
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -152]
+      SizeDelta: [-48, 6]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 2729418368853503819
+    TagComponent:
+      Tag: Menu Status Miko MP Fill
+    RelationshipComponent:
+      Parent: 5921227486963249694
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.38, 0.6, 0.9, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8308264842806113885
+    TagComponent:
+      Tag: Menu Status Miko Rule
+    RelationshipComponent:
+      Parent: 307850256982518574
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 0]
+      Pivot: [0.5, 0]
+      AnchoredPosition: [0, 2]
+      SizeDelta: [-16, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.8]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 1919630851927991175
+    TagComponent:
+      Tag: Help Bar
+    RelationshipComponent:
+      Parent: 3127991231838966849
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 0]
+      Pivot: [0.5, 0]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 84]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.02, 0.02, 0.03, 0.94]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 1719049969520854052
+    TagComponent:
+      Tag: Help Bar Rule
+    RelationshipComponent:
+      Parent: 1919630851927991175
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 2]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.78, 0.63, 0.38, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 3152058295782905288
+    TagComponent:
+      Tag: Help Text
+    RelationshipComponent:
+      Parent: 1919630851927991175
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-144, 0]
+      Visible: true
+    UITextComponent:
+      Text: Choose an item.
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 33991119058937017
+    TagComponent:
+      Tag: Help Keys
+    RelationshipComponent:
+      Parent: 1919630851927991175
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-144, 0]
+      Visible: true
+    UITextComponent:
+      Text: Enter  Use        Esc / Tab  Close
+      FontHandle: 634835381053794282
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4464185227543117647
+    TagComponent:
+      Tag: Dialogue Canvas
+    RelationshipComponent:
+      Parent: 4736815029286298403
+    UICanvasComponent:
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: ScaleWithScreen
+      SortOrder: 30
+      Visible: false
+      BlocksGameplayInput: true
+    NativeScriptComponent:
+      Scripts:
+      - Name: DialogueScript
+        Properties:
+          CharactersPerSecond: 40
+  - Entity: 1819573866994501210
+    TagComponent:
+      Tag: Dialogue Box
+    RelationshipComponent:
+      Parent: 4464185227543117647
+    UIRectComponent:
+      AnchorMin: [0.5, 0]
+      AnchorMax: [0.5, 0]
+      Pivot: [0.5, 0]
+      AnchoredPosition: [0, 48]
+      SizeDelta: [1280, 232]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 7507840486346220622
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 8340451544713915637
+    TagComponent:
+      Tag: Dialogue Name
+    RelationshipComponent:
+      Parent: 1819573866994501210
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -18]
+      SizeDelta: [-96, 46]
+      Visible: true
+    UITextComponent:
+      Text: Elder
+      FontHandle: 8758314776354146223
+      Color: [0.55, 0.2, 0.14, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+  - Entity: 4592816571750682143
+    TagComponent:
+      Tag: Dialogue Text
+    RelationshipComponent:
+      Parent: 1819573866994501210
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [-8.0, -21.0]
+      SizeDelta: [-128, -102]
+      Visible: true
+    UITextComponent:
+      Text: '...'
+      FontHandle: 3308760100462523854
+      Color: [0.2, 0.15, 0.1, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.15
+      VisibleCharacters: -1
+  - Entity: 358500092359035507
+    TagComponent:
+      Tag: Dialogue Next
+    RelationshipComponent:
+      Parent: 1819573866994501210
+    UIRectComponent:
+      AnchorMin: [1, 0]
+      AnchorMax: [1, 0]
+      Pivot: [1, 0]
+      AnchoredPosition: [-28, 22]
+      SizeDelta: [28, 28]
+      Visible: false
+    UIImageComponent:
+      TextureHandle: 977821894045893606
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8489563768597255343
+    TagComponent:
+      Tag: Fade Canvas
+    RelationshipComponent:
+      Parent: 4736815029286298403
+    UICanvasComponent:
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: ScaleWithScreen
+      SortOrder: 100
+      Visible: true
+      BlocksGameplayInput: false
+  - Entity: 7689458148871316872
+    TagComponent:
+      Tag: Fade
+    RelationshipComponent:
+      Parent: 8489563768597255343
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: false
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false

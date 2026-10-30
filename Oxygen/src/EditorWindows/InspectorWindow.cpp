@@ -1043,7 +1043,7 @@ namespace Hydro
 				}
 				if (ImGui::IsItemHovered())
 				{
-					ImGui::SetTooltip("How the sprite turns towards a tilted camera.\nFlat: lies on the ground (roads, decals, water).\nUpright: stands on its bottom edge and faces the camera (trees, houses, characters).\nBillboard: faces the camera about its centre (glows, icons, world-space UI).\nA top-down camera draws all three the same.");
+					ImGui::SetTooltip("How the sprite turns towards a tilted camera.\nFlat: lies on the ground (roads, decals, water).\nUpright: stands on its bottom edge and turns to the camera (trees, houses, characters);\nRender Settings > Upright sprites decides whether it stands vertical or leans with the camera.\nBillboard: faces the camera about its centre (glows, icons, world-space UI).\nA top-down camera draws all three the same.");
 				}
 			});
 			DrawPropertyRow("Alpha", [&]()

@@ -94,6 +94,16 @@ namespace Hydro
 			.Property("BoundsMax", "Bounds Max", &FarmVillageScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
 			.Property("StartPreset", "Start Preset", &FarmVillageScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 golden hour, 2 night (keys 1 / 2 / 3)");
 
+		ScriptRegistry::Register<InteriorScript>("InteriorScript")
+			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")
+			.Property("TiltDegrees", "Tilt Degrees", &InteriorScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down")
+			.Property("FieldOfView", "Field Of View", &InteriorScript::FieldOfView).Range(5.0f, 120.0f).Tooltip("Vertical field of view in degrees (perspective)")
+			.Property("FocusLead", "Focus Lead", &InteriorScript::FocusLead).Range(-20.0f, 20.0f).Tooltip("Metres the camera looks ahead of the player (up the screen)")
+			.Property("FocusRise", "Focus Rise", &InteriorScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
+			.Property("BoundsMin", "Bounds Min", &InteriorScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
+			.Property("BoundsMax", "Bounds Max", &InteriorScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
+			.Property("StartPreset", "Start Preset", &InteriorScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light when the room is played on its own: 0 day, 1 evening, 2 night (keys 1 / 2 / 3)");
+
 		ScriptRegistry::Register<ShrineGladeScript>("ShrineGladeScript")
 			.Property("TiltDegrees", "Tilt Degrees", &ShrineGladeScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down")
 			.Property("FieldOfView", "Field Of View", &ShrineGladeScript::FieldOfView).Range(5.0f, 120.0f).Tooltip("Vertical field of view in degrees (perspective)")

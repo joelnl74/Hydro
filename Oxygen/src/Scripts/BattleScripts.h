@@ -16,7 +16,7 @@
 // meadow and the field), and the party battle they start (Assets/Scenes/Battle.hyscene). The village is pushed
 // down on the scene stack while the battle runs (SceneTransition) and carries on when it ends.
 //
-// The party is the shrine maiden Miko alone (HeroCount), with her field sheet Characters/Miko (Idle, Walk*, Punch,
+// The party is the shrine maiden Miko alone (HeroCount), with her sheet Characters/Miko (BattleIdle, Walk*, Punch,
 // Kick, Death). The battle is a 3D forest arena (scripts/battle/build_arena.py builds Battle.hyscene); the code is
 // written for any HeroCount, so a second hero is a row in GetHero, its entities in the scene and HeroCount + 1.
 //
@@ -114,10 +114,12 @@ namespace Hydro
 		float SkillPower[2];
 		bool SkillHeals[2];
 		// The hero's clips (Characters/<Name>/<Name>.hyanim) for the two skills ("Punch" / "Kick"), whether a skill
-		// walks up to its target first (a strike) or is used from where the hero stands, and the item clip.
+		// walks up to its target first (a strike) or is used from where the hero stands, the item clip, and the
+		// fighting-stance loop she holds between actions (and while guarding), not the field Idle.
 		const char* SkillClip[2];
 		bool SkillApproach[2];
 		const char* ItemClip;
+		const char* IdleClip;
 	};
 
 	// The party: Miko, the shrine maiden, fighting bare-handed (Blunt). Her Attack walks up to the target and
@@ -131,7 +133,7 @@ namespace Hydro
 	{
 		static const HeroDefinition heroes[HeroCount] = {
 			{ "Miko", BattleLabel::Miko, 90, 32, 10, 8, 9, DamageType::Blunt,
-				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Kick", "Punch" }, { true, true }, "Idle" },
+				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Kick", "Punch" }, { true, true }, "BattleIdle", "BattleIdle" },
 		};
 		return heroes[index];
 	}
@@ -1149,7 +1151,7 @@ namespace Hydro
 					break;
 				case Command::Guard:
 					m_Heroes[h].Guarding = true;
-					SpriteAnimator::Play(sprite, "Idle", true);
+					SpriteAnimator::Play(sprite, definition.IdleClip, true);
 					ShowMessage(BattleLabel::Guarding, 0.7f);
 					break;
 				default:
@@ -1458,14 +1460,14 @@ namespace Hydro
 				m_Heroes[m_Action.Actor].Offset = glm::vec2(0.0f);
 				if (BattleState::HeroHP[m_Action.Actor] > 0)
 				{
-					SpriteAnimator::Play(sprite, "Idle");
+					SpriteAnimator::Play(sprite, GetHero(m_Action.Actor).IdleClip);
 				}
 			}
 			for (int h = 0; h < HeroCount; h++)
 			{
 				if (BattleState::HeroHP[h] > 0 && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
 				{
-					SpriteAnimator::Play(EntityOf(m_Heroes[h].Sprite), "Idle");
+					SpriteAnimator::Play(EntityOf(m_Heroes[h].Sprite), GetHero(h).IdleClip);
 				}
 			}
 			SetPhase(Phase::NextTurn);
@@ -2630,7 +2632,7 @@ namespace Hydro
 		SpriteEffect m_StrikeEffect;
 		SpriteEffect m_HealEffect;
 
-		// A potion is used this far into its (Idle) clip; the heal sprite's clip lasts HealEffectTime.
+		// A potion is used this far into its (BattleIdle) clip; the heal sprite's clip lasts HealEffectTime.
 		static constexpr float ItemTime = 0.35f;
 		static constexpr float HealEffectTime = 0.66f;
 		static constexpr float ShakeTime = 0.22f;

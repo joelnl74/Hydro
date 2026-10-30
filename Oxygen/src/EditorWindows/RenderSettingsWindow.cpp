@@ -94,6 +94,9 @@ namespace Hydro
 		changed |= EnumCombo("Sprite shadows", features.SpriteShadows, spriteShadowNames, 3);
 		HelpMarker("How cut-out Upright and Billboard sprites cast.\nNone: they don't (they still receive).\nAs drawn: the quad the camera sees; thin when the sun comes from the side.\nFace the sun: the quad turned about its feet to face the sun, so the shadow is always\nas wide as the sprite, and the sprite is never darkened by its own shadow.");
 		ImGui::EndDisabled();
+		static const char* uprightNames[] = { "Lean to the camera", "Stand vertical" };
+		changed |= EnumCombo("Upright sprites", features.UprightSprites, uprightNames, 2);
+		HelpMarker("How Upright sprites (trees, props, characters) stand when the camera is tilted.\nLean to the camera: they lean back with the camera's tilt and face it fully, so they look\npropped against the hill behind them.\nStand vertical: they stand straight up and only turn left and right, like standees in a model\n(Octopath Traveler). Under 30 degrees of tilt they still lean, so a top-down view shows them.\nThe battle stage places its actors for leaning sprites.");
 		changed |= ImGui::Checkbox("HDR", &features.HDR);
 		HelpMarker("The scene renders into a 16-bit float colour, so lanterns and emission can be brighter than white;\nthe scene's exposure and the tonemap bring it to the screen (Look (scene)).\nThe HUD and debug lines are drawn after the tonemap. Off: the 8-bit colour path.");
 		ImGui::BeginDisabled(features.HDR == false);

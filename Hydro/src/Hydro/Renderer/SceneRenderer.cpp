@@ -24,7 +24,7 @@
 
 namespace Hydro
 {
-	SceneRenderer::CameraBasis SceneRenderer::MakeCameraBasis(const glm::mat3& rotation)
+	SceneRenderer::CameraBasis SceneRenderer::MakeCameraBasis(const glm::mat3& rotation, UprightSpriteMode upright)
 	{
 		CameraBasis basis;
 		basis.Rotation = rotation;
@@ -46,11 +46,16 @@ namespace Hydro
 		const float groundLength = glm::length(ground);
 		basis.GroundForward = groundLength < 1.0e-4f ? glm::vec2(0.0f, 1.0f) : ground / groundLength;
 
-		// An Upright quad turns about Z to face the camera (yaw), then leans back about its bottom edge
-		// until its up matches the camera's up (lean: 0 for a top-down camera, 90 degrees looking along
-		// the ground). Rz(yaw) maps +Y onto GroundForward; Rx(lean) maps +Y onto (0, cos, sin).
+		// An Upright quad turns about Z to face the camera (yaw), then stands up about its bottom edge (lean:
+		// 0 lies flat, 90 degrees stands straight up). Rz(yaw) maps +Y onto GroundForward; Rx(lean) maps +Y onto
+		// (0, cos, sin). LeanToCamera: up to the camera's up (0 for a top-down camera, 90 looking along the
+		// ground), so the quad faces the camera fully. Vertical: straight up once the camera is tilted 30
+		// degrees, rising with the tilt before that so a top-down view still shows it.
 		const float yaw = std::atan2(-basis.GroundForward.x, basis.GroundForward.y);
-		const float lean = std::atan2(up.z, upOnGround);
+		const float cameraLean = std::atan2(up.z, upOnGround);
+		const float standsUpAt = glm::radians(30.0f);
+		const float lean = upright == UprightSpriteMode::Vertical
+			? glm::half_pi<float>() * std::min(1.0f, cameraLean / standsUpAt) : cameraLean;
 		basis.Upright = glm::mat3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 0.0f, 1.0f)))
 			* glm::mat3(glm::rotate(glm::mat4(1.0f), lean, glm::vec3(1.0f, 0.0f, 0.0f)));
 		return basis;
@@ -74,7 +79,7 @@ namespace Hydro
 		m_Scene->ResolveUILayout();
 		view.SetRenderFeatures(GetEffectiveRenderFeatures());
 		const glm::mat4 cameraWorld = glm::inverse(camera.GetView());
-		m_Camera = MakeCameraBasis(glm::mat3(cameraWorld));
+		m_Camera = MakeCameraBasis(glm::mat3(cameraWorld), GetEffectiveRenderFeatures().UprightSprites);
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
@@ -112,7 +117,7 @@ namespace Hydro
 			const WorldTransformComponent& transform = cameraEntity.GetComponent<WorldTransformComponent>();
 			cameraTransform = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(transform.Rotation);
 		}
-		m_Camera = MakeCameraBasis(glm::mat3(cameraTransform));
+		m_Camera = MakeCameraBasis(glm::mat3(cameraTransform), GetEffectiveRenderFeatures().UprightSprites);
 		m_Camera.Position = glm::vec3(cameraTransform[3]);
 		PrepareSunShadowCasting();
 

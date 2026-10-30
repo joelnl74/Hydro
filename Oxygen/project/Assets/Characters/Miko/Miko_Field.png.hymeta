@@ -1,0 +1,82 @@
+Handle: 5407845820862445765
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 32
+  Slicing:
+    Mode: Manual
+    CellSize: [96, 96]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 0
+    Rows: 0
+    RowNames: []
+    DefaultPivot: [0.5, 0]
+  Sprites:
+    - {Name: Miko_0, Rect: [0, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_1, Rect: [96, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_2, Rect: [192, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_3, Rect: [288, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_4, Rect: [384, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_5, Rect: [480, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_6, Rect: [576, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_7, Rect: [672, 9, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_8, Rect: [0, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_9, Rect: [96, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_10, Rect: [192, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_11, Rect: [288, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_12, Rect: [384, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_13, Rect: [480, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_14, Rect: [576, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_15, Rect: [672, 106, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_16, Rect: [0, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_17, Rect: [96, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_18, Rect: [192, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_19, Rect: [288, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_20, Rect: [384, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_21, Rect: [480, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_22, Rect: [576, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_23, Rect: [672, 199, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_24, Rect: [0, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_25, Rect: [96, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_26, Rect: [192, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_27, Rect: [288, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_28, Rect: [384, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_29, Rect: [480, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_30, Rect: [576, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_31, Rect: [672, 296, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_32, Rect: [0, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_33, Rect: [96, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_34, Rect: [192, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_35, Rect: [288, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_36, Rect: [384, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_37, Rect: [480, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_38, Rect: [576, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_39, Rect: [672, 390, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_40, Rect: [0, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_41, Rect: [96, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_42, Rect: [192, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_43, Rect: [288, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_44, Rect: [384, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_45, Rect: [480, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_46, Rect: [576, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_47, Rect: [672, 491, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_48, Rect: [0, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_49, Rect: [96, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_50, Rect: [192, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_51, Rect: [288, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_52, Rect: [384, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_53, Rect: [480, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_54, Rect: [576, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_55, Rect: [672, 586, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_56, Rect: [0, 674, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_57, Rect: [96, 674, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_58, Rect: [192, 674, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_59, Rect: [288, 674, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_60, Rect: [384, 674, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_61, Rect: [480, 674, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_62, Rect: [576, 674, 96, 72], Pivot: [0.5, 0]}
+    - {Name: Miko_63, Rect: [672, 674, 96, 72], Pivot: [0.5, 0]}

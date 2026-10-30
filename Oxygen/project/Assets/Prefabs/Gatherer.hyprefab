@@ -7,14 +7,14 @@ Entity:
   TransformComponent:
     Translation: [6, 0, 0]
     Rotation: [0, 0, 0]
-    Scale: [2, 3, 1]
+    Scale: [3, 2.25, 1]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 0
-    TextureHandle: 11969883262739761085
+    TextureHandle: 13537106793910617173
     Sprite: Gatherer_Down_0
-    SpriteIndex: 72
+    SpriteIndex: 0
     FlipX: false
     FlipY: false
   SpriteAnimatorComponent:

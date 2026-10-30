@@ -10,8 +10,9 @@
 
 // The Shrine Glade (Assets/Scenes/ShrineGlade.hyscene): the first scene that mixes meshes (terraces,
 // retaining walls, stairs, the imported shrine and stone lanterns) with upright sprites (trees, props,
-// characters), and the Farm Village below it (Assets/Scenes/FarmVillage.hyscene), built the same way from the
-// medieval village kit. See docs/TestBed.md, "Shrine Glade" and "Farm Village".
+// characters), the Farm Village below it (Assets/Scenes/FarmVillage.hyscene), built the same way from the
+// medieval village kit, and the village's interiors (the inn, Assets/Scenes/FarmVillageInn.hyscene). See
+// docs/TestBed.md, "Shrine Glade", "Farm Village" and "Interiors".
 namespace Hydro
 {
 	// Walks the player like VillagerWalk (WASD / arrows, Shift to hurry, Walk<Facing> / Idle<Facing> clips) over
@@ -122,8 +123,10 @@ namespace Hydro
 	// it and gives its framing and three presets (ShrineGladeScript, FarmVillageScript).
 	//   - Starts in the tilted diorama view with the scene's framing; reset when the scene ends.
 	//   - Owns the light (forward lit, M6): the render profile (environment and post-processing), the main
-	//     light (the sun's DirectionalLightComponent) and every point light whose tag starts "Light Lantern"
-	//     (flickering amber pools). Keys 1 / 2 / 3 switch the presets, L the lanterns on/off.
+	//     light (the sun's DirectionalLightComponent) and every point light whose tag starts "Light Lantern" or
+	//     "Light Fire" (flickering amber pools). Keys 1 / 2 / 3 switch the presets, L the lanterns on/off.
+	//   - The last preset applied is shared (s_LastPreset), so an interior can start in the light of the scene the
+	//     player came in from (FollowsOutsideLight).
 	class DioramaDirectorScript : public ScriptableEntity
 	{
 	protected:
@@ -133,6 +136,10 @@ namespace Hydro
 		// index 0..2: keys 1, 2 and 3
 		virtual const DioramaScenePreset& GetPreset(int index) const = 0;
 		virtual int GetStartPreset() const { return 1; }
+		// An interior starts in the time of day of the scene it was entered from (when there is one).
+		virtual bool FollowsOutsideLight() const { return false; }
+		// After a preset is applied (an interior lights its windows with it).
+		virtual void OnPresetApplied([[maybe_unused]] const DioramaScenePreset& preset) {}
 
 		void OnCreate() override
 		{
@@ -140,18 +147,25 @@ namespace Hydro
 			DioramaView::Blend = 1.0f;
 			ApplyFraming();
 
+			// The first scene of a run starts from its own preset; one entered from another may follow its light.
+			if (SceneTransition::GetDepth() == 0)
+			{
+				s_LastPreset = -1;
+			}
+
 			Scene& scene = *GetEntity().GetScene();
 			auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
 			for (auto entity : lights)
 			{
 				const std::string& tag = lights.get<TagComponent>(entity).Tag;
 				const Light2DComponent& light = lights.get<Light2DComponent>(entity);
-				if (light.Type == Light2DType::Point && tag.rfind("Light Lantern", 0) == 0)
+				const bool flickers = tag.rfind("Light Lantern", 0) == 0 || tag.rfind("Light Fire", 0) == 0;
+				if (light.Type == Light2DType::Point && flickers)
 				{
 					m_Lanterns.push_back({ entity, light.Intensity, light.Radius, (float)m_Lanterns.size() * 1.9f });
 				}
 			}
-			m_Preset = GetStartPreset();
+			m_Preset = FollowsOutsideLight() && s_LastPreset >= 0 ? s_LastPreset : GetStartPreset();
 			ApplyPreset();
 			HY_INFO("{}: {}", GetSceneName(), GetHelp());
 		}
@@ -257,6 +271,8 @@ namespace Hydro
 				light.Color = preset.SunColor;
 				light.Intensity = preset.SunIntensity;
 			}
+			s_LastPreset = m_Preset;
+			OnPresetApplied(preset);
 			HY_INFO("{}: {}", GetSceneName(), preset.Name);
 		}
 
@@ -267,6 +283,8 @@ namespace Hydro
 			previous = down;
 			return pressed;
 		}
+
+		static inline int s_LastPreset = -1; // the preset of the director that applied one last (-1: none this run)
 
 		std::vector<Lantern> m_Lanterns;
 		int m_Preset = 1;
@@ -368,5 +386,96 @@ namespace Hydro
 			};
 			return presets[std::clamp(index, 0, 2)];
 		}
+	};
+	// On an interior's director entity (the Farm Village's inn, Assets/Scenes/FarmVillageInn.hyscene, built by
+	// scripts/interiors/build_inn.py). Interiors are scenes of their own, pushed by a door ("Door Inn" in the village
+	// opens FarmVillageInn) and popped by "Door Out", so the village waits exactly as it was left. The room is built
+	// at the characters' scale with its camera-facing wall left out and black around it; the camera comes in closer
+	// than the field's (the Camera's OrthographicSize, and a narrower view here). The light: no sun; the preset
+	// lights the "Light Window *" point lights (daylight, evening, moonlight through the windows) and sets how
+	// strongly the "Light Fire *" lights (the hearth, candles) burn. It starts in the time of day of the scene the
+	// player came in from.
+	HY_SCRIPT()
+	class InteriorScript : public DioramaDirectorScript
+	{
+	public:
+		HY_PROPERTY(Tooltip("The interior's name in the log"))
+		std::string RoomName = "Inn";
+		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
+		float TiltDegrees = 52.0f;
+		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
+		float FieldOfView = 30.0f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres the camera looks ahead of the player (up the screen)"))
+		float FocusLead = 0.6f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres above the player's ground the camera aims at"))
+		float FocusRise = 0.8f;
+		HY_PROPERTY(Tooltip("Lowest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMin{ -1.5f, -1.0f };
+		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMax{ 1.5f, 1.5f };
+		HY_PROPERTY(Range(0, 2), Tooltip("The light when the room is played on its own: 0 day, 1 evening, 2 night (keys 1 / 2 / 3)"))
+		int StartPreset = 1;
+
+	protected:
+		const char* GetSceneName() const override { return RoomName.c_str(); }
+		const char* GetHelp() const override
+		{
+			return "WASD walk, E talk / rest / leave by the door, 1/2/3 day-evening-night, L the fire, V top-down / tilted";
+		}
+		DioramaSceneFraming GetFraming() const override
+		{
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
+		}
+		int GetStartPreset() const override { return StartPreset; }
+		bool FollowsOutsideLight() const override { return true; }
+		// Presets line up with the field scenes' (day, golden hour / dusk, night). The "sun" is the light through
+		// the windows; the profiles keep the room dim so the fire carries it.
+		const DioramaScenePreset& GetPreset(int index) const override
+		{
+			static const DioramaScenePreset presets[3] = {
+				{ "Day", "Interiors/RenderProfiles/Day.hyrender", { 1.00f, 0.93f, 0.80f }, 1.0f, { 0.34f, 0.3f, 0.26f }, { 0.14f, 0.11f, 0.08f }, { 0.0f, 0.0f, 0.0f }, 0.6f },
+				{ "Evening", "Interiors/RenderProfiles/Evening.hyrender", { 1.00f, 0.66f, 0.38f }, 0.7f, { 0.22f, 0.17f, 0.14f }, { 0.08f, 0.06f, 0.04f }, { 0.0f, 0.0f, 0.0f }, 1.0f },
+				{ "Night", "Interiors/RenderProfiles/Night.hyrender", { 0.50f, 0.62f, 1.00f }, 0.35f, { 0.1f, 0.1f, 0.14f }, { 0.04f, 0.03f, 0.03f }, { 0.0f, 0.0f, 0.0f }, 1.15f }
+			};
+			return presets[std::clamp(index, 0, 2)];
+		}
+
+		void OnPresetApplied(const DioramaScenePreset& preset) override
+		{
+			Scene& scene = *GetEntity().GetScene();
+			if (m_WindowsFound == false)
+			{
+				m_WindowsFound = true;
+				auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
+				for (auto entity : lights)
+				{
+					if (lights.get<TagComponent>(entity).Tag.rfind("Light Window", 0) == 0)
+					{
+						m_Windows.push_back({ entity, lights.get<Light2DComponent>(entity).Intensity });
+					}
+				}
+			}
+			for (const WindowLight& window : m_Windows)
+			{
+				if (scene.m_Registry.valid(window.Entity) == false)
+				{
+					continue;
+				}
+				Light2DComponent& light = scene.m_Registry.get<Light2DComponent>(window.Entity);
+				light.Color = preset.SunColor;
+				light.Intensity = window.BaseIntensity * preset.SunIntensity;
+			}
+		}
+
+	private:
+		struct WindowLight
+		{
+			entt::entity Entity = entt::null;
+			float BaseIntensity = 1.0f;
+		};
+
+		std::vector<WindowLight> m_Windows;
+		bool m_WindowsFound = false;
 	};
 }

@@ -16,6 +16,7 @@ namespace Hydro
 			default:                        return "FaceSun";
 		}
 	}
+	static const char* UprightToString(UprightSpriteMode mode) { return mode == UprightSpriteMode::Vertical ? "Vertical" : "LeanToCamera"; }
 	static const char* LightingToString(LightingMode mode)
 	{
 		switch (mode)
@@ -36,6 +37,7 @@ namespace Hydro
 		out << YAML::Key << "Meshes" << YAML::Value << settings.Meshes;
 		out << YAML::Key << "Shadows" << YAML::Value << ShadowsToString(settings.Shadows);
 		out << YAML::Key << "SpriteShadows" << YAML::Value << SpriteShadowsToString(settings.SpriteShadows);
+		out << YAML::Key << "UprightSprites" << YAML::Value << UprightToString(settings.UprightSprites);
 		out << YAML::Key << "HDR" << YAML::Value << settings.HDR;
 		out << YAML::Key << "Bloom" << YAML::Value << settings.Bloom;
 		out << YAML::EndMap;
@@ -140,6 +142,19 @@ namespace Hydro
 			else if (name == "FaceSun")
 			{
 				settings.SpriteShadows = SpriteShadowMode::FaceSun;
+			}
+		}
+		// Settings saved before standing sprites have no key: they lean to the camera, as before.
+		if (auto value = node["UprightSprites"])
+		{
+			const std::string name = value.as<std::string>("");
+			if (name == "Vertical")
+			{
+				settings.UprightSprites = UprightSpriteMode::Vertical;
+			}
+			else if (name == "LeanToCamera")
+			{
+				settings.UprightSprites = UprightSpriteMode::LeanToCamera;
 			}
 		}
 	}

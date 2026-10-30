@@ -80,3 +80,11 @@ TextureImport:
     - {Name: Miko_61, Rect: [480, 672, 96, 96], Pivot: [0.5, 0.5]}
     - {Name: Miko_62, Rect: [576, 672, 96, 96], Pivot: [0.5, 0.5]}
     - {Name: Miko_63, Rect: [672, 672, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_64, Rect: [0, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_65, Rect: [96, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_66, Rect: [192, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_67, Rect: [288, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_68, Rect: [384, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_69, Rect: [480, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_70, Rect: [576, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_71, Rect: [672, 768, 96, 96], Pivot: [0.5, 0.5]}

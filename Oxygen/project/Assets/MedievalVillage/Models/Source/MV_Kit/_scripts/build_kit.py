@@ -172,14 +172,52 @@ class MeshBuilder:
     def to_object(self, name, coll, loc=(0, 0, 0)):
         bmesh.ops.remove_doubles(self.bm, verts=self.bm.verts, dist=1e-5)
         bmesh.ops.recalc_face_normals(self.bm, faces=self.bm.faces)
+        bake_ao(self.bm, name)
         me = bpy.data.meshes.new(name)
         self.bm.to_mesh(me); self.bm.free()
+        if "Col" in me.color_attributes:
+            me.color_attributes.active_color_name = "Col"
+            me.color_attributes.render_color_index = me.color_attributes.find("Col")
         for m in self.mats:
             me.materials.append(MAT[m])
         ob = bpy.data.objects.new(name, me)
         ob.location = loc
         coll.objects.link(ob)
         return ob
+
+
+# ------------------------------------------------------------------ ambient occlusion in vertex colours (Phase 2)
+# Hydro multiplies a mesh's albedo by its COLOR_0 (mesh.frag), so contact shadow is baked here per module, in the
+# module's own frame (z = 0 at its base): darker where walls meet the foundation or the floor below, under the eaves
+# / floor band at the top, at the foot of foundations and chimneys. Edges are cut so the dark bands stay narrow.
+# Values are linear (glTF COLOR_0): 0.74 linear reads as about 0.87 on screen.
+def ao_cut(bm, zs):
+    for z in zs:
+        geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+        bmesh.ops.bisect_plane(bm, geom=geom, plane_co=(0, 0, z), plane_no=(0, 0, 1))
+
+
+def bake_ao(bm, name):
+    clamp = lambda v: max(0.0, min(1.0, v))
+    if name.startswith("MV_Wall_Gable"):
+        shade = lambda z: 0.88                                    # always under the roof
+    elif name.startswith("MV_Wall_"):
+        ao_cut(bm, (0.35, WALL_H - 0.45))
+        shade = lambda z: 1.0 - 0.26 * clamp(1.0 - z / 0.35) - 0.2 * clamp((z - (WALL_H - 0.45)) / 0.45)
+    elif name.startswith("MV_Foundation"):
+        shade = lambda z: 0.62 + 0.36 * clamp(z / FND_H)
+    elif name.startswith("MV_Chimney"):
+        ao_cut(bm, (1.2,))
+        shade = lambda z: 0.75 + 0.25 * clamp(z / 1.2)
+    elif name.startswith(("MV_Retaining", "MV_Bank_Stone", "MV_Stairs", "MV_Well", "MV_Bridge")):
+        ao_cut(bm, (0.4,))
+        shade = lambda z: 0.7 + 0.3 * clamp(z / 0.4)
+    else:
+        shade = lambda z: 1.0
+    layer = bm.verts.layers.float_color.new("Col")
+    for v in bm.verts:
+        c = shade(v.co.z)
+        v[layer] = (c, c, c, 1.0)
 
 
 def R(axis, deg):
@@ -217,6 +255,7 @@ BEAM_OUT = 0.05        # how far beams stand proud of the plaster
 PITCH = 50.0           # roof pitch (steep)
 SPAN = 4.0             # roof span (building depth) of the gable modules
 EAVE = 0.45            # eave overhang beyond wall face
+JETTY = 0.15           # upper timber storeys jut out this far over the front wall (Phase 2; more and the wall top pokes through the 0.45 m eave)
 GABLE_RISE = (SPAN / 2) * math.tan(math.radians(PITCH))
 
 LIB = []  # (object, library position)
@@ -315,6 +354,13 @@ def corner_beam():
     return mb.to_object("MV_Beam_Corner_A", COL["03_Beams"])
 
 
+def joist_end(depth=JETTY + 0.1):
+    """Phase 2: a joist end under a jettied storey, from inside the lower wall out to the overhang's face."""
+    mb = MeshBuilder()
+    mb.box(-0.07, -depth, -0.16, 0.07, 0.05, 0.0, "MAT_Wood_DarkBeam")
+    return mb.to_object("MV_Beam_Joist_A", COL["03_Beams"])
+
+
 def floor_beam():
     mb = MeshBuilder()
     # horizontal floor beam 2 m, built as a vertical beam rotated onto X
@@ -336,16 +382,21 @@ def door():
 
 
 # ---- D. window -------------------------------------------------------------------
+def window_frame(mb, W, H, fw=0.1):
+    """Phase 2: a deep frame (0.16 m proud) with the glass set back near the wall, a head beam with a drip edge and
+    a thick stone sill, so the opening reads as a recess with its own shadow instead of a picture on the wall."""
+    mb.box(-W / 2, -0.03, 0, W / 2, -0.005, H, "MAT_Window_Glass", fit=('-y',))
+    mb.box(-W / 2 - fw, -0.16, -fw, -W / 2, 0.02, H + fw, "MAT_Wood_DarkBeam")            # jambs
+    mb.box(W / 2, -0.16, -fw, W / 2 + fw, 0.02, H + fw, "MAT_Wood_DarkBeam")
+    mb.box(-W / 2 - fw - 0.05, -0.2, H, W / 2 + fw + 0.05, 0.02, H + fw + 0.06, "MAT_Wood_DarkBeam")  # head
+    mb.box(-W / 2, -0.05, H - 0.06, W / 2, -0.03, H, "MAT_Wood_DarkBeam")                 # top rail inside
+    mb.box(-W / 2 - fw - 0.08, -0.24, -fw - 0.1, W / 2 + fw + 0.08, 0.02, -fw + 0.02, "MAT_Stone_Cut")  # sill
+
+
 def window_small():
     mb = MeshBuilder()
     W, H = 0.8, 0.9
-    fw = 0.1
-    mb.box(-W / 2, -0.04, 0, W / 2, -0.01, H, "MAT_Window_Glass", fit=('-y',))
-    mb.box(-W / 2 - fw, -0.09, -fw, -W / 2, 0.02, H + fw, "MAT_Wood_DarkBeam")
-    mb.box(W / 2, -0.09, -fw, W / 2 + fw, 0.02, H + fw, "MAT_Wood_DarkBeam")
-    mb.box(-W / 2 - fw, -0.10, H, W / 2 + fw, 0.02, H + fw + 0.02, "MAT_Wood_DarkBeam")
-    mb.box(-W / 2 - fw - 0.06, -0.16, -fw - 0.06, W / 2 + fw + 0.06, 0.02, -fw + 0.0, "MAT_Stone_Cut")  # sill
-    # flower-box-ready ledge stays simple; window boxes are a separate prop later
+    window_frame(mb, W, H)
     return mb.to_object("MV_Window_Small_A", COL["05_Windows"])
 
 
@@ -418,13 +469,16 @@ def chimney(total_h, tag="A"):
     mb = MeshBuilder()
     m = "MAT_Stone_Chimney"
     base_h = min(3.9, total_h - 2.6)
-    mb.box(-0.6, 0, 0, 0.6, 0.75, base_h, m, facemat={'+z': "MAT_Stone_Cut"})          # breast
-    mb.box(-0.5, 0.0, base_h, 0.5, 0.68, base_h + 0.35, m, facemat={'+z': "MAT_Stone_Cut"})  # shoulder
-    mb.box(-0.36, 0.06, base_h + 0.35, 0.36, 0.62, total_h, m)                           # stack
-    mb.box(-0.45, -0.03, total_h, 0.45, 0.71, total_h + 0.12, "MAT_Stone_Cut")           # cap
-    mb.box(-0.22, 0.2, total_h + 0.12, 0.22, 0.48, total_h + 0.3, "MAT_Metal_IronDark")  # pot
+    # Phase 2: slimmer (0.9 m breast, 0.6 m stack), a projecting cap course and two pots
+    mb.box(-0.45, 0, 0, 0.45, 0.7, base_h, m, facemat={'+z': "MAT_Stone_Cut"})          # breast
+    mb.box(-0.38, 0.0, base_h, 0.38, 0.64, base_h + 0.35, m, facemat={'+z': "MAT_Stone_Cut"})  # shoulder
+    mb.box(-0.3, 0.06, base_h + 0.35, 0.3, 0.58, total_h, m)                             # stack
+    mb.box(-0.38, -0.02, total_h - 0.22, 0.38, 0.66, total_h - 0.1, "MAT_Stone_Cut")     # band under the cap
+    mb.box(-0.36, 0.0, total_h, 0.36, 0.64, total_h + 0.12, "MAT_Stone_Cut")             # cap
+    for px in (-0.14, 0.14):
+        mb.box(px - 0.08, 0.24, total_h + 0.12, px + 0.08, 0.4, total_h + 0.34, "MAT_Metal_IronDark")  # pots
     ob = mb.to_object("MV_Chimney_Stone_%s" % tag, COL["07_Chimneys"])
-    col_box(ob, -0.6, 0, 0, 0.6, 0.75, base_h)
+    col_box(ob, -0.45, 0, 0, 0.45, 0.7, base_h)
     return ob
 
 
@@ -482,11 +536,7 @@ def window_shutter():
     """MV_Window_Small_A with two open plank shutters either side."""
     mb = MeshBuilder()
     W, H, fw = 0.8, 0.9, 0.1
-    mb.box(-W / 2, -0.04, 0, W / 2, -0.01, H, "MAT_Window_Glass", fit=('-y',))
-    mb.box(-W / 2 - fw, -0.09, -fw, -W / 2, 0.02, H + fw, "MAT_Wood_DarkBeam")
-    mb.box(W / 2, -0.09, -fw, W / 2 + fw, 0.02, H + fw, "MAT_Wood_DarkBeam")
-    mb.box(-W / 2 - fw, -0.10, H, W / 2 + fw, 0.02, H + fw + 0.02, "MAT_Wood_DarkBeam")
-    mb.box(-W / 2 - fw - 0.06, -0.16, -fw - 0.06, W / 2 + fw + 0.06, 0.02, -fw, "MAT_Stone_Cut")
+    window_frame(mb, W, H, fw)
     for side in (-1, 1):   # shutters folded back against the wall
         x0 = side * (W / 2 + fw + 0.02)
         x1 = x0 + side * 0.44
@@ -657,7 +707,8 @@ LIBROWS = [
     [("fnd4", foundation(4)), ("fnd2", foundation(2)), ("step", doorstep())],
     [("wp2", wall_plaster(2)), ("wp4", wall_plaster(4)), ("wtA", wall_timber("A")), ("wtB", wall_timber("B")),
      ("ws2", wall_material(2, "stone")), ("wk2", wall_material(2, "plank"))],
-    [("gable", wall_gable()), ("gableK", wall_gable_plank()), ("corner", corner_beam()), ("fbeam", floor_beam()), ("post", post_timber())],
+    [("gable", wall_gable()), ("gableK", wall_gable_plank()), ("corner", corner_beam()), ("fbeam", floor_beam()), ("post", post_timber()),
+     ("joist", joist_end())],
     [("door", door()), ("doorBarn", door_barn()), ("win", window_small()), ("winS", window_shutter()), ("fbox", flower_box())],
     [("roof2", roof_gable(2)), ("roofEnd", roof_gable_end()), ("roofK2", roof_gable(2, "MAT_Roof_ShingleDark", "GableShingle")),
      ("roofKEnd", roof_gable_end("MAT_Roof_ShingleDark", "GableShingleEnd")), ("lean", roof_leanto())],
@@ -730,21 +781,31 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
         P("fnd2", 0, D - 2 * i, 0, -90); P("fnd2", W, 2 * i, 0, 90)
     left = left or ["A" * int(D // 2)] * nf
     back = back or ["A" * int(W // 2)] * nf
+    def jetty(s):
+        # Phase 2: timber storeys above the ground floor jut out over the front (classic jettied frame)
+        return JETTY if s > 0 and set(front[s]) <= set("AB") else 0.0
+
     for s in range(nf):
         z = F + WALL_H * s
+        J = jetty(s)
+        n_side = int(D // 2)
+        stretch = (2.0 + J) / 2.0   # the front side panel reaches out to the jetty
         for i, k in enumerate(front[s]):
-            P(PANEL[k], 2 * i, 0, z)
+            P(PANEL[k], 2 * i, -J, z)
         for i, k in enumerate(right[s]):
-            P(PANEL[k], W, 2 * i, z, 90)
+            P(PANEL[k], W, -J if i == 0 else 2 * i, z, 90, stretch if i == 0 else 1.0)
         for i, k in enumerate(back[s]):
             P(PANEL[k], W - 2 * i, D, z, 180)
         for i, k in enumerate(left[s]):
-            P(PANEL[k], 0, D - 2 * i, z, -90)
-        for (cx, cy, r) in ((0, 0, 0), (W, 0, 90), (W, D, 180), (0, D, -90)):
+            P(PANEL[k], 0, D - 2 * i, z, -90, stretch if i == n_side - 1 else 1.0)
+        for (cx, cy, r) in ((0, -J, 0), (W, -J, 90), (W, D, 180), (0, D, -90)):
             P("corner", cx, cy, z, r)
+        if J > 0:  # joist ends carry the overhang, every 0.5 m along the front
+            for i in range(int(W / 0.5) + 1):
+                P("joist", 0.12 + i * (W - 0.24) / int(W / 0.5), 0.0, z - 0.02)
         if s > 0:  # a timber floor band between storeys, on all four sides so every face reads the same
             for i in range(int(W // 2)):
-                P("fbeam", 2 * i, -0.02, z - 0.11)
+                P("fbeam", 2 * i, -0.02 - J, z - 0.11)
                 P("fbeam", W - 2 * i, D + 0.02, z - 0.11, 180)
             for i in range(int(D // 2)):
                 P("fbeam", W + 0.02, 2 * i, z - 0.11, 90)
@@ -759,7 +820,7 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
     for (key, side, x, storey, zz) in opens:
         z = F + WALL_H * storey + zz
         if side == "front":
-            P(key, x, 0, z)
+            P(key, x, -jetty(storey), z)
         elif side == "right":
             P(key, W, x, z, 90)
         elif side == "left":
@@ -991,6 +1052,18 @@ scene.view_settings.exposure = -0.3
 # ------------------------------------------------------------------ export the prefabs (glb, one per prefab)
 # Collision proxies are left out: Hydro's importer flattens every node into one render mesh; colliders are
 # scene components. Each prefab's root is moved to the origin for its export.
+# Phase 2: export the baked AO (vertex colour "Col") as COLOR_0 even though the materials don't use it
+GLTF_COLOR_ARGS = {}
+try:
+    _props = bpy.ops.export_scene.gltf.get_rna_type().properties
+    if "export_vertex_color" in _props:
+        GLTF_COLOR_ARGS["export_vertex_color"] = 'ACTIVE'
+        if "export_active_vertex_color_when_no_material" in _props:
+            GLTF_COLOR_ARGS["export_active_vertex_color_when_no_material"] = True
+    elif "export_colors" in _props:
+        GLTF_COLOR_ARGS["export_colors"] = True
+except Exception:
+    pass
 OUT = Path(os.environ["MV_OUT"]) if os.environ.get("MV_OUT") else ROOT / "Models"   # MV_OUT: export elsewhere (preview)
 EXPORTED = []
 # Re-exported on every run (the rest keep their glbs unless MV_REEXPORT is set): the buildings, after the Oct 29, 2026
@@ -1008,7 +1081,8 @@ for pname, root in PREFABS.items():
     bpy.context.view_layer.update()
     bpy.ops.export_scene.gltf(filepath=str(OUT / (pname + ".glb")), export_format='GLB', use_selection=True,
                               export_yup=True, export_apply=False, export_materials='EXPORT',
-                              export_image_format='AUTO', export_cameras=False, export_lights=False)
+                              export_image_format='AUTO', export_cameras=False, export_lights=False,
+                              **GLTF_COLOR_ARGS)
     root.location = saved
     EXPORTED.append(pname)
 

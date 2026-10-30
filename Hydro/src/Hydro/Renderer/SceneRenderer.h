@@ -84,7 +84,7 @@ namespace Hydro
 				return true;
 			}
 		};
-		static CameraBasis MakeCameraBasis(const glm::mat3& rotation);
+		static CameraBasis MakeCameraBasis(const glm::mat3& rotation, UprightSpriteMode upright);
 
 		// How the sprites of the view being drawn cast sun shadows (R14). Made once per RenderEditor /
 		// RenderRuntime by PrepareSunShadowCasting.
