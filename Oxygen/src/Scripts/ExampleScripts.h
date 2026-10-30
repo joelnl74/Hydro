@@ -70,8 +70,9 @@ namespace Hydro
 		void OnUpdate(float deltaTime) override
 		{
 			glm::vec2 move{ 0.0f };
-			// A modal menu owns the keys: the character stands still (and faces the way it was).
-			const bool inputAllowed = UIState::MenuOpen == false;
+			// A runtime UI canvas that captures input (UI::CapturesInput: a menu, a dialogue) owns the keys: the
+			// character stands still (and faces the way it was).
+			const bool inputAllowed = UI::CapturesInput(*GetEntity().GetScene()) == false;
 			if (inputAllowed && (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left)))
 			{
 				move.x -= 1.0f;
@@ -195,7 +196,12 @@ namespace Hydro
 
 			if (self.HasComponent<CameraComponent>())
 			{
-				DioramaView::Apply(self, m_Focus, m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend);
+				// A cutscene may hold the camera (DioramaView::CinematicWeight); the follow goes on underneath, so
+				// letting go glides back to the target.
+				glm::vec2 focus = m_Focus;
+				float height = m_FocusHeight + DioramaView::SceneFocusRise * DioramaView::Blend;
+				DioramaView::MixCinematic(focus, height);
+				DioramaView::Apply(self, focus, height);
 			}
 		}
 

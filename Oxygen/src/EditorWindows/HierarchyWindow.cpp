@@ -5,9 +5,12 @@
 #include <imgui/imgui.h>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstdint>
 #include <vector>
+#include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Core/UUID.h>
+#include <Hydro/Renderer/Font.h>
 #include <Hydro/Scene/PrefabSerializer.h>
 #include <Hydro/Utils/PlatformUtils.h>
 
@@ -19,6 +22,37 @@ namespace Hydro
 	// The share of a row's height, at its top and its bottom, that drops before / after it as a sibling; the
 	// middle makes the dragged entity its child.
 	static constexpr float SiblingDropEdge = 0.25f;
+
+	// The project's first font (by path), loaded, so new UI text shows at once; 0 when the project has none.
+	// The font new UI text gets: a smooth font nearest 30 px (body text on the 1920 x 1080 canvas, D5), else the
+	// first pixel font; ties go to the first by path.
+	static AssetHandle FindDefaultFont()
+	{
+		AssetHandle found = 0;
+		std::string foundPath;
+		float foundScore = 0.0f;
+		for (const auto& [handle, metadata] : AssetManager::GetRegistry().GetAll())
+		{
+			if (metadata.Type != AssetType::Font || metadata.IsMissing)
+			{
+				continue;
+			}
+			const Ref<Font> font = AssetManager::GetAsset<Font>(handle);
+			if (font == nullptr)
+			{
+				continue;
+			}
+			const float score = std::abs(font->GetData().Size - 30.0f) + (font->GetData().Smooth ? 0.0f : 1000.0f);
+			const std::string path = metadata.Path.generic_string();
+			if ((uint64_t)found == 0 || score < foundScore || (score == foundScore && path < foundPath))
+			{
+				found = handle;
+				foundPath = path;
+				foundScore = score;
+			}
+		}
+		return found;
+	}
 
 	HierarchyWindow::HierarchyWindow()
 	{
@@ -152,6 +186,12 @@ namespace Hydro
 			if (ImGui::MenuItem("Create Light"))
 			{
 				m_Pending = PendingEdit::Creating(PendingEdit::Template::Light, {});
+			}
+
+			if (ImGui::BeginMenu("Create UI"))
+			{
+				DrawCreateUIMenu({});
+				ImGui::EndMenu();
 			}
 
 			if (ImGui::MenuItem("Create Camera"))
@@ -322,6 +362,11 @@ namespace Hydro
 			{
 				m_Pending = PendingEdit::Creating(PendingEdit::Template::Light, entity);
 			}
+			if (ImGui::BeginMenu("UI"))
+			{
+				DrawCreateUIMenu(entity);
+				ImGui::EndMenu();
+			}
 			ImGui::EndMenu();
 		}
 		if ((bool)scene.GetParent(entity) && ImGui::MenuItem("Unparent"))
@@ -348,8 +393,138 @@ namespace Hydro
 		ImGui::EndPopup();
 	}
 
+	void HierarchyWindow::DrawCreateUIMenu(Entity parent)
+	{
+		struct Item
+		{
+			const char* Name;
+			PendingEdit::Template Kind;
+		};
+		const Item items[] = {
+			{ "Canvas", PendingEdit::Template::UICanvas },
+			{ "Panel", PendingEdit::Template::UIPanel },
+			{ "Image", PendingEdit::Template::UIImage },
+			{ "Text", PendingEdit::Template::UIText },
+			{ "Button", PendingEdit::Template::UIButton },
+			{ "Vertical List", PendingEdit::Template::UIList } };
+		for (const Item& item : items)
+		{
+			if (ImGui::MenuItem(item.Name))
+			{
+				m_Pending = PendingEdit::Creating(item.Kind, parent);
+			}
+		}
+	}
+
+	Entity HierarchyWindow::CreateUIFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent)
+	{
+		if (kind == PendingEdit::Template::UICanvas)
+		{
+			Entity canvas = scene.CreateEntity("Canvas");
+			canvas.AddComponent<UICanvasComponent>();
+			if (parent)
+			{
+				scene.SetParent(canvas, parent, false);
+			}
+			return canvas;
+		}
+
+		// Elements sit on a canvas: the one at or above `parent`, else a new one.
+		bool onCanvas = false;
+		for (Entity current = parent; (bool)current; current = scene.GetParent(current))
+		{
+			if (current.HasComponent<UICanvasComponent>())
+			{
+				onCanvas = true;
+				break;
+			}
+		}
+		if (onCanvas == false)
+		{
+			parent = CreateUIFromTemplate(scene, PendingEdit::Template::UICanvas, {});
+		}
+
+		const char* name = "Image";
+		switch (kind)
+		{
+		case PendingEdit::Template::UIPanel: name = "Panel"; break;
+		case PendingEdit::Template::UIText: name = "Text"; break;
+		case PendingEdit::Template::UIButton: name = "Button"; break;
+		case PendingEdit::Template::UIList: name = "List"; break;
+		default: break;
+		}
+
+		Entity element = scene.CreateEntity(name);
+		UIRectComponent& rect = element.AddComponent<UIRectComponent>();
+		switch (kind)
+		{
+		case PendingEdit::Template::UIPanel:
+			rect.SizeDelta = { 640.0f, 400.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.05f, 0.06f, 0.09f, 0.82f };
+			break;
+		case PendingEdit::Template::UIText:
+		{
+			rect.SizeDelta = { 480.0f, 48.0f };
+			UITextComponent& text = element.AddComponent<UITextComponent>();
+			text.Text = "Text";
+			text.Font = FindDefaultFont();
+			break;
+		}
+		case PendingEdit::Template::UIList:
+		{
+			// A panel stacking three buttons; it grows with its rows (Fit Content). On its canvas first, so the rows find it.
+			scene.SetParent(element, parent, false);
+			rect.SizeDelta = { 420.0f, 240.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.05f, 0.06f, 0.09f, 0.82f };
+			UILayoutGroupComponent& group = element.AddComponent<UILayoutGroupComponent>();
+			group.Padding = { 12.0f, 12.0f, 12.0f, 12.0f };
+			group.Spacing = 6.0f;
+			group.FitContent = true;
+			for (int row = 0; row < 3; row++)
+			{
+				Entity button = CreateUIFromTemplate(scene, PendingEdit::Template::UIButton, element);
+				button.GetComponent<UIRectComponent>().SizeDelta = { 380.0f, 52.0f };
+				button.GetComponent<TagComponent>().Tag = "Row " + std::to_string(row + 1);
+			}
+			break;
+		}
+		case PendingEdit::Template::UIButton:
+		{
+			rect.SizeDelta = { 380.0f, 56.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.16f, 0.17f, 0.22f, 0.9f };
+			element.AddComponent<UIButtonComponent>();
+			// Its label fills it.
+			Entity label = scene.CreateEntity("Text");
+			UIRectComponent& labelRect = label.AddComponent<UIRectComponent>();
+			labelRect.AnchorMin = { 0.0f, 0.0f };
+			labelRect.AnchorMax = { 1.0f, 1.0f };
+			labelRect.SizeDelta = { 0.0f, 0.0f };
+			UITextComponent& text = label.AddComponent<UITextComponent>();
+			text.Text = "Button";
+			text.Font = FindDefaultFont();
+			text.AlignH = TextAlignH::Center;
+			text.AlignV = TextAlignV::Middle;
+			text.Wrap = false;
+			scene.SetParent(label, element, false);
+			break;
+		}
+		default:
+			rect.SizeDelta = { 128.0f, 128.0f };
+			element.AddComponent<UIImageComponent>();
+			break;
+		}
+
+		scene.SetParent(element, parent, false);
+		return element;
+	}
+
 	Entity HierarchyWindow::CreateFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent)
 	{
+		if (kind >= PendingEdit::Template::UICanvas)
+		{
+			return CreateUIFromTemplate(scene, kind, parent);
+		}
+
 		const char* name = kind == PendingEdit::Template::Sprite ? "Sprite" : (kind == PendingEdit::Template::Light ? "Light" : "Empty Entity");
 		Entity entity = scene.CreateEntity(name);
 		entity.AddComponent<TransformComponent>();

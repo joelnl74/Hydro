@@ -28,6 +28,10 @@
 #include "Hydro/Scene/ParticleScene.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/Vfx.h"
+#include "Hydro/Scene/UI/UI.h"
+#include "Hydro/Scene/UI/UIEvent.h"
+#include "Hydro/Scene/UI/UIScene.h"
+#include "Hydro/Scene/UI/UILayout.h"
 
 // Scripting
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"
@@ -55,6 +59,8 @@
 #include "Hydro/Renderer/Material.h"
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Hydro/Renderer/Mesh.h"
+#include "Hydro/Renderer/Font.h"
+#include "Hydro/Renderer/TextLayout.h"
 #include "Hydro/Renderer/TextureImport.h"
 #include "Hydro/Renderer/TextureImportSerializer.h"
 #include "Hydro/Renderer/SpriteSlicer.h"

@@ -6,10 +6,15 @@
 namespace Hydro
 {
 	// Vulkan clip space has +Y pointing down. Flipping here (and nowhere else) keeps world +Y up
-	// on screen and lets every image be shown without flipping its UVs.
+	// on screen and lets every image be shown without flipping its UVs. The whole Y row is negated
+	// (clip y = -y), not only the scale: an off-centre projection (Orthographic(0, width, 0, height, ...)
+	// for screen pixels) also has a Y offset, which must flip with it.
 	static glm::mat4 FlipY(glm::mat4 projection)
 	{
-		projection[1][1] *= -1.0f;
+		for (int column = 0; column < 4; column++)
+		{
+			projection[column][1] *= -1.0f;
+		}
 		return projection;
 	}
 

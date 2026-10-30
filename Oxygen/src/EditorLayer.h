@@ -156,6 +156,9 @@ namespace Hydro
 		// with the Capture menu or F9 / Shift+F9 is requested here, at the fixed capture size if that
 		// option is on (the window shows that one frame stretched).
 		void ResizeGameView(uint32_t width, uint32_t height);
+		// Tells the active scene where the pointer is over the Game view's image just drawn (the last ImGui item, at
+		// `imagePosition`, `imageSize` big), for the runtime UI: view pixels with Y up, over it or not, button down.
+		void UpdateGamePointer(const ImVec2& imagePosition, const ImVec2& imageSize);
 		void ResizeEditorView(uint32_t width, uint32_t height);
 		// The Capture menu, shown in the Editor and Game windows' menu bars.
 		void DrawCaptureMenu();

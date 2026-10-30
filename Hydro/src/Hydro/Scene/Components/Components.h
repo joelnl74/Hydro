@@ -13,6 +13,7 @@
 #include <Hydro/Asset/Asset.h>
 #include <Hydro/Renderer/Image.h>
 #include <Hydro/Renderer/Material.h>
+#include <Hydro/Renderer/TextLayout.h>
 
 #include <vector>
 #include <glm/gtx/quaternion.hpp>
@@ -564,81 +565,196 @@ namespace Hydro
 		ParticleEmitter2DComponent() = default;
 		ParticleEmitter2DComponent(const ParticleEmitter2DComponent&) = default;
 	};
-	/*
+	// ---- Runtime UI (#164; docs/SceneAndECS.md#runtime-ui) ------------------------------------------
+	// A canvas is an entity with a UICanvasComponent, normally a root; its UI elements are the descendants with a
+	// UIRectComponent. Elements are placed by their rect (resolved in canvas pixels, Y up, by Scene::ResolveUILayout),
+	// never by a TransformComponent, and drawn in hierarchy order on top of the scene (SceneRenderer, the Game view).
 
-	enum class UIState : uint8_t
+	// How a canvas's pixels map to the view's.
+	enum class UIScaleMode : uint8_t
 	{
-		Normal = 0,
-		Hovered,
-		Pressed,
-		Focused,
-		Disabled
+		IntegerScale = 0,  // the largest whole multiple of ReferenceResolution that fits, at least 1; leftover space widens the canvas
+		ScaleWithScreen,   // a fractional scale that fits ReferenceResolution (smooth UI)
+		ConstantPixelSize  // 1 canvas pixel = 1 view pixel
 	};
 
-	struct UIFocusable
+	// Where a canvas is (UI6).
+	enum class UICanvasSpace : uint8_t
 	{
-		bool AutoNavigation = true;
+		Screen = 0, // covers the view
+		World       // a WorldSize box pinned to the entity's world position (projected through the primary camera),
+		            // the same size on screen however far away: labels over characters, enemy info, prompts
 	};
-	*/
 
 	struct UICanvasComponent
 	{
-		glm::vec2 Size{ 800.0f, 600.0f }; // in pixels, before the transform's scale
-		bool PixelPerfect = true;         // snap to whole pixels when drawing children (UIElementComponent)
-		bool DrawDebug = false;           // draw the canvas' outline and its children's bounds
+		// Canvas pixels the layout is designed for (sets the scale). The game's UI is a 1920 x 1080 canvas scaled
+		// smoothly with the view, with smooth fonts (decision D5, Oct 30, 2026); 480 x 270 IntegerScale suits pixel UI.
+		glm::vec2 ReferenceResolution{ 1920.0f, 1080.0f };
+		UIScaleMode ScaleMode = UIScaleMode::ScaleWithScreen;
+		UICanvasSpace Space = UICanvasSpace::Screen;
+		glm::vec2 WorldSize{ 320.0f, 80.0f };  // World: the canvas's size in canvas pixels
+		glm::vec2 WorldPivot{ 0.5f, 0.0f };    // World: the point of the box (0..1) that sits on the entity's position
+		int32_t SortOrder = 0;            // canvases with a higher order draw on top
+		bool Visible = true;              // false hides the canvas and everything on it
+		bool BlocksGameplayInput = false; // while visible, gameplay scripts don't get keyboard input (UI3a)
+		bool DrawDebug = false;           // outlines of the canvas and its rects in the Game view
+
 		UICanvasComponent() = default;
 		UICanvasComponent(const UICanvasComponent&) = default;
 	};
 
+	// Where an element sits in its parent's rect (the canvas, for a direct child): Unity's RectTransform, Y up.
+	// Authored: saved, copied and edited; never written by a system (the result is UIResolvedRectComponent).
 	struct UIRectComponent
 	{
-		glm::vec2 Size{ 100.0f, 100.0f }; // in pixels, before the transform's scale
-		glm::vec2 Pivot{ 0.5f, 0.5f };    // 0 = left/top, 1 = right/bottom
-		bool DrawDebug = false;           // draw the rect's outline
+		glm::vec2 AnchorMin{ 0.5f, 0.5f };  // corners in the parent rect, 0..1 (0,0 = bottom-left)
+		glm::vec2 AnchorMax{ 0.5f, 0.5f };
+		glm::vec2 Pivot{ 0.5f, 0.5f };      // the point AnchoredPosition places, as a fraction of the rect's size
+		glm::vec2 AnchoredPosition{ 0.0f, 0.0f }; // the pivot's offset from the anchors (where AnchorMin..Max puts it), canvas pixels
+		glm::vec2 SizeDelta{ 100.0f, 100.0f };   // the size added to the anchors' span (the size itself when the anchors meet)
+		bool Visible = true;                // false hides the element and its subtree
+
 		UIRectComponent() = default;
 		UIRectComponent(const UIRectComponent&) = default;
 	};
 
+	// An element's rect as laid out. Derived data, like WorldTransformComponent: added and removed together with the
+	// UIRectComponent (registry signals), written only by Scene::ResolveUILayout, never saved, copied or edited.
+	struct UIResolvedRectComponent
+	{
+		glm::vec2 Min{ 0.0f, 0.0f };        // canvas pixels, Y up, whole pixels
+		glm::vec2 Max{ 0.0f, 0.0f };
+		bool Visible = false;               // its own Visible, every ancestor's and the canvas's
+		UUID Canvas = 0;                    // the canvas it is drawn on; 0 = none (no canvas above it, or a nested one)
+		// What of it can show: the scroll views above it (canvas pixels). Drawing and the pointer are cut to it.
+		glm::vec2 ClipMin{ -1.0e9f, -1.0e9f };
+		glm::vec2 ClipMax{ 1.0e9f, 1.0e9f };
+
+		UIResolvedRectComponent() = default;
+		UIResolvedRectComponent(const UIResolvedRectComponent&) = default;
+	};
+
+	enum class UILayoutDirection : uint8_t { Vertical = 0, Horizontal };
+	// Where children sit along an axis of a layout group's content rect.
+	enum class UILayoutAlignment : uint8_t { Start = 0, Center, End }; // Start = top (vertical) / left (horizontal)
+
+	// Stacks the element's visible UI children one after another (UI4), top to bottom or left to right, inside its rect
+	// less Padding. It only changes their resolved rects: their UIRectComponents keep what was authored (the inspector
+	// shows their placement as driven), so removing the group puts every child back where it was. A child's size
+	// along the stack is its own resolved size; across it, the content's when StretchCrossAxis, else its own, placed by
+	// ChildAlignment. Hidden children take no room. With FitContent the group's own size along the stack follows its
+	// children (its pivot stays put), so a list grows and shrinks with its rows.
+	struct UILayoutGroupComponent
+	{
+		UILayoutDirection Direction = UILayoutDirection::Vertical;
+		float Spacing = 2.0f;                        // canvas pixels between children
+		glm::vec4 Padding{ 0.0f, 0.0f, 0.0f, 0.0f }; // left, bottom, right, top, canvas pixels
+		UILayoutAlignment ChildAlignment = UILayoutAlignment::Start; // along the stack and, unstretched, across it
+		bool StretchCrossAxis = true;                // children take the content's width (vertical) / height (horizontal)
+		bool FitContent = false;
+
+		UILayoutGroupComponent() = default;
+		UILayoutGroupComponent(const UILayoutGroupComponent&) = default;
+	};
+
+	// An image filling the element's rect: a texture (a sprite of a sheet), or a flat colour without one.
 	struct UIImageComponent
 	{
-		AssetHandle Texture = 0;          // 0 = none
+		AssetHandle Texture = 0;            // 0 = a flat colour. Load it before assigning (the renderer never loads)
+		uint32_t SpriteIndex = 0;           // for a sprite sheet texture
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		float TilingFactor = 1.0f;        // Single textures only
-		uint32_t SpriteIndex = 0;         // for a sprite sheet texture
+		// Nine-slice borders in texture pixels: left, bottom, right, top (#81). The corners keep their size (1 texture
+		// pixel = 1 canvas pixel), the edges stretch along one axis and the centre along both; all 0 = stretch it all.
+		glm::vec4 NineSlice{ 0.0f, 0.0f, 0.0f, 0.0f };
 		bool FlipX = false;
 		bool FlipY = false;
+
 		UIImageComponent() = default;
 		UIImageComponent(const UIImageComponent&) = default;
 	};
 
+	// Text in the element's rect, in a bitmap font (Font, laid out by TextLayout, drawn by SceneRenderer::SubmitUI).
+	// The alignment enums are TextLayout's (TextAlignH / TextAlignV).
+	struct UITextComponent
+	{
+		std::string Text;                   // UTF-8; \n breaks a line
+		AssetHandle Font = 0;               // a Font asset (.fnt). Load it before assigning (the renderer never loads)
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		uint32_t Scale = 1;                 // whole multiples of the font's pixel size
+		TextAlignH AlignH = TextAlignH::Left;
+		TextAlignV AlignV = TextAlignV::Top;
+		bool Wrap = true;                   // at the rect's width, on spaces
+		float LineSpacing = 1.0f;           // times the font's line height
+		int32_t VisibleCharacters = -1;     // -1 = all; a typewriter counts this up (the layout never changes)
+		glm::vec4 ShadowColor{ 0.0f, 0.0f, 0.0f, 0.0f }; // a drop shadow under the glyphs; alpha 0 = none
+		glm::vec2 ShadowOffset{ 2.0f, -2.0f };           // canvas pixels, Y up
+
+		UITextComponent() = default;
+		UITextComponent(const UITextComponent&) = default;
+	};
+
+	// How a button finds the next one when focus moves with the keyboard (UI3a).
+	enum class UINavigation : uint8_t
+	{
+		Auto = 0, // the nearest interactable button in that direction, on the same canvas
+		Explicit, // Up / Down / Left / Right
+		None
+	};
+
+	// Makes the element focusable and pressable (UI3a, UI3b; UI1 saves and edits it). The tints are applied to the
+	// entity's UIImageComponent and UITextComponent by state.
 	struct UIButtonComponent
 	{
-		AssetHandle NormalTexture = 0;    // 0 = none
-		AssetHandle HoverTexture = 0;     // 0 = none
-		AssetHandle PressedTexture = 0;   // 0 = none
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		float TilingFactor = 1.0f;        // Single textures only
-		uint32_t SpriteIndex = 0;         // for a sprite sheet texture
-		bool FlipX = false;
-		bool FlipY = false;
+		bool Interactable = true;
+		std::string Event;                  // the name sent with Submit, e.g. "UseItem", "Attack"
+		glm::vec4 NormalTint{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 FocusedTint{ 1.0f, 0.95f, 0.75f, 1.0f };
+		glm::vec4 PressedTint{ 0.8f, 0.8f, 0.8f, 1.0f };
+		glm::vec4 DisabledTint{ 1.0f, 1.0f, 1.0f, 0.4f };
+		UINavigation Navigation = UINavigation::Auto;
+		// Explicit navigation's neighbours, by UUID (0 = none); Scene::RemapEntityReferences keeps them inside copies.
+		UUID Up = 0;
+		UUID Down = 0;
+		UUID Left = 0;
+		UUID Right = 0;
+
 		UIButtonComponent() = default;
 		UIButtonComponent(const UIButtonComponent&) = default;
 	};
 
-	struct UITextComponent
+	// A vertical scrolling area (UI6): its direct children (the content, typically one fitted layout group anchored at
+	// the top) move up by ScrollPosition, and everything below it is cut to its rect when drawn and hit-tested.
+	// ScrollPosition is kept between 0 and how much taller the content is than the view; with FollowFocus,
+	// Scene::ResolveUILayout scrolls so the focused button inside it is always whole in view (the art guide: focus
+	// never scrolls off-screen). It is runtime state the layout writes, like Unity's ScrollRect position: saved as
+	// the starting position.
+	struct UIScrollViewComponent
 	{
-		std::string Text;
-		AssetHandle Font = 0;             // 0 = none
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		float Size = 16.0f;               // in pixels
-		bool Wrap = false;                // wrap to the rect's width (UIRectComponent)
-		bool Bold = false;
-		bool Italic = false;
-		bool Underline = false;
-		bool Strikethrough = false;
-		bool DrawDebug = false;           // draw the text's bounds
-		UITextComponent() = default;
-		UITextComponent(const UITextComponent&) = default;
+		float ScrollPosition = 0.0f;        // canvas pixels the content is moved up by
+		bool FollowFocus = true;
+		// An element outside the view (in a track beside it) that the layout sizes and moves as the scrollbar's thumb
+		// in its parent's rect, by UUID (0 = none); hidden while everything fits.
+		UUID Scrollbar = 0;
+
+		UIScrollViewComponent() = default;
+		UIScrollViewComponent(const UIScrollViewComponent&) = default;
+	};
+
+	// When an element shows, by the state of the button it belongs to (itself or the nearest one above it, UI6): a
+	// cursor or a highlight that only the focused row has, or a resting look the focused row drops.
+	enum class UIFocusVisibility : uint8_t
+	{
+		Focused = 0, // while the button is focused or pressed
+		Unfocused    // while it isn't
+	};
+
+	struct UIFocusVisibilityComponent
+	{
+		UIFocusVisibility Show = UIFocusVisibility::Focused;
+
+		UIFocusVisibilityComponent() = default;
+		UIFocusVisibilityComponent(const UIFocusVisibilityComponent&) = default;
 	};
 
 	template<typename... Component>
@@ -648,5 +764,5 @@ namespace Hydro
 
 	using CopyableComponents = ComponentGroup<RelationshipComponent, TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent>;
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent, UILayoutGroupComponent, UIScrollViewComponent, UIFocusVisibilityComponent>;
 }

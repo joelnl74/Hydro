@@ -18,3 +18,6 @@ Hazelnut/assets/cache
 scripts/__pycache__
 # Editor caches (thumbnails), made again when missing
 **/.hydro/
+# local scratch (Claude): moved-out assets awaiting deletion, kit preview builds
+_to_delete/
+_build/

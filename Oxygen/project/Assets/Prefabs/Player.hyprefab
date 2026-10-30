@@ -7,19 +7,19 @@ Entities:
     TransformComponent:
       Translation: [-1.20000005, -1.29999995, 1]
       Rotation: [0, 0, 0]
-      Scale: [2.20000005, 2.20000005, 2.20000005]
+      Scale: [3, 2.25, 3]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 96
-      TextureHandle: 16527506524077974322
+      TextureHandle: 5407845820862445765
       Sprite: Miko_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     SpriteAnimatorComponent:
-      AnimationsHandle: 9503405222623168017
+      AnimationsHandle: 4798671707330513403
       StartClip: IdleRight
       PlayOnStart: true
       Speed: 1

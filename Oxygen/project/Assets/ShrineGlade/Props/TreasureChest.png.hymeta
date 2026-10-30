@@ -8,10 +8,10 @@ TextureImport:
   PixelsPerUnit: 32
   Slicing:
     Mode: Grid
-    CellSize: [40, 34]
+    CellSize: [32, 32]
     Offset: [0, 0]
     Spacing: [0, 0]
-    Columns: 2
+    Columns: 4
     Rows: 1
     RowNames: [Chest]
     DefaultPivot: [0.5, 0]

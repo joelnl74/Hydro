@@ -5,9 +5,12 @@
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
 
 #include "Scripts/BattleScripts.h"
+#include "Scripts/DialogueScripts.h"
 #include "Scripts/ExampleScripts.h"
 #include "Scripts/MvpScripts.h"
+#include "Scripts/QuestScripts.h"
 #include "Scripts/ShrineScripts.h"
+#include "Scripts/UICheckScripts.h"
 #include "Scripts/VillageScripts.h"
 
 namespace Hydro
@@ -44,7 +47,11 @@ namespace Hydro
 			.Property("WanderRadius", "Wander Radius", &EnemyChaseScript::WanderRadius).Range(0.0f, 50.0f).Tooltip("Metres around home it wanders")
 			.Property("WanderSpeed", "Wander Speed", &EnemyChaseScript::WanderSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while wandering (wisps move 15% faster)")
 			.Property("ChaseSpeed", "Chase Speed", &EnemyChaseScript::ChaseSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while chasing (the player walks at about 3.5)")
-			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home");
+			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home")
+			.Property("Dormant", "Dormant", &EnemyChaseScript::Dormant).Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)");
+
+		ScriptRegistry::Register<DialogueScript>("DialogueScript")
+			.Property("CharactersPerSecond", "Characters Per Second", &DialogueScript::CharactersPerSecond).Range(1.0f, 200.0f).Tooltip("How fast the lines type in, in characters per second");
 
 		ScriptRegistry::Register<BobScript>("BobScript")
 			.Property("Height", "Height", &BobScript::Height).Range(0.0f, 10.0f).Tooltip("Metres up and down from where it started")
@@ -76,6 +83,24 @@ namespace Hydro
 			.Property("ArriveTime", "Arrive Time", &MvpDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
 			.Property("RestTime", "Rest Time", &MvpDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point");
 
+		ScriptRegistry::Register<QuestTrackerScript>("QuestTrackerScript")
+			.Property("BannerHoldTime", "Banner Hold Time", &QuestTrackerScript::BannerHoldTime).Range(0.5f, 20.0f).Tooltip("Seconds a banner stays fully shown")
+			.Property("BannerOpenTime", "Banner Open Time", &QuestTrackerScript::BannerOpenTime).Range(0.05f, 5.0f).Tooltip("Seconds a banner takes to open (and a little longer to fade out)");
+
+		ScriptRegistry::Register<ShrineQuestScript>("ShrineQuestScript")
+			.Property("MonkName", "Monk Name", &ShrineQuestScript::MonkName).Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag")
+			.Property("SlimePrefix", "Slime Prefix", &ShrineQuestScript::SlimePrefix).Tooltip("Tag prefix of the quest's slimes")
+			.Property("TreeFocusOffset", "Tree Focus Offset", &ShrineQuestScript::TreeFocusOffset).Tooltip("Metres from the Sacred Tree's foot to where the camera looks, on the ground")
+			.Property("TreeFocusRise", "Tree Focus Rise", &ShrineQuestScript::TreeFocusRise).Range(0.0f, 20.0f).Tooltip("Metres above the tree's foot the camera looks at")
+			.Property("TreeZoom", "Tree Zoom", &ShrineQuestScript::TreeZoom).Range(0.3f, 2.0f).Tooltip("How much the camera sees at the end of the slow push in (1 = as in play)")
+			.Property("GlideTime", "Glide Time", &ShrineQuestScript::GlideTime).Range(0.1f, 10.0f).Tooltip("Seconds the camera takes to glide to the tree (and a little less back)")
+			.Property("ShakeStrength", "Shake Strength", &ShrineQuestScript::ShakeStrength).Range(0.0f, 2.0f).Tooltip("Metres the camera shakes at the tremor's peak")
+			.Property("TremorStart", "Tremor Start", &ShrineQuestScript::TremorStart).Range(0.0f, 30.0f).Tooltip("Seconds into the cutscene the ground starts to move")
+			.Property("TremorTime", "Tremor Time", &ShrineQuestScript::TremorTime).Range(0.1f, 30.0f).Tooltip("Seconds the ground moves (it stops dead, not fading)")
+			.Property("AwakenTime", "Awaken Time", &ShrineQuestScript::AwakenTime).Range(0.1f, 30.0f).Tooltip("Seconds the tree takes to wake, from the tremor's start")
+			.Property("AfterTremor", "After Tremor", &ShrineQuestScript::AfterTremor).Range(0.0f, 30.0f).Tooltip("Seconds of stillness after the tremor before the monk speaks")
+			.Property("GlowColor", "Glow Color", &ShrineQuestScript::GlowColor).Color();
+
 		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalkScript")
 			.Property("m_Speed", "Speed", &DioramaWalkScript::m_Speed).Range(0.0f, 20.0f).Tooltip("Walking speed in metres per second")
 			.Property("RunMultiplier", "Run Multiplier", &DioramaWalkScript::RunMultiplier).Range(1.0f, 5.0f).Tooltip("Shift multiplies the speed by this");
@@ -89,6 +114,16 @@ namespace Hydro
 			.Property("BoundsMax", "Bounds Max", &FarmVillageScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
 			.Property("StartPreset", "Start Preset", &FarmVillageScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 golden hour, 2 night (keys 1 / 2 / 3)");
 
+		ScriptRegistry::Register<InteriorScript>("InteriorScript")
+			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")
+			.Property("TiltDegrees", "Tilt Degrees", &InteriorScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down")
+			.Property("FieldOfView", "Field Of View", &InteriorScript::FieldOfView).Range(5.0f, 120.0f).Tooltip("Vertical field of view in degrees (perspective)")
+			.Property("FocusLead", "Focus Lead", &InteriorScript::FocusLead).Range(-20.0f, 20.0f).Tooltip("Metres the camera looks ahead of the player (up the screen)")
+			.Property("FocusRise", "Focus Rise", &InteriorScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
+			.Property("BoundsMin", "Bounds Min", &InteriorScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
+			.Property("BoundsMax", "Bounds Max", &InteriorScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
+			.Property("StartPreset", "Start Preset", &InteriorScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light when the room is played on its own: 0 day, 1 evening, 2 night (keys 1 / 2 / 3)");
+
 		ScriptRegistry::Register<ShrineGladeScript>("ShrineGladeScript")
 			.Property("TiltDegrees", "Tilt Degrees", &ShrineGladeScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down")
 			.Property("FieldOfView", "Field Of View", &ShrineGladeScript::FieldOfView).Range(5.0f, 120.0f).Tooltip("Vertical field of view in degrees (perspective)")
@@ -97,6 +132,10 @@ namespace Hydro
 			.Property("BoundsMin", "Bounds Min", &ShrineGladeScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
 			.Property("BoundsMax", "Bounds Max", &ShrineGladeScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
 			.Property("StartPreset", "Start Preset", &ShrineGladeScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)");
+
+		ScriptRegistry::Register<UIGridCheckScript>("UIGridCheckScript");
+
+		ScriptRegistry::Register<UIMessageCheckScript>("UIMessageCheckScript");
 
 		ScriptRegistry::Register<PartyFollowScript>("PartyFollowScript")
 			.Property("FollowDistance", "Follow Distance", &PartyFollowScript::FollowDistance).Range(0.0f, 10.0f).Tooltip("Metres behind the player, measured along the path it walked");

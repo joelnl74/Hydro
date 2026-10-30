@@ -61,6 +61,16 @@ namespace Hydro
 		FaceSun   // the quad turned about its feet to face the sun, so its shadow is always as wide as the sprite
 	};
 
+	// How Upright sprites stand in a tilted view (decided Oct 30, 2026, after Octopath Traveler's standees).
+	enum class UprightSpriteMode : uint8_t
+	{
+		LeanToCamera = 0, // lean back with the camera's tilt so the quad faces it fully (the first 3D look); the
+		                  // battle stage places its actors for this
+		Vertical          // stand straight up and only turn about Z, like a cardboard standee in a model: trees and
+		                  // people stand in the scene instead of lying back over what is behind them. Near a
+		                  // top-down camera (under 30 degrees of tilt) they still lean, so they never turn edge-on
+	};
+
 	struct RenderFeatureSettings
 	{
 		DepthMode Depth = DepthMode::Off;
@@ -70,6 +80,7 @@ namespace Hydro
 		bool Meshes = false; // MeshComponents are drawn; needs Depth = Shared
 		ShadowMode Shadows = ShadowMode::Off; // needs Lighting = Forward and Depth = Shared
 		SpriteShadowMode SpriteShadows = SpriteShadowMode::FaceSun; // only read with Shadows on
+		UprightSpriteMode UprightSprites = UprightSpriteMode::LeanToCamera;
 		// HDR scene colour (post-processing plan P1): the scene renders into RGBA16F and a Tonemap pass (exposure,
 		// PBR Neutral) writes the view's sRGB colour; the overlay and debug lines are drawn after it.
 		bool HDR = false;
@@ -81,7 +92,8 @@ namespace Hydro
 		{
 			return Depth == other.Depth && SpriteSorting == other.SpriteSorting && Lighting == other.Lighting
 				&& DefaultSpriteAlpha == other.DefaultSpriteAlpha && Meshes == other.Meshes
-				&& Shadows == other.Shadows && SpriteShadows == other.SpriteShadows && HDR == other.HDR && Bloom == other.Bloom;
+				&& Shadows == other.Shadows && SpriteShadows == other.SpriteShadows && UprightSprites == other.UprightSprites
+				&& HDR == other.HDR && Bloom == other.Bloom;
 		}
 		bool operator!=(const RenderFeatureSettings& other) const { return (*this == other) == false; }
 

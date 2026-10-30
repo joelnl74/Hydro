@@ -1,0 +1,11 @@
+# VillageElder: idle only, facing the camera (Characters/Villagers/VillageElder.png, 96 x 72 cells, feet on the bottom row).
+Handle: 15607006575960882998
+SpriteAnimationSet:
+  TextureHandle: 9535473058665648090
+  Texture: Villagers/VillageElder.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      Loop: Loop
+      FrameRate: 4
+      Frames: [VillageElder_Down_0, VillageElder_Down_1, VillageElder_Down_2, VillageElder_Down_3]

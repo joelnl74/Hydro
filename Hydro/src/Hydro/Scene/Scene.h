@@ -14,6 +14,7 @@
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Components/Components.h"
 #include "SceneHierarchy.h"
+#include "UI/UILayout.h"
 
 namespace Hydro
 {
@@ -21,6 +22,8 @@ namespace Hydro
 	class PhysicsScene;
 	class PhysicsScene3D;
 	class ParticleScene;
+	class UIScene;
+	struct UIEvent;
 	class ScriptableEntity;
 	struct SystemContext;
 
@@ -50,14 +53,29 @@ namespace Hydro
 		PhysicsScene3D* GetPhysicsScene3D() { return m_Physics3D.get(); }
 		// The live particles (ParticleScene), or null while editing / before OnRuntimeStart.
 		ParticleScene* GetParticleScene() { return m_Particles.get(); }
+		// The running UI's state (focus, keys; UIScene), or null while editing / before OnRuntimeStart.
+		UIScene* GetUIScene() { return m_UI.get(); }
 
 		// Runtime (the game is running): builds a SystemContext (IsPlaying = true) and runs the
-		// stages in order: scripts, physics, sprite animation, transforms, particles.
+		// stages in order: UI input, scripts, physics, sprite animation, transforms, particles, UI layout.
 		void OnUpdateRuntime(float deltaTime);
 		// Editing: builds a SystemContext (IsPlaying = false) and runs only the stages that keep the
 		// scene consistent while editing (transforms), without scripts or animation.
 		void OnUpdateEditor(float deltaTime);
 		void OnRender();
+
+		// Where the pointer is over the view the game is shown in (the Game window), for the runtime UI (UI3b): view
+		// pixels from its bottom-left corner (Y up, the scene's viewport), whether it is over the view, and whether the
+		// primary button is down. The layer sets it every frame it shows the view, before OnUpdateRuntime, the way it
+		// calls OnViewportResize; UIScene reads it at stage 0.
+		struct UIPointer
+		{
+			glm::vec2 Position{ 0.0f, 0.0f };
+			bool Inside = false;
+			bool Down = false;
+		};
+		void SetUIPointer(const glm::vec2& position, bool inside, bool down) { m_UIPointer = { position, inside, down }; }
+		const UIPointer& GetUIPointer() const { return m_UIPointer; }
 
 		// The size the scene is viewed at; scene cameras take their aspect ratio from it.
 		void OnViewportResize(uint32_t width, uint32_t height);
@@ -167,6 +185,22 @@ namespace Hydro
 		// Physics writes positions back through it.
 		bool SetWorldPosition(Entity entity, const glm::vec3& position);
 
+		// ---- Runtime UI (#164) ----------------------------------------------------------------------
+		// Writes every UIResolvedRectComponent from the UIRectComponents, in canvas pixels: one pass over the entity
+		// list, parents first, like ResolveTransforms (a UILayoutGroupComponent places its children when it is reached,
+		// before them). A canvas (UICanvasComponent) covers the viewport at its scale
+		// (UILayout::GetCanvasMetrics); each element resolves against its nearest UI ancestor's rect (entities without
+		// a rect in between pass it on). An element with no canvas above it, or under a canvas that is itself under
+		// another canvas (not supported: logged once), gets Canvas = 0 and isn't drawn. Runs as stage 6 in both
+		// updates, at the start of the game and at the start of SceneRenderer::RenderEditor / RenderRuntime, after
+		// ResolveTransforms. docs/SceneAndECS.md#runtime-ui.
+		// UI6: a World canvas is placed where the primary camera sees its entity (hidden behind it or without a camera);
+		// after the pass, each UIScrollViewComponent scrolls its content (keeping the focus in view) and clips it.
+		void ResolveUILayout();
+		// Where the last ResolveUILayout put a top-level canvas in the view (scale, size, offset), by the canvas's
+		// UUID. False for a canvas it didn't place (hidden, nested, a World canvas off screen or without a camera).
+		bool GetUICanvasMetrics(UUID canvas, UICanvasMetrics& metrics) const;
+
 		// Removes one of the entity's native scripts (or its whole NativeScriptComponent), calling
 		// OnDestroy on scripts that are running.
 		void RemoveScript(Entity entity, size_t index);
@@ -219,6 +253,9 @@ namespace Hydro
 	private:
 		// Delivers the physics steps' collision and trigger events (2D and 3D) to the entities' scripts (inside a stage).
 		void DispatchPhysicsEvents();
+		// Delivers the UI's events (stage 0) to the scripts of each target and then its ancestors, until one handles it;
+		// clears `events`.
+		void DispatchUIEvents(std::vector<UIEvent>& events);
 		// Calls one ScriptableEntity hook on every running script of `self`, with `other` as the argument.
 		void NotifyScripts(entt::entity self, entt::entity other, void (ScriptableEntity::*hook)(Entity));
 
@@ -239,6 +276,14 @@ namespace Hydro
 			entt::entity Handle{ entt::null };
 		};
 
+		// A layout group's part of ResolveUILayout: places the visible UI children of list entry `index` (m_UIDriven) and,
+		// with FitContent, resizes the group's own rect (min, max).
+		void ArrangeUIChildren(size_t index, const UIRectComponent& rect, const UILayoutGroupComponent& group, glm::vec2& min, glm::vec2& max);
+		// ResolveUILayout's last part (UI6): list entry `index` is a scroll view; moves its content, clips it, sizes
+		// its scrollbar.
+		void ScrollUIView(size_t index);
+		// The canvas at list entry `index` in this view: false when it isn't shown (a World canvas behind the camera).
+		bool PlaceUICanvas(size_t index, const UICanvasComponent& canvas, const glm::vec2& viewSize, UICanvasMetrics& metrics);
 		// Rebuilds m_EntityMap from the registry: drops entries for entities destroyed behind the
 		// scene's back and adds ones that got an IDComponent without CreateEntity.
 		void RebuildEntityMap();
@@ -265,6 +310,34 @@ namespace Hydro
 		bool m_HierarchyDirty = true;
 		// ResolveTransforms' world matrix per list entry (kept so the pass allocates nothing once warm).
 		std::vector<glm::mat4> m_WorldMatrices;
+		// ResolveUILayout's rect per list entry: what that entry's UI children resolve against.
+		struct UILayoutEntry
+		{
+			glm::vec2 Min{ 0.0f, 0.0f };
+			glm::vec2 Max{ 0.0f, 0.0f };
+			bool Visible = false;
+			bool InCanvas = false; // below a canvas (even an ignored, nested one)
+			UUID Canvas = 0;       // the canvas its UI children are drawn on (0 = none)
+		};
+		std::vector<UILayoutEntry> m_UILayout;
+		// ResolveUILayout's layout groups (UI4): the rect a group placed each list entry at, and scratch lists.
+		struct UIDrivenRect
+		{
+			glm::vec2 Min{ 0.0f, 0.0f };
+			glm::vec2 Max{ 0.0f, 0.0f };
+			bool Driven = false;
+		};
+		std::vector<UIDrivenRect> m_UIDriven;
+		std::vector<size_t> m_UIChildIndices;
+		std::vector<UILayoutItem> m_UIItems;
+		std::vector<size_t> m_UIItemIndices;
+		// Where each placed canvas sits in the view (by UUID), and the primary camera's world-to-view-pixels matrix
+		// for World canvases (worked out once per pass, when one needs it).
+		std::unordered_map<uint64_t, UICanvasMetrics> m_UICanvasMetrics;
+		glm::mat4 m_UIWorldToView{ 1.0f };
+		int m_UIWorldToViewState = 0; // 0 not worked out this pass, 1 ready, -1 no camera
+		// Nested canvases already warned about, so the log isn't flooded.
+		std::unordered_set<entt::entity> m_NestedCanvasWarned;
 		// Entities SetWorldTransform already warned about (shear), so the log isn't flooded.
 		std::unordered_set<entt::entity> m_ShearWarned;
 		int m_StageDepth = 0;
@@ -274,6 +347,9 @@ namespace Hydro
 		Scope<PhysicsScene> m_Physics; // exists while the game runs this scene
 		Scope<PhysicsScene3D> m_Physics3D; // exists while the game runs this scene
 		Scope<ParticleScene> m_Particles; // exists while the game runs this scene
+		Scope<UIScene> m_UI; // exists while the game runs this scene
+		std::vector<UIEvent> m_UIEvents; // this frame's, reused
+		UIPointer m_UIPointer;
 
 		std::string m_Name;
 		SceneRenderSettings m_RenderSettings;

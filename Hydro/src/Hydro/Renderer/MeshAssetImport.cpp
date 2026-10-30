@@ -41,6 +41,51 @@ namespace Hydro
 		return true;
 	}
 
+	// True when `stem` is `expected` or `expected` followed by " <number>" (a second material of the same name).
+	static bool StemIs(const std::string& stem, const std::string& expected)
+	{
+		if (stem == expected)
+		{
+			return true;
+		}
+		if (stem.size() <= expected.size() + 1 || stem.compare(0, expected.size(), expected) != 0 || stem[expected.size()] != ' ')
+		{
+			return false;
+		}
+		return std::all_of(stem.begin() + (std::ptrdiff_t)expected.size() + 1, stem.end(), [](char c) { return c >= '0' && c <= '9'; });
+	}
+
+	// The sidecar maps a model's images and materials by index, and a model exported again may list them in another
+	// order: a mapping is only kept while its file still carries the name ("<index>_<name>.<ext>" for an image,
+	// "<model>_<name>.hymat" for a material). Otherwise the same-named file is found again (or made).
+	static bool ImageFileCarriesName(AssetHandle handle, const std::string& name)
+	{
+		const std::string stem = AssetManager::GetAbsolutePath(handle).stem().u8string();
+		const size_t underscore = stem.find('_');
+		return underscore != std::string::npos && stem.compare(underscore + 1, std::string::npos, ToFileNamePart(name)) == 0;
+	}
+
+	// An image file this model's import made earlier for an image of this name, at any index; empty when there is none.
+	static std::filesystem::path FindImageFile(const std::filesystem::path& folder, const std::string& name, const std::string& extension)
+	{
+		std::error_code error;
+		if (std::filesystem::is_directory(folder, error) == false)
+		{
+			return {};
+		}
+		const std::string suffix = "_" + ToFileNamePart(name) + extension;
+		for (const auto& entry : std::filesystem::directory_iterator(folder, error))
+		{
+			const std::string file = entry.path().filename().u8string();
+			if (file.size() > suffix.size() && file.compare(file.size() - suffix.size(), suffix.size(), suffix) == 0
+				&& std::all_of(file.begin(), file.end() - (std::ptrdiff_t)suffix.size(), [](char c) { return c >= '0' && c <= '9'; }))
+			{
+				return entry.path();
+			}
+		}
+		return {};
+	}
+
 	static bool WriteFileBytes(const std::filesystem::path& path, const std::vector<uint8_t>& bytes)
 	{
 		std::error_code error;
@@ -63,7 +108,14 @@ namespace Hydro
 		const ImportedImage& image = model.Images[index];
 
 		const auto mapped = mapping.Images.find(index);
-		if (mapped != mapping.Images.end() && AssetManager::IsAssetHandleValid(mapped->second))
+		if (mapped != mapping.Images.end() && AssetManager::IsAssetHandleValid(mapped->second) && image.EmbeddedData.empty() == false
+			&& ImageFileCarriesName(mapped->second, image.Name) == false)
+		{
+			HY_CORE_WARN("MeshImporter: '{}': image {} is '{}' now, not '{}' (the model was exported again): found again by name",
+				modelPath.filename().u8string(), index, image.Name, AssetManager::GetAbsolutePath(mapped->second).filename().u8string());
+			mapping.Images.erase(index);
+		}
+		else if (mapped != mapping.Images.end() && AssetManager::IsAssetHandleValid(mapped->second))
 		{
 			if (image.EmbeddedData.empty() == false)
 			{
@@ -90,8 +142,13 @@ namespace Hydro
 			}
 
 			const std::filesystem::path folder = modelPath.parent_path() / std::filesystem::u8path(modelPath.stem().u8string() + ".textures");
-			const std::filesystem::path file = folder / std::filesystem::u8path(std::to_string(index) + "_" + ToFileNamePart(image.Name) + extension);
-			if (WriteFileBytes(file, image.EmbeddedData) == false)
+			std::filesystem::path file = FindImageFile(folder, image.Name, extension);
+			if (file.empty())
+			{
+				file = folder / std::filesystem::u8path(std::to_string(index) + "_" + ToFileNamePart(image.Name) + extension);
+			}
+			std::vector<uint8_t> current;
+			if ((ReadFileBytes(file, current) == false || current != image.EmbeddedData) && WriteFileBytes(file, image.EmbeddedData) == false)
 			{
 				return 0;
 			}
@@ -123,13 +180,35 @@ namespace Hydro
 	// model. An existing one is never rewritten: it may have been edited.
 	static AssetHandle ResolveMaterial(const ImportedModel& model, uint32_t index, const std::filesystem::path& modelPath, MeshImportMapping& mapping)
 	{
+		const ImportedMaterial& source = model.Materials[index];
+		const std::filesystem::path folder = modelPath.parent_path();
+		const std::string stem = modelPath.stem().u8string() + "_" + ToFileNamePart(source.Name);
+
 		const auto mapped = mapping.Materials.find(index);
 		if (mapped != mapping.Materials.end() && AssetManager::IsAssetHandleValid(mapped->second))
 		{
-			return mapped->second;
+			if (StemIs(AssetManager::GetAbsolutePath(mapped->second).stem().u8string(), stem))
+			{
+				return mapped->second;
+			}
+			HY_CORE_WARN("MeshImporter: '{}': material {} is '{}' now, not '{}' (the model was exported again): found again by name",
+				modelPath.filename().u8string(), index, source.Name, AssetManager::GetAbsolutePath(mapped->second).filename().u8string());
+			mapping.Materials.erase(index);
 		}
 
-		const ImportedMaterial& source = model.Materials[index];
+		// One made earlier for this name (the model's materials were in another order then).
+		std::filesystem::path file = folder / std::filesystem::u8path(stem + MaterialSerializer::FileExtension);
+		std::error_code error;
+		if (std::filesystem::exists(file, error))
+		{
+			const AssetHandle existing = AssetManager::FindHandle(file);
+			if ((uint64_t)existing != 0)
+			{
+				mapping.Materials[index] = existing;
+				return existing;
+			}
+		}
+
 		MaterialData material;
 		material.Tint = source.BaseColor;
 		material.Tiling = source.Tiling;
@@ -146,10 +225,6 @@ namespace Hydro
 			material.Emissive = ResolveImage(model, (uint32_t)source.EmissiveImage, modelPath, mapping);
 		}
 
-		const std::filesystem::path folder = modelPath.parent_path();
-		const std::string stem = modelPath.stem().u8string() + "_" + ToFileNamePart(source.Name);
-		std::filesystem::path file = folder / std::filesystem::u8path(stem + MaterialSerializer::FileExtension);
-		std::error_code error;
 		for (int number = 2; std::filesystem::exists(file, error); number++)
 		{
 			file = folder / std::filesystem::u8path(stem + " " + std::to_string(number) + MaterialSerializer::FileExtension);

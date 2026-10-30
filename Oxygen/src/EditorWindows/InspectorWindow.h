@@ -34,6 +34,8 @@ namespace Hydro
 		void DrawEntityHeader(Entity entity);
 		void DrawComponents(Entity entity);
 		void DrawAddComponentButton(Entity entity);
+		// The runtime UI's sections (canvas, rect, image, text, button, layout group); removals are requested like DrawComponents'.
+		void DrawUIComponents(Entity entity, bool& removeCanvas, bool& removeRect, bool& removeImage, bool& removeText, bool& removeButton, bool& removeLayoutGroup);
 		// One menu item per registered script; picking one binds it to the entity (adding its
 		// NativeScriptComponent if needed).
 		void DrawScriptMenuItems(Entity entity);

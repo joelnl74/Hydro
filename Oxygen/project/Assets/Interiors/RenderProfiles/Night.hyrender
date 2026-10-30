@@ -1,0 +1,16 @@
+Handle: 4708889662286411889
+RenderProfile:
+  Environment:
+    SkyAmbient: [0.12, 0.11, 0.15]
+    GroundAmbient: [0.04, 0.03, 0.03]
+    Fog: false
+    FogColor: [0, 0, 0]
+    FogStart: 40
+    FogEnd: 80
+  PostProcess:
+    Exposure: 0.5
+    Bloom: true
+    BloomThreshold: 0.9
+    BloomKnee: 0.5
+    BloomIntensity: 0.8
+    BloomRadius: 1

@@ -3,6 +3,7 @@
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Scripting/ScriptProperty.h"
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
+#include "Hydro/Scene/UI/UIEvent.h"
 
 #include <glm/glm.hpp>
 
@@ -56,6 +57,11 @@ namespace Hydro
 		virtual void OnCollisionExit([[maybe_unused]] Entity other) {}
 		virtual void OnTriggerEnter([[maybe_unused]] Entity other) {}
 		virtual void OnTriggerExit([[maybe_unused]] Entity other) {}
+
+		// The runtime UI (UI3a): Submit / Cancel / FocusEnter / FocusExit for event.Target or a UI element below this
+		// entity. Return true to stop it there; false lets it go on to the scripts of this entity's parent. Runs in
+		// stage 0, before OnUpdate, inside a stage (DestroyEntity is deferred as usual).
+		virtual bool OnUIEvent([[maybe_unused]] const UIEvent& event) { return false; }
 
 	private:
 		Entity m_Entity;
