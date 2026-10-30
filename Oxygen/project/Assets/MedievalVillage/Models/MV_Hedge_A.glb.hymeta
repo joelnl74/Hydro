@@ -1,0 +1,6 @@
+Handle: 7405328696761196602
+Type: Mesh
+MeshImport:
+  Scale: 1
+  ConvertYUpToZUp: true
+  GenerateNormals: true
