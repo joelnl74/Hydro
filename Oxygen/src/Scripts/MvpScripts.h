@@ -2,6 +2,7 @@
 #include "Hydro.h"
 #include "VillageScripts.h"
 #include "BattleScripts.h"
+#include "DialogueScripts.h"
 
 #include <algorithm>
 #include <array>
@@ -12,11 +13,14 @@
 // The MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the
 // Shrine Glade, the Farm Village): interact prompts (a sign, a chest, the inn's door, a save point, the map's
 // exits, an NPC) and a sample inventory menu that gates the player's input while it is open. Prototype
-// code, like BattleScripts.h: one script holds it all and the UI is sprites in the scene, placed relative
-// to the camera every frame, until the UI system (U1) and text land.
+// code, like BattleScripts.h: one script holds it all. The UI is runtime UI under the MVP Director on the 1920 x 1080
+// canvas (scripts/ui/build_game_ui.py builds it): the inventory (a scrolling list, the item's details, the party, a
+// help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
+// talk through the dialogue box (DialogueScripts.h).
 namespace Hydro
 {
-	// Rows of DioramaRPG/UI/MvpText.png (192 x 16 cells): keep in step with LABELS in scripts/diorama_rpg/mvp.py.
+	// The MVP's messages and prompts (once rows of DioramaRPG/UI/MvpText.png; the runtime UI writes their words,
+	// GetMvpText). The item labels are no longer used: items have names of their own (MvpDirectorScript::Item).
 	enum class MvpLabel : uint32_t
 	{
 		Inventory, EnterUse, EscClose,
@@ -26,6 +30,93 @@ namespace Hydro
 		UsedPotion, NotUsableHere, NoneLeft, NpcLine1, NpcLine2, NpcLine3,
 		Count
 	};
+
+	// The words of a label, for the runtime UI.
+	inline const char* GetMvpText(MvpLabel label)
+	{
+		switch (label)
+		{
+		case MvpLabel::Inventory: return "Inventory";
+		case MvpLabel::EnterUse: return "Enter: use";
+		case MvpLabel::EscClose: return "Esc: close";
+		case MvpLabel::Potion: return "Potion";
+		case MvpLabel::HiPotion: return "Hi-Potion";
+		case MvpLabel::Ether: return "Ether";
+		case MvpLabel::IronSword: return "Iron Sword";
+		case MvpLabel::HerbBundle: return "Herb Bundle";
+		case MvpLabel::PhoenixFeather: return "Phoenix Feather";
+		case MvpLabel::CrystalShard: return "Crystal Shard";
+		case MvpLabel::LeatherBoots: return "Leather Boots";
+		case MvpLabel::Antidote: return "Antidote";
+		case MvpLabel::AncientKey: return "Ancient Key";
+		case MvpLabel::CopperOre: return "Copper Ore";
+		case MvpLabel::OldMap: return "Old Map";
+		case MvpLabel::PromptRead: return "E: Read";
+		case MvpLabel::PromptOpen: return "E: Open";
+		case MvpLabel::PromptEnter: return "E: Enter";
+		case MvpLabel::PromptSave: return "E: Save";
+		case MvpLabel::PromptLeave: return "E: Leave";
+		case MvpLabel::PromptTalk: return "E: Talk";
+		case MvpLabel::SignLine1: return "Shrine Glade Inn";
+		case MvpLabel::SignLine2: return "Village: south";
+		case MvpLabel::FoundPotion: return "Found a Potion!";
+		case MvpLabel::ChestEmpty: return "The chest is empty.";
+		case MvpLabel::Rested: return "You feel rested.";
+		case MvpLabel::RestedLine2: return "HP and MP restored.";
+		case MvpLabel::NoSaveSlot: return "No save slot yet.";
+		case MvpLabel::RoadGoesOn: return "The road goes on...";
+		case MvpLabel::ToTheVillage: return "To the village.";
+		case MvpLabel::UsedPotion: return "Used an item.";
+		case MvpLabel::NotUsableHere: return "Not usable here.";
+		case MvpLabel::NoneLeft: return "None left.";
+		case MvpLabel::NpcLine1: return "Lovely evening.";
+		case MvpLabel::NpcLine2: return "Beware the wisps.";
+		case MvpLabel::NpcLine3: return "The inn is warm.";
+		default: return "";
+		}
+	}
+
+	// What a field NPC says, by the name after "Npc " in its tag (lines in code until there is a dialogue asset).
+	inline std::vector<std::string> GetNpcLines(const std::string& name)
+	{
+		if (name == "Elder")
+		{
+			return {
+				"A lovely evening at the shrine, isn't it? The lanterns are lit early these days.",
+				"Beware the wisps that drift through the meadow after dark. They follow travellers who walk alone.",
+				"If you're weary, the inn down in the village is warm. Rest there before you go on."
+			};
+		}
+		if (name == "Farmer")
+		{
+			return {
+				"The wheat came in heavy this year. Good soil, this side of the stream.",
+				"Slimes keep getting into the cabbages, though. Little thieves."
+			};
+		}
+		if (name == "Gatherer")
+		{
+			return {
+				"I pick herbs along the shrine path every morning. The best ones grow by the old stones.",
+				"If you find a Herb Bundle, keep it. Someone in the village will want it."
+			};
+		}
+		if (name == "Barmaid")
+		{
+			return {
+				"Welcome! The inn's door is just there. A night's rest puts anyone right.",
+				"Travellers say the road east goes all the way to the sea. I wouldn't know."
+			};
+		}
+		if (name == "Blacksmith")
+		{
+			return {
+				"Mind the sparks. An iron sword takes a week if you want it done properly.",
+				"Bring me copper ore and I'll see what I can do. Not today, though."
+			};
+		}
+		return { "Lovely evening.", "Beware the wisps.", "The inn is warm." };
+	}
 
 	HY_SCRIPT()
 	class MvpDirectorScript : public ScriptableEntity
@@ -63,45 +154,28 @@ namespace Hydro
 			Scene& scene = *GetEntity().GetScene();
 			m_Camera = Find(scene, "Camera");
 			m_Player = Find(scene, "Player");
-			m_Fade = Find(scene, "UI Fade");
-			m_Prompt.Panel = Find(scene, "UI Prompt Panel");
-			m_Prompt.Label = Find(scene, "UI Prompt Label");
-			m_Message.Panel = Find(scene, "UI Message Panel");
-			m_Message.Line[0] = Find(scene, "UI Message Line 1");
-			m_Message.Line[1] = Find(scene, "UI Message Line 2");
-			m_Menu.Panel = Find(scene, "UI Menu Panel");
-			m_Menu.Title = Find(scene, "UI Menu Title");
-			m_Menu.Footer[0] = Find(scene, "UI Menu Footer 1");
-			m_Menu.Footer[1] = Find(scene, "UI Menu Footer 2");
-			m_Menu.Highlight = Find(scene, "UI Menu Highlight");
-			m_Menu.Cursor = Find(scene, "UI Menu Cursor");
-			for (int i = 0; i < VisibleRows; i++)
+			m_Prompt.Canvas = Find(scene, "Prompt Canvas");
+			m_Prompt.Text = Find(scene, "Prompt Text");
+			// The runtime UI (canvases under this director, so their buttons' events reach OnUIEvent).
+			m_Fade = Find(scene, "Fade");
+			m_Message.Panel = Find(scene, "Field Message Panel");
+			m_Message.Text = Find(scene, "Field Message Text");
+			m_Menu.Canvas = Find(scene, "Inventory Canvas");
+			for (int i = 0; i < MaxRows; i++)
 			{
-				m_Menu.Row[i] = Find(scene, "UI Menu Row " + std::to_string(i));
-				m_Menu.Count[i] = Find(scene, "UI Menu Count " + std::to_string(i));
+				m_Menu.Row[i] = Find(scene, "Item " + std::to_string(i));
+				m_Menu.Name[i] = Find(scene, "Item " + std::to_string(i) + " Name");
+				m_Menu.Count[i] = Find(scene, "Item " + std::to_string(i) + " Count");
 			}
-
-			// The UI entities are authored around the origin: their positions (in the world) are offsets from the camera.
-			auto remember = [&](entt::entity entity)
-			{
-				if (Alive(scene, entity))
-				{
-					m_Offsets.push_back({ entity, Position(scene, entity) });
-				}
-			};
-			remember(m_Fade);
-			remember(m_Message.Panel); remember(m_Message.Line[0]); remember(m_Message.Line[1]);
-			remember(m_Menu.Panel); remember(m_Menu.Title); remember(m_Menu.Footer[0]); remember(m_Menu.Footer[1]);
-			remember(m_Menu.Highlight); remember(m_Menu.Cursor);
-			for (int i = 0; i < VisibleRows; i++)
-			{
-				remember(m_Menu.Row[i]);
-				remember(m_Menu.Count[i]);
-			}
-			m_HighlightOffset = OffsetOf(m_Menu.Highlight);
-			m_CursorOffset = OffsetOf(m_Menu.Cursor);
-			m_RowOffset = OffsetOf(m_Menu.Row[0]);
-			m_RowStep = VisibleRows > 1 ? OffsetOf(m_Menu.Row[1]).y - m_RowOffset.y : -0.55f;
+			m_Menu.DetailName = Find(scene, "Item Detail Name");
+			m_Menu.DetailText = Find(scene, "Item Detail Text");
+			m_Menu.Help = Find(scene, "Help Text");
+			m_Menu.StatusName = Find(scene, "Menu Status Miko Name");
+			m_Menu.StatusHP = Find(scene, "Menu Status Miko HP");
+			m_Menu.StatusMP = Find(scene, "Menu Status Miko MP");
+			m_Menu.StatusHPFill = Find(scene, "Menu Status Miko HP Fill");
+			m_Menu.StatusMPFill = Find(scene, "Menu Status Miko MP Fill");
+			m_DialogueCanvas = Find(scene, "Dialogue Canvas");
 
 			// Everything the player can interact with, by tag prefix.
 			auto view = scene.m_Registry.view<TagComponent, TransformComponent>();
@@ -115,7 +189,7 @@ namespace Hydro
 				else if (tag.rfind("Door", 0) == 0) { item.Type = Kind::Door; }
 				else if (tag.rfind("Save", 0) == 0) { item.Type = Kind::Save; }
 				else if (tag.rfind("Exit", 0) == 0) { item.Type = Kind::Exit; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
-				else if (tag.rfind("Npc", 0) == 0) { item.Type = Kind::Npc; }
+				else if (tag.rfind("Npc", 0) == 0) { item.Type = Kind::Npc; item.Target = tag.size() > 4 ? tag.substr(4) : std::string(); }
 				else { continue; }
 				if (scene.m_Registry.has<SpriteRendererComponent>(entity))
 				{
@@ -125,37 +199,51 @@ namespace Hydro
 				m_Interactables.push_back(item);
 			}
 
-			// The sample inventory (the GDD's prototype HUD list): twelve rows so the list has to scroll.
+			// The sample inventory: twenty items, more than the list shows, so it scrolls (the first is the Potion the
+			// chest adds to). HP and MP restore every hero; 0 = not usable here.
 			m_Items = {
-				{ MvpLabel::Potion, 3, true }, { MvpLabel::HiPotion, 1, true }, { MvpLabel::Ether, 2, true }, { MvpLabel::IronSword, 1, false },
-				{ MvpLabel::HerbBundle, 4, false }, { MvpLabel::PhoenixFeather, 1, false }, { MvpLabel::CrystalShard, 2, false },
-				{ MvpLabel::LeatherBoots, 1, false }, { MvpLabel::Antidote, 2, false }, { MvpLabel::AncientKey, 1, false },
-				{ MvpLabel::CopperOre, 5, false }, { MvpLabel::OldMap, 1, false }
+				{ "Potion", "A bitter brew of the shrine's herbs. Restores 25 HP.", 3, 25, 0 },
+				{ "Hi-Potion", "A stronger draught, sealed with wax. Restores 60 HP.", 1, 60, 0 },
+				{ "Ether", "Water drawn at dawn from the sacred spring. Restores 10 MP.", 2, 0, 10 },
+				{ "Herb Tea", "Warm tea of mountain herbs. Restores 15 HP.", 2, 15, 0 },
+				{ "Iron Sword", "A plain blade from the village smithy. Miko fights bare-handed.", 1, 0, 0 },
+				{ "Herb Bundle", "Fresh herbs tied with twine. Someone in the village may want them.", 4, 0, 0 },
+				{ "Phoenix Feather", "A feather that is warm to the touch. What it is for, nobody knows yet.", 1, 0, 0 },
+				{ "Crystal Shard", "A shard that hums faintly near the shrine.", 2, 0, 0 },
+				{ "Leather Boots", "Sturdy boots for the mountain road.", 1, 0, 0 },
+				{ "Antidote", "Cures poison. Nothing here is poisoned.", 2, 0, 0 },
+				{ "Ancient Key", "An old bronze key with a lantern crest.", 1, 0, 0 },
+				{ "Copper Ore", "A lump of ore for the blacksmith.", 5, 0, 0 },
+				{ "Old Map", "A faded map. The road east is marked in red.", 1, 0, 0 },
+				{ "Shrine Charm", "A paper charm from the shrine. It keeps the wisps at a distance, they say.", 1, 0, 0 },
+				{ "Lantern Oil", "Oil for the stone lanterns along the path.", 3, 0, 0 },
+				{ "Rope", "A coil of hemp rope.", 1, 0, 0 },
+				{ "Smoked Fish", "Smoked river trout, wrapped in leaves.", 2, 0, 0 },
+				{ "Spring Water", "Cold water from the shrine spring.", 3, 0, 0 },
+				{ "Pine Resin", "Sticky resin from the glade's pines.", 2, 0, 0 },
+				{ "Fox Mask", "A festival mask, painted white and red.", 1, 0, 0 }
 			};
 
-			UIState::MenuOpen = false;
-			SetAlpha(scene, m_Fade, 0.0f);
 			ShowMenu(false);
 			ShowPrompt(false);
 			m_Message.Time = 0.0f;
 			PresentMessage();
 			// Arriving (the scene was just loaded, or the player came back to it): fade in from black.
 			m_Arriving = ArriveTime;
-			SetAlpha(scene, m_Fade, 1.0f);
-			HY_INFO("MVP: WASD walk, E interact, Tab inventory (Up/Down select, Enter use, Esc close), 1/2/3 day-dusk-night");
+			SetFade(1.0f);
+			HY_INFO("MVP: WASD walk, E interact / talk (Enter next line, Esc close), Tab inventory (Up/Down select, Enter or click use, Esc close), 1/2/3 day-dusk-night");
 		}
 
 		void OnUpdate(float deltaTime) override
 		{
 			Scene& scene = *GetEntity().GetScene();
 			m_Time += deltaTime;
-			FollowCamera(scene);
 
 			// a scene change in progress: fade, then go
 			if (m_Leaving > 0.0f)
 			{
 				m_Leaving = std::max(0.0f, m_Leaving - deltaTime);
-				SetAlpha(scene, m_Fade, 1.0f - m_Leaving / LeaveTime);
+				SetFade(1.0f - m_Leaving / LeaveTime);
 				if (m_Leaving <= 0.0f)
 				{
 					Leave(m_LeavingTo);
@@ -167,27 +255,28 @@ namespace Hydro
 			if (m_Arriving > 0.0f)
 			{
 				m_Arriving = std::max(0.0f, m_Arriving - deltaTime);
-				SetAlpha(scene, m_Fade, m_Arriving / ArriveTime);
+				SetFade(m_Arriving / ArriveTime);
 			}
 			// a rest at the inn: a dip to black and back
 			if (m_Resting > 0.0f)
 			{
 				m_Resting = std::max(0.0f, m_Resting - deltaTime);
 				const float k = m_Resting / RestTime;
-				SetAlpha(scene, m_Fade, k > 0.5f ? (1.0f - k) * 2.0f : k * 2.0f);
+				SetFade(k > 0.5f ? (1.0f - k) * 2.0f : k * 2.0f);
 			}
 
-			// A runtime UI canvas that captures input (UI::CapturesInput) owns the keys: no menu, no interaction.
-			const bool uiCaptures = UI::CapturesInput(scene);
-			if (KeyPressed(KeyCode::Tab, m_Previous[0]) && uiCaptures == false)
+			// A runtime UI canvas that captures input (UI::CapturesInput: the inventory, the dialogue, any menu) owns
+			// the keys: no interaction. Tab is the inventory's own key, so it also closes it.
+			const bool menuOpen = UI::IsVisible(EntityOf(m_Menu.Canvas));
+			if (KeyPressed(KeyCode::Tab, m_Previous[0]) && (menuOpen || UI::CapturesInput(scene) == false))
 			{
-				ShowMenu(UIState::MenuOpen == false);
+				ShowMenu(menuOpen == false);
 			}
-			if (UIState::MenuOpen)
+			if (UI::CapturesInput(scene))
 			{
-				UpdateMenu(scene);
+				ShowPrompt(false);
 			}
-			else if (uiCaptures == false)
+			else
 			{
 				UpdateInteraction(scene);
 			}
@@ -199,6 +288,41 @@ namespace Hydro
 			}
 		}
 
+		// The inventory's rows ("Item 0" to "Item 19") bubble their events up to the director: the focus is the
+		// selection (kept between opens), Submit uses the item, Cancel closes the menu.
+		bool OnUIEvent(const UIEvent& event) override
+		{
+			for (int i = 0; i < MaxRows; i++)
+			{
+				if ((entt::entity)event.Target != m_Menu.Row[i])
+				{
+					continue;
+				}
+				switch (event.Type)
+				{
+				case UIEventType::FocusEnter:
+					m_Selected = i;
+					PresentDetails();
+					return true;
+				case UIEventType::Submit:
+					m_Selected = i;
+					UseSelected();
+					return true;
+				case UIEventType::Cancel:
+					ShowMenu(false);
+					return true;
+				default:
+					return true;
+				}
+			}
+			if ((entt::entity)event.Target == m_Menu.Canvas && event.Type == UIEventType::Cancel)
+			{
+				ShowMenu(false);
+				return true;
+			}
+			return false;
+		}
+
 	private:
 		enum class Kind : uint8_t { Sign, Chest, Door, Save, Exit, Npc };
 
@@ -208,17 +332,20 @@ namespace Hydro
 			Kind Type = Kind::Sign;
 			float FeetDrop = 0.0f; // from its position (in the world, read when needed: it may have a parent) to its feet
 			bool Used = false;   // chests open once
-			std::string Target;  // exits: the scene they lead to (the tag after "Exit ")
+			std::string Target;  // exits: the scene they lead to (the tag after "Exit "); NPCs: their name (after "Npc ")
 		};
 
 		struct Item
 		{
-			MvpLabel Label = MvpLabel::Potion;
+			std::string Name;
+			std::string Description;
 			int Count = 0;
-			bool Usable = false;
+			int RestoreHP = 0;  // to every hero; with RestoreMP 0 too, the item can't be used here
+			int RestoreMP = 0;
+			bool IsUsable() const { return RestoreHP > 0 || RestoreMP > 0; }
 		};
 
-		static constexpr int VisibleRows = 6;
+		static constexpr int MaxRows = 20; // the inventory's rows in the scene ("Item 0" to "Item 19"); more items aren't shown
 
 		// ---- Interaction --------------------------------------------------------------------------------
 
@@ -278,11 +405,10 @@ namespace Hydro
 			{
 				return;
 			}
-			SetSprite(scene, m_Prompt.Label, (uint32_t)PromptFor(nearest->Type));
-			// Above the player's head, in either camera view (DioramaCamera.h).
+			UI::SetText(EntityOf(m_Prompt.Text), PromptFor(nearest->Type));
+			// Above the player's head, in either camera view (DioramaCamera.h): the World canvas sits on that point.
 			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, playerHeight), 2.35f);
-			SetPosition(scene, m_Prompt.Panel, overHead);
-			SetPosition(scene, m_Prompt.Label, overHead);
+			SetPosition(scene, m_Prompt.Canvas, overHead);
 
 			if (KeyPressed(KeyCode::E, m_Previous[1]) == false || m_Resting > 0.0f)
 			{
@@ -330,8 +456,17 @@ namespace Hydro
 					HY_INFO("MVP: leaving for {}", m_LeavingTo);
 					break;
 				case Kind::Npc:
-					ShowMessage((MvpLabel)((uint32_t)MvpLabel::NpcLine1 + m_NpcLine));
-					m_NpcLine = (m_NpcLine + 1) % 3;
+					if (DialogueScript* dialogue = FindDialogue(scene))
+					{
+						dialogue->Open(nearest->Target, GetNpcLines(nearest->Target));
+						ShowPrompt(false);
+					}
+					else
+					{
+						// A scene without the dialogue box: one line in the message box.
+						ShowMessage((MvpLabel)((uint32_t)MvpLabel::NpcLine1 + m_NpcLine));
+						m_NpcLine = (m_NpcLine + 1) % 3;
+					}
 					break;
 			}
 		}
@@ -411,24 +546,26 @@ namespace Hydro
 			}
 		}
 
-		static MvpLabel PromptFor(Kind kind)
+		static const char* PromptFor(Kind kind)
 		{
 			switch (kind)
 			{
-				case Kind::Chest: return MvpLabel::PromptOpen;
-				case Kind::Door: return MvpLabel::PromptEnter;
-				case Kind::Save: return MvpLabel::PromptSave;
-				case Kind::Exit: return MvpLabel::PromptLeave;
-				case Kind::Npc: return MvpLabel::PromptTalk;
-				default: return MvpLabel::PromptRead;
+				case Kind::Chest: return "E  Open";
+				case Kind::Door: return "E  Enter";
+				case Kind::Save: return "E  Save";
+				case Kind::Exit: return "E  Leave";
+				case Kind::Npc: return "E  Talk";
+				default: return "E  Read";
 			}
 		}
 
 		void ShowPrompt(bool shown)
 		{
-			Scene& scene = *GetEntity().GetScene();
-			SetAlpha(scene, m_Prompt.Panel, shown ? 0.85f : 0.0f);
-			SetAlpha(scene, m_Prompt.Label, shown ? 1.0f : 0.0f);
+			Entity prompt = EntityOf(m_Prompt.Canvas);
+			if (UI::IsVisible(prompt) != shown)
+			{
+				UI::SetVisible(prompt, shown);
+			}
 		}
 
 		// ---- Messages ------------------------------------------------------------------------------------
@@ -441,71 +578,59 @@ namespace Hydro
 			PresentMessage();
 		}
 
+		// The message box (runtime UI): one or two lines, fading out at the end.
 		void PresentMessage()
 		{
-			Scene& scene = *GetEntity().GetScene();
 			const bool shown = m_Message.Time > 0.0f;
-			const float k = shown ? std::min(1.0f, m_Message.Time / 0.3f) : 0.0f;   // fades out at the end
-			SetAlpha(scene, m_Message.Panel, 0.9f * k);
-			for (int i = 0; i < 2; i++)
+			const float k = shown ? std::min(1.0f, m_Message.Time / 0.3f) : 0.0f;
+			Entity panel = EntityOf(m_Message.Panel);
+			if (UI::IsVisible(panel) != shown)
 			{
-				const bool used = shown && m_Message.Labels[i] != MvpLabel::Count;
-				SetAlpha(scene, m_Message.Line[i], used ? k : 0.0f);
-				if (used)
-				{
-					SetSprite(scene, m_Message.Line[i], (uint32_t)m_Message.Labels[i]);
-				}
+				UI::SetVisible(panel, shown);
 			}
+			if (shown == false)
+			{
+				return;
+			}
+			std::string text = GetMvpText(m_Message.Labels[0]);
+			if (m_Message.Labels[1] != MvpLabel::Count)
+			{
+				text += std::string("\n") + GetMvpText(m_Message.Labels[1]);
+			}
+			Entity textEntity = EntityOf(m_Message.Text);
+			UI::SetText(textEntity, text);
+			SetUIAlpha(panel, 0.92f * k);
+			SetUIAlpha(textEntity, k);
 		}
 
 		// ---- The inventory menu ----------------------------------------------------------------------------
 
 		void ShowMenu(bool open)
 		{
-			UIState::MenuOpen = open;
+			Entity canvas = EntityOf(m_Menu.Canvas);
+			if (canvas.IsValid() == false)
+			{
+				return;
+			}
+			UI::SetVisible(canvas, open);
 			if (open)
 			{
 				ShowPrompt(false);
-				m_Selected = std::clamp(m_Selected, 0, std::max(0, (int)m_Items.size() - 1));   // the selection is kept between opens
-			}
-			PresentMenu();
-		}
-
-		void UpdateMenu(Scene& scene)
-		{
-			if (KeyPressed(KeyCode::Escape, m_Previous[2]))
-			{
-				ShowMenu(false);
-				return;
-			}
-			int direction = 0;
-			if (KeyPressed(KeyCode::Up, m_Previous[3]) || KeyPressed(KeyCode::W, m_Previous[4]))
-			{
-				direction = -1;
-			}
-			if (KeyPressed(KeyCode::Down, m_Previous[5]) || KeyPressed(KeyCode::S, m_Previous[6]))
-			{
-				direction = 1;
-			}
-			if (direction != 0 && m_Items.empty() == false)
-			{
-				m_Selected = (m_Selected + direction + (int)m_Items.size()) % (int)m_Items.size();   // wraps, like the prototype HUD
 				PresentMenu();
-			}
-			if (KeyPressed(KeyCode::Enter, m_Previous[7]) || KeyPressed(KeyCode::Space, m_Previous[8]))
-			{
-				UseSelected(scene);
+				// The selection is kept between opens.
+				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)m_Items.size(), MaxRows) - 1));
+				UI::Focus(EntityOf(m_Menu.Row[m_Selected]));
 			}
 		}
 
-		void UseSelected(Scene& scene)
+		void UseSelected()
 		{
 			if (m_Selected < 0 || m_Selected >= (int)m_Items.size())
 			{
 				return;
 			}
 			Item& item = m_Items[m_Selected];
-			if (item.Usable == false)
+			if (item.IsUsable() == false)
 			{
 				ShowMessage(MvpLabel::NotUsableHere);
 				return;
@@ -516,102 +641,97 @@ namespace Hydro
 				return;
 			}
 			item.Count -= 1;
-			const int heal = item.Label == MvpLabel::HiPotion ? 60 : 25;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				if (item.Label == MvpLabel::Ether)
+				BattleState::HeroMP[h] = std::min(GetHero(h).MaxMP, BattleState::HeroMP[h] + item.RestoreMP);
+				if (BattleState::HeroHP[h] > 0)
 				{
-					BattleState::HeroMP[h] = std::min(GetHero(h).MaxMP, BattleState::HeroMP[h] + 10);
-				}
-				else if (BattleState::HeroHP[h] > 0)
-				{
-					BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + heal);
+					BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + item.RestoreHP);
 				}
 			}
 			ShowMessage(MvpLabel::UsedPotion);
-			HY_INFO("MVP: used item {} ({} left): {} {} HP {} MP", (int)item.Label, item.Count,
-				GetHero(0).Name, BattleState::HeroHP[0], BattleState::HeroMP[0]);
-			(void)scene;
+			HY_INFO("MVP: used {} ({} left): {} {} HP {} MP", item.Name, item.Count, GetHero(0).Name, BattleState::HeroHP[0], BattleState::HeroMP[0]);
 			PresentMenu();
 		}
 
+		// The inventory's rows: one per item (rows past the list are hidden, so the panel fits it), name and count;
+		// items that can't be used here are greyed, items used up dimmer still. Every row can take the focus.
 		void PresentMenu()
 		{
-			Scene& scene = *GetEntity().GetScene();
-			const bool open = UIState::MenuOpen;
-			SetAlpha(scene, m_Menu.Panel, open ? 0.92f : 0.0f);
-			SetAlpha(scene, m_Menu.Title, open ? 1.0f : 0.0f);
-			SetAlpha(scene, m_Menu.Footer[0], open ? 1.0f : 0.0f);
-			SetAlpha(scene, m_Menu.Footer[1], open ? 1.0f : 0.0f);
-			// scroll so the selected row is visible (the prototype's ScrollTo)
-			if (m_Selected < m_Scroll)
+			for (int i = 0; i < MaxRows; i++)
 			{
-				m_Scroll = m_Selected;
-			}
-			if (m_Selected >= m_Scroll + VisibleRows)
-			{
-				m_Scroll = m_Selected - VisibleRows + 1;
-			}
-			m_Scroll = std::clamp(m_Scroll, 0, std::max(0, (int)m_Items.size() - VisibleRows));
-			for (int i = 0; i < VisibleRows; i++)
-			{
-				const int index = m_Scroll + i;
-				const bool used = open && index < (int)m_Items.size();
-				SetAlpha(scene, m_Menu.Row[i], used ? 1.0f : 0.0f);
-				SetAlpha(scene, m_Menu.Count[i], used ? 1.0f : 0.0f);
-				if (used)
+				const bool used = i < (int)m_Items.size();
+				Entity row = EntityOf(m_Menu.Row[i]);
+				if (UI::IsVisible(row) != used)
 				{
-					SetSprite(scene, m_Menu.Row[i], (uint32_t)m_Items[index].Label);
-					SetSprite(scene, m_Menu.Count[i], 12 + (uint32_t)std::clamp(m_Items[index].Count, 0, 9));   // BattleIcons' digit row
+					UI::SetVisible(row, used);
+				}
+				if (used == false)
+				{
+					continue;
+				}
+				const Item& item = m_Items[i];
+				Entity name = EntityOf(m_Menu.Name[i]);
+				UI::SetText(name, item.Name);
+				UI::SetText(EntityOf(m_Menu.Count[i]), "x" + std::to_string(item.Count));
+				if (name.IsValid() && name.HasComponent<UITextComponent>())
+				{
+					const glm::vec3 color = item.IsUsable() == false ? glm::vec3(0.74f, 0.71f, 0.64f)
+						: (item.Count <= 0 ? glm::vec3(0.5f) : glm::vec3(0.95f, 0.91f, 0.83f));
+					name.GetComponent<UITextComponent>().Color = glm::vec4(color, 1.0f);
 				}
 			}
-			const int row = m_Selected - m_Scroll;
-			SetAlpha(scene, m_Menu.Highlight, open ? 0.55f : 0.0f);
-			SetAlpha(scene, m_Menu.Cursor, open ? 1.0f : 0.0f);
-			SetOffset(m_Menu.Highlight, { m_HighlightOffset.x, m_RowOffset.y + m_RowStep * (float)row });
-			SetOffset(m_Menu.Cursor, { m_CursorOffset.x, m_RowOffset.y + m_RowStep * (float)row });
+			PresentDetails();
+
+			// The party's status beside the list (the first hero; the MVP has one).
+			const HeroDefinition& hero = GetHero(0);
+			UI::SetText(EntityOf(m_Menu.StatusName), hero.Name);
+			UI::SetText(EntityOf(m_Menu.StatusHP), std::to_string(BattleState::HeroHP[0]) + " / " + std::to_string(hero.MaxHP));
+			UI::SetText(EntityOf(m_Menu.StatusMP), std::to_string(BattleState::HeroMP[0]) + " / " + std::to_string(hero.MaxMP));
+			SetBarFill(EntityOf(m_Menu.StatusHPFill), (float)BattleState::HeroHP[0] / (float)hero.MaxHP);
+			SetBarFill(EntityOf(m_Menu.StatusMPFill), (float)BattleState::HeroMP[0] / (float)hero.MaxMP);
 		}
 
-		// ---- The UI follows the camera -----------------------------------------------------------------
-
-		struct Offset
+		// The selected item's name and description, and the help line.
+		void PresentDetails()
 		{
-			entt::entity Entity = entt::null;
-			glm::vec2 Value{ 0.0f };
-		};
-
-		glm::vec2 OffsetOf(entt::entity entity) const
-		{
-			for (const Offset& offset : m_Offsets)
+			if (m_Selected < 0 || m_Selected >= (int)m_Items.size())
 			{
-				if (offset.Entity == entity)
-				{
-					return offset.Value;
-				}
+				return;
 			}
-			return glm::vec2(0.0f);
+			const Item& item = m_Items[m_Selected];
+			UI::SetText(EntityOf(m_Menu.DetailName), item.Name);
+			UI::SetText(EntityOf(m_Menu.DetailText), item.Description);
+			UI::SetText(EntityOf(m_Menu.Help), item.IsUsable() ? (item.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
 		}
 
-		void SetOffset(entt::entity entity, const glm::vec2& value)
+		// A UI bar's fill, anchored to the bar's left edge, as wide as the fraction.
+		static void SetBarFill(Entity fill, float fraction)
 		{
-			for (Offset& offset : m_Offsets)
+			if (fill.IsValid() && fill.HasComponent<UIRectComponent>())
 			{
-				if (offset.Entity == entity)
-				{
-					offset.Value = value;
-				}
+				UIRectComponent& rect = fill.GetComponent<UIRectComponent>();
+				rect.AnchorMin = { 0.0f, 0.0f };
+				rect.AnchorMax = { std::clamp(fraction, 0.0f, 1.0f), 1.0f };
+				rect.SizeDelta = { 0.0f, 0.0f };
 			}
 		}
 
-		// Every UI sprite at its offset from the centre of the screen, on the camera's view plane through the
-		// point it looks at (DioramaView::OnScreen; top-down: the camera's x, y plus the offset, at z 0.5).
-		// The UI sprites are Billboards, so they face the camera when it is tilted.
-		void FollowCamera([[maybe_unused]] Scene& scene)
+		// The dialogue box's script (on "Dialogue Canvas"), or nullptr in a scene without one.
+		DialogueScript* FindDialogue(Scene& scene)
 		{
-			for (const Offset& offset : m_Offsets)
+			if (Alive(scene, m_DialogueCanvas) == false || scene.m_Registry.has<NativeScriptComponent>(m_DialogueCanvas) == false)
 			{
-				SetPosition(scene, offset.Entity, DioramaView::OnScreen(offset.Value));
+				return nullptr;
 			}
+			for (NativeScriptComponent::Script& script : scene.m_Registry.get<NativeScriptComponent>(m_DialogueCanvas).Scripts)
+			{
+				if (DialogueScript* dialogue = dynamic_cast<DialogueScript*>(script.Instance.get()))
+				{
+					return dialogue;
+				}
+			}
+			return nullptr;
 		}
 
 		// ---- Helpers -------------------------------------------------------------------------------------
@@ -681,13 +801,35 @@ namespace Hydro
 			}
 		}
 
-		static void SetAlpha(Scene& scene, entt::entity entity, float alpha)
+		// The alpha of a UI element's image and text.
+		static void SetUIAlpha(Entity entity, float alpha)
 		{
-			if (Alive(scene, entity) && scene.m_Registry.has<SpriteRendererComponent>(entity))
+			if (entity.IsValid() == false)
 			{
-				scene.m_Registry.get<SpriteRendererComponent>(entity).Color.a = alpha;
+				return;
+			}
+			if (entity.HasComponent<UIImageComponent>())
+			{
+				entity.GetComponent<UIImageComponent>().Color.a = alpha;
+			}
+			if (entity.HasComponent<UITextComponent>())
+			{
+				entity.GetComponent<UITextComponent>().Color.a = alpha;
 			}
 		}
+
+		// The black over the whole view ("Fade" on the topmost canvas): 0 clear, 1 black.
+		void SetFade(float alpha)
+		{
+			Entity fade = EntityOf(m_Fade);
+			SetUIAlpha(fade, alpha);
+			if (UI::IsVisible(fade) != (alpha > 0.0f))
+			{
+				UI::SetVisible(fade, alpha > 0.0f);
+			}
+		}
+
+		Entity EntityOf(entt::entity entity) { return Entity{ entity, GetEntity().GetScene() }; }
 
 		static void SetSprite(Scene& scene, entt::entity entity, uint32_t index)
 		{
@@ -700,27 +842,26 @@ namespace Hydro
 	private:
 		struct PromptUI
 		{
-			entt::entity Panel = entt::null;
-			entt::entity Label = entt::null;
+			entt::entity Canvas = entt::null; // a World canvas over the player's head
+			entt::entity Text = entt::null;
 		};
 
 		struct MessageUI
 		{
 			entt::entity Panel = entt::null;
-			entt::entity Line[2] = { entt::null, entt::null };
+			entt::entity Text = entt::null;
 			MvpLabel Labels[2] = { MvpLabel::Count, MvpLabel::Count };
 			float Time = 0.0f;
 		};
 
 		struct MenuUI
 		{
-			entt::entity Panel = entt::null;
-			entt::entity Title = entt::null;
-			entt::entity Footer[2] = { entt::null, entt::null };
-			entt::entity Highlight = entt::null;
-			entt::entity Cursor = entt::null;
-			entt::entity Row[VisibleRows] = {};
-			entt::entity Count[VisibleRows] = {};
+			entt::entity Canvas = entt::null;
+			entt::entity Row[MaxRows] = {};
+			entt::entity Name[MaxRows] = {};
+			entt::entity Count[MaxRows] = {};
+			entt::entity DetailName = entt::null, DetailText = entt::null, Help = entt::null;
+			entt::entity StatusName = entt::null, StatusHP = entt::null, StatusMP = entt::null, StatusHPFill = entt::null, StatusMPFill = entt::null;
 		};
 
 		entt::entity m_Camera = entt::null;
@@ -729,18 +870,13 @@ namespace Hydro
 		PromptUI m_Prompt;
 		MessageUI m_Message;
 		MenuUI m_Menu;
-		std::vector<Offset> m_Offsets;
-		glm::vec2 m_HighlightOffset{ 0.0f };
-		glm::vec2 m_CursorOffset{ 0.0f };
-		glm::vec2 m_RowOffset{ 0.0f };
-		float m_RowStep = -0.55f;
+		entt::entity m_DialogueCanvas = entt::null;
 		std::vector<Interactable> m_Interactables;
 		entt::entity m_Current = entt::null; // what the prompt shows
 		glm::vec2 m_LastPlayer{ 0.0f };
 		glm::vec2 m_Facing{ 0.0f, 1.0f };
 		std::vector<Item> m_Items;
 		int m_Selected = 0;
-		int m_Scroll = 0;
 		int m_NpcLine = 0;
 		float m_Time = 0.0f;
 		float m_Leaving = 0.0f;

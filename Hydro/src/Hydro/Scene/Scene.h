@@ -14,6 +14,7 @@
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Components/Components.h"
 #include "SceneHierarchy.h"
+#include "UI/UILayout.h"
 
 namespace Hydro
 {
@@ -186,13 +187,19 @@ namespace Hydro
 
 		// ---- Runtime UI (#164) ----------------------------------------------------------------------
 		// Writes every UIResolvedRectComponent from the UIRectComponents, in canvas pixels: one pass over the entity
-		// list, parents first, like ResolveTransforms. A canvas (UICanvasComponent) covers the viewport at its scale
+		// list, parents first, like ResolveTransforms (a UILayoutGroupComponent places its children when it is reached,
+		// before them). A canvas (UICanvasComponent) covers the viewport at its scale
 		// (UILayout::GetCanvasMetrics); each element resolves against its nearest UI ancestor's rect (entities without
 		// a rect in between pass it on). An element with no canvas above it, or under a canvas that is itself under
 		// another canvas (not supported: logged once), gets Canvas = 0 and isn't drawn. Runs as stage 6 in both
 		// updates, at the start of the game and at the start of SceneRenderer::RenderEditor / RenderRuntime, after
 		// ResolveTransforms. docs/SceneAndECS.md#runtime-ui.
+		// UI6: a World canvas is placed where the primary camera sees its entity (hidden behind it or without a camera);
+		// after the pass, each UIScrollViewComponent scrolls its content (keeping the focus in view) and clips it.
 		void ResolveUILayout();
+		// Where the last ResolveUILayout put a top-level canvas in the view (scale, size, offset), by the canvas's
+		// UUID. False for a canvas it didn't place (hidden, nested, a World canvas off screen or without a camera).
+		bool GetUICanvasMetrics(UUID canvas, UICanvasMetrics& metrics) const;
 
 		// Removes one of the entity's native scripts (or its whole NativeScriptComponent), calling
 		// OnDestroy on scripts that are running.
@@ -269,6 +276,14 @@ namespace Hydro
 			entt::entity Handle{ entt::null };
 		};
 
+		// A layout group's part of ResolveUILayout: places the visible UI children of list entry `index` (m_UIDriven) and,
+		// with FitContent, resizes the group's own rect (min, max).
+		void ArrangeUIChildren(size_t index, const UIRectComponent& rect, const UILayoutGroupComponent& group, glm::vec2& min, glm::vec2& max);
+		// ResolveUILayout's last part (UI6): list entry `index` is a scroll view; moves its content, clips it, sizes
+		// its scrollbar.
+		void ScrollUIView(size_t index);
+		// The canvas at list entry `index` in this view: false when it isn't shown (a World canvas behind the camera).
+		bool PlaceUICanvas(size_t index, const UICanvasComponent& canvas, const glm::vec2& viewSize, UICanvasMetrics& metrics);
 		// Rebuilds m_EntityMap from the registry: drops entries for entities destroyed behind the
 		// scene's back and adds ones that got an IDComponent without CreateEntity.
 		void RebuildEntityMap();
@@ -305,6 +320,22 @@ namespace Hydro
 			UUID Canvas = 0;       // the canvas its UI children are drawn on (0 = none)
 		};
 		std::vector<UILayoutEntry> m_UILayout;
+		// ResolveUILayout's layout groups (UI4): the rect a group placed each list entry at, and scratch lists.
+		struct UIDrivenRect
+		{
+			glm::vec2 Min{ 0.0f, 0.0f };
+			glm::vec2 Max{ 0.0f, 0.0f };
+			bool Driven = false;
+		};
+		std::vector<UIDrivenRect> m_UIDriven;
+		std::vector<size_t> m_UIChildIndices;
+		std::vector<UILayoutItem> m_UIItems;
+		std::vector<size_t> m_UIItemIndices;
+		// Where each placed canvas sits in the view (by UUID), and the primary camera's world-to-view-pixels matrix
+		// for World canvases (worked out once per pass, when one needs it).
+		std::unordered_map<uint64_t, UICanvasMetrics> m_UICanvasMetrics;
+		glm::mat4 m_UIWorldToView{ 1.0f };
+		int m_UIWorldToViewState = 0; // 0 not worked out this pass, 1 ready, -1 no camera
 		// Nested canvases already warned about, so the log isn't flooded.
 		std::unordered_set<entt::entity> m_NestedCanvasWarned;
 		// Entities SetWorldTransform already warned about (shear), so the log isn't flooded.

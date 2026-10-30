@@ -6,7 +6,7 @@
 
 // Test bed checks for the runtime UI's keyboard and pointer steps (UI3a, UI3b): a 3 x 3 button grid and a dialogue
 // without buttons, on capturing canvases in the Battle scene, the runtime UI's test scene (docs/TestBed.md, "Runtime
-// UI"). Placeholders until UI5 turns the battle's own command menu into UI.
+// UI"). Checks of the system, next to the battle's real menus.
 namespace Hydro
 {
 	// On "UI Grid Canvas" (hidden, captures input). U shows and hides it, focusing the first button. Arrows / WASD

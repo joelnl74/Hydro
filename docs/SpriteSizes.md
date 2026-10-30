@@ -1,6 +1,31 @@
 # Sprite sizes
 
-Updated 2026-10-25. The size rules for the [Diorama RPG](DioramaRPG.md) art; the look is in the [style guide](StyleGuide.md). **These are our own authoring sizes, not a claim about any other game's sprite sizes.** Treat sizes as source-canvas pixels. Final apparent screen size depends on camera zoom and draw scale.
+Updated 2026-10-30. The size rules for the [Diorama RPG](DioramaRPG.md) art; the look is in the [style guide](StyleGuide.md). **These are our own authoring sizes, not a claim about any other game's sprite sizes.** Treat sizes as source-canvas pixels. Final apparent screen size depends on camera zoom and draw scale.
+
+## World density: 32 texels per metre (decided 2026-10-30)
+
+Every field asset is drawn at **one density: 32 texture pixels per metre**, within **+-20 %** (25.6 to 38.4). The world unit is the metre (the character body, fog, material tiling and the camera all use metres). One rule for sprites, shapes and models, so a crate, a wall and a character show pixels of the same size on screen.
+
+- **Sprites**: the renderer draws a sprite as a 1 x 1 m quad times the transform's scale. `PixelsPerUnit` does **not** change the drawn size; it is only what the inspector's **Set Native Size** button uses. So keep `PixelsPerUnit: 32` on field art and size sprites with Set Native Size (scale = sprite pixels / 32), never by eye.
+- **Built-in shapes** (Plane, Box, Stairs): texture width x the material's `Tiling` (repeats per metre) = 32. A 320 px grass texture takes `Tiling: 0.1`.
+- **Models** (the medieval kit `.glb`s): UVs authored at 32 texels per metre in `MV_Kit.blend` (`build_kit.py`). Decals that are one picture (door, window glass, signs) may be up to 1.25x finer.
+- **Check it**: `python scripts/check_texel_density.py Oxygen/project/Assets/Scenes/FarmVillage.hyscene` lists every sprite, shape material and model material outside the tolerance (`--all` lists everything, `--strict` fails the run).
+
+**Proportions** (measured on Octopath Traveler II screenshots for the overall feel, not its sprite sizes): a door is about 1.35x the character's height, a field character fills about 13-14 % of the view height, and the environment's pixels are about the size of the characters' pixels. With our 32 texels per metre that means an adult of 1.55 to 1.75 m is **50 to 56 px tall**, a 2.2 m door is 70 px, and the field camera shows about 12 m vertically (`OrthographicSize` about 12).
+
+### Audit, Farm Village (2026-10-30, `check_texel_density.py`)
+
+| Asset | Texels per metre | Action |
+|---|---:|---|
+| Medieval kit models, roads, plots, ground, walls, flagstones | 32 (stairs 40) | In range; keep. `StepStone.hymat` Tiling 0.248 -> 0.199 |
+| Miko (`Characters/Miko/Miko.png`, 96 x 96 cells, body 52 px) | 43.6 (scale 2.2: she is 1.19 m, the door 1.8x her height) | Scale **3.0** (1.63 m). Her cells have 16 px of empty space under the feet and pivot `[0.5, 0.5]`; an Upright sprite stands on the quad's bottom edge, so fix the pivot/rect at the same time (feet on the bottom row, pivot `[0.5, 0]`) and check in the editor |
+| Villagers (`Characters/Villagers.png`, 256 x 384 cells) | 178 | Old high-resolution art, 5.5x finer than everything else: redraw at the field size (50-56 px adults, 96 x 96 cells like Miko) |
+| Pines, oaks (`ShrineGlade/Foliage`) | 19-31 (median 23-28) | Redraw the trees at 32 (a 10 m pine is 320 px tall), or as a stopgap shrink the outliers until they are at least 25.6 |
+| Bushes, moss, lavender | 22-41 | Normalise the scale per sprite (Set Native Size), vary with flips and different sprites, not with scale |
+| Grass tufts, flowers, ferns, meadow strips | 25-46 | Same: one scale per sprite; most are scaled down too far |
+| Wheat (`FarmVillage/Foliage/wheat_*`, 64 px) | 40-48 | Redraw at 32-40 px tall (1.0-1.25 m wheat); scaling the 64 px art up to 32 would make 2 m clumps |
+| Slime, Wisp | 23-25 | Within reach: scale down to 32 |
+| Sunset backdrop | 19.5 | Far background; exempt (distance makes it finer on screen) |
 
 ## Current state (audit, 2026-10-25)
 

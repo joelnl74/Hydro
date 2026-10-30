@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <vector>
 
 namespace Hydro
 {
@@ -24,6 +25,14 @@ namespace Hydro
 		// has its Min and Max swapped on that axis.
 		glm::vec2 SourceMin{ 0.0f, 0.0f };
 		glm::vec2 SourceMax{ 0.0f, 0.0f };
+	};
+
+	// One child of a layout group: its size in (canvas pixels, as its own rect resolves), its place out.
+	struct UILayoutItem
+	{
+		glm::vec2 Size{ 0.0f, 0.0f };
+		glm::vec2 Min{ 0.0f, 0.0f };
+		glm::vec2 Max{ 0.0f, 0.0f };
 	};
 
 	// The maths of the runtime UI's layout (UI1): pure functions over plain values, used by Scene::ResolveUILayout
@@ -53,6 +62,13 @@ namespace Hydro
 		static uint32_t BuildNineSlice(const glm::vec2& destinationMin, const glm::vec2& destinationMax,
 			const glm::vec2& sourcePosition, const glm::vec2& sourceSize, const glm::vec4& borders, bool flipX, bool flipY,
 			UINineSliceCell (&cells)[9]);
+
+		// A layout group's children placed in order inside groupMin..groupMax less its padding (UILayoutGroupComponent):
+		// stacked along the group's direction with its spacing, the stack placed by ChildAlignment, each child as long as
+		// its Size along it and, across it, stretched to the content or its own size placed by ChildAlignment. With
+		// FitContent the group's own rect first takes the stack's length along its direction, its pivot (0..1 of the rect)
+		// staying where it was. Whole canvas pixels.
+		static void ArrangeGroup(const UILayoutGroupComponent& group, const glm::vec2& pivot, glm::vec2& groupMin, glm::vec2& groupMax, std::vector<UILayoutItem>& items);
 
 		// True when the image is drawn as nine slices (any border above 0).
 		static bool IsNineSliced(const UIImageComponent& image)

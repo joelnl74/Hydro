@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(r"C:\Users\joeln\Hydro\Oxygen\project\Assets\MedievalVillage")
 SRC = ROOT / "Models" / "Source" / "MV_Kit"
-TEX = SRC / "Textures"
+TEX = Path(os.environ["MV_TEX"]) if os.environ.get("MV_TEX") else SRC / "Textures"   # MV_TEX: try other textures
 SG = Path(r"C:\Users\joeln\Hydro\Oxygen\project\Assets\ShrineGlade")
 PPM = 32.0
 
@@ -742,11 +742,13 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
             P(PANEL[k], 0, D - 2 * i, z, -90)
         for (cx, cy, r) in ((0, 0, 0), (W, 0, 90), (W, D, 180), (0, D, -90)):
             P("corner", cx, cy, z, r)
-        if s > 0:  # a timber floor band between storeys, front and right side
+        if s > 0:  # a timber floor band between storeys, on all four sides so every face reads the same
             for i in range(int(W // 2)):
                 P("fbeam", 2 * i, -0.02, z - 0.11)
+                P("fbeam", W - 2 * i, D + 0.02, z - 0.11, 180)
             for i in range(int(D // 2)):
                 P("fbeam", W + 0.02, 2 * i, z - 0.11, 90)
+                P("fbeam", -0.02, D - 2 * i, z - 0.11, -90)
     gable = "gableK" if plank_gable else "gable"
     P(gable, 0, D, WT, -90); P(gable, W, 0, WT, 90)
     rk, ek = {"slate": ("roof2", "roofEnd"), "thatch": ("roofT2", "roofTEnd")}.get(roof, ("roofK2", "roofKEnd"))
@@ -989,7 +991,7 @@ scene.view_settings.exposure = -0.3
 # ------------------------------------------------------------------ export the prefabs (glb, one per prefab)
 # Collision proxies are left out: Hydro's importer flattens every node into one render mesh; colliders are
 # scene components. Each prefab's root is moved to the origin for its export.
-OUT = ROOT / "Models"
+OUT = Path(os.environ["MV_OUT"]) if os.environ.get("MV_OUT") else ROOT / "Models"   # MV_OUT: export elsewhere (preview)
 EXPORTED = []
 # Re-exported on every run (the rest keep their glbs unless MV_REEXPORT is set): the buildings, after the Oct 29, 2026
 # material pass (timber frame and plaster or planks for walls, stone only for foundations and chimneys).
@@ -1012,7 +1014,7 @@ for pname, root in PREFABS.items():
 
 # ------------------------------------------------------------------ save
 SRC.mkdir(parents=True, exist_ok=True)
-bpy.ops.wm.save_as_mainfile(filepath=str(SRC / "MV_Kit.blend"), relative_remap=True)
+bpy.ops.wm.save_as_mainfile(filepath=os.environ.get("MV_SAVE") or str(SRC / "MV_Kit.blend"), relative_remap=True)   # MV_SAVE: preview .blend
 
 info = {
     "modules": [o.name for o in LIB],

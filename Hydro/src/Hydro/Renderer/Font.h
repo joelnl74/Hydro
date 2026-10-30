@@ -31,6 +31,7 @@ namespace Hydro
 	{
 		std::string Face;
 		float Size = 0.0f;       // the size it was made at, in pixels
+		bool Smooth = false;     // anti-aliased glyphs (info smooth=1): a smooth font, filtered Linear; else a pixel font
 		float LineHeight = 0.0f; // from one line's top to the next's
 		float Base = 0.0f;       // from a line's top to its baseline
 		glm::vec2 PageSize{ 1.0f, 1.0f };
@@ -53,7 +54,8 @@ namespace Hydro
 
 	// A bitmap font asset (runtime UI, UI2): an AngelCode BMFont in its text format (.fnt, written by BMFont, Hiero,
 	// fontbm or scripts/fonts/make_bmfont.py) and its page images, loaded as Texture2D assets. Pixel fonts want their
-	// pages imported with nearest filtering (the page's .hymeta); a page that isn't is warned about once.
+	// pages imported with nearest filtering (the page's .hymeta), smooth ones (info smooth=1) with linear filtering;
+	// a page that doesn't match is warned about once.
 	// The AssetManager loads it (AssetManager::GetAsset<Font>); text is laid out by TextLayout and drawn as quads.
 	class Font : public Asset
 	{

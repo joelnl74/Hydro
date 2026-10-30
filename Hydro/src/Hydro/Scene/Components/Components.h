@@ -578,10 +578,23 @@ namespace Hydro
 		ConstantPixelSize  // 1 canvas pixel = 1 view pixel
 	};
 
+	// Where a canvas is (UI6).
+	enum class UICanvasSpace : uint8_t
+	{
+		Screen = 0, // covers the view
+		World       // a WorldSize box pinned to the entity's world position (projected through the primary camera),
+		            // the same size on screen however far away: labels over characters, enemy info, prompts
+	};
+
 	struct UICanvasComponent
 	{
-		glm::vec2 ReferenceResolution{ 480.0f, 270.0f }; // canvas pixels the layout is designed for
-		UIScaleMode ScaleMode = UIScaleMode::IntegerScale;
+		// Canvas pixels the layout is designed for (sets the scale). The game's UI is a 1920 x 1080 canvas scaled
+		// smoothly with the view, with smooth fonts (decision D5, Oct 30, 2026); 480 x 270 IntegerScale suits pixel UI.
+		glm::vec2 ReferenceResolution{ 1920.0f, 1080.0f };
+		UIScaleMode ScaleMode = UIScaleMode::ScaleWithScreen;
+		UICanvasSpace Space = UICanvasSpace::Screen;
+		glm::vec2 WorldSize{ 320.0f, 80.0f };  // World: the canvas's size in canvas pixels
+		glm::vec2 WorldPivot{ 0.5f, 0.0f };    // World: the point of the box (0..1) that sits on the entity's position
 		int32_t SortOrder = 0;            // canvases with a higher order draw on top
 		bool Visible = true;              // false hides the canvas and everything on it
 		bool BlocksGameplayInput = false; // while visible, gameplay scripts don't get keyboard input (UI3a)
@@ -614,9 +627,35 @@ namespace Hydro
 		glm::vec2 Max{ 0.0f, 0.0f };
 		bool Visible = false;               // its own Visible, every ancestor's and the canvas's
 		UUID Canvas = 0;                    // the canvas it is drawn on; 0 = none (no canvas above it, or a nested one)
+		// What of it can show: the scroll views above it (canvas pixels). Drawing and the pointer are cut to it.
+		glm::vec2 ClipMin{ -1.0e9f, -1.0e9f };
+		glm::vec2 ClipMax{ 1.0e9f, 1.0e9f };
 
 		UIResolvedRectComponent() = default;
 		UIResolvedRectComponent(const UIResolvedRectComponent&) = default;
+	};
+
+	enum class UILayoutDirection : uint8_t { Vertical = 0, Horizontal };
+	// Where children sit along an axis of a layout group's content rect.
+	enum class UILayoutAlignment : uint8_t { Start = 0, Center, End }; // Start = top (vertical) / left (horizontal)
+
+	// Stacks the element's visible UI children one after another (UI4), top to bottom or left to right, inside its rect
+	// less Padding. It only changes their resolved rects: their UIRectComponents keep what was authored (the inspector
+	// shows their placement as driven), so removing the group puts every child back where it was. A child's size
+	// along the stack is its own resolved size; across it, the content's when StretchCrossAxis, else its own, placed by
+	// ChildAlignment. Hidden children take no room. With FitContent the group's own size along the stack follows its
+	// children (its pivot stays put), so a list grows and shrinks with its rows.
+	struct UILayoutGroupComponent
+	{
+		UILayoutDirection Direction = UILayoutDirection::Vertical;
+		float Spacing = 2.0f;                        // canvas pixels between children
+		glm::vec4 Padding{ 0.0f, 0.0f, 0.0f, 0.0f }; // left, bottom, right, top, canvas pixels
+		UILayoutAlignment ChildAlignment = UILayoutAlignment::Start; // along the stack and, unstretched, across it
+		bool StretchCrossAxis = true;                // children take the content's width (vertical) / height (horizontal)
+		bool FitContent = false;
+
+		UILayoutGroupComponent() = default;
+		UILayoutGroupComponent(const UILayoutGroupComponent&) = default;
 	};
 
 	// An image filling the element's rect: a texture (a sprite of a sheet), or a flat colour without one.
@@ -648,6 +687,8 @@ namespace Hydro
 		bool Wrap = true;                   // at the rect's width, on spaces
 		float LineSpacing = 1.0f;           // times the font's line height
 		int32_t VisibleCharacters = -1;     // -1 = all; a typewriter counts this up (the layout never changes)
+		glm::vec4 ShadowColor{ 0.0f, 0.0f, 0.0f, 0.0f }; // a drop shadow under the glyphs; alpha 0 = none
+		glm::vec2 ShadowOffset{ 2.0f, -2.0f };           // canvas pixels, Y up
 
 		UITextComponent() = default;
 		UITextComponent(const UITextComponent&) = default;
@@ -682,6 +723,40 @@ namespace Hydro
 		UIButtonComponent(const UIButtonComponent&) = default;
 	};
 
+	// A vertical scrolling area (UI6): its direct children (the content, typically one fitted layout group anchored at
+	// the top) move up by ScrollPosition, and everything below it is cut to its rect when drawn and hit-tested.
+	// ScrollPosition is kept between 0 and how much taller the content is than the view; with FollowFocus,
+	// Scene::ResolveUILayout scrolls so the focused button inside it is always whole in view (the art guide: focus
+	// never scrolls off-screen). It is runtime state the layout writes, like Unity's ScrollRect position: saved as
+	// the starting position.
+	struct UIScrollViewComponent
+	{
+		float ScrollPosition = 0.0f;        // canvas pixels the content is moved up by
+		bool FollowFocus = true;
+		// An element outside the view (in a track beside it) that the layout sizes and moves as the scrollbar's thumb
+		// in its parent's rect, by UUID (0 = none); hidden while everything fits.
+		UUID Scrollbar = 0;
+
+		UIScrollViewComponent() = default;
+		UIScrollViewComponent(const UIScrollViewComponent&) = default;
+	};
+
+	// When an element shows, by the state of the button it belongs to (itself or the nearest one above it, UI6): a
+	// cursor or a highlight that only the focused row has, or a resting look the focused row drops.
+	enum class UIFocusVisibility : uint8_t
+	{
+		Focused = 0, // while the button is focused or pressed
+		Unfocused    // while it isn't
+	};
+
+	struct UIFocusVisibilityComponent
+	{
+		UIFocusVisibility Show = UIFocusVisibility::Focused;
+
+		UIFocusVisibilityComponent() = default;
+		UIFocusVisibilityComponent(const UIFocusVisibilityComponent&) = default;
+	};
+
 	template<typename... Component>
 	struct ComponentGroup
 	{
@@ -689,5 +764,5 @@ namespace Hydro
 
 	using CopyableComponents = ComponentGroup<RelationshipComponent, TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent>;
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent, UILayoutGroupComponent, UIScrollViewComponent, UIFocusVisibilityComponent>;
 }

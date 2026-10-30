@@ -35,7 +35,7 @@ namespace Hydro
 		struct PendingEdit
 		{
 			enum class Type : uint8_t { None = 0, MoveBefore, MoveAfter, MakeChild, MakeRoot, Duplicate, Delete, CreateChild, InstantiatePrefab };
-			enum class Template : uint8_t { Empty = 0, Sprite, Light, UICanvas, UIPanel, UIImage, UIText, UIButton };
+			enum class Template : uint8_t { Empty = 0, Sprite, Light, UICanvas, UIPanel, UIImage, UIText, UIButton, UIList };
 
 			Type Kind = Type::None;
 			Entity Subject;   // the entity moved, duplicated or deleted

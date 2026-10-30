@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstdint>
 #include <vector>
 #include <Hydro/Asset/AssetManager.h>
@@ -23,26 +24,32 @@ namespace Hydro
 	static constexpr float SiblingDropEdge = 0.25f;
 
 	// The project's first font (by path), loaded, so new UI text shows at once; 0 when the project has none.
+	// The font new UI text gets: a smooth font nearest 30 px (body text on the 1920 x 1080 canvas, D5), else the
+	// first pixel font; ties go to the first by path.
 	static AssetHandle FindDefaultFont()
 	{
 		AssetHandle found = 0;
 		std::string foundPath;
+		float foundScore = 0.0f;
 		for (const auto& [handle, metadata] : AssetManager::GetRegistry().GetAll())
 		{
 			if (metadata.Type != AssetType::Font || metadata.IsMissing)
 			{
 				continue;
 			}
+			const Ref<Font> font = AssetManager::GetAsset<Font>(handle);
+			if (font == nullptr)
+			{
+				continue;
+			}
+			const float score = std::abs(font->GetData().Size - 30.0f) + (font->GetData().Smooth ? 0.0f : 1000.0f);
 			const std::string path = metadata.Path.generic_string();
-			if ((uint64_t)found == 0 || path < foundPath)
+			if ((uint64_t)found == 0 || score < foundScore || (score == foundScore && path < foundPath))
 			{
 				found = handle;
 				foundPath = path;
+				foundScore = score;
 			}
-		}
-		if ((uint64_t)found != 0 && AssetManager::GetAsset<Font>(found) == nullptr)
-		{
-			return 0;
 		}
 		return found;
 	}
@@ -398,7 +405,8 @@ namespace Hydro
 			{ "Panel", PendingEdit::Template::UIPanel },
 			{ "Image", PendingEdit::Template::UIImage },
 			{ "Text", PendingEdit::Template::UIText },
-			{ "Button", PendingEdit::Template::UIButton } };
+			{ "Button", PendingEdit::Template::UIButton },
+			{ "Vertical List", PendingEdit::Template::UIList } };
 		for (const Item& item : items)
 		{
 			if (ImGui::MenuItem(item.Name))
@@ -442,6 +450,7 @@ namespace Hydro
 		case PendingEdit::Template::UIPanel: name = "Panel"; break;
 		case PendingEdit::Template::UIText: name = "Text"; break;
 		case PendingEdit::Template::UIButton: name = "Button"; break;
+		case PendingEdit::Template::UIList: name = "List"; break;
 		default: break;
 		}
 
@@ -450,21 +459,39 @@ namespace Hydro
 		switch (kind)
 		{
 		case PendingEdit::Template::UIPanel:
-			rect.SizeDelta = { 200.0f, 120.0f };
-			element.AddComponent<UIImageComponent>().Color = { 0.08f, 0.07f, 0.06f, 0.85f };
+			rect.SizeDelta = { 640.0f, 400.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.05f, 0.06f, 0.09f, 0.82f };
 			break;
 		case PendingEdit::Template::UIText:
 		{
-			rect.SizeDelta = { 160.0f, 24.0f };
+			rect.SizeDelta = { 480.0f, 48.0f };
 			UITextComponent& text = element.AddComponent<UITextComponent>();
 			text.Text = "Text";
 			text.Font = FindDefaultFont();
 			break;
 		}
+		case PendingEdit::Template::UIList:
+		{
+			// A panel stacking three buttons; it grows with its rows (Fit Content). On its canvas first, so the rows find it.
+			scene.SetParent(element, parent, false);
+			rect.SizeDelta = { 420.0f, 240.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.05f, 0.06f, 0.09f, 0.82f };
+			UILayoutGroupComponent& group = element.AddComponent<UILayoutGroupComponent>();
+			group.Padding = { 12.0f, 12.0f, 12.0f, 12.0f };
+			group.Spacing = 6.0f;
+			group.FitContent = true;
+			for (int row = 0; row < 3; row++)
+			{
+				Entity button = CreateUIFromTemplate(scene, PendingEdit::Template::UIButton, element);
+				button.GetComponent<UIRectComponent>().SizeDelta = { 380.0f, 52.0f };
+				button.GetComponent<TagComponent>().Tag = "Row " + std::to_string(row + 1);
+			}
+			break;
+		}
 		case PendingEdit::Template::UIButton:
 		{
-			rect.SizeDelta = { 96.0f, 24.0f };
-			element.AddComponent<UIImageComponent>().Color = { 0.25f, 0.22f, 0.18f, 1.0f };
+			rect.SizeDelta = { 380.0f, 56.0f };
+			element.AddComponent<UIImageComponent>().Color = { 0.16f, 0.17f, 0.22f, 0.9f };
 			element.AddComponent<UIButtonComponent>();
 			// Its label fills it.
 			Entity label = scene.CreateEntity("Text");
@@ -482,7 +509,7 @@ namespace Hydro
 			break;
 		}
 		default:
-			rect.SizeDelta = { 64.0f, 64.0f };
+			rect.SizeDelta = { 128.0f, 128.0f };
 			element.AddComponent<UIImageComponent>();
 			break;
 		}

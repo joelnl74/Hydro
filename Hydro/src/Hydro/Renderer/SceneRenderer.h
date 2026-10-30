@@ -127,13 +127,19 @@ namespace Hydro
 		// Normal / Focused / Pressed / Disabled tint, from the running UIScene; Normal or Disabled while editing), in screen space
 		// (Renderer2D::BeginScreenOverlay) after the overlay sprites: after the tonemap, untouched by lighting, bloom and
 		// grading. Positions are whole view pixels. A canvas with DrawDebug also outlines itself and its rects.
+		// UI6: each canvas where the layout placed it (Scene::GetUICanvasMetrics: World canvases follow their entity),
+		// everything cut to the scroll views above it (UIResolvedRectComponent::ClipMin / ClipMax), elements with a
+		// UIFocusVisibilityComponent drawn only in their button's matching state, text shadows under the glyphs.
 		// RenderRuntime only (the Game view): a screen-space canvas has no place in the Editor view.
 		void SubmitUI();
 		// One image over a resolved rect (canvas pixels), whole or nine-sliced.
-		static void SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint);
+		// clipMin..clipMax (view pixels) is what the scroll views above it show.
+		static void SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+			const glm::vec2& clipMin, const glm::vec2& clipMax);
 		// One text in a resolved rect: laid out in its font (TextLayout, wrapped at the rect's width), placed by its
 		// vertical alignment, glyphs past VisibleCharacters left out. Nothing without a loaded font.
-		void SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint);
+		void SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+			const glm::vec2& clipMin, const glm::vec2& clipMax);
 		// One emitter's live particles, at the emitter's Z; billboards when the camera is tilted.
 		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera);
 		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
@@ -193,7 +199,15 @@ namespace Hydro
 		std::vector<UICanvasItem> m_UICanvases;
 		std::vector<Entity> m_UISubtree; // the canvas being drawn and its descendants, reused
 		TextLayoutResult m_TextLayout;   // SubmitUIText's, reused
-		std::vector<std::pair<uint32_t, glm::vec4>> m_UITints; // SubmitUI's button tints by depth (a stack), reused
+		// SubmitUI's buttons above the element being drawn, by depth (a stack), reused: their tint (multiplied down)
+		// and whether the nearest is focused (UIFocusVisibilityComponent).
+		struct UIButtonFrame
+		{
+			uint32_t Depth = 0;
+			glm::vec4 Tint{ 1.0f };
+			bool Focused = false;
+		};
+		std::vector<UIButtonFrame> m_UIButtons;
 		bool m_MeshWarningShown = false;
 	};
 }

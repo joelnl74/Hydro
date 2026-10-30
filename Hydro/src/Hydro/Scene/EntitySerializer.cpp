@@ -741,6 +741,13 @@ namespace Hydro
 			out << YAML::Key << "SortOrder" << YAML::Value << canvas.SortOrder;
 			out << YAML::Key << "Visible" << YAML::Value << canvas.Visible;
 			out << YAML::Key << "BlocksGameplayInput" << YAML::Value << canvas.BlocksGameplayInput;
+			// A World canvas's box, only for World canvases (older files and screen canvases stay as they were).
+			if (canvas.Space == UICanvasSpace::World)
+			{
+				out << YAML::Key << "Space" << YAML::Value << "World";
+				out << YAML::Key << "WorldSize" << YAML::Value << canvas.WorldSize;
+				out << YAML::Key << "WorldPivot" << YAML::Value << canvas.WorldPivot;
+			}
 			if (canvas.DrawDebug)
 			{
 				out << YAML::Key << "DrawDebug" << YAML::Value << true;
@@ -805,6 +812,51 @@ namespace Hydro
 			out << YAML::Key << "Wrap" << YAML::Value << text.Wrap;
 			out << YAML::Key << "LineSpacing" << YAML::Value << text.LineSpacing;
 			out << YAML::Key << "VisibleCharacters" << YAML::Value << text.VisibleCharacters;
+			if (text.ShadowColor.a > 0.0f)
+			{
+				out << YAML::Key << "ShadowColor" << YAML::Value << text.ShadowColor;
+				out << YAML::Key << "ShadowOffset" << YAML::Value << text.ShadowOffset;
+			}
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<UILayoutGroupComponent>())
+		{
+			auto& group = entity.GetComponent<UILayoutGroupComponent>();
+
+			out << YAML::Key << "UILayoutGroupComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Direction" << YAML::Value << (group.Direction == UILayoutDirection::Horizontal ? "Horizontal" : "Vertical");
+			out << YAML::Key << "Spacing" << YAML::Value << group.Spacing;
+			out << YAML::Key << "Padding" << YAML::Value << group.Padding;
+			out << YAML::Key << "ChildAlignment" << YAML::Value
+				<< (group.ChildAlignment == UILayoutAlignment::Center ? "Center" : (group.ChildAlignment == UILayoutAlignment::End ? "End" : "Start"));
+			out << YAML::Key << "StretchCrossAxis" << YAML::Value << group.StretchCrossAxis;
+			out << YAML::Key << "FitContent" << YAML::Value << group.FitContent;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<UIScrollViewComponent>())
+		{
+			auto& scroll = entity.GetComponent<UIScrollViewComponent>();
+
+			out << YAML::Key << "UIScrollViewComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "ScrollPosition" << YAML::Value << scroll.ScrollPosition;
+			out << YAML::Key << "FollowFocus" << YAML::Value << scroll.FollowFocus;
+			if ((uint64_t)scroll.Scrollbar != 0)
+			{
+				out << YAML::Key << "Scrollbar" << YAML::Value << (uint64_t)scroll.Scrollbar;
+			}
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<UIFocusVisibilityComponent>())
+		{
+			out << YAML::Key << "UIFocusVisibilityComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Show" << YAML::Value
+				<< (entity.GetComponent<UIFocusVisibilityComponent>().Show == UIFocusVisibility::Unfocused ? "Unfocused" : "Focused");
 			out << YAML::EndMap;
 		}
 
@@ -1194,6 +1246,9 @@ namespace Hydro
 			canvas.Visible = canvasNode["Visible"].as<bool>(canvas.Visible);
 			canvas.BlocksGameplayInput = canvasNode["BlocksGameplayInput"].as<bool>(canvas.BlocksGameplayInput);
 			canvas.DrawDebug = canvasNode["DrawDebug"].as<bool>(false);
+			canvas.Space = canvasNode["Space"].as<std::string>("Screen") == "World" ? UICanvasSpace::World : UICanvasSpace::Screen;
+			canvas.WorldSize = glm::max(canvasNode["WorldSize"].as<glm::vec2>(canvas.WorldSize), glm::vec2(1.0f));
+			canvas.WorldPivot = canvasNode["WorldPivot"].as<glm::vec2>(canvas.WorldPivot);
 		}
 
 		if (auto rectNode = entityNode["UIRectComponent"])
@@ -1249,6 +1304,34 @@ namespace Hydro
 			text.Wrap = textNode["Wrap"].as<bool>(text.Wrap);
 			text.LineSpacing = AtLeast(0.0f, textNode["LineSpacing"].as<float>(text.LineSpacing));
 			text.VisibleCharacters = std::max(textNode["VisibleCharacters"].as<int32_t>(text.VisibleCharacters), -1);
+			text.ShadowColor = textNode["ShadowColor"].as<glm::vec4>(text.ShadowColor);
+			text.ShadowOffset = textNode["ShadowOffset"].as<glm::vec2>(text.ShadowOffset);
+		}
+
+		if (auto groupNode = entityNode["UILayoutGroupComponent"])
+		{
+			auto& group = entity.AddComponent<UILayoutGroupComponent>();
+			group.Direction = groupNode["Direction"].as<std::string>("Vertical") == "Horizontal" ? UILayoutDirection::Horizontal : UILayoutDirection::Vertical;
+			group.Spacing = AtLeast(0.0f, groupNode["Spacing"].as<float>(group.Spacing));
+			group.Padding = glm::max(groupNode["Padding"].as<glm::vec4>(group.Padding), glm::vec4(0.0f));
+			const std::string alignment = groupNode["ChildAlignment"].as<std::string>("Start");
+			group.ChildAlignment = alignment == "Center" ? UILayoutAlignment::Center : (alignment == "End" ? UILayoutAlignment::End : UILayoutAlignment::Start);
+			group.StretchCrossAxis = groupNode["StretchCrossAxis"].as<bool>(group.StretchCrossAxis);
+			group.FitContent = groupNode["FitContent"].as<bool>(group.FitContent);
+		}
+
+		if (auto scrollNode = entityNode["UIScrollViewComponent"])
+		{
+			auto& scroll = entity.AddComponent<UIScrollViewComponent>();
+			scroll.ScrollPosition = AtLeast(0.0f, scrollNode["ScrollPosition"].as<float>(scroll.ScrollPosition));
+			scroll.FollowFocus = scrollNode["FollowFocus"].as<bool>(scroll.FollowFocus);
+			scroll.Scrollbar = UUID(scrollNode["Scrollbar"].as<uint64_t>(0));
+		}
+
+		if (auto visibilityNode = entityNode["UIFocusVisibilityComponent"])
+		{
+			entity.AddComponent<UIFocusVisibilityComponent>().Show =
+				visibilityNode["Show"].as<std::string>("Focused") == "Unfocused" ? UIFocusVisibility::Unfocused : UIFocusVisibility::Focused;
 		}
 
 		if (auto buttonNode = entityNode["UIButtonComponent"])

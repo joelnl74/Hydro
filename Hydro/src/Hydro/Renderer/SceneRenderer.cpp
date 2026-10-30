@@ -536,6 +536,33 @@ namespace Hydro
 		return glm::round(metrics.Offset + point * metrics.Scale);
 	}
 
+	// A quad in view pixels cut to clipMin..clipMax (a scroll view's rect), its texture rect cut with it. The rect's
+	// Min goes with the quad's left and top edge (texture rows run down, view pixels up), as everywhere in the UI.
+	static void DrawClippedQuad(const glm::vec2& viewMin, const glm::vec2& viewMax, const Ref<Texture2D>& texture, const TextureRect& rect,
+		const glm::vec4& color, const glm::vec2& clipMin, const glm::vec2& clipMax)
+	{
+		const glm::vec2 min = glm::max(viewMin, clipMin);
+		const glm::vec2 max = glm::min(viewMax, clipMax);
+		if (max.x <= min.x || max.y <= min.y)
+		{
+			return;
+		}
+		if (min == viewMin && max == viewMax)
+		{
+			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, color);
+			return;
+		}
+		const glm::vec2 size = viewMax - viewMin;
+		const float left = (min.x - viewMin.x) / size.x;
+		const float right = (max.x - viewMin.x) / size.x;
+		const float top = (viewMax.y - max.y) / size.y;
+		const float bottom = (viewMax.y - min.y) / size.y;
+		TextureRect cut;
+		cut.Min = { glm::mix(rect.Min.x, rect.Max.x, left), glm::mix(rect.Min.y, rect.Max.y, top) };
+		cut.Max = { glm::mix(rect.Min.x, rect.Max.x, right), glm::mix(rect.Min.y, rect.Max.y, bottom) };
+		Renderer2D::DrawQuad(GetPixelQuadTransform(min, max), texture, cut, color);
+	}
+
 	// A one-pixel outline just inside a view-pixel rect, as four thin quads (Renderer2D's lines go through the scene's
 	// camera, which screen space doesn't use).
 	static void DrawPixelOutline(const glm::vec2& min, const glm::vec2& max, const glm::vec4& color)
@@ -595,41 +622,66 @@ namespace Hydro
 
 		// Screen space in view pixels, Y up, origin at the bottom-left: the same viewport the layout was resolved for.
 		const glm::vec2 viewSize{ (float)scene.GetViewportWidth(), (float)scene.GetViewportHeight() };
+		const UIScene* ui = scene.GetUIScene();
 		Renderer2D::BeginScreenOverlay(Camera::Orthographic(0.0f, viewSize.x, 0.0f, viewSize.y, -1.0f, 1.0f));
 		const glm::vec4 canvasOutline{ 1.0f, 0.85f, 0.2f, 1.0f };
 		const glm::vec4 rectOutline{ 0.3f, 0.85f, 1.0f, 0.9f };
 		for (const UICanvasItem& item : m_UICanvases)
 		{
 			const UICanvasComponent& canvas = canvases.get<UICanvasComponent>(item.Entity);
-			const UICanvasMetrics metrics = UILayout::GetCanvasMetrics(canvas, viewSize);
+			// Where the layout placed it; a World canvas off screen (or without a camera) isn't placed.
+			UICanvasMetrics metrics;
+			if (scene.GetUICanvasMetrics(Entity{ item.Entity, &scene }.GetUUID(), metrics) == false)
+			{
+				continue;
+			}
 
 			scene.GetSubtree(Entity{ item.Entity, &scene }, m_UISubtree);
-			m_UITints.clear();
+			m_UIButtons.clear();
+			uint32_t skipBelow = UINT32_MAX; // a focus-visibility element that is hidden: skip its subtree
 			for (Entity element : m_UISubtree)
 			{
-				// The tint of the button this element belongs to: the stack holds the buttons above it, by depth.
 				const uint32_t depth = scene.GetDepth(element);
-				while (m_UITints.empty() == false && m_UITints.back().first >= depth)
+				if (depth > skipBelow)
 				{
-					m_UITints.pop_back();
+					continue;
 				}
-				glm::vec4 tint = m_UITints.empty() ? glm::vec4(1.0f) : m_UITints.back().second;
+				skipBelow = UINT32_MAX;
+
+				// The tint and state of the button this element belongs to: the stack holds the buttons above it, by depth.
+				while (m_UIButtons.empty() == false && m_UIButtons.back().Depth >= depth)
+				{
+					m_UIButtons.pop_back();
+				}
+				UIButtonFrame frame = m_UIButtons.empty() ? UIButtonFrame{} : m_UIButtons.back();
 				if (element.HasComponent<UIButtonComponent>())
 				{
 					const UIButtonComponent& button = element.GetComponent<UIButtonComponent>();
 					UIInteractionState state = button.Interactable ? UIInteractionState::Normal : UIInteractionState::Disabled;
-					if (const UIScene* ui = scene.GetUIScene())
+					if (ui != nullptr)
 					{
 						state = ui->GetState(scene, element);
 					}
 					switch (state)
 					{
-					case UIInteractionState::Focused: tint *= button.FocusedTint; break;
-					case UIInteractionState::Pressed: tint *= button.PressedTint; break;
-					case UIInteractionState::Disabled: tint *= button.DisabledTint; break;
-					default: tint *= button.NormalTint; break;
+					case UIInteractionState::Focused: frame.Tint *= button.FocusedTint; break;
+					case UIInteractionState::Pressed: frame.Tint *= button.PressedTint; break;
+					case UIInteractionState::Disabled: frame.Tint *= button.DisabledTint; break;
+					default: frame.Tint *= button.NormalTint; break;
 					}
-					m_UITints.emplace_back(depth, tint);
+					frame.Depth = depth;
+					frame.Focused = state == UIInteractionState::Focused || state == UIInteractionState::Pressed;
+					m_UIButtons.push_back(frame);
+				}
+				// Shown only while its button is (or isn't) focused: a cursor, a highlight.
+				if (element.HasComponent<UIFocusVisibilityComponent>())
+				{
+					const bool wantFocused = element.GetComponent<UIFocusVisibilityComponent>().Show == UIFocusVisibility::Focused;
+					if (frame.Focused != wantFocused)
+					{
+						skipBelow = depth;
+						continue;
+					}
 				}
 
 				if (element.HasComponent<UIResolvedRectComponent>() == false)
@@ -641,13 +693,16 @@ namespace Hydro
 				{
 					continue;
 				}
+				// What the scroll views above it show, in view pixels.
+				const glm::vec2 clipMin = rect.ClipMin.x < -1.0e8f ? glm::vec2(-1.0e9f) : CanvasToViewPixels(metrics, rect.ClipMin);
+				const glm::vec2 clipMax = rect.ClipMax.x > 1.0e8f ? glm::vec2(1.0e9f) : CanvasToViewPixels(metrics, rect.ClipMax);
 				if (element.HasComponent<UIImageComponent>())
 				{
-					SubmitUIImage(element.GetComponent<UIImageComponent>(), rect.Min, rect.Max, metrics, tint);
+					SubmitUIImage(element.GetComponent<UIImageComponent>(), rect.Min, rect.Max, metrics, frame.Tint, clipMin, clipMax);
 				}
 				if (element.HasComponent<UITextComponent>())
 				{
-					SubmitUIText(element.GetComponent<UITextComponent>(), rect.Min, rect.Max, metrics, tint);
+					SubmitUIText(element.GetComponent<UITextComponent>(), rect.Min, rect.Max, metrics, frame.Tint, clipMin, clipMax);
 				}
 			}
 
@@ -670,7 +725,8 @@ namespace Hydro
 		Renderer2D::EndScreenOverlay();
 	}
 
-	void SceneRenderer::SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint)
+	void SceneRenderer::SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+		const glm::vec2& clipMin, const glm::vec2& clipMax)
 	{
 		// Never loads: whoever assigned the handle loaded it. No texture (or one not loaded) is a flat colour.
 		const Ref<Texture2D> texture = AssetManager::GetLoadedAsset<Texture2D>(image.Texture);
@@ -696,7 +752,7 @@ namespace Hydro
 			const glm::vec2 viewMax = CanvasToViewPixels(metrics, max);
 			if (viewMax.x > viewMin.x && viewMax.y > viewMin.y)
 			{
-				Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color * tint);
+				DrawClippedQuad(viewMin, viewMax, texture, rect, image.Color * tint, clipMin, clipMax);
 			}
 			return;
 		}
@@ -732,11 +788,12 @@ namespace Hydro
 			const glm::vec2 direction = glm::sign(rect.Max - rect.Min); // -1 on a mirrored axis
 			rect.Min += inset * direction;
 			rect.Max -= inset * direction;
-			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), texture, rect, image.Color * tint);
+			DrawClippedQuad(viewMin, viewMax, texture, rect, image.Color * tint, clipMin, clipMax);
 		}
 	}
 
-	void SceneRenderer::SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint)
+	void SceneRenderer::SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+		const glm::vec2& clipMin, const glm::vec2& clipMax)
 	{
 		// Never loads, like images: whoever assigned the handle loaded the font.
 		const Ref<Font> font = AssetManager::GetLoadedAsset<Font>(text.Font);
@@ -764,31 +821,39 @@ namespace Hydro
 			top = min.y + m_TextLayout.Size.y;
 		}
 
-		for (const TextGlyphQuad& glyph : m_TextLayout.Glyphs)
+		// The shadow first (when it has any alpha), then the glyphs over it.
+		const bool shadow = text.ShadowColor.a > 0.0f;
+		for (int pass = shadow ? 0 : 1; pass < 2; pass++)
 		{
-			// The typewriter: later characters aren't drawn, but everything stays where the full text puts it.
-			if (text.VisibleCharacters >= 0 && glyph.CharacterIndex >= (uint32_t)text.VisibleCharacters)
+			const glm::vec2 offset = pass == 0 ? text.ShadowOffset : glm::vec2(0.0f);
+			const glm::vec4 color = pass == 0 ? glm::vec4(glm::vec3(text.ShadowColor), text.ShadowColor.a * text.Color.a) * glm::vec4(1.0f, 1.0f, 1.0f, tint.a)
+				: text.Color * tint;
+			for (const TextGlyphQuad& glyph : m_TextLayout.Glyphs)
 			{
-				continue;
-			}
-			const Ref<Texture2D>& page = font->GetPage(glyph.Page);
-			if (page == nullptr)
-			{
-				continue;
-			}
+				// The typewriter: later characters aren't drawn, but everything stays where the full text puts it.
+				if (text.VisibleCharacters >= 0 && glyph.CharacterIndex >= (uint32_t)text.VisibleCharacters)
+				{
+					continue;
+				}
+				const Ref<Texture2D>& page = font->GetPage(glyph.Page);
+				if (page == nullptr)
+				{
+					continue;
+				}
 
-			// Layout Y runs down from the text's top; the canvas's runs up.
-			const glm::vec2 viewMin = CanvasToViewPixels(metrics, { min.x + glyph.Min.x, top - glyph.Max.y });
-			const glm::vec2 viewMax = CanvasToViewPixels(metrics, { min.x + glyph.Max.x, top - glyph.Min.y });
-			if (viewMax.x <= viewMin.x || viewMax.y <= viewMin.y)
-			{
-				continue;
+				// Layout Y runs down from the text's top; the canvas's runs up.
+				const glm::vec2 viewMin = CanvasToViewPixels(metrics, glm::vec2(min.x + glyph.Min.x, top - glyph.Max.y) + offset);
+				const glm::vec2 viewMax = CanvasToViewPixels(metrics, glm::vec2(min.x + glyph.Max.x, top - glyph.Min.y) + offset);
+				if (viewMax.x <= viewMin.x || viewMax.y <= viewMin.y)
+				{
+					continue;
+				}
+				const glm::vec2 pageSize = glm::max(glm::vec2((float)page->GetWidth(), (float)page->GetHeight()), glm::vec2(1.0f));
+				TextureRect rect;
+				rect.Min = glyph.SourceMin / pageSize;
+				rect.Max = glyph.SourceMax / pageSize;
+				DrawClippedQuad(viewMin, viewMax, page, rect, color, clipMin, clipMax);
 			}
-			const glm::vec2 pageSize = glm::max(glm::vec2((float)page->GetWidth(), (float)page->GetHeight()), glm::vec2(1.0f));
-			TextureRect rect;
-			rect.Min = glyph.SourceMin / pageSize;
-			rect.Max = glyph.SourceMax / pageSize;
-			Renderer2D::DrawQuad(GetPixelQuadTransform(viewMin, viewMax), page, rect, text.Color * tint);
 		}
 	}
 

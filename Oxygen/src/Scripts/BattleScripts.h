@@ -20,11 +20,16 @@
 // Kick, Death). The battle is a 3D forest arena (scripts/battle/build_arena.py builds Battle.hyscene); the code is
 // written for any HeroCount, so a second hero is a row in GetHero, its entities in the scene and HeroCount + 1.
 //
-// Quick prototype code for play testing: the rules, the data and the presentation live together here. There
-// is no text rendering yet, so the labels, icons and numbers are sprites from Assets/DioramaRPG/UI.
+// Quick prototype code for play testing: the rules, the data and the presentation live together here. The HUD is
+// runtime UI on the 1920 x 1080 canvas (scripts/ui/build_game_ui.py builds it): "Battle UI Canvas", a child of the
+// Battle Director so its buttons' events reach this script, holds the turn order, the party's status, the message
+// banner and the command and target lists; each enemy's shield and weaknesses are a World canvas ("Enemy <i> Info")
+// pinned under its feet. The damage numbers, the target cursor and the turn marker are still sprites in the world.
 //
-// Battle keys: 1 attack, 2 and 3 the hero's skills, 4 guard, 5 potion, 6 run; Left / Right (A / D) pick the
-// target; Up / Down (W / S) set the boost (spend Momentum: more hits or a stronger skill).
+// Battle keys: Up / Down (W / S) pick a command and Enter / Space / Z uses it (or click it). An attack or a
+// damaging skill then opens the target list: Up / Down or Left / Right (A / D) move the cursor over the enemies,
+// Enter (or a click) strikes, Esc / Backspace / X goes back to the commands. E / Q raise and lower the boost
+// (spend Momentum: more hits or a stronger skill).
 namespace Hydro
 {
 	// ---------------------------------------------------------------------------------------------------------
@@ -42,6 +47,42 @@ namespace Hydro
 		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape,
 		Miko, FlameKick, HolyPalm
 	};
+
+	// The words a label stands for, as the runtime UI writes them (the command menu and the message box).
+	inline const char* GetLabelText(BattleLabel label)
+	{
+		switch (label)
+		{
+		case BattleLabel::Attack: return "Attack";
+		case BattleLabel::FlameEdge: return "Flame Edge";
+		case BattleLabel::Crush: return "Crush";
+		case BattleLabel::HolyLight: return "Holy Light";
+		case BattleLabel::Heal: return "Heal";
+		case BattleLabel::Guard: return "Guard";
+		case BattleLabel::Potion: return "Potion";
+		case BattleLabel::Run: return "Run";
+		case BattleLabel::Orin: return "Orin";
+		case BattleLabel::Lila: return "Lila";
+		case BattleLabel::Slime: return "Slime";
+		case BattleLabel::Wisp: return "Wisp";
+		case BattleLabel::Weak: return "Weak!";
+		case BattleLabel::Resist: return "Resist";
+		case BattleLabel::Break: return "Break!";
+		case BattleLabel::Victory: return "Victory!";
+		case BattleLabel::Defeated: return "Defeated...";
+		case BattleLabel::Escaped: return "Got away!";
+		case BattleLabel::Boost: return "Boost";
+		case BattleLabel::NoMP: return "Not enough MP";
+		case BattleLabel::NoPotions: return "No potions left";
+		case BattleLabel::Critical: return "Critical!";
+		case BattleLabel::Guarding: return "Guarding";
+		case BattleLabel::NoEscape: return "Couldn't get away!";
+		case BattleLabel::Miko: return "Miko";
+		case BattleLabel::FlameKick: return "Flame Kick";
+		case BattleLabel::HolyPalm: return "Holy Palm";
+		default: return "";
+		}
+	}
 
 	// Cells of Assets/DioramaRPG/UI/BattleIcons.png: row Icon, then row Digit (0-9 from DigitBase).
 	struct BattleIcon
@@ -487,18 +528,18 @@ namespace Hydro
 				Hero& hero = m_Heroes[h];
 				hero.Sprite = Find(scene, prefix);
 				hero.Shadow = Find(scene, prefix + " Shadow");
-				hero.HPBack = Find(scene, prefix + " HP Back");
-				hero.HPFill = Find(scene, prefix + " HP Fill");
-				hero.MPBack = Find(scene, prefix + " MP Back");
-				hero.MPFill = Find(scene, prefix + " MP Fill");
-				for (int d = 0; d < 3; d++)
-				{
-					hero.HPDigits[d] = Find(scene, prefix + " HP Digit " + std::to_string(d));
-				}
+				// Her status on the right (runtime UI): "Status <Name>" ...
+				const std::string status = std::string("Status ") + GetHero(h).Name;
+				hero.StatusName = Find(scene, status + " Name");
+				hero.StatusHP = Find(scene, status + " HP");
+				hero.StatusMP = Find(scene, status + " MP");
+				hero.StatusHPFill = Find(scene, status + " HP Fill");
+				hero.StatusMPFill = Find(scene, status + " MP Fill");
 				for (int p = 0; p < BattleState::MaxMomentum; p++)
 				{
-					hero.Pips[p] = Find(scene, prefix + " Pip " + std::to_string(p));
+					hero.StatusPips[p] = Find(scene, status + " Pip " + std::to_string(p));
 				}
+				UI::SetText(EntityOf(hero.StatusName), GetHero(h).Name);
 				hero.Base = ActorLayout(scene, hero.Sprite, HeroFoot, HeroPivot);
 				hero.Size = ActorSize(scene, hero.Sprite);
 				hero.Momentum = 1;
@@ -519,10 +560,11 @@ namespace Hydro
 				enemy.Shadows[0] = Find(scene, prefix + " Slime Shadow");
 				enemy.Shadows[1] = Find(scene, prefix + " Wisp Shadow");
 				enemy.Light = Find(scene, prefix + " Light");
-				enemy.HPBack = Find(scene, prefix + " HP Back");
+				enemy.Info = Find(scene, prefix + " Info");
 				enemy.HPFill = Find(scene, prefix + " HP Fill");
 				enemy.ShieldIcon = Find(scene, prefix + " Shield");
-				enemy.ShieldDigit = Find(scene, prefix + " Shield Digit");
+				enemy.ShieldCount = Find(scene, prefix + " Shield Count");
+				enemy.WeakLabel = Find(scene, prefix + " Weak Label");
 				for (int w = 0; w < 3; w++)
 				{
 					enemy.WeakIcons[w] = Find(scene, prefix + " Weak " + std::to_string(w));
@@ -542,8 +584,10 @@ namespace Hydro
 			for (int c = 0; c < 6; c++)
 			{
 				m_Commands[c] = Find(scene, "Command " + std::to_string(c));
-				m_CommandKeys[c] = Find(scene, "Command Key " + std::to_string(c));
+				m_CommandNames[c] = Find(scene, "Command " + std::to_string(c) + " Name");
+				m_CommandCosts[c] = Find(scene, "Command " + std::to_string(c) + " Cost");
 				m_OrderChips[c] = Find(scene, "Order Chip " + std::to_string(c));
+				m_OrderActors[c] = Find(scene, "Order Chip " + std::to_string(c) + " Actor");
 			}
 			for (int p = 0; p < 3; p++)
 			{
@@ -554,9 +598,24 @@ namespace Hydro
 			}
 			m_Cursor = Find(scene, "Target Cursor");
 			m_TurnMarker = Find(scene, "Turn Marker");
-			m_BoostLabel = Find(scene, "Boost Label");
-			m_BoostDigit = Find(scene, "Boost Digit");
-			m_Message = Find(scene, "Message");
+			m_CommandPanel = Find(scene, "Command Panel");
+			m_CommandHeader = Find(scene, "Command Hero");
+			m_CommandHelp = Find(scene, "Command Help");
+			m_CommandBoost = Find(scene, "Command Boost");
+			m_TargetPanel = Find(scene, "Target Panel");
+			m_TargetHeader = Find(scene, "Target Command");
+			for (int e = 0; e < BattleState::MaxEnemies; e++)
+			{
+				m_TargetButtons[e] = Find(scene, "Target " + std::to_string(e));
+				m_TargetNames[e] = Find(scene, "Target " + std::to_string(e) + " Name");
+				m_TargetHP[e] = Find(scene, "Target " + std::to_string(e) + " HP");
+			}
+			m_MessagePanel = Find(scene, "Battle Message Panel");
+			m_MessageText = Find(scene, "Battle Message Text");
+			// The menu opens on the hero's first turn (Present).
+			UI::SetVisible(EntityOf(m_CommandPanel), false);
+			UI::SetVisible(EntityOf(m_TargetPanel), false);
+			UI::SetVisible(EntityOf(m_MessagePanel), false);
 			m_Overlay = Find(scene, "Battle Overlay");
 			m_StrikeEffect.Entity = Find(scene, "FX Strike");
 			m_HealEffect.Entity = Find(scene, "FX Heal");
@@ -567,7 +626,7 @@ namespace Hydro
 				previous = true;
 			}
 
-			HY_INFO("Battle: {} enemies! (1 attack, 2/3 skills, 4 guard, 5 potion, 6 run; Left/Right target, Up/Down boost)", count);
+			HY_INFO("Battle: {} enemies! (Up/Down + Enter or click: command, then target; Esc back; E/Q boost)", count);
 			SetPhase(Phase::Intro);
 		}
 
@@ -631,6 +690,58 @@ namespace Hydro
 			Present(scene);
 		}
 
+		// The menus' buttons ("Command 0" to "Command 5", "Target 0" to "Target 2") bubble their events up to the
+		// Battle Director: a command, the enemy under the cursor (focus), the target chosen, or Cancel (back).
+		bool OnUIEvent(const UIEvent& event) override
+		{
+			const bool targeting = m_Phase == Phase::Command && m_Targeting;
+			if (event.Type == UIEventType::Cancel)
+			{
+				if (targeting)
+				{
+					m_CancelTarget = true;
+					return true;
+				}
+				return false;
+			}
+			for (int e = 0; e < BattleState::MaxEnemies; e++)
+			{
+				if ((entt::entity)event.Target != m_TargetButtons[e])
+				{
+					continue;
+				}
+				if (targeting && m_Enemies[e].Alive())
+				{
+					if (event.Type == UIEventType::FocusEnter)
+					{
+						m_Action.Target = e; // the cursor follows the focus (keys or the pointer)
+					}
+					else if (event.Type == UIEventType::Submit)
+					{
+						m_ChosenTarget = e;
+					}
+				}
+				return true;
+			}
+			for (int c = 0; c < 6; c++)
+			{
+				if ((entt::entity)event.Target != m_Commands[c])
+				{
+					continue;
+				}
+				if (event.Type == UIEventType::FocusEnter)
+				{
+					m_HelpCommand = c; // the help line follows the focus
+				}
+				else if (event.Type == UIEventType::Submit && m_Phase == Phase::Command)
+				{
+					m_ChosenCommand = c;
+				}
+				return true;
+			}
+			return false;
+		}
+
 	private:
 		enum class Phase : uint8_t { Intro, NextTurn, Command, EnemyThink, Acting, Victory, Defeat, Fleeing, Done };
 		enum class Command : uint8_t { Attack = 0, SkillA, SkillB, Guard, Potion, Run, EnemyAttack };
@@ -639,9 +750,10 @@ namespace Hydro
 		{
 			entt::entity Sprite = entt::null;
 			entt::entity Shadow = entt::null; // "<name> Shadow": the contact shadow on the floor under her feet
-			entt::entity HPBack = entt::null, HPFill = entt::null, MPBack = entt::null, MPFill = entt::null;
-			entt::entity HPDigits[3] = { entt::null, entt::null, entt::null };
-			entt::entity Pips[BattleState::MaxMomentum] = { entt::null, entt::null, entt::null, entt::null, entt::null };
+			// Her status (runtime UI): name, HP and MP texts, the bars' fills (their width is the fraction), boost pips.
+			entt::entity StatusName = entt::null, StatusHP = entt::null, StatusMP = entt::null;
+			entt::entity StatusHPFill = entt::null, StatusMPFill = entt::null;
+			entt::entity StatusPips[BattleState::MaxMomentum] = { entt::null, entt::null, entt::null, entt::null, entt::null };
 			glm::vec2 Base{ 0.0f };   // where she stands, in layout units (see "Stage camera")
 			glm::vec2 Offset{ 0.0f }; // from Base while she walks up to a target and back (layout units)
 			float Size = 2.4f;        // the sprite's height in metres
@@ -657,7 +769,8 @@ namespace Hydro
 			entt::entity Sprites[2] = { entt::null, entt::null }; // slime, wisp
 			entt::entity Shadows[2] = { entt::null, entt::null }; // their contact shadows ("<sprite> Shadow")
 			entt::entity Light = entt::null;
-			entt::entity HPBack = entt::null, HPFill = entt::null, ShieldIcon = entt::null, ShieldDigit = entt::null;
+			// Its info (a World canvas pinned under its feet): shield badge and count, the weakness label and icons, HP.
+			entt::entity Info = entt::null, HPFill = entt::null, ShieldIcon = entt::null, ShieldCount = entt::null, WeakLabel = entt::null;
 			entt::entity WeakIcons[3] = { entt::null, entt::null, entt::null };
 			glm::vec2 Base{ 0.0f };
 			float Size[2] = { 1.3f, 1.3f }; // the sprites' heights in metres (slime, wisp)
@@ -713,6 +826,7 @@ namespace Hydro
 		{
 			m_Phase = phase;
 			m_PhaseTime = 0.0f;
+			m_Targeting = false; // a new phase (or the next hero's turn) starts on the commands
 		}
 
 		void StartRound()
@@ -868,83 +982,140 @@ namespace Hydro
 			Hero& hero = m_Heroes[h];
 			const HeroDefinition& definition = GetHero(h);
 
-			if (Pressed(6, KeyCode::Left) || Pressed(7, KeyCode::A))
-			{
-				m_Action.Target = StepTarget(m_Action.Target, -1);
-			}
-			if (Pressed(8, KeyCode::Right) || Pressed(9, KeyCode::D))
-			{
-				m_Action.Target = StepTarget(m_Action.Target, 1);
-			}
-			if (Pressed(10, KeyCode::Up) || Pressed(11, KeyCode::W))
+			// Up / Down move the menu's focus (the runtime UI), so the boost has keys of its own.
+			if (Pressed(10, KeyCode::E))
 			{
 				m_Action.Boost = std::min({ 3, hero.Momentum, m_Action.Boost + 1 });
 			}
-			if (Pressed(12, KeyCode::Down) || Pressed(13, KeyCode::S))
+			if (Pressed(12, KeyCode::Q))
 			{
 				m_Action.Boost = std::max(0, m_Action.Boost - 1);
 			}
 
-			const KeyCode keys[6] = { KeyCode::D1, KeyCode::D2, KeyCode::D3, KeyCode::D4, KeyCode::D5, KeyCode::D6 };
-			for (int c = 0; c < 6; c++)
+			// Choosing the target (the target list is open): Left / Right step the cursor along the enemies as they
+			// stand (the list follows), Up / Down move it through the list (OnUIEvent), Enter strikes, Esc goes back.
+			const int chosenTarget = m_ChosenTarget;
+			const bool cancel = m_CancelTarget;
+			m_ChosenTarget = -1;
+			m_CancelTarget = false;
+			// (read every frame, so a key held since the commands doesn't fire when the list opens)
+			const bool leftArrow = Pressed(6, KeyCode::Left);
+			const bool leftKey = Pressed(7, KeyCode::A);
+			const bool rightArrow = Pressed(8, KeyCode::Right);
+			const bool rightKey = Pressed(9, KeyCode::D);
+			const bool left = leftArrow || leftKey;
+			const bool right = rightArrow || rightKey;
+			if (m_Targeting)
 			{
-				if (Pressed(c, keys[c]) == false)
+				if (left || right)
 				{
-					continue;
+					m_Action.Target = StepTarget(m_Action.Target, left ? -1 : 1);
+					UI::Focus(EntityOf(m_TargetButtons[m_Action.Target]));
 				}
-
-				const Command command = (Command)c;
-				if (command == Command::SkillA || command == Command::SkillB)
+				if (cancel)
 				{
-					const int s = command == Command::SkillA ? 0 : 1;
-					if (BattleState::HeroMP[h] < definition.SkillCost[s])
-					{
-						ShowMessage(BattleLabel::NoMP);
-						continue;
-					}
-					BattleState::HeroMP[h] -= definition.SkillCost[s];
-					if (definition.SkillHeals[s])
-					{
-						m_Action.Target = MostHurtHero();
-					}
-				}
-				else if (command == Command::Potion)
-				{
-					if (Potions <= 0)
-					{
-						ShowMessage(BattleLabel::NoPotions);
-						continue;
-					}
-					Potions--;
-					m_Action.Target = MostHurtHero();
-				}
-				else if (command == Command::Run)
-				{
-					if (Random01() < 0.5f)
-					{
-						ShowMessage(BattleLabel::Escaped);
-						HY_INFO("Battle: the party got away");
-						SetPhase(Phase::Fleeing);
-						return;
-					}
-					ShowMessage(BattleLabel::NoEscape);
-					HY_INFO("Battle: could not escape");
-					SetPhase(Phase::NextTurn);
+					m_Targeting = false;
+					m_ChosenCommand = -1;
 					return;
 				}
-
-				m_Action.Kind = command;
-				if (m_Action.Boost > 0)
+				if (chosenTarget >= 0 && m_Enemies[chosenTarget].Alive())
 				{
-					hero.Momentum -= m_Action.Boost;
-					hero.BoostedLastRound = true;
+					m_Targeting = false;
+					m_Action.Target = chosenTarget;
+					UseCommand(m_TargetCommand);
 				}
-				m_Action.Hits = command == Command::Attack ? 1 + m_Action.Boost : 1;
-				m_Action.HitsDone = 0;
-				m_Target = m_Action.Target;
-				BeginHeroAction();
 				return;
 			}
+
+			// The command the menu submitted (OnUIEvent), once.
+			const int chosen = m_ChosenCommand;
+			m_ChosenCommand = -1;
+			if (chosen < 0 || chosen >= 6)
+			{
+				return;
+			}
+			m_LastCommand[h] = chosen;
+			const Command command = (Command)chosen;
+			if (command == Command::SkillA || command == Command::SkillB)
+			{
+				const int s = command == Command::SkillA ? 0 : 1;
+				if (BattleState::HeroMP[h] < definition.SkillCost[s])
+				{
+					ShowMessage(BattleLabel::NoMP);
+					return;
+				}
+			}
+
+			// An attack or a damaging skill picks its enemy first; the rest go straight ahead.
+			const bool needsTarget = command == Command::Attack
+				|| ((command == Command::SkillA || command == Command::SkillB) && definition.SkillHeals[command == Command::SkillA ? 0 : 1] == false);
+			if (needsTarget)
+			{
+				m_Targeting = true;
+				m_TargetCommand = chosen;
+				m_Action.Target = std::max(0, FirstLivingEnemy(m_Action.Target));
+				return;
+			}
+			UseCommand(chosen);
+		}
+
+		// Carries out command c for the hero whose turn it is, on m_Action.Target (an enemy for attacks and damaging
+		// skills, chosen by the target list; the most hurt hero for heals and potions).
+		void UseCommand(int c)
+		{
+			const int h = m_Action.Actor;
+			Hero& hero = m_Heroes[h];
+			const HeroDefinition& definition = GetHero(h);
+			const Command command = (Command)c;
+			if (command == Command::SkillA || command == Command::SkillB)
+			{
+				const int s = command == Command::SkillA ? 0 : 1;
+				if (BattleState::HeroMP[h] < definition.SkillCost[s])
+				{
+					ShowMessage(BattleLabel::NoMP);
+					return;
+				}
+				BattleState::HeroMP[h] -= definition.SkillCost[s];
+				if (definition.SkillHeals[s])
+				{
+					m_Action.Target = MostHurtHero();
+				}
+			}
+			else if (command == Command::Potion)
+			{
+				if (Potions <= 0)
+				{
+					ShowMessage(BattleLabel::NoPotions);
+					return;
+				}
+				Potions--;
+				m_Action.Target = MostHurtHero();
+			}
+			else if (command == Command::Run)
+			{
+				if (Random01() < 0.5f)
+				{
+					ShowMessage(BattleLabel::Escaped);
+					HY_INFO("Battle: the party got away");
+					SetPhase(Phase::Fleeing);
+					return;
+				}
+				ShowMessage(BattleLabel::NoEscape);
+				HY_INFO("Battle: could not escape");
+				SetPhase(Phase::NextTurn);
+				return;
+			}
+
+			m_Action.Kind = command;
+			if (m_Action.Boost > 0)
+			{
+				hero.Momentum -= m_Action.Boost;
+				hero.BoostedLastRound = true;
+			}
+			m_Action.Hits = command == Command::Attack ? 1 + m_Action.Boost : 1;
+			m_Action.HitsDone = 0;
+			m_Target = m_Action.Target;
+			BeginHeroAction();
 		}
 
 		void BeginHeroAction()
@@ -1577,6 +1748,143 @@ namespace Hydro
 			return best;
 		}
 
+		// The command menu (runtime UI): open with the focus on the hero's last command while she chooses, closed
+		// otherwise; each row's name and cost, and the skills she can't pay for (or the potion when none are left)
+		// greyed out (not Interactable, so neither the keys nor the pointer can pick them).
+		void PresentCommandMenu(int hero, bool choosing)
+		{
+			const HeroDefinition& definition = GetHero(hero);
+			const BattleLabel labels[6] = { BattleLabel::Attack, definition.SkillLabel[0], definition.SkillLabel[1], BattleLabel::Guard, BattleLabel::Potion, BattleLabel::Run };
+			bool usable[6] = { true, true, true, true, true, true };
+			for (int c = 0; c < 6; c++)
+			{
+				std::string cost;
+				if (c == 1 || c == 2)
+				{
+					usable[c] = BattleState::HeroMP[hero] >= definition.SkillCost[c - 1];
+					cost = std::to_string(definition.SkillCost[c - 1]) + " MP";
+				}
+				else if (c == 4)
+				{
+					usable[c] = Potions > 0;
+					cost = "x" + std::to_string(Potions);
+				}
+				UI::SetText(EntityOf(m_CommandNames[c]), GetLabelText(labels[c]));
+				UI::SetText(EntityOf(m_CommandCosts[c]), cost);
+				UI::SetInteractable(EntityOf(m_Commands[c]), usable[c]);
+			}
+			UI::SetText(EntityOf(m_CommandHeader), GetLabelText(definition.NameLabel));
+			UI::SetText(EntityOf(m_CommandBoost), m_Action.Boost > 0 ? "Boost " + std::to_string(m_Action.Boost) + "   (E / Q)" : std::string("E  Boost"));
+			UI::SetText(EntityOf(m_CommandHelp), GetCommandHelp(hero, std::clamp(m_HelpCommand, 0, 5)));
+
+			// The target list: one row per enemy still standing (the others are hidden, so the list closes up), with
+			// a letter when two share a name, and their HP. Its header names the command.
+			for (int e = 0; e < BattleState::MaxEnemies; e++)
+			{
+				const Enemy& enemy = m_Enemies[e];
+				Entity row = EntityOf(m_TargetButtons[e]);
+				if (UI::IsVisible(row) != enemy.Alive())
+				{
+					UI::SetVisible(row, enemy.Alive());
+				}
+				if (enemy.Alive() == false)
+				{
+					continue;
+				}
+				int same = 0;
+				int before = 0;
+				for (int other = 0; other < BattleState::MaxEnemies; other++)
+				{
+					if (m_Enemies[other].Kind == enemy.Kind && m_Enemies[other].Kind != EnemyKind::None)
+					{
+						same++;
+						before += other < e ? 1 : 0;
+					}
+				}
+				std::string name = GetLabelText(GetEnemy(enemy.Kind).NameLabel);
+				if (same > 1)
+				{
+					name += std::string(" ") + (char)('A' + before);
+				}
+				UI::SetText(EntityOf(m_TargetNames[e]), name);
+				UI::SetText(EntityOf(m_TargetHP[e]), "HP " + std::to_string(enemy.HP));
+			}
+			if (m_Targeting && m_TargetCommand >= 0 && m_TargetCommand < 6)
+			{
+				UI::SetText(EntityOf(m_TargetHeader), GetLabelText(labels[m_TargetCommand]));
+			}
+
+			// Which list is open: the commands, the targets (in the commands' place), or neither.
+			const bool showCommands = choosing && m_Targeting == false;
+			const bool showTargets = choosing && m_Targeting;
+			if (showCommands != m_CommandsShown)
+			{
+				m_CommandsShown = showCommands;
+				UI::SetVisible(EntityOf(m_CommandPanel), showCommands);
+			}
+			if (showTargets != m_TargetsShown)
+			{
+				m_TargetsShown = showTargets;
+				UI::SetVisible(EntityOf(m_TargetPanel), showTargets);
+			}
+			// Opening a list (hiding the other drops its focus), or the focus was taken away meanwhile (another menu
+			// closed over it): on the hero's last command, or on the enemy under the cursor.
+			if (choosing && (bool)UI::GetFocused(*GetEntity().GetScene()) == false)
+			{
+				if (m_Targeting)
+				{
+					UI::Focus(EntityOf(m_TargetButtons[std::clamp(m_Action.Target, 0, BattleState::MaxEnemies - 1)]));
+				}
+				else
+				{
+					const int last = m_LastCommand[hero];
+					UI::Focus(EntityOf(m_Commands[usable[last] ? last : 0]));
+				}
+			}
+		}
+
+		// The help line under the commands: what command c does for this hero.
+		std::string GetCommandHelp(int hero, int c) const
+		{
+			const HeroDefinition& definition = GetHero(hero);
+			switch ((Command)c)
+			{
+			case Command::Attack:
+				return "Strike one foe with your bare hands. Boost: more blows.";
+			case Command::SkillA:
+			case Command::SkillB:
+			{
+				const int s = c == (int)Command::SkillA ? 0 : 1;
+				if (definition.SkillHeals[s])
+				{
+					return "Restore the most hurt ally's HP.";
+				}
+				return std::string(GetDamageTypeName(definition.SkillType[s])) + " damage to one foe. Boost: stronger.";
+			}
+			case Command::Guard:
+				return "Brace yourself: less damage until your next turn.";
+			case Command::Potion:
+				return "Restore 25 HP to the most hurt ally.";
+			case Command::Run:
+				return "Try to get away. Works half the time.";
+			default:
+				return "";
+			}
+		}
+
+		static const char* GetDamageTypeName(DamageType type)
+		{
+			switch (type)
+			{
+			case DamageType::Slash: return "Slashing";
+			case DamageType::Pierce: return "Piercing";
+			case DamageType::Blunt: return "Blunt";
+			case DamageType::Fire: return "Fire";
+			case DamageType::Light: return "Light";
+			default: return "No";
+			}
+		}
+
 		void ShowMessage(BattleLabel label, float seconds = 1.2f)
 		{
 			m_MessageLabel = label;
@@ -2035,24 +2343,36 @@ namespace Hydro
 			}
 		}
 
-		// A bar made of two quads: the back one is as wide as a full bar, the fill sticks to its left end.
-		void SetBar(Scene& scene, entt::entity back, entt::entity fill, float fraction, const glm::vec4& color, float alpha)
+		// A UI bar's fill: anchored to the bar's left edge, as wide as the fraction (UI rect anchors), in `color`.
+		static void SetFill(Entity fill, float fraction, const glm::vec4& color)
 		{
-			const auto backItem = m_Layout.find(back);
-			const auto fillItem = m_Layout.find(fill);
-			if (backItem == m_Layout.end() || fillItem == m_Layout.end())
+			if (fill.IsValid() == false || fill.HasComponent<UIRectComponent>() == false)
 			{
 				return;
 			}
+			UIRectComponent& rect = fill.GetComponent<UIRectComponent>();
+			rect.AnchorMin = { 0.0f, 0.0f };
+			rect.AnchorMax = { std::clamp(fraction, 0.0f, 1.0f), 1.0f };
+			rect.SizeDelta = { 0.0f, 0.0f };
+			rect.AnchoredPosition = { 0.0f, 0.0f };
+			SetUIColor(fill, color);
+		}
 
-			const float inset = 0.12f;
-			const float width = backItem->second.Size.x - inset;
-			const float length = std::max(0.0f, width * std::clamp(fraction, 0.0f, 1.0f));
-			fillItem->second.Size.x = std::max(0.001f, length);
-			fillItem->second.Size.y = backItem->second.Size.y - inset;
-			fillItem->second.Position = backItem->second.Position + glm::vec2(-0.5f * width + 0.5f * length, 0.0f);
-			SetColor(scene, back, glm::vec4(0.08f, 0.07f, 0.05f, alpha));
-			SetColor(scene, fill, glm::vec4(color.r, color.g, color.b, length > 0.0f ? alpha : 0.0f));
+		// A UI element's image and text colour.
+		static void SetUIColor(Entity element, const glm::vec4& color)
+		{
+			if (element.IsValid() == false)
+			{
+				return;
+			}
+			if (element.HasComponent<UIImageComponent>())
+			{
+				element.GetComponent<UIImageComponent>().Color = color;
+			}
+			if (element.HasComponent<UITextComponent>())
+			{
+				element.GetComponent<UITextComponent>().Color = color;
+			}
 		}
 
 		// A number as up to three digit sprites, centred on `centre`; unused digits are hidden.
@@ -2095,20 +2415,20 @@ namespace Hydro
 				const float heat = std::clamp(hero.Flash / 0.35f, 0.0f, 1.0f);
 				SetColor(scene, hero.Sprite, glm::vec4(1.0f, 1.0f - 0.6f * heat, 1.0f - 0.6f * heat, 1.0f));
 
+				// Her status: HP and MP as numbers and bars (sage, amber below half, red below a quarter), boost points.
 				const HeroDefinition& definition = GetHero(h);
 				const float hpFraction = (float)BattleState::HeroHP[h] / (float)definition.MaxHP;
-				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.45f, 0.85f, 0.35f, 1.0f) : hpFraction > 0.25f ? glm::vec4(0.95f, 0.78f, 0.25f, 1.0f) : glm::vec4(0.9f, 0.25f, 0.2f, 1.0f);
-				SetBar(scene, hero.HPBack, hero.HPFill, hpFraction, hpColor, 1.0f);
-				SetBar(scene, hero.MPBack, hero.MPFill, (float)BattleState::HeroMP[h] / (float)definition.MaxMP, glm::vec4(0.35f, 0.6f, 0.95f, 1.0f), 1.0f);
-				const glm::vec2 hpBack = LayoutItemOf(hero.HPBack).Position;
-				const float barWidth = LayoutItemOf(hero.HPBack).Size.x;
-				SetNumber(scene, hero.HPDigits, BattleState::HeroHP[h], hpBack + glm::vec2(0.5f * barWidth + 0.75f, 0.0f), 0.42f, glm::vec4(1.0f));
+				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.5f, 0.72f, 0.4f, 1.0f) : hpFraction > 0.25f ? glm::vec4(0.92f, 0.72f, 0.3f, 1.0f) : glm::vec4(0.86f, 0.3f, 0.24f, 1.0f);
+				UI::SetText(EntityOf(hero.StatusHP), std::to_string(BattleState::HeroHP[h]) + " / " + std::to_string(definition.MaxHP));
+				UI::SetText(EntityOf(hero.StatusMP), std::to_string(BattleState::HeroMP[h]) + " / " + std::to_string(definition.MaxMP));
+				SetFill(EntityOf(hero.StatusHPFill), hpFraction, hpColor);
+				SetFill(EntityOf(hero.StatusMPFill), (float)BattleState::HeroMP[h] / (float)definition.MaxMP, glm::vec4(0.38f, 0.6f, 0.9f, 1.0f));
 				for (int p = 0; p < BattleState::MaxMomentum; p++)
 				{
+					// Full points are gold; the ones the boost is about to spend pulse.
 					const bool spending = m_Phase == Phase::Command && actor == h && p >= hero.Momentum - m_Action.Boost && p < hero.Momentum;
-					SetSprite(scene, hero.Pips[p], p < hero.Momentum ? BattleIcon::PipFull : BattleIcon::PipEmpty);
 					const float pulse = spending ? 0.55f + 0.45f * std::sin(m_Time * 10.0f) : 1.0f;
-					SetColor(scene, hero.Pips[p], glm::vec4(1.0f, pulse, pulse, 1.0f));
+					SetUIColor(EntityOf(hero.StatusPips[p]), p < hero.Momentum ? glm::vec4(1.0f, 0.8f * pulse + 0.2f, 0.42f * pulse, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 0.22f));
 				}
 			}
 
@@ -2158,20 +2478,40 @@ namespace Hydro
 					scene.m_Registry.get<Light2DComponent>(enemy.Light).Intensity = enemy.Kind == EnemyKind::Wisp ? 1.1f * enemy.Fade * (0.85f + 0.15f * std::sin(m_Time * 3.0f)) : 0.0f;
 				}
 
-				const float uiAlpha = present && enemy.HP > 0 ? 1.0f : 0.0f;
-				const float hpFraction = present ? (float)enemy.HP / (float)GetEnemy(enemy.Kind).MaxHP : 0.0f;
-				SetBar(scene, enemy.HPBack, enemy.HPFill, hpFraction, glm::vec4(0.85f, 0.3f, 0.25f, 1.0f), uiAlpha);
-				SetSprite(scene, enemy.ShieldIcon, broken ? BattleIcon::Broken : BattleIcon::Shield);
-				SetColor(scene, enemy.ShieldIcon, glm::vec4(1.0f, 1.0f, 1.0f, uiAlpha));
-				SetSprite(scene, enemy.ShieldDigit, BattleIcon::DigitBase + (uint32_t)std::clamp(enemy.Shield, 0, 9));
-				SetColor(scene, enemy.ShieldDigit, glm::vec4(1.0f, 1.0f, 1.0f, broken ? 0.0f : uiAlpha));
-				for (int w = 0; w < 3; w++)
+				// Its info under its feet (a World canvas): the shield (a "Break" label while broken), the weaknesses
+				// found so far ("?" for the rest), HP.
+				Entity info = EntityOf(enemy.Info);
+				const bool showInfo = present && enemy.HP > 0;
+				if (UI::IsVisible(info) != showInfo)
 				{
-					const DamageType type = present ? GetEnemy(enemy.Kind).Weak[w] : DamageType::None;
-					const bool used = type != DamageType::None;
-					const bool known = used && BattleState::Revealed[(int)enemy.Kind][w];
-					SetSprite(scene, enemy.WeakIcons[w], known ? BattleIcon::ForType(type) : BattleIcon::Unknown);
-					SetColor(scene, enemy.WeakIcons[w], glm::vec4(1.0f, 1.0f, 1.0f, used ? uiAlpha : 0.0f));
+					UI::SetVisible(info, showInfo);
+				}
+				if (showInfo && info.IsValid() && info.HasComponent<TransformComponent>())
+				{
+					scene.SetWorldPosition(info, GroundPoint(enemy.Base + offset));
+				}
+				if (showInfo)
+				{
+					SetFill(EntityOf(enemy.HPFill), (float)enemy.HP / (float)GetEnemy(enemy.Kind).MaxHP, glm::vec4(0.86f, 0.36f, 0.28f, 1.0f));
+					SetUIColor(EntityOf(enemy.ShieldIcon), broken ? glm::vec4(0.75f, 0.32f, 0.28f, 1.0f) : glm::vec4(1.0f));
+					UI::SetText(EntityOf(enemy.ShieldCount), broken ? std::string() : std::to_string(enemy.Shield));
+					UI::SetText(EntityOf(enemy.WeakLabel), broken ? "BREAK" : "WEAK");
+					SetUIColor(EntityOf(enemy.WeakLabel), broken ? glm::vec4(1.0f, 0.5f, 0.38f, 1.0f) : glm::vec4(1.0f, 0.84f, 0.5f, 1.0f));
+					for (int w = 0; w < 3; w++)
+					{
+						const DamageType type = GetEnemy(enemy.Kind).Weak[w];
+						const bool used = type != DamageType::None;
+						const bool known = used && BattleState::Revealed[(int)enemy.Kind][w];
+						Entity icon = EntityOf(enemy.WeakIcons[w]);
+						if (UI::IsVisible(icon) != used)
+						{
+							UI::SetVisible(icon, used);
+						}
+						if (icon.IsValid() && icon.HasComponent<UIImageComponent>())
+						{
+							icon.GetComponent<UIImageComponent>().SpriteIndex = known ? BattleIcon::ForType(type) : BattleIcon::Unknown;
+						}
+					}
 				}
 			}
 
@@ -2186,64 +2526,72 @@ namespace Hydro
 			}
 			if (Alive(scene, m_Cursor))
 			{
-				const bool show = choosing && m_Action.Target >= 0 && m_Enemies[m_Action.Target].Alive();
+				const bool show = choosing && m_Targeting && m_Action.Target >= 0 && m_Enemies[m_Action.Target].Alive();
 				const glm::vec2 base = m_Action.Target >= 0 ? m_Enemies[m_Action.Target].Base : glm::vec2(0.0f);
 				SetPosition(scene, m_Cursor, ScreenAbove(base, EnemyCursorHeight) + glm::vec2(0.0f, 0.15f * std::sin(m_Time * 8.0f)));
 				SetColor(scene, m_Cursor, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
 			}
 
-			const int hero = std::min(actor, HeroCount - 1);
-			const HeroDefinition& definition = GetHero(hero);
-			const BattleLabel labels[6] = { BattleLabel::Attack, definition.SkillLabel[0], definition.SkillLabel[1], BattleLabel::Guard, BattleLabel::Potion, BattleLabel::Run };
-			for (int c = 0; c < 6; c++)
-			{
-				SetSprite(scene, m_Commands[c], (uint32_t)labels[c]);
-				bool usable = true;
-				if (c == 1 || c == 2)
-				{
-					usable = BattleState::HeroMP[hero] >= definition.SkillCost[c - 1];
-				}
-				if (c == 4)
-				{
-					usable = Potions > 0;
-				}
-				const float strength = choosing ? (usable ? 1.0f : 0.35f) : 0.3f;
-				SetColor(scene, m_Commands[c], glm::vec4(strength, strength, strength, 1.0f));
-				SetSprite(scene, m_CommandKeys[c], BattleIcon::DigitBase + (uint32_t)(c + 1));
-				SetColor(scene, m_CommandKeys[c], glm::vec4(1.0f, 0.85f, 0.45f, choosing ? 1.0f : 0.3f));
-			}
-			SetColor(scene, m_BoostLabel, glm::vec4(1.0f, 0.75f, 0.3f, choosing && m_Action.Boost > 0 ? 1.0f : 0.0f));
-			SetSprite(scene, m_BoostDigit, BattleIcon::DigitBase + (uint32_t)m_Action.Boost);
-			SetColor(scene, m_BoostDigit, glm::vec4(1.0f, 0.75f, 0.3f, choosing && m_Action.Boost > 0 ? 1.0f : 0.0f));
+			PresentCommandMenu(std::min(actor, HeroCount - 1), choosing);
 
-			// The turn order of this round: the one acting is bright, those who acted are dim.
-			for (int c = 0; c < 6; c++)
+			// The turn order (runtime UI, top left): from the one acting now (the big first chip) to the end of the
+			// round, each chip showing its actor's sprite; enemies' chips are reddish. Unused chips are hidden.
+			const int first = std::max(m_Turn, 0);
+			int shown = 0;
+			for (int index = first; index < (int)m_Order.size() && shown < 6; index++)
 			{
-				const int index = c;
-				if (index < (int)m_Order.size() && ActorAlive(m_Order[index]))
+				const int who = m_Order[index];
+				if (ActorAlive(who) == false)
 				{
-					const int who = m_Order[index];
-					const BattleLabel name = IsHero(who) ? GetHero(who).NameLabel : GetEnemy(m_Enemies[EnemyIndex(who)].Kind).NameLabel;
-					SetSprite(scene, m_OrderChips[c], (uint32_t)name);
-					const float strength = index == m_Turn ? 1.0f : (index < m_Turn ? 0.35f : 0.75f);
-					const glm::vec3 tint = IsHero(who) ? glm::vec3(1.0f) : glm::vec3(1.0f, 0.7f, 0.65f);
-					SetColor(scene, m_OrderChips[c], glm::vec4(tint * strength, 1.0f));
+					continue;
 				}
-				else
+				const entt::entity sprite = IsHero(who) ? m_Heroes[who].Sprite : m_Enemies[EnemyIndex(who)].Sprites[(int)m_Enemies[EnemyIndex(who)].Kind - 1];
+				Entity chip = EntityOf(m_OrderChips[shown]);
+				if (UI::IsVisible(chip) == false)
 				{
-					SetColor(scene, m_OrderChips[c], glm::vec4(0.0f));
+					UI::SetVisible(chip, true);
+				}
+				const bool now = index == m_Turn;
+				SetUIColor(chip, IsHero(who) ? (now ? glm::vec4(1.0f, 0.9f, 0.62f, 1.0f) : glm::vec4(1.0f)) : glm::vec4(1.0f, 0.72f, 0.66f, 1.0f));
+				Entity portrait = EntityOf(m_OrderActors[shown]);
+				if (portrait.IsValid() && portrait.HasComponent<UIImageComponent>() && Alive(scene, sprite) && scene.m_Registry.has<SpriteRendererComponent>(sprite))
+				{
+					const SpriteRendererComponent& renderer = scene.m_Registry.get<SpriteRendererComponent>(sprite);
+					UIImageComponent& image = portrait.GetComponent<UIImageComponent>();
+					image.Texture = renderer.Texture;
+					image.SpriteIndex = renderer.SpriteIndex;
+					image.Color = glm::vec4(1.0f);
+				}
+				shown++;
+			}
+			for (int c = shown; c < 6; c++)
+			{
+				Entity chip = EntityOf(m_OrderChips[c]);
+				if (UI::IsVisible(chip))
+				{
+					UI::SetVisible(chip, false);
 				}
 			}
 
 			PresentSpriteEffect(scene, m_StrikeEffect);
 			PresentSpriteEffect(scene, m_HealEffect);
 
-			// The message banner, damage numbers and the fade.
-			SetSprite(scene, m_Message, (uint32_t)m_MessageLabel);
-			const glm::vec3 messageTint = m_MessageLabel == BattleLabel::Break ? glm::vec3(1.0f, 0.45f, 0.3f)
-				: m_MessageLabel == BattleLabel::Weak ? glm::vec3(1.0f, 0.75f, 0.3f) : glm::vec3(1.0f);
+			// The message box (runtime UI), damage numbers and the fade.
 			const bool ending = m_Phase == Phase::Victory || m_Phase == Phase::Defeat || m_Phase == Phase::Fleeing || m_Phase == Phase::Done;
-			SetColor(scene, m_Message, glm::vec4(messageTint, m_MessageTime > 0.0f || ending ? 1.0f : 0.0f));
+			const bool showMessage = m_MessageTime > 0.0f || ending;
+			Entity messagePanel = EntityOf(m_MessagePanel);
+			if (UI::IsVisible(messagePanel) != showMessage)
+			{
+				UI::SetVisible(messagePanel, showMessage);
+			}
+			Entity messageText = EntityOf(m_MessageText);
+			UI::SetText(messageText, GetLabelText(m_MessageLabel));
+			if (messageText.IsValid() && messageText.HasComponent<UITextComponent>())
+			{
+				const glm::vec3 messageTint = m_MessageLabel == BattleLabel::Break ? glm::vec3(1.0f, 0.45f, 0.3f)
+					: m_MessageLabel == BattleLabel::Weak ? glm::vec3(1.0f, 0.75f, 0.3f) : glm::vec3(0.95f, 0.9f, 0.78f);
+				messageText.GetComponent<UITextComponent>().Color = glm::vec4(messageTint, 1.0f);
+			}
 
 			for (Popup& popup : m_Popups)
 			{
@@ -2305,14 +2653,34 @@ namespace Hydro
 		bool m_Previous[14] = {};
 		std::mt19937 m_Random{ std::random_device{}() };
 
+		// The command menu and the message box (runtime UI under "Battle UI Canvas").
 		entt::entity m_Commands[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_CommandKeys[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
+		entt::entity m_CommandNames[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
+		entt::entity m_CommandCosts[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
+		entt::entity m_CommandPanel = entt::null;
+		entt::entity m_CommandHeader = entt::null;
+		entt::entity m_CommandBoost = entt::null;
+		entt::entity m_CommandHelp = entt::null;
+		int m_HelpCommand = 0;              // the command the help line describes (the focused one)
+		entt::entity m_MessagePanel = entt::null;
+		entt::entity m_MessageText = entt::null;
+		entt::entity m_TargetPanel = entt::null;
+		entt::entity m_TargetHeader = entt::null;
+		entt::entity m_TargetButtons[BattleState::MaxEnemies] = {};
+		entt::entity m_TargetNames[BattleState::MaxEnemies] = {};
+		entt::entity m_TargetHP[BattleState::MaxEnemies] = {};
+		int m_ChosenCommand = -1;           // submitted by the menu, used by the next UpdateCommand
+		int m_LastCommand[HeroCount] = {};  // where each hero's menu opens
+		bool m_Targeting = false;           // the target list is open for m_TargetCommand
+		int m_TargetCommand = -1;
+		int m_ChosenTarget = -1;            // submitted by the target list
+		bool m_CancelTarget = false;        // Cancel in the target list: back to the commands
+		bool m_CommandsShown = false;
+		bool m_TargetsShown = false;
 		entt::entity m_OrderChips[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
+		entt::entity m_OrderActors[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
 		entt::entity m_Cursor = entt::null;
 		entt::entity m_TurnMarker = entt::null;
-		entt::entity m_BoostLabel = entt::null;
-		entt::entity m_BoostDigit = entt::null;
-		entt::entity m_Message = entt::null;
 		entt::entity m_Overlay = entt::null;
 	};
 }

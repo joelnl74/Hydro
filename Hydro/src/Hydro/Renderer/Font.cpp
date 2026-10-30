@@ -120,6 +120,7 @@ namespace Hydro
 			{
 				data.Face = line.GetString("face");
 				data.Size = (float)std::abs(line.GetInt("size")); // negative: matched the character height
+				data.Smooth = line.GetInt("smooth") != 0;
 			}
 			else if (line.Tag == "common")
 			{
@@ -218,9 +219,14 @@ namespace Hydro
 				HY_CORE_ERROR("Font: '{}' needs its page '{}', which can't be loaded", path.string(), pagePath.string());
 				return nullptr;
 			}
-			if (page->GetProperties().SamplerFilter != TextureFilter::Nearest)
+			const bool nearest = page->GetProperties().SamplerFilter == TextureFilter::Nearest;
+			if (data.Smooth == false && nearest == false)
 			{
 				HY_CORE_WARN("Font: the page '{}' isn't filtered Nearest, so scaled text will blur; set Filter to Nearest in its import settings", pagePath.string());
+			}
+			else if (data.Smooth && nearest)
+			{
+				HY_CORE_WARN("Font: '{}' is a smooth font but its page '{}' is filtered Nearest, so scaled text will look jagged; set Filter to Linear", path.filename().string(), pagePath.string());
 			}
 			pages.push_back(page);
 		}

@@ -34,13 +34,6 @@ namespace Hydro
 		static float PlayerSpeedScale() { return SlowZones > 0 ? 0.5f : 1.0f; }
 	};
 
-	// What the game's UI tells the scripts that read input: while a modal menu is open (MvpScripts.h's
-	// MvpDirector) the walking and interaction keys belong to the menu, so VillagerWalk stands still.
-	struct UIState
-	{
-		static inline bool MenuOpen = false;
-	};
-
 	struct VillageMap
 	{
 		static constexpr float MinX = -30.0f;

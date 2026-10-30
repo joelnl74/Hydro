@@ -16,15 +16,15 @@ Reference points (for principles, not copying): the concept art in `docs/images/
 
 | Thing | Rule |
 | --- | --- |
-| World coordinate scale | **KEEP** 32 px per world unit for the current working 2D scenes (`PixelsPerUnit: 32`). Do not silently change the engine world scale to make sprites more detailed. Nearest filtering on pixel art; no mipmaps on sprites. |
+| World coordinate scale | **32 texels per metre** for every field asset (sprites, built-in shapes, models), within +-20 %: [world density](SpriteSizes.md#world-density-32-texels-per-metre-decided-2026-10-30). A sprite's drawn size is its transform scale, not its `PixelsPerUnit` (keep `PixelsPerUnit: 32` and use **Set Native Size**). Check with `scripts/check_texel_density.py`. Nearest filtering on pixel art; no mipmaps on sprites. |
 | View: now | Top-down three-quarter **2D**, composed with foreground occluders, distinct near/mid/far planes, shadow pools and clear landmarks. Keep the player readable even when the ground is busy. |
 | View: future | Upright sprites or cut-out cards with feet/base anchoring, actual depth, meshes for ground/buildings and camera tilt. Separate camera profiles for field, battle and cinematics. |
 | Field heroes/NPCs - current | **32 x 56 px frame**, feet pivot `[0.5, 0]`; 1 x 1.75 world units at 32 PPU. Keep for the current playtest. Four facing directions: Down/Up/Left/Right; mirroring Right is allowed only if costume/accessories are symmetrical. |
 | Field heroes/NPCs - optional V2 | **48 x 84 px at 48 PPU**, same 1 x 1.75 world-unit size, if/when making a deliberate fidelity migration. Do **not** mix this with 32 PPU per sprite by accident. All field assets must be evaluated in the same camera framing. |
 | Battle heroes | Side view facing left, one animation per row, per-frame timing in the `.hyanim`, the pivot at the feet and the body right of centre so the strike or weapon has room in front; drawn at 16 px per battle unit. Miko: **128 x 128 px cells** (8 x 8 units) cut from her source atlas by `scripts/shrine_glade/battle.py`. Orin and Lila (out of the party): 96 x 128 (6 x 8 units, `scripts/diorama_rpg/battle_sprites.py`). Poses in [Sprite sizes](SpriteSizes.md). |
 | Enemies | Field icons/proxies follow the field grid. Battle Wisp 96 x 96; medium enemy 128 x 144; elite 192 x 192; boss up to 256 x 256 (all *art canvases*, not world-unit size). |
-| Props | Size by real world units at 32 PPU now: barrel about 24 x 32; house 4 to 5 units wide; tree trunk anchored at its **base**, canopy may overhang. |
-| Camera | Current village orthographic ~11 world units vertically; validate legibility at the target **game display resolution** and in motion. Battle viewport framing is independent of field PPU. |
+| Props | Real-world size in metres at 32 texels per metre: barrel 0.6 x 0.9 m (about 20 x 29 px), crate 0.8 m, door 1.1 x 2.2 m, a one-storey cottage 6-7 m wide; tree trunk anchored at its **base**, canopy may overhang. |
+| Camera | Field scenes show about **12 m vertically** at the focus (`OrthographicSize` about 12, in both the top-down and the tilted view), so a 1.6 m character fills about 13-14 % of the view; validate legibility at the target **game display resolution** and in motion. Battle viewport framing is independent of field PPU. |
 
 ## Quality target and what the screenshots tell us
 

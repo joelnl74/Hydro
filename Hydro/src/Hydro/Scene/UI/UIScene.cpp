@@ -120,11 +120,15 @@ namespace Hydro
 			});
 		}
 
-		const glm::vec2 viewSize{ (float)scene.GetViewportWidth(), (float)scene.GetViewportHeight() };
 		std::vector<Entity> subtree;
 		for (const Candidate& candidate : canvases)
 		{
-			const UICanvasMetrics metrics = UILayout::GetCanvasMetrics(candidate.Canvas.GetComponent<UICanvasComponent>(), viewSize);
+			// Where the last layout put the canvas (a World canvas follows its entity); not placed: not under the pointer.
+			UICanvasMetrics metrics;
+			if (scene.GetUICanvasMetrics(candidate.Canvas.GetUUID(), metrics) == false)
+			{
+				continue;
+			}
 			const glm::vec2 point = (viewPosition - metrics.Offset) / metrics.Scale; // canvas pixels
 			const uint64_t canvasID = (uint64_t)candidate.Canvas.GetUUID();
 
@@ -139,8 +143,11 @@ namespace Hydro
 					continue;
 				}
 				const UIResolvedRectComponent& rect = element.GetComponent<UIResolvedRectComponent>();
-				if (rect.Visible && (uint64_t)rect.Canvas == canvasID && point.x >= rect.Min.x && point.x < rect.Max.x
-					&& point.y >= rect.Min.y && point.y < rect.Max.y)
+				// Inside its rect and inside what the scroll views above it show.
+				const glm::vec2 min = glm::max(rect.Min, rect.ClipMin);
+				const glm::vec2 max = glm::min(rect.Max, rect.ClipMax);
+				if (rect.Visible && (uint64_t)rect.Canvas == canvasID && point.x >= min.x && point.x < max.x
+					&& point.y >= min.y && point.y < max.y)
 				{
 					return element;
 				}

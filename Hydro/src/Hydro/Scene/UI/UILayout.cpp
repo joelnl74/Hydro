@@ -51,6 +51,94 @@ namespace Hydro
 		outMax = glm::max(glm::round(min + size), outMin);
 	}
 
+	void UILayout::ArrangeGroup(const UILayoutGroupComponent& group, const glm::vec2& pivot, glm::vec2& groupMin, glm::vec2& groupMax, std::vector<UILayoutItem>& items)
+	{
+		const bool vertical = group.Direction == UILayoutDirection::Vertical;
+		const int main = vertical ? 1 : 0;   // the axis children are stacked along
+		const int cross = vertical ? 0 : 1;
+		const float spacing = std::max(group.Spacing, 0.0f);
+		const glm::vec2 paddingMin{ std::max(group.Padding.x, 0.0f), std::max(group.Padding.y, 0.0f) };
+		const glm::vec2 paddingMax{ std::max(group.Padding.z, 0.0f), std::max(group.Padding.w, 0.0f) };
+
+		float total = 0.0f;
+		for (const UILayoutItem& item : items)
+		{
+			total += std::max(item.Size[main], 0.0f);
+		}
+		if (items.size() > 1)
+		{
+			total += spacing * (float)(items.size() - 1);
+		}
+
+		if (group.FitContent)
+		{
+			const float length = total + paddingMin[main] + paddingMax[main];
+			const float pivotPosition = groupMin[main] + pivot[main] * (groupMax[main] - groupMin[main]);
+			groupMin[main] = std::round(pivotPosition - pivot[main] * length);
+			groupMax[main] = groupMin[main] + std::round(length);
+		}
+
+		const glm::vec2 contentMin = groupMin + paddingMin;
+		const glm::vec2 contentMax = glm::max(groupMax - paddingMax, contentMin);
+		const float available = contentMax[main] - contentMin[main];
+		const float slack = available - total;
+
+		// The stack runs top to bottom (vertical) or left to right (horizontal); `cursor` is where the next child starts.
+		float cursor = 0.0f;
+		switch (group.ChildAlignment)
+		{
+		case UILayoutAlignment::Center: cursor = std::floor(slack * 0.5f); break;
+		case UILayoutAlignment::End: cursor = slack; break;
+		default: cursor = 0.0f; break;
+		}
+
+		for (UILayoutItem& item : items)
+		{
+			const float length = std::max(item.Size[main], 0.0f);
+			if (vertical)
+			{
+				item.Max[main] = contentMax[main] - cursor;
+				item.Min[main] = item.Max[main] - length;
+			}
+			else
+			{
+				item.Min[main] = contentMin[main] + cursor;
+				item.Max[main] = item.Min[main] + length;
+			}
+			cursor += length + spacing;
+
+			if (group.StretchCrossAxis)
+			{
+				item.Min[cross] = contentMin[cross];
+				item.Max[cross] = contentMax[cross];
+			}
+			else
+			{
+				// Across the stack Start is the top (horizontal stacks) or the left (vertical ones).
+				const float size = std::max(item.Size[cross], 0.0f);
+				const float room = contentMax[cross] - contentMin[cross] - size;
+				float offset = 0.0f;
+				switch (group.ChildAlignment)
+				{
+				case UILayoutAlignment::Center: offset = std::floor(room * 0.5f); break;
+				case UILayoutAlignment::End: offset = room; break;
+				default: offset = 0.0f; break;
+				}
+				if (vertical)
+				{
+					item.Min[cross] = contentMin[cross] + offset;
+				}
+				else
+				{
+					item.Min[cross] = contentMax[cross] - offset - size;
+				}
+				item.Max[cross] = item.Min[cross] + size;
+			}
+			item.Min = glm::round(item.Min);
+			item.Max = glm::max(glm::round(item.Max), item.Min);
+		}
+	}
+
 	// Two opposite borders (in destination pixels) that fit `span`: shrunk in proportion when they don't, whole pixels.
 	static void FitBorders(float span, float& first, float& second)
 	{

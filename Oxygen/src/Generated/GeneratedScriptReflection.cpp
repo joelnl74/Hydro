@@ -5,6 +5,7 @@
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
 
 #include "Scripts/BattleScripts.h"
+#include "Scripts/DialogueScripts.h"
 #include "Scripts/ExampleScripts.h"
 #include "Scripts/MvpScripts.h"
 #include "Scripts/ShrineScripts.h"
@@ -46,6 +47,9 @@ namespace Hydro
 			.Property("WanderSpeed", "Wander Speed", &EnemyChaseScript::WanderSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while wandering (wisps move 15% faster)")
 			.Property("ChaseSpeed", "Chase Speed", &EnemyChaseScript::ChaseSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while chasing (the player walks at about 3.5)")
 			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home");
+
+		ScriptRegistry::Register<DialogueScript>("DialogueScript")
+			.Property("CharactersPerSecond", "Characters Per Second", &DialogueScript::CharactersPerSecond).Range(1.0f, 200.0f).Tooltip("How fast the lines type in, in characters per second");
 
 		ScriptRegistry::Register<BobScript>("BobScript")
 			.Property("Height", "Height", &BobScript::Height).Range(0.0f, 10.0f).Tooltip("Metres up and down from where it started")
