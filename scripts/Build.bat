@@ -21,6 +21,9 @@ rem Logs: bin\logs\Build-<Config>.log, Build-<Config>-errors.log, Build-<Config>
 
 setlocal EnableExtensions EnableDelayedExpansion
 
+rem This script's folder, read before the arguments are parsed: shift also shifts %0, so %~dp0 is wrong after it.
+set "SCRIPT_DIR=%~dp0"
+
 set "CONFIG=Debug"
 set "GENERATE=1"
 set "TARGET=Build"
@@ -59,7 +62,7 @@ set "EXIT_CODE=2"
 goto finish
 :parsed
 
-pushd "%~dp0.."
+pushd "%SCRIPT_DIR%.."
 set "ROOT=%CD%"
 set "LOGDIR=bin\logs"
 if not exist "%LOGDIR%" mkdir "%LOGDIR%"
