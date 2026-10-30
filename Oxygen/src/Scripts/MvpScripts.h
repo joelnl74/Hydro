@@ -22,7 +22,7 @@
 // talk through the dialogue box (DialogueScripts.h).
 namespace Hydro
 {
-	// The MVP's messages and prompts (once rows of DioramaRPG/UI/MvpText.png; the runtime UI writes their words,
+	// The MVP's messages and prompts (once rows of Sprites/UI/MvpText.png; the runtime UI writes their words,
 	// GetMvpText). The item labels are no longer used: items have names of their own (MvpDirectorScript::Item).
 	enum class MvpLabel : uint32_t
 	{

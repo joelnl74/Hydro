@@ -1,0 +1,11 @@
+# FarmWife: idle only, facing the camera (Characters/NPC/FarmWife/FarmWife.png, 96 x 72 cells, feet on the bottom row).
+Handle: 2277128727343237743
+SpriteAnimationSet:
+  TextureHandle: 11706136458196637156
+  Texture: FarmWife.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      Loop: Loop
+      FrameRate: 4
+      Frames: [FarmWife_Down_0, FarmWife_Down_1, FarmWife_Down_2, FarmWife_Down_3]

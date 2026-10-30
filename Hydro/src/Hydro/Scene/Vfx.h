@@ -12,7 +12,7 @@ namespace Hydro
 	// ParticleEmitter2DComponent (later also a light, a sound or an animated sprite):
 	//
 	//     // OnCreate: load it once, so Play never reads the disk.
-	//     m_Dust = AssetManager::FindHandle("Effects/DustPuff.hyprefab");
+	//     m_Dust = AssetManager::FindHandle("Prefabs/Effects/DustPuff.hyprefab");
 	//     AssetManager::GetAsset<Prefab>(m_Dust);
 	//     // When it happens:
 	//     Vfx::Play(*GetEntity().GetScene(), m_Dust, position);
