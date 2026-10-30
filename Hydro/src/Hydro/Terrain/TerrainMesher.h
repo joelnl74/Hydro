@@ -123,10 +123,12 @@ namespace Hydro
 		float LevelZ(float level) const;
 		uint32_t CellCycle(uint32_t i, uint32_t j, BoundaryPoint* points) const;
 		float EdgeVariation(uint32_t orient, int64_t i, int64_t j) const;
+		float EdgeSlope(uint32_t orient, int64_t i, int64_t j) const;
 		float CrossingParam(uint32_t orient, int64_t i, int64_t j) const;
 		glm::vec3 EdgePoint(uint32_t orient, int64_t i, int64_t j, int32_t level) const;
 		glm::vec2 EdgeDownDirection(uint32_t orient, int64_t i, int64_t j) const;
 		glm::vec3 PointAt(const BoundaryPoint& point, int32_t level) const;
+		glm::vec3 WallPointAt(const BoundaryPoint& point, int32_t level) const;
 		const RampCell& GetRamp(uint32_t i, uint32_t j) const { return m_RampCells[(size_t)j * m_CellsX + i]; }
 
 		void EdgeProfile(uint32_t orient, int64_t i, int64_t j, std::vector<glm::vec2>& profile) const;
@@ -135,6 +137,7 @@ namespace Hydro
 		void AddRamp(uint32_t i, uint32_t j, TerrainMeshBuilder* tops, TerrainMeshBuilder* parts, TerrainCollisionBuilder* collision) const;
 		void AddWall(const WallSegment& segment, TerrainMeshBuilder* parts, TerrainCollisionBuilder* collision) const;
 		void AddWallEdges(const WallSegment& segment, TerrainMeshBuilder& tops, TerrainMeshBuilder& parts) const;
+		glm::vec3 WallShading(const glm::vec3& at, const glm::vec3& bt, const glm::vec3& ab, const glm::vec3& bb) const;
 		void AddCapStones(const WallSegment& segment, const glm::vec3& at, const glm::vec3& bt, TerrainMeshBuilder& parts) const;
 
 	private:

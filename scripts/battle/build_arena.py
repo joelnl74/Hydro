@@ -172,8 +172,23 @@ def with_prefix(templates, prefix: str):
     return [e for tag, group in templates.items() if tag == prefix or tag.startswith(prefix + " ") for e in group]
 
 
+# The Shrine Glade's ground is a terrain now (scripts/terrain/build_shrine_glade.py): the ground entities these
+# materials came from are gone, so they are read from the material files instead.
+GROUND_MATERIALS = {
+    "Ground Grass": "Materials/Ground/Grass.hymat",
+    "Valley Floor": "Materials/Ground/GrassShade.hymat",
+    "Ground": "Materials/Ground/Dirt.hymat",
+    "Plaza Flagstones": "Materials/Ground/Flagstones.hymat",
+}
+
+
 def material_of(templates, tag: str) -> int:
-    return with_prefix(templates, tag)[0]["MeshComponent"]["Materials"][0]["MaterialHandle"]
+    found = with_prefix(templates, tag)
+    meshes = [e for e in found if "MeshComponent" in e and e["MeshComponent"].get("Materials")]
+    if meshes:
+        return meshes[0]["MeshComponent"]["Materials"][0]["MaterialHandle"]
+    path = ROOT / "Oxygen" / "project" / "Assets" / GROUND_MATERIALS[tag]
+    return int(path.read_text().split("\n", 1)[0].split()[1])
 
 
 def texture_of(templates, tag: str, index: int = 0) -> int:

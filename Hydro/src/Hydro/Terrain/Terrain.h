@@ -19,7 +19,7 @@ namespace Hydro
 	static constexpr float TerrainArtPixelsPerMetre = 32.0f;
 	static constexpr uint8_t TerrainWallHidden = 7;      // a cell's wall material: collision only, not drawn
 	static constexpr uint32_t MaxTerrainDecorRules = 8;
-	static constexpr uint32_t MaxTerrainDecorSprites = 16; // per rule
+	static constexpr uint32_t MaxTerrainDecorSprites = 64; // per rule
 	static constexpr uint32_t TerrainDecorAnyLayer = 255;  // a wall decor rule for every wall layer
 
 	// A cell's ramp: which way it rises (TR3). Runs of cells with the same direction are one ramp.
@@ -32,17 +32,24 @@ namespace Hydro
 		West
 	};
 
-	// One top layer: a material and how ragged its border with the others is.
+	// One top layer: a material and how its border with the others looks.
 	struct TerrainLayer
 	{
 		AssetHandle Material = 0;    // a MaterialAsset (.hymat): albedo, tint, tiling, filter; 0 = white
 		float EdgeRoughness = 0.9f;  // edge noise in weight units (0 = clean border, 1 = very ragged)
+		// Blending (Oct 31): the width, in weight units, of the band where this layer's colour is mixed with the
+		// runner-up's (in two steps, 75 % and 50 %, so it stays pixel art); 0 = hard pixel borders.
+		float Blend = 0.5f;
+		// How much the layer's own texture decides the border: its brightness at the pixel raises its score, so
+		// bright grass blades and stones stand out into the neighbour and dark gaps let it through. 0 = off.
+		float HeightBlend = 1.0f;
 		AssetHandle Fringe = 0;      // TR2: the cut-out strip hanging over walls below this layer (a .hymat); 0 = none
 		float FringeLength = 7.0f;   // TR2: art pixels
 
 		bool operator==(const TerrainLayer& other) const
 		{
-			return Material == other.Material && EdgeRoughness == other.EdgeRoughness && Fringe == other.Fringe && FringeLength == other.FringeLength;
+			return Material == other.Material && EdgeRoughness == other.EdgeRoughness && Blend == other.Blend && HeightBlend == other.HeightBlend
+				&& Fringe == other.Fringe && FringeLength == other.FringeLength;
 		}
 		bool operator!=(const TerrainLayer& other) const { return (*this == other) == false; }
 	};
@@ -55,10 +62,14 @@ namespace Hydro
 		// so it stays a function of the edge and the data. Approved: stone 0.65, earth bank 0.57.
 		float Variation = 1.0f;
 		bool CapStones = false; // a coping row along the wall tops (stone walls)
+		// Oct 31: how far the wall's foot steps out per metre of height (0 = upright). Earth banks 0.4 to 0.55: a
+		// grassy slope that still reads as a bank and stays steeper than a character can walk (50 degrees). An edge
+		// takes the smaller of its two cells' values, so neighbouring walls meet without a crack.
+		float Slope = 0.0f;
 
 		bool operator==(const TerrainWallLayer& other) const
 		{
-			return Material == other.Material && Variation == other.Variation && CapStones == other.CapStones;
+			return Material == other.Material && Variation == other.Variation && CapStones == other.CapStones && Slope == other.Slope;
 		}
 		bool operator!=(const TerrainWallLayer& other) const { return (*this == other) == false; }
 	};
@@ -125,6 +136,9 @@ namespace Hydro
 		float LipFaceHeight = 2.0f;
 		float WallLean = 1.0f;  // art pixels per metre of wall height
 		float WallNoise = 1.5f; // art pixels, outwards only
+		// Oct 31: walls are lit with their normal turned this far (0..1) towards straight up, so faces turned from the
+		// sun aren't near-black slabs (painted JRPG walls catch the light). Only the drawing: collision is untouched.
+		float WallLight = 0.35f;
 
 		// Coping stones (TR2).
 		AssetHandle CapStoneMaterial = 0;

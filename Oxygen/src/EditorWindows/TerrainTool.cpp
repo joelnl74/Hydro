@@ -308,6 +308,24 @@ namespace Hydro
 					ImGui::SetTooltip("How ragged this layer's border with the others is: 0 a clean painted edge, 1 very ragged.");
 				}
 			});
+			PropertyUI::Row("Blend", [&]()
+			{
+				PropertyUI::InputFloat("##LayerBlend", layer.Blend, "%.2f", 0.0f, 2.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How wide the band is where this layer's colour mixes with its neighbour's (in two steps,\n"
+						"so it stays pixel art). 0: hard pixel borders. Paint with a soft brush (low Hardness) to widen it.");
+				}
+			});
+			PropertyUI::Row("Height Blend", [&]()
+			{
+				PropertyUI::InputFloat("##LayerHeightBlend", layer.HeightBlend, "%.2f", 0.0f, 3.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How much this layer's own texture shapes the border: its bright parts (grass blades, stones)\n"
+						"reach into the neighbour and its dark gaps let the neighbour through. 0: off.");
+				}
+			});
 			PropertyUI::Row("Fringe", [&]()
 			{
 				pickMaterial("##LayerFringe", layer.Fringe);
@@ -355,6 +373,15 @@ namespace Hydro
 				}
 			});
 			PropertyUI::Row("Cap Stones", [&]() { ImGui::Checkbox("##WallCaps", &wall.CapStones); });
+			PropertyUI::Row("Slope", [&]()
+			{
+				PropertyUI::InputFloat("##WallSlope", wall.Slope, "%.2f", 0.0f, 0.8f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How far the wall's foot steps out per metre of height: 0 upright, 0.4 to 0.55 a grassy earth bank\n"
+						"(still too steep to walk up). The slope covers the lower ground at its foot.");
+				}
+			});
 			ImGui::PopID();
 		}
 		if (settings.WallLayers.size() < MaxTerrainWallLayers && ImGui::Button("Add Wall Layer"))
@@ -379,6 +406,15 @@ namespace Hydro
 		PropertyUI::Row("Lip Face", [&]() { PropertyUI::InputFloat("##LipFace", settings.LipFaceHeight, "%.1f px", 0.0f, 8.0f); });
 		PropertyUI::Row("Wall Lean", [&]() { PropertyUI::InputFloat("##WallLean", settings.WallLean, "%.1f px/m", 0.0f, 8.0f); });
 		PropertyUI::Row("Wall Noise", [&]() { PropertyUI::InputFloat("##WallNoise", settings.WallNoise, "%.1f px", 0.0f, 8.0f); });
+		PropertyUI::Row("Wall Light", [&]()
+		{
+			PropertyUI::InputFloat("##WallLight", settings.WallLight, "%.2f", 0.0f, 1.0f);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("Lights the walls as if they faced partly up (0: by their face, 1: like the ground), so walls\n"
+					"turned away from the sun still read.");
+			}
+		});
 
 		DrawSection("Cap Stones");
 		PropertyUI::Row("Material", [&]() { pickMaterial("##CapMaterial", settings.CapStoneMaterial); });

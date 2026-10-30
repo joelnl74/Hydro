@@ -61,11 +61,13 @@ namespace Hydro
 		glm::vec4 LayerTint[MaxTerrainLayers];
 		glm::vec4 LayerTiling[MaxTerrainLayers]; // xy: repeats per metre
 		glm::vec4 Roughness{ 0.0f };             // per layer, weight units
+		glm::vec4 Blend{ 0.0f };                 // per layer, weight units
+		glm::vec4 HeightBlend{ 0.0f };           // per layer
 		glm::vec4 WeightMap{ 1.0f };             // xy: 1 / metres the weight map covers, z: layer count
 		glm::vec4 Noise{ 0.0f };                 // x: cluster size (art pixels), y: share of per-pixel noise
 		glm::uvec4 Seed{ 0u };                   // x: the terrain's seed
 	};
-	static_assert(sizeof(TerrainSurfaceUniform) == 192, "TerrainSurfaceUniform: must match the std140 block in terrain.frag");
+	static_assert(sizeof(TerrainSurfaceUniform) == 224, "TerrainSurfaceUniform: must match the std140 block in terrain.frag");
 
 	// A terrain surface material on the GPU: its uniform data and a persistent descriptor set (set 1 of terrain.frag)
 	// with the weight map and the layers' albedos. Immutable, like MeshMaterial.
@@ -92,7 +94,8 @@ namespace Hydro
 		}
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
-			if (Layers[i] != other.Layers[i] || EdgeRoughness[i] != other.EdgeRoughness[i])
+			if (Layers[i] != other.Layers[i] || EdgeRoughness[i] != other.EdgeRoughness[i] || Blend[i] != other.Blend[i]
+				|| HeightBlend[i] != other.HeightBlend[i])
 			{
 				return false;
 			}
@@ -396,6 +399,8 @@ namespace Hydro
 			uniform.LayerTint[i] = data.Layers[i].Tint;
 			uniform.LayerTiling[i] = glm::vec4(data.Layers[i].Tiling, 0.0f, 0.0f);
 			uniform.Roughness[(int)i] = data.EdgeRoughness[i];
+			uniform.Blend[(int)i] = std::max(data.Blend[i], 0.0f);
+			uniform.HeightBlend[(int)i] = std::max(data.HeightBlend[i], 0.0f);
 		}
 		const glm::vec2 size = glm::max(data.WeightMapSize, glm::vec2(1e-4f));
 		uniform.WeightMap = glm::vec4(1.0f / size.x, 1.0f / size.y, (float)std::min(std::max(data.LayerCount, 1u), MaxTerrainLayers), 0.0f);

@@ -492,6 +492,8 @@ namespace Hydro
 				const Ref<MaterialAsset> asset = (uint64_t)layer.Material != 0 ? AssetManager::GetLoadedAsset<MaterialAsset>(layer.Material) : nullptr;
 				material.Layers[i] = asset != nullptr ? asset->GetData() : MaterialData{};
 				material.EdgeRoughness[i] = layer.EdgeRoughness;
+				material.Blend[i] = layer.Blend;
+				material.HeightBlend[i] = layer.HeightBlend;
 			}
 			material.EdgeClusterSize = settings.EdgeClusterSize;
 			material.EdgePixelNoise = settings.EdgePixelNoise;

@@ -5,8 +5,9 @@
 #include "lighting.glsl"
 
 // A terrain's top surface (Terrain plan, "Surface"; scripts/terrain/splat.py is the reference): per art pixel
-// (1/32 m) the layer whose painted weight plus edge noise is highest wins, and only its albedo is sampled there. Hard
-// pixel borders, no blending. Lit and fogged like mesh.frag. Runs on mesh.vert: fragUV is the position in the terrain's
+// (1/32 m) the layer whose painted weight plus edge noise plus texture height is highest wins. Near the border (Blend)
+// its colour is mixed with the runner-up's in two steps (75 %, 50 %), so borders soften but stay pixel art; with
+// Blend 0 and HeightBlend 0 a layer has the hard pixel borders of TR1. Lit and fogged like mesh.frag. Runs on mesh.vert: fragUV is the position in the terrain's
 // own space (TerrainMesher), so the pattern doesn't move with the entity.
 
 layout(location = 0) in vec2 fragUV;
@@ -15,11 +16,13 @@ layout(location = 2) in vec3 fragNormal;
 layout(location = 3) flat in int entityID;
 layout(location = 4) in vec3 fragWorldPos;
 
-// Must match TerrainSurfaceUniform in Renderer3D.cpp (std140, 192 bytes).
+// Must match TerrainSurfaceUniform in Renderer3D.cpp (std140, 224 bytes).
 layout(set = 1, binding = 0) uniform TerrainSurface {
     vec4 layerTint[4];
     vec4 layerTiling[4]; // xy: repeats per metre
     vec4 roughness;      // per layer, weight units
+    vec4 blend;          // per layer: width of the mixed band, weight units
+    vec4 heightBlend;    // per layer: how much the texture's brightness raises its score
     vec4 weightMap;      // xy: 1 / metres the weight map covers, z: layer count
     vec4 noise;          // x: cluster size (art pixels), y: share of per-pixel noise
     uvec4 seed;          // x
@@ -96,6 +99,12 @@ vec4 SampleLayer(int layer, vec2 position)
 	}
 }
 
+// Brightness of an albedo, as its height for HeightBlend.
+float Luminance(vec3 colour)
+{
+	return dot(colour, vec3(0.299, 0.587, 0.114));
+}
+
 void main()
 {
 	// 1. The art pixel this fragment is in (in the terrain's space) and its centre.
@@ -105,26 +114,51 @@ void main()
 	// 2. The painted weights there (filtered between texels: constant within an art pixel, smooth across the map).
 	vec4 weights = texture(weightMap, centre * surface.weightMap.xy);
 
-	// 3. Weight plus edge noise per layer; the highest wins (the first on a tie, like numpy's argmax).
+	// 3. Weight plus edge noise plus texture height per layer; the highest wins (the first on a tie, like numpy's
+	// argmax), the second highest is the one it blends with.
 	int layerCount = int(surface.weightMap.z + 0.5);
 	int best = 0;
+	int second = 0;
 	float bestScore = -1.0e9;
+	float secondScore = -1.0e9;
+	vec4 albedos[4];
 	for (int layer = 0; layer < 4; layer++)
 	{
 		if (layer >= layerCount)
 		{
 			break;
 		}
-		float score = weights[layer] + (EdgeNoise(pixel, layer) - 0.5) * surface.roughness[layer];
+		albedos[layer] = SampleLayer(layer, centre);
+		// The height is the texture's own brightness (the tint is a colour, not a height), so a darker tinted copy
+		// of a layer (shade) has the same height and only the weights decide between them.
+		float height = Luminance(albedos[layer].rgb / max(surface.layerTint[layer].rgb, vec3(1.0e-3)));
+		float score = weights[layer] + (EdgeNoise(pixel, layer) - 0.5) * surface.roughness[layer]
+			+ (height - 0.5) * surface.heightBlend[layer];
 		if (score > bestScore)
 		{
-			bestScore = score;
+			second = best;
+			secondScore = bestScore;
 			best = layer;
+			bestScore = score;
+		}
+		else if (score > secondScore)
+		{
+			second = layer;
+			secondScore = score;
 		}
 	}
 
-	// 4. Only the winner's albedo, at the art pixel's centre.
-	vec4 albedo = SampleLayer(best, centre) * fragColor;
+	// 4. The winner's albedo at the art pixel's centre, mixed with the runner-up's inside the blend band: 50 % where
+	// the scores tie, 75 % halfway out, the winner alone beyond.
+	vec4 albedo = albedos[best];
+	float band = 0.5 * (surface.blend[best] + surface.blend[second]);
+	if (layerCount > 1 && band > 0.0)
+	{
+		float share = clamp(0.5 + 0.5 * (bestScore - secondScore) / band, 0.5, 1.0);
+		share = floor(share * 4.0 + 0.5) / 4.0;
+		albedo = mix(albedos[second], albedos[best], share);
+	}
+	albedo *= fragColor;
 	if (IsForwardLit() == false)
 	{
 		outColor = vec4(albedo.rgb, 1.0);

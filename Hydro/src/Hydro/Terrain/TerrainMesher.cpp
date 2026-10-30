@@ -234,6 +234,27 @@ namespace Hydro
 		return any ? result : 1.0f;
 	}
 
+	float TerrainMesher::EdgeSlope(uint32_t orient, int64_t i, int64_t j) const
+	{
+		// The smaller of the two cells' wall layer Slope, so both walls meeting at the edge put its point in one place.
+		const std::vector<TerrainWallLayer>& layers = m_Terrain.GetSettings().WallLayers;
+		const int64_t cells[2][2] = { { i, j }, { orient == EdgeH ? i : i - 1, orient == EdgeH ? j - 1 : j } };
+		float result = 0.0f;
+		bool any = false;
+		for (const auto& cell : cells)
+		{
+			if (cell[0] < 0 || cell[1] < 0 || cell[0] >= (int64_t)m_CellsX || cell[1] >= (int64_t)m_CellsY)
+			{
+				continue;
+			}
+			const uint8_t material = m_Terrain.GetWallMaterial((uint32_t)cell[0], (uint32_t)cell[1]);
+			const float value = material < layers.size() ? std::max(layers[material].Slope, 0.0f) : 0.0f;
+			result = any ? std::min(result, value) : value;
+			any = true;
+		}
+		return result;
+	}
+
 	float TerrainMesher::CrossingParam(uint32_t orient, int64_t i, int64_t j) const
 	{
 		// Keyed by the canonical edge ID only: a smooth field sampled at the edge's midpoint (outlines wander instead of
@@ -352,6 +373,36 @@ namespace Hydro
 				out.emplace_back(a, b);
 			}
 		}
+	}
+
+	glm::vec3 TerrainMesher::WallPointAt(const BoundaryPoint& point, int32_t level) const
+	{
+		// A wall's vertex: the outline point, stepped out (away from the higher corner) by the wall layer's Slope times
+		// the height below the edge's top. Only walls, their edges and their decor use it: the tops keep the outline,
+		// so a sloped wall covers the lower ground at its foot.
+		glm::vec3 p = PointAt(point, level);
+		if (KeyKind(point.Key) == KeyCorner)
+		{
+			return p;
+		}
+		const uint32_t orient = KeyOrient(point.Key);
+		const int64_t i = KeyI(point.Key);
+		const int64_t j = KeyJ(point.Key);
+		const int32_t high = std::max(Level(i, j), orient == EdgeH ? Level(i + 1, j) : Level(i, j + 1));
+		if (high <= level)
+		{
+			return p;
+		}
+		const float slope = EdgeSlope(orient, i, j);
+		if (slope <= 0.0f)
+		{
+			return p;
+		}
+		const glm::vec2 down = EdgeDownDirection(orient, i, j);
+		const float out = slope * (float)(high - level) * m_Terrain.GetSettings().StepHeight;
+		p.x += down.x * out;
+		p.y += down.y * out;
+		return p;
 	}
 
 	void TerrainMesher::FindRampRuns()
@@ -723,10 +774,10 @@ namespace Hydro
 		// Region(>= Level)'s outline extruded down one level. Outward (the lower ground) is on the right of A -> B, so
 		// the quad is counter-clockwise seen from outside. UVs in metres: u along the outline, v = -z (images have v = 0 at the
 		// top, as in MeshFactory).
-		const glm::vec3 at = PointAt(segment.A, segment.Level);
-		const glm::vec3 bt = PointAt(segment.B, segment.Level);
-		const glm::vec3 ab = PointAt(segment.A, segment.Level - 1);
-		const glm::vec3 bb = PointAt(segment.B, segment.Level - 1);
+		const glm::vec3 at = WallPointAt(segment.A, segment.Level);
+		const glm::vec3 bt = WallPointAt(segment.B, segment.Level);
+		const glm::vec3 ab = WallPointAt(segment.A, segment.Level - 1);
+		const glm::vec3 bb = WallPointAt(segment.B, segment.Level - 1);
 		if (collision != nullptr)
 		{
 			collision->Triangle(ab, bb, bt);
@@ -738,8 +789,23 @@ namespace Hydro
 		}
 		const float ua = segment.U;
 		const float ub = ua + std::hypot(bt.x - at.x, bt.y - at.y);
+		const glm::vec3 shading = WallShading(at, bt, ab, bb);
 		parts->Quad(GetPartSlot(TerrainPartKind::Wall, std::min<uint32_t>(segment.Material, MaxTerrainWallLayers - 1)), ab, bb, bt, at,
-			glm::vec2(ua, -ab.z), glm::vec2(ub, -bb.z), glm::vec2(ub, -bt.z), glm::vec2(ua, -at.z));
+			glm::vec2(ua, -ab.z), glm::vec2(ub, -bb.z), glm::vec2(ub, -bt.z), glm::vec2(ua, -at.z), &shading);
+	}
+
+	glm::vec3 TerrainMesher::WallShading(const glm::vec3& at, const glm::vec3& bt, const glm::vec3& ab, const glm::vec3& bb) const
+	{
+		// The face's outward normal (right of A -> B, tilted by a slope), turned WallLight of the way towards up.
+		const glm::vec3 along = bt - at;
+		const glm::vec3 down = 0.5f * (ab + bb) - 0.5f * (at + bt);
+		glm::vec3 n = glm::cross(down, along);
+		const float length = glm::length(n);
+		n = length > 1e-8f ? n / length : glm::vec3(0.0f, 0.0f, 1.0f);
+		const float light = glm::clamp(m_Terrain.GetSettings().WallLight, 0.0f, 1.0f);
+		const glm::vec3 shading = glm::mix(n, glm::vec3(0.0f, 0.0f, 1.0f), light);
+		const float shadingLength = glm::length(shading);
+		return shadingLength > 1e-8f ? shading / shadingLength : glm::vec3(0.0f, 0.0f, 1.0f);
 	}
 
 	void TerrainMesher::AddWallEdges(const WallSegment& segment, TerrainMeshBuilder& tops, TerrainMeshBuilder& parts) const
@@ -748,8 +814,8 @@ namespace Hydro
 		// from it where the layer at the edge has one, and coping stones on wall layers that have them.
 		const TerrainSettings& settings = m_Terrain.GetSettings();
 		const uint32_t material = std::min<uint32_t>(segment.Material, MaxTerrainWallLayers - 1);
-		const glm::vec3 at = PointAt(segment.A, segment.Level);
-		const glm::vec3 bt = PointAt(segment.B, segment.Level);
+		const glm::vec3 at = WallPointAt(segment.A, segment.Level);
+		const glm::vec3 bt = WallPointAt(segment.B, segment.Level);
 		const float zt = at.z;
 		const float ua = segment.U;
 		const float ub = ua + std::hypot(bt.x - at.x, bt.y - at.y);
@@ -769,8 +835,9 @@ namespace Hydro
 			{
 				const glm::vec3 aod(ao.x, ao.y, zt - lipFace);
 				const glm::vec3 bod(bo.x, bo.y, zt - lipFace);
+				const glm::vec3 shading = WallShading(ao, bo, aod, bod);
 				parts.Quad(GetPartSlot(TerrainPartKind::LipFace, material), aod, bod, bo, ao, glm::vec2(ua, lipFace - zt), glm::vec2(ub, lipFace - zt),
-					glm::vec2(ub, -zt), glm::vec2(ua, -zt));
+					glm::vec2(ub, -zt), glm::vec2(ua, -zt), &shading);
 			}
 		}
 
@@ -788,8 +855,11 @@ namespace Hydro
 				const float offset = 0.004f;
 				const glm::vec3 af(ao.x + da.x * offset, ao.y + da.y * offset, zt + 0.002f);
 				const glm::vec3 bf(bo.x + db.x * offset, bo.y + db.y * offset, zt + 0.002f);
-				const glm::vec3 afd(af.x, af.y, zt - fringe);
-				const glm::vec3 bfd(bf.x, bf.y, zt - fringe);
+				// On a sloped wall the strip lies along the slope instead of hanging into it.
+				const float sa = KeyKind(segment.A.Key) == KeyCorner ? 0.0f : EdgeSlope(KeyOrient(segment.A.Key), KeyI(segment.A.Key), KeyJ(segment.A.Key));
+				const float sb = KeyKind(segment.B.Key) == KeyCorner ? 0.0f : EdgeSlope(KeyOrient(segment.B.Key), KeyI(segment.B.Key), KeyJ(segment.B.Key));
+				const glm::vec3 afd(af.x + da.x * sa * fringe, af.y + da.y * sa * fringe, zt - fringe);
+				const glm::vec3 bfd(bf.x + db.x * sb * fringe, bf.y + db.y * sb * fringe, zt - fringe);
 				parts.Quad(GetPartSlot(TerrainPartKind::Fringe, layer), afd, bfd, bf, af, glm::vec2(ua, 1.0f), glm::vec2(ub, 1.0f), glm::vec2(ub, 0.0f),
 					glm::vec2(ua, 0.0f));
 			}
@@ -1105,8 +1175,8 @@ namespace Hydro
 
 	void TerrainMesher::GetSegmentLine(const WallSegment& segment, int32_t level, glm::vec3& a, glm::vec3& b) const
 	{
-		a = PointAt(segment.A, level);
-		b = PointAt(segment.B, level);
+		a = WallPointAt(segment.A, level);
+		b = WallPointAt(segment.B, level);
 	}
 
 	float TerrainMesher::GetHeightAt(const glm::vec2& position) const

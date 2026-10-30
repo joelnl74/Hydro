@@ -17,7 +17,7 @@ namespace Hydro
 	struct RenderPassContext;
 
 	// A terrain's top surface (Terrain plan, "Surface"; terrain.frag): per art pixel the layer whose weight plus edge
-	// noise is highest, its albedo sampled there. Plain data, made by SceneRenderer every frame from a Terrain and its
+	// noise plus texture height is highest, its albedo sampled there and mixed with the runner-up's near the border. Plain data, made by SceneRenderer every frame from a Terrain and its
 	// layers' materials; Renderer3D caches its GPU state by value, like Standard materials.
 	struct TerrainSurfaceMaterial
 	{
@@ -26,6 +26,8 @@ namespace Hydro
 		uint32_t LayerCount = 1;         // 1..MaxTerrainLayers
 		MaterialData Layers[MaxTerrainLayers]; // albedo, tint, tiling and filter of each layer
 		float EdgeRoughness[MaxTerrainLayers] = { 0.9f, 0.9f, 0.9f, 0.9f };
+		float Blend[MaxTerrainLayers] = { 0.0f, 0.0f, 0.0f, 0.0f };       // TerrainLayer::Blend
+		float HeightBlend[MaxTerrainLayers] = { 0.0f, 0.0f, 0.0f, 0.0f }; // TerrainLayer::HeightBlend
 		float EdgeClusterSize = 2.5f;    // art pixels
 		float EdgePixelNoise = 0.35f;
 		uint32_t Seed = 0;

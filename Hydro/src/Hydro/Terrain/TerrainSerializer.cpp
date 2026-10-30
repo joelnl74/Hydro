@@ -253,6 +253,8 @@ namespace Hydro
 			out << YAML::BeginMap;
 			out << YAML::Key << "Material" << YAML::Value << (uint64_t)layer.Material;
 			out << YAML::Key << "EdgeRoughness" << YAML::Value << layer.EdgeRoughness;
+			out << YAML::Key << "Blend" << YAML::Value << layer.Blend;
+			out << YAML::Key << "HeightBlend" << YAML::Value << layer.HeightBlend;
 			out << YAML::Key << "Fringe" << YAML::Value << (uint64_t)layer.Fringe;
 			out << YAML::Key << "FringeLength" << YAML::Value << layer.FringeLength;
 			out << YAML::EndMap;
@@ -266,6 +268,7 @@ namespace Hydro
 			out << YAML::Key << "Material" << YAML::Value << (uint64_t)wall.Material;
 			out << YAML::Key << "Variation" << YAML::Value << wall.Variation;
 			out << YAML::Key << "CapStones" << YAML::Value << wall.CapStones;
+			out << YAML::Key << "Slope" << YAML::Value << wall.Slope;
 			out << YAML::EndMap;
 		}
 		out << YAML::EndSeq;
@@ -277,6 +280,7 @@ namespace Hydro
 		out << YAML::Key << "WallProfile" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "Lean" << YAML::Value << settings.WallLean;
 		out << YAML::Key << "Noise" << YAML::Value << settings.WallNoise;
+		out << YAML::Key << "Light" << YAML::Value << settings.WallLight;
 		out << YAML::EndMap;
 		out << YAML::Key << "CapStones" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "Material" << YAML::Value << (uint64_t)settings.CapStoneMaterial;
@@ -398,6 +402,9 @@ namespace Hydro
 					TerrainLayer layer;
 					layer.Material = AssetHandle(layerNode["Material"].as<uint64_t>(0));
 					layer.EdgeRoughness = layerNode["EdgeRoughness"].as<float>(layer.EdgeRoughness);
+					// Terrains written before blending (Oct 31) keep their hard pixel borders.
+					layer.Blend = layerNode["Blend"].as<float>(0.0f);
+					layer.HeightBlend = layerNode["HeightBlend"].as<float>(0.0f);
 					layer.Fringe = AssetHandle(layerNode["Fringe"].as<uint64_t>(0));
 					layer.FringeLength = layerNode["FringeLength"].as<float>(layer.FringeLength);
 					settings.Layers.push_back(layer);
@@ -415,6 +422,7 @@ namespace Hydro
 					wall.Material = AssetHandle(wallNode["Material"].as<uint64_t>(0));
 					wall.Variation = wallNode["Variation"].as<float>(wall.Variation);
 					wall.CapStones = wallNode["CapStones"].as<bool>(wall.CapStones);
+					wall.Slope = wallNode["Slope"].as<float>(wall.Slope);
 					settings.WallLayers.push_back(wall);
 				}
 			}
@@ -427,6 +435,7 @@ namespace Hydro
 			{
 				settings.WallLean = profile["Lean"].as<float>(settings.WallLean);
 				settings.WallNoise = profile["Noise"].as<float>(settings.WallNoise);
+				settings.WallLight = profile["Light"].as<float>(settings.WallLight);
 			}
 			if (auto caps = node["CapStones"])
 			{

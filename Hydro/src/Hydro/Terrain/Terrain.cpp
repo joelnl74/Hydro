@@ -14,7 +14,7 @@ namespace Hydro
 			&& SplatResolution == other.SplatResolution && Jitter == other.Jitter && JitterSmooth == other.JitterSmooth
 			&& JitterScale == other.JitterScale && EdgeClusterSize == other.EdgeClusterSize && EdgePixelNoise == other.EdgePixelNoise
 			&& Layers == other.Layers && WallLayers == other.WallLayers && LipWidth == other.LipWidth && LipFaceHeight == other.LipFaceHeight
-			&& WallLean == other.WallLean && WallNoise == other.WallNoise && CapStoneMaterial == other.CapStoneMaterial
+			&& WallLean == other.WallLean && WallNoise == other.WallNoise && WallLight == other.WallLight && CapStoneMaterial == other.CapStoneMaterial
 			&& CapPitch == other.CapPitch && CapJoint == other.CapJoint && CapDepth == other.CapDepth && CapHeight == other.CapHeight
 			&& CapSizeJitter == other.CapSizeJitter && CapPositionJitter == other.CapPositionJitter && CapYawJitter == other.CapYawJitter
 			&& CapMissing == other.CapMissing && Decor == other.Decor;

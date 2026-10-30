@@ -4,6 +4,11 @@ Per art pixel (1/32 m): sample the RGBA weight map (bilinear at the pixel's cent
 noise per layer scaled by the layer's EdgeRoughness (weight units), and the highest score wins; that layer's
 albedo is sampled at the pixel. Where two weights differ by more than the roughness the result can't flip,
 so painted areas stay clean and only borders go ragged.
+
+Blending (Oct 31; terrain.frag follows bake_blended): each layer's score also gets its texture's brightness
+(HeightBlend: bright blades and stones reach into the neighbour, dark gaps let it through), and inside the blend
+band (Blend, weight units) the winner's colour is mixed with the runner-up's in steps of 25 % (50 % at a tie).
+The CPU winner (winners(), TerrainMesher::GetTopLayerAt: fringe and decor) has no textures and ignores the height.
 """
 
 from dataclasses import dataclass
@@ -43,6 +48,8 @@ class Layer:
     tiling: tuple         # repeats per metre (the .hymat's Tiling)
     tint: tuple = (1.0, 1.0, 1.0)
     roughness: float = 0.3
+    blend: float = 0.0         # width of the mixed band, weight units
+    height_blend: float = 0.0  # how much the texture's brightness raises the score
 
 
 @dataclass
@@ -126,6 +133,43 @@ def bake(weights, layers, seed, settings, width_m, height_m):
         out[mask] = colour[mask]
     img = Image.fromarray((np.clip(out[::-1], 0, 1) * 255 + 0.5).astype(np.uint8), "RGB")
     return img, win
+
+
+def bake_blended(weights, layers, seed, settings, width_m, height_m):
+    """bake() with Blend and HeightBlend, as terrain.frag draws it. Returns the PIL image (row 0 north)."""
+    nx = int(round(width_m * ART_PPM))
+    ny = int(round(height_m * ART_PPM))
+    ix, iy = np.meshgrid(np.arange(nx), np.arange(ny))
+    x = (ix + 0.5) / ART_PPM
+    y = (iy + 0.5) / ART_PPM
+    w = sample_weights(weights, settings.resolution, x, y)
+    colours = []
+    scores = []
+    for k, layer in enumerate(layers):
+        tex = load_texture(layer.texture)
+        th, tw, _ = tex.shape
+        tx = np.floor(x * layer.tiling[0] * tw).astype(int) % tw
+        ty = np.floor(y * layer.tiling[1] * th).astype(int) % th
+        raw = tex[th - 1 - ty, tx]
+        height = raw @ np.array([0.299, 0.587, 0.114])
+        colours.append(raw * np.asarray(layer.tint))
+        n = edge_noise(seed, ix, iy, k, settings)
+        scores.append(w[..., k] + (n - 0.5) * layer.roughness + (height - 0.5) * layer.height_blend)
+    s = np.stack(scores, axis=-1)
+    c = np.stack(colours, axis=-2)
+    order = np.argsort(-s, axis=-1, kind="stable")
+    best = order[..., 0]
+    second = order[..., 1] if len(layers) > 1 else best
+    sb = np.take_along_axis(s, best[..., None], -1)[..., 0]
+    ss = np.take_along_axis(s, second[..., None], -1)[..., 0]
+    cb = np.take_along_axis(c, best[..., None, None], -2)[..., 0, :]
+    cs = np.take_along_axis(c, second[..., None, None], -2)[..., 0, :]
+    blend = np.asarray([layer.blend for layer in layers])
+    band = 0.5 * (blend[best] + blend[second])
+    share = np.where(band > 0, np.clip(0.5 + 0.5 * (sb - ss) / np.maximum(band, 1e-9), 0.5, 1.0), 1.0)
+    share = np.floor(share * 4.0 + 0.5) / 4.0
+    out = cs * (1 - share[..., None]) + cb * share[..., None]
+    return Image.fromarray((np.clip(out[::-1], 0, 1) * 255 + 0.5).astype(np.uint8), "RGB")
 
 
 def winner_lookup(win):
