@@ -34,6 +34,11 @@ namespace Hydro
 		VulkanImage(const VulkanImage&) = delete;
 		VulkanImage& operator=(const VulkanImage&) = delete;
 
+		// Replaces a rectangle of a pixel-uploaded texture's RGBA8 pixels (`pixels`: width * height * 4 bytes, rows
+		// top to bottom of the rectangle, tightly packed). Submits and waits (SubmitImmediate): editor edits
+		// only. Frames in flight that sample it finish first (the copy's barrier waits for earlier fragment work).
+		void UpdatePixels(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* pixels);
+
 		const VulkanImageInfo& GetVulkanImageInfo() const { return m_vulkanImageInfo; }
 		uint32_t GetWidth() const { return m_width; }
 		uint32_t GetHeight() const { return m_height; }

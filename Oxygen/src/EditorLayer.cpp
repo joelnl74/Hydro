@@ -86,6 +86,7 @@ namespace Hydro
 		m_InspectorWindow->OnTextureReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
 		m_InspectorWindow->OnOpenSpriteEditor = [this](const std::filesystem::path& path) { OpenAsset(path); };
 		m_InspectorWindow->OnOpenAnimation = [this](const std::filesystem::path& path) { OpenAsset(path); };
+		m_InspectorWindow->SetTerrainTool(&m_TerrainTool);
 		m_SpriteEditorWindow = CreateRef<SpriteEditorWindow>();
 		m_SpriteEditorWindow->OnReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
 		m_SpriteAnimationWindow = CreateRef<SpriteAnimationWindow>();
@@ -375,6 +376,7 @@ namespace Hydro
 			overlay.Selected = m_HierarchyWindow->GetSelectedEntity();
 			overlay.SelectionOutline = m_ShowSelectionOutline;
 			overlay.Colliders = m_ShowColliders;
+			m_TerrainTool.FillOverlay(overlay);
 			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera, overlay);
 		}
 
@@ -387,6 +389,7 @@ namespace Hydro
 		ImGuizmo::BeginFrame();
 		UpdateFullscreenKeys();
 		UpdateCaptureKeys();
+		UpdateUndoKeys();
 		UpdateLaunchAutomation();
 
 		static bool dockspaceOpen = true;
@@ -482,6 +485,23 @@ namespace Hydro
 					Application::Get().Quit();
 				}
 
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Edit"))
+			{
+				const std::string undoName = m_Commands.GetUndoName();
+				const std::string redoName = m_Commands.GetRedoName();
+				const std::string undoLabel = undoName.empty() ? std::string("Undo") : "Undo " + undoName;
+				const std::string redoLabel = redoName.empty() ? std::string("Redo") : "Redo " + redoName;
+				if (ImGui::MenuItem(undoLabel.c_str(), "Ctrl+Z", false, m_Commands.CanUndo() && IsPlaying() == false))
+				{
+					Undo();
+				}
+				if (ImGui::MenuItem(redoLabel.c_str(), "Ctrl+Y", false, m_Commands.CanRedo() && IsPlaying() == false))
+				{
+					Redo();
+				}
 				ImGui::EndMenu();
 			}
 
@@ -590,6 +610,7 @@ namespace Hydro
 			m_InspectedAsset.clear();
 		}
 		m_LastSelectedEntity = (entt::entity)selectedEntity;
+		m_InspectorWindow->SetPlaying(IsPlaying());
 		m_InspectorWindow->OnImguiRender(selectedEntity, m_InspectedAsset);
 		m_SpriteEditorWindow->OnImguiRender();
 		m_SpriteAnimationWindow->OnImguiRender();
@@ -702,9 +723,15 @@ namespace Hydro
 			m_EditorViewHovered = ImGui::IsItemHovered();
 			const ImVec2 imageMin = ImGui::GetItemRectMin();
 			DrawEditorCameraHint(imageMin);
-			// The gizmo first: a click on one of its handles is not a click to select.
-			DrawTransformGizmo(imageMin, size);
-			UpdateClickSelection(imageMin, size);
+			// The Terrain tool first: while it paints, the left button is its own (no gizmo, no click-to-select).
+			m_TerrainToolOwnsMouse = m_TerrainTool.UpdateViewport(m_HierarchyWindow->GetSelectedEntity(), m_EditorCamera, glm::vec2(imageMin.x, imageMin.y),
+				glm::vec2(size.x, size.y), m_EditorViewHovered, IsPlaying(), Time::GetDeltaTime(), m_Commands);
+			if (m_TerrainToolOwnsMouse == false)
+			{
+				// The gizmo first: a click on one of its handles is not a click to select.
+				DrawTransformGizmo(imageMin, size);
+				UpdateClickSelection(imageMin, size);
+			}
 			UpdateGizmoKeys();
 			AcceptAssetDrop();
 
@@ -1279,6 +1306,43 @@ namespace Hydro
 		}
 	}
 
+	void EditorLayer::UpdateUndoKeys()
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		if (IsPlaying() || io.WantTextInput || io.KeyCtrl == false)
+		{
+			return;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_Z, false))
+		{
+			if (io.KeyShift)
+			{
+				Redo();
+			}
+			else
+			{
+				Undo();
+			}
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_Y, false))
+		{
+			Redo();
+		}
+	}
+
+	void EditorLayer::Undo()
+	{
+		// A stroke in progress becomes a step first, so it is what is undone.
+		m_TerrainTool.EndStroke(m_Commands);
+		m_Commands.Undo();
+	}
+
+	void EditorLayer::Redo()
+	{
+		m_TerrainTool.EndStroke(m_Commands);
+		m_Commands.Redo();
+	}
+
 	void EditorLayer::UpdateCaptureKeys()
 	{
 		// F9: the Game view (also in game full screen); Shift+F9: the Editor view. Holding captures once.
@@ -1350,6 +1414,9 @@ namespace Hydro
 	{
 		if (IsPlaying())
 			return;
+
+		// A brush stroke in progress ends here (its undo step is kept); the tool waits for Stop.
+		m_TerrainTool.EndStroke(m_Commands);
 
 		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
 
@@ -1801,6 +1868,9 @@ namespace Hydro
 	void EditorLayer::SetEditorScene(const Ref<Scene>& scene)
 	{
 		StopScene();
+		// Undo steps belong to the scene they were made in.
+		m_TerrainTool.EndStroke(m_Commands);
+		m_Commands.Clear();
 
 		m_EditorScene = scene;
 		m_EditorScene->Init();
@@ -1879,6 +1949,10 @@ namespace Hydro
 			m_EditorScenePath = directory / (name + SceneSerializer::FileExtension);
 		}
 
+		// Terrain assets edited in this scene are written with it (a stroke in progress ends first).
+		m_TerrainTool.EndStroke(m_Commands);
+		TerrainTool::SaveModifiedTerrains(*m_EditorScene);
+
 		// Always the editor scene: what happens while playing is not saved.
 		SceneSerializer serializer(m_EditorScene);
 		if (serializer.Serialize(m_EditorScenePath))
@@ -1901,6 +1975,8 @@ namespace Hydro
 
 		// Name the scene after its file.
 		m_EditorScene->SetName(path.stem().string());
+		m_TerrainTool.EndStroke(m_Commands);
+		TerrainTool::SaveModifiedTerrains(*m_EditorScene);
 
 		SceneSerializer serializer(m_EditorScene);
 		if (serializer.Serialize(path))

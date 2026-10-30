@@ -75,11 +75,16 @@ class Settings:
     lip_px: float = 2.0          # how far a shelf's top sticks out over its wall, art pixels
     lip_face_px: float = 2.0     # the lip's front face, art pixels high
     fringe_px: float = 4.0       # cut-out grass hanging from the lip, art pixels long (0 = none)
+    wall_variation: dict = field(default_factory=dict)  # wall layer -> 0..1 scale of jitter and wall noise
     caps: bool = True
-    cap_spacing: tuple = (0.35, 0.8)   # metres between cap stones along a wall top
-    cap_size: tuple = (0.10, 0.20)     # width / depth range, metres
-    cap_height: tuple = (0.04, 0.08)   # metres
-    cap_chance: float = 0.7            # chance a slot gets a stone
+    cap_pitch: float = 0.28            # metres of wall top per coping stone
+    cap_gap: float = 0.015             # joint between stones, metres
+    cap_size_jitter: float = 0.04      # stones up to this much shorter, metres
+    cap_depth: float = 0.2             # across the wall, metres
+    cap_height: tuple = (0.06, 0.08)   # metres
+    cap_jitter: float = 0.015          # position jitter along and across, metres
+    cap_yaw_degrees: float = 3.0       # rotation jitter
+    cap_missing: float = 0.08          # chance a slot is empty
 
 
 @dataclass
@@ -133,12 +138,27 @@ def smooth_noise(seed, x, y, scale, tag):
     return (v00 * (1 - fx) + v10 * fx) * (1 - fy) + (v01 * (1 - fx) + v11 * fx) * fy
 
 
+def edge_variation(terrain, orient, i, j):
+    """How much outline jitter and wall noise an edge gets (0..1): the calmer of the two cells it borders, by
+    their wall layer's Variation. A function of the edge ID and the data only, so it stays seam-safe."""
+    table = terrain.settings.wall_variation
+    if len(table) == 0:
+        return 1.0
+    cells = [(i, j), (i, j - 1)] if orient == EDGE_H else [(i, j), (i - 1, j)]
+    ny, nx = terrain.wall_material.shape
+    values = []
+    for ci, cj in cells:
+        if 0 <= ci < nx and 0 <= cj < ny:
+            values.append(table.get(int(terrain.wall_material[cj, ci]), 1.0))
+    return min(values) if len(values) > 0 else 1.0
+
+
 def crossing_param(terrain, orient, i, j):
     """Where the outline crosses edge (i, j, orient), 0 = its first corner, 1 = its second. Keyed by the
     canonical edge ID only: a smooth noise field sampled at the edge's midpoint (so outlines wander instead of
     zigzagging from edge to edge) plus a little per-edge noise."""
     s = terrain.settings
-    jitter = min(max(s.jitter, 0.0), 0.45)
+    jitter = min(max(s.jitter * edge_variation(terrain, orient, i, j), 0.0), 0.45)
     mx = (i + (0.5 if orient == EDGE_H else 0.0)) * s.cell_size
     my = (j + (0.5 if orient == EDGE_V else 0.0)) * s.cell_size
     smooth = smooth_noise(terrain.seed, mx, my, s.jitter_scale, TAG_CROSS * 16 + orient)
@@ -161,11 +181,12 @@ def edge_point(terrain, orient, i, j, z):
         # unevenly but never undercuts (the offset only grows going down).
         k_top = hi
         k = int(round(z / s.step_height))
+        noise_px = s.wall_noise_px * edge_variation(terrain, orient, i, j)
         offset = 0.0
         for course in range(k, k_top):
             offset += s.lean_px / ART_PPM * s.step_height
-            if s.wall_noise_px > 0.0:
-                offset += s.wall_noise_px / ART_PPM * hash01(terrain.seed, i, j, orient, course, TAG_WALL_NOISE)
+            if noise_px > 0.0:
+                offset += noise_px / ART_PPM * hash01(terrain.seed, i, j, orient, course, TAG_WALL_NOISE)
         dt = offset / s.cell_size
         t = t - dt if la < lb else t + dt   # towards the lower corner
         t = min(max(t, 0.05), 0.95)
@@ -573,8 +594,9 @@ def mesh_terrain(terrain, cells=None, top_layer_at=None, fringe_layers=(0,), wal
 
 
 def add_caps(terrain, mb, seg, at, bt, ua):
-    """Cap stones along a stone wall's top: slots every cap_spacing along the outline, keyed by the outline
-    distance (u) so they don't depend on the cell or chunk."""
+    """Coping stones along a stone wall's top: a tight row of flat, rectangular stones aligned with the wall,
+    in slots every cap_pitch metres of outline distance (u), so they don't depend on the cell or chunk. Small
+    size and position jitter, low rotation, an occasional missing stone."""
     s = terrain.settings
     ex, ey = bt[0] - at[0], bt[1] - at[1]
     ln = math.hypot(ex, ey)
@@ -582,26 +604,25 @@ def add_caps(terrain, mb, seg, at, bt, ua):
         return
     dx, dy = ex / ln, ey / ln
     inx, iny = -dy, dx
-    spacing = 0.5 * (s.cap_spacing[0] + s.cap_spacing[1])
-    first = math.ceil(ua / spacing)
-    last = math.floor((ua + ln) / spacing)
+    pitch = s.cap_pitch
+    first = math.ceil(ua / pitch - 0.5)
+    last = math.floor((ua + ln) / pitch - 0.5)
     for n in range(first, last + 1):
         r = [hash01(terrain.seed, n, seg.t, k, TAG_CAP) for k in range(6)]
-        if r[0] > s.cap_chance:
+        if r[0] < s.cap_missing:
             continue
-        along = n * spacing + (r[1] - 0.5) * (s.cap_spacing[1] - s.cap_spacing[0])
-        f = (along - ua) / ln
+        centre_u = (n + 0.5) * pitch + (r[1] - 0.5) * s.cap_jitter
+        f = (centre_u - ua) / ln
         if f < 0.0 or f > 1.0:
             continue
-        w = s.cap_size[0] + r[2] * (s.cap_size[1] - s.cap_size[0])
-        d = s.cap_size[0] + r[3] * (s.cap_size[1] - s.cap_size[0])
-        h = s.cap_height[0] + r[4] * (s.cap_height[1] - s.cap_height[0])
-        yaw = (r[5] - 0.5) * 0.5
-        # On the wall's top line, a little more on the shelf than over the edge.
-        cx = at[0] + ex * f + inx * (d * 0.15)
-        cy = at[1] + ey * f + iny * (d * 0.15)
-        cz = at[2]
-        add_box(mb, "caps", (cx, cy, cz), (dx, dy), yaw, w, d, h)
+        length = pitch - s.cap_gap - r[2] * s.cap_size_jitter
+        depth = s.cap_depth * (1.0 - 0.5 * s.cap_size_jitter / max(pitch, 1e-6) * r[3])
+        height = s.cap_height[0] + r[4] * (s.cap_height[1] - s.cap_height[0])
+        yaw = (r[5] - 0.5) * 2.0 * math.radians(s.cap_yaw_degrees)
+        inset = depth * 0.3 + (r[3] - 0.5) * s.cap_jitter
+        cx = at[0] + ex * f + inx * inset
+        cy = at[1] + ey * f + iny * inset
+        add_box(mb, "caps", (cx, cy, at[2]), (dx, dy), yaw, length, depth, height)
 
 
 def add_box(mb, material, base, axis, yaw, w, d, h):

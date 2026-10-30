@@ -33,6 +33,11 @@ namespace Hydro
 			Entity Selected;                 // outlined when SelectionOutline is on
 			bool SelectionOutline = true;
 			bool Colliders = false;          // every collider: sensor yellow, static green, dynamic blue, kinematic cyan
+			// The Terrain tool's brush: a circle on the terrain where it would paint.
+			bool TerrainBrush = false;
+			glm::vec3 TerrainBrushCentre{ 0.0f };
+			float TerrainBrushRadius = 1.0f;
+			glm::vec4 TerrainBrushColor{ 1.0f, 1.0f, 1.0f, 0.9f };
 		};
 
 		SceneRenderer(const Ref<Scene>& scene)
@@ -113,8 +118,11 @@ namespace Hydro
 		// Whether and how sprites cast sun shadows this frame (m_SunShadows), from the render features and the
 		// scene's main light.
 		void PrepareSunShadowCasting();
-		// MeshComponents (Renderer3D), when the render features draw meshes; a warning once per scene otherwise.
+		// MeshComponents and TerrainComponents (Renderer3D), when the render features draw meshes; a warning once per
+		// scene otherwise.
 		void SubmitMeshes(RenderView& renderView);
+		// TerrainComponents (TerrainCache, Renderer3D::DrawTerrainSurface); inside SubmitMeshes' Renderer3D scene.
+		void SubmitTerrains();
 		// Unlit emitters (ParticleLighting::Unlit): drawn after the view's lighting is composited, so they
 		// are not darkened at night. They go on top of every sprite (no SortOrder against sprites yet;
 		// the emissive path is decided by the Roadmap V4 spike).

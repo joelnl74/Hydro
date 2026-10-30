@@ -4,6 +4,7 @@
 #include "Renderer2D.h"
 #include "Renderer.h"
 #include "Renderer3D.h"
+#include "TerrainCache.h"
 #include <glm/ext/matrix_transform.hpp>
 
 #include "Hydro/Asset/AssetManager.h"
@@ -421,7 +422,8 @@ namespace Hydro
 	void SceneRenderer::SubmitMeshes(RenderView& renderView)
 	{
 		auto meshes = m_Scene->m_Registry.view<WorldTransformComponent, MeshComponent>();
-		if (meshes.begin() == meshes.end())
+		auto terrains = m_Scene->m_Registry.view<WorldTransformComponent, TerrainComponent>();
+		if (meshes.begin() == meshes.end() && terrains.begin() == terrains.end())
 		{
 			return;
 		}
@@ -432,7 +434,8 @@ namespace Hydro
 		{
 			if (m_MeshWarningShown == false)
 			{
-				HY_CORE_WARN("Scene '{}' has MeshComponents, but its render features don't draw them (Meshes needs to be on, with Depth = Shared)", m_Scene->GetName());
+				HY_CORE_WARN("Scene '{}' has MeshComponents or TerrainComponents, but its render features don't draw them (Meshes needs to be on, with Depth = Shared)",
+					m_Scene->GetName());
 				m_MeshWarningShown = true;
 			}
 			return;
@@ -459,7 +462,50 @@ namespace Hydro
 				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity, meshComponent.CastShadows);
 			}
 		}
+		SubmitTerrains();
 		Renderer3D::EndScene();
+	}
+
+	void SceneRenderer::SubmitTerrains()
+	{
+		auto terrains = m_Scene->m_Registry.view<WorldTransformComponent, TerrainComponent>();
+		for (auto entity : terrains)
+		{
+			const auto [transform, terrainComponent] = terrains.get<WorldTransformComponent, TerrainComponent>(entity);
+			// A terrain that isn't loaded (missing, or failed to read: logged when it was loaded) draws nothing.
+			const Ref<Terrain> terrain = (uint64_t)terrainComponent.Terrain != 0 ? AssetManager::GetLoadedAsset<Terrain>(terrainComponent.Terrain) : nullptr;
+			const TerrainRenderData* data = terrain != nullptr ? TerrainCache::Prepare(terrain) : nullptr;
+			if (data == nullptr)
+			{
+				continue;
+			}
+
+			const TerrainSettings& settings = terrain->GetSettings();
+			TerrainSurfaceMaterial material;
+			material.Weights = data->Weights;
+			material.WeightMapSize = glm::vec2((float)terrain->GetWeightMapWidth(), (float)terrain->GetWeightMapHeight()) / (float)std::max(settings.SplatResolution, 1u);
+			material.LayerCount = (uint32_t)std::min<size_t>(settings.Layers.size(), MaxTerrainLayers);
+			for (uint32_t i = 0; i < material.LayerCount; i++)
+			{
+				const TerrainLayer& layer = settings.Layers[i];
+				const Ref<MaterialAsset> asset = (uint64_t)layer.Material != 0 ? AssetManager::GetLoadedAsset<MaterialAsset>(layer.Material) : nullptr;
+				material.Layers[i] = asset != nullptr ? asset->GetData() : MaterialData{};
+				material.EdgeRoughness[i] = layer.EdgeRoughness;
+			}
+			material.EdgeClusterSize = settings.EdgeClusterSize;
+			material.EdgePixelNoise = settings.EdgePixelNoise;
+			material.Seed = settings.Seed;
+
+			// Only the position: terrains are axis-aligned and unscaled (v1).
+			const glm::mat4 world = glm::translate(glm::mat4(1.0f), transform.Translation);
+			for (const TerrainChunkDraw& chunk : data->Chunks)
+			{
+				if (chunk.Tops != nullptr)
+				{
+					Renderer3D::DrawTerrainSurface(chunk.Tops, 0, material, world, (int32_t)(uint32_t)entity, terrainComponent.CastShadows);
+				}
+			}
+		}
 	}
 
 	void SceneRenderer::SubmitUnlitParticles()
@@ -1149,12 +1195,27 @@ namespace Hydro
 		Entity selected = overlay.Selected; // a copy: Entity::GetScene is not const
 		const bool drawSelected = overlay.SelectionOutline && selected.IsValid()
 			&& selected.GetScene() == m_Scene.get() && selected.HasComponent<WorldTransformComponent>();
-		if (drawSelected == false && overlay.Colliders == false)
+		if (drawSelected == false && overlay.Colliders == false && overlay.TerrainBrush == false)
 		{
 			return;
 		}
 
 		Renderer2D::BeginOverlay();
+
+		// The Terrain tool's brush: a circle on the (flat, TR1) ground under the cursor, drawn over everything.
+		if (overlay.TerrainBrush)
+		{
+			const uint32_t segments = 48;
+			const glm::vec3 lift(0.0f, 0.0f, 0.01f);
+			glm::vec3 previous = overlay.TerrainBrushCentre + lift + glm::vec3(overlay.TerrainBrushRadius, 0.0f, 0.0f);
+			for (uint32_t i = 1; i <= segments; i++)
+			{
+				const float angle = glm::two_pi<float>() * (float)i / (float)segments;
+				const glm::vec3 point = overlay.TerrainBrushCentre + lift + glm::vec3(std::cos(angle), std::sin(angle), 0.0f) * overlay.TerrainBrushRadius;
+				Renderer2D::DrawLine3D(previous, point, overlay.TerrainBrushColor, 2.0f);
+				previous = point;
+			}
+		}
 
 		if (overlay.Colliders)
 		{

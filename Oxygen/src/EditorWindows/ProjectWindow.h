@@ -49,7 +49,7 @@ namespace Hydro
 
 	private:
 		// What the window shows an item as (Hydro::AssetType, plus folders).
-		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model, RenderProfile, Font };
+		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model, RenderProfile, Font, Terrain };
 
 		struct AssetItem
 		{

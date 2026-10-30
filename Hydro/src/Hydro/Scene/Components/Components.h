@@ -468,6 +468,16 @@ namespace Hydro
 		PhysicsLayer Layer = PhysicsLayer::Player;
 	};
 
+	// A terrain (Terrain plan): a .hyterrain asset drawn with its corner (0, 0) at the entity's position. The
+	// transform's rotation and scale are ignored (terrains are axis-aligned in v1; their outlines are free anyway).
+	// Plain data: SceneRenderer draws it through the TerrainCache; the editor's Terrain tool edits the asset.
+	struct TerrainComponent
+	{
+		AssetHandle Terrain = 0; // a Terrain (.hyterrain); 0 = none
+		bool CastShadows = true; // into the sun's shadow map (RenderFeatureSettings::Shadows = Sun)
+		PhysicsLayer Layer = PhysicsLayer::World; // TR2: the layer of its collision
+	};
+
 	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
 	// (every entity has those). Scene::Copy copies these; add new copyable components here.
 	// How a particle's colour is combined with what is already drawn.
@@ -764,5 +774,5 @@ namespace Hydro
 
 	using CopyableComponents = ComponentGroup<RelationshipComponent, TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent, UILayoutGroupComponent, UIScrollViewComponent, UIFocusVisibilityComponent>;
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, TerrainComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent, UILayoutGroupComponent, UIScrollViewComponent, UIFocusVisibilityComponent>;
 }

@@ -10,6 +10,8 @@
 #include "EditorWindows/EditorSettingsWindow.h"
 #include "EditorWindows/SpriteEditorWindow.h"
 #include "EditorWindows/SpriteAnimationWindow.h"
+#include "EditorWindows/TerrainTool.h"
+#include "EditorCommands/EditorCommand.h"
 #include "EditorSettings.h"
 
 #include <glm/glm.hpp>
@@ -163,6 +165,10 @@ namespace Hydro
 		// The Capture menu, shown in the Editor and Game windows' menu bars.
 		void DrawCaptureMenu();
 		void UpdateCaptureKeys();
+		// Ctrl+Z undoes, Ctrl+Y and Ctrl+Shift+Z redo (edit mode, not while typing); the Edit menu does the same.
+		void UpdateUndoKeys();
+		void Undo();
+		void Redo();
 		// <project>/.hydro/captures/<scene>_<view>_<yyyymmdd-hhmmss-mmm>.png
 		std::filesystem::path MakeCapturePath(const std::string& viewName) const;
 		// The transform gizmo (ImGuizmo) over the Editor view's image (at `imageMin`, `imageSize` ImGui
@@ -238,6 +244,10 @@ namespace Hydro
 		bool m_GizmoLocal = false;   // the entity's own axes instead of the world's (scaling always uses its own)
 		bool m_GizmoHovered = false; // the mouse is over a handle or drags one: a click there doesn't select
 		bool m_GizmoUsing = false;   // a handle is being dragged: the editor camera takes no new drags
+		// The undo history (EditorCommand; issue #165) and the Terrain tool, whose strokes are its first commands.
+		EditorCommandStack m_Commands;
+		TerrainTool m_TerrainTool;
+		bool m_TerrainToolOwnsMouse = false; // painting a terrain: no click-to-select, no gizmo
 		// Click-to-select in the Editor view (M7): a left press in the image, a release without moving.
 		bool m_ClickPending = false;
 		ImVec2 m_ClickStart{ 0.0f, 0.0f };

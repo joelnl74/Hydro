@@ -1,0 +1,56 @@
+Handle: 1694238557221495815
+Scene: Untitled
+RenderSettings:
+  OverrideProject: true
+  Features:
+    Depth: Shared
+    SpriteSorting: ViewDepth
+    Lighting: Forward
+    DefaultSpriteAlpha: Cutout
+    Meshes: true
+    Shadows: Sun
+    SpriteShadows: FaceSun
+    UprightSprites: LeanToCamera
+    HDR: true
+    Bloom: true
+Entities:
+  - Entity: 714575457508513052
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Perspective
+      PerspectiveFOV: 45
+      PerspectiveNear: 0.00999999978
+      PerspectiveFar: 1000
+      OrthographicSize: 10
+      OrthographicNear: -1
+      OrthographicFar: 1
+  - Entity: 14561805764886793048
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TerrainComponent:
+      TerrainHandle: 4857329585199429060
+      CastShadows: true
+      Layer: World
+  - Entity: 15211830432920591559
+    TagComponent:
+      Tag: Light
+    TransformComponent:
+      Translation: [0, 0, 0.221285]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Global
+      Color: [0.179254636, 0.713793099, 0.135374561]
+      Intensity: 1
+      Radius: 5
+      Height: 0

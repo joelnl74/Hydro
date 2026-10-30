@@ -8,6 +8,7 @@
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
+#include "Hydro/Terrain/Terrain.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -729,6 +730,18 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<TerrainComponent>())
+		{
+			auto& terrain = entity.GetComponent<TerrainComponent>();
+
+			out << YAML::Key << "TerrainComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "TerrainHandle" << YAML::Value << (uint64_t)terrain.Terrain;
+			out << YAML::Key << "CastShadows" << YAML::Value << terrain.CastShadows;
+			out << YAML::Key << "Layer" << YAML::Value << PhysicsLayerToString(terrain.Layer);
+			out << YAML::EndMap;
+		}
+
 		// Runtime UI. UIResolvedRectComponent is derived (Scene::ResolveUILayout) and never saved.
 		if (entity.HasComponent<UICanvasComponent>())
 		{
@@ -1234,6 +1247,26 @@ namespace Hydro
 			body.StepHeight = AtLeast(0.0f, characterNode["StepHeight"].as<float>(body.StepHeight));
 			body.StaysOnLedges = characterNode["StaysOnLedges"].as<bool>(body.StaysOnLedges);
 			body.Layer = PhysicsLayerFromString(characterNode["Layer"].as<std::string>("Player"), body.Layer);
+		}
+
+		if (auto terrainNode = entityNode["TerrainComponent"])
+		{
+			auto& terrain = entity.AddComponent<TerrainComponent>();
+			terrain.Terrain = AssetHandle(terrainNode["TerrainHandle"].as<uint64_t>(0));
+			terrain.CastShadows = terrainNode["CastShadows"].as<bool>(terrain.CastShadows);
+			terrain.Layer = PhysicsLayerFromString(terrainNode["Layer"].as<std::string>("World"), terrain.Layer);
+			// Loaded now, with its layers' materials (and their textures), so the first frame draws it.
+			const Ref<Terrain> asset = (uint64_t)terrain.Terrain != 0 ? AssetManager::GetAsset<Terrain>(terrain.Terrain) : nullptr;
+			if (asset != nullptr)
+			{
+				for (const TerrainLayer& layer : asset->GetSettings().Layers)
+				{
+					if ((uint64_t)layer.Material != 0)
+					{
+						AssetManager::GetAsset<MaterialAsset>(layer.Material);
+					}
+				}
+			}
 		}
 
 		// Runtime UI: missing keys keep the defaults.
