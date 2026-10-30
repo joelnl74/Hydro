@@ -138,6 +138,9 @@ namespace Hydro
 		// A soft round dot (white, alpha fading from the centre to the edge), made in code: the default
 		// particle texture. Valid between Init and Shutdown.
 		static const Ref<Texture2D>& GetSoftDotTexture();
+		// A soft blob shadow (white, alpha 1 - smoothstep(0, 1, r): the curve of shadow.frag), made in code: the
+		// contact shadow under characters and props in forward-lit views. Valid between Init and Shutdown.
+		static const Ref<Texture2D>& GetBlobShadowTexture();
 
 		// Lines and outlines, drawn between BeginScene and EndScene. A line is a thin quad (it batches and
 		// blends like a sprite, and works on GPUs without wide lines), so it counts in QuadCount and

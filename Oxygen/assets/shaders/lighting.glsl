@@ -118,15 +118,24 @@ vec3 ComputeLighting(vec3 position, vec3 normal, float wrap, float sunVisibility
 	return light;
 }
 
-// Linear distance fog towards the fog colour, by the distance from what the camera looks at (not from the
-// camera itself, so how far away the camera is doesn't matter).
+// Linear distance fog towards the fog colour, by how far a point lies behind what the camera looks at, along
+// the view direction (not from the camera itself, so how far away the camera is doesn't matter). Only what is
+// beyond the focus point hazes: the foreground between the camera and the player (front canopy cards, the
+// lower terrace) stays clear, as in a diorama photographed with atmospheric depth. A camera that never meets
+// the ground (fogOrigin is the camera itself) falls back to the plain distance from it.
 vec3 ApplyFog(vec3 color, vec3 position)
 {
 	if (lighting.fogColor.w < 0.5)
 	{
 		return color;
 	}
+	vec3 toFocus = lighting.fogOrigin.xyz - lighting.cameraPosition.xyz;
+	float focusDistance = length(toFocus);
 	float distanceToFocus = length(position - lighting.fogOrigin.xyz);
+	if (focusDistance > 0.001)
+	{
+		distanceToFocus = max(dot(position - lighting.fogOrigin.xyz, toFocus / focusDistance), 0.0);
+	}
 	float range = max(lighting.fogParams.y - lighting.fogParams.x, 0.001);
 	float amount = clamp((distanceToFocus - lighting.fogParams.x) / range, 0.0, 1.0);
 	return mix(color, lighting.fogColor.rgb, amount);

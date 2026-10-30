@@ -11,3 +11,16 @@ Renderer:
   LightFalloff: Smooth
   LightBands: 8
   Shadows: true
+  SunShadowMapSize: 2048
+  SoftSunShadows: true
+  RenderFeatures:
+    Depth: Off
+    SpriteSorting: SortOrder
+    Lighting: LightBuffer2D
+    DefaultSpriteAlpha: Translucent
+    Meshes: false
+    Shadows: Off
+    SpriteShadows: FaceSun
+    UprightSprites: LeanToCamera
+    HDR: false
+    Bloom: false

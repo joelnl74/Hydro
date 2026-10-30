@@ -47,9 +47,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, 0.05]
-      Size: [0.85, 0.32]
-      Strength: 0.55
+      Offset: [0, -0.04]
+      Size: [1, 0.62]
+      Strength: 0.62
     CharacterBodyComponent:
       Radius: 0.25
       Height: 1.4

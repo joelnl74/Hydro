@@ -1143,7 +1143,7 @@ namespace Hydro
 			{
 				const glm::mat4 quad = glm::translate(glm::mat4(1.0f), position + glm::vec3(0.0f, 0.0f, 0.01f))
 					* glm::scale(glm::mat4(1.0f), glm::vec3(shadow.Size, 1.0f));
-				Renderer2D::DrawQuad(quad, Renderer2D::GetSoftDotTexture(), 1.0f, glm::vec4(0.0f, 0.0f, 0.0f, std::clamp(shadow.Strength, 0.0f, 1.0f)));
+				Renderer2D::DrawQuad(quad, Renderer2D::GetBlobShadowTexture(), 1.0f, glm::vec4(0.0f, 0.0f, 0.0f, std::clamp(shadow.Strength, 0.0f, 1.0f)));
 				continue;
 			}
 			Renderer2D::DrawShadow(position, shadow.Size, shadow.Strength);
