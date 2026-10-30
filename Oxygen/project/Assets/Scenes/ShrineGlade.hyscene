@@ -10,7 +10,7 @@ RenderSettings:
     Meshes: true
     Shadows: Sun
     SpriteShadows: AsDrawn
-    UprightSprites: LeanToCamera
+    UprightSprites: Vertical
     HDR: true
     Bloom: true
 Look:

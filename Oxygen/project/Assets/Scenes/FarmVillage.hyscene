@@ -10,6 +10,7 @@ RenderSettings:
     Meshes: true
     Shadows: Sun
     SpriteShadows: AsDrawn
+    UprightSprites: Vertical
     HDR: true
     Bloom: true
 Look:
@@ -4113,7 +4114,22 @@ Entities:
       Size: [1, 1, 1]
       CastShadows: true
       Materials:
-        []
+        - MaterialHandle: 15176370098407902343
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+        - MaterialHandle: 15176370098407902343
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
   - Entity: 6029157300579954999
     TagComponent:
       Tag: Bridge Walk Deck
@@ -14045,26 +14061,26 @@ Entities:
     TransformComponent:
       Translation: [-15.6, 11.94615, 1]
       Rotation: [0, 0, 0]
-      Scale: [4.23077, 4.69231, 1]
+      Scale: [5.1875, 4.9375, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.860000014, 0.819999993, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 9243704617666035352
+      TextureHandle: 6713468448205163317
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.438800007]
-      Size: [0.328200012, 0.122400001]
+      Offset: [0, -0.449999988]
+      Size: [0.173000008, 0.0810000002]
       Density: 1
       Friction: 0
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.438800007, 0.800000012]
-      Size: [0.328200012, 0.122400001, 1.60000002]
+      Offset: [0, -0.449999988, 0.800000012]
+      Size: [0.173000008, 0.0810000002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1268627480930688052
@@ -14075,26 +14091,26 @@ Entities:
     TransformComponent:
       Translation: [15.4, 12.03077, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.84615, 4.46154, 1]
+      Scale: [5.1875, 4.9375, 1]
     SpriteRendererComponent:
       Color: [0.860000014, 0.860000014, 0.819999993, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 8488991791958191081
+      TextureHandle: 6713468448205163317
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.438800007]
-      Size: [0.311500013, 0.122400001]
+      Offset: [0, -0.449999988]
+      Size: [0.173000008, 0.0810000002]
       Density: 1
       Friction: 0
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.438800007, 0.800000012]
-      Size: [0.311500013, 0.122400001, 1.60000002]
+      Offset: [0, -0.449999988, 0.800000012]
+      Size: [0.173000008, 0.0810000002, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 3883230908121674976
@@ -14114,26 +14130,26 @@ Entities:
     TransformComponent:
       Translation: [-5.6, 11.95, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.73077, 4.5, 1]
+      Scale: [4.25, 5.4375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 12260030792196574297
+      TextureHandle: 8698871493838137639
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.451000005]
-      Size: [0.198599994, 0.0979999974]
+      Offset: [0, -0.449999988]
+      Size: [0.188000005, 0.0740000010]
       Density: 1
       Friction: 0
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.451000005, 0.800000012]
-      Size: [0.198599994, 0.0979999974, 1.60000002]
+      Offset: [0, -0.449999988, 0.800000012]
+      Size: [0.188000005, 0.0740000010, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 1170969932580202813
@@ -14144,26 +14160,26 @@ Entities:
     TransformComponent:
       Translation: [5.6, 12.30769, 1]
       Rotation: [0, 0, 0]
-      Scale: [4.38462, 4.61538, 1]
+      Scale: [4.25, 5.4375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 16770457789903564025
+      TextureHandle: 8698871493838137639
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
       Offset: [0, -0.449999988]
-      Size: [0.248099998, 0.100000001]
+      Size: [0.188000005, 0.0740000010]
       Density: 1
       Friction: 0
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
       Offset: [0, -0.449999988, 0.800000012]
-      Size: [0.248099998, 0.100000001, 1.60000002]
+      Size: [0.188000005, 0.0740000010, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 3624882218500791006
@@ -14264,26 +14280,26 @@ Entities:
     TransformComponent:
       Translation: [6.9, 11.31923, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.19231, 4.03846, 1]
+      Scale: [3.02162, 3.9, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 9852444882655248173
+      TextureHandle: 4662093017358255073
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.45449999]
-      Size: [0.202299997, 0.0908999965]
+      Offset: [0, -0.435900003]
+      Size: [0.304800004, 0.128199995]
       Density: 1
       Friction: 0
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.45449999, 0.800000012]
-      Size: [0.202299997, 0.0908999965, 1.60000002]
+      Offset: [0, -0.435900003, 0.800000012]
+      Size: [0.304800004, 0.128199995, 1.60000002]
       Layer: World
       IsTrigger: false
   - Entity: 7839027408268553758
