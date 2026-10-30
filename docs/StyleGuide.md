@@ -28,7 +28,7 @@ References are for principles, never for copying. Use original designs, and neve
 | Density | **32 texels per metre** for every field asset (sprites, shape materials, model textures), within ±20 % (25.6–38.4): [world density](SpriteSizes.md#world-density-32-texels-per-metre-decided-2026-10-30). Check with `scripts/check_texel_density.py`. A sprite's world size is its transform scale; keep `PixelsPerUnit: 32` and use **Set Native Size**. |
 | Filtering | Nearest filtering and clamp on all pixel art; no mipmaps on sprites. |
 | Characters | Adults 50–58 px tall (1.6–1.8 m), Miko 52 px. Children about 40 px. Proportions about 3 heads. |
-| Props | Real-world size: barrel 0.6 x 0.9 m (about 20 x 29 px), crate 0.8 m, hay bale 0.9 x 0.65 m, door 1.1 x 2.2 m, a one-storey cottage 6–7 m wide. A prop may be shown down to 26 px/m to keep a footprint; never above 38. Approved barrels (Oct 30, 2026, at 30 px/m, never mirrored): `FarmVillage/Props/BarrelA`-`D`, `BarrelSideA`-`D`, `BarrelKeg`, `BarrelStackA`-`C`, `RainBarrelA`-`B`; plain brown wood with dark iron hoops only. |
+| Props | Real-world size: barrel 0.6 x 0.9 m (about 20 x 29 px), crate 0.8 m, hay bale 0.9 x 0.65 m, door 1.1 x 2.2 m, a one-storey cottage 6–7 m wide. A prop may be shown down to 26 px/m to keep a footprint; never above 38. Approved barrels (Oct 30, 2026, at 30 px/m, never mirrored): `Sprites/Props/BarrelA`-`D`, `BarrelSideA`-`D`, `BarrelKeg`, `BarrelStackA`-`C`, `RainBarrelA`-`B`; plain brown wood with dark iron hoops only. |
 | Exceptions | Written in the [Sprite sizes](SpriteSizes.md) audit table, with a reason (today: the wheat at about 42 px/m). |
 | Cluster scale (decided Oct 30, 2026) | Same density is not enough: the **shapes painted inside** must be on Miko's scale too, or an asset still reads as "bigger pixels". Measured Oct 30: every kit texture, the thatch included, is exactly 32 texels/m, yet the thatch looked twice as coarse because it is painted as 16 px bundles in two flat tones. Rule: the repeating motif (a shingle, a stone, a straw bundle, a leaf clump) is **4–10 px** across; no flat single-colour area larger than about **6 x 6 px** except deliberate shadow; every material uses a 4–5 shade ramp so edges step through a mid-tone. Miko's sprite and the cut-stone wall (`MV_Stone_Cut`) are the reference for how fine a surface should look. |
 
@@ -87,7 +87,7 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 | --- | --- |
 | Shape | Semi-chibi, about 3 heads tall, big readable head, simplified hands and feet; one clear silhouette feature per character (hat, staff, basket, beard). |
 | Authoring | **64 x 64 canvas**, low top-down view, 8 or 4 directions (PixelLab: same settings as Miko). |
-| Field sheet | `Characters/Villagers/<Name>.png` (heroes in their own folder): **96 x 72 cells**, rows Down, Right, Up, Left, columns 0–3 idle and 4–7 walk; feet on the bottom row; pivot `[0.5, 0]`; scale **3 x 2.25** (32 px/m). Idle-only NPCs: one row facing the camera. |
+| Field sheet | `Characters/NPC/<Name>/<Name>.png` (the player in `Characters/Player/<Name>/`, enemies in `Characters/Enemy/<Name>/`): **96 x 72 cells**, rows Down, Right, Up, Left, columns 0–3 idle and 4–7 walk; feet on the bottom row; pivot `[0.5, 0]`; scale **3 x 2.25** (32 px/m). Idle-only NPCs: one row facing the camera. |
 | Animation | Idle 4 frames at 4 fps (breathing, a blink); walk 4–8 frames at 8–10 fps. Clips are `Idle<Dir>` / `Walk<Dir>` in `Characters/<Name>.hyanim`. |
 | Battle sheet | A separate, larger set: Miko's battle sheet uses 96 x 96 cells with a fighting-stance idle (`BattleIdle`), walk, kick, punch and death. Never reuse the field idle in battle. |
 | Costume | Medieval fantasy: wool, linen and leather in earthy dyes (cream, oat, russet, moss, woad blue, walnut). No modern clothing. Shrine culture shows in paper charms, wooden tokens and spiral symbols. |
@@ -96,7 +96,7 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 
 ## Environments
 
-**Structure is 3D, surfaces are pixel art.** Buildings, terrain, walls, bridges and wells are meshes (the medieval kit, `MedievalVillage/Models/Source/MV_Kit`, built by `_scripts/build_kit.py`). Their textures follow the 32 texels per metre rule and the pixel rules above.
+**Structure is 3D, surfaces are pixel art.** Buildings, terrain, walls, bridges and wells are meshes (the medieval kit, `Models/MedievalVillage/Source/MV_Kit`, built by `_scripts/build_kit.py`). Their textures follow the 32 texels per metre rule and the pixel rules above.
 
 | Element | Rule |
 | --- | --- |
@@ -109,7 +109,7 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 | Retaining walls | A wall face in the sun's shadow must still read as stone, never as a black band: base value at least the mid-tone of `MV_Stone_Field`, darker only toward its foot (contact shading), hanging ivy and moss decals every few metres, a grass fringe on the cap. |
 | Hedges (decided Oct 30, 2026) | A **long trimmed hedge is 3D**, not a row of sprites: a kit module with a bevelled, lumpy top, a lighter top material and a darker side material (both 32 texels/m, no outline), plus a few cut-out leaf cards along the top edge to break the line. Upright sprite cards lined up in a row show no top plane from the field camera, so they read as a flat green box. Free-standing round bushes stay upright sprites. `HedgeA`-`P` are retired from rows; no lemon or yellow-green tops (the foliage palette's lightest green is the limit). |
 | Crops | One plant per sprite, never a pre-made row of copies (`CabbageRow`, `TomatoRow`... are retired). Fields are built from single plants with at least 3 variants and 2 growth stages per crop, small scale jitter (±8 %) and tint jitter (±5 %), and a gap or a harvested plant here and there. No mirroring (the light is painted in). |
-| Vegetation | Trees, bushes, flowers and crops are upright sprites at 32 px/m (26 px/m allowed to keep a big tree's footprint). Their sun is painted on the upper left, so **never mirror them** (FlipX off); variety comes from more variants, at least 3 per kind. Approved style (Oct 30, 2026): `ShrineGlade/Foliage/OakSunA`, `OakSunB`, `OakSunC`, `OakGnarledSmall`, `OakYoungB`, `FirTallA`-`D`, `FirSmallA`-`G`, `SakuraWeeping`, `BushDense01`-`32`, `BushSmall01`-`12`, `ShrubLargeA`-`D`, `FlowerBush01`-`28`, `TopiaryA`-`D`, `Lavender01`-`28`, `GrassTuft01`-`24`, `Fern01`-`16`, `Wildflowers01`-`24`, `FlowerClump01`-`24`, `LeafyPatch01`-`16`, `Seedling01`-`08`, `LowGrass01`-`12`, `LowGrassShade01`-`06`, `LowGrassFlower01`-`12` (low grass strips for wall feet and edges, 26-38 px/m). Retired Oct 30, 2026 (kept on disk, not placed): `LindenAutumnA`-`F` (drawn at about 26 px/m with big flat orange clusters, they read coarser than everything around them; the village is summer-into-harvest, not autumn) and `HedgeA`-`P` in rows (see Hedges); generate plants with `art_incoming/style_refs/palette_foliage_32.png`, not the 48-colour palette (it pulls mint and lemon); the prompts for the rest are in `art_incoming/style_refs/FOLIAGE_PROMPTS.md`. Later: 3D trees (trunk mesh, cut-out leaf cards with outward normals) for foreground and village trees. |
+| Vegetation | Trees, bushes, flowers and crops are upright sprites at 32 px/m (26 px/m allowed to keep a big tree's footprint). Their sun is painted on the upper left, so **never mirror them** (FlipX off); variety comes from more variants, at least 3 per kind. Approved style (Oct 30, 2026; trees in `Sprites/Trees`, the rest in `Sprites/Plants`): `OakSunA`, `OakSunB`, `OakSunC`, `OakGnarledSmall`, `OakYoungB`, `FirTallA`-`D`, `FirSmallA`-`G`, `SakuraWeeping`, `BushDense01`-`32`, `BushSmall01`-`12`, `ShrubLargeA`-`D`, `FlowerBush01`-`28`, `TopiaryA`-`D`, `Lavender01`-`28`, `GrassTuft01`-`24`, `Fern01`-`16`, `Wildflowers01`-`24`, `FlowerClump01`-`24`, `LeafyPatch01`-`16`, `Seedling01`-`08`, `LowGrass01`-`12`, `LowGrassShade01`-`06`, `LowGrassFlower01`-`12` (low grass strips for wall feet and edges, 26-38 px/m). Retired Oct 30, 2026 (kept on disk, not placed): `LindenAutumnA`-`F` (drawn at about 26 px/m with big flat orange clusters, they read coarser than everything around them; the village is summer-into-harvest, not autumn) and `HedgeA`-`P` in rows (see Hedges); generate plants with `art_incoming/style_refs/palette_foliage_32.png`, not the 48-colour palette (it pulls mint and lemon); the prompts for the rest are in `art_incoming/style_refs/FOLIAGE_PROMPTS.md`. Later: 3D trees (trunk mesh, cut-out leaf cards with outward normals) for foreground and village trees. |
 | Ground details | Small decal sprites (pebbles, leaves, flowers, cracks) break up every large surface. |
 
 **3D or sprite for a prop?** Pick one per kind of prop for the whole game:
@@ -157,12 +157,30 @@ Do not add anti-aliasing, smooth gradients, painterly shading, tiny noisy detail
 cast shadows, ground, text or modern items.
 ```
 
+### Asset folders (decided Oct 30, 2026)
+
+Assets are filed by **what they are**, not by the scene that first used them (scenes share trees, props and kit pieces):
+
+| Folder | Holds |
+| --- | --- |
+| `Characters/Player/<Name>/`, `Characters/NPC/<Name>/`, `Characters/Enemy/<Name>/` | The field sheet(s) and their `.hyanim` side by side; source atlases in `Source/` |
+| `Models/MedievalVillage/` | The modular kit (`MV_*.glb`, each with its `<model>.textures/` and `<model>_MAT_*.hymat`), its Blender source and scripts in `Source/MV_Kit` |
+| `Models/Architecture/`, `Models/Props/`, `Models/Terrain/`, `Models/Source/` | One-off models (not part of a kit), by kind; their Blender sources |
+| `Sprites/Trees/`, `Sprites/Plants/`, `Sprites/Crops/`, `Sprites/Props/`, `Sprites/Effects/`, `Sprites/UI/` | Everything a SpriteRenderer draws; `Sprites/_Sheets/` holds delivered sheets that are cut into sprites |
+| `Textures/Ground/`, `Textures/Backdrops/`, `Textures/Palettes/` | Surfaces for meshes and planes, and reference palettes |
+| `Materials/Ground/`, `Materials/Interior/`, `Materials/Backdrops/` | Scene materials that don't belong to one model |
+| `Prefabs/Characters/`, `Prefabs/Effects/` | Prefabs |
+| `RenderProfiles/<Scene>/` | A scene's Day / Dusk / Night looks (the only place besides `Scenes/` with a scene name in the path) |
+| `Scenes/`, `Fonts/` | Unchanged |
+
+A file always moves with its `.hymeta` (the handle lives there, and scenes refer to assets by handle); a model moves with its `.textures/` folder and material files. Move assets in the editor's Project window (it keeps handles) or with `git mv` while Oxygen is closed. Code that names a path (`AssetManager::FindHandle("...")`, the render profiles in `ShrineScripts.h`, the Python builders) must follow a move. New art arrives in `art_incoming/` and goes straight into its kind's folder.
+
 ### Importing (conventions)
 
 | Asset | Import |
 | --- | --- |
-| Character field sheet | `Characters/Villagers/<Name>.png`, `.hymeta` Grid 96 x 72, RowNames `<Name>_Down/Right/Up/Left`, DefaultPivot `[0.5, 0]`, Nearest, Clamp, PPU 32; clips in `Characters/<Name>.hyanim` |
-| Prop or crop sprite | `<Area>/Foliage/<Name>.png` or `<Area>/Crops/<Name>.png`, SpriteMode Single, Nearest, Clamp, PPU 32; scale = pixels / 32; Upright facing; contact shadow |
+| Character field sheet | `Characters/NPC/<Name>/<Name>.png`, `.hymeta` Grid 96 x 72, RowNames `<Name>_Down/Right/Up/Left`, DefaultPivot `[0.5, 0]`, Nearest, Clamp, PPU 32; clips in `<Name>.hyanim` next to the sheet |
+| Prop or crop sprite | `Sprites/<Trees|Plants|Props>/<Name>.png` or `Sprites/Crops/<Name>.png`, SpriteMode Single, Nearest, Clamp, PPU 32; scale = pixels / 32; Upright facing; contact shadow |
 | Texture for a mesh or shape | Snap fake pixel art with `scripts/snap_pixel_texture.py`, then set Tiling for 32 texels per metre (the script prints it) |
 | Kit model | Edit `build_kit.py`, run it headless; the importer re-extracts textures when a `.glb` changes |
 

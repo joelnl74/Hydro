@@ -293,7 +293,7 @@ namespace Hydro
 		void OnCreate() override
 		{
 			// The dust effect (a prefab with a particle emitter), loaded once here: Vfx::Play never reads the disk.
-			m_Dust = (uint64_t)DustEffect != 0 ? DustEffect : AssetManager::FindHandle("Effects/DustPuff.hyprefab");
+			m_Dust = (uint64_t)DustEffect != 0 ? DustEffect : AssetManager::FindHandle("Prefabs/Effects/DustPuff.hyprefab");
 			if ((uint64_t)m_Dust != 0)
 			{
 				AssetManager::GetAsset<Prefab>(m_Dust);
@@ -363,7 +363,7 @@ namespace Hydro
 		int MaxCrates = 10;
 		HY_PROPERTY(Range(0, 10), Tooltip("Metres in front of the player a crate lands"))
 		float DropDistance = 1.4f;
-		HY_PROPERTY(Asset(Prefab), Tooltip("The puff played where a crate lands or vanishes; empty uses Effects/DustPuff.hyprefab"))
+		HY_PROPERTY(Asset(Prefab), Tooltip("The puff played where a crate lands or vanishes; empty uses Prefabs/Effects/DustPuff.hyprefab"))
 		AssetHandle DustEffect = 0;
 
 	private:

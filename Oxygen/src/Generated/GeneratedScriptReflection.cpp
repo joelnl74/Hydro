@@ -149,7 +149,7 @@ namespace Hydro
 		ScriptRegistry::Register<VillageCrateSpawnerScript>("VillageCrateSpawnerScript")
 			.Property("MaxCrates", "Max Crates", &VillageCrateSpawnerScript::MaxCrates).Range(1.0f, 100.0f).Tooltip("Crates kept at once; the oldest disappears")
 			.Property("DropDistance", "Drop Distance", &VillageCrateSpawnerScript::DropDistance).Range(0.0f, 10.0f).Tooltip("Metres in front of the player a crate lands")
-			.Property("DustEffect", "Dust Effect", &VillageCrateSpawnerScript::DustEffect).Tooltip("The puff played where a crate lands or vanishes; empty uses Effects/DustPuff.hyprefab").AssetFilter(AssetType::Prefab);
+			.Property("DustEffect", "Dust Effect", &VillageCrateSpawnerScript::DustEffect).Tooltip("The puff played where a crate lands or vanishes; empty uses Prefabs/Effects/DustPuff.hyprefab").AssetFilter(AssetType::Prefab);
 
 		ScriptRegistry::Register<VillageDirectorScript>("VillageDirectorScript");
 

@@ -39,7 +39,7 @@ namespace Hydro
 
 	enum class EnemyKind : uint8_t { None = 0, Slime, Wisp };
 
-	// Rows of Assets/DioramaRPG/UI/BattleText.png (keep in step with scripts/shrine_glade/battle.py TEXT_ROWS and
+	// Rows of Assets/Sprites/UI/BattleText.png (keep in step with scripts/shrine_glade/battle.py TEXT_ROWS and
 	// NEW_TEXT, which appends the last three rows from the sheet's own glyphs).
 	enum class BattleLabel : uint32_t
 	{
@@ -84,7 +84,7 @@ namespace Hydro
 		}
 	}
 
-	// Cells of Assets/DioramaRPG/UI/BattleIcons.png: row Icon, then row Digit (0-9 from DigitBase).
+	// Cells of Assets/Sprites/UI/BattleIcons.png: row Icon, then row Digit (0-9 from DigitBase).
 	struct BattleIcon
 	{
 		static constexpr uint32_t Unknown = 5;
@@ -2184,7 +2184,7 @@ namespace Hydro
 		static constexpr float HudLift = 1.0f;       // metres from the view plane towards the camera
 		static constexpr float GroundHeight = 0.0f;  // the arena floor
 		// Where the feet are in a cell, as a fraction of its height from the bottom, and the sheet's pivot (its
-		// .hymeta): Characters/Miko, DioramaRPG/Enemies (slime, wisp). An Upright sprite stands on its quad's
+		// .hymeta): Characters/Player/Miko, Characters/Enemy (slime, wisp). An Upright sprite stands on its quad's
 		// bottom edge, which a pivot moves back by Pivot x height, so StandOffset moves the sprite until the
 		// feet are on the floor at its ground point (keep in step with scripts/battle/build_arena.py).
 		static constexpr float HeroFoot = 15.0f / 96.0f;

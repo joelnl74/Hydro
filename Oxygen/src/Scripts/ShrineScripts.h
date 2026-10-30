@@ -333,9 +333,9 @@ namespace Hydro
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {
-				{ "Day", "ShrineGlade/RenderProfiles/Day.hyrender", { 1.00f, 0.95f, 0.85f }, 1.10f, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, 0.0f },
-				{ "Dusk", "ShrineGlade/RenderProfiles/Dusk.hyrender", { 1.00f, 0.72f, 0.46f }, 0.75f, { 0.36f, 0.28f, 0.32f }, { 0.12f, 0.09f, 0.08f }, { 0.66f, 0.44f, 0.36f }, 1.0f },
-				{ "Night", "ShrineGlade/RenderProfiles/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
+				{ "Day", "RenderProfiles/ShrineGlade/Day.hyrender", { 1.00f, 0.95f, 0.85f }, 1.10f, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, 0.0f },
+				{ "Dusk", "RenderProfiles/ShrineGlade/Dusk.hyrender", { 1.00f, 0.72f, 0.46f }, 0.75f, { 0.36f, 0.28f, 0.32f }, { 0.12f, 0.09f, 0.08f }, { 0.66f, 0.44f, 0.36f }, 1.0f },
+				{ "Night", "RenderProfiles/ShrineGlade/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
 			};
 			return presets[std::clamp(index, 0, 2)];
 		}
@@ -380,9 +380,9 @@ namespace Hydro
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {
-				{ "Day", "FarmVillage/RenderProfiles/Day.hyrender", { 1.00f, 0.95f, 0.86f }, 1.15f, { 0.55f, 0.6f, 0.66f }, { 0.22f, 0.2f, 0.15f }, { 0.72f, 0.76f, 0.74f }, 0.0f },
-				{ "Golden", "FarmVillage/RenderProfiles/Golden.hyrender", { 1.00f, 0.80f, 0.56f }, 1.0f, { 0.42f, 0.36f, 0.3f }, { 0.16f, 0.12f, 0.08f }, { 0.78f, 0.6f, 0.38f }, 0.8f },
-				{ "Night", "FarmVillage/RenderProfiles/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
+				{ "Day", "RenderProfiles/FarmVillage/Day.hyrender", { 1.00f, 0.95f, 0.86f }, 1.15f, { 0.55f, 0.6f, 0.66f }, { 0.22f, 0.2f, 0.15f }, { 0.72f, 0.76f, 0.74f }, 0.0f },
+				{ "Golden", "RenderProfiles/FarmVillage/Golden.hyrender", { 1.00f, 0.80f, 0.56f }, 1.0f, { 0.42f, 0.36f, 0.3f }, { 0.16f, 0.12f, 0.08f }, { 0.78f, 0.6f, 0.38f }, 0.8f },
+				{ "Night", "RenderProfiles/FarmVillage/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
 			};
 			return presets[std::clamp(index, 0, 2)];
 		}
@@ -434,9 +434,9 @@ namespace Hydro
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {
-				{ "Day", "Interiors/RenderProfiles/Day.hyrender", { 1.00f, 0.93f, 0.80f }, 1.0f, { 0.34f, 0.3f, 0.26f }, { 0.14f, 0.11f, 0.08f }, { 0.0f, 0.0f, 0.0f }, 0.6f },
-				{ "Evening", "Interiors/RenderProfiles/Evening.hyrender", { 1.00f, 0.66f, 0.38f }, 0.7f, { 0.22f, 0.17f, 0.14f }, { 0.08f, 0.06f, 0.04f }, { 0.0f, 0.0f, 0.0f }, 1.0f },
-				{ "Night", "Interiors/RenderProfiles/Night.hyrender", { 0.50f, 0.62f, 1.00f }, 0.35f, { 0.1f, 0.1f, 0.14f }, { 0.04f, 0.03f, 0.03f }, { 0.0f, 0.0f, 0.0f }, 1.15f }
+				{ "Day", "RenderProfiles/Interiors/Day.hyrender", { 1.00f, 0.93f, 0.80f }, 1.0f, { 0.34f, 0.3f, 0.26f }, { 0.14f, 0.11f, 0.08f }, { 0.0f, 0.0f, 0.0f }, 0.6f },
+				{ "Evening", "RenderProfiles/Interiors/Evening.hyrender", { 1.00f, 0.66f, 0.38f }, 0.7f, { 0.22f, 0.17f, 0.14f }, { 0.08f, 0.06f, 0.04f }, { 0.0f, 0.0f, 0.0f }, 1.0f },
+				{ "Night", "RenderProfiles/Interiors/Night.hyrender", { 0.50f, 0.62f, 1.00f }, 0.35f, { 0.1f, 0.1f, 0.14f }, { 0.04f, 0.03f, 0.03f }, { 0.0f, 0.0f, 0.0f }, 1.15f }
 			};
 			return presets[std::clamp(index, 0, 2)];
 		}
