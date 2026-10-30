@@ -9,7 +9,7 @@ rem Usage:
 rem   scripts\Build.bat [Debug|Release|Dist] [options]
 rem
 rem Options:
-rem   --project <name>  build one project of the solution (Hydro or Oxygen) instead of all of it
+rem   --project <name>  build one project of the solution (Hydro, Game, Oxygen or Runtime) instead of all of it
 rem   --rebuild         rebuild instead of an incremental build
 rem   --no-generate     skip the premake step (use the existing Hydro.sln)
 rem   --action <name>   premake action, default vs2022 (also HYDRO_PREMAKE_ACTION)
@@ -128,21 +128,22 @@ if defined PROJECT (
 	if /i "%TARGET%"=="Build" (set "MSBUILD_TARGET=%PROJECT%") else (set "MSBUILD_TARGET=%PROJECT%:%TARGET%")
 )
 echo [Build] %CONFIG% ^| target %MSBUILD_TARGET% ^| !MSBUILD!
-"!MSBUILD!" Hydro.sln -nologo -m -t:%MSBUILD_TARGET% -p:Configuration=%CONFIG% -v:minimal -clp:Summary;ForceNoAlign -flp1:LogFile=%LOG%;Verbosity=normal -flp2:LogFile=%ERRLOG%;errorsonly -flp3:LogFile=%WARNLOG%;warningsonly
+"!MSBUILD!" Hydro.sln -nologo -m -nodeReuse:false -t:%MSBUILD_TARGET% -p:Configuration=%CONFIG% -v:minimal -clp:Summary;ForceNoAlign -flp1:LogFile=%LOG%;Verbosity=normal -flp2:LogFile=%ERRLOG%;errorsonly -flp3:LogFile=%WARNLOG%;warningsonly
 set "BUILD_RESULT=%ERRORLEVEL%"
 
 set "ERRORS=0"
 set "WARNINGS=0"
-for /f %%n in ('findstr /c:": error " /c:": fatal error " "%ERRLOG%" 2^>nul ^| find /c /v ""') do set "ERRORS=%%n"
-for /f %%n in ('findstr /c:": warning " "%WARNLOG%" 2^>nul ^| find /c /v ""') do set "WARNINGS=%%n"
+rem MSBuild's own totals ("    12 Warning(s)" / "    0 Error(s)" at the end of the full log).
+for /f "tokens=1" %%n in ('findstr /r /c:"^ *[0-9][0-9]* Warning(s)" "%LOG%" 2^>nul') do set "WARNINGS=%%n"
+for /f "tokens=1" %%n in ('findstr /r /c:"^ *[0-9][0-9]* Error(s)" "%LOG%" 2^>nul') do set "ERRORS=%%n"
 
 echo.
 if "%BUILD_RESULT%"=="0" (
-	echo [Build] SUCCEEDED: %CONFIG%, %WARNINGS% warning line^(s^)
+	echo [Build] SUCCEEDED: %CONFIG%, %WARNINGS% warning^(s^)
 	echo [Build] Output: bin\%CONFIG%-windows-x86_64\
 	set "EXIT_CODE=0"
 ) else (
-	echo [Build] FAILED: %CONFIG%, %ERRORS% error line^(s^), %WARNINGS% warning line^(s^)
+	echo [Build] FAILED: %CONFIG%, %ERRORS% error^(s^), %WARNINGS% warning^(s^)
 	echo [Build] Errors:
 	type "%ERRLOG%"
 	set "EXIT_CODE=1"

@@ -1,6 +1,6 @@
 """The battle stage camera, shared by build_arena.py and preview.py.
 
-Keep in step with BattleScript (Oxygen/src/Scripts/BattleScripts.h, "Stage camera"): the same properties and the
+Keep in step with BattleScript (Game/src/Scripts/BattleScripts.h, "Stage camera"): the same properties and the
 same maths, so the positions the builder bakes into Battle.hyscene are where the script puts things at runtime.
 
 Layout units (L): the battle's 2D layout from before the 3D stage, 18 units from the bottom of the screen to the

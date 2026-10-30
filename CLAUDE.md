@@ -1,6 +1,6 @@
 # Hydro: notes for Claude
 
-Vulkan game engine (`Hydro`, static library) and its editor (`Oxygen`). Windows + MSVC + premake; C++17.
+Vulkan game engine (`Hydro`, static library), the game's code (`Game`, static library: the scripts), its editor (`Oxygen`) and the standalone player (`Runtime`). Windows + MSVC + premake; C++17.
 
 ## Find things cheaply
 
@@ -26,6 +26,7 @@ Runtime UI work (canvases, text, buttons, focus, pointer, menus) is checked in `
 - **Editing**: change the files in the user's folder on their computer (copy over only the files you edit, guarded by their modification time), not the clone.
 - **Checking**: `scripts/check.sh [files...]` = g++ syntax check (`-Wall -Wextra`) + glslang for the shaders. It is not a build: say the change still needs an MSVC Debug build.
 - **Building**: `scripts\Build.bat [Debug|Release|Dist] [--project Hydro|Oxygen] [--rebuild] [--no-generate] [--no-pause]` regenerates the solution, builds with MSBuild and writes `bin\logs\Build-<Config>.log` / `-errors.log` / `-warnings.log`; exit code 0 = built, 1 = build failed, 2 = setup problem. On the user's computer, stage the errors log to read it.
+- **Packaging**: `scripts\Package.bat [Release|Distribution] [--project <file.hyproj>] [--no-build] [--no-pause]` builds `Runtime` and fills `Builds\<Project>-<Kind>\` (`<Project>.exe`, `shaderc_shared.dll`, `assets\shaders`, `Project\<Project>.hyproj` + its asset folder); Oxygen's **File > Build...** runs it. Check a package by starting its exe: it plays the start scene; logs in its `logs\` folder.
 - **CI**: `.github/workflows/build.yml` builds Debug and Release with `Build.bat` on GitHub-hosted Windows for every push (plus the reflection `--check` and a wiki-mirror warning). Read results with `gh run list -R joelnl74/Hydro` and `gh run view <id> --log-failed`; the run summary lists errors and warnings. CI only sees pushed code.
 - **Pushing**: never commit or push without an explicit yes. A single step the user can check: leave it uncommitted for them to review and push. Work spanning several steps at once: ask before pushing it to a `claude/<topic>` scratch branch (for CI), unless the user's prompt already allows it. Never push to `main` or the user's own branches.
 - **Docs**: edit `docs/`, then `python scripts/regen_wiki.py --wiki <path to Hydro.wiki>` (or `--check`). Update `docs/CodeMap.md` when files are added, renamed or deleted, and the wiki's Components / Roadmap / Known-Issues pages by hand.

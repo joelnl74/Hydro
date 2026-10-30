@@ -86,6 +86,8 @@ trap 'rm -rf "$SRC"' EXIT
 rm -rf "$SRC"; mkdir -p "$SRC"
 cp -r "$ROOT/Hydro/src" "$SRC/Hydro"
 cp -r "$ROOT/Oxygen/src" "$SRC/Oxygen"
+cp -r "$ROOT/Game/src" "$SRC/Game"
+cp -r "$ROOT/Runtime/src" "$SRC/Runtime"
 sed -i 's/#error "Linux is not supported!"/#define HY_PLATFORM_LINUX/' "$SRC/Hydro/Hydro/Core/PlatformDetection.h"
 
 V="$ROOT/Hydro/vendor"
@@ -98,8 +100,10 @@ COMMON=(-std=c++17 -fsyntax-only -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFI
 	-DJPH_ENABLE_ASSERTS) # Jolt's Debug defines: JoltDefines() in Dependencies.lua
 export SRC
 HYDRO_FLAGS="${COMMON[*]} -I$SRC/Hydro -include $SRC/Hydro/hypch.h"
-OXYGEN_FLAGS="${COMMON[*]} -I$SRC/Oxygen -I$SRC/Hydro"
-export HYDRO_FLAGS OXYGEN_FLAGS
+OXYGEN_FLAGS="${COMMON[*]} -I$SRC/Oxygen -I$SRC/Hydro -I$SRC/Game"
+GAME_FLAGS="${COMMON[*]} -I$SRC/Game -I$SRC/Hydro"
+RUNTIME_FLAGS="${COMMON[*]} -I$SRC/Runtime -I$SRC/Hydro -I$SRC/Game"
+export HYDRO_FLAGS OXYGEN_FLAGS GAME_FLAGS RUNTIME_FLAGS
 
 # Windows-only and vendored copies are skipped.
 skip() {
@@ -113,7 +117,7 @@ files=()
 if [ $# -gt 0 ]; then
 	for f in "$@"; do files+=("$(cd "$(dirname "$f")" && pwd)/$(basename "$f")"); done
 else
-	while IFS= read -r f; do files+=("$f"); done < <(find "$ROOT/Hydro/src" "$ROOT/Oxygen/src" -name '*.cpp' | sort)
+	while IFS= read -r f; do files+=("$f"); done < <(find "$ROOT/Hydro/src" "$ROOT/Oxygen/src" "$ROOT/Game/src" "$ROOT/Runtime/src" -name '*.cpp' | sort)
 fi
 
 log "Sources (${#files[@]} files, $JOBS jobs)"
@@ -124,11 +128,13 @@ check_one() {
 	case "$rel" in
 		Hydro/src/*)  copy="$SRC/Hydro/${rel#Hydro/src/}";   flags="$HYDRO_FLAGS" ;;
 		Oxygen/src/*) copy="$SRC/Oxygen/${rel#Oxygen/src/}"; flags="$OXYGEN_FLAGS" ;;
-		*) echo "skip  $rel (not under Hydro/src or Oxygen/src)"; return 0 ;;
+		Game/src/*)   copy="$SRC/Game/${rel#Game/src/}";     flags="$GAME_FLAGS" ;;
+		Runtime/src/*) copy="$SRC/Runtime/${rel#Runtime/src/}"; flags="$RUNTIME_FLAGS" ;;
+		*) echo "skip  $rel (not under Hydro/src, Oxygen/src, Game/src or Runtime/src)"; return 0 ;;
 	esac
 	# shellcheck disable=SC2086
 	local out; out="$(g++ $flags "$copy" 2>&1 | grep -E 'error|warning' | grep -v '/vendor/\|Vulkan-Headers' || true)"
-	if [ -z "$out" ]; then echo "ok    $rel"; else echo "FAIL  $rel"; echo "$out" | sed "s|$SRC/Hydro/|Hydro/src/|; s|$SRC/Oxygen/|Oxygen/src/|; s/^/      /" | head -20; fi
+	if [ -z "$out" ]; then echo "ok    $rel"; else echo "FAIL  $rel"; echo "$out" | sed "s|$SRC/Hydro/|Hydro/src/|; s|$SRC/Oxygen/|Oxygen/src/|; s|$SRC/Game/|Game/src/|; s|$SRC/Runtime/|Runtime/src/|; s/^/      /" | head -20; fi
 }
 export -f check_one
 xargs -a "$CACHE/files.$$.txt" -P "$JOBS" -I{} bash -c 'check_one "$@"' _ {} | tee "$LOG" | grep -v '^ok' || true

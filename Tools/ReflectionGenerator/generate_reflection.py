@@ -2,14 +2,14 @@
 """Hydro script reflection generator.
 
 Reads C++ headers for HY_SCRIPT() classes and their HY_PROPERTY(...) fields and writes one .cpp with
-RegisterGeneratedScriptReflection(), which registers them with ScriptRegistry. Run by Oxygen's pre-build
+RegisterGeneratedScriptReflection(), which registers them with ScriptRegistry. Run by the Game project's pre-build
 step; see Hydro/src/Hydro/Scene/Scripting/ReflectionMacros.h for what the macros accept.
 
     generate_reflection.py [repo_root] [--source DIR]... [--output FILE] [--check]
 
-Without --source it scans <repo_root>/Hydro/src and <repo_root>/Oxygen/src; without --output it writes
-<repo_root>/Oxygen/src/Generated/GeneratedScriptReflection.cpp. Include paths in the output are relative
-to the first of Hydro/src, Oxygen/src or a --source directory that contains the header. --check writes
+Without --source it scans <repo_root>/Hydro/src and <repo_root>/Game/src; without --output it writes
+<repo_root>/Game/src/Generated/GeneratedScriptReflection.cpp. Include paths in the output are relative
+to the first of Hydro/src, Game/src or a --source directory that contains the header. --check writes
 nothing and exits with 1 when the output is out of date (for CI).
 
 It is a text scanner, not a C++ parser: one field per HY_PROPERTY declaration, the class declaration right
@@ -541,10 +541,10 @@ def main() -> int:
     args = parser.parse_args()
 
     repo_root: Path = args.repo_root.resolve()
-    default_roots = [repo_root / "Hydro" / "src", repo_root / "Oxygen" / "src"]
+    default_roots = [repo_root / "Hydro" / "src", repo_root / "Game" / "src"]
     source_roots = [p.resolve() for p in args.source] or default_roots
     include_roots = default_roots + [p for p in source_roots if p not in default_roots]
-    output: Path = (args.output or repo_root / "Oxygen" / "src" / "Generated" / "GeneratedScriptReflection.cpp").resolve()
+    output: Path = (args.output or repo_root / "Game" / "src" / "Generated" / "GeneratedScriptReflection.cpp").resolve()
 
     try:
         scripts: list[ReflectedScript] = []

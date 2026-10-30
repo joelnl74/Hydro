@@ -95,6 +95,16 @@ namespace Hydro
 		m_RenderSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 		m_ProjectSettingsWindow = CreateRef<ProjectSettingsWindow>();
 		m_ProjectSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
+		m_BuildWindow = CreateRef<BuildWindow>();
+		m_BuildWindow->OnBeforeBuild = [this]()
+		{
+			// A build packages the files on disk: save what is open first (the editor scene, never a play copy).
+			SaveProject();
+			if (m_EditorScenePath.empty() == false)
+			{
+				SaveScene();
+			}
+		};
 		m_EditorSettingsWindow = CreateRef<EditorSettingsWindow>();
 		m_EditorSettingsWindow->OnSave = [this]() { SaveEditorSettings(); };
 		m_EditorSettingsWindow->OnRevert = [this]() { RevertEditorSettings(); };
@@ -307,6 +317,7 @@ namespace Hydro
 		m_SpriteEditorWindow = nullptr;
 		m_EditorSettingsWindow = nullptr;
 		m_ProjectSettingsWindow = nullptr;
+		m_BuildWindow = nullptr; // stops a build that is still running
 		m_RenderSettingsWindow = nullptr;
 		m_ProjectWindow = nullptr;
 		m_InspectorWindow = nullptr;
@@ -314,8 +325,7 @@ namespace Hydro
 		m_StatsWindow = nullptr;
 		m_HierarchyWindow = nullptr;
 		m_SceneRenderer.reset();
-		m_SuspendedScenes.clear();
-		m_RuntimeScene = nullptr;
+		m_GameScenes.Stop();
 		m_ActiveScene = nullptr;
 		m_EditorScene = nullptr;
 		// The GPU is idle here (Application waits before detaching layers), so the views can go.
@@ -461,6 +471,10 @@ namespace Hydro
 				if (ImGui::MenuItem("Save Project", nullptr, false, Project::GetActive() != nullptr))
 				{
 					SaveProject();
+				}
+				if (ImGui::MenuItem("Build...", nullptr, false, Project::GetActive() != nullptr))
+				{
+					m_BuildWindow->IsOpen() = true;
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("New Scene", "Ctrl+N"))
@@ -617,6 +631,7 @@ namespace Hydro
 		m_StatsWindow->OnImguiRender(m_ActiveScene);
 		m_RenderSettingsWindow->OnImguiRender(m_EditorScene.get(), m_ActiveScene.get());
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
+		m_BuildWindow->OnImguiRender();
 		m_EditorSettingsWindow->OnImguiRender(m_EditorSettings);
 
 		m_ProjectWindow->OnImguiRender(m_ActiveScene);
@@ -1420,15 +1435,12 @@ namespace Hydro
 
 		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
 
-		SceneTransition::Clear();
-		SceneTransition::SetDepth(0);
-		m_SuspendedScenes.clear();
+		// The game runs on a copy of the editor scene, at the bottom of the scene stack.
+		Ref<Scene> runtimeScene = Scene::Copy(m_EditorScene);
+		runtimeScene->Init();
+		m_GameScenes.Start(runtimeScene); // builds the physics world
 
-		m_RuntimeScene = Scene::Copy(m_EditorScene);
-		m_RuntimeScene->Init();
-		m_RuntimeScene->OnRuntimeStart(); // builds the physics world
-
-		m_ActiveScene = m_RuntimeScene;
+		m_ActiveScene = m_GameScenes.GetActiveScene();
 		m_SceneRenderer->SetScene(m_ActiveScene);
 		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_SceneState = SceneState::Play;
@@ -1472,15 +1484,7 @@ namespace Hydro
 
 		// Destroying the copy runs its scripts' OnDestroy; the editor scene is as it was before Play.
 		// Scenes pushed on top of it during Play go with it, the top one first.
-		m_RuntimeScene->OnRuntimeStop();
-		m_RuntimeScene = nullptr;
-		while (m_SuspendedScenes.empty() == false)
-		{
-			m_SuspendedScenes.pop_back();
-		}
-
-		SceneTransition::Clear();
-		SceneTransition::SetDepth(0);
+		m_GameScenes.Stop();
 
 		if (m_EditorSettings.PlayMode.LeaveFullscreenOnStop)
 		{
@@ -1490,50 +1494,25 @@ namespace Hydro
 
 	void EditorLayer::ProcessSceneTransition()
 	{
-		const SceneTransition::Request request = SceneTransition::Take();
-		if (request.Kind == SceneTransition::Type::None || IsPlaying() == false)
+		// The scene stack does what a script asked for (SceneTransition); the editor only follows the new scene.
+		const SceneTransition::Type done = m_GameScenes.ProcessTransition(EditorPaths::GetScenesDirectory(), m_GameView->GetWidth(), m_GameView->GetHeight());
+		if (done == SceneTransition::Type::None || IsPlaying() == false)
 		{
 			return;
 		}
 
-		if (request.Kind == SceneTransition::Type::Push)
+		if (done == SceneTransition::Type::Quit)
 		{
-			// Like OpenScene: load into a fresh scene, and only switch when that worked.
-			const std::filesystem::path path = EditorPaths::GetScenesDirectory() / (request.SceneName + SceneSerializer::FileExtension);
-			Ref<Scene> next = CreateRef<Scene>(request.SceneName, false);
-			SceneSerializer serializer(next);
-			if (serializer.Deserialize(path) == false)
-			{
-				HY_WARN("Scene push: could not load {}", path.string());
-				return;
-			}
-
-			next->SetName(request.SceneName);
-			next->Init();
-			next->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
-
-			m_SuspendedScenes.push_back(m_RuntimeScene);
-			m_RuntimeScene = next;
-		}
-		else
-		{
-			if (m_SuspendedScenes.empty())
-			{
-				HY_WARN("Scene pop: there is no scene below this one");
-				return;
-			}
-
-			// The top scene goes (its scripts' OnDestroy run), the one below carries on as it was.
-			m_RuntimeScene = m_SuspendedScenes.back();
-			m_SuspendedScenes.pop_back();
+			// A script quit the game (a title screen's Quit): in the editor that stops playing, never closes Oxygen.
+			HY_INFO("The game asked to quit: Play stops");
+			StopScene();
+			return;
 		}
 
-		m_ActiveScene = m_RuntimeScene;
-		m_ActiveScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
+		m_ActiveScene = m_GameScenes.GetActiveScene();
 		m_SceneRenderer->SetScene(m_ActiveScene);
 		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_HierarchyWindow->ClearSelection();
-		SceneTransition::SetDepth((uint32_t)m_SuspendedScenes.size());
 	}
 
 	void EditorLayer::NewProject()
@@ -1694,7 +1673,7 @@ namespace Hydro
 			}
 		}
 
-		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
+		for (const Ref<Scene>& scene : { m_EditorScene, m_GameScenes.GetActiveScene() })
 		{
 			if (scene == nullptr || before == nullptr || before == texture)
 			{
@@ -1734,7 +1713,7 @@ namespace Hydro
 			return;
 		}
 
-		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
+		for (const Ref<Scene>& scene : { m_EditorScene, m_GameScenes.GetActiveScene() })
 		{
 			if (scene == nullptr)
 			{

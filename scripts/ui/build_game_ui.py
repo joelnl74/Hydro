@@ -306,7 +306,7 @@ def build_field(scene_name, director):
 
 
 def build_quest_canvas(b, director):
-    """The quests (QuestTrackerScript, Oxygen/src/Scripts/QuestScripts.h): the tracked quest top right, frameless over
+    """The quests (QuestTrackerScript, Game/src/Scripts/QuestScripts.h): the tracked quest top right, frameless over
     a soft ink fade like the party status, and the "New Quest" / "Quest Complete" banner across the middle, between
     two bronze rules that open out from the centre (Octopath Traveler's story banners: the rules, not the look)."""
     quest = b.add("Quest Canvas", director, UICanvasComponent=canvas(22),

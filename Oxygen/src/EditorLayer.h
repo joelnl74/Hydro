@@ -7,6 +7,7 @@
 #include "EditorWindows/ProjectWindow.h"
 #include "EditorWindows/RenderSettingsWindow.h"
 #include "EditorWindows/ProjectSettingsWindow.h"
+#include "EditorWindows/BuildWindow.h"
 #include "EditorWindows/EditorSettingsWindow.h"
 #include "EditorWindows/SpriteEditorWindow.h"
 #include "EditorWindows/SpriteAnimationWindow.h"
@@ -198,9 +199,8 @@ namespace Hydro
 		enum class SceneState { Edit, Play };
 
 		Hydro::Ref<Scene> m_EditorScene;  // what is edited and saved
-		Hydro::Ref<Scene> m_RuntimeScene; // the copy that runs while playing; null in Edit
-		Hydro::Ref<Scene> m_ActiveScene;  // m_RuntimeScene while playing, else m_EditorScene
-		std::vector<Hydro::Ref<Scene>> m_SuspendedScenes; // scenes under the running one (SceneTransition::Push), bottom first
+		SceneStack m_GameScenes;         // the scenes that run while playing (a copy of m_EditorScene at the bottom); empty in Edit
+		Hydro::Ref<Scene> m_ActiveScene; // the stack's running scene while playing, else m_EditorScene
 		Hydro::Scope<SceneRenderer> m_SceneRenderer;
 		std::filesystem::path m_EditorScenePath; // empty until the scene is saved / opened
 
@@ -216,6 +216,7 @@ namespace Hydro
 		Hydro::Ref<ProjectWindow> m_ProjectWindow;
 		Hydro::Ref<RenderSettingsWindow> m_RenderSettingsWindow;
 		Hydro::Ref<ProjectSettingsWindow> m_ProjectSettingsWindow;
+		Hydro::Ref<BuildWindow> m_BuildWindow;
 		Hydro::Ref<EditorSettingsWindow> m_EditorSettingsWindow;
 		Hydro::Ref<SpriteEditorWindow> m_SpriteEditorWindow;
 		Hydro::Ref<SpriteAnimationWindow> m_SpriteAnimationWindow;

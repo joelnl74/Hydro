@@ -14,7 +14,9 @@ Read this first, then:
 | Project | Kind | What it is |
 | --- | --- | --- |
 | `Hydro` | Static library | The engine: core, events, platform, renderer, scene, project |
-| `Oxygen` | Executable | The editor. An `Application` subclass that registers its example scripts and pushes an `EditorLayer` (see [The editor](#the-editor-oxygen)) |
+| `Game` | Static library | The game's own code: the Sandbox project's scripts and their generated reflection (`RegisterGeneratedScriptReflection`). Linked by every application that runs the game |
+| `Oxygen` | Executable | The editor. An `Application` subclass that registers the game's scripts and pushes an `EditorLayer` (see [The editor](#the-editor-oxygen)) |
+| `Runtime` | Executable | The standalone player: plays a project without the editor (see [Standalone builds](#standalone-builds)) |
 
 An application defines `Hydro::CreateApplication()`, includes `Hydro/Core/EntryPoint.h` once, and adds its features as `Layer`s:
 
@@ -34,6 +36,16 @@ Hydro::Application* Hydro::CreateApplication()
     return new MyApp(spec);
 }
 ```
+
+## Standalone builds
+
+Standalone Build V1 (Oct 31, 2026). **This is not an asset pipeline:** a build is the `Runtime` project built in Release or Dist plus a fixed copy of the files the runtime already reads. Cooking and packing come later (Asset Pipeline V2, designed against measurements of this build).
+
+- **`Game`** holds the game's code (moved out of Oxygen), so the editor and the runtime run the same scripts: both link `Game` and `Hydro` and call `RegisterGeneratedScriptReflection()` in `OnInit`.
+- **`Runtime`** (`Runtime/src`) opens one project, applies its renderer settings, loads its start scene and runs it on a `SceneStack`, with one `RenderView` shown as a full-window `ImGui::Image` (the Game view's path; presenting straight to the swapchain is later). The project is `--project <file.hyproj>` (development, run in `Oxygen/` for the shaders) or, in a package, `Project/<exe name>.hyproj` next to the exe, nothing else; a packaged game runs in its exe's folder. F11 toggles full screen; `SceneTransition::Quit()` from a script closes it (in the editor it stops Play). Release keeps a console with the log, Dist is a windowed app without one.
+- **`scripts/Package.bat [Release|Distribution]`** builds `Runtime` (only it and what it links, so Oxygen can stay open) and fills `Builds/<Project>-<Kind>/`: `<Project>.exe`, `shaderc_shared.dll`, `assets/shaders/` (the engine's shaders, still in `Oxygen/assets`), `Project/<Project>.hyproj` with the whole asset folder, and `build-info.txt`.
+- **File > Build...** in Oxygen (`BuildWindow`) runs the script through `Process` (Release / Distribution, its output live, Cancel, Run, Open Folder) after saving the project and the open scene.
+- Not done yet (B6): CI packaging, a check on a PC without Visual Studio (the Release CRT is the DLL one: such a PC needs the Microsoft Visual C++ Redistributable), error colours in the Build window. Keep runtime and game code reaching assets by handle through `AssetManager`, so packs can replace files later.
 
 ## Startup and shutdown
 

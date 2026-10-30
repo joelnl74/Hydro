@@ -1,5 +1,5 @@
 """Add the Shrine Glade's opening quest to Oxygen/project/Assets/Scenes/ShrineGlade.hyscene (docs/TestBed.md, "Shrine
-Glade quest"): the "Quest Director" (ShrineQuestScript, Oxygen/src/Scripts/QuestScripts.h) under "Directors", its
+Glade quest"): the "Quest Director" (ShrineQuestScript, Game/src/Scripts/QuestScripts.h) under "Directors", its
 cutscene letterbox ("Cinematic Canvas") and the marker over the Old Monk ("Quest Marker Canvas"), and three dormant
 slimes on the lower path ("Slime Grounds 1" to "3" under "Characters" / "Slimes Lower Path") that the quest wakes.
 
