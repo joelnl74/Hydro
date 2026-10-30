@@ -4,3 +4,11 @@ MeshImport:
   Scale: 1
   ConvertYUpToZUp: true
   GenerateNormals: true
+  Images:
+    0: 1970419308539451772
+    1: 11035662798330346140
+    2: 18090045005621035314
+  Materials:
+    0: 10307235309007470019
+    1: 11944041332042379801
+    2: 427457826358763027
