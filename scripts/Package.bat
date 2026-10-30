@@ -25,6 +25,9 @@ rem Exit codes: 0 = packaged, 1 = the build failed, 2 = bad arguments, missing f
 
 setlocal EnableExtensions EnableDelayedExpansion
 
+rem This script's folder, read before the arguments are parsed: shift also shifts %0, so %~dp0 is wrong after it.
+set "SCRIPT_DIR=%~dp0"
+
 set "KIND=Release"
 set "PROJECT="
 set "BUILD=1"
@@ -54,7 +57,7 @@ goto finish
 
 if /i "%KIND%"=="Release" (set "CONFIG=Release") else (set "CONFIG=Dist")
 
-pushd "%~dp0.."
+pushd "%SCRIPT_DIR%.."
 set "ROOT=%CD%"
 
 rem ---- 1. The project -------------------------------------------------------------
@@ -85,7 +88,7 @@ echo [Package] !PROJECT_NAME! ^| %KIND% ^(%CONFIG%^) ^| !OUT!
 
 rem ---- 2. Build the Runtime (and only what it links, so Oxygen can stay open) -------
 if "%BUILD%"=="1" (
-	call "%~dp0Build.bat" %CONFIG% --project Runtime --no-pause
+	call "%SCRIPT_DIR%Build.bat" %CONFIG% --project Runtime --no-pause
 	if errorlevel 2 (set "EXIT_CODE=2" & goto finish_popd)
 	if errorlevel 1 (set "EXIT_CODE=1" & goto finish_popd)
 )
