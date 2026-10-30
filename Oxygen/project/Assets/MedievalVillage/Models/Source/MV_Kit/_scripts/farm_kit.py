@@ -288,7 +288,7 @@ if FARM_PHASE == 'A':
          ("roadA", road_piece("MV_Road_Dirt_4m_Straight_A", road_straight(3), -0.05, 0.03, "MAT_Dirt_Road", "MAT_Dirt_Road")),
          ("roadB", road_piece("MV_Road_Dirt_4m_Straight_B", road_straight(8), -0.05, 0.03, "MAT_Dirt_Road", "MAT_Dirt_Road")),
          ("bend", road_piece("MV_Road_Dirt_Bend_A", road_bend(), -0.05, 0.03, "MAT_Dirt_Road", "MAT_Dirt_Road")),
-         ("cobble", road_piece("MV_Road_Cobble_2m_A", road_straight(5, L=2.0, Wd=2.6, jit=0.05), -0.05, 0.07, "MAT_Stone_Cut", "MAT_Stone_Field"))],
+         ("cobble", road_piece("MV_Road_Cobble_2m_A", road_straight(5, L=2.0, Wd=2.6, jit=0.05), -0.05, 0.07, "MAT_Cobble_Road", "MAT_Stone_Field"))],
         [("roofT2", roof_thatch(2)), ("roofTEnd", roof_thatch_end()),
          ("leanS", roof_leanto(roofmat="MAT_Roof_SlateDark", tag="Slate")), ("leanT", roof_leanto(roofmat="MAT_Roof_Thatch", tag="Thatch")),
          ("gate", fence_gate()), ("plot", field_plot())],
@@ -302,7 +302,8 @@ elif FARM_PHASE == 'B':
         root = new_prefab(name, loc); root["hydro_status"] = "PLACEHOLDER"; NEW_PREFABS.append(name)
         return root
 
-    house("MV_Cottage_Thatch_A", 6, 1, front=["BBA"], right=["AB"], roof="thatch", chimney="right", step_x=3.0,
+    # HD-2D pass: a stone cottage under thatch (one material all round: ashlar with quoins, stone gables).
+    house("MV_Cottage_Thatch_A", 6, 1, front=["SSS"], right=["SS"], left=["SS"], back=["SSS"], roof="thatch", chimney="right", step_x=3.0,
           opens=[("win", "front", 1.0, 0, 1.25), ("door", "front", 3.0, 0, 0.0), ("winS", "right", 3.0, 0, 1.2), ("fbox", "front", 1.0, 0, 1.0)],
           loc=(28.0, 0, 0))
     PREFABS["MV_Cottage_Thatch_A"]["hydro_status"] = "PLACEHOLDER"; NEW_PREFABS.append("MV_Cottage_Thatch_A")

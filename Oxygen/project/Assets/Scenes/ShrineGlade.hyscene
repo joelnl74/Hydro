@@ -3253,16 +3253,16 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.35000038, 6.9000001, 3.0999999]
+      Translation: [8.35, 6.78421, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.789499998, 0.600000024, 1]
+      Scale: [1.10526, 0.36842, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 43997812283136609
+      TextureHandle: 5437599549035286883
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 2694675473305711182
@@ -3517,16 +3517,16 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [2.8499999, -8.69999981, 0]
+      Translation: [2.85, -8.65937, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.50910002, 0.699999988, 1]
+      Scale: [0.6875, 0.78125, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 5186976138038454563
+      TextureHandle: 2676207800848651439
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 3470478518887006333
@@ -3535,14 +3535,14 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-3.95000005, 4.75, 3.0999999]
+      Translation: [-3.95, 4.68421, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [0.781199992, 0.5, 1]
+      Scale: [1.10526, 0.36842, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 9187534983264561675
+      TextureHandle: 4850348963108848028
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -3553,14 +3553,14 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-6.25, 1.5, 1]
+      Translation: [-6.25, 1.39737, 1]
       Rotation: [0, 0, 0]
-      Scale: [0.631600022, 0.600000024, 1]
+      Scale: [1.10526, 0.39474, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 6535156859702413002
+      TextureHandle: 5233620076094368017
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -4562,7 +4562,7 @@ Entities:
     TransformComponent:
       Translation: [7.19999981, 5.34000015, 3.0999999]
       Rotation: [0, 0, 0]
-      Scale: [1.25, 1.0625, 1]
+      Scale: [1.14286, 1.14286, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6642,9 +6642,9 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-6, 12.4799995, 3]
+      Translation: [-6.78, 11.48, 3]
       Rotation: [0, 0, 0]
-      Scale: [12.6875, 13, 1]
+      Scale: [11, 11, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6655,17 +6655,61 @@ Entities:
       FlipY: false
       Facing: Upright
     BoxCollider2DComponent:
-      Offset: [0, -0.453799993]
-      Size: [0.252200007, 0.0922999978]
+      Offset: [0.07091, -0.4454]
+      Size: [0.29089, 0.10908]
       Density: 1
       Friction: 0.400000006
       Restitution: 0
       IsSensor: false
     BoxColliderComponent:
-      Offset: [0, -0.453799993, 0.800000012]
-      Size: [0.252200007, 0.0922999978, 1.60000002]
+      Offset: [0.07091, -0.4454, 0.8]
+      Size: [0.29089, 0.10908, 1.6]
       Layer: World
       IsTrigger: false
+  - Entity: 5246025697429115803
+    TagComponent:
+      Tag: Sacred Tree Awake
+    RelationshipComponent:
+      Parent: 5122042807279009570
+    TransformComponent:
+      Translation: [-6.78, 11.46, 3]
+      Rotation: [0, 0, 0]
+      Scale: [11, 11, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 1
+      TextureHandle: 1015020556232425885
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Translucent
+      CastShadows: false
+      EmissionColor: [1, 1, 1]
+      EmissionIntensity: 0
+  - Entity: 3554779544809197453
+    TagComponent:
+      Tag: Sacred Tree Glow
+    RelationshipComponent:
+      Parent: 5122042807279009570
+    TransformComponent:
+      Translation: [-6.78, 11.44, 3]
+      Rotation: [0, 0, 0]
+      Scale: [11, 11, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0]
+      TilingFactor: 1
+      SortOrder: 2
+      TextureHandle: 1676667533210314201
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Translucent
+      CastShadows: false
+      EmissionColor: [1, 1, 1]
+      EmissionIntensity: 1.6
   - Entity: 3779063247688362880
     TagComponent:
       Tag: Tree Shrine
@@ -7282,16 +7326,16 @@ Entities:
     RelationshipComponent:
       Parent: 4004110462281252253
     TransformComponent:
-      Translation: [-7.8375001, -2.83839989, 0]
+      Translation: [-7.8375, -3.14196, 0]
       Rotation: [0, 0, 0]
-      Scale: [2.09859991, 1.0302, 1]
+      Scale: [1.61538, 0.42308, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2698839835440085250
+      TextureHandle: 11457831665565402468
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 1935151011442348651
@@ -7318,14 +7362,14 @@ Entities:
     RelationshipComponent:
       Parent: 4004110462281252253
     TransformComponent:
-      Translation: [-8.03489971, -2.93169999, 0]
+      Translation: [-8.0349, -3.0911, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.66789997, 0.818799973, 1]
+      Scale: [1.61538, 0.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2698839835440085250
+      TextureHandle: 9469800783334600610
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7336,14 +7380,14 @@ Entities:
     RelationshipComponent:
       Parent: 4004110462281252253
     TransformComponent:
-      Translation: [-7.91020012, -2.99239993, 0]
+      Translation: [-7.9102, -3.26284, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.88540006, 0.925499976, 1]
+      Scale: [1.61538, 0.38462, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2698839835440085250
+      TextureHandle: 16877779910713629634
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7543,14 +7587,14 @@ Entities:
     RelationshipComponent:
       Parent: 548445242924070511
     TransformComponent:
-      Translation: [6.7507, 1.37600005, 1]
+      Translation: [6.7507, 1.1077, 1]
       Rotation: [0, 0, 0]
-      Scale: [2.11159992, 1.03659999, 1]
+      Scale: [1.61538, 0.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2698839835440085250
+      TextureHandle: 14407354442998907263
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7732,16 +7776,16 @@ Entities:
     RelationshipComponent:
       Parent: 4255528212439037597
     TransformComponent:
-      Translation: [-5.72629976, -2.29150009, 1]
+      Translation: [-5.7263, -2.51141, 1]
       Rotation: [0, 0, 0]
-      Scale: [1.75779998, 0.862900019, 1]
+      Scale: [1.61538, 0.42308, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2698839835440085250
+      TextureHandle: 15523452036597311342
       SpriteIndex: 0
-      FlipX: true
+      FlipX: false
       FlipY: false
       Facing: Upright
   - Entity: 4528418667084164075
@@ -7867,14 +7911,14 @@ Entities:
     RelationshipComponent:
       Parent: 4826891688882284307
     TransformComponent:
-      Translation: [-5.49959993, 1.8506, 3.0999999]
+      Translation: [-5.4996, 1.58616, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.86080003, 0.913500011, 1]
+      Scale: [1.61538, 0.38462, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2698839835440085250
+      TextureHandle: 15868323660128422587
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -7903,14 +7947,14 @@ Entities:
     RelationshipComponent:
       Parent: 4826891688882284307
     TransformComponent:
-      Translation: [-2.38269997, 1.87290001, 3.0999999]
+      Translation: [-2.3827, 1.60064, 3.1]
       Rotation: [0, 0, 0]
-      Scale: [1.97099996, 0.967599988, 1]
+      Scale: [1.61538, 0.42308, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
-      TextureHandle: 2698839835440085250
+      TextureHandle: 16553186453921410002
       SpriteIndex: 0
       FlipX: false
       FlipY: false

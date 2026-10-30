@@ -506,9 +506,9 @@ Entities:
   RelationshipComponent:
     Parent: 6932241548351544618
   TransformComponent:
-    Translation: [-8.5, 15.5, 0.0]
+    Translation: [-8.5, 14.5, 0.0]
     Rotation: [0, 0, 0]
-    Scale: [12.7, 13.0, 1.0]
+    Scale: [11.0, 11.0, 1.0]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1

@@ -28,7 +28,7 @@ References are for principles, never for copying. Use original designs, and neve
 | Density | **32 texels per metre** for every field asset (sprites, shape materials, model textures), within ±20 % (25.6–38.4): [world density](SpriteSizes.md#world-density-32-texels-per-metre-decided-2026-10-30). Check with `scripts/check_texel_density.py`. A sprite's world size is its transform scale; keep `PixelsPerUnit: 32` and use **Set Native Size**. |
 | Filtering | Nearest filtering and clamp on all pixel art; no mipmaps on sprites. |
 | Characters | Adults 50–58 px tall (1.6–1.8 m), Miko 52 px. Children about 40 px. Proportions about 3 heads. |
-| Props | Real-world size: barrel 0.6 x 0.9 m (about 20 x 29 px), crate 0.8 m, hay bale 0.9 x 0.65 m, door 1.1 x 2.2 m, a one-storey cottage 6–7 m wide. A prop may be shown down to 26 px/m to keep a footprint; never above 38. |
+| Props | Real-world size: barrel 0.6 x 0.9 m (about 20 x 29 px), crate 0.8 m, hay bale 0.9 x 0.65 m, door 1.1 x 2.2 m, a one-storey cottage 6–7 m wide. A prop may be shown down to 26 px/m to keep a footprint; never above 38. Approved barrels (Oct 30, 2026, at 30 px/m, never mirrored): `FarmVillage/Props/BarrelA`-`D`, `BarrelSideA`-`D`, `BarrelKeg`, `BarrelStackA`-`C`, `RainBarrelA`-`B`; plain brown wood with dark iron hoops only. |
 | Exceptions | Written in the [Sprite sizes](SpriteSizes.md) audit table, with a reason (today: the wheat at about 42 px/m). |
 
 ## Camera
@@ -99,7 +99,7 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 | Contact shading | Darker at the foot of walls, under eaves and in corners (vertex colour AO in the kit). |
 | Terrain | Blended materials, never straight borders (terrain system, to do). Grass overhangs path edges; pebbles, tufts and darker soil where ground meets walls. |
 | Water | Stylised and animated: a dark-to-light ramp, moving highlights, a light line along the edges, darker under bridges and overhangs. |
-| Vegetation | Trees, bushes, flowers and crops are upright sprites at 32 px/m (26 px/m allowed to keep a big tree's footprint). Their sun is painted on the upper left, so **never mirror them** (FlipX off); variety comes from more variants, at least 3 per kind. Approved style (Oct 30, 2026): `ShrineGlade/Foliage/OakSunA`, `OakSunB`, `OakSunC`, `OakGnarledSmall`, `OakYoungB`, `LindenAutumnA`-`F`, `FirTallA`-`D`, `FirSmallA`-`G`, `SakuraWeeping`, `BushDense01`-`32`, `BushSmall01`-`12`, `ShrubLargeA`-`D`, `FlowerBush01`-`28`, `TopiaryA`-`D`, `Lavender01`-`28`, `HedgeA`-`P`, `GrassTuft01`-`24`, `Fern01`-`16`, `Wildflowers01`-`24`, `FlowerClump01`-`24`, `LeafyPatch01`-`16`, `Seedling01`-`08`; generate plants with `art_incoming/style_refs/palette_foliage_32.png`, not the 48-colour palette (it pulls mint and lemon); the prompts for the rest are in `art_incoming/style_refs/FOLIAGE_PROMPTS.md`. Later: 3D trees (trunk mesh, cut-out leaf cards with outward normals) for foreground and village trees. |
+| Vegetation | Trees, bushes, flowers and crops are upright sprites at 32 px/m (26 px/m allowed to keep a big tree's footprint). Their sun is painted on the upper left, so **never mirror them** (FlipX off); variety comes from more variants, at least 3 per kind. Approved style (Oct 30, 2026): `ShrineGlade/Foliage/OakSunA`, `OakSunB`, `OakSunC`, `OakGnarledSmall`, `OakYoungB`, `LindenAutumnA`-`F`, `FirTallA`-`D`, `FirSmallA`-`G`, `SakuraWeeping`, `BushDense01`-`32`, `BushSmall01`-`12`, `ShrubLargeA`-`D`, `FlowerBush01`-`28`, `TopiaryA`-`D`, `Lavender01`-`28`, `HedgeA`-`P`, `GrassTuft01`-`24`, `Fern01`-`16`, `Wildflowers01`-`24`, `FlowerClump01`-`24`, `LeafyPatch01`-`16`, `Seedling01`-`08`, `LowGrass01`-`12`, `LowGrassShade01`-`06`, `LowGrassFlower01`-`12` (low grass strips for wall feet and edges, 26-38 px/m); generate plants with `art_incoming/style_refs/palette_foliage_32.png`, not the 48-colour palette (it pulls mint and lemon); the prompts for the rest are in `art_incoming/style_refs/FOLIAGE_PROMPTS.md`. Later: 3D trees (trunk mesh, cut-out leaf cards with outward normals) for foreground and village trees. |
 | Ground details | Small decal sprites (pebbles, leaves, flowers, cracks) break up every large surface. |
 
 **3D or sprite for a prop?** Pick one per kind of prop for the whole game:
@@ -107,7 +107,7 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 - **Sprites:** free-standing small props seen from the front, at 32 px/m, upright, with a contact shadow. Examples: barrels, crates, sacks, baskets, buckets, tools, hay bales, crops, signs.
 - **3D kit models:** architectural and large things, and anything a cinematic camera orbits. Examples: wells, carts, market stalls, fences, bridges, lantern posts.
 
-Replace the remaining 3D barrels and crates (`MV_Barrel`, `MV_Crate`) with sprites so the two styles stop mixing.
+The village's barrels are sprites now; `MV_Barrel` is left only behind the inn's bar (a 3D interior). Replace `MV_Crate` with sprites so the two styles stop mixing outdoors.
 
 ## Composition (towns, fields, dungeons)
 

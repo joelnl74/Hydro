@@ -31,24 +31,27 @@ scene.collection.children.link(PREVIEW)
 
 # ------------------------------------------------------------------ materials
 # name, texture file, texture world size (W,H) in metres, extra
+# HD-2D pass (Oct 30, 2026, textures_hd2d.py): most surfaces now tile every 4 m (128 px) instead of 2 m, still 32 px/m.
 MATDEFS = [
     ("MAT_Stone_Field", "MV_Stone_Field.png", (4.0, 2.0), {}),
-    ("MAT_Stone_Cut", "MV_Stone_Cut.png", (2.0, 2.0), {}),
-    ("MAT_Plaster_Warm", "MV_Plaster_Warm.png", (2.0, 2.0), {}),
-    ("MAT_Wood_DarkBeam", "MV_Wood_DarkBeam.png", (0.5, 2.0), {}),
+    ("MAT_Stone_Cut", "MV_Stone_Cut.png", (4.0, 4.0), {}),
+    ("MAT_Plaster_Warm", "MV_Plaster_Warm.png", (4.0, 4.0), {}),
+    ("MAT_Wood_DarkBeam", "MV_Wood_DarkBeam.png", (0.5, 4.0), {}),
     ("MAT_Wood_Door", "MV_Wood_Door.png", (1.0, 2.0), {}),
-    ("MAT_Roof_SlateDark", "MV_Roof_SlateDark.png", (2.0, 1.5), {}),
-    ("MAT_Roof_ShingleDark", "MV_Roof_ShingleDark.png", (2.0, 2.0), {}),
+    ("MAT_Wood_Shutter", "MV_Wood_Shutter.png", (1.0, 2.0), {}),
+    ("MAT_Roof_SlateDark", "MV_Roof_SlateDark.png", (4.0, 3.0), {}),
+    ("MAT_Roof_ShingleDark", "MV_Roof_ShingleDark.png", (4.0, 4.0), {}),
     ("MAT_Metal_IronDark", "MV_Metal_IronDark.png", (0.5, 0.5), {}),
     ("MAT_Cloth_WarmNeutral", "MV_Cloth_WarmNeutral.png", (1.0, 1.0), {}),
     ("MAT_Window_Glass", "MV_Window_Glass.png", (1.0, 1.0), {"emissive": "MV_Window_Glass_Emissive.png", "strength": 4.0}),
     ("MAT_Sign_Tavern", "MV_Sign_Tavern.png", (1.0, 0.75), {}),
-    ("MAT_Stone_Chimney", "MV_Stone_Chimney.png", (2.0, 2.0), {}),
-    ("MAT_Wood_Planks", "MV_Wood_Planks.png", (2.0, 2.0), {}),
-    ("MAT_Roof_Thatch", "MV_Roof_Thatch.png", (2.0, 2.0), {}),
-    ("MAT_Soil_Tilled", "MV_Soil_Tilled.png", (2.0, 2.0), {}),
+    ("MAT_Stone_Chimney", "MV_Stone_Chimney.png", (4.0, 4.0), {}),
+    ("MAT_Wood_Planks", "MV_Wood_Planks.png", (4.0, 4.0), {}),
+    ("MAT_Roof_Thatch", "MV_Roof_Thatch.png", (4.0, 4.0), {}),
+    ("MAT_Soil_Tilled", "MV_Soil_Tilled.png", (4.0, 4.0), {}),
     ("MAT_Water_Stream", "MV_Water_Stream.png", (2.0, 2.0), {}),
-    ("MAT_Dirt_Road", "MV_Dirt_Road.png", (2.0, 2.0), {}),
+    ("MAT_Dirt_Road", "MV_Dirt_Road.png", (4.0, 4.0), {}),
+    ("MAT_Cobble_Road", "MV_Cobble_Road.png", (4.0, 4.0), {}),
 ]
 MAT = {}
 TEXSIZE = {}
@@ -209,6 +212,11 @@ def bake_ao(bm, name):
     elif name.startswith("MV_Chimney"):
         ao_cut(bm, (1.2,))
         shade = lambda z: 0.75 + 0.25 * clamp(z / 1.2)
+    elif name.startswith("MV_Quoin"):
+        ao_cut(bm, (0.35,))
+        shade = lambda z: 1.0 - 0.26 * clamp(1.0 - z / 0.35)
+    elif name.startswith("MV_Dormer"):
+        shade = lambda z: 0.9
     elif name.startswith(("MV_Retaining", "MV_Bank_Stone", "MV_Stairs", "MV_Well", "MV_Bridge")):
         ao_cut(bm, (0.4,))
         shade = lambda z: 0.7 + 0.3 * clamp(z / 0.4)
@@ -486,8 +494,8 @@ def chimney(total_h, tag="A"):
 def wall_material(L, kind):
     """Plain 2 m panels: 'stone' (dressed cool stone ground floors), 'plank' (barns, sheds)."""
     mb = MeshBuilder()
-    if kind == "stone":
-        mb.box(0, 0, 0, L, WALL_T, WALL_H, "MAT_Stone_Chimney", facemat={'+z': "MAT_Stone_Cut"})
+    if kind == "stone":   # HD-2D pass: stone storeys are warm dressed ashlar (Octopath's stone ground floors)
+        mb.box(0, 0, 0, L, WALL_T, WALL_H, "MAT_Stone_Cut")
         name = "MV_Wall_Stone_%dm_A" % L
     else:
         mb.box(0, 0, 0, L, WALL_T, WALL_H, "MAT_Wood_Planks", facemat={'+z': "MAT_Wood_DarkBeam"})
@@ -508,6 +516,84 @@ def wall_gable_plank():
     beam(mb, 0.6, 0.9, SPAN - 0.6, 0.9, w=0.15)
     ob = mb.to_object("MV_Wall_Gable_Plank_4m_A", COL["02_Walls"])
     return ob
+
+
+def wall_gable_stone():
+    mb = MeshBuilder()
+    pts = [(0, 0), (SPAN, 0), (SPAN / 2, GABLE_RISE)]
+    mb.prism_xz(pts, 0, WALL_T, "MAT_Stone_Cut")
+    ob = mb.to_object("MV_Wall_Gable_Stone_4m_A", COL["02_Walls"])
+    col_box(ob, 0, 0, 0, SPAN, WALL_T, GABLE_RISE * 0.6)
+    return ob
+
+
+def quoin():
+    """HD-2D pass: corner quoins for stone storeys, alternating long / short dressed blocks standing 3 cm proud on both
+    faces of an outside corner (origin at the corner, front face -Y, side face -X like MV_Beam_Corner_A)."""
+    mb = MeshBuilder()
+    z = 0.0; i = 0
+    heights = [0.34, 0.3, 0.36, 0.32, 0.3, 0.34, 0.32, 0.36, 0.36]
+    while z < WALL_H - 1e-6:
+        hh = min(heights[i % len(heights)], WALL_H - z)
+        long_front = (i % 2 == 0)
+        a, b = (0.55, 0.32) if long_front else (0.32, 0.55)
+        mb.box(-0.03, -0.03, z + 0.01, a, 0.0, z + hh - 0.01, "MAT_Stone_Cut")    # on the front face
+        mb.box(-0.03, -0.03, z + 0.01, 0.0, b, z + hh - 0.01, "MAT_Stone_Cut")    # on the side face
+        z += hh; i += 1
+    return mb.to_object("MV_Quoin_Stone_A", COL["03_Beams"])
+
+
+def merge_into(mb, sub, M):
+    """Copy every face of MeshBuilder `sub` into `mb`, transformed by M (UVs and materials kept)."""
+    for f in sub.bm.faces:
+        vs = [mb.bm.verts.new(M @ v.co) for v in f.verts]
+        nf = mb.bm.faces.new(vs)
+        nf.material_index = mb.mi(sub.mats[f.material_index])
+        for l_new, l_old in zip(nf.loops, f.loops):
+            l_new[mb.uv].uv = l_old[sub.uv].uv
+    sub.bm.free()
+
+
+DORMER_Y = 0.05   # dormer front face, just behind the wall line (y=0) in the roof frame (wall top z=0)
+
+
+def dormer(roofmat="MAT_Roof_SlateDark", tag="Slate"):
+    """HD-2D pass: a gabled dormer standing on the front slope of a PITCH roof (Octopath's roofscapes are broken up by
+    dormers). Timber-and-plaster front with corner posts, plaster cheeks, a small gable roof running back into the main
+    roof. Origin: centre of the dormer on the front wall line at the wall top (place at the house's WT). The window is
+    placed separately (MV_Window_Small_A at DORMER_Y, see house())."""
+    mb = MeshBuilder()
+    t = math.tan(math.radians(PITCH)); c = math.cos(math.radians(PITCH))
+    zr = lambda y: y * t + SLAB_T / c          # main roof's top surface
+    HW, y0 = 0.62, DORMER_Y
+    z0 = zr(y0) - 0.25
+    top = 1.55                                 # its ridge stays under the main ridge (z ~2.6)
+    back = 1.3
+    mb.box(-HW, y0, z0, HW, y0 + 0.2, top, "MAT_Plaster_Warm")                           # front wall
+    for sx in (-1, 1):                                                                    # cheeks
+        x0, x1 = sorted((sx * HW, sx * (HW - 0.14)))
+        mb.box(x0, y0, z0, x1, back, top, "MAT_Plaster_Warm")
+        beam(mb, sx * (HW - 0.07), z0 + 0.25, sx * (HW - 0.07), top, w=0.14)             # corner posts (front face)
+    # front face beams sit on the y0 plane: move the beams built at y=0 forward
+    for v in mb.bm.verts:
+        if v.co.y < 0.03:
+            v.co.y += y0
+    beam_sub = MeshBuilder()
+    beam(beam_sub, -HW, top - 0.07, HW, top - 0.07, w=0.14)                               # head plate
+    merge_into(mb, beam_sub, T(0, y0, 0))
+    # gable infill above the front wall
+    span = 2 * HW + 0.1
+    pitch = 40.0
+    rise = (span / 2) * math.tan(math.radians(pitch))
+    mb.prism_xz([(-span / 2 + 0.05, top), (span / 2 - 0.05, top), (0, top + rise - 0.08)], y0, y0 + 0.2, "MAT_Plaster_Warm")
+    kp = MeshBuilder()
+    beam(kp, 0, top, 0, top + rise - 0.12, w=0.12)                                        # king post
+    merge_into(mb, kp, T(0, y0, 0))
+    # roof: build along X, then turn so the ridge runs back along +Y
+    sub = MeshBuilder()
+    roof_slab(sub, -0.28, 1.85, roofmat, span=span, eave=0.22, pitch=pitch, slab=0.1)   # ends inside the main roof
+    merge_into(mb, sub, T(0, y0, top) @ R('Z', 90) @ T(0, -span / 2, 0))
+    return mb.to_object("MV_Dormer_%s_A" % tag, COL["06_Roofs"])
 
 
 def door_barn():
@@ -540,7 +626,7 @@ def window_shutter():
     for side in (-1, 1):   # shutters folded back against the wall
         x0 = side * (W / 2 + fw + 0.02)
         x1 = x0 + side * 0.44
-        mb.box(min(x0, x1), -0.06, -0.02, max(x0, x1), -0.02, H + 0.02, "MAT_Wood_Door")
+        mb.box(min(x0, x1), -0.06, -0.02, max(x0, x1), -0.02, H + 0.02, "MAT_Wood_Shutter")   # HD-2D: painted (colour accent)
         for z in (0.15, H - 0.15):
             mb.box(min(x0, x1) + 0.03, -0.08, z - 0.03, max(x0, x1) - 0.03, -0.05, z + 0.03, "MAT_Metal_IronDark")
     return mb.to_object("MV_Window_Shutter_A", COL["05_Windows"])
@@ -707,11 +793,12 @@ LIBROWS = [
     [("fnd4", foundation(4)), ("fnd2", foundation(2)), ("step", doorstep())],
     [("wp2", wall_plaster(2)), ("wp4", wall_plaster(4)), ("wtA", wall_timber("A")), ("wtB", wall_timber("B")),
      ("ws2", wall_material(2, "stone")), ("wk2", wall_material(2, "plank"))],
-    [("gable", wall_gable()), ("gableK", wall_gable_plank()), ("corner", corner_beam()), ("fbeam", floor_beam()), ("post", post_timber()),
-     ("joist", joist_end())],
+    [("gable", wall_gable()), ("gableK", wall_gable_plank()), ("gableS", wall_gable_stone()), ("corner", corner_beam()),
+     ("quoin", quoin()), ("fbeam", floor_beam()), ("post", post_timber()), ("joist", joist_end())],
     [("door", door()), ("doorBarn", door_barn()), ("win", window_small()), ("winS", window_shutter()), ("fbox", flower_box())],
     [("roof2", roof_gable(2)), ("roofEnd", roof_gable_end()), ("roofK2", roof_gable(2, "MAT_Roof_ShingleDark", "GableShingle")),
-     ("roofKEnd", roof_gable_end("MAT_Roof_ShingleDark", "GableShingleEnd")), ("lean", roof_leanto())],
+     ("roofKEnd", roof_gable_end("MAT_Roof_ShingleDark", "GableShingleEnd")), ("lean", roof_leanto()),
+     ("dormS", dormer("MAT_Roof_SlateDark", "Slate")), ("dormK", dormer("MAT_Roof_ShingleDark", "Shingle"))],
     [("chim", chimney(7.0, "A")), ("chimB", chimney(10.0, "B"))],
     [("fence", fence()), ("sign", hanging_sign()), ("well", well()), ("lantern", lantern_post()), ("stall", market_stall()), ("cart", cart())],
 ]
@@ -756,14 +843,17 @@ PANEL = {"A": "wtA", "B": "wtB", "P": "wp2", "S": "ws2", "K": "wk2"}
 
 
 def house(name, W, floors, front, right, left=None, back=None, roof="slate", chimney=None, opens=(), leanto=None,
-          sign=False, step_x=None, plank_gable=False, loc=(0, 0, 0)):
+          sign=False, step_x=None, plank_gable=False, dormers=(), loc=(0, 0, 0)):
     """A rectangular building W x 4 m (W even), its origin at the front wall's centre at the ground, front facing -Y.
     floors: storeys. front/right/left/back: per storey, a string of 2 m panel letters (A braced timber, B timber opening,
     P plaster, S stone, K plank), left to right as seen from outside; left/back default to braced timber. opens: (key, side,
     x along that wall, storey, z in storey). chimney: 'left'/'right'. leanto: ('right'|'front', x along the wall (left end),
     length in 2 m pieces).
-    Material rule (Oct 29, 2026): houses are timber frame over plaster (A, B) all round, barns and sheds planks (K);
-    stone is for foundations, chimneys and steps only, so S and plain P panels are left in the library but unused."""
+    Material rule (HD-2D pass, Oct 30, 2026, StyleGuide "Buildings"): ONE material per storey on all four sides:
+    stone (S, dressed ashlar with quoins at the corners), timber frame over plaster (A, B) or planks (K, barns).
+    A timber storey over a stone one juts out on joists. The gable takes the material of the storey below it.
+    Plain plaster panels (P) stay in the library unused. dormers: x positions of dormers on the front slope (slate /
+    shingle roofs)."""
     D = SPAN
     root = new_prefab(name, loc)
     ox = -W / 2.0
@@ -798,8 +888,9 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
             P(PANEL[k], W - 2 * i, D, z, 180)
         for i, k in enumerate(left[s]):
             P(PANEL[k], 0, D - 2 * i, z, -90, stretch if i == n_side - 1 else 1.0)
+        stone = set(front[s]) <= set("S")
         for (cx, cy, r) in ((0, -J, 0), (W, -J, 90), (W, D, 180), (0, D, -90)):
-            P("corner", cx, cy, z, r)
+            P("quoin" if stone else "corner", cx, cy, z, r)
         if J > 0:  # joist ends carry the overhang, every 0.5 m along the front
             for i in range(int(W / 0.5) + 1):
                 P("joist", 0.12 + i * (W - 0.24) / int(W / 0.5), 0.0, z - 0.02)
@@ -810,13 +901,19 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
             for i in range(int(D // 2)):
                 P("fbeam", W + 0.02, 2 * i, z - 0.11, 90)
                 P("fbeam", -0.02, D - 2 * i, z - 0.11, -90)
-    gable = "gableK" if plank_gable else "gable"
+    top_storey = set(front[-1])
+    gable = "gableK" if plank_gable else ("gableS" if top_storey <= set("S") else "gable")
     P(gable, 0, D, WT, -90); P(gable, W, 0, WT, 90)
     rk, ek = {"slate": ("roof2", "roofEnd"), "thatch": ("roofT2", "roofTEnd")}.get(roof, ("roofK2", "roofKEnd"))
     lk = {"slate": "leanS", "thatch": "leanT"}.get(roof, "lean")   # lean-to uses the house's own roof material
     for i in range(int(W // 2)):
         P(rk, 2 * i, 0, WT)
     P(ek, 0, 0, WT); P(ek, W, D, WT, 180)
+    dk = "dormK" if roof == "shingle" else "dormS"
+    for dx in dormers:
+        P(dk, dx, 0, WT)
+        tz = math.tan(math.radians(PITCH)) * DORMER_Y + SLAB_T / math.cos(math.radians(PITCH))
+        P("win", dx, DORMER_Y - 0.005, WT + tz + 0.02)
     for (key, side, x, storey, zz) in opens:
         z = F + WALL_H * storey + zz
         if side == "front":
@@ -858,13 +955,14 @@ def house(name, W, floors, front, right, left=None, back=None, roof="slate", chi
 
 
 W6, F = 6.0, FND_H
-# House A: the Phase 1 cottage (same layout as before), now from the assembler.
-house("MV_House_A", 6, 1, front=["BBA"], right=["AB"], chimney="left", sign=True, step_x=3.0,
+# House A (the inn): timber frame over plaster, blue slate roof with an attic dormer.
+house("MV_House_A", 6, 1, front=["BBA"], right=["AB"], chimney="left", sign=True, step_x=3.0, dormers=(4.6,),
       opens=[("win", "front", 1.0, 0, 1.25), ("door", "front", 3.0, 0, 0.0), ("win", "right", 3.0, 0, 1.25),
              ("win", "gable_right", 2.0, 0, 0.35)], loc=(3.0, 0, 0))
-# House B: two storeys of timber frame over plaster with a floor band, a lean-to on the right (store / woodshed).
-house("MV_House_B", 6, 2, front=["BBB", "BAB"], right=["AA", "AB"], left=["AA", "AA"], back=["AAA", "AAA"],
-      chimney="left", step_x=3.0, leanto=("right", 0.0, 2),
+# House B: HD-2D pass - a dressed-stone ground floor with quoins, a jettied timber-and-plaster upper floor, a dormer,
+# a lean-to on the right (store / woodshed).
+house("MV_House_B", 6, 2, front=["SSS", "BAB"], right=["SS", "AB"], left=["SS", "AA"], back=["SSS", "AAA"],
+      chimney="left", step_x=3.0, leanto=("right", 0.0, 2), dormers=(3.0,),
       opens=[("door", "front", 3.0, 0, 0.0), ("winS", "front", 1.0, 0, 1.2), ("winS", "front", 5.0, 0, 1.2),
              ("win", "front", 1.0, 1, 1.0), ("win", "front", 5.0, 1, 1.0), ("win", "right", 3.0, 1, 1.0),
              ("fbox", "front", 1.0, 0, 1.0), ("fbox", "front", 5.0, 0, 1.0)], loc=(3.0, 14.0, 0))
@@ -872,7 +970,7 @@ house("MV_House_B", 6, 2, front=["BBB", "BAB"], right=["AA", "AB"], left=["AA", 
 house("MV_Barn_A", 8, 1, front=["KKKK"], right=["KK"], left=["KK"], back=["KKKK"], roof="shingle", plank_gable=True,
       leanto=("right", 0.0, 2), opens=[("doorBarn", "front", 4.0, 0, 0.0), ("winS", "front", 1.2, 0, 1.3)], loc=(16.0, 0, 0))
 # Workshop / shop: timber frame over plaster, shuttered windows, an awning over the front (slate, like its roof).
-house("MV_Shop_A", 6, 1, front=["BBB"], right=["AB"], roof="slate", chimney="right", step_x=3.0, leanto=("front", 0.0, 3),
+house("MV_Shop_A", 6, 1, front=["BBB"], right=["AB"], roof="shingle", chimney="right", step_x=3.0, leanto=("front", 0.0, 3),
       opens=[("winS", "front", 1.0, 0, 1.2), ("door", "front", 3.0, 0, 0.0), ("winS", "front", 5.0, 0, 1.2),
              ("winS", "right", 3.0, 0, 1.2), ("fbox", "front", 1.0, 0, 1.0)], loc=(16.0, 14.0, 0))
 
@@ -924,6 +1022,8 @@ def img_plane(name, path, w_m, h_m, loc, rot_z=0.0, tilt=90.0, emit=0.0, coll=PR
 
 
 def ground(name, path, size, loc, tile_m):
+    if Path(path).exists() == False:
+        return None
     ob = img_plane(name, path, size[0], size[1], loc, tilt=0.0, uv_repeat=(size[0] / tile_m, size[1] / tile_m))
     ob.rotation_euler = (0, 0, 0)
     # img_plane builds in XZ; turn it flat
@@ -941,6 +1041,8 @@ CAM_YAW = 0.0  # camera looks along +Y; billboards face it
 
 def sprite(fname, x, y, z=0.0, scale=1.0):
     p = SG / "Foliage" / fname
+    if p.exists() == False:   # preview-only foliage; the Shrine Glade's sprite set was replaced (Oct 30, 2026)
+        return None
     img = bpy.data.images.load(str(p), check_existing=True)
     w, h = img.size[0] / PPM * scale, img.size[1] / PPM * scale
     ob = img_plane("PV_" + fname[:-4] + "_%d_%d" % (int(x * 10), int(y * 10)), p, w, h, (x, y, z))
@@ -1068,7 +1170,7 @@ OUT = Path(os.environ["MV_OUT"]) if os.environ.get("MV_OUT") else ROOT / "Models
 EXPORTED = []
 # Re-exported on every run (the rest keep their glbs unless MV_REEXPORT is set): the buildings, after the Oct 29, 2026
 # material pass (timber frame and plaster or planks for walls, stone only for foundations and chimneys).
-ROOF_FIX = ("MV_House_A", "MV_House_B", "MV_Shop_A", "MV_Barn_A", "MV_Cottage_Thatch_A", "MV_Well")
+ROOF_FIX = ("MV_House_A", "MV_House_B", "MV_Shop_A", "MV_Barn_A", "MV_Cottage_Thatch_A", "MV_Well")   # MV_REEXPORT=1 after a texture pass
 for pname, root in PREFABS.items():
     if pname not in NEW_PREFABS and pname not in ROOF_FIX and not os.environ.get("MV_REEXPORT"):
         continue  # existing glbs stay as they are
