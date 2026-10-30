@@ -193,7 +193,9 @@ namespace Hydro
 					{
 						const TerrainMesher::WallSegment& segment = segments[s];
 						const bool top = rule.Place == TerrainDecorPlace::WallTop;
-						if ((top && (segment.IsTop == false || segment.Material == TerrainWallHidden))
+						// A Hidden wall is where a mesh stands in for the terrain's wall (stairs, a building's
+						// footing): nothing grows along it, on top or at its foot, or the plants would line the steps.
+						if (segment.Material == TerrainWallHidden || (top && segment.IsTop == false)
 							|| (rule.Layer != TerrainDecorAnyLayer && segment.Material != rule.Layer))
 						{
 							continue;

@@ -120,6 +120,13 @@ def build_levels(g):
     # The shrine shelf's tall drop to the valley (2 m and more) slopes less than the low banks, so its foot doesn't
     # reach far into the valley.
     g.walls[(g.walls == EARTH) & (mx - mn >= 8)] = CLIFF
+    # Where a stair mesh stands in for the terrain's wall, the wall is Hidden: its collision stays, but no wall face, cap
+    # stones or decor (TerrainDecor skips Hidden walls), so no plant row grows across the steps: the plaza's front at
+    # the lower stairs' top step (|x| < 2, y -3.45) and the shrine shelf's edge at the upper stairs' top (|x| < 1.5, y 3.5).
+    wall = mx != mn
+    lower_stairs = wall & (np.abs(g.CX) < 2.0) & (g.CY > -3.6) & (g.CY < -2.9)
+    upper_stairs = wall & (np.abs(g.CX) < 1.5) & (g.CY > 3.0) & (g.CY < 3.6)
+    g.walls[lower_stairs | upper_stairs] = tm.WALL_HIDDEN
 
 
 def build_weights(g):
