@@ -2,6 +2,7 @@
 #include "TerrainCache.h"
 
 #include "Hydro/Core/Time.h"
+#include "Hydro/Terrain/TerrainDecor.h"
 #include "Hydro/Terrain/TerrainMesher.h"
 
 #include <algorithm>
@@ -12,8 +13,9 @@ namespace Hydro
 {
 	struct TerrainChunkEntry
 	{
-		uint64_t GeometryRevision = 0; // the terrain's revision it was built from (0 = never)
-		std::vector<glm::vec3> Positions; // for Raycast
+		uint64_t GeometryRevision = 0; // the terrain's geometry and decor revisions it was built from (0 = never)
+		uint64_t DecorRevision = 0;
+		std::vector<glm::vec3> Positions; // for Raycast: the tops, walls and lip faces
 		std::vector<uint32_t> Indices;
 	};
 
@@ -23,7 +25,9 @@ namespace Hydro
 		std::weak_ptr<Terrain> Owner; // the key's terrain is gone (or replaced by a reload) when this expires
 		TerrainRenderData Data;
 		std::vector<TerrainChunkEntry> Chunks;
-		bool StepsReported = false;
+		Scope<TerrainMesher> Mesher;
+		uint64_t MesherRevision = 0;   // the terrain's collision revision the mesher was made from
+		bool DecorComplete = false;    // every decor sprite was loaded when the chunks were built
 		uint64_t LastUsedFrame = 0;
 	};
 
@@ -98,41 +102,68 @@ namespace Hydro
 			entry.Data.Chunks.assign(chunkCount, TerrainChunkDraw{});
 		}
 
-		bool hasSteps = false;
+		// The decor sprites load with the scene; a chunk built before they were all there is built again once they are.
+		const bool decorComplete = TerrainDecor::AreSpritesLoaded(terrain);
+		const bool decorArrived = decorComplete && entry.DecorComplete == false;
+		entry.DecorComplete = decorComplete;
+
 		for (uint32_t chunk = 0; chunk < chunkCount; chunk++)
 		{
 			TerrainChunkEntry& cached = entry.Chunks[chunk];
-			const uint64_t revision = terrain.GetGeometryRevision(chunk);
-			if (cached.GeometryRevision == revision)
+			const uint64_t geometry = terrain.GetGeometryRevision(chunk);
+			const uint64_t decor = terrain.GetDecorRevision(chunk);
+			if (cached.GeometryRevision == geometry && cached.DecorRevision == decor && decorArrived == false)
 			{
 				continue;
 			}
 
-			bool chunkSteps = false;
-			MeshData data = TerrainMesher::BuildChunkTops(terrain, chunk % chunksX, chunk / chunksX, chunkSteps);
-			hasSteps |= chunkSteps;
+			// The whole terrain's analysis (walls, ramps), made again only when its shape changed.
+			if (entry.Mesher == nullptr || entry.MesherRevision != terrain.GetCollisionRevision())
+			{
+				entry.Mesher = CreateScope<TerrainMesher>(terrain);
+				entry.MesherRevision = terrain.GetCollisionRevision();
+				entry.Data.Problems = entry.Mesher->GetProblems();
+			}
 
+			TerrainChunkMesh mesh = entry.Mesher->BuildChunk(chunk % chunksX, chunk / chunksX);
 			TerrainChunkDraw& draw = entry.Data.Chunks[chunk];
 			draw.BoundsMin = glm::vec3(std::numeric_limits<float>::max());
 			draw.BoundsMax = glm::vec3(std::numeric_limits<float>::lowest());
 			cached.Positions.clear();
-			cached.Positions.reserve(data.Vertices.size());
-			for (const MeshVertex& vertex : data.Vertices)
+			cached.Indices.clear();
+			auto keep = [&](const MeshData& data, const SubMesh& subMesh)
 			{
-				cached.Positions.push_back(vertex.Position);
-				draw.BoundsMin = glm::min(draw.BoundsMin, vertex.Position);
-				draw.BoundsMax = glm::max(draw.BoundsMax, vertex.Position);
+				for (uint32_t k = 0; k < subMesh.IndexCount; k++)
+				{
+					cached.Indices.push_back((uint32_t)cached.Positions.size());
+					cached.Positions.push_back(data.Vertices[data.Indices[subMesh.FirstIndex + k]].Position);
+				}
+			};
+			for (const SubMesh& subMesh : mesh.Tops.SubMeshes)
+			{
+				keep(mesh.Tops, subMesh);
 			}
-			cached.Indices = data.Indices;
-			// The old mesh (frames in flight may still draw it) goes through the deletion queue.
-			draw.Tops = data.Indices.empty() ? nullptr : CreateRef<Mesh>(data, "Terrain chunk " + std::to_string(chunk));
-			cached.GeometryRevision = revision;
-		}
-
-		if (hasSteps && entry.StepsReported == false)
-		{
-			HY_CORE_WARN("TerrainCache: a terrain has cells whose corners are at different levels; they are drawn flat until terraces are meshed (Terrain plan TR2)");
-			entry.StepsReported = true;
+			for (const SubMesh& subMesh : mesh.Parts.SubMeshes)
+			{
+				const TerrainPartKind kind = TerrainMesher::GetPartKind(subMesh.MaterialSlot);
+				if (kind == TerrainPartKind::Wall || kind == TerrainPartKind::LipFace)
+				{
+					keep(mesh.Parts, subMesh);
+				}
+			}
+			for (const MeshData* data : { &mesh.Tops, &mesh.Parts })
+			{
+				for (const MeshVertex& vertex : data->Vertices)
+				{
+					draw.BoundsMin = glm::min(draw.BoundsMin, vertex.Position);
+					draw.BoundsMax = glm::max(draw.BoundsMax, vertex.Position);
+				}
+			}
+			// The old meshes (frames in flight may still draw them) go through the deletion queue.
+			draw.Tops = mesh.Tops.Indices.empty() ? nullptr : CreateRef<Mesh>(mesh.Tops, "Terrain tops " + std::to_string(chunk));
+			draw.Parts = mesh.Parts.Indices.empty() ? nullptr : CreateRef<Mesh>(mesh.Parts, "Terrain parts " + std::to_string(chunk));
+			cached.GeometryRevision = geometry;
+			cached.DecorRevision = decor;
 		}
 	}
 
@@ -252,7 +283,7 @@ namespace Hydro
 		for (size_t chunk = 0; chunk < entry->Chunks.size(); chunk++)
 		{
 			const TerrainChunkDraw& draw = entry->Data.Chunks[chunk];
-			if (draw.Tops == nullptr || RayHitsBox(origin, direction, draw.BoundsMin - glm::vec3(1e-3f), draw.BoundsMax + glm::vec3(1e-3f), best) == false)
+			if ((draw.Tops == nullptr && draw.Parts == nullptr) || RayHitsBox(origin, direction, draw.BoundsMin - glm::vec3(1e-3f), draw.BoundsMax + glm::vec3(1e-3f), best) == false)
 			{
 				continue;
 			}

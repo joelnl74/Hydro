@@ -18,6 +18,9 @@ namespace Hydro
 	static constexpr uint32_t TerrainChunkCells = 32;    // a chunk is 32 x 32 cells (16 m at 0.5 m cells)
 	static constexpr float TerrainArtPixelsPerMetre = 32.0f;
 	static constexpr uint8_t TerrainWallHidden = 7;      // a cell's wall material: collision only, not drawn
+	static constexpr uint32_t MaxTerrainDecorRules = 8;
+	static constexpr uint32_t MaxTerrainDecorSprites = 16; // per rule
+	static constexpr uint32_t TerrainDecorAnyLayer = 255;  // a wall decor rule for every wall layer
 
 	// A cell's ramp: which way it rises (TR3). Runs of cells with the same direction are one ramp.
 	enum class TerrainRamp : uint8_t
@@ -60,6 +63,41 @@ namespace Hydro
 		bool operator!=(const TerrainWallLayer& other) const { return (*this == other) == false; }
 	};
 
+	// Where a decor rule places its instances (TR5).
+	enum class TerrainDecorPlace : uint8_t
+	{
+		Layer = 0,   // scattered where the top layer wins
+		LayerBorder, // where the top layer meets another one
+		WallTop,     // along the top of walls (behind the lip), per metre of wall
+		WallFoot     // along the foot of walls, on the lower ground, per metre of wall
+	};
+
+	// What a decor instance is.
+	enum class TerrainDecorShape : uint8_t
+	{
+		Upright = 0, // a sprite standing up, facing south (the field cameras look north): tufts, flowers, ferns
+		Flat,        // a sprite lying on the ground, turned at random: petals, leaf litter
+		Stone        // a small box textured with the sprite's image: pebbles
+	};
+
+	// Small repeated dressing generated from the terrain (TR5): no entities, the same on every load, follows edits.
+	struct TerrainDecorRule
+	{
+		TerrainDecorPlace Place = TerrainDecorPlace::Layer;
+		uint32_t Layer = 0; // the top layer (Layer, LayerBorder) or wall layer (WallTop, WallFoot; TerrainDecorAnyLayer = all)
+		TerrainDecorShape Shape = TerrainDecorShape::Upright;
+		std::vector<AssetHandle> Sprites; // textures (cut out at alpha 0.5); each instance picks one
+		float Density = 1.0f;             // per square metre (Layer, LayerBorder) or per metre of wall
+		glm::vec2 Scale{ 0.85f, 1.1f };   // of the sprite's own size (32 pixels per metre), min..max
+
+		bool operator==(const TerrainDecorRule& other) const
+		{
+			return Place == other.Place && Layer == other.Layer && Shape == other.Shape && Sprites == other.Sprites && Density == other.Density
+				&& Scale == other.Scale;
+		}
+		bool operator!=(const TerrainDecorRule& other) const { return (*this == other) == false; }
+	};
+
 	// How a terrain is built and looks. Plain data, saved in its .hyterrain. Defaults are the approved TR1
 	// look (TR0 preset "tr1"); lengths in metres unless they say art pixels.
 	struct TerrainSettings
@@ -99,8 +137,17 @@ namespace Hydro
 		float CapYawJitter = 3.0f; // degrees
 		float CapMissing = 0.08f;
 
+		std::vector<TerrainDecorRule> Decor; // 0..MaxTerrainDecorRules (TR5)
+
 		bool operator==(const TerrainSettings& other) const;
 		bool operator!=(const TerrainSettings& other) const { return (*this == other) == false; }
+	};
+
+	// A terrain's collision triangles in its own space (Terrain::GetCollisionMesh), welded so shared edges are shared.
+	struct TerrainCollisionMesh
+	{
+		std::vector<glm::vec3> Positions;
+		std::vector<uint32_t> Indices;
 	};
 
 	// A rectangle of cells or texels, both corners included.
@@ -186,6 +233,10 @@ namespace Hydro
 		// The texels changed since the last call (their union), for uploading; false when none did.
 		bool TakeChangedWeights(TerrainRect& texels);
 
+		// The collision triangles (TerrainMesher::BuildCollision: tops, ramps and walls, Hidden ones too), built when
+		// first asked for after the shape changed. PhysicsScene3D makes one static mesh body from them at Play.
+		const TerrainCollisionMesh& GetCollisionMesh() const;
+
 		// Changed since it was loaded or last saved (the editor saves modified terrains with the scene).
 		bool IsModified() const { return m_Modified; }
 		void SetModified(bool modified) { m_Modified = modified; }
@@ -220,5 +271,8 @@ namespace Hydro
 		bool m_WeightsChanged = false;
 		TerrainRect m_ChangedWeights;
 		bool m_Modified = false;
+
+		mutable TerrainCollisionMesh m_Collision; // derived data, cached
+		mutable uint64_t m_CollisionBuilt = 0;    // the collision revision it was built from
 	};
 }

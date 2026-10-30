@@ -3,6 +3,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Mesh.h"
+#include "Hydro/Terrain/Terrain.h"
 
 #include <algorithm>
 #include <cmath>
@@ -92,7 +93,7 @@ namespace Hydro
 	{
 		return registry.has<BoxColliderComponent>(entity) || registry.has<SphereColliderComponent>(entity)
 			|| registry.has<CapsuleColliderComponent>(entity) || registry.has<CylinderColliderComponent>(entity)
-			|| (registry.has<MeshColliderComponent>(entity) && registry.has<MeshComponent>(entity));
+			|| (registry.has<MeshColliderComponent>(entity) && registry.has<MeshComponent>(entity)) || registry.has<TerrainComponent>(entity);
 	}
 
 	bool ColliderShapes::Get(entt::registry& registry, entt::entity entity, const glm::vec3& worldScale, std::vector<ColliderShape>& shapes)
@@ -197,6 +198,30 @@ namespace Hydro
 				ColliderShape shape = MakeMeshShape(mesh, scale);
 				shape.Layer = collider.Layer;
 				shapes.push_back(shape);
+			}
+		}
+
+		if (registry.has<TerrainComponent>(entity))
+		{
+			// The terrain's tops, ramps and walls as one hollow mesh, in its own space (terrains are unscaled, v1).
+			const TerrainComponent& component = registry.get<TerrainComponent>(entity);
+			const Ref<Terrain> terrain = (uint64_t)component.Terrain != 0 ? AssetManager::GetLoadedAsset<Terrain>(component.Terrain) : nullptr;
+			if (terrain == nullptr)
+			{
+				complete = (uint64_t)component.Terrain == 0;
+			}
+			else
+			{
+				const TerrainCollisionMesh& collision = terrain->GetCollisionMesh();
+				if (collision.Indices.empty() == false)
+				{
+					ColliderShape shape;
+					shape.Type = ColliderShapeType::TriangleMesh;
+					shape.Points = collision.Positions;
+					shape.Indices = collision.Indices;
+					shape.Layer = component.Layer;
+					shapes.push_back(std::move(shape));
+				}
 			}
 		}
 

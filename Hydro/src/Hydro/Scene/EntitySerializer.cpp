@@ -1255,15 +1255,36 @@ namespace Hydro
 			terrain.Terrain = AssetHandle(terrainNode["TerrainHandle"].as<uint64_t>(0));
 			terrain.CastShadows = terrainNode["CastShadows"].as<bool>(terrain.CastShadows);
 			terrain.Layer = PhysicsLayerFromString(terrainNode["Layer"].as<std::string>("World"), terrain.Layer);
-			// Loaded now, with its layers' materials (and their textures), so the first frame draws it.
+			// Loaded now, with every material (and texture) and decor sprite it names, so the first frame draws it all.
 			const Ref<Terrain> asset = (uint64_t)terrain.Terrain != 0 ? AssetManager::GetAsset<Terrain>(terrain.Terrain) : nullptr;
 			if (asset != nullptr)
 			{
-				for (const TerrainLayer& layer : asset->GetSettings().Layers)
+				const TerrainSettings& settings = asset->GetSettings();
+				auto loadMaterial = [](AssetHandle handle)
 				{
-					if ((uint64_t)layer.Material != 0)
+					if ((uint64_t)handle != 0)
 					{
-						AssetManager::GetAsset<MaterialAsset>(layer.Material);
+						AssetManager::GetAsset<MaterialAsset>(handle);
+					}
+				};
+				for (const TerrainLayer& layer : settings.Layers)
+				{
+					loadMaterial(layer.Material);
+					loadMaterial(layer.Fringe);
+				}
+				for (const TerrainWallLayer& wall : settings.WallLayers)
+				{
+					loadMaterial(wall.Material);
+				}
+				loadMaterial(settings.CapStoneMaterial);
+				for (const TerrainDecorRule& rule : settings.Decor)
+				{
+					for (AssetHandle sprite : rule.Sprites)
+					{
+						if ((uint64_t)sprite != 0)
+						{
+							AssetManager::GetAsset<Texture2D>(sprite);
+						}
 					}
 				}
 			}

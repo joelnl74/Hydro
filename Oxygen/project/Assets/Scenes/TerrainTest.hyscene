@@ -1,5 +1,5 @@
 Handle: 1694238557221495815
-Scene: Untitled
+Scene: TerrainTest
 RenderSettings:
   OverrideProject: true
   Features:
@@ -50,7 +50,7 @@ Entities:
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Global
-      Color: [0.179254636, 0.713793099, 0.135374561]
+      Color: [1, 1, 1]
       Intensity: 1
       Radius: 5
       Height: 0

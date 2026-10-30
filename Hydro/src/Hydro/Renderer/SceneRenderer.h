@@ -38,6 +38,8 @@ namespace Hydro
 			glm::vec3 TerrainBrushCentre{ 0.0f };
 			float TerrainBrushRadius = 1.0f;
 			glm::vec4 TerrainBrushColor{ 1.0f, 1.0f, 1.0f, 0.9f };
+			// The Path brush's points so far (world space), joined by a line; empty when there are none.
+			std::vector<glm::vec3> TerrainPath;
 		};
 
 		SceneRenderer(const Ref<Scene>& scene)

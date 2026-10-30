@@ -13,6 +13,59 @@
 
 namespace Hydro
 {
+	static const char* DecorPlaceToString(TerrainDecorPlace place)
+	{
+		switch (place)
+		{
+			case TerrainDecorPlace::Layer: return "Layer";
+			case TerrainDecorPlace::LayerBorder: return "LayerBorder";
+			case TerrainDecorPlace::WallTop: return "WallTop";
+			case TerrainDecorPlace::WallFoot: return "WallFoot";
+		}
+		return "Layer";
+	}
+
+	static TerrainDecorPlace DecorPlaceFromString(const std::string& text)
+	{
+		if (text == "LayerBorder")
+		{
+			return TerrainDecorPlace::LayerBorder;
+		}
+		if (text == "WallTop")
+		{
+			return TerrainDecorPlace::WallTop;
+		}
+		if (text == "WallFoot")
+		{
+			return TerrainDecorPlace::WallFoot;
+		}
+		return TerrainDecorPlace::Layer;
+	}
+
+	static const char* DecorShapeToString(TerrainDecorShape shape)
+	{
+		switch (shape)
+		{
+			case TerrainDecorShape::Upright: return "Upright";
+			case TerrainDecorShape::Flat: return "Flat";
+			case TerrainDecorShape::Stone: return "Stone";
+		}
+		return "Upright";
+	}
+
+	static TerrainDecorShape DecorShapeFromString(const std::string& text)
+	{
+		if (text == "Flat")
+		{
+			return TerrainDecorShape::Flat;
+		}
+		if (text == "Stone")
+		{
+			return TerrainDecorShape::Stone;
+		}
+		return TerrainDecorShape::Upright;
+	}
+
 	static const char* s_Base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 	std::string TerrainSerializer::EncodeBase64(const std::vector<uint8_t>& bytes, size_t lineLength)
@@ -236,6 +289,24 @@ namespace Hydro
 		out << YAML::Key << "YawJitter" << YAML::Value << settings.CapYawJitter;
 		out << YAML::Key << "Missing" << YAML::Value << settings.CapMissing;
 		out << YAML::EndMap;
+		out << YAML::Key << "Decor" << YAML::Value << YAML::BeginSeq;
+		for (const TerrainDecorRule& rule : settings.Decor)
+		{
+			out << YAML::BeginMap;
+			out << YAML::Key << "Place" << YAML::Value << DecorPlaceToString(rule.Place);
+			out << YAML::Key << "Layer" << YAML::Value << rule.Layer;
+			out << YAML::Key << "Shape" << YAML::Value << DecorShapeToString(rule.Shape);
+			out << YAML::Key << "Density" << YAML::Value << rule.Density;
+			out << YAML::Key << "Scale" << YAML::Value << rule.Scale;
+			out << YAML::Key << "Sprites" << YAML::Value << YAML::Flow << YAML::BeginSeq;
+			for (AssetHandle sprite : rule.Sprites)
+			{
+				out << (uint64_t)sprite;
+			}
+			out << YAML::EndSeq;
+			out << YAML::EndMap;
+		}
+		out << YAML::EndSeq;
 		out << YAML::EndMap; // Terrain
 
 		const std::vector<int8_t>& levels = terrain.GetLevels();
@@ -368,6 +439,34 @@ namespace Hydro
 				settings.CapPositionJitter = caps["PositionJitter"].as<float>(settings.CapPositionJitter);
 				settings.CapYawJitter = caps["YawJitter"].as<float>(settings.CapYawJitter);
 				settings.CapMissing = caps["Missing"].as<float>(settings.CapMissing);
+			}
+			if (auto decor = node["Decor"])
+			{
+				for (const auto& ruleNode : decor)
+				{
+					if (settings.Decor.size() == MaxTerrainDecorRules)
+					{
+						HY_CORE_WARN("TerrainSerializer: '{}' has more than {} decor rules; the rest are ignored", filepath.string(), MaxTerrainDecorRules);
+						break;
+					}
+					TerrainDecorRule rule;
+					rule.Place = DecorPlaceFromString(ruleNode["Place"].as<std::string>("Layer"));
+					rule.Layer = ruleNode["Layer"].as<uint32_t>(rule.Layer);
+					rule.Shape = DecorShapeFromString(ruleNode["Shape"].as<std::string>("Upright"));
+					rule.Density = ruleNode["Density"].as<float>(rule.Density);
+					rule.Scale = ruleNode["Scale"].as<glm::vec2>(rule.Scale);
+					if (auto sprites = ruleNode["Sprites"])
+					{
+						for (const auto& sprite : sprites)
+						{
+							if (rule.Sprites.size() < MaxTerrainDecorSprites)
+							{
+								rule.Sprites.push_back(AssetHandle(sprite.as<uint64_t>(0)));
+							}
+						}
+					}
+					settings.Decor.push_back(rule);
+				}
 			}
 		}
 		catch (const YAML::Exception& e)

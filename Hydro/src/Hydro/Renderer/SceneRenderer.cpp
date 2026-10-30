@@ -5,6 +5,7 @@
 #include "Renderer.h"
 #include "Renderer3D.h"
 #include "TerrainCache.h"
+#include "Hydro/Terrain/TerrainMesher.h"
 #include <glm/ext/matrix_transform.hpp>
 
 #include "Hydro/Asset/AssetManager.h"
@@ -496,13 +497,64 @@ namespace Hydro
 			material.EdgePixelNoise = settings.EdgePixelNoise;
 			material.Seed = settings.Seed;
 
+			// The parts' materials (TerrainMesher::GetPartKind): walls and their lip faces (20 % darker), fringes, cap
+			// stones, decor sprites (cut out).
+			auto loadedMaterial = [](AssetHandle handle)
+			{
+				const Ref<MaterialAsset> asset = (uint64_t)handle != 0 ? AssetManager::GetLoadedAsset<MaterialAsset>(handle) : nullptr;
+				return asset != nullptr ? asset->GetData() : MaterialData{};
+			};
+			auto partMaterial = [&](uint32_t slot)
+			{
+				const uint32_t index = TerrainMesher::GetPartIndex(slot);
+				switch (TerrainMesher::GetPartKind(slot))
+				{
+					case TerrainPartKind::Wall:
+					case TerrainPartKind::LipFace:
+					{
+						MaterialData wall = index < settings.WallLayers.size() ? loadedMaterial(settings.WallLayers[index].Material) : MaterialData{};
+						if (TerrainMesher::GetPartKind(slot) == TerrainPartKind::LipFace)
+						{
+							wall.Tint = glm::vec4(glm::vec3(wall.Tint) * 0.8f, wall.Tint.a);
+						}
+						return wall;
+					}
+					case TerrainPartKind::Fringe:
+						return index < settings.Layers.size() ? loadedMaterial(settings.Layers[index].Fringe) : MaterialData{};
+					case TerrainPartKind::CapStones:
+						return loadedMaterial(settings.CapStoneMaterial);
+					case TerrainPartKind::Decor:
+					{
+						MaterialData sprite;
+						const uint32_t rule = index / 256;
+						const uint32_t variant = index % 256;
+						if (rule < settings.Decor.size() && variant < settings.Decor[rule].Sprites.size())
+						{
+							sprite.Albedo = settings.Decor[rule].Sprites[variant];
+							sprite.AlphaCutoff = settings.Decor[rule].Shape == TerrainDecorShape::Stone ? 0.0f : 0.5f;
+						}
+						return sprite;
+					}
+				}
+				return MaterialData{};
+			};
+
 			// Only the position: terrains are axis-aligned and unscaled (v1).
 			const glm::mat4 world = glm::translate(glm::mat4(1.0f), transform.Translation);
+			const int32_t entityID = (int32_t)(uint32_t)entity;
 			for (const TerrainChunkDraw& chunk : data->Chunks)
 			{
 				if (chunk.Tops != nullptr)
 				{
-					Renderer3D::DrawTerrainSurface(chunk.Tops, 0, material, world, (int32_t)(uint32_t)entity, terrainComponent.CastShadows);
+					Renderer3D::DrawTerrainSurface(chunk.Tops, 0, material, world, entityID, terrainComponent.CastShadows);
+				}
+				if (chunk.Parts != nullptr)
+				{
+					const std::vector<SubMesh>& subMeshes = chunk.Parts->GetSubMeshes();
+					for (uint32_t i = 0; i < (uint32_t)subMeshes.size(); i++)
+					{
+						Renderer3D::DrawMesh(chunk.Parts, i, partMaterial(subMeshes[i].MaterialSlot), world, entityID, terrainComponent.CastShadows);
+					}
 				}
 			}
 		}
@@ -1195,7 +1247,7 @@ namespace Hydro
 		Entity selected = overlay.Selected; // a copy: Entity::GetScene is not const
 		const bool drawSelected = overlay.SelectionOutline && selected.IsValid()
 			&& selected.GetScene() == m_Scene.get() && selected.HasComponent<WorldTransformComponent>();
-		if (drawSelected == false && overlay.Colliders == false && overlay.TerrainBrush == false)
+		if (drawSelected == false && overlay.Colliders == false && overlay.TerrainBrush == false && overlay.TerrainPath.empty())
 		{
 			return;
 		}
@@ -1214,6 +1266,19 @@ namespace Hydro
 				const glm::vec3 point = overlay.TerrainBrushCentre + lift + glm::vec3(std::cos(angle), std::sin(angle), 0.0f) * overlay.TerrainBrushRadius;
 				Renderer2D::DrawLine3D(previous, point, overlay.TerrainBrushColor, 2.0f);
 				previous = point;
+			}
+		}
+		for (size_t i = 0; i < overlay.TerrainPath.size(); i++)
+		{
+			const glm::vec3 lift(0.0f, 0.0f, 0.02f);
+			const glm::vec4 pathColor{ 1.0f, 0.85f, 0.2f, 1.0f };
+			const glm::vec3 point = overlay.TerrainPath[i] + lift;
+			// A small cross on each point, joined by a line.
+			Renderer2D::DrawLine3D(point - glm::vec3(0.15f, 0.0f, 0.0f), point + glm::vec3(0.15f, 0.0f, 0.0f), pathColor, 2.0f);
+			Renderer2D::DrawLine3D(point - glm::vec3(0.0f, 0.15f, 0.0f), point + glm::vec3(0.0f, 0.15f, 0.0f), pathColor, 2.0f);
+			if (i > 0)
+			{
+				Renderer2D::DrawLine3D(overlay.TerrainPath[i - 1] + lift, point, pathColor, 2.0f);
 			}
 		}
 

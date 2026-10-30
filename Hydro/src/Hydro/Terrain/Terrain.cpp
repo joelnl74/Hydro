@@ -1,5 +1,6 @@
 #include "hypch.h"
 #include "Terrain.h"
+#include "TerrainMesher.h"
 #include "TerrainSerializer.h"
 
 #include <algorithm>
@@ -16,7 +17,7 @@ namespace Hydro
 			&& WallLean == other.WallLean && WallNoise == other.WallNoise && CapStoneMaterial == other.CapStoneMaterial
 			&& CapPitch == other.CapPitch && CapJoint == other.CapJoint && CapDepth == other.CapDepth && CapHeight == other.CapHeight
 			&& CapSizeJitter == other.CapSizeJitter && CapPositionJitter == other.CapPositionJitter && CapYawJitter == other.CapYawJitter
-			&& CapMissing == other.CapMissing;
+			&& CapMissing == other.CapMissing && Decor == other.Decor;
 	}
 
 	Terrain::Terrain(const TerrainSettings& settings, uint32_t cornersX, uint32_t cornersY)
@@ -77,6 +78,10 @@ namespace Hydro
 		if (m_Settings.WallLayers.size() > MaxTerrainWallLayers)
 		{
 			m_Settings.WallLayers.resize(MaxTerrainWallLayers);
+		}
+		if (m_Settings.Decor.size() > MaxTerrainDecorRules)
+		{
+			m_Settings.Decor.resize(MaxTerrainDecorRules);
 		}
 
 		TerrainRect all;
@@ -195,6 +200,16 @@ namespace Hydro
 		m_CollisionRevision = m_Revision;
 		m_WeightsChanged = false;
 		return true;
+	}
+
+	const TerrainCollisionMesh& Terrain::GetCollisionMesh() const
+	{
+		if (m_CollisionBuilt != m_CollisionRevision)
+		{
+			TerrainMesher(*this).BuildCollision(m_Collision.Positions, m_Collision.Indices);
+			m_CollisionBuilt = m_CollisionRevision;
+		}
+		return m_Collision;
 	}
 
 	glm::uvec2 Terrain::GetWeightMapSize(const TerrainSettings& settings, uint32_t cellsX, uint32_t cellsY)

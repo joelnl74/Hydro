@@ -7,14 +7,18 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace Hydro
 {
-	// One chunk of a terrain, ready to draw: its tops (TR1) in the terrain's own space.
+	// One chunk of a terrain, ready to draw, in the terrain's own space: its tops (the terrain surface shader) and its
+	// parts (walls, lip faces, fringes, cap stones, decor: Standard materials, one sub-mesh per part whose
+	// MaterialSlot says what it is, TerrainMesher::GetPartKind).
 	struct TerrainChunkDraw
 	{
 		Ref<Mesh> Tops;
+		Ref<Mesh> Parts;
 		glm::vec3 BoundsMin{ 0.0f };
 		glm::vec3 BoundsMax{ 0.0f };
 	};
@@ -24,11 +28,13 @@ namespace Hydro
 	{
 		Ref<Texture2D> Weights; // the weight map: RGBA (linear), filtered linearly, clamped
 		std::vector<TerrainChunkDraw> Chunks;
+		std::vector<std::string> Problems; // what the mesher found wrong (an invalid ramp run), for the inspector
 	};
 
 	// Terrains on the GPU (Terrain plan, "Component and rendering"): per terrain asset, the weight map as a texture and
 	// the meshes of its chunks, rebuilt only where the terrain changed (its revisions), plus the chunks' triangles on
-	// the CPU for picking. A part of Renderer (started and stopped by Renderer::Init / Shutdown, after Renderer3D);
+	// the CPU for picking. It keeps one TerrainMesher per terrain (the whole terrain's walls and ramps), made again
+	// when the levels, ramps, wall materials or settings change (Terrain::GetCollisionRevision). A part of Renderer (started and stopped by Renderer::Init / Shutdown, after Renderer3D);
 	// terrains no frame has drawn for a while are dropped (their GPU objects go through the deletion queue).
 	//
 	//   const TerrainRenderData* data = TerrainCache::Prepare(terrain); // SceneRenderer, every frame it is drawn
