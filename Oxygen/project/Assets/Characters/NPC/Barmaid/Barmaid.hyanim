@@ -1,0 +1,40 @@
+# Barmaid: field sheet Characters/NPC/Barmaid/Barmaid.png, 96 x 72 cells, rows Down / Right / Up / Left;
+# columns 0-3 the idle loop, 4-7 the walk cycle. Feet on the cell's bottom row (pivot [0.5, 0]).
+Handle: 2472910742119809806
+SpriteAnimationSet:
+  TextureHandle: 6156810907980390543
+  Texture: Barmaid.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Barmaid_Down_0, Barmaid_Down_1, Barmaid_Down_2, Barmaid_Down_3]
+    - Name: IdleRight
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Barmaid_Right_0, Barmaid_Right_1, Barmaid_Right_2, Barmaid_Right_3]
+    - Name: IdleUp
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Barmaid_Up_0, Barmaid_Up_1, Barmaid_Up_2, Barmaid_Up_3]
+    - Name: IdleLeft
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Barmaid_Left_0, Barmaid_Left_1, Barmaid_Left_2, Barmaid_Left_3]
+    - Name: WalkDown
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Barmaid_Down_4, Barmaid_Down_5, Barmaid_Down_6, Barmaid_Down_7]
+    - Name: WalkRight
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Barmaid_Right_4, Barmaid_Right_5, Barmaid_Right_6, Barmaid_Right_7]
+    - Name: WalkUp
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Barmaid_Up_4, Barmaid_Up_5, Barmaid_Up_6, Barmaid_Up_7]
+    - Name: WalkLeft
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Barmaid_Left_4, Barmaid_Left_5, Barmaid_Left_6, Barmaid_Left_7]

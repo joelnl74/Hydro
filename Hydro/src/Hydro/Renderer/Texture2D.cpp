@@ -43,6 +43,17 @@ namespace Hydro
 
 	Texture2D::~Texture2D() = default;
 
+	void Texture2D::SetData(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* pixels)
+	{
+		if (pixels == nullptr || width == 0 || height == 0 || x + width > m_Specification.Width || y + height > m_Specification.Height)
+		{
+			HY_CORE_ERROR("Texture2D::SetData: the rectangle ({}, {}, {} x {}) is outside the {} x {} texture", x, y, width, height,
+				m_Specification.Width, m_Specification.Height);
+			return;
+		}
+		m_Data->Image->UpdatePixels(x, y, width, height, pixels);
+	}
+
 	const Texture2DData& GetTexture2DData(const Texture2D& texture)
 	{
 		return *texture.m_Data;

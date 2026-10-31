@@ -1,4 +1,6 @@
 #include "RendererStatsWindow.h"
+
+#include <Hydro/Renderer/TerrainCache.h>
 #include "StatsUI.h"
 
 #include <imgui/imgui.h>
@@ -33,6 +35,8 @@ namespace Hydro
 			StatsUI::Row("Mesh draw calls", "%u", meshStats.MeshDraws);
 			StatsUI::Row("Mesh triangles", "%u", meshStats.Triangles);
 			StatsUI::Row("Mesh shadow draws", "%u (of the draw calls)", meshStats.ShadowDraws);
+			StatsUI::Row("Terrain draws", "%u (of the draw calls; one per chunk)", meshStats.TerrainDraws);
+			StatsUI::Row("Cached terrains", "%u", TerrainCache::GetCachedCount());
 			StatsUI::Row("Cached shapes", "%u", meshStats.CachedMeshes);
 			StatsUI::Row("Cached materials", "%u", meshStats.CachedMaterials);
 			ImGui::EndTable();

@@ -605,6 +605,10 @@ namespace Hydro
 		{
 			CreateBodies(handle);
 		}
+		for (entt::entity handle : registry.view<TerrainComponent>())
+		{
+			CreateBodies(handle);
+		}
 	}
 
 	void PhysicsScene3D::MoveKinematicBodies()

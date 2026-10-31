@@ -118,13 +118,15 @@ namespace Hydro
 
 	// Everything one RenderView needs: its target, its camera and its quads.
 	struct MeshMaterial; // Renderer3D.cpp
+	struct TerrainSurfaceGPU; // Renderer3D.cpp
 
 	// One sub-mesh queued by Renderer3D::DrawMesh, recorded by the view's Meshes pass.
 	struct MeshDraw
 	{
 		Ref<Mesh> MeshRef;
 		uint32_t SubMesh = 0;
-		MeshMaterial* Material = nullptr; // owned by Renderer3D's material cache (kept while used)
+		MeshMaterial* Material = nullptr; // owned by Renderer3D's material cache (kept while used); a terrain's: white, for its shadow
+		TerrainSurfaceGPU* TerrainSurface = nullptr; // a terrain surface (DrawTerrainSurface), drawn with terrain.frag
 		glm::mat4 Transform{ 1.0f };
 		int32_t EntityID = -1;
 		float SortDepth = 0.0f; // clip-space depth of the mesh's centre: front to back

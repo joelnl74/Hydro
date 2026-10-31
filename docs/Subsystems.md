@@ -10,7 +10,7 @@ Use these words, in code, comments, docs and pull requests, with these meanings 
 | --- | --- | --- | --- |
 | **Application** | The program. Owns the subsystems and the layer stack, runs the loop | `Init` → `Run` → `Shutdown`, called by `main` | `Application`, `OxygenEditorApplication` |
 | **Subsystem** | An engine-wide service. One per application, usually a static facade | `Init` / `Shutdown`, called by `Application` in a fixed order | `Log`, `Time`, `EventDispatcher`, `Window`, `Renderer` |
-| **Part** | A piece a subsystem owns and starts itself | `Init` / `Shutdown`, called by its owning subsystem | `VulkanRendererContext`, `VulkanFrameContext`, `VulkanAllocator`, `Renderer2D`, `Renderer3D` |
+| **Part** | A piece a subsystem owns and starts itself | `Init` / `Shutdown`, called by its owning subsystem | `VulkanRendererContext`, `VulkanFrameContext`, `VulkanAllocator`, `Renderer2D`, `Renderer3D`, `TerrainCache` |
 | **Layer** | An application feature in the layer stack | `OnAttach` / `OnDetach`, called by the layer stack | `EditorLayer`, `ImGuiLayer` |
 | **System** | An ECS function over a `registry.view<...>()`, run every frame. No state, no lifetime | none | `UpdateSpin`, the script system in `Scene::OnUpdateRuntime` |
 | **Resource** | A GPU or engine object made from a `Specification` | constructor / destructor (RAII), see [Resource creation](ResourceCreation.md) | `VulkanImage`, `VulkanPipeline`, `VulkanTexture` |
@@ -67,7 +67,8 @@ Inside `Renderer::Init`, and reversed in `Renderer::Shutdown`:
 | 3 | `VulkanFrameContext::Init` | Per-frame command buffers, fences, semaphores |
 | 4 | `VulkanAllocator::Init` | VMA allocator |
 | 5 | `Renderer2D::Init` | Quad pipeline, shader + hot reload, shared index buffer, white texture, timestamps. Targets, cameras and batches belong to `RenderView`s, which the application creates |
-| 6 | `Renderer3D::Init` | Nothing yet: a placeholder for the 3D path (Roadmap R9) |
+| 6 | `Renderer3D::Init` | Static meshes: samplers, the Standard and terrain surface material layouts; material and shape caches |
+| 7 | `TerrainCache::Init` | Terrains on the GPU (Terrain plan): weight maps and chunk meshes per terrain asset. Shut down first, before `Renderer3D` |
 
 Shutdown waits for the GPU to be idle before anything GPU-side is released (`Renderer::WaitIdle()` before the layers are detached, and again at the start of `Renderer::Shutdown`). GPU resources released along the way (render views and textures in `OnDetach`, `Renderer2D`'s pipeline and buffers) hand their handles to the renderer's deletion queue; `Renderer::Shutdown` runs it after the layers are gone and again after `Renderer2D` / `Renderer3D` shut down, before the allocator and the device are destroyed. A GPU resource must not outlive `Renderer::Shutdown`.
 
@@ -116,6 +117,10 @@ Every current name was checked against the table. Only one changed:
 | --- | --- | --- |
 | `Renderer` | Keep (not `RenderEngine`) | It is a doer: layers submit draw calls and it renders them. `Engine` is for things that step a simulation or host a foreign runtime (audio mixer, script VM, physics world). `Renderer` is also the name every engine and every reader expects |
 | `Renderer2D`, `Renderer3D` | Keep | Parts of `Renderer`, named for the kind of drawing they do |
+| `TerrainCache` | New (Terrain plan TR1) | A part of `Renderer` that keeps terrains' GPU copies (`Cache`, like the material and shape caches); not `TerrainRenderer`: it draws nothing itself, `Renderer3D` does |
+| `Terrain`, `TerrainSerializer`, `TerrainMesher`, `TerrainSettings`, `TerrainSurfaceMaterial` | New (Terrain plan TR1) | The asset (domain noun), its file reader / writer and its mesh builder (doers), its settings (live data with `Get` / `SetSettings`), the material Renderer3D draws its tops with |
+| `EditorCommand`, `EditorCommandStack`, `TerrainStrokeCommand` | New (TR1, the start of #165) | The Command pattern's usual names: one undoable edit, the history of them, the terrain brush's edit |
+| `TerrainTool` | New (TR1) | An editor tool (not a window: it draws into the inspector and acts in the Editor view) |
 | `EventDispatcher` | Keep | A doer: dispatches posted events to subscribers |
 | `Log`, `Time`, `Window`, `Input` | Keep | Domain facades |
 | `LayerController` | **Renamed `LayerStack`** | `Controller` says nothing; it is the stack of layers, and the code and docs already called it that |

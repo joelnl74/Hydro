@@ -3,6 +3,7 @@
 #include "Utilities/AssetPicker.h"
 #include "PropertyUI.h"
 #include "RenderLookUI.h"
+#include "TerrainTool.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -974,6 +975,7 @@ namespace Hydro
 		bool removeCylinderCollider = false;
 		bool removeMeshCollider = false;
 		bool removeCharacterBody = false;
+		bool removeTerrain = false;
 		bool removeEmitter = false;
 		bool removeUICanvas = false;
 		bool removeUIRect = false;
@@ -1499,6 +1501,16 @@ namespace Hydro
 			ImGui::TextDisabled("A capsule on the entity's feet; scripts move it with CharacterBody::Move.");
 		});
 
+		DrawComponent<TerrainComponent>("Terrain", entity, removeTerrain, [&](TerrainComponent& terrain)
+		{
+			DrawPropertyRow("Cast Shadows", [&]() { ImGui::Checkbox("##TerrainCastShadows", &terrain.CastShadows); });
+			DrawPhysicsLayerRow(terrain.Layer);
+			if (m_TerrainTool != nullptr)
+			{
+				m_TerrainTool->DrawInspector(entity, terrain, m_Playing);
+			}
+		});
+
 		DrawComponent<ParticleEmitter2DComponent>("Particle Emitter 2D", entity, removeEmitter, [&](ParticleEmitter2DComponent& emitter)
 		{
 			const float limit = (float)ParticleEmitter2DComponent::MaxParticlesLimit;
@@ -1793,6 +1805,10 @@ namespace Hydro
 		if (removeCharacterBody)
 		{
 			entity.RemoveComponent<CharacterBodyComponent>();
+		}
+		if (removeTerrain)
+		{
+			entity.RemoveComponent<TerrainComponent>();
 		}
 		if (removeEmitter)
 		{
@@ -2456,6 +2472,16 @@ namespace Hydro
 				entity.AddComponent<MeshComponent>();
 
 				// Placed by the entity's transform.
+				if (entity.HasComponent<TransformComponent>() == false)
+				{
+					entity.AddComponent<TransformComponent>();
+				}
+			}
+
+			if (ImGui::MenuItem("Terrain", nullptr, false, entity.HasComponent<TerrainComponent>() == false))
+			{
+				// Its corner (0, 0) at the entity's position; the section then offers Create Terrain.
+				entity.AddComponent<TerrainComponent>();
 				if (entity.HasComponent<TransformComponent>() == false)
 				{
 					entity.AddComponent<TransformComponent>();

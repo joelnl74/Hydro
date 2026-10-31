@@ -8,6 +8,7 @@
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/SpriteAnimation.h"
+#include "Hydro/Terrain/Terrain.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -729,6 +730,18 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<TerrainComponent>())
+		{
+			auto& terrain = entity.GetComponent<TerrainComponent>();
+
+			out << YAML::Key << "TerrainComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "TerrainHandle" << YAML::Value << (uint64_t)terrain.Terrain;
+			out << YAML::Key << "CastShadows" << YAML::Value << terrain.CastShadows;
+			out << YAML::Key << "Layer" << YAML::Value << PhysicsLayerToString(terrain.Layer);
+			out << YAML::EndMap;
+		}
+
 		// Runtime UI. UIResolvedRectComponent is derived (Scene::ResolveUILayout) and never saved.
 		if (entity.HasComponent<UICanvasComponent>())
 		{
@@ -1234,6 +1247,47 @@ namespace Hydro
 			body.StepHeight = AtLeast(0.0f, characterNode["StepHeight"].as<float>(body.StepHeight));
 			body.StaysOnLedges = characterNode["StaysOnLedges"].as<bool>(body.StaysOnLedges);
 			body.Layer = PhysicsLayerFromString(characterNode["Layer"].as<std::string>("Player"), body.Layer);
+		}
+
+		if (auto terrainNode = entityNode["TerrainComponent"])
+		{
+			auto& terrain = entity.AddComponent<TerrainComponent>();
+			terrain.Terrain = AssetHandle(terrainNode["TerrainHandle"].as<uint64_t>(0));
+			terrain.CastShadows = terrainNode["CastShadows"].as<bool>(terrain.CastShadows);
+			terrain.Layer = PhysicsLayerFromString(terrainNode["Layer"].as<std::string>("World"), terrain.Layer);
+			// Loaded now, with every material (and texture) and decor sprite it names, so the first frame draws it all.
+			const Ref<Terrain> asset = (uint64_t)terrain.Terrain != 0 ? AssetManager::GetAsset<Terrain>(terrain.Terrain) : nullptr;
+			if (asset != nullptr)
+			{
+				const TerrainSettings& settings = asset->GetSettings();
+				auto loadMaterial = [](AssetHandle handle)
+				{
+					if ((uint64_t)handle != 0)
+					{
+						AssetManager::GetAsset<MaterialAsset>(handle);
+					}
+				};
+				for (const TerrainLayer& layer : settings.Layers)
+				{
+					loadMaterial(layer.Material);
+					loadMaterial(layer.Fringe);
+				}
+				for (const TerrainWallLayer& wall : settings.WallLayers)
+				{
+					loadMaterial(wall.Material);
+				}
+				loadMaterial(settings.CapStoneMaterial);
+				for (const TerrainDecorRule& rule : settings.Decor)
+				{
+					for (AssetHandle sprite : rule.Sprites)
+					{
+						if ((uint64_t)sprite != 0)
+						{
+							AssetManager::GetAsset<Texture2D>(sprite);
+						}
+					}
+				}
+			}
 		}
 
 		// Runtime UI: missing keys keep the defaults.

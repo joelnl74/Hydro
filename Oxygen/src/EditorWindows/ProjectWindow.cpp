@@ -462,8 +462,9 @@ namespace Hydro
 		const bool isMaterial = item.Type == ItemType::Material;
 		const bool isModel = item.Type == ItemType::Model;
 		const bool isRenderProfile = item.Type == ItemType::RenderProfile;
-		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel || isRenderProfile)
-			&& ImGui::BeginDragDropSource())
+		const bool isTerrain = item.Type == ItemType::Terrain;
+		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel || isRenderProfile
+			|| isTerrain) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
@@ -482,6 +483,10 @@ namespace Hydro
 			else if (isRenderProfile)
 			{
 				ImGui::TextDisabled("Drop on Render Settings > Look (scene) > Render profile");
+			}
+			else if (isTerrain)
+			{
+				ImGui::TextDisabled("Drop on a Terrain component's Terrain field");
 			}
 			else if (isModel)
 			{
@@ -795,6 +800,17 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.90f, 0.75f, 0.30f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
+			case ItemType::Terrain:
+			{
+				// Two grass shelves with a stone face between them and a dirt path across the lower one.
+				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.22f), TilePoint(min, size, 0.84f, 0.44f), ToColor(0.42f, 0.62f, 0.26f), 2.0f);
+				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.44f), TilePoint(min, size, 0.84f, 0.54f), ToColor(0.40f, 0.40f, 0.44f));
+				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.54f), TilePoint(min, size, 0.84f, 0.80f), ToColor(0.36f, 0.56f, 0.22f), 2.0f);
+				drawList->AddRectFilled(TilePoint(min, size, 0.44f, 0.54f), TilePoint(min, size, 0.58f, 0.80f), ToColor(0.62f, 0.44f, 0.28f));
+				// Green strip = terrain.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.45f, 0.70f, 0.30f), rounding, ImDrawFlags_RoundCornersBottom);
+				break;
+			}
 		}
 	}
 
@@ -852,6 +868,9 @@ namespace Hydro
 				break;
 			case ItemType::Font:
 				ImGui::TextDisabled("Font (BMFont) - pick it in a UI Text's Font field");
+				break;
+			case ItemType::Terrain:
+				ImGui::TextDisabled("Terrain - pick it in a Terrain component's Terrain field");
 				break;
 		}
 
@@ -943,6 +962,7 @@ namespace Hydro
 				}
 				break;
 			case ItemType::Font:
+			case ItemType::Terrain:
 				break;
 			case ItemType::Material:
 			case ItemType::Model:
@@ -1216,6 +1236,9 @@ namespace Hydro
 				return true;
 			case AssetType::Font:
 				itemType = ItemType::Font;
+				return true;
+			case AssetType::Terrain:
+				itemType = ItemType::Terrain;
 				return true;
 			default:
 				return false;

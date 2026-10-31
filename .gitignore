@@ -21,3 +21,8 @@ scripts/__pycache__
 # local scratch (Claude): moved-out assets awaiting deletion, kit preview builds
 _to_delete/
 _build/
+# terrain look spike renders and builds (scripts/terrain/build_patch.py)
+scripts/terrain/out/
+**/__pycache__/
+# Standalone builds (scripts/Package.bat, Oxygen File > Build)
+Builds/

@@ -156,6 +156,8 @@ namespace Hydro
 		Ref<Texture2D> WhiteTexture;
 		// The default particle texture; made in code.
 		Ref<Texture2D> SoftDotTexture;
+		// The forward-lit blob shadow (GetBlobShadowTexture); made in code.
+		Ref<Texture2D> BlobShadowTexture;
 
 		// Every RenderView that exists (they register themselves).
 		std::vector<RenderViewData*> Views;
@@ -711,6 +713,34 @@ namespace Hydro
 			s_Data->SoftDotTexture = CreateRef<Texture2D>(dotSpecification, pixels.data(), dotProperties);
 		}
 
+		// The blob shadow: white, alpha 1 - smoothstep(0, 1, r) from the centre to the edge of a 64 x 64 image,
+		// the curve shadow.frag gives the 2D light buffer's blobs, so a forward-lit scene's contact shadows
+		// (SceneRenderer::SubmitShadows) read as strongly as a 2D scene's. The soft dot ((1 - r)^2) is half as
+		// dark halfway out, which leaves only a faint smudge in front of a standing sprite's feet.
+		{
+			constexpr uint32_t size = 64;
+			std::vector<uint32_t> pixels(size * size);
+			for (uint32_t y = 0; y < size; y++)
+			{
+				for (uint32_t x = 0; x < size; x++)
+				{
+					const float dx = ((float)x + 0.5f) / (float)size * 2.0f - 1.0f;
+					const float dy = ((float)y + 0.5f) / (float)size * 2.0f - 1.0f;
+					const float r = std::min(1.0f, std::sqrt(dx * dx + dy * dy));
+					const float smooth = r * r * (3.0f - 2.0f * r);
+					const uint32_t alpha = (uint32_t)std::lround((1.0f - smooth) * 255.0f);
+					pixels[y * size + x] = (alpha << 24) | 0x00ffffffu; // RGBA bytes in memory: ff ff ff alpha
+				}
+			}
+			ImageSpecification blobSpecification;
+			blobSpecification.Width = size;
+			blobSpecification.Height = size;
+			blobSpecification.Format = ImageFormat::SRGB;
+			TextureProperties blobProperties;
+			blobProperties.SamplerWrap = TextureWrap::Clamp;
+			s_Data->BlobShadowTexture = CreateRef<Texture2D>(blobSpecification, pixels.data(), blobProperties);
+		}
+
 		// Index buffer. FIX: indices are uint32_t (and bound as VK_INDEX_TYPE_UINT32), so the
 		// buffer must be MaxIndices * 4 bytes. It used to be sized with sizeof(uint16_t), so only
 		// the first half was uploaded and any draw past MaxQuads/2 read outside the buffer.
@@ -915,6 +945,7 @@ namespace Hydro
 				vkDestroySampler(device, sampler, nullptr);
 			});
 		}
+		s_Data->BlobShadowTexture.reset();
 		s_Data->SoftDotTexture.reset();
 		s_Data->WhiteTexture.reset();
 
@@ -1611,6 +1642,11 @@ namespace Hydro
 	const Ref<Texture2D>& Renderer2D::GetSoftDotTexture()
 	{
 		return s_Data->SoftDotTexture;
+	}
+
+	const Ref<Texture2D>& Renderer2D::GetBlobShadowTexture()
+	{
+		return s_Data->BlobShadowTexture;
 	}
 
 	void Renderer2D::SubmitQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const TextureRect& textureRect, const glm::vec4& color)

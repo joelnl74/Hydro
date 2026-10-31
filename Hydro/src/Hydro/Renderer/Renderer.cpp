@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Renderer2D.h"
 #include "Renderer3D.h"
+#include "TerrainCache.h"
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 #include "Hydro/Platform/Vulkan/VulkanAllocator.h"
 #include "Hydro/Platform/Vulkan/VulkanDescriptors.h"
@@ -99,6 +100,8 @@ namespace Hydro
 		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
 		Renderer2D::Init();
 		Renderer3D::Init();
+		// Terrains' weight maps and chunk meshes (Terrain plan).
+		TerrainCache::Init();
 	}
 
 	void Renderer::Shutdown()
@@ -113,6 +116,7 @@ namespace Hydro
 		s_Instance->FlushResourceFrees(true);
 
 		// Exactly the reverse of Init.
+		TerrainCache::Shutdown();
 		Renderer3D::Shutdown();
 		Renderer2D::Shutdown();
 		// The sub-renderers' resources went into the queue: free them while the allocator and device exist.
@@ -226,6 +230,7 @@ namespace Hydro
 		Renderer2D::Render(commandBuffer);
 		// Its meshes were recorded by the views' Meshes passes; unused shapes and materials can go.
 		Renderer3D::EndFrame();
+		TerrainCache::EndFrame();
 
 		renderer->m_SwapChain->BeginRenderPass(commandBuffer, imageIndex);
 		if (renderer->m_PresentPassCallback)

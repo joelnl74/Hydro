@@ -86,6 +86,7 @@ namespace Hydro
 		m_InspectorWindow->OnTextureReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
 		m_InspectorWindow->OnOpenSpriteEditor = [this](const std::filesystem::path& path) { OpenAsset(path); };
 		m_InspectorWindow->OnOpenAnimation = [this](const std::filesystem::path& path) { OpenAsset(path); };
+		m_InspectorWindow->SetTerrainTool(&m_TerrainTool);
 		m_SpriteEditorWindow = CreateRef<SpriteEditorWindow>();
 		m_SpriteEditorWindow->OnReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
 		m_SpriteAnimationWindow = CreateRef<SpriteAnimationWindow>();
@@ -94,6 +95,16 @@ namespace Hydro
 		m_RenderSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
 		m_ProjectSettingsWindow = CreateRef<ProjectSettingsWindow>();
 		m_ProjectSettingsWindow->OnSaveProject = [this]() { SaveProject(); };
+		m_BuildWindow = CreateRef<BuildWindow>();
+		m_BuildWindow->OnBeforeBuild = [this]()
+		{
+			// A build packages the files on disk: save what is open first (the editor scene, never a play copy).
+			SaveProject();
+			if (m_EditorScenePath.empty() == false)
+			{
+				SaveScene();
+			}
+		};
 		m_EditorSettingsWindow = CreateRef<EditorSettingsWindow>();
 		m_EditorSettingsWindow->OnSave = [this]() { SaveEditorSettings(); };
 		m_EditorSettingsWindow->OnRevert = [this]() { RevertEditorSettings(); };
@@ -306,6 +317,7 @@ namespace Hydro
 		m_SpriteEditorWindow = nullptr;
 		m_EditorSettingsWindow = nullptr;
 		m_ProjectSettingsWindow = nullptr;
+		m_BuildWindow = nullptr; // stops a build that is still running
 		m_RenderSettingsWindow = nullptr;
 		m_ProjectWindow = nullptr;
 		m_InspectorWindow = nullptr;
@@ -313,8 +325,7 @@ namespace Hydro
 		m_StatsWindow = nullptr;
 		m_HierarchyWindow = nullptr;
 		m_SceneRenderer.reset();
-		m_SuspendedScenes.clear();
-		m_RuntimeScene = nullptr;
+		m_GameScenes.Stop();
 		m_ActiveScene = nullptr;
 		m_EditorScene = nullptr;
 		// The GPU is idle here (Application waits before detaching layers), so the views can go.
@@ -375,6 +386,7 @@ namespace Hydro
 			overlay.Selected = m_HierarchyWindow->GetSelectedEntity();
 			overlay.SelectionOutline = m_ShowSelectionOutline;
 			overlay.Colliders = m_ShowColliders;
+			m_TerrainTool.FillOverlay(overlay);
 			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera, overlay);
 		}
 
@@ -387,6 +399,7 @@ namespace Hydro
 		ImGuizmo::BeginFrame();
 		UpdateFullscreenKeys();
 		UpdateCaptureKeys();
+		UpdateUndoKeys();
 		UpdateLaunchAutomation();
 
 		static bool dockspaceOpen = true;
@@ -459,6 +472,10 @@ namespace Hydro
 				{
 					SaveProject();
 				}
+				if (ImGui::MenuItem("Build...", nullptr, false, Project::GetActive() != nullptr))
+				{
+					m_BuildWindow->IsOpen() = true;
+				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("New Scene", "Ctrl+N"))
 				{
@@ -482,6 +499,23 @@ namespace Hydro
 					Application::Get().Quit();
 				}
 
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Edit"))
+			{
+				const std::string undoName = m_Commands.GetUndoName();
+				const std::string redoName = m_Commands.GetRedoName();
+				const std::string undoLabel = undoName.empty() ? std::string("Undo") : "Undo " + undoName;
+				const std::string redoLabel = redoName.empty() ? std::string("Redo") : "Redo " + redoName;
+				if (ImGui::MenuItem(undoLabel.c_str(), "Ctrl+Z", false, m_Commands.CanUndo() && IsPlaying() == false))
+				{
+					Undo();
+				}
+				if (ImGui::MenuItem(redoLabel.c_str(), "Ctrl+Y", false, m_Commands.CanRedo() && IsPlaying() == false))
+				{
+					Redo();
+				}
 				ImGui::EndMenu();
 			}
 
@@ -590,12 +624,14 @@ namespace Hydro
 			m_InspectedAsset.clear();
 		}
 		m_LastSelectedEntity = (entt::entity)selectedEntity;
+		m_InspectorWindow->SetPlaying(IsPlaying());
 		m_InspectorWindow->OnImguiRender(selectedEntity, m_InspectedAsset);
 		m_SpriteEditorWindow->OnImguiRender();
 		m_SpriteAnimationWindow->OnImguiRender();
 		m_StatsWindow->OnImguiRender(m_ActiveScene);
 		m_RenderSettingsWindow->OnImguiRender(m_EditorScene.get(), m_ActiveScene.get());
 		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
+		m_BuildWindow->OnImguiRender();
 		m_EditorSettingsWindow->OnImguiRender(m_EditorSettings);
 
 		m_ProjectWindow->OnImguiRender(m_ActiveScene);
@@ -702,9 +738,15 @@ namespace Hydro
 			m_EditorViewHovered = ImGui::IsItemHovered();
 			const ImVec2 imageMin = ImGui::GetItemRectMin();
 			DrawEditorCameraHint(imageMin);
-			// The gizmo first: a click on one of its handles is not a click to select.
-			DrawTransformGizmo(imageMin, size);
-			UpdateClickSelection(imageMin, size);
+			// The Terrain tool first: while it paints, the left button is its own (no gizmo, no click-to-select).
+			m_TerrainToolOwnsMouse = m_TerrainTool.UpdateViewport(m_HierarchyWindow->GetSelectedEntity(), m_EditorCamera, glm::vec2(imageMin.x, imageMin.y),
+				glm::vec2(size.x, size.y), m_EditorViewHovered, IsPlaying(), Time::GetDeltaTime(), m_Commands);
+			if (m_TerrainToolOwnsMouse == false)
+			{
+				// The gizmo first: a click on one of its handles is not a click to select.
+				DrawTransformGizmo(imageMin, size);
+				UpdateClickSelection(imageMin, size);
+			}
 			UpdateGizmoKeys();
 			AcceptAssetDrop();
 
@@ -1279,6 +1321,43 @@ namespace Hydro
 		}
 	}
 
+	void EditorLayer::UpdateUndoKeys()
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		if (IsPlaying() || io.WantTextInput || io.KeyCtrl == false)
+		{
+			return;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_Z, false))
+		{
+			if (io.KeyShift)
+			{
+				Redo();
+			}
+			else
+			{
+				Undo();
+			}
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_Y, false))
+		{
+			Redo();
+		}
+	}
+
+	void EditorLayer::Undo()
+	{
+		// A stroke in progress becomes a step first, so it is what is undone.
+		m_TerrainTool.EndStroke(m_Commands);
+		m_Commands.Undo();
+	}
+
+	void EditorLayer::Redo()
+	{
+		m_TerrainTool.EndStroke(m_Commands);
+		m_Commands.Redo();
+	}
+
 	void EditorLayer::UpdateCaptureKeys()
 	{
 		// F9: the Game view (also in game full screen); Shift+F9: the Editor view. Holding captures once.
@@ -1351,17 +1430,17 @@ namespace Hydro
 		if (IsPlaying())
 			return;
 
+		// A brush stroke in progress ends here (its undo step is kept); the tool waits for Stop.
+		m_TerrainTool.EndStroke(m_Commands);
+
 		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
 
-		SceneTransition::Clear();
-		SceneTransition::SetDepth(0);
-		m_SuspendedScenes.clear();
+		// The game runs on a copy of the editor scene, at the bottom of the scene stack.
+		Ref<Scene> runtimeScene = Scene::Copy(m_EditorScene);
+		runtimeScene->Init();
+		m_GameScenes.Start(runtimeScene); // builds the physics world
 
-		m_RuntimeScene = Scene::Copy(m_EditorScene);
-		m_RuntimeScene->Init();
-		m_RuntimeScene->OnRuntimeStart(); // builds the physics world
-
-		m_ActiveScene = m_RuntimeScene;
+		m_ActiveScene = m_GameScenes.GetActiveScene();
 		m_SceneRenderer->SetScene(m_ActiveScene);
 		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_SceneState = SceneState::Play;
@@ -1405,15 +1484,7 @@ namespace Hydro
 
 		// Destroying the copy runs its scripts' OnDestroy; the editor scene is as it was before Play.
 		// Scenes pushed on top of it during Play go with it, the top one first.
-		m_RuntimeScene->OnRuntimeStop();
-		m_RuntimeScene = nullptr;
-		while (m_SuspendedScenes.empty() == false)
-		{
-			m_SuspendedScenes.pop_back();
-		}
-
-		SceneTransition::Clear();
-		SceneTransition::SetDepth(0);
+		m_GameScenes.Stop();
 
 		if (m_EditorSettings.PlayMode.LeaveFullscreenOnStop)
 		{
@@ -1423,50 +1494,25 @@ namespace Hydro
 
 	void EditorLayer::ProcessSceneTransition()
 	{
-		const SceneTransition::Request request = SceneTransition::Take();
-		if (request.Kind == SceneTransition::Type::None || IsPlaying() == false)
+		// The scene stack does what a script asked for (SceneTransition); the editor only follows the new scene.
+		const SceneTransition::Type done = m_GameScenes.ProcessTransition(EditorPaths::GetScenesDirectory(), m_GameView->GetWidth(), m_GameView->GetHeight());
+		if (done == SceneTransition::Type::None || IsPlaying() == false)
 		{
 			return;
 		}
 
-		if (request.Kind == SceneTransition::Type::Push)
+		if (done == SceneTransition::Type::Quit)
 		{
-			// Like OpenScene: load into a fresh scene, and only switch when that worked.
-			const std::filesystem::path path = EditorPaths::GetScenesDirectory() / (request.SceneName + SceneSerializer::FileExtension);
-			Ref<Scene> next = CreateRef<Scene>(request.SceneName, false);
-			SceneSerializer serializer(next);
-			if (serializer.Deserialize(path) == false)
-			{
-				HY_WARN("Scene push: could not load {}", path.string());
-				return;
-			}
-
-			next->SetName(request.SceneName);
-			next->Init();
-			next->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
-
-			m_SuspendedScenes.push_back(m_RuntimeScene);
-			m_RuntimeScene = next;
-		}
-		else
-		{
-			if (m_SuspendedScenes.empty())
-			{
-				HY_WARN("Scene pop: there is no scene below this one");
-				return;
-			}
-
-			// The top scene goes (its scripts' OnDestroy run), the one below carries on as it was.
-			m_RuntimeScene = m_SuspendedScenes.back();
-			m_SuspendedScenes.pop_back();
+			// A script quit the game (a title screen's Quit): in the editor that stops playing, never closes Oxygen.
+			HY_INFO("The game asked to quit: Play stops");
+			StopScene();
+			return;
 		}
 
-		m_ActiveScene = m_RuntimeScene;
-		m_ActiveScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
+		m_ActiveScene = m_GameScenes.GetActiveScene();
 		m_SceneRenderer->SetScene(m_ActiveScene);
 		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
 		m_HierarchyWindow->ClearSelection();
-		SceneTransition::SetDepth((uint32_t)m_SuspendedScenes.size());
 	}
 
 	void EditorLayer::NewProject()
@@ -1627,7 +1673,7 @@ namespace Hydro
 			}
 		}
 
-		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
+		for (const Ref<Scene>& scene : { m_EditorScene, m_GameScenes.GetActiveScene() })
 		{
 			if (scene == nullptr || before == nullptr || before == texture)
 			{
@@ -1667,7 +1713,7 @@ namespace Hydro
 			return;
 		}
 
-		for (const Ref<Scene>& scene : { m_EditorScene, m_RuntimeScene })
+		for (const Ref<Scene>& scene : { m_EditorScene, m_GameScenes.GetActiveScene() })
 		{
 			if (scene == nullptr)
 			{
@@ -1801,6 +1847,9 @@ namespace Hydro
 	void EditorLayer::SetEditorScene(const Ref<Scene>& scene)
 	{
 		StopScene();
+		// Undo steps belong to the scene they were made in.
+		m_TerrainTool.EndStroke(m_Commands);
+		m_Commands.Clear();
 
 		m_EditorScene = scene;
 		m_EditorScene->Init();
@@ -1879,6 +1928,10 @@ namespace Hydro
 			m_EditorScenePath = directory / (name + SceneSerializer::FileExtension);
 		}
 
+		// Terrain assets edited in this scene are written with it (a stroke in progress ends first).
+		m_TerrainTool.EndStroke(m_Commands);
+		TerrainTool::SaveModifiedTerrains(*m_EditorScene);
+
 		// Always the editor scene: what happens while playing is not saved.
 		SceneSerializer serializer(m_EditorScene);
 		if (serializer.Serialize(m_EditorScenePath))
@@ -1901,6 +1954,8 @@ namespace Hydro
 
 		// Name the scene after its file.
 		m_EditorScene->SetName(path.stem().string());
+		m_TerrainTool.EndStroke(m_Commands);
+		TerrainTool::SaveModifiedTerrains(*m_EditorScene);
 
 		SceneSerializer serializer(m_EditorScene);
 		if (serializer.Serialize(path))

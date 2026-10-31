@@ -39,7 +39,8 @@ namespace Hydro
 	};
 
 	// The 3D collider components of an entity as shapes (BoxColliderComponent, SphereColliderComponent,
-	// CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent).
+	// CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent), and a TerrainComponent's terrain (one
+	// TriangleMesh: Terrain::GetCollisionMesh).
 	class ColliderShapes
 	{
 	public:

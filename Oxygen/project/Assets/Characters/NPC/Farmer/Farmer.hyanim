@@ -1,0 +1,40 @@
+# Farmer: field sheet Characters/NPC/Farmer/Farmer.png, 96 x 72 cells, rows Down / Right / Up / Left;
+# columns 0-3 the idle loop, 4-7 the walk cycle. Feet on the cell's bottom row (pivot [0.5, 0]).
+Handle: 951407229409544592
+SpriteAnimationSet:
+  TextureHandle: 7596897423412270899
+  Texture: Farmer.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: IdleDown
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Farmer_Down_0, Farmer_Down_1, Farmer_Down_2, Farmer_Down_3]
+    - Name: IdleRight
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Farmer_Right_0, Farmer_Right_1, Farmer_Right_2, Farmer_Right_3]
+    - Name: IdleUp
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Farmer_Up_0, Farmer_Up_1, Farmer_Up_2, Farmer_Up_3]
+    - Name: IdleLeft
+      Loop: Loop
+      FrameRate: 4
+      Frames: [Farmer_Left_0, Farmer_Left_1, Farmer_Left_2, Farmer_Left_3]
+    - Name: WalkDown
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Farmer_Down_4, Farmer_Down_5, Farmer_Down_6, Farmer_Down_7]
+    - Name: WalkRight
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Farmer_Right_4, Farmer_Right_5, Farmer_Right_6, Farmer_Right_7]
+    - Name: WalkUp
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Farmer_Up_4, Farmer_Up_5, Farmer_Up_6, Farmer_Up_7]
+    - Name: WalkLeft
+      Loop: Loop
+      FrameRate: 8
+      Frames: [Farmer_Left_4, Farmer_Left_5, Farmer_Left_6, Farmer_Left_7]

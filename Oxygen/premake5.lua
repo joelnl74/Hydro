@@ -25,16 +25,11 @@ project "Oxygen"
 		"assets/shaders/**.tese"
 	}
 
-	prebuildmessage "Generating Hydro native-script reflection"
-	prebuildcommands
-	{
-		'py "%{wks.location}/Tools/ReflectionGenerator/generate_reflection.py" "%{wks.location}/."'
-	}
-
 	includedirs
 	{
 		"src",
-		"%{wks.location}/Hydro/src"
+		"%{wks.location}/Hydro/src",
+		"%{wks.location}/Game/src"
 	}
 
 	-- Vendored headers: no warnings from these (see ExternalIncludeDirs in Dependencies.lua).
@@ -61,6 +56,7 @@ project "Oxygen"
 
 	links
 	{
+		"Game",
 		"Hydro"
 	}
 

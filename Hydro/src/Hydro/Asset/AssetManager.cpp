@@ -8,6 +8,7 @@
 #include "Hydro/Renderer/Font.h"
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/RenderProfile.h"
+#include "Hydro/Terrain/Terrain.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -630,6 +631,10 @@ namespace Hydro
 			{
 				// Loads its page images through this manager.
 				return Font::LoadUncached(absolute);
+			}
+			case AssetType::Terrain:
+			{
+				return Terrain::LoadUncached(absolute);
 			}
 			default:
 				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",

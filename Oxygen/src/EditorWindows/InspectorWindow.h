@@ -12,6 +12,8 @@
 
 namespace Hydro
 {
+	class TerrainTool;
+
 	// Shows and edits the components of the entity selected in the hierarchy, or, when no entity is
 	// selected, the asset selected in the Project window (an image's import settings, a .hyanim's clips, a
 	// material's fields).
@@ -29,6 +31,11 @@ namespace Hydro
 
 		// `asset` is shown when `entity` isn't valid (empty: nothing).
 		void OnImguiRender(Entity entity, const std::filesystem::path& asset);
+
+		// The Terrain tool draws the Terrain section's asset, layers and brush (EditorLayer owns it; may be null).
+		void SetTerrainTool(TerrainTool* tool) { m_TerrainTool = tool; }
+		// Play mode, every frame: some edits (painting a terrain asset, shared with the editor scene) wait for Stop.
+		void SetPlaying(bool playing) { m_Playing = playing; }
 
 	private:
 		void DrawEntityHeader(Entity entity);
@@ -71,5 +78,7 @@ namespace Hydro
 		// The import settings being edited for the selected model (read again when another one is selected).
 		std::filesystem::path m_ModelSettingsPath;
 		MeshImportConfig m_ModelSettings;
+		TerrainTool* m_TerrainTool = nullptr;
+		bool m_Playing = false;
 	};
 }

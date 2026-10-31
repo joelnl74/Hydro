@@ -55,6 +55,11 @@ namespace Hydro
 		Texture2D(const Texture2D&) = delete;
 		Texture2D& operator=(const Texture2D&) = delete;
 
+		// Replaces a rectangle of the pixels (x, y from the image's first row; `pixels` is width * height RGBA8, rows
+		// in the same order, tightly packed). For textures made in code that change (a terrain's weight map): it
+		// submits and waits for the GPU, so editor edits only, never every frame of a game.
+		void SetData(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* pixels);
+
 		static AssetType GetStaticType() { return AssetType::Texture2D; }
 		AssetType GetType() const override { return GetStaticType(); }
 

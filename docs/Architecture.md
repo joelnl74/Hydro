@@ -14,7 +14,9 @@ Read this first, then:
 | Project | Kind | What it is |
 | --- | --- | --- |
 | `Hydro` | Static library | The engine: core, events, platform, renderer, scene, project |
-| `Oxygen` | Executable | The editor. An `Application` subclass that registers its example scripts and pushes an `EditorLayer` (see [The editor](#the-editor-oxygen)) |
+| `Game` | Static library | The game's own code: the Sandbox project's scripts and their generated reflection (`RegisterGeneratedScriptReflection`). Linked by every application that runs the game |
+| `Oxygen` | Executable | The editor. An `Application` subclass that registers the game's scripts and pushes an `EditorLayer` (see [The editor](#the-editor-oxygen)) |
+| `Runtime` | Executable | The standalone player: plays a project without the editor (see [Standalone builds](#standalone-builds)) |
 
 An application defines `Hydro::CreateApplication()`, includes `Hydro/Core/EntryPoint.h` once, and adds its features as `Layer`s:
 
@@ -34,6 +36,16 @@ Hydro::Application* Hydro::CreateApplication()
     return new MyApp(spec);
 }
 ```
+
+## Standalone builds
+
+Standalone Build V1 (Oct 31, 2026). **This is not an asset pipeline:** a build is the `Runtime` project built in Release or Dist plus a fixed copy of the files the runtime already reads. Cooking and packing come later (Asset Pipeline V2, designed against measurements of this build).
+
+- **`Game`** holds the game's code (moved out of Oxygen), so the editor and the runtime run the same scripts: both link `Game` and `Hydro` and call `RegisterGeneratedScriptReflection()` in `OnInit`.
+- **`Runtime`** (`Runtime/src`) opens one project, applies its renderer settings, loads its start scene and runs it on a `SceneStack`, with one `RenderView` shown as a full-window `ImGui::Image` (the Game view's path; presenting straight to the swapchain is later). The project is `--project <file.hyproj>` (development, run in `Oxygen/` for the shaders) or, in a package, `Project/<exe name>.hyproj` next to the exe, nothing else; a packaged game runs in its exe's folder. F11 toggles full screen; `SceneTransition::Quit()` from a script closes it (in the editor it stops Play). Release keeps a console with the log, Dist is a windowed app without one.
+- **`scripts/Package.bat [Release|Distribution]`** builds `Runtime` (only it and what it links, so Oxygen can stay open) and fills `Builds/<Project>-<Kind>/`: `<Project>.exe`, `shaderc_shared.dll`, `assets/shaders/` (the engine's shaders, still in `Oxygen/assets`), `Project/<Project>.hyproj` with the whole asset folder, and `build-info.txt`.
+- **File > Build...** in Oxygen (`BuildWindow`) runs the script through `Process` (Release / Distribution, its output live, Cancel, Run, Open Folder) after saving the project and the open scene.
+- Not done yet (B6): CI packaging, a check on a PC without Visual Studio (the Release CRT is the DLL one: such a PC needs the Microsoft Visual C++ Redistributable), error colours in the Build window. Keep runtime and game code reaching assets by handle through `AssetManager`, so packs can replace files later.
 
 ## Startup and shutdown
 
@@ -176,6 +188,7 @@ Since M4 static meshes are drawn by `Renderer3D` (`Renderer/Renderer3D.h`), a pa
 - **Drawing:** `SceneRenderer::SubmitMeshes` (when the effective render features have `Meshes` and shared depth; otherwise a warning once per scene) calls `Renderer3D::BeginScene(view)`, `DrawMesh(mesh, subMesh, material, transform, entityID)` per sub-mesh, `EndScene`. Built-in shapes come from a shape cache (`GetShapeMesh`, keyed by shape and sizes). The Meshes pass sorts the view's draws by pipeline, material and front to back, binds set 0 (the view's camera) and set 1, and pushes `ObjectPushConstants` (transform, entity ID) per draw.
 - **Pipelines:** one per attachment layout, entity-ID write and wireframe (Renderer3D's own small cache; cleared when the `Mesh` shader reloads): depth test and write, no blending, back faces culled. Pickable draws write their entity's ID in the Editor view.
 - **Lifetime:** shapes and materials no frame has used for 120 frames are freed (`Renderer3D::EndFrame`, after the frame is recorded), so dragging a size or colour slider doesn't pile them up. A new shape size is uploaded with `SubmitImmediate` (it waits for the GPU once).
+- **Terrains** (Terrain plan, TR1; the wiki's Terrain-Plan page has the design and its reasons): a `.hyterrain` file is an `Asset` of type `Terrain` (`Terrain/Terrain.h`: corner levels, cell ramps and wall materials, an RGBA8 weight map with one top layer per channel; `TerrainSerializer`: handle first, readable settings under `Terrain:`, packed blocks under `Data:` (run-length + base64, the weight map as an embedded PNG), written deterministically). A `TerrainComponent` names it; `SceneRenderer::SubmitTerrains` asks the **`TerrainCache`** (a `Renderer` part) for its GPU copy: the weight map as a texture (`Texture2D::SetData` uploads only the changed rectangle) and one mesh per 16 x 16 m chunk (`TerrainMesher`; TR1 meshes flat tops, TR2 terraces), rebuilt only where the terrain's revisions changed. The tops are drawn by `Renderer3D::DrawTerrainSurface` with a **terrain surface material** (`TerrainSurfaceMaterial`: the weight map, up to four layers' albedo, tint, tiling and filter, edge noise; cached by value like Standard materials; set 1 of `terrain.frag`: a uniform block, the weight map with a linear clamped sampler, one binding per layer). `terrain.frag` runs on `mesh.vert` (the tops' UVs are their positions in the terrain's space): per art pixel (1/32 m) the layer whose weight plus clustered edge noise is highest wins, and only its albedo is sampled (`scripts/terrain/splat.py` is the reference; same hash). The terrain sorts and binds with the meshes (its own pipeline variant, `TerrainSurface` shader) and casts sun shadows through the Standard caster with a white material. The editor's **Terrain tool** paints the weight map (see the Editor).
 - **Stats:** the Stats window's **Meshes** section: mesh draw calls, triangles, cached shapes and materials.
 
 ### View pipelines
@@ -502,6 +515,8 @@ Sprites and frames refer to a sheet's sprites by name in files, so re-slicing do
 These are where the code does not yet match the rules above. Fix them when you touch the area rather than copying the pattern. Every open problem is a [GitHub issue](https://github.com/joelnl74/Hydro/issues).
 
 - `Renderer2D` includes `imgui_impl_vulkan.h` to hand the viewport image to ImGui.
+- `Texture2D::SetData` (a terrain's weight map while painting) uploads with `SubmitImmediate` and waits for the GPU: fine for editor strokes, not for anything a game changes every frame (that needs an upload recorded into the frame's command buffer).
+- Terrain (TR1): only the Paint brush is undoable; changes to a terrain's settings in the inspector (layers, edge noise) apply at once without an undo step, and are saved with the scene. A terrain's entity rotation and scale are ignored (axis-aligned in v1).
 - Each `RenderView` has its own quads, so a scene shown in two windows is submitted (and its vertices uploaded) twice.
 - A `RenderView`'s ImGui textures stay in ImGui's descriptor pool until ImGui shuts down; the vendored ImGui has no `ImGui_ImplVulkan_RemoveTexture`.
 - `Scene::m_Registry` is public; the editor reads it directly ([#42](https://github.com/joelnl74/Hydro/issues/42)).

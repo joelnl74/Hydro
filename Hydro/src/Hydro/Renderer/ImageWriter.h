@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <filesystem>
+#include <vector>
 
 namespace Hydro
 {
@@ -12,5 +13,8 @@ namespace Hydro
 		// as they are, so sRGB-encoded pixels (an SRGB render target) give a correct PNG. Logs and returns
 		// false when the file can't be written.
 		static bool WritePNG(const std::filesystem::path& path, uint32_t width, uint32_t height, const uint8_t* rgba);
+		// The same PNG in memory, appended to `out` (the terrain's weight map is embedded in its file). Fixed
+		// settings, so the same pixels always give the same bytes. False when encoding failed.
+		static bool EncodePNG(uint32_t width, uint32_t height, const uint8_t* rgba, std::vector<uint8_t>& out);
 	};
 }

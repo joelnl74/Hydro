@@ -45,4 +45,23 @@ namespace Hydro
 
 		return true;
 	}
+
+	static void AppendPNGBytes(void* context, void* data, int size)
+	{
+		std::vector<uint8_t>& out = *(std::vector<uint8_t>*)context;
+		const uint8_t* bytes = (const uint8_t*)data;
+		out.insert(out.end(), bytes, bytes + size);
+	}
+
+	bool ImageWriter::EncodePNG(uint32_t width, uint32_t height, const uint8_t* rgba, std::vector<uint8_t>& out)
+	{
+		if (rgba == nullptr || width == 0 || height == 0)
+		{
+			return false;
+		}
+
+		// stb's compression level and filter choice are fixed (stbi_write_png_compression_level is never
+		// changed in Hydro), so the output depends only on the pixels.
+		return stbi_write_png_to_func(AppendPNGBytes, &out, (int)width, (int)height, 4, rgba, (int)width * 4) != 0;
+	}
 }

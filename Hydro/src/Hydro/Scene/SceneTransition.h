@@ -5,10 +5,11 @@
 
 namespace Hydro
 {
-	// How game code asks the program that runs the scenes (the editor's Play mode, later a standalone
-	// runtime) to switch scenes while the game plays. A scene stack: Push loads another scene on top and
+	// How game code asks the program that runs the scenes (the editor's Play mode, the standalone Runtime)
+	// to switch scenes while the game plays. A scene stack (SceneStack): Push loads another scene on top and
 	// stops updating and drawing the one below it (that one is kept exactly as it was: entities, scripts,
-	// physics bodies), Pop throws the top scene away and the one below carries on.
+	// physics bodies), Pop throws the top scene away and the one below carries on. Quit ends the game: the
+	// Runtime closes, the editor stops playing (a script never closes the editor).
 	//
 	// Scripts only record the request; the host reads it with Take() after the frame's update (never in
 	// the middle of it) and does the switch. At most one request is kept: the last one wins. A host that
@@ -19,7 +20,7 @@ namespace Hydro
 	class SceneTransition
 	{
 	public:
-		enum class Type : uint8_t { None, Push, Pop };
+		enum class Type : uint8_t { None, Push, Pop, Quit };
 
 		struct Request
 		{
@@ -36,6 +37,12 @@ namespace Hydro
 		static void Pop()
 		{
 			s_Request.Kind = Type::Pop;
+			s_Request.SceneName.clear();
+		}
+
+		static void Quit()
+		{
+			s_Request.Kind = Type::Quit;
 			s_Request.SceneName.clear();
 		}
 

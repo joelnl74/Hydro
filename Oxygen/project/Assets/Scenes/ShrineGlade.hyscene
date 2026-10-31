@@ -10,7 +10,7 @@ RenderSettings:
     Meshes: true
     Shadows: Sun
     SpriteShadows: AsDrawn
-    UprightSprites: LeanToCamera
+    UprightSprites: Vertical
     HDR: true
     Bloom: true
 Look:
@@ -71,9 +71,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, 0.0500000007]
-      Size: [0.850000024, 0.319999993]
-      Strength: 0.550000012
+      Offset: [0, -0.04]
+      Size: [1, 0.62]
+      Strength: 0.62
     CharacterBodyComponent:
       Radius: 0.25
       Height: 1.39999998
@@ -4216,359 +4216,18 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 5527744136312030072
+  - Entity: 6802469702227734056
     TagComponent:
-      Tag: Floor
+      Tag: Glade Terrain
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-40, -20, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 6815564533557338110
-    TagComponent:
-      Tag: Ground
-    RelationshipComponent:
-      Parent: 5527744136312030072
-    TransformComponent:
-      Translation: [0, -3, -0.5]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [64, 32, 0.5]
+    TerrainComponent:
+      TerrainHandle: 3305012319573844149
       CastShadows: true
-      Materials:
-        - MaterialHandle: 8023819403869877598
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7458953749652738188
-    TagComponent:
-      Tag: Valley Floor
-    RelationshipComponent:
-      Parent: 5527744136312030072
-    TransformComponent:
-      Translation: [0, 22, -3]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [80, 18, 0]
-      CastShadows: false
-      Materials:
-        - MaterialHandle: 3002974362295055788
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8807538173640413050
-    TagComponent:
-      Tag: Ground Grass
-    RelationshipComponent:
-      Parent: 5527744136312030072
-    TransformComponent:
-      Translation: [0, -9, 0.00400000019]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [64, 12, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8403729157865118956
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5753391315789227724
-    TagComponent:
-      Tag: Ground Grass Edge
-    RelationshipComponent:
-      Parent: 5527744136312030072
-    TransformComponent:
-      Translation: [-25, -9, 0.00600000005]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [14, 12, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 3002974362295055788
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8189581117626086932
-    TagComponent:
-      Tag: Ground Grass Edge 2
-    RelationshipComponent:
-      Parent: 5527744136312030072
-    TransformComponent:
-      Translation: [25, -9, 0.00600000005]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [14, 12, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 3002974362295055788
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 9176553281300300252
-    TagComponent:
-      Tag: Terraces
-    RelationshipComponent:
-      Parent: 3102382565515769644
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 5803790203461660648
-    TagComponent:
-      Tag: Terrace Plaza
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [0, 0.469999999, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [64, 6.94000006, 1]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 2755654548403116902
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7957815929213587826
-    TagComponent:
-      Tag: Terrace Plaza Grass
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [0, -1, 1.00399995]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [64, 4, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8403729157865118956
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 4393578636301137422
-    TagComponent:
-      Tag: Terrace Shrine
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [0, 8.47000027, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [64, 9.06000042, 3.0999999]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 2755654548403116902
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 2281126974000708784
-    TagComponent:
-      Tag: Terrace Shrine Grass
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [0, 8.47000027, 3.10400009]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [64, 9.06000042, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8403729157865118956
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5351118989706147307
-    TagComponent:
-      Tag: Terrace Shrine Wing
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [-16.8500004, 2.47000003, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [30.2999992, 2.94000006, 3.0999999]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 2755654548403116902
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 4899517776196063126
-    TagComponent:
-      Tag: Terrace Shrine Wing Grass
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [-16.8500004, 2.47000003, 3.10400009]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [30.2999992, 2.94000006, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8403729157865118956
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1729396566701569954
-    TagComponent:
-      Tag: Terrace Shrine Wing 2
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [16.8500004, 2.47000003, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [30.2999992, 2.94000006, 3.0999999]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 2755654548403116902
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5353298771903886002
-    TagComponent:
-      Tag: Terrace Shrine Wing Grass 2
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [16.8500004, 2.47000003, 3.10400009]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [30.2999992, 2.94000006, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8403729157865118956
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 6558869169972364186
-    TagComponent:
-      Tag: Shrine Court
-    RelationshipComponent:
-      Parent: 9176553281300300252
-    TransformComponent:
-      Translation: [0, 5.53999996, 3.10800004]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [8.60000038, 3.20000005, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8179354946758296038
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
       Layer: World
   - Entity: 153289081099362093
     TagComponent:
@@ -4677,1625 +4336,11 @@ Entities:
             Filter: Nearest
     MeshColliderComponent:
       Layer: World
-  - Entity: 5444589407682190487
-    TagComponent:
-      Tag: Walls
-    RelationshipComponent:
-      Parent: 3102382565515769644
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 6311203232215681168
-    TagComponent:
-      Tag: Wall Cap Plaza
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-15.4440002, -2.68799996, 1]
-      Rotation: [0, 0, -0.105999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.02199996, 0.500999987, 0.221000001]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1505727454848945903
-    TagComponent:
-      Tag: Wall Cap Plaza 2
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-14.3249998, -2.67799997, 1]
-      Rotation: [0, 0, 0.00100000005]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.03699994, 0.460000008, 0.333000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5166945656330968641
-    TagComponent:
-      Tag: Wall Cap Plaza 3
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-13.2370005, -2.71099997, 1]
-      Rotation: [0, 0, 0.0829999968]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.966000021, 0.697000027, 0.370999992]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7425987203734965734
-    TagComponent:
-      Tag: Wall Cap Plaza 4
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-12.1459999, -2.64700007, 1]
-      Rotation: [0, 0, -0.0670000017]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.04200006, 0.456999987, 0.374000013]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 6662772201243757376
-    TagComponent:
-      Tag: Wall Cap Plaza 5
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-11.1940002, -2.64499998, 1]
-      Rotation: [0, 0, -0.0329999998]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.708999991, 0.660000026, 0.298999995]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7906522327163976691
-    TagComponent:
-      Tag: Wall Cap Plaza 6
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-10.2309999, -2.7249999, 1]
-      Rotation: [0, 0, 0.00999999978]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.06299996, 0.691999972, 0.186000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 2527948357259927303
-    TagComponent:
-      Tag: Wall Cap Plaza 7
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-9.26900005, -2.68799996, 1]
-      Rotation: [0, 0, 0.0149999997]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.707000017, 0.451999992, 0.188999996]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 773123555178643788
-    TagComponent:
-      Tag: Wall Cap Plaza 8
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-8.31099987, -2.65799999, 1]
-      Rotation: [0, 0, -0.0719999969]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.05700004, 0.555999994, 0.349999994]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 845492964463967847
-    TagComponent:
-      Tag: Wall Cap Plaza 9
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-7.14400005, -2.71399999, 1]
-      Rotation: [0, 0, -0.0170000009]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.09000003, 0.685000002, 0.230000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7164320130199976604
-    TagComponent:
-      Tag: Wall Cap Plaza 10
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-6.05900002, -2.69499993, 1]
-      Rotation: [0, 0, 0.050999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.906000018, 0.469000012, 0.192000002]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3337124279908404704
-    TagComponent:
-      Tag: Wall Cap Plaza 11
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-5.20499992, -2.66599989, 1]
-      Rotation: [0, 0, 0.118000001]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.666999996, 0.541999996, 0.261000007]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5847559104597394918
-    TagComponent:
-      Tag: Wall Cap Plaza 12
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-4.46700001, -2.66599989, 1]
-      Rotation: [0, 0, 0.105999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.689999998, 0.476000011, 0.289000005]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1953418137308004398
-    TagComponent:
-      Tag: Wall Cap Plaza 13
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-3.5480001, -2.74799991, 1]
-      Rotation: [0, 0, -0.061999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.00100005, 0.460000008, 0.296000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 908369025737313716
-    TagComponent:
-      Tag: Wall Cap Plaza 14
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-2.63100004, -2.71799994, 1]
-      Rotation: [0, 0, 0.0979999974]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.685000002, 0.689999998, 0.207000002]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 6194520972437999494
-    TagComponent:
-      Tag: Wall Cap Plaza 15
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [2.39100003, -2.69000006, 1]
-      Rotation: [0, 0, 0.0759999976]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.958000004, 0.569000006, 0.344000012]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 4747281194309335822
-    TagComponent:
-      Tag: Wall Cap Plaza 16
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [3.27099991, -2.7249999, 1]
-      Rotation: [0, 0, -0.0170000009]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.661000013, 0.556999981, 0.184]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7805224987371383176
-    TagComponent:
-      Tag: Wall Cap Plaza 17
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [3.99799991, -2.68700004, 1]
-      Rotation: [0, 0, -0.112000003]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.675999999, 0.474999994, 0.214000002]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7155407756160490488
-    TagComponent:
-      Tag: Wall Cap Plaza 18
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [4.72100019, -2.75699997, 1]
-      Rotation: [0, 0, 0.105999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.653999984, 0.555999994, 0.316000015]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1273806039289209297
-    TagComponent:
-      Tag: Wall Cap Plaza 19
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [5.5619998, -2.69400001, 1]
-      Rotation: [0, 0, -0.0250000004]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.89200002, 0.611999989, 0.367000014]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 4935017702404054395
-    TagComponent:
-      Tag: Wall Cap Plaza 20
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [6.42399979, -2.72300005, 1]
-      Rotation: [0, 0, -0.0850000009]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.694999993, 0.560000002, 0.372999996]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3555136805284418759
-    TagComponent:
-      Tag: Wall Cap Plaza 21
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [7.31599998, -2.66300011, 1]
-      Rotation: [0, 0, 0.0480000004]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.944999993, 0.550000012, 0.377000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7069448526951985673
-    TagComponent:
-      Tag: Wall Cap Plaza 22
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [8.3210001, -2.64899993, 1]
-      Rotation: [0, 0, -0.108999997]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.904999971, 0.633000016, 0.31099999]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1278011063003308618
-    TagComponent:
-      Tag: Wall Cap Plaza 23
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [9.20199966, -2.72600007, 1]
-      Rotation: [0, 0, -0.0160000008]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.717000008, 0.467000008, 0.228]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5016664434440846020
-    TagComponent:
-      Tag: Wall Cap Plaza 24
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [10.0019999, -2.6500001, 1]
-      Rotation: [0, 0, 0.050999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.754000008, 0.451999992, 0.280000001]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 685913359080542988
-    TagComponent:
-      Tag: Wall Cap Plaza 25
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [10.79, -2.74300003, 1]
-      Rotation: [0, 0, 0.0560000017]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.69599998, 0.638999999, 0.223000005]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 6930055733920663580
-    TagComponent:
-      Tag: Wall Cap Plaza 26
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [11.5290003, -2.69499993, 1]
-      Rotation: [0, 0, 0.0710000023]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.662999988, 0.620000005, 0.30399999]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 34249273909459401
-    TagComponent:
-      Tag: Wall Cap Plaza 27
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [12.4980001, -2.7019999, 1]
-      Rotation: [0, 0, -0.0920000002]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.11899996, 0.463, 0.377000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5867843396339236631
-    TagComponent:
-      Tag: Wall Cap Plaza 28
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [13.6610003, -2.75300002, 1]
-      Rotation: [0, 0, -0.115999997]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.02100003, 0.492000014, 0.221000001]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 6543531299812066310
-    TagComponent:
-      Tag: Wall Cap Plaza 29
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [14.6379995, -2.66199994, 1]
-      Rotation: [0, 0, 0.0529999994]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.776000023, 0.58099997, 0.218999997]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8866353264712754530
-    TagComponent:
-      Tag: Wall Cap Plaza 30
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [15.4989996, -2.727, 1]
-      Rotation: [0, 0, 0.0359999985]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.808000028, 0.644999981, 0.231000006]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 2885794085897668535
-    TagComponent:
-      Tag: Wall Cap Plaza 31
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [16.5550003, -2.75399995, 1]
-      Rotation: [0, 0, -0.057]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.13499999, 0.568000019, 0.296000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3803385140129810928
-    TagComponent:
-      Tag: Wall Cap Shrine
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-15.3889999, 1.31200004, 3.0999999]
-      Rotation: [0, 0, -0.0460000001]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.12399995, 0.463999987, 0.191]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5887961172886319865
-    TagComponent:
-      Tag: Wall Cap Shrine 2
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-14.2629995, 1.26999998, 3.0999999]
-      Rotation: [0, 0, 0.050999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.947000027, 0.504999995, 0.225999996]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 356680169201318040
-    TagComponent:
-      Tag: Wall Cap Shrine 3
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-13.2080002, 1.33200002, 3.0999999]
-      Rotation: [0, 0, -0.00800000038]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.995000005, 0.626999974, 0.186000004]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8894935740019644716
-    TagComponent:
-      Tag: Wall Cap Shrine 4
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-12.2910004, 1.25199997, 3.0999999]
-      Rotation: [0, 0, -0.119999997]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.691999972, 0.694999993, 0.182999998]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 2846680908690746388
-    TagComponent:
-      Tag: Wall Cap Shrine 5
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-11.5480003, 1.33099997, 3.0999999]
-      Rotation: [0, 0, 0.104999997]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.675000012, 0.699999988, 0.361999989]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 4206092570406631770
-    TagComponent:
-      Tag: Wall Cap Shrine 6
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-10.6090002, 1.31700003, 3.0999999]
-      Rotation: [0, 0, 0.0450000018]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.05299997, 0.545000017, 0.194000006]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8326227920863824179
-    TagComponent:
-      Tag: Wall Cap Shrine 7
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-9.47700024, 1.28699994, 3.0999999]
-      Rotation: [0, 0, 0.107000001]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.03100002, 0.479999989, 0.317999989]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8735023156015568589
-    TagComponent:
-      Tag: Wall Cap Shrine 8
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-8.38899994, 1.35500002, 3.0999999]
-      Rotation: [0, 0, -0.057]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.970000029, 0.55400002, 0.217999995]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3454992027889865362
-    TagComponent:
-      Tag: Wall Cap Shrine 9
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-7.48400021, 1.28400004, 3.0999999]
-      Rotation: [0, 0, -0.00800000038]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.694999993, 0.612999976, 0.342000008]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 9166361167937593962
-    TagComponent:
-      Tag: Wall Cap Shrine 10
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-6.68400002, 1.30599999, 3.0999999]
-      Rotation: [0, 0, 0.101000004]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.778999984, 0.524999976, 0.317999989]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8630116035093661486
-    TagComponent:
-      Tag: Wall Cap Shrine 11
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-5.72900009, 1.29999995, 3.0999999]
-      Rotation: [0, 0, -0.108000003]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.976999998, 0.483999997, 0.25]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8547254777559575877
-    TagComponent:
-      Tag: Wall Cap Shrine 12
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-4.63600016, 1.27600002, 3.0999999]
-      Rotation: [0, 0, 0.0480000004]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.03499997, 0.561999977, 0.273000002]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 2030860637933084364
-    TagComponent:
-      Tag: Wall Cap Shrine 13
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-3.60100007, 1.24899995, 3.0999999]
-      Rotation: [0, 0, -0.101999998]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.869000018, 0.501999974, 0.268000007]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 416527593288914124
-    TagComponent:
-      Tag: Wall Cap Shrine 14
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-2.71499991, 1.26300001, 3.0999999]
-      Rotation: [0, 0, -0.112000003]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.762000024, 0.615999997, 0.328000009]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 4908159784227151078
-    TagComponent:
-      Tag: Wall Cap Shrine 15
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-1.87699997, 1.29499996, 3.0999999]
-      Rotation: [0, 0, -0.0920000002]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.779999971, 0.510999978, 0.317000002]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 2037198732528482752
-    TagComponent:
-      Tag: Wall Cap Shrine 16
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [2.60500002, 1.31700003, 3.0999999]
-      Rotation: [0, 0, -0.104000002]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.11099994, 0.524999976, 0.289999992]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1684541796418389298
-    TagComponent:
-      Tag: Wall Cap Shrine 17
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [3.82999992, 1.27600002, 3.0999999]
-      Rotation: [0, 0, 0.0299999993]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.14300001, 0.458000004, 0.280999988]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8652564143360849158
-    TagComponent:
-      Tag: Wall Cap Shrine 18
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [5.03599977, 1.347, 3.0999999]
-      Rotation: [0, 0, 0.00200000009]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.07700002, 0.541000009, 0.363999993]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1940930316472422989
-    TagComponent:
-      Tag: Wall Cap Shrine 19
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [6.12900019, 1.30799997, 3.0999999]
-      Rotation: [0, 0, -0.115999997]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.934000015, 0.629000008, 0.354000002]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3716253595337743614
-    TagComponent:
-      Tag: Wall Cap Shrine 20
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [7.07999992, 1.24300003, 3.0999999]
-      Rotation: [0, 0, 0.0860000029]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.814999998, 0.55400002, 0.328999996]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7491804880912362847
-    TagComponent:
-      Tag: Wall Cap Shrine 21
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [7.97300005, 1.28400004, 3.0999999]
-      Rotation: [0, 0, 0.0219999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.828000009, 0.537, 0.328000009]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7123793936139557571
-    TagComponent:
-      Tag: Wall Cap Shrine 22
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [8.91300011, 1.28199995, 3.0999999]
-      Rotation: [0, 0, 0.0130000003]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.903999984, 0.597000003, 0.36500001]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3784010921243725180
-    TagComponent:
-      Tag: Wall Cap Shrine 23
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [9.96199989, 1.30200005, 3.0999999]
-      Rotation: [0, 0, 0.0949999988]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.02499998, 0.453999996, 0.326999992]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3874323033101327834
-    TagComponent:
-      Tag: Wall Cap Shrine 24
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [10.9980001, 1.30400002, 3.0999999]
-      Rotation: [0, 0, 0.075000003]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.882000029, 0.486000001, 0.211999997]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 6677460425899615057
-    TagComponent:
-      Tag: Wall Cap Shrine 25
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [12.0380001, 1.27699995, 3.0999999]
-      Rotation: [0, 0, 0.0219999999]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.03100002, 0.463, 0.259000003]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5544227745021545800
-    TagComponent:
-      Tag: Wall Cap Shrine 26
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [13.0839996, 1.29400003, 3.0999999]
-      Rotation: [0, 0, -0.0820000023]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.893999994, 0.500999987, 0.25999999]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 8369709252544194314
-    TagComponent:
-      Tag: Wall Cap Shrine 27
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [14.0950003, 1.352, 3.0999999]
-      Rotation: [0, 0, -0.114]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.966000021, 0.488000005, 0.209999993]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5229008243375619890
-    TagComponent:
-      Tag: Wall Cap Shrine 28
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [15.0670004, 1.28299999, 3.0999999]
-      Rotation: [0, 0, 0.0930000022]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [0.823000014, 0.476000011, 0.279000014]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5212864785955759564
-    TagComponent:
-      Tag: Wall Cap Shrine 29
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [16.0760002, 1.273, 3.0999999]
-      Rotation: [0, 0, 0.0799999982]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [1.03299999, 0.546999991, 0.246999994]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 29202765111466157
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 1554060658117780648
-    TagComponent:
-      Tag: Wall Collider Plaza
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-7.0999999, -3, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [7.80000019, 0.300000012]
-      Density: 1
-      Friction: 0
-      Restitution: 0
-      IsSensor: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0.800000012]
-      Size: [7.80000019, 0.300000012, 1.60000002]
-      Layer: World
-      IsTrigger: false
-  - Entity: 5888645764482305797
-    TagComponent:
-      Tag: Wall Collider Plaza 2
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [7.0999999, -3, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [7.80000019, 0.300000012]
-      Density: 1
-      Friction: 0
-      Restitution: 0
-      IsSensor: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0.800000012]
-      Size: [7.80000019, 0.300000012, 1.60000002]
-      Layer: World
-      IsTrigger: false
-  - Entity: 7905517575359651115
-    TagComponent:
-      Tag: Wall Collider Shrine
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [-6.3499999, 1, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [9.30000019, 0.300000012]
-      Density: 1
-      Friction: 0
-      Restitution: 0
-      IsSensor: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0.800000012]
-      Size: [9.30000019, 0.300000012, 1.60000002]
-      Layer: World
-      IsTrigger: false
-  - Entity: 4518005068882461278
-    TagComponent:
-      Tag: Wall Collider Shrine 2
-    RelationshipComponent:
-      Parent: 5444589407682190487
-    TransformComponent:
-      Translation: [6.3499999, 1, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [9.30000019, 0.300000012]
-      Density: 1
-      Friction: 0
-      Restitution: 0
-      IsSensor: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0.800000012]
-      Size: [9.30000019, 0.300000012, 1.60000002]
-      Layer: World
-      IsTrigger: false
-  - Entity: 7308550612281759069
-    TagComponent:
-      Tag: Paths
-    RelationshipComponent:
-      Parent: 3102382565515769644
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 7570037973066813213
-    TagComponent:
-      Tag: Path Front
-    RelationshipComponent:
-      Parent: 7308550612281759069
-    TransformComponent:
-      Translation: [0, -8.30000019, 0.00800000038]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [3.79999995, 7.4000001, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8179354946758296038
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 4955177502358802919
-    TagComponent:
-      Tag: Path Front Foot
-    RelationshipComponent:
-      Parent: 7308550612281759069
-    TransformComponent:
-      Translation: [0, -5, 0.00899999961]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [6.4000001, 0.800000012, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8179354946758296038
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 5432513094667077972
-    TagComponent:
-      Tag: Plaza Flagstones
-    RelationshipComponent:
-      Parent: 7308550612281759069
-    TransformComponent:
-      Translation: [0, -1, 1.00800002]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Plane
-      Size: [11, 3.70000005, 0]
-      CastShadows: true
-      Materials:
-        - MaterialHandle: 8179354946758296038
-          Inline:
-            Tint: [1, 1, 1, 1]
-            Tiling: [1, 1]
-            EmissionColor: [0, 0, 0]
-            EmissionIntensity: 1
-            AlphaCutoff: 0
-            Filter: Nearest
-    MeshColliderComponent:
-      Layer: World
   - Entity: 5488526121304600793
     TagComponent:
       Tag: Glade Path Stone
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
       Translation: [-1.95000005, -6.30000019, 0]
       Rotation: [0, 0, 0.139625996]
@@ -6313,7 +4358,7 @@ Entities:
     TagComponent:
       Tag: Glade Path Stone 2
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
       Translation: [1.91999996, -7.5, 0]
       Rotation: [0, 0, -0.191985995]
@@ -6331,7 +4376,7 @@ Entities:
     TagComponent:
       Tag: Glade Path Stone 3
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
       Translation: [-1.88, -9.19999981, 0]
       Rotation: [0, 0, -0.0872659981]
@@ -6349,7 +4394,7 @@ Entities:
     TagComponent:
       Tag: Glade Path Stone 4
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
       Translation: [1.98000002, -10.1000004, 0]
       Rotation: [0, 0, 0.366519004]
@@ -6367,9 +4412,9 @@ Entities:
     TagComponent:
       Tag: Glade Path Stone 5
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
-      Translation: [5.44999981, -2.20000005, 1]
+      Translation: [5.45, -2.302326, 1]
       Rotation: [0, 0, 0.244345993]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -6385,7 +4430,7 @@ Entities:
     TagComponent:
       Tag: Glade Path Stone 6
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
       Translation: [-5.5, -0.300000012, 1]
       Rotation: [0, 0, -0.157079995]
@@ -6403,9 +4448,9 @@ Entities:
     TagComponent:
       Tag: Glade Path Stone 7
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
-      Translation: [4.28000021, 4.5999999, 3.11199999]
+      Translation: [4.28, 4.6, 3.012]
       Rotation: [0, 0, 0.575959027]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -6421,9 +4466,9 @@ Entities:
     TagComponent:
       Tag: Glade Path Stone 8
     RelationshipComponent:
-      Parent: 7308550612281759069
+      Parent: 3102382565515769644
     TransformComponent:
-      Translation: [-4.32000017, 6.5, 3.11199999]
+      Translation: [-4.32, 6.5, 3.012]
       Rotation: [0, 0, -0.296705991]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -6574,7 +4619,7 @@ Entities:
     TagComponent:
       Tag: Shrine Building
     TransformComponent:
-      Translation: [0, 7.9000001, 3.0999999]
+      Translation: [0, 7.9, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 4377922040100137191
@@ -6960,7 +5005,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [-3.5, 4.84000015, 3.0999999]
+      Translation: [-3.5, 4.84, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 2681392914589184468
@@ -7002,7 +5047,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [3.5, 4.84000015, 3.0999999]
+      Translation: [3.5, 4.84, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 6996660646185389080
@@ -7060,7 +5105,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.69999981, 5.10179996, 3.0999999]
+      Translation: [8.7, 5.1018, 3]
       Rotation: [0, 0, 0]
       Scale: [0.75, 1.19529998, 1]
     SpriteRendererComponent:
@@ -7090,7 +5135,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [6, 7.25, 3.0999999]
+      Translation: [6, 7.25, 3]
       Rotation: [0, 0, 0.122172996]
       Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
@@ -7120,7 +5165,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [5.0999999, 6.75, 3.0999999]
+      Translation: [5.1, 6.75, 3]
       Rotation: [0, 0, -0.244345993]
       Scale: [1.54999995, 1.54999995, 1.54999995]
     MeshComponent:
@@ -7150,7 +5195,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.05000019, 6.6500001, 3.0999999]
+      Translation: [8.05, 6.65, 3]
       Rotation: [0, 0, 0.191985995]
       Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
@@ -7180,7 +5225,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [7.1500001, 7.5999999, 3.0999999]
+      Translation: [7.15, 7.6, 3]
       Rotation: [0, 0, -0.383971989]
       Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
@@ -7210,7 +5255,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [6.01999998, 6.71999979, 3.0999999]
+      Translation: [6.02, 6.72, 3]
       Rotation: [0, 0, 0]
       Scale: [1.5, 1.5, 1.5]
     MeshComponent:
@@ -7228,7 +5273,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.75, 7.55000019, 3.0999999]
+      Translation: [8.75, 7.55, 3]
       Rotation: [0, 0, -0.314159006]
       Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
@@ -7246,7 +5291,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [6.01999998, 6.71999979, 3.0999999]
+      Translation: [6.02, 6.72, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -7261,7 +5306,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [5.3499999, 6.5250001, 3.0999999]
+      Translation: [5.35, 6.525, 3]
       Rotation: [0, 0, 0]
       Scale: [0.762099981, 0.850000024, 1]
     SpriteRendererComponent:
@@ -7279,7 +5324,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.35000038, 6.78421021, 3.0999999]
+      Translation: [8.35, 6.78421, 3]
       Rotation: [0, 0, 0]
       Scale: [1.10526001, 0.368420005, 1]
     SpriteRendererComponent:
@@ -7297,7 +5342,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [9, 6.6500001, 3.0999999]
+      Translation: [9, 6.65, 3]
       Rotation: [0, 0, 0]
       Scale: [0.89230001, 0.800000012, 1]
     SpriteRendererComponent:
@@ -7324,7 +5369,7 @@ Entities:
     RelationshipComponent:
       Parent: 8261265878644361254
     TransformComponent:
-      Translation: [2.5, 4.61999989, 3.0999999]
+      Translation: [2.5, 4.62, 3]
       Rotation: [0, 0, 0.209439993]
       Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
@@ -7342,7 +5387,7 @@ Entities:
     RelationshipComponent:
       Parent: 8261265878644361254
     TransformComponent:
-      Translation: [2.55999994, 4.5999999, 3.66000009]
+      Translation: [2.56, 4.6, 3.56]
       Rotation: [0, 0, 0]
       Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
@@ -7360,7 +5405,7 @@ Entities:
     RelationshipComponent:
       Parent: 8261265878644361254
     TransformComponent:
-      Translation: [3.0999999, 4.71999979, 3.0999999]
+      Translation: [3.1, 4.72, 3]
       Rotation: [0, 0.300000012, 0]
       Scale: [1.29999995, 1.29999995, 1.29999995]
     MeshComponent:
@@ -7387,7 +5432,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-3.4000001, 2.64910007, 3.0999999]
+      Translation: [-3.4, 2.966597, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1.59379995, 1]
     SpriteRendererComponent:
@@ -7417,7 +5462,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-5.30000019, 6.2750001, 3.0999999]
+      Translation: [-5.3, 6.275, 3]
       Rotation: [0, 0, 0]
       Scale: [1.41670001, 0.850000024, 1]
     SpriteRendererComponent:
@@ -7435,7 +5480,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-8.10000038, 6.05000019, 3.0999999]
+      Translation: [-8.1, 6.05, 3]
       Rotation: [0, 0, 0]
       Scale: [1.67859995, 0.5, 1]
     SpriteRendererComponent:
@@ -7453,7 +5498,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-7.6500001, 5.57499981, 3.0999999]
+      Translation: [-7.65, 5.575, 3]
       Rotation: [0, 0, 0]
       Scale: [0.524999976, 0.550000012, 1]
     SpriteRendererComponent:
@@ -7471,7 +5516,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-5, 5.86842012, 3.0999999]
+      Translation: [-5, 5.86842, 3]
       Rotation: [0, 0, 0]
       Scale: [0.657890022, 0.73684001, 1]
     SpriteRendererComponent:
@@ -7561,7 +5606,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-3.95000005, 4.68420982, 3.0999999]
+      Translation: [-3.95, 4.68421, 3]
       Rotation: [0, 0, 0]
       Scale: [1.10526001, 0.368420005, 1]
     SpriteRendererComponent:
@@ -7579,7 +5624,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-6.25, 1.39736998, 1]
+      Translation: [-6.25, 0.854324, 1]
       Rotation: [0, 0, 0]
       Scale: [1.10526001, 0.394739985, 1]
     SpriteRendererComponent:
@@ -7597,7 +5642,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-6.75, 1.46000004, 1]
+      Translation: [-6.75, 0.808565, 1]
       Rotation: [0, 0, 0]
       Scale: [0.581499994, 0.419999987, 1]
     SpriteRendererComponent:
@@ -7615,7 +5660,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [5.19999981, 7.94999981, 3.11800003]
+      Translation: [5.2, 7.95, 3.018]
       Rotation: [0, 0, 0.174532995]
       Scale: [1.82620001, 1.29999995, 1]
     SpriteRendererComponent:
@@ -7633,7 +5678,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [6.9000001, 7.8499999, 3.11800003]
+      Translation: [6.9, 7.85, 3.018]
       Rotation: [0, 0, -0.436331987]
       Scale: [1.60590005, 1.04999995, 1]
     SpriteRendererComponent:
@@ -7651,7 +5696,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [6.5999999, 6.30000019, 3.11800003]
+      Translation: [6.6, 6.3, 3.018]
       Rotation: [0, 0, 0.698131979]
       Scale: [1.35290003, 1, 1]
     SpriteRendererComponent:
@@ -7669,7 +5714,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [4.75, 5.3499999, 3.11800003]
+      Translation: [4.75, 5.35, 3.018]
       Rotation: [0, 0, -0.261799008]
       Scale: [1.88890004, 0.850000024, 1]
     SpriteRendererComponent:
@@ -7687,7 +5732,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [3.8499999, 6.55000019, 3.11800003]
+      Translation: [3.85, 6.55, 3.018]
       Rotation: [0, 0, 1.22172999]
       Scale: [1.24440002, 0.800000012, 1]
     SpriteRendererComponent:
@@ -7705,7 +5750,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [7.5999999, 5.55000019, 3.11800003]
+      Translation: [7.6, 5.55, 3.018]
       Rotation: [0, 0, 0.349065989]
       Scale: [1.39999998, 0.699999988, 1]
     SpriteRendererComponent:
@@ -7723,7 +5768,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [2.95000005, 4.3499999, 3.11800003]
+      Translation: [2.95, 4.35, 3.018]
       Rotation: [0, 0, -0.698131979]
       Scale: [1.01110005, 0.649999976, 1]
     SpriteRendererComponent:
@@ -7750,7 +5795,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-4.4000001, 1.17499995, 1]
+      Translation: [-4.4, 1.002292, 1]
       Rotation: [0, 0, 0]
       Scale: [1.0359, 2.54999995, 1]
     SpriteRendererComponent:
@@ -7780,7 +5825,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [4.4000001, 1.17499995, 1]
+      Translation: [4.4, 0.950654, 1]
       Rotation: [0, 0, 0]
       Scale: [1.0359, 2.54999995, 1]
     SpriteRendererComponent:
@@ -7810,7 +5855,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-8.39999962, 0.703700006, 1]
+      Translation: [-8.4, 0.750115, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -7840,7 +5885,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [9.19999981, -3.48679996, 0]
+      Translation: [9.2, -3.780542, 0]
       Rotation: [0, 0, 0]
       Scale: [1.0891, 1.11559999, 1]
     SpriteRendererComponent:
@@ -7870,7 +5915,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [6.4000001, 0.56220001, 1]
+      Translation: [6.4, 0.44838, 1]
       Rotation: [0, 0, 0]
       Scale: [0.768700004, 0.787500024, 1]
     SpriteRendererComponent:
@@ -7900,7 +5945,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-11, -3.05660009, 0]
+      Translation: [-11, -2.389363, 0.5]
       Rotation: [0, 0, 0]
       Scale: [1.15310001, 1.18130004, 1]
     SpriteRendererComponent:
@@ -7918,7 +5963,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [11.3999996, -3.09619999, 0]
+      Translation: [11.4, -3.008676, 0]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -7936,7 +5981,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-5.5999999, 1.06219995, 1]
+      Translation: [-5.6, 0.917479, 1]
       Rotation: [0, 0, 0]
       Scale: [0.768700004, 0.787500024, 1]
     SpriteRendererComponent:
@@ -7954,7 +5999,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [6.19999981, 0.98210001, 1]
+      Translation: [6.2, 0.445345, 1]
       Rotation: [0, 0, 0]
       Scale: [0.704699993, 0.721899986, 1]
     SpriteRendererComponent:
@@ -7979,7 +6024,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-3, 2.12750006, 3.0999999]
+      Translation: [-3, 2.457376, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8009,7 +6054,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-4.25, 2.12750006, 3.0999999]
+      Translation: [-4.25, 2.434182, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8039,7 +6084,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-5.5, 2.12750006, 3.0999999]
+      Translation: [-5.5, 2.354296, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8069,7 +6114,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-6.75, 2.12750006, 3.0999999]
+      Translation: [-6.75, 2.236065, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8099,7 +6144,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-8, 2.12750006, 3.0999999]
+      Translation: [-8, 2.175352, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8129,7 +6174,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [3, 2.12750006, 3.0999999]
+      Translation: [3, 2.413556, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8159,7 +6204,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [4.25, 2.12750006, 3.0999999]
+      Translation: [4.25, 2.382366, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8189,7 +6234,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [5.5, 2.12750006, 3.0999999]
+      Translation: [5.5, 3.116603, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8219,7 +6264,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [6.75, 2.12750006, 3.0999999]
+      Translation: [6.75, 3.144027, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8249,7 +6294,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [8, 2.12750006, 3.0999999]
+      Translation: [8, 3.225916, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8279,7 +6324,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-3.5999999, -1.87249994, 1]
+      Translation: [-3.6, -1.782711, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8309,7 +6354,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-4.8499999, -1.87249994, 1]
+      Translation: [-4.85, -1.752158, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8339,7 +6384,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-6.0999999, -1.87249994, 1]
+      Translation: [-6.1, -1.578933, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8369,7 +6414,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-7.3499999, -1.87249994, 1]
+      Translation: [-7.35, -1.417757, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8399,7 +6444,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-8.60000038, -1.87249994, 1]
+      Translation: [-8.6, -1.418984, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8429,7 +6474,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [3.5999999, -1.87249994, 1]
+      Translation: [3.6, -1.408663, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8459,7 +6504,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [4.8499999, -1.87249994, 1]
+      Translation: [4.85, -2.032122, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8489,7 +6534,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [6.0999999, -1.87249994, 1]
+      Translation: [6.1, -2.531147, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8519,7 +6564,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [7.3499999, -1.87249994, 1]
+      Translation: [7.35, -2.682224, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8549,7 +6594,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [8.60000038, -1.87249994, 1]
+      Translation: [8.6, -2.391088, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -8586,7 +6631,7 @@ Entities:
     RelationshipComponent:
       Parent: 2454612650505723552
     TransformComponent:
-      Translation: [7.19999981, 5.34000015, 3.0999999]
+      Translation: [7.2, 5.34, 3]
       Rotation: [0, 0, 0]
       Scale: [1.14286005, 1.14286005, 1]
     SpriteRendererComponent:
@@ -8672,7 +6717,7 @@ Entities:
     RelationshipComponent:
       Parent: 7511672360183551445
     TransformComponent:
-      Translation: [1.71964085, 4.12040806, 3.16380525]
+      Translation: [1.719641, 4.120408, 3.063805]
       Rotation: [0, 0, 0]
       Scale: [2, 2, 1]
     SpriteRendererComponent:
@@ -8691,9 +6736,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, 0.0500000007]
-      Size: [0.850000024, 0.319999993]
-      Strength: 0.550000012
+      Offset: [0, -0.04]
+      Size: [0.95, 0.58]
+      Strength: 0.6
     BoxCollider2DComponent:
       Offset: [0, 0.100000001]
       Size: [0.5, 0.200000003]
@@ -8740,9 +6785,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, 0.0500000007]
-      Size: [0.75, 0.239999995]
-      Strength: 0.449999988
+      Offset: [0, -0.02]
+      Size: [0.85, 0.5]
+      Strength: 0.5
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: true
@@ -8800,9 +6845,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, 0.0500000007]
-      Size: [0.75, 0.239999995]
-      Strength: 0.449999988
+      Offset: [0, -0.02]
+      Size: [0.85, 0.5]
+      Strength: 0.5
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: true
@@ -8860,9 +6905,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, 0.0500000007]
-      Size: [0.75, 0.239999995]
-      Strength: 0.449999988
+      Offset: [0, -0.02]
+      Size: [0.85, 0.5]
+      Strength: 0.5
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: true
@@ -10465,7 +8510,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-17.3027, 16.6016197, 3.0999999]
+      Translation: [-17.3027, 16.60162, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -10483,7 +8528,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-13.4687996, 16.9437504, 3.0999999]
+      Translation: [-13.4688, 16.94375, 3]
       Rotation: [0, 0, 0]
       Scale: [3.90625, 9.3125, 1]
     SpriteRendererComponent:
@@ -10501,7 +8546,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-9.92710018, 16.09972, 3.0999999]
+      Translation: [-9.9271, 16.09972, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -10519,7 +8564,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-5.72599983, 15.9858999, 3.0999999]
+      Translation: [-5.726, 15.9859, 3]
       Rotation: [0, 0, 0]
       Scale: [6.10421991, 9.36229992, 1]
     SpriteRendererComponent:
@@ -10537,7 +8582,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [10.1070004, 16.7020493, 3.0999999]
+      Translation: [10.107, 16.702049, 3]
       Rotation: [0, 0, 0]
       Scale: [3.90625, 9.3125, 1]
     SpriteRendererComponent:
@@ -10555,7 +8600,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [13.1480999, 16.8822193, 3.0999999]
+      Translation: [13.1481, 16.882219, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -10573,7 +8618,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [16.5708008, 16.698, 3.0999999]
+      Translation: [16.570801, 16.698, 3]
       Rotation: [0, 0, 0]
       Scale: [3.90625, 9.3125, 1]
     SpriteRendererComponent:
@@ -10600,7 +8645,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [-12.6000004, 9.2169199, 3.0999999]
+      Translation: [-12.6, 9.21692, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10630,7 +8675,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [13, 8.81692028, 3.0999999]
+      Translation: [13, 8.81692, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10660,7 +8705,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [-12.1999998, 3.25, 1]
+      Translation: [-12.2, 3.25, 3]
       Rotation: [0, 0, 0]
       Scale: [8.73077011, 8.5, 1]
     SpriteRendererComponent:
@@ -10690,7 +8735,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [12.1999998, 2.47691989, 1]
+      Translation: [12.2, 2.47692, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10720,7 +8765,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [-12, -3.52308011, 0]
+      Translation: [-12, -1.749737, 0.5]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10750,7 +8795,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [12, -3.20000005, 0]
+      Translation: [12, -3.121635, 0]
       Rotation: [0, 0, 0]
       Scale: [8.21718979, 8, 1]
     SpriteRendererComponent:
@@ -10789,7 +8834,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-6.78000021, 11.4799995, 3]
+      Translation: [-6.78, 11.479999, 2.9]
       Rotation: [0, 0, 0]
       Scale: [11, 11, 1]
     SpriteRendererComponent:
@@ -10819,7 +8864,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-6.78000021, 11.46, 3]
+      Translation: [-6.78, 11.46, 2.9]
       Rotation: [0, 0, 0]
       Scale: [11, 11, 1]
     SpriteRendererComponent:
@@ -10839,7 +8884,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-6.78000021, 11.4399996, 3]
+      Translation: [-6.78, 11.44, 2.9]
       Rotation: [0, 0, 0]
       Scale: [11, 11, 1]
     SpriteRendererComponent:
@@ -10861,7 +8906,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-9.5, 14.5769196, 3.0999999]
+      Translation: [-9.5, 14.57692, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10879,7 +8924,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-12.5, 12.0769196, 3.0999999]
+      Translation: [-12.5, 12.07692, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10897,7 +8942,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [14, 11.25, 3.0999999]
+      Translation: [14, 11.25, 3]
       Rotation: [0, 0, 0]
       Scale: [8.73077011, 8.5, 1]
     SpriteRendererComponent:
@@ -10915,7 +8960,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [5.30000019, 11.3900003, 3.0999999]
+      Translation: [5.3, 11.39, 3]
       Rotation: [0, 0, 0]
       Scale: [6.47399998, 6.5, 1]
     SpriteRendererComponent:
@@ -10942,7 +8987,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-15.0099001, 14.7024202, 3.0999999]
+      Translation: [-15.0099, 14.70242, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10960,7 +9005,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [21.5114002, 15.6850996, 3.0999999]
+      Translation: [21.5114, 15.6851, 3]
       Rotation: [0, 0, 0]
       Scale: [4.14525986, 9.88230038, 1]
     SpriteRendererComponent:
@@ -10978,7 +9023,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-17.2075996, 9.55887032, 3.0999999]
+      Translation: [-17.2076, 9.55887, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -10996,7 +9041,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [21.4629993, 10.0568399, 3.0999999]
+      Translation: [21.462999, 10.05684, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -11014,7 +9059,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-20.1194992, 9.33740044, 3.0999999]
+      Translation: [-20.119499, 9.3374, 3]
       Rotation: [0, 0, 0]
       Scale: [8.73077011, 8.5, 1]
     SpriteRendererComponent:
@@ -11032,7 +9077,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [18.2754002, 16.1482792, 3.0999999]
+      Translation: [18.2754, 16.148279, 3]
       Rotation: [0, 0, 0]
       Scale: [4.08169985, 9.73077011, 1]
     SpriteRendererComponent:
@@ -11050,7 +9095,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-15.6756001, 12.59342, 3.0999999]
+      Translation: [-15.6756, 12.59342, 3]
       Rotation: [0, 0, 0]
       Scale: [3.83300996, 8.1538496, 1]
     SpriteRendererComponent:
@@ -11068,7 +9113,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [13.21, 15.3770905, 3.0999999]
+      Translation: [13.21, 15.37709, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -11086,7 +9131,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-24.5858002, 9.21131992, 3.0999999]
+      Translation: [-24.5858, 9.21132, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -11104,7 +9149,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [22.6716995, 10.8042698, 3.0999999]
+      Translation: [22.671699, 10.80427, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -11122,7 +9167,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-15.0879002, 15.6244497, 3.0999999]
+      Translation: [-15.0879, 15.62445, 3]
       Rotation: [0, 0, 0]
       Scale: [8.73077011, 8.5, 1]
     SpriteRendererComponent:
@@ -11140,7 +9185,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [14.7643995, 12.0764799, 3.0999999]
+      Translation: [14.764399, 12.07648, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -11158,7 +9203,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-20.0284996, 16.3252201, 3.0999999]
+      Translation: [-20.0285, 16.32522, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -11176,7 +9221,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [25.1685009, 10.8056402, 3.0999999]
+      Translation: [25.168501, 10.80564, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -11203,7 +9248,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [-5.4000001, -4.34614992, 0]
+      Translation: [-5.4, -4.160254, 0]
       Rotation: [0, 0, 0]
       Scale: [2.23077011, 2.30768991, 1]
     SpriteRendererComponent:
@@ -11221,7 +9266,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [-7.5999999, -4.47812986, 0]
+      Translation: [-7.6, -4.008352, 0]
       Rotation: [0, 0, 0]
       Scale: [2.8125, 2.84375, 1]
     SpriteRendererComponent:
@@ -11239,7 +9284,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [-9.60000038, -4.16538, 0]
+      Translation: [-9.6, -3.859522, 0]
       Rotation: [0, 0, 0]
       Scale: [2.30768991, 2.26922989, 1]
     SpriteRendererComponent:
@@ -11257,7 +9302,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [5.5999999, -4.55000019, 0]
+      Translation: [5.6, -5.042182, 0]
       Rotation: [0, 0, 0]
       Scale: [2.38380003, 2.0999999, 1]
     SpriteRendererComponent:
@@ -11275,7 +9320,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [7.80000019, -4.66538, 0]
+      Translation: [7.8, -5.41853, 0]
       Rotation: [0, 0, 0]
       Scale: [2.30768991, 2.26922989, 1]
     SpriteRendererComponent:
@@ -11293,7 +9338,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [9.80000019, -4.0653801, 0]
+      Translation: [9.8, -4.102484, 0]
       Rotation: [0, 0, 0]
       Scale: [2.19231009, 2.26922989, 1]
     SpriteRendererComponent:
@@ -11384,177 +9429,6 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 4004110462281252253
-    TagComponent:
-      Tag: Wall Foot
-    RelationshipComponent:
-      Parent: 2928603540779664550
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 6389426620074096688
-    TagComponent:
-      Tag: Decor Wall Foot
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [-9.05900002, -2.77509999, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.06190002, 0.9102, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2213037545423105267
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4287282078365465841
-    TagComponent:
-      Tag: Decor Wall Foot 2
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [-8.36229992, -2.60170007, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.63341999, 1.60619998, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2690928353972724374
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1484020808902068523
-    TagComponent:
-      Tag: Decor Wall Foot 3
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [-8.81729984, -3.04997993, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.26923001, 0.653850019, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 12971710091720906518
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 29573523418613608
-    TagComponent:
-      Tag: Decor Wall Foot 4
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [-8.12590027, -3.00373006, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.03846002, 0.769230008, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 4988488379390089011
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8300974411687552180
-    TagComponent:
-      Tag: Decor Wall Foot 5
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [-7.8375001, -3.14195991, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.61538005, 0.423079997, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11457831665565402468
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1935151011442348651
-    TagComponent:
-      Tag: Decor Wall Foot 6
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [10.9696999, -3.35290003, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.01706004, 0.658100009, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1108498817681946417
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 6301974470883959186
-    TagComponent:
-      Tag: Decor Wall Foot 7
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [-8.03489971, -3.09109998, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.61538005, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 9469800783334600610
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4888468975563466761
-    TagComponent:
-      Tag: Decor Wall Foot 8
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [-7.91020012, -3.26284003, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.61538005, 0.384620011, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 16877779910713629634
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 7078334338425289237
-    TagComponent:
-      Tag: Decor Wall Foot 9
-    RelationshipComponent:
-      Parent: 4004110462281252253
-    TransformComponent:
-      Translation: [4.8677001, -2.75895, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.07692003, 0.807690024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 17093801667043099128
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
   - Entity: 4690256482477669012
     TagComponent:
       Tag: Front
@@ -11582,600 +9456,6 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1831759949159874094
-    TagComponent:
-      Tag: Wall Bush
-    RelationshipComponent:
-      Parent: 2928603540779664550
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 609919489304792446
-    TagComponent:
-      Tag: Decor Wall Bush
-    RelationshipComponent:
-      Parent: 1831759949159874094
-    TransformComponent:
-      Translation: [11.1304998, -2.93735003, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.26922989, 2.19231009, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 7679374601513114346
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4456101239244515769
-    TagComponent:
-      Tag: Decor Wall Bush 2
-    RelationshipComponent:
-      Parent: 1831759949159874094
-    TransformComponent:
-      Translation: [8.46049976, -3.54290009, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.93870002, 0.961600006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3471202463790715305
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 676667337007952355
-    TagComponent:
-      Tag: Decor Wall Bush 3
-    RelationshipComponent:
-      Parent: 1831759949159874094
-    TransformComponent:
-      Translation: [-11.8231001, -3.55859995, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.17937994, 1.62530005, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3041036813936589844
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 552859329122860968
-    TagComponent:
-      Tag: Decor Wall Bush 4
-    RelationshipComponent:
-      Parent: 1831759949159874094
-    TransformComponent:
-      Translation: [6.95319986, -3.08909988, 0]
-      Rotation: [0, 0, 0]
-      Scale: [2.14545012, 2, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1016134028276925374
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 7880683847257081743
-    TagComponent:
-      Tag: Decor Wall Bush 5
-    RelationshipComponent:
-      Parent: 1831759949159874094
-    TransformComponent:
-      Translation: [8.06509972, -3.28726006, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.07895005, 1.63158, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 16922533529315268810
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 548445242924070511
-    TagComponent:
-      Tag: Plaza Wall
-    RelationshipComponent:
-      Parent: 2928603540779664550
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 2785374354433879236
-    TagComponent:
-      Tag: Decor Plaza Wall
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [-2.34559989, 1.28793001, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.44737005, 1.60526001, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2605514515247266170
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 574810718956291702
-    TagComponent:
-      Tag: Decor Plaza Wall 2
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [-5.49620008, 1.00150001, 1]
-      Rotation: [0, 0, 0]
-      Scale: [2.25929999, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 5349124620621949254
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 7022679389956175193
-    TagComponent:
-      Tag: Decor Plaza Wall 3
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [6.7507, 1.10769999, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.61538005, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 14407354442998907263
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 3597028269658689780
-    TagComponent:
-      Tag: Decor Plaza Wall 4
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [4.6255002, 0.924499989, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.07692003, 0.807690024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 8462646012883594358
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4689209354844996956
-    TagComponent:
-      Tag: Decor Plaza Wall 5
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [10.4836998, 0.981299996, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.07692003, 0.807690024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 12400410989334499772
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5681509022482803464
-    TagComponent:
-      Tag: Decor Plaza Wall 6
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [9.55650043, 1.34623003, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.44737005, 1.60526001, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2605514515247266170
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5399846396165433827
-    TagComponent:
-      Tag: Decor Plaza Wall 7
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [-7.96990013, 1.02072001, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.961539984, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 4097071848922814237
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8877347541011218156
-    TagComponent:
-      Tag: Decor Plaza Wall 8
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [-2.66020012, 1.25442004, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.55262995, 1.55262995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 552246527202637639
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 7108933879412066177
-    TagComponent:
-      Tag: Decor Plaza Wall 9
-    RelationshipComponent:
-      Parent: 548445242924070511
-    TransformComponent:
-      Translation: [-4.19859982, 1.29009998, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.60387003, 1.20290005, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 13996760179527109168
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4255528212439037597
-    TagComponent:
-      Tag: Plaza Edge
-    RelationshipComponent:
-      Parent: 2928603540779664550
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 450773846447120991
-    TagComponent:
-      Tag: Decor Plaza Edge
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [4.59700012, -1.94140995, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.07692003, 0.923080027, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2213037545423105267
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 759157030934755130
-    TagComponent:
-      Tag: Decor Plaza Edge 2
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [-6.63019991, -1.86556995, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.44737005, 1.60526001, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2605514515247266170
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1213748683280620109
-    TagComponent:
-      Tag: Decor Plaza Edge 3
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [2.60100007, -2.15568995, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.884620011, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 10694538711008205396
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8179799659839668042
-    TagComponent:
-      Tag: Decor Plaza Edge 4
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [-5.72629976, -2.51141, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.61538005, 0.423079997, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 15523452036597311342
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4528418667084164075
-    TagComponent:
-      Tag: Decor Plaza Edge 5
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [6.06720018, -2.23504996, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.03846002, 0.807690024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 15830907333279367108
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8031496201300263853
-    TagComponent:
-      Tag: Decor Plaza Edge 6
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [4.43400002, -2.26629996, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.05921996, 0.907899976, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 17471489608365169446
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 2324782832345760575
-    TagComponent:
-      Tag: Decor Plaza Edge 7
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [7.15929985, -2.20779991, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.07692003, 0.807690024, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 11982829578450728681
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 2002750836707578940
-    TagComponent:
-      Tag: Decor Plaza Edge 8
-    RelationshipComponent:
-      Parent: 4255528212439037597
-    TransformComponent:
-      Translation: [7.94840002, -1.66610003, 1]
-      Rotation: [0, 0, 0]
-      Scale: [1.32532001, 1.63549995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 18078151827493041316
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4826891688882284307
-    TagComponent:
-      Tag: Shrine Edge
-    RelationshipComponent:
-      Parent: 2928603540779664550
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 1734516111120992641
-    TagComponent:
-      Tag: Decor Shrine Edge
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [8.78439999, 2.06567001, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.5, 1.57895005, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 8852254320808736972
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5106778069466485909
-    TagComponent:
-      Tag: Decor Shrine Edge 2
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [9.35350037, 2.00307012, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.961539984, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 10573610630455214292
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 9045408753711605032
-    TagComponent:
-      Tag: Decor Shrine Edge 3
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [-5.49959993, 1.58615994, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.61538005, 0.384620011, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 15868323660128422587
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5490432496170299511
-    TagComponent:
-      Tag: Decor Shrine Edge 4
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [3.6494, 1.97217, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.03846002, 0.769230008, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 18009625231178509202
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 9112019076117548154
-    TagComponent:
-      Tag: Decor Shrine Edge 5
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [-2.38269997, 1.60064006, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.61538005, 0.423079997, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 16553186453921410002
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 6115274274919844876
-    TagComponent:
-      Tag: Decor Shrine Edge 6
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [3.7664001, 2.08566999, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.03846002, 0.961539984, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 8680140747666188570
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4128770617519603141
-    TagComponent:
-      Tag: Decor Shrine Edge 7
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [11.8071003, 1.82141995, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.653850019, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 14502975994925883314
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 997957949927456755
-    TagComponent:
-      Tag: Decor Shrine Edge 8
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [7.27720022, 2.35963988, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1.28946996, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 5766516425497721959
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 7467864718423095009
-    TagComponent:
-      Tag: Decor Shrine Edge 9
-    RelationshipComponent:
-      Parent: 4826891688882284307
-    TransformComponent:
-      Translation: [-9.61989975, 2.29419994, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.72211003, 1.52119994, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 7662416727273676612
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
   - Entity: 3677721556967585302
     TagComponent:
       Tag: Shrine Plants
@@ -12191,7 +9471,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [-9.14360046, 9.75072956, 3.0999999]
+      Translation: [-9.1436, 9.75073, 3]
       Rotation: [0, 0, 0]
       Scale: [0.73684001, 0.76315999, 1]
     SpriteRendererComponent:
@@ -12209,7 +9489,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [10.9254999, 10.7432098, 3.0999999]
+      Translation: [10.9255, 10.74321, 3]
       Rotation: [0, 0, 0]
       Scale: [1.07692003, 0.884620011, 1]
     SpriteRendererComponent:
@@ -12227,7 +9507,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [8.12870026, 11.2958202, 3.0999999]
+      Translation: [8.1287, 11.29582, 3]
       Rotation: [0, 0, 0]
       Scale: [1.03846002, 0.769230008, 1]
     SpriteRendererComponent:
@@ -12245,7 +9525,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [9.99330044, 10.8002996, 3.0999999]
+      Translation: [9.9933, 10.8003, 3]
       Rotation: [0, 0, 0]
       Scale: [1.06265998, 0.872900009, 1]
     SpriteRendererComponent:
@@ -12272,7 +9552,7 @@ Entities:
     RelationshipComponent:
       Parent: 5041099136347029276
     TransformComponent:
-      Translation: [11.3837004, 9.21360016, 3.0999999]
+      Translation: [11.3837, 9.2136, 3]
       Rotation: [0, 0, 0]
       Scale: [1.12150002, 1.14890003, 1]
     SpriteRendererComponent:
@@ -12290,7 +9570,7 @@ Entities:
     RelationshipComponent:
       Parent: 5041099136347029276
     TransformComponent:
-      Translation: [6.16219997, 11.6590796, 3.0999999]
+      Translation: [6.1622, 11.65908, 3]
       Rotation: [0, 0, 0]
       Scale: [2.8125, 2.84375, 1]
     SpriteRendererComponent:
@@ -12298,411 +9578,6 @@ Entities:
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 6468699154506086042
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4712530456678965746
-    TagComponent:
-      Tag: Hill Edge
-    RelationshipComponent:
-      Parent: 2928603540779664550
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 2701295029039167096
-    TagComponent:
-      Tag: Decor Hill Edge
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [11.2003002, 13.6034698, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.30768991, 2.15385008, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1765646115320369868
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1852474952126191543
-    TagComponent:
-      Tag: Decor Hill Edge 2
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-10.2425003, 12.7210999, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.24399996, 1.2744, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3471202463790715305
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1751798912121755932
-    TagComponent:
-      Tag: Decor Hill Edge 3
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-2.37899995, 13.6686001, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.26922989, 2.30768991, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 14098658400113095812
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 9019067610155784444
-    TagComponent:
-      Tag: Decor Hill Edge 4
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-5.61100006, 13.4413204, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.19231009, 2.26922989, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 15666990553860856743
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 746697313304837171
-    TagComponent:
-      Tag: Decor Hill Edge 5
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [7.76259995, 13.6434603, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.30768991, 2.26922989, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 8812699731954624276
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 4870351730073297226
-    TagComponent:
-      Tag: Decor Hill Edge 6
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-6.65689993, 13.46667, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.30768991, 2.26922989, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 13750488136219833140
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 335830346442154474
-    TagComponent:
-      Tag: Decor Hill Edge 7
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-13.5107002, 13.2951002, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.1918, 1.22090006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3471202463790715305
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 6891174022631651750
-    TagComponent:
-      Tag: Decor Hill Edge 8
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-4.24599981, 13.0822001, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.67190003, 1.71259999, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3471202463790715305
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8374495788875116621
-    TagComponent:
-      Tag: Decor Hill Edge 9
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-2.63630009, 14.2138004, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [0.940299988, 3, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2366333483141869441
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 2877793884066911947
-    TagComponent:
-      Tag: Decor Hill Edge 10
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-3.87299991, 13.3778, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.2335, 1.26359999, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3471202463790715305
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5695976193549132763
-    TagComponent:
-      Tag: Decor Hill Edge 11
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-10.3114996, 13.3481703, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.30768991, 2.26922989, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1991436760142379247
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8375983693220925390
-    TagComponent:
-      Tag: Decor Hill Edge 12
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [1.92229998, 13.3741798, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.26922989, 2.23077011, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 9710019109511751298
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 5103394348372965492
-    TagComponent:
-      Tag: Decor Hill Edge 13
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [8.07999992, 13.2122297, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.26922989, 2.03846002, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2793436927661807458
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 735845302069624886
-    TagComponent:
-      Tag: Decor Hill Edge 14
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [12.8189001, 13.2728004, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.10860002, 1.13559997, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3471202463790715305
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 708284206782804475
-    TagComponent:
-      Tag: Decor Hill Edge 15
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [2.79460001, 13.1585999, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.10220003, 1.12899995, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 3471202463790715305
-      SpriteIndex: 0
-      FlipX: true
-      FlipY: false
-      Facing: Upright
-  - Entity: 3583041541154037120
-    TagComponent:
-      Tag: Decor Hill Edge 16
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [8.07579994, 13.5485001, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.99617004, 2.06500006, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 2430473274630277806
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 2020083100823483412
-    TagComponent:
-      Tag: Decor Hill Edge 17
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [2.32279992, 13.5313997, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [1.44690001, 2.18799996, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 16922533529315268810
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 9110736314116410108
-    TagComponent:
-      Tag: Decor Hill Edge 18
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-9.04360008, 13.3610401, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.22672009, 2.11538005, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 9302791109040154441
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 9200246522751595079
-    TagComponent:
-      Tag: Decor Hill Edge 19
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-14.5008001, 13.2731705, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.30768991, 2.15385008, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 1765646115320369868
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 6201051591935336764
-    TagComponent:
-      Tag: Decor Hill Edge 20
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-3.60170007, 14.0602503, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.71875, 3.0625, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 10501337998593946316
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8406076639806234834
-    TagComponent:
-      Tag: Decor Hill Edge 21
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-9.15279961, 13.4518995, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.30768991, 2.30768991, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 7048448306442681344
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 3485068613338979465
-    TagComponent:
-      Tag: Decor Hill Edge 22
-    RelationshipComponent:
-      Parent: 4712530456678965746
-    TransformComponent:
-      Translation: [-1.16190004, 13.6364899, 3.0999999]
-      Rotation: [0, 0, 0]
-      Scale: [2.30768991, 2.23077011, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 13554122536268781941
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -12722,7 +9597,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-4.0999999, 6.52440023, 3.0999999]
+      Translation: [-4.1, 6.5244, 3]
       Rotation: [0, 0, 0]
       Scale: [2.2288301, 1.96879995, 1]
     SpriteRendererComponent:
@@ -12740,7 +9615,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [4.0999999, 6.42439985, 3.0999999]
+      Translation: [4.1, 6.4244, 3]
       Rotation: [0, 0, 0]
       Scale: [1.30194998, 1.96879995, 1]
     SpriteRendererComponent:
@@ -12758,7 +9633,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-4.4000001, 5.10159016, 3.0999999]
+      Translation: [-4.4, 5.10159, 3]
       Rotation: [0, 0, 0]
       Scale: [1.07692003, 0.923080027, 1]
     SpriteRendererComponent:
@@ -12776,7 +9651,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-6.9000001, 5.09000015, 3.0999999]
+      Translation: [-6.9, 5.09, 3]
       Rotation: [0, 0, 0]
       Scale: [1.70270002, 1.5, 1]
     SpriteRendererComponent:
@@ -12794,7 +9669,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-2.5999999, 1.55624998, 1]
+      Translation: [-2.6, 1.046145, 1]
       Rotation: [0, 0, 0]
       Scale: [1.875, 1.8125, 1]
     SpriteRendererComponent:
@@ -12812,7 +9687,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [2.5999999, 0.600000024, 1]
+      Translation: [2.6, 1.008842, 1]
       Rotation: [0, 0, 0]
       Scale: [1.94431996, 1.8125, 1]
     SpriteRendererComponent:
@@ -12823,4 +9698,4 @@ Entities:
       SpriteIndex: 0
       FlipX: false
       FlipY: false
-      Facing: Upright
+      Facing: Upright

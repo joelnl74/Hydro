@@ -224,6 +224,63 @@ namespace Hydro
 		allocator.DestroyBuffer(stagingBuffer, stagingAlloc);
 	}
 
+	void VulkanImage::UpdatePixels(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* pixels)
+	{
+		HY_CORE_ASSERT(pixels != nullptr && width > 0 && height > 0, "VulkanImage::UpdatePixels: no pixels");
+		HY_CORE_ASSERT(x + width <= m_width && y + height <= m_height, "VulkanImage::UpdatePixels: the rectangle is outside the image");
+		const VkDeviceSize size = (VkDeviceSize)width * height * 4;
+
+		VulkanAllocator allocator("VulkanImageStaging");
+		VkBufferCreateInfo stagingInfo{};
+		stagingInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		stagingInfo.size = size;
+		stagingInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		stagingInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		VkBuffer stagingBuffer = VK_NULL_HANDLE;
+		VmaAllocation stagingAlloc = allocator.AllocateBuffer(stagingInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+		void* mapped = allocator.MapMemory<void>(stagingAlloc);
+		memcpy(mapped, pixels, (size_t)size);
+		allocator.UnmapMemory(stagingAlloc);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = m_vulkanImageInfo.Image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.layerCount = 1;
+
+		VkBufferImageCopy region{};
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.layerCount = 1;
+		region.imageOffset = { (int32_t)x, (int32_t)y, 0 };
+		region.imageExtent = { width, height, 1 };
+
+		Renderer::GetVulkanDevice().SubmitImmediate([&](VkCommandBuffer commandBuffer)
+		{
+			// SHADER_READ_ONLY -> TRANSFER_DST, after every earlier submission's fragment reads (same queue).
+			barrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+				0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+			vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_vulkanImageInfo.Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				0, 0, nullptr, 0, nullptr, 1, &barrier);
+		});
+
+		allocator.DestroyBuffer(stagingBuffer, stagingAlloc);
+	}
+
 	VkFormat VulkanImage::GetImageFormat(ImageFormat imageformat)
 	{
 		switch (imageformat)
