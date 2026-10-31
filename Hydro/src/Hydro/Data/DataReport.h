@@ -44,6 +44,11 @@ namespace Hydro
 		// "Valid", "2 warnings", "1 error, 2 warnings".
 		std::string GetSummary() const;
 
+		// Adds `other`'s messages after these.
+		void Append(const DataReport& other);
+		// Every message to the engine log (errors as errors), each prefixed with `source` (a file name).
+		void Log(const std::string& source) const;
+
 	private:
 		std::vector<DataMessage> m_Messages;
 	};

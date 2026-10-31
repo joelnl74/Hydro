@@ -1,0 +1,165 @@
+Handle: 4741649512266718899
+DataTable:
+  Version: 1
+  Type: ItemDefinition
+  Rows:
+    AncientKey:
+      Name: Ancient Key
+      Description: An old bronze key with a lantern crest.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    Antidote:
+      Name: Antidote
+      Description: Cures poison. Nothing here is poisoned.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    CopperOre:
+      Name: Copper Ore
+      Description: A lump of ore for the blacksmith.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    CrystalShard:
+      Name: Crystal Shard
+      Description: A shard that hums faintly near the shrine.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    Ether:
+      Name: Ether
+      Description: Water drawn at dawn from the sacred spring. Restores 10 MP.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 10
+      UsableInField: true
+    FoxMask:
+      Name: Fox Mask
+      Description: A festival mask, painted white and red.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    HerbBundle:
+      Name: Herb Bundle
+      Description: Fresh herbs tied with twine. Someone in the village may want them.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    HerbTea:
+      Name: Herb Tea
+      Description: Warm tea of mountain herbs. Restores 15 HP.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 15
+      RestoreMP: 0
+      UsableInField: true
+    HiPotion:
+      Name: Hi-Potion
+      Description: A stronger draught, sealed with wax. Restores 60 HP.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 60
+      RestoreMP: 0
+      UsableInField: true
+    IronSword:
+      Name: Iron Sword
+      Description: A plain blade from the village smithy. Miko fights bare-handed.
+      Kind: Equipment
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    LanternOil:
+      Name: Lantern Oil
+      Description: Oil for the stone lanterns along the path.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    LeatherBoots:
+      Name: Leather Boots
+      Description: Sturdy boots for the mountain road.
+      Kind: Equipment
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    OldMap:
+      Name: Old Map
+      Description: A faded map. The road east is marked in red.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    PhoenixFeather:
+      Name: Phoenix Feather
+      Description: A feather that is warm to the touch. What it is for, nobody knows yet.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    PineResin:
+      Name: Pine Resin
+      Description: Sticky resin from the glade's pines.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    Potion:
+      Name: Potion
+      Description: A bitter brew of the shrine's herbs. Restores 25 HP.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 25
+      RestoreMP: 0
+      UsableInField: true
+    Rope:
+      Name: Rope
+      Description: A coil of hemp rope.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    ShrineCharm:
+      Name: Shrine Charm
+      Description: A paper charm from the shrine. It keeps the wisps at a distance, they say.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    SmokedFish:
+      Name: Smoked Fish
+      Description: Smoked river trout, wrapped in leaves.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    SpringWater:
+      Name: Spring Water
+      Description: Cold water from the shrine spring.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false

@@ -62,16 +62,19 @@ namespace Hydro
 		static constexpr const char* TableKey = "DataTable";
 
 		// false when the text can't be used at all (not YAML, not a definition, an unknown type). Problems with
-		// single values go into `report` and the rest is still read.
-		static bool ReadDefinition(const std::string& text, DefinitionData& data, DataReport& report);
-		static bool ReadTable(const std::string& text, DataTableData& data, DataReport& report);
+		// single values go into `report` and the rest is still read. With `checkRecords` false only the file's own
+		// problems are reported (the asset loaders keep those, and check the records separately: CheckRecord).
+		static bool ReadDefinition(const std::string& text, DefinitionData& data, DataReport& report, bool checkRecords = true);
+		static bool ReadTable(const std::string& text, DataTableData& data, DataReport& report, bool checkRecords = true);
 
 		// false (and nothing written) for read-only data.
 		static bool WriteDefinition(const DefinitionData& data, std::string& text);
 		static bool WriteTable(const DataTableData& data, std::string& text);
 
-		// Problems a record in memory has, as if it had just been read: values outside a field's Range, an empty
-		// display field (table rows), values kept from the file. `row` is the row ID (empty for a definition).
+		// What is wrong with a record's values, in memory or just read: values kept from the file (unknown keys,
+		// unreadable values, with why), values outside a field's Range, an empty display field (table rows). The
+		// file's own problems (duplicates, version) are only found when reading. `row` is the row ID (empty for a
+		// definition). Reading a file runs this on every record.
 		static void CheckRecord(const DataRecord& record, const std::string& row, bool isTableRow, DataReport& report);
 
 		// A row ID: a letter or '_', then letters, digits or '_'. PascalCase by convention (Potion, IronSword).

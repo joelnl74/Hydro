@@ -23,7 +23,8 @@ namespace Hydro
 		// The key of the handle line in scenes, prefabs and sidecars.
 		static constexpr const char* HandleKey = "Handle";
 
-		// True for the types that keep their handle inside the file (scenes, prefabs, .hyanim, .hymat).
+		// True for the types that keep their handle inside the file (scenes, prefabs, .hyanim, .hymat, .hyrender, .hyterrain,
+		// .hydef, .hytable).
 		static bool StoresHandleInFile(AssetType type);
 		// "<file>.hymeta" for `file`.
 		static std::filesystem::path GetSidecarPath(const std::filesystem::path& file);

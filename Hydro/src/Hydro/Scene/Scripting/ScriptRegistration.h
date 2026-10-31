@@ -50,17 +50,21 @@ namespace Hydro
 		{
 			return ScriptPropertyType::Asset;
 		}
+		else if constexpr (std::is_same_v<Field, DataRowRef>)
+		{
+			return ScriptPropertyType::RowRef;
+		}
 		else
 		{
 			static_assert(
 				ScriptAlwaysFalse<Field>,
-				"Unsupported script property type: bool, int, float, glm::vec2/3/4, std::string or AssetHandle");
+				"Unsupported script property type: bool, int, float, glm::vec2/3/4, std::string, AssetHandle or DataRowRef");
 			return ScriptPropertyType::Float;
 		}
 	}
 
 	// What ScriptRegistry::Register<T> returns. Each .Property(...) adds a field; the modifiers after it
-	// (.Range, .Tooltip, .Color, .AssetFilter, .ReadOnly, .Hidden) change the property added last:
+	// (.Range, .Tooltip, .Color, .AssetFilter, .DataTypeFilter, .ReadOnly, .Hidden) change the property added last:
 	//
 	//     ScriptRegistry::Register<DoorScript>("DoorScript")
 	//         .Property("OpenSpeed", "Open Speed", &DoorScript::OpenSpeed).Range(0.0f, 10.0f).Tooltip("Metres per second")
@@ -179,6 +183,17 @@ namespace Hydro
 			ScriptProperty& property = Last();
 			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset, "AssetFilter() is for AssetHandle properties");
 			property.AssetFilter = type;
+			return *this;
+		}
+
+		// The HY_DATA type a definition / table property holds (with AssetFilter(Definition / DataTable)), or a
+		// DataRowRef property's row type.
+		ScriptRegistration& DataTypeFilter(const std::string& typeName)
+		{
+			ScriptProperty& property = Last();
+			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset || property.Type == ScriptPropertyType::RowRef,
+				"DataTypeFilter() is for AssetHandle and DataRowRef properties");
+			property.DataTypeFilter = typeName;
 			return *this;
 		}
 

@@ -49,6 +49,10 @@
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
 
+// DATA (definitions and data tables).
+#include "Hydro/Data/Data.h"
+#include "Hydro/Data/DataRowRef.h"
+
 // RENDERING.
 #include "Hydro/Renderer/SceneRenderer.h"
 #include "Hydro/Renderer/Camera.h"

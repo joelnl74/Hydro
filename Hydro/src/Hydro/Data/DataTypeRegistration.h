@@ -120,10 +120,11 @@ namespace Hydro
 			return *this;
 		}
 
-		// Which tables a DataRowRef field's picker lists: those whose rows are `rowTypeName`.
-		DataTypeRegistration& DataRow(const std::string& rowTypeName)
+		// A DataRowRef field's row type (the tables its picker lists), or the HY_DATA type a definition / table
+		// AssetHandle field holds (with AssetFilter(Definition / DataTable)).
+		DataTypeRegistration& DataTypeFilter(const std::string& typeName)
 		{
-			Last().DataTypeFilter = rowTypeName;
+			Last().DataTypeFilter = typeName;
 			return *this;
 		}
 

@@ -50,6 +50,26 @@ namespace Hydro
 		return m_Messages.size() - GetErrorCount();
 	}
 
+	void DataReport::Append(const DataReport& other)
+	{
+		m_Messages.insert(m_Messages.end(), other.m_Messages.begin(), other.m_Messages.end());
+	}
+
+	void DataReport::Log(const std::string& source) const
+	{
+		for (const DataMessage& message : m_Messages)
+		{
+			if (message.Severity == DataMessageSeverity::Error)
+			{
+				HY_CORE_ERROR("{}: {}", source, message.ToString());
+			}
+			else
+			{
+				HY_CORE_WARN("{}: {}", source, message.ToString());
+			}
+		}
+	}
+
 	static std::string CountText(size_t count, const char* noun)
 	{
 		return std::to_string(count) + " " + noun + (count == 1 ? "" : "s");

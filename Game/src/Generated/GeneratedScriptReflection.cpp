@@ -81,7 +81,9 @@ namespace Hydro
 			.Property("MessageTime", "Message Time", &MvpDirectorScript::MessageTime).Range(0.1f, 30.0f).Tooltip("How long a message stays up")
 			.Property("LeaveTime", "Leave Time", &MvpDirectorScript::LeaveTime).Range(0.05f, 5.0f).Tooltip("Fade out when leaving through an exit")
 			.Property("ArriveTime", "Arrive Time", &MvpDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
-			.Property("RestTime", "Rest Time", &MvpDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point");
+			.Property("RestTime", "Rest Time", &MvpDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point")
+			.Property("StartingInventory", "Starting Inventory", &MvpDirectorScript::StartingInventory).Tooltip("The items a run starts with, in their order").AssetFilter(AssetType::Definition).DataTypeFilter("InventoryDefinition")
+			.Property("ChestItem", "Chest Item", &MvpDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition");
 
 		ScriptRegistry::Register<QuestTrackerScript>("QuestTrackerScript")
 			.Property("BannerHoldTime", "Banner Hold Time", &QuestTrackerScript::BannerHoldTime).Range(0.5f, 20.0f).Tooltip("Seconds a banner stays fully shown")

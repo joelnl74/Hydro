@@ -36,17 +36,23 @@ SUPPORTED_TYPES = {
     "std::string": "String",
     "AssetHandle": "Asset",
     "Hydro::AssetHandle": "Asset",
+    "DataRowRef": "RowRef",
+    "Hydro::DataRowRef": "RowRef",
 }
 
 NUMERIC_KINDS = {"Int", "Float", "Vec2", "Vec3", "Vec4"}
 COLOR_KINDS = {"Vec3", "Vec4"}
 
 # AssetType enumerators (Hydro/src/Hydro/Asset/Asset.h) an Asset(...) argument may name.
-ASSET_TYPES = {"Texture2D", "Scene", "Prefab", "SpriteAnimation", "Material", "Mesh", "RenderProfile", "Font", "Terrain"}
+ASSET_TYPES = {
+    "Texture2D", "Scene", "Prefab", "SpriteAnimation", "Material", "Mesh", "RenderProfile", "Font", "Terrain", "Definition", "DataTable"
+}
+# Asset types that hold an HY_DATA type, named as the second argument: Asset(Definition, DialogueDefinition).
+DATA_ASSET_TYPES = {"Definition", "DataTable"}
 
-# Data fields (HY_PROPERTY inside an HY_DATA struct) have the script kinds plus these. Enum, Struct and List
-# fields are resolved once every header has been read (the types can live in other headers).
-DATA_VALUE_TYPES = dict(SUPPORTED_TYPES, **{"DataRowRef": "RowRef", "Hydro::DataRowRef": "RowRef"})
+# Data fields (HY_PROPERTY inside an HY_DATA struct) have the script kinds; Enum, Struct and List fields are
+# resolved once every header has been read (the types can live in other headers).
+DATA_VALUE_TYPES = dict(SUPPORTED_TYPES)
 
 # The only arguments HY_DATA(...) accepts; anything else is an error (the generator stays a scanner).
 HY_DATA_ARGUMENTS = "Definition, Table, DisplayField(field)"
@@ -63,6 +69,8 @@ class Property:
     maximum: str | None = None
     color: bool = False
     asset_type: str | None = None
+    data_type: str | None = None  # Asset(Definition / DataTable, T) or DataRow(T): checked once every header is read
+    where: str = ""
     read_only: bool = False
     hidden: bool = False
 
@@ -91,6 +99,7 @@ class DataProperty:
     maximum: str | None = None
     color: bool = False
     asset_type: str | None = None
+    data_type: str | None = None  # Asset(Definition / DataTable, T)
     data_row: str | None = None
     read_only: bool = False
     hidden: bool = False
@@ -312,6 +321,32 @@ def parse_number(argument: str, where: str) -> str:
     return text.rstrip("f")
 
 
+def parse_asset_argument(values: list[str], where: str, argument: str) -> tuple[str, str | None]:
+    """Asset(Texture2D) -> ("Texture2D", None); Asset(Definition, DialogueDefinition) -> ("Definition", "DialogueDefinition")."""
+    if len(values) not in (1, 2):
+        raise ReflectionError(f"{where}: Asset(...) takes 1 or 2 argument(s), got '{argument}'")
+    asset_type = values[0].strip().removeprefix("AssetType::")
+    if asset_type not in ASSET_TYPES:
+        raise ReflectionError(f"{where}: Asset({values[0]}): use one of {', '.join(sorted(ASSET_TYPES))}")
+    data_type = values[1].strip() if len(values) == 2 else None
+    if data_type is not None and asset_type not in DATA_ASSET_TYPES:
+        raise ReflectionError(f"{where}: Asset({asset_type}, {data_type}): only Definition and DataTable take a data type")
+    if data_type is not None and re.fullmatch(r"[A-Za-z_]\w*", data_type) is None:
+        raise ReflectionError(f"{where}: Asset({asset_type}, {data_type}): the data type must be an HY_DATA struct's name")
+    return asset_type, data_type
+
+
+def check_data_type_reference(asset_type: str | None, data_type: str | None, kind: str, where: str, definitions: set[str], tables: set[str]) -> None:
+    """Asset(Definition, T) needs an HY_DATA(Definition) T; Asset(DataTable, T) and DataRow(T) an HY_DATA(Table) T."""
+    if data_type is None:
+        return
+    if kind == "RowRef" or asset_type == "DataTable":
+        if data_type not in tables:
+            raise ReflectionError(f"{where}: {'DataRow' if kind == 'RowRef' else 'Asset(DataTable, ...)'}({data_type}): not an HY_DATA(Table) type")
+    elif data_type not in definitions:
+        raise ReflectionError(f"{where}: Asset(Definition, {data_type}): not an HY_DATA(Definition) type")
+
+
 def apply_arguments(prop: Property, arguments: str, where: str) -> None:
     for argument in split_top_level(arguments):
         if not argument:
@@ -346,11 +381,10 @@ def apply_arguments(prop: Property, arguments: str, where: str) -> None:
             expect(0)
             prop.color = True
         elif name == "Asset":
+            prop.asset_type, prop.data_type = parse_asset_argument(values, where, argument)
+        elif name == "DataRow":
             expect(1)
-            asset_type = values[0].strip().removeprefix("AssetType::")
-            if asset_type not in ASSET_TYPES:
-                raise ReflectionError(f"{where}: Asset({values[0]}): use one of {', '.join(sorted(ASSET_TYPES))}")
-            prop.asset_type = asset_type
+            prop.data_type = values[0].strip()
         elif name == "ReadOnly":
             expect(0)
             prop.read_only = True
@@ -360,9 +394,14 @@ def apply_arguments(prop: Property, arguments: str, where: str) -> None:
         else:
             raise ReflectionError(
                 f"{where}: unknown HY_PROPERTY argument '{name}' "
-                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, ReadOnly, Hidden)"
+                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, DataRow, ReadOnly, Hidden)"
             )
 
+    prop.where = where
+    if prop.kind == "RowRef" and (prop.data_type is None or prop.asset_type is not None):
+        raise ReflectionError(f"{where}: a DataRowRef needs DataRow(<row type>), e.g. HY_PROPERTY(DataRow(ItemDefinition))")
+    if prop.kind != "RowRef" and prop.data_type is not None and prop.asset_type is None:
+        raise ReflectionError(f"{where}: DataRow(...) needs a DataRowRef field")
     if (prop.minimum is not None or prop.maximum is not None) and prop.kind not in NUMERIC_KINDS:
         raise ReflectionError(f"{where}: Range / Min / Max need an int, float or vector field")
     if prop.color and prop.kind not in COLOR_KINDS:
@@ -680,7 +719,7 @@ def data_value_kind(type_name: str, where: str, data_names: set[str], enum_names
     )
 
 
-def apply_data_arguments(prop: DataProperty, tables: set[str]) -> None:
+def apply_data_arguments(prop: DataProperty, definitions: set[str], tables: set[str]) -> None:
     where = prop.where
     for argument in split_top_level(prop.arguments):
         if not argument:
@@ -715,11 +754,8 @@ def apply_data_arguments(prop: DataProperty, tables: set[str]) -> None:
             expect(0)
             prop.color = True
         elif name == "Asset":
-            expect(1)
-            asset_type = values[0].strip().removeprefix("AssetType::")
-            if asset_type not in ASSET_TYPES:
-                raise ReflectionError(f"{where}: Asset({values[0]}): use one of {', '.join(sorted(ASSET_TYPES))}")
-            prop.asset_type = asset_type
+            prop.asset_type, prop.data_type = parse_asset_argument(values, where, argument)
+            check_data_type_reference(prop.asset_type, prop.data_type, "Asset", where, definitions, tables)
         elif name == "DataRow":
             expect(1)
             row_type = values[0].strip()
@@ -769,6 +805,11 @@ def resolve_data(data_types: list[ReflectedData], enums: list[ReflectedEnum], sc
     data_names = {d.struct_name for d in data_types}
     enum_names = {e.enum_name for e in enums}
     tables = {d.struct_name for d in data_types if d.table}
+    definitions = {d.struct_name for d in data_types if d.definition}
+
+    for script in scripts:
+        for prop in script.properties:
+            check_data_type_reference(prop.asset_type, prop.data_type, prop.kind, prop.where, definitions, tables)
 
     for data in data_types:
         for prop in data.properties:
@@ -779,7 +820,7 @@ def resolve_data(data_types: list[ReflectedData], enums: list[ReflectedEnum], sc
                 prop.element_kind = data_value_kind(prop.element_type, prop.where, data_names, enum_names)
             else:
                 prop.kind = data_value_kind(prop.type_name, prop.where, data_names, enum_names)
-            apply_data_arguments(prop, tables)
+            apply_data_arguments(prop, definitions, tables)
 
         string_fields = {p.name for p in data.properties if p.kind == "String"}
         if data.display_field_explicit:
@@ -854,8 +895,8 @@ def generate_data_cpp(data_types: list[ReflectedData], enums: list[ReflectedEnum
                 call += ".Color()"
             if prop.asset_type is not None:
                 call += f".AssetFilter(AssetType::{prop.asset_type})"
-            if prop.data_row is not None:
-                call += f".DataRow({cpp_string(prop.data_row)})"
+            if prop.data_row is not None or prop.data_type is not None:
+                call += f".DataTypeFilter({cpp_string(prop.data_row or prop.data_type)})"
             if prop.read_only:
                 call += ".ReadOnly()"
             if prop.hidden:
@@ -946,6 +987,8 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
                 call += ".Color()"
             if prop.asset_type is not None:
                 call += f".AssetFilter(AssetType::{prop.asset_type})"
+            if prop.data_type is not None:
+                call += f".DataTypeFilter({cpp_string(prop.data_type)})"
             if prop.read_only:
                 call += ".ReadOnly()"
             if prop.hidden:

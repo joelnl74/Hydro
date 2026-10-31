@@ -77,6 +77,8 @@ namespace Hydro
 	{
 		HY_PROPERTY()
 		std::string DisplayName;
+		HY_PROPERTY(Asset(Definition, DialogueDefinition), Tooltip("What the shopkeeper says"))
+		AssetHandle Greeting = 0;
 		HY_PROPERTY()
 		std::vector<ShopEntry> Stock;
 	};

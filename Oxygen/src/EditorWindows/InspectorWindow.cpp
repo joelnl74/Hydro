@@ -9,6 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Hydro/Asset/AssetManager.h>
+#include <Hydro/Data/Data.h>
+#include <Hydro/Data/DataTableAsset.h>
 #include <Hydro/Renderer/Font.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
@@ -171,6 +173,79 @@ namespace Hydro
 		return ImGui::InputText(id, text.data(), text.capacity() + 1, ImGuiInputTextFlags_CallbackResize, StringResizeCallback, &text);
 	}
 
+	// What a table row is called in the editor: its display field (an item's Name) when it has one, else its ID.
+	static std::string GetRowLabel(const DataTableAsset& table, const std::string& id)
+	{
+		const DataTypeInfo* type = table.GetRowType();
+		const DataRecord* record = table.FindRow(id);
+		const DataField* field = type->DisplayField.empty() ? nullptr : type->FindField(type->DisplayField);
+		if (record == nullptr || field == nullptr || field->Type.Kind != DataFieldKind::String)
+		{
+			return id;
+		}
+		const std::string& name = *static_cast<const std::string*>(field->Get(record->Get()));
+		return name.empty() ? id : name;
+	}
+
+	// A DataRowRef property: the table (any .hytable whose rows are `rowType`), then one of its rows by name.
+	// A row that is gone shows as "Missing: <id>". The table window and filtered pickers are D3 (#170).
+	static bool DrawRowRefField(const char* label, DataRowRef& current, const std::string& rowType)
+	{
+		bool changed = false;
+		DrawPropertyRow(label, [&]()
+		{
+			const AssetPickerResult result = AssetPicker::DrawField("##table", current.Table, AssetType::DataTable);
+			if (result.Changed)
+			{
+				const DataTypeInfo* picked = Data::GetDataType(result.Handle);
+				if ((uint64_t)result.Handle != 0 && rowType.empty() == false && (picked == nullptr || picked->Name != rowType))
+				{
+					HY_WARN("That table has rows of {}, not {}", picked != nullptr ? picked->Name : std::string("an unreadable type"), rowType);
+				}
+				else
+				{
+					current.Table = result.Handle;
+					changed = true;
+				}
+			}
+		});
+
+		const Ref<DataTableAsset> table = Data::GetTableAsset(current.Table);
+		DrawPropertyRow("    Row", [&]()
+		{
+			std::string preview = "(none)";
+			if (current.Row.empty() == false)
+			{
+				preview = table != nullptr && table->FindRow(current.Row) != nullptr ? GetRowLabel(*table, current.Row) : "Missing: " + current.Row;
+			}
+			ImGui::BeginDisabled(table == nullptr);
+			if (ImGui::BeginCombo("##row", preview.c_str()))
+			{
+				if (ImGui::Selectable("(none)", current.Row.empty()))
+				{
+					current.Row.clear();
+					changed = true;
+				}
+				for (const auto& [id, record] : table->GetData().Rows)
+				{
+					const std::string rowLabel = GetRowLabel(*table, id) + "##" + id;
+					if (ImGui::Selectable(rowLabel.c_str(), id == current.Row))
+					{
+						current.Row = id;
+						changed = true;
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("ID: %s", id.c_str());
+					}
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::EndDisabled();
+		});
+		return changed;
+	}
+
 	// One HY_PROPERTY field of a script (#144, #145): the widget for its type, its range, colour picker, asset
 	// filter, tooltip and read-only flag. `value` must hold the property's type. Returns true when it changed.
 	static bool DrawScriptPropertyField(const ScriptProperty& property, ScriptPropertyValue& value)
@@ -256,10 +331,24 @@ namespace Hydro
 					const AssetPickerResult result = AssetPicker::DrawField("##value", current, property.AssetFilter);
 					if (result.Changed)
 					{
-						current = result.Handle;
-						changed = true;
+						// A definition or table must hold the property's data type (the list isn't filtered by it yet: D3).
+						const DataTypeInfo* picked = property.DataTypeFilter.empty() || (uint64_t)result.Handle == 0 ? nullptr : Data::GetDataType(result.Handle);
+						if (property.DataTypeFilter.empty() == false && (uint64_t)result.Handle != 0 && (picked == nullptr || picked->Name != property.DataTypeFilter))
+						{
+							HY_WARN("{} needs a {} file holding {}", property.DisplayName, AssetTypeToString(property.AssetFilter), property.DataTypeFilter);
+						}
+						else
+						{
+							current = result.Handle;
+							changed = true;
+						}
 					}
 				});
+				break;
+			}
+			case ScriptPropertyType::RowRef:
+			{
+				changed = DrawRowRefField(label, std::get<DataRowRef>(value), property.DataTypeFilter);
 				break;
 			}
 		}

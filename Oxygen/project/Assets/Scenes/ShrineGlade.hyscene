@@ -42,6 +42,7 @@ Entities:
       OrthographicSize: 12
       OrthographicNear: -1
       OrthographicFar: 1
+      FocusDistance: 0
     NativeScriptComponent:
       Scripts:
         - Name: CameraFollowScript
@@ -72,9 +73,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, -0.04]
-      Size: [1, 0.62]
-      Strength: 0.62
+      Offset: [0, -0.0399999991]
+      Size: [1, 0.620000005]
+      Strength: 0.620000005
     CharacterBodyComponent:
       Radius: 0.25
       Height: 1.39999998
@@ -4343,7 +4344,7 @@ Entities:
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [-2.141, -6.30000019, 0]
+      Translation: [-2.14100003, -6.30000019, 0]
       Rotation: [0, 0, 0.139625996]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -4361,7 +4362,7 @@ Entities:
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [1.521, -7.5, 0]
+      Translation: [1.52100003, -7.5, 0]
       Rotation: [0, 0, -0.191985995]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -4379,7 +4380,7 @@ Entities:
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [-2.23, -9.19999981, 0]
+      Translation: [-2.23000002, -9.19999981, 0]
       Rotation: [0, 0, -0.0872659981]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -4397,7 +4398,7 @@ Entities:
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [1.811, -10.1000004, 0]
+      Translation: [1.81099999, -10.1000004, 0]
       Rotation: [0, 0, 0.366519004]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -4415,7 +4416,7 @@ Entities:
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [5.45, -2.302326, 1]
+      Translation: [5.44999981, -2.30232596, 1]
       Rotation: [0, 0, 0.244345993]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -4451,7 +4452,7 @@ Entities:
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [4.28, 4.6, 3.012]
+      Translation: [4.28000021, 4.5999999, 3.01200008]
       Rotation: [0, 0, 0.575959027]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -4469,7 +4470,7 @@ Entities:
     RelationshipComponent:
       Parent: 3102382565515769644
     TransformComponent:
-      Translation: [-4.32, 6.5, 3.012]
+      Translation: [-4.32000017, 6.5, 3.01200008]
       Rotation: [0, 0, -0.296705991]
       Scale: [1.14999998, 1.14999998, 1.14999998]
     MeshComponent:
@@ -4620,7 +4621,7 @@ Entities:
     TagComponent:
       Tag: Shrine Building
     TransformComponent:
-      Translation: [0, 7.9, 3]
+      Translation: [0, 7.9000001, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 4377922040100137191
@@ -5006,7 +5007,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [-3.5, 4.84, 3]
+      Translation: [-3.5, 4.84000015, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 2681392914589184468
@@ -5048,7 +5049,7 @@ Entities:
     RelationshipComponent:
       Parent: 1384289411376847040
     TransformComponent:
-      Translation: [3.5, 4.84, 3]
+      Translation: [3.5, 4.84000015, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 6996660646185389080
@@ -5106,7 +5107,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.7, 5.1018, 3]
+      Translation: [8.69999981, 5.10179996, 3]
       Rotation: [0, 0, 0]
       Scale: [0.75, 1.19529998, 1]
     SpriteRendererComponent:
@@ -5166,7 +5167,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [5.1, 6.75, 3]
+      Translation: [5.0999999, 6.75, 3]
       Rotation: [0, 0, -0.244345993]
       Scale: [1.54999995, 1.54999995, 1.54999995]
     MeshComponent:
@@ -5196,7 +5197,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.05, 6.65, 3]
+      Translation: [8.05000019, 6.6500001, 3]
       Rotation: [0, 0, 0.191985995]
       Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
@@ -5226,7 +5227,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [7.15, 7.6, 3]
+      Translation: [7.1500001, 7.5999999, 3]
       Rotation: [0, 0, -0.383971989]
       Scale: [1.60000002, 1.60000002, 1.60000002]
     MeshComponent:
@@ -5256,7 +5257,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [6.02, 6.72, 3]
+      Translation: [6.01999998, 6.71999979, 3]
       Rotation: [0, 0, 0]
       Scale: [1.5, 1.5, 1.5]
     MeshComponent:
@@ -5274,7 +5275,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.75, 7.55, 3]
+      Translation: [8.75, 7.55000019, 3]
       Rotation: [0, 0, -0.314159006]
       Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
@@ -5292,7 +5293,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [6.02, 6.72, 3]
+      Translation: [6.01999998, 6.71999979, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -5307,7 +5308,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [5.35, 6.525, 3]
+      Translation: [5.3499999, 6.5250001, 3]
       Rotation: [0, 0, 0]
       Scale: [0.762099981, 0.850000024, 1]
     SpriteRendererComponent:
@@ -5325,7 +5326,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [8.35, 6.78421, 3]
+      Translation: [8.35000038, 6.78421021, 3]
       Rotation: [0, 0, 0]
       Scale: [1.10526001, 0.368420005, 1]
     SpriteRendererComponent:
@@ -5343,7 +5344,7 @@ Entities:
     RelationshipComponent:
       Parent: 412783583675567629
     TransformComponent:
-      Translation: [9, 6.65, 3]
+      Translation: [9, 6.6500001, 3]
       Rotation: [0, 0, 0]
       Scale: [0.89230001, 0.800000012, 1]
     SpriteRendererComponent:
@@ -5370,7 +5371,7 @@ Entities:
     RelationshipComponent:
       Parent: 8261265878644361254
     TransformComponent:
-      Translation: [2.5, 4.62, 3]
+      Translation: [2.5, 4.61999989, 3]
       Rotation: [0, 0, 0.209439993]
       Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
@@ -5388,7 +5389,7 @@ Entities:
     RelationshipComponent:
       Parent: 8261265878644361254
     TransformComponent:
-      Translation: [2.56, 4.6, 3.56]
+      Translation: [2.55999994, 4.5999999, 3.55999994]
       Rotation: [0, 0, 0]
       Scale: [1.39999998, 1.39999998, 1.39999998]
     MeshComponent:
@@ -5406,7 +5407,7 @@ Entities:
     RelationshipComponent:
       Parent: 8261265878644361254
     TransformComponent:
-      Translation: [3.1, 4.72, 3]
+      Translation: [3.0999999, 4.71999979, 3]
       Rotation: [0, 0.300000012, 0]
       Scale: [1.29999995, 1.29999995, 1.29999995]
     MeshComponent:
@@ -5433,7 +5434,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-3.4, 2.966597, 3]
+      Translation: [-3.4000001, 2.96659708, 3]
       Rotation: [0, 0, 0]
       Scale: [1, 1.59379995, 1]
     SpriteRendererComponent:
@@ -5463,7 +5464,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-5.3, 6.275, 3]
+      Translation: [-5.30000019, 6.2750001, 3]
       Rotation: [0, 0, 0]
       Scale: [1.41670001, 0.850000024, 1]
     SpriteRendererComponent:
@@ -5481,7 +5482,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-8.1, 6.05, 3]
+      Translation: [-8.10000038, 6.05000019, 3]
       Rotation: [0, 0, 0]
       Scale: [1.67859995, 0.5, 1]
     SpriteRendererComponent:
@@ -5499,7 +5500,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-7.65, 5.575, 3]
+      Translation: [-7.6500001, 5.57499981, 3]
       Rotation: [0, 0, 0]
       Scale: [0.524999976, 0.550000012, 1]
     SpriteRendererComponent:
@@ -5517,7 +5518,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-5, 5.86842, 3]
+      Translation: [-5, 5.86842012, 3]
       Rotation: [0, 0, 0]
       Scale: [0.657890022, 0.73684001, 1]
     SpriteRendererComponent:
@@ -5607,7 +5608,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-3.95, 4.68421, 3]
+      Translation: [-3.95000005, 4.68420982, 3]
       Rotation: [0, 0, 0]
       Scale: [1.10526001, 0.368420005, 1]
     SpriteRendererComponent:
@@ -5625,7 +5626,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-6.25, 0.854324, 1]
+      Translation: [-6.25, 0.854323983, 1]
       Rotation: [0, 0, 0]
       Scale: [1.10526001, 0.394739985, 1]
     SpriteRendererComponent:
@@ -5643,7 +5644,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [-6.75, 0.808565, 1]
+      Translation: [-6.75, 0.808565021, 1]
       Rotation: [0, 0, 0]
       Scale: [0.581499994, 0.419999987, 1]
     SpriteRendererComponent:
@@ -5661,7 +5662,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [5.2, 7.95, 3.018]
+      Translation: [5.19999981, 7.94999981, 3.01799989]
       Rotation: [0, 0, 0.174532995]
       Scale: [1.82620001, 1.29999995, 1]
     SpriteRendererComponent:
@@ -5679,7 +5680,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [6.9, 7.85, 3.018]
+      Translation: [6.9000001, 7.8499999, 3.01799989]
       Rotation: [0, 0, -0.436331987]
       Scale: [1.60590005, 1.04999995, 1]
     SpriteRendererComponent:
@@ -5697,7 +5698,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [6.6, 6.3, 3.018]
+      Translation: [6.5999999, 6.30000019, 3.01799989]
       Rotation: [0, 0, 0.698131979]
       Scale: [1.35290003, 1, 1]
     SpriteRendererComponent:
@@ -5715,7 +5716,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [4.75, 5.35, 3.018]
+      Translation: [4.75, 5.3499999, 3.01799989]
       Rotation: [0, 0, -0.261799008]
       Scale: [1.88890004, 0.850000024, 1]
     SpriteRendererComponent:
@@ -5733,7 +5734,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [3.85, 6.55, 3.018]
+      Translation: [3.8499999, 6.55000019, 3.01799989]
       Rotation: [0, 0, 1.22172999]
       Scale: [1.24440002, 0.800000012, 1]
     SpriteRendererComponent:
@@ -5751,7 +5752,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [7.6, 5.55, 3.018]
+      Translation: [7.5999999, 5.55000019, 3.01799989]
       Rotation: [0, 0, 0.349065989]
       Scale: [1.39999998, 0.699999988, 1]
     SpriteRendererComponent:
@@ -5769,7 +5770,7 @@ Entities:
     RelationshipComponent:
       Parent: 8143218333362988979
     TransformComponent:
-      Translation: [2.95, 4.35, 3.018]
+      Translation: [2.95000005, 4.3499999, 3.01799989]
       Rotation: [0, 0, -0.698131979]
       Scale: [1.01110005, 0.649999976, 1]
     SpriteRendererComponent:
@@ -5796,7 +5797,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-4.4, 1.002292, 1]
+      Translation: [-4.4000001, 1.00229204, 1]
       Rotation: [0, 0, 0]
       Scale: [1.0359, 2.54999995, 1]
     SpriteRendererComponent:
@@ -5826,7 +5827,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [4.4, 0.950654, 1]
+      Translation: [4.4000001, 0.95065397, 1]
       Rotation: [0, 0, 0]
       Scale: [1.0359, 2.54999995, 1]
     SpriteRendererComponent:
@@ -5856,7 +5857,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-8.4, 0.750115, 1]
+      Translation: [-8.39999962, 0.750114977, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -5886,7 +5887,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [9.2, -3.780542, 0]
+      Translation: [9.19999981, -3.7805419, 0]
       Rotation: [0, 0, 0]
       Scale: [1.0891, 1.11559999, 1]
     SpriteRendererComponent:
@@ -5916,7 +5917,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [6.4, 0.44838, 1]
+      Translation: [6.4000001, 0.448379993, 1]
       Rotation: [0, 0, 0]
       Scale: [0.768700004, 0.787500024, 1]
     SpriteRendererComponent:
@@ -5946,7 +5947,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-11, -2.389363, 0.5]
+      Translation: [-11, -2.38936305, 0.5]
       Rotation: [0, 0, 0]
       Scale: [1.15310001, 1.18130004, 1]
     SpriteRendererComponent:
@@ -5964,7 +5965,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [11.4, -3.008676, 0]
+      Translation: [11.3999996, -3.00867605, 0]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -5982,7 +5983,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [-5.6, 0.917479, 1]
+      Translation: [-5.5999999, 0.917478979, 1]
       Rotation: [0, 0, 0]
       Scale: [0.768700004, 0.787500024, 1]
     SpriteRendererComponent:
@@ -6000,7 +6001,7 @@ Entities:
     RelationshipComponent:
       Parent: 4532758998851298259
     TransformComponent:
-      Translation: [6.2, 0.445345, 1]
+      Translation: [6.19999981, 0.445345014, 1]
       Rotation: [0, 0, 0]
       Scale: [0.704699993, 0.721899986, 1]
     SpriteRendererComponent:
@@ -6055,7 +6056,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-4.25, 2.434182, 3]
+      Translation: [-4.25, 2.43418193, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6085,7 +6086,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-5.5, 2.354296, 3]
+      Translation: [-5.5, 2.35429597, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6115,7 +6116,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-6.75, 2.236065, 3]
+      Translation: [-6.75, 2.23606491, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6145,7 +6146,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-8, 2.175352, 3]
+      Translation: [-8, 2.1753521, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6175,7 +6176,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [3, 2.413556, 3]
+      Translation: [3, 2.4135561, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6205,7 +6206,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [4.25, 2.382366, 3]
+      Translation: [4.25, 2.38236594, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6235,7 +6236,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [5.5, 3.116603, 3]
+      Translation: [5.5, 3.1166029, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6265,7 +6266,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [6.75, 3.144027, 3]
+      Translation: [6.75, 3.14402699, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6295,7 +6296,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [8, 3.225916, 3]
+      Translation: [8, 3.22591591, 3]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6325,7 +6326,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-3.6, -1.782711, 1]
+      Translation: [-3.5999999, -1.78271103, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6355,7 +6356,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-4.85, -1.752158, 1]
+      Translation: [-4.8499999, -1.75215805, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6385,7 +6386,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-6.1, -1.578933, 1]
+      Translation: [-6.0999999, -1.578933, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6415,7 +6416,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-7.35, -1.417757, 1]
+      Translation: [-7.3499999, -1.41775703, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6445,7 +6446,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [-8.6, -1.418984, 1]
+      Translation: [-8.60000038, -1.41898406, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6475,7 +6476,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [3.6, -1.408663, 1]
+      Translation: [3.5999999, -1.40866303, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6505,7 +6506,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [4.85, -2.032122, 1]
+      Translation: [4.8499999, -2.0321219, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6535,7 +6536,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [6.1, -2.531147, 1]
+      Translation: [6.0999999, -2.531147, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6565,7 +6566,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [7.35, -2.682224, 1]
+      Translation: [7.3499999, -2.68222404, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6595,7 +6596,7 @@ Entities:
     RelationshipComponent:
       Parent: 7147000326567984896
     TransformComponent:
-      Translation: [8.6, -2.391088, 1]
+      Translation: [8.60000038, -2.39108801, 1]
       Rotation: [0, 0, 0]
       Scale: [1.28120005, 1.3125, 1]
     SpriteRendererComponent:
@@ -6632,7 +6633,7 @@ Entities:
     RelationshipComponent:
       Parent: 2454612650505723552
     TransformComponent:
-      Translation: [7.2, 5.34, 3]
+      Translation: [7.19999981, 5.34000015, 3]
       Rotation: [0, 0, 0]
       Scale: [1.14286005, 1.14286005, 1]
     SpriteRendererComponent:
@@ -6718,7 +6719,7 @@ Entities:
     RelationshipComponent:
       Parent: 7511672360183551445
     TransformComponent:
-      Translation: [1.719641, 4.120408, 3.063805]
+      Translation: [1.71964097, 4.12040806, 3.0638051]
       Rotation: [0, 0, 0]
       Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
@@ -6737,9 +6738,9 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, -0.04]
-      Size: [0.95, 0.58]
-      Strength: 0.6
+      Offset: [0, -0.0399999991]
+      Size: [0.949999988, 0.579999983]
+      Strength: 0.600000024
     BoxCollider2DComponent:
       Offset: [0, 0.100000001]
       Size: [0.5, 0.200000003]
@@ -6786,8 +6787,8 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.85, 0.5]
+      Offset: [0, -0.0199999996]
+      Size: [0.850000024, 0.5]
       Strength: 0.5
     Rigidbody2DComponent:
       Type: Dynamic
@@ -6846,8 +6847,8 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.85, 0.5]
+      Offset: [0, -0.0199999996]
+      Size: [0.850000024, 0.5]
       Strength: 0.5
     Rigidbody2DComponent:
       Type: Dynamic
@@ -6906,8 +6907,8 @@ Entities:
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.85, 0.5]
+      Offset: [0, -0.0199999996]
+      Size: [0.850000024, 0.5]
       Strength: 0.5
     Rigidbody2DComponent:
       Type: Dynamic
@@ -8511,7 +8512,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-17.3027, 16.60162, 3]
+      Translation: [-17.3027, 16.6016197, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -8529,7 +8530,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-13.4688, 16.94375, 3]
+      Translation: [-13.4687996, 16.9437504, 3]
       Rotation: [0, 0, 0]
       Scale: [3.90625, 9.3125, 1]
     SpriteRendererComponent:
@@ -8547,7 +8548,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-9.9271, 16.09972, 3]
+      Translation: [-9.92710018, 16.09972, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -8565,7 +8566,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [-5.726, 15.9859, 3]
+      Translation: [-5.72599983, 15.9858999, 3]
       Rotation: [0, 0, 0]
       Scale: [6.10421991, 9.36229992, 1]
     SpriteRendererComponent:
@@ -8583,7 +8584,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [10.107, 16.702049, 3]
+      Translation: [10.1070004, 16.7020493, 3]
       Rotation: [0, 0, 0]
       Scale: [3.90625, 9.3125, 1]
     SpriteRendererComponent:
@@ -8601,7 +8602,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [13.1481, 16.882219, 3]
+      Translation: [13.1480999, 16.8822193, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -8619,7 +8620,7 @@ Entities:
     RelationshipComponent:
       Parent: 3301434662306984421
     TransformComponent:
-      Translation: [16.570801, 16.698, 3]
+      Translation: [16.5708008, 16.698, 3]
       Rotation: [0, 0, 0]
       Scale: [3.90625, 9.3125, 1]
     SpriteRendererComponent:
@@ -8646,7 +8647,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [-12.6, 9.21692, 3]
+      Translation: [-12.6000004, 9.2169199, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -8676,7 +8677,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [13, 8.81692, 3]
+      Translation: [13, 8.81692028, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -8706,7 +8707,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [-12.2, 3.25, 3]
+      Translation: [-12.1999998, 3.25, 3]
       Rotation: [0, 0, 0]
       Scale: [8.73077011, 8.5, 1]
     SpriteRendererComponent:
@@ -8736,7 +8737,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [12.2, 2.47692, 3]
+      Translation: [12.1999998, 2.47691989, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -8766,7 +8767,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [-12, -1.749737, 0.5]
+      Translation: [-12, -1.74973702, 0.5]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -8796,7 +8797,7 @@ Entities:
     RelationshipComponent:
       Parent: 9173069693418452747
     TransformComponent:
-      Translation: [12, -3.121635, 0]
+      Translation: [12, -3.12163496, 0]
       Rotation: [0, 0, 0]
       Scale: [8.21718979, 8, 1]
     SpriteRendererComponent:
@@ -8835,7 +8836,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-6.78, 11.479999, 2.9]
+      Translation: [-6.78000021, 11.4799986, 2.9000001]
       Rotation: [0, 0, 0]
       Scale: [11, 11, 1]
     SpriteRendererComponent:
@@ -8865,7 +8866,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-6.78, 11.46, 2.9]
+      Translation: [-6.78000021, 11.46, 2.9000001]
       Rotation: [0, 0, 0]
       Scale: [11, 11, 1]
     SpriteRendererComponent:
@@ -8885,7 +8886,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-6.78, 11.44, 2.9]
+      Translation: [-6.78000021, 11.4399996, 2.9000001]
       Rotation: [0, 0, 0]
       Scale: [11, 11, 1]
     SpriteRendererComponent:
@@ -8907,7 +8908,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-9.5, 14.57692, 3]
+      Translation: [-9.5, 14.5769196, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -8925,7 +8926,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [-12.5, 12.07692, 3]
+      Translation: [-12.5, 12.0769196, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -8961,7 +8962,7 @@ Entities:
     RelationshipComponent:
       Parent: 5122042807279009570
     TransformComponent:
-      Translation: [5.3, 11.39, 3]
+      Translation: [5.30000019, 11.3900003, 3]
       Rotation: [0, 0, 0]
       Scale: [6.47399998, 6.5, 1]
     SpriteRendererComponent:
@@ -8988,7 +8989,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-15.0099, 14.70242, 3]
+      Translation: [-15.0099001, 14.7024202, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -9006,7 +9007,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [21.5114, 15.6851, 3]
+      Translation: [21.5114002, 15.6850996, 3]
       Rotation: [0, 0, 0]
       Scale: [4.14525986, 9.88230038, 1]
     SpriteRendererComponent:
@@ -9024,7 +9025,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-17.2076, 9.55887, 3]
+      Translation: [-17.2075996, 9.55887032, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -9042,7 +9043,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [21.462999, 10.05684, 3]
+      Translation: [21.4629993, 10.0568399, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -9060,7 +9061,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-20.119499, 9.3374, 3]
+      Translation: [-20.1194992, 9.33740044, 3]
       Rotation: [0, 0, 0]
       Scale: [8.73077011, 8.5, 1]
     SpriteRendererComponent:
@@ -9078,7 +9079,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [18.2754, 16.148279, 3]
+      Translation: [18.2754002, 16.1482792, 3]
       Rotation: [0, 0, 0]
       Scale: [4.08169985, 9.73077011, 1]
     SpriteRendererComponent:
@@ -9096,7 +9097,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-15.6756, 12.59342, 3]
+      Translation: [-15.6756001, 12.59342, 3]
       Rotation: [0, 0, 0]
       Scale: [3.83300996, 8.1538496, 1]
     SpriteRendererComponent:
@@ -9114,7 +9115,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [13.21, 15.37709, 3]
+      Translation: [13.21, 15.3770905, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -9132,7 +9133,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-24.5858, 9.21132, 3]
+      Translation: [-24.5858002, 9.21131992, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -9150,7 +9151,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [22.671699, 10.80427, 3]
+      Translation: [22.6716995, 10.8042698, 3]
       Rotation: [0, 0, 0]
       Scale: [3.9375, 9.78125, 1]
     SpriteRendererComponent:
@@ -9168,7 +9169,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-15.0879, 15.62445, 3]
+      Translation: [-15.0879002, 15.6244497, 3]
       Rotation: [0, 0, 0]
       Scale: [8.73077011, 8.5, 1]
     SpriteRendererComponent:
@@ -9186,7 +9187,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [14.764399, 12.07648, 3]
+      Translation: [14.7643986, 12.0764799, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -9204,7 +9205,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [-20.0285, 16.32522, 3]
+      Translation: [-20.0284996, 16.3252201, 3]
       Rotation: [0, 0, 0]
       Scale: [8.5, 8.1538496, 1]
     SpriteRendererComponent:
@@ -9222,7 +9223,7 @@ Entities:
     RelationshipComponent:
       Parent: 4533115418006688352
     TransformComponent:
-      Translation: [25.168501, 10.80564, 3]
+      Translation: [25.1685009, 10.8056402, 3]
       Rotation: [0, 0, 0]
       Scale: [5.23077011, 9.73077011, 1]
     SpriteRendererComponent:
@@ -9249,7 +9250,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [-5.4, -4.160254, 0]
+      Translation: [-5.4000001, -4.160254, 0]
       Rotation: [0, 0, 0]
       Scale: [2.23077011, 2.30768991, 1]
     SpriteRendererComponent:
@@ -9267,7 +9268,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [-7.6, -4.008352, 0]
+      Translation: [-7.5999999, -4.0083518, 0]
       Rotation: [0, 0, 0]
       Scale: [2.8125, 2.84375, 1]
     SpriteRendererComponent:
@@ -9285,7 +9286,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [-9.6, -3.859522, 0]
+      Translation: [-9.60000038, -3.8595221, 0]
       Rotation: [0, 0, 0]
       Scale: [2.30768991, 2.26922989, 1]
     SpriteRendererComponent:
@@ -9303,7 +9304,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [5.6, -5.042182, 0]
+      Translation: [5.5999999, -5.04218197, 0]
       Rotation: [0, 0, 0]
       Scale: [2.38380003, 2.0999999, 1]
     SpriteRendererComponent:
@@ -9321,7 +9322,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [7.8, -5.41853, 0]
+      Translation: [7.80000019, -5.41852999, 0]
       Rotation: [0, 0, 0]
       Scale: [2.30768991, 2.26922989, 1]
     SpriteRendererComponent:
@@ -9339,7 +9340,7 @@ Entities:
     RelationshipComponent:
       Parent: 2892878682904463502
     TransformComponent:
-      Translation: [9.8, -4.102484, 0]
+      Translation: [9.80000019, -4.10248423, 0]
       Rotation: [0, 0, 0]
       Scale: [2.19231009, 2.26922989, 1]
     SpriteRendererComponent:
@@ -9472,7 +9473,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [-9.1436, 9.75073, 3]
+      Translation: [-9.14360046, 9.75072956, 3]
       Rotation: [0, 0, 0]
       Scale: [0.73684001, 0.76315999, 1]
     SpriteRendererComponent:
@@ -9490,7 +9491,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [10.9255, 10.74321, 3]
+      Translation: [10.9254999, 10.7432098, 3]
       Rotation: [0, 0, 0]
       Scale: [1.07692003, 0.884620011, 1]
     SpriteRendererComponent:
@@ -9508,7 +9509,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [8.1287, 11.29582, 3]
+      Translation: [8.12870026, 11.2958202, 3]
       Rotation: [0, 0, 0]
       Scale: [1.03846002, 0.769230008, 1]
     SpriteRendererComponent:
@@ -9526,7 +9527,7 @@ Entities:
     RelationshipComponent:
       Parent: 3677721556967585302
     TransformComponent:
-      Translation: [9.9933, 10.8003, 3]
+      Translation: [9.99330044, 10.8002996, 3]
       Rotation: [0, 0, 0]
       Scale: [1.06265998, 0.872900009, 1]
     SpriteRendererComponent:
@@ -9553,7 +9554,7 @@ Entities:
     RelationshipComponent:
       Parent: 5041099136347029276
     TransformComponent:
-      Translation: [11.3837, 9.2136, 3]
+      Translation: [11.3837004, 9.21360016, 3]
       Rotation: [0, 0, 0]
       Scale: [1.12150002, 1.14890003, 1]
     SpriteRendererComponent:
@@ -9571,7 +9572,7 @@ Entities:
     RelationshipComponent:
       Parent: 5041099136347029276
     TransformComponent:
-      Translation: [6.1622, 11.65908, 3]
+      Translation: [6.16219997, 11.6590796, 3]
       Rotation: [0, 0, 0]
       Scale: [2.8125, 2.84375, 1]
     SpriteRendererComponent:
@@ -9598,7 +9599,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-4.1, 6.5244, 3]
+      Translation: [-4.0999999, 6.52440023, 3]
       Rotation: [0, 0, 0]
       Scale: [2.2288301, 1.96879995, 1]
     SpriteRendererComponent:
@@ -9616,7 +9617,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [4.1, 6.4244, 3]
+      Translation: [4.0999999, 6.42439985, 3]
       Rotation: [0, 0, 0]
       Scale: [1.30194998, 1.96879995, 1]
     SpriteRendererComponent:
@@ -9634,7 +9635,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-4.4, 5.10159, 3]
+      Translation: [-4.4000001, 5.10159016, 3]
       Rotation: [0, 0, 0]
       Scale: [1.07692003, 0.923080027, 1]
     SpriteRendererComponent:
@@ -9652,7 +9653,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-6.9, 5.09, 3]
+      Translation: [-6.9000001, 5.09000015, 3]
       Rotation: [0, 0, 0]
       Scale: [1.70270002, 1.5, 1]
     SpriteRendererComponent:
@@ -9670,7 +9671,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [-2.6, 1.046145, 1]
+      Translation: [-2.5999999, 1.04614496, 1]
       Rotation: [0, 0, 0]
       Scale: [1.875, 1.8125, 1]
     SpriteRendererComponent:
@@ -9688,7 +9689,7 @@ Entities:
     RelationshipComponent:
       Parent: 6947063423921825721
     TransformComponent:
-      Translation: [2.6, 1.008842, 1]
+      Translation: [2.5999999, 1.00884199, 1]
       Rotation: [0, 0, 0]
       Scale: [1.875, 1.8125, 1]
     SpriteRendererComponent:
@@ -9699,4 +9700,4 @@ Entities:
       SpriteIndex: 0
       FlipX: true
       FlipY: false
-      Facing: Upright
+      Facing: Upright

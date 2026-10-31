@@ -86,7 +86,7 @@ namespace Hydro
 		float Max = FLT_MAX;
 		bool IsColor = false;                    // Vec3 / Vec4 edited as a colour
 		AssetType AssetFilter = AssetType::None; // Asset: which assets the picker lists
-		std::string DataTypeFilter;              // RowRef: the row type of the tables its picker lists ("ItemDefinition")
+		std::string DataTypeFilter;              // RowRef: the row type ("ItemDefinition"); Asset of a Definition / DataTable: its data type
 		bool ReadOnly = false;                   // shown, not editable
 		bool HideInInspector = false;            // saved, not shown
 

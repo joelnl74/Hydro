@@ -18,6 +18,8 @@ namespace Hydro
 			case AssetType::RenderProfile: return "RenderProfile";
 			case AssetType::Font: return "Font";
 			case AssetType::Terrain: return "Terrain";
+			case AssetType::Definition: return "Definition";
+			case AssetType::DataTable: return "DataTable";
 			case AssetType::None: return "None";
 		}
 
@@ -61,6 +63,14 @@ namespace Hydro
 		if (name == "Terrain")
 		{
 			return AssetType::Terrain;
+		}
+		if (name == "Definition")
+		{
+			return AssetType::Definition;
+		}
+		if (name == "DataTable")
+		{
+			return AssetType::DataTable;
 		}
 
 		return AssetType::None;
@@ -111,6 +121,14 @@ namespace Hydro
 		if (extension == ".hyterrain") // TerrainSerializer::FileExtension
 		{
 			return AssetType::Terrain;
+		}
+		if (extension == ".hydef") // DefinitionAsset::FileExtension
+		{
+			return AssetType::Definition;
+		}
+		if (extension == ".hytable") // DataTableAsset::FileExtension
+		{
+			return AssetType::DataTable;
 		}
 
 		return AssetType::None;

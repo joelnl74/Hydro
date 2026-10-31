@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hydro/Asset/Asset.h"
+#include "Hydro/Data/DataRowRef.h"
 
 #include <glm/glm.hpp>
 
@@ -26,7 +27,8 @@ namespace Hydro
 		Vec3,
 		Vec4,
 		String,
-		Asset // an AssetHandle (0 = none); ScriptProperty::AssetFilter says which kind of asset
+		Asset, // an AssetHandle (0 = none); ScriptProperty::AssetFilter says which kind of asset
+		RowRef // a DataRowRef (a data table's row); ScriptProperty::DataTypeFilter says the row type
 	};
 
 	using ScriptPropertyValue =
@@ -38,7 +40,8 @@ namespace Hydro
 			glm::vec3,
 			glm::vec4,
 			std::string,
-			AssetHandle>;
+			AssetHandle,
+			DataRowRef>;
 
 	using ScriptPropertyMap =
 		std::unordered_map<
@@ -72,6 +75,7 @@ namespace Hydro
 		float Max = FLT_MAX;
 		bool IsColor = false;         // Vec3 / Vec4 edited as a colour
 		AssetType AssetFilter = AssetType::None; // Asset: which assets the picker lists
+		std::string DataTypeFilter;   // Asset of a Definition / DataTable: the HY_DATA type it holds; RowRef: the row type
 		bool ReadOnly = false;        // shown, not editable (runtime state a script writes)
 		bool HideInInspector = false; // saved and applied, not shown
 

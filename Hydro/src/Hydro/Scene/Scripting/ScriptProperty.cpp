@@ -15,6 +15,7 @@ namespace Hydro
 			case ScriptPropertyType::Vec4: return "glm::vec4";
 			case ScriptPropertyType::String: return "std::string";
 			case ScriptPropertyType::Asset: return "AssetHandle";
+			case ScriptPropertyType::RowRef: return "DataRowRef";
 		}
 		return "unknown";
 	}

@@ -7,6 +7,7 @@
 
 #include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Asset/AssetMetaSerializer.h>
+#include <Hydro/Data/Data.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
@@ -463,8 +464,9 @@ namespace Hydro
 		const bool isModel = item.Type == ItemType::Model;
 		const bool isRenderProfile = item.Type == ItemType::RenderProfile;
 		const bool isTerrain = item.Type == ItemType::Terrain;
+		const bool isData = item.Type == ItemType::Definition || item.Type == ItemType::DataTable;
 		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel || isRenderProfile
-			|| isTerrain) && ImGui::BeginDragDropSource())
+			|| isTerrain || isData) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
@@ -811,6 +813,28 @@ namespace Hydro
 				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.45f, 0.70f, 0.30f), rounding, ImDrawFlags_RoundCornersBottom);
 				break;
 			}
+			case ItemType::Definition:
+			{
+				// A page: one record.
+				DrawPageIcon(drawList, min, size);
+				// Amber strip = definition.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.95f, 0.60f, 0.20f), rounding, ImDrawFlags_RoundCornersBottom);
+				break;
+			}
+			case ItemType::DataTable:
+			{
+				// A grid: rows of records.
+				const ImU32 cell = ToColor(0.62f, 0.64f, 0.68f);
+				for (int row = 0; row < 4; row++)
+				{
+					const float top = 0.22f + 0.15f * row;
+					drawList->AddRectFilled(TilePoint(min, size, 0.20f, top), TilePoint(min, size, 0.38f, top + 0.11f), cell, 1.0f);
+					drawList->AddRectFilled(TilePoint(min, size, 0.42f, top), TilePoint(min, size, 0.80f, top + 0.11f), cell, 1.0f);
+				}
+				// Rust strip = data table.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.80f, 0.40f, 0.25f), rounding, ImDrawFlags_RoundCornersBottom);
+				break;
+			}
 		}
 	}
 
@@ -872,6 +896,36 @@ namespace Hydro
 			case ItemType::Terrain:
 				ImGui::TextDisabled("Terrain - pick it in a Terrain component's Terrain field");
 				break;
+			case ItemType::Definition:
+			case ItemType::DataTable:
+			{
+				// Loads the file (once; the manager caches it) to say what it holds and whether it is valid.
+				const DataTypeInfo* type = Data::GetDataType(item.Handle);
+				const bool isTable = item.Type == ItemType::DataTable;
+				if (type == nullptr)
+				{
+					ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "%s - can't be read (see the console)", isTable ? "Data table" : "Definition");
+					break;
+				}
+				ImGui::TextDisabled("%s of %s - pick it in a script's %s field", isTable ? "Data table" : "Definition", type->Name.c_str(),
+					isTable ? "Asset(DataTable, ...) or DataRow(...)" : "Asset(Definition, ...)");
+				const DataReport report = Data::Validate(item.Handle);
+				if (report.IsEmpty() == false)
+				{
+					ImGui::TextColored(report.HasErrors() ? ImVec4(0.9f, 0.4f, 0.4f, 1.0f) : ImVec4(0.9f, 0.7f, 0.3f, 1.0f), "%s", report.GetSummary().c_str());
+					size_t shown = 0;
+					for (const DataMessage& message : report.GetMessages())
+					{
+						if (shown++ == 6)
+						{
+							ImGui::TextDisabled("...");
+							break;
+						}
+						ImGui::BulletText("%s", message.ToString().c_str());
+					}
+				}
+				break;
+			}
 		}
 
 		if (item.Type != ItemType::Folder)
@@ -963,6 +1017,9 @@ namespace Hydro
 				break;
 			case ItemType::Font:
 			case ItemType::Terrain:
+			case ItemType::Definition:
+			case ItemType::DataTable:
+				// Edited in a text editor until the inspector can (D3, #170).
 				break;
 			case ItemType::Material:
 			case ItemType::Model:
@@ -1239,6 +1296,12 @@ namespace Hydro
 				return true;
 			case AssetType::Terrain:
 				itemType = ItemType::Terrain;
+				return true;
+			case AssetType::Definition:
+				itemType = ItemType::Definition;
+				return true;
+			case AssetType::DataTable:
+				itemType = ItemType::DataTable;
 				return true;
 			default:
 				return false;

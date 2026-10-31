@@ -9,6 +9,8 @@
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Hydro/Terrain/Terrain.h"
+#include "Hydro/Data/DataTableAsset.h"
+#include "Hydro/Data/DefinitionAsset.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 
@@ -635,6 +637,14 @@ namespace Hydro
 			case AssetType::Terrain:
 			{
 				return Terrain::LoadUncached(absolute);
+			}
+			case AssetType::Definition:
+			{
+				return DefinitionAsset::LoadUncached(absolute);
+			}
+			case AssetType::DataTable:
+			{
+				return DataTableAsset::LoadUncached(absolute);
 			}
 			default:
 				HY_CORE_ERROR("AssetManager: assets of type {} can't be loaded through the manager yet ('{}')",

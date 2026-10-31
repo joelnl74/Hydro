@@ -110,6 +110,9 @@ namespace Hydro
 		std::string Row;
 		// Duplicate keys or a row that isn't a map: writing would lose or merge something, so the file is read-only.
 		bool StructureBroken = false;
+		// Value problems (unreadable values, unknown keys) are reported by CheckRecord, not while loading, so the
+		// same check serves a record in memory; it reads the kept value again with this on to say why.
+		bool ReportValues = false;
 	};
 
 	static void ReadStruct(const YAML::Node& node, const DataTypeInfo& type, void* object, DataKeptValues& kept,
@@ -158,7 +161,10 @@ namespace Hydro
 	{
 		auto fail = [&](const std::string& reason) -> bool
 		{
-			context.Report->AddError(context.Row, path, reason + " (the file's value is kept until the field is set)");
+			if (context.ReportValues)
+			{
+				context.Report->AddError(context.Row, path, reason + " (the file's value is kept until the field is set)");
+			}
 			return false;
 		};
 		auto expected = [&]() -> bool
@@ -371,8 +377,10 @@ namespace Hydro
 			if (field == nullptr)
 			{
 				kept.Unknown[key] = YAML::Clone(entry.second);
-				context.Report->AddWarning(context.Row, fieldPath,
-					"unknown field (kept in the file; " + type.Name + " has no field '" + key + "' now)");
+				if (context.ReportValues)
+				{
+					context.Report->AddWarning(context.Row, fieldPath, "unknown field (kept in the file; " + type.Name + " has no field '" + key + "' now)");
+				}
 				continue;
 			}
 
@@ -498,25 +506,70 @@ namespace Hydro
 		}
 	}
 
-	static void ReportKept(const DataKeptValues& kept, const std::string& path, const std::string& row, DataReport& report)
+	// What a record keeps from its file: unknown keys (warnings) and unreadable values (errors, with the reason found
+	// by reading the kept value again into a scratch instance), at every level of nesting.
+	static void CheckKept(const DataKeptValues& kept, const DataTypeInfo& type, const std::string& path, const std::string& row, DataReport& report)
 	{
 		if (kept.Unknown.IsMap())
 		{
 			for (const auto& entry : kept.Unknown)
 			{
-				report.AddWarning(row, JoinPath(path, entry.first.Scalar()), "unknown field (kept in the file)");
+				const std::string key = entry.first.Scalar();
+				report.AddWarning(row, JoinPath(path, key), "unknown field (kept in the file; " + type.Name + " has no field '" + key + "' now)");
 			}
 		}
+
 		if (kept.Unreadable.IsMap())
 		{
 			for (const auto& entry : kept.Unreadable)
 			{
-				report.AddError(row, JoinPath(path, entry.first.Scalar()), "the file's value " + Describe(entry.second) + " can't be read (kept until the field is set)");
+				const std::string key = entry.first.Scalar();
+				const std::string fieldPath = JoinPath(path, key);
+				const DataField* field = type.FindField(key);
+				if (field == nullptr)
+				{
+					report.AddWarning(row, fieldPath, "a value kept from the file for a field " + type.Name + " doesn't have now");
+					continue;
+				}
+
+				void* scratch = type.Construct();
+				DataKeptValues scratchKept;
+				DataReadContext context;
+				context.Report = &report;
+				context.Row = row;
+				context.ReportValues = true;
+				const size_t before = report.GetMessages().size();
+				const bool readable = ReadValue(entry.second, field->Type, field->Get(scratch), scratchKept, key, fieldPath, context);
+				type.Destroy(scratch);
+				if (readable && report.GetMessages().size() == before)
+				{
+					// It reads now (an enumerator was added back, say): it is used once the file is loaded again.
+					report.AddWarning(row, fieldPath, "the file's value " + Describe(entry.second) + " is kept but not used until the file is loaded again");
+				}
 			}
 		}
+
+		// "Reward" (a struct field) and "Lines[2]" (a struct in a list) have kept values of their own.
 		for (const auto& [key, nested] : kept.Nested)
 		{
-			ReportKept(nested, JoinPath(path, key), row, report);
+			const DataField* field = type.FindField(key.substr(0, key.find('[')));
+			if (field == nullptr)
+			{
+				continue;
+			}
+			const DataTypeInfo* nestedType = nullptr;
+			if (field->Type.Kind == DataFieldKind::Struct)
+			{
+				nestedType = DataTypeRegistry::Find(field->Type.CppType);
+			}
+			else if (field->Type.Kind == DataFieldKind::List && field->Type.List->Element.Kind == DataFieldKind::Struct)
+			{
+				nestedType = DataTypeRegistry::Find(field->Type.List->Element.CppType);
+			}
+			if (nestedType != nullptr)
+			{
+				CheckKept(nested, *nestedType, JoinPath(path, key), row, report);
+			}
 		}
 	}
 
@@ -527,7 +580,7 @@ namespace Hydro
 			report.AddError(row, "", "no data");
 			return;
 		}
-		ReportKept(record.GetKept(), "", row, report);
+		CheckKept(record.GetKept(), *record.GetType(), "", row, report);
 		CheckStruct(*record.GetType(), record.Get(), "", row, report);
 		if (isTableRow)
 		{
@@ -642,7 +695,7 @@ namespace Hydro
 		return type;
 	}
 
-	bool DataSerializer::ReadDefinition(const std::string& text, DefinitionData& data, DataReport& report)
+	bool DataSerializer::ReadDefinition(const std::string& text, DefinitionData& data, DataReport& report, bool checkRecords)
 	{
 		data = DefinitionData();
 
@@ -696,7 +749,10 @@ namespace Hydro
 			context.StructureBroken = true;
 		}
 
-		CheckStruct(*type, data.Values.Get(), "", "", report);
+		if (checkRecords)
+		{
+			CheckRecord(data.Values, "", false, report);
+		}
 
 		if (context.StructureBroken)
 		{
@@ -705,7 +761,7 @@ namespace Hydro
 		return true;
 	}
 
-	bool DataSerializer::ReadTable(const std::string& text, DataTableData& data, DataReport& report)
+	bool DataSerializer::ReadTable(const std::string& text, DataTableData& data, DataReport& report, bool checkRecords)
 	{
 		data = DataTableData();
 
@@ -786,8 +842,10 @@ namespace Hydro
 					structureBroken = true;
 				}
 
-				CheckStruct(type, record.Get(), "", id, report);
-				CheckDisplayField(record, id, report);
+				if (checkRecords)
+				{
+					CheckRecord(record, id, true, report);
+				}
 				data.Rows.emplace(id, std::move(record));
 			}
 		}

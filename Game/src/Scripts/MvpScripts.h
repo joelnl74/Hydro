@@ -4,6 +4,8 @@
 #include "BattleScripts.h"
 #include "DialogueScripts.h"
 #include "QuestScripts.h"
+#include "Data/InventoryDefinition.h"
+#include "Data/ItemDefinition.h"
 
 #include <algorithm>
 #include <array>
@@ -14,8 +16,9 @@
 
 // The MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the
 // Shrine Glade, the Farm Village) and the interiors (the Farm Village's inn): interact prompts (a sign, a chest,
-// a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and a sample
-// inventory menu that gates the player's input while it is open. Prototype
+// a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and the party's
+// inventory menu (its items are data: Assets/Data/Items.hytable, the run starting from StartingInventory.hydef),
+// which gates the player's input while it is open. Prototype
 // code, like BattleScripts.h: one script holds it all. The UI is runtime UI under the MVP Director on the 1920 x 1080
 // canvas (scripts/ui/build_game_ui.py builds it): the inventory (a scrolling list, the item's details, the party, a
 // help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
@@ -23,7 +26,7 @@
 namespace Hydro
 {
 	// The MVP's messages and prompts (once rows of Sprites/UI/MvpText.png; the runtime UI writes their words,
-	// GetMvpText). The item labels are no longer used: items have names of their own (MvpDirectorScript::Item).
+	// GetMvpText). The item labels are no longer used: items have names of their own (Assets/Data/Items.hytable).
 	enum class MvpLabel : uint32_t
 	{
 		Inventory, EnterUse, EscClose,
@@ -164,6 +167,11 @@ namespace Hydro
 	class MvpDirectorScript : public ScriptableEntity
 	{
 	public:
+		// The Sandbox project's data files: the defaults of the properties below, so the scenes (saved before these
+		// properties existed) use them without being edited.
+		static constexpr uint64_t DefaultItemsTable = 4741649512266718899ull;        // Assets/Data/Items.hytable
+		static constexpr uint64_t DefaultStartingInventory = 6616718844402080283ull; // Assets/Data/StartingInventory.hydef
+
 		// Interaction: what counts as in reach of the player.
 		HY_PROPERTY(Range(0, 20), Tooltip("Metres: farther items get no prompt"))
 		float InteractRange = 1.7f;
@@ -189,6 +197,12 @@ namespace Hydro
 		float ArriveTime = 0.6f;
 		HY_PROPERTY(Range(0.05, 10), Tooltip("Fade out and in when resting at a save point"))
 		float RestTime = 1.2f;
+
+		// Items (data, the Definitions plan's D4: #171).
+		HY_PROPERTY(Asset(Definition, InventoryDefinition), Tooltip("The items a run starts with, in their order"))
+		AssetHandle StartingInventory = DefaultStartingInventory;
+		HY_PROPERTY(DataRow(ItemDefinition), Tooltip("What a chest gives (until chests have a script of their own)"))
+		DataRowRef ChestItem{ DefaultItemsTable, "Potion" };
 
 	protected:
 		void OnCreate() override
@@ -242,34 +256,21 @@ namespace Hydro
 				m_Interactables.push_back(item);
 			}
 
-			// The sample inventory: twenty items, more than the list shows, so it scrolls (the first is the Potion the
-			// chest adds to). HP and MP restore every hero; 0 = not usable here. Shared by every field scene and
-			// interior, so what is used in the inn is gone in the village too; the first scene of a run (depth 0)
-			// starts it afresh.
-			if (SceneTransition::GetDepth() == 0 || s_Items.empty())
+			// The party's items: rows of the items table and counts. Shared by every field scene and interior, so what is
+			// used in the inn is gone in the village too; the first scene of a run (depth 0) starts it afresh from the
+			// starting inventory (twenty items, more than the list shows, so it scrolls).
+			if (SceneTransition::GetDepth() == 0 || s_Inventory.empty())
 			{
-				s_Items = {
-					{ "Potion", "A bitter brew of the shrine's herbs. Restores 25 HP.", 3, 25, 0 },
-					{ "Hi-Potion", "A stronger draught, sealed with wax. Restores 60 HP.", 1, 60, 0 },
-					{ "Ether", "Water drawn at dawn from the sacred spring. Restores 10 MP.", 2, 0, 10 },
-					{ "Herb Tea", "Warm tea of mountain herbs. Restores 15 HP.", 2, 15, 0 },
-					{ "Iron Sword", "A plain blade from the village smithy. Miko fights bare-handed.", 1, 0, 0 },
-					{ "Herb Bundle", "Fresh herbs tied with twine. Someone in the village may want them.", 4, 0, 0 },
-					{ "Phoenix Feather", "A feather that is warm to the touch. What it is for, nobody knows yet.", 1, 0, 0 },
-					{ "Crystal Shard", "A shard that hums faintly near the shrine.", 2, 0, 0 },
-					{ "Leather Boots", "Sturdy boots for the mountain road.", 1, 0, 0 },
-					{ "Antidote", "Cures poison. Nothing here is poisoned.", 2, 0, 0 },
-					{ "Ancient Key", "An old bronze key with a lantern crest.", 1, 0, 0 },
-					{ "Copper Ore", "A lump of ore for the blacksmith.", 5, 0, 0 },
-					{ "Old Map", "A faded map. The road east is marked in red.", 1, 0, 0 },
-					{ "Shrine Charm", "A paper charm from the shrine. It keeps the wisps at a distance, they say.", 1, 0, 0 },
-					{ "Lantern Oil", "Oil for the stone lanterns along the path.", 3, 0, 0 },
-					{ "Rope", "A coil of hemp rope.", 1, 0, 0 },
-					{ "Smoked Fish", "Smoked river trout, wrapped in leaves.", 2, 0, 0 },
-					{ "Spring Water", "Cold water from the shrine spring.", 3, 0, 0 },
-					{ "Pine Resin", "Sticky resin from the glade's pines.", 2, 0, 0 },
-					{ "Fox Mask", "A festival mask, painted white and red.", 1, 0, 0 }
-				};
+				s_Inventory.clear();
+				const DataView<InventoryDefinition> start = Data::Get<InventoryDefinition>(StartingInventory);
+				if (start.IsValid())
+				{
+					for (const InventoryEntry& entry : start->Items)
+					{
+						s_Inventory.push_back(Slot{ entry.Item, entry.Count });
+					}
+				}
+				HY_INFO("MVP: {} items in the inventory", s_Inventory.size());
 			}
 
 			ShowMenu(false);
@@ -391,14 +392,12 @@ namespace Hydro
 			                     // "Out" in an interior); NPCs: their name (after "Npc ")
 		};
 
-		struct Item
+		// One line of the inventory: which item (a row of the items table, looked up when shown or used, so an edit
+		// to the table shows at once) and how many. Game state, not data.
+		struct Slot
 		{
-			std::string Name;
-			std::string Description;
+			DataRowRef Item;
 			int Count = 0;
-			int RestoreHP = 0;  // to every hero; with RestoreMP 0 too, the item can't be used here
-			int RestoreMP = 0;
-			bool IsUsable() const { return RestoreHP > 0 || RestoreMP > 0; }
 		};
 
 		static constexpr int MaxRows = 20; // the inventory's rows in the scene ("Item 0" to "Item 19"); more items aren't shown
@@ -485,9 +484,7 @@ namespace Hydro
 					{
 						nearest->Used = true;
 						SetSprite(scene, nearest->Entity, 1);   // the open lid
-						s_Items[0].Count += 1;
-						ShowMessage(MvpLabel::FoundPotion);
-						HY_INFO("MVP: found a potion ({} now)", s_Items[0].Count);
+						GiveItem(ChestItem);
 					}
 					break;
 				case Kind::Door:
@@ -700,8 +697,19 @@ namespace Hydro
 
 		void ShowMessage(MvpLabel first, MvpLabel second = MvpLabel::Count)
 		{
+			m_Message.Custom.clear();
 			m_Message.Labels[0] = first;
 			m_Message.Labels[1] = second;
+			m_Message.Time = MessageTime;
+			PresentMessage();
+		}
+
+		// A message of its own (an item's name in it), instead of the MvpLabel lines.
+		void ShowMessage(const std::string& text)
+		{
+			m_Message.Custom = text;
+			m_Message.Labels[0] = MvpLabel::Count;
+			m_Message.Labels[1] = MvpLabel::Count;
 			m_Message.Time = MessageTime;
 			PresentMessage();
 		}
@@ -720,8 +728,8 @@ namespace Hydro
 			{
 				return;
 			}
-			std::string text = GetMvpText(m_Message.Labels[0]);
-			if (m_Message.Labels[1] != MvpLabel::Count)
+			std::string text = m_Message.Custom.empty() ? GetMvpText(m_Message.Labels[0]) : m_Message.Custom;
+			if (m_Message.Custom.empty() && m_Message.Labels[1] != MvpLabel::Count)
 			{
 				text += std::string("\n") + GetMvpText(m_Message.Labels[1]);
 			}
@@ -746,49 +754,71 @@ namespace Hydro
 				ShowPrompt(false);
 				PresentMenu();
 				// The selection is kept between opens.
-				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)s_Items.size(), MaxRows) - 1));
+				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)s_Inventory.size(), MaxRows) - 1));
 				UI::Focus(EntityOf(m_Menu.Row[m_Selected]));
 			}
 		}
 
+		// One more of `item` (a chest): onto its line, or a new line at the end.
+		void GiveItem(const DataRowRef& itemRef)
+		{
+			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(itemRef);
+			if (item.IsValid() == false)
+			{
+				ShowMessage(MvpLabel::ChestEmpty); // no such item (warned once): nothing to give
+				return;
+			}
+			auto slot = std::find_if(s_Inventory.begin(), s_Inventory.end(), [&](const Slot& candidate) { return candidate.Item == itemRef; });
+			if (slot == s_Inventory.end())
+			{
+				s_Inventory.push_back(Slot{ itemRef, 0 });
+				slot = s_Inventory.end() - 1;
+			}
+			slot->Count += 1;
+			ShowMessage("Found a " + item->Name + "!");
+			HY_INFO("MVP: found a {} ({} now)", item->Name, slot->Count);
+		}
+
 		void UseSelected()
 		{
-			if (m_Selected < 0 || m_Selected >= (int)s_Items.size())
+			if (m_Selected < 0 || m_Selected >= (int)s_Inventory.size())
 			{
 				return;
 			}
-			Item& item = s_Items[m_Selected];
-			if (item.IsUsable() == false)
+			Slot& slot = s_Inventory[m_Selected];
+			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
+			if (item.IsValid() == false || item->CanUseInField() == false)
 			{
 				ShowMessage(MvpLabel::NotUsableHere);
 				return;
 			}
-			if (item.Count <= 0)
+			if (slot.Count <= 0)
 			{
 				ShowMessage(MvpLabel::NoneLeft);
 				return;
 			}
-			item.Count -= 1;
+			slot.Count -= 1;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				BattleState::HeroMP[h] = std::min(GetHero(h).MaxMP, BattleState::HeroMP[h] + item.RestoreMP);
+				BattleState::HeroMP[h] = std::min(GetHero(h).MaxMP, BattleState::HeroMP[h] + item->RestoreMP);
 				if (BattleState::HeroHP[h] > 0)
 				{
-					BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + item.RestoreHP);
+					BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + item->RestoreHP);
 				}
 			}
 			ShowMessage(MvpLabel::UsedPotion);
-			HY_INFO("MVP: used {} ({} left): {} {} HP {} MP", item.Name, item.Count, GetHero(0).Name, BattleState::HeroHP[0], BattleState::HeroMP[0]);
+			HY_INFO("MVP: used {} ({} left): {} {} HP {} MP", item->Name, slot.Count, GetHero(0).Name, BattleState::HeroHP[0], BattleState::HeroMP[0]);
 			PresentMenu();
 		}
 
 		// The inventory's rows: one per item (rows past the list are hidden, so the panel fits it), name and count;
-		// items that can't be used here are greyed, items used up dimmer still. Every row can take the focus.
+		// items that can't be used here are greyed, items used up dimmer still. Every row can take the focus. An
+		// item whose row is gone from the table shows as "Missing: <id>".
 		void PresentMenu()
 		{
 			for (int i = 0; i < MaxRows; i++)
 			{
-				const bool used = i < (int)s_Items.size();
+				const bool used = i < (int)s_Inventory.size();
 				Entity row = EntityOf(m_Menu.Row[i]);
 				if (UI::IsVisible(row) != used)
 				{
@@ -798,14 +828,16 @@ namespace Hydro
 				{
 					continue;
 				}
-				const Item& item = s_Items[i];
+				const Slot& slot = s_Inventory[i];
+				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
+				const bool usable = item.IsValid() && item->CanUseInField();
 				Entity name = EntityOf(m_Menu.Name[i]);
-				UI::SetText(name, item.Name);
-				UI::SetText(EntityOf(m_Menu.Count[i]), "x" + std::to_string(item.Count));
+				UI::SetText(name, item.IsValid() ? item->Name : "Missing: " + slot.Item.Row);
+				UI::SetText(EntityOf(m_Menu.Count[i]), "x" + std::to_string(slot.Count));
 				if (name.IsValid() && name.HasComponent<UITextComponent>())
 				{
-					const glm::vec3 color = item.IsUsable() == false ? glm::vec3(0.74f, 0.71f, 0.64f)
-						: (item.Count <= 0 ? glm::vec3(0.5f) : glm::vec3(0.95f, 0.91f, 0.83f));
+					const glm::vec3 color = usable == false ? glm::vec3(0.74f, 0.71f, 0.64f)
+						: (slot.Count <= 0 ? glm::vec3(0.5f) : glm::vec3(0.95f, 0.91f, 0.83f));
 					name.GetComponent<UITextComponent>().Color = glm::vec4(color, 1.0f);
 				}
 			}
@@ -823,14 +855,22 @@ namespace Hydro
 		// The selected item's name and description, and the help line.
 		void PresentDetails()
 		{
-			if (m_Selected < 0 || m_Selected >= (int)s_Items.size())
+			if (m_Selected < 0 || m_Selected >= (int)s_Inventory.size())
 			{
 				return;
 			}
-			const Item& item = s_Items[m_Selected];
-			UI::SetText(EntityOf(m_Menu.DetailName), item.Name);
-			UI::SetText(EntityOf(m_Menu.DetailText), item.Description);
-			UI::SetText(EntityOf(m_Menu.Help), item.IsUsable() ? (item.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
+			const Slot& slot = s_Inventory[m_Selected];
+			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
+			if (item.IsValid() == false)
+			{
+				UI::SetText(EntityOf(m_Menu.DetailName), "Missing: " + slot.Item.Row);
+				UI::SetText(EntityOf(m_Menu.DetailText), "This item is not in the items table any more.");
+				UI::SetText(EntityOf(m_Menu.Help), "Can't be used here.");
+				return;
+			}
+			UI::SetText(EntityOf(m_Menu.DetailName), item->Name);
+			UI::SetText(EntityOf(m_Menu.DetailText), item->Description);
+			UI::SetText(EntityOf(m_Menu.Help), item->CanUseInField() ? (slot.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
 		}
 
 		// A UI bar's fill, anchored to the bar's left edge, as wide as the fraction.
@@ -979,6 +1019,7 @@ namespace Hydro
 			entt::entity Panel = entt::null;
 			entt::entity Text = entt::null;
 			MvpLabel Labels[2] = { MvpLabel::Count, MvpLabel::Count };
+			std::string Custom; // shown instead of the labels when set
 			float Time = 0.0f;
 		};
 
@@ -1004,7 +1045,7 @@ namespace Hydro
 		glm::vec2 m_LastPlayer{ 0.0f };
 		glm::vec2 m_Facing{ 0.0f, 1.0f };
 		// The party's items, shared by every field scene and interior of a run (see OnCreate).
-		static inline std::vector<Item> s_Items;
+		static inline std::vector<Slot> s_Inventory;
 		int m_Selected = 0;
 		int m_NpcLine = 0;
 		float m_Time = 0.0f;

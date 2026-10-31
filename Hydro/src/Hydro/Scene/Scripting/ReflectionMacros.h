@@ -9,7 +9,8 @@
 //               It is registered under its class name, which is what scenes save.
 //
 // HY_PROPERTY(...) above a public field of such a class: shown in the inspector, saved with the scene and
-// applied before OnCreate. Types: bool, int, float, glm::vec2, glm::vec3, glm::vec4, std::string, AssetHandle.
+// applied before OnCreate. Types: bool, int, float, glm::vec2, glm::vec3, glm::vec4, std::string, AssetHandle,
+// DataRowRef (a data table's row).
 // One field per declaration. Arguments, in any order, all optional:
 //     Range(min, max)       int / float / vector components: clamped when the field is left
 //     Min(value), Max(value)
@@ -17,6 +18,9 @@
 //     DisplayName("Label")  instead of the field's name split at capitals
 //     Color                 glm::vec3 / glm::vec4 edited with a colour picker
 //     Asset(Texture2D)      required for an AssetHandle: the AssetType its picker lists
+//     Asset(Definition, DialogueDefinition), Asset(DataTable, ItemDefinition)
+//                           a definition / data table holding that HY_DATA type (read it with Data::Get / GetTable)
+//     DataRow(ItemDefinition) required for a DataRowRef: the row type (read it with Data::GetRow)
 //     ReadOnly              shown, not editable
 //     Hidden                saved and applied, not shown
 //
@@ -43,8 +47,7 @@
 //                                       a std::string field called Name, else the row ID. Editor-only
 // Field types: the script types above, plus DataRowRef (a table row), an HY_ENUM enum class (saved by name), another
 // HY_DATA struct (a nested map) and std::vector<T> of any of these except a list. Arguments as for scripts (on a list
-// they apply to its elements), plus:
-//     DataRow(ItemDefinition)           required for a DataRowRef: the row type of the tables its picker lists
+// they apply to its elements), including Asset(Definition, T) / Asset(DataTable, T) and DataRow(T).
 //
 //     HY_DATA()
 //     struct DialogueLine

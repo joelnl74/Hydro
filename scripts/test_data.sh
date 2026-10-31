@@ -2,7 +2,8 @@
 # Headless tests of the data system (definitions and data tables, #168), for Linux, WSL or a CI/agent container:
 #   1. the reflection generator's HY_DATA / HY_ENUM checks (Tools/DataTests/test_generator.py)
 #   2. the generated registration of Tools/DataTests/DataTestTypes.h, then Tools/DataTests/DataRoundTripTest.cpp
-#      built with g++ against the engine's Data/ sources, yaml-cpp and spdlog, and run
+#      built with g++ against the engine's Data/ sources, yaml-cpp and spdlog and a stand-in AssetManager
+#      (Tools/DataTests/TestAssetManager.cpp), and run
 # No window, GPU, project or MSVC. MSVC /W4 stays the real compile check.
 #
 # Usage: scripts/test_data.sh
@@ -55,10 +56,12 @@ FLAGS=(-std=c++17 -O0 -g -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFINE
 SOURCES=(
 	"$OUT/src/Hydro/Core/Log.cpp"
 	"$OUT/src/Hydro/Core/UUID.cpp"
+	"$OUT/src/Hydro/Asset/Asset.cpp"
 	"$OUT/src/Hydro/Utils/YAMLConversions.cpp"
 	"$OUT"/src/Hydro/Data/*.cpp
 	"$OUT/gen/GeneratedDataReflection.cpp"
 	"$ROOT/Tools/DataTests/DataRoundTripTest.cpp"
+	"$ROOT/Tools/DataTests/TestAssetManager.cpp"
 )
 
 log "Building the round-trip test"

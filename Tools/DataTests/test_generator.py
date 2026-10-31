@@ -43,6 +43,11 @@ FAILING = [
     ("plain enum", "HY_ENUM()\nenum Kind { A, B };\n", ["Bad.h:1", "enum class"]),
     ("HY_ENUM arguments", "HY_ENUM(Flags)\nenum class Kind { A };\n", ["Bad.h:1", "takes no arguments"]),
     ("name clash", "HY_ENUM()\nenum class A { X };\nHY_DATA()\nstruct A\n{\n};\n", ["Duplicate reflected name 'A'"]),
+    ("Asset(Definition) of a table type", ITEM + "HY_DATA()\nstruct A\n{\n\tHY_PROPERTY(Asset(Definition, ItemDefinition))\n\tAssetHandle Def = 0;\n};\n", ["Asset(Definition, ItemDefinition): not an HY_DATA(Definition) type"]),
+    ("data type on a texture", "HY_DATA()\nstruct A\n{\n\tHY_PROPERTY(Asset(Texture2D, A))\n\tAssetHandle Icon = 0;\n};\n", ["only Definition and DataTable take a data type"]),
+    ("script row ref without DataRow", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tDataRowRef Item;\n};\n", ["Bad.h:5", "needs DataRow"]),
+    ("script DataRow of an unknown type", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(DataRow(Nothing))\n\tDataRowRef Item;\n};\n", ["DataRow(Nothing): not an HY_DATA(Table) type"]),
+    ("script Asset(DataTable) of a definition", "HY_DATA(Definition)\nstruct D\n{\n};\nHY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Asset(DataTable, D))\n\tAssetHandle Table = 0;\n};\n", ["Asset(DataTable, ...)(D): not an HY_DATA(Table) type"]),
 ]
 
 PASSING = [
@@ -59,6 +64,20 @@ struct Entry
 	std::vector<int> Counts;
 	HY_PROPERTY()
 	std::vector<Kind> Kinds;
+};
+
+HY_SCRIPT()
+class Chest : public ScriptableEntity
+{
+public:
+	HY_PROPERTY(DataRow(ItemDefinition))
+	DataRowRef Item;
+	HY_PROPERTY(Asset(DataTable, ItemDefinition))
+	AssetHandle Items = 0;
+	HY_PROPERTY(Asset(Definition, Both))
+	AssetHandle Tuning = 0;
+	HY_PROPERTY(Asset(Definition))
+	AssetHandle AnyDefinition = 0;
 };
 
 HY_DATA( Definition , Table , DisplayField( Title ) )

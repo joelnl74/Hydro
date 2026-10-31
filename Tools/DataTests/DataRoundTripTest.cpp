@@ -1,4 +1,4 @@
-// Headless tests of the data serializer (D1, #168). Built and run by scripts/test_data.sh with g++ on Linux: the
+// Headless tests of the data serializer (D1, #168) and the data API (D2, #169). Built and run by scripts/test_data.sh with g++ on Linux: the
 // engine's Data/ sources, the types in DataTestTypes.h and their generated registration. No window, GPU or project.
 
 #include "hypch.h"
@@ -6,14 +6,23 @@
 #include "DataTestTypes.h"
 #include "GeneratedDataReflection.h"
 
+#include "Hydro/Data/Data.h"
 #include "Hydro/Data/DataSerializer.h"
 #include "Hydro/Data/DataTypeRegistry.h"
 
+#include <chrono>
 #include <cstdio>
+#include <filesystem>
+#include <fstream>
 #include <string>
 
 namespace Hydro
 {
+	// TestAssetManager.cpp: the stand-in AssetManager's registry.
+	void TestRegisterAsset(AssetHandle handle, const std::filesystem::path& absolute, const std::string& relative);
+	void TestMarkMissing(AssetHandle handle);
+	int TestGetLoadCount(AssetHandle handle);
+
 	static int s_Failures = 0;
 	static int s_Checks = 0;
 
@@ -289,7 +298,9 @@ namespace Hydro
 		DataReport check;
 		DataSerializer::CheckRecord(again.Rows.at("Potion"), "Potion", true, check);
 		CHECK(HasMessage(check, DataMessageSeverity::Warning, "Potion", "Price", "unknown field"));
-		CHECK(HasMessage(check, DataMessageSeverity::Error, "Potion", "Kind", "can't be read"));
+		CHECK(HasMessage(check, DataMessageSeverity::Error, "Potion", "Kind", "unknown ItemKind 'Weapon'"));
+		CHECK(HasMessage(check, DataMessageSeverity::Error, "Potion", "RestoreMP", "expected a whole number"));
+		CHECK(check.GetErrorCount() == 2 && check.GetWarningCount() == 2); // the same as reading found for this row: nothing twice
 		CHECK(HasMessage(check, DataMessageSeverity::Warning, "Potion", "RestoreHP", "outside"));
 
 		// Setting the field in the editor forgets the kept value.
@@ -454,6 +465,112 @@ namespace Hydro
 		CHECK(DataSerializer::IsValidRowId("IronSword") && DataSerializer::IsValidRowId("_x2"));
 		CHECK(DataSerializer::IsValidRowId("") == false && DataSerializer::IsValidRowId("Iron Sword") == false && DataSerializer::IsValidRowId("Items:Potion") == false);
 	}
+
+	static void WriteFile(const std::filesystem::path& path, const std::string& text)
+	{
+		std::ofstream out(path, std::ios::binary | std::ios::trunc);
+		out << text;
+	}
+
+	// The file looks changed to the manager even within the same second.
+	static void Touch(const std::filesystem::path& path, int seconds)
+	{
+		std::error_code ec;
+		std::filesystem::last_write_time(path, std::filesystem::last_write_time(path, ec) + std::chrono::seconds(seconds), ec);
+	}
+
+	static void TestDataApi()
+	{
+		std::printf("Data::Get, GetRow, GetTable, Validate (with a stand-in AssetManager)\n");
+		const std::filesystem::path folder = std::filesystem::temp_directory_path() / ("hydro-data-test-" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
+		std::filesystem::create_directories(folder);
+
+		const AssetHandle items(1001), inn(1002), shop(1003), broken(1004), gone(1005);
+		WriteFile(folder / "Items.hytable",
+			"Handle: 1001\nDataTable:\n  Version: 1\n  Type: ItemDefinition\n  Rows:\n"
+			"    Potion:\n      Name: Potion\n      RestoreHP: 25\n"
+			"    Ether:\n      Name: Ether\n      RestoreMP: 10\n");
+		WriteFile(folder / "Innkeeper.hydef",
+			"Handle: 1002\nDefinition:\n  Version: 1\n  Type: DialogueDefinition\n  Values:\n    Speaker: Innkeeper\n    Lines:\n      - Text: Welcome!\n");
+		WriteFile(folder / "Shop.hydef",
+			"Handle: 1003\nDefinition:\n  Version: 1\n  Type: ShopDefinition\n  Values:\n    DisplayName: General Store\n    Greeting: 1001\n    Stock:\n"
+			"      - Item: {Table: 1001, Row: Potion}\n      - Item: {Table: 1001, Row: MegaPotion}\n      - Item: {Table: 1002, Row: Potion}\n"
+			"      - Item: {Table: 0, Row: Potion}\n      - Item: {Table: 0, Row: \"\"}\n");
+		WriteFile(folder / "Broken.hydef", "Definition: [unclosed\n");
+		WriteFile(folder / "Gone.hydef", "Handle: 1005\nDefinition:\n  Version: 1\n  Type: DialogueDefinition\n  Values: {}\n");
+		TestRegisterAsset(items, folder / "Items.hytable", "Data/Items.hytable");
+		TestRegisterAsset(inn, folder / "Innkeeper.hydef", "Data/Dialogue/Innkeeper.hydef");
+		TestRegisterAsset(shop, folder / "Shop.hydef", "Data/Shop.hydef");
+		TestRegisterAsset(broken, folder / "Broken.hydef", "Data/Broken.hydef");
+		TestRegisterAsset(gone, folder / "Gone.hydef", "Data/Gone.hydef");
+		TestMarkMissing(gone);
+
+		// A definition.
+		const DataView<DialogueDefinition> dialogue = Data::Get<DialogueDefinition>(inn);
+		CHECK(dialogue.IsValid() && dialogue->Speaker == "Innkeeper" && dialogue->Lines.size() == 1);
+		CHECK(Data::Get<DialogueDefinition>(AssetHandle(0)).IsValid() == false); // none: no warning
+		CHECK(Data::Get<ShopDefinition>(inn).IsValid() == false);                 // a dialogue, not a shop (warned once)
+		CHECK(Data::Get<ShopDefinition>(inn).IsValid() == false);                 // (not warned again)
+		CHECK(Data::Get<DialogueDefinition>(items).IsValid() == false);           // a table, not a definition
+		CHECK(Data::Get<DialogueDefinition>(AssetHandle(424242)).IsValid() == false); // not in the project
+		CHECK(Data::Get<DialogueDefinition>(gone).IsValid() == false);            // file missing
+		CHECK(Data::Get<DialogueDefinition>(broken).IsValid() == false);          // can't be read
+		CHECK(Data::GetDataType(inn) != nullptr && Data::GetDataType(inn)->Name == "DialogueDefinition");
+		CHECK(Data::GetDataType(items) != nullptr && Data::GetDataType(items)->Name == "ItemDefinition");
+
+		// A table, its rows by ID (sorted), and single rows.
+		const DataTableView<ItemDefinition> table = Data::GetTable<ItemDefinition>(items);
+		CHECK(table.IsValid() && table.GetRowCount() == 2 && table.GetHandle() == items);
+		std::string order;
+		for (const auto& [id, row] : table.Rows())
+		{
+			order += id + "=" + row.Name + ";";
+		}
+		CHECK(order == "Ether=Ether;Potion=Potion;");
+		CHECK(table.FindRow("Potion") != nullptr && table.FindRow("Potion")->RestoreHP == 25 && table.FindRow("Nope") == nullptr);
+		CHECK(Data::GetTable<DialogueDefinition>(items).IsValid() == false);    // rows of another type
+		CHECK(Data::GetTable<ItemDefinition>(inn).IsValid() == false);          // a definition, not a table
+		const DataView<ItemDefinition> potion = Data::GetRow<ItemDefinition>(table.MakeRef("Potion"));
+		CHECK(potion.IsValid() && potion->RestoreHP == 25);
+		CHECK(Data::GetRow<ItemDefinition>(DataRowRef{ items, "MegaPotion" }).IsValid() == false); // no such row (warned once)
+		CHECK(Data::GetRow<ItemDefinition>(DataRowRef{}).IsValid() == false);
+		CHECK(Data::GetRow<DialogueDefinition>(DataRowRef{ items, "Potion" }).IsValid() == false);
+		CHECK(DataTableView<ItemDefinition>().Rows().begin() == DataTableView<ItemDefinition>().Rows().end()); // an empty view iterates nothing
+
+		// Edited outside the editor: the next Data::Get sees it; a view taken before still reads the old data safely.
+		const int loadsBefore = TestGetLoadCount(inn);
+		CHECK(Data::Get<DialogueDefinition>(inn)->Speaker == "Innkeeper" && TestGetLoadCount(inn) == loadsBefore); // cached
+		WriteFile(folder / "Innkeeper.hydef",
+			"Handle: 1002\nDefinition:\n  Version: 1\n  Type: DialogueDefinition\n  Values:\n    Speaker: Innkeeper Mara\n    Lines:\n      - Text: Welcome back!\n      - Text: Rooms are free tonight.\n");
+		Touch(folder / "Innkeeper.hydef", 2);
+		const DataView<DialogueDefinition> reloaded = Data::Get<DialogueDefinition>(inn);
+		CHECK(TestGetLoadCount(inn) == loadsBefore + 1);
+		CHECK(reloaded.IsValid() && reloaded->Speaker == "Innkeeper Mara" && reloaded->Lines.size() == 2);
+		CHECK(dialogue.IsValid() && dialogue->Speaker == "Innkeeper" && dialogue->Lines[0].Text == "Welcome!"); // the old object lives on
+		// A bad edit keeps the last good data.
+		WriteFile(folder / "Innkeeper.hydef", "Definition: [half a save\n");
+		Touch(folder / "Innkeeper.hydef", 4);
+		CHECK(Data::Get<DialogueDefinition>(inn).IsValid() && Data::Get<DialogueDefinition>(inn)->Speaker == "Innkeeper Mara");
+
+		// Validation: the file's problems, the values' and the references'.
+		const DataReport shopReport = Data::Validate(shop);
+		PrintReport("Shop.hydef", shopReport);
+		CHECK(HasMessage(shopReport, DataMessageSeverity::Error, "", "Greeting", "is a DataTable, not a Definition"));
+		CHECK(HasMessage(shopReport, DataMessageSeverity::Error, "", "Stock[1].Item", "Missing: MegaPotion"));
+		CHECK(HasMessage(shopReport, DataMessageSeverity::Error, "", "Stock[2].Item", "not a data table"));
+		CHECK(HasMessage(shopReport, DataMessageSeverity::Error, "", "Stock[3].Item", "without a table"));
+		CHECK(shopReport.GetErrorCount() == 4); // Stock[0] is fine, Stock[4] is empty (none)
+		const DataReport itemsReport = Data::Validate(items);
+		CHECK(itemsReport.IsEmpty());
+		const DataReport brokenReport = Data::Validate(broken);
+		PrintReport("Broken.hydef", brokenReport);
+		CHECK(HasMessage(brokenReport, DataMessageSeverity::Error, "", "", "not valid YAML"));
+		CHECK(HasMessage(Data::Validate(gone), DataMessageSeverity::Error, "", "", "is missing"));
+		CHECK(HasMessage(Data::Validate(AssetHandle(424242)), DataMessageSeverity::Error, "", "", "not in the project"));
+
+		std::error_code ec;
+		std::filesystem::remove_all(folder, ec);
+	}
 }
 
 int main()
@@ -470,6 +587,7 @@ int main()
 	Hydro::TestDuplicates();
 	Hydro::TestFileLevel();
 	Hydro::TestRecordCopies();
+	Hydro::TestDataApi();
 
 	std::printf("\n%d checks, %d failed\n", Hydro::s_Checks, Hydro::s_Failures);
 	return Hydro::s_Failures == 0 ? 0 : 1;

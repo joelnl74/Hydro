@@ -28,7 +28,9 @@ namespace Hydro
 		Mesh,
 		RenderProfile,
 		Font,
-		Terrain
+		Terrain,
+		Definition, // .hydef: one record of an HY_DATA type (Hydro/Data/DefinitionAsset.h)
+		DataTable   // .hytable: rows of an HY_DATA type by ID (Hydro/Data/DataTableAsset.h)
 	};
 
 	// "Texture2D", "Scene", ... ("None" for AssetType::None).
@@ -36,7 +38,7 @@ namespace Hydro
 	// The inverse of AssetTypeToString; AssetType::None for an unknown name.
 	AssetType AssetTypeFromString(const std::string& name);
 	// The asset type of a file, from its extension (case-insensitive): .png/.jpg/.jpeg/.tga/.bmp ->
-	// Texture2D, .hyscene -> Scene, .hyprefab -> Prefab, .hyanim -> SpriteAnimation, .hymat -> Material, .gltf/.glb -> Mesh, .hyrender -> RenderProfile, .fnt -> Font, .hyterrain -> Terrain. AssetType::None for anything else, including
+	// Texture2D, .hyscene -> Scene, .hyprefab -> Prefab, .hyanim -> SpriteAnimation, .hymat -> Material, .gltf/.glb -> Mesh, .hyrender -> RenderProfile, .fnt -> Font, .hyterrain -> Terrain, .hydef -> Definition, .hytable -> DataTable. AssetType::None for anything else, including
 	// .hymeta sidecars and folders.
 	AssetType GetAssetTypeFromExtension(const std::filesystem::path& path);
 

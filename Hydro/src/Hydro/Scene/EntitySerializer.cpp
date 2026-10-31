@@ -167,7 +167,7 @@ namespace Hydro
 	}
 
 	// A script property's value (HY_PROPERTY): scalars and strings as they are, vectors as [x, y, z], an asset as
-	// its handle number.
+	// its handle number, a table row as { Table: <handle>, Row: <id> }.
 	static void WriteScriptPropertyValue(YAML::Emitter& out, const ScriptPropertyValue& value)
 	{
 		std::visit(
@@ -177,6 +177,13 @@ namespace Hydro
 				if constexpr (std::is_same_v<Value, AssetHandle>)
 				{
 					out << (uint64_t)typed;
+				}
+				else if constexpr (std::is_same_v<Value, DataRowRef>)
+				{
+					out << YAML::Flow << YAML::BeginMap;
+					out << YAML::Key << "Table" << YAML::Value << (uint64_t)typed.Table;
+					out << YAML::Key << "Row" << YAML::Value << typed.Row;
+					out << YAML::EndMap;
 				}
 				else
 				{
@@ -202,6 +209,17 @@ namespace Hydro
 				case ScriptPropertyType::Vec4: return node.as<glm::vec4>(std::get<glm::vec4>(fallback));
 				case ScriptPropertyType::String: return node.as<std::string>(std::get<std::string>(fallback));
 				case ScriptPropertyType::Asset: return AssetHandle(node.as<uint64_t>((uint64_t)std::get<AssetHandle>(fallback)));
+				case ScriptPropertyType::RowRef:
+				{
+					if (node.IsMap() == false)
+					{
+						return fallback;
+					}
+					DataRowRef ref;
+					ref.Table = AssetHandle(node["Table"].as<uint64_t>(0));
+					ref.Row = node["Row"].as<std::string>(std::string());
+					return ref;
+				}
 			}
 		}
 		catch (const YAML::Exception&)

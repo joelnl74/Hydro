@@ -4,6 +4,9 @@
 #include "GeneratedDataReflection.h"
 #include "Hydro/Data/DataTypeRegistry.h"
 
+#include "Data/InventoryDefinition.h"
+#include "Data/ItemDefinition.h"
+
 namespace Hydro
 {
 	void RegisterGeneratedDataReflection()
@@ -14,5 +17,30 @@ namespace Hydro
 			return;
 		}
 		registered = true;
+
+		DataTypeRegistry::RegisterEnum<ItemKind>("ItemKind")
+			.Value("Consumable", ItemKind::Consumable)
+			.Value("Equipment", ItemKind::Equipment)
+			.Value("KeyItem", ItemKind::KeyItem)
+			.Value("Material", ItemKind::Material);
+
+		DataTypeRegistry::Register<InventoryDefinition>("InventoryDefinition", "Inventory")
+			.Definition()
+			.Field<&InventoryDefinition::Items>("Items", "Items").Tooltip("In the order the inventory lists them");
+
+		DataTypeRegistry::Register<InventoryEntry>("InventoryEntry", "Inventory Entry")
+			.Field<&InventoryEntry::Item>("Item", "Item").DataTypeFilter("ItemDefinition")
+			.Field<&InventoryEntry::Count>("Count", "Count").Range(0.0f, 99.0f);
+
+		DataTypeRegistry::Register<ItemDefinition>("ItemDefinition", "Item")
+			.Table()
+			.DisplayField("Name")
+			.Field<&ItemDefinition::Name>("Name", "Name").Tooltip("Shown in the inventory")
+			.Field<&ItemDefinition::Description>("Description", "Description").Tooltip("The inventory's detail text")
+			.Field<&ItemDefinition::Kind>("Kind", "Kind")
+			.Field<&ItemDefinition::Icon>("Icon", "Icon").Tooltip("Optional; the inventory has no icons yet").AssetFilter(AssetType::Texture2D)
+			.Field<&ItemDefinition::RestoreHP>("RestoreHP", "Restore HP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
+			.Field<&ItemDefinition::RestoreMP>("RestoreMP", "Restore MP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
+			.Field<&ItemDefinition::UsableInField>("UsableInField", "Usable In Field").Tooltip("Can be used from the field inventory");
 	}
 }
