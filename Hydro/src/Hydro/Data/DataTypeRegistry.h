@@ -1,0 +1,83 @@
+// Hydro/Data/DataTypeRegistry.h
+#pragma once
+
+#include "Hydro/Data/DataType.h"
+#include "Hydro/Data/DataTypeRegistration.h"
+
+#include <string>
+#include <type_traits>
+#include <typeindex>
+#include <vector>
+
+namespace Hydro
+{
+	// The data types (HY_DATA structs) and enums (HY_ENUM) by name. A lookup table like ScriptRegistry, not a
+	// subsystem: no lifecycle, filled by the generated RegisterGeneratedDataReflection() before any data is read.
+	//
+	// The engine only knows the mechanism; the types themselves (dialogue, items, combatants) are the game's.
+	class DataTypeRegistry
+	{
+	public:
+		// `name` is saved in files: keep it stable (the generator uses the C++ struct name).
+		template<typename T>
+		static DataTypeRegistration<T> Register(const std::string& name, const std::string& displayName);
+
+		template<typename E>
+		static DataEnumRegistration<E> RegisterEnum(const std::string& name);
+
+		// nullptr when nothing is registered under that name or C++ type.
+		static const DataTypeInfo* Find(const std::string& name);
+		static const DataTypeInfo* Find(std::type_index cppType);
+		static const DataEnumInfo* FindEnum(const std::string& name);
+		static const DataEnumInfo* FindEnum(std::type_index cppType);
+
+		// Every registered type, sorted by name.
+		static std::vector<const DataTypeInfo*> GetTypes();
+
+	private:
+		static DataTypeInfo& RegisterType(DataTypeInfo&& typeInfo);
+		static DataEnumInfo& RegisterEnumType(DataEnumInfo&& enumInfo);
+	};
+
+	template<typename T>
+	DataTypeRegistration<T> DataTypeRegistry::Register(const std::string& name, const std::string& displayName)
+	{
+		static_assert(std::is_class_v<T>, "Data types are structs");
+		static_assert(std::is_default_constructible_v<T>, "Data types must be default-constructible (field initialisers are the defaults)");
+		static_assert(std::is_copy_assignable_v<T> && std::is_move_assignable_v<T>, "Data types must be copyable and movable");
+
+		DataTypeInfo typeInfo;
+		typeInfo.Name = name;
+		typeInfo.DisplayName = displayName;
+		typeInfo.CppType = typeid(T);
+		typeInfo.Construct = []() -> void*
+		{
+			return new T();
+		};
+		typeInfo.Destroy = [](void* object)
+		{
+			delete static_cast<T*>(object);
+		};
+		typeInfo.Copy = [](void* destination, const void* source)
+		{
+			*static_cast<T*>(destination) = *static_cast<const T*>(source);
+		};
+		typeInfo.Move = [](void* destination, void* source)
+		{
+			*static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
+		};
+
+		return DataTypeRegistration<T>(RegisterType(std::move(typeInfo)));
+	}
+
+	template<typename E>
+	DataEnumRegistration<E> DataTypeRegistry::RegisterEnum(const std::string& name)
+	{
+		static_assert(std::is_enum_v<E>, "HY_ENUM marks an enum class");
+
+		DataEnumInfo enumInfo;
+		enumInfo.Name = name;
+		enumInfo.CppType = typeid(E);
+		return DataEnumRegistration<E>(RegisterEnumType(std::move(enumInfo)));
+	}
+}

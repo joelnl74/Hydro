@@ -1,40 +1,122 @@
-# Blacksmith: field sheet Characters/NPC/Blacksmith/Blacksmith.png, 96 x 72 cells, rows Down / Right / Up / Left;
-# columns 0-3 the idle loop, 4-7 the walk cycle. Feet on the cell's bottom row (pivot [0.5, 0]).
+# Blacksmith: a slow breathing idle and a walk in four directions (scripts/characters/build_npc_idle.py).
 Handle: 8079240564453792839
 SpriteAnimationSet:
   TextureHandle: 4053719590916208210
   Texture: Blacksmith.png
   DefaultClip: IdleDown
   Clips:
+    - Name: Idle
+      Loop: Loop
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
     - Name: IdleDown
       Loop: Loop
-      FrameRate: 4
-      Frames: [Blacksmith_Down_0, Blacksmith_Down_1, Blacksmith_Down_2, Blacksmith_Down_3]
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
     - Name: IdleRight
       Loop: Loop
-      FrameRate: 4
-      Frames: [Blacksmith_Right_0, Blacksmith_Right_1, Blacksmith_Right_2, Blacksmith_Right_3]
+      Frames:
+        - Sprite: IdleRight_0
+          Duration: 0.5
+        - Sprite: IdleRight_1
+          Duration: 0.4
+        - Sprite: IdleRight_2
+          Duration: 0.5
+        - Sprite: IdleRight_3
+          Duration: 0.4
     - Name: IdleUp
       Loop: Loop
-      FrameRate: 4
-      Frames: [Blacksmith_Up_0, Blacksmith_Up_1, Blacksmith_Up_2, Blacksmith_Up_3]
+      Frames:
+        - Sprite: IdleUp_0
+          Duration: 0.5
+        - Sprite: IdleUp_1
+          Duration: 0.4
+        - Sprite: IdleUp_2
+          Duration: 0.5
+        - Sprite: IdleUp_3
+          Duration: 0.4
     - Name: IdleLeft
       Loop: Loop
-      FrameRate: 4
-      Frames: [Blacksmith_Left_0, Blacksmith_Left_1, Blacksmith_Left_2, Blacksmith_Left_3]
+      Frames:
+        - Sprite: IdleLeft_0
+          Duration: 0.5
+        - Sprite: IdleLeft_1
+          Duration: 0.4
+        - Sprite: IdleLeft_2
+          Duration: 0.5
+        - Sprite: IdleLeft_3
+          Duration: 0.4
     - Name: WalkDown
       Loop: Loop
-      FrameRate: 8
-      Frames: [Blacksmith_Down_4, Blacksmith_Down_5, Blacksmith_Down_6, Blacksmith_Down_7]
+      Frames:
+        - Sprite: WalkDown_0
+          Duration: 0.1
+        - Sprite: WalkDown_1
+          Duration: 0.1
+        - Sprite: WalkDown_2
+          Duration: 0.1
+        - Sprite: WalkDown_3
+          Duration: 0.1
+        - Sprite: WalkDown_4
+          Duration: 0.1
+        - Sprite: WalkDown_5
+          Duration: 0.1
     - Name: WalkRight
       Loop: Loop
-      FrameRate: 8
-      Frames: [Blacksmith_Right_4, Blacksmith_Right_5, Blacksmith_Right_6, Blacksmith_Right_7]
+      Frames:
+        - Sprite: WalkRight_0
+          Duration: 0.1
+        - Sprite: WalkRight_1
+          Duration: 0.1
+        - Sprite: WalkRight_2
+          Duration: 0.1
+        - Sprite: WalkRight_3
+          Duration: 0.1
+        - Sprite: WalkRight_4
+          Duration: 0.1
+        - Sprite: WalkRight_5
+          Duration: 0.1
     - Name: WalkUp
       Loop: Loop
-      FrameRate: 8
-      Frames: [Blacksmith_Up_4, Blacksmith_Up_5, Blacksmith_Up_6, Blacksmith_Up_7]
+      Frames:
+        - Sprite: WalkUp_0
+          Duration: 0.1
+        - Sprite: WalkUp_1
+          Duration: 0.1
+        - Sprite: WalkUp_2
+          Duration: 0.1
+        - Sprite: WalkUp_3
+          Duration: 0.1
+        - Sprite: WalkUp_4
+          Duration: 0.1
+        - Sprite: WalkUp_5
+          Duration: 0.1
     - Name: WalkLeft
       Loop: Loop
-      FrameRate: 8
-      Frames: [Blacksmith_Left_4, Blacksmith_Left_5, Blacksmith_Left_6, Blacksmith_Left_7]
+      Frames:
+        - Sprite: WalkLeft_0
+          Duration: 0.1
+        - Sprite: WalkLeft_1
+          Duration: 0.1
+        - Sprite: WalkLeft_2
+          Duration: 0.1
+        - Sprite: WalkLeft_3
+          Duration: 0.1
+        - Sprite: WalkLeft_4
+          Duration: 0.1
+        - Sprite: WalkLeft_5
+          Duration: 0.1

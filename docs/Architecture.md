@@ -14,7 +14,7 @@ Read this first, then:
 | Project | Kind | What it is |
 | --- | --- | --- |
 | `Hydro` | Static library | The engine: core, events, platform, renderer, scene, project |
-| `Game` | Static library | The game's own code: the Sandbox project's scripts and their generated reflection (`RegisterGeneratedScriptReflection`). Linked by every application that runs the game |
+| `Game` | Static library | The game's own code: the Sandbox project's scripts and data types and their generated reflection (`RegisterGeneratedScriptReflection`, `RegisterGeneratedDataReflection`). Linked by every application that runs the game |
 | `Oxygen` | Executable | The editor. An `Application` subclass that registers the game's scripts and pushes an `EditorLayer` (see [The editor](#the-editor-oxygen)) |
 | `Runtime` | Executable | The standalone player: plays a project without the editor (see [Standalone builds](#standalone-builds)) |
 
@@ -41,7 +41,7 @@ Hydro::Application* Hydro::CreateApplication()
 
 Standalone Build V1 (Oct 31, 2026). **This is not an asset pipeline:** a build is the `Runtime` project built in Release or Dist plus a fixed copy of the files the runtime already reads. Cooking and packing come later (Asset Pipeline V2, designed against measurements of this build).
 
-- **`Game`** holds the game's code (moved out of Oxygen), so the editor and the runtime run the same scripts: both link `Game` and `Hydro` and call `RegisterGeneratedScriptReflection()` in `OnInit`.
+- **`Game`** holds the game's code (moved out of Oxygen), so the editor and the runtime run the same scripts: both link `Game` and `Hydro` and call `RegisterGeneratedDataReflection()` and `RegisterGeneratedScriptReflection()` in `OnInit`.
 - **`Runtime`** (`Runtime/src`) opens one project, applies its renderer settings, loads its start scene and runs it on a `SceneStack`, with one `RenderView` shown as a full-window `ImGui::Image` (the Game view's path; presenting straight to the swapchain is later). The project is `--project <file.hyproj>` (development, run in `Oxygen/` for the shaders) or, in a package, `Project/<exe name>.hyproj` next to the exe, nothing else; a packaged game runs in its exe's folder. F11 toggles full screen; `SceneTransition::Quit()` from a script closes it (in the editor it stops Play). Release keeps a console with the log, Dist is a windowed app without one.
 - **`scripts/Package.bat [Release|Distribution]`** builds `Runtime` (only it and what it links, so Oxygen can stay open) and fills `Builds/<Project>-<Kind>/`: `<Project>.exe`, `shaderc_shared.dll`, `assets/shaders/` (the engine's shaders, still in `Oxygen/assets`), `Project/<Project>.hyproj` with the whole asset folder, and `build-info.txt`.
 - **File > Build...** in Oxygen (`BuildWindow`) runs the script through `Process` (Release / Distribution, its output live, Cancel, Run, Open Folder) after saving the project and the open scene.
@@ -70,6 +70,7 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 | --- | --- | --- |
 | `Core` | Application, `LayerStack` and layers, window interface, logging (`Log`, which also keeps the last 5000 messages in memory for `Log::GetMessagesSince`; Oxygen's **Console** window shows them), frame clock (`Time`), asserts, input, UUID, `FileWatcher` | — |
 | `Asset` | Asset identity: `AssetHandle`, `AssetType` and the `Asset` base (`Asset.h`), `AssetRegistry`, `AssetMetaSerializer` (handles inside scenes/prefabs and in `.hymeta` sidecars), the `AssetManager` subsystem. See [Asset system](#asset-system) | Core (yaml-cpp). `Renderer` (`Texture2D` is an `Asset`) and `Scene` (the serializers write handles) depend on it |
+| `Data` | Data types for definitions and data tables: `HY_DATA` / `HY_ENUM` reflection (`DataTypeRegistry`, `DataTypeInfo`), owned records (`DataRecord`), row references (`DataRowRef`), the canonical YAML `DataSerializer` and its `DataReport`. Knows structs, enums, lists and references, never the game's types. See [Definitions and data tables](#definitions-and-data-tables) | Core, Utils, Asset (`AssetHandle`, the `Handle` key) |
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core; `Renderer.h` for the device (`Renderer::GetVulkanDevice()`), the deletion queue and the frame index |
@@ -445,7 +446,7 @@ The repository root has the files that keep code consistent; Visual Studio reads
 | `.gitattributes` | Text files are stored as LF and checked out as CRLF; images, fonts and `.spv` are binary. After adding it once: `git add --renormalize .` |
 | Compiler warnings | `Hydro` and `Oxygen` build at `/W4` (premake `warnings "Extra"`). Vendored headers are listed with `ExternalIncludeDirs { ... }` (`Dependencies.lua`): on the include path, and marked external with warnings off (`externalincludedirs` on premake 5.0.0-beta2+, `/external:I` + `/external:W0` on the bundled beta1). Vendored sources (including the `imgui_impl_*` copies in `Platform/Vulkan`) compile with warnings off. `FatalWarnings` in the root `premake5.lua` turns on `/WX`: set it to `true` once a Debug build has no warnings |
 
-Planned: a test project and a GitHub Actions build (Roadmap A2).
+Planned: a test project (Roadmap A2). Until then `scripts/test_data.sh` runs the headless data tests (the generator's `HY_DATA` / `HY_ENUM` checks and the serializer's round trips, g++ on Linux).
 
 ## Agreed changes
 
@@ -513,6 +514,15 @@ Next steps, in order:
 
 Sprites and frames refer to a sheet's sprites by name in files, so re-slicing doesn't break them; with sub-assets (step 7) that becomes a per-sprite handle.
 
+
+### Definitions and data tables
+
+Hydro's ScriptObjects / Data Assets (the wiki's [Definitions and data tables plan](https://github.com/joelnl74/Hydro/wiki/Definitions-Plan), issues #168 to #172). **D1 is done (Nov 1, 2026): data types and serialization.** D2 (the `.hydef` / `.hytable` assets and `Data::Get`), D3 (the editor) and D4 / D5 (the test bed's dialogue and items, the battle's data) are next.
+
+- **Types.** `HY_DATA()` marks a struct of `HY_PROPERTY` fields; `HY_DATA(Definition)` / `HY_DATA(Table)` (or both) make it creatable, `DisplayField(Field)` names the string field row lists show (default `Name`). `HY_ENUM()` marks an enum class. The generator accepts nothing else and fails with the file and line. It writes `Game/src/Generated/GeneratedDataReflection.cpp`, which fills the `DataTypeRegistry` (a lookup table like `ScriptRegistry`, not a subsystem). Field kinds: the script kinds plus enum (by name), nested `HY_DATA` struct, `std::vector` of any of them (not of lists) and `DataRowRef` (with `DataRow(T)`). Instances are made, copied, moved and freed through the type's generated functions, never as bytes.
+- **Records.** A `DataRecord` owns one instance of a type (a definition's values or one table row); its `DataKeptValues` hold what the file had that the type couldn't take: unknown keys (a field renamed or removed in C++) and unreadable values (a wrong kind, an unknown enum name; the field keeps its default). Both are written back, so loading and saving loses nothing but comments and formatting. Editing a field calls `Forget` on it.
+- **Files.** `DataSerializer` reads and writes the text (files are D2's loaders' job). The output is canonical: `Handle`, then `Definition:` / `DataTable:` with `Version`, `Type`, then `Values` / `Rows`; every field in declaration order, defaults included; rows sorted by ID; enums by name; floats in the shortest form that reads back exactly; lists of numbers on one line. Reading what was written and writing it again gives the same bytes. Missing keys keep their defaults.
+- **Problems** go into a `DataReport` (errors and warnings with a row and a field path, `Stock[2].Item`), never the log. Duplicate row IDs and duplicate keys are caught before rows go into the map and make the file read-only (writing would lose one); so does a `Version` newer than `DataFormatVersion`. Values outside a field's `Range` are warnings, kept as written. `DataSerializer::CheckRecord` reports the same for a record in memory (validation, D2).
 
 ## Known gaps
 

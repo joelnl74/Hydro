@@ -12045,13 +12045,13 @@ Entities:
     TransformComponent:
       Translation: [-8, 2.20000005, 1]
       Rotation: [0, 0, 0]
-      Scale: [3, 2.25, 1]
+      Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 6156810907980390543
-      Sprite: Barmaid_Down_0
+      Sprite: IdleDown_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -12085,13 +12085,13 @@ Entities:
     TransformComponent:
       Translation: [7.5999999, 12.3999996, 2.25]
       Rotation: [0, 0, 0]
-      Scale: [3, 2.25, 1]
+      Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 4053719590916208210
-      Sprite: Blacksmith_Down_0
+      Sprite: IdleDown_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false

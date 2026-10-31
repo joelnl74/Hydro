@@ -2,7 +2,8 @@
 #pragma once
 
 // These macros expand to nothing. They are markers for Tools/ReflectionGenerator/generate_reflection.py,
-// which reads the headers and writes the scripts' registration (Oxygen/src/Generated/GeneratedScriptReflection.cpp).
+// which reads the headers and writes the registration: scripts into Game/src/Generated/GeneratedScriptReflection.cpp,
+// data types and enums into Game/src/Generated/GeneratedDataReflection.cpp.
 //
 // HY_SCRIPT()   above a class or struct that derives publicly from ScriptableEntity (`final` is fine).
 //               It is registered under its class name, which is what scenes save.
@@ -31,11 +32,46 @@
 //         AssetHandle LitSprite = 0;
 //     };
 
+// HY_DATA(...) above a struct of HY_PROPERTY fields: a data type (Hydro/Data/DataTypeRegistry.h), saved in
+// definitions (.hydef, one record) and data tables (.hytable, rows by ID). Registered under its struct name, which
+// is what files save. Data types don't derive from anything. Exactly these arguments, nothing else:
+//     HY_DATA()                         a helper type, only used inside other data types (DialogueLine)
+//     HY_DATA(Definition)               can be created as a definition: Create > Definition
+//     HY_DATA(Table)                    can be created as a data table: Create > Data Table
+//     HY_DATA(Definition, Table)        both
+//     DisplayField(Field)               (with Table) the std::string field row lists and pickers show; default:
+//                                       a std::string field called Name, else the row ID. Editor-only
+// Field types: the script types above, plus DataRowRef (a table row), an HY_ENUM enum class (saved by name), another
+// HY_DATA struct (a nested map) and std::vector<T> of any of these except a list. Arguments as for scripts (on a list
+// they apply to its elements), plus:
+//     DataRow(ItemDefinition)           required for a DataRowRef: the row type of the tables its picker lists
+//
+//     HY_DATA()
+//     struct DialogueLine
+//     {
+//         HY_PROPERTY(Tooltip("Who says it; empty = the dialogue's speaker"))
+//         std::string Speaker;
+//         HY_PROPERTY()
+//         std::string Text;
+//     };
+//
+//     HY_DATA(Definition)
+//     struct DialogueDefinition
+//     {
+//         HY_PROPERTY()
+//         std::string Speaker;
+//         HY_PROPERTY()
+//         std::vector<DialogueLine> Lines;
+//     };
+//
+// HY_ENUM() above an enum class used by data fields. Saved by the enumerator's name, so reordering or renumbering is
+// safe and renaming is not (files keep the old name and validation reports it).
+//
+//     HY_ENUM()
+//     enum class ItemKind : uint8_t { Consumable, Equipment, KeyItem };
+
 #define HY_SCRIPT(...)
 #define HY_PROPERTY(...)
-// Reserved for data types (definitions and data tables, not read by the generator yet): HY_DATA() above a
-// struct of HY_PROPERTY fields, HY_DATA(Definition) / HY_DATA(Table) for the ones that can be created as
-// .hydef / .hytable assets, HY_ENUM() above an enum class. See the wiki's Definitions and data tables plan
-// (issues #168 to #172).
 #define HY_DATA(...)
+#define HY_ENUM(...)
 #define HY_REFLECT(...)
