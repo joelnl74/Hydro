@@ -26,7 +26,7 @@ import hyterrain  # noqa: E402
 import scene_decor  # noqa: E402
 import terrain_mesher as tm  # noqa: E402
 from build_farm_village import preview_map  # noqa: E402
-from scene_terrain import (ASSETS, Grid, Paint, Scene, field_noise, handle_of, smoothstep, units, wander)  # noqa: E402
+from scene_terrain import (ASSETS, Grid, Paint, Scene, catmull_rom, field_noise, handle_of, smoothstep, units, wander)  # noqa: E402
 
 SCENE = os.path.join(ASSETS, "Scenes", "ShrineGlade.hyscene")
 TERRAIN = os.path.join(ASSETS, "Terrains", "ShrineGlade.hyterrain")
@@ -47,6 +47,10 @@ STONE, EARTH, CLIFF = 0, 1, 2
 OLD_LEVELS = (-3.0, 0.0, 1.0, 3.1)
 STAIRS_HALF = 3.4      # the lower stairs and their cheeks
 CORRIDOR_HALF = 1.9    # the upper stairs between the wings
+# The front path's centre line (Catmull-Rom through these): straight through the torii (y -11.4, posts at x +-1.6) and
+# at the lower stairs' foot, bending about 8 degrees west between them (Oct 31, 2026), so it isn't a ruler-straight
+# centre line. The edge stones beside it follow (front_path_x).
+FRONT_PATH = [(0.0, -12.2), (0.0, -11.0), (-0.45, -8.2), (0.0, -5.3), (0.0, -4.7)]
 
 
 def plaza_front(x):
@@ -143,7 +147,7 @@ def build_weights(g):
     p.blob((0.0, -4.4), (4.6, 1.0), DIRT, wander_m=0.3, seed=32, soft=0.8)
     p.road([(3.0, -6.0), (5.5, -7.0), (8.0, -6.6)], 1.2, DIRT, seed=33, soft=0.7)
     # Flagstones: the front path, its foot, the plaza, the court in front of the shrine.
-    p.road([(0.0, -12.2), (0.0, -8.0), (0.0, -4.7)], 3.6, FLAGS, wander_m=0.12, seed=40)
+    p.road(FRONT_PATH, 3.6, FLAGS, wander_m=0.12, seed=40)
     p.blob((0.0, -4.95), (3.2, 0.45), FLAGS, wander_m=0.1, seed=41)
     p.blob((0.0, -1.0), (5.6, 1.9), FLAGS, wander_m=0.25, seed=42, corner=1.0)
     p.blob((0.0, 2.4), (1.8, 1.6), FLAGS, wander_m=0.05, seed=43)
@@ -172,11 +176,19 @@ def make_settings():
     s.add_decor("Layer", SHADE, "Upright", 0.12, size, d["Decor Shrine"])
     s.add_decor("WallFoot", hyterrain.ANY_WALL_LAYER, "Upright", 1.2, size, d["Decor Wall Foot"] + d["Decor Plaza Wall"])
     s.add_decor("WallFoot", STONE, "Upright", 0.15, size, d["Decor Wall Bush"])
-    s.add_decor("WallTop", STONE, "Upright", 1.0, size, d["Decor Shrine Edge"])
+    # 0.7 (Oct 31, 2026, was 1.0): the plaza's front edge shows its wall stones between the plants.
+    s.add_decor("WallTop", STONE, "Upright", 0.7, size, d["Decor Shrine Edge"])
     s.add_decor("WallTop", EARTH, "Upright", 0.7, (0.86, 1.23), d["Decor Hill Edge"])
     s.add_decor("WallTop", CLIFF, "Upright", 0.7, (0.86, 1.23), d["Decor Hill Edge"])
     s.add_decor("WallFoot", STONE, "Stone", 0.9, (0.06, 0.1), [handle_of("Textures/Ground/Boulder.png")])
     return s
+
+
+def front_path_x(y):
+    """Where the front path's centre is at `y` (on FRONT_PATH's curve), for the things that line it."""
+    poly = catmull_rom(FRONT_PATH)
+    order = np.argsort(poly[:, 1])
+    return float(np.interp(y, poly[order, 1], poly[order, 0]))
 
 
 def follow_edges(scene, eid, x, y, z):

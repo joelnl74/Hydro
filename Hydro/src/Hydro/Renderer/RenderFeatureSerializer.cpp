@@ -40,6 +40,7 @@ namespace Hydro
 		out << YAML::Key << "UprightSprites" << YAML::Value << UprightToString(settings.UprightSprites);
 		out << YAML::Key << "HDR" << YAML::Value << settings.HDR;
 		out << YAML::Key << "Bloom" << YAML::Value << settings.Bloom;
+		out << YAML::Key << "DepthOfField" << YAML::Value << settings.DepthOfField;
 		out << YAML::EndMap;
 	}
 
@@ -127,6 +128,11 @@ namespace Hydro
 		if (auto value = node["Bloom"])
 		{
 			settings.Bloom = value.as<bool>(settings.Bloom);
+		}
+		// Settings saved before depth of field (#135) have no key: off, as before.
+		if (auto value = node["DepthOfField"])
+		{
+			settings.DepthOfField = value.as<bool>(settings.DepthOfField);
 		}
 		if (auto value = node["SpriteShadows"])
 		{

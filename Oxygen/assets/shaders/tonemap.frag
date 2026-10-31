@@ -2,20 +2,25 @@
 
 // The Tonemap pass of HDR views (post-processing plan P1; Renderer2D::RecordTonemap): the HDR scene colour,
 // times the scene's exposure, through the highlight roll-off of Khronos PBR Neutral, into the view's sRGB colour. Uses
-// composite.vert's fullscreen triangle. The bloom is added first (plan P2). Linear in, linear out: the sRGB attachment encodes it (no gamma here).
+// composite.vert's fullscreen triangle. The depth of field's blur is mixed in first (#135), then the bloom added (plan P2). Linear in, linear out: the sRGB attachment encodes it (no gamma here).
 
 // The scene colour (RGBA16F, the view's size), read texel for texel, and the bloom (plan P2: level 0 of the chain,
 // half the size, filtered up; the scene colour again, unread, without bloom).
 layout(set = 0, binding = 0) uniform sampler2D sceneColor;
 layout(set = 0, binding = 1) uniform sampler2D bloomColor;
+// Depth of field (#135): the signed circle of confusion (R16F, the view's size, read texel for texel) and the blur
+// (half the size, filtered up; alpha: how far a blurred foreground reaches over the pixel). The scene colour again,
+// unread, without it.
+layout(set = 0, binding = 2) uniform sampler2D circleOfConfusion;
+layout(set = 0, binding = 3) uniform sampler2D depthOfFieldColor;
 
 // Must match TonemapPushConstants in VulkanGPUData.h (std430, 16 bytes). Padding as three floats: a vec3 would
 // be aligned to 16 bytes and make the block 28 bytes long.
 layout(push_constant) uniform TonemapPushConstants {
     float exposureScale;  // 2^exposure
     float bloomIntensity; // 0 = no bloom
+    float depthOfField;   // 1 = mix in the depth of field's blur
     float padding0;
-    float padding1;
 } tonemap;
 
 layout(location = 0) in vec2 fragUV;
@@ -49,6 +54,14 @@ vec3 NeutralHighlightRolloff(vec3 color)
 void main()
 {
 	vec3 hdr = texelFetch(sceneColor, ivec2(gl_FragCoord.xy), 0).rgb;
+	// The blur first, so the glow and the tonemap treat it like the rest of the scene. Sharp up to about a pixel of
+	// blur, all blur from about three (the half-size image is a little soft itself).
+	if (tonemap.depthOfField > 0.5)
+	{
+		float coc = abs(texelFetch(circleOfConfusion, ivec2(gl_FragCoord.xy), 0).r);
+		vec4 blurred = texture(depthOfFieldColor, fragUV);
+		hdr = mix(hdr, blurred.rgb, smoothstep(1.0, 3.0, max(coc, blurred.a)));
+	}
 	// The glow is added to the scene before exposure and the tonemap, in linear HDR, so it rolls off with it.
 	if (tonemap.bloomIntensity > 0.0)
 	{

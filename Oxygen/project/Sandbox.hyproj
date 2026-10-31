@@ -2,6 +2,7 @@ Project:
   Name: Sandbox
   AssetDirectory: Assets
   StartSceneHandle: 6691017473909018354
+  SceneTemplateHandle: 1052700000768556791
 Renderer:
   ClearColor: [0, 0, 0, 1]
   VSync: true
@@ -14,13 +15,14 @@ Renderer:
   SunShadowMapSize: 2048
   SoftSunShadows: true
   RenderFeatures:
-    Depth: Off
-    SpriteSorting: SortOrder
-    Lighting: LightBuffer2D
-    DefaultSpriteAlpha: Translucent
-    Meshes: false
-    Shadows: Off
-    SpriteShadows: FaceSun
-    UprightSprites: LeanToCamera
-    HDR: false
-    Bloom: false
+    Depth: Shared
+    SpriteSorting: ViewDepth
+    Lighting: Forward
+    DefaultSpriteAlpha: Cutout
+    Meshes: true
+    Shadows: Sun
+    SpriteShadows: AsDrawn
+    UprightSprites: Vertical
+    HDR: true
+    Bloom: true
+    DepthOfField: true

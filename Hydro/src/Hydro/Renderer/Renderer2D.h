@@ -82,6 +82,10 @@ namespace Hydro
 		uint32_t BloomLevelCount = 0;
 		uint32_t BloomWidth = 0;
 		uint32_t BloomHeight = 0;
+		// Depth of field (#135): views that drew it, and the half-size blur of the last one.
+		uint32_t DepthOfFieldViewCount = 0;
+		uint32_t DepthOfFieldWidth = 0;
+		uint32_t DepthOfFieldHeight = 0;
 
 		// Frame / target.
 		uint32_t ViewCount = 0;      // views rendered this frame
@@ -194,6 +198,10 @@ namespace Hydro
 		// Post-processing (plan P1): the current view's exposure this frame, between BeginScene and EndScene
 		// (SceneRenderer hands it the scene's). Used by views whose render features have HDR on.
 		static void SetPostProcess(const ScenePostProcess& postProcess);
+		// Where the current view's camera looks this frame (a point on the ground, the view direction, unit length),
+		// between BeginScene and EndScene (SceneRenderer: the same point the fog is measured from). The depth of
+		// field measures its near and far distances from it; without a call the view draws no depth of field.
+		static void SetViewFocus(const glm::vec3& focusPoint, const glm::vec3& viewDirection);
 
 		// Shared depth (RenderFeatureSettings::Depth): how the quads submitted next are drawn, until the next
 		// call or EndScene (which goes back to Translucent). Decal and Cutout quads go to their own lists,
@@ -282,6 +290,10 @@ namespace Hydro
 		// The Bloom pass (PostProcess, HDR views with the Bloom feature): prefilter with a soft threshold into half
 		// resolution, then down and up the level chain; level 0 ends up holding the glow the tonemap adds.
 		static void RecordBloom(RenderPassContext& context);
+		// The DepthOfField pass (PostProcess, HDR views with the DepthOfField feature): the signed circle of
+		// confusion from the shared depth, the scene colour at half size, then a gather blur; the Tonemap pass mixes
+		// the blur in where the circle (or a blurred foreground) is wider than about a pixel.
+		static void RecordDepthOfField(RenderPassContext& context);
 		// Runs one stage of the view's render graph: each pass in a debug label, timed when it can be.
 		static void ExecuteStage(RenderStage stage, RenderPassContext& context);
 		// The draw list quads go to now (overlay, or the current sprite draw mode's list).

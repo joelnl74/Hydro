@@ -8,7 +8,7 @@ TextureImport:
   PixelsPerUnit: 32
   Slicing:
     Mode: Grid
-    CellSize: [32, 32]
+    CellSize: [48, 48]
     Offset: [0, 0]
     Spacing: [0, 0]
     Columns: 6

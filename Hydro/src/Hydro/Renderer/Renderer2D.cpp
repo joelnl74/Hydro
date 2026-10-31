@@ -58,7 +58,10 @@ namespace Hydro
 		Tonemap,      // HDR views (post-processing plan P1): the scene colour through exposure and the tonemap, a fullscreen triangle
 		BloomPrefilter, // bloom (plan P2): the scene colour -> half resolution, soft threshold
 		BloomDown,      // bloom: one level -> the next, half the size
-		BloomUp         // bloom: one level, filtered, added onto the level above it
+		BloomUp,        // bloom: one level, filtered, added onto the level above it
+		DofCoc,         // depth of field (#135): the signed circle of confusion from the shared depth, full size
+		DofPrepare,     // depth of field: the scene colour and its circle of confusion at half size
+		DofBlur         // depth of field: the gather blur, half size
 	};
 
 	// The pipeline cache's key: the attachment layout (colour formats in order, depth format; one sample per
@@ -127,10 +130,14 @@ namespace Hydro
 		VkSampler ShadowSampler = VK_NULL_HANDLE;
 		Scope<VulkanRenderTarget> EmptyShadowMap;
 
-		// HDR (post-processing plan P1): set 0 of tonemap.frag, the scene colour and the bloom (two sampled images);
-		// set 0 of the bloom shaders, their source (one). Owned by the descriptor allocator's layout cache.
+		// HDR (post-processing plan P1): set 0 of tonemap.frag, the scene colour, the bloom and the depth of field's
+		// circle of confusion and blur (four sampled images); set 0 of the bloom shaders, their source (one). Owned by the descriptor allocator's layout cache.
 		VkDescriptorSetLayout TonemapLayout = VK_NULL_HANDLE;
 		VkDescriptorSetLayout BloomLayout = VK_NULL_HANDLE;
+		// Depth of field (#135): set 0 of its passes, two sampled images; the view's depth is read through
+		// NearestSampler (a depth format need not support linear filtering).
+		VkDescriptorSetLayout DepthOfFieldLayout = VK_NULL_HANDLE;
+		VkSampler NearestSampler = VK_NULL_HANDLE;
 
 		// The pipeline's set 0 layout. Every view's target has the same attachment format (ViewColorFormat)
 		// and its descriptor sets are built exactly like LayoutDescriptorSet (BuildViewDescriptorSet), so
@@ -332,6 +339,12 @@ namespace Hydro
 	static constexpr const char* BloomPrefilterShaderName = "BloomPrefilter";
 	static constexpr const char* BloomDownShaderName = "BloomDown";
 	static constexpr const char* BloomUpShaderName = "BloomUp";
+	// Depth of field (#135), on composite.vert's fullscreen triangle.
+	static constexpr const char* DofCocShaderName = "DofCoc";
+	static constexpr const char* DofPrepareShaderName = "DofPrepare";
+	static constexpr const char* DofBlurShaderName = "DofBlur";
+	// The DepthOfField feature's pass (looked up by name to know whether a view draws the depth of field).
+	static constexpr const char* DepthOfFieldPassName = "DepthOfField";
 
 	// The shader loaded under `name`, loading it the first time. Throws when it doesn't compile.
 	static VulkanShader& GetOrLoadShader(const char* name, const char* vertexPath, const char* fragmentPath)
@@ -486,6 +499,9 @@ namespace Hydro
 			case ViewPipelineKind::BloomPrefilter: return BloomPrefilterShaderName;
 			case ViewPipelineKind::BloomDown: return BloomDownShaderName;
 			case ViewPipelineKind::BloomUp: return BloomUpShaderName;
+			case ViewPipelineKind::DofCoc: return DofCocShaderName;
+			case ViewPipelineKind::DofPrepare: return DofPrepareShaderName;
+			case ViewPipelineKind::DofBlur: return DofBlurShaderName;
 			case ViewPipelineKind::Sprite:
 			case ViewPipelineKind::Decal: return lit ? SpriteLitShaderName : SpriteShaderName;
 			default: return SpriteShaderName;
@@ -594,6 +610,31 @@ namespace Hydro
 				specification.DescriptorSetLayouts = { s_Data->BloomLayout };
 				specification.PushConstantSize = (uint32_t)sizeof(BloomPushConstants);
 				specification.Blend = key.Kind == ViewPipelineKind::BloomUp ? BlendMode::Additive : BlendMode::None;
+				specification.BackfaceCulling = false;
+				specification.DepthTest = false;
+				specification.DepthWrite = false;
+				break;
+
+			case ViewPipelineKind::DofCoc:
+			case ViewPipelineKind::DofPrepare:
+			case ViewPipelineKind::DofBlur:
+				// Fullscreen triangles into one depth of field target: two sources in set 0, the band and the camera in
+				// push constants; every pixel written, nothing blended.
+				if (key.Kind == ViewPipelineKind::DofCoc)
+				{
+					specification.Shader = &GetOrLoadShader(DofCocShaderName, "assets/shaders/composite.vert", "assets/shaders/dof_coc.frag");
+				}
+				else if (key.Kind == ViewPipelineKind::DofPrepare)
+				{
+					specification.Shader = &GetOrLoadShader(DofPrepareShaderName, "assets/shaders/composite.vert", "assets/shaders/dof_prepare.frag");
+				}
+				else
+				{
+					specification.Shader = &GetOrLoadShader(DofBlurShaderName, "assets/shaders/composite.vert", "assets/shaders/dof_blur.frag");
+				}
+				specification.DescriptorSetLayouts = { s_Data->DepthOfFieldLayout };
+				specification.PushConstantSize = (uint32_t)sizeof(DepthOfFieldPushConstants);
+				specification.Blend = BlendMode::None;
 				specification.BackfaceCulling = false;
 				specification.DepthTest = false;
 				specification.DepthWrite = false;
@@ -802,17 +843,31 @@ namespace Hydro
 			});
 		}
 
-		// HDR: the tonemap's inputs (scene colour, bloom) and a bloom pass's source, sampled images.
+		// HDR: the tonemap's inputs (scene colour, bloom, the depth of field's circle of confusion and blur), a bloom
+		// pass's source and a depth of field pass's two sources, sampled images.
 		{
-			VkDescriptorSetLayoutBinding binding{};
-			binding.binding = 0;
-			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			binding.descriptorCount = 1;
-			binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-			s_Data->BloomLayout = VulkanDescriptorAllocator::GetLayout({ binding });
-			VkDescriptorSetLayoutBinding bloomBinding = binding;
-			bloomBinding.binding = 1;
-			s_Data->TonemapLayout = VulkanDescriptorAllocator::GetLayout({ binding, bloomBinding });
+			std::vector<VkDescriptorSetLayoutBinding> bindings(4);
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				bindings[i].binding = i;
+				bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				bindings[i].descriptorCount = 1;
+				bindings[i].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			}
+			s_Data->BloomLayout = VulkanDescriptorAllocator::GetLayout({ bindings[0] });
+			s_Data->DepthOfFieldLayout = VulkanDescriptorAllocator::GetLayout({ bindings[0], bindings[1] });
+			s_Data->TonemapLayout = VulkanDescriptorAllocator::GetLayout(bindings);
+
+			VkSamplerCreateInfo samplerInfo{};
+			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerInfo.magFilter = VK_FILTER_NEAREST;
+			samplerInfo.minFilter = VK_FILTER_NEAREST;
+			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerInfo.maxLod = 0.0f;
+			VK_CHECK_RESULT(vkCreateSampler(Renderer::GetVulkanDevice().GetDevice(), &samplerInfo, nullptr, &s_Data->NearestSampler));
 		}
 
 		BufferSpecification layoutSpecification;
@@ -941,6 +996,10 @@ namespace Hydro
 		{
 			VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 			Renderer::SubmitResourceFree([device, sampler = s_Data->ShadowSampler]()
+			{
+				vkDestroySampler(device, sampler, nullptr);
+			});
+			Renderer::SubmitResourceFree([device, sampler = s_Data->NearestSampler]()
 			{
 				vkDestroySampler(device, sampler, nullptr);
 			});
@@ -1105,6 +1164,8 @@ namespace Hydro
 		view.PostProcess = ScenePostProcess{};
 		view.TonemapSet = VK_NULL_HANDLE;
 		view.BloomDrawn = false;
+		view.DofDrawn = false;
+		view.HasFocus = false;
 		view.Lighting = SceneLighting{};
 		view.LightingSubmitted = false;
 		view.DrawMode = SpriteDrawMode::Translucent;
@@ -1310,6 +1371,23 @@ namespace Hydro
 			return;
 		}
 		s_Data->CurrentView->PostProcess = postProcess;
+	}
+
+	void Renderer2D::SetViewFocus(const glm::vec3& focusPoint, const glm::vec3& viewDirection)
+	{
+		HY_CORE_ASSERT(s_Data->CurrentView != nullptr, "Renderer2D::SetViewFocus outside BeginScene/EndScene");
+		if (s_Data->CurrentView == nullptr)
+		{
+			return;
+		}
+		const float length = glm::length(viewDirection);
+		if (length < 1.0e-6f)
+		{
+			return; // no direction to measure along: no depth of field this frame
+		}
+		s_Data->CurrentView->FocusPoint = focusPoint;
+		s_Data->CurrentView->FocusForward = viewDirection / length;
+		s_Data->CurrentView->HasFocus = true;
 	}
 
 	const std::vector<PassTiming>& Renderer2D::GetPassTimings()
@@ -2463,6 +2541,157 @@ namespace Hydro
 		s_Data->Stats.BloomHeight = view.BloomLevels[0]->GetHeight();
 	}
 
+	// The depth of field's gather blur takes at most this many samples (MaxSamples in dof_blur.frag).
+	static constexpr uint32_t DepthOfFieldMaxSamples = 128;
+
+	// An image as a fragment shader samples it (left in SHADER_READ_ONLY_OPTIMAL by its target's End).
+	static VkDescriptorImageInfo GetSampledImage(const VulkanImage& image)
+	{
+		const VulkanImageInfo& info = image.GetVulkanImageInfo();
+		return { info.Sampler, info.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+	}
+
+	// `target` at `width` x `height` in `format`: made again (the old images through the deletion queue) when it is
+	// missing or its size changed.
+	static void PrepareDepthOfFieldTarget(Scope<VulkanRenderTarget>& target, uint32_t width, uint32_t height, ImageFormat format,
+		const std::string& debugName)
+	{
+		if (target != nullptr && target->GetWidth() == width && target->GetHeight() == height)
+		{
+			return;
+		}
+		RenderTargetSpecification specification;
+		specification.Width = width;
+		specification.Height = height;
+		specification.ColorFormats = { format };
+		specification.DebugName = debugName;
+		target = CreateScope<VulkanRenderTarget>(specification);
+	}
+
+	// Drops a view's depth of field images (through the deletion queue): the feature or the scene's switch is off.
+	static void ReleaseDepthOfField(RenderViewData& view)
+	{
+		view.DofCoc.reset();
+		view.DofHalf.reset();
+		view.DofBlur.reset();
+	}
+
+	// One fullscreen pass of the depth of field: `sources` (sampled, SHADER_READ_ONLY_OPTIMAL) into `target`'s image of
+	// `frame`, every pixel written. Leaves `target` readable. False when it couldn't be recorded (no pipeline, e.g. after a
+	// failed hot reload, or no descriptor set): then `target` wasn't written.
+	static bool RecordDepthOfFieldStep(VkCommandBuffer commandBuffer, uint32_t frame, ViewPipelineKind kind, const VkDescriptorImageInfo (&sources)[2],
+		VulkanRenderTarget& target, const DepthOfFieldPushConstants& constants)
+	{
+		VulkanPipeline* pipeline = GetViewPipeline(kind, target, false);
+		VkDescriptorSet set = VulkanDescriptorAllocator::AllocateFrame(s_Data->DepthOfFieldLayout);
+		if (pipeline == nullptr || set == VK_NULL_HANDLE)
+		{
+			return false;
+		}
+
+		VkWriteDescriptorSet writes[2]{};
+		for (uint32_t i = 0; i < 2; i++)
+		{
+			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writes[i].dstSet = set;
+			writes[i].dstBinding = i;
+			writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writes[i].descriptorCount = 1;
+			writes[i].pImageInfo = &sources[i];
+		}
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 2, writes, 0, nullptr);
+
+		RenderTargetBeginInfo begin = RenderTargetBeginInfo::Clear(glm::vec4(0.0f));
+		begin.ColorLoad = AttachmentLoadOp::DontCare; // every pixel is drawn
+		target.Begin(commandBuffer, frame, begin);
+		pipeline->Bind(commandBuffer, target.GetExtent());
+		pipeline->BindDescriptorSet(commandBuffer, 0, set);
+		pipeline->PushConstants(commandBuffer, &constants, (uint32_t)sizeof(constants));
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		target.End(commandBuffer, frame);
+		s_Data->Stats.DrawCalls++;
+		return true;
+	}
+
+	void Renderer2D::RecordDepthOfField(RenderPassContext& context)
+	{
+		RenderViewData& view = context.View;
+		view.DofDrawn = false;
+		const ScenePostProcess& settings = view.PostProcess;
+		const VulkanImage* depth = view.Target->GetDepthImage(context.Frame);
+		if (view.SceneColor == nullptr || depth == nullptr || view.Target->GetSpecification().SampledDepth == false || settings.DepthOfField == false)
+		{
+			// Off for this view: don't keep its images.
+			ReleaseDepthOfField(view);
+			return;
+		}
+		if (view.HasFocus == false)
+		{
+			return; // nothing to measure from this frame (no camera): drawn sharp
+		}
+
+		// The largest radius in the view's pixels, from the scene's percent of its height. Under a pixel: nothing to blur.
+		const uint32_t width = view.SceneColor->GetWidth();
+		const uint32_t height = view.SceneColor->GetHeight();
+		const float maxRadius = std::clamp(settings.DofMaxRadius, 0.0f, 5.0f) * 0.01f * (float)height;
+		if (maxRadius < 1.0f || width < 4 || height < 4)
+		{
+			ReleaseDepthOfField(view);
+			return;
+		}
+		const uint32_t halfWidth = std::max(width >> 1, 1u);
+		const uint32_t halfHeight = std::max(height >> 1, 1u);
+		PrepareDepthOfFieldTarget(view.DofCoc, width, height, ImageFormat::R16F, view.DebugName + " depth of field CoC");
+		PrepareDepthOfFieldTarget(view.DofHalf, halfWidth, halfHeight, SceneColorFormat, view.DebugName + " depth of field half");
+		PrepareDepthOfFieldTarget(view.DofBlur, halfWidth, halfHeight, SceneColorFormat, view.DebugName + " depth of field blur");
+
+		// Measured along the view direction from the focus point (SetViewFocus), in front and behind.
+		DepthOfFieldPushConstants constants;
+		constants.InverseViewProjection = glm::inverse(view.ViewProjection);
+		constants.Focus = glm::vec4(view.FocusForward, glm::dot(view.FocusPoint, view.FocusForward));
+		constants.Band = glm::vec4(std::max(settings.DofNearStart, 0.0f), std::max(settings.DofFarStart, 0.0f),
+			1.0f / std::max(settings.DofRange, 0.01f), maxRadius);
+
+		// Each step reads what the one before it wrote, so the chain stops at the first step that can't be recorded,
+		// and the tonemap only mixes the blur in when every step ran (as for the bloom, #156).
+		VkCommandBuffer commandBuffer = context.CommandBuffer;
+		const uint32_t frame = context.Frame;
+
+		// 1. The circle of confusion from the depth, which the scene pass's End left readable (SampledDepth). A depth
+		//    format need not filter linearly: read through the nearest sampler (binding 1 repeats it, unread).
+		const VkDescriptorImageInfo depthInfo{ s_Data->NearestSampler, depth->GetVulkanImageInfo().ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		const VkDescriptorImageInfo cocSources[2] = { depthInfo, depthInfo };
+		constants.Texel = glm::vec4(1.0f / (float)width, 1.0f / (float)height, maxRadius, 0.0f);
+		if (RecordDepthOfFieldStep(commandBuffer, frame, ViewPipelineKind::DofCoc, cocSources, *view.DofCoc, constants) == false)
+		{
+			return;
+		}
+
+		// 2. The scene colour and its circle of confusion at half size.
+		const VkDescriptorImageInfo prepareSources[2] = { GetSampledImage(view.SceneColor->GetImage(frame)), GetSampledImage(view.DofCoc->GetImage(frame)) };
+		if (RecordDepthOfFieldStep(commandBuffer, frame, ViewPipelineKind::DofPrepare, prepareSources, *view.DofHalf, constants) == false)
+		{
+			return;
+		}
+
+		// 3. The gather blur. Its spiral takes about radius^2 / (2 step) samples to reach the radius: the step grows
+		//    with the radius so it stays under DepthOfFieldMaxSamples (with a margin), and is never under half a pixel.
+		const float halfRadius = maxRadius * 0.5f;
+		const float step = std::max(0.5f, halfRadius * halfRadius / (2.0f * 0.9f * (float)DepthOfFieldMaxSamples));
+		constants.Texel = glm::vec4(1.0f / (float)halfWidth, 1.0f / (float)halfHeight, halfRadius, step);
+		const VkDescriptorImageInfo half = GetSampledImage(view.DofHalf->GetImage(frame));
+		const VkDescriptorImageInfo blurSources[2] = { half, half };
+		if (RecordDepthOfFieldStep(commandBuffer, frame, ViewPipelineKind::DofBlur, blurSources, *view.DofBlur, constants) == false)
+		{
+			return;
+		}
+
+		view.DofDrawn = true;
+		s_Data->Stats.DepthOfFieldViewCount++;
+		s_Data->Stats.DepthOfFieldWidth = halfWidth;
+		s_Data->Stats.DepthOfFieldHeight = halfHeight;
+	}
+
 	void Renderer2D::RecordTonemap(RenderPassContext& context)
 	{
 		RenderViewData& view = context.View;
@@ -2477,19 +2706,21 @@ namespace Hydro
 		}
 
 		// This frame's scene colour (left in SHADER_READ_ONLY_OPTIMAL by the scene pass's End), read texel for texel,
-		// and the bloom's level 0 (filtered: half the size); without bloom binding 1 repeats the scene colour, unread.
-		const VulkanImageInfo& image = view.SceneColor->GetImage(context.Frame).GetVulkanImageInfo();
-		const VulkanImageInfo& bloom = view.BloomDrawn ? view.BloomLevels[0]->GetImage(context.Frame).GetVulkanImageInfo() : image;
+		// the bloom's level 0 (filtered: half the size), and the depth of field's circle of confusion (texel for texel)
+		// and blur (filtered: half the size). What wasn't drawn this frame repeats the scene colour, unread.
+		const VulkanImage& image = view.SceneColor->GetImage(context.Frame);
+		const VulkanImage& bloom = view.BloomDrawn ? view.BloomLevels[0]->GetImage(context.Frame) : image;
+		const VulkanImage& circleOfConfusion = view.DofDrawn ? view.DofCoc->GetImage(context.Frame) : image;
+		const VulkanImage& depthOfField = view.DofDrawn ? view.DofBlur->GetImage(context.Frame) : image;
 		view.TonemapSet = VulkanDescriptorAllocator::AllocateFrame(s_Data->TonemapLayout);
 		if (view.TonemapSet == VK_NULL_HANDLE)
 		{
 			return;
 		}
-		VkDescriptorImageInfo imageInfos[2]{};
-		imageInfos[0] = { image.Sampler, image.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
-		imageInfos[1] = { bloom.Sampler, bloom.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
-		VkWriteDescriptorSet writes[2]{};
-		for (uint32_t i = 0; i < 2; i++)
+		const VkDescriptorImageInfo imageInfos[4] = { GetSampledImage(image), GetSampledImage(bloom), GetSampledImage(circleOfConfusion),
+			GetSampledImage(depthOfField) };
+		VkWriteDescriptorSet writes[4]{};
+		for (uint32_t i = 0; i < 4; i++)
 		{
 			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writes[i].dstSet = view.TonemapSet;
@@ -2498,12 +2729,13 @@ namespace Hydro
 			writes[i].descriptorCount = 1;
 			writes[i].pImageInfo = &imageInfos[i];
 		}
-		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 2, writes, 0, nullptr);
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 4, writes, 0, nullptr);
 
 		TonemapPushConstants constants;
 		constants.ExposureScale = std::exp2(std::clamp(view.PostProcess.Exposure, -16.0f, 16.0f));
 		// Level 0 holds every level added together (the up chain): divide by the count for one level's worth.
 		constants.BloomIntensity = view.BloomDrawn ? std::max(view.PostProcess.BloomIntensity, 0.0f) / (float)view.BloomLevels.size() : 0.0f;
+		constants.DepthOfField = view.DofDrawn ? 1.0f : 0.0f;
 
 		pipeline->Bind(context.CommandBuffer, view.Target->GetExtent());
 		pipeline->BindDescriptorSet(context.CommandBuffer, 0, view.TonemapSet);
@@ -2876,8 +3108,34 @@ namespace Hydro
 					}));
 			}
 
+			// Depth of field (#135): at PostProcess, after the scene pass (whose End leaves the depth readable: the
+			// view's target gets SampledDepth), read by the Tonemap pass. Needs shared depth.
+			const bool depthOfField = settings.DepthOfField && settings.Depth == DepthMode::Shared;
+			if (settings.DepthOfField)
+			{
+				features.push_back(CreateScope<FunctionRenderFeature>("DepthOfField",
+					[](const RenderFeature& feature, const RenderGraphContext& context, std::vector<RenderValidationMessage>& out)
+					{
+						if (context.Settings.Depth != DepthMode::Shared)
+						{
+							AddValidationMessage(out, feature, RenderValidationSeverity::Error, "depth of field needs Depth = Shared");
+						}
+					},
+					[](RenderGraphBuilder& builder)
+					{
+						builder.RequireSampledDepth();
+						builder.ImportResource("HDRColor");
+						builder.ImportResource("Depth");
+						builder.AddPass({ DepthOfFieldPassName, RenderStage::PostProcess, { "HDRColor", "Depth" }, { "DepthOfFieldTexture" },
+							[](RenderPassContext& context)
+							{
+								RecordDepthOfField(context);
+							} });
+					}));
+			}
+
 			features.push_back(CreateScope<FunctionRenderFeature>("HDR", nullptr,
-				[bloom](RenderGraphBuilder& builder)
+				[bloom, depthOfField](RenderGraphBuilder& builder)
 				{
 					builder.RequireSceneColor(SceneColorFormat);
 					builder.ImportResource("HDRColor");
@@ -2886,6 +3144,10 @@ namespace Hydro
 					if (bloom)
 					{
 						reads.push_back("BloomTexture");
+					}
+					if (depthOfField)
+					{
+						reads.push_back("DepthOfFieldTexture");
 					}
 					builder.AddPass({ TonemapPassName, RenderStage::Resolve, reads, { "SceneColor" },
 						[](RenderPassContext& context)
@@ -2901,6 +3163,16 @@ namespace Hydro
 				[](const RenderFeature& feature, const RenderGraphContext&, std::vector<RenderValidationMessage>& out)
 				{
 					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "bloom needs HDR");
+				},
+				[](RenderGraphBuilder&) {}));
+		}
+		if (settings.HDR == false && settings.DepthOfField)
+		{
+			// Only to report it: the depth of field blurs the HDR scene colour.
+			features.push_back(CreateScope<FunctionRenderFeature>("DepthOfField",
+				[](const RenderFeature& feature, const RenderGraphContext&, std::vector<RenderValidationMessage>& out)
+				{
+					AddValidationMessage(out, feature, RenderValidationSeverity::Error, "depth of field needs HDR");
 				},
 				[](RenderGraphBuilder&) {}));
 		}
@@ -2961,6 +3233,10 @@ namespace Hydro
 			view.SceneColor.reset();
 			view.BloomLevels.clear(); // no HDR, no bloom: free the chain too (#157)
 		}
+		if (view.Graph->HasPass(DepthOfFieldPassName) == false)
+		{
+			ReleaseDepthOfField(view);
+		}
 		else if (view.SceneColor == nullptr || view.SceneColor->GetSpecification().ColorFormats[0] != sceneColorFormat)
 		{
 			RenderTargetSpecification specification;
@@ -2971,14 +3247,16 @@ namespace Hydro
 			view.SceneColor = CreateScope<VulkanRenderTarget>(specification);
 		}
 
-		// A target recreation when the features need other attachments (depth, entity ID). The old images go
+		// A target recreation when the features need other attachments (depth, a readable depth, entity ID). The old images go
 		// through the deletion queue.
 		const RenderTargetSpecification& current = view.Target->GetSpecification();
-		if (view.Graph->GetDepthFormat() != current.DepthFormat || view.Graph->NeedsEntityID() != current.EntityID)
+		if (view.Graph->GetDepthFormat() != current.DepthFormat || view.Graph->NeedsEntityID() != current.EntityID
+			|| view.Graph->NeedsSampledDepth() != current.SampledDepth)
 		{
 			RenderTargetSpecification specification = current;
 			specification.DepthFormat = view.Graph->GetDepthFormat();
 			specification.EntityID = view.Graph->NeedsEntityID();
+			specification.SampledDepth = view.Graph->NeedsSampledDepth();
 			view.Target = CreateScope<VulkanRenderTarget>(specification);
 			for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 			{

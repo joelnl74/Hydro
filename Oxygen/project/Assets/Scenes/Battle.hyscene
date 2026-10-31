@@ -2259,20 +2259,20 @@ Entities:
   RelationshipComponent:
     Parent: 6972421333850721569
   TransformComponent:
-    Translation: [-2.9684, 1.4291, -0.1482]
+    Translation: [-2.9684, 1.4786, -0.2151]
     Rotation: [0, 0, 0]
-    Scale: [1.24, 1.24, 1.0]
+    Scale: [1.8, 1.8, 1.0]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 20
-    TextureHandle: 3596799573489577125
+    TextureHandle: 2231509320045323730
     SpriteIndex: 0
     FlipX: false
     FlipY: false
     Facing: Upright
   SpriteAnimatorComponent:
-    AnimationsHandle: 2173924343473726646
+    AnimationsHandle: 6768414324819546491
     StartClip: Bounce
     PlayOnStart: true
     Speed: 1
@@ -2282,21 +2282,21 @@ Entities:
   RelationshipComponent:
     Parent: 6972421333850721569
   TransformComponent:
-    Translation: [-2.9684, 1.4171, -0.14]
+    Translation: [-2.9684, 1.4696, -0.2152]
     Rotation: [0, 0, 0]
-    Scale: [1.1711, 1.1711, 1.0]
+    Scale: [1.8, 1.8, 1.0]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 21
-    TextureHandle: 3546812827052914949
+    TextureHandle: 671399588655706780
     Sprite: Wisp_0
     SpriteIndex: 0
     FlipX: false
     FlipY: false
     Facing: Upright
   SpriteAnimatorComponent:
-    AnimationsHandle: 381359539372406047
+    AnimationsHandle: 376943688061053864
     StartClip: Float
     PlayOnStart: true
     Speed: 1
@@ -2354,20 +2354,20 @@ Entities:
   RelationshipComponent:
     Parent: 2989891105357014596
   TransformComponent:
-    Translation: [-1.1923, -1.5866, -0.1482]
+    Translation: [-1.1923, -1.5371, -0.2151]
     Rotation: [0, 0, 0]
-    Scale: [1.24, 1.24, 1.0]
+    Scale: [1.8, 1.8, 1.0]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 22
-    TextureHandle: 3596799573489577125
+    TextureHandle: 2231509320045323730
     SpriteIndex: 0
     FlipX: false
     FlipY: false
     Facing: Upright
   SpriteAnimatorComponent:
-    AnimationsHandle: 2173924343473726646
+    AnimationsHandle: 6768414324819546491
     StartClip: Bounce
     PlayOnStart: true
     Speed: 1
@@ -2377,21 +2377,21 @@ Entities:
   RelationshipComponent:
     Parent: 2989891105357014596
   TransformComponent:
-    Translation: [-1.1923, -1.5986, -0.14]
+    Translation: [-1.1923, -1.5461, -0.2152]
     Rotation: [0, 0, 0]
-    Scale: [1.1711, 1.1711, 1.0]
+    Scale: [1.8, 1.8, 1.0]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 23
-    TextureHandle: 3546812827052914949
+    TextureHandle: 671399588655706780
     Sprite: Wisp_0
     SpriteIndex: 0
     FlipX: false
     FlipY: false
     Facing: Upright
   SpriteAnimatorComponent:
-    AnimationsHandle: 381359539372406047
+    AnimationsHandle: 376943688061053864
     StartClip: Float
     PlayOnStart: true
     Speed: 1
@@ -2449,20 +2449,20 @@ Entities:
   RelationshipComponent:
     Parent: 8960088604025558754
   TransformComponent:
-    Translation: [-4.005, -1.115, -0.1482]
+    Translation: [-4.005, -1.0655, -0.2151]
     Rotation: [0, 0, 0]
-    Scale: [1.24, 1.24, 1.0]
+    Scale: [1.8, 1.8, 1.0]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 24
-    TextureHandle: 3596799573489577125
+    TextureHandle: 2231509320045323730
     SpriteIndex: 0
     FlipX: false
     FlipY: false
     Facing: Upright
   SpriteAnimatorComponent:
-    AnimationsHandle: 2173924343473726646
+    AnimationsHandle: 6768414324819546491
     StartClip: Bounce
     PlayOnStart: true
     Speed: 1
@@ -2472,21 +2472,21 @@ Entities:
   RelationshipComponent:
     Parent: 8960088604025558754
   TransformComponent:
-    Translation: [-4.005, -1.127, -0.14]
+    Translation: [-4.005, -1.0745, -0.2152]
     Rotation: [0, 0, 0]
-    Scale: [1.1711, 1.1711, 1.0]
+    Scale: [1.8, 1.8, 1.0]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 25
-    TextureHandle: 3546812827052914949
+    TextureHandle: 671399588655706780
     Sprite: Wisp_0
     SpriteIndex: 0
     FlipX: false
     FlipY: false
     Facing: Upright
   SpriteAnimatorComponent:
-    AnimationsHandle: 381359539372406047
+    AnimationsHandle: 376943688061053864
     StartClip: Float
     PlayOnStart: true
     Speed: 1

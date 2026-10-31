@@ -6,24 +6,40 @@ SpriteAnimationSet:
   Clips:
     - Name: Idle
       Loop: Loop
-      FrameRate: 4
+      FrameRate: 5
+      Frames: [Miko_0, Miko_1, Miko_2, Miko_3]
+    - Name: IdleDown
+      Loop: Loop
+      FrameRate: 5
       Frames: [Miko_0, Miko_1, Miko_2, Miko_3]
     - Name: WalkDown
       Loop: Loop
-      FrameRate: 10
-      Frames: [Miko_8, Miko_9, Miko_10, Miko_11, Miko_12, Miko_13, Miko_14, Miko_15]
+      FrameRate: 9
+      Frames: [Miko_8, Miko_9, Miko_10, Miko_11, Miko_12, Miko_13]
     - Name: WalkRight
       Loop: Loop
-      FrameRate: 10
-      Frames: [Miko_16, Miko_17, Miko_18, Miko_19, Miko_20, Miko_21, Miko_22, Miko_23]
+      FrameRate: 9
+      Frames: [Miko_16, Miko_17, Miko_18, Miko_19, Miko_20, Miko_21]
     - Name: WalkUp
       Loop: Loop
-      FrameRate: 10
-      Frames: [Miko_24, Miko_25, Miko_26, Miko_27, Miko_28, Miko_29, Miko_30, Miko_31]
+      FrameRate: 9
+      Frames: [Miko_24, Miko_25, Miko_26, Miko_27, Miko_28, Miko_29]
     - Name: WalkLeft
       Loop: Loop
-      FrameRate: 10
-      Frames: [Miko_32, Miko_33, Miko_34, Miko_35, Miko_36, Miko_37, Miko_38, Miko_39]
+      FrameRate: 9
+      Frames: [Miko_32, Miko_33, Miko_34, Miko_35, Miko_36, Miko_37]
+    - Name: IdleRight
+      Loop: Loop
+      FrameRate: 5
+      Frames: [Miko_64, Miko_65, Miko_66, Miko_67]
+    - Name: IdleUp
+      Loop: Loop
+      FrameRate: 5
+      Frames: [Miko_72, Miko_73, Miko_74, Miko_75]
+    - Name: IdleLeft
+      Loop: Loop
+      FrameRate: 5
+      Frames: [Miko_80, Miko_81, Miko_82, Miko_83]
     - Name: Kick
       Loop: Once
       FrameRate: 10

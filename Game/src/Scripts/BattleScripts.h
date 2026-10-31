@@ -113,7 +113,8 @@ namespace Hydro
 		int SkillCost[2];
 		float SkillPower[2];
 		bool SkillHeals[2];
-		// The hero's clips (Characters/<Name>/<Name>.hyanim) for the two skills ("Punch" / "Kick"), whether a skill
+		// The hero's clips (Characters/<Name>/<Name>.hyanim) for the two skills ("Kick" strikes as a kick, any other clip
+		// as a punch, e.g. "Punch" or "DoublePunch", whose hit lands at PunchImpactTime), whether a skill
 		// walks up to its target first (a strike) or is used from where the hero stands, the item clip, and the
 		// fighting-stance loop she holds between actions (and while guarding), not the field Idle.
 		const char* SkillClip[2];
@@ -133,7 +134,7 @@ namespace Hydro
 	{
 		static const HeroDefinition heroes[HeroCount] = {
 			{ "Miko", BattleLabel::Miko, 90, 32, 10, 8, 9, DamageType::Blunt,
-				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Kick", "Punch" }, { true, true }, "BattleIdle", "BattleIdle" },
+				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Kick", "DoublePunch" }, { true, true }, "BattleIdle", "BattleIdle" },
 		};
 		return heroes[index];
 	}
@@ -1286,7 +1287,19 @@ namespace Hydro
 			m_Action.StepTime = 0.0f;
 			m_Action.EffectStarted = false;
 			m_Action.Landed = false;
-			SpriteAnimator::Play(EntityOf(m_Heroes[m_Action.Actor].Sprite), CurrentMove() == StrikeMove::Punch ? "Punch" : "Kick", true);
+			// A skill plays its own clip (Holy Palm: DoublePunch); Attack alternates Punch and Kick. A sheet without the
+			// skill's clip falls back to the move's.
+			const Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
+			const char* moveClip = CurrentMove() == StrikeMove::Punch ? "Punch" : "Kick";
+			const char* clip = moveClip;
+			if (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB)
+			{
+				clip = GetHero(m_Action.Actor).SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1];
+			}
+			if (SpriteAnimator::Play(sprite, clip, true) == false)
+			{
+				SpriteAnimator::Play(sprite, moveClip, true);
+			}
 			m_Action.Strike++;
 		}
 

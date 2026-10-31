@@ -150,6 +150,11 @@ namespace Hydro
 
 		// ---- Camera ------------------------------------------------------------------
 		glm::mat4 ViewProjection{ 1.0f };
+		// Renderer2D::SetViewFocus this frame (reset with the batches): where the camera looks on the ground and its
+		// view direction, which the depth of field measures from. HasFocus false: no depth of field this frame.
+		glm::vec3 FocusPoint{ 0.0f };
+		glm::vec3 FocusForward{ 0.0f, 0.0f, -1.0f };
+		bool HasFocus = false;
 		PerFrameBuffers UniformBuffers;  // the camera (UniformBufferObject), one buffer per frame in flight
 
 		// ---- Forward lighting (M6) -----------------------------------------------------
@@ -227,6 +232,14 @@ namespace Hydro
 		// the Bloom pass when the view's size or level count changes. After the pass level 0 holds the glow.
 		std::vector<Scope<VulkanRenderTarget>> BloomLevels;
 		bool BloomDrawn = false; // this frame: the Tonemap pass adds level 0
+		// Depth of field (#135), made by the DepthOfField pass when the view's size changes and dropped when it is
+		// off: the signed circle of confusion per pixel (R16F, the view's size; negative in front of the focus,
+		// in pixels), the scene colour at half size with it in alpha (RGBA16F), and that blurred (RGBA16F, half size;
+		// alpha: how far a blurred foreground reaches over the pixel). The Tonemap pass mixes them in.
+		Scope<VulkanRenderTarget> DofCoc;
+		Scope<VulkanRenderTarget> DofHalf;
+		Scope<VulkanRenderTarget> DofBlur;
+		bool DofDrawn = false; // this frame: the Tonemap pass mixes in DofBlur by DofCoc
 
 		// ---- Sun shadows (R14) ------------------------------------------------------------
 		// The SunShadows feature's depth map (DEPTH32F, RendererSettings::SunShadowMapSize square), made the

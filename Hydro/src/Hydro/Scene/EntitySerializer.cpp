@@ -526,6 +526,7 @@ namespace Hydro
 			out << YAML::Key << "OrthographicSize" << YAML::Value << camera.OrthographicSize;
 			out << YAML::Key << "OrthographicNear" << YAML::Value << camera.OrthographicNear;
 			out << YAML::Key << "OrthographicFar" << YAML::Value << camera.OrthographicFar;
+			out << YAML::Key << "FocusDistance" << YAML::Value << camera.FocusDistance;
 			out << YAML::EndMap;
 		}
 
@@ -1095,6 +1096,10 @@ namespace Hydro
 			camera.OrthographicSize = cameraNode["OrthographicSize"].as<float>(camera.OrthographicSize);
 			camera.OrthographicNear = cameraNode["OrthographicNear"].as<float>(camera.OrthographicNear);
 			camera.OrthographicFar = cameraNode["OrthographicFar"].as<float>(camera.OrthographicFar);
+			if (auto focusDistance = cameraNode["FocusDistance"])
+			{
+				camera.FocusDistance = focusDistance.as<float>(camera.FocusDistance);
+			}
 		}
 
 		if (auto lightNode = entityNode["Light2DComponent"])

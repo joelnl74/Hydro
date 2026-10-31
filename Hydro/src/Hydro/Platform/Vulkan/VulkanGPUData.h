@@ -66,7 +66,8 @@ namespace Hydro
 	{
 		float ExposureScale = 1.0f;  // 2^Exposure
 		float BloomIntensity = 0.0f; // 0 = no bloom (binding 1 is then the scene colour, unread)
-		float Padding[2] = { 0.0f, 0.0f };
+		float DepthOfField = 0.0f;   // 1 = mix in the depth of field's blur (bindings 2 and 3); 0 = they are unread
+		float Padding = 0.0f;
 	};
 	static_assert(sizeof(TonemapPushConstants) == 16, "TonemapPushConstants: must match the push_constant block in tonemap.frag");
 
@@ -77,6 +78,17 @@ namespace Hydro
 		glm::vec4 Params{ 0.0f };
 	};
 	static_assert(sizeof(BloomPushConstants) == 16, "BloomPushConstants: must match the push_constant blocks of the bloom shaders");
+
+	// Push constants (std430) of the depth of field passes (dof_coc.frag, dof_prepare.frag, dof_blur.frag; #135),
+	// shared through dof_common.glsl. 112 bytes: within the 128 every Vulkan GPU allows.
+	struct DepthOfFieldPushConstants
+	{
+		glm::mat4 InverseViewProjection{ 1.0f }; // clip space -> world, for the circle of confusion from depth
+		glm::vec4 Focus{ 0.0f };   // xyz: the camera's view direction (unit); w: dot(focus point, direction)
+		glm::vec4 Band{ 0.0f };    // x: near start, y: far start (metres), z: 1 / range, w: largest radius in full-size pixels
+		glm::vec4 Texel{ 0.0f };   // xy: one texel of the pass's source in UV; z: largest radius in the pass's pixels; w: the gather's step
+	};
+	static_assert(sizeof(DepthOfFieldPushConstants) == 112, "DepthOfFieldPushConstants: must match the push_constant block in dof_common.glsl");
 
 	// Push constants (std430) of a drawn object: its transform, its entity (-1 = none) for the Editor view's
 	// entity-ID attachment, and its material's index. 80 bytes, within the 128 Vulkan guarantees. Used by

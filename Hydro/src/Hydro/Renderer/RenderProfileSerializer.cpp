@@ -49,6 +49,11 @@ namespace Hydro
 		out << YAML::Key << "BloomKnee" << YAML::Value << postProcess.BloomKnee;
 		out << YAML::Key << "BloomIntensity" << YAML::Value << postProcess.BloomIntensity;
 		out << YAML::Key << "BloomRadius" << YAML::Value << postProcess.BloomRadius;
+		out << YAML::Key << "DepthOfField" << YAML::Value << postProcess.DepthOfField;
+		out << YAML::Key << "DofNearStart" << YAML::Value << postProcess.DofNearStart;
+		out << YAML::Key << "DofFarStart" << YAML::Value << postProcess.DofFarStart;
+		out << YAML::Key << "DofRange" << YAML::Value << postProcess.DofRange;
+		out << YAML::Key << "DofMaxRadius" << YAML::Value << postProcess.DofMaxRadius;
 		out << YAML::EndMap;
 	}
 
@@ -83,6 +88,27 @@ namespace Hydro
 		if (auto radius = node["BloomRadius"])
 		{
 			postProcess.BloomRadius = radius.as<float>(postProcess.BloomRadius);
+		}
+		// Saved before depth of field (#135): no keys, the defaults.
+		if (auto depthOfField = node["DepthOfField"])
+		{
+			postProcess.DepthOfField = depthOfField.as<bool>(postProcess.DepthOfField);
+		}
+		if (auto nearStart = node["DofNearStart"])
+		{
+			postProcess.DofNearStart = nearStart.as<float>(postProcess.DofNearStart);
+		}
+		if (auto farStart = node["DofFarStart"])
+		{
+			postProcess.DofFarStart = farStart.as<float>(postProcess.DofFarStart);
+		}
+		if (auto range = node["DofRange"])
+		{
+			postProcess.DofRange = range.as<float>(postProcess.DofRange);
+		}
+		if (auto maxRadius = node["DofMaxRadius"])
+		{
+			postProcess.DofMaxRadius = maxRadius.as<float>(postProcess.DofMaxRadius);
 		}
 		return postProcess;
 	}

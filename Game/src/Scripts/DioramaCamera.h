@@ -187,6 +187,7 @@ namespace Hydro
 					camera.OrthographicFar = s_TopDown.OrthographicFar;
 					transform.Translation.z = s_TopDownZ;
 					transform.Rotation = glm::vec3(0.0f);
+					camera.FocusDistance = 0.0f;
 					s_Tilted = false;
 				}
 				s_TopDown = camera;
@@ -219,6 +220,9 @@ namespace Hydro
 			camera.PerspectiveFar = distance + 200.0f;
 			camera.OrthographicNear = 0.1f;
 			camera.OrthographicFar = distance + 200.0f;
+			// The depth of field focuses on what the camera looks at (the target's terrace plus the rise), not on where
+			// the view meets z = 0, which lies metres behind it when the camera aims above the ground.
+			camera.FocusDistance = distance;
 
 			const glm::vec3 focusPoint{ focus.x, focus.y, height };
 			transform.Translation = focusPoint - forward * distance;

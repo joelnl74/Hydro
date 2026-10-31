@@ -75,6 +75,9 @@ namespace Hydro
 		void RequireEntityIDAttachment() { m_EntityID = true; }
 		// An HDR scene colour target the scene pass draws into (P1), instead of the view's own colour.
 		void RequireSceneColor(ImageFormat format) { m_SceneColorFormat = format; }
+		// The depth attachment is sampled between the scene pass and the output pass (depth of field): the view's
+		// target leaves it readable after each pass.
+		void RequireSampledDepth() { m_SampledDepth = true; }
 
 	private:
 		std::vector<std::string> m_Imported;
@@ -84,6 +87,7 @@ namespace Hydro
 		ImageFormat m_DepthFormat = ImageFormat::None;
 		bool m_EntityID = false;
 		ImageFormat m_SceneColorFormat = ImageFormat::None;
+		bool m_SampledDepth = false;
 
 		friend class RenderGraph;
 	};
@@ -138,6 +142,8 @@ namespace Hydro
 		bool NeedsEntityID() const { return m_EntityID; }
 		// None: the scene draws into the view's colour (no HDR).
 		ImageFormat GetSceneColorFormat() const { return m_SceneColorFormat; }
+		// The depth attachment is read by a pass at PostProcess (RenderTargetSpecification::SampledDepth).
+		bool NeedsSampledDepth() const { return m_SampledDepth; }
 
 		// Validation only, for settings UI: the messages a graph built from `context` would report.
 		static std::vector<RenderValidationMessage> Validate(const std::vector<Scope<RenderFeature>>& features, const RenderGraphContext& context);
@@ -150,5 +156,6 @@ namespace Hydro
 		ImageFormat m_DepthFormat = ImageFormat::None;
 		bool m_EntityID = false;
 		ImageFormat m_SceneColorFormat = ImageFormat::None;
+		bool m_SampledDepth = false;
 	};
 }

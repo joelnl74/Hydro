@@ -11,6 +11,7 @@ namespace Hydro
 		RGBA16F,
 		RGBA32F,
 		RG32F,
+		R16F, // one half float per pixel (the depth of field's circle of confusion)
 
 		SRGB,
 

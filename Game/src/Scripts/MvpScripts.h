@@ -462,8 +462,9 @@ namespace Hydro
 				return;
 			}
 			UI::SetText(EntityOf(m_Prompt.Text), PromptFor(*nearest));
-			// Above the player's head, in either camera view (DioramaCamera.h): the World canvas sits on that point.
-			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, playerHeight), 2.35f);
+			// Just above the player's head, in either camera view (DioramaCamera.h): the World canvas sits on that point.
+			// 1.95 m (Oct 31, 2026, was 2.35): close over her hair, under the torii's shimenawa and door lintels.
+			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, playerHeight), 1.95f);
 			SetPosition(scene, m_Prompt.Canvas, overHead);
 
 			if (KeyPressed(KeyCode::E, m_Previous[1]) == false || m_Resting > 0.0f)

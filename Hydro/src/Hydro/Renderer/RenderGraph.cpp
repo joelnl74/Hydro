@@ -116,6 +116,7 @@ namespace Hydro
 		m_DepthFormat = builder.m_DepthFormat;
 		m_EntityID = builder.m_EntityID;
 		m_SceneColorFormat = builder.m_SceneColorFormat;
+		m_SampledDepth = builder.m_SampledDepth;
 
 		// Logged once per build (a pass-list rebuild happens only when the view's settings change).
 		for (const RenderValidationMessage& message : m_Messages)

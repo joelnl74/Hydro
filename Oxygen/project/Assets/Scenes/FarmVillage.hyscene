@@ -13,6 +13,7 @@ RenderSettings:
     UprightSprites: Vertical
     HDR: true
     Bloom: true
+    DepthOfField: true
 Look:
   ProfileHandle: 8644953574432083781
   Environment: Profile
@@ -31,7 +32,7 @@ Entities:
     TransformComponent:
       Translation: [0.0743739977, 18.107069, 2.25]
       Rotation: [0, 0, 0]
-      Scale: [3, 2.25, 3]
+      Scale: [2.5, 2.34375, 3]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -4072,7 +4073,7 @@ Entities:
       Scale: [1, 1, 1]
     DirectionalLightComponent:
       Color: [1, 0.800000012, 0.560000002]
-      Intensity: 1
+      Intensity: 0.7
       IsMainLight: true
       CastShadows: true
       ShadowStrength: 0.850000024
@@ -5953,7 +5954,7 @@ Entities:
       Type: Point
       Color: [1, 0.639999986, 0.300000012]
       Intensity: 2
-      Radius: 4.19999981
+      Radius: 5
       Height: 2.04999995
   - Entity: 387316135456893980
     TagComponent:
@@ -6016,7 +6017,7 @@ Entities:
       Type: Point
       Color: [1, 0.639999986, 0.300000012]
       Intensity: 2
-      Radius: 4.19999981
+      Radius: 5
       Height: 2.04999995
   - Entity: 7205180933316832023
     TagComponent:
@@ -6079,7 +6080,7 @@ Entities:
       Type: Point
       Color: [1, 0.639999986, 0.300000012]
       Intensity: 2
-      Radius: 4.19999981
+      Radius: 5
       Height: 2.04999995
   - Entity: 7120808577628254773
     TagComponent:
@@ -6142,7 +6143,7 @@ Entities:
       Type: Point
       Color: [1, 0.639999986, 0.300000012]
       Intensity: 2
-      Radius: 4.19999981
+      Radius: 5
       Height: 2.04999995
   - Entity: 6225815599518591935
     TagComponent:
@@ -6205,7 +6206,7 @@ Entities:
       Type: Point
       Color: [1, 0.639999986, 0.300000012]
       Intensity: 2
-      Radius: 4.19999981
+      Radius: 5
       Height: 2.04999995
   - Entity: 3550041563025270351
     TagComponent:
@@ -6268,7 +6269,7 @@ Entities:
       Type: Point
       Color: [1, 0.639999986, 0.300000012]
       Intensity: 2
-      Radius: 4.19999981
+      Radius: 5
       Height: 2.04999995
   - Entity: 1024210607062312365
     TagComponent:
@@ -6331,7 +6332,7 @@ Entities:
       Type: Point
       Color: [1, 0.639999986, 0.300000012]
       Intensity: 2
-      Radius: 4.19999981
+      Radius: 5
       Height: 2.04999995
   - Entity: 5335339550240714093
     TagComponent:
@@ -11588,7 +11589,7 @@ Entities:
     TransformComponent:
       Translation: [-9, -33.7999992, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.39999998, 1.39999998, 1]
+      Scale: [1.5, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11648,7 +11649,7 @@ Entities:
     TransformComponent:
       Translation: [-4.19999981, -35.2000008, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.39999998, 1.39999998, 1]
+      Scale: [1.5, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11708,7 +11709,7 @@ Entities:
     TransformComponent:
       Translation: [5.5999999, -34.4000015, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.39999998, 1.39999998, 1]
+      Scale: [1.5, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11768,7 +11769,7 @@ Entities:
     TransformComponent:
       Translation: [10.8000002, -35.4000015, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.39999998, 1.39999998, 1]
+      Scale: [1.5, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11828,7 +11829,7 @@ Entities:
     TransformComponent:
       Translation: [-12.1999998, -32.5999985, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.29999995, 1.29999995, 1]
+      Scale: [1.5, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11896,7 +11897,7 @@ Entities:
     TransformComponent:
       Translation: [12.3999996, -33, 0]
       Rotation: [0, 0, 0]
-      Scale: [1.29999995, 1.29999995, 1]
+      Scale: [1.5, 1.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1

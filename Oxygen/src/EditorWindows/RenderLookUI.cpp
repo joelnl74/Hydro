@@ -64,6 +64,21 @@ namespace Hydro
 		changed |= ImGui::SliderFloat("Radius", &postProcess.BloomRadius, 0.5f, 2.0f, "%.2f");
 		HelpMarker("How far the glow spreads.");
 		ImGui::EndDisabled();
+
+		ImGui::Separator();
+		ImGui::TextDisabled("Depth of field");
+		changed |= ImGui::Checkbox("Depth of field on", &postProcess.DepthOfField);
+		HelpMarker("With the DepthOfField render feature. Off: a quick before/after comparison (the feature stays on).\nDistances are metres along the view from where the camera's view meets the ground (as the fog's),\nin front of it (towards the camera) and behind it. The band between stays sharp: keep the player in it.");
+		ImGui::BeginDisabled(postProcess.DepthOfField == false);
+		changed |= ImGui::DragFloat("Near start", &postProcess.DofNearStart, 0.1f, 0.0f, 200.0f, "%.1f m");
+		HelpMarker("Metres in front of the focus point that stay sharp; nearer than that the foreground blurs.");
+		changed |= ImGui::DragFloat("Far start", &postProcess.DofFarStart, 0.1f, 0.0f, 200.0f, "%.1f m");
+		HelpMarker("Metres behind the focus point that stay sharp; further than that the background blurs.");
+		changed |= ImGui::DragFloat("Range", &postProcess.DofRange, 0.1f, 0.1f, 200.0f, "%.1f m");
+		HelpMarker("Metres beyond either start over which the blur grows to its largest.");
+		changed |= ImGui::SliderFloat("Max radius", &postProcess.DofMaxRadius, 0.0f, 3.0f, "%.2f %%");
+		HelpMarker("The largest blur radius, in percent of the view's height (0.6 = about 6 pixels at 1080 lines),\nso it looks the same in any window size. 0: no blur.");
+		ImGui::EndDisabled();
 		if (ImGui::Button("Reset post-processing"))
 		{
 			postProcess = ScenePostProcess{};

@@ -90,6 +90,17 @@ namespace Hydro
 				}
 				return true;
 			}
+
+			// Where the camera's view meets the ground (z = 0): what the fog and the depth of field measure from, so
+			// how far away the camera is doesn't matter. A camera looking level or up measures from itself.
+			glm::vec3 GetGroundFocus() const
+			{
+				if (Forward.z < -0.05f)
+				{
+					return Position + Forward * (-Position.z / Forward.z);
+				}
+				return Position;
+			}
 		};
 		static CameraBasis MakeCameraBasis(const glm::mat3& rotation, UprightSpriteMode upright);
 

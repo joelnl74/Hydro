@@ -30,6 +30,10 @@ namespace Hydro
 		{
 			out << YAML::Key << "StartScene" << YAML::Value << config.LegacyStartScene.generic_string();
 		}
+		if ((uint64_t)config.SceneTemplate != 0)
+		{
+			out << YAML::Key << "SceneTemplateHandle" << YAML::Value << (uint64_t)config.SceneTemplate;
+		}
 		out << YAML::EndMap;
 
 		out << YAML::Key << "Renderer" << YAML::Value << YAML::BeginMap;
@@ -96,6 +100,10 @@ namespace Hydro
 				config.StartScene = AssetHandle(node.as<uint64_t>(0));
 			if (auto node = projectNode["StartScene"])
 				config.LegacyStartScene = node.as<std::string>();
+			if (auto node = projectNode["SceneTemplateHandle"])
+			{
+				config.SceneTemplate = AssetHandle(node.as<uint64_t>(0));
+			}
 
 			if (YAML::Node rendererNode = data["Renderer"])
 			{

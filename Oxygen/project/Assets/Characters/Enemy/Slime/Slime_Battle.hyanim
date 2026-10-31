@@ -1,0 +1,11 @@
+# The slime in battle: 96 px cells, facing right (scripts/enemies/make_enemy_art.py).
+Handle: 6768414324819546491
+SpriteAnimationSet:
+  TextureHandle: 2231509320045323730
+  Texture: Slime_Battle.png
+  DefaultClip: Bounce
+  Clips:
+    - Name: Bounce
+      FrameRate: 5
+      Loop: Loop
+      Frames: [Slime_0, Slime_1, Slime_2, Slime_3]

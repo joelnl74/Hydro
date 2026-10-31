@@ -87,20 +87,24 @@ namespace Hydro
 		// Bloom (post-processing plan P2): a soft glow around what is brighter than the scene's threshold, added
 		// to the HDR scene colour before the tonemap. Needs HDR.
 		bool Bloom = false;
+		// Depth of field (#135): a half-resolution blur of what lies far in front of or behind the camera's focus
+		// point (the scene's DofNearStart / DofFarStart), mixed into the HDR scene colour before the tonemap.
+		// Needs HDR and Depth = Shared (the circle of confusion comes from the shared depth).
+		bool DepthOfField = false;
 
 		bool operator==(const RenderFeatureSettings& other) const
 		{
 			return Depth == other.Depth && SpriteSorting == other.SpriteSorting && Lighting == other.Lighting
 				&& DefaultSpriteAlpha == other.DefaultSpriteAlpha && Meshes == other.Meshes
 				&& Shadows == other.Shadows && SpriteShadows == other.SpriteShadows && UprightSprites == other.UprightSprites
-				&& HDR == other.HDR && Bloom == other.Bloom;
+				&& HDR == other.HDR && Bloom == other.Bloom && DepthOfField == other.DepthOfField;
 		}
 		bool operator!=(const RenderFeatureSettings& other) const { return (*this == other) == false; }
 
 		// Today's frame: painter's order, the 2D light buffer, no depth.
 		static RenderFeatureSettings Preset2D() { return {}; }
 		// Shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows with
-		// sun-facing sprite shadows, HDR with the Neutral tonemap, bloom.
+		// sun-facing sprite shadows, HDR with the Neutral tonemap, bloom, depth of field.
 		static RenderFeatureSettings Preset3D()
 		{
 			RenderFeatureSettings settings;
@@ -113,6 +117,7 @@ namespace Hydro
 			settings.SpriteShadows = SpriteShadowMode::FaceSun;
 			settings.HDR = true;
 			settings.Bloom = true;
+			settings.DepthOfField = true;
 			return settings;
 		}
 		// "2D", "3D" or "Custom".

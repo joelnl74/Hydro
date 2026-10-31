@@ -20,6 +20,11 @@ namespace Hydro
 		float OrthographicNear = -1.0f;
 		float OrthographicFar = 1.0f;
 
+		// Metres along the view to what the camera looks at: the depth of field's focus point (#135). 0 = where the
+		// view meets the ground (z = 0), as the fog measures. A camera script that aims above the ground (a diorama
+		// camera looking at a terrace) sets it, so the subject stays in the sharp band.
+		float FocusDistance = 0.0f;
+
 		glm::mat4 GetProjection(float aspectRatio) const
 		{
 			if (Projection == ProjectionType::Perspective)

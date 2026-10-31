@@ -2,8 +2,8 @@ Handle: 16527506524077974322
 Type: Texture2D
 TextureImport:
   Format: SRGB
-  Filter: Linear
-  Wrap: Repeat
+  Filter: Nearest
+  Wrap: Clamp
   SpriteMode: Multiple
   PixelsPerUnit: 32
   Slicing:
@@ -88,3 +88,11 @@ TextureImport:
     - {Name: Miko_69, Rect: [480, 768, 96, 96], Pivot: [0.5, 0.5]}
     - {Name: Miko_70, Rect: [576, 768, 96, 96], Pivot: [0.5, 0.5]}
     - {Name: Miko_71, Rect: [672, 768, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_72, Rect: [0, 864, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_73, Rect: [96, 864, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_74, Rect: [192, 864, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_75, Rect: [288, 864, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_76, Rect: [384, 864, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_77, Rect: [480, 864, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_78, Rect: [576, 864, 96, 96], Pivot: [0.5, 0.5]}
+    - {Name: Miko_79, Rect: [672, 864, 96, 96], Pivot: [0.5, 0.5]}

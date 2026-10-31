@@ -86,6 +86,7 @@ namespace Hydro
 		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
 		Renderer2D::SetPostProcess(m_Scene->GetActivePostProcess());
+		Renderer2D::SetViewFocus(m_Camera.GetGroundFocus(), m_Camera.Forward);
 		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();
@@ -126,6 +127,11 @@ namespace Hydro
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
 		Renderer2D::SetPostProcess(m_Scene->GetActivePostProcess());
+		// The depth of field focuses on what the camera looks at when it says how far that is (SceneCamera::FocusDistance),
+		// else on its point on the ground. The fog keeps measuring from the ground (FogOrigin).
+		const glm::vec3 focus = sceneCamera.FocusDistance > 0.0f ? m_Camera.Position + m_Camera.Forward * sceneCamera.FocusDistance
+			: m_Camera.GetGroundFocus();
+		Renderer2D::SetViewFocus(focus, m_Camera.Forward);
 		SubmitMeshes(view);
 		SubmitSprites();
 		SubmitLights();
@@ -1052,12 +1058,8 @@ namespace Hydro
 		lighting.CameraPosition = m_Camera.Position;
 		// Fog is measured from where the camera's view meets the ground (z = 0), so it doesn't depend on how far
 		// away the camera is: a top-down editor camera high above the scene isn't fogged out. A camera looking
-		// level or up measures from itself.
-		lighting.FogOrigin = m_Camera.Position;
-		if (m_Camera.Forward.z < -0.05f)
-		{
-			lighting.FogOrigin = m_Camera.Position + m_Camera.Forward * (-m_Camera.Position.z / m_Camera.Forward.z);
-		}
+		// level or up measures from itself. The depth of field measures from the same point (SetViewFocus).
+		lighting.FogOrigin = m_Camera.GetGroundFocus();
 
 		// The sun.
 		Entity sun = m_Scene->GetMainLight();

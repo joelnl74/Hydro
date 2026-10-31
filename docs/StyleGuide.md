@@ -25,9 +25,10 @@ References are for principles, never for copying. Use original designs, and neve
 
 | Thing | Rule |
 | --- | --- |
-| Density | **32 texels per metre** for every field asset (sprites, shape materials, model textures), within ±20 % (25.6–38.4): [world density](SpriteSizes.md#world-density-32-texels-per-metre-decided-2026-10-30). Check with `scripts/check_texel_density.py`. A sprite's world size is its transform scale; keep `PixelsPerUnit: 32` and use **Set Native Size**. |
+| Density | **32 texels per metre** for every field **environment** asset (props, plants, crops, shape materials, model textures), within ±20 % (25.6–38.4); actors follow the character density below: [world density](SpriteSizes.md#world-density-32-texels-per-metre-decided-2026-10-30). Check with `scripts/check_texel_density.py`. A sprite's world size is its transform scale; keep `PixelsPerUnit: 32` and use **Set Native Size**. |
 | Filtering | Nearest filtering and clamp on all pixel art; no mipmaps on sprites. |
-| Characters | Adults 50–58 px tall (1.6–1.8 m), Miko 52 px. Children about 40 px. Proportions about 3 heads. |
+| Character density (decided Nov 1, 2026) | **Actors are drawn a little finer than the world, on purpose: 38.4 texels per metre** (a 96 px cell shown 2.5 m wide). Miko, the monk and every new villager, party member and enemy use it; the world stays at 32. It gives faces and costumes room, keeps actors crisp against the lineless world, and sets our look apart from other HD-2D games. Same density for the whole cast, so they always match each other. It sits on the checker's +20 % edge, so `check_texel_density.py` passes it. Not a licence for other in-between values: 38.4 for actors, 32 for the world. |
+| Characters | Adults about 70–78 px tall including hair (about 1.8–2.0 m at 38.4 px/m): Miko 75 px with her topknot, the monk 78 px with his staff. Stooped elders 66–72 px, children about 55 px. Proportions about 3 heads. The villagers drawn Oct 30 (49–58 px at 32 px/m) are redrawn to this size. |
 | Props | Real-world size: barrel 0.6 x 0.9 m (about 20 x 29 px), crate 0.8 m, hay bale 0.9 x 0.65 m, door 1.1 x 2.2 m, a one-storey cottage 6–7 m wide. A prop may be shown down to 26 px/m to keep a footprint; never above 38. Approved barrels (Oct 30, 2026, at 30 px/m, never mirrored): `Sprites/Props/BarrelA`-`D`, `BarrelSideA`-`D`, `BarrelKeg`, `BarrelStackA`-`C`, `RainBarrelA`-`B`; plain brown wood with dark iron hoops only. |
 | Exceptions | Written in the [Sprite sizes](SpriteSizes.md) audit table, with a reason (today: the wheat at about 42 px/m). |
 | Cluster scale (decided Oct 30, 2026) | Same density is not enough: the **shapes painted inside** must be on Miko's scale too, or an asset still reads as "bigger pixels". Measured Oct 30: every kit texture, the thatch included, is exactly 32 texels/m, yet the thatch looked twice as coarse because it is painted as 16 px bundles in two flat tones. Rule: the repeating motif (a shingle, a stone, a straw bundle, a leaf clump) is **4–10 px** across; no flat single-colour area larger than about **6 x 6 px** except deliberate shadow; every material uses a 4–5 shade ramp so edges step through a mid-tone. Miko's sprite and the cut-stone wall (`MV_Stone_Cut`) are the reference for how fine a surface should look. |
@@ -85,9 +86,9 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 
 | Thing | Rule |
 | --- | --- |
-| Shape | Semi-chibi, about 3 heads tall, big readable head, simplified hands and feet; one clear silhouette feature per character (hat, staff, basket, beard). |
-| Authoring | **64 x 64 canvas**, low top-down view, 8 or 4 directions (PixelLab: same settings as Miko). |
-| Field sheet | `Characters/NPC/<Name>/<Name>.png` (the player in `Characters/Player/<Name>/`, enemies in `Characters/Enemy/<Name>/`): **96 x 72 cells**, rows Down, Right, Up, Left, columns 0–3 idle and 4–7 walk; feet on the bottom row; pivot `[0.5, 0]`; scale **3 x 2.25** (32 px/m). Idle-only NPCs: one row facing the camera. |
+| Shape | About 3 heads tall (not chibi), small expressive face, simplified hands and feet; one clear silhouette feature per character (hat, staff, basket, beard). |
+| Authoring | PixelLab **Pro**, **Character Size 56** for adults (52 for stooped elders, 42 for children), **Low Top-Down**, **Miko as the Style Character**; keep S, E, N, W. Full settings and prompts: the project's `Prompts/PIXELLAB_CHARACTER_PROMPTS_HD2D.md`. |
+| Field sheet | `Characters/NPC/<Name>/<Name>.png` (the player in `Characters/Player/<Name>/`, enemies in `Characters/Enemy/<Name>/`): **96 x 96 cells**, sprites cut **96 x 90** ending at the feet, pivot `[0.5, 0]`, scale **2.5 x 2.34375** (38.4 px/m). Built by `scripts/characters/build_miko_field.py` (the player) and `build_npc_idle.py` (NPCs), which also do the clean-up (palette snap, flicker fix, feet on the baseline, binary alpha). Idle-only NPCs still get the four idle directions so they can face Miko. The villagers' Oct 30 sheets (96 x 72 cells at 3 x 2.25) stay until they are redrawn. |
 | Animation | Idle 4 frames at 4 fps (breathing, a blink); walk 4–8 frames at 8–10 fps. Clips are `Idle<Dir>` / `Walk<Dir>` in `Characters/<Name>.hyanim`. |
 | Battle sheet | A separate, larger set: Miko's battle sheet uses 96 x 96 cells with a fighting-stance idle (`BattleIdle`), walk, kick, punch and death. Never reuse the field idle in battle. |
 | Costume | Medieval fantasy: wool, linen and leather in earthy dyes (cream, oat, russet, moss, woad blue, walnut). No modern clothing. Shrine culture shows in paper charms, wooden tokens and spiral symbols. |
@@ -142,15 +143,15 @@ The village's barrels are sprites now; `MV_Barrel` is left only behind the inn's
 
 ### Generating with PixelLab (characters, props, crops)
 
-- Characters: **Create Character**, size **64 x 64**, view **low top-down**, 4 or 8 directions; then animations on that character (idle, walk). Paste the shared style block below, then one character line.
+- Characters: **Pro, Create with Style**, Character Size **56** (adults), view **low top-down**, Miko's saved character as the **Style Character**; then animations on that character (idle, walk). The prompts and the per-role sizes are in the project's `Prompts/PIXELLAB_CHARACTER_PROMPTS_HD2D.md` (section 3, villagers).
 - Props, crops and foliage: **create image** at the final size (for example 32 x 32 for a barrel, 64 x 64 for a tree clump); one object per image, or one row of objects on a transparent background.
 - Export the PNG (and the JSON for characters) into `art_incoming/` and let Claude import it.
 
 Shared style block for **actors** (characters, NPCs, enemies). For plants, crops and props use the lineless block in the project's `FOLIAGE_GENERATION_PROMPTS.md` / `FARM_REGEN_PROMPTS.md` and set PixelLab's Outline to "Lineless":
 
 ```text
-Authentic hand-pixeled 32-bit JRPG sprite in the HD-2D style of Octopath Traveler, semi-chibi proportions
-about 3 heads tall, large deliberate pixel clusters, limited palette with 3 to 5 shades per material,
+Authentic hand-pixeled 32-bit JRPG sprite in the HD-2D style of Octopath Traveler, proportions
+about 3 heads tall (not chibi), large deliberate pixel clusters, limited palette with 3 to 5 shades per material,
 selective dark outline in a darker shade of each colour (not pure black), soft cel shading lit from the
 upper left, warm muted medieval-fantasy colours, crisp aliased edges, transparent background.
 Do not add anti-aliasing, smooth gradients, painterly shading, tiny noisy detail, high-definition pixel art,
@@ -179,7 +180,7 @@ A file always moves with its `.hymeta` (the handle lives there, and scenes refer
 
 | Asset | Import |
 | --- | --- |
-| Character field sheet | `Characters/NPC/<Name>/<Name>.png`, `.hymeta` Grid 96 x 72, RowNames `<Name>_Down/Right/Up/Left`, DefaultPivot `[0.5, 0]`, Nearest, Clamp, PPU 32; clips in `<Name>.hyanim` next to the sheet |
+| Character field sheet | `Characters/NPC/<Name>/<Name>.png`, `.hymeta` Manual sprites 96 x 90 per 96 x 96 cell, pivot `[0.5, 0]`, Nearest, Clamp, PPU 32 (written by the build scripts); clips `Idle<Dir>` / `Walk<Dir>` in `<Name>.hyanim` next to the sheet; entity scale 2.5 x 2.34375 |
 | Prop or crop sprite | `Sprites/<Trees|Plants|Props>/<Name>.png` or `Sprites/Crops/<Name>.png`, SpriteMode Single, Nearest, Clamp, PPU 32; scale = pixels / 32; Upright facing; contact shadow |
 | Texture for a mesh or shape | Snap fake pixel art with `scripts/snap_pixel_texture.py`, then set Tiling for 32 texels per metre (the script prints it) |
 | Kit model | Edit `build_kit.py`, run it headless; the importer re-extracts textures when a `.glb` changes |
@@ -189,7 +190,7 @@ Code-generated art (`scripts/diorama_rpg/`, `scripts/shrine_glade/`, `scripts/fa
 ### Review checklist (before an asset is merged)
 
 1. Binary alpha, no painted checkerboard, nearest filtering.
-2. Density 32 px/m (±20 %) or an exception written in [Sprite sizes](SpriteSizes.md); `check_texel_density.py` passes.
+2. Density 32 px/m (±20 %) for the environment, 38.4 px/m for actors, or an exception written in [Sprite sizes](SpriteSizes.md); `check_texel_density.py` passes.
 3. Feet or base on the bottom row; correct pivot; it stands on the ground in a capture (`Oxygen --scene <Scene> --play --capture out.png`).
 4. Outline, shading direction and palette match Miko and the villagers side by side: actors outlined, environment lineless (under 20 % dark edge pixels); motifs 4–10 px, no flat areas over about 6 x 6 px.
 5. Seen in the game at dusk and at night: still readable, lights placed where the art shows sources.

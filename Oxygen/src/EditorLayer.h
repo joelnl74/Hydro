@@ -102,7 +102,10 @@ namespace Hydro
 		bool StoreOpenWindows();
 
 		// Scenes (.hyscene, YAML). These always work on the editor scene and stop play mode first.
+		// New Scene starts as a copy of the project's scene template (ProjectConfig::SceneTemplate) when it has
+		// one; New Empty Scene, or a template that can't be loaded, gives a scene with only a camera.
 		void NewScene();
+		void NewEmptyScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
 		void SaveScene();

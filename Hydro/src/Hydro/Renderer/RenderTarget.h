@@ -21,7 +21,8 @@ namespace Hydro
 		std::vector<ImageFormat> ColorFormats = { ImageFormat::SRGB };
 		// ImageFormat::None: no depth attachment.
 		ImageFormat DepthFormat = ImageFormat::None;
-		// The depth attachment is sampled after End (a shadow map): End moves it to SHADER_READ_ONLY_OPTIMAL.
+		// The depth attachment is sampled after End (a shadow map; a view's depth read by the depth of field):
+		// End moves it to SHADER_READ_ONLY_OPTIMAL, the next Begin back to its attachment layout.
 		// Otherwise it stays in its attachment layout.
 		bool SampledDepth = false;
 		// An extra R32I colour attachment after ColorFormats, for click-to-select (Editor view only).

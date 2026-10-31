@@ -1179,6 +1179,8 @@ namespace Hydro
 				DrawPropertyRow("Near", [&]() { InputFloatField("##Near", camera.OrthographicNear, "%.2f", -10000.0f, camera.OrthographicFar); });
 				DrawPropertyRow("Far", [&]() { InputFloatField("##Far", camera.OrthographicFar, "%.2f", camera.OrthographicNear, 10000.0f); });
 			}
+			DrawPropertyRow("Focus distance", [&]() { InputFloatField("##FocusDistance", camera.FocusDistance, "%.2f m", 0.0f, 100000.0f); });
+			ImGui::TextDisabled("Depth of field focus along the view; 0 = where the view meets the ground. Camera scripts may set it.");
 		});
 
 		DrawComponent<Light2DComponent>("Light 2D", entity, removeLight, [&](Light2DComponent& light)

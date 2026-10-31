@@ -1,0 +1,11 @@
+# The Spirit Wisp in battle: 96 px cells, facing right (scripts/enemies/make_enemy_art.py).
+Handle: 376943688061053864
+SpriteAnimationSet:
+  TextureHandle: 671399588655706780
+  Texture: Wisp_Battle.png
+  DefaultClip: Float
+  Clips:
+    - Name: Float
+      FrameRate: 8
+      Loop: Loop
+      Frames: [Wisp_0, Wisp_1, Wisp_2, Wisp_3, Wisp_4, Wisp_5]

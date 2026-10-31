@@ -11,6 +11,7 @@ namespace Hydro
 	//   AssetDirectory: Assets
 	//   StartSceneHandle: 1234567890123456789
 	// (older files have `StartScene: Scenes/Scene.hyscene`; it is read, and written back only while there is no handle)
+	//   SceneTemplateHandle: 1234567890123456789   (optional: the scene New Scene starts as)
 	// Renderer:
 	//   ClearColor: [0, 0, 0, 1]
 	//   VSync: true

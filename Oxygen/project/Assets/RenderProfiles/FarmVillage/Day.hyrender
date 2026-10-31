@@ -14,3 +14,8 @@ RenderProfile:
     BloomKnee: 0.5
     BloomIntensity: 0.3
     BloomRadius: 1
+    DepthOfField: true
+    DofNearStart: 3
+    DofFarStart: 12
+    DofRange: 18
+    DofMaxRadius: 0.4

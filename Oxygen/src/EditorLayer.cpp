@@ -481,6 +481,14 @@ namespace Hydro
 				{
 					NewScene();
 				}
+				if (ImGui::MenuItem("New Empty Scene"))
+				{
+					NewEmptyScene();
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("A scene with only a camera, without the project's scene template");
+				}
 				if (ImGui::MenuItem("Open Scene..."))
 				{
 					OpenScene();
@@ -1861,6 +1869,34 @@ namespace Hydro
 	}
 
 	void EditorLayer::NewScene()
+	{
+		// The project's scene template (Project Settings), when it has one that loads: the new scene starts as
+		// a copy of it (render settings, look, camera, light, director, ...), saved under a new name.
+		Ref<Project> project = Project::GetActive();
+		const AssetHandle sceneTemplate = project != nullptr ? project->GetConfig().SceneTemplate : AssetHandle(0);
+		if ((uint64_t)sceneTemplate != 0)
+		{
+			const AssetMetadata* metadata = AssetManager::GetMetadata(sceneTemplate);
+			if (metadata != nullptr && metadata->IsMissing == false)
+			{
+				Ref<Scene> scene = CreateRef<Scene>("Untitled", true);
+				SceneSerializer serializer(scene);
+				if (serializer.Deserialize(AssetManager::GetAssetDirectory() / metadata->Path))
+				{
+					scene->SetName("Untitled");
+					SetEditorScene(scene);
+					m_EditorScenePath.clear();
+					m_EditorSettings.Session.LastScene.clear();
+					HY_INFO("New scene from the template {}", metadata->Path.generic_string());
+					return;
+				}
+			}
+			HY_WARN("New Scene: the project's scene template can't be loaded; starting an empty scene");
+		}
+		NewEmptyScene();
+	}
+
+	void EditorLayer::NewEmptyScene()
 	{
 		SetEditorScene(CreateRef<Scene>("Untitled", true));
 		CreateDefaultCamera();

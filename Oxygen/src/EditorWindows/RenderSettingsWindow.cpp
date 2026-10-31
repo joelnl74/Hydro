@@ -103,6 +103,10 @@ namespace Hydro
 		changed |= ImGui::Checkbox("Bloom", &features.Bloom);
 		ImGui::EndDisabled();
 		HelpMarker("A soft glow around what is brighter than the scene's bloom threshold (lantern flames, lit windows,\nemissive materials). Needs HDR. Strength and threshold: Look (scene).");
+		ImGui::BeginDisabled(features.HDR == false || features.Depth != DepthMode::Shared);
+		changed |= ImGui::Checkbox("Depth of field", &features.DepthOfField);
+		ImGui::EndDisabled();
+		HelpMarker("Blurs what lies far in front of or behind where the camera looks, so the band the player walks in\nstays sharp (the tilt-shift look of a model). Needs HDR and shared depth. Distances and blur: Look (scene).");
 
 		// Errors leave the feature out (the frame still draws); warnings keep it.
 		const std::vector<RenderValidationMessage> messages = Renderer2D::ValidateRenderFeatures(features, false);

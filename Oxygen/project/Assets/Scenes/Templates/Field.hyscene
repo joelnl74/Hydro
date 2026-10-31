@@ -1,0 +1,241 @@
+Handle: 1052700000768556791
+Scene: Field
+RenderSettings:
+  OverrideProject: true
+  Features:
+    Depth: Shared
+    SpriteSorting: ViewDepth
+    Lighting: Forward
+    DefaultSpriteAlpha: Cutout
+    Meshes: true
+    Shadows: Sun
+    SpriteShadows: AsDrawn
+    UprightSprites: Vertical
+    HDR: true
+    Bloom: true
+    DepthOfField: true
+Look:
+  ProfileHandle: 8980317795236290852
+  Environment: Profile
+  PostProcess: Profile
+Environment:
+  SkyAmbient: [0.360000014, 0.280000001, 0.319999993]
+  GroundAmbient: [0.119999997, 0.0900000036, 0.0799999982]
+  Fog: true
+  FogColor: [0.660000026, 0.439999998, 0.360000014]
+  FogStart: 13
+  FogEnd: 38
+Entities:
+  - Entity: 500316016107051698
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, -14, 9]
+      Rotation: [1.22173047, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Perspective
+      PerspectiveFOV: 35
+      PerspectiveNear: 0.5
+      PerspectiveFar: 220
+      OrthographicSize: 12
+      OrthographicNear: -1
+      OrthographicFar: 1
+    NativeScriptComponent:
+      Scripts:
+        - Name: CameraFollowScript
+          Properties:
+            Bounds: [12, 12]
+            LookAhead: 1.5
+            Smoothing: 8
+  - Entity: 6106752217416643590
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [0, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 3]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 96
+      TextureHandle: 5407845820862445765
+      Sprite: Miko_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4798671707330513403
+      StartClip: IdleRight
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [1, 0.62]
+      Strength: 0.62
+    CharacterBodyComponent:
+      Radius: 0.25
+      Height: 1.39999998
+      MaxSlopeDegrees: 50
+      StepHeight: 0.349999994
+      StaysOnLedges: true
+      Layer: Player
+    NativeScriptComponent:
+      Scripts:
+        - Name: DioramaWalkScript
+          Properties:
+            RunMultiplier: 1.70000005
+            m_Speed: 3.5
+  - Entity: 2633532515144847099
+    TagComponent:
+      Tag: Directors
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1255473932070963918
+    TagComponent:
+      Tag: Field Director
+    RelationshipComponent:
+      Parent: 2633532515144847099
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+        - Name: FieldSceneScript
+          Properties:
+            SceneName: Field
+            TiltDegrees: 70
+            FieldOfView: 35
+            FocusLead: 3
+            FocusRise: 2.20000005
+            BoundsMin: [-10, -10]
+            BoundsMax: [10, 10]
+            StartPreset: 1
+            DayProfile: 939562278696158235
+            DuskProfile: 8980317795236290852
+            NightProfile: 650936910112136055
+  - Entity: 4217460799392227938
+    TagComponent:
+      Tag: Sky
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 5268105886239233163
+    TagComponent:
+      Tag: Sun
+    RelationshipComponent:
+      Parent: 4217460799392227938
+    TransformComponent:
+      Translation: [6, -6, 8]
+      Rotation: [0.982620001, 0, 0.570722997]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 0.720000029, 0.460000008]
+      Intensity: 0.75
+      IsMainLight: true
+      CastShadows: true
+      ShadowStrength: 1
+      ShadowDistance: 24
+      ShadowBias: 1
+  - Entity: 7853571542397765856
+    TagComponent:
+      Tag: Backdrop Sunset
+    RelationshipComponent:
+      Parent: 4217460799392227938
+    TransformComponent:
+      Translation: [0, 24, 6]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [64, 0.200000003, 24]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 4413571034817251968
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+  - Entity: 4606041109421023974
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Plane
+      Size: [40, 40, 0]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 8403729157865118956
+          Inline:
+            Tint: [1, 1, 1, 1]
+            Tiling: [1, 1]
+            EmissionColor: [0, 0, 0]
+            EmissionIntensity: 1
+            AlphaCutoff: 0
+            Filter: Nearest
+    BoxColliderComponent:
+      Offset: [0, 0, -0.5]
+      Size: [40, 40, 1]
+      Layer: World
+      IsTrigger: false
+  - Entity: 1357192934303483016
+    TagComponent:
+      Tag: Lanterns
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 5856695703261131753
+    TagComponent:
+      Tag: Lantern Example
+    RelationshipComponent:
+      Parent: 1357192934303483016
+    TransformComponent:
+      Translation: [2.5, 0.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3361055177642762314
+    TagComponent:
+      Tag: Stone Lantern Example
+    RelationshipComponent:
+      Parent: 5856695703261131753
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.14999998, 1.14999998, 1.14999998]
+    MeshComponent:
+      ModelHandle: 6017387236698300047
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4635682595098171328
+    TagComponent:
+      Tag: Light Lantern Example
+    RelationshipComponent:
+      Parent: 5856695703261131753
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.639999986, 0.300000012]
+      Intensity: 2.20000005
+      Radius: 5
+      Height: 1.33000004

@@ -73,7 +73,15 @@ namespace Hydro
 			}
 
 			const bool moving = move.x != 0.0f || move.y != 0.0f;
-			SpriteAnimator::Play(GetEntity(), (moving ? "Walk" + m_Facing : "Idle"));
+			// Standing still she keeps facing the way she walked (Idle<Facing>); a sheet with one "Idle" still works.
+			if (moving)
+			{
+				SpriteAnimator::Play(GetEntity(), "Walk" + m_Facing);
+			}
+			else if (SpriteAnimator::Play(GetEntity(), "Idle" + m_Facing) == false)
+			{
+				SpriteAnimator::Play(GetEntity(), "Idle");
+			}
 
 			glm::vec3 velocity{ 0.0f };
 			if (moving)
@@ -93,9 +101,9 @@ namespace Hydro
 	};
 
 	// One time of day for a diorama scene: the sun's colour and strength, how much of their strength the
-	// lanterns keep, and its render profile (post-processing plan P5: the ambient, fog, exposure and bloom).
-	// The ambient and fog colours are the fallback when the profile file is missing; keep them in step with the
-	// profiles (written by the scene's build script).
+	// lanterns and the lit windows keep, and its render profile (post-processing plan P5: the ambient, fog, exposure
+	// and bloom). The ambient and fog colours are the fallback when the profile file is missing; keep them in step
+	// with the profiles (RenderProfiles/<Scene>/*.hyrender; their builders aren't in the repository right now).
 	struct DioramaScenePreset
 	{
 		const char* Name;
@@ -106,6 +114,7 @@ namespace Hydro
 		glm::vec3 GroundAmbient;
 		glm::vec3 FogColor;
 		float LanternFactor;
+		float WindowFactor; // the "Light Window *" point lights' strength (0 = off, 1 = as placed)
 	};
 
 	// A scene's camera framing in the tilted view (DioramaView's Scene* settings).
@@ -123,8 +132,10 @@ namespace Hydro
 	// it and gives its framing and three presets (ShrineGladeScript, FarmVillageScript).
 	//   - Starts in the tilted diorama view with the scene's framing; reset when the scene ends.
 	//   - Owns the light (forward lit, M6): the render profile (environment and post-processing), the main
-	//     light (the sun's DirectionalLightComponent) and every point light whose tag starts "Light Lantern" or
-	//     "Light Fire" (flickering amber pools). Keys 1 / 2 / 3 switch the presets, L the lanterns on/off.
+	//     light (the sun's DirectionalLightComponent), every point light whose tag starts "Light Lantern" or
+	//     "Light Fire" (flickering amber pools, scaled by the preset's LanternFactor) and every one whose tag starts
+	//     "Light Window" (lit windows, scaled by its WindowFactor: dark by day, lit at dusk and night; an interior
+	//     also tints them with the sun, WindowsTakeSunColor). Keys 1 / 2 / 3 switch the presets, L the lanterns.
 	//   - The last preset applied is shared (s_LastPreset), so an interior can start in the light of the scene the
 	//     player came in from (FollowsOutsideLight).
 	class DioramaDirectorScript : public ScriptableEntity
@@ -138,7 +149,10 @@ namespace Hydro
 		virtual int GetStartPreset() const { return 1; }
 		// An interior starts in the time of day of the scene it was entered from (when there is one).
 		virtual bool FollowsOutsideLight() const { return false; }
-		// After a preset is applied (an interior lights its windows with it).
+		// The "Light Window *" lights take the preset's sun colour (an interior: the daylight through its windows)
+		// instead of keeping their own (a house seen from outside: its lamps behind the glass).
+		virtual bool WindowsTakeSunColor() const { return false; }
+		// After a preset is applied.
 		virtual void OnPresetApplied([[maybe_unused]] const DioramaScenePreset& preset) {}
 
 		void OnCreate() override
@@ -163,6 +177,10 @@ namespace Hydro
 				if (light.Type == Light2DType::Point && flickers)
 				{
 					m_Lanterns.push_back({ entity, light.Intensity, light.Radius, (float)m_Lanterns.size() * 1.9f });
+				}
+				if (light.Type == Light2DType::Point && tag.rfind("Light Window", 0) == 0)
+				{
+					m_Windows.push_back({ entity, light.Intensity, light.Color });
 				}
 			}
 			m_Preset = FollowsOutsideLight() && s_LastPreset >= 0 ? s_LastPreset : GetStartPreset();
@@ -220,6 +238,13 @@ namespace Hydro
 			float Phase = 0.0f;
 		};
 
+		struct WindowLight
+		{
+			entt::entity Entity = entt::null;
+			float BaseIntensity = 1.0f;
+			glm::vec3 BaseColor{ 1.0f };
+		};
+
 		void ApplyFraming()
 		{
 			const DioramaSceneFraming framing = GetFraming();
@@ -271,6 +296,19 @@ namespace Hydro
 				light.Color = preset.SunColor;
 				light.Intensity = preset.SunIntensity;
 			}
+			// The lit windows: their strength as placed times the preset's WindowFactor.
+			const bool sunColored = WindowsTakeSunColor();
+			for (const WindowLight& window : m_Windows)
+			{
+				if (scene.m_Registry.valid(window.Entity) == false)
+				{
+					continue;
+				}
+				Light2DComponent& light = scene.m_Registry.get<Light2DComponent>(window.Entity);
+				light.Color = sunColored ? preset.SunColor : window.BaseColor;
+				light.Intensity = window.BaseIntensity * preset.WindowFactor;
+			}
+
 			s_LastPreset = m_Preset;
 			OnPresetApplied(preset);
 			HY_INFO("{}: {}", GetSceneName(), preset.Name);
@@ -287,6 +325,7 @@ namespace Hydro
 		static inline int s_LastPreset = -1; // the preset of the director that applied one last (-1: none this run)
 
 		std::vector<Lantern> m_Lanterns;
+		std::vector<WindowLight> m_Windows;
 		int m_Preset = 1;
 		bool m_LanternsOn = true;
 		bool m_Previous[4] = { false, false, false, false };
@@ -333,9 +372,10 @@ namespace Hydro
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {
-				{ "Day", "RenderProfiles/ShrineGlade/Day.hyrender", { 1.00f, 0.95f, 0.85f }, 1.10f, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, 0.0f },
-				{ "Dusk", "RenderProfiles/ShrineGlade/Dusk.hyrender", { 1.00f, 0.72f, 0.46f }, 0.75f, { 0.36f, 0.28f, 0.32f }, { 0.12f, 0.09f, 0.08f }, { 0.66f, 0.44f, 0.36f }, 1.0f },
-				{ "Night", "RenderProfiles/ShrineGlade/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
+				// Dusk and night ambient lowered (Oct 31, 2026: 55% and 30% of before) so the lanterns carry the frame.
+				{ "Day", "RenderProfiles/ShrineGlade/Day.hyrender", { 1.00f, 0.95f, 0.85f }, 1.10f, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, 0.0f, 0.0f },
+				{ "Dusk", "RenderProfiles/ShrineGlade/Dusk.hyrender", { 1.00f, 0.72f, 0.46f }, 0.75f, { 0.198f, 0.154f, 0.176f }, { 0.066f, 0.0495f, 0.044f }, { 0.66f, 0.44f, 0.36f }, 1.0f, 1.0f },
+				{ "Night", "RenderProfiles/ShrineGlade/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.036f, 0.045f, 0.078f }, { 0.012f, 0.012f, 0.018f }, { 0.08f, 0.1f, 0.18f }, 1.4f, 1.15f }
 			};
 			return presets[std::clamp(index, 0, 2)];
 		}
@@ -380,13 +420,127 @@ namespace Hydro
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {
-				{ "Day", "RenderProfiles/FarmVillage/Day.hyrender", { 1.00f, 0.95f, 0.86f }, 1.15f, { 0.55f, 0.6f, 0.66f }, { 0.22f, 0.2f, 0.15f }, { 0.72f, 0.76f, 0.74f }, 0.0f },
-				{ "Golden", "RenderProfiles/FarmVillage/Golden.hyrender", { 1.00f, 0.80f, 0.56f }, 1.0f, { 0.42f, 0.36f, 0.3f }, { 0.16f, 0.12f, 0.08f }, { 0.78f, 0.6f, 0.38f }, 0.8f },
-				{ "Night", "RenderProfiles/FarmVillage/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.12f, 0.15f, 0.26f }, { 0.04f, 0.04f, 0.06f }, { 0.08f, 0.1f, 0.18f }, 1.15f }
+				// Golden-hour and night ambient lowered (Oct 31, 2026: 55% and 30% of before) so the lantern posts and the
+				// lit windows (dark by day) carry the frame.
+				{ "Day", "RenderProfiles/FarmVillage/Day.hyrender", { 1.00f, 0.95f, 0.86f }, 1.15f, { 0.55f, 0.6f, 0.66f }, { 0.22f, 0.2f, 0.15f }, { 0.72f, 0.76f, 0.74f }, 0.0f, 0.0f },
+				{ "Golden", "RenderProfiles/FarmVillage/Golden.hyrender", { 1.00f, 0.80f, 0.56f }, 0.7f, { 0.231f, 0.198f, 0.165f }, { 0.088f, 0.066f, 0.044f }, { 0.78f, 0.6f, 0.38f }, 0.8f, 1.0f },
+				{ "Night", "RenderProfiles/FarmVillage/Night.hyrender", { 0.55f, 0.65f, 1.00f }, 0.18f, { 0.036f, 0.045f, 0.078f }, { 0.012f, 0.012f, 0.018f }, { 0.08f, 0.1f, 0.18f }, 1.4f, 1.15f }
 			};
 			return presets[std::clamp(index, 0, 2)];
 		}
 	};
+	// On the director entity of a field scene made from the project's scene template
+	// (Assets/Scenes/Templates/Field.hyscene, see docs/TestBed.md "Scene template"). The same director as the Shrine
+	// Glade's, but with everything as fields instead of code, so a new scene gets the shrine's framing and its day /
+	// dusk / night light without writing a script: the three render profiles (RenderProfiles/Field/*.hyrender, copies
+	// of the shrine's; point a scene at its own copies to give it its own mood), the sun and how strongly the lanterns
+	// and lit windows burn in each. The defaults are the Shrine Glade's values; tune the framing while playing.
+	HY_SCRIPT()
+	class FieldSceneScript : public DioramaDirectorScript
+	{
+	public:
+		HY_PROPERTY(Tooltip("The scene's name in the log"))
+		std::string SceneName = "Field";
+		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
+		float TiltDegrees = 70.0f;
+		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
+		float FieldOfView = 35.0f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres the camera looks ahead of the player (up the screen)"))
+		float FocusLead = 3.0f;
+		HY_PROPERTY(Range(-20, 20), Tooltip("Metres above the player's ground the camera aims at"))
+		float FocusRise = 2.2f;
+		HY_PROPERTY(Tooltip("Lowest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMin{ -10.0f, -10.0f };
+		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
+		glm::vec2 BoundsMax{ 10.0f, 10.0f };
+		HY_PROPERTY(Range(0, 2), Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)"))
+		int StartPreset = 1;
+
+		// The three times of day.
+		HY_PROPERTY(Asset(RenderProfile), Tooltip("Day: ambient, fog, bloom and depth of field"))
+		AssetHandle DayProfile = 0;
+		HY_PROPERTY(Color, Tooltip("Day: the sun's colour"))
+		glm::vec3 DaySunColor{ 1.00f, 0.95f, 0.85f };
+		HY_PROPERTY(Range(0, 4), Tooltip("Day: the sun's strength"))
+		float DaySunIntensity = 1.10f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Day: lantern and fire lights' strength (0 = off, 1 = as placed)"))
+		float DayLanterns = 0.0f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Day: lit windows' strength (0 = off, 1 = as placed)"))
+		float DayWindows = 0.0f;
+
+		HY_PROPERTY(Asset(RenderProfile), Tooltip("Dusk: ambient, fog, bloom and depth of field"))
+		AssetHandle DuskProfile = 0;
+		HY_PROPERTY(Color, Tooltip("Dusk: the sun's colour"))
+		glm::vec3 DuskSunColor{ 1.00f, 0.72f, 0.46f };
+		HY_PROPERTY(Range(0, 4), Tooltip("Dusk: the sun's strength"))
+		float DuskSunIntensity = 0.75f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Dusk: lantern and fire lights' strength (0 = off, 1 = as placed)"))
+		float DuskLanterns = 1.0f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Dusk: lit windows' strength (0 = off, 1 = as placed)"))
+		float DuskWindows = 1.0f;
+
+		HY_PROPERTY(Asset(RenderProfile), Tooltip("Night: ambient, fog, bloom and depth of field"))
+		AssetHandle NightProfile = 0;
+		HY_PROPERTY(Color, Tooltip("Night: the moonlight's colour"))
+		glm::vec3 NightSunColor{ 0.55f, 0.65f, 1.00f };
+		HY_PROPERTY(Range(0, 4), Tooltip("Night: the moonlight's strength"))
+		float NightSunIntensity = 0.18f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Night: lantern and fire lights' strength (0 = off, 1 = as placed)"))
+		float NightLanterns = 1.4f;
+		HY_PROPERTY(Range(0, 3), Tooltip("Night: lit windows' strength (0 = off, 1 = as placed)"))
+		float NightWindows = 1.15f;
+
+	protected:
+		const char* GetSceneName() const override { return SceneName.c_str(); }
+		const char* GetHelp() const override
+		{
+			return "WASD walk, E interact, 1/2/3 day-dusk-night, L lanterns, V top-down / tilted";
+		}
+		DioramaSceneFraming GetFraming() const override
+		{
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
+		}
+		int GetStartPreset() const override { return StartPreset; }
+		// Built from the fields on every call, so edits in the inspector apply at the next preset switch. The
+		// ambient and fog colours are the Shrine Glade's, used only when a profile is missing.
+		const DioramaScenePreset& GetPreset(int index) const override
+		{
+			const int i = std::clamp(index, 0, 2);
+			const AssetHandle profiles[3] = { DayProfile, DuskProfile, NightProfile };
+			m_ProfilePaths[i] = ProfilePath(profiles[i]);
+			const char* profile = m_ProfilePaths[i].c_str();
+			if (i == 0)
+			{
+				m_Presets[i] = { "Day", profile, DaySunColor, DaySunIntensity, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, DayLanterns, DayWindows };
+			}
+			else if (i == 1)
+			{
+				m_Presets[i] = { "Dusk", profile, DuskSunColor, DuskSunIntensity, { 0.198f, 0.154f, 0.176f }, { 0.066f, 0.0495f, 0.044f }, { 0.66f, 0.44f, 0.36f }, DuskLanterns, DuskWindows };
+			}
+			else
+			{
+				m_Presets[i] = { "Night", profile, NightSunColor, NightSunIntensity, { 0.036f, 0.045f, 0.078f }, { 0.012f, 0.012f, 0.018f }, { 0.08f, 0.1f, 0.18f }, NightLanterns, NightWindows };
+			}
+			return m_Presets[i];
+		}
+
+	private:
+		// The profile's path relative to the asset folder (what DioramaScenePreset holds), or "(none)".
+		static std::string ProfilePath(AssetHandle profile)
+		{
+			if ((uint64_t)profile == 0)
+			{
+				return "(none)";
+			}
+			const AssetMetadata* metadata = AssetManager::GetMetadata(profile);
+			return metadata != nullptr ? metadata->Path.generic_string() : "(unknown)";
+		}
+
+		mutable DioramaScenePreset m_Presets[3] = {};
+		mutable std::string m_ProfilePaths[3];
+	};
+
 	// On an interior's director entity (the Farm Village's inn, Assets/Scenes/FarmVillageInn.hyscene, built by
 	// scripts/interiors/build_inn.py). Interiors are scenes of their own, pushed by a door ("Door Inn" in the village
 	// opens FarmVillageInn) and popped by "Door Out", so the village waits exactly as it was left. The room is built
@@ -434,48 +588,15 @@ namespace Hydro
 		const DioramaScenePreset& GetPreset(int index) const override
 		{
 			static const DioramaScenePreset presets[3] = {
-				{ "Day", "RenderProfiles/Interiors/Day.hyrender", { 1.00f, 0.93f, 0.80f }, 1.0f, { 0.34f, 0.3f, 0.26f }, { 0.14f, 0.11f, 0.08f }, { 0.0f, 0.0f, 0.0f }, 0.6f },
-				{ "Evening", "RenderProfiles/Interiors/Evening.hyrender", { 1.00f, 0.66f, 0.38f }, 0.7f, { 0.22f, 0.17f, 0.14f }, { 0.08f, 0.06f, 0.04f }, { 0.0f, 0.0f, 0.0f }, 1.0f },
-				{ "Night", "RenderProfiles/Interiors/Night.hyrender", { 0.50f, 0.62f, 1.00f }, 0.35f, { 0.1f, 0.1f, 0.14f }, { 0.04f, 0.03f, 0.03f }, { 0.0f, 0.0f, 0.0f }, 1.15f }
+				{ "Day", "RenderProfiles/Interiors/Day.hyrender", { 1.00f, 0.93f, 0.80f }, 1.0f, { 0.34f, 0.3f, 0.26f }, { 0.14f, 0.11f, 0.08f }, { 0.0f, 0.0f, 0.0f }, 0.6f, 1.0f },
+				{ "Evening", "RenderProfiles/Interiors/Evening.hyrender", { 1.00f, 0.66f, 0.38f }, 0.7f, { 0.22f, 0.17f, 0.14f }, { 0.08f, 0.06f, 0.04f }, { 0.0f, 0.0f, 0.0f }, 1.0f, 0.7f },
+				{ "Night", "RenderProfiles/Interiors/Night.hyrender", { 0.50f, 0.62f, 1.00f }, 0.35f, { 0.1f, 0.1f, 0.14f }, { 0.04f, 0.03f, 0.03f }, { 0.0f, 0.0f, 0.0f }, 1.15f, 0.35f }
 			};
 			return presets[std::clamp(index, 0, 2)];
 		}
 
-		void OnPresetApplied(const DioramaScenePreset& preset) override
-		{
-			Scene& scene = *GetEntity().GetScene();
-			if (m_WindowsFound == false)
-			{
-				m_WindowsFound = true;
-				auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
-				for (auto entity : lights)
-				{
-					if (lights.get<TagComponent>(entity).Tag.rfind("Light Window", 0) == 0)
-					{
-						m_Windows.push_back({ entity, lights.get<Light2DComponent>(entity).Intensity });
-					}
-				}
-			}
-			for (const WindowLight& window : m_Windows)
-			{
-				if (scene.m_Registry.valid(window.Entity) == false)
-				{
-					continue;
-				}
-				Light2DComponent& light = scene.m_Registry.get<Light2DComponent>(window.Entity);
-				light.Color = preset.SunColor;
-				light.Intensity = window.BaseIntensity * preset.SunIntensity;
-			}
-		}
-
-	private:
-		struct WindowLight
-		{
-			entt::entity Entity = entt::null;
-			float BaseIntensity = 1.0f;
-		};
-
-		std::vector<WindowLight> m_Windows;
-		bool m_WindowsFound = false;
+		// The windows (DioramaDirectorScript's "Light Window *" lights) let the daylight in: the sun's colour, at the
+		// preset's WindowFactor (its sun's strength).
+		bool WindowsTakeSunColor() const override { return true; }
 	};
 }

@@ -22,6 +22,9 @@ namespace Hydro
 		// read into this, and whoever opens the project turns it into `StartScene` once the asset registry
 		// exists (the editor does, and saves the project). Written back only while `StartScene` is 0.
 		std::filesystem::path LegacyStartScene;
+		// The scene a new scene starts as, by asset handle (the editor's New Scene loads it and saves the copy
+		// under a new name). 0 = a new scene is empty apart from a camera.
+		AssetHandle SceneTemplate = 0;
 
 		// Applied with Renderer::SetSettings when the project is opened.
 		RendererSettings Renderer;

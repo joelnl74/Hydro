@@ -1,8 +1,8 @@
 Handle: 7825868437817689624
 RenderProfile:
   Environment:
-    SkyAmbient: [0.360000014, 0.280000001, 0.319999993]
-    GroundAmbient: [0.119999997, 0.0900000036, 0.0799999982]
+    SkyAmbient: [0.198, 0.154, 0.176]
+    GroundAmbient: [0.066, 0.0495, 0.044]
     Fog: true
     FogColor: [0.660000026, 0.439999998, 0.360000014]
     FogStart: 13
@@ -14,3 +14,8 @@ RenderProfile:
     BloomKnee: 0.5
     BloomIntensity: 0.600000024
     BloomRadius: 1
+    DepthOfField: true
+    DofNearStart: 3
+    DofFarStart: 7
+    DofRange: 16
+    DofMaxRadius: 0.6
