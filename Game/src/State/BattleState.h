@@ -3,6 +3,7 @@
 
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
+#include "Rules/BattleRules.h"
 
 #include <algorithm>
 #include <array>
@@ -65,15 +66,15 @@ namespace Hydro
 		static HeroStats StatsAt(int index, int level)
 		{
 			const HeroDefinition& hero = HeroData(index);
-			const int steps = std::max(0, level - 1);
+			const CombatStats numbers = BattleRules::StatsAt(hero, level);
 			HeroStats stats;
 			stats.Name = hero.Name;
 			stats.Level = std::max(1, level);
-			stats.MaxHP = std::max(1, hero.Base.MaxHP + steps * hero.GrowthPerLevel.MaxHP);
-			stats.MaxMP = std::max(0, hero.Base.MaxMP + steps * hero.GrowthPerLevel.MaxMP);
-			stats.Attack = std::max(0, hero.Base.Attack + steps * hero.GrowthPerLevel.Attack);
-			stats.Magic = std::max(0, hero.Base.Magic + steps * hero.GrowthPerLevel.Magic);
-			stats.Speed = std::max(0, hero.Base.Speed + steps * hero.GrowthPerLevel.Speed);
+			stats.MaxHP = numbers.MaxHP;
+			stats.MaxMP = numbers.MaxMP;
+			stats.Attack = numbers.Attack;
+			stats.Magic = numbers.Magic;
+			stats.Speed = numbers.Speed;
 			const DamageType attackType = Ability(hero.BasicAttack).Type;
 			stats.WeaponType = attackType != DamageType::None ? attackType : hero.WeaponType;
 			stats.IdleClip = hero.IdleClip;

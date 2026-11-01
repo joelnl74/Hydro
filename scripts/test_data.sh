@@ -4,7 +4,8 @@
 #   1. the reflection generator's HY_DATA / HY_ENUM checks (Tools/DataTests/test_generator.py)
 #   2. the generated registration of Tools/DataTests/DataTestTypes.h, then Tools/DataTests/DataRoundTripTest.cpp
 #      built with g++ against the engine's Data/ sources, yaml-cpp and spdlog and a stand-in AssetManager
-#      (Tools/DataTests/TestAssetManager.cpp), with Tools/DataTests/ScriptSerializerTest.cpp, and run
+#      (Tools/DataTests/TestAssetManager.cpp), with Tools/DataTests/ScriptSerializerTest.cpp and GameRulesTest.cpp (the
+#      game's Rules/: battle and loot), and run
 # No window, GPU, project or MSVC. MSVC /W4 stays the real compile check.
 #
 # Usage: scripts/test_data.sh
@@ -52,7 +53,7 @@ cp -r "$ROOT/Hydro/src" "$OUT/src"
 sed -i 's/#error "Linux is not supported!"/#define HY_PLATFORM_LINUX/' "$OUT/src/Hydro/Core/PlatformDetection.h"
 
 FLAGS=(-std=c++17 -O0 -g -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFINE
-	-I"$OUT/src" -I"$OUT/gen" -I"$ROOT/Tools/DataTests"
+	-I"$OUT/src" -I"$OUT/gen" -I"$ROOT/Tools/DataTests" -I"$ROOT/Game/src"
 	-isystem "$V/glm" -isystem "$V/spdlog/include" -isystem "$V/yaml-cpp/include" -isystem "$V/entt")
 SOURCES=(
 	"$OUT/src/Hydro/Core/Log.cpp"
@@ -65,6 +66,7 @@ SOURCES=(
 	"$OUT/src/Hydro/Scene/Scripting/ScriptSerializer.cpp"
 	"$ROOT/Tools/DataTests/DataRoundTripTest.cpp"
 	"$ROOT/Tools/DataTests/ScriptSerializerTest.cpp"
+	"$ROOT/Tools/DataTests/GameRulesTest.cpp"
 	"$ROOT/Tools/DataTests/TestAssetManager.cpp"
 )
 

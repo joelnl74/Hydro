@@ -3,6 +3,7 @@
 
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
+#include "Rules/BattleRules.h"
 #include "Rules/LootRules.h"
 #include "Scripts/Common/DioramaCamera.h"
 #include "State/BattleState.h"
@@ -491,22 +492,14 @@ namespace Hydro
 				}
 			}
 
-			// Fastest first, with a little luck.
-			m_Order.clear();
-			std::vector<std::pair<float, int>> speeds;
+			// Fastest first, with a little luck (BattleRules::TurnOrder; -1 leaves a fallen actor out).
+			std::vector<int> speeds;
 			for (int actor = 0; actor < ActorCount; actor++)
 			{
-				if (ActorAlive(actor))
-				{
-					const int speed = IsHero(actor) ? GetHero(actor).Speed : GetEnemy(m_Enemies[EnemyIndex(actor)].Row).Stats.Speed;
-					speeds.push_back({ (float)speed + 3.0f * Random01(), actor });
-				}
+				const int speed = IsHero(actor) ? GetHero(actor).Speed : GetEnemy(m_Enemies[EnemyIndex(actor)].Row).Stats.Speed;
+				speeds.push_back(ActorAlive(actor) ? std::max(0, speed) : -1);
 			}
-			std::sort(speeds.begin(), speeds.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
-			for (const auto& entry : speeds)
-			{
-				m_Order.push_back(entry.second);
-			}
+			m_Order = BattleRules::TurnOrder(speeds, [this]() { return Random01(); });
 			m_Turn = -1;
 			HY_INFO("Battle: round {}", m_Round);
 			SetPhase(Phase::NextTurn);
@@ -1045,7 +1038,7 @@ namespace Hydro
 			{
 				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
 				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-				HealHero(m_Action.Target, (int)std::lround(BattleData::Skill(m_Action.Actor, s).Power * (float)definition.Magic * boost * (0.9f + 0.2f * Random01())));
+				HealHero(m_Action.Target, BattleRules::ResolveHeal(BattleData::Skill(m_Action.Actor, s).Power, definition.Magic, boost, Random01()));
 				m_Action.HitsDone++;
 				return;
 			}
@@ -1143,15 +1136,13 @@ namespace Hydro
 			{
 				m_Action.HitsDone = 1;
 				const Enemy& enemy = m_Enemies[EnemyIndex(m_Action.Actor)];
-				// Its plain attack: its Attack times the attack's Power (Abilities.hytable).
+				// Its plain attack or one of its abilities, by weight (BattleRules::ChooseEnemyAction): its Attack times
+				// the ability's Power (Abilities.hytable). Enemies only strike for now: an ability's other effects wait.
 				const EnemyDefinition& attacker = GetEnemy(enemy.Row);
-				const float power = attacker.BasicAttack.IsSet() ? BattleData::Ability(attacker.BasicAttack).Power : 1.0f;
-				int damage = (int)std::lround((float)attacker.Stats.Attack * power * (0.85f + 0.4f * Random01()));
+				const DataRowRef action = attacker.Abilities.empty() ? attacker.BasicAttack : BattleRules::ChooseEnemyAction(attacker, Random01());
+				const float power = action.IsSet() ? BattleData::Ability(action).Power : 1.0f;
 				Hero& target = m_Heroes[m_Action.Target];
-				if (target.Guarding)
-				{
-					damage = std::max(1, damage / 2);
-				}
+				const int damage = BattleRules::EnemyAttackDamage(attacker.Stats.Attack, power, target.Guarding, Random01());
 				BattleState::Get().HeroHP[m_Action.Target] = std::max(0, BattleState::Get().HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
 				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -1199,38 +1190,18 @@ namespace Hydro
 		{
 			Enemy& enemy = m_Enemies[index];
 			const EnemyDefinition& definition = GetEnemy(enemy.Row);
-			float multiplier = 1.0f;
-			bool weak = false;
-			bool resisted = false;
-			for (int w = 0; w < std::min(3, (int)definition.Weak.size()); w++)
+			// The rules (BattleRules::ResolveHit); the rolls in a fixed order: the critical, then the spread.
+			const float criticalRoll = Random01();
+			const float spreadRoll = Random01();
+			const BattleRules::HitResult hit = BattleRules::ResolveHit(definition, type, stat, power, IsBroken(enemy), criticalRoll, spreadRoll);
+			const bool weak = hit.Weak;
+			const bool resisted = hit.Resisted;
+			const bool critical = hit.Critical;
+			const int damage = hit.Damage;
+			if (hit.WeakSlot >= 0)
 			{
-				if (definition.Weak[(size_t)w] == type)
-				{
-					weak = true;
-					multiplier = 1.5f;
-					BattleState::Get().Revealed[enemy.Row][(size_t)w] = true;
-				}
+				BattleState::Get().Revealed[enemy.Row][(size_t)hit.WeakSlot] = true;
 			}
-			for (DamageType resist : definition.Resist)
-			{
-				if (resist == type)
-				{
-					resisted = true;
-					multiplier = 0.5f;
-				}
-			}
-
-			const bool critical = Random01() < 0.08f;
-			if (critical)
-			{
-				multiplier *= 1.5f;
-			}
-			if (IsBroken(enemy))
-			{
-				multiplier *= 2.0f;
-			}
-
-			const int damage = std::max(1, (int)std::lround(stat * power * multiplier * (0.9f + 0.2f * Random01())));
 			enemy.HP = std::max(0, enemy.HP - damage);
 			enemy.Flash = 0.3f;
 
@@ -1423,7 +1394,7 @@ namespace Hydro
 			return IsHero(actor) ? BattleState::Get().HeroHP[actor] > 0 : m_Enemies[EnemyIndex(actor)].Alive();
 		}
 
-		bool IsBroken(const Enemy& enemy) const { return enemy.BrokenUntilRound >= m_Round && enemy.BrokenUntilRound >= 0; }
+		bool IsBroken(const Enemy& enemy) const { return BattleRules::IsBroken(enemy.BrokenUntilRound, m_Round); }
 
 		int FirstLivingEnemy(int preferred) const
 		{
