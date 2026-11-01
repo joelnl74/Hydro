@@ -9,6 +9,7 @@
 #include "Data/FieldDefinitions.h"
 #include "Data/InventoryDefinition.h"
 #include "Data/ItemDefinition.h"
+#include "Data/LootDefinition.h"
 #include "Data/QuestDefinition.h"
 #include "Data/SceneLightingDefinition.h"
 
@@ -37,6 +38,13 @@ namespace Hydro
 			.Value("KeyItem", ItemKind::KeyItem)
 			.Value("Material", ItemKind::Material);
 
+		DataTypeRegistry::RegisterEnum<ItemRarity>("ItemRarity")
+			.Value("Common", ItemRarity::Common)
+			.Value("Uncommon", ItemRarity::Uncommon)
+			.Value("Rare", ItemRarity::Rare)
+			.Value("Epic", ItemRarity::Epic)
+			.Value("Legendary", ItemRarity::Legendary);
+
 		DataTypeRegistry::Register<AbilityDefinition>("AbilityDefinition", "Ability")
 			.Table()
 			.DisplayField("Name")
@@ -58,7 +66,8 @@ namespace Hydro
 
 		DataTypeRegistry::Register<EncounterDefinition>("EncounterDefinition", "Encounter")
 			.Table()
-			.Field<&EncounterDefinition::Enemies>("Enemies", "Enemies").Tooltip("Up to three, in slot order").DataTypeFilter("EnemyDefinition");
+			.Field<&EncounterDefinition::Enemies>("Enemies", "Enemies").Tooltip("Up to three, in slot order").DataTypeFilter("EnemyDefinition")
+			.Field<&EncounterDefinition::Loot>("Loot", "Loot").Tooltip("Rolled once the battle is won, on top of each enemy's own loot").DataTypeFilter("LootTableDefinition");
 
 		DataTypeRegistry::Register<EnemyAbility>("EnemyAbility", "Enemy Ability")
 			.Field<&EnemyAbility::Ability>("Ability", "Ability").DataTypeFilter("AbilityDefinition")
@@ -78,6 +87,7 @@ namespace Hydro
 			.Field<&EnemyDefinition::BasicAttack>("BasicAttack", "Basic Attack").Tooltip("Its plain attack (the damage is its Attack times the Power)").DataTypeFilter("AbilityDefinition")
 			.Field<&EnemyDefinition::Abilities>("Abilities", "Abilities").Tooltip("Other abilities, by weight (not used by the battle yet: enemies only attack)")
 			.Field<&EnemyDefinition::Experience>("Experience", "Experience").Range(0.0f, 99999.0f).Tooltip("Given to the party when it is defeated")
+			.Field<&EnemyDefinition::Loot>("Loot", "Loot").Tooltip("Rolled once the battle is won (Loot.hytable); unset: nothing").DataTypeFilter("LootTableDefinition")
 			.Field<&EnemyDefinition::FloatHeight>("FloatHeight", "Float Height").Range(0.0f, 3.0f).Tooltip("Metres it floats above the floor, bobbing (0: it stands); floating ones also sway in the field")
 			.Field<&EnemyDefinition::FieldSpeed>("FieldSpeed", "Field Speed").Range(0.0f, 3.0f).Tooltip("Its field speeds times this (wandering, chasing, going home)")
 			.Field<&EnemyDefinition::GlowColor>("GlowColor", "Glow Color").Tooltip("Its glow's colour in battle").Color()
@@ -140,10 +150,27 @@ namespace Hydro
 			.Field<&ItemDefinition::Name>("Name", "Name").Tooltip("Shown in the inventory")
 			.Field<&ItemDefinition::Description>("Description", "Description").Tooltip("The inventory's detail text")
 			.Field<&ItemDefinition::Kind>("Kind", "Kind")
+			.Field<&ItemDefinition::Rarity>("Rarity", "Rarity").Tooltip("How likely a loot table is to give it (the table's chance for this rarity)")
 			.Field<&ItemDefinition::Icon>("Icon", "Icon").Tooltip("Optional; the inventory has no icons yet").AssetFilter(AssetType::Texture2D)
 			.Field<&ItemDefinition::RestoreHP>("RestoreHP", "Restore HP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
 			.Field<&ItemDefinition::RestoreMP>("RestoreMP", "Restore MP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
 			.Field<&ItemDefinition::UsableInField>("UsableInField", "Usable In Field").Tooltip("Can be used from the field inventory");
+
+		DataTypeRegistry::Register<LootEntry>("LootEntry", "Loot Entry")
+			.Field<&LootEntry::Item>("Item", "Item").DataTypeFilter("ItemDefinition")
+			.Field<&LootEntry::MinCount>("MinCount", "Min Count").Range(1.0f, 99.0f)
+			.Field<&LootEntry::MaxCount>("MaxCount", "Max Count").Range(1.0f, 99.0f);
+
+		DataTypeRegistry::Register<LootTableDefinition>("LootTableDefinition", "Loot Table")
+			.Table()
+			.Field<&LootTableDefinition::DropChance>("DropChance", "Drop Chance").Range(0.0f, 100.0f).Tooltip("Percent chance that a roll gives anything at all")
+			.Field<&LootTableDefinition::Rolls>("Rolls", "Rolls").Range(0.0f, 10.0f).Tooltip("How many times the table is rolled")
+			.Field<&LootTableDefinition::Rarities>("Rarities", "Rarities").Tooltip("Each rarity's share; empty: every item is equally likely")
+			.Field<&LootTableDefinition::Items>("Items", "Items").Tooltip("What it can give; an item's rarity is its own (Items.hytable)");
+
+		DataTypeRegistry::Register<RarityChance>("RarityChance", "Rarity Chance")
+			.Field<&RarityChance::Rarity>("Rarity", "Rarity")
+			.Field<&RarityChance::Percent>("Percent", "Percent").Range(0.0f, 100.0f);
 
 		DataTypeRegistry::Register<QuestDefinition>("QuestDefinition", "Quest")
 			.Table()

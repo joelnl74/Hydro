@@ -2,6 +2,8 @@
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
 #include "DioramaCamera.h"
+#include "Rules/LootRules.h"
+#include "State/Inventory.h"
 
 #include <algorithm>
 #include <array>
@@ -269,6 +271,8 @@ namespace Hydro
 		Result Outcome = Result::None;     // set by the battle for that enemy to read when it is back
 		// The enemies (rows of Enemies.hytable; "" = an empty slot), in slot order.
 		std::array<std::string, MaxEnemies> Encounter{ "Slime", "", "" };
+		// The encounter's own loot table (EncounterDefinition::Loot), rolled on top of each enemy's; unset: none.
+		DataRowRef EncounterLoot;
 		// Weaknesses the party has found, per enemy row and weakness slot (kept for the whole run, as in a bestiary).
 		std::unordered_map<std::string, std::array<bool, 3>> Revealed;
 
@@ -630,6 +634,7 @@ namespace Hydro
 			slots = { m_Row, std::string(), std::string() };
 			int count = 1;
 			const DataView<EncounterDefinition> encounter = Encounter.IsSet() ? Data::GetRow<EncounterDefinition>(Encounter) : DataView<EncounterDefinition>();
+			BattleState::Get().EncounterLoot = encounter.IsValid() ? encounter->Loot : DataRowRef();
 			if (encounter.IsValid() && encounter->Enemies.empty() == false)
 			{
 				count = 0;
@@ -1212,6 +1217,7 @@ namespace Hydro
 						m_Results.push_back(line);
 					}
 				}
+				GiveLoot();
 				SetPhase(Phase::Victory);
 				return true;
 			}
@@ -1256,6 +1262,58 @@ namespace Hydro
 			}
 			SetPhase(Phase::Done);
 			SceneTransition::Pop();
+		}
+
+		// The loot of a won battle (Loot.hytable): each enemy's table, then the encounter's, into the run's inventory,
+		// and a "Found ..." line for the results.
+		void GiveLoot()
+		{
+			std::vector<LootRules::Drop> drops;
+			auto rollTable = [&](const DataRowRef& reference)
+			{
+				const DataView<LootTableDefinition> table = reference.IsSet() ? Data::GetRow<LootTableDefinition>(reference) : DataView<LootTableDefinition>();
+				if (table.IsValid() == false)
+				{
+					return;
+				}
+				for (const LootRules::Drop& drop : LootRules::Roll(*table, [this]() { return Random01(); }))
+				{
+					auto found = std::find_if(drops.begin(), drops.end(), [&](const LootRules::Drop& other) { return other.Item == drop.Item; });
+					if (found == drops.end())
+					{
+						drops.push_back(drop);
+					}
+					else
+					{
+						found->Count += drop.Count;
+					}
+				}
+			};
+			for (const Enemy& enemy : m_Enemies)
+			{
+				if (enemy.Row.empty() == false)
+				{
+					rollTable(GetEnemy(enemy.Row).Loot);
+				}
+			}
+			rollTable(BattleState::Get().EncounterLoot);
+
+			std::string found;
+			for (const LootRules::Drop& drop : drops)
+			{
+				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(drop.Item);
+				if (item.IsValid() == false)
+				{
+					continue;
+				}
+				Inventory::Get().Add(drop.Item, drop.Count);
+				found += (found.empty() ? "" : ", ") + item->Name + (drop.Count > 1 ? " x" + std::to_string(drop.Count) : std::string());
+			}
+			if (found.empty() == false)
+			{
+				HY_INFO("Battle: found {}", found);
+				m_Results.push_back("Found " + found + ".");
+			}
 		}
 
 		// ---- Hero input -----------------------------------------------------------------------------------

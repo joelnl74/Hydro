@@ -23,6 +23,21 @@ namespace Hydro
 		std::vector<Slot> Slots;
 		bool Started = false; // the starting inventory was given this run
 
+		// Adds `count` of an item: to its line, or a new line at the end. Returns the count now held.
+		int Add(const DataRowRef& item, int count = 1)
+		{
+			for (Slot& slot : Slots)
+			{
+				if (slot.Item == item)
+				{
+					slot.Count += count;
+					return slot.Count;
+				}
+			}
+			Slots.push_back(Slot{ item, count });
+			return count;
+		}
+
 		// The running session's. Only while a game runs.
 		static Inventory& Get();
 	};

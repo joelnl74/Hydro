@@ -756,15 +756,9 @@ namespace Hydro
 				ShowMessage(MvpLabel::ChestEmpty); // no such item (warned once): nothing to give
 				return;
 			}
-			auto slot = std::find_if(Inventory::Get().Slots.begin(), Inventory::Get().Slots.end(), [&](const Slot& candidate) { return candidate.Item == itemRef; });
-			if (slot == Inventory::Get().Slots.end())
-			{
-				Inventory::Get().Slots.push_back(Slot{ itemRef, 0 });
-				slot = Inventory::Get().Slots.end() - 1;
-			}
-			slot->Count += 1;
+			const int now = Inventory::Get().Add(itemRef, 1);
 			ShowMessage("Found a " + item->Name + "!");
-			HY_INFO("MVP: found a {} ({} now)", item->Name, slot->Count);
+			HY_INFO("MVP: found a {} ({} now)", item->Name, now);
 		}
 
 		void UseSelected()

@@ -21,6 +21,17 @@ namespace Hydro
 		Material
 	};
 
+	// How rare an item is: loot tables (LootTableDefinition) pick a rarity by its chance, then an item of it.
+	HY_ENUM()
+	enum class ItemRarity : uint8_t
+	{
+		Common,
+		Uncommon,
+		Rare,
+		Epic,
+		Legendary
+	};
+
 	HY_DATA(Table, DisplayField(Name))
 	struct ItemDefinition
 	{
@@ -30,6 +41,8 @@ namespace Hydro
 		std::string Description;
 		HY_PROPERTY()
 		ItemKind Kind = ItemKind::Consumable;
+		HY_PROPERTY(Tooltip("How likely a loot table is to give it (the table's chance for this rarity)"))
+		ItemRarity Rarity = ItemRarity::Common;
 		HY_PROPERTY(Asset(Texture2D), Tooltip("Optional; the inventory has no icons yet"))
 		AssetHandle Icon = 0;
 		HY_PROPERTY(Range(0, 999), Tooltip("Restored to every hero when used"))

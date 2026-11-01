@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Hydro/Asset/Asset.h"
+#include "Data/LootDefinition.h"
 #include "Hydro/Data/DataRowRef.h"
 #include "Hydro/Scene/Scripting/ReflectionMacros.h"
 
@@ -139,6 +140,8 @@ namespace Hydro
 		std::vector<EnemyAbility> Abilities;
 		HY_PROPERTY(Range(0, 99999), Tooltip("Given to the party when it is defeated"))
 		int Experience = 0;
+		HY_PROPERTY(DataRow(LootTableDefinition), Tooltip("Rolled once the battle is won (Loot.hytable); unset: nothing"))
+		DataRowRef Loot;
 		// How it looks and moves (presentation, not rules).
 		HY_PROPERTY(Range(0, 3), Tooltip("Metres it floats above the floor, bobbing (0: it stands); floating ones also sway in the field"))
 		float FloatHeight = 0.0f;
@@ -158,6 +161,8 @@ namespace Hydro
 	{
 		HY_PROPERTY(DataRow(EnemyDefinition), Tooltip("Up to three, in slot order"))
 		std::vector<DataRowRef> Enemies;
+		HY_PROPERTY(DataRow(LootTableDefinition), Tooltip("Rolled once the battle is won, on top of each enemy's own loot"))
+		DataRowRef Loot;
 	};
 
 	// The experience each level takes (Assets/Data/Characters/LevelCurve.hydef), shared by the heroes.

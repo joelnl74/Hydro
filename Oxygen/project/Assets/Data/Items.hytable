@@ -31,6 +31,7 @@ DataTable:
       Name: Crystal Shard
       Description: A shard that hums faintly near the shrine.
       Kind: Material
+      Rarity: Uncommon
       Icon: 0
       RestoreHP: 0
       RestoreMP: 0
@@ -39,6 +40,7 @@ DataTable:
       Name: Ether
       Description: Water drawn at dawn from the sacred spring. Restores 10 MP.
       Kind: Consumable
+      Rarity: Uncommon
       Icon: 0
       RestoreHP: 0
       RestoreMP: 10
@@ -71,6 +73,7 @@ DataTable:
       Name: Hi-Potion
       Description: A stronger draught, sealed with wax. Restores 60 HP.
       Kind: Consumable
+      Rarity: Uncommon
       Icon: 0
       RestoreHP: 60
       RestoreMP: 0
@@ -119,6 +122,7 @@ DataTable:
       Name: Phoenix Feather
       Description: A feather that is warm to the touch. What it is for, nobody knows yet.
       Kind: KeyItem
+      Rarity: Rare
       Icon: 0
       RestoreHP: 0
       RestoreMP: 0
