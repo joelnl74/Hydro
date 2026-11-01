@@ -622,10 +622,11 @@ namespace Hydro
 			{
 				return;
 			}
+			// The marker stands on the ground where she arrives (on a terrain the two ends of a scene can be metres
+			// apart in height), so her height is the marker's too.
 			Entity player{ m_Player, &scene };
 			const glm::vec3 at = scene.GetWorldPosition(marker);
-			const glm::vec3 now = scene.GetWorldPosition(player);
-			scene.SetWorldPosition(player, glm::vec3(at.x, at.y, now.z));
+			scene.SetWorldPosition(player, at);
 			HY_INFO("Field: arrived from {} at ({:.1f}, {:.1f})", from, at.x, at.y);
 		}
 

@@ -105,7 +105,9 @@ namespace Hydro
 			.Property("OrinName", "Orin Name", &CountrysideQuestScript::OrinName).Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag")
 			.Property("MeetRange", "Meet Range", &CountrysideQuestScript::MeetRange).Range(1.0f, 30.0f).Tooltip("Metres from Orin at which he calls out")
 			.Property("LeyColor", "Ley Color", &CountrysideQuestScript::LeyColor).Color()
-			.Property("StartQuestWhenAlone", "Start Quest When Alone", &CountrysideQuestScript::StartQuestWhenAlone).Tooltip("Played on its own (not pushed from the Shrine Glade): start the duty at its leyline step");
+			.Property("StartQuestWhenAlone", "Start Quest When Alone", &CountrysideQuestScript::StartQuestWhenAlone).Tooltip("Played on its own (not pushed from the Shrine Glade): start the duty at its leyline step")
+			.Property("GateShake", "Gate Shake", &CountrysideQuestScript::GateShake).Range(0.0f, 1.0f).Tooltip("How far the camera shakes (metres) while the ground opens")
+			.Property("GateOpenTime", "Gate Open Time", &CountrysideQuestScript::GateOpenTime).Range(1.0f, 8.0f).Tooltip("Seconds from the first rumble until the rift has opened");
 
 		ScriptRegistry::Register<SpawnerScript>("SpawnerScript")
 			.Property("SpawnPrefab", "Spawn Prefab", &SpawnerScript::SpawnPrefab).Tooltip("What to spawn").AssetFilter(AssetType::Prefab)

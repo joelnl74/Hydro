@@ -26,8 +26,13 @@ namespace Hydro
 	//      talking to him) moves the quest on ("Help the swordsman") and he speaks (Leyline.hytable, OrinMeet).
 	//   3. When the box closes he joins for the battle (BattleState::Join) and the Battle scene is pushed with the
 	//      Encounter (LeyWisps). Lost or fled: he steps out of the party again and talking to him tries again.
-	//   4. Won: he says OrinJoins and stays in the party; the duty completes and "Along the Leyline" starts (south
-	//      to the city). He and the spirits are gone from the field (he walks with Miko now; only the leader shows).
+	//   4. Won: he says OrinJoins and stays in the party; the duty completes and "Along the Leyline" starts. He and
+	//      the spirits are gone from the field (he walks with Miko now; only the leader shows).
+	//   5. Then the ground opens (Nov 2, 2026): a rumble, the camera drawn to the tree's roots, the rift there fading
+	//      in ("Ley Rift", its veins "Ley Rift Glow" glowing up), motes bursting out of it, and Orin's GateOpens. The
+	//      leyline's motes flow on into it from then on. Walking into its trigger area ("Leyline Gate") says
+	//      GateSealed and moves Along the Leyline to "The way into the leyline is not open yet": the way down is
+	//      for later (a scene under the leyline); this only shows that something happens there.
 	// Played on its own (not pushed by the Shrine Glade), StartQuestWhenAlone starts the duty at step 1 so the
 	// scene can be tested by itself. The words are data (Quests.hytable, Dialogue/Leyline.hytable).
 	HY_SCRIPT()
@@ -53,6 +58,10 @@ namespace Hydro
 		glm::vec3 LeyColor{ 0.35f, 0.9f, 1.0f };
 		HY_PROPERTY(Tooltip("Played on its own (not pushed from the Shrine Glade): start the duty at its leyline step"))
 		bool StartQuestWhenAlone = true;
+		HY_PROPERTY(Range(0, 1), Tooltip("How far the camera shakes (metres) while the ground opens"))
+		float GateShake = 0.16f;
+		HY_PROPERTY(Range(1, 8), Tooltip("Seconds from the first rumble until the rift has opened"))
+		float GateOpenTime = 3.2f;
 
 	protected:
 		void OnCreate() override
@@ -64,6 +73,10 @@ namespace Hydro
 			m_DialogueCanvas = Find(scene, "Dialogue Canvas");
 			m_MarkerCanvas = Find(scene, "Ley Marker Canvas");
 			m_Marker = Find(scene, "Ley Marker");
+			m_Rift = Find(scene, "Ley Rift");
+			m_RiftGlow = Find(scene, "Ley Rift Glow");
+			m_GateArea = Find(scene, "Leyline Gate");
+			SetRift(0.0f, 0.0f);
 			auto view = scene.m_Registry.view<TagComponent>();
 			for (int i = 0;; i++)
 			{
@@ -94,9 +107,15 @@ namespace Hydro
 			const QuestLog::Quest* duty = QuestLog::Get().Find(DutyQuest());
 			if (party.InParty(OrinHero) || duty == nullptr || duty->Done)
 			{
-				// Orin travels with Miko already, or the shrine hasn't sent her yet: nothing happens here.
+				// Orin travels with Miko already, or the shrine hasn't sent her yet: nothing happens here, except that
+				// the way down stays open once it has opened.
 				RemoveEncounter(scene);
 				m_Step = Step::Done;
+				if (party.InParty(OrinHero) && QuestLog::Get().Find(LeylineQuest()) != nullptr)
+				{
+					CreateEffects(scene);
+					OpenGate(scene, true);
+				}
 			}
 			else
 			{
@@ -113,6 +132,10 @@ namespace Hydro
 		void OnDestroy() override
 		{
 			QuestLog::Get().Release(OrinName);
+			if (m_Gate == Gate::Opening || m_Gate == Gate::Speaking)
+			{
+				DioramaView::ResetCinematic();
+			}
 		}
 
 		void OnUpdate(float deltaTime) override
@@ -152,16 +175,18 @@ namespace Hydro
 					if (IsTalking() == false)
 					{
 						QuestLog::Get().Complete(DutyQuest());
-						QuestLog::Get().Start(DataRowRef{ QuestTable, "AlongTheLeyline" }); // south to the city
+						QuestLog::Get().Start(LeylineQuest()); // "Find where the leyline sinks into the earth"
 						RemoveEncounter(scene);
 						m_Step = Step::Done;
-						HY_INFO("Countryside quest: Orin joins the party");
+						OpenGate(scene, false);
+						HY_INFO("Countryside quest: Orin joins the party, and the ground opens");
 					}
 					break;
 				case Step::Done:
 					break;
 			}
 
+			UpdateGate(scene, deltaTime);
 			PresentEffects(scene);
 			PresentMarker(scene);
 		}
@@ -170,6 +195,163 @@ namespace Hydro
 		enum class Step : uint8_t { Follow, Meeting, Battle, Retry, Joining, Done };
 
 		DataRowRef DutyQuest() const { return DataRowRef{ QuestTable, "GuardiansDuty" }; }
+		DataRowRef LeylineQuest() const { return DataRowRef{ QuestTable, "AlongTheLeyline" }; }
+
+		// ---- The way down into the leyline ----------------------------------------------------------------------
+
+		enum class Gate : uint8_t { Sealed, Opening, Speaking, Open };
+
+		// Opens the rift: at once (the scene was entered with it open already), or with the rumble and the lines.
+		void OpenGate(Scene& scene, bool atOnce)
+		{
+			if (m_Rift.IsValid() == false)
+			{
+				return;
+			}
+			const glm::vec3 rift = scene.GetWorldPosition(m_Rift);
+			m_RiftLight = scene.CreateEntity("Light Ley Rift");
+			m_RiftLight.AddComponent<TransformComponent>().Translation = rift;
+			Light2DComponent& light = m_RiftLight.AddComponent<Light2DComponent>();
+			light.Type = Light2DType::Point;
+			light.Color = LeyColor;
+			light.Intensity = 0.0f;
+			light.Radius = 6.0f;
+			light.Height = 0.6f;
+			m_RiftMotes = scene.CreateEntity("Ley Rift Motes");
+			m_RiftMotes.AddComponent<TransformComponent>().Translation = DioramaView::Above(rift, 0.2f);
+			ParticleEmitter2DComponent motes = TreeMotes();
+			motes.ShapeSize = { 2.2f, 0.6f };
+			motes.Speed = { 0.6f, 1.6f };
+			m_RiftMotes.AddComponent<ParticleEmitter2DComponent>(motes);
+			m_GateTime = 0.0f;
+			if (atOnce)
+			{
+				m_Gate = Gate::Open;
+				SetRift(1.0f, 1.0f);
+				return;
+			}
+			m_Gate = Gate::Opening;
+			DioramaView::CinematicFocus = glm::vec2(rift);
+			DioramaView::CinematicHeight = rift.z + 1.2f;
+			DioramaView::CinematicWeight = 0.0f;
+			DioramaView::CinematicShake = 0.0f;
+		}
+
+		void UpdateGate(Scene& scene, float deltaTime)
+		{
+			m_GateTime += deltaTime;
+			const float t = m_GateTime;
+			switch (m_Gate)
+			{
+				case Gate::Sealed:
+					return;
+				case Gate::Opening:
+				{
+					// The camera glides to the roots, the ground rumbles harder, then the rift fades in and the veins
+					// flare; the rumble stops dead as it opens.
+					DioramaView::CinematicWeight = Smooth(t / 0.9f);
+					const float open = Smooth((t - 0.45f * GateOpenTime) / (0.55f * GateOpenTime));
+					const float surge = 0.75f + 0.25f * std::sin(t * 9.0f) * std::sin(t * 2.3f);
+					DioramaView::CinematicShake = t < GateOpenTime ? GateShake * Smooth(t / 1.0f) * surge : 0.0f;
+					SetRift(open, open * (1.0f + 1.5f * (1.0f - open)));
+					SetGateEffects(open, 1.0f + 2.0f * open * (1.0f - open) * 4.0f);
+					if (t >= GateOpenTime + 0.3f)
+					{
+						DioramaView::CinematicShake = 0.0f;
+						Say("GateOpens");
+						m_Gate = Gate::Speaking;
+					}
+					return;
+				}
+				case Gate::Speaking:
+					SetGateEffects(1.0f, 1.0f);
+					if (IsTalking() == false)
+					{
+						DioramaView::CinematicWeight = std::max(0.0f, DioramaView::CinematicWeight - deltaTime * 1.5f);
+						if (DioramaView::CinematicWeight <= 0.0f)
+						{
+							m_Gate = Gate::Open;
+							HY_INFO("Countryside quest: the way into the leyline is open (and sealed below)");
+						}
+					}
+					return;
+				case Gate::Open:
+					break;
+			}
+
+			// Open: the veins breathe; walking into the area tells her the way is sealed, once per visit to it.
+			const float breath = 0.5f + 0.5f * std::sin(t * 1.4f);
+			SetRift(1.0f, 0.75f + 0.25f * breath);
+			SetGateEffects(1.0f, 0.8f + 0.4f * breath);
+			const bool inside = InsideGate(scene);
+			if (inside && m_GateArmed && IsTalking() == false && UI::CapturesInput(scene) == false)
+			{
+				m_GateArmed = false;
+				Say("GateSealed");
+				const QuestLog::Quest* quest = QuestLog::Get().Find(LeylineQuest());
+				if (quest != nullptr && quest->Done == false && quest->Stage == 0)
+				{
+					QuestLog::Get().SetStage(LeylineQuest(), 1); // "The way into the leyline is not open yet"
+				}
+				HY_INFO("Countryside quest: the way into the leyline is sealed (for now)");
+			}
+			else if (inside == false)
+			{
+				m_GateArmed = true;
+			}
+		}
+
+		// The rift's and its veins' opacity (0..1; the veins above 1 are brighter, through their emission).
+		void SetRift(float rift, float glow)
+		{
+			if (m_Rift.IsValid() && m_Rift.HasComponent<SpriteRendererComponent>())
+			{
+				m_Rift.GetComponent<SpriteRendererComponent>().Color.a = std::clamp(rift, 0.0f, 1.0f);
+			}
+			if (m_RiftGlow.IsValid() && m_RiftGlow.HasComponent<SpriteRendererComponent>())
+			{
+				SpriteRendererComponent& veins = m_RiftGlow.GetComponent<SpriteRendererComponent>();
+				veins.Color.a = std::clamp(glow, 0.0f, 1.0f);
+				veins.EmissionIntensity = 2.5f * std::max(glow, 0.0f);
+			}
+		}
+
+		void SetGateEffects(float open, float strength)
+		{
+			if (m_RiftLight.IsValid() && m_RiftLight.HasComponent<Light2DComponent>())
+			{
+				m_RiftLight.GetComponent<Light2DComponent>().Intensity = 1.6f * open * strength;
+			}
+			if (m_RiftMotes.IsValid() && m_RiftMotes.HasComponent<ParticleEmitter2DComponent>())
+			{
+				m_RiftMotes.GetComponent<ParticleEmitter2DComponent>().Rate = 14.0f * open * strength;
+			}
+		}
+
+		// Whether the player stands in the gate's area (its box collider's footprint, unscaled).
+		bool InsideGate(Scene& scene) const
+		{
+			if (m_GateArea.IsValid() == false || m_Player.IsValid() == false)
+			{
+				return false;
+			}
+			glm::vec2 half{ 1.5f, 1.2f };
+			glm::vec2 offset{ 0.0f };
+			if (m_GateArea.HasComponent<BoxColliderComponent>())
+			{
+				const BoxColliderComponent& box = m_GateArea.GetComponent<BoxColliderComponent>();
+				half = 0.5f * glm::vec2(box.Size);
+				offset = glm::vec2(box.Offset);
+			}
+			const glm::vec2 d = glm::vec2(scene.GetWorldPosition(m_Player) - scene.GetWorldPosition(m_GateArea)) - offset;
+			return std::abs(d.x) <= half.x && std::abs(d.y) <= half.y;
+		}
+
+		static float Smooth(float t)
+		{
+			t = std::clamp(t, 0.0f, 1.0f);
+			return t * t * (3.0f - 2.0f * t);
+		}
 
 		// ---- The battle at the tree ---------------------------------------------------------------------------
 
@@ -278,7 +460,7 @@ namespace Hydro
 
 		void PresentEffects(Scene& scene)
 		{
-			const bool active = m_Step != Step::Done;
+			const bool active = m_Step != Step::Done || m_Gate != Gate::Sealed; // after the join the line runs into the rift
 			// A pulse runs along the line towards the tree.
 			for (size_t i = 0; i < m_LineMotes.size(); i++)
 			{
@@ -454,6 +636,10 @@ namespace Hydro
 		std::vector<DialogueScript::Line> m_Lines;
 		bool m_Waiting = false;
 		Entity m_Player, m_Orin, m_Tree, m_DialogueCanvas, m_MarkerCanvas, m_Marker, m_TreeLight, m_TreeMotes;
+		Entity m_Rift, m_RiftGlow, m_GateArea, m_RiftLight, m_RiftMotes;
+		Gate m_Gate = Gate::Sealed;
+		float m_GateTime = 0.0f;
+		bool m_GateArmed = true;
 		std::vector<glm::vec3> m_Line;      // the leyline's points, in order towards the tree
 		std::vector<Entity> m_LineMotes, m_LineLights, m_Wisps;
 		std::vector<glm::vec3> m_WispHome;
