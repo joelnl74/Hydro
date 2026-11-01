@@ -2202,9 +2202,9 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 3127991231838966849
+  - Entity: 2107197560030142758
     TagComponent:
-      Tag: Inventory Canvas
+      Tag: Field Menu Canvas
     RelationshipComponent:
       Parent: 4736815029286298403
     UICanvasComponent:
@@ -2213,11 +2213,11 @@ Entities:
       SortOrder: 10
       Visible: false
       BlocksGameplayInput: true
-  - Entity: 820012190129389372
+  - Entity: 1522442054441979421
     TagComponent:
-      Tag: Inventory Dim
+      Tag: Menu Dim
     RelationshipComponent:
-      Parent: 3127991231838966849
+      Parent: 2107197560030142758
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
@@ -2227,15 +2227,15 @@ Entities:
       Visible: true
     UIImageComponent:
       SpriteIndex: 0
-      Color: [0.03, 0.04, 0.06, 0.55]
+      Color: [0.03, 0.04, 0.06, 0.62]
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 4369311214476932146
+  - Entity: 5055383281870704274
     TagComponent:
-      Tag: Inventory Title
+      Tag: Menu Title
     RelationshipComponent:
-      Parent: 3127991231838966849
+      Parent: 2107197560030142758
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -2255,11 +2255,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 5710653210151916395
+  - Entity: 5698430485952193625
     TagComponent:
-      Tag: Inventory Title Rule
+      Tag: Menu Title Rule
     RelationshipComponent:
-      Parent: 3127991231838966849
+      Parent: 2107197560030142758
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -2274,17 +2274,798 @@ Entities:
       NineSlice: [14, 0, 14, 0]
       FlipX: false
       FlipY: false
-  - Entity: 3175380984138109024
+  - Entity: 4191448084109964097
     TagComponent:
-      Tag: Inventory Panel
+      Tag: Menu Tabs
     RelationshipComponent:
-      Parent: 3127991231838966849
+      Parent: 2107197560030142758
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
       Pivot: [0, 1]
       AnchoredPosition: [56, -130]
-      SizeDelta: [760, 800]
+      SizeDelta: [300, 10]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Vertical
+      Spacing: 6
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: Start
+      StretchCrossAxis: true
+      FitContent: true
+  - Entity: 5667234512103769746
+    TagComponent:
+      Tag: Tab 0
+    RelationshipComponent:
+      Parent: 4191448084109964097
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [300, 60]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: Tab
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 6124194338990487984
+    TagComponent:
+      Tag: Tab 0 Ribbon
+    RelationshipComponent:
+      Parent: 5667234512103769746
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 2171630421190086834
+    TagComponent:
+      Tag: Tab 0 Glow
+    RelationshipComponent:
+      Parent: 5667234512103769746
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5041145700465434977
+    TagComponent:
+      Tag: Tab 0 Cursor
+    RelationshipComponent:
+      Parent: 5667234512103769746
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2831798153301318201
+    TagComponent:
+      Tag: Tab 0 Name
+    RelationshipComponent:
+      Parent: 5667234512103769746
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Inventory
+      FontHandle: 3816504584097973210
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6037685767455636767
+    TagComponent:
+      Tag: Tab 0 Count
+    RelationshipComponent:
+      Parent: 5667234512103769746
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 9034638020470732317
+    TagComponent:
+      Tag: Tab 0 Mark
+    RelationshipComponent:
+      Parent: 5667234512103769746
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.55]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 881538150127613003
+    TagComponent:
+      Tag: Tab 1
+    RelationshipComponent:
+      Parent: 4191448084109964097
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [300, 60]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: Tab
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 368875159576158884
+    TagComponent:
+      Tag: Tab 1 Ribbon
+    RelationshipComponent:
+      Parent: 881538150127613003
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 6546107209308558204
+    TagComponent:
+      Tag: Tab 1 Glow
+    RelationshipComponent:
+      Parent: 881538150127613003
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 8583928809469287192
+    TagComponent:
+      Tag: Tab 1 Cursor
+    RelationshipComponent:
+      Parent: 881538150127613003
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5005418088074055987
+    TagComponent:
+      Tag: Tab 1 Name
+    RelationshipComponent:
+      Parent: 881538150127613003
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quests
+      FontHandle: 3816504584097973210
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3858675585066338464
+    TagComponent:
+      Tag: Tab 1 Count
+    RelationshipComponent:
+      Parent: 881538150127613003
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7892353609440429430
+    TagComponent:
+      Tag: Tab 1 Mark
+    RelationshipComponent:
+      Parent: 881538150127613003
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: false
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.55]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 2268355959333994366
+    TagComponent:
+      Tag: Tab 2
+    RelationshipComponent:
+      Parent: 4191448084109964097
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [300, 60]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: Tab
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 2674103878203434741
+    TagComponent:
+      Tag: Tab 2 Ribbon
+    RelationshipComponent:
+      Parent: 2268355959333994366
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 9159514727712823170
+    TagComponent:
+      Tag: Tab 2 Glow
+    RelationshipComponent:
+      Parent: 2268355959333994366
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5116899337738691978
+    TagComponent:
+      Tag: Tab 2 Cursor
+    RelationshipComponent:
+      Parent: 2268355959333994366
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6620976621660062713
+    TagComponent:
+      Tag: Tab 2 Name
+    RelationshipComponent:
+      Parent: 2268355959333994366
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Character
+      FontHandle: 3816504584097973210
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1483981065033681007
+    TagComponent:
+      Tag: Tab 2 Count
+    RelationshipComponent:
+      Parent: 2268355959333994366
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 252667136533918348
+    TagComponent:
+      Tag: Tab 2 Mark
+    RelationshipComponent:
+      Parent: 2268355959333994366
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: false
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.55]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 2715002150802705679
+    TagComponent:
+      Tag: Tab 3
+    RelationshipComponent:
+      Parent: 4191448084109964097
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [300, 60]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: Tab
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 2524325959934994084
+    TagComponent:
+      Tag: Tab 3 Ribbon
+    RelationshipComponent:
+      Parent: 2715002150802705679
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 8404868711537981582
+    TagComponent:
+      Tag: Tab 3 Glow
+    RelationshipComponent:
+      Parent: 2715002150802705679
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 9216219176614804253
+    TagComponent:
+      Tag: Tab 3 Cursor
+    RelationshipComponent:
+      Parent: 2715002150802705679
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3788992796317431678
+    TagComponent:
+      Tag: Tab 3 Name
+    RelationshipComponent:
+      Parent: 2715002150802705679
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Abilities
+      FontHandle: 3816504584097973210
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3914625744929100954
+    TagComponent:
+      Tag: Tab 3 Count
+    RelationshipComponent:
+      Parent: 2715002150802705679
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4663662852574211100
+    TagComponent:
+      Tag: Tab 3 Mark
+    RelationshipComponent:
+      Parent: 2715002150802705679
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: false
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.55]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8763133899603799160
+    TagComponent:
+      Tag: Tab 4
+    RelationshipComponent:
+      Parent: 4191448084109964097
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [300, 60]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: Tab
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 8822863763344564651
+    TagComponent:
+      Tag: Tab 4 Ribbon
+    RelationshipComponent:
+      Parent: 8763133899603799160
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 3755716611591459464
+    TagComponent:
+      Tag: Tab 4 Glow
+    RelationshipComponent:
+      Parent: 8763133899603799160
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2003426435576189036
+    TagComponent:
+      Tag: Tab 4 Cursor
+    RelationshipComponent:
+      Parent: 8763133899603799160
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 9038719927820517143
+    TagComponent:
+      Tag: Tab 4 Name
+    RelationshipComponent:
+      Parent: 8763133899603799160
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Equipment
+      FontHandle: 3816504584097973210
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7498762760483689407
+    TagComponent:
+      Tag: Tab 4 Count
+    RelationshipComponent:
+      Parent: 8763133899603799160
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2776308257485371875
+    TagComponent:
+      Tag: Tab 4 Mark
+    RelationshipComponent:
+      Parent: 8763133899603799160
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: false
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.55]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 5129412931597182774
+    TagComponent:
+      Tag: Page Inventory
+    RelationshipComponent:
+      Parent: 2107197560030142758
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [392, -130]
+      SizeDelta: [1000, 800]
+      Visible: true
+  - Entity: 3175380984138109024
+    TagComponent:
+      Tag: Inventory Panel
+    RelationshipComponent:
+      Parent: 5129412931597182774
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [560, 800]
       Visible: true
     UIImageComponent:
       TextureHandle: 8117060024258182719
@@ -2441,7 +3222,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -2572,7 +3353,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -2703,7 +3484,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -2834,7 +3615,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -2965,7 +3746,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -3096,7 +3877,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -3227,7 +4008,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -3358,7 +4139,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -3489,7 +4270,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -3620,7 +4401,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -3751,7 +4532,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -3882,7 +4663,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4013,7 +4794,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4144,7 +4925,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4275,7 +5056,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4406,7 +5187,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4537,7 +5318,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4668,7 +5449,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4799,7 +5580,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -4930,7 +5711,7 @@ Entities:
       AnchorMax: [0.5, 0.5]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0, 0]
-      SizeDelta: [640, 56]
+      SizeDelta: [480, 56]
       Visible: true
     UIButtonComponent:
       Interactable: true
@@ -5055,13 +5836,13 @@ Entities:
     TagComponent:
       Tag: Item Detail Panel
     RelationshipComponent:
-      Parent: 3127991231838966849
+      Parent: 5129412931597182774
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
       Pivot: [0, 1]
-      AnchoredPosition: [852, -130]
-      SizeDelta: [560, 300]
+      AnchoredPosition: [588, 0]
+      SizeDelta: [412, 320]
       Visible: true
     UIImageComponent:
       TextureHandle: 8117060024258182719
@@ -5137,11 +5918,231 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
+  - Entity: 7770592177432004370
+    TagComponent:
+      Tag: Page Quests
+    RelationshipComponent:
+      Parent: 2107197560030142758
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [392, -130]
+      SizeDelta: [1000, 800]
+      Visible: false
+  - Entity: 4708819455686047093
+    TagComponent:
+      Tag: Page Quests Panel
+    RelationshipComponent:
+      Parent: 7770592177432004370
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [1000, 300]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 49043816204883877
+    TagComponent:
+      Tag: Page Quests Text
+    RelationshipComponent:
+      Parent: 4708819455686047093
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-96, -80]
+      Visible: true
+    UITextComponent:
+      Text: Coming in a later step of the menu plan.
+      FontHandle: 3308760100462523854
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1516992109357326696
+    TagComponent:
+      Tag: Page Character
+    RelationshipComponent:
+      Parent: 2107197560030142758
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [392, -130]
+      SizeDelta: [1000, 800]
+      Visible: false
+  - Entity: 8645443739266794546
+    TagComponent:
+      Tag: Page Character Panel
+    RelationshipComponent:
+      Parent: 1516992109357326696
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [1000, 300]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 9153977799844940092
+    TagComponent:
+      Tag: Page Character Text
+    RelationshipComponent:
+      Parent: 8645443739266794546
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-96, -80]
+      Visible: true
+    UITextComponent:
+      Text: Coming in a later step of the menu plan.
+      FontHandle: 3308760100462523854
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1950399592205621224
+    TagComponent:
+      Tag: Page Abilities
+    RelationshipComponent:
+      Parent: 2107197560030142758
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [392, -130]
+      SizeDelta: [1000, 800]
+      Visible: false
+  - Entity: 1857074334354365470
+    TagComponent:
+      Tag: Page Abilities Panel
+    RelationshipComponent:
+      Parent: 1950399592205621224
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [1000, 300]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 7350343555118970804
+    TagComponent:
+      Tag: Page Abilities Text
+    RelationshipComponent:
+      Parent: 1857074334354365470
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-96, -80]
+      Visible: true
+    UITextComponent:
+      Text: Coming in a later step of the menu plan.
+      FontHandle: 3308760100462523854
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5378923326020970532
+    TagComponent:
+      Tag: Page Equipment
+    RelationshipComponent:
+      Parent: 2107197560030142758
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [392, -130]
+      SizeDelta: [1000, 800]
+      Visible: false
+  - Entity: 6010440943072132122
+    TagComponent:
+      Tag: Page Equipment Panel
+    RelationshipComponent:
+      Parent: 5378923326020970532
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [1000, 300]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 2703758058197787717
+    TagComponent:
+      Tag: Page Equipment Text
+    RelationshipComponent:
+      Parent: 6010440943072132122
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-96, -80]
+      Visible: true
+    UITextComponent:
+      Text: Coming in a later step of the menu plan.
+      FontHandle: 3308760100462523854
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Center
+      AlignV: Middle
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
   - Entity: 6348498008662313410
     TagComponent:
       Tag: Menu Party
     RelationshipComponent:
-      Parent: 3127991231838966849
+      Parent: 2107197560030142758
     UIRectComponent:
       AnchorMin: [1, 1]
       AnchorMax: [1, 1]
@@ -5516,7 +6517,7 @@ Entities:
     TagComponent:
       Tag: Help Bar
     RelationshipComponent:
-      Parent: 3127991231838966849
+      Parent: 2107197560030142758
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 0]
@@ -5561,7 +6562,7 @@ Entities:
       SizeDelta: [-144, 0]
       Visible: true
     UITextComponent:
-      Text: Choose an item.
+      Text: Select a category.
       FontHandle: 3308760100462523854
       Color: [0.95, 0.91, 0.83, 1]
       Scale: 1
@@ -5585,7 +6586,7 @@ Entities:
       SizeDelta: [-144, 0]
       Visible: true
     UITextComponent:
-      Text: Enter  Use        Esc / Tab  Close
+      Text: Enter  Open        Esc / Tab  Close
       FontHandle: 634835381053794282
       Color: [0.74, 0.71, 0.64, 1]
       Scale: 1

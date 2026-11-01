@@ -8,7 +8,7 @@
 #include "Data/ItemDefinition.h"
 #include "Rules/ItemRules.h"
 #include "Scripts/Common/DioramaCamera.h"
-#include "Scripts/Field/InventoryView.h"
+#include "Scripts/Field/FieldMenuView.h"
 #include "State/BattleState.h"
 #include "State/Inventory.h"
 #include "State/QuestLog.h"
@@ -29,13 +29,13 @@
 // The field director (FieldDirectorScript, until Nov 1, 2026 MvpDirectorScript: scenes saved with that name still load,
 // HY_SCRIPT(FormerName)): the MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the
 // Shrine Glade, the Farm Village) and the interiors (the Farm Village's inn): interact prompts (a sign, a chest,
-// a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and the party's
-// inventory menu (its items are data: Assets/Data/Items.hytable, the run starting from StartingInventory.hydef),
-// which gates the player's input while it is open. The director decides; the views show (Scripting plan SC8f):
-// InventoryView (Scripts/Field/), InteractPromptView, MessageBannerView and ScreenFadeView (Views/); using an item is
-// Rules/ItemRules.h. The UI is runtime UI under the director ("MVP Director" in the scenes) on the 1920 x 1080
-// canvas (scripts/ui/build_game_ui.py builds it): the inventory (a scrolling list, the item's details, the party, a
-// help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
+// a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and the field menu
+// (Tab; its Inventory page lists the party's items, which are data: Assets/Data/Items.hytable, the run starting from
+// StartingInventory.hydef), which gates the player's input while it is open. The director decides; the views show
+// (Scripting plan SC8f): FieldMenuView with its InventoryView (Scripts/Field/), InteractPromptView,
+// MessageBannerView and ScreenFadeView (Views/); using an item is Rules/ItemRules.h. The UI is runtime UI under the
+// director ("MVP Director" in the scenes) on the 1920 x 1080 canvas (scripts/ui/build_game_ui.py builds it): the
+// field menu (tabs, a page per tab, the party, a help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
 // talk through the dialogue box (Views/DialogueScript.h). What NPCs and signs say is data (Assets/Data/Npcs.hytable,
 // Signs.hytable, Dialogue/*.hydef), found by the name in their tag.
 
@@ -146,7 +146,7 @@ namespace Hydro
 			m_PromptView.Bind(scene);
 			m_Fade.Bind(scene);
 			m_Banner.Bind(scene);
-			m_Inventory.Bind(scene);
+			m_Menu.Bind(scene);
 			m_DialogueCanvas = Find(scene, "Dialogue Canvas");
 
 			BattleState::Get().StartParty();
@@ -192,12 +192,12 @@ namespace Hydro
 				HY_INFO("Field: {} items in the inventory", inventory.Slots.size());
 			}
 
-			m_Inventory.SetOpen(false);
+			m_Menu.SetOpen(false);
 			m_PromptView.Hide();
 			// Arriving (the scene was just loaded, or the player came back to it): fade in from black.
 			m_Arriving = ArriveTime;
 			m_Fade.Set(1.0f);
-			HY_INFO("Field: WASD walk, E interact / talk (Enter next line, Esc close), Tab inventory (Up/Down select, Enter or click use, Esc close), 1/2/3 day-dusk-night");
+			HY_INFO("Field: WASD walk, E interact / talk (Enter next line, Esc close), Tab menu (Up/Down tabs, Enter open, Esc back / close), 1/2/3 day-dusk-night");
 		}
 
 		void OnUpdate(float deltaTime) override
@@ -238,9 +238,9 @@ namespace Hydro
 				m_Fade.Set(k > 0.5f ? (1.0f - k) * 2.0f : k * 2.0f);
 			}
 
-			// A runtime UI canvas that captures input (UI::CapturesInput: the inventory, the dialogue, any menu) owns
-			// the keys: no interaction. Tab is the inventory's own key, so it also closes it.
-			const bool menuOpen = m_Inventory.IsOpen();
+			// A runtime UI canvas that captures input (UI::CapturesInput: the menu, the dialogue, any other) owns the
+			// keys: no interaction. Tab is the menu's own key, so it also closes it.
+			const bool menuOpen = m_Menu.IsOpen();
 			if (KeyPressed(KeyCode::Tab, m_Previous[0]) && (menuOpen || UI::CapturesInput(scene) == false))
 			{
 				OpenMenu(menuOpen == false);
@@ -257,20 +257,20 @@ namespace Hydro
 			m_Banner.Update(deltaTime);
 		}
 
-		// The inventory's rows ("Item 0" to "Item 19") bubble their events up to the director; the view says what the
-		// player asked for: use the selected item, or close.
+		// The field menu's tabs and rows bubble their events up to the director; the view says what the player asked
+		// for: use the selected item, or close.
 		bool OnUIEvent(const UIEvent& event) override
 		{
-			InventoryView::Request request = InventoryView::Request::None;
-			if (m_Inventory.HandleEvent(event, request) == false)
+			FieldMenuView::Request request = FieldMenuView::Request::None;
+			if (m_Menu.HandleEvent(event, request) == false)
 			{
 				return false;
 			}
-			if (request == InventoryView::Request::Use)
+			if (request == FieldMenuView::Request::UseItem)
 			{
 				UseSelected();
 			}
-			else if (request == InventoryView::Request::Close)
+			else if (request == FieldMenuView::Request::Close)
 			{
 				OpenMenu(false);
 			}
@@ -662,7 +662,7 @@ namespace Hydro
 			m_Banner.Show(text, MessageTime);
 		}
 
-		// ---- The inventory menu ----------------------------------------------------------------------------
+		// ---- The field menu --------------------------------------------------------------------------------
 
 		// Opens or closes it; open, the prompt hides.
 		void OpenMenu(bool open)
@@ -671,7 +671,7 @@ namespace Hydro
 			{
 				m_PromptView.Hide();
 			}
-			m_Inventory.SetOpen(open);
+			m_Menu.SetOpen(open);
 		}
 
 		// One more of `item` (a chest): onto its line, or a new line at the end.
@@ -690,7 +690,7 @@ namespace Hydro
 
 		void UseSelected()
 		{
-			const int selected = m_Inventory.GetSelected();
+			const int selected = m_Menu.Items().GetSelected();
 			if (selected < 0 || selected >= (int)Inventory::Get().Slots.size())
 			{
 				return;
@@ -715,7 +715,7 @@ namespace Hydro
 			}
 			ShowMessage(FieldLabel::UsedPotion);
 			HY_INFO("Field: used {} ({} left): {} {} HP {} MP", item->Name, slot.Count, GetHero(0).Name, BattleState::Get().HeroHP[0], BattleState::Get().HeroMP[0]);
-			m_Inventory.Present();
+			m_Menu.Present();
 		}
 
 		// The dialogue box's script: the Dialogue property's, else the one on "Dialogue Canvas"; nullptr in a scene
@@ -817,7 +817,7 @@ namespace Hydro
 		InteractPromptView m_PromptView;
 		ScreenFadeView m_Fade;
 		MessageBannerView m_Banner;
-		InventoryView m_Inventory;
+		FieldMenuView m_Menu;
 		entt::entity m_DialogueCanvas = entt::null;
 		std::vector<Interactable> m_Interactables;
 		entt::entity m_Current = entt::null; // what the prompt shows

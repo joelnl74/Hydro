@@ -3,7 +3,6 @@
 
 #include "Hydro.h"
 #include "Data/ItemDefinition.h"
-#include "State/BattleState.h"
 #include "State/Inventory.h"
 #include "Views/ViewHelpers.h"
 
@@ -12,22 +11,21 @@
 
 namespace Hydro
 {
-	// The field's inventory menu (Tab; "Inventory Canvas" with rows "Item 0" to "Item 19", the selected item's details,
-	// a help line and the party's status; scripts/ui/build_game_ui.py builds it). A view (Scripting plan SC8f): it
-	// shows the run's Inventory and the party, keeps the selection, and turns its rows' UI events into what the player
-	// asked for; the director uses the item (Rules/ItemRules.h). The Menu plan's tab menu replaces it.
+	// The field menu's Inventory page ("Page Inventory" in "Field Menu Canvas": rows "Item 0" to "Item 19" and the
+	// selected item's details; scripts/ui/build_game_ui.py builds it). A view (Scripting plan SC8f) owned by
+	// FieldMenuView: it shows the run's Inventory, keeps the selection, and turns its rows' UI events into what the
+	// player asked for; the director uses the item (Rules/ItemRules.h).
 	class InventoryView
 	{
 	public:
 		static constexpr int MaxRows = 20; // the rows in the scene; more items aren't shown
 
-		enum class Request : uint8_t { None, Use, Close };
+		enum class Request : uint8_t { None, Use, Back };
 
 		void Bind(Scene& scene)
 		{
 			m_Scene = &scene;
 			const char* owner = "Inventory";
-			m_Canvas = ViewHelpers::Find(scene, "Inventory Canvas", owner);
 			for (int i = 0; i < MaxRows; i++)
 			{
 				m_Row[i] = ViewHelpers::Find(scene, "Item " + std::to_string(i), owner);
@@ -37,39 +35,24 @@ namespace Hydro
 			m_DetailName = ViewHelpers::Find(scene, "Item Detail Name", owner);
 			m_DetailText = ViewHelpers::Find(scene, "Item Detail Text", owner);
 			m_Help = ViewHelpers::Find(scene, "Help Text", owner);
-			m_StatusName = ViewHelpers::Find(scene, "Menu Status Miko Name", owner);
-			m_StatusHP = ViewHelpers::Find(scene, "Menu Status Miko HP", owner);
-			m_StatusMP = ViewHelpers::Find(scene, "Menu Status Miko MP", owner);
-			m_StatusHPFill = ViewHelpers::Find(scene, "Menu Status Miko HP Fill", owner);
-			m_StatusMPFill = ViewHelpers::Find(scene, "Menu Status Miko MP Fill", owner);
 		}
 
-		bool IsOpen() const
+		bool HasItems() const
 		{
-			return m_Scene != nullptr && UI::IsVisible(EntityOf(m_Canvas));
+			return Inventory::Get().Slots.empty() == false;
 		}
 
-		// Opens (showing the list, the selection kept between opens and focused) or closes it.
-		void SetOpen(bool open)
+		// Moves the focus into the list, on the selection (kept between opens).
+		void Focus()
 		{
-			Entity canvas = EntityOf(m_Canvas);
-			if (canvas.IsValid() == false)
-			{
-				return;
-			}
-			UI::SetVisible(canvas, open);
-			if (open)
-			{
-				Present();
-				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)Inventory::Get().Slots.size(), MaxRows) - 1));
-				UI::Focus(EntityOf(m_Row[m_Selected]));
-			}
+			m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)Inventory::Get().Slots.size(), MaxRows) - 1));
+			UI::Focus(EntityOf(m_Row[m_Selected]));
 		}
 
 		int GetSelected() const { return m_Selected; }
 
-		// A row's events (they bubble up to the director, which hands them here): the focus selects, Submit asks to
-		// use, Cancel to close. Returns whether the event was the menu's.
+		// A row's events (they bubble up to the director, which hands them to the menu, which hands them here): the
+		// focus selects, Submit asks to use, Cancel to go back to the tabs. Returns whether the event was a row's.
 		bool HandleEvent(const UIEvent& event, Request& request)
 		{
 			request = Request::None;
@@ -90,23 +73,18 @@ namespace Hydro
 					request = Request::Use;
 					return true;
 				case UIEventType::Cancel:
-					request = Request::Close;
+					request = Request::Back;
 					return true;
 				default:
 					return true;
 				}
-			}
-			if ((entt::entity)event.Target == m_Canvas && event.Type == UIEventType::Cancel)
-			{
-				request = Request::Close;
-				return true;
 			}
 			return false;
 		}
 
 		// The rows: one per item (rows past the list are hidden, so the panel fits it), name and count; items that
 		// can't be used here are greyed, items used up dimmer still. An item whose row is gone from the table shows as
-		// "Missing: <id>". Then the details and the party's status (the first hero; the party is Miko alone).
+		// "Missing: <id>". Then the details.
 		void Present()
 		{
 			if (m_Scene == nullptr)
@@ -136,22 +114,15 @@ namespace Hydro
 				}
 			}
 			PresentDetails();
-
-			const HeroStats& hero = GetHero(0);
-			const BattleState& party = BattleState::Get();
-			UI::SetText(EntityOf(m_StatusName), hero.Name);
-			UI::SetText(EntityOf(m_StatusHP), std::to_string(party.HeroHP[0]) + " / " + std::to_string(hero.MaxHP));
-			UI::SetText(EntityOf(m_StatusMP), std::to_string(party.HeroMP[0]) + " / " + std::to_string(hero.MaxMP));
-			ViewHelpers::SetBarFill(EntityOf(m_StatusHPFill), (float)party.HeroHP[0] / (float)std::max(1, hero.MaxHP));
-			ViewHelpers::SetBarFill(EntityOf(m_StatusMPFill), (float)party.HeroMP[0] / (float)std::max(1, hero.MaxMP));
 		}
 
-	private:
-		// The selected item's name and description, and the help line.
+		// The selected item's name and description, and the help line (also when the page is shown from the tabs).
 		void PresentDetails()
 		{
 			if (m_Selected < 0 || m_Selected >= (int)Inventory::Get().Slots.size())
 			{
+				UI::SetText(EntityOf(m_DetailName), "");
+				UI::SetText(EntityOf(m_DetailText), "The bag is empty.");
 				return;
 			}
 			const Inventory::Slot& slot = Inventory::Get().Slots[(size_t)m_Selected];
@@ -168,15 +139,14 @@ namespace Hydro
 			UI::SetText(EntityOf(m_Help), item->CanUseInField() ? (slot.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
 		}
 
+	private:
 		Entity EntityOf(entt::entity entity) const { return Entity{ entity, m_Scene }; }
 
 		Scene* m_Scene = nullptr;
-		entt::entity m_Canvas = entt::null;
 		entt::entity m_Row[MaxRows] = {};
 		entt::entity m_Name[MaxRows] = {};
 		entt::entity m_Count[MaxRows] = {};
 		entt::entity m_DetailName = entt::null, m_DetailText = entt::null, m_Help = entt::null;
-		entt::entity m_StatusName = entt::null, m_StatusHP = entt::null, m_StatusMP = entt::null, m_StatusHPFill = entt::null, m_StatusMPFill = entt::null;
 		int m_Selected = 0;
 	};
 }

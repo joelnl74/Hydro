@@ -245,7 +245,7 @@ def build_battle(director):
 # ---- Field ------------------------------------------------------------------------------------------------------
 
 FIELD_REMOVE = {
-    "Field HUD Canvas", "Inventory Canvas", "Dialogue Canvas", "Fade Canvas", "Prompt Canvas", "Quest Canvas",
+    "Field HUD Canvas", "Field Menu Canvas", "Inventory Canvas", "Dialogue Canvas", "Fade Canvas", "Prompt Canvas", "Quest Canvas",
     "UI", "UI Prompt Panel", "UI Prompt Label",
 }
 
@@ -268,37 +268,7 @@ def build_field(scene_name, director):
     panel = b.add("Field Message Panel", hud, UIRectComponent=rect((0.5, 1), None, (0.5, 1), (0, -110), (760, 104)), UIImageComponent=image("Banner"))
     b.add("Field Message Text", panel, UIRectComponent=fill((48, 8, 48, 8)), UITextComponent=text("Found a Potion!", FONT_BODY, CREAM, "Center", wrap=True))
 
-    # The inventory: a title, the list (scrolling) in a frame, the item's details, the party, a help bar.
-    inv = b.add("Inventory Canvas", director, UICanvasComponent=canvas(10, visible=False, captures=True))
-    b.add("Inventory Dim", inv, UIRectComponent=fill(), UIImageComponent=image(None, (0.03, 0.04, 0.06, 0.55)))
-    b.add("Inventory Title", inv, UIRectComponent=rect((0, 1), None, (0, 1), (72, -40), (480, 60)), UITextComponent=text("Inventory", FONT_TITLE, CREAM))
-    b.add("Inventory Title Rule", inv, UIRectComponent=rect((0, 1), None, (0, 1), (56, -100), (560, 12)), UIImageComponent=image("Divider"))
-
-    frame = b.add("Inventory Panel", inv, UIRectComponent=rect((0, 1), None, (0, 1), (56, -130), (760, 800)), UIImageComponent=image("Frame"))
-    head = b.add("Inventory Header", frame, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
-    b.add("Inventory Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Items", FONT_LABEL, GOLD))
-    b.add("Inventory Header Count", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Owned", FONT_SMALL, DIM, "Right"))
-    track = b.add("Item Scroll Track", frame, UIRectComponent=rect((1, 0), (1, 1), (1, 0.5), (-22, -18), (6, -136)), UIImageComponent=image(None, (1, 1, 1, 0.12)))
-    thumb = b.add("Item Scroll Thumb", track, UIRectComponent=fill(), UIImageComponent=image(None, (0.86, 0.7, 0.42, 0.9)))
-    view = b.add("Item List View", frame, UIRectComponent=rect((0, 0), (1, 1), (0.5, 0.5), (-10, -18), (-76, -136)),
-                 UIScrollViewComponent={"ScrollPosition": 0, "FollowFocus": True, "Scrollbar": thumb})
-    content = b.add("Item List", view, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, 0), (0, 100)), UILayoutGroupComponent=group(spacing=4))
-    for i, (name, count) in enumerate(ITEMS):
-        ribbon_row(b, "Item %d" % i, content, 640, 56, name, count, "UseItem")
-
-    details = b.add("Item Detail Panel", inv, UIRectComponent=rect((0, 1), None, (0, 1), (852, -130), (560, 300)), UIImageComponent=image("Frame"))
-    b.add("Item Detail Name", details, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -28), (-72, 48)), UITextComponent=text("Potion", FONT_TITLE, GOLD))
-    b.add("Item Detail Rule", details, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -80), (-60, 12)), UIImageComponent=image("Divider", (1, 1, 1, 0.7)))
-    b.add("Item Detail Text", details, UIRectComponent=fill((36, 30, 36, 100)),
-          UITextComponent=text("Restores 25 HP to every hero.", FONT_BODY, CREAM, "Left", "Top", wrap=True))
-
-    party = b.add("Menu Party", inv, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
-    status_block(b, "Menu Status Miko", party)
-
-    help_bar = b.add("Help Bar", inv, UIRectComponent=rect((0, 0), (1, 0), (0.5, 0), (0, 0), (0, 84)), UIImageComponent=image(None, (0.02, 0.02, 0.03, 0.94)))
-    b.add("Help Bar Rule", help_bar, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, 0), (0, 2)), UIImageComponent=image(None, (0.78, 0.63, 0.38, 0.6)))
-    b.add("Help Text", help_bar, UIRectComponent=fill((72, 0, 72, 0)), UITextComponent=text("Choose an item.", FONT_BODY, CREAM))
-    b.add("Help Keys", help_bar, UIRectComponent=fill((72, 0, 72, 0)), UITextComponent=text("Enter  Use        Esc / Tab  Close", FONT_SMALL, DIM, "Right"))
+    build_field_menu(b, director)
 
     # Dialogue: washi paper at the bottom, the speaker's name in its corner, a vermilion "next" marker.
     dlg = b.add("Dialogue Canvas", director, UICanvasComponent=canvas(30, visible=False, captures=True),
@@ -314,6 +284,64 @@ def build_field(scene_name, director):
     fade = b.add("Fade Canvas", director, UICanvasComponent=canvas(100))
     b.add("Fade", fade, UIRectComponent=fill(visible=False), UIImageComponent=image(None, (0, 0, 0, 0)))
     return b
+
+
+MENU_TABS = ["Inventory", "Quests", "Character", "Abilities", "Equipment"]
+PAGE_X, PAGE_WIDTH = 392, 1000
+
+
+def build_field_menu(b, director):
+    """The field menu (Tab; the Menu plan, Octopath-style; FieldMenuView, Game/src/Scripts/Field/FieldMenuView.h): over a
+    dimmed scene, the tab ribbons in a column on the left (the selected one marked), the tab's page in the middle, the
+    party's status on the right and a help bar with the keys at the bottom. Pages are "Page <Tab>"; the Inventory page
+    holds the item list (InventoryView); the other tabs' pages come with M4 and M5."""
+    menu = b.add("Field Menu Canvas", director, UICanvasComponent=canvas(10, visible=False, captures=True))
+    b.add("Menu Dim", menu, UIRectComponent=fill(), UIImageComponent=image(None, (0.03, 0.04, 0.06, 0.62)))
+    b.add("Menu Title", menu, UIRectComponent=rect((0, 1), None, (0, 1), (72, -40), (480, 60)), UITextComponent=text("Inventory", FONT_TITLE, CREAM))
+    b.add("Menu Title Rule", menu, UIRectComponent=rect((0, 1), None, (0, 1), (56, -100), (560, 12)), UIImageComponent=image("Divider"))
+
+    # The tabs: ribbon rows like the battle's commands; the script shows the selected one's mark and gilds its name.
+    tabs = b.add("Menu Tabs", menu, UIRectComponent=rect((0, 1), None, (0, 1), (56, -130), (300, 10)), UILayoutGroupComponent=group(spacing=6))
+    for t, name in enumerate(MENU_TABS):
+        row = ribbon_row(b, "Tab %d" % t, tabs, 300, 60, name, "", "Tab", name_font=FONT_LABEL)
+        # The selected tab while the focus is in its page: a dimmer cursor where the focused one sits.
+        b.add("Tab %d Mark" % t, row, UIRectComponent=rect((0, 0.5), None, (0, 0.5), (0, 0), (44, 44), visible=t == 0),
+              UIImageComponent=image("Cursor", (1, 1, 1, 0.55)))
+
+    # The Inventory page: the list (scrolling) in a frame, and the selected item's details beside it.
+    page = b.add("Page Inventory", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800)))
+    frame = b.add("Inventory Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (560, 800)), UIImageComponent=image("Frame"))
+    head = b.add("Inventory Header", frame, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
+    b.add("Inventory Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Items", FONT_LABEL, GOLD))
+    b.add("Inventory Header Count", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Owned", FONT_SMALL, DIM, "Right"))
+    track = b.add("Item Scroll Track", frame, UIRectComponent=rect((1, 0), (1, 1), (1, 0.5), (-22, -18), (6, -136)), UIImageComponent=image(None, (1, 1, 1, 0.12)))
+    thumb = b.add("Item Scroll Thumb", track, UIRectComponent=fill(), UIImageComponent=image(None, (0.86, 0.7, 0.42, 0.9)))
+    view = b.add("Item List View", frame, UIRectComponent=rect((0, 0), (1, 1), (0.5, 0.5), (-10, -18), (-76, -136)),
+                 UIScrollViewComponent={"ScrollPosition": 0, "FollowFocus": True, "Scrollbar": thumb})
+    content = b.add("Item List", view, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, 0), (0, 100)), UILayoutGroupComponent=group(spacing=4))
+    for i, (name, count) in enumerate(ITEMS):
+        ribbon_row(b, "Item %d" % i, content, 480, 56, name, count, "UseItem")
+
+    details = b.add("Item Detail Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (588, 0), (412, 320)), UIImageComponent=image("Frame"))
+    b.add("Item Detail Name", details, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -28), (-72, 48)), UITextComponent=text("Potion", FONT_TITLE, GOLD))
+    b.add("Item Detail Rule", details, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -80), (-60, 12)), UIImageComponent=image("Divider", (1, 1, 1, 0.7)))
+    b.add("Item Detail Text", details, UIRectComponent=fill((36, 30, 36, 100)),
+          UITextComponent=text("Restores 25 HP to every hero.", FONT_BODY, CREAM, "Left", "Top", wrap=True))
+
+    # The pages still to come (M4: Quests, Character; M5: Abilities, Equipment): a frame and a line.
+    for name in MENU_TABS[1:]:
+        later = b.add("Page " + name, menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+        panel = b.add("Page %s Panel" % name, later, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (PAGE_WIDTH, 300)), UIImageComponent=image("Frame"))
+        b.add("Page %s Text" % name, panel, UIRectComponent=fill((48, 40, 48, 40)),
+              UITextComponent=text("Coming in a later step of the menu plan.", FONT_BODY, DIM, "Center", wrap=True))
+
+    party = b.add("Menu Party", menu, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
+    status_block(b, "Menu Status Miko", party)
+
+    help_bar = b.add("Help Bar", menu, UIRectComponent=rect((0, 0), (1, 0), (0.5, 0), (0, 0), (0, 84)), UIImageComponent=image(None, (0.02, 0.02, 0.03, 0.94)))
+    b.add("Help Bar Rule", help_bar, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, 0), (0, 2)), UIImageComponent=image(None, (0.78, 0.63, 0.38, 0.6)))
+    b.add("Help Text", help_bar, UIRectComponent=fill((72, 0, 72, 0)), UITextComponent=text("Select a category.", FONT_BODY, CREAM))
+    b.add("Help Keys", help_bar, UIRectComponent=fill((72, 0, 72, 0)), UITextComponent=text("Enter  Open        Esc / Tab  Close", FONT_SMALL, DIM, "Right"))
 
 
 def build_quest_canvas(b, director):
