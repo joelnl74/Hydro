@@ -5930,9 +5930,9 @@ Entities:
       AnchoredPosition: [392, -130]
       SizeDelta: [1000, 800]
       Visible: false
-  - Entity: 4708819455686047093
+  - Entity: 5979030378489830982
     TagComponent:
-      Tag: Page Quests Panel
+      Tag: Quest Panel
     RelationshipComponent:
       Parent: 7770592177432004370
     UIRectComponent:
@@ -5940,7 +5940,7 @@ Entities:
       AnchorMax: [0, 1]
       Pivot: [0, 1]
       AnchoredPosition: [0, 0]
-      SizeDelta: [1000, 300]
+      SizeDelta: [420, 800]
       Visible: true
     UIImageComponent:
       TextureHandle: 8117060024258182719
@@ -5949,25 +5949,1766 @@ Entities:
       NineSlice: [22, 22, 22, 22]
       FlipX: false
       FlipY: false
-  - Entity: 49043816204883877
+  - Entity: 5369156588632789869
     TagComponent:
-      Tag: Page Quests Text
+      Tag: Quest Header
     RelationshipComponent:
-      Parent: 4708819455686047093
+      Parent: 5979030378489830982
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -26]
+      SizeDelta: [-52, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5694801276301171080
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [16, 8, 16, 8]
+      FlipX: false
+      FlipY: false
+  - Entity: 6423490620299879426
+    TagComponent:
+      Tag: Quest Header Text
+    RelationshipComponent:
+      Parent: 5369156588632789869
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0.0, 0.0]
-      SizeDelta: [-96, -80]
+      SizeDelta: [-56, 0]
       Visible: true
     UITextComponent:
-      Text: Coming in a later step of the menu plan.
-      FontHandle: 3308760100462523854
+      Text: Quests
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 8044186510923888571
+    TagComponent:
+      Tag: Quest Header Count
+    RelationshipComponent:
+      Parent: 5369156588632789869
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-56, 0]
+      Visible: true
+    UITextComponent:
+      Text: 1 active
+      FontHandle: 634835381053794282
       Color: [0.74, 0.71, 0.64, 1]
       Scale: 1
-      AlignH: Center
+      AlignH: Right
       AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3889741622030586428
+    TagComponent:
+      Tag: Quest List
+    RelationshipComponent:
+      Parent: 5979030378489830982
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [14, -96]
+      SizeDelta: [370, 10]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Vertical
+      Spacing: 4
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: Start
+      StretchCrossAxis: true
+      FitContent: true
+  - Entity: 6490492540647445328
+    TagComponent:
+      Tag: Quest 0
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 7013929813226368437
+    TagComponent:
+      Tag: Quest 0 Ribbon
+    RelationshipComponent:
+      Parent: 6490492540647445328
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 8459519225137966462
+    TagComponent:
+      Tag: Quest 0 Glow
+    RelationshipComponent:
+      Parent: 6490492540647445328
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 5283066335379456959
+    TagComponent:
+      Tag: Quest 0 Cursor
+    RelationshipComponent:
+      Parent: 6490492540647445328
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2184116310257466898
+    TagComponent:
+      Tag: Quest 0 Name
+    RelationshipComponent:
+      Parent: 6490492540647445328
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: The Sleeping Tree
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7161942690693031912
+    TagComponent:
+      Tag: Quest 0 Count
+    RelationshipComponent:
+      Parent: 6490492540647445328
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4777447168954736226
+    TagComponent:
+      Tag: Quest 1
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: true
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 2560072705118583807
+    TagComponent:
+      Tag: Quest 1 Ribbon
+    RelationshipComponent:
+      Parent: 4777447168954736226
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 9118206079050133727
+    TagComponent:
+      Tag: Quest 1 Glow
+    RelationshipComponent:
+      Parent: 4777447168954736226
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 50971226757274636
+    TagComponent:
+      Tag: Quest 1 Cursor
+    RelationshipComponent:
+      Parent: 4777447168954736226
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7416596443220965668
+    TagComponent:
+      Tag: Quest 1 Name
+    RelationshipComponent:
+      Parent: 4777447168954736226
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Lost Lantern
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7329127625442504553
+    TagComponent:
+      Tag: Quest 1 Count
+    RelationshipComponent:
+      Parent: 4777447168954736226
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Done
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 902127823196439195
+    TagComponent:
+      Tag: Quest 2
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 4274524784170932822
+    TagComponent:
+      Tag: Quest 2 Ribbon
+    RelationshipComponent:
+      Parent: 902127823196439195
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 7135296037307836956
+    TagComponent:
+      Tag: Quest 2 Glow
+    RelationshipComponent:
+      Parent: 902127823196439195
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2999720263458438160
+    TagComponent:
+      Tag: Quest 2 Cursor
+    RelationshipComponent:
+      Parent: 902127823196439195
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3300276677466507499
+    TagComponent:
+      Tag: Quest 2 Name
+    RelationshipComponent:
+      Parent: 902127823196439195
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4002317273677665701
+    TagComponent:
+      Tag: Quest 2 Count
+    RelationshipComponent:
+      Parent: 902127823196439195
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 822443913527187394
+    TagComponent:
+      Tag: Quest 3
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 7881081333484125034
+    TagComponent:
+      Tag: Quest 3 Ribbon
+    RelationshipComponent:
+      Parent: 822443913527187394
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 4417670895861138411
+    TagComponent:
+      Tag: Quest 3 Glow
+    RelationshipComponent:
+      Parent: 822443913527187394
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2547167896390917911
+    TagComponent:
+      Tag: Quest 3 Cursor
+    RelationshipComponent:
+      Parent: 822443913527187394
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 8204119384996111508
+    TagComponent:
+      Tag: Quest 3 Name
+    RelationshipComponent:
+      Parent: 822443913527187394
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2806516948675720797
+    TagComponent:
+      Tag: Quest 3 Count
+    RelationshipComponent:
+      Parent: 822443913527187394
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3195565900410297117
+    TagComponent:
+      Tag: Quest 4
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 9163085501867854896
+    TagComponent:
+      Tag: Quest 4 Ribbon
+    RelationshipComponent:
+      Parent: 3195565900410297117
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 505435172936442401
+    TagComponent:
+      Tag: Quest 4 Glow
+    RelationshipComponent:
+      Parent: 3195565900410297117
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1015343380396923523
+    TagComponent:
+      Tag: Quest 4 Cursor
+    RelationshipComponent:
+      Parent: 3195565900410297117
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7661170513981159216
+    TagComponent:
+      Tag: Quest 4 Name
+    RelationshipComponent:
+      Parent: 3195565900410297117
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 8625761514486654517
+    TagComponent:
+      Tag: Quest 4 Count
+    RelationshipComponent:
+      Parent: 3195565900410297117
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2361436276359924259
+    TagComponent:
+      Tag: Quest 5
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 8188627898451970086
+    TagComponent:
+      Tag: Quest 5 Ribbon
+    RelationshipComponent:
+      Parent: 2361436276359924259
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 4172250620760155199
+    TagComponent:
+      Tag: Quest 5 Glow
+    RelationshipComponent:
+      Parent: 2361436276359924259
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 6708376146845375529
+    TagComponent:
+      Tag: Quest 5 Cursor
+    RelationshipComponent:
+      Parent: 2361436276359924259
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 639891840466733563
+    TagComponent:
+      Tag: Quest 5 Name
+    RelationshipComponent:
+      Parent: 2361436276359924259
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7914289483041956582
+    TagComponent:
+      Tag: Quest 5 Count
+    RelationshipComponent:
+      Parent: 2361436276359924259
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5509943188205024862
+    TagComponent:
+      Tag: Quest 6
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 1876896353149669387
+    TagComponent:
+      Tag: Quest 6 Ribbon
+    RelationshipComponent:
+      Parent: 5509943188205024862
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 6705306902282617441
+    TagComponent:
+      Tag: Quest 6 Glow
+    RelationshipComponent:
+      Parent: 5509943188205024862
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 581225300935533969
+    TagComponent:
+      Tag: Quest 6 Cursor
+    RelationshipComponent:
+      Parent: 5509943188205024862
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7781062626510724598
+    TagComponent:
+      Tag: Quest 6 Name
+    RelationshipComponent:
+      Parent: 5509943188205024862
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4856916115638358160
+    TagComponent:
+      Tag: Quest 6 Count
+    RelationshipComponent:
+      Parent: 5509943188205024862
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 432406813945156911
+    TagComponent:
+      Tag: Quest 7
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 3761866531053984345
+    TagComponent:
+      Tag: Quest 7 Ribbon
+    RelationshipComponent:
+      Parent: 432406813945156911
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 9071635597477320735
+    TagComponent:
+      Tag: Quest 7 Glow
+    RelationshipComponent:
+      Parent: 432406813945156911
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 7748300565703578324
+    TagComponent:
+      Tag: Quest 7 Cursor
+    RelationshipComponent:
+      Parent: 432406813945156911
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 190450208164946906
+    TagComponent:
+      Tag: Quest 7 Name
+    RelationshipComponent:
+      Parent: 432406813945156911
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 247575901038416738
+    TagComponent:
+      Tag: Quest 7 Count
+    RelationshipComponent:
+      Parent: 432406813945156911
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7696096861697682291
+    TagComponent:
+      Tag: Quest 8
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 6416657916570096708
+    TagComponent:
+      Tag: Quest 8 Ribbon
+    RelationshipComponent:
+      Parent: 7696096861697682291
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 9041676013379320950
+    TagComponent:
+      Tag: Quest 8 Glow
+    RelationshipComponent:
+      Parent: 7696096861697682291
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2145387313029166315
+    TagComponent:
+      Tag: Quest 8 Cursor
+    RelationshipComponent:
+      Parent: 7696096861697682291
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 1220340651627666882
+    TagComponent:
+      Tag: Quest 8 Name
+    RelationshipComponent:
+      Parent: 7696096861697682291
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3131377331525144757
+    TagComponent:
+      Tag: Quest 8 Count
+    RelationshipComponent:
+      Parent: 7696096861697682291
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5594698194000163894
+    TagComponent:
+      Tag: Quest 9
+    RelationshipComponent:
+      Parent: 3889741622030586428
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [370, 56]
+      Visible: false
+    UIButtonComponent:
+      Interactable: true
+      Event: Quest
+      NormalTint: [0.84, 0.84, 0.84, 1]
+      FocusedTint: [1, 1, 1, 1]
+      PressedTint: [0.86, 0.82, 0.74, 1]
+      DisabledTint: [0.55, 0.55, 0.55, 0.7]
+      Navigation: Auto
+  - Entity: 1023200238695629106
+    TagComponent:
+      Tag: Quest 9 Ribbon
+    RelationshipComponent:
+      Parent: 5594698194000163894
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2894274537610236075
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Unfocused
+  - Entity: 5316681372087956247
+    TagComponent:
+      Tag: Quest 9 Glow
+    RelationshipComponent:
+      Parent: 5594698194000163894
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [22.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5420273524025877016
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [20, 10, 34, 10]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 3102763227734981700
+    TagComponent:
+      Tag: Quest 9 Cursor
+    RelationshipComponent:
+      Parent: 5594698194000163894
+    UIRectComponent:
+      AnchorMin: [0, 0.5]
+      AnchorMax: [0, 0.5]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [44, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 6879306219909375526
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+    UIFocusVisibilityComponent:
+      Show: Focused
+  - Entity: 2956678633354277751
+    TagComponent:
+      Tag: Quest 9 Name
+    RelationshipComponent:
+      Parent: 5594698194000163894
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: Quest
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7632809393457809528
+    TagComponent:
+      Tag: Quest 9 Count
+    RelationshipComponent:
+      Parent: 5594698194000163894
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [5.0, 0.0]
+      SizeDelta: [-122, 0]
+      Visible: true
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.64, 0.8, 1.0, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3330539160581691116
+    TagComponent:
+      Tag: Quest Detail Panel
+    RelationshipComponent:
+      Parent: 7770592177432004370
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [440, 0]
+      SizeDelta: [560, 800]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 2806146517839466447
+    TagComponent:
+      Tag: Quest Detail Title
+    RelationshipComponent:
+      Parent: 3330539160581691116
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [36, -28]
+      SizeDelta: [488, 48]
+      Visible: true
+    UITextComponent:
+      Text: The Sleeping Tree
+      FontHandle: 8758314776354146223
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 509016633038869394
+    TagComponent:
+      Tag: Quest Detail State
+    RelationshipComponent:
+      Parent: 3330539160581691116
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [38, -78]
+      SizeDelta: [488, 30]
+      Visible: true
+    UITextComponent:
+      Text: In progress
+      FontHandle: 634835381053794282
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 8364087642225565093
+    TagComponent:
+      Tag: Quest Detail Rule
+    RelationshipComponent:
+      Parent: 3330539160581691116
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -112]
+      SizeDelta: [-60, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.7]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 1605695900707637133
+    TagComponent:
+      Tag: Quest Detail Objective Label
+    RelationshipComponent:
+      Parent: 3330539160581691116
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [36, -136]
+      SizeDelta: [488, 30]
+      Visible: true
+    UITextComponent:
+      Text: Objective
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 291930027117705765
+    TagComponent:
+      Tag: Quest Detail Objective
+    RelationshipComponent:
+      Parent: 3330539160581691116
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [36, -172]
+      SizeDelta: [488, 120]
+      Visible: true
+    UITextComponent:
+      Text: Ask the elder about the tree.
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6824100435847621006
+    TagComponent:
+      Tag: Quest Detail Steps Label
+    RelationshipComponent:
+      Parent: 3330539160581691116
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [36, -310]
+      SizeDelta: [488, 30]
+      Visible: true
+    UITextComponent:
+      Text: Steps
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4416368203624361550
+    TagComponent:
+      Tag: Quest Steps
+    RelationshipComponent:
+      Parent: 3330539160581691116
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [36, -350]
+      SizeDelta: [488, 10]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Vertical
+      Spacing: 6
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: Start
+      StretchCrossAxis: true
+      FitContent: true
+  - Entity: 1908478955672092265
+    TagComponent:
+      Tag: Quest Step 0
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: true
+    UITextComponent:
+      Text: Find the shrine maiden.
+      FontHandle: 634835381053794282
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5597562306639532453
+    TagComponent:
+      Tag: Quest Step 1
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: true
+    UITextComponent:
+      Text: Ask the elder about the tree.
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7386652943011487609
+    TagComponent:
+      Tag: Quest Step 2
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: false
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5261960542675400746
+    TagComponent:
+      Tag: Quest Step 3
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: false
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1762677545637190567
+    TagComponent:
+      Tag: Quest Step 4
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: false
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1389376305941779778
+    TagComponent:
+      Tag: Quest Step 5
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: false
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4682178629537489947
+    TagComponent:
+      Tag: Quest Step 6
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: false
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
+      Wrap: true
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1081903770510478727
+    TagComponent:
+      Tag: Quest Step 7
+    RelationshipComponent:
+      Parent: 4416368203624361550
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [488, 48]
+      Visible: false
+    UITextComponent:
+      Text: ''
+      FontHandle: 634835381053794282
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Top
       Wrap: true
       LineSpacing: 1.0
       VisibleCharacters: -1
@@ -5985,9 +7726,9 @@ Entities:
       AnchoredPosition: [392, -130]
       SizeDelta: [1000, 800]
       Visible: false
-  - Entity: 8645443739266794546
+  - Entity: 697195303405317793
     TagComponent:
-      Tag: Page Character Panel
+      Tag: Character Panel
     RelationshipComponent:
       Parent: 1516992109357326696
     UIRectComponent:
@@ -5995,7 +7736,7 @@ Entities:
       AnchorMax: [0, 1]
       Pivot: [0, 1]
       AnchoredPosition: [0, 0]
-      SizeDelta: [1000, 300]
+      SizeDelta: [1000, 800]
       Visible: true
     UIImageComponent:
       TextureHandle: 8117060024258182719
@@ -6004,26 +7745,1173 @@ Entities:
       NineSlice: [22, 22, 22, 22]
       FlipX: false
       FlipY: false
-  - Entity: 9153977799844940092
+  - Entity: 6313778070724452085
     TagComponent:
-      Tag: Page Character Text
+      Tag: Character Portrait Frame
     RelationshipComponent:
-      Parent: 8645443739266794546
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [40, -36]
+      SizeDelta: [232, 222]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 8117060024258182719
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [22, 22, 22, 22]
+      FlipX: false
+      FlipY: false
+  - Entity: 543414286175400992
+    TagComponent:
+      Tag: Character Portrait
+    RelationshipComponent:
+      Parent: 6313778070724452085
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
       Pivot: [0.5, 0.5]
       AnchoredPosition: [0.0, 0.0]
-      SizeDelta: [-96, -80]
+      SizeDelta: [-40, -32]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5407845820862445765
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 3953188991050415714
+    TagComponent:
+      Tag: Character Name
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [304, -44]
+      SizeDelta: [640, 52]
       Visible: true
     UITextComponent:
-      Text: Coming in a later step of the menu plan.
+      Text: Miko
+      FontHandle: 8758314776354146223
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6336915680150571005
+    TagComponent:
+      Tag: Character Level
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [306, -102]
+      SizeDelta: [640, 40]
+      Visible: true
+    UITextComponent:
+      Text: Level 1
       FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3410418069347412670
+    TagComponent:
+      Tag: Character Experience
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [306, -150]
+      SizeDelta: [300, 34]
+      Visible: true
+    UITextComponent:
+      Text: Experience 0
+      FontHandle: 634835381053794282
       Color: [0.74, 0.71, 0.64, 1]
       Scale: 1
-      AlignH: Center
+      AlignH: Left
       AlignV: Middle
-      Wrap: true
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2914740298303245939
+    TagComponent:
+      Tag: Character Next
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [606, -150]
+      SizeDelta: [330, 34]
+      Visible: true
+    UITextComponent:
+      Text: 'Next level: 30'
+      FontHandle: 634835381053794282
+      Color: [0.74, 0.71, 0.64, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 160941315829479436
+    TagComponent:
+      Tag: Character Experience Back
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [306, -196]
+      SizeDelta: [630, 8]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6260475091051543399
+    TagComponent:
+      Tag: Character Experience Fill
+    RelationshipComponent:
+      Parent: 160941315829479436
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1.0, 0.84, 0.5, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 3668440625157972494
+    TagComponent:
+      Tag: Character Rule
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -284]
+      SizeDelta: [-60, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.7]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 3763199389841041732
+    TagComponent:
+      Tag: Character Stat Header
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [40, -310]
+      SizeDelta: [444, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5694801276301171080
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [16, 8, 16, 8]
+      FlipX: false
+      FlipY: false
+  - Entity: 2158244469617063807
+    TagComponent:
+      Tag: Character Stat Header Text
+    RelationshipComponent:
+      Parent: 3763199389841041732
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-56, 0]
+      Visible: true
+    UITextComponent:
+      Text: Stats
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6862145360027403007
+    TagComponent:
+      Tag: Character Stat List
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [40, -366]
+      SizeDelta: [444, 10]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Vertical
+      Spacing: 2
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: Start
+      StretchCrossAxis: true
+      FitContent: true
+  - Entity: 8274273917160318830
+    TagComponent:
+      Tag: Character Stat 0
+    RelationshipComponent:
+      Parent: 6862145360027403007
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 3902330161447280248
+    TagComponent:
+      Tag: Character Stat 0 Back
+    RelationshipComponent:
+      Parent: 8274273917160318830
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.045]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6840124584914421125
+    TagComponent:
+      Tag: Character Stat 0 Name
+    RelationshipComponent:
+      Parent: 8274273917160318830
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Max HP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5113652258367672227
+    TagComponent:
+      Tag: Character Stat 0 Value
+    RelationshipComponent:
+      Parent: 8274273917160318830
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '90'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 536800207845819029
+    TagComponent:
+      Tag: Character Stat 1
+    RelationshipComponent:
+      Parent: 6862145360027403007
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 1377751264622520484
+    TagComponent:
+      Tag: Character Stat 1 Back
+    RelationshipComponent:
+      Parent: 536800207845819029
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.0]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6395197981661418808
+    TagComponent:
+      Tag: Character Stat 1 Name
+    RelationshipComponent:
+      Parent: 536800207845819029
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Max MP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 346124059828284246
+    TagComponent:
+      Tag: Character Stat 1 Value
+    RelationshipComponent:
+      Parent: 536800207845819029
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '32'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2633008040457549676
+    TagComponent:
+      Tag: Character Stat 2
+    RelationshipComponent:
+      Parent: 6862145360027403007
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 5521439960218190370
+    TagComponent:
+      Tag: Character Stat 2 Back
+    RelationshipComponent:
+      Parent: 2633008040457549676
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.045]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 9060653032445476102
+    TagComponent:
+      Tag: Character Stat 2 Name
+    RelationshipComponent:
+      Parent: 2633008040457549676
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Attack
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 9166547010468540284
+    TagComponent:
+      Tag: Character Stat 2 Value
+    RelationshipComponent:
+      Parent: 2633008040457549676
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '10'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4388398776559016922
+    TagComponent:
+      Tag: Character Stat 3
+    RelationshipComponent:
+      Parent: 6862145360027403007
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 3029920324371590370
+    TagComponent:
+      Tag: Character Stat 3 Back
+    RelationshipComponent:
+      Parent: 4388398776559016922
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.0]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 612054863396786251
+    TagComponent:
+      Tag: Character Stat 3 Name
+    RelationshipComponent:
+      Parent: 4388398776559016922
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Magic
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5708057532664907310
+    TagComponent:
+      Tag: Character Stat 3 Value
+    RelationshipComponent:
+      Parent: 4388398776559016922
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '8'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2173040681703989956
+    TagComponent:
+      Tag: Character Stat 4
+    RelationshipComponent:
+      Parent: 6862145360027403007
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 2451934756443937626
+    TagComponent:
+      Tag: Character Stat 4 Back
+    RelationshipComponent:
+      Parent: 2173040681703989956
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.045]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4481621132650060135
+    TagComponent:
+      Tag: Character Stat 4 Name
+    RelationshipComponent:
+      Parent: 2173040681703989956
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Speed
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3418997008434645639
+    TagComponent:
+      Tag: Character Stat 4 Value
+    RelationshipComponent:
+      Parent: 2173040681703989956
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '9'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1024105928744778416
+    TagComponent:
+      Tag: Character Equip Header
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [516, -310]
+      SizeDelta: [444, 44]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5694801276301171080
+      SpriteIndex: 0
+      Color: [1, 1, 1, 1]
+      NineSlice: [16, 8, 16, 8]
+      FlipX: false
+      FlipY: false
+  - Entity: 9008080856382824296
+    TagComponent:
+      Tag: Character Equip Header Text
+    RelationshipComponent:
+      Parent: 1024105928744778416
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-56, 0]
+      Visible: true
+    UITextComponent:
+      Text: Equipment
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 1635120888032013476
+    TagComponent:
+      Tag: Character Equip List
+    RelationshipComponent:
+      Parent: 697195303405317793
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [516, -366]
+      SizeDelta: [444, 10]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Vertical
+      Spacing: 2
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: Start
+      StretchCrossAxis: true
+      FitContent: true
+  - Entity: 8794085712070543497
+    TagComponent:
+      Tag: Character Equip 0
+    RelationshipComponent:
+      Parent: 1635120888032013476
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 3485951193118288829
+    TagComponent:
+      Tag: Character Equip 0 Back
+    RelationshipComponent:
+      Parent: 8794085712070543497
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.045]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4938602689241589460
+    TagComponent:
+      Tag: Character Equip 0 Name
+    RelationshipComponent:
+      Parent: 8794085712070543497
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Weapon
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 8845789993091718699
+    TagComponent:
+      Tag: Character Equip 0 Value
+    RelationshipComponent:
+      Parent: 8794085712070543497
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '-'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4176545035929125607
+    TagComponent:
+      Tag: Character Equip 1
+    RelationshipComponent:
+      Parent: 1635120888032013476
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 845299996122997744
+    TagComponent:
+      Tag: Character Equip 1 Back
+    RelationshipComponent:
+      Parent: 4176545035929125607
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.0]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 7097007245842181016
+    TagComponent:
+      Tag: Character Equip 1 Name
+    RelationshipComponent:
+      Parent: 4176545035929125607
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Off-hand
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3095985790351677115
+    TagComponent:
+      Tag: Character Equip 1 Value
+    RelationshipComponent:
+      Parent: 4176545035929125607
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '-'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6390111747883029107
+    TagComponent:
+      Tag: Character Equip 2
+    RelationshipComponent:
+      Parent: 1635120888032013476
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 6963325226350761824
+    TagComponent:
+      Tag: Character Equip 2 Back
+    RelationshipComponent:
+      Parent: 6390111747883029107
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.045]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6944630418589795703
+    TagComponent:
+      Tag: Character Equip 2 Name
+    RelationshipComponent:
+      Parent: 6390111747883029107
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Head
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4470669478567044631
+    TagComponent:
+      Tag: Character Equip 2 Value
+    RelationshipComponent:
+      Parent: 6390111747883029107
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '-'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7537772324112601386
+    TagComponent:
+      Tag: Character Equip 3
+    RelationshipComponent:
+      Parent: 1635120888032013476
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 7571492460640527702
+    TagComponent:
+      Tag: Character Equip 3 Back
+    RelationshipComponent:
+      Parent: 7537772324112601386
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.0]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 7266777093634134883
+    TagComponent:
+      Tag: Character Equip 3 Name
+    RelationshipComponent:
+      Parent: 7537772324112601386
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Body
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 3827054504786892394
+    TagComponent:
+      Tag: Character Equip 3 Value
+    RelationshipComponent:
+      Parent: 7537772324112601386
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '-'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7306652725897121335
+    TagComponent:
+      Tag: Character Equip 4
+    RelationshipComponent:
+      Parent: 1635120888032013476
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 7715790295591245333
+    TagComponent:
+      Tag: Character Equip 4 Back
+    RelationshipComponent:
+      Parent: 7306652725897121335
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.045]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8516688891590385355
+    TagComponent:
+      Tag: Character Equip 4 Name
+    RelationshipComponent:
+      Parent: 7306652725897121335
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Accessory
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6660016168641094503
+    TagComponent:
+      Tag: Character Equip 4 Value
+    RelationshipComponent:
+      Parent: 7306652725897121335
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '-'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2797995700174704586
+    TagComponent:
+      Tag: Character Equip 5
+    RelationshipComponent:
+      Parent: 1635120888032013476
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [444, 54]
+      Visible: true
+  - Entity: 8605497670394570465
+    TagComponent:
+      Tag: Character Equip 5 Back
+    RelationshipComponent:
+      Parent: 2797995700174704586
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.0]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 2636862080796157452
+    TagComponent:
+      Tag: Character Equip 5 Name
+    RelationshipComponent:
+      Parent: 2797995700174704586
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: Accessory
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2905283568104627620
+    TagComponent:
+      Tag: Character Equip 5 Value
+    RelationshipComponent:
+      Parent: 2797995700174704586
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [-44, 0]
+      Visible: true
+    UITextComponent:
+      Text: '-'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
       LineSpacing: 1.0
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]

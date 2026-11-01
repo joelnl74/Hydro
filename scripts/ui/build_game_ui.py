@@ -328,8 +328,11 @@ def build_field_menu(b, director):
     b.add("Item Detail Text", details, UIRectComponent=fill((36, 30, 36, 100)),
           UITextComponent=text("Restores 25 HP to every hero.", FONT_BODY, CREAM, "Left", "Top", wrap=True))
 
-    # The pages still to come (M4: Quests, Character; M5: Abilities, Equipment): a frame and a line.
-    for name in MENU_TABS[1:]:
+    build_quests_page(b, menu)
+    build_character_page(b, menu)
+
+    # The pages still to come (M5: Abilities, Equipment): a frame and a line.
+    for name in MENU_TABS[3:]:
         later = b.add("Page " + name, menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
         panel = b.add("Page %s Panel" % name, later, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (PAGE_WIDTH, 300)), UIImageComponent=image("Frame"))
         b.add("Page %s Text" % name, panel, UIRectComponent=fill((48, 40, 48, 40)),
@@ -342,6 +345,73 @@ def build_field_menu(b, director):
     b.add("Help Bar Rule", help_bar, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, 0), (0, 2)), UIImageComponent=image(None, (0.78, 0.63, 0.38, 0.6)))
     b.add("Help Text", help_bar, UIRectComponent=fill((72, 0, 72, 0)), UITextComponent=text("Select a category.", FONT_BODY, CREAM))
     b.add("Help Keys", help_bar, UIRectComponent=fill((72, 0, 72, 0)), UITextComponent=text("Enter  Open        Esc / Tab  Close", FONT_SMALL, DIM, "Right"))
+
+
+STAT_NAMES = ["Max HP", "Max MP", "Attack", "Magic", "Speed"]
+EQUIP_NAMES = ["Weapon", "Off-hand", "Head", "Body", "Accessory", "Accessory"]
+MIKO_FIELD = handle_of("Characters/Player/Miko/Miko_Field.png")
+
+
+def page_text(b, tag, parent, position, size, value, font=FONT_BODY, color=CREAM, align="Left", wrap=False):
+    """A text placed from its parent's top-left corner."""
+    return b.add(tag, parent, UIRectComponent=rect((0, 1), None, (0, 1), position, size), UITextComponent=text(value, font, color, align, "Top" if wrap else "Middle", wrap=wrap))
+
+
+def build_quests_page(b, menu):
+    """The Quests page (QuestsView, Game/src/Scripts/Field/QuestsView.h): the run's quests on the left (unfinished
+    first, newest first; "Done" on finished ones), the focused one's title, state, objective and steps on the right."""
+    page = b.add("Page Quests", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+    frame = b.add("Quest Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (420, 800)), UIImageComponent=image("Frame"))
+    head = b.add("Quest Header", frame, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
+    b.add("Quest Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Quests", FONT_LABEL, GOLD))
+    b.add("Quest Header Count", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("1 active", FONT_SMALL, DIM, "Right"))
+    rows = b.add("Quest List", frame, UIRectComponent=rect((0, 1), None, (0, 1), (14, -96), (370, 10)), UILayoutGroupComponent=group(spacing=4))
+    sample = [("The Sleeping Tree", ""), ("Lost Lantern", "Done")]
+    for q in range(10):
+        name, state = sample[q] if q < len(sample) else ("Quest", "")
+        row = ribbon_row(b, "Quest %d" % q, rows, 370, 56, name, state, "Quest")
+        if q >= len(sample):
+            next(e for e in b.entities if e["Entity"] == row)["UIRectComponent"]["Visible"] = False  # shown by QuestsView
+
+    detail = b.add("Quest Detail Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (440, 0), (560, 800)), UIImageComponent=image("Frame"))
+    page_text(b, "Quest Detail Title", detail, (36, -28), (488, 48), "The Sleeping Tree", FONT_TITLE, GOLD)
+    page_text(b, "Quest Detail State", detail, (38, -78), (488, 30), "In progress", FONT_SMALL, DIM)
+    b.add("Quest Detail Rule", detail, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -112), (-60, 12)), UIImageComponent=image("Divider", (1, 1, 1, 0.7)))
+    page_text(b, "Quest Detail Objective Label", detail, (36, -136), (488, 30), "Objective", FONT_LABEL, GOLD)
+    page_text(b, "Quest Detail Objective", detail, (36, -172), (488, 120), "Ask the elder about the tree.", FONT_BODY, CREAM, wrap=True)
+    page_text(b, "Quest Detail Steps Label", detail, (36, -310), (488, 30), "Steps", FONT_LABEL, GOLD)
+    steps = b.add("Quest Steps", detail, UIRectComponent=rect((0, 1), None, (0, 1), (36, -350), (488, 10)), UILayoutGroupComponent=group(spacing=6))
+    for i in range(8):
+        b.add("Quest Step %d" % i, steps, UIRectComponent=rect(size=(488, 48), visible=i < 2),
+              UITextComponent=text(["Find the shrine maiden.", "Ask the elder about the tree."][i] if i < 2 else "", FONT_SMALL, DIM if i == 0 else CREAM, "Left", "Top", wrap=True))
+
+
+def build_character_page(b, menu):
+    """The Character page (CharacterView, Game/src/Scripts/Field/CharacterView.h): the hero's portrait, name, level and
+    experience, its stats with what equipment adds, and what it wears."""
+    page = b.add("Page Character", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+    panel = b.add("Character Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (PAGE_WIDTH, 800)), UIImageComponent=image("Frame"))
+    portrait = b.add("Character Portrait Frame", panel, UIRectComponent=rect((0, 1), None, (0, 1), (40, -36), (232, 222)), UIImageComponent=image("Frame"))
+    b.add("Character Portrait", portrait, UIRectComponent=fill((20, 16, 20, 16)), UIImageComponent=image(None, texture=MIKO_FIELD, sprite=0))
+    page_text(b, "Character Name", panel, (304, -44), (640, 52), "Miko", FONT_TITLE, GOLD)
+    page_text(b, "Character Level", panel, (306, -102), (640, 40), "Level 1", FONT_BODY)
+    page_text(b, "Character Experience", panel, (306, -150), (300, 34), "Experience 0", FONT_SMALL, DIM)
+    page_text(b, "Character Next", panel, (606, -150), (330, 34), "Next level: 30", FONT_SMALL, DIM, "Right")
+    back = b.add("Character Experience Back", panel, UIRectComponent=rect((0, 1), None, (0, 1), (306, -196), (630, 8)), UIImageComponent=image(None, (0, 0, 0, 0.6)))
+    b.add("Character Experience Fill", back, UIRectComponent=rect((0, 0), (1, 1), (0, 0.5), (0, 0), (0, 0)), UIImageComponent=image(None, GOLD))
+    b.add("Character Rule", panel, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -284), (-60, 12)), UIImageComponent=image("Divider", (1, 1, 1, 0.7)))
+
+    for column, (title, names, x) in enumerate((("Stats", STAT_NAMES, 40), ("Equipment", EQUIP_NAMES, 516))):
+        tag = "Character " + ("Stat" if column == 0 else "Equip")
+        head = b.add(tag + " Header", panel, UIRectComponent=rect((0, 1), None, (0, 1), (x, -310), (444, 44)), UIImageComponent=image("Plate"))
+        b.add(tag + " Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text(title, FONT_LABEL, GOLD))
+        group_entity = b.add(tag + " List", panel, UIRectComponent=rect((0, 1), None, (0, 1), (x, -366), (444, 10)), UILayoutGroupComponent=group(spacing=2))
+        for i, name in enumerate(names):
+            row = b.add("%s %d" % (tag, i), group_entity, UIRectComponent=rect(size=(444, 54)))
+            b.add("%s %d Back" % (tag, i), row, UIRectComponent=fill(), UIImageComponent=image(None, (1, 1, 1, 0.045 if i % 2 == 0 else 0.0)))
+            b.add("%s %d Name" % (tag, i), row, UIRectComponent=fill((22, 0, 22, 0)), UITextComponent=text(name, FONT_LABEL, GOLD))
+            value = ["90", "32", "10", "8", "9"][i] if column == 0 else "-"
+            b.add("%s %d Value" % (tag, i), row, UIRectComponent=fill((22, 0, 22, 0)), UITextComponent=text(value, FONT_BODY, CREAM, "Right"))
 
 
 def build_quest_canvas(b, director):
