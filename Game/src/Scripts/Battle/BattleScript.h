@@ -10,6 +10,7 @@
 #include "Scripts/Common/DioramaCamera.h"
 #include "State/BattleState.h"
 #include "State/Inventory.h"
+#include "State/QuestLog.h"
 
 #include <algorithm>
 #include <array>
@@ -566,10 +567,18 @@ namespace Hydro
 				HY_INFO("Battle: victory!");
 				// Experience from every enemy of the encounter (Enemies.hytable: Experience), then a line for each
 				// level up, shown one after the other before the battle closes.
+				// Each defeat also counts for the side quests asking for it (QuestRules), and each drops its aster.
 				int experience = 0;
+				int money = 0;
 				for (const Enemy& enemy : m_Enemies)
 				{
-					experience += enemy.Row.empty() ? 0 : GetEnemy(enemy.Row).Experience;
+					if (enemy.Row.empty())
+					{
+						continue;
+					}
+					experience += GetEnemy(enemy.Row).Experience;
+					money += GetEnemy(enemy.Row).Money;
+					QuestLog::Get().RecordDefeat(enemy.Row);
 				}
 				m_Results.clear();
 				m_NextResult = 0;
@@ -580,6 +589,11 @@ namespace Hydro
 					{
 						m_Results.push_back(line);
 					}
+				}
+				if (money > 0)
+				{
+					Inventory::Get().Money += money;
+					m_Results.push_back("Found " + std::to_string(money) + " " + CurrencyName + ".");
 				}
 				GiveLoot();
 				SetPhase(Phase::Victory);

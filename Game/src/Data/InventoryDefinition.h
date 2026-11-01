@@ -25,5 +25,7 @@ namespace Hydro
 	{
 		HY_PROPERTY(Tooltip("In the order the inventory lists them"))
 		std::vector<InventoryEntry> Items;
+		HY_PROPERTY(Range(0, 999999), Tooltip("Aster the party starts with"))
+		int Money = 0;
 	};
 }

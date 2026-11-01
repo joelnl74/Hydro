@@ -7,6 +7,12 @@
 
 namespace Hydro
 {
+	// The world's money (lore, Nov 2, 2026): the aster, a small copper coin pierced with an eight-pointed star, struck
+	// by the Leyline Concord, the old compact of shrines and guild cities that keeps the roads between the eastern
+	// provinces and the western kingdoms. It passes everywhere: easterners also call it "sen", westerners "star".
+	// The UI's word for it (until there is a text table, like the other UI words).
+	inline constexpr const char* CurrencyName = "Aster";
+
 	// The party's items: run state, on the game session (RpgSession::Items, Scripting plan SC2), so every field scene
 	// and interior of a run shares them and a new run starts with none. The field director fills it from its
 	// starting inventory once per run (FieldDirectorScript).
@@ -22,6 +28,7 @@ namespace Hydro
 
 		std::vector<Slot> Slots;
 		bool Started = false; // the starting inventory was given this run
+		int Money = 0;        // in aster (CurrencyName)
 
 		// How many of an item the party holds (0 when none).
 		int CountOf(const DataRowRef& item) const

@@ -341,6 +341,10 @@ def build_field_menu(b, director):
     party = b.add("Menu Party", menu, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
     for hero, hp, mp in PARTY:
         status_block(b, "Menu Status " + hero, party, hero, hp, mp)
+    # The party's money (aster, the world's currency), above the help bar on the right.
+    purse = b.add("Menu Money", menu, UIRectComponent=rect((1, 0), None, (1, 0), (-40, 104), (440, 52)), UIImageComponent=image("Fade", (1, 1, 1, 0.9), flip_x=True, nine=False))
+    b.add("Menu Money Label", purse, UIRectComponent=fill((26, 0, 24, 0)), UITextComponent=text("Aster", FONT_LABEL, GOLD))
+    b.add("Menu Money Amount", purse, UIRectComponent=fill((26, 0, 24, 0)), UITextComponent=text("50", FONT_BODY, CREAM, "Right"))
 
     help_bar = b.add("Help Bar", menu, UIRectComponent=rect((0, 0), (1, 0), (0.5, 0), (0, 0), (0, 84)), UIImageComponent=image(None, (0.02, 0.02, 0.03, 0.94)))
     b.add("Help Bar Rule", help_bar, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, 0), (0, 2)), UIImageComponent=image(None, (0.78, 0.63, 0.38, 0.6)))

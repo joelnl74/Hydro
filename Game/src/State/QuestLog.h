@@ -3,6 +3,7 @@
 
 #include "Hydro.h"
 #include "Data/QuestDefinition.h"
+#include "Rules/QuestRules.h"
 
 #include <algorithm>
 #include <array>
@@ -124,6 +125,33 @@ namespace Hydro
 		{
 			Quests.erase(std::remove_if(Quests.begin(), Quests.end(), [&](const Quest& quest) { return quest.Definition == definition; }), Quests.end());
 			Revision++;
+		}
+
+		// Side quests (Rules/QuestRules.h): a defeated enemy row counts for the Defeat quests on it.
+		void RecordDefeat(const std::string& enemyRow)
+		{
+			if (QuestRules::RecordDefeat(Quests, enemyRow, &FindDefinition))
+			{
+				Revision++;
+				HY_INFO("Quest: a {} defeat counted", enemyRow);
+			}
+		}
+
+		// Collect quests follow what the party holds (`countOf` an item row: the inventory's CountOf).
+		template<typename CountOf>
+		void RefreshCollect(CountOf countOf)
+		{
+			if (QuestRules::RefreshCollect(Quests, &FindDefinition, countOf))
+			{
+				Revision++;
+			}
+		}
+
+		// A quest's definition in its table (the view keeps the table loaded for the frame); nullptr when it's gone.
+		static const QuestDefinition* FindDefinition(const DataRowRef& definition)
+		{
+			const DataTableView<QuestDefinition> table = Data::GetTable<QuestDefinition>(definition.Table);
+			return table.IsValid() ? table.FindRow(definition.Row) : nullptr;
 		}
 
 		// The quest the tracker shows: the newest that isn't done (nullptr when there is none).

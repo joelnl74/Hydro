@@ -6,6 +6,7 @@
 #include "Rules/BattleRules.h"
 #include "Rules/LootRules.h"
 #include "Rules/PartyRules.h"
+#include "Rules/QuestRules.h"
 
 #include <cstdio>
 #include <deque>
@@ -145,6 +146,62 @@ namespace Hydro
 		RULE_CHECK(PartyRules::SetAbilitySlot(slots, known, 0, palm) && slots[0] == palm && slots[1] == kick);
 		RULE_CHECK(PartyRules::SetAbilitySlot(slots, known, 5, kick) && slots[5] == kick && slots[1].IsSet() == false);
 		RULE_CHECK(PartyRules::SetAbilitySlot(slots, known, 5, DataRowRef()) && slots[5].IsSet() == false);
+
+		std::printf("Game rules: side quests\n");
+		struct TestQuest
+		{
+			DataRowRef Definition;
+			int Stage = 0;
+			int Progress = 0;
+			int Goal = 0;
+			bool Done = false;
+		};
+		QuestDefinition hunt;
+		hunt.Kind = QuestKind::Defeat;
+		hunt.Enemy = DataRowRef{ 3, "Slime" };
+		QuestDefinition bring;
+		bring.Kind = QuestKind::Collect;
+		bring.Item = DataRowRef{ 4, "SlimeJelly" };
+		QuestDefinition story;
+		std::map<std::string, const QuestDefinition*> book = { { "Hunt", &hunt }, { "Bring", &bring }, { "Story", &story } };
+		auto lookup = [&book](const DataRowRef& row) -> const QuestDefinition*
+		{
+			auto found = book.find(row.Row);
+			return found == book.end() ? nullptr : found->second;
+		};
+		std::vector<TestQuest> quests(3);
+		quests[0].Definition = DataRowRef{ 9, "Hunt" };
+		quests[0].Goal = 2;
+		quests[1].Definition = DataRowRef{ 9, "Bring" };
+		quests[1].Goal = 3;
+		quests[2].Definition = DataRowRef{ 9, "Story" };
+		RULE_CHECK(QuestRules::RecordDefeat(quests, "Wisp", lookup) == false && quests[0].Progress == 0);
+		RULE_CHECK(QuestRules::RecordDefeat(quests, "Slime", lookup) && quests[0].Progress == 1 && quests[0].Stage == 0);
+		RULE_CHECK(QuestRules::RecordDefeat(quests, "Slime", lookup) && quests[0].Progress == 2 && quests[0].Stage == 1 && QuestRules::IsReady(quests[0]));
+		RULE_CHECK(QuestRules::RecordDefeat(quests, "Slime", lookup) == false && quests[0].Progress == 2); // no more than the goal
+		int jelly = 2;
+		auto countOf = [&jelly](const DataRowRef& item) { return item.Row == "SlimeJelly" ? jelly : 0; };
+		RULE_CHECK(QuestRules::RefreshCollect(quests, lookup, countOf) && quests[1].Progress == 2 && quests[1].Stage == 0);
+		jelly = 5;
+		RULE_CHECK(QuestRules::RefreshCollect(quests, lookup, countOf) && quests[1].Progress == 3 && quests[1].Stage == 1 && QuestRules::IsReady(quests[1]));
+		jelly = 1; // used meanwhile: back to collecting
+		RULE_CHECK(QuestRules::RefreshCollect(quests, lookup, countOf) && quests[1].Progress == 1 && quests[1].Stage == 0);
+		RULE_CHECK(QuestRules::RefreshCollect(quests, lookup, countOf) == false);
+		quests[0].Done = true;
+		auto find = [&quests](const std::string& row) -> const TestQuest*
+		{
+			for (const TestQuest& quest : quests)
+			{
+				if (quest.Definition.Row == row)
+				{
+					return &quest;
+				}
+			}
+			return nullptr;
+		};
+		RULE_CHECK(QuestRules::CurrentFor({ "Hunt", "Bring" }, find) == "Bring");
+		RULE_CHECK(QuestRules::CurrentFor({ "Hunt", "Later" }, find) == "Later");
+		RULE_CHECK(QuestRules::CurrentFor({ "Hunt" }, find).empty());
 
 		return s_RuleFailures;
 	}

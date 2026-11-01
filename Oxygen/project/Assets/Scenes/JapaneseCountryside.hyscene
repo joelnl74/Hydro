@@ -10113,6 +10113,375 @@ Entities:
       CastShadows: false
       Materials:
         - MaterialHandle: 4752040662583502235
+  - Entity: 7901011330595838106
+    TagComponent:
+      Tag: Countryside Quest
+    TransformComponent:
+      Translation: [0, 0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+      - Name: CountrysideQuestScript
+  - Entity: 6081331263494546061
+    TagComponent:
+      Tag: Leyline
+    RelationshipComponent:
+      Parent: 7901011330595838106
+    TransformComponent:
+      Translation: [0, 0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4787478449180866597
+    TagComponent:
+      Tag: Leyline 0
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 42.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2468845570049818930
+    TagComponent:
+      Tag: Leyline 1
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 36.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4826836102422599809
+    TagComponent:
+      Tag: Leyline 2
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 30.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 9138890600600371939
+    TagComponent:
+      Tag: Leyline 3
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 24.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3878711085963444022
+    TagComponent:
+      Tag: Leyline 4
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 18.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2166623257345970794
+    TagComponent:
+      Tag: Leyline 5
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 12.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 537064969020756519
+    TagComponent:
+      Tag: Leyline 6
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 6.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 935743261743127935
+    TagComponent:
+      Tag: Leyline 7
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, 0.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4368397230389926754
+    TagComponent:
+      Tag: Leyline 8
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, -6.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2806731521343381444
+    TagComponent:
+      Tag: Leyline 9
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, -12.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1553261893689045495
+    TagComponent:
+      Tag: Leyline 10
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, -18.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 9078082225858242689
+    TagComponent:
+      Tag: Leyline 11
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [0.0, -24.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3433259886467890799
+    TagComponent:
+      Tag: Leyline 12
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [-1.6, -29.4, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 7368600291467505501
+    TagComponent:
+      Tag: Leyline 13
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [-7.0, -30.6, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2469700358884282344
+    TagComponent:
+      Tag: Leyline 14
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [-13.0, -30.8, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 2336788396038749638
+    TagComponent:
+      Tag: Leyline 15
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [-19.0, -30.4, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 7111579274899245942
+    TagComponent:
+      Tag: Leyline 16
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [-24.0, -29.6, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 7451877805184629682
+    TagComponent:
+      Tag: Leyline 17
+    RelationshipComponent:
+      Parent: 6081331263494546061
+    TransformComponent:
+      Translation: [-28.0, -28.6, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 6027796718283776933
+    TagComponent:
+      Tag: Ley Tree
+    RelationshipComponent:
+      Parent: 7901011330595838106
+    TransformComponent:
+      Translation: [-30.0, -28.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [10, 10, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 12414044026977133072
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    BoxColliderComponent:
+      Offset: [0, 0, 1]
+      Size: [2.0, 1.0, 2.0]
+      Layer: World
+      IsTrigger: false
+  - Entity: 8017384914773458710
+    TagComponent:
+      Tag: Npc Orin
+    RelationshipComponent:
+      Parent: 7901011330595838106
+    TransformComponent:
+      Translation: [-26.6, -30.6, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 60
+      TextureHandle: 6290817403346251521
+      Sprite: IdleRight_0
+      SpriteIndex: 4
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4415580237915726709
+      StartClip: IdleRight
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [0.95, 0.58]
+      Strength: 0.6
+    BoxCollider2DComponent:
+      Offset: [0, 0.1]
+      Size: [0.5, 0.2]
+      Density: 1
+      Friction: 0.4
+      Restitution: 0
+      IsSensor: false
+    BoxColliderComponent:
+      Offset: [0, 0.1, 0.8]
+      Size: [0.5, 0.2, 1.6]
+      Layer: Npc
+      IsTrigger: false
+  - Entity: 7923278494072296059
+    TagComponent:
+      Tag: Ley Wisp 1
+    RelationshipComponent:
+      Parent: 7901011330595838106
+    TransformComponent:
+      Translation: [-32.0, -30.2, 0.8]
+      Rotation: [0, 0, 0]
+      Scale: [1.6, 1.6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 40
+      TextureHandle: 3546812827052914949
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 381359539372406047
+      StartClip: Float
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.5]
+      Size: [0.7, 0.3]
+      Strength: 0.35
+  - Entity: 7393076417966499461
+    TagComponent:
+      Tag: Ley Wisp 2
+    RelationshipComponent:
+      Parent: 7901011330595838106
+    TransformComponent:
+      Translation: [-28.6, -26.4, 0.8]
+      Rotation: [0, 0, 0]
+      Scale: [1.6, 1.6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 40
+      TextureHandle: 3546812827052914949
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 381359539372406047
+      StartClip: Float
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.5]
+      Size: [0.7, 0.3]
+      Strength: 0.35
+  - Entity: 9154387071711707643
+    TagComponent:
+      Tag: Ley Wisp 3
+    RelationshipComponent:
+      Parent: 7901011330595838106
+    TransformComponent:
+      Translation: [-24.8, -28.4, 0.8]
+      Rotation: [0, 0, 0]
+      Scale: [1.6, 1.6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 40
+      TextureHandle: 3546812827052914949
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 381359539372406047
+      StartClip: Float
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.5]
+      Size: [0.7, 0.3]
+      Strength: 0.35
+  - Entity: 8467692688811101263
+    TagComponent:
+      Tag: Ley Marker Canvas
+    RelationshipComponent:
+      Parent: 7901011330595838106
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    UICanvasComponent:
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: ScaleWithScreen
+      SortOrder: 4
+      Visible: false
+      BlocksGameplayInput: false
+      Space: World
+      WorldSize: [56, 70]
+      WorldPivot: [0.5, 0]
+  - Entity: 2169984150567567199
+    TagComponent:
+      Tag: Ley Marker
+    RelationshipComponent:
+      Parent: 8467692688811101263
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5880539262872640780
+      SpriteIndex: 0
+      Color: [1, 0.84, 0.42, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 2724500590151857403
+    TagComponent:
+      Tag: Arrive ShrineGlade
+    TransformComponent:
+      Translation: [0.0, 43.0, 0.0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 2498454559246858855
     TagComponent:
       Tag: Prompt Canvas
@@ -23283,6 +23652,73 @@ Entities:
       NineSlice: [14, 0, 14, 0]
       FlipX: false
       FlipY: false
+  - Entity: 3290343449985178972
+    TagComponent:
+      Tag: Menu Money
+    RelationshipComponent:
+      Parent: 3699581053886870861
+    UIRectComponent:
+      AnchorMin: [1, 0]
+      AnchorMax: [1, 0]
+      Pivot: [1, 0]
+      AnchoredPosition: [-40, 104]
+      SizeDelta: [440, 52]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 7877762661020090692
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.9]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: true
+      FlipY: false
+  - Entity: 3001951916543406565
+    TagComponent:
+      Tag: Menu Money Label
+    RelationshipComponent:
+      Parent: 3290343449985178972
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [1.0, 0.0]
+      SizeDelta: [-50, 0]
+      Visible: true
+    UITextComponent:
+      Text: Aster
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 16224898450581359
+    TagComponent:
+      Tag: Menu Money Amount
+    RelationshipComponent:
+      Parent: 3290343449985178972
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [1.0, 0.0]
+      SizeDelta: [-50, 0]
+      Visible: true
+    UITextComponent:
+      Text: '50'
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
   - Entity: 8862531313714146589
     TagComponent:
       Tag: Help Bar
@@ -23774,372 +24210,3 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 7901011330595838106
-    TagComponent:
-      Tag: Countryside Quest
-    TransformComponent:
-      Translation: [0, 0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-      - Name: CountrysideQuestScript
-  - Entity: 6081331263494546061
-    TagComponent:
-      Tag: Leyline
-    RelationshipComponent:
-      Parent: 7901011330595838106
-    TransformComponent:
-      Translation: [0, 0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 4787478449180866597
-    TagComponent:
-      Tag: Leyline 0
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 42.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 2468845570049818930
-    TagComponent:
-      Tag: Leyline 1
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 36.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 4826836102422599809
-    TagComponent:
-      Tag: Leyline 2
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 30.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 9138890600600371939
-    TagComponent:
-      Tag: Leyline 3
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 24.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 3878711085963444022
-    TagComponent:
-      Tag: Leyline 4
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 18.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 2166623257345970794
-    TagComponent:
-      Tag: Leyline 5
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 12.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 537064969020756519
-    TagComponent:
-      Tag: Leyline 6
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 6.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 935743261743127935
-    TagComponent:
-      Tag: Leyline 7
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, 0.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 4368397230389926754
-    TagComponent:
-      Tag: Leyline 8
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, -6.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 2806731521343381444
-    TagComponent:
-      Tag: Leyline 9
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, -12.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 1553261893689045495
-    TagComponent:
-      Tag: Leyline 10
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, -18.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 9078082225858242689
-    TagComponent:
-      Tag: Leyline 11
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [0.0, -24.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 3433259886467890799
-    TagComponent:
-      Tag: Leyline 12
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [-1.6, -29.4, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 7368600291467505501
-    TagComponent:
-      Tag: Leyline 13
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [-7.0, -30.6, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 2469700358884282344
-    TagComponent:
-      Tag: Leyline 14
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [-13.0, -30.8, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 2336788396038749638
-    TagComponent:
-      Tag: Leyline 15
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [-19.0, -30.4, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 7111579274899245942
-    TagComponent:
-      Tag: Leyline 16
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [-24.0, -29.6, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 7451877805184629682
-    TagComponent:
-      Tag: Leyline 17
-    RelationshipComponent:
-      Parent: 6081331263494546061
-    TransformComponent:
-      Translation: [-28.0, -28.6, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 6027796718283776933
-    TagComponent:
-      Tag: Ley Tree
-    RelationshipComponent:
-      Parent: 7901011330595838106
-    TransformComponent:
-      Translation: [-30.0, -28.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [10, 10, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 12414044026977133072
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    BoxColliderComponent:
-      Offset: [0, 0, 1]
-      Size: [2.0, 1.0, 2.0]
-      Layer: World
-      IsTrigger: false
-  - Entity: 8017384914773458710
-    TagComponent:
-      Tag: Npc Orin
-    RelationshipComponent:
-      Parent: 7901011330595838106
-    TransformComponent:
-      Translation: [-26.6, -30.6, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [2.5, 2.34375, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 60
-      TextureHandle: 6290817403346251521
-      Sprite: IdleRight_0
-      SpriteIndex: 4
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    SpriteAnimatorComponent:
-      AnimationsHandle: 4415580237915726709
-      StartClip: IdleRight
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, -0.04]
-      Size: [0.95, 0.58]
-      Strength: 0.6
-    BoxCollider2DComponent:
-      Offset: [0, 0.1]
-      Size: [0.5, 0.2]
-      Density: 1
-      Friction: 0.4
-      Restitution: 0
-      IsSensor: false
-    BoxColliderComponent:
-      Offset: [0, 0.1, 0.8]
-      Size: [0.5, 0.2, 1.6]
-      Layer: Npc
-      IsTrigger: false
-  - Entity: 7923278494072296059
-    TagComponent:
-      Tag: Ley Wisp 1
-    RelationshipComponent:
-      Parent: 7901011330595838106
-    TransformComponent:
-      Translation: [-32.0, -30.2, 0.8]
-      Rotation: [0, 0, 0]
-      Scale: [1.6, 1.6, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 40
-      TextureHandle: 3546812827052914949
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    SpriteAnimatorComponent:
-      AnimationsHandle: 381359539372406047
-      StartClip: Float
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, -0.5]
-      Size: [0.7, 0.3]
-      Strength: 0.35
-  - Entity: 7393076417966499461
-    TagComponent:
-      Tag: Ley Wisp 2
-    RelationshipComponent:
-      Parent: 7901011330595838106
-    TransformComponent:
-      Translation: [-28.6, -26.4, 0.8]
-      Rotation: [0, 0, 0]
-      Scale: [1.6, 1.6, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 40
-      TextureHandle: 3546812827052914949
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    SpriteAnimatorComponent:
-      AnimationsHandle: 381359539372406047
-      StartClip: Float
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, -0.5]
-      Size: [0.7, 0.3]
-      Strength: 0.35
-  - Entity: 9154387071711707643
-    TagComponent:
-      Tag: Ley Wisp 3
-    RelationshipComponent:
-      Parent: 7901011330595838106
-    TransformComponent:
-      Translation: [-24.8, -28.4, 0.8]
-      Rotation: [0, 0, 0]
-      Scale: [1.6, 1.6, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 40
-      TextureHandle: 3546812827052914949
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    SpriteAnimatorComponent:
-      AnimationsHandle: 381359539372406047
-      StartClip: Float
-      PlayOnStart: true
-      Speed: 1
-    Shadow2DComponent:
-      Offset: [0, -0.5]
-      Size: [0.7, 0.3]
-      Strength: 0.35
-  - Entity: 8467692688811101263
-    TagComponent:
-      Tag: Ley Marker Canvas
-    RelationshipComponent:
-      Parent: 7901011330595838106
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    UICanvasComponent:
-      ReferenceResolution: [1920, 1080]
-      ScaleMode: ScaleWithScreen
-      SortOrder: 4
-      Visible: false
-      BlocksGameplayInput: false
-      Space: World
-      WorldSize: [56, 70]
-      WorldPivot: [0.5, 0]
-  - Entity: 2169984150567567199
-    TagComponent:
-      Tag: Ley Marker
-    RelationshipComponent:
-      Parent: 8467692688811101263
-    UIRectComponent:
-      AnchorMin: [0, 0]
-      AnchorMax: [1, 1]
-      Pivot: [0.5, 0.5]
-      AnchoredPosition: [0.0, 0.0]
-      SizeDelta: [0, 0]
-      Visible: true
-    UIImageComponent:
-      TextureHandle: 5880539262872640780
-      SpriteIndex: 0
-      Color: [1, 0.84, 0.42, 1]
-      NineSlice: [0, 0, 0, 0]
-      FlipX: false
-      FlipY: false
-  - Entity: 2724500590151857403
-    TagComponent:
-      Tag: Arrive ShrineGlade
-    TransformComponent:
-      Translation: [0.0, 43.0, 0.0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]

@@ -57,6 +57,8 @@ namespace Hydro
 				block.HPFill = ViewHelpers::Find(scene, status + " HP Fill", owner);
 				block.MPFill = ViewHelpers::Find(scene, status + " MP Fill", owner);
 			}
+			m_MoneyLabel = ViewHelpers::Find(scene, "Menu Money Label", owner);
+			m_Money = ViewHelpers::Find(scene, "Menu Money Amount", owner);
 			m_Items.Bind(scene);
 			m_Quests.Bind(scene);
 			m_Character.Bind(scene);
@@ -249,6 +251,8 @@ namespace Hydro
 					text->Color = marked ? glm::vec4(1.0f, 0.84f, 0.5f, 1.0f) : glm::vec4(0.95f, 0.91f, 0.83f, 1.0f);
 				}
 			}
+			UI::SetText(EntityOf(m_MoneyLabel), CurrencyName);
+			UI::SetText(EntityOf(m_Money), std::to_string(Inventory::Get().Money));
 			m_Items.Present(m_Selected == Tab::Inventory && m_InPage);
 			m_Quests.Present();
 			m_Character.Present(m_Hero);
@@ -429,6 +433,7 @@ namespace Hydro
 		entt::entity m_Pages[TabCount] = {};
 		entt::entity m_Help = entt::null, m_Keys = entt::null;
 		Status m_Status[HeroCount];
+		entt::entity m_MoneyLabel = entt::null, m_Money = entt::null;
 		int m_Hero = 0;                  // whose page the hero pages show (Q / E)
 		Tab m_Selected = Tab::Inventory; // kept between opens
 		bool m_InPage = false;           // the focus is in the page, not on the tabs

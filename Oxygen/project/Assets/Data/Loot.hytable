@@ -12,6 +12,7 @@ DataTable:
         - {Rarity: Rare, Percent: 5}
       Items:
         - {Item: {Table: 4741649512266718899, Row: Potion}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: SlimeJelly}, MinCount: 1, MaxCount: 2}
         - {Item: {Table: 4741649512266718899, Row: PineResin}, MinCount: 1, MaxCount: 1}
         - {Item: {Table: 4741649512266718899, Row: HiPotion}, MinCount: 1, MaxCount: 1}
         - {Item: {Table: 4741649512266718899, Row: PhoenixFeather}, MinCount: 1, MaxCount: 1}
@@ -25,5 +26,6 @@ DataTable:
       Items:
         - {Item: {Table: 4741649512266718899, Row: SpringWater}, MinCount: 1, MaxCount: 1}
         - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: WispEssence}, MinCount: 1, MaxCount: 1}
         - {Item: {Table: 4741649512266718899, Row: CrystalShard}, MinCount: 1, MaxCount: 2}
         - {Item: {Table: 4741649512266718899, Row: PhoenixFeather}, MinCount: 1, MaxCount: 1}

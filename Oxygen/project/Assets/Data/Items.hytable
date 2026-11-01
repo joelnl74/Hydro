@@ -234,3 +234,61 @@ DataTable:
       UsableInField: false
       Slot: Accessory
       Bonus: {MaxHP: 0, MaxMP: 0, Attack: 0, Magic: 3, Speed: 0}
+    SlimeJelly:
+      Name: Slime Jelly
+      Description: A wobbling lump left behind by a slime. Farmers say it keeps rice seed from rotting.
+      Kind: Material
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    WispEssence:
+      Name: Wisp Essence
+      Description: A faint blue glow that clings to the fingers. The monks burn it to quiet restless spirits.
+      Kind: Material
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    MedicinalHerb:
+      Name: Medicinal Herb
+      Description: Bitter leaves from the forest floor. Chewed, they ease a wound a little.
+      Kind: Consumable
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 15
+      RestoreMP: 0
+      UsableInField: true
+    BambooShoot:
+      Name: Bamboo Shoot
+      Description: A young shoot from the bamboo grove, tender if it's cooked the same day.
+      Kind: Material
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    RoninBlade:
+      Name: Wanderer's Blade
+      Description: A plain, well-kept katana from the ronin's camp. It suits a swordsman.
+      Kind: Equipment
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Weapon
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 6, Magic: 0, Speed: 1}
+    StrawCharm:
+      Name: Straw Charm
+      Description: A little straw figure from the farm. Tied to a belt, it keeps the wearer light on their feet.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Accessory
+      Bonus: {MaxHP: 6, MaxMP: 0, Attack: 0, Magic: 0, Speed: 1}

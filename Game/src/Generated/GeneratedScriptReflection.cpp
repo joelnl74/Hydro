@@ -15,6 +15,7 @@
 #include "Scripts/FarmVillage/FarmVillageScript.h"
 #include "Scripts/Field/EnemyChaseScript.h"
 #include "Scripts/Field/FieldDirectorScript.h"
+#include "Scripts/Field/QuestGiverScript.h"
 #include "Scripts/Interiors/InteriorScript.h"
 #include "Scripts/ShrineGlade/ShrineGladeScript.h"
 #include "Scripts/ShrineGlade/ShrineQuestScript.h"
@@ -157,6 +158,9 @@ namespace Hydro
 			.Property("NpcTable", "Npc Table", &FieldDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
 			.Property("SignTable", "Sign Table", &FieldDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
 			.Property("Dialogue", "Dialogue", &FieldDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
+
+		ScriptRegistry::Register<QuestGiverScript>("QuestGiverScript")
+			.Property("QuestTable", "Quest Table", &QuestGiverScript::QuestTable).Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition");
 
 		ScriptRegistry::Register<InteriorScript>("InteriorScript")
 			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")
