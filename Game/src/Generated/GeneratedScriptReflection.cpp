@@ -33,7 +33,6 @@ namespace Hydro
 		registered = true;
 
 		ScriptRegistry::Register<BattleScript>("BattleScript")
-			.Property("Potions", "Potions", &BattleScript::Potions).Range(0.0f, 99.0f).Tooltip("Potions the party has in this battle (shown live while playing)")
 			.Property("CameraTilt", "Camera Tilt", &BattleScript::CameraTilt).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down (the field's is 50 to 70)")
 			.Property("CameraFieldOfView", "Camera Field Of View", &BattleScript::CameraFieldOfView).Range(5.0f, 90.0f).Tooltip("Vertical field of view in degrees")
 			.Property("CameraFocus", "Camera Focus", &BattleScript::CameraFocus).Tooltip("The world point at the centre of the screen")

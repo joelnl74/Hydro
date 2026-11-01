@@ -13,7 +13,8 @@ namespace Hydro
 	enum class BattleLabel : uint32_t
 	{
 		Attack = 0, Guard, Potion, Run,
-		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape
+		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape,
+		Abilities, Items
 	};
 
 	// The words a label stands for, as the runtime UI writes them (the command menu and the message box).
@@ -33,10 +34,12 @@ namespace Hydro
 		case BattleLabel::Escaped: return "Got away!";
 		case BattleLabel::Boost: return "Boost";
 		case BattleLabel::NoMP: return "Not enough MP";
-		case BattleLabel::NoPotions: return "No potions left";
+		case BattleLabel::NoPotions: return "None left";
 		case BattleLabel::Critical: return "Critical!";
 		case BattleLabel::Guarding: return "Guarding";
 		case BattleLabel::NoEscape: return "Couldn't get away!";
+		case BattleLabel::Abilities: return "Abilities";
+		case BattleLabel::Items: return "Items";
 		default: return "";
 		}
 	}
