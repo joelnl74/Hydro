@@ -4,7 +4,7 @@ Vulkan game engine (`Hydro`, static library), the game's code (`Game`, static li
 
 ## Find things cheaply
 
-1. **`docs/CodeMap.md` first**: every file in one line, and which files each kind of change touches. Then open only the section of the full doc you need (`docs/Architecture.md`, `Subsystems.md`, `ResourceCreation.md`, `SceneAndECS.md`); don't read them end to end.
+1. **`docs/CodeMap.md` first**: every file in one line, and which files each kind of change touches. Then open only the section of the full doc you need (`docs/Architecture.md`, `Subsystems.md`, `ResourceCreation.md`, `SceneAndECS.md`, `Scripting.md` for game code); don't read them end to end.
 2. Search, don't guess: `grep -rn "Name" Hydro/src Oxygen/src`. Unfinished work is tagged `TODO(assets)`; each doc ends with **Known gaps**.
 3. Wiki-only pages (Components, Roadmap, Known-Issues, Coding-Conventions) live in the `Hydro.wiki` checkout next to this repo.
 

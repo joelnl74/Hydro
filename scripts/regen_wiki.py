@@ -23,6 +23,7 @@ PAGES = {
     "Architecture.md": "Architecture.md",
     "ResourceCreation.md": "Resource-Creation.md",
     "SceneAndECS.md": "Scene-and-ECS.md",
+    "Scripting.md": "Scripting.md",
     "Subsystems.md": "Subsystems.md",
 }
 # Link targets inside docs -> wiki page names (anchors after them are kept).

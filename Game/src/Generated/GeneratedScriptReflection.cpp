@@ -129,7 +129,7 @@ namespace Hydro
 			.Property("Enemy", "Enemy", &EnemyChaseScript::Enemy).Tooltip("What it is; unset: a tag starting with \"Wisp\" is a Wisp, anything else a Slime").DataTypeFilter("EnemyDefinition")
 			.Property("Encounter", "Encounter", &EnemyChaseScript::Encounter).Tooltip("Who fights when it touches the player; unset: it and up to two random slimes or wisps").DataTypeFilter("EncounterDefinition");
 
-		ScriptRegistry::Register<FieldDirectorScript>("FieldDirectorScript", { "MvpDirectorScript" })
+		ScriptRegistry::Register<FieldDirectorScript>("FieldDirectorScript")
 			.Property("InteractRange", "Interact Range", &FieldDirectorScript::InteractRange).Range(0.0f, 20.0f).Tooltip("Metres: farther items get no prompt")
 			.Property("MaxReachHeight", "Max Reach Height", &FieldDirectorScript::MaxReachHeight).Range(0.0f, 10.0f).Tooltip("Metres between the player's ground and the item's (another terrace is out of reach)")
 			.Property("FacingDegrees", "Facing Degrees", &FieldDirectorScript::FacingDegrees).Range(0.0f, 180.0f).Tooltip("Degrees either side of where the player faces")

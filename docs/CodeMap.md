@@ -2,7 +2,7 @@
 
 Where things live and which files a typical change touches. Read this first; open the full docs only for the section you need (links below). Keep it short: one line per file, update it when you add, rename or delete a file.
 
-Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md), [Resource creation](ResourceCreation.md), [Scene, ECS and systems](SceneAndECS.md), [Test bed](TestBed.md). Unfinished work is tagged in code: search `TODO(assets)` (and `Known gaps` in each doc).
+Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md), [Resource creation](ResourceCreation.md), [Scene, ECS and systems](SceneAndECS.md), [Scripting](Scripting.md) (writing the game's code), [Test bed](TestBed.md). Unfinished work is tagged in code: search `TODO(assets)` (and `Known gaps` in each doc).
 
 ## Engine: `Hydro/src/Hydro`
 

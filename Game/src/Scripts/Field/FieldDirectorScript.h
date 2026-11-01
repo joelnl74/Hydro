@@ -26,9 +26,9 @@
 #include <cctype>
 #include <filesystem>
 
-// The field director (FieldDirectorScript, until Nov 1, 2026 MvpDirectorScript: scenes saved with that name still load,
-// HY_SCRIPT(FormerName)): the MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the
-// Shrine Glade, the Farm Village) and the interiors (the Farm Village's inn): interact prompts (a sign, a chest,
+// The field director (FieldDirectorScript; MvpDirectorScript until Nov 1, 2026): the MVP scene's mechanics
+// (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the Shrine Glade, the Farm Village)
+// and the interiors (the Farm Village's inn): interact prompts (a sign, a chest,
 // a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and the field menu
 // (Tab; its Inventory page lists the party's items, which are data: Assets/Data/Items.hytable, the run starting from
 // StartingInventory.hydef), which gates the player's input while it is open. The director decides; the views show
@@ -81,7 +81,7 @@ namespace Hydro
 		}
 	}
 
-	HY_SCRIPT(FormerName("MvpDirectorScript"))
+	HY_SCRIPT()
 	class FieldDirectorScript : public ScriptableEntity
 	{
 	public:
