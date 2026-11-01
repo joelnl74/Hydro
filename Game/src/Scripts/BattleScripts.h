@@ -2556,10 +2556,16 @@ namespace Hydro
 
 		// An enemy slot shows the enemy it holds (SC7): the slot's sprite plays the enemy's animations from its idle
 		// clip, and the slot's light takes its glow colour. Without animations the sprite keeps what the scene gave it.
+		// The animator only plays sets already loaded (it never loads from disk), and the scene names only the slime's,
+		// so the enemy's set is loaded here.
 		static void DressEnemySlot(Scene& scene, Enemy& enemy, const EnemyDefinition& definition)
 		{
 			if (Alive(scene, enemy.Sprite) && scene.m_Registry.has<SpriteAnimatorComponent>(enemy.Sprite) && (uint64_t)definition.Animations != 0)
 			{
+				if (AssetManager::GetAsset<SpriteAnimationSet>(definition.Animations) == nullptr)
+				{
+					HY_WARN("Battle: {}'s animations ({}) couldn't be loaded", definition.Name, (uint64_t)definition.Animations);
+				}
 				SpriteAnimatorComponent& animator = scene.m_Registry.get<SpriteAnimatorComponent>(enemy.Sprite);
 				animator.Animations = definition.Animations;
 				animator.StartClip = definition.IdleClip;
