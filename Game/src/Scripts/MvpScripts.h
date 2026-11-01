@@ -871,18 +871,12 @@ namespace Hydro
 		// The dialogue box's script (on "Dialogue Canvas"), or nullptr in a scene without one.
 		DialogueScript* FindDialogue(Scene& scene)
 		{
-			if (Alive(scene, m_DialogueCanvas) == false || scene.m_Registry.has<NativeScriptComponent>(m_DialogueCanvas) == false)
+			if (Alive(scene, m_DialogueCanvas) == false)
 			{
 				return nullptr;
 			}
-			for (NativeScriptComponent::Script& script : scene.m_Registry.get<NativeScriptComponent>(m_DialogueCanvas).Scripts)
-			{
-				if (DialogueScript* dialogue = dynamic_cast<DialogueScript*>(script.Instance.get()))
-				{
-					return dialogue;
-				}
-			}
-			return nullptr;
+			Entity canvas{ m_DialogueCanvas, &scene };
+			return canvas.TryGetComponent<DialogueScript>();
 		}
 
 		// ---- Helpers -------------------------------------------------------------------------------------

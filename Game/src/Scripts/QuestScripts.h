@@ -696,18 +696,11 @@ namespace Hydro
 
 		DialogueScript* FindDialogue()
 		{
-			if (m_DialogueCanvas.IsValid() == false || m_DialogueCanvas.HasComponent<NativeScriptComponent>() == false)
+			if (m_DialogueCanvas.IsValid() == false)
 			{
 				return nullptr;
 			}
-			for (NativeScriptComponent::Script& script : m_DialogueCanvas.GetComponent<NativeScriptComponent>().Scripts)
-			{
-				if (DialogueScript* dialogue = dynamic_cast<DialogueScript*>(script.Instance.get()))
-				{
-					return dialogue;
-				}
-			}
-			return nullptr;
+			return m_DialogueCanvas.TryGetComponent<DialogueScript>();
 		}
 
 		// ---- The slimes ---------------------------------------------------------------------------------------
@@ -722,12 +715,10 @@ namespace Hydro
 					continue;
 				}
 				m_SlimeCount++;
-				for (NativeScriptComponent::Script& script : scene.m_Registry.get<NativeScriptComponent>(slime).Scripts)
+				Entity slimeEntity{ slime, &scene };
+				if (EnemyChaseScript* enemy = slimeEntity.TryGetComponent<EnemyChaseScript>())
 				{
-					if (EnemyChaseScript* enemy = dynamic_cast<EnemyChaseScript*>(script.Instance.get()))
-					{
-						enemy->Wake();
-					}
+					enemy->Wake();
 				}
 			}
 			if (m_SlimeCount == 0)
