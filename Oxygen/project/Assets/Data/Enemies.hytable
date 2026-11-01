@@ -15,6 +15,7 @@ DataTable:
       BasicAttack: {Table: 3379890039159158977, Row: Attack}
       Abilities: []
       Experience: 10
+      Loot: {Table: 207747700610060598, Row: SlimeDrops}
       FloatHeight: 0
       FieldSpeed: 1
       GlowColor: [1, 1, 1]
@@ -32,6 +33,7 @@ DataTable:
       BasicAttack: {Table: 3379890039159158977, Row: Attack}
       Abilities: []
       Experience: 14
+      Loot: {Table: 207747700610060598, Row: WispDrops}
       FloatHeight: 0.35
       FieldSpeed: 1.15
       GlowColor: [0.35, 0.85, 1]

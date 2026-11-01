@@ -114,6 +114,37 @@ class Slice(city.City):
             "    BoxColliderComponent:\n      Offset: [0, 0, %g]\n      Size: [%g, %g, %g]\n      Layer: World\n      IsTrigger: false\n"
             % (h / 2, x1 - x0, y1 - y0, h)))
 
+    def bracket_lantern(self, parent, x, y, z, rot=0.0, sort=3):
+        """A paper lantern card on a wall bracket (JP_Prop_LanternBracket_A): (x, y, z) is the arm's root on the wall,
+        rot turns the bracket (0 = sticking out along -Y)."""
+        self.model(parent, "Props/JP_Prop_LanternBracket_A", x, y, z, rot, collider=False)
+        info = self.summary.get("_props", {}).get("JP_Prop_LanternBracket_A", {})
+        dy, dz = info.get("drop", [-0.53, -0.2])
+        a = math.radians(rot)
+        lx, ly = x - dy * math.sin(a), y + dy * math.cos(a)
+        self.d.sprite(parent, "JP_Lantern_Paper_Red_A", lx, ly, z + dz, hanging=True, sort=sort)
+        self.d.lantern(parent, lx, ly, z + dz - 0.5, 1.0, 3.5)
+
+    def lantern_line(self, parent, x0, y, z, spans, every=2, sort=4):
+        """Lantern poles every 8 m from x0 with a sagging rope between each pair and paper lantern cards on the rope's
+        cords (every `every` cords): the hanging lanterns hang from something."""
+        props = self.summary.get("_props", {})
+        pole = props.get("JP_Prop_LanternPole_A", {})
+        rope = props.get("JP_Prop_LanternRope_8m_A", {})
+        span = rope.get("span", 8.0)
+        rz = pole.get("rope_z", 4.33)
+        for i in range(spans + 1):
+            self.model(parent, "Props/JP_Prop_LanternPole_A", x0 + i * span, y, z)
+        for i in range(spans):
+            cx = x0 + (i + 0.5) * span
+            self.model(parent, "Props/JP_Prop_LanternRope_8m_A", cx, y, z + rz, collider=False)
+            for k, (dx, dz) in enumerate(rope.get("drops", [])):
+                if k % every:
+                    continue
+                self.d.sprite(parent, "JP_Lantern_Paper_Red_A", cx + dx, y, z + rz + dz, hanging=True, sort=sort)
+                if k % (2 * every) == 0:
+                    self.d.lantern(parent, cx + dx, y, z + rz + dz - 0.5, 0.9, 3.2)
+
     def zone(self, parent, name, cx, cy, size, priority=0, tilt=0.0, yaw=0.0, fov=0.0, scale=1.0, lead=3.0, rise=2.2,
              pan_min=(0.0, 0.0), pan_max=(0.0, 0.0), blend=0.8):
         """A camera zone (CameraZoneScript): its framing while the player stands in it."""
@@ -134,11 +165,9 @@ class Slice(city.City):
         dx = dx[0] if isinstance(dx, list) and dx else dx
         if dx is not None and info.get("head_z"):
             d.sprite(parent, "JP_Noren_Inn_A", x + dx, y + 0.3, z + info["head_z"] - 0.05, hanging=True, sort=1)
-        if lanterns and info.get("pent_z"):
+        if lanterns and info.get("arm_z") and dx is not None:
             for s_ in (-1, 1):
-                lx = x + (dx or 0.0) + s_ * 1.4
-                d.sprite(parent, "JP_Lantern_Paper_Red_A", lx, y - 0.65, z + info["pent_z"] - 0.05, hanging=True, sort=sort_lantern)
-                d.lantern(parent, lx, y - 0.65, z + info["pent_z"] - 0.6, 1.0, 3.5)
+                self.bracket_lantern(parent, x + dx + s_ * 1.45, y - 0.12, z + info["arm_z"], 0.0, sort_lantern)
         w = info.get("width", 6.0)
         n = max(1, int(w / 3))
         for k in range(n):
@@ -153,6 +182,7 @@ def build(c, args):
     flag = r2_material("JP_Paving_Flagstone.png", "JP_Paving_Flagstone")
     ishi = r2_material("JP_Stone_IshigakiSmall.png", "JP_Stone_IshigakiSmall")
     granite = city.ground_material("JP_Stone_Granite")
+    gutter = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Gutter", (0.3, 0.29, 0.28))
     riser = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Riser", (0.42, 0.4, 0.38))
     grass = kit.handle_of(os.path.join(ASSETS, "Materials", "Ground", "Grass.hymat"))
     road = kit.handle_of(os.path.join(ASSETS, "Materials", "Ground", "VillageDirt.hymat"))
@@ -201,7 +231,7 @@ def build(c, args):
     # ---------------------------------------------------------------- merchant street
     M = c.group("Merchant Street")
     left = (("JP_Mid_Townhouse_A", -6.5), ("JP_Mid_Townhouse_B", -13.5), ("JP_Mid_Townhouse_C", -20.5), ("JP_Mid_Shop_A", -26.5),
-            ("JP_Mid_Townhouse_A", -32.5), ("JP_Mid_Townhouse_C", -38.5))
+            ("JP_Mid_Townhouse_B", -33.5), ("JP_Mid_Townhouse_C", -40.5))
     right = (("JP_Mid_Townhouse_C", 6.5), ("JP_Mid_Shop_A", 12.5), ("JP_Mid_Townhouse_B", 19.5), ("JP_Mid_Townhouse_A", 26.5),
              ("JP_Mid_Townhouse_B", 33.5), ("JP_Mid_Townhouse_C", 40.5))
     for name, x in left + right:
@@ -220,16 +250,18 @@ def build(c, args):
     for x in (-17.0, 16.0, -34.5, 35.5):
         c.model(M, "Props/JP_Prop_LampPost_A", x, -0.6, Z0)
         d.lantern(M, x + 0.62, -0.6, Z0 + 2.36)
-    # lantern strings across the street
-    for x in (-12.0, 12.0, -28.0, 28.0):
-        d.sprite(M, "JP_Lantern_String_A" if x < 0 else "JP_Lantern_String_B", x, -2.6, Z0 + 4.4, hanging=True, sort=4)
-        d.lantern(M, x, -2.6, Z0 + 3.6, 0.8, 3.0)
+    # a lantern line along the shopfronts: poles every 8 m with a sagging rope, lanterns on its cords
+    c.lantern_line(M, -28.0, -1.45, Z0, 7)
+    # the street's floor: setts, a flagstone path down the middle, a stone curb and gutter along the shopfronts
+    c.box(M, flag, -34.0, 34.0, -4.1, -2.5, Z0, Z0 + 0.02, tag="Street Path", shadows=False, collider=False)
+    c.box(M, flag, -34.0, 34.0, -0.8, -0.15, Z0, Z0 + 0.05, tag="Street Curb", shadows=False, collider=False)
+    c.box(M, gutter, -34.0, 34.0, -1.05, -0.8, Z0, Z0 + 0.012, tag="Street Gutter", shadows=False, collider=False)
 
     # the near side: low things only, so the street stays in view
     N = c.group("Near Side")
-    c.model(N, "Props/JP_Prop_MarketStall_A", -11.5, -9.6, Z0, 180)
-    c.model(N, "Props/JP_Prop_MarketStall_B", 11.0, -9.8, Z0, 180)
-    c.model(N, "Props/JP_Prop_MarketStall_A", 25.5, -9.4, Z0, 180)
+    c.model(N, "Props/JP_Prop_MarketStall_A", -11.5, -9.6, Z0, 0)
+    c.model(N, "Props/JP_Prop_MarketStall_B", 11.0, -9.8, Z0, 0)
+    c.model(N, "Props/JP_Prop_MarketStall_A", 25.5, -9.4, Z0, 0)
     for x in range(-30, 31, 2):
         if -16 <= x <= -8 or 7 <= x <= 15 or 22 <= x <= 29 or -4 <= x <= 3:
             continue
@@ -272,10 +304,10 @@ def build(c, args):
             continue
         head, pent = b.get("head_z", 2.6), b.get("pent_z", 3.5)
         d.sprite(P, "JP_Noren_Inn_A" if s_ > 0 else "JP_Noren_Inn_Long_A", x + s_ * 0.3, 25.0, Z2 + head - 0.05, hanging=True, sort=1)
+        arm = b.get("arm_z", head + 0.6)
         for k in (-1, 1):
-            d.sprite(P, "JP_Lantern_Paper_Red_A", x + s_ * 0.75, 25.0 + k * 1.5, Z2 + pent - 0.05, hanging=True, sort=3)
-            d.lantern(P, x + s_ * 0.75, 25.0 + k * 1.5, Z2 + pent - 0.6, 1.0, 3.5)
-            d.sprite(P, "JP_Lantern_String_A" if k < 0 else "JP_Lantern_String_B", x + s_ * 1.05, 25.0 + k * 4.2, Z2 + pent - 0.1, hanging=True, sort=3)
+            for off in (1.5, 4.5):
+                c.bracket_lantern(P, x + s_ * 0.12, 25.0 + k * off, Z2 + arm, 90.0 * s_)
         for k in range(4):
             d.window(P, x + s_ * 0.6, 19.5 + k * 3.6, Z2 + 1.6)
             d.window(P, x + s_ * 0.4, 19.5 + k * 3.6, Z2 + 4.8, 2.4)
@@ -330,13 +362,13 @@ def build(c, args):
     Zg = c.group("Camera Zones")
     # the street: framed along its length, the camera slides with her but stays on the street's line
     c.zone(Zg, "Street", 0.0, -3.5, (66.0, 10.0), tilt=72, fov=30, scale=0.85, lead=0.5, rise=1.4,
-           pan_min=(-20.0, -1.2), pan_max=(20.0, -0.6), blend=0.8)
+           pan_min=(-20.0, -1.2), pan_max=(20.0, -0.6), blend=1.4)
     # the stairs: pulled back and higher, aiming up the flight so the landing and the next level show
     c.zone(Zg, "Stairs", 0.0, 9.25, (7.0, 17.5), priority=1, tilt=67, fov=30, scale=0.85, lead=3.5, rise=2.8,
-           pan_min=(0.0, -6.0), pan_max=(0.0, 8.5), blend=1.0)
+           pan_min=(0.0, -6.0), pan_max=(0.0, 8.5), blend=1.6)
     # the plaza: centred on the gate, a little closer
     c.zone(Zg, "Plaza", 0.0, 25.5, (26.0, 16.5), tilt=70, yaw=args.plaza_yaw, fov=30, scale=1.0, lead=2.0, rise=2.0,
-           pan_min=(-5.0, -5.0), pan_max=(5.0, -2.0), blend=0.9)
+           pan_min=(-5.0, -5.0), pan_max=(5.0, -2.0), blend=1.4)
 
 
 def main():

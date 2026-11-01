@@ -1,107 +1,19 @@
+// Game/src/Scripts/Common/DioramaDirectorScript.h
 #pragma once
+
 #include "Hydro.h"
-#include "DioramaCamera.h"
-#include "VillageScripts.h"
 #include "Data/SceneLightingDefinition.h"
+#include "Scripts/Common/DioramaCamera.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
 #include <string>
 #include <vector>
 
-// The Shrine Glade (Assets/Scenes/ShrineGlade.hyscene): the first scene that mixes meshes (terraces,
-// retaining walls, stairs, the imported shrine and stone lanterns) with upright sprites (trees, props,
-// characters), the Farm Village below it (Assets/Scenes/FarmVillage.hyscene), built the same way from the
-// medieval village kit, and the village's interiors (the inn, Assets/Scenes/FarmVillageInn.hyscene). See
-// docs/TestBed.md, "Shrine Glade", "Farm Village" and "Interiors".
 namespace Hydro
 {
-	// Walks the player like VillagerWalk (WASD / arrows, Shift to hurry, Walk<Facing> / Idle<Facing> clips) over
-	// the diorama's 3D collision: the entity's CharacterBodyComponent carries it up the terraces' stairs, over the
-	// bridge and down slopes, and is blocked by walls, trees, posts and people (their 3D colliders). The script
-	// only says where it wants to go (CharacterBody::Move); the physics stage moves it and writes the transform.
-	// The scene's build script gives the player its Character Body (scripts/shrine_glade/collision.py).
-	HY_SCRIPT()
-	class DioramaWalkScript : public ScriptableEntity
-	{
-	protected:
-		void OnCreate() override
-		{
-			if (GetEntity().HasComponent<CharacterBodyComponent>() == false)
-			{
-				HY_WARN("DioramaWalk: '{}' has no Character Body, so it can't walk; add one or rebuild the scene with its build script",
-					GetComponent<TagComponent>().Tag);
-			}
-		}
-
-		void OnUpdate([[maybe_unused]] float deltaTime) override
-		{
-			glm::vec2 move{ 0.0f };
-			// A runtime UI canvas that captures input (a menu, a dialogue) owns the keys: she stands still.
-			const bool inputAllowed = UI::CapturesInput(*GetEntity().GetScene()) == false;
-			if (inputAllowed && (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left)))
-			{
-				move.x -= 1.0f;
-			}
-			if (inputAllowed && (Input::IsKeyPressed(KeyCode::D) || Input::IsKeyPressed(KeyCode::Right)))
-			{
-				move.x += 1.0f;
-			}
-			if (inputAllowed && (Input::IsKeyPressed(KeyCode::W) || Input::IsKeyPressed(KeyCode::Up)))
-			{
-				move.y += 1.0f;
-			}
-			if (inputAllowed && (Input::IsKeyPressed(KeyCode::S) || Input::IsKeyPressed(KeyCode::Down)))
-			{
-				move.y -= 1.0f;
-			}
-
-			if (move.x < 0.0f)
-			{
-				m_Facing = "Left";
-			}
-			else if (move.x > 0.0f)
-			{
-				m_Facing = "Right";
-			}
-			else if (move.y > 0.0f)
-			{
-				m_Facing = "Up";
-			}
-			else if (move.y < 0.0f)
-			{
-				m_Facing = "Down";
-			}
-
-			const bool moving = move.x != 0.0f || move.y != 0.0f;
-			// Standing still she keeps facing the way she walked (Idle<Facing>); a sheet with one "Idle" still works.
-			if (moving)
-			{
-				SpriteAnimator::Play(GetEntity(), "Walk" + m_Facing);
-			}
-			else if (SpriteAnimator::Play(GetEntity(), "Idle" + m_Facing) == false)
-			{
-				SpriteAnimator::Play(GetEntity(), "Idle");
-			}
-
-			glm::vec3 velocity{ 0.0f };
-			if (moving)
-			{
-				const float speed = Input::IsKeyPressed(KeyCode::LeftShift) ? m_Speed * RunMultiplier : m_Speed;
-				// The keys are screen directions: turned by the camera's yaw, so up is always into the view.
-				velocity = glm::vec3(DioramaView::ScreenToGround(glm::normalize(move)) * speed, 0.0f);
-			}
-			CharacterBody::Move(GetEntity(), velocity);
-		}
-
-	public:
-		std::string m_Facing = "Up";
-		HY_PROPERTY(Range(0, 20), Tooltip("Walking speed in metres per second"))
-		float m_Speed = 3.5f; // the saved key stays m_Speed (renaming it needs #143's FormerNames)
-		HY_PROPERTY(Range(1, 5), Tooltip("Shift multiplies the speed by this"))
-		float RunMultiplier = 1.7f;
-	};
-
 	// One time of day for a diorama scene is a LightingPreset (Data/SceneLightingDefinition.h): the sun's colour and
 	// strength, how much of their strength the lanterns and the lit windows keep, and its render profile
 	// (post-processing plan P5: the ambient, fog, exposure and bloom). The scenes' presets are data
@@ -339,94 +251,6 @@ namespace Hydro
 		float m_Time = 0.0f;
 	};
 
-	// On the Shrine Glade's director entity. Starts much lower than the other field scenes (70 degrees from
-	// straight down, 20 below the horizon, with a wider 35 degree lens): the terrace walls, the steps and the
-	// shrine face the camera and the sunset shows over the valley's pines, as in the concept. The follow camera
-	// looks 3 m ahead up the stairs and 2.2 m above the player's ground. Keep in step with
-	// scripts/shrine_glade/preview.py (TILT_DEGREES, FOV_DEGREES, FOCUS_LEAD, FOCUS_RISE, BOUNDS). Presets: day,
-	// golden dusk (the default, the concept's), night.
-	HY_SCRIPT()
-	class ShrineGladeScript : public DioramaDirectorScript
-	{
-	public:
-		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
-		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
-		float TiltDegrees = 70.0f;
-		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
-		float FieldOfView = 35.0f;
-		HY_PROPERTY(Range(-20, 20), Tooltip("Metres the camera looks ahead of the player (up the screen)"))
-		float FocusLead = 3.0f;
-		HY_PROPERTY(Range(-20, 20), Tooltip("Metres above the player's ground the camera aims at"))
-		float FocusRise = 2.2f;
-		HY_PROPERTY(Tooltip("Lowest x, y the camera's focus may reach"))
-		glm::vec2 BoundsMin{ -2.0f, -8.0f };
-		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
-		glm::vec2 BoundsMax{ 2.0f, 6.0f };
-		HY_PROPERTY(Range(0, 2), Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)"))
-		int StartPreset = 1;
-		HY_PROPERTY(Asset(Definition, SceneLightingDefinition), Tooltip("The day, dusk and night presets: sun, lanterns, windows, render profile"))
-		AssetHandle Lighting = 6651133902390268617ull; // Assets/Data/Lighting/ShrineGlade.hydef
-
-	protected:
-		const char* GetSceneName() const override { return "Shrine Glade"; }
-		const char* GetHelp() const override
-		{
-			return "WASD walk up the stairs to the shrine, E interact, 1/2/3 day-dusk-night, L lanterns, V top-down / tilted, O perspective / orthographic";
-		}
-		DioramaSceneFraming GetFraming() const override
-		{
-			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, 0.0f, 0.0f };
-		}
-		int GetStartPreset() const override { return StartPreset; }
-		const LightingPreset& GetPreset(int index) const override
-		{
-			return GetLightingPreset(Lighting, index);
-		}
-	};
-
-	// On the Farm Village's director entity (Assets/Scenes/FarmVillage.hyscene, scripts/farm_village/build.py).
-	// A higher camera than the shrine's (55 degrees from straight down, a 30 degree lens), so the fields, the
-	// square and the roofs read like the concept art; the focus stays on the village (the lane from the bridge to
-	// the forest path). Keep in step with scripts/farm_village/build.py (BOUNDS_MIN, BOUNDS_MAX, CAMERA_ORTHO).
-	// Presets: day, golden hour (the default), night.
-	HY_SCRIPT()
-	class FarmVillageScript : public DioramaDirectorScript
-	{
-	public:
-		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
-		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
-		float TiltDegrees = 55.0f;
-		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
-		float FieldOfView = 30.0f;
-		HY_PROPERTY(Range(-20, 20), Tooltip("Metres the camera looks ahead of the player (up the screen)"))
-		float FocusLead = 2.0f;
-		HY_PROPERTY(Range(-20, 20), Tooltip("Metres above the player's ground the camera aims at"))
-		float FocusRise = 1.2f;
-		HY_PROPERTY(Tooltip("Lowest x, y the camera's focus may reach"))
-		glm::vec2 BoundsMin{ -6.5f, -34.0f };
-		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
-		glm::vec2 BoundsMax{ 6.5f, 16.0f };
-		HY_PROPERTY(Range(0, 2), Tooltip("The light at the start: 0 day, 1 golden hour, 2 night (keys 1 / 2 / 3)"))
-		int StartPreset = 1;
-		HY_PROPERTY(Asset(Definition, SceneLightingDefinition), Tooltip("The day, golden hour and night presets: sun, lanterns, windows, render profile"))
-		AssetHandle Lighting = 1569287181202592509ull; // Assets/Data/Lighting/FarmVillage.hydef
-
-	protected:
-		const char* GetSceneName() const override { return "Farm Village"; }
-		const char* GetHelp() const override
-		{
-			return "WASD walk, E talk / read / rest at the inn, the forest path north leads back to the shrine, 1/2/3 day-golden-night, L lanterns, V top-down / tilted";
-		}
-		DioramaSceneFraming GetFraming() const override
-		{
-			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, 0.0f, 0.0f };
-		}
-		int GetStartPreset() const override { return StartPreset; }
-		const LightingPreset& GetPreset(int index) const override
-		{
-			return GetLightingPreset(Lighting, index);
-		}
-	};
 	// On the director entity of a field scene made from the project's scene template
 	// (Assets/Scenes/Templates/Field.hyscene, see docs/TestBed.md "Scene template"). The same director as the Shrine
 	// Glade's, but with everything as fields instead of code, so a new scene gets the shrine's framing and its day /
@@ -528,61 +352,5 @@ namespace Hydro
 
 	private:
 		mutable LightingPreset m_Presets[3] = {};
-	};
-
-	// On an interior's director entity (the Farm Village's inn, Assets/Scenes/FarmVillageInn.hyscene, built by
-	// scripts/interiors/build_inn.py). Interiors are scenes of their own, pushed by a door ("Door Inn" in the village
-	// opens FarmVillageInn) and popped by "Door Out", so the village waits exactly as it was left. The room is built
-	// at the characters' scale with its camera-facing wall left out and black around it; the camera comes in closer
-	// than the field's (the Camera's OrthographicSize, and a narrower view here). The light: no sun; the preset
-	// lights the "Light Window *" point lights (daylight, evening, moonlight through the windows) and sets how
-	// strongly the "Light Fire *" lights (the hearth, candles) burn. It starts in the time of day of the scene the
-	// player came in from.
-	HY_SCRIPT()
-	class InteriorScript : public DioramaDirectorScript
-	{
-	public:
-		HY_PROPERTY(Tooltip("The interior's name in the log"))
-		std::string RoomName = "Inn";
-		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
-		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
-		float TiltDegrees = 52.0f;
-		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
-		float FieldOfView = 30.0f;
-		HY_PROPERTY(Range(-20, 20), Tooltip("Metres the camera looks ahead of the player (up the screen)"))
-		float FocusLead = 0.6f;
-		HY_PROPERTY(Range(-20, 20), Tooltip("Metres above the player's ground the camera aims at"))
-		float FocusRise = 0.8f;
-		HY_PROPERTY(Tooltip("Lowest x, y the camera's focus may reach"))
-		glm::vec2 BoundsMin{ -1.5f, -1.0f };
-		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
-		glm::vec2 BoundsMax{ 1.5f, 1.5f };
-		HY_PROPERTY(Range(0, 2), Tooltip("The light when the room is played on its own: 0 day, 1 evening, 2 night (keys 1 / 2 / 3)"))
-		int StartPreset = 1;
-		HY_PROPERTY(Asset(Definition, SceneLightingDefinition), Tooltip("The day, evening and night presets: window light, fire, render profile"))
-		AssetHandle Lighting = 4733468918101467972ull; // Assets/Data/Lighting/Interiors.hydef
-
-	protected:
-		const char* GetSceneName() const override { return RoomName.c_str(); }
-		const char* GetHelp() const override
-		{
-			return "WASD walk, E talk / rest / leave by the door, 1/2/3 day-evening-night, L the fire, V top-down / tilted";
-		}
-		DioramaSceneFraming GetFraming() const override
-		{
-			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, 0.0f, 0.0f };
-		}
-		int GetStartPreset() const override { return StartPreset; }
-		bool FollowsOutsideLight() const override { return true; }
-		// Presets line up with the field scenes' (day, golden hour / dusk, night). The "sun" is the light through
-		// the windows; the profiles keep the room dim so the fire carries it.
-		const LightingPreset& GetPreset(int index) const override
-		{
-			return GetLightingPreset(Lighting, index);
-		}
-
-		// The windows (DioramaDirectorScript's "Light Window *" lights) let the daylight in: the sun's colour, at the
-		// preset's WindowFactor (its sun's strength).
-		bool WindowsTakeSunColor() const override { return true; }
 	};
 }

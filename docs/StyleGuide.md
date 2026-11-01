@@ -174,7 +174,7 @@ Assets are filed by **what they are**, not by the scene that first used them (sc
 | `RenderProfiles/<Scene>/` | A scene's Day / Dusk / Night looks (the only place besides `Scenes/` with a scene name in the path) |
 | `Scenes/`, `Fonts/` | Unchanged |
 
-A file always moves with its `.hymeta` (the handle lives there, and scenes refer to assets by handle); a model moves with its `.textures/` folder and material files. Move assets in the editor's Project window (it keeps handles) or with `git mv` while Oxygen is closed. Code that names a path (`AssetManager::FindHandle("...")`, the render profiles in `ShrineScripts.h`, the Python builders) must follow a move. New art arrives in `art_incoming/` and goes straight into its kind's folder.
+A file always moves with its `.hymeta` (the handle lives there, and scenes refer to assets by handle); a model moves with its `.textures/` folder and material files. Move assets in the editor's Project window (it keeps handles) or with `git mv` while Oxygen is closed. Code that names a path (`AssetManager::FindHandle("...")`, the render profiles in `Game/src/Scripts/Common/DioramaDirectorScript.h`, the Python builders) must follow a move. New art arrives in `art_incoming/` and goes straight into its kind's folder.
 
 ### Importing (conventions)
 

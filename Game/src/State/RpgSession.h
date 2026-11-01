@@ -2,8 +2,8 @@
 #pragma once
 
 #include "Hydro/Scene/GameSession.h"
-#include "Scripts/BattleScripts.h"
-#include "Scripts/QuestScripts.h"
+#include "State/BattleState.h"
+#include "State/QuestLog.h"
 #include "State/Inventory.h"
 
 namespace Hydro

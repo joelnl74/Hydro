@@ -1,8 +1,13 @@
+// Game/src/Scripts/Common/DioramaCamera.h
 #pragma once
+
 #include "Hydro.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
+#include <string>
 #include <vector>
 
 // The diorama camera (Diorama RPG H2): the field cameras (CameraFollow, VillageCamera) switch between
@@ -20,6 +25,7 @@
 // direction the camera looks, its tilt, zoom, lead and rise, and how far it may pan). The follow camera
 // (CameraFollowScript) takes the framing of the zone its target stands in and blends to the next one, so a
 // street, a stair and a plaza can each be framed for what the player needs to see.
+
 namespace Hydro
 {
 	// What the tilted camera looks like: the tilt from straight down, the yaw (degrees counter-clockwise seen from
@@ -191,7 +197,7 @@ namespace Hydro
 			return { screen.x * c - screen.y * s, screen.x * s + screen.y * c };
 		}
 
-		// A cutscene's hold on the follow camera (QuestScripts.h): while CinematicWeight > 0 the camera looks at
+		// A cutscene's hold on the follow camera (ShrineQuestScript): while CinematicWeight > 0 the camera looks at
 		// CinematicFocus (a point on the ground, CinematicHeight above z 0) instead of its target, mixed by the
 		// weight (0 = the target, 1 = the cutscene's point; the caller eases it), outside the scene's bounds too.
 		// CinematicZoom scales how much the camera sees (below 1 = closer) and CinematicShake is how far it
@@ -232,7 +238,7 @@ namespace Hydro
 			return glm::clamp(focus, -fallbackHalfSize, fallbackHalfSize);
 		}
 
-		// Where the camera looks this frame, for world-space UI (MvpScripts.h): the focus point on the ground
+		// Where the camera looks this frame, for world-space UI (MvpDirectorScript): the focus point on the ground
 		// and the camera's right, up and back (towards the camera). Top-down: the camera's x, y at z 0; +X; +Y; +Z.
 		static inline glm::vec3 Focus{ 0.0f };
 		static inline glm::vec3 Right{ 1.0f, 0.0f, 0.0f };

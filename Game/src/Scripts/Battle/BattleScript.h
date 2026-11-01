@@ -1,16 +1,22 @@
+// Game/src/Scripts/Battle/BattleScript.h
 #pragma once
+
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
-#include "DioramaCamera.h"
+#include "Rules/BattleRules.h"
+#include "Rules/LootRules.h"
+#include "Scripts/Common/DioramaCamera.h"
+#include "State/BattleState.h"
+#include "State/Inventory.h"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <random>
 #include <string>
-#include <unordered_map>
 #include <vector>
+#include <random>
+#include <unordered_map>
 
 // Native scripts of the Diorama RPG battle prototype (docs/DioramaRPG.md): enemies that wander and chase the
 // player in the village (Assets/Scenes/StatueVillage.hyscene: slimes in the Slime Field, spirit wisps in the
@@ -34,6 +40,7 @@
 // damaging skill then opens the target list: Up / Down or Left / Right (A / D) move the cursor over the enemies,
 // Enter (or a click) strikes, Esc / Backspace / X goes back to the commands. E / Q raise and lower the boost
 // (spend Momentum: more hits or a stronger skill).
+
 namespace Hydro
 {
 	// ---------------------------------------------------------------------------------------------------------
@@ -83,640 +90,6 @@ namespace Hydro
 		static constexpr uint32_t Broken = 10;
 		static constexpr uint32_t DigitBase = 12;
 		static uint32_t ForType(DamageType type) { return (uint32_t)type; }
-	};
-
-	// The party is Miko alone (HeroCount); she carries the party's HP and MP, so she is sturdier than Orin and Lila
-	// were on their own. Her Attack walks up to the target and punches (a boost adds a kick, a punch, a kick); her two
-	// skill commands are the first two abilities she knows (Flame Kick and Holy Palm; the ones levels teach are known
-	// but have no command until the battle gets a skill list). The impacts land on the clips' contact frames
-	// (BattleScript PunchImpactTime, KickImpactTime).
-	constexpr int HeroCount = 1;
-
-	// A hero's numbers at a level (HeroDefinition: Base + GrowthPerLevel for every level above 1): what the battle
-	// and the field's menu read.
-	struct HeroStats
-	{
-		std::string Name;
-		int Level = 1;
-		int MaxHP = 10;
-		int MaxMP = 0;
-		int Attack = 5;
-		int Magic = 0;
-		int Speed = 5;
-		DamageType WeaponType = DamageType::Blunt; // the plain attack's type (the weapon's, unless the attack has one)
-		std::string IdleClip = "BattleIdle";
-		std::string ItemClip = "BattleIdle";
-	};
-
-	// The battle's numbers from data (the Scripting plan's SC7): the heroes' files, Assets/Data/Enemies.hytable,
-	// Encounters.hytable, Abilities.hytable and Characters/LevelCurve.hydef. Looked up once a frame: the views keep
-	// their files alive until the next frame, so the references handed out are good for the frame and an edit shows
-	// from the next one. A missing file or row gives the type's defaults (and one warning, from Data).
-	class BattleData
-	{
-	public:
-		static constexpr uint64_t EnemyTable = 8285570869007471512ull;     // Assets/Data/Enemies.hytable
-		static constexpr uint64_t EncounterTable = 5637391413083366177ull; // Assets/Data/Encounters.hytable
-		static constexpr uint64_t LevelCurveFile = 1490334946040604597ull; // Assets/Data/Characters/LevelCurve.hydef
-		// The party, in order: each hero's file, and the name its scene entities carry ("Hero Miko", "Status Miko").
-		static constexpr uint64_t HeroFiles[HeroCount] = { 7766402021591977760ull }; // Assets/Data/Characters/Miko.hydef
-		static constexpr const char* HeroIds[HeroCount] = { "Miko" };
-
-		static const HeroDefinition& HeroData(int index)
-		{
-			const DataView<HeroDefinition>& view = Refresh().Heroes[std::clamp(index, 0, HeroCount - 1)];
-			static const HeroDefinition none;
-			return view.IsValid() ? *view : none;
-		}
-
-		// Hero `index` at `level`.
-		static HeroStats StatsAt(int index, int level)
-		{
-			const HeroDefinition& hero = HeroData(index);
-			const int steps = std::max(0, level - 1);
-			HeroStats stats;
-			stats.Name = hero.Name;
-			stats.Level = std::max(1, level);
-			stats.MaxHP = std::max(1, hero.Base.MaxHP + steps * hero.GrowthPerLevel.MaxHP);
-			stats.MaxMP = std::max(0, hero.Base.MaxMP + steps * hero.GrowthPerLevel.MaxMP);
-			stats.Attack = std::max(0, hero.Base.Attack + steps * hero.GrowthPerLevel.Attack);
-			stats.Magic = std::max(0, hero.Base.Magic + steps * hero.GrowthPerLevel.Magic);
-			stats.Speed = std::max(0, hero.Base.Speed + steps * hero.GrowthPerLevel.Speed);
-			const DamageType attackType = Ability(hero.BasicAttack).Type;
-			stats.WeaponType = attackType != DamageType::None ? attackType : hero.WeaponType;
-			stats.IdleClip = hero.IdleClip;
-			stats.ItemClip = hero.ItemClip;
-			return stats;
-		}
-
-		// Hero `index` at the level the party has reached (BattleState); defined below it.
-		static const HeroStats& Hero(int index);
-
-		// An enemy row of Enemies.hytable ("" or a missing row: the defaults).
-		static const EnemyDefinition& Enemy(const std::string& row)
-		{
-			static const EnemyDefinition none;
-			if (row.empty())
-			{
-				return none;
-			}
-			Cache& cache = Refresh();
-			auto found = cache.Enemies.find(row);
-			if (found == cache.Enemies.end())
-			{
-				found = cache.Enemies.emplace(row, Data::GetRow<EnemyDefinition>(DataRowRef{ EnemyTable, row })).first;
-			}
-			return found->second.IsValid() ? *found->second : none;
-		}
-
-		// Any ability by its row (an unset one: the defaults).
-		static const AbilityDefinition& Ability(const DataRowRef& reference)
-		{
-			static const AbilityDefinition none;
-			if (reference.IsSet() == false)
-			{
-				return none;
-			}
-			Cache& cache = Refresh();
-			const std::string key = std::to_string((uint64_t)reference.Table) + "/" + reference.Row;
-			auto found = cache.Abilities.find(key);
-			if (found == cache.Abilities.end())
-			{
-				found = cache.Abilities.emplace(key, Data::GetRow<AbilityDefinition>(reference)).first;
-			}
-			return found->second.IsValid() ? *found->second : none;
-		}
-
-		// Skill `slot` (0: the first skill command, 1: the second) of hero `index`: the abilities it knows, in order
-		// (BattleState); defined below it.
-		static const AbilityDefinition& Skill(int index, int slot);
-
-		// The experience each level takes: [0] reaches level 2.
-		static const std::vector<int>& ExperienceToLevel()
-		{
-			const DataView<LevelCurve>& view = Refresh().Curve;
-			static const std::vector<int> none;
-			return view.IsValid() ? view->ExperienceToLevel : none;
-		}
-
-		static int MaxLevel()
-		{
-			return (int)ExperienceToLevel().size() + 1;
-		}
-
-	private:
-		struct Cache
-		{
-			uint64_t Frame = UINT64_MAX;
-			DataView<HeroDefinition> Heroes[HeroCount];
-			DataView<LevelCurve> Curve;
-			std::unordered_map<std::string, DataView<EnemyDefinition>> Enemies;
-			std::unordered_map<std::string, DataView<AbilityDefinition>> Abilities;
-		};
-
-		static Cache& Refresh()
-		{
-			static Cache cache;
-			const uint64_t frame = Time::GetFrameCount();
-			if (cache.Frame == frame)
-			{
-				return cache;
-			}
-			cache.Frame = frame;
-			for (int h = 0; h < HeroCount; h++)
-			{
-				cache.Heroes[h] = Data::Get<HeroDefinition>(AssetHandle(HeroFiles[h]));
-			}
-			cache.Curve = Data::Get<LevelCurve>(AssetHandle(LevelCurveFile));
-			cache.Enemies.clear();
-			cache.Abilities.clear();
-			return cache;
-		}
-	};
-
-	inline const HeroStats& GetHero(int index)
-	{
-		return BattleData::Hero(index);
-	}
-
-	inline const EnemyDefinition& GetEnemy(const std::string& row)
-	{
-		return BattleData::Enemy(row);
-	}
-
-	// What the field and the battle scene tell each other, and what the party keeps between battles. One per run:
-	// it lives on the game session (RpgSession::Battle, Scripting plan SC2), so a new run starts fresh.
-	struct BattleState
-	{
-		// The running session's (RpgSession::Battle). Only while a game runs.
-		static BattleState& Get();
-
-		enum class Result : uint8_t { None, Won, Lost, Fled };
-
-		static constexpr int MaxEnemies = 3;
-		static constexpr int MaxMomentum = 5;
-
-		// Started from the heroes' data the first time a field or battle scene needs them (StartParty), not when the
-		// program starts: the data isn't loaded then.
-		int HeroHP[HeroCount] = {};
-		int HeroMP[HeroCount] = {};
-		int HeroLevel[HeroCount] = {};
-		int HeroExperience[HeroCount] = {};       // in total, since level 1
-		std::vector<DataRowRef> HeroAbilities[HeroCount]; // known, in the order the menu uses
-		bool PartyStarted = false;
-		bool Active = false;               // a battle was started and has not been settled yet
-		uint64_t EnemyId = 0;              // UUID of the field enemy that started it
-		Result Outcome = Result::None;     // set by the battle for that enemy to read when it is back
-		// The enemies (rows of Enemies.hytable; "" = an empty slot), in slot order.
-		std::array<std::string, MaxEnemies> Encounter{ "Slime", "", "" };
-		// Weaknesses the party has found, per enemy row and weakness slot (kept for the whole run, as in a bestiary).
-		std::unordered_map<std::string, std::array<bool, 3>> Revealed;
-
-		void RestoreParty()
-		{
-			for (int i = 0; i < HeroCount; i++)
-			{
-				HeroHP[i] = GetHero(i).MaxHP;
-				HeroMP[i] = GetHero(i).MaxMP;
-			}
-		}
-
-		// Level 1 with the starting abilities and full HP and MP the first time; nothing after that.
-		void StartParty()
-		{
-			if (PartyStarted)
-			{
-				return;
-			}
-			PartyStarted = true;
-			for (int i = 0; i < HeroCount; i++)
-			{
-				HeroLevel[i] = 1;
-				HeroExperience[i] = 0;
-				HeroAbilities[i] = BattleData::HeroData(i).StartingAbilities;
-			}
-			RestoreParty();
-		}
-
-		bool IsRevealed(const std::string& row, int slot) const
-		{
-			auto found = Revealed.find(row);
-			return found != Revealed.end() && slot >= 0 && slot < 3 && found->second[(size_t)slot];
-		}
-
-		// Experience for every hero still standing; a hero passing a level's mark (BattleData::ExperienceToLevel) goes
-		// up a level: its maximums rise (and its HP and MP by as much), and the abilities that level teaches are known
-		// from then on. Returns a message for each level up ("Miko reached level 3! Learned Radiant Kick.").
-		std::vector<std::string> GainExperience(int amount)
-		{
-			std::vector<std::string> messages;
-			const std::vector<int>& curve = BattleData::ExperienceToLevel();
-			for (int h = 0; h < HeroCount; h++)
-			{
-				if (HeroHP[h] <= 0 || amount <= 0)
-				{
-					continue;
-				}
-				HeroExperience[h] += amount;
-				while (HeroLevel[h] - 1 < (int)curve.size() && HeroExperience[h] >= curve[(size_t)(HeroLevel[h] - 1)])
-				{
-					const HeroStats before = BattleData::StatsAt(h, HeroLevel[h]);
-					HeroLevel[h]++;
-					const HeroStats after = BattleData::StatsAt(h, HeroLevel[h]);
-					HeroHP[h] = std::min(after.MaxHP, HeroHP[h] + std::max(0, after.MaxHP - before.MaxHP));
-					HeroMP[h] = std::min(after.MaxMP, HeroMP[h] + std::max(0, after.MaxMP - before.MaxMP));
-					std::string message = after.Name + " reached level " + std::to_string(HeroLevel[h]) + "!";
-					for (const LearnedAbility& learned : BattleData::HeroData(h).Learns)
-					{
-						const bool known = std::find(HeroAbilities[h].begin(), HeroAbilities[h].end(), learned.Ability) != HeroAbilities[h].end();
-						if (learned.Level == HeroLevel[h] && learned.Ability.IsSet() && known == false)
-						{
-							HeroAbilities[h].push_back(learned.Ability);
-							message += " Learned " + BattleData::Ability(learned.Ability).Name + ".";
-						}
-					}
-					HY_INFO("Battle: {}", message);
-					messages.push_back(message);
-				}
-			}
-			return messages;
-		}
-	};
-
-	inline const HeroStats& BattleData::Hero(int index)
-	{
-		static HeroStats stats[HeroCount];
-		const int clamped = std::clamp(index, 0, HeroCount - 1);
-		const int level = GameSession::IsRunning() ? std::max(1, BattleState::Get().HeroLevel[clamped]) : 1;
-		stats[clamped] = StatsAt(clamped, level);
-		return stats[clamped];
-	}
-
-	inline const AbilityDefinition& BattleData::Skill(int index, int slot)
-	{
-		static const AbilityDefinition none;
-		if (GameSession::IsRunning() == false)
-		{
-			return none;
-		}
-		const std::vector<DataRowRef>& known = BattleState::Get().HeroAbilities[std::clamp(index, 0, HeroCount - 1)];
-		return slot >= 0 && slot < (int)known.size() ? Ability(known[(size_t)slot]) : none;
-	}
-
-	// ---------------------------------------------------------------------------------------------------------
-	// Village
-
-	// An enemy for the field: wanders around where it was placed, runs after the entity tagged "Player" when
-	// it comes close, gives up when the player gets far away, and starts a battle when it touches the player
-	// (OnCollisionEnter: both need a body). What it is is its Enemy row (Enemies.hytable: its name, its field speed,
-	// whether it floats and sways); unset, its tag decides: tags starting with "Wisp" are spirit wisps, everything else
-	// a slime. Who fights is its Encounter row (Encounters.hytable); unset, it and up to two random slimes or wisps. After a battle the
-	// player did not win it goes home and ignores the player for a few seconds; after a win it disappears.
-	// A Dormant one waits hidden until a quest wakes it (Wake(), the Shrine Glade's slimes, QuestScripts.h).
-	// Put it on a Dynamic Rigidbody2D (GravityScale 0, high LinearDamping, FixedRotation) with a Box collider.
-	HY_SCRIPT()
-	class EnemyChaseScript : public ScriptableEntity
-	{
-	public:
-		HY_PROPERTY(Range(0, 50), Tooltip("Metres: the player this close wakes it up"))
-		float AggroRange = 5.5f;
-		HY_PROPERTY(Range(0, 5), Tooltip("Metres: a player without a physics body this close starts the battle"))
-		float TouchRange = 0.7f;
-		HY_PROPERTY(Range(0, 100), Tooltip("Metres: the player this far away makes it give up"))
-		float LeashRange = 10.0f;
-		HY_PROPERTY(Range(0, 100), Tooltip("Metres from home before it gives up the chase"))
-		float MaxFromHome = 16.0f;
-		HY_PROPERTY(Range(0, 50), Tooltip("Metres around home it wanders"))
-		float WanderRadius = 3.0f;
-		HY_PROPERTY(Range(0, 20), Tooltip("Metres per second while wandering (wisps move 15% faster)"))
-		float WanderSpeed = 0.8f;
-		HY_PROPERTY(Range(0, 20), Tooltip("Metres per second while chasing (the player walks at about 3.5)"))
-		float ChaseSpeed = 2.2f;
-		HY_PROPERTY(Range(0, 20), Tooltip("Metres per second walking back home"))
-		float ReturnSpeed = 1.8f;
-		HY_PROPERTY(Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)"))
-		bool Dormant = false;
-		HY_PROPERTY(DataRow(EnemyDefinition), Tooltip("What it is; unset: a tag starting with \"Wisp\" is a Wisp, anything else a Slime"))
-		DataRowRef Enemy;
-		HY_PROPERTY(DataRow(EncounterDefinition), Tooltip("Who fights when it touches the player; unset: it and up to two random slimes or wisps"))
-		DataRowRef Encounter;
-
-		// A dormant enemy appears where it was placed (fading in) and starts wandering. Nothing when it is awake.
-		void Wake()
-		{
-			if (Dormant == false)
-			{
-				return;
-			}
-			Dormant = false;
-			SetWorldPosition(m_DormantPlace);
-			m_Appear = 0.0f;
-			m_Wait = 0.6f;
-			SetAlpha(0.0f);
-		}
-
-		bool IsDormant() const { return Dormant; }
-
-	protected:
-		void OnCreate() override
-		{
-			const glm::vec3 position = GetWorldPosition();
-			m_Home = { position.x, position.y };
-			m_Target = m_Home;
-			m_Seed = 2463534242u ^ (uint32_t)((uint64_t)GetEntity().GetUUID() >> 7);
-			m_Wait = 0.5f + 2.0f * Random01();
-			if (Enemy.IsSet())
-			{
-				m_Row = Enemy.Row;
-			}
-			else if (GetEntity().HasComponent<TagComponent>() && GetComponent<TagComponent>().Tag.rfind("Wisp", 0) == 0)
-			{
-				m_Row = "Wisp";
-			}
-
-			// Dormant: parked far below the map, so its collider (kinematic, it has a script) blocks nobody, and
-			// invisible.
-			m_DormantPlace = position;
-			if (Dormant)
-			{
-				SetWorldPosition(position - glm::vec3(0.0f, 0.0f, 100.0f));
-				SetAlpha(0.0f);
-			}
-		}
-
-		void OnUpdate(float deltaTime) override
-		{
-			Entity self = GetEntity();
-			Scene* scene = self.GetScene();
-			m_Time += deltaTime;
-
-			if (Dormant)
-			{
-				Physics2D::SetLinearVelocity(self, glm::vec2(0.0f));
-				return;
-			}
-			// Just woken: fades in over half a second, harmless meanwhile.
-			if (m_Appear < 1.0f)
-			{
-				m_Appear = std::min(1.0f, m_Appear + deltaTime * 2.0f);
-				SetAlpha(m_Appear);
-				if (m_Appear < 1.0f)
-				{
-					return;
-				}
-			}
-
-			// The battle this enemy started is over: the scene below carries on and reads the result.
-			if (BattleState::Get().Active && BattleState::Get().EnemyId == (uint64_t)self.GetUUID() && BattleState::Get().Outcome != BattleState::Result::None)
-			{
-				const BattleState::Result outcome = BattleState::Get().Outcome;
-				BattleState::Get().Active = false;
-				BattleState::Get().Outcome = BattleState::Result::None;
-				BattleState::Get().EnemyId = 0;
-				if (outcome == BattleState::Result::Won)
-				{
-					HY_INFO("{}: defeated, it is gone", GetEnemy(m_Row).Name);
-					scene->DestroyEntity(self);
-					return;
-				}
-
-				m_Cooldown = 4.0f;
-				m_State = State::Return;
-			}
-
-			const glm::vec3 world = GetWorldPosition();
-			const glm::vec2 position{ world.x, world.y };
-			m_Cooldown = std::max(0.0f, m_Cooldown - deltaTime);
-
-			if (m_Player == entt::null || scene->m_Registry.valid(m_Player) == false)
-			{
-				m_Player = FindPlayer(*scene);
-			}
-
-			float playerDistance = 1.0e9f;
-			if (m_Player != entt::null && scene->m_Registry.has<TransformComponent>(m_Player))
-			{
-				const glm::vec3 playerPosition = scene->GetWorldPosition(Entity{ m_Player, scene });
-				m_PlayerPosition = { playerPosition.x, playerPosition.y };
-				playerDistance = glm::length(m_PlayerPosition - position);
-
-				// A player without a physics body (DioramaWalk in the Shrine Glade) never collides: touching
-				// is being this close on the same level.
-				if (scene->m_Registry.has<Rigidbody2DComponent>(m_Player) == false && playerDistance < TouchRange
-					&& std::abs(playerPosition.z - world.z) < 0.5f)
-				{
-					StartBattle();
-					return;
-				}
-			}
-
-			const float homeDistance = glm::length(m_Home - position);
-			const bool canChase = m_Cooldown <= 0.0f && BattleState::Get().Active == false;
-			if (canChase && m_State != State::Chase && playerDistance < AggroRange)
-			{
-				m_State = State::Chase;
-				HY_INFO("{}: spotted the player", GetEnemy(m_Row).Name);
-			}
-			else if (m_State == State::Chase && (canChase == false || playerDistance > LeashRange || homeDistance > MaxFromHome))
-			{
-				m_State = State::Return;
-			}
-
-			const EnemyDefinition& definition = GetEnemy(m_Row);
-			const float speedScale = definition.FieldSpeed;
-			glm::vec2 velocity{ 0.0f };
-			float animationSpeed = 1.0f;
-			switch (m_State)
-			{
-				case State::Wander:
-				{
-					if (m_Wait > 0.0f)
-					{
-						m_Wait -= deltaTime;
-						break;
-					}
-
-					m_WalkTime += deltaTime;
-					const glm::vec2 toTarget = m_Target - position;
-					if (glm::length(toTarget) < 0.25f || m_WalkTime > 4.0f)
-					{
-						// Rest, then pick a spot near home.
-						m_WalkTime = 0.0f;
-						m_Wait = 1.0f + 2.0f * Random01();
-						const float angle = Random01() * 6.2831853f;
-						const float radius = WanderRadius * std::sqrt(Random01());
-						m_Target = m_Home + glm::vec2(std::cos(angle), std::sin(angle)) * radius;
-						break;
-					}
-
-					velocity = glm::normalize(toTarget) * WanderSpeed * speedScale;
-					break;
-				}
-				case State::Chase:
-				{
-					const glm::vec2 toPlayer = m_PlayerPosition - position;
-					if (glm::length(toPlayer) > 0.01f)
-					{
-						velocity = glm::normalize(toPlayer) * ChaseSpeed * speedScale;
-					}
-					animationSpeed = 1.8f;
-					break;
-				}
-				case State::Return:
-				{
-					const glm::vec2 toHome = m_Home - position;
-					if (glm::length(toHome) < 0.4f)
-					{
-						m_State = State::Wander;
-						m_Wait = 1.0f;
-						m_WalkTime = 0.0f;
-						break;
-					}
-
-					velocity = glm::normalize(toHome) * ReturnSpeed * speedScale;
-					break;
-				}
-			}
-
-			// Floating ones (wisps) drift: a slow sideways sway on top of where they are going.
-			if (definition.FloatHeight > 0.0f)
-			{
-				velocity.x += std::sin(m_Time * 1.7f + (float)(m_Seed & 7)) * 0.35f;
-			}
-
-			if (Physics2D::SetLinearVelocity(self, velocity) == false)
-			{
-				SetWorldPosition(world + glm::vec3(velocity * deltaTime, 0.0f));
-			}
-
-			SpriteAnimator::SetSpeed(self, animationSpeed);
-
-			// Its own light (a wisp's) breathes a little.
-			if (self.HasComponent<Light2DComponent>())
-			{
-				if (m_LightBase < 0.0f)
-				{
-					m_LightBase = GetComponent<Light2DComponent>().Intensity;
-				}
-				GetComponent<Light2DComponent>().Intensity = m_LightBase * (0.85f + 0.15f * std::sin(m_Time * 3.1f));
-			}
-		}
-
-		void OnCollisionEnter(Entity other) override
-		{
-			if (other.HasComponent<TagComponent>() == false || other.GetComponent<TagComponent>().Tag != "Player")
-			{
-				return;
-			}
-			StartBattle();
-		}
-
-	private:
-		// The village (or field) is paused under the battle scene. Once per touch: not while cooling down
-		// after a battle or while one runs.
-		void StartBattle()
-		{
-			if (m_Cooldown > 0.0f || BattleState::Get().Active)
-			{
-				return;
-			}
-
-			// The village is paused under the battle: this enemy remembers it started it, and brings friends.
-			Entity self = GetEntity();
-			BattleState::Get().Active = true;
-			BattleState::Get().EnemyId = (uint64_t)self.GetUUID();
-			BattleState::Get().Outcome = BattleState::Result::None;
-			std::array<std::string, BattleState::MaxEnemies>& slots = BattleState::Get().Encounter;
-			slots = { m_Row, std::string(), std::string() };
-			int count = 1;
-			const DataView<EncounterDefinition> encounter = Encounter.IsSet() ? Data::GetRow<EncounterDefinition>(Encounter) : DataView<EncounterDefinition>();
-			if (encounter.IsValid() && encounter->Enemies.empty() == false)
-			{
-				count = 0;
-				for (const DataRowRef& member : encounter->Enemies)
-				{
-					if (count < BattleState::MaxEnemies && member.IsSet())
-					{
-						slots[(size_t)count++] = member.Row;
-					}
-				}
-			}
-			else
-			{
-				// The default: it brings up to two friends, wisps more often when it is one.
-				const float roll = Random01();
-				const int extra = roll < 0.3f ? 0 : (roll < 0.75f ? 1 : 2);
-				for (int i = 1; i <= extra; i++)
-				{
-					slots[(size_t)i] = Random01() < (m_Row == "Wisp" ? 0.5f : 0.3f) ? "Wisp" : "Slime";
-				}
-				count = 1 + extra;
-			}
-
-			Physics2D::SetLinearVelocity(self, glm::vec2(0.0f));
-			HY_INFO("{}: touched the player, battle starts ({} enemies)", GetEnemy(m_Row).Name, count);
-			SceneTransition::Push("Battle");
-		}
-
-		enum class State : uint8_t { Wander, Chase, Return };
-
-
-		static entt::entity FindPlayer(Scene& scene)
-		{
-			auto view = scene.m_Registry.view<TagComponent>();
-			for (auto entity : view)
-			{
-				if (view.get<TagComponent>(entity).Tag == "Player")
-				{
-					return entity;
-				}
-			}
-
-			return entt::null;
-		}
-
-		// 0 to 1 from a xorshift: the same enemies behave the same way every run, each differently.
-		float Random01()
-		{
-			m_Seed ^= m_Seed << 13;
-			m_Seed ^= m_Seed >> 17;
-			m_Seed ^= m_Seed << 5;
-			return (float)(m_Seed & 0xFFFFFF) / (float)0x1000000;
-		}
-
-		// The sprite's and its blob shadow's opacity (a dormant enemy is invisible, a woken one fades in).
-		void SetAlpha(float alpha)
-		{
-			Entity self = GetEntity();
-			if (self.HasComponent<SpriteRendererComponent>())
-			{
-				GetComponent<SpriteRendererComponent>().Color.a = alpha;
-			}
-			if (self.HasComponent<Shadow2DComponent>())
-			{
-				if (m_ShadowStrength < 0.0f)
-				{
-					m_ShadowStrength = GetComponent<Shadow2DComponent>().Strength;
-				}
-				GetComponent<Shadow2DComponent>().Strength = m_ShadowStrength * alpha;
-			}
-		}
-
-		std::string m_Row = "Slime"; // its row of Enemies.hytable
-		State m_State = State::Wander;
-		entt::entity m_Player = entt::null;
-		glm::vec2 m_Home{ 0.0f };
-		glm::vec2 m_Target{ 0.0f };
-		glm::vec2 m_PlayerPosition{ 0.0f };
-		float m_Wait = 1.0f;
-		float m_WalkTime = 0.0f;
-		float m_Cooldown = 0.0f; // seconds the enemy ignores the player (after a battle)
-		float m_Time = 0.0f;
-		float m_LightBase = -1.0f;
-		float m_ShadowStrength = -1.0f;
-		float m_Appear = 1.0f;          // 0..1 while a woken enemy fades in
-		glm::vec3 m_DormantPlace{ 0.0f }; // where it was placed (a dormant one waits below it)
-		uint32_t m_Seed = 1;
 	};
 
 	// ---------------------------------------------------------------------------------------------------------
@@ -1119,22 +492,14 @@ namespace Hydro
 				}
 			}
 
-			// Fastest first, with a little luck.
-			m_Order.clear();
-			std::vector<std::pair<float, int>> speeds;
+			// Fastest first, with a little luck (BattleRules::TurnOrder; -1 leaves a fallen actor out).
+			std::vector<int> speeds;
 			for (int actor = 0; actor < ActorCount; actor++)
 			{
-				if (ActorAlive(actor))
-				{
-					const int speed = IsHero(actor) ? GetHero(actor).Speed : GetEnemy(m_Enemies[EnemyIndex(actor)].Row).Stats.Speed;
-					speeds.push_back({ (float)speed + 3.0f * Random01(), actor });
-				}
+				const int speed = IsHero(actor) ? GetHero(actor).Speed : GetEnemy(m_Enemies[EnemyIndex(actor)].Row).Stats.Speed;
+				speeds.push_back(ActorAlive(actor) ? std::max(0, speed) : -1);
 			}
-			std::sort(speeds.begin(), speeds.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
-			for (const auto& entry : speeds)
-			{
-				m_Order.push_back(entry.second);
-			}
+			m_Order = BattleRules::TurnOrder(speeds, [this]() { return Random01(); });
 			m_Turn = -1;
 			HY_INFO("Battle: round {}", m_Round);
 			SetPhase(Phase::NextTurn);
@@ -1212,6 +577,7 @@ namespace Hydro
 						m_Results.push_back(line);
 					}
 				}
+				GiveLoot();
 				SetPhase(Phase::Victory);
 				return true;
 			}
@@ -1256,6 +622,59 @@ namespace Hydro
 			}
 			SetPhase(Phase::Done);
 			SceneTransition::Pop();
+		}
+
+		// The loot of a won battle (Loot.hytable): each enemy's table, then the encounter's, into the run's inventory,
+		// and a "Found ..." line for the results.
+		void GiveLoot()
+		{
+			std::vector<LootRules::Drop> drops;
+			const std::function<float()> random = [this]() { return Random01(); };
+			auto rollTable = [&drops, &random](const DataRowRef& reference)
+			{
+				const DataView<LootTableDefinition> table = reference.IsSet() ? Data::GetRow<LootTableDefinition>(reference) : DataView<LootTableDefinition>();
+				if (table.IsValid() == false)
+				{
+					return;
+				}
+				for (const LootRules::Drop& drop : LootRules::Roll(*table, random))
+				{
+					auto found = std::find_if(drops.begin(), drops.end(), [&](const LootRules::Drop& other) { return other.Item == drop.Item; });
+					if (found == drops.end())
+					{
+						drops.push_back(drop);
+					}
+					else
+					{
+						found->Count += drop.Count;
+					}
+				}
+			};
+			for (const Enemy& enemy : m_Enemies)
+			{
+				if (enemy.Row.empty() == false)
+				{
+					rollTable(GetEnemy(enemy.Row).Loot);
+				}
+			}
+			rollTable(BattleState::Get().EncounterLoot);
+
+			std::string found;
+			for (const LootRules::Drop& drop : drops)
+			{
+				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(drop.Item);
+				if (item.IsValid() == false)
+				{
+					continue;
+				}
+				Inventory::Get().Add(drop.Item, drop.Count);
+				found += (found.empty() ? "" : ", ") + item->Name + (drop.Count > 1 ? " x" + std::to_string(drop.Count) : std::string());
+			}
+			if (found.empty() == false)
+			{
+				HY_INFO("Battle: found {}", found);
+				m_Results.push_back("Found " + found + ".");
+			}
 		}
 
 		// ---- Hero input -----------------------------------------------------------------------------------
@@ -1620,7 +1039,7 @@ namespace Hydro
 			{
 				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
 				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-				HealHero(m_Action.Target, (int)std::lround(BattleData::Skill(m_Action.Actor, s).Power * (float)definition.Magic * boost * (0.9f + 0.2f * Random01())));
+				HealHero(m_Action.Target, BattleRules::ResolveHeal(BattleData::Skill(m_Action.Actor, s).Power, definition.Magic, boost, Random01()));
 				m_Action.HitsDone++;
 				return;
 			}
@@ -1718,15 +1137,13 @@ namespace Hydro
 			{
 				m_Action.HitsDone = 1;
 				const Enemy& enemy = m_Enemies[EnemyIndex(m_Action.Actor)];
-				// Its plain attack: its Attack times the attack's Power (Abilities.hytable).
+				// Its plain attack or one of its abilities, by weight (BattleRules::ChooseEnemyAction): its Attack times
+				// the ability's Power (Abilities.hytable). Enemies only strike for now: an ability's other effects wait.
 				const EnemyDefinition& attacker = GetEnemy(enemy.Row);
-				const float power = attacker.BasicAttack.IsSet() ? BattleData::Ability(attacker.BasicAttack).Power : 1.0f;
-				int damage = (int)std::lround((float)attacker.Stats.Attack * power * (0.85f + 0.4f * Random01()));
+				const DataRowRef action = attacker.Abilities.empty() ? attacker.BasicAttack : BattleRules::ChooseEnemyAction(attacker, Random01());
+				const float power = action.IsSet() ? BattleData::Ability(action).Power : 1.0f;
 				Hero& target = m_Heroes[m_Action.Target];
-				if (target.Guarding)
-				{
-					damage = std::max(1, damage / 2);
-				}
+				const int damage = BattleRules::EnemyAttackDamage(attacker.Stats.Attack, power, target.Guarding, Random01());
 				BattleState::Get().HeroHP[m_Action.Target] = std::max(0, BattleState::Get().HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
 				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -1774,38 +1191,18 @@ namespace Hydro
 		{
 			Enemy& enemy = m_Enemies[index];
 			const EnemyDefinition& definition = GetEnemy(enemy.Row);
-			float multiplier = 1.0f;
-			bool weak = false;
-			bool resisted = false;
-			for (int w = 0; w < std::min(3, (int)definition.Weak.size()); w++)
+			// The rules (BattleRules::ResolveHit); the rolls in a fixed order: the critical, then the spread.
+			const float criticalRoll = Random01();
+			const float spreadRoll = Random01();
+			const BattleRules::HitResult hit = BattleRules::ResolveHit(definition, type, stat, power, IsBroken(enemy), criticalRoll, spreadRoll);
+			const bool weak = hit.Weak;
+			const bool resisted = hit.Resisted;
+			const bool critical = hit.Critical;
+			const int damage = hit.Damage;
+			if (hit.WeakSlot >= 0)
 			{
-				if (definition.Weak[(size_t)w] == type)
-				{
-					weak = true;
-					multiplier = 1.5f;
-					BattleState::Get().Revealed[enemy.Row][(size_t)w] = true;
-				}
+				BattleState::Get().Revealed[enemy.Row][(size_t)hit.WeakSlot] = true;
 			}
-			for (DamageType resist : definition.Resist)
-			{
-				if (resist == type)
-				{
-					resisted = true;
-					multiplier = 0.5f;
-				}
-			}
-
-			const bool critical = Random01() < 0.08f;
-			if (critical)
-			{
-				multiplier *= 1.5f;
-			}
-			if (IsBroken(enemy))
-			{
-				multiplier *= 2.0f;
-			}
-
-			const int damage = std::max(1, (int)std::lround(stat * power * multiplier * (0.9f + 0.2f * Random01())));
 			enemy.HP = std::max(0, enemy.HP - damage);
 			enemy.Flash = 0.3f;
 
@@ -1998,7 +1395,7 @@ namespace Hydro
 			return IsHero(actor) ? BattleState::Get().HeroHP[actor] > 0 : m_Enemies[EnemyIndex(actor)].Alive();
 		}
 
-		bool IsBroken(const Enemy& enemy) const { return enemy.BrokenUntilRound >= m_Round && enemy.BrokenUntilRound >= 0; }
+		bool IsBroken(const Enemy& enemy) const { return BattleRules::IsBroken(enemy.BrokenUntilRound, m_Round); }
 
 		int FirstLivingEnemy(int preferred) const
 		{
@@ -2556,10 +1953,16 @@ namespace Hydro
 
 		// An enemy slot shows the enemy it holds (SC7): the slot's sprite plays the enemy's animations from its idle
 		// clip, and the slot's light takes its glow colour. Without animations the sprite keeps what the scene gave it.
+		// The animator only plays sets already loaded (it never loads from disk), and the scene names only the slime's,
+		// so the enemy's set is loaded here.
 		static void DressEnemySlot(Scene& scene, Enemy& enemy, const EnemyDefinition& definition)
 		{
 			if (Alive(scene, enemy.Sprite) && scene.m_Registry.has<SpriteAnimatorComponent>(enemy.Sprite) && (uint64_t)definition.Animations != 0)
 			{
+				if (AssetManager::GetAsset<SpriteAnimationSet>(definition.Animations) == nullptr)
+				{
+					HY_WARN("Battle: {}'s animations ({}) couldn't be loaded", definition.Name, (uint64_t)definition.Animations);
+				}
 				SpriteAnimatorComponent& animator = scene.m_Registry.get<SpriteAnimatorComponent>(enemy.Sprite);
 				animator.Animations = definition.Animations;
 				animator.StartClip = definition.IdleClip;

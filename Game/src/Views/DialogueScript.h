@@ -1,15 +1,20 @@
+// Game/src/Views/DialogueScript.h
 #pragma once
+
 #include "Hydro.h"
 #include "Data/DialogueDefinition.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
 #include <string>
 #include <vector>
 
 // A dialogue box on the runtime UI (UI5): lines typed in one by one, each with its speaker's name. What is said is
-// data (a DialogueDefinition: Assets/Data/Dialogue/); field NPCs open it through the MVP director (MvpScripts.h, E
-// near an "Npc <Name>"), quests with their own conversations (QuestScripts.h).
+// data (a DialogueDefinition: Assets/Data/Dialogue/); field NPCs open it through the MVP director (MvpDirectorScript, E
+// near an "Npc <Name>"), quests with their own conversations (ShrineQuestScript).
+
 namespace Hydro
 {
 	// On "Dialogue Canvas" (hidden, captures input, no buttons): its children "Dialogue Name" (text), "Dialogue
