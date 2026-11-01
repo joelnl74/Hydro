@@ -150,14 +150,18 @@ namespace Hydro
 			Time::BeginPhase(FramePhase::ImGui);
 			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack)
+			{
 				layer->OnImGuiRender();
+			}
 			m_ImGuiLayer->End();
 			Time::EndPhase(FramePhase::ImGui);
 
 			Time::BeginPhase(FramePhase::Update);
 			const float deltaTime = Time::GetDeltaTime();
 			for (Layer* layer : m_LayerStack)
+			{
 				layer->OnUpdate(deltaTime);
+			}
 			Time::EndPhase(FramePhase::Update);
 
 			// A minimized window has a 0x0 framebuffer: nothing can be presented, so skip

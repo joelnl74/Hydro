@@ -22,6 +22,7 @@
 #include "Hydro/Scene/SceneSerializer.h"
 #include "Hydro/Scene/SceneTransition.h"
 #include "Hydro/Scene/SceneStack.h"
+#include "Hydro/Scene/GameSession.h"
 #include "Hydro/Scene/PrefabSerializer.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "Hydro/Scene/SpriteAnimationSerializer.h"

@@ -8,7 +8,9 @@ namespace Hydro
 	{
 		m_States.reserve(m_Paths.size());
 		for (const auto& path : m_Paths)
+		{
 			m_States.push_back(ReadState(path));
+		}
 	}
 
 	bool FileWatcher::Poll()
@@ -35,7 +37,9 @@ namespace Hydro
 		state.LastWrite = std::filesystem::last_write_time(path, error);
 		state.Exists = static_cast<bool>(error) == false;
 		if (state.Exists == false)
+		{
 			state.LastWrite = {};
+		}
 
 		return state;
 	}

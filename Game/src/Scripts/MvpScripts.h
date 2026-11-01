@@ -8,6 +8,7 @@
 #include "Data/FieldDefinitions.h"
 #include "Data/InventoryDefinition.h"
 #include "Data/ItemDefinition.h"
+#include "State/Inventory.h"
 
 #include <algorithm>
 #include <array>
@@ -119,6 +120,11 @@ namespace Hydro
 		HY_PROPERTY(Asset(DataTable, SignDefinition), Tooltip("The signs' lines, by the name after \"Sign \""))
 		AssetHandle SignTable = DefaultSignTable;
 
+		// The dialogue box (Scripting plan SC4): set it in the inspector, or drag "Dialogue Canvas" onto it. Unset,
+		// the director looks for the entity tagged "Dialogue Canvas" (the scenes made before references).
+		HY_PROPERTY(Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\""))
+		ComponentRef<DialogueScript> Dialogue;
+
 	protected:
 		void OnCreate() override
 		{
@@ -148,7 +154,7 @@ namespace Hydro
 			m_Menu.StatusMPFill = Find(scene, "Menu Status Miko MP Fill");
 			m_DialogueCanvas = Find(scene, "Dialogue Canvas");
 
-			BattleState::StartParty();
+			BattleState::Get().StartParty();
 
 			// Everything the player can interact with, by tag prefix.
 			auto view = scene.m_Registry.view<TagComponent, TransformComponent>();
@@ -173,21 +179,22 @@ namespace Hydro
 				m_Interactables.push_back(item);
 			}
 
-			// The party's items: rows of the items table and counts. Shared by every field scene and interior, so what is
-			// used in the inn is gone in the village too; the first scene of a run (depth 0) starts it afresh from the
-			// starting inventory (twenty items, more than the list shows, so it scrolls).
-			if (SceneTransition::GetDepth() == 0 || s_Inventory.empty())
+			// The party's items: rows of the items table and counts, on the game session, so every field scene and interior
+			// of a run shares them (what is used in the inn is gone in the village too). The first director of a run gives
+			// the starting inventory (twenty items, more than the list shows, so it scrolls).
+			Inventory& inventory = Inventory::Get();
+			if (inventory.Started == false)
 			{
-				s_Inventory.clear();
+				inventory.Started = true;
 				const DataView<InventoryDefinition> start = Data::Get<InventoryDefinition>(StartingInventory);
 				if (start.IsValid())
 				{
 					for (const InventoryEntry& entry : start->Items)
 					{
-						s_Inventory.push_back(Slot{ entry.Item, entry.Count });
+						inventory.Slots.push_back(Slot{ entry.Item, entry.Count });
 					}
 				}
-				HY_INFO("MVP: {} items in the inventory", s_Inventory.size());
+				HY_INFO("MVP: {} items in the inventory", inventory.Slots.size());
 			}
 
 			ShowMenu(false);
@@ -309,13 +316,7 @@ namespace Hydro
 			                     // "Out" in an interior); NPCs: their name (after "Npc ")
 		};
 
-		// One line of the inventory: which item (a row of the items table, looked up when shown or used, so an edit
-		// to the table shows at once) and how many. Game state, not data.
-		struct Slot
-		{
-			DataRowRef Item;
-			int Count = 0;
-		};
+		using Slot = Inventory::Slot;
 
 		static constexpr int MaxRows = 20; // the inventory's rows in the scene ("Item 0" to "Item 19"); more items aren't shown
 
@@ -507,8 +508,8 @@ namespace Hydro
 					StartLeaving(nearest->Target, false);
 					break;
 				case Kind::Npc:
-					// A quest may have its own words for this NPC (QuestLog::Talk, QuestScripts.h).
-					if (QuestLog::Talk(nearest->Target))
+					// A quest may have its own words for this NPC (QuestLog::Get().Talk, QuestScripts.h).
+					if (QuestLog::Get().Talk(nearest->Target))
 					{
 						ShowPrompt(false);
 						break;
@@ -627,7 +628,7 @@ namespace Hydro
 		// A dip to black and back that restores the party (a bed, the inn).
 		void Rest()
 		{
-			BattleState::RestoreParty();
+			BattleState::Get().RestoreParty();
 			m_Resting = RestTime;
 			ShowMessage(MvpLabel::Rested, MvpLabel::RestedLine2);
 			HY_INFO("MVP: the party rests: HP and MP restored");
@@ -741,7 +742,7 @@ namespace Hydro
 				ShowPrompt(false);
 				PresentMenu();
 				// The selection is kept between opens.
-				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)s_Inventory.size(), MaxRows) - 1));
+				m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)Inventory::Get().Slots.size(), MaxRows) - 1));
 				UI::Focus(EntityOf(m_Menu.Row[m_Selected]));
 			}
 		}
@@ -755,11 +756,11 @@ namespace Hydro
 				ShowMessage(MvpLabel::ChestEmpty); // no such item (warned once): nothing to give
 				return;
 			}
-			auto slot = std::find_if(s_Inventory.begin(), s_Inventory.end(), [&](const Slot& candidate) { return candidate.Item == itemRef; });
-			if (slot == s_Inventory.end())
+			auto slot = std::find_if(Inventory::Get().Slots.begin(), Inventory::Get().Slots.end(), [&](const Slot& candidate) { return candidate.Item == itemRef; });
+			if (slot == Inventory::Get().Slots.end())
 			{
-				s_Inventory.push_back(Slot{ itemRef, 0 });
-				slot = s_Inventory.end() - 1;
+				Inventory::Get().Slots.push_back(Slot{ itemRef, 0 });
+				slot = Inventory::Get().Slots.end() - 1;
 			}
 			slot->Count += 1;
 			ShowMessage("Found a " + item->Name + "!");
@@ -768,11 +769,11 @@ namespace Hydro
 
 		void UseSelected()
 		{
-			if (m_Selected < 0 || m_Selected >= (int)s_Inventory.size())
+			if (m_Selected < 0 || m_Selected >= (int)Inventory::Get().Slots.size())
 			{
 				return;
 			}
-			Slot& slot = s_Inventory[m_Selected];
+			Slot& slot = Inventory::Get().Slots[m_Selected];
 			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
 			if (item.IsValid() == false || item->CanUseInField() == false)
 			{
@@ -787,14 +788,14 @@ namespace Hydro
 			slot.Count -= 1;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				BattleState::HeroMP[h] = std::min(GetHero(h).MaxMP, BattleState::HeroMP[h] + item->RestoreMP);
-				if (BattleState::HeroHP[h] > 0)
+				BattleState::Get().HeroMP[h] = std::min(GetHero(h).MaxMP, BattleState::Get().HeroMP[h] + item->RestoreMP);
+				if (BattleState::Get().HeroHP[h] > 0)
 				{
-					BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + item->RestoreHP);
+					BattleState::Get().HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::Get().HeroHP[h] + item->RestoreHP);
 				}
 			}
 			ShowMessage(MvpLabel::UsedPotion);
-			HY_INFO("MVP: used {} ({} left): {} {} HP {} MP", item->Name, slot.Count, GetHero(0).Name, BattleState::HeroHP[0], BattleState::HeroMP[0]);
+			HY_INFO("MVP: used {} ({} left): {} {} HP {} MP", item->Name, slot.Count, GetHero(0).Name, BattleState::Get().HeroHP[0], BattleState::Get().HeroMP[0]);
 			PresentMenu();
 		}
 
@@ -805,7 +806,7 @@ namespace Hydro
 		{
 			for (int i = 0; i < MaxRows; i++)
 			{
-				const bool used = i < (int)s_Inventory.size();
+				const bool used = i < (int)Inventory::Get().Slots.size();
 				Entity row = EntityOf(m_Menu.Row[i]);
 				if (UI::IsVisible(row) != used)
 				{
@@ -815,7 +816,7 @@ namespace Hydro
 				{
 					continue;
 				}
-				const Slot& slot = s_Inventory[i];
+				const Slot& slot = Inventory::Get().Slots[i];
 				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
 				const bool usable = item.IsValid() && item->CanUseInField();
 				Entity name = EntityOf(m_Menu.Name[i]);
@@ -831,22 +832,22 @@ namespace Hydro
 			PresentDetails();
 
 			// The party's status beside the list (the first hero; the MVP has one).
-			const CombatantDefinition& hero = GetHero(0);
+			const HeroStats& hero = GetHero(0);
 			UI::SetText(EntityOf(m_Menu.StatusName), hero.Name);
-			UI::SetText(EntityOf(m_Menu.StatusHP), std::to_string(BattleState::HeroHP[0]) + " / " + std::to_string(hero.MaxHP));
-			UI::SetText(EntityOf(m_Menu.StatusMP), std::to_string(BattleState::HeroMP[0]) + " / " + std::to_string(hero.MaxMP));
-			SetBarFill(EntityOf(m_Menu.StatusHPFill), (float)BattleState::HeroHP[0] / (float)hero.MaxHP);
-			SetBarFill(EntityOf(m_Menu.StatusMPFill), (float)BattleState::HeroMP[0] / (float)hero.MaxMP);
+			UI::SetText(EntityOf(m_Menu.StatusHP), std::to_string(BattleState::Get().HeroHP[0]) + " / " + std::to_string(hero.MaxHP));
+			UI::SetText(EntityOf(m_Menu.StatusMP), std::to_string(BattleState::Get().HeroMP[0]) + " / " + std::to_string(hero.MaxMP));
+			SetBarFill(EntityOf(m_Menu.StatusHPFill), (float)BattleState::Get().HeroHP[0] / (float)hero.MaxHP);
+			SetBarFill(EntityOf(m_Menu.StatusMPFill), (float)BattleState::Get().HeroMP[0] / (float)hero.MaxMP);
 		}
 
 		// The selected item's name and description, and the help line.
 		void PresentDetails()
 		{
-			if (m_Selected < 0 || m_Selected >= (int)s_Inventory.size())
+			if (m_Selected < 0 || m_Selected >= (int)Inventory::Get().Slots.size())
 			{
 				return;
 			}
-			const Slot& slot = s_Inventory[m_Selected];
+			const Slot& slot = Inventory::Get().Slots[m_Selected];
 			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
 			if (item.IsValid() == false)
 			{
@@ -872,21 +873,20 @@ namespace Hydro
 			}
 		}
 
-		// The dialogue box's script (on "Dialogue Canvas"), or nullptr in a scene without one.
+		// The dialogue box's script: the Dialogue property's, else the one on "Dialogue Canvas"; nullptr in a scene
+		// without one.
 		DialogueScript* FindDialogue(Scene& scene)
 		{
-			if (Alive(scene, m_DialogueCanvas) == false || scene.m_Registry.has<NativeScriptComponent>(m_DialogueCanvas) == false)
+			if (Dialogue.IsSet())
+			{
+				return Dialogue.Get();
+			}
+			if (Alive(scene, m_DialogueCanvas) == false)
 			{
 				return nullptr;
 			}
-			for (NativeScriptComponent::Script& script : scene.m_Registry.get<NativeScriptComponent>(m_DialogueCanvas).Scripts)
-			{
-				if (DialogueScript* dialogue = dynamic_cast<DialogueScript*>(script.Instance.get()))
-				{
-					return dialogue;
-				}
-			}
-			return nullptr;
+			Entity canvas{ m_DialogueCanvas, &scene };
+			return canvas.TryGetComponent<DialogueScript>();
 		}
 
 		// ---- Helpers -------------------------------------------------------------------------------------
@@ -1031,8 +1031,6 @@ namespace Hydro
 		entt::entity m_Current = entt::null; // what the prompt shows
 		glm::vec2 m_LastPlayer{ 0.0f };
 		glm::vec2 m_Facing{ 0.0f, 1.0f };
-		// The party's items, shared by every field scene and interior of a run (see OnCreate).
-		static inline std::vector<Slot> s_Inventory;
 		int m_Selected = 0;
 		int m_NpcLine = 0;
 		float m_Time = 0.0f;

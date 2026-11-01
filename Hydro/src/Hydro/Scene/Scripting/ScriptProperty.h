@@ -2,6 +2,7 @@
 
 #include "Hydro/Asset/Asset.h"
 #include "Hydro/Data/DataRowRef.h"
+#include "Hydro/Scene/EntityRef.h"
 
 #include <glm/glm.hpp>
 
@@ -14,6 +15,7 @@
 
 namespace Hydro
 {
+	class Entity;
 	class ScriptableEntity;
 
 	// The kinds of value a script can expose with HY_PROPERTY. The order matches ScriptPropertyValue's
@@ -28,7 +30,8 @@ namespace Hydro
 		Vec4,
 		String,
 		Asset, // an AssetHandle (0 = none); ScriptProperty::AssetFilter says which kind of asset
-		RowRef // a DataRowRef (a data table's row); ScriptProperty::DataTypeFilter says the row type
+		RowRef, // a DataRowRef (a data table's row); ScriptProperty::DataTypeFilter says the row type
+		EntityRef // an EntityRef or a ComponentRef<T> (SC4): an entity's UUID; AcceptsEntity / TargetType say what it needs
 	};
 
 	using ScriptPropertyValue =
@@ -41,7 +44,8 @@ namespace Hydro
 			glm::vec4,
 			std::string,
 			AssetHandle,
-			DataRowRef>;
+			DataRowRef,
+			EntityRef>;
 
 	using ScriptPropertyMap =
 		std::unordered_map<
@@ -81,6 +85,13 @@ namespace Hydro
 		std::string DataTypeFilter;   // Asset of a Definition / DataTable: the HY_DATA type it holds; RowRef: the row type
 		bool ReadOnly = false;        // shown, not editable (runtime state a script writes)
 		bool HideInInspector = false; // saved and applied, not shown
+		// Asset, RowRef, EntityRef: must be set (HY_PROPERTY(Required)). The inspector shows an empty or broken one in
+		// the warning colour; project validation (SC5) reports it. Code still checks Get() for nullptr.
+		bool Required = false;
+		// EntityRef of a ComponentRef<T>: the name of T for the inspector ("needs a DialogueScript"), and whether an
+		// entity has a T (outside Play a bound script counts). Unset for a plain EntityRef: any entity.
+		std::string TargetType;
+		std::function<bool(const Entity&)> AcceptsEntity;
 
 		// Takes the stored editor/scene value and
 		// pushes it into the actual C++ script object.

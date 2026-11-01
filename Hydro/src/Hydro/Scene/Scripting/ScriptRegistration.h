@@ -3,6 +3,8 @@
 #include "ScriptTypeInfo.h"
 
 #include "Hydro/Core/Assert.h"
+#include "Hydro/Scene/ComponentRef.h"
+#include "Hydro/Scene/EntityRef.h"
 
 #include <string>
 #include <type_traits>
@@ -54,18 +56,36 @@ namespace Hydro
 		{
 			return ScriptPropertyType::RowRef;
 		}
+		else if constexpr (std::is_same_v<Field, EntityRef> || IsComponentRef<Field>::value)
+		{
+			return ScriptPropertyType::EntityRef;
+		}
 		else
 		{
 			static_assert(
 				ScriptAlwaysFalse<Field>,
-				"Unsupported script property type: bool, int, float, glm::vec2/3/4, std::string, AssetHandle or DataRowRef");
+				"Unsupported script property type: bool, int, float, glm::vec2/3/4, std::string, AssetHandle, DataRowRef, EntityRef or ComponentRef<T>");
 			return ScriptPropertyType::Float;
 		}
 	}
 
+	// The UUID an EntityRef or ComponentRef<T> field refers to.
+	template<typename Field>
+	UUID ReferenceIdOf(const Field& field)
+	{
+		if constexpr (IsComponentRef<Field>::value)
+		{
+			return field.GetEntityRef().GetId();
+		}
+		else
+		{
+			return field.GetId();
+		}
+	}
+
 	// What ScriptRegistry::Register<T> returns. Each .Property(...) adds a field; the modifiers after it
-	// (.Range, .Tooltip, .Color, .AssetFilter, .DataTypeFilter, .ReadOnly, .Hidden, .FormerName) change the property
-	// added last:
+	// (.Range, .Tooltip, .Color, .AssetFilter, .DataTypeFilter, .ReadOnly, .Hidden, .FormerName, .Required, .TargetType)
+	// change the property added last:
 	//
 	//     ScriptRegistry::Register<DoorScript>("DoorScript")
 	//         .Property("OpenSpeed", "Open Speed", &DoorScript::OpenSpeed).Range(0.0f, 10.0f).Tooltip("Metres per second")
@@ -105,35 +125,81 @@ namespace Hydro
 			property.Name = name;
 			property.DisplayName = displayName;
 			property.Type = GetScriptPropertyType<Field>();
-			property.DefaultValue = m_DefaultInstance.*member;
 
-			property.Apply =
-				[member](
-					ScriptableEntity& base,
-					const ScriptPropertyValue& value)
+			// References (SC4): the value is an EntityRef; the field gets it with its script's scene.
+			if constexpr (std::is_same_v<Field, EntityRef> || IsComponentRef<Field>::value)
 			{
-				T& script =
-					static_cast<T&>(base);
-
-				const Field* typedValue =
-					std::get_if<Field>(&value);
-
-				if (typedValue != nullptr)
+				property.DefaultValue = EntityRef(ReferenceIdOf(m_DefaultInstance.*member));
+				if constexpr (IsComponentRef<Field>::value)
 				{
-					script.*member =
-						*typedValue;
+					property.AcceptsEntity = [](const Entity& entity) -> bool
+					{
+						return entity.HasComponent<typename Field::Target>();
+					};
 				}
-			};
 
-			property.Read =
-				[member](
-					const ScriptableEntity& base) -> ScriptPropertyValue
+				property.Apply =
+					[member](
+						ScriptableEntity& base,
+						const ScriptPropertyValue& value)
+				{
+					const EntityRef* saved = std::get_if<EntityRef>(&value);
+					if (saved == nullptr)
+					{
+						return;
+					}
+					T& script = static_cast<T&>(base);
+					EntityRef reference(saved->GetId(), script.GetEntity().GetScene());
+					if constexpr (IsComponentRef<Field>::value)
+					{
+						script.*member = Field(reference);
+					}
+					else
+					{
+						script.*member = reference;
+					}
+				};
+
+				property.Read =
+					[member](
+						const ScriptableEntity& base) -> ScriptPropertyValue
+				{
+					const T& script = static_cast<const T&>(base);
+					return ScriptPropertyValue(EntityRef(ReferenceIdOf(script.*member)));
+				};
+			}
+			else
 			{
-				const T& script =
-					static_cast<const T&>(base);
+				property.DefaultValue = m_DefaultInstance.*member;
 
-				return ScriptPropertyValue(script.*member);
-			};
+				property.Apply =
+					[member](
+						ScriptableEntity& base,
+						const ScriptPropertyValue& value)
+				{
+					T& script =
+						static_cast<T&>(base);
+
+					const Field* typedValue =
+						std::get_if<Field>(&value);
+
+					if (typedValue != nullptr)
+					{
+						script.*member =
+							*typedValue;
+					}
+				};
+
+				property.Read =
+					[member](
+						const ScriptableEntity& base) -> ScriptPropertyValue
+				{
+					const T& script =
+						static_cast<const T&>(base);
+
+					return ScriptPropertyValue(script.*member);
+				};
+			}
 
 			m_TypeInfo.Properties.push_back(
 				std::move(property));
@@ -207,6 +273,25 @@ namespace Hydro
 		ScriptRegistration& Hidden()
 		{
 			Last().HideInInspector = true;
+			return *this;
+		}
+
+		// An Asset, DataRowRef or reference property that must be set (HY_PROPERTY(Required)).
+		ScriptRegistration& Required()
+		{
+			ScriptProperty& property = Last();
+			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset || property.Type == ScriptPropertyType::RowRef || property.Type == ScriptPropertyType::EntityRef,
+				"Required() is for AssetHandle, DataRowRef, EntityRef and ComponentRef<T> properties");
+			property.Required = true;
+			return *this;
+		}
+
+		// A ComponentRef<T> property's T, by name, for the inspector (the generator passes the type as written).
+		ScriptRegistration& TargetType(const std::string& typeName)
+		{
+			ScriptProperty& property = Last();
+			HY_CORE_ASSERT(property.Type == ScriptPropertyType::EntityRef, "TargetType() is for EntityRef / ComponentRef<T> properties");
+			property.TargetType = typeName;
 			return *this;
 		}
 

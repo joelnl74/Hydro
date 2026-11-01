@@ -59,6 +59,10 @@ FAILING = [
     ("data field FormerName shared", "HY_DATA()\nstruct A\n{\n\tHY_PROPERTY(FormerName(\"Old\"))\n\tint X = 0;\n\tHY_PROPERTY(FormerName(\"Old\"))\n\tint Y = 0;\n};\n", ["also a former name of 'X'"]),
     ("HY_DATA FormerName without a name", "HY_DATA(FormerName())\nstruct A\n{\n};\n", ["FormerName needs at least one name"]),
     ("script Asset(DataTable) of a definition", "HY_DATA(Definition)\nstruct D\n{\n};\nHY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Asset(DataTable, D))\n\tAssetHandle Table = 0;\n};\n", ["Asset(DataTable, ...)(D): not an HY_DATA(Table) type"]),
+    ("Required on a float", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Required)\n\tfloat Speed = 1.0f;\n};\n", ["Bad.h:5", "Required needs an AssetHandle, DataRowRef, EntityRef or ComponentRef<T> field"]),
+    ("Required with a value", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Required(true))\n\tEntityRef Door;\n};\n", ["Required(...) takes 0 argument(s)"]),
+    ("EntityRef in data", "HY_DATA()\nstruct A\n{\n\tHY_PROPERTY()\n\tEntityRef Door;\n};\n", ["Bad.h:4", "unsupported data field type 'EntityRef'"]),
+    ("other template", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tstd::vector<int> Counts;\n};\n", ["unsupported property type 'std::vector<int>'"]),
 ]
 
 # (name, header, fragments the generated script / data registration must contain)
@@ -83,6 +87,26 @@ struct ItemDefinition
         '.Range(0.0f, 5.0f).FormerName("Speed")',
         'DataTypeRegistry::Register<ItemDefinition>("ItemDefinition", "Item", { "LootDefinition" })',
         '.Tooltip("Shown in lists").FormerName("Title")',
+    ]),
+    ("references", """
+HY_SCRIPT()
+class Lever : public ScriptableEntity
+{
+public:
+	HY_PROPERTY(Required, Tooltip("What it opens"))
+	EntityRef Target;
+	HY_PROPERTY()
+	ComponentRef<DialogueScript> Dialogue;
+	HY_PROPERTY(Required)
+	Hydro::ComponentRef< Hydro::TransformComponent > Anchor;
+	HY_PROPERTY(Required, Asset(Texture2D))
+	AssetHandle Icon = 0;
+};
+""", [
+        '.Property("Target", "Target", &Lever::Target).Tooltip("What it opens").Required()',
+        '.Property("Dialogue", "Dialogue", &Lever::Dialogue).TargetType("DialogueScript")',
+        '.Property("Anchor", "Anchor", &Lever::Anchor).Required().TargetType("TransformComponent")',
+        '.AssetFilter(AssetType::Texture2D).Required()',
     ]),
     ("all accepted forms", ITEM + """
 HY_ENUM()

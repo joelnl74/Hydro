@@ -69,7 +69,9 @@ namespace Hydro
 			for (auto& script : scriptComponent.Scripts)
 			{
 				if (script.Instance != nullptr)
+				{
 					script.Instance->OnDestroy();
+				}
 			}
 		}
 
@@ -96,7 +98,9 @@ namespace Hydro
 			{
 				auto it = entityMap.find(sourceEntity);
 				if (it != entityMap.end())
+				{
 					destination.emplace_or_replace<Component>(it->second, view.template get<const Component>(sourceEntity));
+				}
 			}
 		}(), ...);
 	}
@@ -164,7 +168,9 @@ namespace Hydro
 		{
 			auto it = entityMap.find(sourceEntity);
 			if (it == entityMap.end())
+			{
 				continue;
+			}
 
 			NativeScriptComponent& copied = copy->m_Registry.emplace<NativeScriptComponent>(it->second);
 			for (const auto& script : scripts.get<const NativeScriptComponent>(sourceEntity).Scripts)
@@ -255,7 +261,34 @@ namespace Hydro
 				UIScrollViewComponent& scroll = m_Registry.get<UIScrollViewComponent>(entity);
 				scroll.Scrollbar = remapped(scroll.Scrollbar);
 			}
+			// Scripts' EntityRef / ComponentRef<T> properties (SC4): the saved values. A running instance's fields
+			// are set from them when it is created (copies are made before their scripts run).
+			if (m_Registry.has<NativeScriptComponent>(entity))
+			{
+				for (NativeScriptComponent::Script& script : m_Registry.get<NativeScriptComponent>(entity).Scripts)
+				{
+					for (auto& property : script.Properties)
+					{
+						if (EntityRef* reference = std::get_if<EntityRef>(&property.second))
+						{
+							*reference = EntityRef(remapped(reference->GetId()));
+						}
+					}
+				}
+			}
 		}
+	}
+
+	Entity Scene::FindEntityByTag(const std::string& tag)
+	{
+		for (const entt::entity handle : GetEntityOrder())
+		{
+			if (m_Registry.valid(handle) && m_Registry.has<TagComponent>(handle) && m_Registry.get<TagComponent>(handle).Tag == tag)
+			{
+				return Entity{ handle, this };
+			}
+		}
+		return {};
 	}
 
 	Entity Scene::DuplicateEntity(Entity entity)
@@ -1286,7 +1319,9 @@ namespace Hydro
 			for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
 			{
 				if (script.Instance != nullptr)
+				{
 					script.Instance->OnDestroy();
+				}
 			}
 		}
 
@@ -1314,11 +1349,15 @@ namespace Hydro
 	void Scene::RemoveScript(Entity entity, size_t index)
 	{
 		if (entity.HasComponent<NativeScriptComponent>() == false)
+		{
 			return;
+		}
 
 		auto& scripts = entity.GetComponent<NativeScriptComponent>().Scripts;
 		if (index >= scripts.size())
+		{
 			return;
+		}
 
 		if (m_StageDepth > 0)
 		{
@@ -1328,7 +1367,9 @@ namespace Hydro
 		}
 
 		if (scripts[index].Instance != nullptr)
+		{
 			scripts[index].Instance->OnDestroy();
+		}
 
 		scripts.erase(scripts.begin() + index);
 	}
@@ -1336,7 +1377,9 @@ namespace Hydro
 	void Scene::RemoveScripts(Entity entity)
 	{
 		if (entity.HasComponent<NativeScriptComponent>() == false)
+		{
 			return;
+		}
 
 		if (m_StageDepth > 0)
 		{
@@ -1352,7 +1395,9 @@ namespace Hydro
 		for (auto& script : entity.GetComponent<NativeScriptComponent>().Scripts)
 		{
 			if (script.Instance != nullptr)
+			{
 				script.Instance->OnDestroy();
+			}
 		}
 
 		entity.RemoveComponent<NativeScriptComponent>();
@@ -1361,7 +1406,9 @@ namespace Hydro
 	void Scene::RemoveFlaggedScriptsNow(entt::entity handle)
 	{
 		if (m_Registry.valid(handle) == false || m_Registry.has<NativeScriptComponent>(handle) == false)
+		{
 			return;
+		}
 
 		// OnDestroy can call back into the scene (queued, since a stage is open) and can bind scripts,
 		// so no reference into the vector is kept across it: take one flagged script at a time out first.
@@ -1373,12 +1420,16 @@ namespace Hydro
 				return script.PendingRemove;
 			});
 			if (flagged == scripts.end())
+			{
 				break;
+			}
 
 			std::unique_ptr<ScriptableEntity> instance = std::move(flagged->Instance);
 			scripts.erase(flagged);
 			if (instance != nullptr)
+			{
 				instance->OnDestroy();
+			}
 		}
 	}
 
@@ -1410,9 +1461,13 @@ namespace Hydro
 			for (const DeferredCommand& command : batch)
 			{
 				if (command.Kind == DeferredCommand::Type::RemoveFlaggedScripts)
+				{
 					RemoveFlaggedScriptsNow(command.Handle);
+				}
 				else
+				{
 					DestroyEntityNow(Entity{ command.Handle, this });
+				}
 			}
 		}
 
@@ -1631,7 +1686,9 @@ namespace Hydro
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
 	{
 		if (width == 0 || height == 0)
+		{
 			return;
+		}
 
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
@@ -1643,7 +1700,9 @@ namespace Hydro
 		for (auto entityHandle : view)
 		{
 			if (view.get<CameraComponent>(entityHandle).Primary)
+			{
 				return Entity{ entityHandle, this };
+			}
 		}
 
 		return {};

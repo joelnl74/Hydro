@@ -245,9 +245,13 @@ namespace Hydro
 			}
 
 			if (m_Name == "Bridge")
+			{
 				VillageState::SlowZones++;
+			}
 			else if (m_Name == "Statue Plaza")
+			{
 				VillageState::InPlaza = true;
+			}
 
 			HY_INFO("Zone: entered {}", m_Name);
 			if (m_Name == "Finish" && m_Finished == false)
@@ -265,9 +269,13 @@ namespace Hydro
 			}
 
 			if (m_Name == "Bridge")
+			{
 				VillageState::SlowZones = std::max(0, VillageState::SlowZones - 1);
+			}
 			else if (m_Name == "Statue Plaza")
+			{
 				VillageState::InPlaza = false;
+			}
 
 			HY_INFO("Zone: left {}", m_Name);
 		}

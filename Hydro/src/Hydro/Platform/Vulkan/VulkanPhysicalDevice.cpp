@@ -194,10 +194,14 @@ namespace Hydro
 			}
 
 			if (supportsGraphics && indices.graphics < 0)
+			{
 				indices.graphics = (int32_t)i;
+			}
 
 			if (supportsPresent == VK_TRUE && indices.present < 0)
+			{
 				indices.present = (int32_t)i;
+			}
 		}
 
 		return indices;
@@ -225,7 +229,9 @@ namespace Hydro
 			}
 
 			if (found == false)
+			{
 				return false;
+			}
 		}
 
 		return true;

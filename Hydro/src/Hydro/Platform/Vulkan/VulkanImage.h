@@ -39,10 +39,10 @@ namespace Hydro
 		// only. Frames in flight that sample it finish first (the copy's barrier waits for earlier fragment work).
 		void UpdatePixels(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* pixels);
 
-		const VulkanImageInfo& GetVulkanImageInfo() const { return m_vulkanImageInfo; }
-		uint32_t GetWidth() const { return m_width; }
-		uint32_t GetHeight() const { return m_height; }
-		VkFormat GetFormat() const { return m_format; }
+		const VulkanImageInfo& GetVulkanImageInfo() const { return m_VulkanImageInfo; }
+		uint32_t GetWidth() const { return m_Width; }
+		uint32_t GetHeight() const { return m_Height; }
+		VkFormat GetFormat() const { return m_Format; }
 
 		static VkFormat GetImageFormat(ImageFormat imageformat);
 		static bool IsDepthFormat(ImageFormat imageformat);
@@ -55,9 +55,9 @@ namespace Hydro
 		void UploadPixels(const void* pixels, VkDeviceSize size);
 
 	private:
-		uint32_t m_width = 0;
-		uint32_t m_height = 0;
-		VkFormat m_format = VK_FORMAT_UNDEFINED;
-		VulkanImageInfo m_vulkanImageInfo;
+		uint32_t m_Width = 0;
+		uint32_t m_Height = 0;
+		VkFormat m_Format = VK_FORMAT_UNDEFINED;
+		VulkanImageInfo m_VulkanImageInfo;
 	};
 }

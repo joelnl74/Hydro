@@ -16,6 +16,7 @@ namespace Hydro
 			case ScriptPropertyType::String: return "std::string";
 			case ScriptPropertyType::Asset: return "AssetHandle";
 			case ScriptPropertyType::RowRef: return "DataRowRef";
+			case ScriptPropertyType::EntityRef: return "EntityRef";
 		}
 		return "unknown";
 	}

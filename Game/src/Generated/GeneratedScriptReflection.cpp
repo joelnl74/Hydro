@@ -49,7 +49,9 @@ namespace Hydro
 			.Property("WanderSpeed", "Wander Speed", &EnemyChaseScript::WanderSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while wandering (wisps move 15% faster)")
 			.Property("ChaseSpeed", "Chase Speed", &EnemyChaseScript::ChaseSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while chasing (the player walks at about 3.5)")
 			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home")
-			.Property("Dormant", "Dormant", &EnemyChaseScript::Dormant).Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)");
+			.Property("Dormant", "Dormant", &EnemyChaseScript::Dormant).Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)")
+			.Property("Enemy", "Enemy", &EnemyChaseScript::Enemy).Tooltip("What it is; unset: a tag starting with \"Wisp\" is a Wisp, anything else a Slime").DataTypeFilter("EnemyDefinition")
+			.Property("Encounter", "Encounter", &EnemyChaseScript::Encounter).Tooltip("Who fights when it touches the player; unset: it and up to two random slimes or wisps").DataTypeFilter("EncounterDefinition");
 
 		ScriptRegistry::Register<CameraZoneScript>("CameraZoneScript")
 			.Property("Size", "Size", &CameraZoneScript::Size).Min(0.0f).Tooltip("Width (x) and depth (y) of the zone on the ground in metres, centred on the entity")
@@ -99,7 +101,8 @@ namespace Hydro
 			.Property("StartingInventory", "Starting Inventory", &MvpDirectorScript::StartingInventory).Tooltip("The items a run starts with, in their order").AssetFilter(AssetType::Definition).DataTypeFilter("InventoryDefinition")
 			.Property("ChestItem", "Chest Item", &MvpDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition")
 			.Property("NpcTable", "Npc Table", &MvpDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
-			.Property("SignTable", "Sign Table", &MvpDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition");
+			.Property("SignTable", "Sign Table", &MvpDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
+			.Property("Dialogue", "Dialogue", &MvpDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
 
 		ScriptRegistry::Register<QuestTrackerScript>("QuestTrackerScript")
 			.Property("BannerHoldTime", "Banner Hold Time", &QuestTrackerScript::BannerHoldTime).Range(0.5f, 20.0f).Tooltip("Seconds a banner stays fully shown")

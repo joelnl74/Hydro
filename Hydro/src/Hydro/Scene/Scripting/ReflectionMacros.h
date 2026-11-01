@@ -11,7 +11,8 @@
 //
 // HY_PROPERTY(...) above a public field of such a class: shown in the inspector, saved with the scene and
 // applied before OnCreate. Types: bool, int, float, glm::vec2, glm::vec3, glm::vec4, std::string, AssetHandle,
-// DataRowRef (a data table's row).
+// DataRowRef (a data table's row), EntityRef and ComponentRef<T> (another entity, or a component or script on it,
+// saved as its UUID: EntityRef.h, ComponentRef.h).
 // One field per declaration. Arguments, in any order, all optional:
 //     Range(min, max)       int / float / vector components: clamped when the field is left
 //     Min(value), Max(value)
@@ -25,6 +26,8 @@
 //     ReadOnly              shown, not editable
 //     Hidden                saved and applied, not shown
 //     FormerName("Old", ...) keys files saved before the field was renamed (see Former names below)
+//     Required              an AssetHandle, DataRowRef, EntityRef or ComponentRef<T> that must be set: the inspector
+//                           shows it in the warning colour while empty (code still checks for nullptr)
 //
 //     HY_SCRIPT()
 //     class LanternScript : public ScriptableEntity

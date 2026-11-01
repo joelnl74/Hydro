@@ -128,7 +128,7 @@ namespace Hydro
 	//     "Light Fire" (flickering amber pools, scaled by the preset's LanternFactor) and every one whose tag starts
 	//     "Light Window" (lit windows, scaled by its WindowFactor: dark by day, lit at dusk and night; an interior
 	//     also tints them with the sun, WindowsTakeSunColor). Keys 1 / 2 / 3 switch the presets, L the lanterns.
-	//   - The last preset applied is shared (s_LastPreset), so an interior can start in the light of the scene the
+	//   - The last preset applied is shared (LastPreset(), on the game session), so an interior can start in the light of the scene the
 	//     player came in from (FollowsOutsideLight).
 	class DioramaDirectorScript : public ScriptableEntity
 	{
@@ -166,12 +166,8 @@ namespace Hydro
 			DioramaView::Blend = 1.0f;
 			ApplyFraming();
 
-			// The first scene of a run starts from its own preset; one entered from another may follow its light.
-			if (SceneTransition::GetDepth() == 0)
-			{
-				s_LastPreset = -1;
-			}
-
+			// The first scene of a run starts from its own preset (the session's LastPreset is -1 then); one entered
+			// from another may follow its light.
 			Scene& scene = *GetEntity().GetScene();
 			auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
 			for (auto entity : lights)
@@ -188,7 +184,8 @@ namespace Hydro
 					m_Windows.push_back({ entity, light.Intensity, light.Color });
 				}
 			}
-			m_Preset = FollowsOutsideLight() && s_LastPreset >= 0 ? s_LastPreset : GetStartPreset();
+			const int lastPreset = LastPreset();
+			m_Preset = FollowsOutsideLight() && lastPreset >= 0 ? lastPreset : GetStartPreset();
 			ApplyPreset();
 			HY_INFO("{}: {}", GetSceneName(), GetHelp());
 		}
@@ -315,7 +312,7 @@ namespace Hydro
 				light.Intensity = window.BaseIntensity * preset.WindowFactor;
 			}
 
-			s_LastPreset = m_Preset;
+			LastPreset() = m_Preset;
 			OnPresetApplied(preset);
 			HY_INFO("{}: {}", GetSceneName(), preset.Name);
 		}
@@ -328,7 +325,9 @@ namespace Hydro
 			return pressed;
 		}
 
-		static inline int s_LastPreset = -1; // the preset of the director that applied one last (-1: none this run)
+		// The preset of the director that applied one last (-1: none this run): the running session's
+		// (RpgSession::LastLightingPreset, Scripting plan SC2).
+		static int& LastPreset();
 		// Keeps the lighting definition GetLightingPreset read from alive while its preset is used.
 		mutable DataView<SceneLightingDefinition> m_Lighting;
 

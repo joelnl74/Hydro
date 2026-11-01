@@ -2255,7 +2255,7 @@ Entities:
     Scale: [1, 1, 1]
 - Entity: 3342933287778753463
   TagComponent:
-    Tag: Enemy 0 Slime
+    Tag: Enemy 0
   RelationshipComponent:
     Parent: 6972421333850721569
   TransformComponent:
@@ -2276,30 +2276,6 @@ Entities:
     StartClip: Bounce
     PlayOnStart: true
     Speed: 1
-- Entity: 1067477410088102697
-  TagComponent:
-    Tag: Enemy 0 Wisp
-  RelationshipComponent:
-    Parent: 6972421333850721569
-  TransformComponent:
-    Translation: [-2.9684, 1.4696, -0.2152]
-    Rotation: [0, 0, 0]
-    Scale: [1.8, 1.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 21
-    TextureHandle: 671399588655706780
-    Sprite: Wisp_0
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-  SpriteAnimatorComponent:
-    AnimationsHandle: 376943688061053864
-    StartClip: Float
-    PlayOnStart: true
-    Speed: 1
 - Entity: 1872439065298645799
   TagComponent:
     Tag: Enemy 0 Light
@@ -2317,7 +2293,7 @@ Entities:
     Height: 1.0
 - Entity: 6978008996652402207
   TagComponent:
-    Tag: Enemy 0 Slime Shadow
+    Tag: Enemy 0 Shadow
   RelationshipComponent:
     Parent: 6972421333850721569
   TransformComponent:
@@ -2328,19 +2304,6 @@ Entities:
     Offset: [0, 0]
     Size: [1.15, 0.32]
     Strength: 0.5
-- Entity: 2351504118028936728
-  TagComponent:
-    Tag: Enemy 0 Wisp Shadow
-  RelationshipComponent:
-    Parent: 6972421333850721569
-  TransformComponent:
-    Translation: [-2.9684, 1.3194, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.0, 0.32]
-    Strength: 0.300000012
 - Entity: 2989891105357014596
   TagComponent:
     Tag: Enemy Slot 1
@@ -2350,7 +2313,7 @@ Entities:
     Scale: [1, 1, 1]
 - Entity: 1023646738949003259
   TagComponent:
-    Tag: Enemy 1 Slime
+    Tag: Enemy 1
   RelationshipComponent:
     Parent: 2989891105357014596
   TransformComponent:
@@ -2371,30 +2334,6 @@ Entities:
     StartClip: Bounce
     PlayOnStart: true
     Speed: 1
-- Entity: 2839042781894498169
-  TagComponent:
-    Tag: Enemy 1 Wisp
-  RelationshipComponent:
-    Parent: 2989891105357014596
-  TransformComponent:
-    Translation: [-1.1923, -1.5461, -0.2152]
-    Rotation: [0, 0, 0]
-    Scale: [1.8, 1.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 23
-    TextureHandle: 671399588655706780
-    Sprite: Wisp_0
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-  SpriteAnimatorComponent:
-    AnimationsHandle: 376943688061053864
-    StartClip: Float
-    PlayOnStart: true
-    Speed: 1
 - Entity: 1535014961905056575
   TagComponent:
     Tag: Enemy 1 Light
@@ -2412,7 +2351,7 @@ Entities:
     Height: 1.0
 - Entity: 4336146536690289183
   TagComponent:
-    Tag: Enemy 1 Slime Shadow
+    Tag: Enemy 1 Shadow
   RelationshipComponent:
     Parent: 2989891105357014596
   TransformComponent:
@@ -2423,19 +2362,6 @@ Entities:
     Offset: [0, 0]
     Size: [1.15, 0.32]
     Strength: 0.5
-- Entity: 3375354729992267411
-  TagComponent:
-    Tag: Enemy 1 Wisp Shadow
-  RelationshipComponent:
-    Parent: 2989891105357014596
-  TransformComponent:
-    Translation: [-1.1923, -1.6963, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.0, 0.32]
-    Strength: 0.300000012
 - Entity: 8960088604025558754
   TagComponent:
     Tag: Enemy Slot 2
@@ -2445,7 +2371,7 @@ Entities:
     Scale: [1, 1, 1]
 - Entity: 3220867481356510017
   TagComponent:
-    Tag: Enemy 2 Slime
+    Tag: Enemy 2
   RelationshipComponent:
     Parent: 8960088604025558754
   TransformComponent:
@@ -2466,30 +2392,6 @@ Entities:
     StartClip: Bounce
     PlayOnStart: true
     Speed: 1
-- Entity: 1126483171896878523
-  TagComponent:
-    Tag: Enemy 2 Wisp
-  RelationshipComponent:
-    Parent: 8960088604025558754
-  TransformComponent:
-    Translation: [-4.005, -1.0745, -0.2152]
-    Rotation: [0, 0, 0]
-    Scale: [1.8, 1.8, 1.0]
-  SpriteRendererComponent:
-    Color: [1, 1, 1, 1]
-    TilingFactor: 1
-    SortOrder: 25
-    TextureHandle: 671399588655706780
-    Sprite: Wisp_0
-    SpriteIndex: 0
-    FlipX: false
-    FlipY: false
-    Facing: Upright
-  SpriteAnimatorComponent:
-    AnimationsHandle: 376943688061053864
-    StartClip: Float
-    PlayOnStart: true
-    Speed: 1
 - Entity: 3754412435989424019
   TagComponent:
     Tag: Enemy 2 Light
@@ -2507,7 +2409,7 @@ Entities:
     Height: 1.0
 - Entity: 3834656240265409327
   TagComponent:
-    Tag: Enemy 2 Slime Shadow
+    Tag: Enemy 2 Shadow
   RelationshipComponent:
     Parent: 8960088604025558754
   TransformComponent:
@@ -2518,19 +2420,6 @@ Entities:
     Offset: [0, 0]
     Size: [1.15, 0.32]
     Strength: 0.5
-- Entity: 7351522842169587370
-  TagComponent:
-    Tag: Enemy 2 Wisp Shadow
-  RelationshipComponent:
-    Parent: 8960088604025558754
-  TransformComponent:
-    Translation: [-4.005, -1.2247, 0.0]
-    Rotation: [0, 0, 0]
-    Scale: [1, 1, 1]
-  Shadow2DComponent:
-    Offset: [0, 0]
-    Size: [1.0, 0.32]
-    Strength: 0.300000012
 - Entity: 7221315575435828512
   TagComponent:
     Tag: HUD

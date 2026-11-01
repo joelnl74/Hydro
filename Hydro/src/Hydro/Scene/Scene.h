@@ -96,6 +96,10 @@ namespace Hydro
 		// reference over to another scene: Play makes a copy of the scene with the same UUIDs.
 		// An entity pending destruction is still found; check Entity::IsValid for that.
 		Entity GetEntityByUUID(UUID uuid);
+		// The first entity in list order (the hierarchy's order) whose tag is `tag`, or an empty Entity. Tags aren't
+		// unique: prefer an EntityRef property set in the editor, or Entity::FindChild for the inside of a view or
+		// prefab (Scripting plan SC4). It walks the whole list: look it up once (OnCreate), not every frame.
+		Entity FindEntityByTag(const std::string& tag);
 		// Destroys the entity and its whole subtree (children first). During a stage the whole subtree stops
 		// running at once and is removed when the stage ends (see below).
 		void DestroyEntity(Entity entity);

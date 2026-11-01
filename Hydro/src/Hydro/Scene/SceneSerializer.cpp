@@ -80,7 +80,9 @@ namespace Hydro
 
 		std::error_code ec;
 		if (filepath.has_parent_path())
+		{
 			std::filesystem::create_directories(filepath.parent_path(), ec);
+		}
 
 		std::ofstream fout(filepath);
 		if (fout.is_open() == false)

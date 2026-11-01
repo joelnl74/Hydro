@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Hydro/Core/Log.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Scripting/ScriptProperty.h"
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
@@ -21,12 +22,29 @@ namespace Hydro
 	class ScriptableEntity
 	{
 	public:
+		// Marks script types for Entity's component functions (IsScriptType).
+		using ScriptTypeTag = ScriptableEntity;
+
 		virtual ~ScriptableEntity() = default;
 
+		// This entity's components and scripts (see Entity::GetComponent: a script type finds the entity's running
+		// script of that class). Another entity's: `other.GetComponent<T>()` on that Entity.
 		template<typename T>
 		T& GetComponent()
 		{
 			return m_Entity.GetComponent<T>();
+		}
+
+		template<typename T>
+		T* TryGetComponent()
+		{
+			return m_Entity.TryGetComponent<T>();
+		}
+
+		template<typename T>
+		bool HasComponent() const
+		{
+			return m_Entity.HasComponent<T>();
 		}
 
 		Entity GetEntity() const
@@ -102,6 +120,8 @@ namespace Hydro
 
 		std::vector<Script> Scripts;
 
+		// Binds a script. An entity holds one script of a class (Scripting plan SC4; scripts of different classes
+		// deriving from one base are fine): binding a class it already has is refused with a warning.
 		template<typename T>
 		NativeScriptComponent& Bind()
 		{
@@ -118,6 +138,18 @@ namespace Hydro
 			{
 				return new T();
 			};
+
+			for (const Script& existing : Scripts)
+			{
+				const bool sameName = script.Name.empty() == false && existing.Name == script.Name;
+				const bool sameFactory = script.Name.empty() && existing.Instantiate == script.Instantiate;
+				if (existing.PendingRemove == false && (sameName || sameFactory))
+				{
+					HY_CORE_WARN("NativeScriptComponent::Bind: the entity already has a {}; an entity holds one script of a class",
+						script.Name.empty() ? typeid(T).name() : script.Name);
+					return *this;
+				}
+			}
 
 			// If this is registered, populate its editable
 			// properties with the C++ defaults.
@@ -150,6 +182,13 @@ namespace Hydro
 				? typeInfo->Factory
 				: nullptr;
 
+			if (Has(script.Name))
+			{
+				HY_CORE_WARN("NativeScriptComponent::Bind: the entity already has a {}; an entity holds one script of a class",
+					script.Name);
+				return *this;
+			}
+
 			// Unknown scripts remain valid entries,
 			// but registered ones get their defaults.
 			ScriptRegistry::InitializeProperties(
@@ -162,11 +201,12 @@ namespace Hydro
 			return *this;
 		}
 
+		// A binding of the script registered (or saved) under this current name, not being removed.
 		bool Has(const std::string& name) const
 		{
 			for (const Script& script : Scripts)
 			{
-				if (script.Name == name)
+				if (script.PendingRemove == false && script.Name == name)
 				{
 					return true;
 				}
@@ -175,4 +215,100 @@ namespace Hydro
 			return false;
 		}
 	};
+
+	// ---- ScriptLookup (declared in Entity.h) -------------------------------------------------------------------
+
+	template<typename T>
+	std::vector<T*> ScriptLookup::FindAll(const Entity& entity)
+	{
+		static_assert(std::is_base_of_v<ScriptableEntity, T>, "Script lookups take a class deriving from ScriptableEntity");
+
+		std::vector<T*> found;
+		if (entity.HasComponent<NativeScriptComponent>() == false)
+		{
+			return found;
+		}
+		for (const NativeScriptComponent::Script& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+		{
+			if (script.PendingRemove)
+			{
+				continue;
+			}
+			if (T* instance = dynamic_cast<T*>(script.Instance.get()))
+			{
+				found.push_back(instance);
+			}
+		}
+		return found;
+	}
+
+	template<typename T>
+	T* ScriptLookup::Find(const Entity& entity)
+	{
+		static_assert(std::is_base_of_v<ScriptableEntity, T>, "Script lookups take a class deriving from ScriptableEntity");
+
+		if (entity.HasComponent<NativeScriptComponent>() == false)
+		{
+			return nullptr;
+		}
+		T* found = nullptr;
+		for (const NativeScriptComponent::Script& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+		{
+			if (script.PendingRemove)
+			{
+				continue;
+			}
+			T* instance = dynamic_cast<T*>(script.Instance.get());
+			if (instance == nullptr)
+			{
+				continue;
+			}
+			if (found == nullptr)
+			{
+				found = instance;
+				continue;
+			}
+			// Two scripts are a T: only a base class can match twice (an entity has one script of a class, SC4).
+			static bool s_Warned = false;
+			if (s_Warned == false)
+			{
+				s_Warned = true;
+				HY_CORE_WARN("Entity '{}' has several scripts deriving from {}; GetComponent returns the first (use GetComponents for all)",
+					entity.GetName(), typeid(T).name());
+			}
+			break;
+		}
+		return found;
+	}
+
+	template<typename T>
+	bool ScriptLookup::Has(const Entity& entity)
+	{
+		static_assert(std::is_base_of_v<ScriptableEntity, T>, "Script lookups take a class deriving from ScriptableEntity");
+
+		if (entity.HasComponent<NativeScriptComponent>() == false)
+		{
+			return false;
+		}
+		const std::string& name = ScriptRegistry::GetName(typeid(T));
+		for (const NativeScriptComponent::Script& script : entity.GetComponent<NativeScriptComponent>().Scripts)
+		{
+			if (script.PendingRemove)
+			{
+				continue;
+			}
+			if (script.Instance != nullptr)
+			{
+				if (dynamic_cast<T*>(script.Instance.get()) != nullptr)
+				{
+					return true;
+				}
+			}
+			else if (name.empty() == false && script.Name == name)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }

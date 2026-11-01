@@ -4,11 +4,48 @@
 
 #include "Hydro/Core/Assert.h"
 #include "Hydro/Core/UUID.h"
+#include <string>
+#include <type_traits>
 #include <typeinfo>
 #include <utility>
+#include <vector>
 
 namespace Hydro
 {
+	class Entity;
+	class ScriptableEntity;
+
+	// True for a script type (a class deriving from ScriptableEntity, which declares ScriptTypeTag); false for an
+	// ECS component. Entity's component functions look script types up in the entity's NativeScriptComponent.
+	template<typename T, typename = void>
+	struct IsScriptType : std::false_type
+	{
+	};
+
+	template<typename T>
+	struct IsScriptType<T, std::void_t<typename T::ScriptTypeTag>> : std::true_type
+	{
+	};
+
+	// Entity's lookups of the scripts on an entity (Scripting plan SC3). Declared here and defined in
+	// ScriptableEntity.h, which every script type includes, so Entity.h doesn't need the script headers.
+	struct ScriptLookup
+	{
+		// The entity's running script that is a T (the script's own class or a class it derives from), or nullptr.
+		// Two scripts deriving from the same T: the first, with a warning once.
+		template<typename T>
+		static T* Find(const Entity& entity);
+
+		// Every running script of the entity that is a T, in binding order.
+		template<typename T>
+		static std::vector<T*> FindAll(const Entity& entity);
+
+		// A running script that is a T, or a binding of exactly T without an instance yet (outside Play, or before
+		// the script system creates it).
+		template<typename T>
+		static bool Has(const Entity& entity);
+	};
+
 	class Entity
 	{
 	public:
@@ -27,10 +64,16 @@ namespace Hydro
 		}
 
 		// Debug builds assert that the entity exists (AddComponent, RemoveComponent) and, for
-		// GetComponent, that it has the component: check HasComponent when it may not.
+		// GetComponent, that it has the component: check HasComponent, or use TryGetComponent, when it may not.
+		//
+		// GetComponent, TryGetComponent, HasComponent and GetComponents also take a script type (Scripting plan SC3):
+		// `entity.GetComponent<DialogueScript>()` is the entity's running script of that class (or of a class deriving
+		// from it). Scripts run only while playing, so outside Play the script lookups find nothing and HasComponent
+		// means "bound". Scripts are bound with NativeScriptComponent::Bind, not AddComponent.
 		template<typename T, typename... Args>
 		T& AddComponent(Args&&... args)
 		{
+			static_assert(IsScriptType<T>::value == false, "Bind scripts with NativeScriptComponent::Bind<T>(), not AddComponent");
 			HY_CORE_ASSERT(IsAlive(), "Entity::AddComponent<{0}> on an entity that doesn't exist", typeid(T).name());
 			HY_CORE_ASSERT(HasComponent<T>() == false, "Entity already has component {0}", typeid(T).name());
 			T& component = m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
@@ -41,21 +84,88 @@ namespace Hydro
 		T& GetComponent()
 		{
 			HY_CORE_ASSERT(IsAlive(), "Entity::GetComponent<{0}> on an entity that doesn't exist", typeid(T).name());
-			HY_CORE_ASSERT(HasComponent<T>(), "Entity doesn't have component {0}", typeid(T).name());
-			return m_Scene->m_Registry.get<T>(m_EntityHandle);
+			if constexpr (IsScriptType<T>::value)
+			{
+				T* script = ScriptLookup::Find<T>(*this);
+				HY_CORE_ASSERT(script != nullptr, "Entity has no running script {0}", typeid(T).name());
+				return *script;
+			}
+			else
+			{
+				HY_CORE_ASSERT(HasComponent<T>(), "Entity doesn't have component {0}", typeid(T).name());
+				return m_Scene->m_Registry.get<T>(m_EntityHandle);
+			}
 		}
 
 		template<typename T>
 		const T& GetComponent() const
 		{
 			HY_CORE_ASSERT(IsAlive(), "Entity::GetComponent<{0}> on an entity that doesn't exist", typeid(T).name());
-			HY_CORE_ASSERT(HasComponent<T>(), "Entity doesn't have component {0}", typeid(T).name());
-			return std::as_const(m_Scene->m_Registry).get<T>(m_EntityHandle);
+			if constexpr (IsScriptType<T>::value)
+			{
+				const T* script = ScriptLookup::Find<T>(*this);
+				HY_CORE_ASSERT(script != nullptr, "Entity has no running script {0}", typeid(T).name());
+				return *script;
+			}
+			else
+			{
+				HY_CORE_ASSERT(HasComponent<T>(), "Entity doesn't have component {0}", typeid(T).name());
+				return std::as_const(m_Scene->m_Registry).get<T>(m_EntityHandle);
+			}
+		}
+
+		// The component (or running script), or nullptr when the entity has none or doesn't exist.
+		template<typename T>
+		T* TryGetComponent()
+		{
+			if (IsAlive() == false)
+			{
+				return nullptr;
+			}
+			if constexpr (IsScriptType<T>::value)
+			{
+				return ScriptLookup::Find<T>(*this);
+			}
+			else
+			{
+				return m_Scene->m_Registry.try_get<T>(m_EntityHandle);
+			}
+		}
+
+		template<typename T>
+		const T* TryGetComponent() const
+		{
+			if (IsAlive() == false)
+			{
+				return nullptr;
+			}
+			if constexpr (IsScriptType<T>::value)
+			{
+				return ScriptLookup::Find<T>(*this);
+			}
+			else
+			{
+				return std::as_const(m_Scene->m_Registry).try_get<T>(m_EntityHandle);
+			}
+		}
+
+		// Every running script of the entity that is a T (its own class or one it derives from), in binding order.
+		// Script types only: an entity has at most one ECS component of a type.
+		template<typename T>
+		std::vector<T*> GetComponents() const
+		{
+			static_assert(IsScriptType<T>::value, "GetComponents takes a script type; use TryGetComponent for an ECS component");
+			if (IsAlive() == false)
+			{
+				return {};
+			}
+			return ScriptLookup::FindAll<T>(*this);
 		}
 
 		template<typename T>
 		void RemoveComponent()
 		{
+			static_assert(IsScriptType<T>::value == false, "Remove scripts through NativeScriptComponent (Scene::RemoveScript), not RemoveComponent");
 			HY_CORE_ASSERT(IsAlive(), "Entity::RemoveComponent<{0}> on an entity that doesn't exist", typeid(T).name());
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
@@ -64,13 +174,26 @@ namespace Hydro
 		template<typename T>
 		bool HasComponent() const
 		{
-			return IsAlive() && m_Scene->m_Registry.has<T>(m_EntityHandle);
+			if constexpr (IsScriptType<T>::value)
+			{
+				return IsAlive() && ScriptLookup::Has<T>(*this);
+			}
+			else
+			{
+				return IsAlive() && m_Scene->m_Registry.has<T>(m_EntityHandle);
+			}
 		}
 
-		Scene* GetScene()
+		Scene* GetScene() const
 		{
 			return m_Scene;
 		}
+
+		// The descendant at `path`: child names (tags) separated by '/', each a direct child of the one before
+		// ("Panel/Buttons/Ok"); the first child of that name at each step. An empty Entity when a step isn't found
+		// or this entity doesn't exist. For the inside of a view or prefab, whose names its author controls
+		// (Scripting plan SC4); a dependency on another part of the scene is an EntityRef property instead.
+		Entity FindChild(const std::string& path) const;
 
 		UUID GetUUID() const { return GetComponent<IDComponent>().Id; }
 		const std::string& GetName() const { return GetComponent<TagComponent>().Tag; }

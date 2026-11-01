@@ -45,13 +45,21 @@ namespace Hydro
 
 		VkDevice device = m_Device->GetDevice();
 		for (VkFramebuffer framebuffer : oldFramebuffers)
+		{
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
 		for (VkImageView view : oldViews)
+		{
 			vkDestroyImageView(device, view, nullptr);
+		}
 		for (VkSemaphore semaphore : oldSemaphores)
+		{
 			vkDestroySemaphore(device, semaphore, nullptr);
+		}
 		if (oldSwapChain != VK_NULL_HANDLE)
+		{
 			vkDestroySwapchainKHR(device, oldSwapChain, nullptr);
+		}
 
 		return created;
 	}
@@ -172,11 +180,17 @@ namespace Hydro
 		VkDevice device = m_Device->GetDevice();
 
 		for (VkFramebuffer framebuffer : m_Framebuffers)
+		{
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
 		for (VkImageView view : m_ImageViews)
+		{
 			vkDestroyImageView(device, view, nullptr);
+		}
 		for (VkSemaphore semaphore : m_RenderFinishedSemaphores)
+		{
 			vkDestroySemaphore(device, semaphore, nullptr);
+		}
 
 		m_Framebuffers.clear();
 		m_ImageViews.clear();
@@ -316,19 +330,25 @@ namespace Hydro
 	{
 		// FIFO is always available and is true vsync (capped to the display rate).
 		if (vsync)
+		{
 			return VK_PRESENT_MODE_FIFO_KHR;
+		}
 
 		// Without vsync prefer mailbox (no tearing, uncapped), then immediate (may tear).
 		for (VkPresentModeKHR mode : availablePresentModes)
 		{
 			if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
+			{
 				return mode;
+			}
 		}
 
 		for (VkPresentModeKHR mode : availablePresentModes)
 		{
 			if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+			{
 				return mode;
+			}
 		}
 
 		return VK_PRESENT_MODE_FIFO_KHR;

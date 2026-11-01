@@ -100,11 +100,13 @@ namespace Hydro
 	};
 
 	// What game code uses: the entity's body in its scene's running world. All of them do nothing (and
-	// return false) when the game isn't running or the entity has no body.
-	namespace Physics2D
+	// return false) when the game isn't running or the entity has no body. A class of static functions, like
+	// Physics3D (namespace Hydro only).
+	class Physics2D
 	{
-		bool HasBody(Entity entity);
-		bool SetLinearVelocity(Entity entity, const glm::vec2& velocity);
-		bool GetLinearVelocity(Entity entity, glm::vec2& velocity);
-	}
+	public:
+		static bool HasBody(Entity entity);
+		static bool SetLinearVelocity(Entity entity, const glm::vec2& velocity);
+		static bool GetLinearVelocity(Entity entity, glm::vec2& velocity);
+	};
 }

@@ -23,7 +23,9 @@ namespace Hydro
 
 		ProjectSerializer serializer(project);
 		if (serializer.Deserialize(projectFile) == false)
+		{
 			return nullptr;
+		}
 
 		s_ActiveProject = project;
 		return s_ActiveProject;

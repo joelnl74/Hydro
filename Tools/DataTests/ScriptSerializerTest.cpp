@@ -1,5 +1,6 @@
 // Tools/DataTests/ScriptSerializerTest.cpp
-// Script bindings in scene files (ScriptSerializer): former names (SC1) and saved values no property reads (#143).
+// Script bindings in scene files (ScriptSerializer): former names (SC1), saved values no property reads (#143), and
+// references and one script of a class per entity (SC4).
 // Built into DataRoundTripTest by scripts/test_data.sh; no scene, window or GPU.
 
 #include "hypch.h"
@@ -14,6 +15,13 @@ namespace Hydro
 	public:
 		float OpenSpeed = 1.0f;
 		std::string Label = "Door";
+	};
+
+	class TestLeverScript : public ScriptableEntity
+	{
+	public:
+		EntityRef Target;
+		ComponentRef<TestDoorScript> Door;
 	};
 
 	static int s_ScriptFailures = 0;
@@ -118,6 +126,51 @@ namespace Hydro
 		NativeScriptComponent both;
 		ScriptSerializer::Read(YAML::Load("- Name: TestDoor\n  Properties: { Speed: 1, OpenSpeed: 3 }\n"), both, "Test");
 		SCRIPT_CHECK(FloatOf(both.Scripts[0], "OpenSpeed") == 3.0f && both.Scripts[0].KeptProperties.count("Speed") == 1);
+
+		// ---- References and one script of a class (SC4) ----------------------------------------------------------
+		std::printf("Script bindings: references, one script of a class\n");
+		ScriptRegistry::Register<TestLeverScript>("TestLever")
+			.Property("Target", "Target", &TestLeverScript::Target).Required()
+			.Property("Door", "Door", &TestLeverScript::Door).TargetType("TestDoorScript");
+		const ScriptTypeInfo* lever = ScriptRegistry::FindType("TestLever");
+		SCRIPT_CHECK(lever != nullptr && lever->Properties.size() == 2);
+		if (lever == nullptr || lever->Properties.size() != 2)
+		{
+			return s_ScriptFailures;
+		}
+		SCRIPT_CHECK(lever->Properties[0].Type == ScriptPropertyType::EntityRef && lever->Properties[0].Required && lever->Properties[0].AcceptsEntity == nullptr);
+		SCRIPT_CHECK(lever->Properties[1].Type == ScriptPropertyType::EntityRef && lever->Properties[1].TargetType == "TestDoorScript" && lever->Properties[1].AcceptsEntity != nullptr);
+		SCRIPT_CHECK(std::get<EntityRef>(lever->Properties[0].DefaultValue).IsSet() == false);
+
+		NativeScriptComponent levers;
+		ScriptSerializer::Read(YAML::Load(
+			"- Name: TestLever\n"
+			"  Properties: { Target: 1234567890123, Door: 42 }\n"
+			"- Name: TestLever\n"
+			"  Properties: { Target: 7 }\n"), levers, "Test");
+		SCRIPT_CHECK(levers.Scripts.size() == 1);
+		const auto targetOf = [](const NativeScriptComponent::Script& script, const char* name) -> uint64_t
+		{
+			auto it = script.Properties.find(name);
+			return it != script.Properties.end() && std::holds_alternative<EntityRef>(it->second) ? (uint64_t)std::get<EntityRef>(it->second).GetId() : 0;
+		};
+		SCRIPT_CHECK(targetOf(levers.Scripts[0], "Target") == 1234567890123ull && targetOf(levers.Scripts[0], "Door") == 42);
+		const std::string leverText = WriteBindings(levers);
+		std::printf("%s", leverText.c_str());
+		SCRIPT_CHECK(leverText.find("Door: 42\n    Target: 1234567890123") != std::string::npos);
+
+		// The property's Apply gives the field the saved UUID (and the script's scene); Read gives it back.
+		TestLeverScript instance;
+		lever->Properties[0].Apply(instance, levers.Scripts[0].Properties.at("Target"));
+		lever->Properties[1].Apply(instance, levers.Scripts[0].Properties.at("Door"));
+		SCRIPT_CHECK((uint64_t)instance.Target.GetId() == 1234567890123ull && (uint64_t)instance.Door.GetEntityRef().GetId() == 42);
+		SCRIPT_CHECK(std::get<EntityRef>(lever->Properties[1].Read(instance)).GetId() == UUID(42));
+		SCRIPT_CHECK(instance.Target.GetScene() == nullptr && instance.Door.GetEntityRef().GetScene() == nullptr); // no entity here: no scene
+
+		// Binding a class the entity already has is refused, by name or by type.
+		NativeScriptComponent once;
+		once.Bind("TestLever").Bind("TestLever").Bind<TestLeverScript>().Bind<TestDoorScript>();
+		SCRIPT_CHECK(once.Scripts.size() == 2 && once.Has("TestLever") && once.Has("TestDoor"));
 
 		return s_ScriptFailures;
 	}

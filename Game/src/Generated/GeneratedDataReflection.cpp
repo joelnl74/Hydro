@@ -41,31 +41,69 @@ namespace Hydro
 			.Table()
 			.DisplayField("Name")
 			.Field<&AbilityDefinition::Name>("Name", "Name").Tooltip("The command's name and the message when it is used")
-			.Field<&AbilityDefinition::Type>("Type", "Type").Tooltip("What the hit is made of (a heal ignores it)")
+			.Field<&AbilityDefinition::Description>("Description", "Description").Tooltip("What it does, in a sentence (a skill list's help line)")
+			.Field<&AbilityDefinition::Type>("Type", "Type").Tooltip("What the hit is made of (a heal ignores it); None on a hero's plain attack: the hero's weapon")
 			.Field<&AbilityDefinition::Cost>("Cost", "Cost").Range(0.0f, 99.0f).Tooltip("MP it costs")
-			.Field<&AbilityDefinition::Power>("Power", "Power").Range(0.0f, 10.0f).Tooltip("Times the hero's Attack (a strike) or Magic (a heal)")
+			.Field<&AbilityDefinition::Power>("Power", "Power").Range(0.0f, 10.0f).Tooltip("Times the user's Attack (a strike) or Magic (a heal)")
 			.Field<&AbilityDefinition::Heals>("Heals", "Heals").Tooltip("Heals the most hurt ally instead of hitting a foe")
 			.Field<&AbilityDefinition::Clip>("Clip", "Clip").Tooltip("The hero's clip for it; \"Kick\" strikes as a kick, any other clip as a punch")
 			.Field<&AbilityDefinition::Approach>("Approach", "Approach").Tooltip("Walks up to the target first (a strike) instead of acting from where the hero stands");
 
-		DataTypeRegistry::Register<CombatantDefinition>("CombatantDefinition", "Combatant")
-			.Definition()
+		DataTypeRegistry::Register<CombatStats>("CombatStats", "Combat Stats")
+			.Field<&CombatStats::MaxHP>("MaxHP", "Max HP").Range(0.0f, 9999.0f)
+			.Field<&CombatStats::MaxMP>("MaxMP", "Max MP").Range(0.0f, 999.0f)
+			.Field<&CombatStats::Attack>("Attack", "Attack").Range(0.0f, 999.0f)
+			.Field<&CombatStats::Magic>("Magic", "Magic").Range(0.0f, 999.0f)
+			.Field<&CombatStats::Speed>("Speed", "Speed").Range(0.0f, 99.0f).Tooltip("Who acts first: higher goes earlier");
+
+		DataTypeRegistry::Register<EncounterDefinition>("EncounterDefinition", "Encounter")
+			.Table()
+			.Field<&EncounterDefinition::Enemies>("Enemies", "Enemies").Tooltip("Up to three, in slot order").DataTypeFilter("EnemyDefinition");
+
+		DataTypeRegistry::Register<EnemyAbility>("EnemyAbility", "Enemy Ability")
+			.Field<&EnemyAbility::Ability>("Ability", "Ability").DataTypeFilter("AbilityDefinition")
+			.Field<&EnemyAbility::Weight>("Weight", "Weight").Range(0.0f, 100.0f).Tooltip("Chance compared with its other abilities");
+
+		DataTypeRegistry::Register<EnemyDefinition>("EnemyDefinition", "Enemy")
 			.Table()
 			.DisplayField("Name")
-			.Field<&CombatantDefinition::Name>("Name", "Name").Tooltip("Shown in the battle's status, turn order and log")
-			.Field<&CombatantDefinition::ShortName>("ShortName", "Short Name").Tooltip("Shown in the target list; empty = Name")
-			.Field<&CombatantDefinition::MaxHP>("MaxHP", "Max HP").Range(1.0f, 9999.0f)
-			.Field<&CombatantDefinition::MaxMP>("MaxMP", "Max MP").Range(0.0f, 999.0f)
-			.Field<&CombatantDefinition::Attack>("Attack", "Attack").Range(0.0f, 999.0f)
-			.Field<&CombatantDefinition::Magic>("Magic", "Magic").Range(0.0f, 999.0f)
-			.Field<&CombatantDefinition::Speed>("Speed", "Speed").Range(0.0f, 99.0f).Tooltip("Who acts first: higher goes earlier")
-			.Field<&CombatantDefinition::WeaponType>("WeaponType", "Weapon Type").Tooltip("Heroes: what the plain Attack hits with")
-			.Field<&CombatantDefinition::Skills>("Skills", "Skills").Tooltip("Heroes: the two skill commands, in order").DataTypeFilter("AbilityDefinition")
-			.Field<&CombatantDefinition::ItemClip>("ItemClip", "Item Clip").Tooltip("Heroes: the clip played when using an item")
-			.Field<&CombatantDefinition::IdleClip>("IdleClip", "Idle Clip").Tooltip("Heroes: the fighting-stance loop between actions (and while guarding)")
-			.Field<&CombatantDefinition::Shield>("Shield", "Shield").Range(0.0f, 9.0f).Tooltip("Enemies: hits on a weakness it takes to break it")
-			.Field<&CombatantDefinition::Weak>("Weak", "Weak").Tooltip("Enemies: what it is weak to (at most three)")
-			.Field<&CombatantDefinition::Resist>("Resist", "Resist").Tooltip("Enemies: what it resists");
+			.Field<&EnemyDefinition::Name>("Name", "Name").Tooltip("Shown in the target list, turn order and log")
+			.Field<&EnemyDefinition::ShortName>("ShortName", "Short Name").Tooltip("Shown where there is little room; empty = Name")
+			.Field<&EnemyDefinition::Animations>("Animations", "Animations").Tooltip("Its battle animations (the slot's sprite plays them)").AssetFilter(AssetType::SpriteAnimation)
+			.Field<&EnemyDefinition::IdleClip>("IdleClip", "Idle Clip").Tooltip("The clip it plays in battle")
+			.Field<&EnemyDefinition::Stats>("Stats", "Stats")
+			.Field<&EnemyDefinition::Shield>("Shield", "Shield").Range(0.0f, 9.0f).Tooltip("Hits on a weakness it takes to break it")
+			.Field<&EnemyDefinition::Weak>("Weak", "Weak").Tooltip("What it is weak to (at most three)")
+			.Field<&EnemyDefinition::Resist>("Resist", "Resist").Tooltip("What it resists")
+			.Field<&EnemyDefinition::BasicAttack>("BasicAttack", "Basic Attack").Tooltip("Its plain attack (the damage is its Attack times the Power)").DataTypeFilter("AbilityDefinition")
+			.Field<&EnemyDefinition::Abilities>("Abilities", "Abilities").Tooltip("Other abilities, by weight (not used by the battle yet: enemies only attack)")
+			.Field<&EnemyDefinition::Experience>("Experience", "Experience").Range(0.0f, 99999.0f).Tooltip("Given to the party when it is defeated")
+			.Field<&EnemyDefinition::FloatHeight>("FloatHeight", "Float Height").Range(0.0f, 3.0f).Tooltip("Metres it floats above the floor, bobbing (0: it stands); floating ones also sway in the field")
+			.Field<&EnemyDefinition::FieldSpeed>("FieldSpeed", "Field Speed").Range(0.0f, 3.0f).Tooltip("Its field speeds times this (wandering, chasing, going home)")
+			.Field<&EnemyDefinition::GlowColor>("GlowColor", "Glow Color").Tooltip("Its glow's colour in battle").Color()
+			.Field<&EnemyDefinition::GlowIntensity>("GlowIntensity", "Glow Intensity").Range(0.0f, 10.0f).Tooltip("Its glow in battle (0: none)")
+			.Field<&EnemyDefinition::SmokeColor>("SmokeColor", "Smoke Color").Tooltip("The puff of smoke it leaves when defeated").Color();
+
+		DataTypeRegistry::Register<HeroDefinition>("HeroDefinition", "Hero")
+			.Definition()
+			.Field<&HeroDefinition::Name>("Name", "Name").Tooltip("Shown in the battle's status and log, and in the field's menu")
+			.Field<&HeroDefinition::ShortName>("ShortName", "Short Name").Tooltip("Shown where there is little room; empty = Name")
+			.Field<&HeroDefinition::Base>("Base", "Base").Tooltip("The numbers at level 1")
+			.Field<&HeroDefinition::GrowthPerLevel>("GrowthPerLevel", "Growth Per Level").Tooltip("Added for every level above 1")
+			.Field<&HeroDefinition::WeaponType>("WeaponType", "Weapon Type").Tooltip("What the plain attack hits with")
+			.Field<&HeroDefinition::BasicAttack>("BasicAttack", "Basic Attack").Tooltip("The Attack command (its name; its type when not None)").DataTypeFilter("AbilityDefinition")
+			.Field<&HeroDefinition::StartingAbilities>("StartingAbilities", "Starting Abilities").Tooltip("Known from level 1, in the menu's order (the menu shows the first two)").DataTypeFilter("AbilityDefinition")
+			.Field<&HeroDefinition::Learns>("Learns", "Learns").Tooltip("Abilities levels teach (known from then on; the menu shows the first two known)")
+			.Field<&HeroDefinition::IdleClip>("IdleClip", "Idle Clip").Tooltip("The fighting-stance loop between actions (and while guarding)")
+			.Field<&HeroDefinition::ItemClip>("ItemClip", "Item Clip").Tooltip("The clip played when using an item");
+
+		DataTypeRegistry::Register<LearnedAbility>("LearnedAbility", "Learned Ability")
+			.Field<&LearnedAbility::Level>("Level", "Level").Range(2.0f, 99.0f).Tooltip("The level that teaches it")
+			.Field<&LearnedAbility::Ability>("Ability", "Ability").DataTypeFilter("AbilityDefinition");
+
+		DataTypeRegistry::Register<LevelCurve>("LevelCurve", "Level Curve")
+			.Definition()
+			.Field<&LevelCurve::ExperienceToLevel>("ExperienceToLevel", "Experience To Level").Tooltip("Total experience to reach level 2, 3, ... in order; its length + 1 is the level cap");
 
 		DataTypeRegistry::Register<DialogueDefinition>("DialogueDefinition", "Dialogue")
 			.Definition()

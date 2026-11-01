@@ -177,9 +177,108 @@ namespace Hydro
 		return ImGui::InputText(id, text.data(), text.capacity() + 1, ImGuiInputTextFlags_CallbackResize, StringResizeCallback, &text);
 	}
 
+	// The colour of a script field that needs attention: an empty Required one, a reference whose entity is gone or
+	// lacks what the field needs.
+	static const ImVec4 s_ScriptWarningColor = { 1.0f, 0.45f, 0.35f, 1.0f };
+
+	// An EntityRef / ComponentRef<T> field (SC4): a list of the scene's entities that fit (for a ComponentRef<T>,
+	// those with a T; a bound script counts), or drop an entity from the hierarchy onto it. A target that is gone or
+	// doesn't fit, and an empty Required one, show in the warning colour. Returns true when it changed.
+	static bool DrawEntityRefField(const char* label, Entity owner, const ScriptProperty& property, EntityRef& reference)
+	{
+		bool changed = false;
+		Scene& scene = *owner.GetScene();
+		const Entity target = reference.IsSet() ? scene.GetEntityByUUID(reference.GetId()) : Entity{};
+		const bool fits = (bool)target == false || property.AcceptsEntity == nullptr || property.AcceptsEntity(target);
+		const std::string needs = property.TargetType.empty() ? std::string("an entity") : "a " + property.TargetType;
+
+		std::string preview = "(none)";
+		std::string problem;
+		if ((bool)target)
+		{
+			preview = target.GetName();
+			if (fits == false)
+			{
+				preview += " (no " + property.TargetType + ")";
+				problem = "This entity has no " + property.TargetType + ".";
+			}
+		}
+		else if (reference.IsSet())
+		{
+			preview = "(missing)";
+			problem = "The entity this referred to isn't in the scene any more.";
+		}
+		else if (property.Required)
+		{
+			problem = "Required: pick " + needs + ".";
+		}
+
+		DrawPropertyRow(label, [&]()
+		{
+			if (problem.empty() == false)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, s_ScriptWarningColor);
+			}
+			const bool open = ImGui::BeginCombo("##value", preview.c_str());
+			if (problem.empty() == false)
+			{
+				ImGui::PopStyleColor();
+			}
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("%s%s%s", problem.c_str(), problem.empty() ? "" : "\n",
+					("Needs " + needs + ". Pick one, or drag an entity from the hierarchy onto the field.").c_str());
+			}
+			if (open)
+			{
+				if (ImGui::Selectable("(none)", reference.IsSet() == false))
+				{
+					reference = EntityRef();
+					changed = true;
+				}
+				for (const entt::entity handle : scene.GetEntityOrder())
+				{
+					const Entity other{ handle, &scene };
+					if (other.HasComponent<IDComponent>() == false || (property.AcceptsEntity != nullptr && property.AcceptsEntity(other) == false))
+					{
+						continue;
+					}
+					ImGui::PushID((int)(uint32_t)handle);
+					if (ImGui::Selectable(other.GetName().c_str(), other == target))
+					{
+						reference = EntityRef(other.GetUUID());
+						changed = true;
+					}
+					ImGui::PopID();
+				}
+				ImGui::EndCombo();
+			}
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HYDRO_HIERARCHY_ENTITY"))
+				{
+					const Entity dropped{ *static_cast<const entt::entity*>(payload->Data), &scene };
+					if (dropped.IsValid() && dropped.HasComponent<IDComponent>() && (property.AcceptsEntity == nullptr || property.AcceptsEntity(dropped)))
+					{
+						reference = EntityRef(dropped.GetUUID());
+						changed = true;
+					}
+					else
+					{
+						HY_WARN("{}: '{}' can't go there; it needs {}", property.DisplayName,
+							dropped.IsValid() ? dropped.GetName() : std::string("(that entity)"), needs);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+		});
+		return changed;
+	}
+
 	// One HY_PROPERTY field of a script (#144, #145): the widget for its type, its range, colour picker, asset
-	// filter, tooltip and read-only flag. `value` must hold the property's type. Returns true when it changed.
-	static bool DrawScriptPropertyField(const ScriptProperty& property, ScriptPropertyValue& value)
+	// filter, tooltip and read-only flag. `value` must hold the property's type; `owner` is the script's entity
+	// (references are looked up in its scene). Returns true when it changed.
+	static bool DrawScriptPropertyField(const ScriptProperty& property, ScriptPropertyValue& value, Entity owner)
 	{
 		bool changed = false;
 		const char* label = property.DisplayName.c_str();
@@ -275,6 +374,22 @@ namespace Hydro
 			{
 				changed = DataFieldRenderer::DrawRowRef(label, std::get<DataRowRef>(value), property.DataTypeFilter);
 				break;
+			}
+			case ScriptPropertyType::EntityRef:
+			{
+				changed = DrawEntityRefField(label, owner, property, std::get<EntityRef>(value));
+				break;
+			}
+		}
+
+		// An empty Required asset or row (references colour their own field).
+		if (property.Required && property.Type != ScriptPropertyType::EntityRef)
+		{
+			const bool empty = property.Type == ScriptPropertyType::Asset ? (uint64_t)std::get<AssetHandle>(value) == 0
+				: (property.Type == ScriptPropertyType::RowRef && std::get<DataRowRef>(value).IsSet() == false);
+			if (empty)
+			{
+				ImGui::TextColored(s_ScriptWarningColor, "%s is required", label);
 			}
 		}
 
@@ -2005,7 +2120,7 @@ namespace Hydro
 							value = property.Read(*instance);
 						}
 
-						if (DrawScriptPropertyField(property, value) && instance != nullptr && property.Apply != nullptr)
+						if (DrawScriptPropertyField(property, value, entity) && instance != nullptr && property.Apply != nullptr)
 						{
 							property.Apply(*instance, value);
 						}
