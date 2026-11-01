@@ -24,6 +24,11 @@ namespace Hydro
 				{
 					out << (uint64_t)typed;
 				}
+				else if constexpr (std::is_same_v<Value, EntityRef>)
+				{
+					// The target's UUID (0 = none); copies remap it (Scene::RemapEntityReferences).
+					out << (uint64_t)typed.GetId();
+				}
 				else if constexpr (std::is_same_v<Value, DataRowRef>)
 				{
 					out << YAML::Flow << YAML::BeginMap;
@@ -65,6 +70,7 @@ namespace Hydro
 					ref.Row = node["Row"].as<std::string>(std::string());
 					return ref;
 				}
+				case ScriptPropertyType::EntityRef: return EntityRef(UUID(node.as<uint64_t>((uint64_t)std::get<EntityRef>(fallback).GetId())));
 			}
 		}
 		catch (const YAML::Exception&)
@@ -165,6 +171,17 @@ namespace Hydro
 
 			if (savedName.empty())
 			{
+				continue;
+			}
+
+			// An entity holds one script of a class (SC4): a second binding (an old file, or one edited by hand) is
+			// dropped, keeping the first; saving writes the scene without it.
+			const ScriptTypeInfo* savedType = ScriptRegistry::FindType(savedName);
+			const std::string currentName = savedType != nullptr ? savedType->Name : savedName;
+			if (scripts.Has(currentName))
+			{
+				HY_CORE_WARN("Entity '{}': script '{}' is bound twice; the first is kept, the second (and its values) is dropped when the scene is saved",
+					owner, currentName);
 				continue;
 			}
 

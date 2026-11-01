@@ -120,6 +120,11 @@ namespace Hydro
 		HY_PROPERTY(Asset(DataTable, SignDefinition), Tooltip("The signs' lines, by the name after \"Sign \""))
 		AssetHandle SignTable = DefaultSignTable;
 
+		// The dialogue box (Scripting plan SC4): set it in the inspector, or drag "Dialogue Canvas" onto it. Unset,
+		// the director looks for the entity tagged "Dialogue Canvas" (the scenes made before references).
+		HY_PROPERTY(Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\""))
+		ComponentRef<DialogueScript> Dialogue;
+
 	protected:
 		void OnCreate() override
 		{
@@ -868,9 +873,14 @@ namespace Hydro
 			}
 		}
 
-		// The dialogue box's script (on "Dialogue Canvas"), or nullptr in a scene without one.
+		// The dialogue box's script: the Dialogue property's, else the one on "Dialogue Canvas"; nullptr in a scene
+		// without one.
 		DialogueScript* FindDialogue(Scene& scene)
 		{
+			if (Dialogue.IsSet())
+			{
+				return Dialogue.Get();
+			}
 			if (Alive(scene, m_DialogueCanvas) == false)
 			{
 				return nullptr;

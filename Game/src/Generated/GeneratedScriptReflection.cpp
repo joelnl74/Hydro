@@ -85,7 +85,8 @@ namespace Hydro
 			.Property("StartingInventory", "Starting Inventory", &MvpDirectorScript::StartingInventory).Tooltip("The items a run starts with, in their order").AssetFilter(AssetType::Definition).DataTypeFilter("InventoryDefinition")
 			.Property("ChestItem", "Chest Item", &MvpDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition")
 			.Property("NpcTable", "Npc Table", &MvpDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
-			.Property("SignTable", "Sign Table", &MvpDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition");
+			.Property("SignTable", "Sign Table", &MvpDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
+			.Property("Dialogue", "Dialogue", &MvpDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
 
 		ScriptRegistry::Register<QuestTrackerScript>("QuestTrackerScript")
 			.Property("BannerHoldTime", "Banner Hold Time", &QuestTrackerScript::BannerHoldTime).Range(0.5f, 20.0f).Tooltip("Seconds a banner stays fully shown")

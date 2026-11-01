@@ -38,7 +38,14 @@ SUPPORTED_TYPES = {
     "Hydro::AssetHandle": "Asset",
     "DataRowRef": "RowRef",
     "Hydro::DataRowRef": "RowRef",
+    "EntityRef": "EntityRef",
+    "Hydro::EntityRef": "EntityRef",
 }
+
+# ComponentRef<T> (a reference to a component or script on another entity, SC4): an EntityRef property with a target type.
+COMPONENT_REF_PATTERN = re.compile(r"(?:Hydro::)?ComponentRef\s*<\s*(?P<target>[A-Za-z_][\w:]*)\s*>")
+# The kinds HY_PROPERTY(Required) accepts on a script.
+REQUIRED_KINDS = {"Asset", "RowRef", "EntityRef"}
 
 NUMERIC_KINDS = {"Int", "Float", "Vec2", "Vec3", "Vec4"}
 COLOR_KINDS = {"Vec3", "Vec4"}
@@ -52,7 +59,8 @@ DATA_ASSET_TYPES = {"Definition", "DataTable"}
 
 # Data fields (HY_PROPERTY inside an HY_DATA struct) have the script kinds; Enum, Struct and List fields are
 # resolved once every header has been read (the types can live in other headers).
-DATA_VALUE_TYPES = dict(SUPPORTED_TYPES)
+# References to entities aren't data: a definition or table has no scene.
+DATA_VALUE_TYPES = {name: kind for name, kind in SUPPORTED_TYPES.items() if kind != "EntityRef"}
 
 # The only arguments HY_DATA(...) accepts; anything else is an error (the generator stays a scanner).
 HY_DATA_ARGUMENTS = "Definition, Table, DisplayField(field), FormerName(\"OldName\", ...)"
@@ -74,6 +82,8 @@ class Property:
     read_only: bool = False
     hidden: bool = False
     former_names: list[str] = field(default_factory=list)  # FormerName("..."): keys scenes may still use
+    required: bool = False  # Required: an Asset, DataRowRef or reference that must be set
+    target_type: str | None = None  # ComponentRef<T>: T as written
 
 
 @dataclass
@@ -409,10 +419,13 @@ def apply_arguments(prop: Property, arguments: str, where: str) -> None:
             prop.hidden = True
         elif name == "FormerName":
             prop.former_names.extend(parse_former_names(values, where, argument))
+        elif name == "Required":
+            expect(0)
+            prop.required = True
         else:
             raise ReflectionError(
                 f"{where}: unknown HY_PROPERTY argument '{name}' "
-                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, DataRow, ReadOnly, Hidden, FormerName)"
+                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, DataRow, ReadOnly, Hidden, FormerName, Required)"
             )
 
     prop.where = where
@@ -428,6 +441,8 @@ def apply_arguments(prop: Property, arguments: str, where: str) -> None:
         raise ReflectionError(f"{where}: Asset(...) needs an AssetHandle field")
     if prop.kind == "Asset" and prop.asset_type is None:
         raise ReflectionError(f"{where}: an AssetHandle needs Asset(<AssetType>), e.g. HY_PROPERTY(Asset(Texture2D))")
+    if prop.required and prop.kind not in REQUIRED_KINDS:
+        raise ReflectionError(f"{where}: Required needs an AssetHandle, DataRowRef, EntityRef or ComponentRef<T> field")
 
 
 def body_depths(body: str) -> list[int]:
@@ -505,7 +520,7 @@ def parse_properties(body: str, body_offset: int, text: str, class_name: str, de
     ):
         # float MoveSpeed = 3.5f;   glm::vec3 Offset{ 0.0f };   std::string Name = "x";   AssetHandle Icon = 0;
         field_match = re.fullmatch(
-            r"(?P<type>[A-Za-z_][\w:]*)\s+"
+            r"(?P<type>[A-Za-z_][\w:]*(?:\s*<\s*[A-Za-z_][\w:]*\s*>)?)\s+"
             r"(?P<name>[A-Za-z_]\w*)\s*"
             r"(?:=.*|\{.*\})?;",
             declaration,
@@ -517,11 +532,17 @@ def parse_properties(body: str, body_offset: int, text: str, class_name: str, de
         type_name = field_match.group("type")
         field_name = field_match.group("name")
         kind = SUPPORTED_TYPES.get(type_name)
+        target_type = None
+        component_ref = COMPONENT_REF_PATTERN.fullmatch(type_name)
+        if component_ref is not None:
+            kind = "EntityRef"
+            target_type = component_ref.group("target")
         if kind is None:
-            supported = ", ".join(sorted({t for t in SUPPORTED_TYPES if not t.startswith("Hydro::")}))
+            supported = ", ".join(sorted({t for t in SUPPORTED_TYPES if not t.startswith("Hydro::")} | {"ComponentRef<T>"}))
             raise ReflectionError(f"{where}.{field_name}: unsupported property type '{type_name}'. Supported: {supported}")
 
         prop = Property(type_name=type_name, kind=kind, name=field_name, display_name=make_display_name(field_name))
+        prop.target_type = target_type
         apply_arguments(prop, arguments, f"{where}.{field_name}")
         properties.append(prop)
 
@@ -1088,6 +1109,11 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
                 call += ".ReadOnly()"
             if prop.hidden:
                 call += ".Hidden()"
+            if prop.required:
+                call += ".Required()"
+            if prop.target_type is not None:
+                # The type's own name, for the inspector ("needs a DialogueScript").
+                call += f".TargetType({cpp_string(prop.target_type.split('::')[-1])})"
             for former in prop.former_names:
                 call += f".FormerName({cpp_string(former)})"
             lines.append(call)

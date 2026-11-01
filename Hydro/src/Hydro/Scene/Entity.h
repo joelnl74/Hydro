@@ -4,6 +4,7 @@
 
 #include "Hydro/Core/Assert.h"
 #include "Hydro/Core/UUID.h"
+#include <string>
 #include <type_traits>
 #include <typeinfo>
 #include <utility>
@@ -183,10 +184,16 @@ namespace Hydro
 			}
 		}
 
-		Scene* GetScene()
+		Scene* GetScene() const
 		{
 			return m_Scene;
 		}
+
+		// The descendant at `path`: child names (tags) separated by '/', each a direct child of the one before
+		// ("Panel/Buttons/Ok"); the first child of that name at each step. An empty Entity when a step isn't found
+		// or this entity doesn't exist. For the inside of a view or prefab, whose names its author controls
+		// (Scripting plan SC4); a dependency on another part of the scene is an EntityRef property instead.
+		Entity FindChild(const std::string& path) const;
 
 		UUID GetUUID() const { return GetComponent<IDComponent>().Id; }
 		const std::string& GetName() const { return GetComponent<TagComponent>().Tag; }

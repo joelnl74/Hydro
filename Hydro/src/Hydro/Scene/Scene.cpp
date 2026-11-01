@@ -255,7 +255,34 @@ namespace Hydro
 				UIScrollViewComponent& scroll = m_Registry.get<UIScrollViewComponent>(entity);
 				scroll.Scrollbar = remapped(scroll.Scrollbar);
 			}
+			// Scripts' EntityRef / ComponentRef<T> properties (SC4): the saved values. A running instance's fields
+			// are set from them when it is created (copies are made before their scripts run).
+			if (m_Registry.has<NativeScriptComponent>(entity))
+			{
+				for (NativeScriptComponent::Script& script : m_Registry.get<NativeScriptComponent>(entity).Scripts)
+				{
+					for (auto& property : script.Properties)
+					{
+						if (EntityRef* reference = std::get_if<EntityRef>(&property.second))
+						{
+							*reference = EntityRef(remapped(reference->GetId()));
+						}
+					}
+				}
+			}
 		}
+	}
+
+	Entity Scene::FindEntityByTag(const std::string& tag)
+	{
+		for (const entt::entity handle : GetEntityOrder())
+		{
+			if (m_Registry.valid(handle) && m_Registry.has<TagComponent>(handle) && m_Registry.get<TagComponent>(handle).Tag == tag)
+			{
+				return Entity{ handle, this };
+			}
+		}
+		return {};
 	}
 
 	Entity Scene::DuplicateEntity(Entity entity)
