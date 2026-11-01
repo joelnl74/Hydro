@@ -2778,7 +2778,7 @@ Entities:
       IsTrigger: false
   - Entity: 2521931026300517388
     TagComponent:
-      Tag: Exit FarmVillage
+      Tag: Exit JapaneseCountryside
     RelationshipComponent:
       Parent: 2454612650505723552
     TransformComponent:

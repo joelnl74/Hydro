@@ -173,6 +173,25 @@ class Slice(city.City):
             "      Materials:\n        - MaterialHandle: %d\n    MeshColliderComponent:\n      Layer: World\n")
             % (width, y1 - y0, z1 - z0, steps, mat))
 
+    def stairs_along_wall(self, parent, mat, x_bottom, x_top, yc, z0, z1, width=2.0, step_rise=0.2, riser=None):
+        """A flight that climbs sideways along a wall (left-right on screen) from x_bottom up to x_top, x_top < x_bottom
+        (the Stairs shape climbs along its local +Y; turned +90 degrees it climbs along -X)."""
+        steps = max(1, int(round((z1 - z0) / step_rise)))
+        run = x_bottom - x_top
+        depth, rise = run / steps, (z1 - z0) / steps
+        if riser is not None:
+            for i in range(steps):
+                tag = self._n("Riser")
+                self.w.entity("riser:" + tag, tag, parent=parent, t=(x_bottom - i * depth + 0.015, yc, z0 + i * rise),
+                              r=(0, 0, math.radians(90.0)), body=(
+                    "    MeshComponent:\n      Shape: Box\n      Size: [%g, 0.03, %g]\n      CastShadows: false\n      Materials:\n"
+                    "        - MaterialHandle: %d\n") % (width - 0.02, rise * 0.9, riser))
+        tag = self._n("Stairs")
+        self.w.entity("stairs:" + tag, tag, parent=parent, t=((x_bottom + x_top) / 2, yc, z0), r=(0, 0, math.radians(90.0)), body=(
+            "    MeshComponent:\n      Shape: Stairs\n      Size: [%g, %g, %g]\n      Steps: %d\n      CastShadows: true\n"
+            "      Materials:\n        - MaterialHandle: %d\n    MeshColliderComponent:\n      Layer: World\n")
+            % (width, run, z1 - z0, steps, mat))
+
     def blocker(self, parent, x0, x1, y0, y1, z0=0.0, h=3.0):
         """An invisible wall: keeps the player where the camera can see her."""
         tag = self._n("Blocker")
@@ -229,11 +248,15 @@ class Slice(city.City):
             return info
         dx = info.get("door_x")
         dx = dx[0] if isinstance(dx, list) and dx else dx
-        if dx is not None and info.get("head_z"):
+        if dx is not None and info.get("head_z") and info.get("door") != "wood":
             d.sprite(parent, "JP_Noren_Inn_A", x + dx, y + 0.3, z + info["head_z"] - 0.05, hanging=True, sort=1)
-        if lanterns and info.get("arm_z") and dx is not None:
-            for s_ in (-1, 1):
-                self.bracket_lantern(parent, x + dx + s_ * 1.45, y - 0.12, z + info["arm_z"], 0.0, sort_lantern)
+        # restrained lanterns (v3): a pair at the open shops, one by a lattice door, none at the plank doors
+        if lanterns and info.get("arm_z"):
+            if info.get("door") == "shop":
+                for s_ in (-1, 1):
+                    self.bracket_lantern(parent, x + s_ * 2.3, y - 0.12, z + info["arm_z"], 0.0, sort_lantern)
+            elif dx is not None and info.get("door") != "wood":
+                self.bracket_lantern(parent, x + dx + 1.45, y - 0.12, z + info["arm_z"], 0.0, sort_lantern)
         w = info.get("width", 6.0)
         n = max(1, int(w / 3))
         for k in range(n):
@@ -347,15 +370,17 @@ def build(c, args):
     c.terrace(G, ishi, grass, gap, 44, 8.0, 17.5, Z1)
     c.terrace(G, ishi, flag, -gap, gap, 8.0, 11.0, Z1)
     # gate plaza level: its front wall rises behind the gardens; a flagstone path runs from the stairs to the gate
-    c.terrace(G, ishi, setts, -44, -gap, 17.5, 46.0, Z2, Z1)
-    c.terrace(G, ishi, setts, gap, 44, 17.5, 46.0, Z2, Z1)
+    c.terrace(G, ishi, setts, -50, -gap, 17.5, 46.0, Z2, Z1)       # out to x 50, past the wall's ends (47)
+    c.terrace(G, ishi, setts, gap, 50, 17.5, 46.0, Z2, Z1)
     c.terrace(G, ishi, setts, -gap, gap, 17.5, 46.0, Z2, Z1)
     c.box(G, flag, -half, half, 17.5, 33.0, Z2, Z2 + 0.02, tag="Plaza Path", shadows=False, collider=False)
     # outside the city wall: meadow and the road out of the gate, up to the backdrop
     c.slab(G, grass, -70, 70, 46.0, 110.0, Z2, 4.0)
     c.slab(G, road, -2.6, 2.6, 34.0, 110.0, Z2 + 0.02, 0.5)
-    c.slab(G, grass, -70, -44, -20, 46.0, Z0, 2.0)
-    c.slab(G, grass, 44, 70, -20, 46.0, Z0, 2.0)
+    c.slab(G, grass, -70, -44, -20, 17.5, Z0, 2.0)
+    c.slab(G, grass, 44, 70, -20, 17.5, Z0, 2.0)
+    c.slab(G, grass, -70, -50, 17.5, 46.0, Z0, 2.0)
+    c.slab(G, grass, 50, 70, 17.5, 46.0, Z0, 2.0)
     backdrop(c, G)
     ground_dressing(c)
 
@@ -375,30 +400,51 @@ def build(c, args):
             d.lantern(S, s_ * (gap + 0.7), ly, lz + 1.15, 0.9, 3.0)
         c.model(S, "Modules/JP_Railing_Stone_2m", s_ * (gap + 1.2), 17.9, Z2)
 
-    # ---------------------------------------------------------------- merchant street
+    # ---------------------------------------------------------------- merchant street (kit v3, Nov 1)
+    # Two continuous rows of attached machiya (JP_Row_*: shared eave and ridge lines, no gaps, no overlaps) either side
+    # of the stair corridor; each row read left to right, placed by its houses' widths. Variety is the facade only:
+    # plaster / timber tints, windows, doors, open shops, canopies, udatsu, roof tiles, and what stands in front.
     M = c.group("Merchant Street")
-    left = (("JP_Mid_Townhouse_A", -6.5), ("JP_Mid_Townhouse_B", -13.5), ("JP_Mid_Townhouse_C", -20.5), ("JP_Mid_Shop_A", -26.5),
-            ("JP_Mid_Townhouse_B", -33.5), ("JP_Mid_Townhouse_C", -40.5))
-    right = (("JP_Mid_Townhouse_C", 6.5), ("JP_Mid_Shop_A", 12.5), ("JP_Mid_Townhouse_B", 19.5), ("JP_Mid_Townhouse_A", 26.5),
-             ("JP_Mid_Townhouse_B", 33.5), ("JP_Mid_Townhouse_C", 40.5))
-    for name, x in left + right:
-        c.shopfront(M, name, x, 1.0, Z0)
-    shop = c.summary.get("JP_Mid_Shop_A", {})
-    if shop.get("pent_z"):
-        for x in (-26.5, 12.5):
-            d.sprite(M, "JP_Sign_Hanging_A", x - 1.9, 0.1, Z0 + shop["pent_z"] - 0.1, hanging=True, sort=3)
+    left_row = ("House_C", "House_B", "Shop_A", "House_A", "House_B", "Shop_B")                 # x -43.5 .. -3.5
+    right_row = ("House_A", "Shop_B", "House_C", "House_B", "Shop_A", "House_A")                # x 3.5 .. 41.5
+    shops = []
+
+    def place_row(types, x_start, x_end):
+        """Houses laid from x_start towards x_end (both rows read left to right along +x)."""
+        x = x_start
+        n = len(types)
+        for i, t in enumerate(types):
+            w = c.summary.get("JP_Row_%s_F" % t, {}).get("width", 6.0)
+            suffix = "L" if i == 0 else ("R" if i == n - 1 else "M")
+            name = "JP_Row_%s_%s" % (t, suffix)
+            cx = x + w / 2
+            info = c.shopfront(M, name, cx, 1.0, Z0)
+            if t.startswith("Shop"):
+                shops.append((cx, info))
+            x += w
+        return x
+    place_row(left_row, -3.5 - sum(c.summary.get("JP_Row_%s_F" % t, {}).get("width", 6.0) for t in left_row), -3.5)
+    place_row(right_row, 3.5, None)
+    for cx, info in shops:
+        if info.get("pent_z"):
+            d.sprite(M, "JP_Sign_Hanging_A", cx - 1.9, 0.1, Z0 + info["pent_z"] - 0.1, hanging=True, sort=3)
+        # the open shops: the merchant inside on the raised floor behind his goods, a warm light in the room
+        floor_z = info.get("shop_floor_z") or 0.8
+        c.npc(M, "Merchant", cx + 0.5, 1.0 + 1.3, Z0 + floor_z, "IdleDown")
+        d.lantern(M, cx, 1.0 + 1.0, Z0 + 2.2, 1.2, 4.0)
     # along the shopfronts: goods, water barrels, a signboard, lamp posts
-    for (name, x, y, r) in (("JP_Prop_SakeBarrelStack_A", -16.6, 0.2, 0), ("JP_Prop_RainBarrel_A", -10.0, 0.3, 0),
-                            ("JP_Prop_Buckets_A", -23.4, 0.2, 0), ("JP_Prop_Crate_A", 9.8, 0.2, 6), ("JP_Prop_Crate_A", 10.4, -0.3, -8),
-                            ("JP_Prop_WaterJar_A", 16.0, 0.3, 0), ("JP_Prop_Signboard_A", 23.0, -0.4, 0), ("JP_Prop_TeaBench_A", 29.5, -0.5, 0),
-                            ("JP_Prop_Barrel_A", -29.6, 0.2, 0), ("JP_Prop_Barrel_A", -29.0, -0.4, 0)):
+    for (name, x, y, r) in (("JP_Prop_SakeBarrelStack_A", -24.4, 0.2, 0), ("JP_Prop_RainBarrel_A", -7.2, 0.3, 0),
+                            ("JP_Prop_Buckets_A", -36.6, 0.2, 0), ("JP_Prop_Crate_A", 17.6, 0.2, 6), ("JP_Prop_Crate_A", 18.3, -0.3, -8),
+                            ("JP_Prop_WaterJar_A", 22.2, 0.3, 0), ("JP_Prop_Signboard_A", 31.0, -0.4, 0), ("JP_Prop_TeaBench_A", 40.5, -0.5, 0),
+                            ("JP_Prop_Barrel_A", -41.6, 0.2, 0), ("JP_Prop_Barrel_A", -41.0, -0.4, 0), ("JP_Prop_WaterJar_A", -31.5, 0.3, 0),
+                            ("JP_Prop_Barrel_A", 36.2, 0.3, 0)):
         c.model(M, "Props/" + name, x, y, Z0, r)
     d.sprite(M, "JP_Signboard_Standing_A", -4.6, -0.2, Z0)
     for x in (-17.0, 16.0, -34.5, 35.5):
         c.model(M, "Props/JP_Prop_LampPost_A", x, -0.6, Z0)
         d.lantern(M, x + 0.62, -0.6, Z0 + 2.36)
     # a lantern line along the shopfronts: poles every 8 m with a sagging rope, lanterns on its cords
-    c.lantern_line(M, -28.0, -1.45, Z0, 7)
+    c.lantern_line(M, -25.5, -1.45, Z0, 7, every=3)
     # the street's floor: setts, a flagstone path down the middle, a stone curb and gutter along the shopfronts
     c.box(M, flag, -34.0, 34.0, -4.1, -2.5, Z0, Z0 + 0.02, tag="Street Path", shadows=False, collider=False)
     c.box(M, flag, -34.0, 34.0, -0.8, -0.15, Z0, Z0 + 0.05, tag="Street Curb", shadows=False, collider=False)
@@ -406,9 +452,18 @@ def build(c, args):
 
     # the near side: low things only, so the street stays in view
     N = c.group("Near Side")
+    # the stalls face the street (counter towards the camera, as in the references), goods on the counters: jars on
+    # the indigo pottery stall, a sake barrel stack and crates by the red produce stall (the goods sprites come later)
+    cz = c.summary.get("_props", {}).get("JP_Prop_MarketStall_A", {}).get("counter_z", 0.86)
     c.model(N, "Props/JP_Prop_MarketStall_A", -11.5, -9.6, Z0, 0)
     c.model(N, "Props/JP_Prop_MarketStall_B", 11.0, -9.8, Z0, 0)
     c.model(N, "Props/JP_Prop_MarketStall_A", 25.5, -9.4, Z0, 0)
+    for (dx, dy, sc) in ((-0.7, 0.3, 0.55), (0.1, 0.45, 0.45), (0.75, 0.25, 0.6)):
+        c.w.entity("model:" + c._n("Stall Jar"), "Stall Jar", parent=N, t=(11.0 + dx, -9.8 + dy, Z0 + cz), s=(sc, sc, sc),
+                   body=kit.mesh_body(kit.ensure_mesh_meta(os.path.join(MODELS, "Props", "JP_Prop_WaterJar_A.glb")), False))
+    c.model(N, "Props/JP_Prop_Crate_A", -13.4, -8.6, Z0, 8, collider=False)
+    c.model(N, "Props/JP_Prop_Crate_A", -9.6, -8.5, Z0, -6, collider=False)
+    c.model(N, "Props/JP_Prop_Buckets_A", 27.4, -8.4, Z0, 0, collider=False)
     for x in range(-30, 31, 2):
         if -16 <= x <= -8 or 7 <= x <= 15 or 22 <= x <= 29 or -4 <= x <= 3:
             continue
@@ -419,8 +474,9 @@ def build(c, args):
         c.model(N, "Props/" + name, x, y, Z0, r)
     for x in (-4.6, 4.4):
         d.lantern(N, x, -9.0, Z0 + 1.15, 0.9, 3.0)
-    for (name, x, y, folder) in (("SakuraWeeping", -27.0, -12.5, TREES), ("SakuraWeeping", 21.0, -13.0, TREES),
-                                 ("FlowerBush02", -2.0, -11.0, PLANTS), ("FlowerBush03", 1.6, -11.2, PLANTS),
+    # (v3: no trees on the near side; a weeping cherry there hid the whole street. Low bushes only.)
+    for (name, x, y, folder) in (("FlowerBush02", -2.0, -11.0, PLANTS), ("FlowerBush03", 1.6, -11.2, PLANTS),
+                                 ("BushDense03", -27.0, -11.6, PLANTS), ("FlowerBush04", 21.0, -11.6, PLANTS),
                                  ("BushDense01", -17.0, -11.4, PLANTS), ("BushDense02", 15.8, -11.4, PLANTS)):
         c.plant(N, name, x, y, Z0, folder)
 
@@ -458,6 +514,15 @@ def build(c, args):
         for k in range(4):
             d.window(P, x + s_ * 0.6, 19.5 + k * 3.6, Z2 + 1.6)
             d.window(P, x + s_ * 0.4, 19.5 + k * 3.6, Z2 + 4.8, 2.4)
+    # upper-district rooftops behind the plaza wall, left and right of the plaza (scenery: the layer of roofs the
+    # references show behind the merchant row; the plaza's side blockers keep the player off them)
+    for s_ in (-1, 1):
+        x = 19.0
+        for t, suf in (("House_A", "L"), ("House_C", "M"), ("House_B", "R")):
+            w = c.summary.get("JP_Row_%s_F" % t, {}).get("width", 6.0)
+            cx = s_ * (x + w / 2)
+            info = c.shopfront(P, "JP_Row_%s_%s" % (t, suf if s_ > 0 else {"L": "R", "R": "L"}.get(suf, suf)), cx, 19.5, Z2, lanterns=False)
+            x += w
     # the gate: banners, braziers, wall lanterns, spear rack, drum, barriers, guards
     for s_ in (-1, 1):
         c.model(P, "Props/JP_Prop_BannerPole_A", s_ * 3.6, 31.2, Z2)
@@ -468,10 +533,40 @@ def build(c, args):
         d.lantern(P, s_ * 2.25, 33.45, Z2 + 2.2)
         c.model(P, "Props/JP_Prop_Barrier_A", s_ * 6.4, 30.6, Z2, s_ * 6)
         c.npc(P, "GateGuard", s_ * 1.6, 31.4, Z2)
-    c.model(P, "Props/JP_Prop_SpearRack_A", -6.0, 32.2, Z2)
+    # the wall walk (city side, 4.5 m up): banner poles, spear racks and leaning spears, so the top of the wall is manned
+    walk_z, walk_y = Z2 + 4.5, 33.0 + 4.6
+    for s_ in (-1, 1):
+        for k, x in enumerate((8.6, 16.0, 23.0, 31.0, 39.0)):
+            px = s_ * x
+            if k % 2 == 0:
+                c.model(P, "Props/JP_Prop_BannerPole_A", px, walk_y, walk_z)
+                d.sprite(P, "JP_Banner_Nobori_Cloth_A", px + 0.45, walk_y - 0.08, walk_z + 3.3, hanging=True, sort=2)
+            else:
+                c.model(P, "Props/JP_Prop_SpearRack_A", px, walk_y, walk_z)
+        d.sprite(P, "JP_Spears_Leaning_A", s_ * 12.2, walk_y + 0.3, walk_z)
+        d.sprite(P, "JP_Spears_Leaning_A", s_ * 27.4, walk_y + 0.3, walk_z)
+    # stairs up the wall on the city side (left of the gate), and a chest at the far end of the walk, out of sight from
+    # the street: the reward for climbing up. The chest is the old TreasureChest sheet (frame 0 closed); a trigger zone
+    # logs when Miko reaches it, ready for the interaction code
+    granite_s = city.ground_material("JP_Stone_Granite")
+    riser_s = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Riser", (0.42, 0.4, 0.38))
+    # gangi-style: the flight runs left-right against the wall's foot (rising to the left, away from the gate), so it
+    # doesn't cover the inn; the top tread meets the front edge of the walk (y 33.6)
+    stair_s = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Light", (1.3, 1.24, 1.12))   # lighter than the wall
+    c.stairs_along_wall(P, stair_s, -4.4, -11.8, 32.6, Z2, walk_z, width=2.0, riser=riser_s)
+    chest_tex = kit.handle_of(os.path.join(ASSETS, "Sprites", "Props", "TreasureChest.png.hymeta"))
+    c.w.entity("chest:WallWalk", "Chest Wall Walk", parent=P, t=(-45.0, 37.6, walk_z), s=(1, 1, 1), body=(
+        "    SpriteRendererComponent:\n      Color: [1, 1, 1, 1]\n      TilingFactor: 1\n      SortOrder: 0\n      TextureHandle: %d\n"
+        "      Sprite: Chest_0\n      SpriteIndex: 0\n      FlipX: false\n      FlipY: false\n      Facing: Upright\n"
+        "    BoxColliderComponent:\n      Offset: [0, 0, 0.35]\n      Size: [0.9, 0.6, 0.7]\n      Layer: World\n      IsTrigger: false\n") % chest_tex)
+    c.w.entity("trigger:WallWalkChest", "Trigger Wall Walk Chest", parent=P, t=(-45.0, 36.6, walk_z), body=(
+        "    BoxColliderComponent:\n      Offset: [0, 0, 0.8]\n      Size: [2.4, 2.0, 1.6]\n      Layer: World\n      IsTrigger: true\n"
+        "    NativeScriptComponent:\n      Scripts:\n        - Name: TriggerZoneScript\n          Properties:\n            Watched: Player\n"))
+    d.lantern(P, -45.0, 37.2, walk_z + 0.6, 0.6, 2.0)
+    c.model(P, "Props/JP_Prop_SpearRack_A", 8.8, 32.2, Z2)          # moved off the wall stairs
     c.model(P, "Props/JP_Prop_WarDrum_A", 6.4, 32.0, Z2)
     # plaza dressing: well and tea bench near the corners, stone lanterns along the path, cherry and pine
-    for (name, x, y, r) in (("JP_Prop_Well_A", -7.6, 20.2, 0), ("JP_Prop_TeaBench_A", 7.4, 20.0, 0), ("JP_Prop_SakeBarrelStack_A", -9.8, 29.8, 90),
+    for (name, x, y, r) in (("JP_Prop_Well_A", -7.6, 20.2, 0), ("JP_Prop_TeaBench_A", 7.4, 20.0, 0), ("JP_Prop_SakeBarrelStack_A", -8.0, 29.4, 90),
                             ("JP_Prop_Crate_A", 9.8, 30.0, 0), ("JP_Prop_Barrel_A", 10.0, 29.2, 0)):
         c.model(P, "Props/" + name, x, y, Z2, r)
     for y in (22.0, 27.0):
@@ -491,8 +586,9 @@ def build(c, args):
     T = c.group("Townsfolk")
     # the Edo townsfolk (Nov 1): the merchant at his shop, people in pairs facing each other, the old woman resting by
     # the stairs; the pilgrim and the monk stay (travellers on the way to the shrine)
-    for (name, x, y, z, clip) in (("Merchant", 11.2, -0.9, Z0, "IdleDown"), ("Merchant", -27.8, -0.9, Z0, "IdleDown"),
-                                  ("Townsman", 15.4, -2.6, Z0, "IdleRight"), ("Townswoman", 16.7, -2.6, Z0, "IdleLeft"),
+    # (the two street merchants stand inside their shops now, see the merchant street; a customer at the right one)
+    for (name, x, y, z, clip) in (("Townswoman", 13.6, -0.95, Z0, "IdleUp"),
+                                  ("Townsman", 17.4, -2.6, Z0, "IdleRight"), ("Townswoman", 18.7, -2.6, Z0, "IdleLeft"),
                                   ("Townswoman", -15.6, -5.6, Z0, "IdleRight"), ("OldWoman", -14.4, -5.4, Z0, "IdleLeft"),
                                   ("Pilgrim", -9.0, -3.4, Z0, "IdleDown"), ("Townsman", 23.5, -6.4, Z0, "IdleDown"),
                                   ("Monk", 1.4, 5.0, Z0 + (5.0 - 1.0) / 7.0 * Z1, "IdleDown"), ("OldWoman", -1.6, 9.6, Z1, "IdleDown"),
@@ -509,7 +605,16 @@ def build(c, args):
     c.blocker(B, 32, 33, -9.0, 1.0)
     c.blocker(B, -12.5, -11.5, 17.5, 33.0, Z2)              # the plaza's sides: the inn and the guild hall
     c.blocker(B, 11.5, 12.5, 17.5, 33.0, Z2)
-    c.blocker(B, -3.0, 3.0, 34.6, 35.6, Z2)                 # the gate: not through it yet
+    # the gate passage leads out: an "Exit <scene>" zone (FieldDirectorScript: E to leave, fade, scene push) to the
+    # countryside hub; the road beyond is blocked a little further so she can't wander off the slice
+    c.w.entity("exit:Gate", "Exit JapaneseCountryside", parent=B, t=(0.0, 36.0, Z2), body=(
+        "    BoxColliderComponent:\n      Offset: [0, 0, 1]\n      Size: [3.6, 2.4, 2]\n      Layer: Trigger\n      IsTrigger: true\n"))
+    c.blocker(B, -3.0, 3.0, 38.6, 39.6, Z2)
+    c.blocker(B, -47.6, -47.0, 33.0, 39.5, Z2 + 4.5)        # the far end of the wall walk
+    # the city-side edge of the walk (open only where the stairs arrive), so she can't step off the wall
+    c.blocker(B, -47.0, -11.8, 33.3, 33.6, Z2 + 4.5, 1.5)
+    c.blocker(B, -10.6, -7.0, 33.6, 33.9, Z2 + 4.5, 1.5)
+    c.blocker(B, -12.2, -11.8, 31.6, 33.6, Z2 + 4.5, 1.5)       # the top end of the wall stairs
     c.blocker(B, -4.2, -3.5, 8.0, 11.0, Z1)                 # the landing: the gardens are only to look at
     c.blocker(B, 3.5, 4.2, 8.0, 11.0, Z1)
 
@@ -522,6 +627,9 @@ def build(c, args):
     # the stairs: pulled back and higher, aiming up the flight so the landing and the next level show
     c.zone(Zg, "Stairs", 0.0, 9.25, (7.0, 17.5), priority=1, tilt=72, fov=30, scale=0.9, lead=3.5, rise=3.2,
            pan_min=(0.0, -6.0), pan_max=(0.0, 8.5), blend=1.6)
+    # the wall walk (left of the gate): a little higher, sliding along the wall
+    c.zone(Zg, "WallWalk", -27.0, 36.3, (40.0, 6.6), priority=2, tilt=68, fov=30, scale=0.95, lead=1.0, rise=2.0,
+           pan_min=(-16.0, -1.0), pan_max=(16.0, 0.0), blend=1.4)
     # the plaza: centred on the gate, a little closer
     c.zone(Zg, "Plaza", 0.0, 25.5, (26.0, 16.5), tilt=77, yaw=args.plaza_yaw, fov=30, scale=1.0, lead=2.0, rise=3.6,
            pan_min=(-5.0, -5.0), pan_max=(5.0, -2.0), blend=1.4)
@@ -530,10 +638,11 @@ def build(c, args):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--profile", default="Dusk", choices=["Day", "Dusk", "Night"])
-    ap.add_argument("--start", default="street", choices=["street", "stairs", "landing", "plaza"])
+    ap.add_argument("--start", default="street", choices=["street", "stairs", "landing", "plaza", "wall"])
     ap.add_argument("--street-tilt", type=float, default=82.0)
     ap.add_argument("--street-rise", type=float, default=3.8)
     ap.add_argument("--street-scale", type=float, default=0.95)
+    ap.add_argument("--start-pos", default="", help="x,y,z: start the player here instead (overrides --start)")
     ap.add_argument("--no-fg", action="store_true", help="leave out the foreground branches")
     ap.add_argument("--plaza-yaw", type=float, default=0.0, help="turn the plaza's camera zone (degrees), to try a yawed view")
     args = ap.parse_args()
@@ -542,8 +651,9 @@ def main():
     scene_handle = kit.handle_of(SCENE) if os.path.exists(SCENE) else kit.stable_id("scene")
     c = Slice(summary)
     w = c.w
-    starts = {"street": (0.0, -4.0, Z0), "stairs": (0.0, 4.0, 2.2), "landing": (0.0, 9.5, Z1 + 0.05), "plaza": (0.0, 21.0, Z2 + 0.05)}
-    start = starts[args.start]
+    starts = {"street": (0.0, -4.0, Z0), "stairs": (0.0, 4.0, 2.2), "landing": (0.0, 9.5, Z1 + 0.05), "plaza": (0.0, 21.0, Z2 + 0.05),
+              "wall": (-38.0, 36.2, Z2 + 4.55)}
+    start = tuple(float(v) for v in args.start_pos.split(",")) if args.start_pos else starts[args.start]
     w.entity("Player", "Player", t=start, s=(2.5, 2.34375, 3), body=kit.character_body(kit.MIKO_TEXTURE, kit.MIKO_ANIM, "IdleUp", "Miko_0", True))
     w.entity("Camera", "Camera", t=(start[0], start[1] - 14.0, start[2] + 10.0), r=(0.977, 0, 0), body=(
         "    CameraComponent:\n      Primary: true\n      Projection: Perspective\n      PerspectiveFOV: 30\n      PerspectiveNear: 0.5\n"
@@ -559,6 +669,11 @@ def main():
         "            NightLanterns: 1.6\n            NightWindows: 1.3\n"
         "            StartPreset: %d\n            DayProfile: %d\n            DuskProfile: %d\n            NightProfile: %d\n")
         % (("Day", "Dusk", "Night").index(args.profile), profiles["Day"], profiles["Dusk"], profiles["Night"]))
+    w.entity("FieldDirector", "Field Director", body=(
+        "    NativeScriptComponent:\n      Scripts:\n        - Name: FieldDirectorScript\n          Properties:\n"
+        "            InteractRange: 1.7\n            MaxReachHeight: 1\n            FacingDegrees: 80\n            CloseRange: 0.6\n"
+        "            SwitchMargin: 0.3\n            EyeHeight: 1\n            ItemHeight: 0.6\n            MessageTime: 3\n"
+        "            LeaveTime: 0.6\n            ArriveTime: 0.6\n            RestTime: 1.2\n"))
     w.entity("Lighting", "Lighting")
     w.entity("Sun", "Sun", parent="Lighting", t=(-8, -6, 10), r=(1.01229095, 0, -0.663224995), body=(
         "    DirectionalLightComponent:\n      Color: [1, 0.86, 0.7]\n      Intensity: 0.8\n      IsMainLight: true\n      CastShadows: true\n"

@@ -5,7 +5,7 @@
   "width": 14.0,
   "depth": 7.0,
   "height": 10.65,
-  "faces": 2518,
+  "faces": 2506,
   "location": [
    -52.5,
    44.0
@@ -68,6 +68,7 @@
   "door_x": 0.0,
   "head_z": 2.65,
   "arm_z": 3.53,
+  "shop_floor_z": null,
   "pent_z": 3.55,
   "tier": "A",
   "width": 14.0,
@@ -89,6 +90,7 @@
   "door_x": 0.0,
   "head_z": 2.65,
   "arm_z": 3.53,
+  "shop_floor_z": null,
   "pent_z": 3.55,
   "tier": "A",
   "width": 14.0,
@@ -110,6 +112,7 @@
   "door_x": 0.0,
   "head_z": 2.65,
   "arm_z": 3.53,
+  "shop_floor_z": null,
   "pent_z": 3.55,
   "tier": "A",
   "width": 10.0,
@@ -201,6 +204,7 @@
   "door_x": 0.0,
   "head_z": 2.5,
   "arm_z": 3.18,
+  "shop_floor_z": null,
   "pent_z": 3.26,
   "tier": "B",
   "width": 6.0,
@@ -208,7 +212,7 @@
   "height": 7.79,
   "faces": 1689,
   "location": [
-   -17.2,
+   -87.45,
    22.0
   ]
  },
@@ -222,6 +226,7 @@
   "door_x": 1.0,
   "head_z": 2.5,
   "arm_z": 3.18,
+  "shop_floor_z": null,
   "pent_z": 3.26,
   "tier": "B",
   "width": 8.0,
@@ -229,7 +234,7 @@
   "height": 8.04,
   "faces": 1904,
   "location": [
-   -7.2,
+   -77.45,
    22.0
   ]
  },
@@ -243,6 +248,7 @@
   "door_x": -2.0,
   "head_z": 2.5,
   "arm_z": 3.18,
+  "shop_floor_z": null,
   "pent_z": 3.26,
   "tier": "B",
   "width": 6.0,
@@ -250,7 +256,7 @@
   "height": 7.55,
   "faces": 1538,
   "location": [
-   2.8,
+   -67.45,
    22.0
   ]
  },
@@ -264,14 +270,15 @@
   "door_x": null,
   "head_z": 2.5,
   "arm_z": 3.18,
+  "shop_floor_z": 0.75,
   "pent_z": 3.26,
   "tier": "B",
   "width": 6.0,
   "depth": 9.0,
   "height": 7.79,
-  "faces": 1362,
+  "faces": 2287,
   "location": [
-   11.8,
+   -58.45,
    22.0
   ]
  },
@@ -283,7 +290,567 @@
   "height": 11.95,
   "faces": 965,
   "location": [
-   19.0,
+   -51.25,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1313,
+  "location": [
+   -44.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1191,
+  "location": [
+   -37.55,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1313,
+  "location": [
+   -31.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1430,
+  "location": [
+   -24.55,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_L": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1603,
+  "location": [
+   -17.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_M": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1488,
+  "location": [
+   -8.55,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_R": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1603,
+  "location": [
+   -0.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_F": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1720,
+  "location": [
+   8.45,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1347,
+  "location": [
+   15.95,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1207,
+  "location": [
+   22.45,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1329,
+  "location": [
+   28.95,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1464,
+  "location": [
+   35.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2073,
+  "location": [
+   41.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1951,
+  "location": [
+   48.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2073,
+  "location": [
+   54.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2190,
+  "location": [
+   61.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2109,
+  "location": [
+   67.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1969,
+  "location": [
+   74.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2091,
+  "location": [
+   80.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2226,
+  "location": [
+   87.45,
    22.0
   ]
  },
@@ -648,12 +1215,14 @@
    "faces": 23
   },
   "JP_Prop_MarketStall_A": {
-   "counter_z": 0.82,
-   "faces": 48
+   "counter_z": 0.86,
+   "counter_y": 0.45,
+   "faces": 191
   },
   "JP_Prop_MarketStall_B": {
-   "counter_z": 0.82,
-   "faces": 48
+   "counter_z": 0.86,
+   "counter_y": 0.45,
+   "faces": 191
   }
  },
  "_modules": {
