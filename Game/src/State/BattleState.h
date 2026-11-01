@@ -3,7 +3,9 @@
 
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
+#include "Data/ItemDefinition.h"
 #include "Rules/BattleRules.h"
+#include "Rules/PartyRules.h"
 
 #include <algorithm>
 #include <array>
@@ -195,7 +197,15 @@ namespace Hydro
 		int HeroMP[HeroCount] = {};
 		int HeroLevel[HeroCount] = {};
 		int HeroExperience[HeroCount] = {};       // in total, since level 1
-		std::vector<DataRowRef> HeroAbilities[HeroCount]; // known, in the order the menu uses
+		std::vector<DataRowRef> HeroAbilities[HeroCount]; // known, in the order learned
+		// The battle's ability slots (the Menu plan: 7 core and 1 for an ultimate later), set in the field menu's
+		// Abilities tab; a newly learned ability takes the first empty one. Empty: an unset row.
+		static constexpr int AbilitySlotCount = 8;
+		std::array<DataRowRef, AbilitySlotCount> HeroAbilitySlots[HeroCount];
+		// What each hero wears (the Menu plan's slots; EquipPosition). Empty: an unset row. Equipped items are not in
+		// the inventory (Rules/PartyRules.h moves them).
+		static constexpr int EquipSlotCount = 6;
+		std::array<DataRowRef, EquipSlotCount> HeroEquipment[HeroCount];
 		bool PartyStarted = false;
 		bool Active = false;               // a battle was started and has not been settled yet
 		uint64_t EnemyId = 0;              // UUID of the field enemy that started it
@@ -229,6 +239,12 @@ namespace Hydro
 				HeroLevel[i] = 1;
 				HeroExperience[i] = 0;
 				HeroAbilities[i] = BattleData::HeroData(i).StartingAbilities;
+				HeroAbilitySlots[i] = {};
+				for (size_t a = 0; a < HeroAbilities[i].size() && a < (size_t)AbilitySlotCount; a++)
+				{
+					HeroAbilitySlots[i][a] = HeroAbilities[i][a];
+				}
+				HeroEquipment[i] = {};
 			}
 			RestoreParty();
 		}
@@ -267,6 +283,15 @@ namespace Hydro
 						if (learned.Level == HeroLevel[h] && learned.Ability.IsSet() && known == false)
 						{
 							HeroAbilities[h].push_back(learned.Ability);
+							// Into the first empty battle slot, so it can be used at once.
+							for (DataRowRef& slot : HeroAbilitySlots[h])
+							{
+								if (slot.IsSet() == false)
+								{
+									slot = learned.Ability;
+									break;
+								}
+							}
 							message += " Learned " + BattleData::Ability(learned.Ability).Name + ".";
 						}
 					}
@@ -284,6 +309,28 @@ namespace Hydro
 		const int clamped = std::clamp(index, 0, HeroCount - 1);
 		const int level = GameSession::IsRunning() ? std::max(1, BattleState::Get().HeroLevel[clamped]) : 1;
 		stats[clamped] = StatsAt(clamped, level);
+		if (GameSession::IsRunning())
+		{
+			// What the hero wears adds to it (ItemDefinition::Bonus).
+			HeroStats& hero = stats[clamped];
+			for (const DataRowRef& worn : BattleState::Get().HeroEquipment[clamped])
+			{
+				if (worn.IsSet() == false)
+				{
+					continue;
+				}
+				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(worn);
+				if (item.IsValid() == false)
+				{
+					continue;
+				}
+				hero.MaxHP = std::max(1, hero.MaxHP + item->Bonus.MaxHP);
+				hero.MaxMP = std::max(0, hero.MaxMP + item->Bonus.MaxMP);
+				hero.Attack = std::max(0, hero.Attack + item->Bonus.Attack);
+				hero.Magic = std::max(0, hero.Magic + item->Bonus.Magic);
+				hero.Speed = std::max(0, hero.Speed + item->Bonus.Speed);
+			}
+		}
 		return stats[clamped];
 	}
 
@@ -294,7 +341,7 @@ namespace Hydro
 		{
 			return none;
 		}
-		const std::vector<DataRowRef>& known = BattleState::Get().HeroAbilities[std::clamp(index, 0, HeroCount - 1)];
-		return slot >= 0 && slot < (int)known.size() ? Ability(known[(size_t)slot]) : none;
+		const auto& slots = BattleState::Get().HeroAbilitySlots[std::clamp(index, 0, HeroCount - 1)];
+		return slot >= 0 && slot < (int)slots.size() ? Ability(slots[(size_t)slot]) : none;
 	}
 }

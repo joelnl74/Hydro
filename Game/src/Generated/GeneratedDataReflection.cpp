@@ -5,6 +5,7 @@
 #include "Hydro/Data/DataTypeRegistry.h"
 
 #include "Data/BattleDefinitions.h"
+#include "Data/CombatStats.h"
 #include "Data/DialogueDefinition.h"
 #include "Data/FieldDefinitions.h"
 #include "Data/InventoryDefinition.h"
@@ -32,6 +33,14 @@ namespace Hydro
 			.Value("Light", DamageType::Light)
 			.Value("None", DamageType::None);
 
+		DataTypeRegistry::RegisterEnum<EquipSlot>("EquipSlot")
+			.Value("None", EquipSlot::None)
+			.Value("Weapon", EquipSlot::Weapon)
+			.Value("OffHand", EquipSlot::OffHand)
+			.Value("Head", EquipSlot::Head)
+			.Value("Body", EquipSlot::Body)
+			.Value("Accessory", EquipSlot::Accessory);
+
 		DataTypeRegistry::RegisterEnum<ItemKind>("ItemKind")
 			.Value("Consumable", ItemKind::Consumable)
 			.Value("Equipment", ItemKind::Equipment)
@@ -56,13 +65,6 @@ namespace Hydro
 			.Field<&AbilityDefinition::Heals>("Heals", "Heals").Tooltip("Heals the most hurt ally instead of hitting a foe")
 			.Field<&AbilityDefinition::Clip>("Clip", "Clip").Tooltip("The hero's clip for it; \"Kick\" strikes as a kick, any other clip as a punch")
 			.Field<&AbilityDefinition::Approach>("Approach", "Approach").Tooltip("Walks up to the target first (a strike) instead of acting from where the hero stands");
-
-		DataTypeRegistry::Register<CombatStats>("CombatStats", "Combat Stats")
-			.Field<&CombatStats::MaxHP>("MaxHP", "Max HP").Range(0.0f, 9999.0f)
-			.Field<&CombatStats::MaxMP>("MaxMP", "Max MP").Range(0.0f, 999.0f)
-			.Field<&CombatStats::Attack>("Attack", "Attack").Range(0.0f, 999.0f)
-			.Field<&CombatStats::Magic>("Magic", "Magic").Range(0.0f, 999.0f)
-			.Field<&CombatStats::Speed>("Speed", "Speed").Range(0.0f, 99.0f).Tooltip("Who acts first: higher goes earlier");
 
 		DataTypeRegistry::Register<EncounterDefinition>("EncounterDefinition", "Encounter")
 			.Table()
@@ -115,6 +117,13 @@ namespace Hydro
 			.Definition()
 			.Field<&LevelCurve::ExperienceToLevel>("ExperienceToLevel", "Experience To Level").Tooltip("Total experience to reach level 2, 3, ... in order; its length + 1 is the level cap");
 
+		DataTypeRegistry::Register<CombatStats>("CombatStats", "Combat Stats")
+			.Field<&CombatStats::MaxHP>("MaxHP", "Max HP").Range(0.0f, 9999.0f)
+			.Field<&CombatStats::MaxMP>("MaxMP", "Max MP").Range(0.0f, 999.0f)
+			.Field<&CombatStats::Attack>("Attack", "Attack").Range(0.0f, 999.0f)
+			.Field<&CombatStats::Magic>("Magic", "Magic").Range(0.0f, 999.0f)
+			.Field<&CombatStats::Speed>("Speed", "Speed").Range(0.0f, 99.0f).Tooltip("Who acts first: higher goes earlier");
+
 		DataTypeRegistry::Register<DialogueDefinition>("DialogueDefinition", "Dialogue")
 			.Definition()
 			.Table()
@@ -154,7 +163,9 @@ namespace Hydro
 			.Field<&ItemDefinition::Icon>("Icon", "Icon").Tooltip("Optional; the inventory has no icons yet").AssetFilter(AssetType::Texture2D)
 			.Field<&ItemDefinition::RestoreHP>("RestoreHP", "Restore HP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
 			.Field<&ItemDefinition::RestoreMP>("RestoreMP", "Restore MP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
-			.Field<&ItemDefinition::UsableInField>("UsableInField", "Usable In Field").Tooltip("Can be used from the field inventory");
+			.Field<&ItemDefinition::UsableInField>("UsableInField", "Usable In Field").Tooltip("Can be used from the field inventory")
+			.Field<&ItemDefinition::Slot>("Slot", "Slot").Tooltip("Equipment: the slot it goes in (None: not equipment)")
+			.Field<&ItemDefinition::Bonus>("Bonus", "Bonus").Tooltip("Equipment: added to the wearer's numbers");
 
 		DataTypeRegistry::Register<LootEntry>("LootEntry", "Loot Entry")
 			.Field<&LootEntry::Item>("Item", "Item").DataTypeFilter("ItemDefinition")

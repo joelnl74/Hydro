@@ -106,7 +106,7 @@ Entities:
       Scale: [1, 1, 1]
     NativeScriptComponent:
       Scripts:
-        - Name: MvpDirectorScript
+        - Name: FieldDirectorScript
           Properties:
             ArriveTime: 0.600000024
             CloseRange: 0.600000024

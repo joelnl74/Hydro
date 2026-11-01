@@ -238,7 +238,7 @@ namespace Hydro
 			return glm::clamp(focus, -fallbackHalfSize, fallbackHalfSize);
 		}
 
-		// Where the camera looks this frame, for world-space UI (MvpDirectorScript): the focus point on the ground
+		// Where the camera looks this frame, for world-space UI (FieldDirectorScript): the focus point on the ground
 		// and the camera's right, up and back (towards the camera). Top-down: the camera's x, y at z 0; +X; +Y; +Z.
 		static inline glm::vec3 Focus{ 0.0f };
 		static inline glm::vec3 Right{ 1.0f, 0.0f, 0.0f };

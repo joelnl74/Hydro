@@ -5,7 +5,7 @@ kit's textures, until the inn interior kit is modelled in Blender (see the wiki'
 
     python scripts/interiors/build_inn.py
 
-How interiors work (MvpDirectorScript, Scripts/Interiors/InteriorScript.h):
+How interiors work (FieldDirectorScript, Scripts/Interiors/InteriorScript.h):
   - "Door Inn" in the Farm Village opens FarmVillageInn (a door's scene is "<this scene><Name>", else "<Name>"):
     the village fades out and the inn is pushed on top, so the village waits exactly as it was left.
   - "Door Out" (at the room's open front) pops back to the village, at the inn's door.
@@ -510,7 +510,7 @@ def directors(b, room_name):
               "RoomName": room_name, "TiltDegrees": 52, "FieldOfView": 30, "FocusLead": 0.6, "FocusRise": 0.8,
               "BoundsMin": [-1.5, -1.2], "BoundsMax": [1.5, 1.2], "StartPreset": 1}}]})
     b.add("MVP Director", group, TransformComponent=transform(),
-          NativeScriptComponent={"Scripts": [{"Name": "MvpDirectorScript", "Properties": {
+          NativeScriptComponent={"Scripts": [{"Name": "FieldDirectorScript", "Properties": {
               "ArriveTime": 0.6, "CloseRange": 0.6, "EyeHeight": 1, "FacingDegrees": 80, "InteractRange": 1.7, "ItemHeight": 0.6,
               "LeaveTime": 0.6, "MaxReachHeight": 1, "MessageTime": 3, "RestTime": 1.2, "SwitchMargin": 0.3}}]})
 

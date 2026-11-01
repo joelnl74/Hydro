@@ -7,7 +7,7 @@ dialogue (scripts/ui/make_ui_art.py draws the art).
 Close the scenes in the editor first. Each run removes what an earlier run (or the older UI it replaces) put there,
 by tag, with every descendant, and appends the UI again, so it can be run as often as needed; entity IDs come from
 the tags, so they stay the same between runs. Everything else in the scenes is left alone. The entity names are the
-ones BattleScript, MvpDirectorScript and DialogueScript look up: rename them in both places.
+ones BattleScript, FieldDirectorScript (its views) and DialogueScript look up: rename them in both places.
 
 Check the result offline with scripts/ui/preview_ui.py.
 
@@ -35,12 +35,12 @@ FONT_BODY = handle_of("Fonts/EBGaramond30.fnt")
 FONT_SMALL = handle_of("Fonts/EBGaramond22.fnt")
 FONT_TITLE = handle_of("Fonts/Cinzel34.fnt")
 FONT_LABEL = handle_of("Fonts/Cinzel20.fnt")
-ART = {name: handle_of("UI/%s.png" % name) for name in
+ART = {name: handle_of("Sprites/UI/%s.png" % name) for name in
        ("Ribbon", "RibbonFocus", "Frame", "Paper", "Banner", "Divider", "Plate", "Cursor", "Marker", "Shield", "Chip", "Fade", "Pip",
         "Band", "QuestMark")}
 BORDERS = {"Ribbon": [20, 10, 34, 10], "RibbonFocus": [20, 10, 34, 10], "Frame": [22, 22, 22, 22], "Paper": [22, 22, 22, 22],
            "Banner": [26, 12, 26, 12], "Divider": [14, 0, 14, 0], "Plate": [16, 8, 16, 8]}
-BATTLE_ICONS = handle_of("DioramaRPG/UI/BattleIcons.png")
+BATTLE_ICONS = handle_of("Sprites/UI/BattleIcons.png")
 
 CREAM = [0.95, 0.91, 0.83, 1]
 DIM = [0.74, 0.71, 0.64, 1]
@@ -201,8 +201,7 @@ def build_battle(director):
     header = b.add("Command Header", commands, UIRectComponent=rect(size=(440, 46)), UIImageComponent=image("Plate"))
     b.add("Command Hero", header, UIRectComponent=fill((60, 0, 20, 0)), UITextComponent=text("Miko", FONT_LABEL, GOLD))
     b.add("Command Boost", header, UIRectComponent=fill((60, 0, 24, 0)), UITextComponent=text("E: boost", FONT_SMALL, CREAM, "Right"))
-    names = [("Attack", "Attack", ""), ("SkillA", "Flame Kick", "5 MP"), ("SkillB", "Holy Palm", "6 MP"), ("Guard", "Guard", ""),
-             ("Potion", "Potion", "x3"), ("Run", "Run", "")]
+    names = [("Attack", "Attack", ""), ("Abilities", "Abilities", ""), ("Items", "Items", "x2"), ("Guard", "Guard", ""), ("Run", "Run", "")]
     for c, (event, name, cost) in enumerate(names):
         ribbon_row(b, "Command %d" % c, commands, 440, 56, name, cost, event)
     helpbar = b.add("Command Help Bar", commands, UIRectComponent=rect(size=(440, 48)), UIImageComponent=image("Fade", nine=False))
@@ -214,6 +213,18 @@ def build_battle(director):
     b.add("Target Hint", theader, UIRectComponent=fill((60, 0, 24, 0)), UITextComponent=text("Esc: back", FONT_SMALL, CREAM, "Right"))
     for e in range(3):
         ribbon_row(b, "Target %d" % e, targets, 440, 56, "Slime " + "ABC"[e], "HP 40", "Target")
+
+    # The sub-menu (Abilities: the hero's 8 ability slots; Items: the usable items), also in the commands' place.
+    sub = b.add("Sub Panel", root, UIRectComponent=rect((0.5, 0), None, (0, 1), (150, 560), (440, 10)), UILayoutGroupComponent=group(spacing=4))
+    sheader = b.add("Sub Header", sub, UIRectComponent=rect(size=(440, 46)), UIImageComponent=image("Plate"))
+    b.add("Sub Title", sheader, UIRectComponent=fill((60, 0, 20, 0)), UITextComponent=text("Abilities", FONT_LABEL, GOLD))
+    b.add("Sub Hint", sheader, UIRectComponent=fill((60, 0, 24, 0)), UITextComponent=text("Esc: back", FONT_SMALL, CREAM, "Right"))
+    abilities = [("Flame Kick", "5 MP"), ("Holy Palm", "6 MP"), ("Radiant Kick", "8 MP"), ("Spirit Lance", "10 MP")]
+    for r in range(8):
+        name, cost = abilities[r] if r < len(abilities) else ("-", "")
+        ribbon_row(b, "Sub Command %d" % r, sub, 440, 48, name, cost, "Sub", interactable=r < len(abilities))
+    subhelp = b.add("Sub Help Bar", sub, UIRectComponent=rect(size=(440, 48)), UIImageComponent=image("Fade", nine=False))
+    b.add("Sub Help", subhelp, UIRectComponent=fill((24, 0, 12, 0)), UITextComponent=text("Fire damage to one foe.", FONT_SMALL, CREAM))
 
     # Each enemy's shield and weaknesses, pinned under its feet (World canvases, placed by BattleScript).
     for e in range(3):
@@ -247,7 +258,7 @@ ITEMS = [("Potion", "x3"), ("Hi-Potion", "x1"), ("Ether", "x2"), ("Herb Tea", "x
 def build_field(scene_name, director):
     b = Builder(scene_name)
 
-    # The interaction prompt over the player's head: a World canvas MvpDirectorScript moves and shows.
+    # The interaction prompt over the player's head: a World canvas FieldDirectorScript (InteractPromptView) moves and shows.
     prompt = b.add("Prompt Canvas", director, TransformComponent=transform(), UICanvasComponent=canvas(5, world=([220, 52], [0.5, 0])))
     b.add("Prompt Plate", prompt, UIRectComponent=fill(), UIImageComponent=image("Plate"))
     b.add("Prompt Text", prompt, UIRectComponent=fill((16, 0, 16, 0)), UITextComponent=text("E  Talk", FONT_SMALL, CREAM, "Center"))

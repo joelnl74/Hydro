@@ -8,6 +8,8 @@
 #include "Scripts/Field/EnemyChaseScript.h"
 #include "State/QuestLog.h"
 #include "Views/DialogueScript.h"
+#include "Scripts/ShrineGlade/TreeAwakening.h"
+#include "Views/LetterboxView.h"
 #include "Views/QuestTrackerScript.h"
 
 #include <algorithm>
@@ -81,23 +83,11 @@ namespace Hydro
 			// entered from another scene keeps it.
 			m_Monk = Find(scene, "Npc " + MonkName);
 			m_Player = Find(scene, "Player");
-			m_Tree = Find(scene, "Sacred Tree");
-			m_TreeAwake = Find(scene, "Sacred Tree Awake");
-			m_TreeGlow = Find(scene, "Sacred Tree Glow");
+			m_Tree.Bind(scene, GlowColor, &Find);
 			m_DialogueCanvas = Find(scene, "Dialogue Canvas");
-			m_Cinematic = Find(scene, "Cinematic Canvas");
-			m_LetterboxTop = Find(scene, "Letterbox Top");
-			m_LetterboxBottom = Find(scene, "Letterbox Bottom");
+			m_Letterbox.Bind(scene);
 			m_MarkerCanvas = Find(scene, "Quest Marker Canvas");
 			m_Marker = Find(scene, "Quest Marker");
-			if (m_TreeGlow.IsValid() && m_TreeGlow.HasComponent<SpriteRendererComponent>())
-			{
-				m_GlowEmission = m_TreeGlow.GetComponent<SpriteRendererComponent>().EmissionIntensity;
-			}
-			if (m_LetterboxTop.IsValid() && m_LetterboxTop.HasComponent<UIRectComponent>())
-			{
-				m_LetterboxHeight = m_LetterboxTop.GetComponent<UIRectComponent>().SizeDelta.y;
-			}
 
 			auto view = scene.m_Registry.view<TagComponent>();
 			for (auto entity : view)
@@ -108,15 +98,15 @@ namespace Hydro
 				}
 			}
 
-			UI::SetVisible(m_Cinematic, false);
-			SetLetterbox(0.0f);
+			m_Letterbox.SetShown(false);
+			m_Letterbox.Set(0.0f);
 			QuestLog::Get().Claim(MonkName);
 			// Coming back to the glade after the errand: the tree is awake and the monk only says goodbye.
 			if (QuestLog::Get().Find(DutyQuest()) != nullptr)
 			{
 				m_Step = Step::Done;
-				CreateTreeEffects(scene);
-				SetTreeAwake(1.0f, 0.0f);
+				m_Tree.CreateEffects(scene);
+				m_Tree.Set(1.0f, 0.0f);
 			}
 			else
 			{
@@ -323,47 +313,23 @@ namespace Hydro
 		{
 			m_Step = Step::Tremor;
 			m_StepTime = 0.0f;
-			UI::SetVisible(m_Cinematic, true);
+			m_Letterbox.SetShown(true);
 			// Where the camera looks: the tree's foot (an Upright sprite stands on its bottom edge), on its terrace.
-			const glm::vec3 foot = TreeFoot(scene);
+			const glm::vec3 foot = m_Tree.GetFoot(scene);
 			DioramaView::CinematicFocus = glm::vec2(foot) + TreeFocusOffset;
 			DioramaView::CinematicHeight = foot.z + TreeFocusRise;
 			DioramaView::CinematicWeight = 0.0f;
 			DioramaView::CinematicZoom = 1.0f;
 			DioramaView::CinematicShake = 0.0f;
-			CreateTreeEffects(scene);
+			m_Tree.CreateEffects(scene);
 			HY_INFO("Shrine quest: the tremor");
-		}
-
-		// The light the waking tree gives, and the motes rising round its trunk (both stay: the tree stays awake).
-		void CreateTreeEffects(Scene& scene)
-		{
-			const glm::vec3 foot = TreeFoot(scene);
-			if (m_TreeLight.IsValid() == false)
-			{
-				m_TreeLight = scene.CreateEntity("Light Sacred Tree");
-				m_TreeLight.AddComponent<TransformComponent>().Translation = foot + glm::vec3(0.0f, -0.4f, 0.0f);
-				Light2DComponent& light = m_TreeLight.AddComponent<Light2DComponent>();
-				light.Type = Light2DType::Point;
-				light.Color = GlowColor;
-				light.Intensity = 0.0f;
-				light.Radius = 7.5f;
-				light.Height = 2.5f;
-			}
-			if (m_Motes.IsValid() == false)
-			{
-				m_Motes = scene.CreateEntity("Sacred Tree Motes");
-				// View-space particles are placed up the standing tree, along the camera's up (DioramaView::Above).
-				m_Motes.AddComponent<TransformComponent>().Translation = DioramaView::Above(foot + glm::vec3(0.0f, -0.6f, 0.0f), 0.8f);
-				m_Motes.AddComponent<ParticleEmitter2DComponent>(Motes(0.0f));
-			}
 		}
 
 		void UpdateTremor(Scene& scene, float deltaTime)
 		{
 			m_StepTime += deltaTime;
 			const float t = m_StepTime;
-			SetLetterbox(Smooth(t / 0.8f));
+			m_Letterbox.Set(Smooth(t / 0.8f));
 			DioramaView::CinematicWeight = Smooth(t / GlideTime);
 
 			// The ground moves: it builds over a second, judders at the peak, then stops dead.
@@ -378,17 +344,14 @@ namespace Hydro
 			DioramaView::CinematicShake = shake;
 			if (tremor >= 0.0f && m_LeavesFallen == false)
 			{
-				// Leaves shaken loose from the canopy, and dust kicked up at its roots.
 				m_LeavesFallen = true;
-				const glm::vec3 foot = TreeFoot(scene);
-				PlayEffect(scene, "Effect Falling Leaves", DioramaView::Above(foot, 7.5f), FallingLeaves());
-				PlayEffect(scene, "Effect Root Dust", DioramaView::Above(foot + glm::vec3(0.0f, -0.6f, 0.0f), 0.2f), RootDust());
+				m_Tree.ShakeLoose(scene);
 			}
 
 			// The slow push in, and the tree waking from the tremor's start.
 			DioramaView::CinematicZoom = 1.0f + (TreeZoom - 1.0f) * Smooth((t - 1.0f) / (TremorStart + AwakenTime));
 			const float awake = Smooth(tremor / AwakenTime);
-			SetTreeAwake(awake, m_Time);
+			m_Tree.Set(awake, m_Time);
 
 			if (tremor >= TremorTime + AfterTremor)
 			{
@@ -402,7 +365,7 @@ namespace Hydro
 		// The tree once awake: its veins and light breathe slowly.
 		void UpdateAwakeTree([[maybe_unused]] Scene& scene, [[maybe_unused]] float deltaTime)
 		{
-			SetTreeAwake(1.0f, m_Time);
+			m_Tree.Set(1.0f, m_Time);
 		}
 
 		void UpdateRelease(float deltaTime)
@@ -411,55 +374,15 @@ namespace Hydro
 			const float back = Smooth(m_StepTime / (GlideTime * 0.7f));
 			DioramaView::CinematicWeight = 1.0f - back;
 			DioramaView::CinematicZoom = TreeZoom + (1.0f - TreeZoom) * back;
-			SetLetterbox(1.0f - Smooth(m_StepTime / 0.8f));
+			m_Letterbox.Set(1.0f - Smooth(m_StepTime / 0.8f));
 			if (back >= 1.0f)
 			{
 				DioramaView::ResetCinematic();
-				SetLetterbox(0.0f);
-				UI::SetVisible(m_Cinematic, false);
+				m_Letterbox.Set(0.0f);
+				m_Letterbox.SetShown(false);
 				QuestLog::Get().Complete(SlimesQuest());
 				QuestLog::Get().Start(DutyQuest()); // take the road south to the Farm Village
 				m_Step = Step::Done;
-			}
-		}
-
-		// `amount` 0..1 of the waking (the overlay and the glow fade in, the light and motes grow); `time` drives
-		// the breathing.
-		void SetTreeAwake(float amount, float time)
-		{
-			const float breath = 0.5f + 0.5f * std::sin(time * 1.6f);
-			if (m_TreeAwake.IsValid() && m_TreeAwake.HasComponent<SpriteRendererComponent>())
-			{
-				m_TreeAwake.GetComponent<SpriteRendererComponent>().Color.a = amount;
-			}
-			if (m_TreeGlow.IsValid() && m_TreeGlow.HasComponent<SpriteRendererComponent>())
-			{
-				SpriteRendererComponent& glow = m_TreeGlow.GetComponent<SpriteRendererComponent>();
-				// The veins light up in pulses while it wakes, then settle into a slow breath.
-				const float pulse = amount < 1.0f ? 0.6f + 0.4f * std::abs(std::sin(time * 3.2f)) : 0.75f + 0.25f * breath;
-				glow.Color.a = std::min(1.0f, amount * 1.3f) * pulse;
-				glow.EmissionIntensity = m_GlowEmission * (0.7f + 0.6f * pulse);
-			}
-			if (m_TreeLight.IsValid() && m_TreeLight.HasComponent<Light2DComponent>())
-			{
-				m_TreeLight.GetComponent<Light2DComponent>().Intensity = amount * (1.1f + 0.4f * breath);
-			}
-			if (m_Motes.IsValid() && m_Motes.HasComponent<ParticleEmitter2DComponent>())
-			{
-				m_Motes.GetComponent<ParticleEmitter2DComponent>().Rate = 2.0f + 10.0f * amount;
-			}
-		}
-
-		void SetLetterbox(float amount)
-		{
-			const float offset = (1.0f - std::clamp(amount, 0.0f, 1.0f)) * m_LetterboxHeight;
-			if (m_LetterboxTop.IsValid() && m_LetterboxTop.HasComponent<UIRectComponent>())
-			{
-				m_LetterboxTop.GetComponent<UIRectComponent>().AnchoredPosition.y = offset;
-			}
-			if (m_LetterboxBottom.IsValid() && m_LetterboxBottom.HasComponent<UIRectComponent>())
-			{
-				m_LetterboxBottom.GetComponent<UIRectComponent>().AnchoredPosition.y = -offset;
 			}
 		}
 
@@ -479,7 +402,7 @@ namespace Hydro
 				return;
 			}
 			// Over the monk's head, bobbing a little: vermilion for a new errand, gold for "come back to me".
-			const glm::vec3 foot = Foot(scene, m_Monk);
+			const glm::vec3 foot = TreeAwakening::Foot(scene, m_Monk);
 			const float bob = 0.08f * std::sin(m_Time * 3.0f);
 			scene.SetWorldPosition(m_MarkerCanvas, DioramaView::Above(foot, 2.35f + bob));
 			if (m_Marker.IsValid() && m_Marker.HasComponent<UIImageComponent>())
@@ -488,118 +411,12 @@ namespace Hydro
 			}
 		}
 
-		// ---- Effects (plain component values, like the battle's) -------------------------------------------
-
-		// The cyan motes rising round the trunk; Rate is set every frame (SetTreeAwake).
-		ParticleEmitter2DComponent Motes(float rate) const
-		{
-			ParticleEmitter2DComponent motes;
-			motes.Looping = true;
-			motes.Duration = 2.0f;
-			motes.Rate = rate;
-			motes.MaxParticles = 96;
-			motes.Shape = EmitterShape::Box;
-			motes.ShapeSize = { 3.6f, 0.8f };
-			motes.Lifetime = { 2.5f, 4.5f };
-			motes.Speed = { 0.4f, 1.1f };
-			motes.Direction = 90.0f;
-			motes.Spread = 14.0f;
-			motes.StartSize = { 0.08f, 0.18f };
-			motes.EndSizeScale = 0.3f;
-			motes.Turbulence = 0.8f;
-			motes.StartColor = glm::vec4(GlowColor, 0.9f);
-			motes.EndColor = glm::vec4(GlowColor * 0.7f + glm::vec3(0.3f), 0.0f);
-			motes.Space = ParticleSpace::View;
-			motes.EmissionIntensity = 2.5f;
-			motes.SortOrder = 200;
-			return motes;
-		}
-
-		static ParticleEmitter2DComponent FallingLeaves()
-		{
-			ParticleEmitter2DComponent leaves;
-			leaves.Looping = false;
-			leaves.Duration = 2.5f;
-			leaves.Rate = 22.0f;
-			leaves.BurstCount = 12;
-			leaves.MaxParticles = 96;
-			leaves.Shape = EmitterShape::Box;
-			leaves.ShapeSize = { 8.0f, 2.5f };
-			leaves.Lifetime = { 2.0f, 3.5f };
-			leaves.Speed = { 0.2f, 0.8f };
-			leaves.Direction = -90.0f;
-			leaves.Spread = 40.0f;
-			leaves.StartSize = { 0.12f, 0.22f };
-			leaves.EndSizeScale = 0.8f;
-			leaves.StartRotation = { 0.0f, 360.0f };
-			leaves.AngularVelocity = { -200.0f, 200.0f };
-			leaves.Gravity = { 0.0f, -1.6f };
-			leaves.Drag = 1.2f;
-			leaves.Turbulence = 2.5f;
-			leaves.StartColor = { 0.62f, 0.72f, 0.3f, 1.0f };
-			leaves.EndColor = { 0.5f, 0.55f, 0.25f, 0.0f };
-			leaves.Space = ParticleSpace::View;
-			leaves.SortOrder = 190;
-			leaves.DestroyWhenFinished = true;
-			return leaves;
-		}
-
-		static ParticleEmitter2DComponent RootDust()
-		{
-			ParticleEmitter2DComponent dust;
-			dust.Looping = false;
-			dust.Duration = 1.5f;
-			dust.Rate = 18.0f;
-			dust.BurstCount = 16;
-			dust.MaxParticles = 64;
-			dust.Shape = EmitterShape::Box;
-			dust.ShapeSize = { 5.0f, 0.6f };
-			dust.Lifetime = { 0.8f, 1.6f };
-			dust.Speed = { 0.3f, 1.0f };
-			dust.Direction = 90.0f;
-			dust.Spread = 70.0f;
-			dust.StartSize = { 0.25f, 0.5f };
-			dust.EndSizeScale = 2.0f;
-			dust.Drag = 1.5f;
-			dust.StartColor = { 0.66f, 0.58f, 0.46f, 0.5f };
-			dust.EndColor = { 0.7f, 0.62f, 0.5f, 0.0f };
-			dust.Space = ParticleSpace::View;
-			dust.SortOrder = 180;
-			dust.DestroyWhenFinished = true;
-			return dust;
-		}
-
-		// A one-shot effect entity at `position` (a new entity is a root, so this is its place in the world).
-		static void PlayEffect(Scene& scene, const char* name, const glm::vec3& position, const ParticleEmitter2DComponent& settings)
-		{
-			Entity effect = scene.CreateEntity(name);
-			effect.AddComponent<TransformComponent>().Translation = position;
-			effect.AddComponent<ParticleEmitter2DComponent>(settings);
-		}
-
 		// ---- Helpers -------------------------------------------------------------------------------------
 
 		static float Smooth(float t)
 		{
 			t = std::clamp(t, 0.0f, 1.0f);
 			return t * t * (3.0f - 2.0f * t);
-		}
-
-		glm::vec3 TreeFoot(Scene& scene)
-		{
-			return Foot(scene, m_Tree);
-		}
-
-		// Where an Upright sprite stands: its entity sits at its middle, its feet half its height towards -Y.
-		static glm::vec3 Foot(Scene& scene, Entity entity)
-		{
-			if (entity.IsValid() == false)
-			{
-				return glm::vec3(0.0f);
-			}
-			const glm::mat4 world = scene.GetWorldTransform(entity);
-			const float height = glm::length(glm::vec3(world[1]));
-			return glm::vec3(world[3]) - glm::vec3(0.0f, 0.5f * height, 0.0f);
 		}
 
 		static Entity Find(Scene& scene, const std::string& tag)
@@ -621,12 +438,12 @@ namespace Hydro
 		float m_StepTime = 0.0f;
 		std::vector<DialogueScript::Line> m_Lines; // the conversation waiting for the dialogue box
 		bool m_Waiting = false;
-		Entity m_Monk, m_Player, m_Tree, m_TreeAwake, m_TreeGlow, m_TreeLight, m_Motes;
-		Entity m_DialogueCanvas, m_Cinematic, m_LetterboxTop, m_LetterboxBottom, m_MarkerCanvas, m_Marker;
+		Entity m_Monk, m_Player;
+		Entity m_DialogueCanvas, m_MarkerCanvas, m_Marker;
+		TreeAwakening m_Tree;    // the Sacred Tree waking (Scripts/ShrineGlade/TreeAwakening.h)
+		LetterboxView m_Letterbox; // the cutscene bars (Views/LetterboxView.h)
 		std::vector<entt::entity> m_Slimes;
 		int m_SlimeCount = 0;
-		float m_GlowEmission = 1.6f;
-		float m_LetterboxHeight = 140.0f;
 		bool m_LeavesFallen = false;
 	};
 }

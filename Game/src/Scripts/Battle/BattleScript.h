@@ -4,6 +4,8 @@
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
 #include "Rules/BattleRules.h"
+#include "Scripts/Battle/BattleEffects.h"
+#include "Scripts/Battle/BattleText.h"
 #include "Rules/LootRules.h"
 #include "Scripts/Common/DioramaCamera.h"
 #include "State/BattleState.h"
@@ -46,74 +48,10 @@ namespace Hydro
 	// ---------------------------------------------------------------------------------------------------------
 	// Data
 
-	// The battle's own wording (commands and messages; once rows of Assets/Sprites/UI/BattleText.png): UI text, in
-	// code until there is a text table (with localisation). Names of heroes, enemies and skills are data (BattleData).
-	enum class BattleLabel : uint32_t
-	{
-		Attack = 0, Guard, Potion, Run,
-		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape
-	};
-
-	// The words a label stands for, as the runtime UI writes them (the command menu and the message box).
-	inline const char* GetLabelText(BattleLabel label)
-	{
-		switch (label)
-		{
-		case BattleLabel::Attack: return "Attack";
-		case BattleLabel::Guard: return "Guard";
-		case BattleLabel::Potion: return "Potion";
-		case BattleLabel::Run: return "Run";
-		case BattleLabel::Weak: return "Weak!";
-		case BattleLabel::Resist: return "Resist";
-		case BattleLabel::Break: return "Break!";
-		case BattleLabel::Victory: return "Victory!";
-		case BattleLabel::Defeated: return "Defeated...";
-		case BattleLabel::Escaped: return "Got away!";
-		case BattleLabel::Boost: return "Boost";
-		case BattleLabel::NoMP: return "Not enough MP";
-		case BattleLabel::NoPotions: return "No potions left";
-		case BattleLabel::Critical: return "Critical!";
-		case BattleLabel::Guarding: return "Guarding";
-		case BattleLabel::NoEscape: return "Couldn't get away!";
-		default: return "";
-		}
-	}
-
-	// Cells of Assets/Sprites/UI/BattleIcons.png: row Icon, then row Digit (0-9 from DigitBase).
-	struct BattleIcon
-	{
-		static constexpr uint32_t Unknown = 5;
-		static constexpr uint32_t Shield = 6;
-		static constexpr uint32_t PipEmpty = 7;
-		static constexpr uint32_t PipFull = 8;
-		static constexpr uint32_t Cursor = 9;
-		static constexpr uint32_t Broken = 10;
-		static constexpr uint32_t DigitBase = 12;
-		static uint32_t ForType(DamageType type) { return (uint32_t)type; }
-	};
-
-	// ---------------------------------------------------------------------------------------------------------
-	// Battle
-
-	// The party battle: put it on one entity of Battle.hyscene (the "Battle Director"). The party against
-	// up to three enemies (BattleState::Get().Encounter). Rounds: everyone acts once, fastest first (the order is
-	// shown at the top). On a hero's turn: 1 attack, 2 / 3 skills, 4 guard, 5 potion, 6 run, Left / Right pick
-	// the target, Up / Down the boost.
-	//
-	// Rules (prototype values, tune freely):
-	//   - Weak hits do 1.5x and take one point off the enemy's shield; resisted hits do 0.5x.
-	//   - Shield at 0: the enemy is broken: it loses its turns this round and the next and takes 2x damage,
-	//     then its shield comes back.
-	//   - Momentum: each hero gains 1 per round (not in a round after boosting), up to 5. Boosting spends 1 to 3:
-	//     an attack hits once more per point, a skill gets stronger.
-	//   - Weaknesses show as "?" until hit with them, and stay known for the rest of the game.
-	// It finds the scene's entities by tag (see scripts/shrine_glade/battle.py, which edits the scene).
 	HY_SCRIPT()
 	class BattleScript : public ScriptableEntity
 	{
 	public:
-		HY_PROPERTY(Range(0, 99), Tooltip("Potions the party has in this battle (shown live while playing)"))
-		int Potions = 3;
 
 		// The stage camera (see "Stage camera" below). The scene's positions were baked with these values by
 		// scripts/battle/build_arena.py (keep its CAMERA in step); changing them moves the view, the HUD stays put.
@@ -210,11 +148,24 @@ namespace Hydro
 				}
 			}
 
-			for (int c = 0; c < 6; c++)
+			for (int c = 0; c < CommandCount; c++)
 			{
 				m_Commands[c] = Find(scene, "Command " + std::to_string(c));
 				m_CommandNames[c] = Find(scene, "Command " + std::to_string(c) + " Name");
 				m_CommandCosts[c] = Find(scene, "Command " + std::to_string(c) + " Cost");
+			}
+			// The sub-menu (the Menu plan's M2): the hero's ability slots, or the items usable in battle.
+			m_SubPanel = Find(scene, "Sub Panel");
+			m_SubTitle = Find(scene, "Sub Title");
+			m_SubHelp = Find(scene, "Sub Help");
+			for (int r = 0; r < SubRows; r++)
+			{
+				m_SubButtons[r] = Find(scene, "Sub Command " + std::to_string(r));
+				m_SubNames[r] = Find(scene, "Sub Command " + std::to_string(r) + " Name");
+				m_SubCosts[r] = Find(scene, "Sub Command " + std::to_string(r) + " Cost");
+			}
+			for (int c = 0; c < 6; c++)
+			{
 				m_OrderChips[c] = Find(scene, "Order Chip " + std::to_string(c));
 				m_OrderActors[c] = Find(scene, "Order Chip " + std::to_string(c) + " Actor");
 			}
@@ -244,6 +195,7 @@ namespace Hydro
 			// The menu opens on the hero's first turn (Present).
 			UI::SetVisible(EntityOf(m_CommandPanel), false);
 			UI::SetVisible(EntityOf(m_TargetPanel), false);
+			UI::SetVisible(EntityOf(m_SubPanel), false);
 			UI::SetVisible(EntityOf(m_MessagePanel), false);
 			m_Overlay = Find(scene, "Battle Overlay");
 			m_StrikeEffect.Entity = Find(scene, "FX Strike");
@@ -330,8 +282,10 @@ namespace Hydro
 			Present(scene);
 		}
 
-		// The menus' buttons ("Command 0" to "Command 5", "Target 0" to "Target 2") bubble their events up to the
-		// Battle Director: a command, the enemy under the cursor (focus), the target chosen, or Cancel (back).
+		// The menus' buttons ("Command 0" to "Command 4", "Sub Command 0" to "Sub Command 7", "Target 0" to "Target 2")
+		// bubble their events up to the Battle Director: a command, a sub-menu row, the enemy under the cursor (focus),
+		// the target chosen, or Cancel (back: from the targets to where they were opened from, from a sub-menu to the
+		// commands).
 		bool OnUIEvent(const UIEvent& event) override
 		{
 			const bool targeting = m_Phase == Phase::Command && m_Targeting;
@@ -342,7 +296,28 @@ namespace Hydro
 					m_CancelTarget = true;
 					return true;
 				}
+				if (m_Phase == Phase::Command && m_SubMenu != SubMenu::None)
+				{
+					m_CancelSub = true;
+					return true;
+				}
 				return false;
+			}
+			for (int r = 0; r < SubRows; r++)
+			{
+				if ((entt::entity)event.Target != m_SubButtons[r])
+				{
+					continue;
+				}
+				if (event.Type == UIEventType::FocusEnter)
+				{
+					m_HelpSub = r;
+				}
+				else if (event.Type == UIEventType::Submit && m_Phase == Phase::Command)
+				{
+					m_ChosenSub = r;
+				}
+				return true;
 			}
 			for (int e = 0; e < BattleState::MaxEnemies; e++)
 			{
@@ -363,7 +338,7 @@ namespace Hydro
 				}
 				return true;
 			}
-			for (int c = 0; c < 6; c++)
+			for (int c = 0; c < CommandCount; c++)
 			{
 				if ((entt::entity)event.Target != m_Commands[c])
 				{
@@ -384,7 +359,12 @@ namespace Hydro
 
 	private:
 		enum class Phase : uint8_t { Intro, NextTurn, Command, EnemyThink, Acting, Victory, Defeat, Fleeing, Done };
-		enum class Command : uint8_t { Attack = 0, SkillA, SkillB, Guard, Potion, Run, EnemyAttack };
+		// The command list's rows (Attack to Run), then what an action is: an ability from a slot, an item, an
+		// enemy's attack.
+		enum class Command : uint8_t { Attack = 0, Abilities, Items, Guard, Run, Skill, Item, EnemyAttack };
+		static constexpr int CommandCount = 5;
+		static constexpr int SubRows = BattleState::AbilitySlotCount; // the sub-menu's rows (8 ability slots)
+		enum class SubMenu : uint8_t { None, Abilities, Items };
 
 		struct Hero
 		{
@@ -441,6 +421,8 @@ namespace Hydro
 			int Actor = 0;
 			Command Kind = Command::Attack;
 			int Target = 0;    // enemy index for attacks and damaging skills, hero index for heals and enemy attacks
+			int Slot = 0;      // Skill: the ability slot
+			DataRowRef Item;   // Item: what is used
 			int Boost = 0;
 			int HitsDone = 0;
 			int Hits = 1;
@@ -467,6 +449,9 @@ namespace Hydro
 			m_Phase = phase;
 			m_PhaseTime = 0.0f;
 			m_Targeting = false; // a new phase (or the next hero's turn) starts on the commands
+			m_SubMenu = SubMenu::None;
+			m_ChosenSub = -1;
+			m_CancelSub = false;
 		}
 
 		void StartRound()
@@ -716,62 +701,133 @@ namespace Hydro
 				}
 				if (cancel)
 				{
-					m_Targeting = false;
+					m_Targeting = false; // back to the sub-menu or the commands it was opened from
 					m_ChosenCommand = -1;
 					return;
 				}
 				if (chosenTarget >= 0 && m_Enemies[chosenTarget].Alive())
 				{
 					m_Targeting = false;
+					m_SubMenu = SubMenu::None;
 					m_Action.Target = chosenTarget;
-					UseCommand(m_TargetCommand);
+					UseAction(m_TargetCommand);
 				}
+				return;
+			}
+
+			// A sub-menu is open: an ability slot or an item, or back to the commands.
+			if (m_SubMenu != SubMenu::None)
+			{
+				const int sub = m_ChosenSub;
+				const bool back = m_CancelSub;
+				m_ChosenSub = -1;
+				m_CancelSub = false;
+				if (back)
+				{
+					m_SubMenu = SubMenu::None;
+					return;
+				}
+				if (sub < 0)
+				{
+					return;
+				}
+				if (m_SubMenu == SubMenu::Abilities)
+				{
+					const AbilityDefinition& skill = BattleData::Skill(h, sub);
+					if (skill.Name.empty())
+					{
+						return; // an empty slot
+					}
+					if (BattleState::Get().HeroMP[h] < skill.Cost)
+					{
+						ShowMessage(BattleLabel::NoMP);
+						return;
+					}
+					m_Action.Slot = sub;
+					m_LastSub[h] = sub;
+					if (skill.Heals == false)
+					{
+						m_Targeting = true; // a damaging ability picks its enemy first
+						m_TargetCommand = Command::Skill;
+						m_Action.Target = std::max(0, FirstLivingEnemy(m_Action.Target));
+						return;
+					}
+					m_SubMenu = SubMenu::None;
+					UseAction(Command::Skill);
+					return;
+				}
+				const std::vector<int> items = BattleItems();
+				if (sub >= (int)items.size())
+				{
+					return;
+				}
+				m_Action.Item = Inventory::Get().Slots[(size_t)items[(size_t)sub]].Item;
+				m_SubMenu = SubMenu::None;
+				UseAction(Command::Item);
 				return;
 			}
 
 			// The command the menu submitted (OnUIEvent), once.
 			const int chosen = m_ChosenCommand;
 			m_ChosenCommand = -1;
-			if (chosen < 0 || chosen >= 6)
+			if (chosen < 0 || chosen >= CommandCount)
 			{
 				return;
 			}
 			m_LastCommand[h] = chosen;
-			const Command command = (Command)chosen;
-			if (command == Command::SkillA || command == Command::SkillB)
+			switch ((Command)chosen)
 			{
-				const int s = command == Command::SkillA ? 0 : 1;
-				if (BattleState::Get().HeroMP[h] < BattleData::Skill(h, s).Cost)
-				{
-					ShowMessage(BattleLabel::NoMP);
+				case Command::Attack:
+					// An attack picks its enemy first.
+					m_Targeting = true;
+					m_TargetCommand = Command::Attack;
+					m_Action.Target = std::max(0, FirstLivingEnemy(m_Action.Target));
 					return;
-				}
+				case Command::Abilities:
+					m_SubMenu = SubMenu::Abilities;
+					m_HelpSub = m_LastSub[h];
+					return;
+				case Command::Items:
+					m_SubMenu = SubMenu::Items;
+					m_HelpSub = 0;
+					return;
+				default:
+					UseAction((Command)chosen);
+					return;
 			}
-
-			// An attack or a damaging skill picks its enemy first; the rest go straight ahead.
-			const bool needsTarget = command == Command::Attack
-				|| ((command == Command::SkillA || command == Command::SkillB) && BattleData::Skill(h, command == Command::SkillA ? 0 : 1).Heals == false);
-			if (needsTarget)
-			{
-				m_Targeting = true;
-				m_TargetCommand = chosen;
-				m_Action.Target = std::max(0, FirstLivingEnemy(m_Action.Target));
-				return;
-			}
-			UseCommand(chosen);
 		}
 
-		// Carries out command c for the hero whose turn it is, on m_Action.Target (an enemy for attacks and damaging
-		// skills, chosen by the target list; the most hurt hero for heals and potions).
-		void UseCommand(int c)
+		// The battle's usable items: lines of the run's inventory that restore HP or MP and are not used up, in the
+		// inventory's order (indices into Inventory::Slots), at most SubRows.
+		std::vector<int> BattleItems() const
+		{
+			std::vector<int> found;
+			const std::vector<Inventory::Slot>& slots = Inventory::Get().Slots;
+			for (int i = 0; i < (int)slots.size() && (int)found.size() < SubRows; i++)
+			{
+				const DataView<ItemDefinition> item = slots[(size_t)i].Count > 0 ? Data::GetRow<ItemDefinition>(slots[(size_t)i].Item) : DataView<ItemDefinition>();
+				if (item.IsValid() && item->Kind == ItemKind::Consumable && (item->RestoreHP > 0 || item->RestoreMP > 0))
+				{
+					found.push_back(i);
+				}
+			}
+			return found;
+		}
+
+		const AbilityDefinition& ActionSkill() const
+		{
+			return BattleData::Skill(m_Action.Actor, m_Action.Slot);
+		}
+
+		// Carries out an action for the hero whose turn it is, on m_Action.Target (an enemy for attacks and damaging
+		// abilities, chosen by the target list; the most hurt hero for heals and items).
+		void UseAction(Command command)
 		{
 			const int h = m_Action.Actor;
 			Hero& hero = m_Heroes[h];
-			const Command command = (Command)c;
-			if (command == Command::SkillA || command == Command::SkillB)
+			if (command == Command::Skill)
 			{
-				const int s = command == Command::SkillA ? 0 : 1;
-				const AbilityDefinition& skill = BattleData::Skill(h, s);
+				const AbilityDefinition& skill = ActionSkill();
 				if (BattleState::Get().HeroMP[h] < skill.Cost)
 				{
 					ShowMessage(BattleLabel::NoMP);
@@ -783,14 +839,13 @@ namespace Hydro
 					m_Action.Target = MostHurtHero();
 				}
 			}
-			else if (command == Command::Potion)
+			else if (command == Command::Item)
 			{
-				if (Potions <= 0)
+				if (Inventory::Get().Remove(m_Action.Item, 1) == false)
 				{
 					ShowMessage(BattleLabel::NoPotions);
 					return;
 				}
-				Potions--;
 				m_Action.Target = MostHurtHero();
 			}
 			else if (command == Command::Run)
@@ -830,10 +885,9 @@ namespace Hydro
 				case Command::Attack:
 					BeginApproach();
 					break;
-				case Command::SkillA:
-				case Command::SkillB:
+				case Command::Skill:
 				{
-					const AbilityDefinition& skill = BattleData::Skill(h, m_Action.Kind == Command::SkillA ? 0 : 1);
+					const AbilityDefinition& skill = ActionSkill();
 					ShowMessage(skill.Name, 0.9f);
 					if (skill.Heals == false && skill.Approach)
 					{
@@ -845,10 +899,13 @@ namespace Hydro
 					}
 					break;
 				}
-				case Command::Potion:
+				case Command::Item:
+				{
 					SpriteAnimator::Play(sprite, definition.ItemClip, true);
-					ShowMessage(BattleLabel::Potion, 0.9f);
+					const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(m_Action.Item);
+					ShowMessage(item.IsValid() ? item->Name : std::string(GetLabelText(BattleLabel::Potion)), 0.9f);
 					break;
+				}
 				case Command::Guard:
 					m_Heroes[h].Guarding = true;
 					SpriteAnimator::Play(sprite, definition.IdleClip, true);
@@ -870,7 +927,7 @@ namespace Hydro
 			{
 				return m_Action.Strike % 2 == 0 ? StrikeMove::Punch : StrikeMove::Kick; // punch, kick, punch, kick
 			}
-			return BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Clip == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
+			return ActionSkill().Clip == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
 		}
 
 		DamageType CurrentDamageType() const
@@ -880,7 +937,7 @@ namespace Hydro
 			{
 				return definition.WeaponType;
 			}
-			return BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Type;
+			return ActionSkill().Type;
 		}
 
 		float ImpactTime(StrikeMove move) const { return move == StrikeMove::Punch ? PunchImpactTime : KickImpactTime; }
@@ -911,7 +968,7 @@ namespace Hydro
 			m_Action.StepDuration = WalkTime(m_Action.From, m_Action.To, WalkSpeed);
 			const glm::vec2 direction = m_Action.To - m_Action.From;
 			SpriteAnimator::Play(EntityOf(hero.Sprite), direction.x <= 0.0f ? "WalkLeft" : "WalkRight", true);
-			PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, StepDust(), ParticleSpace::Ground);
+			PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, BattleEffects::StepDust(), ParticleSpace::Ground);
 		}
 
 		void BeginStrike()
@@ -925,9 +982,9 @@ namespace Hydro
 			const Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
 			const char* moveClip = CurrentMove() == StrikeMove::Punch ? "Punch" : "Kick";
 			std::string clip = moveClip;
-			if (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB)
+			if (m_Action.Kind == Command::Skill)
 			{
-				clip = BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Clip;
+				clip = ActionSkill().Clip;
 			}
 			if (SpriteAnimator::Play(sprite, clip, true) == false)
 			{
@@ -963,7 +1020,7 @@ namespace Hydro
 					hero.Offset = m_Action.From + (m_Action.To - m_Action.From) * eased;
 					if (k >= 1.0f)
 					{
-						PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, StepDust(), ParticleSpace::Ground);
+						PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, BattleEffects::StepDust(), ParticleSpace::Ground);
 						BeginStrike();
 					}
 					break;
@@ -1027,8 +1084,7 @@ namespace Hydro
 
 		bool IsHealing() const
 		{
-			return (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB)
-				&& BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Heals;
+			return m_Action.Kind == Command::Skill && ActionSkill().Heals;
 		}
 
 		// The strike lands: damage (or a heal), the impact's particles, light and shake.
@@ -1037,9 +1093,8 @@ namespace Hydro
 			const HeroStats& definition = GetHero(m_Action.Actor);
 			if (IsHealing())
 			{
-				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
 				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-				HealHero(m_Action.Target, BattleRules::ResolveHeal(BattleData::Skill(m_Action.Actor, s).Power, definition.Magic, boost, Random01()));
+				HealHero(m_Action.Target, BattleRules::ResolveHeal(ActionSkill().Power, definition.Magic, boost, Random01()));
 				m_Action.HitsDone++;
 				return;
 			}
@@ -1061,10 +1116,9 @@ namespace Hydro
 			}
 			else
 			{
-				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
 				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
 				const float stat = type == DamageType::Light || type == DamageType::Fire ? (float)std::max(definition.Magic, definition.Attack) : (float)definition.Attack;
-				strong = HitEnemy(m_Action.Target, type, stat, BattleData::Skill(m_Action.Actor, s).Power * boost);
+				strong = HitEnemy(m_Action.Target, type, stat, ActionSkill().Power * boost);
 			}
 			m_Action.HitsDone++;
 			PlayImpact(move, type, m_Action.Target, strong);
@@ -1102,18 +1156,29 @@ namespace Hydro
 		void UpdateAction(Scene& scene)
 		{
 			const bool hero = IsHero(m_Action.Actor);
-			if (hero && (m_Action.Kind == Command::Attack || m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB))
+			if (hero && (m_Action.Kind == Command::Attack || m_Action.Kind == Command::Skill))
 			{
 				UpdateHeroStrikes();
 				return;
 			}
 
-			if (hero && m_Action.Kind == Command::Potion)
+			if (hero && m_Action.Kind == Command::Item)
 			{
 				if (m_Action.HitsDone == 0 && m_PhaseTime >= ItemTime)
 				{
 					m_Action.HitsDone = 1;
-					HealHero(m_Action.Target, 25);
+					const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(m_Action.Item);
+					if (item.IsValid())
+					{
+						if (item->RestoreMP > 0)
+						{
+							BattleState::Get().HeroMP[m_Action.Target] = std::min(GetHero(m_Action.Target).MaxMP, BattleState::Get().HeroMP[m_Action.Target] + item->RestoreMP);
+						}
+						if (item->RestoreHP > 0)
+						{
+							HealHero(m_Action.Target, item->RestoreHP);
+						}
+					}
 				}
 				if (m_PhaseTime >= 1.0f)
 				{
@@ -1147,7 +1212,7 @@ namespace Hydro
 				BattleState::Get().HeroHP[m_Action.Target] = std::max(0, BattleState::Get().HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
 				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, HitSparks(DamageType::Blunt, target.Guarding == false), ParticleSpace::View);
+				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, BattleEffects::HitSparks(DamageType::Blunt, target.Guarding == false), ParticleSpace::View);
 				Shake(target.Guarding ? 0.04f : 0.08f);
 				Entity sprite = EntityOf(target.Sprite);
 				if (BattleState::Get().HeroHP[m_Action.Target] <= 0)
@@ -1238,7 +1303,7 @@ namespace Hydro
 			if (enemy.HP <= 0)
 			{
 				HY_INFO("Battle: {} is defeated", definition.Name);
-				PlayEffect("Effect Defeat Puff", enemy.Base, 0.5f, DefeatPuff(definition), ParticleSpace::View);
+				PlayEffect("Effect Defeat Puff", enemy.Base, 0.5f, BattleEffects::DefeatPuff(definition), ParticleSpace::View);
 			}
 			return weak || critical;
 		}
@@ -1360,10 +1425,10 @@ namespace Hydro
 		{
 			const Enemy& enemy = m_Enemies[target];
 			const float size = enemy.Size;
-			PlayEffect("Effect Hit Sparks", enemy.Base, 0.55f * size, HitSparks(type, strong), ParticleSpace::View);
+			PlayEffect("Effect Hit Sparks", enemy.Base, 0.55f * size, BattleEffects::HitSparks(type, strong), ParticleSpace::View);
 			if (move == StrikeMove::Kick)
 			{
-				PlayEffect("Effect Dust", enemy.Base, 0.05f, KickDust(), ParticleSpace::Ground);
+				PlayEffect("Effect Dust", enemy.Base, 0.05f, BattleEffects::KickDust(), ParticleSpace::Ground);
 			}
 			const bool skill = m_Action.Kind != Command::Attack;
 			m_StrikeEffect.LightPeak = (skill ? 7.0f : 4.0f) * (strong ? 1.3f : 1.0f);
@@ -1382,7 +1447,7 @@ namespace Hydro
 			const int before = BattleState::Get().HeroHP[h];
 			BattleState::Get().HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::Get().HeroHP[h] + amount);
 			SpawnPopup(ScreenAbove(m_Heroes[h].Base, HeroPopupHeight), BattleState::Get().HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
-			PlayEffect("Effect Heal", m_Heroes[h].Base, 0.35f, HealMotes(), ParticleSpace::View);
+			PlayEffect("Effect Heal", m_Heroes[h].Base, 0.35f, BattleEffects::HealMotes(), ParticleSpace::View);
 			PlaySpriteEffect(m_HealEffect, Above(m_Heroes[h].Base, 0.6f) + m_Stage.Back * 0.6f, "Heal", HealEffectTime,
 				glm::vec3(0.55f, 1.0f, 0.6f), 2.5f);
 			HY_INFO("Battle: {} recovers {} HP", GetHero(h).Name, BattleState::Get().HeroHP[h] - before);
@@ -1443,34 +1508,68 @@ namespace Hydro
 		}
 
 		// The command menu (runtime UI): open with the focus on the hero's last command while she chooses, closed
-		// otherwise; each row's name and cost, and the skills she can't pay for (or the potion when none are left)
-		// greyed out (not Interactable, so neither the keys nor the pointer can pick them).
+		// otherwise. Five commands (Attack, Abilities, Items, Guard, Run); Abilities and Items open the sub-menu in
+		// the commands' place (like the target list): the hero's 8 ability slots (MP cost; the ones she can't pay for, or empty, greyed
+		// out: not Interactable, so neither the keys nor the pointer can pick them), or the usable items with their
+		// counts.
 		void PresentCommandMenu(int hero, bool choosing)
 		{
 			const HeroStats& definition = GetHero(hero);
-			const std::string labels[6] = { GetLabelText(BattleLabel::Attack), BattleData::Skill(hero, 0).Name, BattleData::Skill(hero, 1).Name,
-				GetLabelText(BattleLabel::Guard), GetLabelText(BattleLabel::Potion), GetLabelText(BattleLabel::Run) };
-			bool usable[6] = { true, true, true, true, true, true };
-			for (int c = 0; c < 6; c++)
+			const std::string labels[CommandCount] = { GetLabelText(BattleLabel::Attack), GetLabelText(BattleLabel::Abilities),
+				GetLabelText(BattleLabel::Items), GetLabelText(BattleLabel::Guard), GetLabelText(BattleLabel::Run) };
+			const std::vector<int> items = BattleItems();
+			bool usable[CommandCount] = { true, true, items.empty() == false, true, true };
+			for (int c = 0; c < CommandCount; c++)
 			{
-				std::string cost;
-				if (c == 1 || c == 2)
-				{
-					usable[c] = BattleState::Get().HeroMP[hero] >= BattleData::Skill(hero, c - 1).Cost;
-					cost = std::to_string(BattleData::Skill(hero, c - 1).Cost) + " MP";
-				}
-				else if (c == 4)
-				{
-					usable[c] = Potions > 0;
-					cost = "x" + std::to_string(Potions);
-				}
 				UI::SetText(EntityOf(m_CommandNames[c]), labels[c]);
-				UI::SetText(EntityOf(m_CommandCosts[c]), cost);
+				UI::SetText(EntityOf(m_CommandCosts[c]), c == (int)Command::Items ? "x" + std::to_string(items.size()) : std::string());
 				UI::SetInteractable(EntityOf(m_Commands[c]), usable[c]);
 			}
 			UI::SetText(EntityOf(m_CommandHeader), definition.Name);
 			UI::SetText(EntityOf(m_CommandBoost), m_Action.Boost > 0 ? "Boost " + std::to_string(m_Action.Boost) + "   (E / Q)" : std::string("E  Boost"));
-			UI::SetText(EntityOf(m_CommandHelp), GetCommandHelp(hero, std::clamp(m_HelpCommand, 0, 5)));
+			UI::SetText(EntityOf(m_CommandHelp), GetCommandHelp(hero, std::clamp(m_HelpCommand, 0, CommandCount - 1)));
+
+			// The sub-menu's rows: the ability slots, or the items (rows past the list hidden, so it closes up).
+			bool subUsable[SubRows] = {};
+			if (m_SubMenu != SubMenu::None)
+			{
+				const Inventory& inventory = Inventory::Get();
+				for (int r = 0; r < SubRows; r++)
+				{
+					std::string name;
+					std::string cost;
+					bool shown = true;
+					if (m_SubMenu == SubMenu::Abilities)
+					{
+						const AbilityDefinition& skill = BattleData::Skill(hero, r);
+						name = skill.Name.empty() ? std::string("-") : skill.Name;
+						cost = skill.Name.empty() ? std::string() : std::to_string(skill.Cost) + " MP";
+						subUsable[r] = skill.Name.empty() == false && BattleState::Get().HeroMP[hero] >= skill.Cost;
+					}
+					else if (r < (int)items.size())
+					{
+						const Inventory::Slot& slot = inventory.Slots[(size_t)items[(size_t)r]];
+						const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
+						name = item.IsValid() ? item->Name : std::string("?");
+						cost = "x" + std::to_string(slot.Count);
+						subUsable[r] = true;
+					}
+					else
+					{
+						shown = false;
+					}
+					Entity row = EntityOf(m_SubButtons[r]);
+					if (UI::IsVisible(row) != shown)
+					{
+						UI::SetVisible(row, shown);
+					}
+					UI::SetText(EntityOf(m_SubNames[r]), name);
+					UI::SetText(EntityOf(m_SubCosts[r]), cost);
+					UI::SetInteractable(row, subUsable[r]);
+				}
+				UI::SetText(EntityOf(m_SubTitle), labels[m_SubMenu == SubMenu::Abilities ? (int)Command::Abilities : (int)Command::Items]);
+				UI::SetText(EntityOf(m_SubHelp), GetSubHelp(hero, std::clamp(m_HelpSub, 0, SubRows - 1), items));
+			}
 
 			// The target list: one row per enemy still standing (the others are hidden, so the list closes up), with
 			// a letter when two share a name, and their HP. Its header names the command.
@@ -1505,14 +1604,20 @@ namespace Hydro
 				UI::SetText(EntityOf(m_TargetNames[e]), name);
 				UI::SetText(EntityOf(m_TargetHP[e]), "HP " + std::to_string(enemy.HP));
 			}
-			if (m_Targeting && m_TargetCommand >= 0 && m_TargetCommand < 6)
+			if (m_Targeting)
 			{
-				UI::SetText(EntityOf(m_TargetHeader), labels[m_TargetCommand]);
+				UI::SetText(EntityOf(m_TargetHeader), m_TargetCommand == Command::Skill ? BattleData::Skill(hero, m_Action.Slot).Name : labels[0]);
 			}
 
-			// Which list is open: the commands, the targets (in the commands' place), or neither.
-			const bool showCommands = choosing && m_Targeting == false;
+			// Which list is open: the commands, a sub-menu or the targets (each in the commands' place), or none.
+			const bool showCommands = choosing && m_Targeting == false && m_SubMenu == SubMenu::None;
+			const bool showSub = choosing && m_Targeting == false && m_SubMenu != SubMenu::None;
 			const bool showTargets = choosing && m_Targeting;
+			if (showSub != m_SubShown)
+			{
+				m_SubShown = showSub;
+				UI::SetVisible(EntityOf(m_SubPanel), showSub);
+			}
 			if (showCommands != m_CommandsShown)
 			{
 				m_CommandsShown = showCommands;
@@ -1531,9 +1636,18 @@ namespace Hydro
 				{
 					UI::Focus(EntityOf(m_TargetButtons[std::clamp(m_Action.Target, 0, BattleState::MaxEnemies - 1)]));
 				}
+				else if (m_SubMenu != SubMenu::None)
+				{
+					int row = std::clamp(m_HelpSub, 0, SubRows - 1);
+					if (subUsable[row] == false)
+					{
+						row = (int)(std::find(subUsable, subUsable + SubRows, true) - subUsable) % SubRows;
+					}
+					UI::Focus(EntityOf(m_SubButtons[row]));
+				}
 				else
 				{
-					const int last = m_LastCommand[hero];
+					const int last = std::clamp(m_LastCommand[hero], 0, CommandCount - 1);
 					UI::Focus(EntityOf(m_Commands[usable[last] ? last : 0]));
 				}
 			}
@@ -1542,29 +1656,54 @@ namespace Hydro
 		// The help line under the commands: what command c does for this hero.
 		std::string GetCommandHelp(int hero, int c) const
 		{
+			(void)hero;
 			switch ((Command)c)
 			{
 			case Command::Attack:
-				return "Strike one foe with your bare hands. Boost: more blows.";
-			case Command::SkillA:
-			case Command::SkillB:
+				return "Strike one foe with your weapon. Boost: more blows.";
+			case Command::Abilities:
+				return "Use one of your abilities (Abilities in the menu sets them).";
+			case Command::Items:
+				return "Use an item from the bag on the most hurt ally.";
+			case Command::Guard:
+				return "Brace yourself: less damage until your next turn.";
+			case Command::Run:
+				return "Try to get away. Works half the time.";
+			default:
+				return "";
+			}
+		}
+
+		// The sub-menu's help line: the focused ability's or item's description, or what it does.
+		std::string GetSubHelp(int hero, int row, const std::vector<int>& items) const
+		{
+			if (m_SubMenu == SubMenu::Abilities)
 			{
-				const AbilityDefinition& skill = BattleData::Skill(hero, c == (int)Command::SkillA ? 0 : 1);
+				const AbilityDefinition& skill = BattleData::Skill(hero, row);
+				if (skill.Name.empty())
+				{
+					return "An empty slot.";
+				}
+				if (skill.Description.empty() == false)
+				{
+					return skill.Description;
+				}
 				if (skill.Heals)
 				{
 					return "Restore the most hurt ally's HP.";
 				}
 				return std::string(GetDamageTypeName(skill.Type)) + " damage to one foe. Boost: stronger.";
 			}
-			case Command::Guard:
-				return "Brace yourself: less damage until your next turn.";
-			case Command::Potion:
-				return "Restore 25 HP to the most hurt ally.";
-			case Command::Run:
-				return "Try to get away. Works half the time.";
-			default:
+			if (row >= (int)items.size())
+			{
 				return "";
 			}
+			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(Inventory::Get().Slots[(size_t)items[(size_t)row]].Item);
+			if (item.IsValid() == false)
+			{
+				return "";
+			}
+			return item->Description;
 		}
 
 		static const char* GetDamageTypeName(DamageType type)
@@ -1608,144 +1747,6 @@ namespace Hydro
 		// ---- Effects (particles) ----------------------------------------------------------------------------
 		// Each effect is a short-lived entity with a ParticleEmitter2DComponent: one burst, then it destroys
 		// itself (DestroyWhenFinished). The presets are plain component values (Roadmap: prefabs later, V5).
-
-		// Sparks where a hit lands, coloured by the damage type. Lit but glowing (emission, so they bloom), sprayed
-		// in the plane facing the camera (PlayEffect makes battle effects View space). Sizes and speeds are in
-		// layout units, like the rest of the battle: PlayEffect scales them to metres.
-		static ParticleEmitter2DComponent HitSparks(DamageType type, bool strong)
-		{
-			ParticleEmitter2DComponent sparks;
-			sparks.Looping = false;
-			sparks.Duration = 0.05f;
-			sparks.Rate = 0.0f;
-			sparks.BurstCount = strong ? 30 : 18;
-			sparks.MaxParticles = 48;
-			sparks.Shape = EmitterShape::Circle;
-			sparks.ShapeSize = { 0.25f, 0.25f };
-			sparks.Lifetime = { 0.25f, 0.5f };
-			sparks.Speed = { 4.0f, strong ? 10.0f : 7.5f };
-			sparks.Direction = 90.0f;
-			sparks.Spread = 180.0f;
-			sparks.StartSize = { 0.12f, 0.28f };
-			sparks.EndSizeScale = 0.2f;
-			sparks.Gravity = { 0.0f, -9.0f };
-			sparks.Drag = 3.0f;
-			sparks.Lighting = ParticleLighting::Lit;
-			sparks.EmissionIntensity = 3.0f;
-			sparks.Blend = ParticleBlend::Additive; // drawn alpha until the additive pipeline (Roadmap V4)
-			sparks.SortOrder = 200;
-			sparks.DestroyWhenFinished = true;
-			switch (type)
-			{
-				case DamageType::Fire:
-					sparks.StartColor = { 1.0f, 0.75f, 0.3f, 1.0f };
-					sparks.EndColor = { 1.0f, 0.25f, 0.05f, 0.0f };
-					break;
-				case DamageType::Light:
-					sparks.StartColor = { 1.0f, 1.0f, 0.85f, 1.0f };
-					sparks.EndColor = { 1.0f, 0.85f, 0.4f, 0.0f };
-					break;
-				default:
-					sparks.StartColor = { 1.0f, 0.97f, 0.8f, 1.0f };
-					sparks.EndColor = { 1.0f, 0.7f, 0.3f, 0.0f };
-					break;
-			}
-			return sparks;
-		}
-
-		// A puff of smoke where a defeated enemy was. Lit: smoke is a thing in the scene, not a light.
-		static ParticleEmitter2DComponent DefeatPuff(const EnemyDefinition& enemy)
-		{
-			ParticleEmitter2DComponent puff;
-			puff.Looping = false;
-			puff.Duration = 0.05f;
-			puff.Rate = 0.0f;
-			puff.BurstCount = 26;
-			puff.MaxParticles = 32;
-			puff.Shape = EmitterShape::Circle;
-			puff.ShapeSize = { 0.8f, 0.8f };
-			puff.Lifetime = { 0.7f, 1.2f };
-			puff.Speed = { 0.4f, 1.8f };
-			puff.Direction = 90.0f;
-			puff.Spread = 180.0f;
-			puff.StartSize = { 0.6f, 1.1f };
-			puff.EndSizeScale = 2.2f;
-			puff.StartRotation = { 0.0f, 360.0f };
-			puff.AngularVelocity = { -60.0f, 60.0f };
-			puff.Gravity = { 0.0f, 0.9f };
-			puff.Drag = 1.5f;
-			puff.SortOrder = 25;
-			puff.DestroyWhenFinished = true;
-			// Its smoke colour (Enemies.hytable), darkening as it fades.
-			puff.StartColor = glm::vec4(enemy.SmokeColor, 0.8f);
-			puff.EndColor = glm::vec4(enemy.SmokeColor * 0.75f, 0.0f);
-			return puff;
-		}
-
-		// Dust kicked up by a footstep (the hero setting off and stopping). On the floor (Ground space).
-		static ParticleEmitter2DComponent StepDust()
-		{
-			ParticleEmitter2DComponent dust;
-			dust.Looping = false;
-			dust.Duration = 0.05f;
-			dust.Rate = 0.0f;
-			dust.BurstCount = 10;
-			dust.MaxParticles = 16;
-			dust.Shape = EmitterShape::Circle;
-			dust.ShapeSize = { 0.4f, 0.4f };
-			dust.Lifetime = { 0.35f, 0.6f };
-			dust.Speed = { 0.6f, 1.6f };
-			dust.Direction = 90.0f;
-			dust.Spread = 180.0f;
-			dust.StartSize = { 0.3f, 0.55f };
-			dust.EndSizeScale = 1.8f;
-			dust.Drag = 3.0f;
-			dust.StartColor = { 0.62f, 0.52f, 0.42f, 0.55f };
-			dust.EndColor = { 0.55f, 0.48f, 0.4f, 0.0f };
-			dust.SortOrder = 20;
-			dust.DestroyWhenFinished = true;
-			return dust;
-		}
-
-		// A bigger burst of dust and grass bits where a kick lands.
-		static ParticleEmitter2DComponent KickDust()
-		{
-			ParticleEmitter2DComponent dust = StepDust();
-			dust.BurstCount = 18;
-			dust.MaxParticles = 24;
-			dust.Speed = { 1.5f, 3.5f };
-			dust.Direction = 180.0f; // away from the hero, who strikes from the right
-			dust.Spread = 70.0f;
-			dust.StartSize = { 0.35f, 0.7f };
-			return dust;
-		}
-
-		// Green motes rising from a healed hero.
-		static ParticleEmitter2DComponent HealMotes()
-		{
-			ParticleEmitter2DComponent motes;
-			motes.Looping = false;
-			motes.Duration = 0.4f;
-			motes.Rate = 40.0f;
-			motes.BurstCount = 10;
-			motes.MaxParticles = 40;
-			motes.Shape = EmitterShape::Box;
-			motes.ShapeSize = { 1.6f, 0.6f };
-			motes.Lifetime = { 0.7f, 1.1f };
-			motes.Speed = { 1.0f, 2.2f };
-			motes.Direction = 90.0f;
-			motes.Spread = 12.0f;
-			motes.StartSize = { 0.15f, 0.3f };
-			motes.EndSizeScale = 0.4f;
-			motes.Drag = 0.8f;
-			motes.Turbulence = 2.0f;
-			motes.StartColor = { 0.55f, 1.0f, 0.6f, 1.0f };
-			motes.EndColor = { 0.8f, 1.0f, 0.7f, 0.0f };
-			motes.EmissionIntensity = 2.0f;
-			motes.SortOrder = 200;
-			motes.DestroyWhenFinished = true;
-			return motes;
-		}
 
 		// Creates the effect entity `height` metres above `ground` (layout units), a little towards the camera.
 		// The preset's lengths are layout units: scaled to metres here. Creating entities is allowed while scripts
@@ -2375,9 +2376,9 @@ namespace Hydro
 		std::mt19937 m_Random{ std::random_device{}() };
 
 		// The command menu and the message box (runtime UI under "Battle UI Canvas").
-		entt::entity m_Commands[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_CommandNames[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_CommandCosts[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
+		entt::entity m_Commands[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
+		entt::entity m_CommandNames[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
+		entt::entity m_CommandCosts[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
 		entt::entity m_CommandPanel = entt::null;
 		entt::entity m_CommandHeader = entt::null;
 		entt::entity m_CommandBoost = entt::null;
@@ -2393,11 +2394,24 @@ namespace Hydro
 		int m_ChosenCommand = -1;           // submitted by the menu, used by the next UpdateCommand
 		int m_LastCommand[HeroCount] = {};  // where each hero's menu opens
 		bool m_Targeting = false;           // the target list is open for m_TargetCommand
-		int m_TargetCommand = -1;
+		Command m_TargetCommand = Command::Attack;
 		int m_ChosenTarget = -1;            // submitted by the target list
-		bool m_CancelTarget = false;        // Cancel in the target list: back to the commands
+		bool m_CancelTarget = false;        // Cancel in the target list: back to where it was opened from
 		bool m_CommandsShown = false;
 		bool m_TargetsShown = false;
+		// The sub-menu ("Sub Panel"): the hero's ability slots or the battle items.
+		SubMenu m_SubMenu = SubMenu::None;
+		entt::entity m_SubPanel = entt::null;
+		entt::entity m_SubTitle = entt::null;
+		entt::entity m_SubHelp = entt::null;
+		entt::entity m_SubButtons[SubRows] = {};
+		entt::entity m_SubNames[SubRows] = {};
+		entt::entity m_SubCosts[SubRows] = {};
+		int m_HelpSub = 0;                  // the focused row (the help line follows it)
+		int m_ChosenSub = -1;               // submitted by the sub-menu
+		bool m_CancelSub = false;           // Cancel in the sub-menu: back to the commands
+		bool m_SubShown = false;
+		int m_LastSub[HeroCount] = {};      // the ability slot each hero used last
 		entt::entity m_OrderChips[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
 		entt::entity m_OrderActors[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
 		entt::entity m_Cursor = entt::null;

@@ -13,7 +13,7 @@
 #include "Scripts/Examples/TriggerZoneScript.h"
 #include "Scripts/FarmVillage/FarmVillageScript.h"
 #include "Scripts/Field/EnemyChaseScript.h"
-#include "Scripts/Field/MvpDirectorScript.h"
+#include "Scripts/Field/FieldDirectorScript.h"
 #include "Scripts/Interiors/InteriorScript.h"
 #include "Scripts/ShrineGlade/ShrineGladeScript.h"
 #include "Scripts/ShrineGlade/ShrineQuestScript.h"
@@ -33,7 +33,6 @@ namespace Hydro
 		registered = true;
 
 		ScriptRegistry::Register<BattleScript>("BattleScript")
-			.Property("Potions", "Potions", &BattleScript::Potions).Range(0.0f, 99.0f).Tooltip("Potions the party has in this battle (shown live while playing)")
 			.Property("CameraTilt", "Camera Tilt", &BattleScript::CameraTilt).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down (the field's is 50 to 70)")
 			.Property("CameraFieldOfView", "Camera Field Of View", &BattleScript::CameraFieldOfView).Range(5.0f, 90.0f).Tooltip("Vertical field of view in degrees")
 			.Property("CameraFocus", "Camera Focus", &BattleScript::CameraFocus).Tooltip("The world point at the centre of the screen")
@@ -130,23 +129,23 @@ namespace Hydro
 			.Property("Enemy", "Enemy", &EnemyChaseScript::Enemy).Tooltip("What it is; unset: a tag starting with \"Wisp\" is a Wisp, anything else a Slime").DataTypeFilter("EnemyDefinition")
 			.Property("Encounter", "Encounter", &EnemyChaseScript::Encounter).Tooltip("Who fights when it touches the player; unset: it and up to two random slimes or wisps").DataTypeFilter("EncounterDefinition");
 
-		ScriptRegistry::Register<MvpDirectorScript>("MvpDirectorScript")
-			.Property("InteractRange", "Interact Range", &MvpDirectorScript::InteractRange).Range(0.0f, 20.0f).Tooltip("Metres: farther items get no prompt")
-			.Property("MaxReachHeight", "Max Reach Height", &MvpDirectorScript::MaxReachHeight).Range(0.0f, 10.0f).Tooltip("Metres between the player's ground and the item's (another terrace is out of reach)")
-			.Property("FacingDegrees", "Facing Degrees", &MvpDirectorScript::FacingDegrees).Range(0.0f, 180.0f).Tooltip("Degrees either side of where the player faces")
-			.Property("CloseRange", "Close Range", &MvpDirectorScript::CloseRange).Range(0.0f, 10.0f).Tooltip("Metres: this close, an item is in reach whichever way the player faces")
-			.Property("SwitchMargin", "Switch Margin", &MvpDirectorScript::SwitchMargin).Range(0.0f, 5.0f).Tooltip("Metres another item must be closer by to take the prompt over (stops flicker)")
-			.Property("EyeHeight", "Eye Height", &MvpDirectorScript::EyeHeight).Range(0.0f, 5.0f).Tooltip("Line of sight starts this high above the player's ground (the chest)")
-			.Property("ItemHeight", "Item Height", &MvpDirectorScript::ItemHeight).Range(0.0f, 5.0f).Tooltip("...and ends this high on the item")
-			.Property("MessageTime", "Message Time", &MvpDirectorScript::MessageTime).Range(0.1f, 30.0f).Tooltip("How long a message stays up")
-			.Property("LeaveTime", "Leave Time", &MvpDirectorScript::LeaveTime).Range(0.05f, 5.0f).Tooltip("Fade out when leaving through an exit")
-			.Property("ArriveTime", "Arrive Time", &MvpDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
-			.Property("RestTime", "Rest Time", &MvpDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point")
-			.Property("StartingInventory", "Starting Inventory", &MvpDirectorScript::StartingInventory).Tooltip("The items a run starts with, in their order").AssetFilter(AssetType::Definition).DataTypeFilter("InventoryDefinition")
-			.Property("ChestItem", "Chest Item", &MvpDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition")
-			.Property("NpcTable", "Npc Table", &MvpDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
-			.Property("SignTable", "Sign Table", &MvpDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
-			.Property("Dialogue", "Dialogue", &MvpDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
+		ScriptRegistry::Register<FieldDirectorScript>("FieldDirectorScript", { "MvpDirectorScript" })
+			.Property("InteractRange", "Interact Range", &FieldDirectorScript::InteractRange).Range(0.0f, 20.0f).Tooltip("Metres: farther items get no prompt")
+			.Property("MaxReachHeight", "Max Reach Height", &FieldDirectorScript::MaxReachHeight).Range(0.0f, 10.0f).Tooltip("Metres between the player's ground and the item's (another terrace is out of reach)")
+			.Property("FacingDegrees", "Facing Degrees", &FieldDirectorScript::FacingDegrees).Range(0.0f, 180.0f).Tooltip("Degrees either side of where the player faces")
+			.Property("CloseRange", "Close Range", &FieldDirectorScript::CloseRange).Range(0.0f, 10.0f).Tooltip("Metres: this close, an item is in reach whichever way the player faces")
+			.Property("SwitchMargin", "Switch Margin", &FieldDirectorScript::SwitchMargin).Range(0.0f, 5.0f).Tooltip("Metres another item must be closer by to take the prompt over (stops flicker)")
+			.Property("EyeHeight", "Eye Height", &FieldDirectorScript::EyeHeight).Range(0.0f, 5.0f).Tooltip("Line of sight starts this high above the player's ground (the chest)")
+			.Property("ItemHeight", "Item Height", &FieldDirectorScript::ItemHeight).Range(0.0f, 5.0f).Tooltip("...and ends this high on the item")
+			.Property("MessageTime", "Message Time", &FieldDirectorScript::MessageTime).Range(0.1f, 30.0f).Tooltip("How long a message stays up")
+			.Property("LeaveTime", "Leave Time", &FieldDirectorScript::LeaveTime).Range(0.05f, 5.0f).Tooltip("Fade out when leaving through an exit")
+			.Property("ArriveTime", "Arrive Time", &FieldDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
+			.Property("RestTime", "Rest Time", &FieldDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point")
+			.Property("StartingInventory", "Starting Inventory", &FieldDirectorScript::StartingInventory).Tooltip("The items a run starts with, in their order").AssetFilter(AssetType::Definition).DataTypeFilter("InventoryDefinition")
+			.Property("ChestItem", "Chest Item", &FieldDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition")
+			.Property("NpcTable", "Npc Table", &FieldDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
+			.Property("SignTable", "Sign Table", &FieldDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
+			.Property("Dialogue", "Dialogue", &FieldDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
 
 		ScriptRegistry::Register<InteriorScript>("InteriorScript")
 			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")
