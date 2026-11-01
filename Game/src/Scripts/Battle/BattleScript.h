@@ -4,6 +4,8 @@
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
 #include "Rules/BattleRules.h"
+#include "Scripts/Battle/BattleEffects.h"
+#include "Scripts/Battle/BattleText.h"
 #include "Rules/LootRules.h"
 #include "Scripts/Common/DioramaCamera.h"
 #include "State/BattleState.h"
@@ -46,68 +48,6 @@ namespace Hydro
 	// ---------------------------------------------------------------------------------------------------------
 	// Data
 
-	// The battle's own wording (commands and messages; once rows of Assets/Sprites/UI/BattleText.png): UI text, in
-	// code until there is a text table (with localisation). Names of heroes, enemies and skills are data (BattleData).
-	enum class BattleLabel : uint32_t
-	{
-		Attack = 0, Guard, Potion, Run,
-		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape
-	};
-
-	// The words a label stands for, as the runtime UI writes them (the command menu and the message box).
-	inline const char* GetLabelText(BattleLabel label)
-	{
-		switch (label)
-		{
-		case BattleLabel::Attack: return "Attack";
-		case BattleLabel::Guard: return "Guard";
-		case BattleLabel::Potion: return "Potion";
-		case BattleLabel::Run: return "Run";
-		case BattleLabel::Weak: return "Weak!";
-		case BattleLabel::Resist: return "Resist";
-		case BattleLabel::Break: return "Break!";
-		case BattleLabel::Victory: return "Victory!";
-		case BattleLabel::Defeated: return "Defeated...";
-		case BattleLabel::Escaped: return "Got away!";
-		case BattleLabel::Boost: return "Boost";
-		case BattleLabel::NoMP: return "Not enough MP";
-		case BattleLabel::NoPotions: return "No potions left";
-		case BattleLabel::Critical: return "Critical!";
-		case BattleLabel::Guarding: return "Guarding";
-		case BattleLabel::NoEscape: return "Couldn't get away!";
-		default: return "";
-		}
-	}
-
-	// Cells of Assets/Sprites/UI/BattleIcons.png: row Icon, then row Digit (0-9 from DigitBase).
-	struct BattleIcon
-	{
-		static constexpr uint32_t Unknown = 5;
-		static constexpr uint32_t Shield = 6;
-		static constexpr uint32_t PipEmpty = 7;
-		static constexpr uint32_t PipFull = 8;
-		static constexpr uint32_t Cursor = 9;
-		static constexpr uint32_t Broken = 10;
-		static constexpr uint32_t DigitBase = 12;
-		static uint32_t ForType(DamageType type) { return (uint32_t)type; }
-	};
-
-	// ---------------------------------------------------------------------------------------------------------
-	// Battle
-
-	// The party battle: put it on one entity of Battle.hyscene (the "Battle Director"). The party against
-	// up to three enemies (BattleState::Get().Encounter). Rounds: everyone acts once, fastest first (the order is
-	// shown at the top). On a hero's turn: 1 attack, 2 / 3 skills, 4 guard, 5 potion, 6 run, Left / Right pick
-	// the target, Up / Down the boost.
-	//
-	// Rules (prototype values, tune freely):
-	//   - Weak hits do 1.5x and take one point off the enemy's shield; resisted hits do 0.5x.
-	//   - Shield at 0: the enemy is broken: it loses its turns this round and the next and takes 2x damage,
-	//     then its shield comes back.
-	//   - Momentum: each hero gains 1 per round (not in a round after boosting), up to 5. Boosting spends 1 to 3:
-	//     an attack hits once more per point, a skill gets stronger.
-	//   - Weaknesses show as "?" until hit with them, and stay known for the rest of the game.
-	// It finds the scene's entities by tag (see scripts/shrine_glade/battle.py, which edits the scene).
 	HY_SCRIPT()
 	class BattleScript : public ScriptableEntity
 	{
@@ -911,7 +851,7 @@ namespace Hydro
 			m_Action.StepDuration = WalkTime(m_Action.From, m_Action.To, WalkSpeed);
 			const glm::vec2 direction = m_Action.To - m_Action.From;
 			SpriteAnimator::Play(EntityOf(hero.Sprite), direction.x <= 0.0f ? "WalkLeft" : "WalkRight", true);
-			PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, StepDust(), ParticleSpace::Ground);
+			PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, BattleEffects::StepDust(), ParticleSpace::Ground);
 		}
 
 		void BeginStrike()
@@ -963,7 +903,7 @@ namespace Hydro
 					hero.Offset = m_Action.From + (m_Action.To - m_Action.From) * eased;
 					if (k >= 1.0f)
 					{
-						PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, StepDust(), ParticleSpace::Ground);
+						PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, BattleEffects::StepDust(), ParticleSpace::Ground);
 						BeginStrike();
 					}
 					break;
@@ -1147,7 +1087,7 @@ namespace Hydro
 				BattleState::Get().HeroHP[m_Action.Target] = std::max(0, BattleState::Get().HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
 				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, HitSparks(DamageType::Blunt, target.Guarding == false), ParticleSpace::View);
+				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, BattleEffects::HitSparks(DamageType::Blunt, target.Guarding == false), ParticleSpace::View);
 				Shake(target.Guarding ? 0.04f : 0.08f);
 				Entity sprite = EntityOf(target.Sprite);
 				if (BattleState::Get().HeroHP[m_Action.Target] <= 0)
@@ -1238,7 +1178,7 @@ namespace Hydro
 			if (enemy.HP <= 0)
 			{
 				HY_INFO("Battle: {} is defeated", definition.Name);
-				PlayEffect("Effect Defeat Puff", enemy.Base, 0.5f, DefeatPuff(definition), ParticleSpace::View);
+				PlayEffect("Effect Defeat Puff", enemy.Base, 0.5f, BattleEffects::DefeatPuff(definition), ParticleSpace::View);
 			}
 			return weak || critical;
 		}
@@ -1360,10 +1300,10 @@ namespace Hydro
 		{
 			const Enemy& enemy = m_Enemies[target];
 			const float size = enemy.Size;
-			PlayEffect("Effect Hit Sparks", enemy.Base, 0.55f * size, HitSparks(type, strong), ParticleSpace::View);
+			PlayEffect("Effect Hit Sparks", enemy.Base, 0.55f * size, BattleEffects::HitSparks(type, strong), ParticleSpace::View);
 			if (move == StrikeMove::Kick)
 			{
-				PlayEffect("Effect Dust", enemy.Base, 0.05f, KickDust(), ParticleSpace::Ground);
+				PlayEffect("Effect Dust", enemy.Base, 0.05f, BattleEffects::KickDust(), ParticleSpace::Ground);
 			}
 			const bool skill = m_Action.Kind != Command::Attack;
 			m_StrikeEffect.LightPeak = (skill ? 7.0f : 4.0f) * (strong ? 1.3f : 1.0f);
@@ -1382,7 +1322,7 @@ namespace Hydro
 			const int before = BattleState::Get().HeroHP[h];
 			BattleState::Get().HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::Get().HeroHP[h] + amount);
 			SpawnPopup(ScreenAbove(m_Heroes[h].Base, HeroPopupHeight), BattleState::Get().HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
-			PlayEffect("Effect Heal", m_Heroes[h].Base, 0.35f, HealMotes(), ParticleSpace::View);
+			PlayEffect("Effect Heal", m_Heroes[h].Base, 0.35f, BattleEffects::HealMotes(), ParticleSpace::View);
 			PlaySpriteEffect(m_HealEffect, Above(m_Heroes[h].Base, 0.6f) + m_Stage.Back * 0.6f, "Heal", HealEffectTime,
 				glm::vec3(0.55f, 1.0f, 0.6f), 2.5f);
 			HY_INFO("Battle: {} recovers {} HP", GetHero(h).Name, BattleState::Get().HeroHP[h] - before);
@@ -1608,144 +1548,6 @@ namespace Hydro
 		// ---- Effects (particles) ----------------------------------------------------------------------------
 		// Each effect is a short-lived entity with a ParticleEmitter2DComponent: one burst, then it destroys
 		// itself (DestroyWhenFinished). The presets are plain component values (Roadmap: prefabs later, V5).
-
-		// Sparks where a hit lands, coloured by the damage type. Lit but glowing (emission, so they bloom), sprayed
-		// in the plane facing the camera (PlayEffect makes battle effects View space). Sizes and speeds are in
-		// layout units, like the rest of the battle: PlayEffect scales them to metres.
-		static ParticleEmitter2DComponent HitSparks(DamageType type, bool strong)
-		{
-			ParticleEmitter2DComponent sparks;
-			sparks.Looping = false;
-			sparks.Duration = 0.05f;
-			sparks.Rate = 0.0f;
-			sparks.BurstCount = strong ? 30 : 18;
-			sparks.MaxParticles = 48;
-			sparks.Shape = EmitterShape::Circle;
-			sparks.ShapeSize = { 0.25f, 0.25f };
-			sparks.Lifetime = { 0.25f, 0.5f };
-			sparks.Speed = { 4.0f, strong ? 10.0f : 7.5f };
-			sparks.Direction = 90.0f;
-			sparks.Spread = 180.0f;
-			sparks.StartSize = { 0.12f, 0.28f };
-			sparks.EndSizeScale = 0.2f;
-			sparks.Gravity = { 0.0f, -9.0f };
-			sparks.Drag = 3.0f;
-			sparks.Lighting = ParticleLighting::Lit;
-			sparks.EmissionIntensity = 3.0f;
-			sparks.Blend = ParticleBlend::Additive; // drawn alpha until the additive pipeline (Roadmap V4)
-			sparks.SortOrder = 200;
-			sparks.DestroyWhenFinished = true;
-			switch (type)
-			{
-				case DamageType::Fire:
-					sparks.StartColor = { 1.0f, 0.75f, 0.3f, 1.0f };
-					sparks.EndColor = { 1.0f, 0.25f, 0.05f, 0.0f };
-					break;
-				case DamageType::Light:
-					sparks.StartColor = { 1.0f, 1.0f, 0.85f, 1.0f };
-					sparks.EndColor = { 1.0f, 0.85f, 0.4f, 0.0f };
-					break;
-				default:
-					sparks.StartColor = { 1.0f, 0.97f, 0.8f, 1.0f };
-					sparks.EndColor = { 1.0f, 0.7f, 0.3f, 0.0f };
-					break;
-			}
-			return sparks;
-		}
-
-		// A puff of smoke where a defeated enemy was. Lit: smoke is a thing in the scene, not a light.
-		static ParticleEmitter2DComponent DefeatPuff(const EnemyDefinition& enemy)
-		{
-			ParticleEmitter2DComponent puff;
-			puff.Looping = false;
-			puff.Duration = 0.05f;
-			puff.Rate = 0.0f;
-			puff.BurstCount = 26;
-			puff.MaxParticles = 32;
-			puff.Shape = EmitterShape::Circle;
-			puff.ShapeSize = { 0.8f, 0.8f };
-			puff.Lifetime = { 0.7f, 1.2f };
-			puff.Speed = { 0.4f, 1.8f };
-			puff.Direction = 90.0f;
-			puff.Spread = 180.0f;
-			puff.StartSize = { 0.6f, 1.1f };
-			puff.EndSizeScale = 2.2f;
-			puff.StartRotation = { 0.0f, 360.0f };
-			puff.AngularVelocity = { -60.0f, 60.0f };
-			puff.Gravity = { 0.0f, 0.9f };
-			puff.Drag = 1.5f;
-			puff.SortOrder = 25;
-			puff.DestroyWhenFinished = true;
-			// Its smoke colour (Enemies.hytable), darkening as it fades.
-			puff.StartColor = glm::vec4(enemy.SmokeColor, 0.8f);
-			puff.EndColor = glm::vec4(enemy.SmokeColor * 0.75f, 0.0f);
-			return puff;
-		}
-
-		// Dust kicked up by a footstep (the hero setting off and stopping). On the floor (Ground space).
-		static ParticleEmitter2DComponent StepDust()
-		{
-			ParticleEmitter2DComponent dust;
-			dust.Looping = false;
-			dust.Duration = 0.05f;
-			dust.Rate = 0.0f;
-			dust.BurstCount = 10;
-			dust.MaxParticles = 16;
-			dust.Shape = EmitterShape::Circle;
-			dust.ShapeSize = { 0.4f, 0.4f };
-			dust.Lifetime = { 0.35f, 0.6f };
-			dust.Speed = { 0.6f, 1.6f };
-			dust.Direction = 90.0f;
-			dust.Spread = 180.0f;
-			dust.StartSize = { 0.3f, 0.55f };
-			dust.EndSizeScale = 1.8f;
-			dust.Drag = 3.0f;
-			dust.StartColor = { 0.62f, 0.52f, 0.42f, 0.55f };
-			dust.EndColor = { 0.55f, 0.48f, 0.4f, 0.0f };
-			dust.SortOrder = 20;
-			dust.DestroyWhenFinished = true;
-			return dust;
-		}
-
-		// A bigger burst of dust and grass bits where a kick lands.
-		static ParticleEmitter2DComponent KickDust()
-		{
-			ParticleEmitter2DComponent dust = StepDust();
-			dust.BurstCount = 18;
-			dust.MaxParticles = 24;
-			dust.Speed = { 1.5f, 3.5f };
-			dust.Direction = 180.0f; // away from the hero, who strikes from the right
-			dust.Spread = 70.0f;
-			dust.StartSize = { 0.35f, 0.7f };
-			return dust;
-		}
-
-		// Green motes rising from a healed hero.
-		static ParticleEmitter2DComponent HealMotes()
-		{
-			ParticleEmitter2DComponent motes;
-			motes.Looping = false;
-			motes.Duration = 0.4f;
-			motes.Rate = 40.0f;
-			motes.BurstCount = 10;
-			motes.MaxParticles = 40;
-			motes.Shape = EmitterShape::Box;
-			motes.ShapeSize = { 1.6f, 0.6f };
-			motes.Lifetime = { 0.7f, 1.1f };
-			motes.Speed = { 1.0f, 2.2f };
-			motes.Direction = 90.0f;
-			motes.Spread = 12.0f;
-			motes.StartSize = { 0.15f, 0.3f };
-			motes.EndSizeScale = 0.4f;
-			motes.Drag = 0.8f;
-			motes.Turbulence = 2.0f;
-			motes.StartColor = { 0.55f, 1.0f, 0.6f, 1.0f };
-			motes.EndColor = { 0.8f, 1.0f, 0.7f, 0.0f };
-			motes.EmissionIntensity = 2.0f;
-			motes.SortOrder = 200;
-			motes.DestroyWhenFinished = true;
-			return motes;
-		}
 
 		// Creates the effect entity `height` metres above `ground` (layout units), a little towards the camera.
 		// The preset's lengths are layout units: scaled to metres here. Creating entities is allowed while scripts
