@@ -5,6 +5,7 @@
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
 
 #include "Scripts/BattleScripts.h"
+#include "Scripts/Common/CameraZoneScript.h"
 #include "Scripts/DialogueScripts.h"
 #include "Scripts/ExampleScripts.h"
 #include "Scripts/MvpScripts.h"
@@ -49,6 +50,19 @@ namespace Hydro
 			.Property("ChaseSpeed", "Chase Speed", &EnemyChaseScript::ChaseSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while chasing (the player walks at about 3.5)")
 			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home")
 			.Property("Dormant", "Dormant", &EnemyChaseScript::Dormant).Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)");
+
+		ScriptRegistry::Register<CameraZoneScript>("CameraZoneScript")
+			.Property("Size", "Size", &CameraZoneScript::Size).Min(0.0f).Tooltip("Width (x) and depth (y) of the zone on the ground in metres, centred on the entity")
+			.Property("Priority", "Priority", &CameraZoneScript::Priority).Tooltip("Where zones overlap, the highest priority wins (then the smallest zone)")
+			.Property("TiltDegrees", "Tilt Degrees", &CameraZoneScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down (0 = the scene's)")
+			.Property("YawDegrees", "Yaw Degrees", &CameraZoneScript::YawDegrees).Range(-180.0f, 180.0f).Tooltip("Direction the camera looks, degrees counter-clockwise seen from above (0 = north, +Y)")
+			.Property("FieldOfView", "Field Of View", &CameraZoneScript::FieldOfView).Range(0.0f, 120.0f).Tooltip("Vertical field of view in degrees (0 = the scene's)")
+			.Property("ViewScale", "View Scale", &CameraZoneScript::ViewScale).Range(0.0f, 4.0f).Tooltip("How much the camera sees, times the camera's Orthographic Size (below 1 = closer; 0 = the scene's)")
+			.Property("FocusLead", "Focus Lead", &CameraZoneScript::FocusLead).Range(-20.0f, 20.0f).Tooltip("Metres the camera looks ahead of the player, along the view")
+			.Property("FocusRise", "Focus Rise", &CameraZoneScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
+			.Property("PanMin", "Pan Min", &CameraZoneScript::PanMin).Tooltip("Lowest x, y the camera's focus may reach, from the zone's centre (Pan Min = Pan Max: the scene's bounds)")
+			.Property("PanMax", "Pan Max", &CameraZoneScript::PanMax).Tooltip("Highest x, y the camera's focus may reach, from the zone's centre")
+			.Property("BlendSeconds", "Blend Seconds", &CameraZoneScript::BlendSeconds).Range(0.0f, 10.0f).Tooltip("Seconds the camera takes to settle into this zone's framing");
 
 		ScriptRegistry::Register<DialogueScript>("DialogueScript")
 			.Property("CharactersPerSecond", "Characters Per Second", &DialogueScript::CharactersPerSecond).Range(1.0f, 200.0f).Tooltip("How fast the lines type in, in characters per second");
@@ -129,6 +143,8 @@ namespace Hydro
 			.Property("FocusRise", "Focus Rise", &FieldSceneScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
 			.Property("BoundsMin", "Bounds Min", &FieldSceneScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
 			.Property("BoundsMax", "Bounds Max", &FieldSceneScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
+			.Property("YawDegrees", "Yaw Degrees", &FieldSceneScript::YawDegrees).Range(-180.0f, 180.0f).Tooltip("Direction the camera looks, degrees counter-clockwise from north (+Y); camera zones may turn it")
+			.Property("ViewScale", "View Scale", &FieldSceneScript::ViewScale).Range(0.0f, 4.0f).Tooltip("How much the camera sees, times its Orthographic Size (below 1 = closer)")
 			.Property("StartPreset", "Start Preset", &FieldSceneScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)")
 			.Property("DayProfile", "Day Profile", &FieldSceneScript::DayProfile).Tooltip("Day: ambient, fog, bloom and depth of field").AssetFilter(AssetType::RenderProfile)
 			.Property("DaySunColor", "Day Sun Color", &FieldSceneScript::DaySunColor).Tooltip("Day: the sun's colour").Color()

@@ -49,11 +49,14 @@ MATDEFS = {
     "JP_Wall_MudStraw": {}, "JP_Wall_Namako": {}, "JP_Stone_Granite": {}, "JP_Stone_Rough": {},
     "JP_Paving_City": {}, "JP_Ground_AlleyDirt": {},
     "JP_Wood_Staves": {}, "JP_Clay_Ochre": {}, "JP_Glaze_Brown": {}, "JP_Cloth_Red": {}, "JP_Drum_Hide": {},
+    "JP_Cloth_Indigo": {}, "JP_Roof_KawaraChannel": {}, "JP_Roof_KawaraRoll": {}, "JP_Roof_KawaraOldRoll": {},
     "JP_Mat_Iron": {}, "JP_Mat_Bronze": {}, "JP_Mat_Rope": {}, "JP_Mat_Glass": {},
     "JP_Mat_Opening": {"file": "JP_Mat_Opening.png"},     # the dark behind open shop fronts and window bars
 }
 GLOW = (1.0, 0.62, 0.28, 1.0)
-ROOF_MATS = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_Plank"}
+ROOF_MATS = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_Plank", "JP_Roof_KawaraChannel"}
+# the round tile rolls on a kawara slope: their own texture (courses along the roll), UV'd along the roll's arc
+ROLL_MAT = {"JP_Roof_Kawara": "JP_Roof_KawaraRoll", "JP_Roof_KawaraOld": "JP_Roof_KawaraOldRoll"}
 MAT, TEXSIZE, ROT = {}, {}, set()
 if (TEX / "JP_Mat_Opening.png").exists() is False:
     img = bpy.data.images.new("JP_Mat_Opening", 4, 4, alpha=False)
@@ -279,6 +282,90 @@ rng = random.Random(1729)
 
 
 # ------------------------------------------------------------------ roof parts
+ROLL_SPACING, ROLL_W, ROLL_H = 0.32, 0.2, 0.09
+CHANNEL = {"JP_Roof_Kawara": "JP_Roof_KawaraChannel"}   # the slope under the rolls: the tiles two steps darker
+
+
+def chan(mat):
+    return CHANNEL.get(mat, mat)
+ROLLED = {"JP_Roof_Kawara", "JP_Roof_KawaraOld"}
+
+
+def tile_rolls(mb, poly, mat):
+    """Round-tile relief (Nov 1 pass, after the OT2 / wuxia HD-2D references): the courses of a clay-tile roof are
+    real geometry, a low ridge running down the slope every 0.28 m, so every row throws a line of shadow at the
+    field camera instead of reading as a flat painted slab. poly: the slope face, its first two points on the eave."""
+    if mat not in ROLLED:
+        return
+    P = [Vector(p) for p in poly]
+    e0, e1 = P[0], P[1]
+    u = (e1 - e0)
+    if u.length < 0.3:
+        return
+    u.normalize()
+    far = max(P[2:], key=lambda q: (q - e0).cross(u).length)
+    n = u.cross(far - e0).normalized()
+    if n.z < 0:
+        n = -n
+    v = n.cross(u).normalized()
+    if (far - e0).dot(v) < 0:
+        v = -v
+    pts2 = [((q - e0).dot(u), (q - e0).dot(v)) for q in P]
+    umin, umax = min(p[0] for p in pts2), max(p[0] for p in pts2)
+    m = len(pts2)
+    k = umin + ROLL_SPACING / 2
+    prof = [(-ROLL_W / 2, -0.01), (-ROLL_W / 4, ROLL_H * 0.78), (0.0, ROLL_H), (ROLL_W / 4, ROLL_H * 0.78), (ROLL_W / 2, -0.01)]
+    # UVs (Nov 1, after the game view showed streaked rolls): u = distance around the roll's arc, v = up the slope, both
+    # in metres, so the roll texture's courses run across every roll at 32 texels/m. The slope projection used before
+    # turned the steep sides of a roll sideways and squeezed the kawara pattern into chevrons.
+    rmat = ROLL_MAT.get(mat, mat)
+    arc = [0.0]
+    for j in range(len(prof) - 1):
+        arc.append(arc[-1] + math.hypot(prof[j + 1][0] - prof[j][0], prof[j + 1][1] - prof[j][1]))
+    while k < umax - ROLL_SPACING / 4:
+        vs = []
+        for i in range(m):
+            (a0, b0), (a1, b1) = pts2[i], pts2[(i + 1) % m]
+            if (a0 - k) * (a1 - k) <= 0 and abs(a1 - a0) > 1e-6:
+                vs.append(b0 + (b1 - b0) * (k - a0) / (a1 - a0))
+        if len(vs) >= 2:
+            v0, v1 = min(vs), max(vs) - 0.04
+            if v1 - v0 > 0.2:
+                rows = []
+                for vv in (v0, v1):
+                    rows.append([e0 + u * (k + du) + v * vv + n * dh for (du, dh) in prof])
+                for j in range(len(prof) - 1):
+                    a0, a1 = k + arc[j], k + arc[j + 1]
+                    mb.poly([tuple(rows[0][j]), tuple(rows[0][j + 1]), tuple(rows[1][j + 1]), tuple(rows[1][j])], rmat,
+                            uvs=[(a0, v0), (a1, v0), (a1, v1), (a0, v1)])
+                mb.poly([tuple(q) for q in reversed(rows[0])], rmat, uvs=[(k + du, dh) for (du, dh) in reversed(prof)])
+        k += ROLL_SPACING
+
+
+def swept_ring(X0, X1, Y0, Y1, z, upturn, seg=6, power=2.4):
+    """An eave ring of 4 * seg points, corners swept up by `upturn` along a curve (flat in the middle of a side)."""
+    corners = [(X0, Y0), (X1, Y0), (X1, Y1), (X0, Y1)]
+    ring = []
+    for i in range(4):
+        (ax, ay), (bx, by) = corners[i], corners[(i + 1) % 4]
+        for j in range(seg):
+            f = j / seg
+            d = abs(2 * f - 1)
+            ring.append((ax + (bx - ax) * f, ay + (by - ay) * f, z + upturn * d ** power))
+    return ring
+
+
+def inner_ring(X0, X1, Y0, Y1, z, seg=6):
+    corners = [(X0, Y0), (X1, Y0), (X1, Y1), (X0, Y1)]
+    ring = []
+    for i in range(4):
+        (ax, ay), (bx, by) = corners[i], corners[(i + 1) % 4]
+        for j in range(seg):
+            f = j / seg
+            ring.append((ax + (bx - ax) * f, ay + (by - ay) * f, z))
+    return ring
+
+
 def tile_ends(mb, a, b, z_a, z_b, out, mat=KAWARA, step=0.27, r=0.085):
     """Row of round tile ends (small 6-sided discs) from a to b (2D points) along an eave, facing `out` (2D unit)."""
     a, b = Vector((a[0], a[1], 0)), Vector((b[0], b[1], 0))
@@ -319,7 +406,8 @@ def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_e
         top = [(X0, ye, ze), (X1, ye, ze), (X1, ym, ze + rise), (X0, ym, ze + rise)]
         if s > 0:
             bottom = [bottom[1], bottom[0], bottom[3], bottom[2]]; top = [top[1], top[0], top[3], top[2]]
-        mb.solid(bottom, top, mat, bottom_mat=CEDAR if mat != "JP_Roof_Plank" else "JP_Wood_Weathered", side_mat=CEDAR)
+        mb.solid(bottom, top, chan(mat), bottom_mat=CEDAR if mat != "JP_Roof_Plank" else "JP_Wood_Weathered", side_mat=CEDAR)
+        tile_rolls(mb, top, mat)
         if ends:
             tile_ends(mb, (X1, ye), (X0, ye), ze, ze, (0, s))
     for gx in (x0, x1):
@@ -344,8 +432,9 @@ def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_e
     return zr
 
 
-def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_end="cloud"):
-    """Irimoya (hip-and-gable), corners swept up by `upturn`, tile ends along every eave."""
+def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_end="cloud", seg=6):
+    """Irimoya (hip-and-gable): eaves swept up toward the corners along a curve, tile rolls on every slope, tile ends
+    along every eave, a latticed gable and a heavy ridge with ridge-end tiles."""
     t = math.tan(math.radians(pitch))
     ym = (y0 + y1) / 2
     hd = (y1 - y0) / 2 + eave
@@ -355,66 +444,73 @@ def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_en
     inset = hd * 0.55
     zr = ze + rise
     zg = ze + inset * t
-    ring_lo = [(X0, Y0, ze + upturn), (X1, Y0, ze + upturn), (X1, Y1, ze + upturn), (X0, Y1, ze + upturn)]
-    ring_hi = [(X0 + inset, Y0 + inset, zg), (X1 - inset, Y0 + inset, zg), (X1 - inset, Y1 - inset, zg), (X0 + inset, Y1 - inset, zg)]
-    lo, hi = [], []
-    for i in range(4):
-        a, b = ring_lo[i], ring_lo[(i + 1) % 4]
-        c, d = ring_hi[i], ring_hi[(i + 1) % 4]
-        lo += [a, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, ze)]
-        hi += [c, ((c[0] + d[0]) / 2, (c[1] + d[1]) / 2, zg)]
+    lo = swept_ring(X0, X1, Y0, Y1, ze, upturn, seg)
+    hi = inner_ring(X0 + inset, X1 - inset, Y0 + inset, Y1 - inset, zg, seg)
+    n = len(lo)
     under = [(p[0], p[1], p[2] - SLAB) for p in lo]
     mb.solid(under, lo, mat, bottom_mat=CEDAR, cap=False, side_mat=CEDAR)
-    n = len(lo)
     for i in range(n):
-        mb.poly([lo[i], lo[(i + 1) % n], hi[(i + 1) % n], hi[i]], mat)
-    outs = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-    for i in range(4):     # tile ends along each eave side, rising to the corners
-        a, m, b = lo[2 * i], lo[2 * i + 1], lo[(2 * i + 2) % n]
-        tile_ends(mb, a[:2], m[:2], a[2], m[2], outs[i])
-        tile_ends(mb, m[:2], b[:2], m[2], b[2], outs[i])
+        q = [lo[i], lo[(i + 1) % n], hi[(i + 1) % n], hi[i]]
+        mb.poly(q, chan(mat))
+        tile_rolls(mb, q, mat)
+        a, b = lo[i], lo[(i + 1) % n]
+        side = i // seg
+        out = [(0, -1), (1, 0), (0, 1), (-1, 0)][side]
+        tile_ends(mb, a[:2], b[:2], a[2], b[2], out)
     gx0, gx1 = X0 + inset, X1 - inset
-    for s in (-1, 1):
-        ye = Y0 + inset if s < 0 else Y1 - inset
+    for s_ in (-1, 1):
+        ye = Y0 + inset if s_ < 0 else Y1 - inset
         q = [(gx0 - 0.2, ye, zg), (gx1 + 0.2, ye, zg), (gx1 + 0.2, ym, zr), (gx0 - 0.2, ym, zr)]
-        if s > 0:
+        if s_ > 0:
             q = [q[1], q[0], q[3], q[2]]
-        mb.poly(q, mat)
+        mb.poly(q, chan(mat))
+        tile_rolls(mb, q, mat)
     for gx, sgn in ((gx0, -1), (gx1, 1)):
         tri = [(gx, Y0 + inset, zg), (gx, Y1 - inset, zg), (gx, ym, zr - 0.1)]
         mb.poly(list(reversed(tri)) if sgn < 0 else tri, "JP_Wood_Lattice")      # latticed gable (kitsune-goshi)
-    mb.box(gx0 - 0.3, ym - 0.22, zr - 0.05, gx1 + 0.3, ym + 0.22, zr + 0.34, mat)
-    h = {"plain": 0.3, "cloud": 0.66}[ridge_end]
+    mb.box(gx0 - 0.3, ym - 0.24, zr - 0.05, gx1 + 0.3, ym + 0.24, zr + 0.42, mat)
+    mb.box(gx0 - 0.25, ym - 0.3, zr - 0.05, gx1 + 0.25, ym + 0.3, zr + 0.12, mat)          # stepped ridge base
+    h = {"plain": 0.32, "cloud": 0.8}[ridge_end]
     for xe, o in ((gx0 - 0.3, -1), (gx1 + 0.3, 1)):
-        ridge_end_tile(mb, xe, ym, zr + 0.26, h, o, mat, length=0.55 if ridge_end == "plain" else 0.85)
+        ridge_end_tile(mb, xe, ym, zr + 0.32, h, o, mat, length=0.55 if ridge_end == "plain" else 0.95, width=0.62)
     return zr
 
 
-def roof_hip(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.0, ends=True):
+def roof_hip(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.0, ends=True, seg=6):
     t = math.tan(math.radians(pitch))
     X0, X1, Y0, Y1 = x0 - eave, x1 + eave, y0 - eave, y1 + eave
     hd = min(X1 - X0, Y1 - Y0) / 2
     ze = z - eave * t
     zr = ze + hd * t
     ym, xm = (Y0 + Y1) / 2, (X0 + X1) / 2
-    lo = [(X0, Y0, ze + upturn), (X1, Y0, ze + upturn), (X1, Y1, ze + upturn), (X0, Y1, ze + upturn)]
+    lo = swept_ring(X0, X1, Y0, Y1, ze, upturn, seg)
     if (X1 - X0) >= (Y1 - Y0):
-        top = [(X0 + hd, ym, zr), (X1 - hd, ym, zr), (X1 - hd, ym, zr), (X0 + hd, ym, zr)]
+        ra, rb = Vector((X0 + hd, ym, zr)), Vector((X1 - hd, ym, zr))
     else:
-        top = [(xm, Y0 + hd, zr), (xm, Y0 + hd, zr), (xm, Y1 - hd, zr), (xm, Y1 - hd, zr)]
+        ra, rb = Vector((xm, Y0 + hd, zr)), Vector((xm, Y1 - hd, zr))
     under = [(p[0], p[1], p[2] - SLAB) for p in lo]
     mb.solid(under, lo, mat, bottom_mat=CEDAR, cap=False, side_mat=CEDAR)
+    n = len(lo)
     outs = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-    for i in range(4):
-        a, b, c, d = lo[i], lo[(i + 1) % 4], top[(i + 1) % 4], top[i]
-        if (Vector(c) - Vector(d)).length < 1e-6:
-            mb.poly([a, b, c], mat)
-        else:
-            mb.poly([a, b, c, d], mat)
+    for side in range(4):
+        pts = [lo[(side * seg + j) % n] for j in range(seg + 1)]
+        # the ridge points this side climbs to: the front and back sides span the whole ridge, the ends meet one tip
+        tips = {0: (ra, rb), 1: (rb, rb), 2: (rb, ra), 3: (ra, ra)} if (X1 - X0) >= (Y1 - Y0) else \
+               {0: (ra, ra), 1: (ra, rb), 2: (rb, rb), 3: (rb, ra)}
+        ta, tb = tips[side]
+        face = [pts[0], pts[-1], tuple(tb), tuple(ta)] if (ta - tb).length > 1e-6 else [pts[0], pts[-1], tuple(ta)]
+        for j in range(seg):
+            f0, f1 = j / seg, (j + 1) / seg
+            top0, top1 = ta.lerp(tb, f0), ta.lerp(tb, f1)
+            q = [pts[j], pts[j + 1], tuple(top1), tuple(top0)]
+            if (top1 - top0).length < 1e-6:
+                q = [pts[j], pts[j + 1], tuple(top0)]
+            mb.poly(q, chan(mat))
+        tile_rolls(mb, face, mat)
         if ends:
-            tile_ends(mb, a[:2], b[:2], a[2], b[2], outs[i])
-    mb.box(min(p[0] for p in top) - 0.1, min(p[1] for p in top) - 0.18, zr - 0.05,
-           max(p[0] for p in top) + 0.1, max(p[1] for p in top) + 0.18, zr + 0.25, mat)
+            for j in range(seg):
+                tile_ends(mb, pts[j][:2], pts[j + 1][:2], pts[j][2], pts[j + 1][2], outs[side])
+    mb.box(min(ra.x, rb.x) - 0.15, min(ra.y, rb.y) - 0.2, zr - 0.05, max(ra.x, rb.x) + 0.15, max(ra.y, rb.y) + 0.2, zr + 0.3, mat)
     return zr
 
 
@@ -425,7 +521,8 @@ def pent_roof(mb, x0, x1, y_wall, z_top, proj, pitch, mat=KAWARA, sides=0.0, end
     a0, a1 = x0 - sides, x1 + sides
     bottom = [(a0, y_wall - proj, ze - 0.14), (a1, y_wall - proj, ze - 0.14), (a1, y_wall, z_top - 0.14), (a0, y_wall, z_top - 0.14)]
     top = [(a0, y_wall - proj, ze), (a1, y_wall - proj, ze), (a1, y_wall, z_top), (a0, y_wall, z_top)]
-    mb.solid(bottom, top, mat, bottom_mat=CEDAR, side_mat=CEDAR)
+    mb.solid(bottom, top, chan(mat), bottom_mat=CEDAR, side_mat=CEDAR)
+    tile_rolls(mb, top, mat)
     mb.box(a0, y_wall - proj - 0.02, ze - 0.2, a1, y_wall - proj + 0.1, ze - 0.06, CEDAR)       # fascia
     if ends:
         tile_ends(mb, (a1, y_wall - proj), (a0, y_wall - proj), ze, ze, (0, -1))
@@ -611,7 +708,7 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
     if roof == "gable":
         zr = roof_gable(mb, x0, x1, 0.0, D, top, m["pitch"], m["eave"], KAWARA, ridge_end="cloud" if cloud else "plain")
     else:
-        zr = roof_hipgable(mb, x0, x1, 0.0, D, top, m["pitch"], m["eave"], KAWARA, upturn=0.3 if tier == "A" else 0.0,
+        zr = roof_hipgable(mb, x0, x1, 0.0, D, top, m["pitch"], m["eave"], KAWARA, upturn=0.6 if tier == "A" else 0.0,
                            ridge_end="cloud" if cloud else "plain")
     if cusped:
         cusped_gable(mb, zt + 0.32, pl)
@@ -812,7 +909,7 @@ def city_gate(name):
     mb.box(-1.5, uy0 - 0.1, uz0 + 0.82, 1.5, uy0 + 0.0, uz0 + 0.92, CEDAR)
     mb.box(-1.5, uy0 - 0.1, uz0 + 2.2, 1.5, uy0 + 0.0, uz0 + 2.3, CEDAR)
     pent_roof(mb, -pw / 2 - 1.3, pw / 2 + 1.3, uy0, uz0 - 0.05, 1.3, 24.0)
-    zr = roof_hip(mb, ux0, ux1, uy0, uy1, uz1, 30.0, 1.2, KAWARA, upturn=0.35)
+    zr = roof_hip(mb, ux0, ux1, uy0, uy1, uz1, 30.0, 1.2, KAWARA, upturn=0.6)
     rx = ((ux1 - ux0) + 2.4) / 2 - (uy1 - uy0 + 2.4) / 2
     for xe, o in ((-rx - 0.1, -1), (rx + 0.1, 1)):
         ridge_end_tile(mb, xe, (uy0 + uy1) / 2, zr + 0.2, 0.95, o, KAWARA, length=0.8, width=0.5)   # shachi outline (tile, not gold)
@@ -890,6 +987,165 @@ def floor_tile(name, w, d, mat):
     return ob
 
 
+
+# ------------------------------------------------------------------ city pieces (Nov 1 pass 2: for the city scene)
+def pagoda(name, tiers=3):
+    """A three-tier pagoda as the rich district's skyline landmark: swept hip roofs with tile rolls, cedar storeys
+    with lattice panels, a bronze-ringed finial (sorin)."""
+    mb = MeshBuilder()
+    m_plinth(mb, -4.0, 4.0, -4.0, 4.0, 0.7)
+    mb.box(-1.4, -4.9, 0, 1.4, -4.0, 0.35, GRANITE)                                   # step
+    z = 0.7
+    s0 = 5.2
+    for i in range(tiers):
+        s_ = s0 - 1.1 * i
+        h = 3.0 if i == 0 else 2.3
+        mb.box(-s_ / 2, -s_ / 2, z, s_ / 2, s_ / 2, z + h, PLASTER if i == 0 else CEDAR, skip=('-z',))
+        for (px, py) in ((-s_ / 2, -s_ / 2), (s_ / 2, -s_ / 2), (s_ / 2, s_ / 2), (-s_ / 2, s_ / 2)):
+            m_post(mb, px, py, z, z + h, 0.26)
+        mb.box(-s_ / 2 + 0.5, -s_ / 2 - 0.03, z + 0.3, s_ / 2 - 0.5, -s_ / 2 + 0.05, z + h - 0.4, "JP_Wood_Lattice")
+        if i > 0:                                                                     # a little balcony rail per tier
+            mb.box(-s_ / 2 - 0.35, -s_ / 2 - 0.35, z, s_ / 2 + 0.35, s_ / 2 + 0.35, z + 0.12, CEDAR)
+            mb.box(-s_ / 2 - 0.35, -s_ / 2 - 0.37, z + 0.12, s_ / 2 + 0.35, -s_ / 2 - 0.31, z + 0.7, "JP_Wood_Lattice")
+        top = z + h
+        eave = 1.35 - 0.12 * i
+        zr = roof_hip(mb, -s_ / 2, s_ / 2, -s_ / 2, s_ / 2, top, 28.0, eave, KAWARA, upturn=0.55)
+        z = top + 0.9 if i < tiers - 1 else zr
+    mb.tube((0, 0, z - 0.2), (0, 0, z + 3.4), 0.09, "JP_Mat_Iron", 8)
+    for k in range(7):
+        zz = z + 0.6 + k * 0.32
+        mb.revolve([(0.26 - k * 0.02, zz), (0.26 - k * 0.02, zz + 0.08)], "JP_Mat_Bronze", 8, cap_top="JP_Mat_Bronze", cap_bottom="JP_Mat_Bronze")
+    mb.revolve([(0.05, z + 3.0), (0.2, z + 3.15), (0.0, z + 3.45)], "JP_Mat_Bronze", 8)
+    return finish(mb, name, 8.0, 8.0, z + 3.45, "A", dict(tiers=tiers), floors=(0.7,))
+
+
+def city_wall(name, length=8.0):
+    """City wall section to flank the gate: battered granite base, a plaster parapet with loopholes and a tile cap
+    along its front edge, a granite walk on top. Origin: front foot centre; the gate bases line up at y = 0."""
+    mb = MeshBuilder()
+    h, d, bat = 3.8, 6.0, 0.8
+    x0, x1 = -length / 2, length / 2
+    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, d, 0), (x0, d, 0)], [(x0, bat, h), (x1, bat, h), (x1, d, h), (x0, d, h)], GRANITE)
+    mb.box(x0, bat, h, x1, bat + 0.45, h + 1.3, PLASTER, skip=('-z',))
+    for k in range(int(length / 2)):
+        cx = x0 + 1.0 + k * 2.0
+        if k % 2 == 0:
+            mb.poly([(cx - 0.2, bat - 0.01, h + 0.45), (cx + 0.2, bat - 0.01, h + 0.45), (cx, bat - 0.01, h + 0.85)], "JP_Mat_Opening")
+        else:
+            mb.box(cx - 0.18, bat - 0.012, h + 0.45, cx + 0.18, bat - 0.005, h + 0.8, "JP_Mat_Opening")
+    roof_gable(mb, x0, x1, bat, bat + 0.45, h + 1.3, 30.0, 0.35, KAWARA, gable_over=0.0, ridge_end="none", barge=None, slab=0.1)
+    ob = finish(mb, name, length, d, h + 1.6, "A", dict(walk_z=h), col=False)
+    col_box(ob, x0, 0, 0, x1, d, h + 1.3)
+    return ob
+
+
+def moon_gate_wall(name, length=6.0, height=2.6, r=1.2, seg=28):
+    """Compound wall with a round moon gate: plaster on a granite base course, tile cap. The opening is built as a
+    ring of quads between the circle and the wall's outline, so it needs no boolean."""
+    mb = MeshBuilder()
+    t0, t1 = 0.0, 0.45
+    cz = r + 0.05
+    x0, x1 = -length / 2, length / 2
+    angles = [2 * math.pi * i / seg for i in range(seg)]
+    for cx_, cz_ in ((x0, 0.0), (x1, 0.0), (x1, height), (x0, height)):
+        angles.append(math.atan2(cz_ - cz, cx_) % (2 * math.pi))
+    angles = sorted(set(round(a, 6) for a in angles))
+
+    def outline(a):
+        dx, dz = math.cos(a), math.sin(a)
+        ts = []
+        if abs(dx) > 1e-6:
+            ts += [(x1 / dx) if dx > 0 else (x0 / dx)]
+        if abs(dz) > 1e-6:
+            ts += [((height - cz) / dz) if dz > 0 else ((0.0 - cz) / dz)]
+        k = min(t for t in ts if t > 0)
+        return (dx * k, cz + dz * k)
+    circ = [(r * math.cos(a), cz + r * math.sin(a)) for a in angles]
+    outl = [outline(a) for a in angles]
+    n = len(angles)
+    for y, flip in ((t0, False), (t1, True)):
+        for i in range(n):
+            j = (i + 1) % n
+            q = [(circ[i][0], y, circ[i][1]), (outl[i][0], y, outl[i][1]), (outl[j][0], y, outl[j][1]), (circ[j][0], y, circ[j][1])]
+            mb.poly(list(reversed(q)) if flip else q, PLASTER)
+    for i in range(n):                                                     # the opening's reveal (cedar frame)
+        j = (i + 1) % n
+        mb.poly([(circ[i][0], t0, circ[i][1]), (circ[j][0], t0, circ[j][1]), (circ[j][0], t1, circ[j][1]), (circ[i][0], t1, circ[i][1])], GRANITE)
+    for xe in (x0, x1):
+        mb.poly([(xe, t0, 0), (xe, t1, 0), (xe, t1, height), (xe, t0, height)][::(1 if xe == x1 else -1)], PLASTER)
+    mb.box(x0, t0 - 0.02, 0, -r - 0.02, t1 + 0.02, 0.5, GRANITE)
+    mb.box(r + 0.02, t0 - 0.02, 0, x1, t1 + 0.02, 0.5, GRANITE)
+    roof_gable(mb, x0, x1, t0, t1, height, 28.0, 0.3, KAWARA, gable_over=0.0, ridge_end="none", gable_mat=PLASTER, barge=None, slab=0.1)
+    ob = finish(mb, name, length, t1, height + 0.4, "A", dict(opening=r * 2), col=False)
+    col_box(ob, x0, 0, 0, -r, t1, height, suffix="_L"); col_box(ob, r, 0, 0, x1, t1, height, suffix="_R")
+    return ob
+
+
+def retaining_wall(name, length=4.0, h=1.5, mat=GRANITE, cap=True):
+    """Terrace retaining wall: a slightly battered face (the lower terrace in front, the upper one behind), cap stones."""
+    mb = MeshBuilder()
+    x0, x1 = -length / 2, length / 2
+    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, 0.9, 0), (x0, 0.9, 0)], [(x0, 0.18, h), (x1, 0.18, h), (x1, 0.9, h), (x0, 0.9, h)], mat)
+    if cap:
+        mb.box(x0, 0.08, h, x1, 0.95, h + 0.12, GRANITE)
+    ob = mb.to_object(name, COL["00_Modules"], ao=lambda co: max(0.68, 0.7 + 0.3 * min(1.0, co.z / 0.45)))
+    col_box(ob, x0, 0, 0, x1, 0.9, h)
+    MODULES[name] = ob
+    return ob
+
+
+def stairs(name, width=3.0, rise=1.5, steps=6, mat=GRANITE):
+    """Granite stairs climbing to +Y (away from the camera) between terraces, with side cheeks. Origin: bottom front
+    centre. Step rise 0.25 m (the player's step height is 0.35)."""
+    mb = MeshBuilder()
+    run = 0.38
+    sr = rise / steps
+    for i in range(steps):
+        mb.box(-width / 2, i * run, 0, width / 2, steps * run + 0.3, (i + 1) * sr, mat)
+    for sx in (-1, 1):
+        a, b = sorted((sx * width / 2, sx * (width / 2 + 0.4)))
+        mb.solid([(a, 0, 0), (b, 0, 0), (b, steps * run + 0.3, 0), (a, steps * run + 0.3, 0)],
+                 [(a, 0, 0.35), (b, 0, 0.35), (b, steps * run + 0.3, rise + 0.35), (a, steps * run + 0.3, rise + 0.35)], mat)
+    ob = mb.to_object(name, COL["00_Modules"], ao=lambda co: 1.0)
+    MODULES[name] = ob
+    return ob
+
+
+def stone_railing(name, length=2.0):
+    mb = MeshBuilder()
+    for x in (0.0, length):
+        mb.box(x - 0.11, -0.11, 0, x + 0.11, 0.11, 0.95, GRANITE)
+        mb.box(x - 0.14, -0.14, 0.95, x + 0.14, 0.14, 1.05, GRANITE)
+    mb.box(0, -0.07, 0.72, length, 0.07, 0.86, GRANITE)
+    mb.box(0, -0.06, 0.12, length, 0.06, 0.24, GRANITE)
+    for k in range(1, 4):
+        mb.box(k * length / 4 - 0.04, -0.04, 0.24, k * length / 4 + 0.04, 0.04, 0.72, GRANITE)
+    ob = mb.to_object(name, COL["00_Modules"])
+    col_box(ob, 0, -0.12, 0, length, 0.12, 1.0)
+    MODULES[name] = ob
+    return ob
+
+
+def market_stall(name, cloth="JP_Cloth_Red"):
+    """Street stall: a cedar counter under a sloping cloth awning on four poles. Goods are sprite cards on top."""
+    mb = MeshBuilder()
+    W, D = 2.2, 0.9
+    mb.box(-W / 2, 0.0, 0, W / 2, D, 0.75, "JP_Wood_Weathered", top=CEDAR)
+    mb.box(-W / 2 - 0.05, -0.05, 0.75, W / 2 + 0.05, D + 0.05, 0.82, CEDAR)
+    for x in (-W / 2 + 0.05, W / 2 - 0.05):
+        mb.box(x - 0.05, -0.55, 0, x + 0.05, -0.45, 2.05, CEDAR)
+        mb.box(x - 0.05, D - 0.05, 0, x + 0.05, D + 0.05, 2.45, CEDAR)
+    t = math.atan2(0.45, D + 0.5)
+    L = (D + 0.95) / math.cos(t)
+    M = T(0, -0.8, 2.0) @ R('X', math.degrees(t))
+    mb.box(-W / 2 - 0.25, 0, 0, W / 2 + 0.25, L, 0.05, cloth, M=M)
+    mb.box(-W / 2 - 0.25, -0.82, 1.72, W / 2 + 0.25, -0.78, 2.0, cloth)                    # valance
+    ob = mb.to_object(name, COL["09_Props_3D"], ao=lambda co: max(0.7, 1.0 - 0.25 * max(0.0, 1.0 - co.z / 0.3)))
+    col_box(ob, -W / 2, 0, 0, W / 2, D, 0.82)
+    PROPS[name] = ob
+    PROP_INFO[name] = dict(counter_z=0.82)
+    return ob
+
 # ------------------------------------------------------------------ module library (for hand-built variants)
 MODULES = {}
 
@@ -918,6 +1174,12 @@ module("JP_Roof_Kawara_Gable_6m", lambda mb: roof_gable(mb, -3.0, 3.0, 0.0, 9.0,
 module("JP_RidgeEnd_Plain", lambda mb: ridge_end_tile(mb, 0.0, 0.0, 0.0, 0.3, 1, KAWARA, 0.55))
 module("JP_RidgeEnd_Cloud", lambda mb: ridge_end_tile(mb, 0.0, 0.0, 0.0, 0.66, 1, KAWARA, 0.85))
 module("JP_Gable_Cusped", lambda mb: cusped_gable(mb, 0.0, -3.0))
+retaining_wall("JP_Wall_Retaining_Granite_4m")
+retaining_wall("JP_Wall_Retaining_Rough_4m", mat="JP_Stone_Rough")
+retaining_wall("JP_Wall_Retaining_Granite_4m_Low", h=1.0)
+stairs("JP_Stairs_Granite_3m")
+stairs("JP_Stairs_Granite_3m_Low", rise=1.0, steps=4)
+stone_railing("JP_Railing_Stone_2m")
 
 # ------------------------------------------------------------------ buildings
 ROWS = {"A": [], "B": [], "C": []}
@@ -936,6 +1198,9 @@ add("A", machiya("JP_Rich_Residence_A", "A", 5, 10.0, roof="hipgable", upper="ba
 add("A", compound_wall("JP_Rich_CompoundWall_4m_A"), 0.0)
 add("A", compound_gate("JP_Rich_CompoundGate_A"), 0.0)
 add("A", storehouse("JP_Rich_Storehouse_A"))
+add("A", pagoda("JP_Rich_Pagoda_A"))
+add("A", city_wall("JP_Rich_CityWall_8m_A"))
+add("A", moon_gate_wall("JP_Rich_MoonGateWall_6m_A"))
 add("B", machiya("JP_Mid_Townhouse_A", "B", 3, 9.0, upper="bay", door_bay=1, feature_bay=2))
 add("B", machiya("JP_Mid_Townhouse_B", "B", 4, 10.0, upper="balcony", door_bay=2))
 add("B", machiya("JP_Mid_Townhouse_C", "B", 3, 8.0, upper="loft", door_bay=0))
@@ -954,6 +1219,8 @@ FLOOR = floor_tile("JP_Showcase_Floor", 120.0, 70.0, "JP_Paving_City")
 # ------------------------------------------------------------------ 3D props (jp_props.py)
 PROPS = {}
 exec(compile((SCRIPTS / "jp_props.py").read_text(encoding="utf-8"), "jp_props.py", "exec"), globals())
+market_stall("JP_Prop_MarketStall_A", "JP_Cloth_Red")
+market_stall("JP_Prop_MarketStall_B", "JP_Cloth_Indigo")
 
 # ------------------------------------------------------------------ lineup
 ROW_Y = {"C": 0.0, "B": 22.0, "A": 44.0}

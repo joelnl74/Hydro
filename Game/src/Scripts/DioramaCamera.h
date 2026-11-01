@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 // The diorama camera (Diorama RPG H2): the field cameras (CameraFollow, VillageCamera) switch between
 // today's top-down view and a tilted view of the same scene. The ground stays on the XY plane with +Z up,
@@ -14,8 +15,58 @@
 //   O   in the diorama: perspective <-> orthographic (the GDD's open question; both tilt the same)
 // The camera's OrthographicSize stays the zoom in both views: the world units seen vertically where the
 // camera looks (the focus point on the ground), so - and = keep working and world-space UI keeps its size.
+//
+// Camera zones (Scripts/Common/CameraZoneScript.h, Nov 1, 2026): areas of a scene with their own framing (the
+// direction the camera looks, its tilt, zoom, lead and rise, and how far it may pan). The follow camera
+// (CameraFollowScript) takes the framing of the zone its target stands in and blends to the next one, so a
+// street, a stair and a plaza can each be framed for what the player needs to see.
 namespace Hydro
 {
+	// What the tilted camera looks like: the tilt from straight down, the yaw (degrees counter-clockwise seen from
+	// above; 0 = the camera looks north, along +Y), the perspective field of view, a scale on the camera's
+	// OrthographicSize (below 1 = closer), how far ahead of the target the focus sits along the ground and how far
+	// above the target's ground it aims.
+	struct DioramaFraming
+	{
+		float TiltDegrees = 50.0f;
+		float YawDegrees = 0.0f;
+		float FieldOfView = 25.0f;
+		float ViewScale = 1.0f;
+		float FocusLead = 0.0f;
+		float FocusRise = 0.0f;
+
+		// t of the way from a to b; the yaw turns the short way round.
+		static DioramaFraming Mix(const DioramaFraming& a, const DioramaFraming& b, float t)
+		{
+			DioramaFraming mixed;
+			mixed.TiltDegrees = a.TiltDegrees + (b.TiltDegrees - a.TiltDegrees) * t;
+			const float turn = std::remainder(b.YawDegrees - a.YawDegrees, 360.0f);
+			mixed.YawDegrees = std::remainder(a.YawDegrees + turn * t, 360.0f);
+			mixed.FieldOfView = a.FieldOfView + (b.FieldOfView - a.FieldOfView) * t;
+			mixed.ViewScale = a.ViewScale + (b.ViewScale - a.ViewScale) * t;
+			mixed.FocusLead = a.FocusLead + (b.FocusLead - a.FocusLead) * t;
+			mixed.FocusRise = a.FocusRise + (b.FocusRise - a.FocusRise) * t;
+			return mixed;
+		}
+	};
+
+	// A camera zone as the follow camera sees it (written by CameraZoneScript every frame): the area on the ground
+	// (world x, y), which zone wins where they overlap, how long the camera takes to settle into it, its framing
+	// (TiltDegrees, FieldOfView and ViewScale at 0 = the scene's) and, when HasPanBounds, the area the focus stays in.
+	struct DioramaCameraZone
+	{
+		Scene* Owner = nullptr;
+		entt::entity Entity = entt::null;
+		glm::vec2 Min{ 0.0f };
+		glm::vec2 Max{ 0.0f };
+		int Priority = 0;
+		float BlendSeconds = 0.8f;
+		DioramaFraming Framing;
+		bool HasPanBounds = false;
+		glm::vec2 PanMin{ 0.0f };
+		glm::vec2 PanMax{ 0.0f };
+	};
+
 	struct DioramaView
 	{
 		// From straight down: 0 = top-down, 90 = looking along the ground. 50 degrees from straight down is
@@ -45,6 +96,10 @@ namespace Hydro
 		static inline bool HasSceneBounds = false;
 		static inline glm::vec2 SceneBoundsMin{ 0.0f };
 		static inline glm::vec2 SceneBoundsMax{ 0.0f };
+		// The scene's view direction (degrees counter-clockwise seen from above, 0 = looking north) and a scale on
+		// the camera's OrthographicSize (0 = 1).
+		static inline float SceneYawDegrees = 0.0f;
+		static inline float SceneViewScale = 0.0f;
 		static void ResetSceneFraming()
 		{
 			SceneTiltDegrees = 0.0f;
@@ -54,7 +109,86 @@ namespace Hydro
 			HasSceneBounds = false;
 			SceneBoundsMin = glm::vec2(0.0f);
 			SceneBoundsMax = glm::vec2(0.0f);
+			SceneYawDegrees = 0.0f;
+			SceneViewScale = 0.0f;
 			ResetCinematic();
+		}
+
+		// The scene's framing with the defaults filled in.
+		static DioramaFraming GetSceneFraming()
+		{
+			DioramaFraming framing;
+			framing.TiltDegrees = SceneTiltDegrees > 0.0f ? SceneTiltDegrees : TiltDegrees;
+			framing.YawDegrees = SceneYawDegrees;
+			framing.FieldOfView = SceneFieldOfView > 0.0f ? SceneFieldOfView : FieldOfView;
+			framing.ViewScale = SceneViewScale > 0.0f ? SceneViewScale : 1.0f;
+			framing.FocusLead = SceneFocusLead;
+			framing.FocusRise = SceneFocusRise;
+			return framing;
+		}
+
+		// A zone's framing with its unset values (0) taken from `scene`.
+		static DioramaFraming ResolveZoneFraming(const DioramaFraming& zone, const DioramaFraming& scene)
+		{
+			DioramaFraming framing = zone;
+			framing.TiltDegrees = zone.TiltDegrees > 0.0f ? zone.TiltDegrees : scene.TiltDegrees;
+			framing.FieldOfView = zone.FieldOfView > 0.0f ? zone.FieldOfView : scene.FieldOfView;
+			framing.ViewScale = zone.ViewScale > 0.0f ? zone.ViewScale : scene.ViewScale;
+			return framing;
+		}
+
+		// The camera zones of the running scenes (CameraZoneScript adds and updates its own, removes it when it
+		// ends). Keyed by scene and entity, so a scene being left and one being entered never mix.
+		static inline std::vector<DioramaCameraZone> Zones;
+		static void SetZone(const DioramaCameraZone& zone)
+		{
+			for (DioramaCameraZone& existing : Zones)
+			{
+				if (existing.Owner == zone.Owner && existing.Entity == zone.Entity)
+				{
+					existing = zone;
+					return;
+				}
+			}
+			Zones.push_back(zone);
+		}
+		static void RemoveZone(Scene* owner, entt::entity entity)
+		{
+			Zones.erase(std::remove_if(Zones.begin(), Zones.end(), [owner, entity](const DioramaCameraZone& zone)
+				{
+					return zone.Owner == owner && zone.Entity == entity;
+				}), Zones.end());
+		}
+		// The zone of `owner` that contains `point` on the ground: the highest priority, then the smallest; nullptr
+		// when there is none. Valid until the zones change (the next zone script update).
+		static const DioramaCameraZone* FindZone(const Scene* owner, const glm::vec2& point)
+		{
+			const DioramaCameraZone* best = nullptr;
+			float bestArea = 0.0f;
+			for (const DioramaCameraZone& zone : Zones)
+			{
+				if (zone.Owner != owner || point.x < zone.Min.x || point.y < zone.Min.y || point.x > zone.Max.x || point.y > zone.Max.y)
+				{
+					continue;
+				}
+				const float area = (zone.Max.x - zone.Min.x) * (zone.Max.y - zone.Min.y);
+				if (best == nullptr || zone.Priority > best->Priority || (zone.Priority == best->Priority && area < bestArea))
+				{
+					best = &zone;
+					bestArea = area;
+				}
+			}
+			return best;
+		}
+
+		// The yaw the camera was placed with (radians, 0 top-down), and a direction on the screen (x right, y up)
+		// turned into one on the ground, so walking keys follow the view.
+		static inline float Yaw = 0.0f;
+		static glm::vec2 ScreenToGround(const glm::vec2& screen)
+		{
+			const float c = std::cos(Yaw);
+			const float s = std::sin(Yaw);
+			return { screen.x * c - screen.y * s, screen.x * s + screen.y * c };
 		}
 
 		// A cutscene's hold on the follow camera (QuestScripts.h): while CinematicWeight > 0 the camera looks at
@@ -143,10 +277,16 @@ namespace Hydro
 		// player stands on) for the current blend. Works in the world, so the camera may sit under a parent.
 		static void Apply(Entity cameraEntity, const glm::vec2& focus, float height = 0.0f)
 		{
+			Apply(cameraEntity, focus, height, GetSceneFraming());
+		}
+
+		// The same with a framing of its own (a camera zone's, CameraFollowScript).
+		static void Apply(Entity cameraEntity, const glm::vec2& focus, float height, const DioramaFraming& framing)
+		{
 			Scene& scene = *cameraEntity.GetScene();
 			TransformComponent placed = cameraEntity.GetComponent<TransformComponent>();
 			placed.Translation = scene.GetWorldPosition(cameraEntity);
-			Apply(placed, cameraEntity.GetComponent<CameraComponent>(), focus, height);
+			Apply(placed, cameraEntity.GetComponent<CameraComponent>(), focus, height, framing);
 			placed.Translation += GetShakeOffset();
 			PlaceInWorld(cameraEntity, placed.Translation, placed.Rotation);
 		}
@@ -175,6 +315,12 @@ namespace Hydro
 		// The same on a transform holding world values (the entity is a root, or the caller converts).
 		static void Apply(TransformComponent& transform, CameraComponent& cameraComponent, const glm::vec2& focus, float height = 0.0f)
 		{
+			Apply(transform, cameraComponent, focus, height, GetSceneFraming());
+		}
+
+		static void Apply(TransformComponent& transform, CameraComponent& cameraComponent, const glm::vec2& focus, float height,
+			const DioramaFraming& framing)
+		{
 			SceneCamera& camera = cameraComponent.Camera;
 
 			if (Blend <= 0.0f)
@@ -199,19 +345,24 @@ namespace Hydro
 				Right = { 1.0f, 0.0f, 0.0f };
 				Up = { 0.0f, 1.0f, 0.0f };
 				Back = { 0.0f, 0.0f, 1.0f };
+				Yaw = 0.0f;
 				return;
 			}
 
 			// Ease in and out, so the tilt starts and stops softly.
 			const float eased = Blend * Blend * (3.0f - 2.0f * Blend);
-			const float tilt = glm::radians(SceneTiltDegrees > 0.0f ? SceneTiltDegrees : TiltDegrees) * eased;
-			const glm::vec3 forward{ 0.0f, std::sin(tilt), -std::cos(tilt) };
-			const glm::vec3 up{ 0.0f, std::cos(tilt), std::sin(tilt) };
+			const float tilt = glm::radians(framing.TiltDegrees) * eased;
+			// Turned by the yaw about +Z: "north" is where the camera looks along the ground.
+			const float yaw = glm::radians(framing.YawDegrees) * eased;
+			const glm::vec3 right{ std::cos(yaw), std::sin(yaw), 0.0f };
+			const glm::vec3 north{ -std::sin(yaw), std::cos(yaw), 0.0f };
+			const glm::vec3 forward = north * std::sin(tilt) + glm::vec3(0.0f, 0.0f, -std::cos(tilt));
+			const glm::vec3 up = north * std::cos(tilt) + glm::vec3(0.0f, 0.0f, std::sin(tilt));
 
 			// The distance at which the perspective camera sees OrthographicSize units vertically, so both
 			// projections show the same amount of the scene at the focus point.
-			const float fieldOfView = SceneFieldOfView > 0.0f ? SceneFieldOfView : FieldOfView;
-			const float viewHeight = camera.OrthographicSize * std::max(0.1f, CinematicZoom);
+			const float fieldOfView = framing.FieldOfView;
+			const float viewHeight = camera.OrthographicSize * std::max(0.05f, framing.ViewScale) * std::max(0.1f, CinematicZoom);
 			const float distance = viewHeight / (2.0f * std::tan(glm::radians(fieldOfView) * 0.5f));
 
 			camera.Projection = Perspective ? ProjectionType::Perspective : ProjectionType::Orthographic;
@@ -226,14 +377,16 @@ namespace Hydro
 
 			const glm::vec3 focusPoint{ focus.x, focus.y, height };
 			transform.Translation = focusPoint - forward * distance;
-			// A camera turned by +tilt about X looks from -Z towards +Y (north) and down.
-			transform.Rotation = { tilt, 0.0f, 0.0f };
+			// A camera turned by +tilt about X looks from -Z towards +Y (north) and down; the yaw then turns it about
+			// +Z (Euler angles apply X first, then Z).
+			transform.Rotation = { tilt, 0.0f, yaw };
 			s_Tilted = true;
 
 			Focus = focusPoint;
-			Right = { 1.0f, 0.0f, 0.0f };
+			Right = right;
 			Up = up;
 			Back = -forward;
+			Yaw = yaw;
 		}
 
 	private:

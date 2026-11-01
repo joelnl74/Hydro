@@ -33,21 +33,27 @@ MIKO_TEXTURE, MIKO_ANIM = 5407845820862445765, 4798671707330513403
 SMITH_TEXTURE, SMITH_ANIM = 4053719590916208210, 8079240564453792839
 
 
+KEY = "JP_Showcase:"     # entity ids are derived from KEY + name (build_city_scene.py sets its own)
+
+
 def stable_id(name):
-    return int(hashlib.sha256(("JP_Showcase:" + name).encode()).hexdigest()[:16], 16) & 0x7FFFFFFFFFFFFFFF
+    return int(hashlib.sha256((KEY + name).encode()).hexdigest()[:16], 16) & 0x7FFFFFFFFFFFFFFF
 
 
 def handle_of(path):
+    """The asset handle: the first "Handle:" line of a .hymeta / .hyanim / .hymat / .hyscene (comments may come first)."""
     with open(path) as f:
-        first = f.readline()
-    return int(first.split()[1])
+        for line in f:
+            if line.startswith("Handle:"):
+                return int(line.split()[1])
+    raise ValueError("%s has no handle" % path)
 
 
 def ensure_mesh_meta(glb):
     meta = glb + ".hymeta"
     if os.path.exists(meta):
         return handle_of(meta)
-    h = stable_id("model:" + os.path.basename(glb))
+    h = int(hashlib.sha256(("JP_Showcase:model:" + os.path.basename(glb)).encode()).hexdigest()[:16], 16) & 0x7FFFFFFFFFFFFFFF
     with open(meta, "w", newline="\r\n") as f:
         f.write("Handle: %d\nType: Mesh\nMeshImport:\n  Scale: 1\n  ConvertYUpToZUp: true\n  GenerateNormals: true\n" % h)
     return h
@@ -129,13 +135,15 @@ class Dresser:
         self.w.entity("prop:" + tag, tag, parent=parent, t=(x, y, z), r=(0, 0, math.radians(rot)), body=mesh_body(h, collider))
         return self.summary["_props"].get(name, {})
 
-    def sprite(self, parent, name, x, y, z, hanging=False, sort=0):
+    def sprite(self, parent, name, x, y, z, hanging=False, sort=0, folder=None, ppm=32.0):
         """A camera-facing card at 32 px/m; z = its foot, or with hanging=True its top."""
-        png = os.path.join(SPRITES, name + ".png")
+        png = os.path.join(folder or SPRITES, name + ".png")
         if os.path.exists(png) is False:
             self.missing.append(name); return
         pw, ph = png_size(png)
-        sx, sy = pw / 32.0, ph / 32.0
+        sx, sy = pw / ppm, ph / ppm
+        if os.path.exists(png + ".hymeta") is False:
+            self.missing.append(name + " (no .hymeta)"); return
         h = handle_of(png + ".hymeta")
         tag = self._name(name.replace("JP_", ""))
         self.w.entity("sprite:" + tag, tag, parent=parent, t=(x, y, z - sy if hanging else z), s=(sx, sy, 1), body=(

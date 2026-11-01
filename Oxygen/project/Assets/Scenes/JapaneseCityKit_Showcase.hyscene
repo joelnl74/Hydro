@@ -175,7 +175,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-39, 45.05, 0]
+      Translation: [-54.5, 45.05, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -193,7 +193,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-37, 44, 0]
+      Translation: [-52.5, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -211,7 +211,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-35, 45.05, 0]
+      Translation: [-50.5, 45.05, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -229,7 +229,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-26.8, 44, 0]
+      Translation: [-42.3, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -247,7 +247,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-20.6, 44, 0]
+      Translation: [-36.1, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -265,7 +265,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-9.6, 44, 0]
+      Translation: [-25.1, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -283,7 +283,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [7.4, 44, 0]
+      Translation: [-8.1, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -301,7 +301,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [22.4, 44, 0]
+      Translation: [6.9, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -319,7 +319,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [32.4, 44, 0]
+      Translation: [16.9, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -337,7 +337,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [36.2, 44, 0]
+      Translation: [20.7, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -355,11 +355,65 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [41, 44, 0]
+      Translation: [25.5, 44, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       ModelHandle: 7234345998776384186
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4900820634033542463
+    TagComponent:
+      Tag: JP_Rich_Pagoda_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [35.5, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3374673375530985168
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 1281138490572348748
+    TagComponent:
+      Tag: JP_Rich_CityWall_8m_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [46.5, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3098527227699521507
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 5723780493766205310
+    TagComponent:
+      Tag: JP_Rich_MoonGateWall_6m_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [56.5, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 5661585268549381771
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
@@ -373,7 +427,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-45.6, 42.5, 0]
+      Translation: [-61.1, 42.5, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
@@ -406,7 +460,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-44.3, 42.5, 0]
+      Translation: [-59.8, 42.5, 0]
       Rotation: [0, 0, 0]
       Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
@@ -806,7 +860,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-40.4, 42.4, 0]
+      Translation: [-55.9, 42.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -824,7 +878,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-39.95, 42.32, 0.83125]
+      Translation: [-55.45, 42.32, 0.83125]
       Rotation: [0, 0, 0]
       Scale: [1, 2.46875, 1]
     SpriteRendererComponent:
@@ -842,7 +896,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-39.6, 43.1, 0]
+      Translation: [-55.1, 43.1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -860,7 +914,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-39.6, 43.1, 0]
+      Translation: [-55.1, 43.1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -875,7 +929,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-42.6, 41.4, 0]
+      Translation: [-58.1, 41.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -893,7 +947,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-39.25, 44.9, 0]
+      Translation: [-54.75, 44.9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -911,7 +965,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-39.25, 44.45, 0]
+      Translation: [-54.75, 44.45, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -926,7 +980,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-33.6, 42.4, 0]
+      Translation: [-49.1, 42.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -944,7 +998,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-33.15, 42.32, 0.83125]
+      Translation: [-48.65, 42.32, 0.83125]
       Rotation: [0, 0, 0]
       Scale: [1, 2.46875, 1]
     SpriteRendererComponent:
@@ -962,7 +1016,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-34.4, 43.1, 0]
+      Translation: [-49.9, 43.1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -980,7 +1034,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-34.4, 43.1, 0]
+      Translation: [-49.9, 43.1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -995,7 +1049,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-31.4, 41.4, 0]
+      Translation: [-46.9, 41.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1013,7 +1067,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-34.75, 44.9, 0]
+      Translation: [-50.25, 44.9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1031,7 +1085,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-34.75, 44.45, 0]
+      Translation: [-50.25, 44.45, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1046,7 +1100,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-42, 43.3, 0]
+      Translation: [-57.5, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1064,7 +1118,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-31.6, 43.6, 0]
+      Translation: [-47.1, 43.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 2, 1]
     SpriteRendererComponent:
@@ -1082,7 +1136,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-28.7, 43.4, 0]
+      Translation: [-44.2, 43.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1100,7 +1154,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-26.8, 43.8, 0]
+      Translation: [-42.3, 43.8, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1115,7 +1169,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-9.6, 44.3, 1.6]
+      Translation: [-25.1, 44.3, 1.6]
       Rotation: [0, 0, 0]
       Scale: [2, 1, 1]
     SpriteRendererComponent:
@@ -1133,7 +1187,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-11.1, 43.25, 2.5]
+      Translation: [-26.6, 43.25, 2.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1151,7 +1205,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-11.1, 43.25, 0]
+      Translation: [-26.6, 43.25, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1166,7 +1220,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-8.1, 43.25, 2.5]
+      Translation: [-23.6, 43.25, 2.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1184,7 +1238,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-8.1, 43.25, 0]
+      Translation: [-23.6, 43.25, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1199,7 +1253,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-12.8, 42, 0]
+      Translation: [-28.3, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1217,7 +1271,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-12.8, 42, 0]
+      Translation: [-28.3, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1232,7 +1286,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-6.4, 42, 0]
+      Translation: [-21.9, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1250,7 +1304,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-6.4, 42, 0]
+      Translation: [-21.9, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1265,7 +1319,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-14.2667, 43.3, 0]
+      Translation: [-29.7667, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1280,7 +1334,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-9.6, 43.3, 0]
+      Translation: [-25.1, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1295,7 +1349,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-4.93333, 43.3, 0]
+      Translation: [-20.4333, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1310,7 +1364,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [7.4, 44.3, 0.6]
+      Translation: [-8.1, 44.3, 0.6]
       Rotation: [0, 0, 0]
       Scale: [2, 2, 1]
     SpriteRendererComponent:
@@ -1328,7 +1382,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [5.9, 43.25, 2.5]
+      Translation: [-9.6, 43.25, 2.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1346,7 +1400,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [5.9, 43.25, 0]
+      Translation: [-9.6, 43.25, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1361,7 +1415,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [8.9, 43.25, 2.5]
+      Translation: [-6.6, 43.25, 2.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1379,7 +1433,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [8.9, 43.25, 0]
+      Translation: [-6.6, 43.25, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1394,7 +1448,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [4.2, 42, 0]
+      Translation: [-11.3, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1412,7 +1466,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [4.2, 42, 0]
+      Translation: [-11.3, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1427,7 +1481,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [10.6, 42, 0]
+      Translation: [-4.9, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1445,7 +1499,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [10.6, 42, 0]
+      Translation: [-4.9, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1460,7 +1514,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [2.73333, 43.3, 0]
+      Translation: [-12.7667, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1475,7 +1529,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [7.4, 43.3, 0]
+      Translation: [-8.1, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1490,7 +1544,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [12.0667, 43.3, 0]
+      Translation: [-3.43333, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1505,7 +1559,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [22.4, 44.3, 1.6]
+      Translation: [6.9, 44.3, 1.6]
       Rotation: [0, 0, 0]
       Scale: [2, 1, 1]
     SpriteRendererComponent:
@@ -1523,7 +1577,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [20.9, 43.25, 2.5]
+      Translation: [5.4, 43.25, 2.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1541,7 +1595,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [20.9, 43.25, 0]
+      Translation: [5.4, 43.25, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1556,7 +1610,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [23.9, 43.25, 2.5]
+      Translation: [8.4, 43.25, 2.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1574,7 +1628,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [23.9, 43.25, 0]
+      Translation: [8.4, 43.25, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1589,7 +1643,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [19.2, 42, 0]
+      Translation: [3.7, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1607,7 +1661,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [19.2, 42, 0]
+      Translation: [3.7, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1622,7 +1676,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [25.6, 42, 0]
+      Translation: [10.1, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1640,7 +1694,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [25.6, 42, 0]
+      Translation: [10.1, 42, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1655,7 +1709,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [19.9, 43.3, 0]
+      Translation: [4.4, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1670,7 +1724,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [24.9, 43.3, 0]
+      Translation: [9.4, 43.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1685,7 +1739,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-15.8, 41, 0]
+      Translation: [-31.3, 41, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1703,7 +1757,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-15.18, 41, 0]
+      Translation: [-30.68, 41, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1718,7 +1772,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-3.4, 41, 0]
+      Translation: [-18.9, 41, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1736,7 +1790,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-2.78, 41, 0]
+      Translation: [-18.28, 41, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1751,7 +1805,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-5.4, 42.8, 0]
+      Translation: [-20.9, 42.8, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1769,7 +1823,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-14.2, 43, 0]
+      Translation: [-29.7, 43, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1787,7 +1841,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-7.2, 41.4, 0]
+      Translation: [-22.7, 41.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1805,7 +1859,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [-6.75, 41.32, 0.83125]
+      Translation: [-22.25, 41.32, 0.83125]
       Rotation: [0, 0, 0]
       Scale: [1, 2.46875, 1]
     SpriteRendererComponent:
@@ -1823,7 +1877,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [3.4, 43.05, 2.45]
+      Translation: [-12.1, 43.05, 2.45]
       Rotation: [0, 0, 0]
       Scale: [4, 1, 1]
     SpriteRendererComponent:
@@ -1841,7 +1895,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [11.4, 43.05, 2.45]
+      Translation: [-4.1, 43.05, 2.45]
       Rotation: [0, 0, 0]
       Scale: [4, 1, 1]
     SpriteRendererComponent:
@@ -1859,7 +1913,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [39.2, 43, 0]
+      Translation: [23.7, 43, 0]
       Rotation: [0, 0, 0.174533]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1877,7 +1931,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [39.5, 42.2, 0]
+      Translation: [24, 42.2, 0]
       Rotation: [0, 0, -0.10472]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1895,7 +1949,7 @@ Entities:
     RelationshipComponent:
       Parent: 4823775268602905264
     TransformComponent:
-      Translation: [42.8, 43.1, 0]
+      Translation: [27.3, 43.1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3042,13 +3096,49 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7817745207169070029
+  - Entity: 1088036781025049318
     TagComponent:
-      Tag: MooringPost 132
+      Tag: MarketStall 132
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
       Translation: [4.5, -9.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 4105443838374228843
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 5233129826224021107
+    TagComponent:
+      Tag: MarketStall_B 133
+    RelationshipComponent:
+      Parent: 2484697348640340188
+    TransformComponent:
+      Translation: [7.6, -7.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 5985599145371148642
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6831558722164244724
+    TagComponent:
+      Tag: MooringPost 134
+    RelationshipComponent:
+      Parent: 2484697348640340188
+    TransformComponent:
+      Translation: [10.7, -9.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3060,13 +3150,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8265560295839300006
+  - Entity: 3382927114963154889
     TagComponent:
-      Tag: NetFrame 133
+      Tag: NetFrame 135
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [7.6, -7.5, 0]
+      Translation: [13.8, -7.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3078,13 +3168,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5911564186865601705
+  - Entity: 613034727572840241
     TagComponent:
-      Tag: Pier_2m 134
+      Tag: Pier_2m 136
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [10.7, -9.7, -0.42]
+      Translation: [16.9, -9.7, -0.42]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3096,13 +3186,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7679594972434588123
+  - Entity: 8003573261408891246
     TagComponent:
-      Tag: RainBarrel 135
+      Tag: RainBarrel 137
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [13.8, -7.5, 0]
+      Translation: [20, -7.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3114,13 +3204,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3013776587408045524
+  - Entity: 4931592195871484246
     TagComponent:
-      Tag: SakeBarrelStack 136
+      Tag: SakeBarrelStack 138
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [16.9, -9.7, 0]
+      Translation: [23.1, -9.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3132,13 +3222,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6824901505386184665
+  - Entity: 1343348432724724945
     TagComponent:
-      Tag: Signboard 137
+      Tag: Signboard 139
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [20, -7.5, 0]
+      Translation: [26.2, -7.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3150,13 +3240,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8445122768554995896
+  - Entity: 8342035181369557167
     TagComponent:
-      Tag: SpearRack 138
+      Tag: SpearRack 140
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [23.1, -9.7, 0]
+      Translation: [29.3, -9.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3168,13 +3258,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5725159703416187093
+  - Entity: 334211065331087787
     TagComponent:
-      Tag: StoneLantern 139
+      Tag: StoneLantern 141
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [26.2, -7.5, 0]
+      Translation: [32.4, -7.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3186,13 +3276,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 326951544802568690
+  - Entity: 4218366139775628218
     TagComponent:
-      Tag: TeaBench 140
+      Tag: TeaBench 142
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [29.3, -9.7, 0]
+      Translation: [35.5, -9.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3204,13 +3294,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3790204001403600370
+  - Entity: 4068091857171846762
     TagComponent:
-      Tag: WallLantern 141
+      Tag: WallLantern 143
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [32.4, -7.5, 0]
+      Translation: [38.6, -7.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3222,13 +3312,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2949106008610425549
+  - Entity: 480926274125552107
     TagComponent:
-      Tag: WarDrum 142
+      Tag: WarDrum 144
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [35.5, -9.7, 0]
+      Translation: [41.7, -9.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3240,13 +3330,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7050244191089081528
+  - Entity: 704433834373701919
     TagComponent:
-      Tag: WaterJar 143
+      Tag: WaterJar 145
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [38.6, -7.5, 0]
+      Translation: [44.8, -7.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -3258,13 +3348,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5418470602074853417
+  - Entity: 5536639611785061251
     TagComponent:
-      Tag: Well 144
+      Tag: Well 146
     RelationshipComponent:
       Parent: 2484697348640340188
     TransformComponent:
-      Translation: [41.7, -9.7, 0]
+      Translation: [47.9, -9.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:

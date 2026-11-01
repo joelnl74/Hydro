@@ -88,7 +88,8 @@ namespace Hydro
 			if (moving)
 			{
 				const float speed = Input::IsKeyPressed(KeyCode::LeftShift) ? m_Speed * RunMultiplier : m_Speed;
-				velocity = glm::vec3(glm::normalize(move) * speed, 0.0f);
+				// The keys are screen directions: turned by the camera's yaw, so up is always into the view.
+				velocity = glm::vec3(DioramaView::ScreenToGround(glm::normalize(move)) * speed, 0.0f);
 			}
 			CharacterBody::Move(GetEntity(), velocity);
 		}
@@ -115,6 +116,8 @@ namespace Hydro
 		float FocusRise = 0.0f;
 		glm::vec2 BoundsMin{ 0.0f };
 		glm::vec2 BoundsMax{ 0.0f };
+		float YawDegrees = 0.0f; // counter-clockwise seen from above, 0 = looking north
+		float ViewScale = 0.0f;  // times the camera's OrthographicSize, 0 = 1
 	};
 
 	// On a diorama scene's director entity: the scene's framing and its light. A scene's director derives from
@@ -257,6 +260,8 @@ namespace Hydro
 			DioramaView::HasSceneBounds = true;
 			DioramaView::SceneBoundsMin = framing.BoundsMin;
 			DioramaView::SceneBoundsMax = framing.BoundsMax;
+			DioramaView::SceneYawDegrees = framing.YawDegrees;
+			DioramaView::SceneViewScale = framing.ViewScale;
 		}
 
 		void ApplyPreset()
@@ -371,7 +376,7 @@ namespace Hydro
 		}
 		DioramaSceneFraming GetFraming() const override
 		{
-			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, 0.0f, 0.0f };
 		}
 		int GetStartPreset() const override { return StartPreset; }
 		const LightingPreset& GetPreset(int index) const override
@@ -415,7 +420,7 @@ namespace Hydro
 		}
 		DioramaSceneFraming GetFraming() const override
 		{
-			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, 0.0f, 0.0f };
 		}
 		int GetStartPreset() const override { return StartPreset; }
 		const LightingPreset& GetPreset(int index) const override
@@ -448,6 +453,10 @@ namespace Hydro
 		glm::vec2 BoundsMin{ -10.0f, -10.0f };
 		HY_PROPERTY(Tooltip("Highest x, y the camera's focus may reach"))
 		glm::vec2 BoundsMax{ 10.0f, 10.0f };
+		HY_PROPERTY(Range(-180, 180), Tooltip("Direction the camera looks, degrees counter-clockwise from north (+Y); camera zones may turn it"))
+		float YawDegrees = 0.0f;
+		HY_PROPERTY(Range(0, 4), Tooltip("How much the camera sees, times its Orthographic Size (below 1 = closer)"))
+		float ViewScale = 1.0f;
 		HY_PROPERTY(Range(0, 2), Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)"))
 		int StartPreset = 1;
 
@@ -493,7 +502,7 @@ namespace Hydro
 		}
 		DioramaSceneFraming GetFraming() const override
 		{
-			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, YawDegrees, ViewScale };
 		}
 		int GetStartPreset() const override { return StartPreset; }
 		// Built from the fields on every call, so edits in the inspector apply at the next preset switch. The
@@ -562,7 +571,7 @@ namespace Hydro
 		}
 		DioramaSceneFraming GetFraming() const override
 		{
-			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax };
+			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, 0.0f, 0.0f };
 		}
 		int GetStartPreset() const override { return StartPreset; }
 		bool FollowsOutsideLight() const override { return true; }

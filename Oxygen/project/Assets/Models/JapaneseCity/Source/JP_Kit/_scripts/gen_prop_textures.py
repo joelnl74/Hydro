@@ -89,6 +89,17 @@ def cloth_red(n=64, seed=24):
     return img
 
 
+def cloth_indigo(n=64, seed=26):
+    """Indigo cloth (awnings, stall covers): soft weave, dark navy."""
+    rng = np.random.default_rng(seed)
+    R = [hx("#141a2e"), hx("#1e2a48"), hx("#26345a"), hx("#30416a")]
+    v = tnoise(n, 8, rng)
+    idx = np.clip((v * 3.0).astype(int) + 1, 1, 3)
+    img = np.array(R)[idx]
+    img[::4, :] = np.where(rng.random((n // 4, n, 1)) < 0.5, R[1], img[::4, :])
+    return img
+
+
 def hide(n=32, seed=25):
     """Drum hide: cream skin with a darker rim tone and a few stains."""
     rng = np.random.default_rng(seed)
@@ -108,6 +119,7 @@ if __name__ == "__main__":
     save("JP_Clay_Ochre", clay())
     save("JP_Glaze_Brown", glaze())
     save("JP_Cloth_Red", cloth_red())
+    save("JP_Cloth_Indigo", cloth_indigo())
     save("JP_Drum_Hide", hide())
     for name, col in (("JP_Mat_Iron", "#2c2e33"), ("JP_Mat_Bronze", "#a07a3c"), ("JP_Mat_Rope", "#8a7352"), ("JP_Mat_Glass", "#7f9a96")):
         save(name, flat(col))

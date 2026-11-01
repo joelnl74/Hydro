@@ -5,9 +5,9 @@
   "width": 14.0,
   "depth": 7.0,
   "height": 10.65,
-  "faces": 1782,
+  "faces": 2518,
   "location": [
-   -37.0,
+   -52.5,
    44.0
   ]
  },
@@ -19,7 +19,7 @@
   "height": 4.38,
   "faces": 6,
   "location": [
-   -39.0,
+   -54.5,
    45.05
   ]
  },
@@ -31,7 +31,7 @@
   "height": 4.38,
   "faces": 6,
   "location": [
-   -35.0,
+   -50.5,
    45.05
   ]
  },
@@ -41,9 +41,9 @@
   "width": 2.4,
   "depth": 1.8,
   "height": 2.8,
-  "faces": 271,
+  "faces": 361,
   "location": [
-   -26.8,
+   -42.3,
    44.0
   ]
  },
@@ -52,9 +52,9 @@
   "width": 4.0,
   "depth": 1.6,
   "height": 3.87,
-  "faces": 294,
+  "faces": 414,
   "location": [
-   -20.6,
+   -36.1,
    44.0
   ]
  },
@@ -72,9 +72,9 @@
   "width": 14.0,
   "depth": 10.0,
   "height": 9.0,
-  "faces": 3225,
+  "faces": 4941,
   "location": [
-   -9.6,
+   -25.1,
    44.0
   ]
  },
@@ -92,9 +92,9 @@
   "width": 14.0,
   "depth": 12.0,
   "height": 9.51,
-  "faces": 3297,
+  "faces": 5081,
   "location": [
-   7.4,
+   -8.1,
    44.0
   ]
  },
@@ -112,9 +112,9 @@
   "width": 10.0,
   "depth": 10.0,
   "height": 9.0,
-  "faces": 2428,
+  "faces": 3802,
   "location": [
-   22.4,
+   6.9,
    44.0
   ]
  },
@@ -123,9 +123,9 @@
   "width": 4.0,
   "depth": 0.5,
   "height": 2.21,
-  "faces": 270,
+  "faces": 390,
   "location": [
-   32.4,
+   16.9,
    44.0
   ]
  },
@@ -134,9 +134,9 @@
   "width": 3.6,
   "depth": 0.5,
   "height": 3.13,
-  "faces": 384,
+  "faces": 524,
   "location": [
-   36.2,
+   20.7,
    44.0
   ]
  },
@@ -146,9 +146,45 @@
   "width": 6.0,
   "depth": 5.0,
   "height": 7.64,
-  "faces": 606,
+  "faces": 851,
   "location": [
-   41.0,
+   25.5,
+   44.0
+  ]
+ },
+ "JP_Rich_Pagoda_A": {
+  "tiers": 3,
+  "tier": "A",
+  "width": 8.0,
+  "depth": 8.0,
+  "height": 14.35,
+  "faces": 3750,
+  "location": [
+   35.5,
+   44.0
+  ]
+ },
+ "JP_Rich_CityWall_8m_A": {
+  "walk_z": 3.8,
+  "tier": "A",
+  "width": 8.0,
+  "depth": 6.0,
+  "height": 5.4,
+  "faces": 774,
+  "location": [
+   46.5,
+   44.0
+  ]
+ },
+ "JP_Rich_MoonGateWall_6m_A": {
+  "opening": 2.4,
+  "tier": "A",
+  "width": 6.0,
+  "depth": 0.45,
+  "height": 3.0,
+  "faces": 677,
+  "location": [
+   56.5,
    44.0
   ]
  },
@@ -166,7 +202,7 @@
   "width": 6.0,
   "depth": 9.0,
   "height": 7.79,
-  "faces": 1172,
+  "faces": 1527,
   "location": [
    -17.2,
    22.0
@@ -186,7 +222,7 @@
   "width": 8.0,
   "depth": 10.0,
   "height": 8.04,
-  "faces": 1373,
+  "faces": 1778,
   "location": [
    -7.2,
    22.0
@@ -206,7 +242,7 @@
   "width": 6.0,
   "depth": 8.0,
   "height": 7.55,
-  "faces": 1061,
+  "faces": 1376,
   "location": [
    2.8,
    22.0
@@ -226,7 +262,7 @@
   "width": 6.0,
   "depth": 9.0,
   "height": 7.79,
-  "faces": 1003,
+  "faces": 1318,
   "location": [
    11.8,
    22.0
@@ -238,7 +274,7 @@
   "width": 2.4,
   "depth": 2.4,
   "height": 11.95,
-  "faces": 745,
+  "faces": 965,
   "location": [
    19.0,
    22.0
@@ -258,7 +294,7 @@
   "width": 6.0,
   "depth": 5.0,
   "height": 3.97,
-  "faces": 202,
+  "faces": 402,
   "location": [
    -32.0,
    0.0
@@ -448,7 +484,7 @@
   },
   "JP_Prop_Well_A": {
    "height": 2.9,
-   "faces": 287
+   "faces": 367
   },
   "JP_Prop_TeaBench_A": {
    "height": 0.5,
@@ -555,6 +591,14 @@
   "JP_Prop_LadderBamboo_A": {
    "height": 2.6,
    "faces": 62
+  },
+  "JP_Prop_MarketStall_A": {
+   "counter_z": 0.82,
+   "faces": 48
+  },
+  "JP_Prop_MarketStall_B": {
+   "counter_z": 0.82,
+   "faces": 48
   }
  },
  "_modules": {
@@ -564,13 +608,19 @@
   "JP_Door_LatticeSlide_2m": 30,
   "JP_Window_Shoji_A": 30,
   "JP_Window_Loft_3m": 18,
-  "JP_BayWindow_Lattice_2m": 128,
+  "JP_BayWindow_Lattice_2m": 168,
   "JP_Balcony_2m": 30,
   "JP_Wall_Plaster_2m": 33,
-  "JP_PentRoof_2m": 82,
-  "JP_Roof_Kawara_Gable_6m": 487,
+  "JP_PentRoof_2m": 112,
+  "JP_Roof_Kawara_Gable_6m": 707,
   "JP_RidgeEnd_Plain": 6,
   "JP_RidgeEnd_Cloud": 6,
-  "JP_Gable_Cusped": 219
+  "JP_Gable_Cusped": 219,
+  "JP_Wall_Retaining_Granite_4m": 12,
+  "JP_Wall_Retaining_Rough_4m": 12,
+  "JP_Wall_Retaining_Granite_4m_Low": 12,
+  "JP_Stairs_Granite_3m": 48,
+  "JP_Stairs_Granite_3m_Low": 36,
+  "JP_Railing_Stone_2m": 54
  }
 }
