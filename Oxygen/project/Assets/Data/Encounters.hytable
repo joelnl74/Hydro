@@ -1,0 +1,13 @@
+Handle: 5637391413083366177
+DataTable:
+  Version: 1
+  Type: EncounterDefinition
+  Rows:
+    Slime:
+      Enemies: [{Table: 8285570869007471512, Row: Slime}]
+    SlimePair:
+      Enemies: [{Table: 8285570869007471512, Row: Slime}, {Table: 8285570869007471512, Row: Slime}]
+    WispAndSlimes:
+      Enemies: [{Table: 8285570869007471512, Row: Wisp}, {Table: 8285570869007471512, Row: Slime}, {Table: 8285570869007471512, Row: Slime}]
+    Wisps:
+      Enemies: [{Table: 8285570869007471512, Row: Wisp}, {Table: 8285570869007471512, Row: Wisp}]

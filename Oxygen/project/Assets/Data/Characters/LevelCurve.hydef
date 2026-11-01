@@ -1,0 +1,6 @@
+Handle: 1490334946040604597
+Definition:
+  Version: 1
+  Type: LevelCurve
+  Values:
+    ExperienceToLevel: [30, 75, 135, 210, 300, 405, 525, 660, 810, 975, 1155, 1350, 1560, 1785, 2025, 2280, 2550, 2835, 3135]

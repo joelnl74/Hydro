@@ -832,7 +832,7 @@ namespace Hydro
 			PresentDetails();
 
 			// The party's status beside the list (the first hero; the MVP has one).
-			const CombatantDefinition& hero = GetHero(0);
+			const HeroStats& hero = GetHero(0);
 			UI::SetText(EntityOf(m_Menu.StatusName), hero.Name);
 			UI::SetText(EntityOf(m_Menu.StatusHP), std::to_string(BattleState::Get().HeroHP[0]) + " / " + std::to_string(hero.MaxHP));
 			UI::SetText(EntityOf(m_Menu.StatusMP), std::to_string(BattleState::Get().HeroMP[0]) + " / " + std::to_string(hero.MaxMP));

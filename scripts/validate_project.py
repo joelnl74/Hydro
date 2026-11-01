@@ -128,8 +128,8 @@ def index_assets(assets: Path, report: Report):
         if kind is None or kind in ("Texture2D", "Mesh", "Font"):
             continue  # imported files keep their handle in a .hymeta
         with open(path, encoding="utf-8", errors="replace") as file:
-            first = file.readline()
-        match = re.match(r"Handle:\s*(\d+)", first)
+            head = "".join(file.readline() for _ in range(8))  # after any comment lines at the top
+        match = re.search(r"^Handle:\s*(\d+)", head, flags=re.M)
         if match is None:
             continue
         handle = int(match.group(1))

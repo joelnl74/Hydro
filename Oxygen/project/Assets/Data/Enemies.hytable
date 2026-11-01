@@ -1,0 +1,39 @@
+Handle: 8285570869007471512
+DataTable:
+  Version: 1
+  Type: EnemyDefinition
+  Rows:
+    Slime:
+      Name: Slime
+      ShortName: ""
+      Animations: 6768414324819546491
+      IdleClip: Bounce
+      Stats: {MaxHP: 30, MaxMP: 0, Attack: 6, Magic: 0, Speed: 4}
+      Shield: 2
+      Weak: [Pierce, Fire]
+      Resist: [Blunt]
+      BasicAttack: {Table: 3379890039159158977, Row: Attack}
+      Abilities: []
+      Experience: 10
+      FloatHeight: 0
+      FieldSpeed: 1
+      GlowColor: [1, 1, 1]
+      GlowIntensity: 0
+      SmokeColor: [0.85, 0.9, 0.8]
+    Wisp:
+      Name: Spirit Wisp
+      ShortName: Wisp
+      Animations: 376943688061053864
+      IdleClip: Float
+      Stats: {MaxHP: 24, MaxMP: 0, Attack: 7, Magic: 0, Speed: 9}
+      Shield: 3
+      Weak: [Fire, Light]
+      Resist: [Slash, Pierce]
+      BasicAttack: {Table: 3379890039159158977, Row: Attack}
+      Abilities: []
+      Experience: 14
+      FloatHeight: 0.35
+      FieldSpeed: 1.15
+      GlowColor: [0.35, 0.85, 1]
+      GlowIntensity: 1.1
+      SmokeColor: [0.75, 0.95, 1]

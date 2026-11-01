@@ -8,8 +8,9 @@ What it does (idempotent: run it again after changing it):
     with their lights, the sacred tree and the blossom tree behind, painted oaks on both sides, rows of pines
     and the sunset card far back, bushes, ferns, flowers, rocks and petals around the edge, drifting motes.
     Everything uses the Shrine Glade's assets, materials, sun, render settings and render profiles (Dusk).
-  - The actors: the shrine maiden with Characters/Miko (BattleIdle, Walk*, Kick, Punch, Death), the slimes and wisps,
-    all standing upright on the floor. The camera is the battle's stage camera (stage.py), lower than the
+  - The actors: the shrine maiden with Characters/Miko (BattleIdle, Walk*, Kick, Punch, Death) and the three enemy
+    slots ("Enemy 0" to "Enemy 2", each with "Enemy <i> Shadow" and "Enemy <i> Light"; the battle gives a slot the
+    animations of the enemy it holds), all standing upright on the floor. The camera is the battle's stage camera (stage.py), lower than the
     field's, looking into the clearing; the maiden stands right, the enemies left.
   - The UI: the battle's HUD sprites keep their layout; they become Overlay billboards on the camera's view
     plane, so they stay on screen whatever the camera does.
@@ -28,6 +29,7 @@ import argparse
 import copy
 import hashlib
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -56,8 +58,8 @@ FX_STRIKES_ANIMATIONS = None
 # An Upright sprite stands on its quad's bottom edge, which the pivot moves back by pivot x height; stand_offset
 # moves the entity so the feet are on the floor at its ground point (BattleScript HeroFoot / StandOffset).
 FOOT_HERO, PIVOT_HERO = 15.0 / 96.0, 0.5
-FOOT_SLIME, PIVOT_SLIME = 4.0 / 32.0, 0.125
-FOOT_WISP, PIVOT_WISP = 4.0 / 32.0, 0.12
+# The enemy slots ("Enemy <i>"): the battle gives each the animations of the enemy it holds (Enemies.hytable).
+FOOT_ENEMY, PIVOT_ENEMY = 4.0 / 32.0, 0.125
 HERO_SIZE = 2.4          # metres: the cell's height (her figure is a bit over half of it)
 ENEMY_SCALE = 0.62       # the old 2D sizes times k times this: slimes and wisps about a metre tall
 ENEMY_HEAD = 1.15        # metres above the floor where an enemy's HUD row starts
@@ -413,9 +415,10 @@ def update_battle(battle, templates):
 
         # Positions are read in layout units the first time (the old 2D battle) and from the world afterwards:
         # actors from where they stand on the floor, everything else from the view plane.
-        actor = tag == "Hero Miko" or (tag.startswith("Enemy ") and (tag.endswith(" Slime") or tag.endswith(" Wisp")))
+        enemy_slot = re.fullmatch(r"Enemy \d", tag) is not None  # "Enemy <i>": a slot whose sprite the battle dresses (SC7)
+        actor = tag == "Hero Miko" or enemy_slot
         if actor:
-            foot, pivot = (FOOT_HERO, PIVOT_HERO) if tag == "Hero Miko" else (FOOT_WISP, PIVOT_WISP) if tag.endswith(" Wisp") else (FOOT_SLIME, PIVOT_SLIME)
+            foot, pivot = (FOOT_HERO, PIVOT_HERO) if tag == "Hero Miko" else (FOOT_ENEMY, PIVOT_ENEMY)
         if battle.get("_from_2d"):
             layout = layout_from_old(entity)
         elif sprite is not None and sprite.get("Overlay"):
@@ -436,8 +439,7 @@ def update_battle(battle, templates):
             entity["SpriteAnimatorComponent"] = {"AnimationsHandle": MIKO_ANIMATIONS, "StartClip": "BattleIdle", "PlayOnStart": True, "Speed": 1}
             entity.pop("Shadow2DComponent", None)
             shadows.append(shadow_entity("Hero Miko Shadow", ground, {"Offset": [0, 0], "Size": vec((1.15, 0.36)), "Strength": 0.55}))
-        elif tag.startswith("Enemy ") and (tag.endswith(" Slime") or tag.endswith(" Wisp")):
-            wisp = tag.endswith(" Wisp")
+        elif enemy_slot:
             if battle.get("_from_2d"):
                 scale = t["Scale"][0] * k * ENEMY_SCALE
             else:
@@ -449,7 +451,7 @@ def update_battle(battle, templates):
             sprite.pop("Overlay", None)
             shadow = entity.pop("Shadow2DComponent", None) or old_shadows.get(tag) or {"Strength": 0.0}
             shadow["Offset"] = [0, 0]
-            shadow["Size"] = vec((1.0 if wisp else 1.15, 0.32))
+            shadow["Size"] = vec((1.15, 0.32))
             shadows.append(shadow_entity(tag + " Shadow", ground, shadow))
         elif tag.startswith("Enemy ") and tag.endswith(" Light"):
             ground = CAMERA.ground_point(layout)
@@ -491,7 +493,7 @@ def place_enemy_huds(entities):
     """Each enemy's HP bar, shield and weakness icons as one row just above its head (kept as laid out)."""
     by_tag = {tag_of(e): e for e in entities}
     for index in range(3):
-        body = by_tag.get(f"Enemy {index} Slime Shadow")  # on the floor under the feet
+        body = by_tag.get(f"Enemy {index} Shadow")  # on the floor under the feet
         if body is None:
             continue
         feet = body["TransformComponent"]["Translation"]

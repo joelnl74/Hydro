@@ -3,8 +3,18 @@ DataTable:
   Version: 1
   Type: AbilityDefinition
   Rows:
+    Attack:
+      Name: Attack
+      Description: A plain strike with what the fighter carries.
+      Type: None
+      Cost: 0
+      Power: 1
+      Heals: false
+      Clip: Punch
+      Approach: true
     FlameKick:
       Name: Flame Kick
+      Description: A kick wreathed in fire.
       Type: Fire
       Cost: 5
       Power: 1.6
@@ -13,9 +23,28 @@ DataTable:
       Approach: true
     HolyPalm:
       Name: Holy Palm
+      Description: Two palm strikes charged with the shrine's light.
       Type: Light
       Cost: 6
       Power: 1.7
       Heals: false
       Clip: DoublePunch
+      Approach: true
+    RadiantKick:
+      Name: Radiant Kick
+      Description: A kick that bursts with light.
+      Type: Light
+      Cost: 9
+      Power: 2.1
+      Heals: false
+      Clip: Kick
+      Approach: true
+    SpiritLance:
+      Name: Spirit Lance
+      Description: A thrust of spirit energy that pierces.
+      Type: Pierce
+      Cost: 10
+      Power: 2.2
+      Heals: false
+      Clip: Punch
       Approach: true

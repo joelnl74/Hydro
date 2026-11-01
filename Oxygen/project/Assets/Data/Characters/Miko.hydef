@@ -1,0 +1,17 @@
+Handle: 7766402021591977760
+Definition:
+  Version: 1
+  Type: HeroDefinition
+  Values:
+    Name: Miko
+    ShortName: ""
+    Base: {MaxHP: 90, MaxMP: 32, Attack: 10, Magic: 8, Speed: 9}
+    GrowthPerLevel: {MaxHP: 9, MaxMP: 3, Attack: 2, Magic: 2, Speed: 0}
+    WeaponType: Blunt
+    BasicAttack: {Table: 3379890039159158977, Row: Attack}
+    StartingAbilities: [{Table: 3379890039159158977, Row: FlameKick}, {Table: 3379890039159158977, Row: HolyPalm}]
+    Learns:
+      - {Level: 3, Ability: {Table: 3379890039159158977, Row: RadiantKick}}
+      - {Level: 5, Ability: {Table: 3379890039159158977, Row: SpiritLance}}
+    IdleClip: BattleIdle
+    ItemClip: BattleIdle

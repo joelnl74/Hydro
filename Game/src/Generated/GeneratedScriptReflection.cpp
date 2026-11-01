@@ -48,7 +48,9 @@ namespace Hydro
 			.Property("WanderSpeed", "Wander Speed", &EnemyChaseScript::WanderSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while wandering (wisps move 15% faster)")
 			.Property("ChaseSpeed", "Chase Speed", &EnemyChaseScript::ChaseSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second while chasing (the player walks at about 3.5)")
 			.Property("ReturnSpeed", "Return Speed", &EnemyChaseScript::ReturnSpeed).Range(0.0f, 20.0f).Tooltip("Metres per second walking back home")
-			.Property("Dormant", "Dormant", &EnemyChaseScript::Dormant).Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)");
+			.Property("Dormant", "Dormant", &EnemyChaseScript::Dormant).Tooltip("Starts hidden, still and harmless, out of the 3D world, until Wake() (a quest sends it in)")
+			.Property("Enemy", "Enemy", &EnemyChaseScript::Enemy).Tooltip("What it is; unset: a tag starting with \"Wisp\" is a Wisp, anything else a Slime").DataTypeFilter("EnemyDefinition")
+			.Property("Encounter", "Encounter", &EnemyChaseScript::Encounter).Tooltip("Who fights when it touches the player; unset: it and up to two random slimes or wisps").DataTypeFilter("EncounterDefinition");
 
 		ScriptRegistry::Register<DialogueScript>("DialogueScript")
 			.Property("CharactersPerSecond", "Characters Per Second", &DialogueScript::CharactersPerSecond).Range(1.0f, 200.0f).Tooltip("How fast the lines type in, in characters per second");
