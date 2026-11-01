@@ -1,0 +1,10 @@
+Handle: 9179118661306197895
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: Camp's this way. Keep your voice down; the old monk is meditating, or sleeping. Hard to tell.

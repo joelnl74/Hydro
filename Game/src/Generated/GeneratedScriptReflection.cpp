@@ -16,6 +16,7 @@
 #include "Scripts/Field/EnemyChaseScript.h"
 #include "Scripts/Field/FieldDirectorScript.h"
 #include "Scripts/Field/NpcWanderScript.h"
+#include "Scripts/Field/QuestGiverScript.h"
 #include "Scripts/Interiors/InteriorScript.h"
 #include "Scripts/ShrineGlade/ShrineGladeScript.h"
 #include "Scripts/ShrineGlade/ShrineQuestScript.h"
@@ -105,7 +106,9 @@ namespace Hydro
 			.Property("OrinName", "Orin Name", &CountrysideQuestScript::OrinName).Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag")
 			.Property("MeetRange", "Meet Range", &CountrysideQuestScript::MeetRange).Range(1.0f, 30.0f).Tooltip("Metres from Orin at which he calls out")
 			.Property("LeyColor", "Ley Color", &CountrysideQuestScript::LeyColor).Color()
-			.Property("StartQuestWhenAlone", "Start Quest When Alone", &CountrysideQuestScript::StartQuestWhenAlone).Tooltip("Played on its own (not pushed from the Shrine Glade): start the duty at its leyline step");
+			.Property("StartQuestWhenAlone", "Start Quest When Alone", &CountrysideQuestScript::StartQuestWhenAlone).Tooltip("Played on its own (not pushed from the Shrine Glade): start the duty at its leyline step")
+			.Property("GateShake", "Gate Shake", &CountrysideQuestScript::GateShake).Range(0.0f, 1.0f).Tooltip("How far the camera shakes (metres) while the ground opens")
+			.Property("GateOpenTime", "Gate Open Time", &CountrysideQuestScript::GateOpenTime).Range(1.0f, 8.0f).Tooltip("Seconds from the first rumble until the rift has opened");
 
 		ScriptRegistry::Register<SpawnerScript>("SpawnerScript")
 			.Property("SpawnPrefab", "Spawn Prefab", &SpawnerScript::SpawnPrefab).Tooltip("What to spawn").AssetFilter(AssetType::Prefab)
@@ -170,6 +173,9 @@ namespace Hydro
 			.Property("WorkEvery", "Work Every", &NpcWanderScript::WorkEvery).Range(1.0f, 10.0f).Tooltip("With WorkClip: it works at one stop in this many")
 			.Property("StartDelay", "Start Delay", &NpcWanderScript::StartDelay).Range(0.0f, 60.0f).Tooltip("Seconds before it first moves (so a crowd doesn't all set off at once)")
 			.Property("Loop", "Loop", &NpcWanderScript::Loop).Tooltip("A round: it always walks from the line's start to its end, then reappears at the start (for a long street, with both ends off screen) instead of turning back");
+
+		ScriptRegistry::Register<QuestGiverScript>("QuestGiverScript")
+			.Property("QuestTable", "Quest Table", &QuestGiverScript::QuestTable).Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition");
 
 		ScriptRegistry::Register<InteriorScript>("InteriorScript")
 			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")

@@ -165,6 +165,7 @@ namespace Hydro
 				else if (tag.rfind("Save", 0) == 0) { item.Type = Kind::Save; }
 				else if (tag.rfind("Exit", 0) == 0) { item.Type = Kind::Exit; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Npc", 0) == 0) { item.Type = Kind::Npc; item.Target = tag.size() > 4 ? tag.substr(4) : std::string(); }
+				else if (tag.rfind("Gather ", 0) == 0) { item.Type = Kind::Gather; item.Target = tag.substr(7, tag.find(' ', 7) == std::string::npos ? std::string::npos : tag.find(' ', 7) - 7); }
 				else { continue; }
 				if (scene.m_Registry.has<SpriteRendererComponent>(entity))
 				{
@@ -188,6 +189,7 @@ namespace Hydro
 					{
 						inventory.Slots.push_back(Slot{ entry.Item, entry.Count });
 					}
+					inventory.Money = start->Money;
 				}
 				HY_INFO("Field: {} items in the inventory", inventory.Slots.size());
 			}
@@ -287,7 +289,7 @@ namespace Hydro
 		}
 
 	private:
-		enum class Kind : uint8_t { Sign, Chest, Door, Rest, Save, Exit, Npc };
+		enum class Kind : uint8_t { Sign, Chest, Door, Rest, Save, Exit, Npc, Gather };
 
 		struct Interactable
 		{
@@ -430,6 +432,15 @@ namespace Hydro
 					{
 						ShowMessage(text);
 					}
+					break;
+				}
+				case Kind::Gather:
+				{
+					// "Gather <ItemRow> ...": one of that row of the items table, then the spot is gone (until the scene
+					// is loaded again): herbs, bamboo shoots, side quests' Collect items.
+					GiveItem(DataRowRef{ ChestItem.Table, nearest->Target });
+					scene.DestroyEntity(Entity{ nearest->Entity, &scene });
+					m_PromptView.Hide();
 					break;
 				}
 				case Kind::Chest:
@@ -611,10 +622,11 @@ namespace Hydro
 			{
 				return;
 			}
+			// The marker stands on the ground where she arrives (on a terrain the two ends of a scene can be metres
+			// apart in height), so her height is the marker's too.
 			Entity player{ m_Player, &scene };
 			const glm::vec3 at = scene.GetWorldPosition(marker);
-			const glm::vec3 now = scene.GetWorldPosition(player);
-			scene.SetWorldPosition(player, glm::vec3(at.x, at.y, now.z));
+			scene.SetWorldPosition(player, at);
 			HY_INFO("Field: arrived from {} at ({:.1f}, {:.1f})", from, at.x, at.y);
 		}
 
@@ -670,6 +682,7 @@ namespace Hydro
 				case Kind::Save: return "E  Save";
 				case Kind::Exit: return "E  Leave";
 				case Kind::Npc: return "E  Talk";
+				case Kind::Gather: return "E  Gather";
 				default: return "E  Read";
 			}
 		}
@@ -704,7 +717,12 @@ namespace Hydro
 			m_Menu.SetOpen(open);
 		}
 
-		// One more of `item` (a chest): onto its line, or a new line at the end.
+		static bool IsVowel(const std::string& word)
+		{
+			return word.empty() == false && std::string("AEIOUaeiou").find(word[0]) != std::string::npos;
+		}
+
+		// One more of `item` (a chest, a gathering spot): onto its line, or a new line at the end.
 		void GiveItem(const DataRowRef& itemRef)
 		{
 			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(itemRef);
@@ -714,7 +732,7 @@ namespace Hydro
 				return;
 			}
 			const int now = Inventory::Get().Add(itemRef, 1);
-			ShowMessage("Found a " + item->Name + "!");
+			ShowMessage(std::string(IsVowel(item->Name) ? "Found an " : "Found a ") + item->Name + "!");
 			HY_INFO("Field: found a {} ({} now)", item->Name, now);
 		}
 

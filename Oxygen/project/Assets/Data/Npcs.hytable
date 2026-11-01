@@ -21,18 +21,42 @@ DataTable:
     Farmer:
       Name: Farmer
       Dialogue: 5724374815678911623
+    FieldHand:
+      Name: Field Hand
+      Dialogue: 5268298787814366642
     Gatherer:
       Name: Gatherer
       Dialogue: 601377773650924383
+    Genji:
+      Name: Genji
+      Dialogue: 438069288391016153
+    Hatsu:
+      Name: Hatsu
+      Dialogue: 5581634057468186291
     Innkeeper:
       Name: Innkeeper
       Dialogue: 1573876928913233299
+    Jokai:
+      Name: Jokai
+      Dialogue: 1018095280451232322
+    Kenta:
+      Name: Kenta
+      Dialogue: 1898010611832773198
+    Okiku:
+      Name: Okiku
+      Dialogue: 2449487106656759536
     Patron:
       Name: Patron
       Dialogue: 6587077769872871563
     Pilgrim:
       Name: Pilgrim
       Dialogue: 2160059811581225333
+    Ronin:
+      Name: Ronin
+      Dialogue: 9179118661306197895
+    Sanzo:
+      Name: Sanzo
+      Dialogue: 354060732494804104
     VillageElder:
       Name: Village Elder
       Dialogue: 4544577340776314683

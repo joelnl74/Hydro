@@ -129,6 +129,8 @@ namespace Hydro
 		std::vector<EnemyAbility> Abilities;
 		HY_PROPERTY(Range(0, 99999), Tooltip("Given to the party when it is defeated"))
 		int Experience = 0;
+		HY_PROPERTY(Range(0, 99999), Tooltip("Aster (the world's money) the party picks up when it is defeated"))
+		int Money = 0;
 		HY_PROPERTY(DataRow(LootTableDefinition), Tooltip("Rolled once the battle is won (Loot.hytable); unset: nothing"))
 		DataRowRef Loot;
 		// How it looks and moves (presentation, not rules).

@@ -3,6 +3,26 @@ DataTable:
   Version: 1
   Type: DialogueDefinition
   Rows:
+    GateOpens:
+      Speaker: Orin
+      Portrait: 0
+      Lines:
+        - Speaker: ""
+          Text: The ground... Get back from the roots!
+        - Speaker: Miko
+          Text: The light isn't running on to another tree. It's going down, into the earth.
+        - Speaker: ""
+          Text: Steps. Someone cut steps down there, a long time ago. That's where the thread is pulled from.
+    GateSealed:
+      Speaker: Orin
+      Portrait: 0
+      Lines:
+        - Speaker: Miko
+          Text: The steps go down into the dark, but the air pushes back. Something holds this way shut.
+        - Speaker: ""
+          Text: A ward, and an old one. Not something a blade can cut. Not yet.
+        - Speaker: Miko
+          Text: Then we find out who sealed it, and why. We'll come back.
     OrinJoins:
       Speaker: Orin
       Portrait: 0
@@ -16,7 +36,7 @@ DataTable:
         - Speaker: ""
           Text: It runs from old tree to old tree, like a thread pulled tight. Whatever is pulling it waits at the other end.
         - Speaker: Miko
-          Text: My master felt it too. He sent me to follow it, and it runs south, toward the city.
+          Text: My master felt it too. He sent me to follow it, wherever it leads.
         - Speaker: ""
           Text: Then we walk the same road. I'll go with you, guardian, as far as the thread goes.
     OrinMeet:

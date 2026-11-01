@@ -54,6 +54,11 @@ namespace Hydro
 			.Value("Epic", ItemRarity::Epic)
 			.Value("Legendary", ItemRarity::Legendary);
 
+		DataTypeRegistry::RegisterEnum<QuestKind>("QuestKind")
+			.Value("Story", QuestKind::Story)
+			.Value("Defeat", QuestKind::Defeat)
+			.Value("Collect", QuestKind::Collect);
+
 		DataTypeRegistry::Register<AbilityDefinition>("AbilityDefinition", "Ability")
 			.Table()
 			.DisplayField("Name")
@@ -89,6 +94,7 @@ namespace Hydro
 			.Field<&EnemyDefinition::BasicAttack>("BasicAttack", "Basic Attack").Tooltip("Its plain attack (the damage is its Attack times the Power)").DataTypeFilter("AbilityDefinition")
 			.Field<&EnemyDefinition::Abilities>("Abilities", "Abilities").Tooltip("Other abilities, by weight (not used by the battle yet: enemies only attack)")
 			.Field<&EnemyDefinition::Experience>("Experience", "Experience").Range(0.0f, 99999.0f).Tooltip("Given to the party when it is defeated")
+			.Field<&EnemyDefinition::Money>("Money", "Money").Range(0.0f, 99999.0f).Tooltip("Aster (the world's money) the party picks up when it is defeated")
 			.Field<&EnemyDefinition::Loot>("Loot", "Loot").Tooltip("Rolled once the battle is won (Loot.hytable); unset: nothing").DataTypeFilter("LootTableDefinition")
 			.Field<&EnemyDefinition::FloatHeight>("FloatHeight", "Float Height").Range(0.0f, 3.0f).Tooltip("Metres it floats above the floor, bobbing (0: it stands); floating ones also sway in the field")
 			.Field<&EnemyDefinition::FieldSpeed>("FieldSpeed", "Field Speed").Range(0.0f, 3.0f).Tooltip("Its field speeds times this (wandering, chasing, going home)")
@@ -149,7 +155,8 @@ namespace Hydro
 
 		DataTypeRegistry::Register<InventoryDefinition>("InventoryDefinition", "Inventory")
 			.Definition()
-			.Field<&InventoryDefinition::Items>("Items", "Items").Tooltip("In the order the inventory lists them");
+			.Field<&InventoryDefinition::Items>("Items", "Items").Tooltip("In the order the inventory lists them")
+			.Field<&InventoryDefinition::Money>("Money", "Money").Range(0.0f, 999999.0f).Tooltip("Aster the party starts with");
 
 		DataTypeRegistry::Register<InventoryEntry>("InventoryEntry", "Inventory Entry")
 			.Field<&InventoryEntry::Item>("Item", "Item").DataTypeFilter("ItemDefinition")
@@ -189,7 +196,18 @@ namespace Hydro
 			.Table()
 			.DisplayField("Title")
 			.Field<&QuestDefinition::Title>("Title", "Title").Tooltip("Shown in the tracker and the New Quest / Quest Complete banners")
-			.Field<&QuestDefinition::Stages>("Stages", "Stages").Tooltip("In order; the quest's script moves from one to the next");
+			.Field<&QuestDefinition::Stages>("Stages", "Stages").Tooltip("In order; the quest's script moves from one to the next (a side quest: what to do, then whom to return to)")
+			.Field<&QuestDefinition::Kind>("Kind", "Kind").Tooltip("Story: its scripts move it on; Defeat / Collect: a side quest an NPC offers (QuestGiverScript)")
+			.Field<&QuestDefinition::Giver>("Giver", "Giver").Tooltip("Side quests: who offers it and takes it back: the name after \"Npc \" in their tag")
+			.Field<&QuestDefinition::Enemy>("Enemy", "Enemy").Tooltip("Defeat: the enemy whose defeats count").DataTypeFilter("EnemyDefinition")
+			.Field<&QuestDefinition::Item>("Item", "Item").Tooltip("Collect: the item to bring; handed over when the quest is turned in").DataTypeFilter("ItemDefinition")
+			.Field<&QuestDefinition::Count>("Count", "Count").Range(1.0f, 99.0f).Tooltip("Defeat / Collect: how many")
+			.Field<&QuestDefinition::RewardItems>("RewardItems", "Reward Items").Tooltip("Given when it is turned in")
+			.Field<&QuestDefinition::RewardExperience>("RewardExperience", "Reward Experience").Range(0.0f, 9999.0f).Tooltip("Experience for every party member standing, when it is turned in")
+			.Field<&QuestDefinition::RewardMoney>("RewardMoney", "Reward Money").Range(0.0f, 99999.0f).Tooltip("Aster (the world's money) given when it is turned in")
+			.Field<&QuestDefinition::OfferLines>("OfferLines", "Offer Lines").Tooltip("What the giver says offering it; the quest starts when the box closes")
+			.Field<&QuestDefinition::ProgressLines>("ProgressLines", "Progress Lines").Tooltip("What the giver says while it isn't done; {Left} is how many are still to go")
+			.Field<&QuestDefinition::DoneLines>("DoneLines", "Done Lines").Tooltip("What the giver says when it is turned in (the rewards are listed after)");
 
 		DataTypeRegistry::Register<QuestStage>("QuestStage", "Quest Stage")
 			.Field<&QuestStage::Objective>("Objective", "Objective").Tooltip("What the tracker says to do");

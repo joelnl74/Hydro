@@ -3,6 +3,10 @@ DataTable:
   Version: 1
   Type: SignDefinition
   Rows:
+    Crossroads:
+      Lines:
+        - "North: the shrine road. South: the city gate"
+        - "East: Nishida farm. West: the cedar wood"
     Default:
       Lines:
         - Shrine Glade Inn
