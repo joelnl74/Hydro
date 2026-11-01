@@ -24,6 +24,7 @@ import argparse
 import json
 import math
 import os
+import random
 import shutil
 import sys
 
@@ -36,6 +37,8 @@ kit.KEY = "JP_Slice:"
 ASSETS, MODELS, REPO = kit.ASSETS, kit.MODELS, kit.REPO
 SCENE = os.path.join(ASSETS, "Scenes", "JapaneseCitySlice.hyscene")
 R2 = os.path.join(REPO, "art_incoming", "jp_city", "textures_r2")
+STEP12 = os.path.join(REPO, "art_incoming", "jp_city", "step12_prepared")   # prep_step12.py's output (decals, backdrops)
+CITY_PROFILES = os.path.join(ASSETS, "RenderProfiles", "City")
 TREES, PLANTS = city.TREES, city.PLANTS
 
 Z0, Z1, Z2 = 0.0, 3.5, 7.0          # street, landing and gardens, gate plaza
@@ -73,6 +76,62 @@ def tinted_material(texture, name, tint, tiling=0.25):
     return h
 
 
+def step_material(name, w_px, h_px, cutoff=0.5, emission=None, tint=(1, 1, 1), wrap="Repeat"):
+    """A material on a prepared step 1 / 2 image (STEP12/<name>.png, copied to Textures/JapaneseCity). Tiling makes
+    one image cover w_px / 32 by h_px / 32 metres of a box face; emission makes a backdrop light itself."""
+    os.makedirs(city.TEX_DIR, exist_ok=True)
+    os.makedirs(city.MAT_DIR, exist_ok=True)
+    png = os.path.join(city.TEX_DIR, name + ".png")
+    shutil.copy2(os.path.join(STEP12, name + ".png"), png)
+    if os.path.exists(png + ".hymeta") is False:
+        with open(png + ".hymeta", "w", newline="\r\n") as f:
+            f.write("Handle: %d\nType: Texture2D\nTextureImport:\n  Format: SRGB\n  Filter: Nearest\n  Wrap: %s\n"
+                    "  SpriteMode: Single\n  PixelsPerUnit: 32\n" % (city.stable_handle("tex:" + name), wrap))
+    tex = kit.handle_of(png + ".hymeta")
+    mat = os.path.join(city.MAT_DIR, name + ".hymat")
+    h = kit.handle_of(mat) if os.path.exists(mat) else city.stable_handle("mat:" + name)
+    em = ("  EmissiveHandle: %d\n" % tex) if emission else ""
+    ec = emission or (0, 0, 0)
+    with open(mat, "w", newline="\r\n") as f:
+        f.write("Handle: %d\nMaterial:\n  Type: Standard\n  AlbedoHandle: %d\n%s  Tint: [%g, %g, %g, 1]\n  Tiling: [%g, %g]\n"
+                "  EmissionColor: [%g, %g, %g]\n  EmissionIntensity: 1\n  AlphaCutoff: %g\n  Filter: Nearest\n"
+                % (h, tex, em, tint[0], tint[1], tint[2], 32.0 / w_px, 32.0 / h_px, ec[0], ec[1], ec[2], cutoff))
+    return h, tex
+
+
+def city_profiles():
+    """RenderProfiles/City/<Day|Dusk|Night>.hyrender: the field profiles made warmer for the city, with the fog pushed
+    back (the backdrop layers sit 70 to 140 m behind the street) and a stronger depth of field and bloom."""
+    os.makedirs(CITY_PROFILES, exist_ok=True)
+    tweaks = {
+        "Day": dict(SkyAmbient="[0.6, 0.6, 0.62]", GroundAmbient="[0.22, 0.2, 0.17]", FogColor="[0.74, 0.76, 0.8]",
+                    BloomIntensity="0.5", BloomThreshold="1"),
+        "Dusk": dict(SkyAmbient="[0.27, 0.2, 0.2]", GroundAmbient="[0.1, 0.07, 0.055]", FogColor="[0.72, 0.48, 0.4]",
+                     BloomIntensity="0.85", BloomThreshold="0.9"),
+        "Night": dict(SkyAmbient="[0.05, 0.06, 0.1]", GroundAmbient="[0.02, 0.018, 0.025]", FogColor="[0.09, 0.1, 0.18]",
+                      BloomIntensity="1.0", BloomThreshold="0.85"),
+    }
+    common = dict(FogStart="40", FogEnd="260", DofNearStart="2", DofFarStart="9", DofRange="14", DofMaxRadius="0.9")
+    handles = {}
+    for k, extra in tweaks.items():
+        src = open(os.path.join(ASSETS, "RenderProfiles", "Field", k + ".hyrender")).read().splitlines()
+        dst = os.path.join(CITY_PROFILES, k + ".hyrender")
+        h = kit.handle_of(dst) if os.path.exists(dst) else city.stable_handle("profile:" + k)
+        vals = dict(common, **extra)
+        out = []
+        for line in src:
+            key = line.strip().split(":")[0]
+            if line.startswith("Handle:"):
+                line = "Handle: %d" % h
+            elif key in vals:
+                line = line[: line.index(key)] + key + ": " + vals[key]
+            out.append(line)
+        with open(dst, "w", newline="\r\n") as f:
+            f.write("\n".join(out) + "\n")
+        handles[k] = h
+    return handles
+
+
 class Slice(city.City):
     def box(self, parent, mat, x0, x1, y0, y1, z0, z1, tag=None, shadows=True, collider=True):
         """A box from z0 to z1 (Hydro's Box grows up from its origin; the collider is centred)."""
@@ -89,6 +148,13 @@ class Slice(city.City):
         """A raised terrace: a stone wall box up to just under `top` and a paving / grass cap on it."""
         self.box(parent, wall, x0, x1, y0, y1, base, top - CAP, tag=self._n("Terrace Wall"))
         self.box(parent, cap, x0, x1, y0, y1, top - CAP, top, tag=self._n("Terrace Top"), shadows=False)
+
+    def decal(self, parent, mat, cx, cy, w, h, z, rot=0.0, tag=None):
+        """A flat decal: a 1 cm box of w x h metres lying at z (its image's top towards the box's +Y; rot turns it)."""
+        tag = tag or self._n("Decal")
+        self.w.entity("decal:" + tag, tag, parent=parent, t=(cx, cy, z), r=(0, 0, math.radians(rot)), body=(
+            "    MeshComponent:\n      Shape: Box\n      Size: [%g, %g, 0.01]\n      CastShadows: false\n      Materials:\n"
+            "        - MaterialHandle: %d\n" % (w, h, mat)))
 
     def stairs(self, parent, mat, cx, y0, y1, z0, z1, width=STAIR_W, step_rise=0.2, riser=None):
         steps = max(1, int(round((z1 - z0) / step_rise)))
@@ -176,6 +242,89 @@ class Slice(city.City):
         return info
 
 
+def backdrop(c, parent):
+    """Step 2: three painted layers behind the city (ChatGPT, prepared by prep_step12.py), lit by their own emission
+    and hazed by the fog: the upper town's rooftops, the far hills with the castle and pagoda, the dusk sky."""
+    layers = (("JP_Backdrop_Mid", 1086, 362, 120.0, 72.0, Z2 - 4.0, (0.62, 0.56, 0.52), (0.45, 0.45, 0.45)),
+              ("JP_Backdrop_Far", 1086, 294, 220.0, 105.0, Z2 - 9.0, (0.72, 0.68, 0.7), (0.3, 0.3, 0.3)),
+              ("JP_Backdrop_Sky_Dusk", 1086, 362, 380.0, 140.0, -30.0, (0.95, 0.9, 0.88), (0.2, 0.2, 0.2)))
+    for (name, wp, hp, width, y, z, emission, tint) in layers:
+        height = width * hp / wp
+        mat, _ = step_material(name, 32.0 * width, 32.0 * height, 0.5, emission, tint)      # one image per face
+        c.w.entity("backdrop:" + name, "Backdrop " + name.replace("JP_Backdrop_", ""), parent=parent, t=(0, y, z), body=(
+            "    MeshComponent:\n      Shape: Box\n      Size: [%g, 0.1, %g]\n      CastShadows: false\n      Materials:\n"
+            "        - MaterialHandle: %d\n" % (width, height, mat)))
+
+
+def ground_dressing(c):
+    """Step 1: the ground stops being one repeated tile. Worn, mossy setts in patches, dirt, puddles, a damp band at the
+    foot of the house fronts, moss at the foot of stone walls, petals under the cherries and maple leaves under the
+    autumn trees. Decals are 1 cm boxes in layers (worn 6 mm, dirt 9, puddles 11, grime 13, moss 15, leaves 30)."""
+    rnd = random.Random(7)
+    D = c.group("Ground Dressing")
+    worn = [step_material("JP_Decal_SettsWorn_%d" % k, 128, 128)[0] for k in (1, 2, 3)]
+    dirt = step_material("JP_Decal_DirtPatch", 128, 128)[0]
+    puddle = step_material("JP_Decal_Puddle", 96, 48)[0]
+    grime = step_material("JP_Decal_WallGrime", 128, 32)[0]
+    moss = step_material("JP_Decal_MossEdge", 128, 32)[0]
+    petals = step_material("JP_Decal_Petals", 128, 128)[0]
+    leaves = step_material("JP_Decal_MapleLeaves", 128, 128)[0]
+
+    # worn setts: more towards the house fronts, the street's ends and the near side, none in the middle of the path
+    spots = []
+    for _ in range(26):
+        x = rnd.uniform(-30, 30)
+        y = rnd.choice((rnd.uniform(-1.6, -0.9), rnd.uniform(-8.0, -5.2), rnd.uniform(-16.0, -10.5)))
+        spots.append((x, y, Z0))
+    for _ in range(10):
+        spots.append((rnd.uniform(-10.5, 10.5), rnd.uniform(19.0, 31.0), Z2))
+    for (x, y, z) in spots:
+        c.decal(D, rnd.choice(worn), x, y, 4.0, 4.0, z + 0.006, rnd.choice((0.0, 180.0)))
+    for (x, y, z) in [(rnd.uniform(-28, 28), rnd.uniform(-7.5, -5.0), Z0) for _ in range(5)] + \
+                     [(rnd.uniform(-28, 28), rnd.uniform(-15, -10.5), Z0) for _ in range(4)] + \
+                     [(rnd.choice((-8.0, 8.0)), rnd.uniform(20, 30), Z2) for _ in range(3)]:
+        c.decal(D, dirt, x, y, 4.0, 4.0, z + 0.009, rnd.uniform(0, 360))
+    for (x, y, z) in ((-14.5, -1.6, Z0), (9.0, -1.7, Z0), (24.0, -1.5, Z0), (-6.0, 21.0, Z2), (7.5, 28.5, Z2)):
+        c.decal(D, puddle, x, y, 3.0, 1.5, z + 0.011, rnd.choice((0.0, 180.0)))
+
+    # the damp band along the house fronts (top edge against the plinths), moss in places and at the stair foot
+    for (x0, x1) in ((-44.0, -3.5), (3.5, 44.0)):
+        c.decal(D, grime, (x0 + x1) / 2, 0.35, x1 - x0, 1.0, Z0 + 0.013, 0.0, tag=c._n("Grime House Fronts"))
+        for _ in range(4):
+            L = rnd.choice((2.0, 3.0, 4.0))
+            x = rnd.uniform(x0 + L / 2, x1 - L / 2)
+            c.decal(D, moss, x, 0.35, L, 1.0, Z0 + 0.015)
+    for x in (-3.0, 3.0):
+        c.decal(D, moss, x, 0.5, 1.4, 1.0, Z0 + 0.015)
+    # the plaza: grime at the foot of the inn (its front faces +X) and the guild hall (faces -X), moss along the wall
+    c.decal(D, grime, -11.6, 25.0, 15.0, 1.0, Z2 + 0.013, 90.0)
+    c.decal(D, grime, 11.6, 25.0, 15.0, 1.0, Z2 + 0.013, -90.0)
+    for (x0, x1) in ((-11.5, -3.0), (3.0, 11.5)):
+        c.decal(D, moss, (x0 + x1) / 2, 32.5, x1 - x0, 1.0, Z2 + 0.015)
+
+    # petals under the cherries (and blown onto the street and the landing), maple leaves under the autumn trees
+    for (x, y, z) in ((-27.0, -12.5, Z0), (21.0, -13.0, Z0), (-9.0, 13.5, Z1), (10.0, 13.0, Z1), (-9.0, 18.4, Z2)):
+        c.decal(D, petals, x, y, 8.0, 8.0, z + 0.03)
+    c.decal(D, petals, 0.0, -1.6, 8.0, 3.0, Z0 + 0.03)
+    c.decal(D, petals, 0.0, 9.5, 7.0, 3.0, Z1 + 0.03)
+    for (x, y, z, w_, h_) in ((17.5, 15.0, Z1, 8.0, 5.0), (-24.0, 14.5, Z1, 8.0, 5.0), (12.0, -6.5, Z0, 4.0, 4.0), (-18.0, -4.8, Z0, 4.0, 3.0)):
+        c.decal(D, leaves, x, y, w_, h_, z + 0.03)
+
+
+def foreground_branches(w):
+    """Blurred branches in the frame's corners, as in the references: sprites parented to the camera, 6 m in front of
+    it (the depth of field blurs them). Flat, so they lie in the camera's own XY plane and face it exactly (a Billboard
+    would be turned by the camera's rotation a second time). A camera looks along its local -Z with +Y up the screen."""
+    for (name, w_px, h_px, width, local, flip) in (("JP_FG_CherryBranch", 593, 291, 2.4, (-1.75, 1.15, -6.0), False),
+                                                   ("JP_FG_MapleBranch", 635, 313, 1.9, (2.2, -1.35, -6.0), True)):
+        _, tex = step_material(name, w_px, h_px, wrap="Clamp")
+        height = width * h_px / w_px
+        w.entity("fg:" + name, "Foreground " + name.replace("JP_FG_", ""), parent="Camera", t=local, s=(width, height, 1), body=(
+            "    SpriteRendererComponent:\n      Color: [1, 1, 1, 1]\n      TilingFactor: 1\n      SortOrder: 200\n"
+            "      TextureHandle: %d\n      SpriteIndex: 0\n      FlipX: %s\n      FlipY: false\n      Facing: Flat\n      AlphaMode: Cutout\n")
+            % (tex, "true" if flip else "false"))
+
+
 def build(c, args):
     d = c.d
     setts = r2_material("JP_Paving_Setts.png", "JP_Paving_Setts")
@@ -186,7 +335,6 @@ def build(c, args):
     riser = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Riser", (0.42, 0.4, 0.38))
     grass = kit.handle_of(os.path.join(ASSETS, "Materials", "Ground", "Grass.hymat"))
     road = kit.handle_of(os.path.join(ASSETS, "Materials", "Ground", "VillageDirt.hymat"))
-    sky = kit.handle_of(os.path.join(ASSETS, "Materials", "Backdrops", "SunsetBackdrop.hymat"))
     half = STAIR_W / 2
     gap = half + CHEEK                                  # 3.5: the stair corridor's half width
 
@@ -208,9 +356,8 @@ def build(c, args):
     c.slab(G, road, -2.6, 2.6, 34.0, 110.0, Z2 + 0.02, 0.5)
     c.slab(G, grass, -70, -44, -20, 46.0, Z0, 2.0)
     c.slab(G, grass, 44, 70, -20, 46.0, Z0, 2.0)
-    c.w.entity("Backdrop", "Backdrop Sunset", parent=G, t=(0, 108, -20), body=(
-        "    MeshComponent:\n      Shape: Box\n      Size: [260, 0.2, 80]\n      CastShadows: false\n      Materials:\n"
-        "        - MaterialHandle: %d\n" % sky))
+    backdrop(c, G)
+    ground_dressing(c)
 
     S = c.group("Stair Street")
     # flight 1 from the street to the landing, flight 2 from the landing to the plaza, stone cheek walls along both
@@ -320,7 +467,7 @@ def build(c, args):
         c.model(P, "Props/JP_Prop_WallLantern_A", s_ * 2.25, 33.9, Z2)
         d.lantern(P, s_ * 2.25, 33.45, Z2 + 2.2)
         c.model(P, "Props/JP_Prop_Barrier_A", s_ * 6.4, 30.6, Z2, s_ * 6)
-        c.npc(P, "Blacksmith", s_ * 1.6, 31.4, Z2)
+        c.npc(P, "GateGuard", s_ * 1.6, 31.4, Z2)
     c.model(P, "Props/JP_Prop_SpearRack_A", -6.0, 32.2, Z2)
     c.model(P, "Props/JP_Prop_WarDrum_A", 6.4, 32.0, Z2)
     # plaza dressing: well and tea bench near the corners, stone lanterns along the path, cherry and pine
@@ -342,10 +489,18 @@ def build(c, args):
 
     # ---------------------------------------------------------------- townsfolk
     T = c.group("Townsfolk")
-    for (name, x, y, z) in (("Pilgrim", -9.0, -3.4, Z0), ("Barmaid", 8.6, -2.0, Z0), ("Farmer", 17.0, -5.2, Z0), ("Gatherer", -18.0, -4.6, Z0),
-                            ("FarmWife", -12.0, -7.4, Z0), ("Monk", 1.4, 5.0, Z0 + (5.0 - 1.0) / 7.0 * Z1), ("VillageElder", -1.6, 9.6, Z1),
-                            ("Gatherer", -4.6, 23.0, Z2), ("Pilgrim", 5.2, 24.4, Z2)):
-        c.npc(T, name, x, y, z)
+    # the Edo townsfolk (Nov 1): the merchant at his shop, people in pairs facing each other, the old woman resting by
+    # the stairs; the pilgrim and the monk stay (travellers on the way to the shrine)
+    for (name, x, y, z, clip) in (("Merchant", 11.2, -0.9, Z0, "IdleDown"), ("Merchant", -27.8, -0.9, Z0, "IdleDown"),
+                                  ("Townsman", 15.4, -2.6, Z0, "IdleRight"), ("Townswoman", 16.7, -2.6, Z0, "IdleLeft"),
+                                  ("Townswoman", -15.6, -5.6, Z0, "IdleRight"), ("OldWoman", -14.4, -5.4, Z0, "IdleLeft"),
+                                  ("Pilgrim", -9.0, -3.4, Z0, "IdleDown"), ("Townsman", 23.5, -6.4, Z0, "IdleDown"),
+                                  ("Monk", 1.4, 5.0, Z0 + (5.0 - 1.0) / 7.0 * Z1, "IdleDown"), ("OldWoman", -1.6, 9.6, Z1, "IdleDown"),
+                                  ("Townswoman", -4.6, 23.0, Z2, "IdleRight"), ("Townsman", -3.4, 23.2, Z2, "IdleLeft"),
+                                  ("Merchant", 7.0, 21.0, Z2, "IdleDown"), ("Pilgrim", 5.2, 24.4, Z2, "IdleDown"),
+                                  ("Porter", -6.0, -5.2, Z0, "IdleRight"), ("TownChild", 3.4, -6.6, Z0, "IdleLeft"),
+                                  ("TownChild", -8.4, 20.6, Z2, "IdleRight")):
+        c.npc(T, name, x, y, z, clip)
 
     # ---------------------------------------------------------------- invisible walls: only where the camera sees her
     B = c.group("Blockers")
@@ -361,13 +516,14 @@ def build(c, args):
     # ---------------------------------------------------------------- camera zones
     Zg = c.group("Camera Zones")
     # the street: framed along its length, the camera slides with her but stays on the street's line
-    c.zone(Zg, "Street", 0.0, -3.5, (66.0, 10.0), tilt=72, fov=30, scale=0.85, lead=0.5, rise=1.4,
+    c.zone(Zg, "Street", 0.0, -3.5, (66.0, 10.0), tilt=args.street_tilt, fov=30, scale=args.street_scale, lead=0.5,
+           rise=args.street_rise,
            pan_min=(-20.0, -1.2), pan_max=(20.0, -0.6), blend=1.4)
     # the stairs: pulled back and higher, aiming up the flight so the landing and the next level show
-    c.zone(Zg, "Stairs", 0.0, 9.25, (7.0, 17.5), priority=1, tilt=67, fov=30, scale=0.85, lead=3.5, rise=2.8,
+    c.zone(Zg, "Stairs", 0.0, 9.25, (7.0, 17.5), priority=1, tilt=72, fov=30, scale=0.9, lead=3.5, rise=3.2,
            pan_min=(0.0, -6.0), pan_max=(0.0, 8.5), blend=1.6)
     # the plaza: centred on the gate, a little closer
-    c.zone(Zg, "Plaza", 0.0, 25.5, (26.0, 16.5), tilt=70, yaw=args.plaza_yaw, fov=30, scale=1.0, lead=2.0, rise=2.0,
+    c.zone(Zg, "Plaza", 0.0, 25.5, (26.0, 16.5), tilt=77, yaw=args.plaza_yaw, fov=30, scale=1.0, lead=2.0, rise=3.6,
            pan_min=(-5.0, -5.0), pan_max=(5.0, -2.0), blend=1.4)
 
 
@@ -375,10 +531,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--profile", default="Dusk", choices=["Day", "Dusk", "Night"])
     ap.add_argument("--start", default="street", choices=["street", "stairs", "landing", "plaza"])
+    ap.add_argument("--street-tilt", type=float, default=82.0)
+    ap.add_argument("--street-rise", type=float, default=3.8)
+    ap.add_argument("--street-scale", type=float, default=0.95)
+    ap.add_argument("--no-fg", action="store_true", help="leave out the foreground branches")
     ap.add_argument("--plaza-yaw", type=float, default=0.0, help="turn the plaza's camera zone (degrees), to try a yawed view")
     args = ap.parse_args()
     summary = json.load(open(kit.SUMMARY))
-    profiles = {k: kit.handle_of(os.path.join(ASSETS, "RenderProfiles", "Field", k + ".hyrender")) for k in ("Day", "Dusk", "Night")}
+    profiles = city_profiles()
     scene_handle = kit.handle_of(SCENE) if os.path.exists(SCENE) else kit.stable_id("scene")
     c = Slice(summary)
     w = c.w
@@ -395,6 +555,8 @@ def main():
         "            SceneName: JapaneseCitySlice\n            TiltDegrees: 70\n            FieldOfView: 30\n"
         "            FocusLead: 2\n            FocusRise: 1.8\n            BoundsMin: [-24, -6]\n            BoundsMax: [24, 26]\n"
         "            YawDegrees: 0\n            ViewScale: 1\n"
+        "            DuskSunColor: [1, 0.74, 0.5]\n            DuskSunIntensity: 0.95\n            DuskLanterns: 1.3\n            DuskWindows: 1.2\n"
+        "            NightLanterns: 1.6\n            NightWindows: 1.3\n"
         "            StartPreset: %d\n            DayProfile: %d\n            DuskProfile: %d\n            NightProfile: %d\n")
         % (("Day", "Dusk", "Night").index(args.profile), profiles["Day"], profiles["Dusk"], profiles["Night"]))
     w.entity("Lighting", "Lighting")
@@ -402,6 +564,8 @@ def main():
         "    DirectionalLightComponent:\n      Color: [1, 0.86, 0.7]\n      Intensity: 0.8\n      IsMainLight: true\n      CastShadows: true\n"
         "      ShadowStrength: 0.85\n      ShadowDistance: 45\n      ShadowBias: 1\n"))
     build(c, args)
+    if args.no_fg is False:
+        foreground_branches(w)
     header = (
         "Handle: %d\nScene: JapaneseCitySlice\nRenderSettings:\n  OverrideProject: true\n  Features:\n    Depth: Shared\n"
         "    SpriteSorting: ViewDepth\n    Lighting: Forward\n    DefaultSpriteAlpha: Cutout\n    Meshes: true\n    Shadows: Sun\n"

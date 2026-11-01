@@ -943,10 +943,11 @@ def city_gate(name):
     for s in (-1, 1):
         xi, xo = s * pw / 2, s * (pw / 2 + bw)
         a, b = min(xi, xo), max(xi, xo)
+        # Nov 1: battered on the outside (+Y) only, like the city walls; the face to the city and the sides where the
+        # walls join stay vertical, so a wall section fits flush against the base (there was a 0.9 m gap at the top)
         bat = 0.9
         lo = [(a, 0, 0), (b, 0, 0), (b, bd, 0), (a, bd, 0)]
-        hi = [(a + (bat if s < 0 else 0), bat, ph), (b - (bat if s > 0 else 0), bat, ph),
-              (b - (bat if s > 0 else 0), bd - bat, ph), (a + (bat if s < 0 else 0), bd - bat, ph)]
+        hi = [(a, 0, ph), (b, 0, ph), (b, bd - bat, ph), (a, bd - bat, ph)]
         mb.solid(lo, hi, GRANITE)
     mb.box(-pw / 2 - 0.2, 0.6, ph - 0.1, pw / 2 + 0.2, bd - 0.6, ph + 0.35, CEDAR)
     for px in (-pw / 2, pw / 2 - 0.35):
@@ -1077,21 +1078,28 @@ def pagoda(name, tiers=3):
     return finish(mb, name, 8.0, 8.0, z + 3.45, "A", dict(tiers=tiers), floors=(0.7,))
 
 
-def city_wall(name, length=8.0):
-    """City wall section to flank the gate: battered granite base, a plaster parapet with loopholes and a tile cap
-    along its front edge, a granite walk on top. Origin: front foot centre; the gate bases line up at y = 0."""
+def city_wall(name, length=8.0, h=4.5, d=7.0):
+    """City wall section to flank the gate (turned round Nov 1): the face to the city (-Y, origin: its foot centre) is
+    vertical; the stone base is battered on the outside (+Y); the plaster parapet with loopholes and its tile cap
+    stands on the outer edge, with the granite walk in front of it on the city side. Height and depth match the gate's
+    stone bases (4.5 m, 7 m), so the sections sit flush against the gate and each other."""
     mb = MeshBuilder()
-    h, d, bat = 3.8, 6.0, 0.8
+    bat = 0.9
     x0, x1 = -length / 2, length / 2
-    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, d, 0), (x0, d, 0)], [(x0, bat, h), (x1, bat, h), (x1, d, h), (x0, d, h)], GRANITE)
-    mb.box(x0, bat, h, x1, bat + 0.45, h + 1.3, PLASTER, skip=('-z',))
+    yo = d - bat                                                   # the outer edge of the walk
+    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, d, 0), (x0, d, 0)], [(x0, 0, h), (x1, 0, h), (x1, yo, h), (x0, yo, h)], GRANITE)
+    mb.box(x0, -0.06, h - 0.12, x1, yo, h, GRANITE, skip=('-z',))                       # coping along the walk
+    py0, py1 = yo - 0.45, yo
+    mb.box(x0, py0, h, x1, py1, h + 1.3, PLASTER, skip=('-z',))
     for k in range(int(length / 2)):
         cx = x0 + 1.0 + k * 2.0
-        if k % 2 == 0:
-            mb.poly([(cx - 0.2, bat - 0.01, h + 0.45), (cx + 0.2, bat - 0.01, h + 0.45), (cx, bat - 0.01, h + 0.85)], "JP_Mat_Opening")
-        else:
-            mb.box(cx - 0.18, bat - 0.012, h + 0.45, cx + 0.18, bat - 0.005, h + 0.8, "JP_Mat_Opening")
-    roof_gable(mb, x0, x1, bat, bat + 0.45, h + 1.3, 30.0, 0.35, KAWARA, gable_over=0.0, ridge_end="none", barge=None, slab=0.1)
+        for (y, e) in ((py0 - 0.01, -0.007), (py1 + 0.01, 0.007)):          # the holes show on both faces
+            if k % 2 == 0:
+                tri = [(cx - 0.2, y, h + 0.45), (cx + 0.2, y, h + 0.45), (cx, y, h + 0.85)]
+                mb.poly(tri if e < 0 else list(reversed(tri)), "JP_Mat_Opening")
+            else:
+                mb.box(cx - 0.18, min(y, y + e), h + 0.45, cx + 0.18, max(y, y + e), h + 0.8, "JP_Mat_Opening")
+    roof_gable(mb, x0, x1, py0, py1, h + 1.3, 30.0, 0.35, KAWARA, gable_over=0.0, ridge_end="none", barge=None, slab=0.1)
     ob = finish(mb, name, length, d, h + 1.6, "A", dict(walk_z=h), col=False)
     col_box(ob, x0, 0, 0, x1, d, h + 1.3)
     return ob

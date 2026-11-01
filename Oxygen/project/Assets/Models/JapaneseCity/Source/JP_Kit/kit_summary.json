@@ -168,12 +168,12 @@
   ]
  },
  "JP_Rich_CityWall_8m_A": {
-  "walk_z": 3.8,
+  "walk_z": 4.5,
   "tier": "A",
   "width": 8.0,
-  "depth": 6.0,
-  "height": 5.4,
-  "faces": 782,
+  "depth": 7.0,
+  "height": 6.1,
+  "faces": 801,
   "location": [
    46.5,
    44.0
