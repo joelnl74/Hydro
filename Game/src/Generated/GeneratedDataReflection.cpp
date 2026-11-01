@@ -104,8 +104,8 @@ namespace Hydro
 			.Field<&HeroDefinition::GrowthPerLevel>("GrowthPerLevel", "Growth Per Level").Tooltip("Added for every level above 1")
 			.Field<&HeroDefinition::WeaponType>("WeaponType", "Weapon Type").Tooltip("What the plain attack hits with")
 			.Field<&HeroDefinition::BasicAttack>("BasicAttack", "Basic Attack").Tooltip("The Attack command (its name; its type when not None)").DataTypeFilter("AbilityDefinition")
-			.Field<&HeroDefinition::StartingAbilities>("StartingAbilities", "Starting Abilities").Tooltip("Known from level 1, in the menu's order (the menu shows the first two)").DataTypeFilter("AbilityDefinition")
-			.Field<&HeroDefinition::Learns>("Learns", "Learns").Tooltip("Abilities levels teach (known from then on; the menu shows the first two known)")
+			.Field<&HeroDefinition::StartingAbilities>("StartingAbilities", "Starting Abilities").Tooltip("Known from level 1, in this order; they fill the first battle ability slots").DataTypeFilter("AbilityDefinition")
+			.Field<&HeroDefinition::Learns>("Learns", "Learns").Tooltip("Abilities levels teach (known from then on; each goes into the first empty battle slot)")
 			.Field<&HeroDefinition::IdleClip>("IdleClip", "Idle Clip").Tooltip("The fighting-stance loop between actions (and while guarding)")
 			.Field<&HeroDefinition::ItemClip>("ItemClip", "Item Clip").Tooltip("The clip played when using an item");
 

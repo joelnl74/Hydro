@@ -330,13 +330,8 @@ def build_field_menu(b, director):
 
     build_quests_page(b, menu)
     build_character_page(b, menu)
-
-    # The pages still to come (M5: Abilities, Equipment): a frame and a line.
-    for name in MENU_TABS[3:]:
-        later = b.add("Page " + name, menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
-        panel = b.add("Page %s Panel" % name, later, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (PAGE_WIDTH, 300)), UIImageComponent=image("Frame"))
-        b.add("Page %s Text" % name, panel, UIRectComponent=fill((48, 40, 48, 40)),
-              UITextComponent=text("Coming in a later step of the menu plan.", FONT_BODY, DIM, "Center", wrap=True))
+    build_abilities_page(b, menu)
+    build_equipment_page(b, menu)
 
     party = b.add("Menu Party", menu, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
     status_block(b, "Menu Status Miko", party)
@@ -412,6 +407,62 @@ def build_character_page(b, menu):
             b.add("%s %d Name" % (tag, i), row, UIRectComponent=fill((22, 0, 22, 0)), UITextComponent=text(name, FONT_LABEL, GOLD))
             value = ["90", "32", "10", "8", "9"][i] if column == 0 else "-"
             b.add("%s %d Value" % (tag, i), row, UIRectComponent=fill((22, 0, 22, 0)), UITextComponent=text(value, FONT_BODY, CREAM, "Right"))
+
+
+def list_panel(b, tag, parent, position, size, title, count, rows, row_tag, row_width, row_height, event, names):
+    """A framed list for the menu's pages: a header plate (title, count) and a fitted group of ribbon rows; rows past
+    `names` are hidden (the page's view shows them)."""
+    frame = b.add(tag, parent, UIRectComponent=rect((0, 1), None, (0, 1), position, size), UIImageComponent=image("Frame"))
+    head = b.add(tag + " Header", frame, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
+    b.add(tag + " Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text(title, FONT_LABEL, GOLD))
+    b.add(tag + " Header Count", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text(count, FONT_SMALL, DIM, "Right"))
+    group_entity = b.add(tag + " List", frame, UIRectComponent=rect((0, 1), None, (0, 1), (14, -96), (row_width + 10, 10)), UILayoutGroupComponent=group(spacing=4))
+    for i in range(rows):
+        name, detail = names[i] if i < len(names) else ("", "")
+        row = ribbon_row(b, "%s %d" % (row_tag, i), group_entity, row_width, row_height, name, detail, event)
+        if i >= len(names):
+            next(e for e in b.entities if e["Entity"] == row)["UIRectComponent"]["Visible"] = False
+    return frame
+
+
+def build_abilities_page(b, menu):
+    """The Abilities page (AbilitiesView, Game/src/Scripts/Field/AbilitiesView.h): the battle's 8 ability slots on the
+    left, the abilities the hero knows on the right (the first row empties a slot), the focused ability's details
+    below. Enter on a slot moves to the known list; Enter there puts that ability in the slot (swapping)."""
+    page = b.add("Page Abilities", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+    slots = [("Flame Kick", "5 MP"), ("Holy Palm", "6 MP")] + [("-", "")] * 6
+    list_panel(b, "Ability Slot Panel", page, (0, 0), (480, 600), "Battle slots", "2 / 8", 8, "Ability Slot", 420, 56, "AbilitySlot", slots)
+    known = [("Empty the slot", ""), ("Flame Kick", "Slot 1"), ("Holy Palm", "Slot 2")]
+    list_panel(b, "Ability Known Panel", page, (500, 0), (500, 600), "Known", "2", 10, "Known Ability", 440, 46, "KnownAbility", known)
+    detail = b.add("Ability Detail Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, -620), (PAGE_WIDTH, 180)), UIImageComponent=image("Frame"))
+    page_text(b, "Ability Detail Name", detail, (36, -26), (600, 46), "Flame Kick", FONT_TITLE, GOLD)
+    page_text(b, "Ability Detail Info", detail, (600, -30), (364, 40), "Fire  5 MP", FONT_SMALL, DIM, "Right")
+    page_text(b, "Ability Detail Text", detail, (36, -84), (928, 70), "A kick wreathed in fire.", FONT_BODY, CREAM, wrap=True)
+
+
+def build_equipment_page(b, menu):
+    """The Equipment page (EquipmentView, Game/src/Scripts/Field/EquipmentView.h): what the hero wears per slot on the
+    left, the stats below it (now, and with the focused choice), the bag's items that fit the chosen slot on the
+    right (the first row takes off what is worn)."""
+    page = b.add("Page Equipment", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+    worn = [("-", name) for name in EQUIP_NAMES]
+    list_panel(b, "Gear Slot Panel", page, (0, 0), (480, 456), "Equipped", "", 6, "Gear Slot", 420, 56, "GearSlot", worn)
+    choices = [("Take off", ""), ("Tekko", "x1"), ("Iron Sword", "x1")]
+    list_panel(b, "Gear Choice Panel", page, (500, 0), (500, 600), "Bag", "Weapon", 10, "Gear Choice", 440, 46, "GearChoice", choices)
+
+    stats = b.add("Gear Stats Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, -476), (480, 324)), UIImageComponent=image("Frame"))
+    head = b.add("Gear Stats Header", stats, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
+    b.add("Gear Stats Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Stats", FONT_LABEL, GOLD))
+    rows = b.add("Gear Stat List", stats, UIRectComponent=rect((0, 1), None, (0, 1), (24, -84), (432, 10)), UILayoutGroupComponent=group(spacing=0))
+    for i, name in enumerate(STAT_NAMES):
+        row = b.add("Gear Stat %d" % i, rows, UIRectComponent=rect(size=(432, 42)))
+        b.add("Gear Stat %d Name" % i, row, UIRectComponent=fill((12, 0, 12, 0)), UITextComponent=text(name, FONT_LABEL, GOLD))
+        b.add("Gear Stat %d Now" % i, row, UIRectComponent=rect((1, 0.5), None, (1, 0.5), (-150, 0), (90, 40)),
+              UITextComponent=text(["90", "32", "10", "8", "9"][i], FONT_BODY, CREAM, "Right"))
+        b.add("Gear Stat %d Arrow" % i, row, UIRectComponent=rect((1, 0.5), None, (1, 0.5), (-108, 0), (36, 40)),
+              UITextComponent=text("\u00bb", FONT_BODY, DIM, "Center"))
+        b.add("Gear Stat %d New" % i, row, UIRectComponent=rect((1, 0.5), None, (1, 0.5), (-12, 0), (90, 40)),
+              UITextComponent=text(["90", "32", "14", "8", "9"][i], FONT_BODY, CREAM, "Right"))
 
 
 def build_quest_canvas(b, director):
@@ -490,9 +541,9 @@ def rebuild(scene_file, remove_tags, make, director_tags=("Battle Director", "MV
     builder = make(director)
     added = dump_entities(builder.entities, indent)
     for block, _ in kept:
-        for gone in removed:
-            if re.search(r"\b%d\b" % gone, block):
-                sys.exit("%s: a kept entity still refers to removed %d:\n%s" % (scene_file, gone, block[:300]))
+        stale = removed.intersection(int(number) for number in re.findall(r"\b\d+\b", block))
+        if stale:
+            sys.exit("%s: a kept entity still refers to removed %d:\n%s" % (scene_file, min(stale), block[:300]))
 
     new = head + "\n".join(block for block, _ in kept) + "\n" + added + ("\n" if ends_newline else "")
     yaml.safe_load(new)  # still a valid file

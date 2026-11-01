@@ -78,9 +78,9 @@ namespace Hydro
 		DamageType WeaponType = DamageType::Blunt;
 		HY_PROPERTY(DataRow(AbilityDefinition), Tooltip("The Attack command (its name; its type when not None)"))
 		DataRowRef BasicAttack;
-		HY_PROPERTY(DataRow(AbilityDefinition), Tooltip("Known from level 1, in the menu's order (the menu shows the first two)"))
+		HY_PROPERTY(DataRow(AbilityDefinition), Tooltip("Known from level 1, in this order; they fill the first battle ability slots"))
 		std::vector<DataRowRef> StartingAbilities;
-		HY_PROPERTY(Tooltip("Abilities levels teach (known from then on; the menu shows the first two known)"))
+		HY_PROPERTY(Tooltip("Abilities levels teach (known from then on; each goes into the first empty battle slot)"))
 		std::vector<LearnedAbility> Learns;
 		HY_PROPERTY(Tooltip("The fighting-stance loop between actions (and while guarding)"))
 		std::string IdleClip = "BattleIdle";

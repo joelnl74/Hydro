@@ -85,7 +85,7 @@ namespace Hydro
 		// The rows: one per item (rows past the list are hidden, so the panel fits it), name and count; items that
 		// can't be used here are greyed, items used up dimmer still. An item whose row is gone from the table shows as
 		// "Missing: <id>". Then the details.
-		void Present()
+		void Present(bool help = true)
 		{
 			if (m_Scene == nullptr)
 			{
@@ -113,11 +113,12 @@ namespace Hydro
 					text->Color = glm::vec4(color, 1.0f);
 				}
 			}
-			PresentDetails();
+			PresentDetails(help);
 		}
 
-		// The selected item's name and description, and the help line (also when the page is shown from the tabs).
-		void PresentDetails()
+		// The selected item's name and description, and (`help`) the help line; also when the page is shown from the
+		// tabs.
+		void PresentDetails(bool help = true)
 		{
 			if (m_Selected < 0 || m_Selected >= (int)Inventory::Get().Slots.size())
 			{
@@ -131,12 +132,18 @@ namespace Hydro
 			{
 				UI::SetText(EntityOf(m_DetailName), "Missing: " + slot.Item.Row);
 				UI::SetText(EntityOf(m_DetailText), "This item is not in the items table any more.");
-				UI::SetText(EntityOf(m_Help), "Can't be used here.");
+				if (help)
+				{
+					UI::SetText(EntityOf(m_Help), "Can't be used here.");
+				}
 				return;
 			}
 			UI::SetText(EntityOf(m_DetailName), item->Name);
 			UI::SetText(EntityOf(m_DetailText), item->Description);
-			UI::SetText(EntityOf(m_Help), item->CanUseInField() ? (slot.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
+			if (help)
+			{
+				UI::SetText(EntityOf(m_Help), item->CanUseInField() ? (slot.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
+			}
 		}
 
 	private:
