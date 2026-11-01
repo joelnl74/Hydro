@@ -8,6 +8,8 @@ the style of the Plants and Trees sheets: dark outline, three or four tones, lig
   Sprites/Props/KitsuneStatue.png                       a stone fox on a plinth with a red bib (the fox shrine's
                                                         guardians; FlipX makes the pair)
   Sprites/Props/BambooShoot.png                         a young bamboo shoot breaking the ground (gathered)
+  Sprites/Props/FoxCharm.png                            a fox charm the wind scattered (a white bone fox on red thread,
+                                                        a glint): the fox shrine's collectibles
   Sprites/Props/LeyRift.png, LeyRiftGlow.png            the opening into the leyline by the ancient tree, flat on
                                                         the ground: steps down into the dark between split roots,
                                                         and its glowing veins on their own (drawn emissive, faded in)
@@ -257,6 +259,23 @@ def ley_rift(glow_only=False):
     return img
 
 
+def fox_charm():
+    """A little white fox figure lying on its side on a coil of red thread, with a glint, small enough to find."""
+    w, h = 18, 14
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.arc([1, 6, 15, 13], 200, 520, fill=(170, 30, 30, 255), width=1)                    # the thread
+    d.line([(13, 9), (16, 12)], fill=(170, 30, 30, 255))
+    d.polygon([(4, 11), (4, 7), (6, 5), (7, 2), (8, 5), (10, 5), (11, 2), (12, 5), (13, 8), (12, 11)], fill=(236, 230, 214, 255),
+              outline=(70, 60, 52, 255))                                                  # body and ears
+    d.polygon([(12, 10), (16, 7), (15, 10)], fill=(236, 230, 214, 255), outline=(70, 60, 52, 255))   # tail
+    d.point([(7, 7), (10, 7)], fill=(150, 30, 30, 255))                                   # red eye marks
+    d.point([(5, 8), (6, 6)], fill=(255, 255, 255, 255))
+    for (x, y) in ((15, 1), (14, 2), (16, 2), (15, 3)):                                   # the glint
+        d.point([(x, y)], fill=(255, 250, 200, 255))
+    return img
+
+
 def save(img, folder, name):
     path = os.path.join(folder, name + ".png")
     img.save(path)
@@ -275,9 +294,10 @@ def main():
     meta(path, "CampTarp")
     save(kitsune_statue(), props, "KitsuneStatue")
     save(bamboo_shoot(), props, "BambooShoot")
+    save(fox_charm(), props, "FoxCharm")
     save(ley_rift(), props, "LeyRift")
     save(ley_rift(glow_only=True), props, "LeyRiftGlow")
-    print("wrote BambooA-C, CampTarp, KitsuneStatue, BambooShoot, LeyRift and LeyRiftGlow")
+    print("wrote BambooA-C, CampTarp, KitsuneStatue, BambooShoot, FoxCharm, LeyRift and LeyRiftGlow")
 
 
 if __name__ == "__main__":

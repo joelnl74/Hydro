@@ -186,7 +186,9 @@ namespace Hydro
 			.Field<&LootTableDefinition::DropChance>("DropChance", "Drop Chance").Range(0.0f, 100.0f).Tooltip("Percent chance that a roll gives anything at all")
 			.Field<&LootTableDefinition::Rolls>("Rolls", "Rolls").Range(0.0f, 10.0f).Tooltip("How many times the table is rolled")
 			.Field<&LootTableDefinition::Rarities>("Rarities", "Rarities").Tooltip("Each rarity's share; empty: every item is equally likely")
-			.Field<&LootTableDefinition::Items>("Items", "Items").Tooltip("What it can give; an item's rarity is its own (Items.hytable)");
+			.Field<&LootTableDefinition::Items>("Items", "Items").Tooltip("What it can give; an item's rarity is its own (Items.hytable)")
+			.Field<&LootTableDefinition::MinMoney>("MinMoney", "Min Money").Range(0.0f, 99999.0f).Tooltip("Aster it also gives, at least (a chest's coins; added to a battle's)")
+			.Field<&LootTableDefinition::MaxMoney>("MaxMoney", "Max Money").Range(0.0f, 99999.0f).Tooltip("Aster it also gives, at most");
 
 		DataTypeRegistry::Register<RarityChance>("RarityChance", "Rarity Chance")
 			.Field<&RarityChance::Rarity>("Rarity", "Rarity")

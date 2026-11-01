@@ -37,6 +37,7 @@ kit.KEY = "JP_Slice:"
 ASSETS, MODELS, REPO = kit.ASSETS, kit.MODELS, kit.REPO
 SCENE = os.path.join(ASSETS, "Scenes", "JapaneseCitySlice.hyscene")
 R2 = os.path.join(REPO, "art_incoming", "jp_city", "textures_r2")
+R3 = os.path.join(REPO, "art_incoming", "jp_city", "textures_r3")          # PixelLab batch 1 (Nov 2), seams closed
 STEP12 = os.path.join(REPO, "art_incoming", "jp_city", "step12_prepared")   # prep_step12.py's output (decals, backdrops)
 CITY_PROFILES = os.path.join(ASSETS, "RenderProfiles", "City")
 TREES, PLANTS = city.TREES, city.PLANTS
@@ -47,6 +48,53 @@ CAP = 0.12                          # paving / grass cap on top of a terrace's w
 
 
 GOODS = os.path.join(REPO, "art_incoming", "jp_city", "goods")       # the delivered goods / shop sprites (Nov 2)
+
+
+PROPS_R1 = os.path.join(REPO, "art_incoming", "jp_city", "props_r1")  # cut from the four prop sheets (Nov 2)
+
+
+def prop_card(c, parent, name, x, y, z, scale=1.0, sort=1, shadow=0.45, hanging=False, tag=None):
+    """A trade-district sprite (props_r1/<name>.png: outline recoloured, halved to 32 px/m) standing upright at
+    (x, y) with its foot at z (hanging=True: its top), `scale` times its 32 px/m size, a soft contact shadow under it.
+    `tag` names it for the field director ("Sign <row>": examinable)."""
+    src = os.path.join(PROPS_R1, name + ".png")
+    if os.path.exists(src) is False:
+        c.d.missing.append(name)
+        return
+    os.makedirs(kit.SPRITES, exist_ok=True)
+    png = os.path.join(kit.SPRITES, name + ".png")
+    shutil.copy2(src, png)
+    if os.path.exists(png + ".hymeta") is False:
+        with open(png + ".hymeta", "w", newline="\r\n") as f:
+            f.write("Handle: %d\nType: Texture2D\nTextureImport:\n  Format: SRGB\n  Filter: Nearest\n  Wrap: Clamp\n"
+                    "  SpriteMode: Single\n  PixelsPerUnit: 32\n" % city.stable_handle("sprite:" + name))
+    pw, ph = kit.png_size(png)
+    sx, sy = pw / 32.0 * scale, ph / 32.0 * scale
+    tag = tag or c._n(name.replace("JP_", ""))
+    if hanging:
+        z -= sy
+    body = ("    SpriteRendererComponent:\n      Color: [1, 1, 1, 1]\n      TilingFactor: 1\n      SortOrder: %d\n      TextureHandle: %d\n"
+            "      SpriteIndex: 0\n      FlipX: false\n      FlipY: false\n      Facing: Upright\n") % (sort, kit.handle_of(png + ".hymeta"))
+    if shadow:
+        body += ("    Shadow2DComponent:\n      Offset: [0, -0.02]\n      Size: [%g, %g]\n      Strength: %g\n"
+                 % (round(sx * 0.85, 2), round(min(0.5, sx * 0.35), 2), shadow))
+    c.w.entity("card:" + tag, tag, parent=parent, t=(x, y, z), s=(sx, sy, 1), body=body)
+
+
+# the open shops' trades, left to right along the street (Nov 2): goods on the raised floor either side of the
+# merchant (sprites, or a 3D piece), and one display on the street in front of the shop. Each trade has its noren
+# colour (crest only, no text: indigo cloth, brown pottery, green tea and sake, white paper) and its merchant's row
+# in Npcs.hytable ("Npc <row>": the field director's talk); the sake shop hangs a sugidama (cedar ball) by its eave.
+SHOP_TRADES = [
+    dict(floor=(("JP_Goods_ClothStacks", -1.45), ("JP_Goods_Furoshiki", 1.8)), front=("card", "JP_Display_Umbrellas"),
+         noren="JP_Noren_Cloth_A", merchant="ClothMerchant"),
+    dict(floor=(("JP_Goods_JarsRow", -1.45), ("JP_Goods_BowlTray", 1.8)), front=("model", "JP_Prop_StoragePots_A"),
+         noren="JP_Noren_Pottery_A", merchant="PotteryMerchant"),
+    dict(floor=(("model:JP_Prop_TeaChests_A", -1.45), ("JP_Goods_SakeTray", 1.8)), front=("model", "JP_Prop_SakeBarrelStraw_A"),
+         noren="JP_Noren_Tea_A", merchant="SakeMerchant", sugidama=True),
+    dict(floor=(("JP_Goods_PaperBundles", -1.45), ("JP_Goods_DriedGoodsBoxes", 1.8)), front=("card", "JP_Display_HatStack"),
+         noren="JP_Noren_Paper_A", merchant="PaperMerchant"),
+]
 
 
 def goods_sprite(name):
@@ -81,6 +129,32 @@ def r2_material(src, name, tiling=0.25):
         f.write("Handle: %d\nMaterial:\n  Type: Standard\n  AlbedoHandle: %d\n  Tint: [1, 1, 1, 1]\n  Tiling: [%g, %g]\n"
                 "  EmissionColor: [0, 0, 0]\n  EmissionIntensity: 1\n  AlphaCutoff: 0\n  Filter: Nearest\n" % (h, tex, tiling, tiling))
     return h
+
+
+def r3_material(name, tiling=(0.25, 0.25), tint=(1, 1, 1), mat_name=None):
+    """A material on a batch-1 texture (art_incoming/jp_city/textures_r3/<name>.png, copied to Textures/JapaneseCity).
+    Tiling is per box-face metre: (0.5, 5.7) shows the image once over 2 m across and 0.175 m up (a step riser)."""
+    os.makedirs(city.TEX_DIR, exist_ok=True)
+    os.makedirs(city.MAT_DIR, exist_ok=True)
+    png = os.path.join(city.TEX_DIR, name + ".png")
+    shutil.copy2(os.path.join(R3, name + ".png"), png)
+    if os.path.exists(png + ".hymeta") is False:
+        with open(png + ".hymeta", "w", newline="\r\n") as f:
+            f.write("Handle: %d\nType: Texture2D\nTextureImport:\n  Format: SRGB\n  Filter: Nearest\n  Wrap: Repeat\n"
+                    "  SpriteMode: Single\n  PixelsPerUnit: 32\n" % city.stable_handle("tex:" + name))
+    tex = kit.handle_of(png + ".hymeta")
+    mname = mat_name or name
+    mat = os.path.join(city.MAT_DIR, mname + ".hymat")
+    h = kit.handle_of(mat) if os.path.exists(mat) else city.stable_handle("mat:" + mname)
+    with open(mat, "w", newline="\r\n") as f:
+        f.write("Handle: %d\nMaterial:\n  Type: Standard\n  AlbedoHandle: %d\n  Tint: [%g, %g, %g, 1]\n  Tiling: [%g, %g]\n"
+                "  EmissionColor: [0, 0, 0]\n  EmissionIntensity: 1\n  AlphaCutoff: 0\n  Filter: Nearest\n"
+                % (h, tex, tint[0], tint[1], tint[2], tiling[0], tiling[1]))
+    return h
+
+
+# the step risers: the delivered step block, its full height on each 0.175 m riser (lighter top edge, darker foot)
+RISER_TILING = (0.5, 1.0 / 0.175)
 
 
 def tinted_material(texture, name, tint, tiling=0.25):
@@ -129,7 +203,8 @@ def city_profiles():
         "Night": dict(SkyAmbient="[0.05, 0.06, 0.1]", GroundAmbient="[0.02, 0.018, 0.025]", FogColor="[0.09, 0.1, 0.18]",
                       BloomIntensity="1.0", BloomThreshold="0.85"),
     }
-    common = dict(FogStart="40", FogEnd="260", DofNearStart="2", DofFarStart="9", DofRange="14", DofMaxRadius="0.9")
+    # (Nov 2: fog from 30 m for air between the street and the gardens; the near band blurs like the far one)
+    common = dict(FogStart="30", FogEnd="260", DofNearStart="1", DofFarStart="9", DofRange="9", DofMaxRadius="0.9")
     handles = {}
     for k, extra in tweaks.items():
         src = open(os.path.join(ASSETS, "RenderProfiles", "Field", k + ".hyrender")).read().splitlines()
@@ -223,8 +298,26 @@ class Slice(city.City):
             "    NativeScriptComponent:\n      Scripts:\n        - Name: NpcWanderScript\n          Properties:\n"
             "            PathLength: %g\n            Axis: %s\n            Speed: %g\n            PauseMin: %g\n            PauseMax: %g\n"
             "            StopChance: %g\n            WorkClip: %s\n            WorkEvery: %d\n            StartDelay: %g\n            Loop: %s\n"
-            % (length, axis, speed, pause[0], pause[1], stop, work or '""', 2 if work else 1, delay, "true" if loop else "false"))
+            "            Player: %d\n            Clearance: 0.9\n            Patience: 3\n"
+            % (length, axis, speed, pause[0], pause[1], stop, work or '""', 2 if work else 1, delay, "true" if loop else "false",
+               kit.stable_id("Player")))
         self.w.entity("npc:" + tag, tag, parent=parent, t=(x, y, z), s=(2.5, 2.34375, 1), body=body)
+
+    def townsperson(self, parent, sheet, x, y, z, clip="IdleDown", row=None, look=None):
+        """A standing NPC: tag "Npc <row>" when it has a talk row (Npcs.hytable), else numbered like npc(); look="Down
+        Left Down Right" makes it look around (NpcLookAroundScript, facing the player when she comes close)."""
+        base = os.path.join(ASSETS, "Characters", "NPC", sheet, sheet)
+        if os.path.exists(base + ".png.hymeta") is False or os.path.exists(base + ".hyanim") is False:
+            self.d.missing.append("NPC " + sheet); return
+        tex, anim = kit.handle_of(base + ".png.hymeta"), kit.handle_of(base + ".hyanim")
+        tag = ("Npc " + row) if row else self._n("Npc " + sheet)
+        key = self._n("npc:" + (row or sheet))
+        body = kit.character_body(tex, anim, clip, clip + "_0")
+        if look:
+            body += ("    NativeScriptComponent:\n      Scripts:\n        - Name: NpcLookAroundScript\n          Properties:\n"
+                     "            Facings: %s\n            HoldMin: 2.5\n            HoldMax: 6\n            Player: %d\n"
+                     "            WatchRange: 2.5\n" % (look, kit.stable_id("Player")))
+        self.w.entity(key, tag, parent=parent, t=(x, y, z), s=(2.5, 2.34375, 1), body=body)
 
     def blocker(self, parent, x0, x1, y0, y1, z0=0.0, h=3.0):
         """An invisible wall: keeps the player where the camera can see her."""
@@ -304,7 +397,7 @@ def backdrop(c, parent):
     and hazed by the fog: the upper town's rooftops, the far hills with the castle and pagoda, the dusk sky."""
     layers = (("JP_Backdrop_Mid", 1086, 362, 120.0, 72.0, Z2 - 4.0, (0.62, 0.56, 0.52), (0.45, 0.45, 0.45)),
               ("JP_Backdrop_Far", 1086, 294, 220.0, 105.0, Z2 - 9.0, (0.72, 0.68, 0.7), (0.3, 0.3, 0.3)),
-              ("JP_Backdrop_Sky_Dusk", 1086, 362, 380.0, 140.0, -30.0, (0.95, 0.9, 0.88), (0.2, 0.2, 0.2)))
+              ("JP_Backdrop_Sky_Dusk", 1086, 362, 380.0, 140.0, -30.0, (0.78, 0.72, 0.7), (0.2, 0.2, 0.2)))   # toned down (Nov 2)
     for (name, wp, hp, width, y, z, emission, tint) in layers:
         height = width * hp / wp
         mat, _ = step_material(name, 32.0 * width, 32.0 * height, 0.5, emission, tint)      # one image per face
@@ -389,9 +482,9 @@ def build(c, args):
     ishi = r2_material("JP_Stone_IshigakiSmall.png", "JP_Stone_IshigakiSmall")
     granite = city.ground_material("JP_Stone_Granite")
     gutter = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Gutter", (0.3, 0.29, 0.28))
-    riser = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Riser", (0.42, 0.4, 0.38))
+    riser = r3_material("JP_Stone_StepBlock", RISER_TILING, (0.85, 0.85, 0.85), "JP_Stone_StepBlock_Riser")
     grass = kit.handle_of(os.path.join(ASSETS, "Materials", "Ground", "Grass.hymat"))
-    road = kit.handle_of(os.path.join(ASSETS, "Materials", "Ground", "VillageDirt.hymat"))
+    road = r3_material("JP_Ground_PackedDirt_V")        # packed earth, its ruts along the road (+Y)
     half = STAIR_W / 2
     gap = half + CHEEK                                  # 3.5: the stair corridor's half width
 
@@ -460,29 +553,50 @@ def build(c, args):
     place_row(left_row, -3.5 - sum(c.summary.get("JP_Row_%s_F" % t, {}).get("width", 6.0) for t in left_row), -3.5)
     place_row(right_row, 3.5, None)
     for cx, info in shops:
-        if info.get("pent_z"):
-            d.sprite(M, "JP_Sign_Hanging_A", cx - 1.9, 0.1, Z0 + info["pent_z"] - 0.1, hanging=True, sort=3)
+        # (Nov 2: the hanging board is gone from the shops; the trade's noren below says what each one sells)
         # the open shops: the merchant inside on the raised floor behind his goods, a warm light in the room
         floor_z = info.get("shop_floor_z") or 0.8
-        c.npc(M, "Merchant", cx + 0.5, 1.0 + 1.3, Z0 + floor_z, "IdleDown")
+        shop_n = len([1 for (x_, _) in shops if x_ <= cx])
+        trade = SHOP_TRADES[(shop_n - 1) % len(SHOP_TRADES)]
+        c.townsperson(M, "Merchant", cx + 0.5, 1.0 + 1.0, Z0 + floor_z, "IdleDown", row=trade["merchant"])
+        # the trade's short noren across the left bay of the open front (crest only)
+        if os.path.exists(os.path.join(PROPS_R1, trade["noren"] + ".png")) and info.get("head_z"):
+            prop_card(c, M, trade["noren"], cx - 1.75, 1.0 - 0.15, Z0 + info["head_z"] - 0.02, sort=2, shadow=0, hanging=True)
+        if trade.get("sugidama") and info.get("arm_z"):
+            prop_card(c, M, "JP_Sugidama_A", cx + 2.85, -0.35, Z0 + info["arm_z"] + 0.1, sort=3, shadow=0, hanging=True)
         d.lantern(M, cx, 1.0 + 1.0, Z0 + 2.2, 1.2, 4.0)
         # the painted back wall (shelves full of goods) just in front of the kit's back wall, and goods along the
         # front edge of the raised floor either side of the merchant
-        shop_n = len([1 for (x_, _) in shops if x_ <= cx])
         if goods_sprite("JP_Shop_BackWall_A"):
             d.sprite(M, "JP_Shop_BackWall_A", cx, 1.0 + 2.6 - 0.1, Z0 + floor_z, sort=0)
-        for (gname, gx) in ((("JP_Goods_FabricBolts", -1.5), ("JP_Goods_Sweets", 1.9)) if shop_n % 2 else (("JP_Goods_Pottery", -1.4), ("JP_Goods_DriedFish", 1.9))):
-            if goods_sprite(gname):
-                d.sprite(M, gname, cx + gx, 1.0 - 0.1, Z0 + floor_z, sort=1)
-        if goods_sprite("JP_Goods_Hats_A" if shop_n % 2 else "JP_Goods_Hats_B"):
-            d.sprite(M, "JP_Goods_Hats_A" if shop_n % 2 else "JP_Goods_Hats_B", cx - 3.6, 0.3, Z0, sort=1)
+        # (Nov 2: the sweets, hats, vegetables and the first pottery / fish cards are out: too big, too bright;
+        # the trade-district sheets replace them)
+        for (gname, gx) in trade["floor"]:
+            if gname.startswith("model:"):
+                c.model(M, "Props/" + gname[6:], cx + gx, 1.0 + 0.05, Z0 + floor_z, 0, collider=False)
+            else:
+                prop_card(c, M, gname, cx + gx, 1.0 - 0.1, Z0 + floor_z, scale=0.75, shadow=0.3)
+        kind, fname = trade["front"]
+        if kind == "model":
+            c.model(M, "Props/" + fname, cx - 3.6, 0.15, Z0, 0)
+        else:
+            prop_card(c, M, fname, cx - 3.6, 0.3, Z0)
     # along the shopfronts: goods, water barrels, a signboard, lamp posts
+    # (Nov 2: the trade-district props: rice bales, straw-wrapped sake, covered crates, rolled mats, a bench with a
+    # mat are 3D; firewood, baskets, brooms, the plant shelf, persimmons and the basket rack are cards beside them)
     for (name, x, y, r) in (("JP_Prop_SakeBarrelStack_A", -24.4, 0.2, 0), ("JP_Prop_RainBarrel_A", -7.2, 0.3, 0),
-                            ("JP_Prop_Buckets_A", -36.6, 0.2, 0), ("JP_Prop_Crate_A", 17.6, 0.2, 6), ("JP_Prop_Crate_A", 18.3, -0.3, -8),
-                            ("JP_Prop_WaterJar_A", 22.2, 0.3, 0), ("JP_Prop_Signboard_A", 31.0, -0.4, 0), ("JP_Prop_TeaBench_A", 40.5, -0.5, 0),
-                            ("JP_Prop_Barrel_A", -41.6, 0.2, 0), ("JP_Prop_Barrel_A", -41.0, -0.4, 0), ("JP_Prop_WaterJar_A", -31.5, 0.3, 0),
-                            ("JP_Prop_Barrel_A", 36.2, 0.3, 0)):
+                            ("JP_Prop_Buckets_A", -36.6, 0.2, 0), ("JP_Prop_CratesCovered_A", 17.9, 0.0, 4),
+                            ("JP_Prop_WaterJar_A", 22.2, 0.3, 0), ("JP_Prop_Signboard_A", 31.0, -0.4, 0), ("JP_Prop_BenchMat_A", 40.5, -0.5, 0),
+                            ("JP_Prop_RiceBales_A", -41.3, 0.0, 0), ("JP_Prop_WaterJar_A", -31.5, 0.3, 0),
+                            ("JP_Prop_SakeBarrelStraw_A", 36.2, 0.3, 0), ("JP_Prop_RolledMats_A", 32.3, 0.4, 0),
+                            ("JP_Prop_LacquerBoxes_A", -30.6, 0.35, 8)):
         c.model(M, "Props/" + name, x, y, Z0, r)
+    # the Shrine Glade's 3D broom (Models/Props/MonkBroom) leans by the rain barrel instead of the broom card
+    c.model(M, "../Props/MonkBroom", -6.3, 0.35, Z0, 0, collider=False)
+    for (name, x, y) in (("JP_Prop_BasketStack", -23.0, 0.3), ("JP_Display_PlantShelf", 23.4, 0.4),
+                         ("JP_Prop_Firewood", 37.4, 0.25), ("JP_Display_Persimmons", -35.4, 0.4), ("JP_Display_BasketRack", 19.4, 0.35),
+                         ("JP_Display_SandalRack", -40.0, 0.45)):
+        prop_card(c, M, name, x, y, Z0)
     d.sprite(M, "JP_Signboard_Standing_A", -4.6, -0.2, Z0)
     for x in (-17.0, 16.0, -34.5, 35.5):
         c.model(M, "Props/JP_Prop_LampPost_A", x, -0.6, Z0)
@@ -502,11 +616,12 @@ def build(c, args):
     c.model(N, "Props/JP_Prop_MarketStall_A", -11.5, -9.6, Z0, 0)
     c.model(N, "Props/JP_Prop_MarketStall_B", 11.0, -9.8, Z0, 0)
     c.model(N, "Props/JP_Prop_MarketStall_A", 25.5, -9.4, Z0, 0)
-    for (gname, sx, sy) in (("JP_Goods_VegBaskets", -11.5, -9.6), ("JP_Goods_Pottery", 11.0, -9.8), ("JP_Goods_DriedFish", 25.5, -9.4)):
-        if goods_sprite(gname):
-            d.sprite(N, gname, sx, sy + 0.45, Z0 + cz, sort=2)
-    c.model(N, "Props/JP_Prop_Crate_A", -13.4, -8.6, Z0, 8, collider=False)
-    c.model(N, "Props/JP_Prop_Crate_A", -9.6, -8.5, Z0, -6, collider=False)
+    # what each stall sells (Nov 2): straw goods, pottery, rice and grain, laid on the counter
+    for (gname, sx, sy) in (("JP_StallTop_StrawGoods", -11.5, -9.6), ("JP_StallTop_Pottery", 11.0, -9.8), ("JP_StallTop_RiceGrain", 25.5, -9.4)):
+        prop_card(c, N, gname, sx, sy + 0.45, Z0 + cz, sort=2, shadow=0)
+    c.model(N, "Props/JP_Prop_CratesCovered_A", -13.5, -8.6, Z0, 8, collider=False)
+    prop_card(c, N, "JP_Prop_BasketStack", -9.5, -8.5, Z0)
+    c.model(N, "Props/JP_Prop_RiceBales_A", 23.4, -8.6, Z0, -10, collider=False)
     c.model(N, "Props/JP_Prop_Buckets_A", 27.4, -8.4, Z0, 0, collider=False)
     for x in range(-30, 31, 2):
         if -16 <= x <= -8 or 7 <= x <= 15 or 22 <= x <= 29 or -4 <= x <= 3:
@@ -550,11 +665,25 @@ def build(c, args):
         if b is None:
             continue
         head, pent = b.get("head_z", 2.6), b.get("pent_z", 3.5)
-        d.sprite(P, "JP_Noren_Inn_A" if s_ > 0 else "JP_Noren_Inn_Long_A", x + s_ * 0.3, 25.0, Z2 + head - 0.05, hanging=True, sort=1)
+        if s_ > 0:
+            d.sprite(P, "JP_Noren_Inn_A", x + s_ * 0.3, 25.0, Z2 + head - 0.05, hanging=True, sort=1)
+        else:
+            prop_card(c, P, "JP_Noren_Hall_Long_A", x + s_ * 0.3, 25.0, Z2 + head - 0.05, sort=1, shadow=0, hanging=True)
         arm = b.get("arm_z", head + 0.6)
         for k in (-1, 1):
             for off in (1.5, 4.5):
+                if s_ > 0 and off == 1.5:
+                    continue        # the inn: a pair of big paper lanterns either side of the door instead (below)
                 c.bracket_lantern(P, x + s_ * 0.12, 25.0 + k * off, Z2 + arm, 90.0 * s_)
+        # what each one is, without text (Nov 2): the inn hangs two big red lanterns by its door and stands a blank
+        # board kanban out front; the guild hall hangs a crest board over its door
+        if s_ > 0:
+            for k in (-1, 1):
+                d.sprite(P, "JP_Lantern_Paper_Red_A", x + 0.55, 25.0 + k * 1.75, Z2 + arm + 0.55, hanging=True, sort=3, ppm=22.0)
+                d.lantern(P, x + 0.9, 25.0 + k * 1.75, Z2 + arm - 0.3, 1.5, 4.0)
+            d.sprite(P, "JP_Signboard_Standing_A", x + 1.4, 22.2, Z2, sort=1)
+        else:
+            d.sprite(P, "JP_Sign_Hanging_A", x - 0.45, 25.0, Z2 + pent + 0.05, hanging=True, sort=2, ppm=22.0)
         for k in range(4):
             d.window(P, x + s_ * 0.6, 19.5 + k * 3.6, Z2 + 1.6)
             d.window(P, x + s_ * 0.4, 19.5 + k * 3.6, Z2 + 4.8, 2.4)
@@ -576,7 +705,8 @@ def build(c, args):
         c.model(P, "Props/JP_Prop_WallLantern_A", s_ * 2.25, 33.9, Z2)
         d.lantern(P, s_ * 2.25, 33.45, Z2 + 2.2)
         c.model(P, "Props/JP_Prop_Barrier_A", s_ * 6.4, 30.6, Z2, s_ * 6)
-        c.npc(P, "GateGuard", s_ * 1.6, 31.4, Z2)
+        c.townsperson(P, "GateGuard", s_ * 1.6, 31.4, Z2, "IdleDown", row="GateGuard",
+                      look="Down Left Down Right" if s_ < 0 else "Down Right Down Left")
     # the wall walk (city side, 4.5 m up): banner poles, spear racks and leaning spears, so the top of the wall is manned
     walk_z, walk_y = Z2 + 4.5, 33.0 + 4.6
     for s_ in (-1, 1):
@@ -593,26 +723,40 @@ def build(c, args):
     # the street: the reward for climbing up. The chest is the old TreasureChest sheet (frame 0 closed); a trigger zone
     # logs when Miko reaches it, ready for the interaction code
     granite_s = city.ground_material("JP_Stone_Granite")
-    riser_s = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Riser", (0.42, 0.4, 0.38))
+    riser_s = r3_material("JP_Stone_StepBlock", RISER_TILING, (0.85, 0.85, 0.85), "JP_Stone_StepBlock_Riser")
     # gangi-style: the flight runs left-right against the wall's foot (rising to the left, away from the gate), so it
     # doesn't cover the inn; the top tread meets the front edge of the walk (y 33.6)
     stair_s = tinted_material("JP_Stone_Granite", "JP_Stone_Granite_Light", (1.3, 1.24, 1.12))   # lighter than the wall
     c.stairs_along_wall(P, stair_s, -4.4, -11.8, 32.6, Z2, walk_z, width=2.0, riser=riser_s)
     chest_tex = kit.handle_of(os.path.join(ASSETS, "Sprites", "Props", "TreasureChest.png.hymeta"))
-    c.w.entity("chest:WallWalk", "Chest Wall Walk", parent=P, t=(-45.0, 37.6, walk_z), s=(1, 1, 1), body=(
+    c.w.entity("chest:WallWalk", "Chest Wall Walk", parent=P, t=(-41.0, 37.6, walk_z), s=(1, 1, 1), body=(
         "    SpriteRendererComponent:\n      Color: [1, 1, 1, 1]\n      TilingFactor: 1\n      SortOrder: 0\n      TextureHandle: %d\n"
         "      Sprite: Chest_0\n      SpriteIndex: 0\n      FlipX: false\n      FlipY: false\n      Facing: Upright\n"
         "    BoxColliderComponent:\n      Offset: [0, 0, 0.35]\n      Size: [0.9, 0.6, 0.7]\n      Layer: World\n      IsTrigger: false\n") % chest_tex)
-    c.w.entity("trigger:WallWalkChest", "Trigger Wall Walk Chest", parent=P, t=(-45.0, 36.6, walk_z), body=(
+    c.w.entity("trigger:WallWalkChest", "Trigger Wall Walk Chest", parent=P, t=(-41.0, 36.6, walk_z), body=(
         "    BoxColliderComponent:\n      Offset: [0, 0, 0.8]\n      Size: [2.4, 2.0, 1.6]\n      Layer: World\n      IsTrigger: true\n"
         "    NativeScriptComponent:\n      Scripts:\n        - Name: TriggerZoneScript\n          Properties:\n            Watched: Player\n"))
-    d.lantern(P, -45.0, 37.2, walk_z + 0.6, 0.6, 2.0)
+    d.lantern(P, -41.0, 37.2, walk_z + 0.6, 0.6, 2.0)
     c.model(P, "Props/JP_Prop_SpearRack_A", 8.8, 32.2, Z2)          # moved off the wall stairs
     c.model(P, "Props/JP_Prop_WarDrum_A", 6.4, 32.0, Z2)
     # plaza dressing: well and tea bench near the corners, stone lanterns along the path, cherry and pine
     for (name, x, y, r) in (("JP_Prop_Well_A", -7.6, 20.2, 0), ("JP_Prop_TeaBench_A", 7.4, 20.0, 0), ("JP_Prop_SakeBarrelStack_A", -8.0, 29.4, 90),
                             ("JP_Prop_Crate_A", 9.8, 30.0, 0), ("JP_Prop_Barrel_A", 10.0, 29.2, 0)):
         c.model(P, "Props/" + name, x, y, Z2, r)
+    # (Nov 2, the gate plaza sheet): the noticeboard beside the gate, a pair of paper lanterns under the gatehouse's
+    # pent roof, a palanquin parked by the inn, a horse post and trough by the guild hall, the bamboo spout and stone
+    # basin at the inn's door
+    prop_card(c, P, "JP_Gate_Noticeboard", -5.3, 31.9, Z2, sort=1, tag="Sign CityNotices")
+    prop_card(c, P, "JP_Gate_Palanquin", -8.8, 22.6, Z2, sort=1, tag="Sign Palanquin")
+    prop_card(c, P, "JP_Gate_HorsePost", 8.5, 23.4, Z2, sort=1, tag="Sign HorsePost")
+    prop_card(c, P, "JP_Field_Kakehi", -9.4, 27.6, Z2, sort=1)
+    lp = os.path.join(PROPS_R1, "JP_Gate_LanternPair.png")
+    if os.path.exists(lp):
+        lh = kit.png_size(lp)[1] / 32.0
+        prop_card(c, P, "JP_Gate_LanternPair", 0.0, 32.75, Z2 + 4.15 - lh, sort=3, shadow=0)
+        d.lantern(P, 0.0, 32.6, Z2 + 3.4, 1.0, 4.0)
+    # a jizo by the landing, at the foot of the second flight
+    prop_card(c, P, "JP_Field_Jizo_B", -3.0, 10.6, Z1, sort=1)
     for y in (22.0, 27.0):
         for s_ in (-1, 1):
             c.model(P, "Props/JP_Prop_StoneLantern_A", s_ * 3.4, y, Z2)
@@ -692,7 +836,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--profile", default="Dusk", choices=["Day", "Dusk", "Night"])
     ap.add_argument("--start", default="street", choices=["street", "stairs", "landing", "plaza", "wall"])
-    ap.add_argument("--street-tilt", type=float, default=82.0)
+    ap.add_argument("--street-tilt", type=float, default=77.0)
     ap.add_argument("--street-rise", type=float, default=3.8)
     ap.add_argument("--street-scale", type=float, default=0.95)
     ap.add_argument("--start-pos", default="", help="x,y,z: start the player here instead (overrides --start)")
@@ -700,6 +844,10 @@ def main():
     ap.add_argument("--plaza-yaw", type=float, default=0.0, help="turn the plaza's camera zone (degrees), to try a yawed view")
     args = ap.parse_args()
     summary = json.load(open(kit.SUMMARY))
+    # the actors' contact shadows 0.6 -> 0.75 (Nov 2; this scene only: patched here, not at import, so the countryside
+    # keeps its own)
+    character_body = kit.character_body
+    kit.character_body = lambda *a, **k: character_body(*a, **k).replace("      Strength: 0.6\n", "      Strength: 0.75\n")
     profiles = city_profiles()
     scene_handle = kit.handle_of(SCENE) if os.path.exists(SCENE) else kit.stable_id("scene")
     c = Slice(summary)
@@ -712,7 +860,9 @@ def main():
         "    CameraComponent:\n      Primary: true\n      Projection: Perspective\n      PerspectiveFOV: 30\n      PerspectiveNear: 0.5\n"
         "      PerspectiveFar: 300\n      OrthographicSize: 13\n      OrthographicNear: -1\n      OrthographicFar: 1\n      FocusDistance: 0\n"
         "    NativeScriptComponent:\n      Scripts:\n        - Name: CameraFollowScript\n          Properties:\n"
-        "            Bounds: [60, 60]\n            LookAhead: 0.5\n            Smoothing: 6\n"))
+        "            Bounds: [60, 60]\n            LookAhead: 0.5\n            Smoothing: 6\n"
+        "        - Name: OccluderFadeScript\n          Properties:\n            Target: %d\n            FadedOpacity: 0.3\n"
+        "            FadeSpeed: 4\n            Radius: 0.3\n            HeadHeight: 1.5\n            MaxSize: 30\n" % kit.stable_id("Player")))
     w.entity("Director", "City Director", body=(
         "    NativeScriptComponent:\n      Scripts:\n        - Name: FieldSceneScript\n          Properties:\n"
         "            SceneName: JapaneseCitySlice\n            TiltDegrees: 70\n            FieldOfView: 30\n"
@@ -740,7 +890,7 @@ def main():
         "    SpriteShadows: AsDrawn\n    UprightSprites: Vertical\n    HDR: true\n    Bloom: true\n    DepthOfField: true\n"
         "Look:\n  ProfileHandle: %d\n  Environment: Profile\n  PostProcess: Profile\n"
         "Environment:\n  SkyAmbient: [0.42, 0.36, 0.3]\n  GroundAmbient: [0.16, 0.12, 0.08]\n  Fog: true\n  FogColor: [0.78, 0.6, 0.38]\n"
-        "  FogStart: 35\n  FogEnd: 110\nEntities:\n") % (scene_handle, profiles[args.profile])
+        "  FogStart: 30\n  FogEnd: 110\nEntities:\n") % (scene_handle, profiles[args.profile])
     with open(SCENE, "w", newline="\r\n") as f:
         f.write(header + "\n".join(w.lines) + "\n")
     print("wrote %s: %d entities, start %s, profile %s" % (SCENE, sum(1 for l in w.lines if l.startswith("  - Entity:")), args.start, args.profile))

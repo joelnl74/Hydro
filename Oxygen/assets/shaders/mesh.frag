@@ -21,6 +21,15 @@ layout(set = 1, binding = 0) uniform Material {
     float alphaCutoff;
     float padding;
 } material;
+// The same block as mesh.vert's (ObjectPushConstants in VulkanGPUData.h); only the opacity is read here.
+layout(push_constant) uniform ObjectPushConstants {
+    mat4 transform;
+    int entityID;
+    uint materialIndex;
+    float opacity;
+    uint padding;
+} object;
+
 layout(set = 1, binding = 1) uniform sampler2D albedoTexture;
 layout(set = 1, binding = 2) uniform sampler2D emissiveTexture;
 
@@ -28,8 +37,21 @@ layout(location = 0) out vec4 outColor;
 // The Editor view's entity-ID attachment; ignored in views without it.
 layout(location = 1) out int outEntityID;
 
+// A 4 x 4 ordered dither: a mesh at opacity a keeps a of its pixels in a fixed screen pattern (screen-door
+// transparency), so it fades without sorting and its depth stays right for what is behind it.
+float DitherThreshold(vec2 pixel)
+{
+	const float bayer[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+	ivec2 p = ivec2(mod(pixel, 4.0));
+	return (bayer[p.y * 4 + p.x] + 0.5) / 16.0;
+}
+
 void main()
 {
+	if (object.opacity < 1.0 && object.opacity <= DitherThreshold(gl_FragCoord.xy))
+	{
+		discard;
+	}
 	vec2 uv = fragUV * material.tiling;
 	vec4 albedo = texture(albedoTexture, uv) * material.tint * fragColor;
 	if (albedo.a < material.alphaCutoff)

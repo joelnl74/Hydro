@@ -91,17 +91,19 @@ namespace Hydro
 	static_assert(sizeof(DepthOfFieldPushConstants) == 112, "DepthOfFieldPushConstants: must match the push_constant block in dof_common.glsl");
 
 	// Push constants (std430) of a drawn object: its transform, its entity (-1 = none) for the Editor view's
-	// entity-ID attachment, and its material's index. 80 bytes, within the 128 Vulkan guarantees. Used by
-	// meshes from M4 on.
+	// entity-ID attachment, its material's index and its opacity (MeshComponent::Opacity: below 1 mesh.frag
+	// dithers it away). 80 bytes, within the 128 Vulkan guarantees. Used by meshes from M4 on.
 	struct ObjectPushConstants
 	{
 		glm::mat4 Transform{ 1.0f };
 		int32_t EntityID = -1;
 		uint32_t MaterialIndex = 0;
-		uint32_t Padding[2] = { 0, 0 };
+		float Opacity = 1.0f;
+		uint32_t Padding = 0;
 	};
 	static_assert(sizeof(ObjectPushConstants) == 80, "ObjectPushConstants: must match the push_constant block of the mesh shaders");
 	static_assert(offsetof(ObjectPushConstants, Transform) == 0, "ObjectPushConstants: Transform at 0");
 	static_assert(offsetof(ObjectPushConstants, EntityID) == 64, "ObjectPushConstants: EntityID at 64");
 	static_assert(offsetof(ObjectPushConstants, MaterialIndex) == 68, "ObjectPushConstants: MaterialIndex at 68");
+	static_assert(offsetof(ObjectPushConstants, Opacity) == 72, "ObjectPushConstants: Opacity at 72");
 }

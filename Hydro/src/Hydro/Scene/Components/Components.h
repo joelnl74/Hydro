@@ -124,6 +124,9 @@ namespace Hydro
 		// that aren't here use the model's own materials (the assets its import made): empty = all of them.
 		std::vector<MeshMaterialSlot> Materials{ MeshMaterialSlot{} };
 		bool CastShadows = true; // into the sun's shadow map (RenderFeatureSettings::Shadows = Sun)
+		// How much of the mesh shows: 1 = solid, 0 = gone, between: dithered (screen-door), so depth and sorting
+		// stay right. Its shadow is kept. Game scripts set it (a camera fading what stands in front of the player).
+		float Opacity = 1.0f;
 	};
 
 	struct TagComponent

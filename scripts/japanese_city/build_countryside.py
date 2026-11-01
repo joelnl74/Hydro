@@ -53,15 +53,23 @@ SPRITES = os.path.join(ASSETS, "Sprites")
 TREES, PLANTS, PROPS, CROPS = (os.path.join(SPRITES, k) for k in ("Trees", "Plants", "Props", "Crops"))
 SEED = 9241
 
-X0, Y0, WIDTH, HEIGHT = -70.0, -52.0, 140.0, 152.0
+X0, Y0, WIDTH, HEIGHT = -70.0, -52.0, 140.0, 200.0
 
 # Levels (0.25 m steps): four terraces rising north, the shrine's stone terrace on top, the forest a metre above the
 # terrace it stands on, the paddies a step below theirs, the pond three.
 BANDS = (0, 4, 8, 12, 16)
-SHRINE = 22
 FOREST_RISE = 4
 EDGES = (-6.0, 22.0, 48.0, 72.0)          # terrace edges (y); edge 22 sits at 23.5 east of the road (behind the farm)
-SHRINE_EDGE = 88.0
+# The mountain north of the fields (Nov 2): cliffs stepping up (y of the edge, level above it), wooded on every shelf;
+# the shrine is high up in it, which is why few people make the climb.
+MOUNTAIN = ((88.0, 28), (100.0, 42), (114.0, 60), (128.0, 76), (140.0, 92))
+# The way up: a stone-lined cut through the cliffs with one long flight of stairs (x half-width, y from, y to, level of
+# the cut's floor -> level at the top), a landing set into the mountain, and a narrower flight on up to the exit.
+CUT = (3.5, 85.0, 116.0)                  # the first flight's cut: |x| <= 3.5, y 85..116, floor level 16
+FLIGHT = (0.0, 86.0, 116.0, 16, 52, 6.0)  # x, y from, y to, level from, level to, width (9 m up over 30 m)
+LANDING = (7.0, 116.0, 125.0, 52)         # |x| <= 7, y 116..125, level 52 (13 m)
+CUT2 = (2.5, 125.0, 139.0)
+FLIGHT2 = (0.0, 125.0, 139.0, 52, 76, 4.4)
 
 # Layers and wall layers.
 GRASS, SHADE, DIRT, MUD = 0, 1, 2, 3
@@ -70,12 +78,11 @@ STONE, EARTH, PADDY_BANK, FOREST_BANK = 0, 1, 2, 3
 # The road (centre line) and where things cross the terrace edges: (edge index, x of the crossing's centre).
 ROAD = [(0.5, -52.0), (0.5, -44.0), (-0.5, -30.0), (1.0, -16.0), (1.0, -9.0), (1.0, -3.0), (0.0, 8.0), (-2.0, 17.0),
         (-2.0, 19.0), (-2.0, 25.0), (0.0, 36.0), (2.0, 43.0), (2.0, 45.0), (2.0, 51.0), (0.5, 62.0), (-1.0, 69.0),
-        (-1.0, 75.0), (0.0, 82.0), (0.0, 100.0)]
+        (-1.0, 75.0), (0.0, 82.0), (0.0, 86.0)]
 ROAD_RAMPS = ((0, 1.0), (1, -2.0), (2, 2.0), (3, -1.0))
 FOREST_RAMPS = ((1, -52.0), (2, -50.0))   # inside the forest: the path from the camp up to the ancient tree
 GROVE_RAMP = (1, 36.5)                    # behind the farm, up to the bamboo grove
 RIM_RAMPS = (4.0, 56.0)                   # into the forest from the fields (y): the camp path, the tree path
-STAIRS = (0.0, 85.0, 91.0, 5.0)           # x, y from, y to, width: the shrine stairs (a ramp of 6 steps)
 
 CAMP = (-54.0, 4.0)
 TREE = (-54.0, 62.0)                      # the ancient tree's foot (the quest builder places it)
@@ -83,7 +90,15 @@ HUB = (40.0, 6.5)
 FOX = (-11.0, 36.0)
 POND = (25.0, -30.0, 7.0, 4.5)
 SHOOTS = ((44.6, 30.2), (50.5, 32.0), (55.8, 34.2), (52.6, 41.6), (47.0, 38.2))       # bamboo shoots in the grove
-HERBS = ((-47.0, 9.0), (-57.5, 15.0), (-48.8, 28.0), (-55.0, 38.5), (-47.5, 46.0), (-58.0, 52.0))   # herbs in the forest
+HERBS = ((-47.0, 9.0), (-57.5, 15.0), (-48.8, 28.0), (-55.0, 38.5), (-47.5, 44.2), (-58.0, 52.0))   # herbs in the forest
+# Mysteries and collectibles (Nov 2): chests named after their loot table (Loot.hytable), riddle stones (Signs.hytable)
+# that hint at the hidden ones, and the fox shrine's five lost charms (its side quest, SideFoxCharms).
+CHESTS = (("PondCache", 30.0, -22.6), ("KuraCache", 52.0, 20.6), ("RoninOath", -64.0, 12.0), ("ShrineGift", -6.2, 120.4),
+          ("LeyRoots", -57.6, 64.6), ("FoxOffering", -11.0, 41.4), ("RoadsideCache 1", -30.0, -49.0), ("RoadsideCache 2", 57.0, 67.6),
+          ("ForestCache 1", -60.5, 46.0), ("ForestCache 2", 58.5, 44.0))
+RIDDLES = (("RiddlePond", 3.4, -19.0), ("RiddleKura", 29.0, 1.6), ("RiddleCedar", -45.8, 8.2), ("RiddleShrine", 6.4, 82.2),
+           ("RiddleRoots", -47.6, 61.6), ("FoxShrine", -13.8, 31.0))
+CHARMS = ((-50.6, 7.6), (27.0, -24.6), (4.6, 31.6), (4.8, 121.8), (-20.0, 35.0))   # the camp, the cherry, the maple, the stairs' top, the paddies
 WISPS = ((-58.0, 18.0, "Wisps"), (-47.5, 31.0, "Wisps"), (-56.5, 41.0, "WispAndSlimes"), (-61.0, 70.0, "Wisps"), (-50.0, 80.0, "Wisps"))
 
 # Paths painted as dirt (and kept free of paddies): the lane to the farm, the camp and tree paths, the fox shrine's.
@@ -121,6 +136,15 @@ def forest_rim(y):
         w = smoothstep(5.0, 3.0, np.abs(y - yc))
         x = x * (1.0 - w) + (-40.0) * w
     return x
+
+
+def mountain_edge(x, k):
+    """Mountain cliff k's foot (y) along x: rough and wandering, lower towards the map's sides."""
+    e = MOUNTAIN[k][0]
+    y = e + wander(x, SEED + 40 + k, 3.0, 8.0) - 6.0 * smoothstep(30.0, 66.0, np.abs(x))
+    if k == 0:
+        y = np.where(np.abs(x) < 10.0, np.maximum(y, 87.0), y)   # clear of the torii and the lanterns at the foot
+    return y
 
 
 def east_rim(y):
@@ -163,14 +187,19 @@ def ground_z(x, y):
     ax = np.array([x])
     band = sum(1 for k in range(len(EDGES)) if y >= float(edge_line(ax, k)[0]))
     level = BANDS[band]
-    if y >= SHRINE_EDGE + float(wander(ax, SEED + 30, 0.8, 6.0)[0] * smoothstep(4.0, 6.0, abs(x))):
-        level = SHRINE
+    for k, (e, lv) in enumerate(MOUNTAIN):
+        if y >= float(mountain_edge(ax, k)[0]):
+            level = lv
     if in_forest(x, y, 0.0):
         level += FOREST_RISE
     if any(a <= x <= b and c <= y <= d for (a, b, c, d) in PADDIES):
         level -= 1
     z = level * 0.25
-    sx, sy0, sy1, sw = STAIRS
+    for (fx, fy0, fy1, lo, hi, fw) in (FLIGHT, FLIGHT2):
+        if abs(x - fx) <= fw / 2 and fy0 <= y <= fy1:
+            return (lo + (y - fy0) / (fy1 - fy0) * (hi - lo)) * 0.25
+    if abs(x) <= LANDING[0] and LANDING[1] <= y <= LANDING[2]:
+        return LANDING[3] * 0.25
     runs = [(xc - 2.0, xc + 2.0, EDGES[k] + (1.5 if (k == 1 and xc > 14.0) else 0.0), 4) for (k, xc) in ROAD_RAMPS + FOREST_RAMPS + (GROVE_RAMP,)]
     for (x0, x1, e, rise) in runs:
         if x0 <= x <= x1 and e - 2.0 <= y <= e + 2.0:
@@ -179,8 +208,6 @@ def ground_z(x, y):
     for yc in RIM_RAMPS:
         if -42.0 <= x <= -38.0 and yc - 2.0 <= y <= yc + 2.0:
             return float(ground_z(-37.9, y)) + (-38.0 - x) / 4.0 * FOREST_RISE * 0.25
-    if sx - sw / 2 <= x <= sx + sw / 2 and sy0 <= y <= sy1:
-        return BANDS[-1] * 0.25 + (y - sy0) / (sy1 - sy0) * (SHRINE - BANDS[-1]) * 0.25
     return z
 
 
@@ -197,11 +224,18 @@ def build_levels(g):
     for k in range(len(EDGES)):
         band += (Y >= edge_line(x, k)[None, :]).astype(np.int32)
     L = np.array(BANDS, dtype=np.int32)[band]
-    shrine_edge = SHRINE_EDGE + wander(x, SEED + 30, 0.8, 6.0) * smoothstep(4.0, 6.0, np.abs(x))
-    shrine = Y >= shrine_edge[None, :]
-    L[shrine] = SHRINE
+    for k, (e, lv) in enumerate(MOUNTAIN):
+        L[Y >= mountain_edge(x, k)[None, :]] = lv
     forest = (X < forest_rim(y)[:, None]) | (X > east_rim(y)[:, None])
     L[forest] += FOREST_RISE
+    # The cut and the landing (stone walls round them), sunk into the cliffs and the forest alike.
+    cut = (np.abs(X) <= CUT[0]) & (Y >= CUT[1]) & (Y <= CUT[2])
+    landing = (np.abs(X) <= LANDING[0]) & (Y >= LANDING[1]) & (Y <= LANDING[2])
+    cut2 = (np.abs(X) <= CUT2[0]) & (Y > LANDING[2]) & (Y <= CUT2[2])
+    L[cut] = FLIGHT[3]
+    L[landing] = LANDING[3]
+    L[cut2] = FLIGHT2[3]
+    shrine = cut | landing | cut2
     paddy = np.zeros(X.shape, dtype=bool)
     for (a, b, c, d) in PADDIES:
         paddy |= (X >= a) & (X <= b) & (Y >= c) & (Y <= d)
@@ -217,10 +251,9 @@ def build_levels(g):
         ramp_cells(g, xc - 2.0, xc + 2.0, e - 2.0, e + 2.0, tm.RAMP_NORTH)
     for yc in RIM_RAMPS:
         ramp_cells(g, -42.0, -38.0, yc - 2.0, yc + 2.0, tm.RAMP_WEST)
-    sx, sy0, sy1, sw = STAIRS
-    ramp_cells(g, sx - sw / 2, sx + sw / 2, sy0, sy1, tm.RAMP_NORTH)
 
-    # Walls: stone for the shrine's terrace, earth banks elsewhere (lower and gentler round the paddies).
+    # Walls: cut stone lining the way up to the shrine, earth banks elsewhere (lower and gentler round the paddies);
+    # the mountain's cliffs are earth banks too, sloping back, so it reads as a hillside rather than masonry.
     def corners(mask):
         m = mask.astype(np.int32)
         return m[:-1, :-1] + m[:-1, 1:] + m[1:, :-1] + m[1:, 1:]
@@ -254,8 +287,8 @@ def build_weights(g):
     p.blob(CAMP, (6.0, 5.0), DIRT, seed=41, soft=1.0, corner=3.0)                   # the camp
     p.blob((TREE[0] + 1.0, TREE[1] - 3.0), (6.5, 4.5), DIRT, seed=42, soft=1.2, corner=3.0)
     p.blob((FOX[0], FOX[1] + 1.0), (3.6, 3.0), DIRT, seed=43, soft=0.8, corner=1.5)
-    p.blob((0.0, 89.0), (3.0, 4.5), DIRT, seed=44, soft=0.6)                        # the stairs
-    p.blob((0.0, 95.0), (9.0, 4.0), DIRT, seed=45, soft=1.0, corner=3.0)            # the terrace at the top
+    p.blob((0.0, 84.0), (4.0, 2.5), DIRT, seed=44, soft=0.8)                        # before the torii
+    p.blob((0.0, 120.5), (6.6, 4.2), DIRT, seed=45, soft=0.8, corner=2.0)           # the landing
 
     # Trodden grass in the yard and along the road's middle (partial: thin grass, not islands).
     def wear(px, py):
@@ -313,6 +346,15 @@ class Ground:
     def z(self, x, y):
         return self.g.height_at(self.terrain, x, y)
 
+    def clear(self, x, y, half=1.0, behind=1.8, front=0.4):
+        """Whether nothing higher stands within `half` m either side, `behind` m north or `front` m south of (x, y):
+        banks lean back over the ground at their foot, so a tree or a prop there would sink into the slope."""
+        g = self.g
+        i0, i1 = max(0, int((x - half - g.x0) / g.cell)), min(g.nx - 1, int((x + half - g.x0) / g.cell) + 1)
+        j0, j1 = max(0, int((y - front - g.y0) / g.cell)), min(g.ny - 1, int((y + behind - g.y0) / g.cell) + 1)
+        window = g.levels[j0:j1 + 1, i0:i1 + 1]
+        return int(window.max()) == int(window.min())
+
 
 def png_size(path):
     return kit.png_size(path)
@@ -358,6 +400,25 @@ class Builder(slice_.Slice):
 
     def place(self, parent, path, x, y, rot=0.0, collider=True, tag=None):
         self.model(parent, path, x, y, self.ground.z(x, y), rot, collider=collider, tag=tag)
+
+    def asset_model(self, parent, relative, x, y, scale=1.0, rot=0.0, collider=False, tag=None):
+        """A model of the project's own (Models/<relative>.glb, e.g. the Shrine Glade's Architecture/ToriiGate) on the
+        ground at (x, y), scaled evenly; collider: a mesh collider (scaled with it)."""
+        handle = kit.handle_of(os.path.join(ASSETS, "Models", relative + ".glb.hymeta"))
+        tag = tag or self._n(os.path.basename(relative))
+        self.w.entity("asset-model:" + tag, tag, parent=parent, t=(x, y, self.ground.z(x, y)), r=(0, 0, math.radians(rot)),
+                      s=(scale, scale, scale), body=kit.mesh_body(handle, collider))
+        return tag
+
+    def torii(self, parent, tag, x, y, scale=1.0):
+        """The Shrine Glade's torii (Architecture/ToriiGate: 5.4 m wide, 5.2 m tall at scale 1), walked through between
+        its two posts, which are solid (boxes, as in the Shrine Glade: the beams overhead don't collide)."""
+        self.asset_model(parent, "Architecture/ToriiGate", x, y, scale, tag=tag)
+        z = self.ground.z(x, y)
+        for k, side in enumerate((-1, 1)):
+            self.w.entity("torii-post:%s:%d" % (tag, k), "%s Post %d" % (tag, k + 1), parent=parent, t=(x + side * 1.6 * scale, y, z), body=(
+                "    BoxColliderComponent:\n      Offset: [0, 0, %g]\n      Size: [%g, %g, %g]\n      Layer: World\n      IsTrigger: false\n"
+                % (1.6 * scale, 0.7 * scale, 0.7 * scale, 3.2 * scale)))
 
     def house(self, parent, name, x, y, rot=0.0, windows=True):
         z = self.ground.z(x, y)
@@ -410,8 +471,9 @@ class Builder(slice_.Slice):
         """Something to pick up: "Gather <ItemRow> <n>" (FieldDirectorScript gives the item and removes it)."""
         self.card(parent, folder, sprite, x, y, scale, tag="Gather %s %d" % (item, n), sort=1)
 
-    def trigger(self, parent, tag, x, y, size):
-        self.w.entity("trigger:" + tag, tag, parent=parent, t=(x, y, self.ground.z(x, y)), body=(
+    def trigger(self, parent, tag, x, y, size, z=None):
+        z = self.ground.z(x, y) if z is None else z
+        self.w.entity("trigger:" + tag, tag, parent=parent, t=(x, y, z), body=(
             "    BoxColliderComponent:\n      Offset: [0, 0, 1]\n      Size: [%g, %g, 2]\n      Layer: Trigger\n      IsTrigger: true\n" % size))
 
 
@@ -450,6 +512,9 @@ def near_path(x, y, width):
     return float(np.min(np.hypot(PATH_POINTS[:, 0] - x, PATH_POINTS[:, 1] - y))) < width
 
 
+SECRETS = [(x, y) for (_, x, y) in CHESTS + RIDDLES] + list(CHARMS)
+
+
 def clear_of(x, y, spots, radius):
     return all(math.hypot(x - p[0], y - p[1]) >= radius for p in spots)
 
@@ -466,27 +531,33 @@ def woods(c):
     small = ["FirSmallA", "FirSmallB", "FirSmallC", "FirSmallD", "FirSmallE", "FirSmallF", "FirSmallG"]
 
     def accept(x, y):
-        if in_forest(x, y) is False and y < 97.0:
+        mountain = y >= float(mountain_edge(np.array([x]), 0)[0]) + 1.5
+        if in_forest(x, y) is False and mountain is False:
             return False
+        if abs(x) < 7.5 and y > 82.0:
+            return False                                      # the cut, the stairs and the landing stay clear
         if math.hypot(x - CAMP[0], (y - CAMP[1]) * 1.2) < 9.5 or math.hypot(x - TREE[0], y - TREE[1] + 2.0) < 10.5:
             return False
-        if y > 86.0 and abs(x) < 14.0:
-            return False                                      # the shrine terrace stays open in front of the exit
-        return near_path(x, y, 2.6) is False and clear_of(x, y, HERBS, 2.2) and clear_of(x, y, WISPS, 3.0)
+        return (near_path(x, y, 2.6) is False and clear_of(x, y, HERBS, 2.2) and clear_of(x, y, WISPS, 3.0) and clear_of(x, y, SECRETS, 2.4)
+                and c.ground.clear(x, y, 2.0, 2.2, 0.6))
     count = 0
     for (x, y, r, s) in scatter(3.3, SEED + 60, accept):
+        # On the mountain (out of reach above its cliffs) a third fewer, and no trunks to collide with.
+        mountain = y >= float(mountain_edge(np.array([x]), 0)[0]) + 1.5
+        if mountain and (r * 7.0) % 1.0 > 0.66:
+            continue
         if r < 0.72:
             name = tall[int(s * len(tall)) % len(tall)]
             scale = 1.25 + 0.45 * s if name != "PineTall" else 1.35 + 0.3 * s
         else:
             name = small[int(s * len(small)) % len(small)]
             scale = 1.2 + 0.4 * s
-        c.card(T, TREES, name, x, y, scale, solid=(0.7, 0.6, 2.0), flip=r > 0.86)
+        c.card(T, TREES, name, x, y, scale, solid=None if mountain else (0.7, 0.6, 2.0), flip=r > 0.86)
         count += 1
     # A few broadleaf trees among the fields and along the banks, so the open land isn't bare.
     for (name, x, y, scale) in (("OakSunA", -38.0, -40.0, 1.0), ("OakSunB", 21.0, -44.0, 0.9), ("OakYoungB", -2.5, 12.0, 1.0),
-                                ("OakSunC", 22.0, 20.0, 0.9), ("OakGnarledSmall", 4.5, 47.5, 1.1), ("LindenAutumnC", 46.0, 48.0, 1.2),
-                                ("OakSunA", 33.0, 68.0, 1.0), ("PineTall", -4.5, 70.0, 1.4), ("PineTall", 5.0, 80.0, 1.3),
+                                ("OakSunC", 22.0, 20.0, 0.9), ("OakGnarledSmall", 4.4, 44.6, 1.1), ("LindenAutumnC", 46.0, 48.0, 1.2),
+                                ("OakSunA", 33.0, 68.0, 1.0), ("PineTall", -4.5, 66.4, 1.4), ("PineTall", 5.0, 80.0, 1.3),
                                 ("OakSunB", -24.0, 78.0, 1.0), ("LindenAutumnE", 40.0, 78.0, 1.1), ("OakYoungB", 24.0, 50.0, 1.0)):
         c.card(T, TREES, name, x, y, scale, solid=(0.8, 0.7, 2.0))
     return count
@@ -495,34 +566,47 @@ def woods(c):
 def road_side(c):
     """The shrine stairs and their torii, the fox shrine, the pond, the crossroads sign, the south exit."""
     R = c.group("Roadside")
-    # The torii at the foot of the stairs and at the top, stone lanterns up the stairs.
-    c.card(R, PROPS, "Torii", 0.0, 83.6, 1.3, tag="Torii Stairs")
+    # The way up to the shrine: one great torii at the foot, the long flight up the cut (StepStone, solid: it walks as a
+    # ramp), lanterns at the foot and on the landing, the second flight on up into the mountain (the exit).
+    c.torii(R, "Torii Stairs", 0.0, 82.8, 1.3)
     for s in (-1, 1):
-        c.w.entity("torii-post:%d" % s, "Torii Post %d" % (s + 2), parent=R, t=(s * 3.05, 83.6, c.ground.z(s * 3.05, 83.6)), body=(
-            "    BoxColliderComponent:\n      Offset: [0, 0, 1.5]\n      Size: [0.6, 0.6, 3]\n      Layer: World\n      IsTrigger: false\n"))
-        for y in (84.6, 87.6, 90.6):
-            c.place(R, "Props/JP_Prop_StoneLantern_A", s * 3.4, y)
-            c.light(R, s * 3.4, y, 1.15, 0.9, 3.0)
-    c.card(R, PROPS, "Torii", 0.0, 93.0, 1.0, tag="Torii Shrine Road")
+        c.place(R, "Props/JP_Prop_StoneLantern_A", s * 4.6, 84.2)
+        c.light(R, s * 4.6, 84.2, 1.15, 0.9, 3.0)
+        c.card(R, PROPS, "shrine_banner", s * 6.2, 83.6, 0.1, sort=1)
+    step = handle("Materials/Ground/StepStone.hymat")
+    for (fx, fy0, fy1, lo, hi, fw) in (FLIGHT, FLIGHT2):
+        c.stairs(R, step, fx, fy0, fy1, lo * 0.25, hi * 0.25, width=fw, step_rise=0.2)
+    lz = LANDING[3] * 0.25
     for s in (-1, 1):
-        c.card(R, PROPS, "shrine_banner", s * 4.4, 92.4, 0.1, sort=1)
-    c.card(R, PROPS, "Jizo", -6.0, 95.0, 1.0, solid=(0.6, 0.5, 1.4))
-    c.card(R, PROPS, "Jizo", -7.1, 95.3, 0.9, solid=(0.6, 0.5, 1.4), flip=True)
+        for y in (117.0, 122.2):
+            c.place(R, "Props/JP_Prop_StoneLantern_A", s * 5.6, y)
+            c.light(R, s * 5.6, y, 1.15, 1.0, 3.5)
+    c.card(R, PROPS, "Jizo", -3.6, 122.6, 1.0, solid=(0.6, 0.5, 1.4))
+    c.card(R, PROPS, "Jizo", -4.6, 122.2, 0.9, solid=(0.6, 0.5, 1.4), flip=True)
+    c.card(R, PROPS, "shrine_banner", 3.8, 122.6, 0.1, sort=1)
+    # The second flight climbs on into the mountain, but Miko stops at its foot: a blocker across it, and the exit's
+    # trigger in front of it, where the prompt to go up to the shrine shows ("E  Leave").
+    c.blocker(R, -CUT2[0] - 0.2, CUT2[0] + 0.2, LANDING[2] - 0.1, LANDING[2] + 0.6, lz, 4.0)
 
     # The fox shrine: a short tunnel of small torii up to a little shrine (the offering box), foxes either side.
     F = c.group("Fox Shrine", R)
     fx, fy = FOX
     for k, y in enumerate((31.6, 33.0, 34.4)):
-        c.card(F, PROPS, "Torii", fx, y, 0.55 - 0.03 * k, tag="Torii Fox %d" % (k + 1))
-    c.card(F, PROPS, "offering_box", fx, fy + 2.4, 0.12, tag="Fox Shrine", solid=(1.4, 1.0, 1.4))
+        c.torii(F, "Torii Fox %d" % (k + 1), fx, y, 0.56 - 0.03 * k)
+    # the little shrine: the Shrine Glade's hall at a third of its size (2.6 m wide), solid; an offering bowl and a rack
+    # of prayer plaques before it
+    # Its voice gives the charms' side quest: an NPC to the field director ("Npc Inari", Npcs.hytable's Inari).
+    c.asset_model(F, "Architecture/ShrineHall", fx, fy + 3.0, 0.35, collider=True, tag="Npc Inari")
+    c.asset_model(F, "Props/OfferingBowl", fx, fy + 1.7, 1.6, tag="Fox Shrine Offering")
+    c.asset_model(F, "Props/PrayerPlaqueRack", fx + 1.0, fy + 0.6, 1.0, collider=True, tag="Fox Shrine Plaques")
     c.card(F, PROPS, "KitsuneStatue", fx - 1.8, fy + 1.4, 1.0, solid=(0.7, 0.4, 1.2))
     c.card(F, PROPS, "KitsuneStatue", fx + 1.8, fy + 1.4, 1.0, solid=(0.7, 0.4, 1.2), flip=True)
     for s in (-1, 1):
         c.card(F, PROPS, "shrine_banner", fx + s * 3.0, fy + 1.8, 0.075, sort=1)
         c.place(F, "Props/JP_Prop_StoneLantern_A", fx + s * 2.6, fy - 1.6)
         c.light(F, fx + s * 2.6, fy - 1.6, 1.15, 0.8, 3.0)
-    # the red maple behind it, and two more along the road (Octopath's autumn accents)
-    for (x, y, scale) in ((fx - 5.5, fy + 5.0, 1.25), (6.0, 33.0, 1.0), (-6.5, 64.0, 1.05)):
+    # the red maple behind it, and two more on the verges between the road and the paddies (Octopath's autumn accents)
+    for (x, y, scale) in ((fx - 5.5, fy + 5.0, 1.25), (4.3, 33.0, 1.0), (-3.9, 64.0, 1.05)):
         c.card(F, TREES, "LindenAutumnA", x, y, scale, color=(1.0, 0.52, 0.44, 1), solid=(0.8, 0.7, 2.0))
 
     # The pond and its weeping cherry, a bench to sit by it.
@@ -535,7 +619,7 @@ def road_side(c):
     c.blocker(P, cx - rx + 0.6, cx + rx - 0.6, cy - ry + 0.6, cy + ry - 0.6, -0.75, 1.6)
     c.card(P, TREES, "SakuraWeeping", cx + 4.5, cy + 5.6, 1.0, solid=(0.9, 0.8, 2.0))
     c.place(P, "Props/JP_Prop_TeaBench_A", cx - 3.0, cy + 5.2)
-    for (name, x, y) in (("MossRockA", cx - 6.5, cy + 1.5), ("MossRockB", cx + 6.8, cy - 0.5), ("RootRockA", cx + 1.0, cy + 4.9)):
+    for (name, x, y) in (("MossRockA", cx - 8.4, cy + 1.5), ("MossRockB", cx + 6.8, cy - 0.5), ("RootRockA", cx + 1.0, cy + 4.9)):
         c.card(P, PROPS, name, x, y, 1.0, solid=(0.8, 0.5, 0.8))
 
     # The crossroads: a sign where the lane leaves for the farm and the camp path for the forest.
@@ -589,7 +673,7 @@ def farm(c):
 
     def grove(x, y):
         return (41.0 < x < 61.0 and 26.0 < y < 46.0 and near_path(x, y, 1.8) is False and in_forest(x, y, 0.0) is False
-                and clear_of(x, y, SHOOTS, 2.0))
+                and clear_of(x, y, SHOOTS, 2.0) and clear_of(x, y, SECRETS, 2.2) and c.ground.clear(x, y, 0.8, 2.0, 0.4))
     for (x, y, r, s) in scatter(2.6, SEED + 70, grove):
         c.card(G, TREES, bamboo[int(r * 3) % 3], x, y, 0.95 + 0.2 * s, solid=(0.9, 0.5, 2.0), flip=s > 0.5)
     for n, (x, y) in enumerate(SHOOTS, start=1):
@@ -622,7 +706,7 @@ def people(c):
     """The farm's people (two give side quests), a pilgrim at the fox shrine, a field hand in the paddies."""
     P = c.group("People")
     c.person(P, "Farmer", "Genji", 44.0, 8.6, "IdleDown")
-    c.person(P, "FarmWife", "Okiku", 51.6, 0.6, "IdleLeft")
+    c.person(P, "FarmWife", "Okiku", 51.6, 0.6, "IdleDown")          # her sheet has only IdleDown
     c.person(P, "OldWoman", "Hatsu", 36.4, 10.8, "IdleDown")
     c.person(P, "TownChild", "Kenta", 34.6, 4.0, "IdleLeft")
     c.person(P, "Pilgrim", "Pilgrim", FOX[0] + 3.2, FOX[1] - 4.8, "IdleUp")
@@ -639,6 +723,20 @@ def gathering(c):
     G = c.group("Herbs")
     for n, (x, y) in enumerate(HERBS, start=1):
         c.gather(G, "MedicinalHerb", n, CROPS, "HerbBush", x, y, 0.8)
+
+
+def mysteries(c):
+    """Chests to find (the hidden ones hinted at by riddle stones), the stones themselves, and the fox charms."""
+    M = c.group("Mysteries")
+    sheet = os.path.join(PROPS, "TreasureChest.png.hymeta")         # Chest_0 closed, Chest_1 open (FieldDirectorScript)
+    chest = kit.handle_of(sheet)
+    for (row, x, y) in CHESTS:
+        c.w.entity("chest:" + row, "Chest " + row, parent=M, t=(x, y, c.ground.z(x, y)), s=(1.14286, 1.14286, 1),
+                   body=sprite_body(chest, sprite="Chest_0") + trunk(1.14286, 1.14286, 0.9, 0.6, 0.8))
+    for (row, x, y) in RIDDLES:
+        c.asset_model(M, "Props/MemorialMarkerMediumA", x, y, 1.3, collider=True, tag="Sign " + row)
+    for n, (x, y) in enumerate(CHARMS, start=1):
+        c.gather(M, "FoxCharm", n, PROPS, "FoxCharm", x, y)
 
 
 def enemies(c):
@@ -669,7 +767,7 @@ def paddy_water(c):
 def edges_and_exits(c):
     X = c.group("Exits")
     c.trigger(X, "Exit JapaneseCitySlice", 0.5, -49.0, (4.0, 2.4))
-    c.trigger(X, "Exit ShrineGlade", 0.0, 98.6, (4.0, 2.4))
+    c.trigger(X, "Exit ShrineGlade", 0.0, LANDING[2] - 1.0, (4.6, 2.0))          # at the foot of the closed second flight
     c.w.entity("arrive:city", "Arrive JapaneseCitySlice", parent=X, t=(0.5, -45.0, c.ground.z(0.5, -45.0)))
     c.blocker(X, X0, X0 + WIDTH, Y0 - 1.0, Y0 + 0.6, -1.0, 10.0)
     c.blocker(X, X0, X0 + WIDTH, Y0 + HEIGHT - 0.6, Y0 + HEIGHT + 1.0, -1.0, 10.0)
@@ -681,20 +779,23 @@ def camera_zones(c):
     """The scene's framing (the director) everywhere, closer and lower at the camp and the tree, the hub framed
     whole, the stairs pulled back."""
     Z = c.group("Camera Zones")
-    c.zone(Z, "Camp", CAMP[0] + 1.0, CAMP[1] + 1.0, (24.0, 20.0), priority=1, tilt=66, fov=30, scale=0.85, lead=1.5, rise=2.6,
-           pan_min=(CAMP[0] - 4.0, CAMP[1] - 3.0), pan_max=(CAMP[0] + 6.0, CAMP[1] + 6.0), blend=1.2)
-    c.zone(Z, "Ancient Tree", TREE[0] + 2.0, TREE[1] - 3.0, (24.0, 22.0), priority=1, tilt=64, fov=30, scale=0.95, lead=1.5, rise=3.4,
-           pan_min=(TREE[0] - 2.0, TREE[1] - 8.0), pan_max=(TREE[0] + 8.0, TREE[1] - 1.0), blend=1.4)
-    c.zone(Z, "Farm", HUB[0], HUB[1] + 1.0, (40.0, 30.0), priority=1, tilt=68, fov=30, scale=1.0, lead=2.0, rise=3.0,
-           pan_min=(28.0, 0.0), pan_max=(52.0, 14.0), blend=1.2)
-    c.zone(Z, "Shrine Stairs", 0.0, 89.0, (16.0, 18.0), priority=1, tilt=62, fov=30, scale=1.0, lead=3.0, rise=3.6,
-           pan_min=(-4.0, 84.0), pan_max=(4.0, 94.0), blend=1.0)
 
+    def zone(name, cx, cy, size, pan_min, pan_max, **kw):
+        # CameraZoneScript's PanMin / PanMax are offsets from the zone's centre; here they are given in world metres.
+        c.zone(Z, name, cx, cy, size, pan_min=(pan_min[0] - cx, pan_min[1] - cy), pan_max=(pan_max[0] - cx, pan_max[1] - cy), **kw)
+    zone("Camp", CAMP[0] + 1.0, CAMP[1] + 1.0, (24.0, 20.0), (CAMP[0] - 4.0, CAMP[1] - 3.0), (CAMP[0] + 6.0, CAMP[1] + 6.0),
+         priority=1, tilt=66, fov=30, scale=0.85, lead=1.5, rise=2.6, blend=1.2)
+    zone("Ancient Tree", TREE[0] + 2.0, TREE[1] - 3.0, (24.0, 22.0), (TREE[0] - 2.0, TREE[1] - 8.0), (TREE[0] + 8.0, TREE[1] - 1.0),
+         priority=1, tilt=64, fov=30, scale=0.95, lead=1.5, rise=3.4, blend=1.4)
+    zone("Farm", HUB[0], HUB[1] + 1.0, (40.0, 30.0), (28.0, 0.0), (52.0, 14.0),
+         priority=1, tilt=68, fov=30, scale=1.0, lead=2.0, rise=3.0, blend=1.2)
+    zone("Shrine Stairs", 0.0, 104.0, (16.0, 44.0), (-2.0, 84.0), (2.0, 124.0),
+         priority=1, tilt=64, fov=30, scale=1.05, lead=3.0, rise=3.6, blend=1.0)
 
 def backdrop(c):
     """The far hills and the sky behind the shrine (the city's painted layers; their tiling fits these sizes)."""
     B = c.group("Backdrop")
-    for (name, width, hp, wp, y, z) in (("JP_Backdrop_Far", 220.0, 294, 1086, 215.0, -4.0), ("JP_Backdrop_Sky_Dusk", 380.0, 362, 1086, 330.0, -24.0)):
+    for (name, width, hp, wp, y, z) in (("JP_Backdrop_Far", 220.0, 294, 1086, 250.0, 6.0), ("JP_Backdrop_Sky_Dusk", 380.0, 362, 1086, 360.0, -14.0)):
         mat = kit.handle_of(os.path.join(ASSETS, "Materials", "JapaneseCity", name + ".hymat"))
         c.w.entity("backdrop:" + name, "Backdrop " + name.replace("JP_Backdrop_", ""), parent=B, t=(0, y, z), body=(
             "    MeshComponent:\n      Shape: Box\n      Size: [%g, 0.1, %g]\n      CastShadows: false\n      Materials:\n"
@@ -773,7 +874,7 @@ def main():
     out = os.path.join(REPO, "scripts", "terrain", "out")
     os.makedirs(out, exist_ok=True)
     marks = [(CAMP[0], CAMP[1], (255, 60, 60)), (TREE[0], TREE[1], (80, 220, 255)), (HUB[0], HUB[1], (255, 220, 60)),
-             (FOX[0], FOX[1], (255, 120, 40)), (0.0, 98.6, (255, 255, 255)), (0.5, -49.0, (255, 255, 255))]
+             (FOX[0], FOX[1], (255, 120, 40)), (0.0, LANDING[2] - 1.0, (255, 255, 255)), (0.5, -49.0, (255, 255, 255))]
     preview_map(g, weights, masks, os.path.join(out, "countryside_map.png"), marks)
     print("map: scripts/terrain/out/countryside_map.png; %d paddies" % len(PADDIES))
     if args.map_only:
@@ -788,7 +889,7 @@ def main():
     scene_handle = kit.handle_of(SCENE) if os.path.exists(SCENE) else kit.stable_id("scene")
     c = Builder(summary, Ground(g, terrain))
     w = c.w
-    start = {"south": (0.5, -45.0), "north": (0.0, 95.0)}[args.start]
+    start = {"south": (0.5, -45.0), "north": (0.0, 119.5)}[args.start]
     sz = c.ground.z(*start)
     w.entity("Player", "Player", t=(start[0], start[1], sz), s=(2.5, 2.34375, 3),
              body=kit.character_body(kit.MIKO_TEXTURE, kit.MIKO_ANIM, "IdleDown" if args.start == "north" else "IdleUp",
@@ -801,7 +902,7 @@ def main():
     w.entity("Director", "Country Director", body=(
         "    NativeScriptComponent:\n      Scripts:\n        - Name: FieldSceneScript\n          Properties:\n"
         "            SceneName: JapaneseCountryside\n            TiltDegrees: 71\n            FieldOfView: 30\n"
-        "            FocusLead: 2.5\n            FocusRise: 3\n            BoundsMin: [-56, -44]\n            BoundsMax: [56, 95]\n"
+        "            FocusLead: 2.5\n            FocusRise: 3\n            BoundsMin: [-56, -44]\n            BoundsMax: [56, 124]\n"
         "            YawDegrees: 0\n            ViewScale: 1\n"
         "            DuskSunColor: [1, 0.74, 0.5]\n            DuskSunIntensity: 0.95\n            DuskLanterns: 1.3\n            DuskWindows: 1.2\n"
         "            NightLanterns: 1.6\n            NightWindows: 1.3\n"
@@ -826,6 +927,7 @@ def main():
     camp(c)
     people(c)
     gathering(c)
+    mysteries(c)
     enemies(c)
     edges_and_exits(c)
     camera_zones(c)

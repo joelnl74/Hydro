@@ -3,6 +3,8 @@
 
 #include "Hydro/Data/DataRowRef.h"
 
+#include <algorithm>
+#include <string>
 #include <vector>
 
 namespace Hydro
@@ -29,6 +31,18 @@ namespace Hydro
 		std::vector<Slot> Slots;
 		bool Started = false; // the starting inventory was given this run
 		int Money = 0;        // in aster (CurrencyName)
+		// What the party has found for good this run: opened chests and picked-up spots, as "<scene>/<tag>", so they
+		// stay opened or gone when the player comes back (FieldDirectorScript).
+		std::vector<std::string> Found;
+
+		bool WasFound(const std::string& key) const { return std::find(Found.begin(), Found.end(), key) != Found.end(); }
+		void MarkFound(const std::string& key)
+		{
+			if (WasFound(key) == false)
+			{
+				Found.push_back(key);
+			}
+		}
 
 		// How many of an item the party holds (0 when none).
 		int CountOf(const DataRowRef& item) const

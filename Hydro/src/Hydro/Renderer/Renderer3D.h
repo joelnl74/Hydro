@@ -70,8 +70,9 @@ namespace Hydro
 		// One sub-mesh with a Standard material. `entityID` is written to the Editor view's entity-ID
 		// attachment (-1 = not pickable). The material is cached by its data, so meshes with equal materials
 		// share one descriptor set. `castShadows`: also drawn into the view's sun shadow map (R14), when it has one.
+		// `opacity` below 1 dithers the mesh away (screen-door, so depth stays right; 0 = gone); its shadow stays.
 		static void DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID,
-			bool castShadows = true);
+			bool castShadows = true, float opacity = 1.0f);
 
 		// One sub-mesh of a terrain's tops with its surface material (TerrainCache's chunk meshes: UVs are positions in
 		// the terrain's space). Drawn in the Meshes pass like DrawMesh; it casts like an opaque mesh.

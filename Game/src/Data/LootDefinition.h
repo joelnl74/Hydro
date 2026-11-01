@@ -7,8 +7,8 @@
 
 #include <vector>
 
-// What a won battle gives (Assets/Data/Loot.hytable): an enemy and an encounter name a loot table
-// (EnemyDefinition::Loot, EncounterDefinition::Loot). A roll first decides whether anything drops (DropChance), then
+// What a won battle or an opened chest gives (Assets/Data/Loot.hytable): an enemy and an encounter name a loot table
+// (EnemyDefinition::Loot, EncounterDefinition::Loot), a chest names one in its tag ("Chest <row>", FieldDirectorScript). A roll first decides whether anything drops (DropChance), then
 // picks a rarity by its chance among the table's rarities that have items, then one of those items (their rarity is
 // the item's, ItemDefinition::Rarity) and a count. Rules/LootRules.h rolls it.
 namespace Hydro
@@ -46,5 +46,9 @@ namespace Hydro
 		std::vector<RarityChance> Rarities;
 		HY_PROPERTY(Tooltip("What it can give; an item's rarity is its own (Items.hytable)"))
 		std::vector<LootEntry> Items;
+		HY_PROPERTY(Range(0, 99999), Tooltip("Aster it also gives, at least (a chest's coins; added to a battle's)"))
+		int MinMoney = 0;
+		HY_PROPERTY(Range(0, 99999), Tooltip("Aster it also gives, at most"))
+		int MaxMoney = 0;
 	};
 }

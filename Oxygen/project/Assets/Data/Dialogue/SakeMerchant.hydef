@@ -1,0 +1,12 @@
+Handle: 5812481699741625291
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: "See the cedar ball under my eave? Hung green when the new sake was pressed."
+      - Speaker: ""
+        Text: "It's turning brown now. That means the sake's ready. Come back when it's dark brown, it's better still."

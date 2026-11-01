@@ -60,6 +60,18 @@ namespace Hydro
 			return drops;
 		}
 
+		// The aster the table gives besides its items: MinMoney to MaxMoney, one draw (0 when both are 0).
+		static int RollMoney(const LootTableDefinition& table, const std::function<float()>& random)
+		{
+			const int low = std::max(0, std::min(table.MinMoney, table.MaxMoney));
+			const int high = std::max(table.MinMoney, table.MaxMoney);
+			if (high <= 0)
+			{
+				return 0;
+			}
+			return std::min(high, low + (int)(random() * (float)(high - low + 1)));
+		}
+
 	private:
 		static ItemRarity RarityFromData(const DataRowRef& itemRef)
 		{

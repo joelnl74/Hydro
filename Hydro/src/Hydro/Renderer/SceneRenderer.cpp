@@ -14,6 +14,7 @@
 #include "Hydro/Scene/ColliderShapes.h"
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Entity.h"
+#include "Hydro/Scene/MeshBounds.h"
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"
 #include "Hydro/Scene/UI/UIScene.h"
 
@@ -466,7 +467,7 @@ namespace Hydro
 			{
 				const uint32_t slot = mesh->GetSubMeshes()[i].MaterialSlot;
 				const MaterialData material = slot < meshComponent.Materials.size() ? ResolveMaterial(meshComponent.Materials[slot]) : ResolveModelMaterial(*mesh, slot);
-				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity, meshComponent.CastShadows);
+				Renderer3D::DrawMesh(mesh, i, material, world, (int32_t)(uint32_t)entity, meshComponent.CastShadows, meshComponent.Opacity);
 			}
 		}
 		SubmitTerrains();
@@ -1403,14 +1404,11 @@ namespace Hydro
 		// A mesh: its bounding box, in its own space turned by the transform (12 edges).
 		if (selected.HasComponent<MeshComponent>())
 		{
-			const MeshComponent& meshComponent = selected.GetComponent<MeshComponent>();
-			const Ref<Mesh> mesh = (uint64_t)meshComponent.Model != 0 ? AssetManager::GetLoadedAsset<Mesh>(meshComponent.Model)
-				: Renderer3D::GetShapeMesh(meshComponent);
-			if (mesh != nullptr)
+			glm::vec3 low{ 0.0f };
+			glm::vec3 high{ 0.0f };
+			if (MeshBounds::GetLocal(selected.GetComponent<MeshComponent>(), low, high))
 			{
 				const glm::mat4 world = transform.Matrix;
-				const glm::vec3 low = mesh->GetBoundsMin();
-				const glm::vec3 high = mesh->GetBoundsMax();
 				glm::vec3 corners[8];
 				for (int i = 0; i < 8; i++)
 				{

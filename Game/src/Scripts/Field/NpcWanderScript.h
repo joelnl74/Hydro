@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace Hydro
 {
@@ -15,6 +16,9 @@ namespace Hydro
 	// sheet's Walk<Facing> clips while moving and Idle<Facing> while standing. With WorkClip set (for example "Work",
 	// the temple monk's sweeping) it plays Work<Facing> instead of standing still, one pause in WorkEvery.
 	// Moves the transform directly (no physics body): its collider follows, so the player still bumps into it.
+	// It keeps Clearance metres ahead free: when the Player or another townsperson (a collider on the Npc layer)
+	// stands there, it stops and waits, facing that way; after Patience seconds it turns back (a round walker, Loop,
+	// goes on through instead).
 	// Put it on an NPC entity with a SpriteAnimatorComponent whose sheet has Walk<Facing> clips; without them the
 	// idle plays while it moves, which is better than a frozen frame.
 	HY_SCRIPT()
@@ -41,6 +45,12 @@ namespace Hydro
 		float StartDelay = 0.0f;
 		HY_PROPERTY(Tooltip("A round: it always walks from the line's start to its end, then reappears at the start (for a long street, with both ends off screen) instead of turning back"))
 		bool Loop = false;
+		HY_PROPERTY(Tooltip("The player: it waits while she stands in its way"))
+		EntityRef Player;
+		HY_PROPERTY(Range(0, 5), Tooltip("Metres ahead it keeps free: it waits while the player or another townsperson stands there (0: walks through)"))
+		float Clearance = 0.9f;
+		HY_PROPERTY(Range(0, 30), Tooltip("Seconds it waits for its way to clear before it turns back (a round walker goes on through)"))
+		float Patience = 3.0f;
 
 	protected:
 		void OnCreate() override
@@ -74,6 +84,10 @@ namespace Hydro
 			const float step = Speed * deltaTime;
 			const float remaining = m_Target - m_Along;
 			const float direction = remaining < 0.0f ? -1.0f : 1.0f;
+			if (WaitWhileBlocked(direction, deltaTime))
+			{
+				return;
+			}
 			if (std::abs(remaining) <= step)
 			{
 				m_Along = m_Target;
@@ -97,6 +111,16 @@ namespace Hydro
 
 			m_Along += direction * step;
 			Place();
+			Face(direction);
+			if (SpriteAnimator::Play(GetEntity(), "Walk" + m_Facing) == false)
+			{
+				SpriteAnimator::Play(GetEntity(), "Idle" + m_Facing);
+			}
+		}
+
+	private:
+		void Face(float direction)
+		{
 			if (Axis == "Y")
 			{
 				m_Facing = direction > 0.0f ? "Up" : "Down";
@@ -105,13 +129,76 @@ namespace Hydro
 			{
 				m_Facing = direction > 0.0f ? "Right" : "Left";
 			}
-			if (SpriteAnimator::Play(GetEntity(), "Walk" + m_Facing) == false)
-			{
-				SpriteAnimator::Play(GetEntity(), "Idle" + m_Facing);
-			}
 		}
 
-	private:
+		// True (standing, facing the way) while the player or another townsperson is within Clearance ahead; after
+		// Patience seconds of that it turns back, or (Loop) walks on through for a moment.
+		bool WaitWhileBlocked(float direction, float deltaTime)
+		{
+			if (m_PassThrough > 0.0f)
+			{
+				m_PassThrough -= deltaTime;
+				return false;
+			}
+			if (Clearance <= 0.0f || IsBlocked(direction) == false)
+			{
+				m_Blocked = 0.0f;
+				return false;
+			}
+			if (m_Blocked == 0.0f)
+			{
+				Face(direction);
+				if (SpriteAnimator::Play(GetEntity(), "Idle" + m_Facing) == false)
+				{
+					SpriteAnimator::Play(GetEntity(), "Idle");
+				}
+			}
+			m_Blocked += deltaTime;
+			if (m_Blocked >= Patience)
+			{
+				m_Blocked = 0.0f;
+				if (Loop)
+				{
+					m_PassThrough = 1.5f;
+				}
+				else
+				{
+					m_Target = direction > 0.0f ? -0.5f * PathLength : 0.5f * PathLength;
+				}
+			}
+			return true;
+		}
+
+		bool IsBlocked(float direction)
+		{
+			Entity self = GetEntity();
+			Scene& scene = *self.GetScene();
+			const glm::vec3 position = GetWorldPosition();
+			const glm::vec3 forward = Axis == "Y" ? glm::vec3(0.0f, direction, 0.0f) : glm::vec3(direction, 0.0f, 0.0f);
+			if (Entity player = Player.Get())
+			{
+				const glm::vec3 offset = scene.GetWorldPosition(player) - position;
+				const float ahead = glm::dot(offset, forward);
+				const glm::vec2 side = glm::vec2(offset) - glm::vec2(forward) * ahead;
+				if (ahead > 0.0f && ahead < Clearance + 0.35f && glm::length(side) < 0.6f && std::abs(offset.z) < 1.5f)
+				{
+					return true;
+				}
+			}
+			m_Nearby.clear();
+			const float radius = 0.5f * Clearance;
+			Physics3D::OverlapSphere(scene, position + forward * (0.3f + radius) + glm::vec3(0.0f, 0.0f, 0.8f), radius,
+				Physics3D::LayerBit(PhysicsLayer::Npc), m_Nearby);
+			for (const Entity& other : m_Nearby)
+			{
+				if ((entt::entity)other != (entt::entity)self)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		// Where to walk next: the other end of the line, or (StopChance) a spot between here and there.
 		void PickNextTarget()
 		{
@@ -177,6 +264,9 @@ namespace Hydro
 		float m_Wait = 0.0f;
 		int m_Stops = 0;
 		std::string m_Facing = "Down";
+		float m_Blocked = 0.0f;      // seconds waiting for the way to clear
+		float m_PassThrough = 0.0f;  // seconds left walking on regardless (a round walker that waited long enough)
+		std::vector<Entity> m_Nearby;
 		uint32_t m_Seed = 1;
 	};
 }

@@ -542,6 +542,10 @@ namespace Hydro
 				out << YAML::Key << "Segments" << YAML::Value << mesh.Segments;
 			}
 			out << YAML::Key << "CastShadows" << YAML::Value << mesh.CastShadows;
+			if (mesh.Opacity < 1.0f)
+			{
+				out << YAML::Key << "Opacity" << YAML::Value << mesh.Opacity;
+			}
 			out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
 			// Each slot: its material asset's handle (when it has one) and its inline settings, the fallback.
 			for (const MeshMaterialSlot& slot : mesh.Materials)
@@ -1060,6 +1064,7 @@ namespace Hydro
 			mesh.Steps = meshNode["Steps"].as<uint32_t>(mesh.Steps);
 			mesh.Segments = meshNode["Segments"].as<uint32_t>(mesh.Segments);
 			mesh.CastShadows = meshNode["CastShadows"].as<bool>(mesh.CastShadows);
+			mesh.Opacity = std::clamp(meshNode["Opacity"].as<float>(1.0f), 0.0f, 1.0f);
 			if (auto materialsNode = meshNode["Materials"]; materialsNode && materialsNode.IsSequence())
 			{
 				mesh.Materials.clear();

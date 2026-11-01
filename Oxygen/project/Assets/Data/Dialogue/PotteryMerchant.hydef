@@ -1,0 +1,12 @@
+Handle: 8934795963015759287
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: "Bowls from the kilns past the rice fields. The crooked ones go to the tea houses."
+      - Speaker: ""
+        Text: "They call a crack 'character' over there. I call it half price."

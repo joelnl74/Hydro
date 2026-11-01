@@ -354,7 +354,7 @@ namespace Hydro
 	}
 
 	void Renderer3D::DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID,
-		bool castShadows)
+		bool castShadows, float opacity)
 	{
 		HY_CORE_ASSERT(s_Data3D->CurrentView != nullptr, "Renderer3D::DrawMesh outside BeginScene/EndScene");
 		RenderViewData* view = s_Data3D->CurrentView;
@@ -381,6 +381,7 @@ namespace Hydro
 		draw.EntityID = entityID < 0 ? -1 : entityID;
 		draw.SortDepth = clip.w != 0.0f ? clip.z / clip.w : clip.z;
 		draw.CastShadows = castShadows;
+		draw.Opacity = std::clamp(opacity, 0.0f, 1.0f);
 		view->MeshDraws.push_back(std::move(draw));
 	}
 
@@ -728,6 +729,7 @@ namespace Hydro
 			ObjectPushConstants constants;
 			constants.Transform = draw.Transform;
 			constants.EntityID = draw.EntityID;
+			constants.Opacity = draw.Opacity;
 			pipeline->PushConstants(commandBuffer, &constants, (uint32_t)sizeof(constants));
 
 			const SubMesh& subMesh = draw.MeshRef->GetSubMeshes()[draw.SubMesh];

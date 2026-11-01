@@ -9,12 +9,14 @@
 #include "Scripts/Common/CameraZoneScript.h"
 #include "Scripts/Common/DioramaDirectorScript.h"
 #include "Scripts/Common/DioramaWalkScript.h"
+#include "Scripts/Common/OccluderFadeScript.h"
 #include "Scripts/Countryside/CountrysideQuestScript.h"
 #include "Scripts/Examples/SpawnerScript.h"
 #include "Scripts/Examples/TriggerZoneScript.h"
 #include "Scripts/FarmVillage/FarmVillageScript.h"
 #include "Scripts/Field/EnemyChaseScript.h"
 #include "Scripts/Field/FieldDirectorScript.h"
+#include "Scripts/Field/NpcLookAroundScript.h"
 #include "Scripts/Field/NpcWanderScript.h"
 #include "Scripts/Field/QuestGiverScript.h"
 #include "Scripts/Interiors/InteriorScript.h"
@@ -99,6 +101,15 @@ namespace Hydro
 			.Property("m_Speed", "Speed", &DioramaWalkScript::m_Speed).Range(0.0f, 20.0f).Tooltip("Walking speed in metres per second")
 			.Property("RunMultiplier", "Run Multiplier", &DioramaWalkScript::RunMultiplier).Range(1.0f, 5.0f).Tooltip("Shift multiplies the speed by this");
 
+		ScriptRegistry::Register<OccluderFadeScript>("OccluderFadeScript")
+			.Property("Target", "Target", &OccluderFadeScript::Target).Tooltip("The one kept in sight (the player)")
+			.Property("FadedOpacity", "Faded Opacity", &OccluderFadeScript::FadedOpacity).Range(0.0f, 1.0f).Tooltip("How much of a mesh in the way still shows (0: gone, 1: no fade)")
+			.Property("FadeSpeed", "Fade Speed", &OccluderFadeScript::FadeSpeed).Range(0.0f, 20.0f).Tooltip("Opacity per second while fading out and back in")
+			.Property("Radius", "Radius", &OccluderFadeScript::Radius).Range(0.0f, 2.0f).Tooltip("Metres: how close to the line of sight a mesh is in the way")
+			.Property("HeadHeight", "Head Height", &OccluderFadeScript::HeadHeight).Range(0.0f, 4.0f).Tooltip("Metres above the target's feet of the highest point kept in sight (its head)")
+			.Property("MaxSize", "Max Size", &OccluderFadeScript::MaxSize).Min(1.0f).Tooltip("Metres: a mesh larger than this on any side never fades (the ground, terraces)")
+			.Property("LogFades", "Log Fades", &OccluderFadeScript::LogFades).Tooltip("Log each mesh as it starts to fade (its name and world box), to tune the radius and size");
+
 		ScriptRegistry::Register<CountrysideQuestScript>("CountrysideQuestScript")
 			.Property("QuestTable", "Quest Table", &CountrysideQuestScript::QuestTable).Tooltip("The quests: rows GuardiansDuty and AlongTheLeyline").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition")
 			.Property("DialogueTable", "Dialogue Table", &CountrysideQuestScript::DialogueTable).Tooltip("What Orin says: rows OrinMeet, OrinJoins, OrinRetry").AssetFilter(AssetType::DataTable).DataTypeFilter("DialogueDefinition")
@@ -157,10 +168,18 @@ namespace Hydro
 			.Property("ArriveTime", "Arrive Time", &FieldDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
 			.Property("RestTime", "Rest Time", &FieldDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point")
 			.Property("StartingInventory", "Starting Inventory", &FieldDirectorScript::StartingInventory).Tooltip("The items a run starts with, in their order").AssetFilter(AssetType::Definition).DataTypeFilter("InventoryDefinition")
-			.Property("ChestItem", "Chest Item", &FieldDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition")
+			.Property("ChestItem", "Chest Item", &FieldDirectorScript::ChestItem).Tooltip("What a chest gives when its tag names no loot table (a plain \"Chest\")").DataTypeFilter("ItemDefinition")
+			.Property("LootTable", "Loot Table", &FieldDirectorScript::LootTable).Tooltip("The loot tables chests roll: \"Chest <row> ...\" rolls that row (items and aster)").AssetFilter(AssetType::DataTable).DataTypeFilter("LootTableDefinition")
 			.Property("NpcTable", "Npc Table", &FieldDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
 			.Property("SignTable", "Sign Table", &FieldDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
 			.Property("Dialogue", "Dialogue", &FieldDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
+
+		ScriptRegistry::Register<NpcLookAroundScript>("NpcLookAroundScript")
+			.Property("Facings", "Facings", &NpcLookAroundScript::Facings).Tooltip("The facings it looks in, in turn, separated by spaces (Down, Up, Left, Right)")
+			.Property("HoldMin", "Hold Min", &NpcLookAroundScript::HoldMin).Range(0.0f, 30.0f).Tooltip("Seconds it looks one way, at least")
+			.Property("HoldMax", "Hold Max", &NpcLookAroundScript::HoldMax).Range(0.0f, 60.0f).Tooltip("Seconds it looks one way, at most")
+			.Property("Player", "Player", &NpcLookAroundScript::Player).Tooltip("The player: it watches her while she is near")
+			.Property("WatchRange", "Watch Range", &NpcLookAroundScript::WatchRange).Range(0.0f, 10.0f).Tooltip("Metres: closer than this it faces the player (0: never)");
 
 		ScriptRegistry::Register<NpcWanderScript>("NpcWanderScript")
 			.Property("PathLength", "Path Length", &NpcWanderScript::PathLength).Range(0.0f, 60.0f).Tooltip("Metres: the whole length of the line it walks, centred on where it was placed")
@@ -172,7 +191,10 @@ namespace Hydro
 			.Property("WorkClip", "Work Clip", &NpcWanderScript::WorkClip).Tooltip("A clip prefix played instead of Idle<Facing> at stops (\"Work\" plays Work<Facing>); empty: none")
 			.Property("WorkEvery", "Work Every", &NpcWanderScript::WorkEvery).Range(1.0f, 10.0f).Tooltip("With WorkClip: it works at one stop in this many")
 			.Property("StartDelay", "Start Delay", &NpcWanderScript::StartDelay).Range(0.0f, 60.0f).Tooltip("Seconds before it first moves (so a crowd doesn't all set off at once)")
-			.Property("Loop", "Loop", &NpcWanderScript::Loop).Tooltip("A round: it always walks from the line's start to its end, then reappears at the start (for a long street, with both ends off screen) instead of turning back");
+			.Property("Loop", "Loop", &NpcWanderScript::Loop).Tooltip("A round: it always walks from the line's start to its end, then reappears at the start (for a long street, with both ends off screen) instead of turning back")
+			.Property("Player", "Player", &NpcWanderScript::Player).Tooltip("The player: it waits while she stands in its way")
+			.Property("Clearance", "Clearance", &NpcWanderScript::Clearance).Range(0.0f, 5.0f).Tooltip("Metres ahead it keeps free: it waits while the player or another townsperson stands there (0: walks through)")
+			.Property("Patience", "Patience", &NpcWanderScript::Patience).Range(0.0f, 30.0f).Tooltip("Seconds it waits for its way to clear before it turns back (a round walker goes on through)");
 
 		ScriptRegistry::Register<QuestGiverScript>("QuestGiverScript")
 			.Property("QuestTable", "Quest Table", &QuestGiverScript::QuestTable).Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition");

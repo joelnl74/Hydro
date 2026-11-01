@@ -29,6 +29,7 @@
 #include "Hydro/Scene/SpriteAnimator.h"
 #include "Hydro/Scene/ParticleScene.h"
 #include "Hydro/Scene/Prefab.h"
+#include "Hydro/Scene/MeshBounds.h"
 #include "Hydro/Scene/Vfx.h"
 #include "Hydro/Scene/UI/UI.h"
 #include "Hydro/Scene/UI/UIEvent.h"

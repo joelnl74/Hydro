@@ -5,7 +5,7 @@ RenderProfile:
     GroundAmbient: [0.22, 0.2, 0.17]
     Fog: true
     FogColor: [0.74, 0.76, 0.8]
-    FogStart: 40
+    FogStart: 30
     FogEnd: 260
   PostProcess:
     Exposure: 0
@@ -15,7 +15,7 @@ RenderProfile:
     BloomIntensity: 0.5
     BloomRadius: 1
     DepthOfField: true
-    DofNearStart: 2
+    DofNearStart: 1
     DofFarStart: 9
-    DofRange: 14
+    DofRange: 9
     DofMaxRadius: 0.9

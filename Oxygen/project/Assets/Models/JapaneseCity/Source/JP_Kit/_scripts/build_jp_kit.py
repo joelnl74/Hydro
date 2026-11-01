@@ -53,12 +53,20 @@ MATDEFS = {
     "JP_Mat_Iron": {}, "JP_Mat_Bronze": {}, "JP_Mat_Rope": {}, "JP_Mat_Glass": {},
     "JP_Mat_Opening": {"file": "JP_Mat_Opening.png"},     # the dark behind open shop fronts and window bars
     "JP_Plaster_Clean": {}, "JP_Plaster_Warm_B": {},      # the row houses' plasters (PixelLab, Nov 2)
+    # PixelLab batch 1 (Nov 2). "fit": strips whose vertical faces show the image's full height whatever the face's
+    # height (the ridge's three courses, the plinth's block course), u at `fit` metres per image width
+    "JP_Plaster_Aged": {}, "JP_Wood_WarmAged": {}, "JP_Wood_PlankCounter": {}, "JP_Stone_IshigakiLarge": {},
+    "JP_Stone_Foundation": {"fit": 1.4}, "JP_Roof_RidgeTile": {"fit": 2.24},
+    "JP_Straw_Woven": {},                                 # rice bales, sake barrels, mats (placeholder, Nov 2)
+    "JP_Roof_Thatch": {},                                 # kayabuki farmhouse roofs (placeholder, Nov 2)
+    "JP_Roof_ThatchEdge": {"file": "JP_Roof_Thatch.png"}, # the thick cut edge of the thatch, darkened by tint
 }
 GLOW = (1.0, 0.62, 0.28, 1.0)
-ROOF_MATS = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_Plank", "JP_Roof_KawaraChannel"}
+ROOF_MATS = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_Plank", "JP_Roof_KawaraChannel", "JP_Roof_Thatch",
+             "JP_Roof_ThatchEdge"}
 # the round tile rolls on a kawara slope: their own texture (courses along the roll), UV'd along the roll's arc
 ROLL_MAT = {"JP_Roof_Kawara": "JP_Roof_KawaraRoll", "JP_Roof_KawaraOld": "JP_Roof_KawaraOldRoll"}
-MAT, TEXSIZE, ROT = {}, {}, set()
+MAT, TEXSIZE, ROT, FIT = {}, {}, set(), {}
 if (TEX / "JP_Mat_Opening.png").exists() is False:
     img = bpy.data.images.new("JP_Mat_Opening", 4, 4, alpha=False)
     img.pixels = [v for _ in range(16) for v in (0.035, 0.03, 0.03, 1.0)]
@@ -95,6 +103,8 @@ for name, ex in MATDEFS.items():
     TEXSIZE[name] = (img.size[0] / PPM, img.size[1] / PPM)
     if ex.get("rot"):
         ROT.add(name)
+    if ex.get("fit"):
+        FIT[name] = ex["fit"]
 
 
 # ------------------------------------------------------------------ mesh builder
@@ -130,6 +140,10 @@ class MeshBuilder:
         f.normal_update()
         W, H = TEXSIZE.get(mat, (4.0, 4.0))
         n = f.normal
+        fit = FIT.get(mat) if (uvs is None and abs(n.z) < 0.5) else None
+        if fit:
+            zs = [lp.vert.co.z for lp in f.loops]
+            zlo, zspan = min(zs), max(1e-6, max(zs) - min(zs))
         for i, loop in enumerate(f.loops):
             p = loop.vert.co
             if uvs is not None:
@@ -150,6 +164,9 @@ class MeshBuilder:
                     u, v = p.x, (p.y if n.z > 0 else -p.y)
             if mat in ROT:
                 u, v = v, u
+            if fit:
+                loop[self.uv].uv = (u / fit, (p.z - zlo) / zspan)
+                continue
             loop[self.uv].uv = (u / W, v / H)
         return f
 
@@ -437,7 +454,8 @@ def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_e
                 mb.box(-0.05, 0, -0.22, 0.05, L, 0.0, barge, M=M)
     zr = ze + rise
     rx0, rx1 = X0 - (0.05 if free[0] else 0.0), X1 + (0.05 if free[1] else 0.0)
-    mb.box(rx0, ym - 0.2, zr - 0.05, rx1, ym + 0.2, zr + 0.3, mat)
+    ridge = "JP_Roof_RidgeTile" if mat in ("JP_Roof_Kawara", "JP_Roof_KawaraOld") else mat
+    mb.box(rx0, ym - 0.2, zr - 0.05, rx1, ym + 0.2, zr + 0.3, ridge, top=mat)
     h = {"plain": 0.3, "cloud": 0.62, "none": 0.0}[ridge_end]
     if h > 0:
         for xe, o, fr in ((rx0, -1, free[0]), (rx1, 1, free[1])):
@@ -551,7 +569,7 @@ def m_post(mb, x, y, z0, z1, s=POST, mat=CEDAR):
     mb.box(x - s / 2, y - s / 2, z0, x + s / 2, y + s / 2, z1, mat)
 
 
-def m_plinth(mb, x0, x1, y0, y1, h, mat=GRANITE):
+def m_plinth(mb, x0, x1, y0, y1, h, mat="JP_Stone_Foundation"):
     mb.box(x0, y0, 0, x1, y1, h, mat)
 
 
@@ -796,7 +814,7 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
 # sliding door, plank double door, or the open shop), a door canopy or not, udatsu fire walls, the roof tiles.
 ROW_PLINTH = 0.35      # the visible granite base course
 ROW_SKIRT = 0.55       # the cedar board skirt (koshi-ita) on top of it, with a rail
-PLASTER_TINTS = {"cream": (1.0, 0.985, 0.94), "grey": (0.9, 0.93, 0.93), "ochre": (1.0, 0.96, 0.86), "white": (1.03, 1.02, 1.0)}
+PLASTER_TINTS = {"cream": (1.0, 0.985, 0.94), "grey": (1.0, 1.0, 1.0), "ochre": (1.0, 0.96, 0.86), "white": (1.03, 1.02, 1.0)}
 WOOD_TINTS = {"dark": (1.0, 1.0, 1.0), "medium": (1.16, 1.08, 0.96), "red": (1.12, 0.98, 0.9)}
 
 
@@ -817,10 +835,10 @@ def m_door_wood(mb, cx, y, z, w=2.2, deep=0.5):
     for sx in (-1, 1):
         a, b = sorted((cx + sx * w / 2, cx + sx * (w / 2 - 0.04)))
         mb.box(a, y, z, b, y + deep, z + DOOR_H, "JP_Mat_Opening")
-    mb.box(cx - w / 2, y + 0.1, z, cx + 0.02, y + 0.18, z + DOOR_H, CEDAR)                                  # closed leaf
+    mb.box(cx - w / 2, y + 0.1, z, cx + 0.02, y + 0.18, z + DOOR_H, "JP_Wood_WarmAged")                     # closed leaf
     for bz in (0.5, 1.2, 1.85):
         mb.box(cx - w / 2 + 0.04, y + 0.06, z + bz, cx - 0.02, y + 0.1, z + bz + 0.1, CEDAR)             # battens
-    mb.box(cx + 0.06, y + 0.2, z, cx + w / 2 - 0.5, y + 0.28, z + DOOR_H, CEDAR)                             # open leaf, pushed back
+    mb.box(cx + 0.06, y + 0.2, z, cx + w / 2 - 0.5, y + 0.28, z + DOOR_H, "JP_Wood_WarmAged")                # open leaf, pushed back
     mb.box(cx - w / 2 - 0.14, y - 0.06, z, cx - w / 2, y + deep, z + DOOR_H + 0.18, CEDAR)
     mb.box(cx + w / 2, y - 0.06, z, cx + w / 2 + 0.14, y + deep, z + DOOR_H + 0.18, CEDAR)
     mb.box(cx - w / 2 - 0.2, y - 0.1, z + DOOR_H, cx + w / 2 + 0.2, y + deep, z + DOOR_H + 0.24, CEDAR)
@@ -838,7 +856,7 @@ def row_house(name, bays, depth=9.0, attach=(False, False), door_bay=1, door="la
     aL, aR = attach
     pl = ROW_PLINTH
     # the base course: granite, standing 0.12 proud of the wall, cut flush at a party wall
-    mb.box(x0 - (0.0 if aL else 0.12), -0.12, 0, x1 + (0.0 if aR else 0.12), D + 0.12, pl, GRANITE,
+    mb.box(x0 - (0.0 if aL else 0.12), -0.12, 0, x1 + (0.0 if aR else 0.12), D + 0.12, pl, "JP_Stone_Foundation", top=GRANITE,
            skip=('-z',) + tuple(k for k, a in (('-x', aL), ('+x', aR)) if a))
     z = pl
     gf = m["gf"]
@@ -928,7 +946,7 @@ def m_shop_interior(mb, a, b, z):
     side walls, a dark cedar back wall with three shelves of jars and cloth bolts and a lit paper door in the middle,
     and a plank ceiling. The scene puts a warm light, the merchant and a noren in it (info: shop_floor_z)."""
     yd, fz = SHOP_DEPTH, z + SHOP_FLOOR
-    mb.box(a, -0.3, z, b, yd, fz, CEDAR, top="JP_Clay_Ochre", skip=('-z',))                 # raised floor
+    mb.box(a, -0.3, z, b, yd, fz, "JP_Wood_PlankCounter", top="JP_Clay_Ochre", skip=('-z',))  # raised floor
     mb.box(a, -0.32, fz - 0.1, b, -0.18, fz + 0.02, CEDAR)                                 # its front edge beam
     mb.box(a, yd - 0.05, z, b, yd, z + 2.5, CEDAR)                                         # back wall
     mb.box(a, 0.0, z + 2.45, b, yd, z + 2.5, CEDAR, skip=('+z',))                          # ceiling
@@ -1147,7 +1165,8 @@ def city_gate(name):
         bat = 0.9
         lo = [(a, 0, 0), (b, 0, 0), (b, bd, 0), (a, bd, 0)]
         hi = [(a, WALL_BAT_IN, ph), (b, WALL_BAT_IN, ph), (b, bd - bat, ph), (a, bd - bat, ph)]   # same profile as the walls
-        mb.solid(lo, hi, GRANITE)
+        mb.solid(lo, hi, "JP_Stone_IshigakiLarge", bottom_mat=GRANITE, cap=False)
+        mb.poly(hi, GRANITE)
     mb.box(-pw / 2 - 0.2, 0.6, ph - 0.1, pw / 2 + 0.2, bd - 0.6, ph + 0.35, CEDAR)
     for px in (-pw / 2, pw / 2 - 0.35):
         mb.box(px, 0.9, 0, px + 0.35, 1.25, ph, CEDAR)
@@ -1156,6 +1175,9 @@ def city_gate(name):
     uy0, uy1 = 0.9, bd - 0.9
     uz0, uz1 = ph + 0.35, ph + 0.35 + 3.2
     m_wall_frame(mb, ux0, ux1, uy0, uy1, uz0, uz1, bays=None)
+    # the sill (dodai) the storey stands on (Nov 2): the storey's floor is 0.35 m above the stone bases and only the
+    # passage was bridged, so from the field camera the whole upper storey floated on a dark gap
+    mb.box(ux0 - 0.08, uy0 - 0.12, ph - 0.02, ux1 + 0.08, uy1 + 0.12, uz0, CEDAR, skip=('-z',))
     mb.box(ux0 - 0.06, uy0 - 0.1, uz0, ux1 + 0.06, uy0 + 0.02, uz0 + 0.3, CEDAR)
     for sx in (-4.2, -2.6, 2.6, 4.2):
         mb.poly([(sx - 0.25, uy0 - 0.01, uz0 + 1.1), (sx + 0.25, uy0 - 0.01, uz0 + 1.1), (sx, uy0 - 0.01, uz0 + 1.55)], "JP_Mat_Opening")
@@ -1186,8 +1208,8 @@ def city_gate(name):
 
 def gate_wall(name, length=4.0):
     mb = MeshBuilder()
-    mb.box(-length / 2, 0, 0, length / 2, 1.6, 1.4, GRANITE)
-    mb.box(-length / 2, 0.3, 1.4, length / 2, 1.3, 3.6, PLASTER, skip=('-z',))
+    mb.box(-length / 2, 0, 0, length / 2, 1.6, 1.4, "JP_Stone_IshigakiLarge", top=GRANITE)
+    mb.box(-length / 2, 0.3, 1.4, length / 2, 1.3, 3.6, "JP_Plaster_Aged", skip=('-z',))
     mb.box(-0.3, 0.27, 2.4, 0.3, 0.32, 2.9, "JP_Mat_Opening")
     for k in range(3):
         mb.box(-0.2 + k * 0.2 - 0.025, 0.24, 2.4, -0.2 + k * 0.2 + 0.025, 0.28, 2.9, CEDAR)
@@ -1288,10 +1310,12 @@ def city_wall(name, length=8.0, h=4.5, d=7.0):
     x0, x1 = -length / 2, length / 2
     yo = d - bat                                                   # the outer edge of the walk
     bi = WALL_BAT_IN                                               # the city-side face leans back too (Nov 1)
-    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, d, 0), (x0, d, 0)], [(x0, bi, h), (x1, bi, h), (x1, yo, h), (x0, yo, h)], GRANITE)
+    top_ = [(x0, bi, h), (x1, bi, h), (x1, yo, h), (x0, yo, h)]
+    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, d, 0), (x0, d, 0)], top_, "JP_Stone_IshigakiLarge", bottom_mat=GRANITE, cap=False)
+    mb.poly(top_, GRANITE)
     mb.box(x0, bi - 0.06, h - 0.12, x1, yo, h, GRANITE, skip=('-z',))                   # coping along the walk
     py0, py1 = yo - 0.45, yo
-    mb.box(x0, py0, h, x1, py1, h + 1.3, PLASTER, skip=('-z',))
+    mb.box(x0, py0, h, x1, py1, h + 1.3, "JP_Plaster_Aged", skip=('-z',))
     for k in range(int(length / 2)):
         cx = x0 + 1.0 + k * 2.0
         for (y, e) in ((py0 - 0.01, -0.007), (py1 + 0.01, 0.007)):          # the holes show on both faces
@@ -1401,13 +1425,14 @@ def market_stall(name, cloth="JP_Cloth_Red"):
     mb = MeshBuilder()
     mb.tint = {CEDAR: WOOD_TINTS["medium"]}
     W, D = 2.4, 0.9
-    mb.box(-W / 2, 0.0, 0.12, W / 2, D, 0.78, CEDAR, top=CEDAR)                              # counter body
-    mb.box(-W / 2 - 0.06, -0.06, 0.78, W / 2 + 0.06, D + 0.06, 0.86, CEDAR)                   # counter top
+    PLANK, WARM = "JP_Wood_PlankCounter", "JP_Wood_WarmAged"
+    mb.box(-W / 2, 0.0, 0.12, W / 2, D, 0.78, PLANK, top=PLANK)                              # counter body
+    mb.box(-W / 2 - 0.06, -0.06, 0.78, W / 2 + 0.06, D + 0.06, 0.86, PLANK)                   # counter top
     for x in (-W / 2 + 0.08, W / 2 - 0.08):                                                   # legs
-        mb.box(x - 0.06, 0.04, 0, x + 0.06, 0.16, 0.14, CEDAR); mb.box(x - 0.06, D - 0.16, 0, x + 0.06, D - 0.04, 0.14, CEDAR)
+        mb.box(x - 0.06, 0.04, 0, x + 0.06, 0.16, 0.14, WARM); mb.box(x - 0.06, D - 0.16, 0, x + 0.06, D - 0.04, 0.14, WARM)
     for x in (-W / 2 - 0.1, W / 2 + 0.1):                                                     # poles
-        mb.box(x - 0.05, -0.35, 0, x + 0.05, -0.25, 2.25, CEDAR)
-        mb.box(x - 0.05, D + 0.25, 0, x + 0.05, D + 0.35, 2.05, CEDAR)
+        mb.box(x - 0.05, -0.35, 0, x + 0.05, -0.25, 2.25, WARM)
+        mb.box(x - 0.05, D + 0.25, 0, x + 0.05, D + 0.35, 2.05, WARM)
     y0, y1, zf, zb = -0.6, D + 0.5, 2.3, 2.1
     ribs = (-W / 2 - 0.2, 0.0, W / 2 + 0.2)
     for rx in ribs:                                                                            # ribs the cloth hangs on
@@ -1504,6 +1529,125 @@ add("C", poor_house("JP_Poor_RowHouse_A", 12.0, 5.0, "plank", door_x=(-4.8, -1.8
 add("C", poor_house("JP_Poor_Boathouse_A", 6.0, 7.0, "plank", door_x=(-2.2,), win_x=(), stilts=0.6, water_bay=(-1.2, 2.4)))
 add("C", poor_house("JP_Poor_NetShed_A", 5.0, 4.0, "plank", door_x=(), open_front=True))
 add("C", poor_house("JP_Poor_FishStore_A", 5.0, 4.0, "plank", door_x=(0.0,), win_x=(-1.7,)))
+# ------------------------------------------------------------------ farmhouses (minka, Nov 2)
+THATCH, THATCH_EDGE = "JP_Roof_Thatch", "JP_Roof_ThatchEdge"
+
+
+def roof_thatch(mb, x0, x1, y0, y1, z, pitch=45.0, eave=0.55, thick=0.35, gable=True, crossed=True):
+    """Kayabuki: a steep thatched hip roof (irimoya with gable=True: the hips stop short of the ridge and a small
+    latticed smoke gable sits at each end), the thatch as a thick slab whose cut edge shows along every eave, a dark
+    timber ridge with crossed ridge timbers (karasu-odori). Ridge along X."""
+    mb.tint = dict(mb.tint, **{THATCH_EDGE: (0.66, 0.6, 0.54)})
+    t = math.tan(math.radians(pitch))
+    ym = (y0 + y1) / 2
+    hd = (y1 - y0) / 2 + eave
+    ze = z - eave * t
+    X0, X1, Y0, Y1 = x0 - eave, x1 + eave, y0 - eave, y1 + eave
+    zr = ze + hd * t
+    lo = inner_ring(X0, X1, Y0, Y1, ze, 1)
+    c = 0.14                                                                       # the cut edge slants back
+    under = inner_ring(X0 + c, X1 - c, Y0 + c, Y1 - c, ze - thick, 1)
+    mb.solid(under, lo, THATCH, bottom_mat=THATCH_EDGE, cap=False, side_mat=THATCH_EDGE)
+    inset = hd * (0.8 if gable else 1.0)                                          # a small smoke gable near the top
+    if gable is False:
+        inset = min(hd, (X1 - X0) / 2)
+    zg = ze + inset * t
+    gx0, gx1 = X0 + inset, X1 - inset
+    hi = inner_ring(gx0, gx1, Y0 + inset, Y1 - inset, zg, 1)
+    for i in range(4):
+        q = [lo[i], lo[(i + 1) % 4], hi[(i + 1) % 4], hi[i]]
+        if (Vector(q[2]) - Vector(q[3])).length < 1e-6:
+            q = q[:3]
+        mb.poly(q, THATCH)
+    if inset < hd - 1e-3:                                                         # the gable part above the hips
+        for s_ in (-1, 1):
+            ye = Y0 + inset if s_ < 0 else Y1 - inset
+            q = [(gx0 - 0.08, ye, zg), (gx1 + 0.08, ye, zg), (gx1 + 0.08, ym, zr), (gx0 - 0.08, ym, zr)]
+            if s_ > 0:
+                q = [q[1], q[0], q[3], q[2]]
+            mb.poly(q, THATCH)
+            # the thatch's thickness along the small gable's lower edge
+            mb.box(gx0 - 0.08, ye - 0.02, zg - 0.12, gx1 + 0.08, ye + 0.02, zg, THATCH_EDGE)
+        for gx, sgn in ((gx0, -1), (gx1, 1)):
+            tri = [(gx, Y0 + inset, zg), (gx, Y1 - inset, zg), (gx, ym, zr - 0.05)]
+            mb.poly(list(reversed(tri)) if sgn < 0 else tri, "JP_Wood_Lattice")          # smoke gable
+    rx0, rx1 = (gx0 - 0.25, gx1 + 0.25) if inset < hd - 1e-3 else (gx0 - 0.1, gx1 + 0.1)
+    # the ridge (after the refs): a thatch saddle, a round ridge log on it, and short logs laid across it
+    # (umanori) every 0.75 m, their ends sticking out over both slopes
+    mb.box(rx0, ym - 0.42, zr - 0.25, rx1, ym + 0.42, zr + 0.08, THATCH_EDGE)
+    mb.tube((rx0 - 0.1, ym, zr + 0.2), (rx1 + 0.1, ym, zr + 0.2), 0.16, CEDAR, 8)
+    if crossed and rx1 - rx0 > 0.8:
+        n = max(2, int(round((rx1 - rx0) / 0.75)) + 1)
+        for k in range(n):
+            x = rx0 + 0.15 + k * (rx1 - rx0 - 0.3) / (n - 1)
+            mb.tube((x, ym - 0.62, zr + 0.06), (x, ym + 0.62, zr + 0.06), 0.075, CEDAR, 6)
+    return zr + 0.4
+
+
+def minka(name, w, d, gable=True, veranda=None, doma_x=None, win_x=(), shoji=None, wall_h=3.1, plank=0.9,
+          wall="JP_Plaster_Clean", open_front=False):
+    """A thatched farmhouse (the eave is kept at 2.5 m and 0.55 m deep so the field camera, about 20 degrees above
+    the horizon, still sees the doors under it): foundation course, a cedar board skirt with mud-and-straw wall above, dark posts, a wide
+    plank door to the earth-floored doma, lattice windows, an optional raised veranda (engawa) with lit shoji, and a
+    steep kayabuki roof. Origin: front wall centre on the ground, front -Y."""
+    mb = MeshBuilder()
+    mb.tint = {CEDAR: WOOD_TINTS["medium"], "JP_Plaster_Clean": PLASTER_TINTS["cream"]}
+    x0, x1 = -w / 2, w / 2
+    z = 0.32
+    m_plinth(mb, x0 - 0.1, x1 + 0.1, -0.1, d + 0.1, z)
+    zt = z + wall_h
+    m_wall_frame(mb, x0, x1, 0.0, d, z, zt, wall=wall, bays=1.8, base=plank, open_front=open_front)
+    if open_front:
+        mb.box(x0 + 0.2, 0.2, z, x1 - 0.2, d - 0.2, z + 0.04, "JP_Ground_AlleyDirt")
+        mb.box(x0 + 0.21, d - 0.21, z + 0.04, x1 - 0.21, d - 0.2, zt - 0.3, "JP_Mat_Opening")
+        mb.box(x0, -0.06, zt - 0.35, x1, 0.2, zt, CEDAR)
+    if doma_x is not None:
+        m_door_wood(mb, doma_x, -0.45, z, w=2.0, deep=0.4)          # in front of the wall face (the wall is closed)
+    for wx in win_x:
+        m_window_lattice(mb, wx, 0.0, z + 1.1, 1.2, 0.8)
+    if veranda:
+        va, vb = veranda
+        fz = z + 0.18
+        mb.box(va, -0.95, fz - 0.08, vb, 0.0, fz, "JP_Wood_PlankCounter", top="JP_Wood_PlankCounter")       # engawa
+        for px in (va + 0.1, (va + vb) / 2, vb - 0.18):
+            mb.box(px, -0.9, 0, px + 0.1, -0.8, fz - 0.08, CEDAR)
+        mb.box(va - 0.12, -1.15, 0.0, vb + 0.12, -0.95, 0.16, "JP_Stone_Foundation")               # step stones
+        sa, sb = shoji or (va + 0.2, vb - 0.2)
+        mb.box(sa, -0.03, fz, sb, 0.02, fz + 1.75, "JP_Shoji_Paper")                               # lit sliding doors
+        k = sa
+        while k < sb + 1e-3:
+            mb.box(k - 0.03, -0.06, fz, k + 0.03, 0.0, fz + 1.8, CEDAR)
+            k += (sb - sa) / max(1, round((sb - sa) / 0.9))
+        mb.box(sa - 0.05, -0.07, fz + 1.75, sb + 0.05, 0.0, fz + 1.86, CEDAR)
+    zr = roof_thatch(mb, x0, x1, 0.0, d, zt, gable=gable)
+    info = dict(roof="thatch", wall=wall, ridge=round(zr, 2), head_z=round(z + DOOR_H, 2),
+                door_x=[doma_x] if doma_x is not None else [])
+    return finish(mb, name, w, d, zr, "C", info, floors=(z,))
+
+
+def thatch_shed(name, w=4.0, d=3.0, h=2.6):
+    """An open thatched shed on four posts (straw, tools, the cart under it)."""
+    mb = MeshBuilder()
+    mb.tint = {CEDAR: WOOD_TINTS["medium"]}
+    x0, x1 = -w / 2, w / 2
+    for px in (x0 + 0.1, x1 - 0.1):
+        for py in (0.1, d - 0.1):
+            mb.box(px - 0.18, py - 0.18, 0, px + 0.18, py + 0.18, 0.14, "JP_Stone_Rough")
+            m_post(mb, px, py, 0.14, h, 0.16)
+    mb.box(x0, 0.0, h - 0.18, x1, 0.16, h, CEDAR); mb.box(x0, d - 0.16, h - 0.18, x1, d, h, CEDAR)
+    zr = roof_thatch(mb, x0, x1, 0.0, d, h, pitch=45.0, eave=0.5, thick=0.3, gable=False, crossed=False)
+    ob = finish(mb, name, w, d, zr, "C", dict(roof="thatch", open=True), col=False)
+    for px in (x0 + 0.1, x1 - 0.1):
+        for py in (0.1, d - 0.1):
+            col_box(ob, px - 0.18, py - 0.18, 0, px + 0.18, py + 0.18, h, suffix="_%d_%d" % (int(px > 0), int(py > 1)))
+    return ob
+
+
+add("C", minka("JP_Farm_Minka_A", 10.0, 7.0, veranda=(0.2, 4.8), doma_x=-3.0, win_x=(-0.9,)))
+add("C", minka("JP_Farm_Minka_B", 7.0, 5.5, doma_x=1.5, win_x=(-1.6,)))
+add("C", minka("JP_Farm_Minka_C", 8.0, 6.0, veranda=(-3.8, 0.4), doma_x=2.2, gable=False))
+add("C", minka("JP_Farm_Barn_A", 6.0, 4.5, wall="JP_Wood_Weathered_V", plank=0.0, open_front=True, wall_h=2.5))
+add("C", thatch_shed("JP_Farm_Shed_A"))
 FLOOR = floor_tile("JP_Showcase_Floor", 120.0, 70.0, "JP_Paving_City")
 
 # ------------------------------------------------------------------ 3D props (jp_props.py)

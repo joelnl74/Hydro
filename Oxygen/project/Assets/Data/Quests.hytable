@@ -88,6 +88,28 @@ DataTable:
         - {Speaker: "", Text: "Only {Left} more to go. Look low, by the foot of the bamboo."}
       DoneLines:
         - {Speaker: "", Text: "Lovely, nice and tender. Here's a little something, and a charm I tie on the children. It's yours now."}
+    SideFoxCharms:
+      Title: The Fox's Lost Charms
+      Stages:
+        - Objective: Find the 5 fox charms the wind scattered
+        - Objective: Return the charms to the fox shrine
+      Kind: Collect
+      Giver: Inari
+      Item: {Table: 4741649512266718899, Row: FoxCharm}
+      Count: 5
+      RewardItems:
+        - {Item: {Table: 4741649512266718899, Row: KitsuneBell}, Count: 1}
+      RewardExperience: 60
+      RewardMoney: 100
+      OfferLines:
+        - {Speaker: "", Text: "...A shrine maiden. You can hear me, then. Few still can."}
+        - {Speaker: "", Text: "When the ground shook, the wind came down the hill and took my charms: five white foxes on red thread."}
+        - {Speaker: "", Text: "One rests where the fire burns among the cedars. One where the cherry weeps. One under the red leaves. One where the stairs end. One where the rice is planted."}
+        - {Speaker: Miko, Text: "A voice from the shrine... I'll find them. All five."}
+      ProgressLines:
+        - {Speaker: "", Text: "{Left} of my foxes are still out in the wind. Listen for the little bells."}
+      DoneLines:
+        - {Speaker: "", Text: "All five, home again. You have a kind heart, and quick feet. Take my bell; it will keep them quick."}
     ClearingTheGrounds:
       Title: Clearing the Grounds
       Stages:

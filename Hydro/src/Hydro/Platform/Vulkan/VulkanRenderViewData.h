@@ -131,6 +131,7 @@ namespace Hydro
 		int32_t EntityID = -1;
 		float SortDepth = 0.0f; // clip-space depth of the mesh's centre: front to back
 		bool CastShadows = true; // drawn into the sun shadow map too (MeshComponent::CastShadows)
+		float Opacity = 1.0f; // MeshComponent::Opacity: below 1 dithered away in the Meshes pass (its shadow stays)
 	};
 
 	struct RenderViewData

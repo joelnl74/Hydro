@@ -647,14 +647,16 @@ namespace Hydro
 		void GiveLoot()
 		{
 			std::vector<LootRules::Drop> drops;
+			int money = 0;
 			const std::function<float()> random = [this]() { return Random01(); };
-			auto rollTable = [&drops, &random](const DataRowRef& reference)
+			auto rollTable = [&drops, &money, &random](const DataRowRef& reference)
 			{
 				const DataView<LootTableDefinition> table = reference.IsSet() ? Data::GetRow<LootTableDefinition>(reference) : DataView<LootTableDefinition>();
 				if (table.IsValid() == false)
 				{
 					return;
 				}
+				money += LootRules::RollMoney(*table, random);
 				for (const LootRules::Drop& drop : LootRules::Roll(*table, random))
 				{
 					auto found = std::find_if(drops.begin(), drops.end(), [&](const LootRules::Drop& other) { return other.Item == drop.Item; });
@@ -692,6 +694,11 @@ namespace Hydro
 			{
 				HY_INFO("Battle: found {}", found);
 				m_Results.push_back("Found " + found + ".");
+			}
+			if (money > 0) // a table's coins (none of the battle tables has any yet)
+			{
+				Inventory::Get().Money += money;
+				m_Results.push_back("Found " + std::to_string(money) + " " + CurrencyName + " more.");
 			}
 		}
 

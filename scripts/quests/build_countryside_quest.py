@@ -10,8 +10,8 @@
     its glowing veins "Ley Rift Glow", both flat on the ground and hidden until then) and its trigger area ("Leyline
     Gate", a box trigger; walking into it: "the way is sealed", Along the Leyline's second stage).
   - The side quests' givers' markers ("Quest Marker <Giver>", World canvases QuestGiverScript moves over the NPCs the
-    scene builder placed: Jokai and Sanzo at the camp, Genji and Okiku at the farm) and the script ("Side Quests").
-  - Where the player arrives from the Shrine Glade ("Arrive ShrineGlade", on the terrace at the top of the stairs).
+    scene builder placed: Jokai and Sanzo at the camp, Genji and Okiku at the farm, the fox shrine's voice) and the script ("Side Quests").
+  - Where the player arrives from the Shrine Glade ("Arrive ShrineGlade", on the landing halfway up the mountain).
 
     python scripts/quests/build_countryside_quest.py
 
@@ -35,18 +35,18 @@ import build_countryside as land  # noqa: E402  (the layout and its ground heigh
 
 SCENE = "JapaneseCountryside.hyscene"
 REMOVE = {"Countryside Quest", "Arrive ShrineGlade", "Side Quests"}
-GIVERS = ("Jokai", "Sanzo", "Genji", "Okiku")         # Quests.hytable's side quests in this scene
+GIVERS = ("Jokai", "Sanzo", "Genji", "Okiku", "Inari")   # Quests.hytable's side quests in this scene (Inari: the fox shrine)
 
 TREE = land.TREE                                       # the ancient tree's foot, in its clearing in the cedar forest
 ORIN = (TREE[0] + 4.0, TREE[1] - 3.6)                  # in front of it, facing the path he came up
 WISPS = [(TREE[0] - 2.6, TREE[1] - 2.4), (TREE[0] + 1.6, TREE[1] - 1.2), (TREE[0] + 5.2, TREE[1] - 0.8)]
 RIFT = (TREE[0], TREE[1] - 3.4)                        # the way down, among the roots in front of the trunk
-# The leyline: from the top of the shrine stairs down the road, west along the bund path between the paddies, up into
+# The leyline: from the landing down the long stairs and the road, west along the bund path between the paddies, up into
 # the forest and across the clearing to the rift (the points avoid the ramps' edges).
-LINE = [(0.0, 94.0), (0.0, 89.0), (0.0, 84.0), (0.0, 78.0), (-0.8, 73.0), (-0.6, 67.0), (0.4, 61.5), (0.6, 57.0),
+LINE = [(0.0, 119.5), (0.0, 113.0), (0.0, 106.0), (0.0, 99.0), (0.0, 92.0), (0.0, 86.5), (0.0, 81.0), (0.0, 76.5), (-0.8, 73.0), (-0.6, 67.0), (0.4, 61.5), (0.6, 57.0),
         (-5.0, 56.0), (-11.0, 56.1), (-17.0, 56.0), (-23.0, 55.9), (-29.0, 56.0), (-35.0, 56.0), (-40.0, 56.0),
         (-44.5, 56.2), (-48.0, 57.2), (-51.0, 58.0), RIFT]
-ARRIVE_FROM_SHRINE = (0.0, 95.0)
+ARRIVE_FROM_SHRINE = (0.0, 119.5)                     # on the landing, below the last flight
 
 
 def handle(relative):

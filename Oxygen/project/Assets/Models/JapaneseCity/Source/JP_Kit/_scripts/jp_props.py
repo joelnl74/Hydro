@@ -406,8 +406,126 @@ def p_lantern_bracket():
     return prop("JP_Prop_LanternBracket_A", mb, None, drop=[-0.53, -0.2])
 
 
+# ------------------------------------------------------------------ trade district (Nov 2, after the PixelLab prop sheets)
+# The sheets' solid, simple-volume objects are 3D here (they sit under the lanterns: real light and shadow); the
+# fiddly ones (cloth, trays, racks, stall loads) stay sprites. JP_Straw_Woven is a placeholder until the delivered one.
+STRAW = "JP_Straw_Woven"
+WARM, PLANKC = "JP_Wood_WarmAged", "JP_Wood_PlankCounter"
+
+
+def tawara(mb, x, y, z, r=0.24, L=0.8):
+    """A straw rice bale lying along X, its centre at (x, y), its underside at z: rounded ends, three rope bands."""
+    M = T(x - L / 2, y, z + r) @ R('Y', 90)
+    prof = [(r * 0.5, 0.0), (r * 0.86, 0.05), (r, 0.14), (r, L - 0.14), (r * 0.86, L - 0.05), (r * 0.5, L)]
+    mb.revolve(prof, STRAW, 10, M, cap_top=STRAW, cap_bottom=STRAW)
+    for t in (0.2, L / 2, L - 0.2):
+        mb.revolve([(r + 0.012, t - 0.025), (r + 0.012, t + 0.025)], ROPE, 10, M)
+
+
+def p_rice_bales():
+    mb = MeshBuilder()
+    r = 0.24
+    tawara(mb, -0.05, -0.26, 0.0, r); tawara(mb, 0.05, 0.26, 0.0, r)
+    tawara(mb, 0.0, 0.0, r * 1.62, r)
+    return prop("JP_Prop_RiceBales_A", mb, (-0.45, -0.52, 0, 0.45, 0.52, 0.88))
+
+
+def p_sake_barrel_straw():
+    """Komodaru: a sake barrel standing in straw matting, rope bands, a rope tie over the wooden lid."""
+    mb = MeshBuilder()
+    r, h = 0.3, 0.64
+    mb.revolve(barrel_profile(r, h, 0.05, 4), STRAW, 12, cap_bottom=STRAW)
+    mb.revolve([(r * 0.98, h), (r * 0.92, h + 0.02)], WEATHER, 12, cap_top=WEATHER)
+    for z in (0.06, h / 2, h - 0.06):
+        rr = r * (1 + 0.05 * math.sin(math.pi * z / h)) + 0.012
+        mb.revolve([(rr, z - 0.025), (rr, z + 0.025)], ROPE, 12)
+    for a in (0, 90):
+        M = R('Z', a)
+        mb.tube(tuple(M @ Vector((-r, 0.0, h - 0.06))), tuple(M @ Vector((0.0, 0.0, h + 0.05))), 0.014, ROPE, 4)
+        mb.tube(tuple(M @ Vector((0.0, 0.0, h + 0.05))), tuple(M @ Vector((r, 0.0, h - 0.06))), 0.014, ROPE, 4)
+    return prop("JP_Prop_SakeBarrelStraw_A", mb, (-0.32, -0.32, 0, 0.32, 0.32, 0.7))
+
+
+def p_tea_chests():
+    """Two dark wooden tea chests with lids, three tin tea canisters in front."""
+    mb = MeshBuilder()
+    mb.tint = {CEDAR: (0.8, 0.72, 0.66)}
+    for (x0, x1, h) in ((-0.55, -0.02, 0.48), (0.04, 0.5, 0.4)):
+        mb.box(x0, 0.0, 0, x1, 0.42, h, CEDAR)
+        mb.box(x0 - 0.02, -0.02, h, x1 + 0.02, 0.44, h + 0.05, CEDAR)
+        mb.box(x0 + 0.06, -0.025, h * 0.45, x1 - 0.06, -0.005, h * 0.55, IRON)          # iron strap
+    for (x, r, hh) in ((-0.3, 0.08, 0.24), (-0.1, 0.07, 0.2), (0.12, 0.08, 0.22)):
+        M = T(x, -0.2, 0)
+        mb.revolve([(r, 0.0), (r, hh)], IRON, 8, M, cap_bottom=IRON)
+        mb.revolve([(r + 0.01, hh), (r + 0.01, hh + 0.04), (0.0, hh + 0.05)], "JP_Glaze_Brown", 8, M)
+    return prop("JP_Prop_TeaChests_A", mb, (-0.58, -0.3, 0, 0.52, 0.46, 0.53))
+
+
+def p_lacquer_boxes():
+    """Three stacked lacquered boxes, each a little smaller, tied with cord."""
+    mb = MeshBuilder()
+    mb.tint = {CEDAR: (0.42, 0.3, 0.28)}
+    z = 0.0
+    for (w, d, h) in ((0.52, 0.4, 0.2), (0.46, 0.36, 0.18), (0.4, 0.32, 0.16)):
+        mb.box(-w / 2, -d / 2, z, w / 2, d / 2, z + h, CEDAR)
+        z += h
+    mb.box(-0.015, -0.215, 0, 0.015, 0.215, z + 0.012, ROPE)                                # cord over the stack
+    mb.box(-0.275, -0.015, 0, 0.275, 0.015, z + 0.012, ROPE)
+    return prop("JP_Prop_LacquerBoxes_A", mb, (-0.28, -0.22, 0, 0.28, 0.22, z))
+
+
+def pot(mb, x, y, r, h, mat="JP_Glaze_Brown", lid=True):
+    M = T(x, y, 0)
+    mb.revolve([(r * 0.62, 0.0), (r, h * 0.38), (r * 0.94, h * 0.72), (r * 0.62, h * 0.92), (r * 0.66, h)], mat, 10, M,
+               cap_bottom=mat, cap_top=None if lid else mat)
+    if lid:
+        mb.revolve([(r * 0.7, h), (r * 0.7, h + 0.03), (r * 0.2, h + 0.06), (0.0, h + 0.07)], WEATHER, 10, M)
+
+
+def p_storage_pots():
+    mb = MeshBuilder()
+    pot(mb, -0.2, 0.12, 0.3, 0.8); pot(mb, 0.32, 0.05, 0.24, 0.62); pot(mb, 0.05, -0.28, 0.19, 0.45, lid=False)
+    return prop("JP_Prop_StoragePots_A", mb, (-0.52, -0.48, 0, 0.58, 0.44, 0.87))
+
+
+def p_rolled_mats():
+    """Three rolled straw mats standing on end, leaning together."""
+    mb = MeshBuilder()
+    for (x, y, lean, h) in ((-0.2, 0.0, -6, 1.05), (0.02, 0.05, 2, 1.12), (0.22, -0.02, 7, 1.0)):
+        M = T(x, y, 0) @ R('Y', lean)
+        mb.revolve([(0.11, 0.0), (0.11, h)], STRAW, 8, M, cap_top=STRAW, cap_bottom=STRAW)
+        for t in (0.2, h - 0.2):
+            mb.revolve([(0.122, t - 0.02), (0.122, t + 0.02)], ROPE, 8, M)
+    return prop("JP_Prop_RolledMats_A", mb, (-0.36, -0.14, 0, 0.36, 0.18, 1.1))
+
+
+def p_crates_covered():
+    """Two warm wooden crates stacked, a straw mat folded over the top one and hanging down its front."""
+    mb = MeshBuilder()
+    for (z0, w) in ((0.0, 0.44), (0.5, 0.38)):
+        mb.box(-w, -0.3, z0, w, 0.3, z0 + 0.48, WARM)
+        for x in (-w, w - 0.05):
+            mb.box(x, -0.32, z0, x + 0.05, 0.32, z0 + 0.5, CEDAR)
+    mb.box(-0.36, -0.33, 0.98, 0.3, 0.3, 1.01, STRAW)                                       # the mat on top
+    mb.box(-0.36, -0.35, 0.72, 0.3, -0.33, 1.01, STRAW)                                     # hanging down the front
+    return prop("JP_Prop_CratesCovered_A", mb, (-0.46, -0.34, 0, 0.46, 0.34, 1.0))
+
+
+def p_bench_mat():
+    """A low plank bench with a folded straw mat on it (in front of the tea shop)."""
+    mb = MeshBuilder()
+    mb.box(-0.75, -0.2, 0.36, 0.75, 0.2, 0.42, PLANKC)
+    for x in (-0.66, 0.58):
+        mb.box(x, -0.17, 0, x + 0.08, 0.17, 0.36, WARM)
+    mb.box(-0.68, -0.08, 0.15, 0.66, 0.08, 0.2, WARM)                                       # stretcher
+    mb.box(-0.1, -0.17, 0.42, 0.45, 0.17, 0.46, STRAW)
+    return prop("JP_Prop_BenchMat_A", mb, (-0.75, -0.2, 0, 0.75, 0.2, 0.46))
+
+
 for fn in (p_barrel, p_sake_stack, p_rain_barrel, p_buckets, p_crate, p_stone_lantern, p_well, p_tea_bench, p_handcart,
            p_bamboo_fence, p_laundry_pole, p_banner_pole, p_lamp_post, p_wall_lantern, p_pier, p_mooring_post, p_boat,
            p_net_frame, p_fish_rack, p_spear_rack, p_barrier, p_war_drum, p_brazier, p_kamado, p_water_jar, p_signboard,
-           p_embankment, p_ladder, p_lantern_pole, p_lantern_rope, p_lantern_bracket):
+           p_embankment, p_ladder, p_lantern_pole, p_lantern_rope, p_lantern_bracket,
+           p_rice_bales, p_sake_barrel_straw, p_tea_chests, p_lacquer_boxes, p_storage_pots, p_rolled_mats,
+           p_crates_covered, p_bench_mat):
     fn()

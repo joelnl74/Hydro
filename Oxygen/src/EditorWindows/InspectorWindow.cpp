@@ -1736,6 +1736,7 @@ namespace Hydro
 					}
 				}
 				DrawPropertyRow("Cast shadows", [&]() { ImGui::Checkbox("##MeshCastShadows", &mesh.CastShadows); });
+				DrawPropertyRow("Opacity", [&]() { InputFloatField("##MeshOpacity", mesh.Opacity, "%.2f", 0.0f, 1.0f); });
 				ImGui::TextDisabled("Drawn with Depth = Shared and Meshes on (Render Settings > Rendering).");
 				return;
 			}
@@ -1780,6 +1781,7 @@ namespace Hydro
 			}
 			DrawMeshMaterialSlots(entity, mesh, nullptr);
 			DrawPropertyRow("Cast shadows", [&]() { ImGui::Checkbox("##MeshCastShadows", &mesh.CastShadows); });
+			DrawPropertyRow("Opacity", [&]() { InputFloatField("##MeshOpacity", mesh.Opacity, "%.2f", 0.0f, 1.0f); });
 			ImGui::TextDisabled("Drawn with Depth = Shared and Meshes on (Render Settings > Rendering).");
 		});
 

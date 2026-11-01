@@ -33,6 +33,9 @@ DataTable:
     Hatsu:
       Name: Hatsu
       Dialogue: 5581634057468186291
+    Inari:
+      Name: Fox Shrine
+      Dialogue: 2027616071729114627
     Innkeeper:
       Name: Innkeeper
       Dialogue: 1573876928913233299
@@ -60,3 +63,18 @@ DataTable:
     VillageElder:
       Name: Village Elder
       Dialogue: 4544577340776314683
+    ClothMerchant:
+      Name: Cloth Merchant
+      Dialogue: 611862581019631971
+    PotteryMerchant:
+      Name: Potter
+      Dialogue: 8934795963015759287
+    SakeMerchant:
+      Name: Sake Merchant
+      Dialogue: 5812481699741625291
+    PaperMerchant:
+      Name: Paper Merchant
+      Dialogue: 1470308436504009792
+    GateGuard:
+      Name: Gate Guard
+      Dialogue: 3824359530807091376

@@ -6,7 +6,9 @@
 #include "Data/FieldDefinitions.h"
 #include "Data/InventoryDefinition.h"
 #include "Data/ItemDefinition.h"
+#include "Data/LootDefinition.h"
 #include "Rules/ItemRules.h"
+#include "Rules/LootRules.h"
 #include "Scripts/Common/DioramaCamera.h"
 #include "Scripts/Field/FieldMenuView.h"
 #include "State/BattleState.h"
@@ -25,6 +27,7 @@
 #include <vector>
 #include <cctype>
 #include <filesystem>
+#include <random>
 
 // The field director (FieldDirectorScript; MvpDirectorScript until Nov 1, 2026): the MVP scene's mechanics
 // (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the Shrine Glade, the Farm Village)
@@ -91,6 +94,7 @@ namespace Hydro
 		static constexpr uint64_t DefaultStartingInventory = 6616718844402080283ull; // Assets/Data/StartingInventory.hydef
 		static constexpr uint64_t DefaultNpcTable = 7308464824897497192ull;          // Assets/Data/Npcs.hytable
 		static constexpr uint64_t DefaultSignTable = 653601014895859085ull;          // Assets/Data/Signs.hytable
+		static constexpr uint64_t DefaultLootTable = 207747700610060598ull;          // Assets/Data/Loot.hytable
 
 		// Interaction: what counts as in reach of the player.
 		HY_PROPERTY(Range(0, 20), Tooltip("Metres: farther items get no prompt"))
@@ -121,8 +125,10 @@ namespace Hydro
 		// Items (data, the Definitions plan's D4: #171).
 		HY_PROPERTY(Asset(Definition, InventoryDefinition), Tooltip("The items a run starts with, in their order"))
 		AssetHandle StartingInventory = DefaultStartingInventory;
-		HY_PROPERTY(DataRow(ItemDefinition), Tooltip("What a chest gives (until chests have a script of their own)"))
+		HY_PROPERTY(DataRow(ItemDefinition), Tooltip("What a chest gives when its tag names no loot table (a plain \"Chest\")"))
 		DataRowRef ChestItem{ DefaultItemsTable, "Potion" };
+		HY_PROPERTY(Asset(DataTable, LootTableDefinition), Tooltip("The loot tables chests roll: \"Chest <row> ...\" rolls that row (items and aster)"))
+		AssetHandle LootTable = DefaultLootTable;
 
 		// What NPCs and signs say: rows by the name in their tag, without spaces ("Npc Village Elder" -> VillageElder);
 		// a row "Default" for the rest.
@@ -159,21 +165,37 @@ namespace Hydro
 				Interactable item;
 				item.Entity = entity;
 				if (tag.rfind("Sign", 0) == 0) { item.Type = Kind::Sign; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
-				else if (tag.rfind("Chest", 0) == 0) { item.Type = Kind::Chest; }
+				else if (tag.rfind("Chest", 0) == 0) { item.Type = Kind::Chest; item.Target = FirstWord(tag, 6); }
 				else if (tag.rfind("Door", 0) == 0) { item.Type = Kind::Door; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Rest", 0) == 0) { item.Type = Kind::Rest; }
 				else if (tag.rfind("Save", 0) == 0) { item.Type = Kind::Save; }
 				else if (tag.rfind("Exit", 0) == 0) { item.Type = Kind::Exit; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Npc", 0) == 0) { item.Type = Kind::Npc; item.Target = tag.size() > 4 ? tag.substr(4) : std::string(); }
-				else if (tag.rfind("Gather ", 0) == 0) { item.Type = Kind::Gather; item.Target = tag.substr(7, tag.find(' ', 7) == std::string::npos ? std::string::npos : tag.find(' ', 7) - 7); }
+				else if (tag.rfind("Gather ", 0) == 0) { item.Type = Kind::Gather; item.Target = FirstWord(tag, 7); }
 				else { continue; }
 				if (scene.m_Registry.has<SpriteRendererComponent>(entity))
 				{
 					// a sprite's entity sits at its middle; the player talks to its feet
 					item.FeetDrop = 0.5f * view.get<TransformComponent>(entity).Scale.y;
 				}
+				// Found already this run (Inventory::Found): a chest stays open, a picked-up spot stays gone.
+				if ((item.Type == Kind::Chest || item.Type == Kind::Gather) && Inventory::Get().WasFound(FoundKey(scene, tag)))
+				{
+					if (item.Type == Kind::Gather)
+					{
+						m_Gone.push_back(entity);
+						continue;
+					}
+					item.Used = true;
+					SetSprite(scene, entity, 1);
+				}
 				m_Interactables.push_back(item);
 			}
+			for (entt::entity gone : m_Gone)
+			{
+				scene.DestroyEntity(Entity{ gone, &scene });
+			}
+			m_Gone.clear();
 
 			// The party's items: rows of the items table and counts, on the game session, so every field scene and interior
 			// of a run shares them (what is used in the inn is gone in the village too). The first director of a run gives
@@ -438,6 +460,7 @@ namespace Hydro
 				{
 					// "Gather <ItemRow> ...": one of that row of the items table, then the spot is gone (until the scene
 					// is loaded again): herbs, bamboo shoots, side quests' Collect items.
+					Inventory::Get().MarkFound(FoundKey(scene, scene.m_Registry.get<TagComponent>(nearest->Entity).Tag));
 					GiveItem(DataRowRef{ ChestItem.Table, nearest->Target });
 					scene.DestroyEntity(Entity{ nearest->Entity, &scene });
 					m_PromptView.Hide();
@@ -452,7 +475,8 @@ namespace Hydro
 					{
 						nearest->Used = true;
 						SetSprite(scene, nearest->Entity, 1);   // the open lid
-						GiveItem(ChestItem);
+						Inventory::Get().MarkFound(FoundKey(scene, scene.m_Registry.get<TagComponent>(nearest->Entity).Tag));
+						OpenChest(nearest->Target);
 					}
 					break;
 				case Kind::Door:
@@ -736,6 +760,61 @@ namespace Hydro
 			HY_INFO("Field: found a {} ({} now)", item->Name, now);
 		}
 
+		// A chest's contents: its loot table row ("Chest <row>", Loot.hytable: items and aster), else ChestItem.
+		void OpenChest(const std::string& row)
+		{
+			// FindRow, not GetRow: a chest named after its place ("Chest Barn") has no row and quietly gives ChestItem.
+			const DataTableView<LootTableDefinition> tables = Data::GetTable<LootTableDefinition>(LootTable);
+			const LootTableDefinition* table = (row.empty() || tables.IsValid() == false) ? nullptr : tables.FindRow(row);
+			if (table == nullptr)
+			{
+				GiveItem(ChestItem);
+				return;
+			}
+			const std::function<float()> random = [this]() { return std::uniform_real_distribution<float>(0.0f, 0.9999f)(m_Random); };
+			std::string found;
+			for (const LootRules::Drop& drop : LootRules::Roll(*table, random))
+			{
+				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(drop.Item);
+				if (item.IsValid() == false)
+				{
+					continue;
+				}
+				Inventory::Get().Add(drop.Item, drop.Count);
+				found += (found.empty() ? "" : ", ") + item->Name + (drop.Count > 1 ? " x" + std::to_string(drop.Count) : std::string());
+			}
+			const int money = LootRules::RollMoney(*table, random);
+			if (money > 0)
+			{
+				Inventory::Get().Money += money;
+				found += (found.empty() ? "" : " and ") + std::to_string(money) + " " + CurrencyName;
+			}
+			if (found.empty())
+			{
+				ShowMessage(FieldLabel::ChestEmpty);
+				return;
+			}
+			ShowMessage("Found " + found + "!");
+			HY_INFO("Field: chest '{}' gave {}", row, found);
+		}
+
+		// The run's key for something found in this scene (Inventory::Found).
+		static std::string FoundKey(const Scene& scene, const std::string& tag)
+		{
+			return scene.GetName() + "/" + tag;
+		}
+
+		// The word of `tag` starting at `from` (a chest's loot row, a gathering spot's item), up to the next space.
+		static std::string FirstWord(const std::string& tag, size_t from)
+		{
+			if (tag.size() <= from)
+			{
+				return std::string();
+			}
+			const size_t space = tag.find(' ', from);
+			return tag.substr(from, space == std::string::npos ? std::string::npos : space - from);
+		}
+
 		void UseSelected()
 		{
 			const int selected = m_Menu.Items().GetSelected();
@@ -862,6 +941,8 @@ namespace Hydro
 	private:
 		entt::entity m_Camera = entt::null;
 		entt::entity m_Player = entt::null;
+		std::vector<entt::entity> m_Gone;          // picked-up spots found again on load (destroyed after the scan)
+		std::mt19937 m_Random{ std::random_device{}() }; // chests' rolls
 		InteractPromptView m_PromptView;
 		ScreenFadeView m_Fade;
 		MessageBannerView m_Banner;

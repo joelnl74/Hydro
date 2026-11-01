@@ -402,6 +402,7 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 
 ## Known gaps
 
+- **Game-side render effects** (Nov 2, 2026): a game script can only set what the engine already exposes on a component (`MeshComponent::Opacity`, a material's tint and emission); it can't add its own shader input or effect (a dissolve, an outline, a silhouette behind walls). The camera's occluder fade is built that way as a workaround: the dither lives in the engine's `mesh.frag`, the decision in the game (`OccluderFadeScript`). Wanted: a way for game code to extend materials (custom shader variants or a per-draw parameter block it owns). The fade also tests every mesh's box each frame from a script (a view over `MeshComponent`, not a system), and sprites aren't faded.
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
 - Scripts must be compiled into the application: there's no separate game module or hot reload.

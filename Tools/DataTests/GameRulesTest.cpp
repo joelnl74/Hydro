@@ -115,6 +115,13 @@ namespace Hydro
 		table.Rarities.clear();
 		table.Rolls = 1;
 		RULE_CHECK(LootRules::Roll(table, Rolls({ 0.0f, 0.99f, 0.0f }), rarity)[0].Item.Row == "Feather");
+		// Money (a chest's coins): none by default, then MinMoney to MaxMoney.
+		RULE_CHECK(LootRules::RollMoney(table, Rolls({ 0.5f })) == 0);
+		table.MinMoney = 20;
+		table.MaxMoney = 40;
+		RULE_CHECK(LootRules::RollMoney(table, Rolls({ 0.0f })) == 20 && LootRules::RollMoney(table, Rolls({ 0.999f })) == 40);
+		table.MaxMoney = 20;
+		RULE_CHECK(LootRules::RollMoney(table, Rolls({ 0.7f })) == 20);
 
 		// Equipment (the Menu plan's M1): slots, swapping with the inventory.
 		std::printf("Game rules: equipment and ability slots\n");
