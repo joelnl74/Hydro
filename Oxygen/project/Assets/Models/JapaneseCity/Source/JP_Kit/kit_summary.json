@@ -41,7 +41,7 @@
   "width": 2.4,
   "depth": 1.8,
   "height": 2.8,
-  "faces": 361,
+  "faces": 369,
   "location": [
    -42.3,
    44.0
@@ -52,7 +52,7 @@
   "width": 4.0,
   "depth": 1.6,
   "height": 3.87,
-  "faces": 414,
+  "faces": 422,
   "location": [
    -36.1,
    44.0
@@ -67,12 +67,13 @@
   "ridge": 9.0,
   "door_x": 0.0,
   "head_z": 2.65,
+  "arm_z": 3.53,
   "pent_z": 3.55,
   "tier": "A",
   "width": 14.0,
   "depth": 10.0,
   "height": 9.0,
-  "faces": 4941,
+  "faces": 4989,
   "location": [
    -25.1,
    44.0
@@ -87,12 +88,13 @@
   "ridge": 9.51,
   "door_x": 0.0,
   "head_z": 2.65,
+  "arm_z": 3.53,
   "pent_z": 3.55,
   "tier": "A",
   "width": 14.0,
   "depth": 12.0,
   "height": 9.51,
-  "faces": 5081,
+  "faces": 5129,
   "location": [
    -8.1,
    44.0
@@ -107,12 +109,13 @@
   "ridge": 9.0,
   "door_x": 0.0,
   "head_z": 2.65,
+  "arm_z": 3.53,
   "pent_z": 3.55,
   "tier": "A",
   "width": 10.0,
   "depth": 10.0,
   "height": 9.0,
-  "faces": 3802,
+  "faces": 3930,
   "location": [
    6.9,
    44.0
@@ -123,7 +126,7 @@
   "width": 4.0,
   "depth": 0.5,
   "height": 2.21,
-  "faces": 390,
+  "faces": 398,
   "location": [
    16.9,
    44.0
@@ -134,7 +137,7 @@
   "width": 3.6,
   "depth": 0.5,
   "height": 3.13,
-  "faces": 524,
+  "faces": 532,
   "location": [
    20.7,
    44.0
@@ -146,7 +149,7 @@
   "width": 6.0,
   "depth": 5.0,
   "height": 7.64,
-  "faces": 851,
+  "faces": 859,
   "location": [
    25.5,
    44.0
@@ -170,7 +173,7 @@
   "width": 8.0,
   "depth": 6.0,
   "height": 5.4,
-  "faces": 774,
+  "faces": 782,
   "location": [
    46.5,
    44.0
@@ -182,7 +185,7 @@
   "width": 6.0,
   "depth": 0.45,
   "height": 3.0,
-  "faces": 677,
+  "faces": 685,
   "location": [
    56.5,
    44.0
@@ -197,12 +200,13 @@
   "ridge": 7.79,
   "door_x": 0.0,
   "head_z": 2.5,
+  "arm_z": 3.18,
   "pent_z": 3.26,
   "tier": "B",
   "width": 6.0,
   "depth": 9.0,
   "height": 7.79,
-  "faces": 1527,
+  "faces": 1689,
   "location": [
    -17.2,
    22.0
@@ -217,12 +221,13 @@
   "ridge": 8.04,
   "door_x": 1.0,
   "head_z": 2.5,
+  "arm_z": 3.18,
   "pent_z": 3.26,
   "tier": "B",
   "width": 8.0,
   "depth": 10.0,
   "height": 8.04,
-  "faces": 1778,
+  "faces": 1904,
   "location": [
    -7.2,
    22.0
@@ -237,12 +242,13 @@
   "ridge": 7.55,
   "door_x": -2.0,
   "head_z": 2.5,
+  "arm_z": 3.18,
   "pent_z": 3.26,
   "tier": "B",
   "width": 6.0,
   "depth": 8.0,
   "height": 7.55,
-  "faces": 1376,
+  "faces": 1538,
   "location": [
    2.8,
    22.0
@@ -257,12 +263,13 @@
   "ridge": 7.79,
   "door_x": null,
   "head_z": 2.5,
+  "arm_z": 3.18,
   "pent_z": 3.26,
   "tier": "B",
   "width": 6.0,
   "depth": 9.0,
   "height": 7.79,
-  "faces": 1318,
+  "faces": 1362,
   "location": [
    11.8,
    22.0
@@ -294,7 +301,7 @@
   "width": 6.0,
   "depth": 5.0,
   "height": 3.97,
-  "faces": 402,
+  "faces": 410,
   "location": [
    -32.0,
    0.0
@@ -314,7 +321,7 @@
   "width": 6.0,
   "depth": 6.0,
   "height": 3.77,
-  "faces": 1902,
+  "faces": 1910,
   "location": [
    -23.0,
    0.0
@@ -334,7 +341,7 @@
   "width": 4.0,
   "depth": 4.0,
   "height": 3.45,
-  "faces": 1352,
+  "faces": 1360,
   "location": [
    -15.0,
    0.0
@@ -354,7 +361,7 @@
   "width": 5.0,
   "depth": 4.0,
   "height": 3.45,
-  "faces": 1618,
+  "faces": 1626,
   "location": [
    -7.5,
    0.0
@@ -377,7 +384,7 @@
   "width": 12.0,
   "depth": 5.0,
   "height": 3.61,
-  "faces": 3723,
+  "faces": 3731,
   "location": [
    4.0,
    0.0
@@ -397,7 +404,7 @@
   "width": 6.0,
   "depth": 7.0,
   "height": 4.34,
-  "faces": 1936,
+  "faces": 1944,
   "location": [
    16.0,
    0.0
@@ -415,7 +422,7 @@
   "width": 5.0,
   "depth": 4.0,
   "height": 3.45,
-  "faces": 1577,
+  "faces": 1585,
   "location": [
    24.5,
    0.0
@@ -435,7 +442,7 @@
   "width": 5.0,
   "depth": 4.0,
   "height": 3.45,
-  "faces": 1675,
+  "faces": 1683,
   "location": [
    32.5,
    0.0
@@ -484,7 +491,7 @@
   },
   "JP_Prop_Well_A": {
    "height": 2.9,
-   "faces": 367
+   "faces": 375
   },
   "JP_Prop_TeaBench_A": {
    "height": 0.5,
@@ -582,7 +589,7 @@
   },
   "JP_Prop_Signboard_A": {
    "height": 2.05,
-   "faces": 119
+   "faces": 127
   },
   "JP_Prop_Embankment_2m_A": {
    "height": 0.0,
@@ -591,6 +598,54 @@
   "JP_Prop_LadderBamboo_A": {
    "height": 2.6,
    "faces": 62
+  },
+  "JP_Prop_LanternPole_A": {
+   "rope_z": 5.23,
+   "height": 5.52,
+   "faces": 26
+  },
+  "JP_Prop_LanternRope_8m_A": {
+   "drops": [
+    [
+     -3.0,
+     -0.381
+    ],
+    [
+     -2.0,
+     -0.537
+    ],
+    [
+     -1.0,
+     -0.631
+    ],
+    [
+     0.0,
+     -0.663
+    ],
+    [
+     1.0,
+     -0.631
+    ],
+    [
+     2.0,
+     -0.537
+    ],
+    [
+     3.0,
+     -0.381
+    ]
+   ],
+   "span": 8.0,
+   "height": 0.02,
+   "faces": 131
+  },
+  "JP_Prop_LanternBracket_A": {
+   "drop": [
+    -0.53,
+    -0.2
+   ],
+   "height": 0.06,
+   "faces": 23
   },
   "JP_Prop_MarketStall_A": {
    "counter_z": 0.82,
@@ -605,14 +660,14 @@
   "JP_Post_Cedar_3m": 6,
   "JP_Plinth_Granite_2m": 6,
   "JP_Front_Lattice_2m": 18,
-  "JP_Door_LatticeSlide_2m": 30,
+  "JP_Door_LatticeSlide_2m": 54,
   "JP_Window_Shoji_A": 30,
   "JP_Window_Loft_3m": 18,
   "JP_BayWindow_Lattice_2m": 168,
   "JP_Balcony_2m": 30,
   "JP_Wall_Plaster_2m": 33,
   "JP_PentRoof_2m": 112,
-  "JP_Roof_Kawara_Gable_6m": 707,
+  "JP_Roof_Kawara_Gable_6m": 715,
   "JP_RidgeEnd_Plain": 6,
   "JP_RidgeEnd_Cloud": 6,
   "JP_Gable_Cusped": 219,

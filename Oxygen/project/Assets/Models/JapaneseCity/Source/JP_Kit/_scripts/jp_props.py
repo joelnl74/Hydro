@@ -357,8 +357,57 @@ def p_ladder():
     return prop("JP_Prop_LadderBamboo_A", mb, None)
 
 
+def p_lantern_pole():
+    """A tall cedar post that carries a lantern rope (Nov 1 pass: hanging lanterns hang from something). The rope
+    (JP_Prop_LanternRope_8m_A) starts at PROP_INFO rope_z, on the iron ring at the top."""
+    mb = MeshBuilder()
+    mb.box(-0.08, -0.08, 0.0, 0.08, 0.08, 5.45, CEDAR)
+    mb.box(-0.12, -0.12, 0.0, 0.12, 0.12, 0.35, GRANITE)                     # stone foot
+    mb.box(-0.1, -0.1, 5.45, 0.1, 0.1, 5.52, CEDAR)                           # cap
+    mb.revolve([(0.1, 5.2), (0.1, 5.26)], IRON, 8, T(0, 0, 0))               # ring: the rope hangs at the upper floor
+    return prop("JP_Prop_LanternPole_A", mb, (-0.12, -0.12, 0, 0.12, 0.12, 5.5), rope_z=5.23)
+
+
+ROPE_SPAN, ROPE_SAG = 8.0, 0.5
+
+
+def rope_z(x):
+    """Height of the lantern rope below its ends at x (from -ROPE_SPAN / 2 to ROPE_SPAN / 2): a shallow catenary."""
+    a = (ROPE_SPAN / 2) ** 2 / (2 * ROPE_SAG)
+    return (math.cosh(x / a) - math.cosh(ROPE_SPAN / 2 / a)) * a
+
+
+def p_lantern_rope():
+    """An 8 m rope between two lantern poles, sagging 0.5 m, with a short cord every metre: origin at the left end's
+    height, centred between the poles; lantern cards hang at PROP_INFO drops (x, z of the card's top)."""
+    mb = MeshBuilder()
+    n = 16
+    pts = [(-ROPE_SPAN / 2 + ROPE_SPAN * i / n, 0.0) for i in range(n + 1)]
+    pts = [(x, rope_z(x)) for (x, _) in pts]
+    for (xa, za), (xb, zb) in zip(pts, pts[1:]):
+        mb.tube((xa, 0.0, za), (xb, 0.0, zb), 0.022, ROPE, 4)
+    drops = []
+    for i in range(7):
+        x = -3.0 + i
+        z = rope_z(x)
+        mb.tube((x, 0.0, z), (x, 0.0, z - 0.16), 0.01, ROPE, 3)
+        drops.append([round(x, 2), round(z - 0.16, 3)])
+    return prop("JP_Prop_LanternRope_8m_A", mb, None, drops=drops, span=ROPE_SPAN)
+
+
+def p_lantern_bracket():
+    """A cedar arm on a wall that holds one paper lantern card: origin on the wall face at the arm's top, the arm
+    sticks out 0.55 m along -Y; the card hangs from PROP_INFO drop (y, z of its top)."""
+    mb = MeshBuilder()
+    mb.box(-0.05, -0.04, -0.45, 0.05, 0.0, 0.06, CEDAR)                      # back plate
+    mb.box(-0.035, -0.58, -0.07, 0.035, 0.0, 0.0, CEDAR)                     # arm
+    mb.tube((0.0, -0.02, -0.38), (0.0, -0.36, -0.06), 0.02, CEDAR, 4)        # brace
+    mb.tube((0.0, -0.53, -0.07), (0.0, -0.53, -0.2), 0.01, ROPE, 3)          # cord
+    return prop("JP_Prop_LanternBracket_A", mb, None, drop=[-0.53, -0.2])
+
+
 for fn in (p_barrel, p_sake_stack, p_rain_barrel, p_buckets, p_crate, p_stone_lantern, p_well, p_tea_bench, p_handcart,
            p_bamboo_fence, p_laundry_pole, p_banner_pole, p_lamp_post, p_wall_lantern, p_pier, p_mooring_post, p_boat,
            p_net_frame, p_fish_rack, p_spear_rack, p_barrier, p_war_drum, p_brazier, p_kamado, p_water_jar, p_signboard,
-           p_embankment, p_ladder):
+           p_embankment, p_ladder, p_lantern_pole, p_lantern_rope, p_lantern_bracket):
     fn()

@@ -176,35 +176,46 @@ namespace Hydro
 			{
 				const glm::vec3 position = scene->GetWorldPosition(Entity{ m_Target, scene });
 
-				// The framing: the zone the target stands in, else the scene's; eased so a new zone settles in about
-				// its BlendSeconds (the yaw turns the short way).
+				// The framing: the zone the target stands in, else the scene's. Entering another zone starts a blend
+				// from the framing and pan area the camera had to the new ones over the zone's BlendSeconds, eased in
+				// and out (smoothstep), so the camera starts and stops turning softly (the yaw turns the short way).
 				DioramaFraming goalFraming = DioramaView::GetSceneFraming();
 				const DioramaCameraZone* zone = DioramaView::FindZone(scene, { position.x, position.y });
+				PanArea area;
 				if (zone != nullptr)
 				{
 					goalFraming = DioramaView::ResolveZoneFraming(zone->Framing, goalFraming);
-					m_BlendSeconds = zone->BlendSeconds;
+					area = { zone->HasPanBounds, zone->PanMin, zone->PanMax };
 				}
+				const entt::entity zoneEntity = zone != nullptr ? zone->Entity : entt::null;
 				if (m_Snap)
 				{
 					m_Framing = goalFraming;
+					m_FromFraming = goalFraming;
+					m_ZoneEntity = zoneEntity;
+					m_FromArea = area;
+					m_ZoneBlend = 1.0f;
 				}
-				const float settle = 1.0f - std::exp(-3.0f * deltaTime / std::max(0.05f, m_BlendSeconds));
-				m_Framing = DioramaFraming::Mix(m_Framing, goalFraming, settle);
+				else if (zoneEntity != m_ZoneEntity)
+				{
+					m_ZoneEntity = zoneEntity;
+					m_FromFraming = m_Framing;
+					m_FromArea = m_Area;
+					m_ZoneBlend = 0.0f;
+					m_BlendSeconds = zone != nullptr ? zone->BlendSeconds : m_BlendSeconds;
+				}
+				m_Area = area;
+				m_ZoneBlend = std::min(1.0f, m_ZoneBlend + deltaTime / std::max(0.05f, m_BlendSeconds));
+				const float ease = m_ZoneBlend * m_ZoneBlend * (3.0f - 2.0f * m_ZoneBlend);
+				m_Framing = DioramaFraming::Mix(m_FromFraming, goalFraming, ease);
 
 				// Ahead of the target along the way the camera looks on the ground.
 				const float yaw = glm::radians(m_Framing.YawDegrees) * DioramaView::Blend;
 				const glm::vec2 ahead{ -std::sin(yaw), std::cos(yaw) };
 				const float lead = LookAhead + m_Framing.FocusLead * DioramaView::Blend;
-				glm::vec2 goal = glm::vec2(position.x, position.y) + ahead * lead;
-				if (zone != nullptr && zone->HasPanBounds)
-				{
-					goal = glm::clamp(goal, zone->PanMin, zone->PanMax);
-				}
-				else
-				{
-					goal = DioramaView::ClampFocus(goal, Bounds);
-				}
+				const glm::vec2 wanted = glm::vec2(position.x, position.y) + ahead * lead;
+				// Inside the old pan area and inside the new one, mixed by the same ease: the pan moves over smoothly.
+				const glm::vec2 goal = glm::mix(Clamp(wanted, m_FromArea), Clamp(wanted, m_Area), ease);
 
 				// Frame-rate independent smoothing: closes most of the gap in about a third of a second.
 				if (m_Snap)
@@ -244,6 +255,19 @@ namespace Hydro
 		glm::vec2 Bounds{ 17.0f, 23.0f };
 
 	private:
+		// Where the focus may go: a zone's pan area, or the scene's bounds when HasPan is false.
+		struct PanArea
+		{
+			bool HasPan = false;
+			glm::vec2 Min{ 0.0f };
+			glm::vec2 Max{ 0.0f };
+		};
+
+		glm::vec2 Clamp(const glm::vec2& point, const PanArea& area) const
+		{
+			return area.HasPan ? glm::clamp(point, area.Min, area.Max) : DioramaView::ClampFocus(point, Bounds);
+		}
+
 		entt::entity FindTarget(Scene& scene) const
 		{
 			auto view = scene.m_Registry.view<TagComponent, TransformComponent>();
@@ -262,7 +286,12 @@ namespace Hydro
 		bool m_Snap = true;
 		glm::vec2 m_Focus{ 0.0f };  // where the camera looks, on the ground
 		float m_FocusHeight = 0.0f; // and how high that ground is (the target's z, smoothed)
-		DioramaFraming m_Framing;   // the framing now, easing towards the zone's or the scene's
-		float m_BlendSeconds = 0.8f; // how quickly: the last zone entered
+		DioramaFraming m_Framing;      // the framing now
+		DioramaFraming m_FromFraming;  // and where the blend into the current zone started
+		PanArea m_Area;                // the current zone's pan area
+		PanArea m_FromArea;            // the previous one, blended out
+		entt::entity m_ZoneEntity = entt::null;
+		float m_ZoneBlend = 1.0f;      // 0 .. 1 through the blend into the current zone
+		float m_BlendSeconds = 0.8f;   // its length: the zone entered (leaving every zone keeps the last one's)
 	};
 }

@@ -411,8 +411,12 @@ def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_e
         if ends:
             tile_ends(mb, (X1, ye), (X0, ye), ze, ze, (0, s))
     for gx in (x0, x1):
-        tri = [(gx, y0, z), (gx, y1, z), (gx, ym, z + (ym - y0) * t)]
-        mb.poly(list(reversed(tri)) if gx == x0 else tri, gable_mat)
+        # a thin closed wedge, not a lone triangle: a single face sharing the wall's top edge got its normal turned
+        # inwards by the normals pass (the gable end showed from inside, Nov 1)
+        o = -1.0 if gx == x0 else 1.0
+        tri_in = [(gx - o * 0.04, y0 + 0.01, z + 0.01), (gx - o * 0.04, y1 - 0.01, z + 0.01), (gx - o * 0.04, ym, z + (ym - y0) * t - 0.01)]
+        tri_out = [(gx + o * 0.015, py, pz) for (_, py, pz) in tri_in]
+        mb.solid(tri_in, tri_out, gable_mat, bottom_mat=gable_mat, side_mat=CEDAR)
         if barge:   # barge boards under the roof edge at both gable ends
             bx = X0 if gx == x0 else X1
             for s in (-1, 1):
@@ -548,13 +552,44 @@ def m_front_lattice(mb, x0, x1, y, z, h=2.6):
     mb.box(x0, y - 0.04, z + h - 0.25, x1, y + 0.06, z + h, CEDAR)
 
 
-def m_door_lattice(mb, cx, y, z, w=1.6, deep=0.35):
-    """Recessed lattice sliding door (entrance). The noren is a sprite card hung at the head beam in the scene."""
-    mb.box(cx - w / 2, y + deep - 0.05, z, cx + w / 2, y + deep + 0.05, z + DOOR_H, "JP_Wood_Lattice")
-    mb.box(cx - w / 2 - 0.1, y - 0.02, z, cx - w / 2, y + deep, z + DOOR_H + 0.15, CEDAR)
-    mb.box(cx + w / 2, y - 0.02, z, cx + w / 2 + 0.1, y + deep, z + DOOR_H + 0.15, CEDAR)
-    mb.box(cx - w / 2 - 0.1, y - 0.04, z + DOOR_H, cx + w / 2 + 0.1, y + deep, z + DOOR_H + 0.2, CEDAR)
-    mb.box(cx - w / 2, y + 0.0, z - 0.01, cx + w / 2, y + deep, z + 0.01, GRANITE)        # threshold
+def m_door_lattice(mb, cx, y, z, w=1.6, deep=0.6):
+    """Entrance (Nov 1 pass, after the street references): a deep recess lit from inside (a glowing paper screen at
+    the back), the lattice sliding door half open, thick cedar jambs and lintel, a granite step in front. So the door
+    reads as a door, not as one more lattice bay. The noren is a sprite card hung at the head beam in the scene."""
+    mb.box(cx - w / 2, y + deep, z, cx + w / 2, y + deep + 0.05, z + DOOR_H, "JP_Shoji_Paper")              # lit inside
+    mb.box(cx - w / 2, y + 0.02, z - 0.01, cx + w / 2, y + deep, z + 0.01, GRANITE)                          # floor
+    for sx in (-1, 1):                                                                                        # recess sides
+        a, b = sorted((cx + sx * w / 2, cx + sx * (w / 2 - 0.04)))
+        mb.box(a, y, z, b, y + deep, z + DOOR_H, "JP_Mat_Opening")
+    mb.box(cx - w / 2, y + 0.18, z, cx + 0.06, y + 0.24, z + DOOR_H, "JP_Wood_Lattice")                     # door slid half open
+    mb.box(cx - w / 2 - 0.14, y - 0.06, z, cx - w / 2, y + deep, z + DOOR_H + 0.18, CEDAR)                  # jambs
+    mb.box(cx + w / 2, y - 0.06, z, cx + w / 2 + 0.14, y + deep, z + DOOR_H + 0.18, CEDAR)
+    mb.box(cx - w / 2 - 0.2, y - 0.1, z + DOOR_H, cx + w / 2 + 0.2, y + deep, z + DOOR_H + 0.24, CEDAR)   # lintel
+    mb.box(cx - w / 2 - 0.1, y - 0.42, z - 0.16, cx + w / 2 + 0.1, y + 0.02, z - 0.01, GRANITE)            # step
+
+
+def m_door_canopy(mb, cx, w, proj, ze, pitch=34.0):
+    """A small gabled roof over a door (kirizuma hisashi), gable end to the street, sitting on the pent roof: it marks
+    the entrance from the field camera. Eaves at the pent roof's eave height ze, out to -(proj + 0.25)."""
+    half = w / 2 + 0.4
+    y0, y1 = 0.0, -(proj + 0.25)
+    zc = ze + 0.04
+    zr = zc + half * math.tan(math.radians(pitch))
+    for sx in (-1, 1):
+        xe = cx + sx * half
+        top = [(xe, y1, zc), (xe, y0, zc), (cx, y0, zr), (cx, y1, zr)]
+        if sx > 0:
+            top = [top[1], top[0], top[3], top[2]]
+        bottom = [(px, py, pz - 0.12) for (px, py, pz) in top]
+        mb.solid(bottom, top, chan(KAWARA), bottom_mat=CEDAR, side_mat=CEDAR)
+        tile_rolls(mb, top, KAWARA)
+        L = half / math.cos(math.radians(pitch)) + 0.05                          # barge board
+        M = (T(xe, y1 - 0.03, zc - 0.06) @ R('Y', -pitch)) if sx < 0 else (T(cx, y1 - 0.03, zr - 0.06) @ R('Y', pitch))
+        mb.box(0.0, -0.05, -0.1, L, 0.05, 0.06, CEDAR, M=M)
+    mb.box(cx - 0.11, y1 - 0.06, zr - 0.04, cx + 0.11, y0, zr + 0.12, KAWARA)                                # ridge
+    gab = [(cx - half + 0.12, y1 + 0.1, zc - 0.02), (cx + half - 0.12, y1 + 0.1, zc - 0.02), (cx, y1 + 0.1, zr - 0.1)]
+    mb.solid(gab, [(px, y1 + 0.04, pz) for (px, _, pz) in gab], PLASTER, bottom_mat=PLASTER, side_mat=CEDAR)
+    mb.box(cx - half + 0.05, y1, zc - 0.22, cx + half - 0.05, y1 + 0.14, zc - 0.04, CEDAR)                   # tie beam
 
 
 def m_window_shoji(mb, cx, y, z, w=1.3, h=1.0):
@@ -594,10 +629,15 @@ def m_balcony(mb, x0, x1, y, z, depth, posts_to=None, bay=2.0):
             mb.box(px - 0.08, y - depth, z + 0.14, px + 0.08, y - depth + 0.16, posts_to, CEDAR)
 
 
-def m_wall_frame(mb, x0, x1, y0, y1, z0, z1, wall=PLASTER, bays=None, band=True, open_front=False):
+def m_wall_frame(mb, x0, x1, y0, y1, z0, z1, wall=PLASTER, bays=None, band=True, open_front=False, base=0.0):
     """A storey's walls (all four sides of the rectangle) in one wall material, cedar corner posts, posts at the
-    bay lines of the sides and back, and a cedar band at the top."""
+    bay lines of the sides and back, and a cedar band at the top. base > 0: a cedar board skirt (koshi-ita) of that
+    height with a rail on top, so a plaster wall reads as wood below and plaster with beams above."""
     mb.box(x0, y0, z0, x1, y1, z1, wall, skip=('-z', '-y') if open_front else ('-z',))
+    if base > 0.0:
+        sk = ('-z', '+z', '-y') if open_front else ('-z', '+z')
+        mb.box(x0 - 0.03, y0 - 0.03, z0, x1 + 0.03, y1 + 0.03, z0 + base, CEDAR, skip=sk)
+        mb.box(x0 - 0.05, y0 - 0.05, z0 + base, x1 + 0.05, y1 + 0.05, z0 + base + 0.07, CEDAR, skip=sk + ('-z',))
     for (x, y) in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)):
         m_post(mb, x, y, z0, z1, 0.24)
     if bays:
@@ -623,7 +663,7 @@ def finish(mb, name, w, d, h, tier, info, floors=(), coll="90_Prefabs", col=True
 
 
 def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=False, door_bay=1, steps=0,
-            cloud=False, shop=False, feature_bay=None, brackets=False):
+            cloud=False, shop=False, feature_bay=None, brackets=False, canopy=True, udatsu=False):
     """Tier A/B townhouse or hall. One wall material (plaster over a cedar frame), one stone (granite)."""
     m = TIER[tier]
     if tier == "A":
@@ -642,7 +682,7 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
     gf = m["gf"]
     zt0 = z + gf
     # ground floor: side/back walls + the front made of bays
-    m_wall_frame(mb, x0, x1, 0.0, D, z, z + gf, bays=2.0, open_front=True)
+    m_wall_frame(mb, x0, x1, 0.0, D, z, z + gf, bays=2.0, open_front=True, base=0.85)
     if shop:
         mb.box(x0 + 0.2, -0.01, z, x1 - 0.2, 1.2, z + 2.5, "JP_Mat_Opening", skip=('-y', '+z'))
         mb.box(x0 + 0.2, 1.15, z, x1 - 0.2, 1.2, z + 2.5, "JP_Mat_Opening")
@@ -650,6 +690,8 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
         mb.box(x0 + 0.1, -1.0, z + 2.45, x1 - 0.1, -0.05, z + 2.55, "JP_Wood_Weathered")   # raised shutters
         mb.box(x0, -0.01, z + 2.5, x1, 0.05, zt0 - 0.28, PLASTER)
         mb.box(x0, -0.01, z, x0 + 0.2, 1.2, z + 2.5, PLASTER); mb.box(x1 - 0.2, -0.01, z, x1, 1.2, z + 2.5, PLASTER)
+        for (a, b) in ((x0 - 0.02, x0 + 0.22), (x1 - 0.22, x1 + 0.02)):
+            mb.box(a, -0.04, z, b, 0.0, z + 0.85, CEDAR)
         for px in (x0 + 0.2, x1 - 0.2):
             m_post(mb, px, -0.05, z, z + gf, POST)
     else:
@@ -667,8 +709,11 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
         m_post(mb, x1, -0.04, z, z + gf, POST)
     zt = z + gf
     mb.box(x0 - 0.06, -0.12, zt - 0.3, x1 + 0.06, 0.02, zt - 0.02, CEDAR)                    # head beam
+    ze_pent = None
     if m["pent"] > 0:
-        pent_roof(mb, x0 - 0.1, x1 + 0.1, 0.0, zt + 0.32, m["pent"], m["pitch"] - 4)
+        ze_pent = pent_roof(mb, x0 - 0.1, x1 + 0.1, 0.0, zt + 0.32, m["pent"], m["pitch"] - 4)
+        if canopy and shop is False and cusped is False:
+            m_door_canopy(mb, x0 + door_bay * 2.0 + 1.0, 1.6, m["pent"], ze_pent)
     feats = 0
     top = zt
     floor_lines = [zt]
@@ -678,6 +723,7 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
         m_wall_frame(mb, x0, x1, 0.0, D, z2, z2 + uf, bays=2.0)
         for i in range(bays + 1):
             m_post(mb, x0 + i * 2.0, -0.03, z2, z2 + uf - 0.22, 0.18)      # stops under the eave
+        mb.box(x0, -0.07, z2 + 0.52, x1, 0.0, z2 + 0.6, CEDAR)              # rail under the windows
         fb = feature_bay if feature_bay is not None else bays // 2
         for i in range(bays):
             cx = x0 + i * 2.0 + 1.0
@@ -685,7 +731,7 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
                 continue
             if upper == "loft" and abs(cx) < 1.6:
                 continue
-            m_window_shoji(mb, cx, 0.0, z2 + 0.7, 1.3, 1.0 if tier == "B" else 1.2)
+            m_window_shoji(mb, cx, 0.0, z2 + 0.7, 1.55, 1.1 if tier == "B" else 1.25)
         if upper == "bay":
             feats += 1
             m_bay_window(mb, x0 + fb * 2.0 + 1.0, -0.02, z2 + 0.45)
@@ -702,6 +748,17 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
         top = z2 + uf
     if tier == "B":
         assert feats <= RULES["B"]["max_features"], "%s: tier B has at most one upper feature" % name
+    # main pillars at the front corners, thicker than the bay posts, from the plinth to under the eave: they split a
+    # row of houses into houses
+    for px in (x0, x1):
+        m_post(mb, px, -0.07, z, top - 0.2, 0.3)
+    if udatsu and ze_pent is not None and floors >= 2:
+        # udatsu: a plaster fire wall at each end of the upper floor, standing out past the front with a tiled cap
+        for px in (x0, x1):
+            # kept under the main eave (a wall standing above the roof reads as a chimney from the field camera)
+            mb.box(px - 0.13, -0.55, ze_pent - 0.1, px + 0.13, 0.9, top - 0.35, PLASTER)
+            mb.box(px - 0.16, -0.57, ze_pent - 0.2, px + 0.16, 0.92, ze_pent - 0.1, CEDAR)
+            mb.box(px - 0.22, -0.65, top - 0.35, px + 0.22, 0.95, top - 0.22, KAWARA)
     if brackets:      # carved eave brackets as plain outlines under the main eave
         for i in range(bays + 1):
             mb.box(x0 + i * 2.0 - 0.09, -0.6, top - 0.9, x0 + i * 2.0 + 0.09, 0.0, top - 0.62, CEDAR)
@@ -714,6 +771,7 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
         cusped_gable(mb, zt + 0.32, pl)
     info = dict(bays=bays, floors=floors, roof=roof, upper=upper, cusped=cusped, ridge=round(zr, 2),
                 door_x=(None if shop else x0 + door_bay * 2.0 + 1.0), head_z=round(z + DOOR_H + 0.2, 2),
+                arm_z=round(zt - 0.12, 2),
                 pent_z=round(zt + 0.32 - m["pent"] * math.tan(math.radians(m["pitch"] - 4)), 2) if m["pent"] else None)
     return finish(mb, name, W, D, zr, tier, info, floors=floor_lines)
 
@@ -1201,9 +1259,9 @@ add("A", storehouse("JP_Rich_Storehouse_A"))
 add("A", pagoda("JP_Rich_Pagoda_A"))
 add("A", city_wall("JP_Rich_CityWall_8m_A"))
 add("A", moon_gate_wall("JP_Rich_MoonGateWall_6m_A"))
-add("B", machiya("JP_Mid_Townhouse_A", "B", 3, 9.0, upper="bay", door_bay=1, feature_bay=2))
+add("B", machiya("JP_Mid_Townhouse_A", "B", 3, 9.0, upper="bay", door_bay=1, feature_bay=2, udatsu=True))
 add("B", machiya("JP_Mid_Townhouse_B", "B", 4, 10.0, upper="balcony", door_bay=2))
-add("B", machiya("JP_Mid_Townhouse_C", "B", 3, 8.0, upper="loft", door_bay=0))
+add("B", machiya("JP_Mid_Townhouse_C", "B", 3, 8.0, upper="loft", door_bay=0, udatsu=True))
 add("B", machiya("JP_Mid_Shop_A", "B", 3, 9.0, upper=None, shop=True))
 add("B", fire_watchtower("JP_Mid_FireWatchtower_A"))
 add("C", poor_house("JP_Poor_House_A", 6.0, 5.0, "kawara_old", door_x=(-1.0,), win_x=(1.6,)))

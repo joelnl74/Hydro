@@ -1620,13 +1620,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
+  - Entity: 5691260172931870869
+    TagComponent:
+      Tag: Prop_LanternBracket_A 76
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-7.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
   - Entity: 7009356400976310561
     TagComponent:
       Tag: Lantern_Paper_Red_A 10
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-7.9, 0.35, 2.21]
+      Translation: [-7.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1644,7 +1660,7 @@ Entities:
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-7.9, 0.35, 0]
+      Translation: [-7.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1652,14 +1668,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
+      Height: 2.48
+  - Entity: 2302688877336938079
+    TagComponent:
+      Tag: Prop_LanternBracket_A 77
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-5.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
   - Entity: 3312743245432419447
     TagComponent:
       Tag: Lantern_Paper_Red_A 12
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-5.1, 0.35, 2.21]
+      Translation: [-5.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1677,7 +1709,7 @@ Entities:
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-5.1, 0.35, 0]
+      Translation: [-5.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1685,7 +1717,7 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
+      Height: 2.48
   - Entity: 7730695518886334929
     TagComponent:
       Tag: Light Window 14
@@ -1746,9 +1778,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 5606669550185492520
+  - Entity: 7355590472005160866
     TagComponent:
-      Tag: Mid_Townhouse_B 76
+      Tag: Mid_Townhouse_B 78
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -1782,13 +1814,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
+  - Entity: 3339328402857052517
+    TagComponent:
+      Tag: Prop_LanternBracket_A 79
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-13.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
   - Entity: 4892677363966230648
     TagComponent:
       Tag: Lantern_Paper_Red_A 19
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-13.9, 0.35, 2.21]
+      Translation: [-13.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1806,7 +1854,7 @@ Entities:
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-13.9, 0.35, 0]
+      Translation: [-13.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1814,14 +1862,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
+      Height: 2.48
+  - Entity: 8732525705994747008
+    TagComponent:
+      Tag: Prop_LanternBracket_A 80
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-11.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
   - Entity: 8096984019949176505
     TagComponent:
       Tag: Lantern_Paper_Red_A 21
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-11.1, 0.35, 2.21]
+      Translation: [-11.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1839,7 +1903,7 @@ Entities:
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-11.1, 0.35, 0]
+      Translation: [-11.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1847,7 +1911,7 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
+      Height: 2.48
   - Entity: 6787625887953696288
     TagComponent:
       Tag: Light Window 23
@@ -1908,9 +1972,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 1974651738275063988
+  - Entity: 5924763698164509486
     TagComponent:
-      Tag: Mid_Townhouse_C 77
+      Tag: Mid_Townhouse_C 81
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -1944,13 +2008,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
+  - Entity: 5626239050899822897
+    TagComponent:
+      Tag: Prop_LanternBracket_A 82
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-23.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
   - Entity: 6172578994411921963
     TagComponent:
       Tag: Lantern_Paper_Red_A 28
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-23.9, 0.35, 2.21]
+      Translation: [-23.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -1968,7 +2048,7 @@ Entities:
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-23.9, 0.35, 0]
+      Translation: [-23.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -1976,14 +2056,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
+      Height: 2.48
+  - Entity: 6086317367376761770
+    TagComponent:
+      Tag: Prop_LanternBracket_A 83
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-21.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
   - Entity: 5354200110589141598
     TagComponent:
       Tag: Lantern_Paper_Red_A 30
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-21.1, 0.35, 2.21]
+      Translation: [-21.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2001,7 +2097,7 @@ Entities:
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-21.1, 0.35, 0]
+      Translation: [-21.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2009,7 +2105,7 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
+      Height: 2.48
   - Entity: 7259717303291716420
     TagComponent:
       Tag: Light Window 32
@@ -2070,9 +2166,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 3063904687569230689
+  - Entity: 5776186380711639006
     TagComponent:
-      Tag: Mid_Shop_A 78
+      Tag: Mid_Shop_A 84
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2088,75 +2184,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3159352618431945717
+  - Entity: 4995082157039629070
     TagComponent:
-      Tag: Lantern_Paper_Red_A 36
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [-27.9, 0.35, 2.21]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 3
-      TextureHandle: 3332558443294524543
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 8803281411699793749
-    TagComponent:
-      Tag: Light Lantern 37
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [-27.9, 0.35, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [1, 0.62, 0.28]
-      Intensity: 1
-      Radius: 3.5
-      Height: 2.66
-  - Entity: 1125584233783890089
-    TagComponent:
-      Tag: Lantern_Paper_Red_A 38
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [-25.1, 0.35, 2.21]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 3
-      TextureHandle: 3332558443294524543
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 6187957467322612856
-    TagComponent:
-      Tag: Light Lantern 39
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [-25.1, 0.35, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [1, 0.62, 0.28]
-      Intensity: 1
-      Radius: 3.5
-      Height: 2.66
-  - Entity: 1079499848698739430
-    TagComponent:
-      Tag: Light Window 40
+      Tag: Light Window 36
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2169,9 +2199,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 516698717469925905
+  - Entity: 2919013959454990487
     TagComponent:
-      Tag: Light Window 41
+      Tag: Light Window 37
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2184,9 +2214,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 8712203027197427947
+  - Entity: 811734315449966990
     TagComponent:
-      Tag: Light Window 42
+      Tag: Light Window 38
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2199,9 +2229,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 4319513703071736501
+  - Entity: 3568686720395044357
     TagComponent:
-      Tag: Light Window 43
+      Tag: Light Window 39
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2214,17 +2244,17 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 8457522719786935279
+  - Entity: 5276229987042987012
     TagComponent:
-      Tag: Mid_Townhouse_A 79
+      Tag: Mid_Townhouse_B 85
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-32.5, 1, 0]
+      Translation: [-33.5, 1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      ModelHandle: 3579987654001892189
+      ModelHandle: 7376595049915188377
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
@@ -2232,9 +2262,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7685677717007522964
+  - Entity: 2214413281147794227
     TagComponent:
-      Tag: Noren_Inn_A 44
+      Tag: Noren_Inn_A 40
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2250,13 +2280,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 4282786946656417357
+  - Entity: 5968903070319630327
     TagComponent:
-      Tag: Lantern_Paper_Red_A 45
+      Tag: Prop_LanternBracket_A 86
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-33.9, 0.35, 2.21]
+      Translation: [-33.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 5254536929705450143
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 41
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-33.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2268,13 +2314,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 8342165290212582939
+  - Entity: 288043166549496819
     TagComponent:
-      Tag: Light Lantern 46
+      Tag: Light Lantern 42
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-33.9, 0.35, 0]
+      Translation: [-33.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2282,14 +2328,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 1257631109489917014
+      Height: 2.48
+  - Entity: 7237649234319903579
     TagComponent:
-      Tag: Lantern_Paper_Red_A 47
+      Tag: Prop_LanternBracket_A 87
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-31.1, 0.35, 2.21]
+      Translation: [-31.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 1372798130073707235
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 43
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-31.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2301,13 +2363,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7181481452124575674
+  - Entity: 8915169380524312959
     TagComponent:
-      Tag: Light Lantern 48
+      Tag: Light Lantern 44
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-31.1, 0.35, 0]
+      Translation: [-31.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2315,14 +2377,14 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 3149659985382742788
+      Height: 2.48
+  - Entity: 5055903559949580970
     TagComponent:
-      Tag: Light Window 49
+      Tag: Light Window 45
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-34, 0.4, 0]
+      Translation: [-35.5, 0.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2331,13 +2393,13 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 7949735856175796685
+  - Entity: 3507972862430435881
     TagComponent:
-      Tag: Light Window 50
+      Tag: Light Window 46
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-34, 0.6, 0]
+      Translation: [-35.5, 0.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2346,13 +2408,13 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 8984000546858389408
+  - Entity: 3060918114268879077
     TagComponent:
-      Tag: Light Window 51
+      Tag: Light Window 47
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-31, 0.4, 0]
+      Translation: [-31.5, 0.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2361,13 +2423,13 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 2159370837649298742
+  - Entity: 2598672685850777367
     TagComponent:
-      Tag: Light Window 52
+      Tag: Light Window 48
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-31, 0.6, 0]
+      Translation: [-31.5, 0.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2376,13 +2438,13 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 5489793452860628303
+  - Entity: 7151549512490429384
     TagComponent:
-      Tag: Mid_Townhouse_C 80
+      Tag: Mid_Townhouse_C 88
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-38.5, 1, 0]
+      Translation: [-40.5, 1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -2394,13 +2456,13 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4419735446392511982
+  - Entity: 7778043704297760811
     TagComponent:
-      Tag: Noren_Inn_A 53
+      Tag: Noren_Inn_A 49
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-40.5, 1.3, 1.45]
+      Translation: [-42.5, 1.3, 1.45]
       Rotation: [0, 0, 0]
       Scale: [2, 1, 1]
     SpriteRendererComponent:
@@ -2412,13 +2474,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 616803049321761774
+  - Entity: 2241914188365132014
     TagComponent:
-      Tag: Lantern_Paper_Red_A 54
+      Tag: Prop_LanternBracket_A 89
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-41.9, 0.35, 2.21]
+      Translation: [-43.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 7657251956597602816
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 50
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-43.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2430,13 +2508,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1335512986321249647
+  - Entity: 984252842884118430
     TagComponent:
-      Tag: Light Lantern 55
+      Tag: Light Lantern 51
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-41.9, 0.35, 0]
+      Translation: [-43.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2444,14 +2522,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 8755539612324821583
+      Height: 2.48
+  - Entity: 5025267714021593728
     TagComponent:
-      Tag: Lantern_Paper_Red_A 56
+      Tag: Prop_LanternBracket_A 90
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-39.1, 0.35, 2.21]
+      Translation: [-41.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 3994370210882387759
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 52
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-41.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2463,13 +2557,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 419274318587496740
+  - Entity: 6182604239411239780
     TagComponent:
-      Tag: Light Lantern 57
+      Tag: Light Lantern 53
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-39.1, 0.35, 0]
+      Translation: [-41.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2477,14 +2571,14 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 6887376717699283657
+      Height: 2.48
+  - Entity: 7399849541191807331
     TagComponent:
-      Tag: Light Window 58
+      Tag: Light Window 54
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-40, 0.4, 0]
+      Translation: [-42, 0.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2493,13 +2587,13 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 8124474269485090915
+  - Entity: 6615599527251411890
     TagComponent:
-      Tag: Light Window 59
+      Tag: Light Window 55
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-40, 0.6, 0]
+      Translation: [-42, 0.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2508,13 +2602,13 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 9100280244298754272
+  - Entity: 4660800551364813432
     TagComponent:
-      Tag: Light Window 60
+      Tag: Light Window 56
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-37, 0.4, 0]
+      Translation: [-39, 0.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2523,13 +2617,13 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 5332512711163970975
+  - Entity: 8033834284983353952
     TagComponent:
-      Tag: Light Window 61
+      Tag: Light Window 57
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-37, 0.6, 0]
+      Translation: [-39, 0.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2538,9 +2632,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 5924763698164509486
+  - Entity: 1313156362087665044
     TagComponent:
-      Tag: Mid_Townhouse_C 81
+      Tag: Mid_Townhouse_C 91
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2556,9 +2650,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1564513425460275889
+  - Entity: 7989938899404459929
     TagComponent:
-      Tag: Noren_Inn_A 62
+      Tag: Noren_Inn_A 58
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2574,13 +2668,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 6696114687243718992
+  - Entity: 5504782390326208104
     TagComponent:
-      Tag: Lantern_Paper_Red_A 63
+      Tag: Prop_LanternBracket_A 92
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [3.1, 0.35, 2.21]
+      Translation: [3.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 803217577177270977
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 59
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [3.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2592,13 +2702,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1408287424683252742
+  - Entity: 773477344753958597
     TagComponent:
-      Tag: Light Lantern 64
+      Tag: Light Lantern 60
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [3.1, 0.35, 0]
+      Translation: [3.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2606,14 +2716,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 7313113598378536898
+      Height: 2.48
+  - Entity: 4457509390446419322
     TagComponent:
-      Tag: Lantern_Paper_Red_A 65
+      Tag: Prop_LanternBracket_A 93
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [5.9, 0.35, 2.21]
+      Translation: [5.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 8510326628619657077
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 61
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [5.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2625,13 +2751,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 9157429475130970546
+  - Entity: 4533145303490220532
     TagComponent:
-      Tag: Light Lantern 66
+      Tag: Light Lantern 62
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [5.9, 0.35, 0]
+      Translation: [5.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2639,10 +2765,10 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 3651526479495783271
+      Height: 2.48
+  - Entity: 2719036762669501727
     TagComponent:
-      Tag: Light Window 67
+      Tag: Light Window 63
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2655,9 +2781,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 8419675363726028774
+  - Entity: 2971826517207438556
     TagComponent:
-      Tag: Light Window 68
+      Tag: Light Window 64
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2670,9 +2796,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 5522555413665779123
+  - Entity: 7041853738325480367
     TagComponent:
-      Tag: Light Window 69
+      Tag: Light Window 65
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2685,9 +2811,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 2515034634050212995
+  - Entity: 5602583361700953618
     TagComponent:
-      Tag: Light Window 70
+      Tag: Light Window 66
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2700,9 +2826,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 4359026414781726986
+  - Entity: 6212458894284439502
     TagComponent:
-      Tag: Mid_Shop_A 82
+      Tag: Mid_Shop_A 94
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2718,75 +2844,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6858497495412707892
+  - Entity: 3651526479495783271
     TagComponent:
-      Tag: Lantern_Paper_Red_A 71
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [11.1, 0.35, 2.21]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 3
-      TextureHandle: 3332558443294524543
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 6956544429762396244
-    TagComponent:
-      Tag: Light Lantern 72
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [11.1, 0.35, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [1, 0.62, 0.28]
-      Intensity: 1
-      Radius: 3.5
-      Height: 2.66
-  - Entity: 8662950010997457612
-    TagComponent:
-      Tag: Lantern_Paper_Red_A 73
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [13.9, 0.35, 2.21]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 3
-      TextureHandle: 3332558443294524543
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 811786380133532861
-    TagComponent:
-      Tag: Light Lantern 74
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [13.9, 0.35, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Light2DComponent:
-      Type: Point
-      Color: [1, 0.62, 0.28]
-      Intensity: 1
-      Radius: 3.5
-      Height: 2.66
-  - Entity: 7632553513627796678
-    TagComponent:
-      Tag: Light Window 75
+      Tag: Light Window 67
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2799,9 +2859,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 499350151654424533
+  - Entity: 8419675363726028774
     TagComponent:
-      Tag: Light Window 76
+      Tag: Light Window 68
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2814,9 +2874,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 5476300508258951757
+  - Entity: 5522555413665779123
     TagComponent:
-      Tag: Light Window 77
+      Tag: Light Window 69
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2829,9 +2889,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 8200364107481795313
+  - Entity: 2515034634050212995
     TagComponent:
-      Tag: Light Window 78
+      Tag: Light Window 70
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2844,9 +2904,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 2842649938873811149
+  - Entity: 3498040437204502225
     TagComponent:
-      Tag: Mid_Townhouse_B 83
+      Tag: Mid_Townhouse_B 95
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2862,9 +2922,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3306232809886482729
+  - Entity: 3342625791623000036
     TagComponent:
-      Tag: Noren_Inn_A 79
+      Tag: Noren_Inn_A 71
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2880,13 +2940,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 6488331038346837835
+  - Entity: 2679620818011165657
     TagComponent:
-      Tag: Lantern_Paper_Red_A 80
+      Tag: Prop_LanternBracket_A 96
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [19.1, 0.35, 2.21]
+      Translation: [19.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 5813161055442460524
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 72
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [19.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2898,13 +2974,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2696391109497462984
+  - Entity: 4689335408269241314
     TagComponent:
-      Tag: Light Lantern 81
+      Tag: Light Lantern 73
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [19.1, 0.35, 0]
+      Translation: [19.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2912,14 +2988,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 8807179251517922178
+      Height: 2.48
+  - Entity: 4809914994726655066
     TagComponent:
-      Tag: Lantern_Paper_Red_A 82
+      Tag: Prop_LanternBracket_A 97
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [21.9, 0.35, 2.21]
+      Translation: [21.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 4523092668548574325
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 74
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [21.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -2931,13 +3023,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 8408232127604429932
+  - Entity: 5456208737287133091
     TagComponent:
-      Tag: Light Lantern 83
+      Tag: Light Lantern 75
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [21.9, 0.35, 0]
+      Translation: [21.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -2945,10 +3037,10 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 6806137621028556571
+      Height: 2.48
+  - Entity: 499350151654424533
     TagComponent:
-      Tag: Light Window 84
+      Tag: Light Window 76
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2961,9 +3053,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 4033423852457889621
+  - Entity: 5476300508258951757
     TagComponent:
-      Tag: Light Window 85
+      Tag: Light Window 77
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2976,9 +3068,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 6961413503707569341
+  - Entity: 8200364107481795313
     TagComponent:
-      Tag: Light Window 86
+      Tag: Light Window 78
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -2991,9 +3083,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 1397544130941919725
+  - Entity: 8513904413965920570
     TagComponent:
-      Tag: Light Window 87
+      Tag: Light Window 79
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3006,9 +3098,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 3775086245077231476
+  - Entity: 8403916170525736701
     TagComponent:
-      Tag: Mid_Townhouse_A 84
+      Tag: Mid_Townhouse_A 98
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3024,9 +3116,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6928274105911809802
+  - Entity: 6829040790511161554
     TagComponent:
-      Tag: Noren_Inn_A 88
+      Tag: Noren_Inn_A 80
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3042,13 +3134,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1071839333986397509
+  - Entity: 8074933774820569243
     TagComponent:
-      Tag: Lantern_Paper_Red_A 89
+      Tag: Prop_LanternBracket_A 99
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [25.1, 0.35, 2.21]
+      Translation: [25.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 1704827602430227508
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 81
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [25.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -3060,13 +3168,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7084563721043744393
+  - Entity: 3616940654462591203
     TagComponent:
-      Tag: Light Lantern 90
+      Tag: Light Lantern 82
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [25.1, 0.35, 0]
+      Translation: [25.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3074,14 +3182,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 373770683262535093
+      Height: 2.48
+  - Entity: 6928357365601510144
     TagComponent:
-      Tag: Lantern_Paper_Red_A 91
+      Tag: Prop_LanternBracket_A 100
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [27.9, 0.35, 2.21]
+      Translation: [27.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 681813624307028405
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 83
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [27.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -3093,13 +3217,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2006106646971320885
+  - Entity: 8830192101857131564
     TagComponent:
-      Tag: Light Lantern 92
+      Tag: Light Lantern 84
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [27.9, 0.35, 0]
+      Translation: [27.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3107,10 +3231,10 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 1991495942739556371
+      Height: 2.48
+  - Entity: 4033423852457889621
     TagComponent:
-      Tag: Light Window 93
+      Tag: Light Window 85
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3123,9 +3247,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 4537490242767448162
+  - Entity: 6961413503707569341
     TagComponent:
-      Tag: Light Window 94
+      Tag: Light Window 86
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3138,9 +3262,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 3764136047682686084
+  - Entity: 1397544130941919725
     TagComponent:
-      Tag: Light Window 95
+      Tag: Light Window 87
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3153,9 +3277,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 3385855977465996851
+  - Entity: 8019765961738672885
     TagComponent:
-      Tag: Light Window 96
+      Tag: Light Window 88
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3168,9 +3292,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 5276229987042987012
+  - Entity: 5190451485281918985
     TagComponent:
-      Tag: Mid_Townhouse_B 85
+      Tag: Mid_Townhouse_B 101
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3186,9 +3310,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 597704996915626288
+  - Entity: 8051143483991793519
     TagComponent:
-      Tag: Noren_Inn_A 97
+      Tag: Noren_Inn_A 89
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3204,13 +3328,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 641173163618088684
+  - Entity: 2699236243452264454
     TagComponent:
-      Tag: Lantern_Paper_Red_A 98
+      Tag: Prop_LanternBracket_A 102
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [33.1, 0.35, 2.21]
+      Translation: [33.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 8372456512826744401
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 90
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [33.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -3222,13 +3362,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3495992748841582588
+  - Entity: 377232398807646403
     TagComponent:
-      Tag: Light Lantern 99
+      Tag: Light Lantern 91
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [33.1, 0.35, 0]
+      Translation: [33.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3236,14 +3376,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 2724951901489870869
+      Height: 2.48
+  - Entity: 8923389651387302520
     TagComponent:
-      Tag: Lantern_Paper_Red_A 100
+      Tag: Prop_LanternBracket_A 103
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [35.9, 0.35, 2.21]
+      Translation: [35.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 610567038466429906
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 92
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [35.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -3255,13 +3411,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 5797950714838775825
+  - Entity: 1980011479991103828
     TagComponent:
-      Tag: Light Lantern 101
+      Tag: Light Lantern 93
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [35.9, 0.35, 0]
+      Translation: [35.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3269,10 +3425,10 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 1928433314650284462
+      Height: 2.48
+  - Entity: 4537490242767448162
     TagComponent:
-      Tag: Light Window 102
+      Tag: Light Window 94
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3285,9 +3441,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 3034010136104638966
+  - Entity: 3764136047682686084
     TagComponent:
-      Tag: Light Window 103
+      Tag: Light Window 95
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3300,9 +3456,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 1688478390834701861
+  - Entity: 3385855977465996851
     TagComponent:
-      Tag: Light Window 104
+      Tag: Light Window 96
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3315,9 +3471,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 9118039244367581436
+  - Entity: 439812038144197756
     TagComponent:
-      Tag: Light Window 105
+      Tag: Light Window 97
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3330,9 +3486,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 2115817134470642061
+  - Entity: 6578831035864626967
     TagComponent:
-      Tag: Mid_Townhouse_C 86
+      Tag: Mid_Townhouse_C 104
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3348,9 +3504,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7464491809129405195
+  - Entity: 7654294270562088726
     TagComponent:
-      Tag: Noren_Inn_A 106
+      Tag: Noren_Inn_A 98
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3366,13 +3522,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 6298015223205281097
+  - Entity: 8372544408827333126
     TagComponent:
-      Tag: Lantern_Paper_Red_A 107
+      Tag: Prop_LanternBracket_A 105
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [37.1, 0.35, 2.21]
+      Translation: [37.05, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 2295364764995231352
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 99
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [37.05, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -3384,13 +3556,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 4689574857496378346
+  - Entity: 956044096031425887
     TagComponent:
-      Tag: Light Lantern 108
+      Tag: Light Lantern 100
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [37.1, 0.35, 0]
+      Translation: [37.05, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3398,14 +3570,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 543104529043699536
+      Height: 2.48
+  - Entity: 3563672639175486273
     TagComponent:
-      Tag: Lantern_Paper_Red_A 109
+      Tag: Prop_LanternBracket_A 106
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [39.9, 0.35, 2.21]
+      Translation: [39.95, 0.88, 3.18]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 6251847471949142548
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 101
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [39.95, 0.35, 1.98]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -3417,13 +3605,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1303320982136907731
+  - Entity: 8085568291151346870
     TagComponent:
-      Tag: Light Lantern 110
+      Tag: Light Lantern 102
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [39.9, 0.35, 0]
+      Translation: [39.95, 0.35, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -3431,10 +3619,10 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 2.66
-  - Entity: 4757991856368314231
+      Height: 2.48
+  - Entity: 3034010136104638966
     TagComponent:
-      Tag: Light Window 111
+      Tag: Light Window 103
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3447,9 +3635,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 7414089986398849931
+  - Entity: 1688478390834701861
     TagComponent:
-      Tag: Light Window 112
+      Tag: Light Window 104
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3462,9 +3650,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 6310776205506319680
+  - Entity: 9118039244367581436
     TagComponent:
-      Tag: Light Window 113
+      Tag: Light Window 105
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3477,9 +3665,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.8
       Height: 1.5
-  - Entity: 1596640101181173012
+  - Entity: 2674909123502499084
     TagComponent:
-      Tag: Light Window 114
+      Tag: Light Window 106
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3492,9 +3680,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 4.6
-  - Entity: 4990361159114315588
+  - Entity: 865019223175162018
     TagComponent:
-      Tag: Sign_Hanging_A 115
+      Tag: Sign_Hanging_A 107
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3510,9 +3698,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1553620523525768964
+  - Entity: 8717855564736308803
     TagComponent:
-      Tag: Sign_Hanging_A 116
+      Tag: Sign_Hanging_A 108
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3528,9 +3716,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 5185376381587611296
+  - Entity: 8093189547638009280
     TagComponent:
-      Tag: Prop_SakeBarrelStack_A 87
+      Tag: Prop_SakeBarrelStack_A 107
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3546,9 +3734,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7066368914810921845
+  - Entity: 4753340983412570213
     TagComponent:
-      Tag: Prop_RainBarrel_A 88
+      Tag: Prop_RainBarrel_A 108
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3564,9 +3752,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5517204967775866326
+  - Entity: 5436475900136740219
     TagComponent:
-      Tag: Prop_Buckets_A 89
+      Tag: Prop_Buckets_A 109
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3582,9 +3770,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4369075243887875684
+  - Entity: 5802989249561414137
     TagComponent:
-      Tag: Prop_Crate_A 90
+      Tag: Prop_Crate_A 110
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3600,9 +3788,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4144038049365884785
+  - Entity: 906604606808675481
     TagComponent:
-      Tag: Prop_Crate_A 91
+      Tag: Prop_Crate_A 111
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3618,9 +3806,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5624851678053953995
+  - Entity: 807227984775273065
     TagComponent:
-      Tag: Prop_WaterJar_A 92
+      Tag: Prop_WaterJar_A 112
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3636,9 +3824,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1573942187121608449
+  - Entity: 865267492707689360
     TagComponent:
-      Tag: Prop_Signboard_A 93
+      Tag: Prop_Signboard_A 113
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3654,9 +3842,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8768649215079955651
+  - Entity: 4970941818857180900
     TagComponent:
-      Tag: Prop_TeaBench_A 94
+      Tag: Prop_TeaBench_A 114
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3672,9 +3860,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2912742462658216466
+  - Entity: 3227205078631221250
     TagComponent:
-      Tag: Prop_Barrel_A 95
+      Tag: Prop_Barrel_A 115
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3690,9 +3878,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1119130806128894965
+  - Entity: 6503400637232061779
     TagComponent:
-      Tag: Prop_Barrel_A 96
+      Tag: Prop_Barrel_A 116
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3708,9 +3896,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8668665967910040190
+  - Entity: 446126623683128433
     TagComponent:
-      Tag: Signboard_Standing_A 117
+      Tag: Signboard_Standing_A 109
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3726,9 +3914,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 5020255467371492675
+  - Entity: 6909508586237613595
     TagComponent:
-      Tag: Prop_LampPost_A 97
+      Tag: Prop_LampPost_A 117
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3744,9 +3932,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5882337506271265687
+  - Entity: 1303320982136907731
     TagComponent:
-      Tag: Light Lantern 118
+      Tag: Light Lantern 110
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3759,9 +3947,9 @@ Entities:
       Intensity: 1.2
       Radius: 4.5
       Height: 2.36
-  - Entity: 7931791239361125040
+  - Entity: 5424707114809238277
     TagComponent:
-      Tag: Prop_LampPost_A 98
+      Tag: Prop_LampPost_A 118
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3777,9 +3965,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1538358977383018917
+  - Entity: 5266152216811059927
     TagComponent:
-      Tag: Light Lantern 119
+      Tag: Light Lantern 111
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3792,9 +3980,9 @@ Entities:
       Intensity: 1.2
       Radius: 4.5
       Height: 2.36
-  - Entity: 5015895395364009197
+  - Entity: 435705977164669814
     TagComponent:
-      Tag: Prop_LampPost_A 99
+      Tag: Prop_LampPost_A 119
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3810,9 +3998,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4686474152400636416
+  - Entity: 7772102480896267850
     TagComponent:
-      Tag: Light Lantern 120
+      Tag: Light Lantern 112
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3825,9 +4013,9 @@ Entities:
       Intensity: 1.2
       Radius: 4.5
       Height: 2.36
-  - Entity: 1269243034250813541
+  - Entity: 906139865629820629
     TagComponent:
-      Tag: Prop_LampPost_A 100
+      Tag: Prop_LampPost_A 120
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3843,9 +4031,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1661220673922604881
+  - Entity: 567665910919308637
     TagComponent:
-      Tag: Light Lantern 121
+      Tag: Light Lantern 113
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
@@ -3858,86 +4046,416 @@ Entities:
       Intensity: 1.2
       Radius: 4.5
       Height: 2.36
-  - Entity: 7684559530769487396
+  - Entity: 4934236230996732169
     TagComponent:
-      Tag: Lantern_String_A 122
+      Tag: Prop_LanternPole_A 121
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-12, -2.6, 3.4]
+      Translation: [-28, -1.45, 0]
       Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4047816580892907599
+    TagComponent:
+      Tag: Prop_LanternPole_A 122
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-20, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 918739704037345279
+    TagComponent:
+      Tag: Prop_LanternPole_A 123
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-12, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4587503939168501426
+    TagComponent:
+      Tag: Prop_LanternPole_A 124
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-4, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 2251315913636527218
+    TagComponent:
+      Tag: Prop_LanternPole_A 125
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [4, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 7030674676215336558
+    TagComponent:
+      Tag: Prop_LanternPole_A 126
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [12, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 7400680386435822629
+    TagComponent:
+      Tag: Prop_LanternPole_A 127
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [20, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 1917854096583216581
+    TagComponent:
+      Tag: Prop_LanternPole_A 128
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [28, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 91694843257160733
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4035018321680480494
+    TagComponent:
+      Tag: Prop_LanternRope_8m_A 129
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-24, -1.45, 5.23]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3955496951032015169
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 402806821593852591
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 114
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-27, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 4
-      TextureHandle: 8264352876445439252
+      TextureHandle: 3332558443294524543
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3967390309208371634
+  - Entity: 7741378040280636014
     TagComponent:
-      Tag: Light Lantern 123
+      Tag: Light Lantern 115
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-12, -2.6, 0]
+      Translation: [-27, -1.45, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
       Color: [1, 0.62, 0.28]
-      Intensity: 0.8
-      Radius: 3
-      Height: 3.6
-  - Entity: 2644978717383917822
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.349
+  - Entity: 3903474477309440480
     TagComponent:
-      Tag: Lantern_String_B 124
+      Tag: Lantern_Paper_Red_A 116
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [12, -2.6, 3.4]
+      Translation: [-25, -1.45, 3.599]
       Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 4
-      TextureHandle: 2351282567601503537
+      TextureHandle: 3332558443294524543
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3883090966570248278
+  - Entity: 2260660778291174355
     TagComponent:
-      Tag: Light Lantern 125
+      Tag: Lantern_Paper_Red_A 117
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [12, -2.6, 0]
+      Translation: [-23, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5882337506271265687
+    TagComponent:
+      Tag: Light Lantern 118
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-23, -1.45, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
       Color: [1, 0.62, 0.28]
-      Intensity: 0.8
-      Radius: 3
-      Height: 3.6
-  - Entity: 4979045489792893984
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.099
+  - Entity: 3789860359107626460
     TagComponent:
-      Tag: Lantern_String_A 126
+      Tag: Lantern_Paper_Red_A 119
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-28, -2.6, 3.4]
+      Translation: [-21, -1.45, 3.849]
       Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 4
-      TextureHandle: 8264352876445439252
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6777668060126328157
+    TagComponent:
+      Tag: Prop_LanternRope_8m_A 130
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-16, -1.45, 5.23]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3955496951032015169
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 4108214730479712067
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 120
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-19, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1661220673922604881
+    TagComponent:
+      Tag: Light Lantern 121
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-19, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.349
+  - Entity: 7290759019617603435
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 122
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-17, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 644841920776927081
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 123
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-15, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4154006228833596452
+    TagComponent:
+      Tag: Light Lantern 124
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-15, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.099
+  - Entity: 7442447383025723113
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 125
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-13, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5482106682453077120
+    TagComponent:
+      Tag: Prop_LanternRope_8m_A 131
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-8, -1.45, 5.23]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3955496951032015169
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 6945036608516837223
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 126
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-11, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -3948,48 +4466,601 @@ Entities:
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-28, -2.6, 0]
+      Translation: [-11, -1.45, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
       Color: [1, 0.62, 0.28]
-      Intensity: 0.8
-      Radius: 3
-      Height: 3.6
-  - Entity: 3921629610697848665
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.349
+  - Entity: 2121744054129046570
     TagComponent:
-      Tag: Lantern_String_B 128
+      Tag: Lantern_Paper_Red_A 128
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [28, -2.6, 3.4]
+      Translation: [-9, -1.45, 3.599]
       Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 4
-      TextureHandle: 2351282567601503537
+      TextureHandle: 3332558443294524543
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7984269472207846125
+  - Entity: 2664113820814883780
     TagComponent:
-      Tag: Light Lantern 129
+      Tag: Lantern_Paper_Red_A 129
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [28, -2.6, 0]
+      Translation: [-7, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4440903897755739216
+    TagComponent:
+      Tag: Light Lantern 130
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-7, -1.45, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
       Color: [1, 0.62, 0.28]
-      Intensity: 0.8
-      Radius: 3
-      Height: 3.6
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.099
+  - Entity: 1651695277991129903
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 131
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-5, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 8179511633169994679
+    TagComponent:
+      Tag: Prop_LanternRope_8m_A 132
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [0, -1.45, 5.23]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3955496951032015169
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 8469859341652961741
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 132
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-3, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 3517458147846364436
+    TagComponent:
+      Tag: Light Lantern 133
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-3, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.349
+  - Entity: 3789605295854122449
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 134
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [-1, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4405270397940718046
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 135
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [1, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4967099852968948329
+    TagComponent:
+      Tag: Light Lantern 136
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [1, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.099
+  - Entity: 7396688570194138963
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 137
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [3, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 5286655547842408167
+    TagComponent:
+      Tag: Prop_LanternRope_8m_A 133
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [8, -1.45, 5.23]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3955496951032015169
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 3846090230506281242
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 138
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [5, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 497112452931547690
+    TagComponent:
+      Tag: Light Lantern 139
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [5, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.349
+  - Entity: 8800131582262812634
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 140
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [7, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6529518067902531362
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 141
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [9, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1390852293024056443
+    TagComponent:
+      Tag: Light Lantern 142
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [9, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.099
+  - Entity: 4291679827340005259
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 143
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [11, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6166672804687438092
+    TagComponent:
+      Tag: Prop_LanternRope_8m_A 134
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [16, -1.45, 5.23]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3955496951032015169
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 997729145460791725
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 144
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [13, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 33012907453633922
+    TagComponent:
+      Tag: Light Lantern 145
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [13, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.349
+  - Entity: 7492110070196218106
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 146
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [15, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 2447083897413627187
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 147
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [17, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 481963023245660772
+    TagComponent:
+      Tag: Light Lantern 148
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [17, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.099
+  - Entity: 3148510373192168982
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 149
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [19, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 6690615940865240569
+    TagComponent:
+      Tag: Prop_LanternRope_8m_A 135
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [24, -1.45, 5.23]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3955496951032015169
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 2751508612522241936
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 150
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [21, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7116055525972466965
+    TagComponent:
+      Tag: Light Lantern 151
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [21, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.349
+  - Entity: 3835251305232780566
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 152
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [23, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1489922203519673308
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 153
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [25, -1.45, 3.599]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7563651070636797323
+    TagComponent:
+      Tag: Light Lantern 154
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [25, -1.45, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 0.9
+      Radius: 3.2
+      Height: 4.099
+  - Entity: 6358533103301637926
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 155
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [27, -1.45, 3.849]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 4
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 7848184594630981772
+    TagComponent:
+      Tag: Street Path
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [0, -3.3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [68, 1.6, 0.02]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 6082173670831200397
+  - Entity: 252971683630344385
+    TagComponent:
+      Tag: Street Curb
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [0, -0.475, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [68, 0.65, 0.05]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 6082173670831200397
+  - Entity: 103517882666159215
+    TagComponent:
+      Tag: Street Gutter
+    RelationshipComponent:
+      Parent: 7134674512985231667
+    TransformComponent:
+      Translation: [0, -0.925, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [68, 0.25, 0.012]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 9080373766797006509
   - Entity: 8552362175665374420
     TagComponent:
       Tag: Near Side
@@ -3997,14 +5068,14 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 2353303867334453102
+  - Entity: 70880737886996099
     TagComponent:
-      Tag: Prop_MarketStall_A 101
+      Tag: Prop_MarketStall_A 136
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
       Translation: [-11.5, -9.6, 0]
-      Rotation: [0, 0, 3.14159]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       ModelHandle: 4105443838374228843
@@ -4015,14 +5086,14 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8433789905490656580
+  - Entity: 4899229930118669106
     TagComponent:
-      Tag: Prop_MarketStall_B 102
+      Tag: Prop_MarketStall_B 137
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
       Translation: [11, -9.8, 0]
-      Rotation: [0, 0, 3.14159]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       ModelHandle: 5985599145371148642
@@ -4033,14 +5104,14 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5137722211580492286
+  - Entity: 451676422728028556
     TagComponent:
-      Tag: Prop_MarketStall_A 103
+      Tag: Prop_MarketStall_A 138
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
       Translation: [25.5, -9.4, 0]
-      Rotation: [0, 0, 3.14159]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       ModelHandle: 4105443838374228843
@@ -4051,9 +5122,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2729577282484193326
+  - Entity: 7701094212405275003
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 104
+      Tag: Prop_FenceBamboo_2m_A 139
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4069,9 +5140,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8223529313279210104
+  - Entity: 5689525697531063780
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 105
+      Tag: Prop_FenceBamboo_2m_A 140
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4087,9 +5158,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4636712370380389199
+  - Entity: 8697142036117789902
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 106
+      Tag: Prop_FenceBamboo_2m_A 141
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4105,9 +5176,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6321109415155226444
+  - Entity: 7552201842630068718
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 107
+      Tag: Prop_FenceBamboo_2m_A 142
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4123,9 +5194,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 336653617512785085
+  - Entity: 5563367995535165019
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 108
+      Tag: Prop_FenceBamboo_2m_A 143
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4141,9 +5212,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 9165893982249845563
+  - Entity: 2331323869435239352
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 109
+      Tag: Prop_FenceBamboo_2m_A 144
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4159,9 +5230,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3435461605348028612
+  - Entity: 8357463883765127398
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 110
+      Tag: Prop_FenceBamboo_2m_A 145
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4177,9 +5248,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5519789707852786824
+  - Entity: 6511306290681583100
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 111
+      Tag: Prop_FenceBamboo_2m_A 146
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4195,9 +5266,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2902175974432081508
+  - Entity: 6213203858290675075
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 112
+      Tag: Prop_FenceBamboo_2m_A 147
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4213,9 +5284,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3871682074465931714
+  - Entity: 1387745336800917517
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 113
+      Tag: Prop_FenceBamboo_2m_A 148
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4231,9 +5302,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3122933001851924410
+  - Entity: 8758060933129343162
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 114
+      Tag: Prop_FenceBamboo_2m_A 149
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4249,9 +5320,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2265032889894898350
+  - Entity: 3711337488773462493
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 115
+      Tag: Prop_FenceBamboo_2m_A 150
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4267,9 +5338,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7940697000641725526
+  - Entity: 4730318163934825209
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 116
+      Tag: Prop_FenceBamboo_2m_A 151
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4285,9 +5356,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1767792532715896446
+  - Entity: 6027316311666449189
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 117
+      Tag: Prop_FenceBamboo_2m_A 152
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4303,9 +5374,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4259543272578941008
+  - Entity: 1056548499125587863
     TagComponent:
-      Tag: Prop_StoneLantern_A 118
+      Tag: Prop_StoneLantern_A 153
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4321,9 +5392,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5178870287014468025
+  - Entity: 5700713832520914541
     TagComponent:
-      Tag: Prop_StoneLantern_A 119
+      Tag: Prop_StoneLantern_A 154
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4339,9 +5410,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7251153179795617564
+  - Entity: 3159781248826920675
     TagComponent:
-      Tag: Prop_Barrel_A 120
+      Tag: Prop_Barrel_A 155
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4357,9 +5428,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 537794611233331630
+  - Entity: 5103902427669319086
     TagComponent:
-      Tag: Prop_Barrel_A 121
+      Tag: Prop_Barrel_A 156
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4375,9 +5446,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 674339220210854594
+  - Entity: 1961868124723423878
     TagComponent:
-      Tag: Prop_Buckets_A 122
+      Tag: Prop_Buckets_A 157
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4393,9 +5464,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 199599924555281318
+  - Entity: 7172132972474851555
     TagComponent:
-      Tag: Prop_Handcart_A 123
+      Tag: Prop_Handcart_A 158
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4411,9 +5482,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4579813082945285548
+  - Entity: 3496453479288910230
     TagComponent:
-      Tag: Prop_WaterJar_A 124
+      Tag: Prop_WaterJar_A 159
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4429,9 +5500,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1781152523297523867
+  - Entity: 4153162920763685293
     TagComponent:
-      Tag: Prop_Crate_A 125
+      Tag: Prop_Crate_A 160
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4447,9 +5518,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4440903897755739216
+  - Entity: 7978146838334855934
     TagComponent:
-      Tag: Light Lantern 130
+      Tag: Light Lantern 156
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4462,9 +5533,9 @@ Entities:
       Intensity: 0.9
       Radius: 3
       Height: 1.15
-  - Entity: 5999210383352728132
+  - Entity: 1311116972848937950
     TagComponent:
-      Tag: Light Lantern 131
+      Tag: Light Lantern 157
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4477,9 +5548,9 @@ Entities:
       Intensity: 0.9
       Radius: 3
       Height: 1.15
-  - Entity: 2868951336854928090
+  - Entity: 5103377855133320596
     TagComponent:
-      Tag: SakuraWeeping 132
+      Tag: SakuraWeeping 158
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4495,9 +5566,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 167140268044961234
+  - Entity: 8296324720394247833
     TagComponent:
-      Tag: SakuraWeeping 133
+      Tag: SakuraWeeping 159
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4513,9 +5584,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3689678860513907126
+  - Entity: 77306390429952907
     TagComponent:
-      Tag: FlowerBush02 134
+      Tag: FlowerBush02 160
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4531,9 +5602,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7998859555936191412
+  - Entity: 7593838122075314946
     TagComponent:
-      Tag: FlowerBush03 135
+      Tag: FlowerBush03 161
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4549,9 +5620,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3459465631196150838
+  - Entity: 3484291544208288045
     TagComponent:
-      Tag: BushDense01 136
+      Tag: BushDense01 162
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4567,9 +5638,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2693785245925410300
+  - Entity: 4493227637177386631
     TagComponent:
-      Tag: BushDense02 137
+      Tag: BushDense02 163
     RelationshipComponent:
       Parent: 8552362175665374420
     TransformComponent:
@@ -4592,9 +5663,9 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 685549481395710090
+  - Entity: 6293882819025066828
     TagComponent:
-      Tag: SakuraWeeping 138
+      Tag: SakuraWeeping 164
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4610,9 +5681,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 6696037949854521042
+  - Entity: 6421513236199126108
     TagComponent:
-      Tag: SakuraWeeping 139
+      Tag: SakuraWeeping 165
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4628,9 +5699,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2989643591528521816
+  - Entity: 2136758087301735703
     TagComponent:
-      Tag: PineTall 140
+      Tag: PineTall 166
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4646,9 +5717,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1508013354212011323
+  - Entity: 495056131622238287
     TagComponent:
-      Tag: LindenAutumnA 141
+      Tag: LindenAutumnA 167
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4664,9 +5735,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7273095695949688761
+  - Entity: 3549480645573339250
     TagComponent:
-      Tag: OakGnarledSmall 142
+      Tag: OakGnarledSmall 168
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4682,9 +5753,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7669454495398592119
+  - Entity: 806924490941450102
     TagComponent:
-      Tag: LindenAutumnC 143
+      Tag: LindenAutumnC 169
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4700,9 +5771,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 26120394234919533
+  - Entity: 3770945041644483989
     TagComponent:
-      Tag: BushDense03 144
+      Tag: BushDense03 170
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4718,9 +5789,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3616297509170848285
+  - Entity: 2129599249677306754
     TagComponent:
-      Tag: BushDense04 145
+      Tag: BushDense04 171
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4736,9 +5807,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3755248213406994544
+  - Entity: 8473229088996190307
     TagComponent:
-      Tag: FlowerBush04 146
+      Tag: FlowerBush04 172
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4754,9 +5825,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 5691389223724197453
+  - Entity: 6568078962114988860
     TagComponent:
-      Tag: FlowerBush05 147
+      Tag: FlowerBush05 173
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4772,9 +5843,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 6718901019745343751
+  - Entity: 4604512781573141357
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 126
+      Tag: Prop_FenceBamboo_2m_A 161
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4790,9 +5861,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8243417621077882544
+  - Entity: 1256877572473866270
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 127
+      Tag: Prop_FenceBamboo_2m_A 162
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4808,9 +5879,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4269867644296168414
+  - Entity: 266105950050588689
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 128
+      Tag: Prop_FenceBamboo_2m_A 163
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4826,9 +5897,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2489456919925406813
+  - Entity: 6387760110485280071
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 129
+      Tag: Prop_FenceBamboo_2m_A 164
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4844,9 +5915,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3550385764248445519
+  - Entity: 1304190736844034896
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 130
+      Tag: Prop_FenceBamboo_2m_A 165
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4862,9 +5933,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 694200909262706049
+  - Entity: 5264450635525049594
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 131
+      Tag: Prop_FenceBamboo_2m_A 166
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4880,9 +5951,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5517719774470174101
+  - Entity: 4335733414919126721
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 132
+      Tag: Prop_FenceBamboo_2m_A 167
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4898,9 +5969,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2809980402816126088
+  - Entity: 358232681977549551
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 133
+      Tag: Prop_FenceBamboo_2m_A 168
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4916,9 +5987,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 680406258559624753
+  - Entity: 8860000707375887540
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 134
+      Tag: Prop_FenceBamboo_2m_A 169
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4934,9 +6005,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5740779152626171867
+  - Entity: 4442262690334371993
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 135
+      Tag: Prop_FenceBamboo_2m_A 170
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4952,9 +6023,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4871105148936988180
+  - Entity: 4823538572562425077
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 136
+      Tag: Prop_FenceBamboo_2m_A 171
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4970,9 +6041,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 312918658491432955
+  - Entity: 9069571046862918173
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 137
+      Tag: Prop_FenceBamboo_2m_A 172
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -4988,9 +6059,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1907056180417228634
+  - Entity: 5716286239254161294
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 138
+      Tag: Prop_FenceBamboo_2m_A 173
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5006,9 +6077,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7701094212405275003
+  - Entity: 7106431507384456387
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 139
+      Tag: Prop_FenceBamboo_2m_A 174
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5024,9 +6095,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5689525697531063780
+  - Entity: 4676822185217115689
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 140
+      Tag: Prop_FenceBamboo_2m_A 175
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5042,9 +6113,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8697142036117789902
+  - Entity: 8779496933321685539
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 141
+      Tag: Prop_FenceBamboo_2m_A 176
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5060,9 +6131,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7552201842630068718
+  - Entity: 5465429248660306925
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 142
+      Tag: Prop_FenceBamboo_2m_A 177
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5078,9 +6149,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5563367995535165019
+  - Entity: 6693716443648269404
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 143
+      Tag: Prop_FenceBamboo_2m_A 178
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5096,9 +6167,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2331323869435239352
+  - Entity: 6885489950295387894
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 144
+      Tag: Prop_FenceBamboo_2m_A 179
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5114,9 +6185,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8357463883765127398
+  - Entity: 7409176282823377919
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 145
+      Tag: Prop_FenceBamboo_2m_A 180
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5132,9 +6203,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6511306290681583100
+  - Entity: 3725158544210215416
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 146
+      Tag: Prop_FenceBamboo_2m_A 181
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5150,9 +6221,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6213203858290675075
+  - Entity: 4644568974746636443
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 147
+      Tag: Prop_FenceBamboo_2m_A 182
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5168,9 +6239,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1387745336800917517
+  - Entity: 303054217094811436
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 148
+      Tag: Prop_FenceBamboo_2m_A 183
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5186,9 +6257,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8758060933129343162
+  - Entity: 6899090525772976239
     TagComponent:
-      Tag: Prop_FenceBamboo_2m_A 149
+      Tag: Prop_FenceBamboo_2m_A 184
     RelationshipComponent:
       Parent: 4630355711890531218
     TransformComponent:
@@ -5211,9 +6282,9 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 5579168043619837959
+  - Entity: 1297177344260733633
     TagComponent:
-      Tag: Rich_CityGate_A 150
+      Tag: Rich_CityGate_A 185
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5229,9 +6300,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6038294839173504463
+  - Entity: 8487641584640047020
     TagComponent:
-      Tag: Rich_CityGate_A_DoorL 151
+      Tag: Rich_CityGate_A_DoorL 186
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5247,9 +6318,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1983013043341686123
+  - Entity: 4269083717344684728
     TagComponent:
-      Tag: Rich_CityGate_A_DoorR 152
+      Tag: Rich_CityGate_A_DoorR 187
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5265,9 +6336,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4386165687301182447
+  - Entity: 6612660578688764710
     TagComponent:
-      Tag: Rich_CityWall_8m_A 153
+      Tag: Rich_CityWall_8m_A 188
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5283,9 +6354,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5972313366630605940
+  - Entity: 3526398656896504504
     TagComponent:
-      Tag: Rich_CityWall_8m_A 154
+      Tag: Rich_CityWall_8m_A 189
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5301,9 +6372,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6458241846427830420
+  - Entity: 4276639542839015998
     TagComponent:
-      Tag: Rich_CityWall_8m_A 155
+      Tag: Rich_CityWall_8m_A 190
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5319,9 +6390,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 322504924234956070
+  - Entity: 7874138390768058173
     TagComponent:
-      Tag: Rich_CityWall_8m_A 156
+      Tag: Rich_CityWall_8m_A 191
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5337,9 +6408,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6466215370361401862
+  - Entity: 4111794882700298621
     TagComponent:
-      Tag: Rich_CityWall_8m_A 157
+      Tag: Rich_CityWall_8m_A 192
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5355,9 +6426,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 9121350775704911243
+  - Entity: 8874953265176099455
     TagComponent:
-      Tag: Rich_CityWall_8m_A 158
+      Tag: Rich_CityWall_8m_A 193
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5373,9 +6444,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2966233266086338955
+  - Entity: 1784734259595724991
     TagComponent:
-      Tag: Rich_CityWall_8m_A 159
+      Tag: Rich_CityWall_8m_A 194
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5391,9 +6462,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2024141489943920003
+  - Entity: 2973643880861278571
     TagComponent:
-      Tag: Rich_CityWall_8m_A 160
+      Tag: Rich_CityWall_8m_A 195
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5409,9 +6480,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4355600474422866090
+  - Entity: 5996214627700613669
     TagComponent:
-      Tag: Rich_CityWall_8m_A 161
+      Tag: Rich_CityWall_8m_A 196
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5427,9 +6498,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 450841266948393199
+  - Entity: 4850462977240021585
     TagComponent:
-      Tag: Rich_CityWall_8m_A 162
+      Tag: Rich_CityWall_8m_A 197
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5445,9 +6516,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4211015663038873951
+  - Entity: 2107596256059610246
     TagComponent:
-      Tag: Rich_LanternInn_A 163
+      Tag: Rich_LanternInn_A 198
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5463,9 +6534,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8695269615371819154
+  - Entity: 410601699075934114
     TagComponent:
-      Tag: Rich_GuildHall_A 164
+      Tag: Rich_GuildHall_A 199
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5481,9 +6552,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5810564476981253832
+  - Entity: 8750151636753208433
     TagComponent:
-      Tag: Noren_Inn_A 148
+      Tag: Noren_Inn_A 174
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5499,13 +6570,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 3148510373192168982
+  - Entity: 55222892209759533
     TagComponent:
-      Tag: Lantern_Paper_Red_A 149
+      Tag: Prop_LanternBracket_A 200
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [-11.25, 23.5, 9.5]
+      Translation: [-11.88, 23.5, 10.53]
+      Rotation: [0, 0, 1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 4987749495267334218
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 175
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [-11.35, 23.5, 9.33]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -5517,13 +6604,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 6795206882966972828
+  - Entity: 3346512369602712186
     TagComponent:
-      Tag: Light Lantern 150
+      Tag: Light Lantern 176
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [-11.25, 23.5, 0]
+      Translation: [-11.35, 23.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -5531,32 +6618,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 9.95
-  - Entity: 237012719001156313
+      Height: 9.83
+  - Entity: 3595243546448470661
     TagComponent:
-      Tag: Lantern_String_A 151
+      Tag: Prop_LanternBracket_A 201
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [-10.95, 20.8, 9.45]
-      Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 3
-      TextureHandle: 8264352876445439252
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 3835251305232780566
+      Translation: [-11.88, 20.5, 10.53]
+      Rotation: [0, 0, 1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 5011355568835153407
     TagComponent:
-      Tag: Lantern_Paper_Red_A 152
+      Tag: Lantern_Paper_Red_A 177
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [-11.25, 26.5, 9.5]
+      Translation: [-11.35, 20.5, 9.33]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -5568,13 +6653,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 8429700403070954388
+  - Entity: 2277853836885946314
     TagComponent:
-      Tag: Light Lantern 153
+      Tag: Light Lantern 178
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [-11.25, 26.5, 0]
+      Translation: [-11.35, 20.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -5582,28 +6667,108 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 9.95
-  - Entity: 8966159003986356416
+      Height: 9.83
+  - Entity: 6260943800981276256
     TagComponent:
-      Tag: Lantern_String_B 154
+      Tag: Prop_LanternBracket_A 202
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [-10.95, 29.2, 9.45]
+      Translation: [-11.88, 26.5, 10.53]
+      Rotation: [0, 0, 1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 1225075237889454214
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 179
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [-11.35, 26.5, 9.33]
       Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 3
-      TextureHandle: 2351282567601503537
+      TextureHandle: 3332558443294524543
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1706315509705581984
+  - Entity: 3493432517532787372
     TagComponent:
-      Tag: Light Window 155
+      Tag: Light Lantern 180
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [-11.35, 26.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 1
+      Radius: 3.5
+      Height: 9.83
+  - Entity: 6413852628293839461
+    TagComponent:
+      Tag: Prop_LanternBracket_A 203
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [-11.88, 29.5, 10.53]
+      Rotation: [0, 0, 1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 2295401872219403815
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 181
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [-11.35, 29.5, 9.33]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 1625455774749756698
+    TagComponent:
+      Tag: Light Lantern 182
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [-11.35, 29.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 1
+      Radius: 3.5
+      Height: 9.83
+  - Entity: 8735666722932675545
+    TagComponent:
+      Tag: Light Window 183
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5616,9 +6781,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 7767226575581825346
+  - Entity: 3375860384098147777
     TagComponent:
-      Tag: Light Window 156
+      Tag: Light Window 184
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5631,9 +6796,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 7933000672702180305
+  - Entity: 8730836227492425501
     TagComponent:
-      Tag: Light Window 157
+      Tag: Light Window 185
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5646,9 +6811,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 5750571601783837493
+  - Entity: 6606969055691102126
     TagComponent:
-      Tag: Light Window 158
+      Tag: Light Window 186
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5661,9 +6826,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 9187992497955206369
+  - Entity: 2211411287692508299
     TagComponent:
-      Tag: Light Window 159
+      Tag: Light Window 187
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5676,9 +6841,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 1556889777153263438
+  - Entity: 5666653706416809072
     TagComponent:
-      Tag: Light Window 160
+      Tag: Light Window 188
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5691,9 +6856,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 8104216698969354028
+  - Entity: 1451581270478155772
     TagComponent:
-      Tag: Light Window 161
+      Tag: Light Window 189
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5706,9 +6871,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 6183719546732084619
+  - Entity: 4180154887219974776
     TagComponent:
-      Tag: Light Window 162
+      Tag: Light Window 190
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5721,9 +6886,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 8092330565104418813
+  - Entity: 3200734580278518792
     TagComponent:
-      Tag: Noren_Inn_Long_A 163
+      Tag: Noren_Inn_Long_A 191
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5739,13 +6904,29 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 433098029938598016
+  - Entity: 5728287208508300774
     TagComponent:
-      Tag: Lantern_Paper_Red_A 164
+      Tag: Prop_LanternBracket_A 204
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [11.25, 23.5, 9.5]
+      Translation: [11.88, 23.5, 10.53]
+      Rotation: [0, 0, -1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 167869203552365131
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 192
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [11.35, 23.5, 9.33]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -5757,13 +6938,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 8753781891469263433
+  - Entity: 3161707474239014647
     TagComponent:
-      Tag: Light Lantern 165
+      Tag: Light Lantern 193
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [11.25, 23.5, 0]
+      Translation: [11.35, 23.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -5771,32 +6952,30 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 9.95
-  - Entity: 749162640643483185
+      Height: 9.83
+  - Entity: 1896007992041523702
     TagComponent:
-      Tag: Lantern_String_A 166
+      Tag: Prop_LanternBracket_A 205
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [10.95, 20.8, 9.45]
-      Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 3
-      TextureHandle: 8264352876445439252
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-  - Entity: 1504477858940067987
+      Translation: [11.88, 20.5, 10.53]
+      Rotation: [0, 0, -1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 8673312150466787519
     TagComponent:
-      Tag: Lantern_Paper_Red_A 167
+      Tag: Lantern_Paper_Red_A 194
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [11.25, 26.5, 9.5]
+      Translation: [11.35, 20.5, 9.33]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -5808,13 +6987,13 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 499451447846141077
+  - Entity: 4642691977444648878
     TagComponent:
-      Tag: Light Lantern 168
+      Tag: Light Lantern 195
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [11.25, 26.5, 0]
+      Translation: [11.35, 20.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
@@ -5822,28 +7001,108 @@ Entities:
       Color: [1, 0.62, 0.28]
       Intensity: 1
       Radius: 3.5
-      Height: 9.95
-  - Entity: 8752442739811580949
+      Height: 9.83
+  - Entity: 5660915450732377921
     TagComponent:
-      Tag: Lantern_String_B 169
+      Tag: Prop_LanternBracket_A 206
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [10.95, 29.2, 9.45]
+      Translation: [11.88, 26.5, 10.53]
+      Rotation: [0, 0, -1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 1310568074214036708
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 196
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [11.35, 26.5, 9.33]
       Rotation: [0, 0, 0]
-      Scale: [4, 1, 1]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 3
-      TextureHandle: 2351282567601503537
+      TextureHandle: 3332558443294524543
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 8895428499081602648
+  - Entity: 3697258321421294980
     TagComponent:
-      Tag: Light Window 170
+      Tag: Light Lantern 197
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [11.35, 26.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 1
+      Radius: 3.5
+      Height: 9.83
+  - Entity: 5889523144692826820
+    TagComponent:
+      Tag: Prop_LanternBracket_A 207
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [11.88, 29.5, 10.53]
+      Rotation: [0, 0, -1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3459246066125482037
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+  - Entity: 7555437670620449132
+    TagComponent:
+      Tag: Lantern_Paper_Red_A 198
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [11.35, 29.5, 9.33]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 3332558443294524543
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+  - Entity: 4696390238213164970
+    TagComponent:
+      Tag: Light Lantern 199
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [11.35, 29.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 1
+      Radius: 3.5
+      Height: 9.83
+  - Entity: 3805225881915981620
+    TagComponent:
+      Tag: Light Window 200
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5856,9 +7115,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 8432972244046408210
+  - Entity: 8690481317356516102
     TagComponent:
-      Tag: Light Window 171
+      Tag: Light Window 201
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5871,9 +7130,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 6760282547362390052
+  - Entity: 4117541079916293475
     TagComponent:
-      Tag: Light Window 172
+      Tag: Light Window 202
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5886,9 +7145,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 6977120467899710939
+  - Entity: 526389292077586327
     TagComponent:
-      Tag: Light Window 173
+      Tag: Light Window 203
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5901,9 +7160,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 5321703546291981978
+  - Entity: 675550649129177014
     TagComponent:
-      Tag: Light Window 174
+      Tag: Light Window 204
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5916,9 +7175,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 7336982293778558525
+  - Entity: 5200558434875366708
     TagComponent:
-      Tag: Light Window 175
+      Tag: Light Window 205
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5931,9 +7190,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 2971093187090315233
+  - Entity: 3238093310178783401
     TagComponent:
-      Tag: Light Window 176
+      Tag: Light Window 206
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5946,9 +7205,9 @@ Entities:
       Intensity: 1.1
       Radius: 3.2
       Height: 8.6
-  - Entity: 559207175395831569
+  - Entity: 8030779803579543319
     TagComponent:
-      Tag: Light Window 177
+      Tag: Light Window 207
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5961,9 +7220,9 @@ Entities:
       Intensity: 1.1
       Radius: 2.4
       Height: 11.8
-  - Entity: 8686407731148481173
+  - Entity: 3290532520433010572
     TagComponent:
-      Tag: Prop_BannerPole_A 165
+      Tag: Prop_BannerPole_A 208
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5979,9 +7238,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 936492851900379978
+  - Entity: 1131556666998320768
     TagComponent:
-      Tag: Banner_Nobori_Cloth_A 178
+      Tag: Banner_Nobori_Cloth_A 208
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -5997,9 +7256,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 4372285857884038244
+  - Entity: 3101633967884631745
     TagComponent:
-      Tag: Prop_Brazier_A 166
+      Tag: Prop_Brazier_A 209
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6015,9 +7274,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6204659909484104264
+  - Entity: 3319360406678991080
     TagComponent:
-      Tag: Light Fire 179
+      Tag: Light Fire 209
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6030,9 +7289,9 @@ Entities:
       Intensity: 1.6
       Radius: 4.5
       Height: 8.2
-  - Entity: 265237732310754082
+  - Entity: 161035299596075639
     TagComponent:
-      Tag: Prop_WallLantern_A 167
+      Tag: Prop_WallLantern_A 210
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6048,9 +7307,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3493432517532787372
+  - Entity: 3123670126848746659
     TagComponent:
-      Tag: Light Lantern 180
+      Tag: Light Lantern 210
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6063,9 +7322,9 @@ Entities:
       Intensity: 1.2
       Radius: 4.5
       Height: 9.2
-  - Entity: 6887059592285639630
+  - Entity: 5653775166237734948
     TagComponent:
-      Tag: Prop_Barrier_A 168
+      Tag: Prop_Barrier_A 211
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6081,9 +7340,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5358741795935977626
+  - Entity: 7570642899192361139
     TagComponent:
-      Tag: Npc Blacksmith 169
+      Tag: Npc Blacksmith 212
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6114,9 +7373,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 1454366510484476670
+  - Entity: 5066316153458726986
     TagComponent:
-      Tag: Prop_BannerPole_A 170
+      Tag: Prop_BannerPole_A 213
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6132,9 +7391,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7173411227970373695
+  - Entity: 8847362652127677644
     TagComponent:
-      Tag: Banner_Nobori_Cloth_A 181
+      Tag: Banner_Nobori_Cloth_A 211
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6150,9 +7409,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 741247532783383899
+  - Entity: 562836719364097748
     TagComponent:
-      Tag: Prop_Brazier_A 171
+      Tag: Prop_Brazier_A 214
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6168,9 +7427,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5285140580129821283
+  - Entity: 3545786194452110988
     TagComponent:
-      Tag: Light Fire 182
+      Tag: Light Fire 212
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6183,9 +7442,9 @@ Entities:
       Intensity: 1.6
       Radius: 4.5
       Height: 8.2
-  - Entity: 4098737723760521218
+  - Entity: 3197566728772903173
     TagComponent:
-      Tag: Prop_WallLantern_A 172
+      Tag: Prop_WallLantern_A 215
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6201,9 +7460,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2386807911055754300
+  - Entity: 7393553714989633615
     TagComponent:
-      Tag: Light Lantern 183
+      Tag: Light Lantern 213
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6216,9 +7475,9 @@ Entities:
       Intensity: 1.2
       Radius: 4.5
       Height: 9.2
-  - Entity: 2491795942287763618
+  - Entity: 1708952186252166412
     TagComponent:
-      Tag: Prop_Barrier_A 173
+      Tag: Prop_Barrier_A 216
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6234,9 +7493,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 9056126121893122773
+  - Entity: 4734764624083510612
     TagComponent:
-      Tag: Npc Blacksmith 174
+      Tag: Npc Blacksmith 217
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6267,9 +7526,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 7990746347725010358
+  - Entity: 8851608849476580508
     TagComponent:
-      Tag: Prop_SpearRack_A 175
+      Tag: Prop_SpearRack_A 218
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6285,9 +7544,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1296226913690117633
+  - Entity: 6317143889299412504
     TagComponent:
-      Tag: Prop_WarDrum_A 176
+      Tag: Prop_WarDrum_A 219
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6303,9 +7562,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 5381568286897247297
+  - Entity: 3866167523897708178
     TagComponent:
-      Tag: Prop_Well_A 177
+      Tag: Prop_Well_A 220
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6321,9 +7580,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 2896501312541484474
+  - Entity: 5573244894865932436
     TagComponent:
-      Tag: Prop_TeaBench_A 178
+      Tag: Prop_TeaBench_A 221
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6339,9 +7598,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 8012105260150090662
+  - Entity: 3814229187851404635
     TagComponent:
-      Tag: Prop_SakeBarrelStack_A 179
+      Tag: Prop_SakeBarrelStack_A 222
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6357,9 +7616,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3650940517534428355
+  - Entity: 5803584441757839270
     TagComponent:
-      Tag: Prop_Crate_A 180
+      Tag: Prop_Crate_A 223
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6375,9 +7634,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 9030743435083879441
+  - Entity: 7867274916922601119
     TagComponent:
-      Tag: Prop_Barrel_A 181
+      Tag: Prop_Barrel_A 224
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6393,9 +7652,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 6882185797107431108
+  - Entity: 3050551049632761961
     TagComponent:
-      Tag: Prop_StoneLantern_A 182
+      Tag: Prop_StoneLantern_A 225
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6411,9 +7670,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 757368261904512216
+  - Entity: 2114153713705155365
     TagComponent:
-      Tag: Light Lantern 184
+      Tag: Light Lantern 214
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6426,9 +7685,9 @@ Entities:
       Intensity: 0.9
       Radius: 3
       Height: 8.15
-  - Entity: 7104503856789712890
+  - Entity: 1648207451579169264
     TagComponent:
-      Tag: Prop_StoneLantern_A 183
+      Tag: Prop_StoneLantern_A 226
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6444,9 +7703,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 4708146004359182136
+  - Entity: 1234690723665728409
     TagComponent:
-      Tag: Light Lantern 185
+      Tag: Light Lantern 215
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6459,9 +7718,9 @@ Entities:
       Intensity: 0.9
       Radius: 3
       Height: 8.15
-  - Entity: 7449881458335973752
+  - Entity: 2967303281270728664
     TagComponent:
-      Tag: Prop_StoneLantern_A 184
+      Tag: Prop_StoneLantern_A 227
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6477,9 +7736,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1447091354598421801
+  - Entity: 6528992526318797622
     TagComponent:
-      Tag: Light Lantern 186
+      Tag: Light Lantern 216
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6492,9 +7751,9 @@ Entities:
       Intensity: 0.9
       Radius: 3
       Height: 8.15
-  - Entity: 8923192899766049864
+  - Entity: 3637179584213586333
     TagComponent:
-      Tag: Prop_StoneLantern_A 185
+      Tag: Prop_StoneLantern_A 228
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6510,9 +7769,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 3496479477921833351
+  - Entity: 224158036862183971
     TagComponent:
-      Tag: Light Lantern 187
+      Tag: Light Lantern 217
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6525,9 +7784,9 @@ Entities:
       Intensity: 0.9
       Radius: 3
       Height: 8.15
-  - Entity: 833757460757171599
+  - Entity: 2867702590048034677
     TagComponent:
-      Tag: SakuraWeeping 188
+      Tag: SakuraWeeping 218
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6543,9 +7802,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 8105115252300664518
+  - Entity: 6035380618897448303
     TagComponent:
-      Tag: PineTall 189
+      Tag: PineTall 219
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6561,9 +7820,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 235210231494397823
+  - Entity: 6079791889833721543
     TagComponent:
-      Tag: TopiaryA 190
+      Tag: TopiaryA 220
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6579,9 +7838,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 4678468687725669529
+  - Entity: 6444453863470338952
     TagComponent:
-      Tag: TopiaryB 191
+      Tag: TopiaryB 221
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6597,9 +7856,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 1039598690999557230
+  - Entity: 5958538105972096199
     TagComponent:
-      Tag: Rich_Pagoda_A 186
+      Tag: Rich_Pagoda_A 229
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6615,9 +7874,9 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7294544034906945711
+  - Entity: 5731295081576229431
     TagComponent:
-      Tag: FirTallA 192
+      Tag: FirTallA 222
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6633,9 +7892,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 4629077759318024977
+  - Entity: 8395442274564739470
     TagComponent:
-      Tag: FirTallB 193
+      Tag: FirTallB 223
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6651,9 +7910,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2828686653420121383
+  - Entity: 7902853896322616840
     TagComponent:
-      Tag: FirTallC 194
+      Tag: FirTallC 224
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6669,9 +7928,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 5953062932849379673
+  - Entity: 2918908883631379427
     TagComponent:
-      Tag: FirTallD 195
+      Tag: FirTallD 225
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6687,9 +7946,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2243460613523894261
+  - Entity: 2822855959442772035
     TagComponent:
-      Tag: PineTall 196
+      Tag: PineTall 226
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6705,9 +7964,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 2461512583193420280
+  - Entity: 5023359328957432752
     TagComponent:
-      Tag: FirTallB 197
+      Tag: FirTallB 227
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6723,9 +7982,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7756806809456432588
+  - Entity: 3778271618017569793
     TagComponent:
-      Tag: FirTallC 198
+      Tag: FirTallC 228
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6741,9 +8000,9 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
-  - Entity: 7353426546272280366
+  - Entity: 1586455786466770262
     TagComponent:
-      Tag: PineTall 199
+      Tag: PineTall 229
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
@@ -6766,9 +8025,9 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 8032460983625500516
+  - Entity: 4229140132784730275
     TagComponent:
-      Tag: Npc Pilgrim 187
+      Tag: Npc Pilgrim 230
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -6799,9 +8058,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 984008665738218172
+  - Entity: 1827120510902042113
     TagComponent:
-      Tag: Npc Barmaid 188
+      Tag: Npc Barmaid 231
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -6832,9 +8091,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 58960380131272589
+  - Entity: 2066745744388655325
     TagComponent:
-      Tag: Npc Farmer 189
+      Tag: Npc Farmer 232
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -6865,9 +8124,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 1095231294647178187
+  - Entity: 2987064322614049891
     TagComponent:
-      Tag: Npc Gatherer 190
+      Tag: Npc Gatherer 233
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -6898,9 +8157,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 5680707351759794561
+  - Entity: 4297627837193199097
     TagComponent:
-      Tag: Npc FarmWife 191
+      Tag: Npc FarmWife 234
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -6931,9 +8190,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 3030765143036885282
+  - Entity: 3582184778167995842
     TagComponent:
-      Tag: Npc Monk 192
+      Tag: Npc Monk 235
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -6964,9 +8223,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 6612482276528831338
+  - Entity: 7882785838496758838
     TagComponent:
-      Tag: Npc VillageElder 193
+      Tag: Npc VillageElder 236
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -6997,9 +8256,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 6916291483258228811
+  - Entity: 6048799615338912504
     TagComponent:
-      Tag: Npc Gatherer 194
+      Tag: Npc Gatherer 237
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -7030,9 +8289,9 @@ Entities:
       Size: [0.32, 0.08, 1.6]
       Layer: Npc
       IsTrigger: false
-  - Entity: 8505081922468958499
+  - Entity: 9080900570244122237
     TagComponent:
-      Tag: Npc Pilgrim 195
+      Tag: Npc Pilgrim 238
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
@@ -7070,9 +8329,9 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 1127744701246316877
+  - Entity: 1194091508005490350
     TagComponent:
-      Tag: Blocker 196
+      Tag: Blocker 239
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7084,9 +8343,9 @@ Entities:
       Size: [64, 1, 3]
       Layer: World
       IsTrigger: false
-  - Entity: 2988302025543036599
+  - Entity: 8063198513224689686
     TagComponent:
-      Tag: Blocker 197
+      Tag: Blocker 240
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7098,9 +8357,9 @@ Entities:
       Size: [1, 10, 3]
       Layer: World
       IsTrigger: false
-  - Entity: 4785022576855797069
+  - Entity: 6272521284348579123
     TagComponent:
-      Tag: Blocker 198
+      Tag: Blocker 241
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7112,9 +8371,9 @@ Entities:
       Size: [1, 10, 3]
       Layer: World
       IsTrigger: false
-  - Entity: 4358079454660878732
+  - Entity: 4126072853993082879
     TagComponent:
-      Tag: Blocker 199
+      Tag: Blocker 242
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7126,9 +8385,9 @@ Entities:
       Size: [1, 15.5, 3]
       Layer: World
       IsTrigger: false
-  - Entity: 2998190674695110652
+  - Entity: 1103589340466645081
     TagComponent:
-      Tag: Blocker 200
+      Tag: Blocker 243
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7140,9 +8399,9 @@ Entities:
       Size: [1, 15.5, 3]
       Layer: World
       IsTrigger: false
-  - Entity: 3351235467024555187
+  - Entity: 2379939653548458838
     TagComponent:
-      Tag: Blocker 201
+      Tag: Blocker 244
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7154,9 +8413,9 @@ Entities:
       Size: [6, 1, 3]
       Layer: World
       IsTrigger: false
-  - Entity: 295447218928182019
+  - Entity: 7635038735083793624
     TagComponent:
-      Tag: Blocker 202
+      Tag: Blocker 245
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7168,9 +8427,9 @@ Entities:
       Size: [0.7, 3, 3]
       Layer: World
       IsTrigger: false
-  - Entity: 7334137127536172867
+  - Entity: 5149542123832758044
     TagComponent:
-      Tag: Blocker 203
+      Tag: Blocker 246
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
@@ -7212,7 +8471,7 @@ Entities:
             FocusRise: 1.4
             PanMin: [-20, -1.2]
             PanMax: [20, -0.6]
-            BlendSeconds: 0.8
+            BlendSeconds: 1.4
   - Entity: 4384155557905843438
     TagComponent:
       Tag: Camera Zone Stairs
@@ -7236,7 +8495,7 @@ Entities:
             FocusRise: 2.8
             PanMin: [0, -6]
             PanMax: [0, 8.5]
-            BlendSeconds: 1
+            BlendSeconds: 1.6
   - Entity: 5020587501949538326
     TagComponent:
       Tag: Camera Zone Plaza
@@ -7260,4 +8519,4 @@ Entities:
             FocusRise: 2
             PanMin: [-5, -5]
             PanMax: [5, -2]
-            BlendSeconds: 0.9
+            BlendSeconds: 1.4
