@@ -10,7 +10,7 @@
 // entities while the game runs. It shows a prefab property (an asset set in the editor), the input edge (pressed
 // this frame, not held), entities created and destroyed during play, and a one-shot effect where they appear.
 //
-// Put it on any entity. Pressing the Key (E by default) instantiates the Prefab in front of the entity tagged
+// Put it on any entity. Pressing E instantiates the Spawn Prefab in front of the entity tagged
 // "Player" (or at this entity when there is none); at most MaxAlive copies exist, the oldest is removed first.
 namespace Hydro
 {
@@ -19,7 +19,7 @@ namespace Hydro
 	{
 	public:
 		HY_PROPERTY(Asset(Prefab), Tooltip("What to spawn"))
-		AssetHandle Prefab = 0;
+		AssetHandle SpawnPrefab = 0;
 		HY_PROPERTY(Asset(Prefab), Tooltip("Played where a copy appears or is removed (a particle effect prefab); empty: none"))
 		AssetHandle Effect = 0;
 		HY_PROPERTY(Range(1, 100), Tooltip("Copies kept at once; the oldest is removed"))
@@ -33,7 +33,7 @@ namespace Hydro
 			// Load once here: Vfx::Play and spawning from a loaded prefab never read the disk.
 			if ((uint64_t)Effect != 0)
 			{
-				AssetManager::GetAsset<Hydro::Prefab>(Effect);
+				AssetManager::GetAsset<Prefab>(Effect);
 			}
 			m_Previous = true; // a key held when the scene starts doesn't count
 		}
@@ -43,13 +43,13 @@ namespace Hydro
 			const bool down = Input::IsKeyPressed(KeyCode::E);
 			const bool pressed = down && m_Previous == false;
 			m_Previous = down;
-			if (pressed == false || (uint64_t)Prefab == 0)
+			if (pressed == false || (uint64_t)SpawnPrefab == 0)
 			{
 				return;
 			}
 
 			Scene& scene = *GetEntity().GetScene();
-			Entity copy = PrefabSerializer::Instantiate(scene, Prefab);
+			Entity copy = PrefabSerializer::Instantiate(scene, SpawnPrefab);
 			if (copy.IsValid() == false)
 			{
 				return;

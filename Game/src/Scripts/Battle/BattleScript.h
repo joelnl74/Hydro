@@ -629,14 +629,15 @@ namespace Hydro
 		void GiveLoot()
 		{
 			std::vector<LootRules::Drop> drops;
-			auto rollTable = [&](const DataRowRef& reference)
+			const std::function<float()> random = [this]() { return Random01(); };
+			auto rollTable = [&drops, &random](const DataRowRef& reference)
 			{
 				const DataView<LootTableDefinition> table = reference.IsSet() ? Data::GetRow<LootTableDefinition>(reference) : DataView<LootTableDefinition>();
 				if (table.IsValid() == false)
 				{
 					return;
 				}
-				for (const LootRules::Drop& drop : LootRules::Roll(*table, [this]() { return Random01(); }))
+				for (const LootRules::Drop& drop : LootRules::Roll(*table, random))
 				{
 					auto found = std::find_if(drops.begin(), drops.end(), [&](const LootRules::Drop& other) { return other.Item == drop.Item; });
 					if (found == drops.end())

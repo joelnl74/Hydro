@@ -97,7 +97,7 @@ namespace Hydro
 			.Property("RunMultiplier", "Run Multiplier", &DioramaWalkScript::RunMultiplier).Range(1.0f, 5.0f).Tooltip("Shift multiplies the speed by this");
 
 		ScriptRegistry::Register<SpawnerScript>("SpawnerScript")
-			.Property("Prefab", "Prefab", &SpawnerScript::Prefab).Tooltip("What to spawn").AssetFilter(AssetType::Prefab)
+			.Property("SpawnPrefab", "Spawn Prefab", &SpawnerScript::SpawnPrefab).Tooltip("What to spawn").AssetFilter(AssetType::Prefab)
 			.Property("Effect", "Effect", &SpawnerScript::Effect).Tooltip("Played where a copy appears or is removed (a particle effect prefab); empty: none").AssetFilter(AssetType::Prefab)
 			.Property("MaxAlive", "Max Alive", &SpawnerScript::MaxAlive).Range(1.0f, 100.0f).Tooltip("Copies kept at once; the oldest is removed")
 			.Property("Distance", "Distance", &SpawnerScript::Distance).Range(0.0f, 10.0f).Tooltip("Metres in front of the player a copy appears");
