@@ -30,8 +30,8 @@ namespace Hydro
 	//      which captures input, so Miko stands still), the camera glides to the Sacred Tree, the ground rumbles
 	//      (camera shake) and stops dead, the tree wakes ("Sacred Tree Awake" and "Sacred Tree Glow" fade in, a
 	//      cyan light and rising motes), then the monk's lines while the camera stays on the tree.
-	//   4. The camera returns, "Clearing the Grounds" completes and "The Guardian's Duty" starts: go down to the
-	//      Farm Village. The tree stays awake.
+	//   4. The camera returns, "Clearing the Grounds" completes and "The Guardian's Duty" starts: down the shrine
+	//      road into the rice fields, where CountrysideQuestScript takes it on. The tree stays awake.
 	// The lines are data (DialogueTable, QuestTable); the timings and the camera are HY_PROPERTY fields,
 	// tunable while playing.
 	HY_SCRIPT()
@@ -381,7 +381,7 @@ namespace Hydro
 				m_Letterbox.Set(0.0f);
 				m_Letterbox.SetShown(false);
 				QuestLog::Get().Complete(SlimesQuest());
-				QuestLog::Get().Start(DutyQuest()); // take the road south to the Farm Village
+				QuestLog::Get().Start(DutyQuest()); // down the shrine road into the rice fields
 				m_Step = Step::Done;
 			}
 		}

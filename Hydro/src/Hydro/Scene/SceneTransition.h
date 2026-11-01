@@ -63,11 +63,17 @@ namespace Hydro
 		static uint32_t GetDepth() { return s_Depth; }
 		static void SetDepth(uint32_t depth) { s_Depth = depth; }
 
+		// The name of the scene right below the running one (what Pop returns to); empty for the first scene. Set by
+		// the host with the depth. A field scene's exit pops when it leads back there and pushes otherwise.
+		static const std::string& GetBelowName() { return s_BelowName; }
+		static void SetBelowName(const std::string& name) { s_BelowName = name; }
+
 	private:
 		// Defined after the class: g++ can't initialise an inline static of a nested type with default
 		// member initialisers inside the class (MSVC can).
 		static Request s_Request;
 		static inline uint32_t s_Depth = 0;
+		static inline std::string s_BelowName;
 	};
 
 	inline SceneTransition::Request SceneTransition::s_Request;

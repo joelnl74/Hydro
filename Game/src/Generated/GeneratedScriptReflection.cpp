@@ -9,6 +9,7 @@
 #include "Scripts/Common/CameraZoneScript.h"
 #include "Scripts/Common/DioramaDirectorScript.h"
 #include "Scripts/Common/DioramaWalkScript.h"
+#include "Scripts/Countryside/CountrysideQuestScript.h"
 #include "Scripts/Examples/SpawnerScript.h"
 #include "Scripts/Examples/TriggerZoneScript.h"
 #include "Scripts/FarmVillage/FarmVillageScript.h"
@@ -95,6 +96,15 @@ namespace Hydro
 		ScriptRegistry::Register<DioramaWalkScript>("DioramaWalkScript")
 			.Property("m_Speed", "Speed", &DioramaWalkScript::m_Speed).Range(0.0f, 20.0f).Tooltip("Walking speed in metres per second")
 			.Property("RunMultiplier", "Run Multiplier", &DioramaWalkScript::RunMultiplier).Range(1.0f, 5.0f).Tooltip("Shift multiplies the speed by this");
+
+		ScriptRegistry::Register<CountrysideQuestScript>("CountrysideQuestScript")
+			.Property("QuestTable", "Quest Table", &CountrysideQuestScript::QuestTable).Tooltip("The quests: rows GuardiansDuty and AlongTheLeyline").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition")
+			.Property("DialogueTable", "Dialogue Table", &CountrysideQuestScript::DialogueTable).Tooltip("What Orin says: rows OrinMeet, OrinJoins, OrinRetry").AssetFilter(AssetType::DataTable).DataTypeFilter("DialogueDefinition")
+			.Property("Encounter", "Encounter", &CountrysideQuestScript::Encounter).Tooltip("Who fights at the tree").DataTypeFilter("EncounterDefinition")
+			.Property("OrinName", "Orin Name", &CountrysideQuestScript::OrinName).Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag")
+			.Property("MeetRange", "Meet Range", &CountrysideQuestScript::MeetRange).Range(1.0f, 30.0f).Tooltip("Metres from Orin at which he calls out")
+			.Property("LeyColor", "Ley Color", &CountrysideQuestScript::LeyColor).Color()
+			.Property("StartQuestWhenAlone", "Start Quest When Alone", &CountrysideQuestScript::StartQuestWhenAlone).Tooltip("Played on its own (not pushed from the Shrine Glade): start the duty at its leyline step");
 
 		ScriptRegistry::Register<SpawnerScript>("SpawnerScript")
 			.Property("SpawnPrefab", "Spawn Prefab", &SpawnerScript::SpawnPrefab).Tooltip("What to spawn").AssetFilter(AssetType::Prefab)

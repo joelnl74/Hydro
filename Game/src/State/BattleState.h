@@ -321,6 +321,55 @@ namespace Hydro
 			return found != Revealed.end() && slot >= 0 && slot < 3 && found->second[(size_t)slot];
 		}
 
+		// Takes a hero out of the party again (a guest who only fought one battle). Miko always stays.
+		void Leave(int hero)
+		{
+			if (hero > 0 && hero < HeroCount)
+			{
+				HeroJoined[hero] = false;
+			}
+		}
+
+		// Starts the battle hand-off for `starter` (the UUID of what started it; it reads Outcome when its scene
+		// resumes): the encounter's enemies in slot order and its loot. The caller pushes the Battle scene. False
+		// while another battle is unsettled.
+		bool BeginEncounter(uint64_t starter, const EncounterDefinition& encounter)
+		{
+			if (Active)
+			{
+				return false;
+			}
+			Active = true;
+			EnemyId = starter;
+			Outcome = Result::None;
+			Encounter = { std::string(), std::string(), std::string() };
+			int count = 0;
+			for (const DataRowRef& member : encounter.Enemies)
+			{
+				if (count < MaxEnemies && member.IsSet())
+				{
+					Encounter[(size_t)count++] = member.Row;
+				}
+			}
+			EncounterLoot = encounter.Loot;
+			return true;
+		}
+
+		// The result of the battle `starter` began, once it is over (Result::None until then, or for another
+		// starter); taking it settles the hand-off.
+		Result TakeOutcome(uint64_t starter)
+		{
+			if (Active == false || EnemyId != starter || Outcome == Result::None)
+			{
+				return Result::None;
+			}
+			const Result outcome = Outcome;
+			Active = false;
+			Outcome = Result::None;
+			EnemyId = 0;
+			return outcome;
+		}
+
 		// Experience for every hero still standing; a hero passing a level's mark (BattleData::ExperienceToLevel) goes
 		// up a level: its maximums rise (and its HP and MP by as much), and the abilities that level teaches are known
 		// from then on. Returns a message for each level up ("Miko reached level 3! Learned Radiant Kick.").

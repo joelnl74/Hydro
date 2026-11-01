@@ -192,6 +192,7 @@ namespace Hydro
 				HY_INFO("Field: {} items in the inventory", inventory.Slots.size());
 			}
 
+			PlaceArrival(scene);
 			m_Menu.SetOpen(false);
 			m_PromptView.Hide();
 			// Arriving (the scene was just loaded, or the player came back to it): fade in from black.
@@ -580,13 +581,13 @@ namespace Hydro
 			return true;
 		}
 
-		// An exit's tag names the scene it leads to ("Exit FarmVillage"). Field scenes connect in a line for now
-		// (the Shrine Glade <-> the Farm Village), so a scene that was pushed by another goes back to it (Pop: the
-		// one below is exactly as the player left it, at that exit), and the first scene pushes the next. A world
-		// map or scene graph replaces this when there are more than two field scenes.
+		// An exit's tag names the scene it leads to ("Exit JapaneseCountryside"). Going back to the scene below on the
+		// stack pops (it is exactly as the player left it, at that exit); any other scene is pushed on top, so the
+		// field scenes can form a line (the Shrine Glade, the countryside, the city) walked both ways. "Door Out" (no
+		// target) always pops. A world map or scene graph replaces this when the world stops being a line.
 		static void Leave(const std::string& target)
 		{
-			if (SceneTransition::GetDepth() > 0)
+			if (SceneTransition::GetDepth() > 0 && (target.empty() || target == SceneTransition::GetBelowName()))
 			{
 				SceneTransition::Pop();
 			}
@@ -594,6 +595,27 @@ namespace Hydro
 			{
 				SceneTransition::Push(target);
 			}
+		}
+
+		// A scene pushed from another starts with the player at "Arrive <that scene>" when it has one (an empty
+		// entity just inside the exit back), instead of where the scene was saved.
+		void PlaceArrival(Scene& scene)
+		{
+			const std::string& from = SceneTransition::GetBelowName();
+			if (from.empty() || Alive(scene, m_Player) == false)
+			{
+				return;
+			}
+			Entity marker = scene.FindEntityByTag("Arrive " + from);
+			if (marker.IsValid() == false)
+			{
+				return;
+			}
+			Entity player{ m_Player, &scene };
+			const glm::vec3 at = scene.GetWorldPosition(marker);
+			const glm::vec3 now = scene.GetWorldPosition(player);
+			scene.SetWorldPosition(player, glm::vec3(at.x, at.y, now.z));
+			HY_INFO("Field: arrived from {} at ({:.1f}, {:.1f})", from, at.x, at.y);
 		}
 
 		// Fades out, then goes: Push(scene) into an interior, or Leave(scene) through an exit (and "Door Out").

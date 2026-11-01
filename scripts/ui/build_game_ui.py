@@ -567,6 +567,8 @@ def main():
     if "field" in which:
         rebuild("ShrineGlade.hyscene", FIELD_REMOVE, lambda d: build_field("ShrineGlade", d))
         rebuild("FarmVillage.hyscene", FIELD_REMOVE, lambda d: build_field("FarmVillage", d))
+        # The Japanese countryside (scripts/japanese_city/build_countryside.py; its director is "Field Director").
+        rebuild("JapaneseCountryside.hyscene", FIELD_REMOVE, lambda d: build_field("JapaneseCountryside", d), director_tags=("Field Director",))
         # Interiors (scripts/interiors/build_inn.py writes the room; the UI is the field's).
         for interior in ("FarmVillageInn", "FarmVillageInnUpstairs"):
             if os.path.exists(os.path.join(SCENES, interior + ".hyscene")):

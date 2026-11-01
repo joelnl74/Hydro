@@ -14,6 +14,7 @@ namespace Hydro
 
 		SceneTransition::Clear();
 		SceneTransition::SetDepth(0);
+		SceneTransition::SetBelowName(std::string());
 
 		// A new run: a fresh game session before the first scene's scripts exist.
 		GameSession::Start();
@@ -40,6 +41,7 @@ namespace Hydro
 
 		SceneTransition::Clear();
 		SceneTransition::SetDepth(0);
+		SceneTransition::SetBelowName(std::string());
 
 		// The run is over once its scenes (and their scripts' OnDestroy) are gone. A host that still holds a scene
 		// releases it before Stop, so those scripts end while the session exists.
@@ -92,6 +94,7 @@ namespace Hydro
 
 		m_Active->OnViewportResize(viewportWidth, viewportHeight);
 		SceneTransition::SetDepth((uint32_t)m_Suspended.size());
+		SceneTransition::SetBelowName(m_Suspended.empty() ? std::string() : m_Suspended.back()->GetName());
 		return request.Kind;
 	}
 

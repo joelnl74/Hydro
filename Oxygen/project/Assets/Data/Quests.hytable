@@ -8,7 +8,13 @@ DataTable:
       Stages:
         - Objective: Drive the slimes from the lower path
         - Objective: Return to the Old Monk
+    AlongTheLeyline:
+      Title: Along the Leyline
+      Stages:
+        - Objective: Follow the leyline south to the city with Orin
     GuardiansDuty:
       Title: The Guardian's Duty
       Stages:
-        - Objective: Take the road south to the Farm Village
+        - Objective: Take the shrine road south into the rice fields
+        - Objective: Follow the leyline across the rice fields
+        - Objective: Help the swordsman at the ancient tree
