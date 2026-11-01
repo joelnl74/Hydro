@@ -113,6 +113,7 @@ Oxygen edits one scene and plays a copy of it, so nothing that happens while pla
 - The selected entity stays selected across Play and Stop: the editor finds it again in the new scene by its UUID (`Scene::GetEntityByUUID`), and clears the selection if it no longer exists (for example an entity spawned while playing, after Stop).
 - Application systems are gameplay: Oxygen's galaxy only moves while playing.
 - **Scene stack.** While playing, a script can switch scenes with `SceneTransition::Push("Name")` (`Hydro/Scene/SceneTransition.h`): the host loads `Assets/Scenes/Name.hyscene` on top of the running scene, which stops updating and drawing but stays exactly as it was (entities, scripts, physics bodies). `SceneTransition::Pop()` throws the top scene away and the one below carries on. Scripts only record the request; the host's `SceneStack` (`Hydro/Scene/SceneStack.h`: `ProcessTransition`, called after the frame's update by `EditorLayer::ProcessSceneTransition` and the `RuntimeLayer`) does it, so the scene is never changed in the middle of its own update. Stop discards the whole stack. `SceneTransition::Quit()` ends the game: the standalone Runtime closes, the editor stops playing (a script never closes the editor). Data that has to cross scenes (a battle's result) lives in plain game state, like `BattleState`.
+- **The game session** (Nov 1, 2026, [Scripting plan](https://github.com/joelnl74/Hydro/wiki/Scripting-Plan) SC2; `Hydro/Scene/GameSession.h`). A run of the game has one session object, made by `SceneStack::Start` (Play; the standalone player's start) before the first scene's scripts exist and destroyed by `SceneStack::Stop` (Stop; quitting) after every scene of the run is gone, so it survives the scene stack's pushes and pops and a new run always starts fresh. The game derives its type and registers it once at startup (`GameSession::Register<RpgSession>()`, in the Game's `RegisterGame()`); scripts reach it with `GameSession::Get<RpgSession>()` (asserts when no game runs; `GameSession::IsRunning()` / `GetActive()`), and it gets `OnStart` / `OnStop`. It holds run state and run-scoped game infrastructure, not engine services (those keep their APIs). The RPG's `RpgSession` (`Game/src/State/RpgSession.h`) holds the battle state (the party's HP and MP, the battle hand-off, the weaknesses found), the quest log, the inventory and the last light preset, so nothing survives Stop and Play and no script resets anything. A host that keeps a scene alive outside the stack (a `SceneRenderer`) lets go of it before `SceneStack::Stop`, so those scripts' `OnDestroy` still sees the session (the Runtime does).
 
 ## Scripts
 
@@ -356,10 +357,7 @@ void UpdateSpriteAnimations(Scene& scene, const SystemContext& context); // Scen
 Agreed Nov 1, 2026, in the wiki's [Scripting plan](https://github.com/joelnl74/Hydro/wiki/Scripting-Plan), after a review of every game script. Steps SC1 to SC7 make the engine safe for a large script refactor (SC8), and SC9 documents it. In short:
 
 - **SC1. Former names.** Done Nov 1, 2026 (uncommitted at the time of writing; see [Former names](#former-names-and-kept-values-sc1-nov-1-2026)).
-- **SC2. The game session.**
-  - One object per game, created when Play starts, destroyed on Stop, surviving scene changes.
-  - Run state lives there, not in statics.
-  - It isn't a service locator: engine services keep their own APIs.
+- **SC2. The game session.** Done Nov 1, 2026 (see [Play mode](#play-mode): `GameSession`, `RpgSession`).
 - **SC3. `GetComponent` for scripts.**
   - `Entity::GetComponent<T>()`, `HasComponent<T>()`, `TryGetComponent<T>()` and `GetComponents<T>()` also find scripts.
   - Every new instance gets its properties before any `OnCreate` runs, so in `OnCreate` another script exists (its own `OnCreate` may not have run yet).
@@ -409,7 +407,7 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
 - Scripts must be compiled into the application: there's no separate game module or hot reload.
-- Game scripts have no run lifetime: their run state lives in statics that survive Stop and Play, and each script guesses when a run starts (planned: the game session, SC2).
+- The run state types (`BattleState`, `QuestLog`) are still defined in their scripts' headers and reach the session through a static `Get()` (`Game/src/State/RpgSession.cpp`); the refactor (SC8) moves them to `Game/src/State/`. `DioramaView` (the field camera) still keeps its framing and cinematic state in statics; directors reset them per scene.
 - An entity's scripts are created and their `OnCreate` run one entity at a time, so in `OnCreate` another entity's script may not exist yet. There's no way to get a script from an entity except a `dynamic_cast` over `NativeScriptComponent::Scripts`, and scripts find each other and their UI by tag name. Planned: `GetComponent` for scripts and the creation order (SC3); `EntityRef` / `ComponentRef<T>` properties (SC4).
 - Code can bind the same script twice to one entity (`Bind<T>()` doesn't refuse it; the editor does). Planned: refused everywhere (SC4).
 - Script reflection (open points):

@@ -42,7 +42,12 @@ namespace Hydro
 
 	void RuntimeLayer::OnDetach()
 	{
-		// The scenes first (their scripts' OnDestroy), then the GPU objects, then the project.
+		// The scenes first (their scripts' OnDestroy, while the game session still exists: the renderer lets go of
+		// its scene before the stack stops), then the GPU objects, then the project.
+		if (m_SceneRenderer != nullptr)
+		{
+			m_SceneRenderer->SetScene(nullptr);
+		}
 		m_Scenes.Stop();
 		m_SceneRenderer.reset();
 		m_View.reset();

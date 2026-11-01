@@ -185,9 +185,13 @@ namespace Hydro
 		return BattleData::Enemy(kind);
 	}
 
-	// What the village and the battle scene tell each other, and what the party keeps between battles.
+	// What the village and the battle scene tell each other, and what the party keeps between battles. One per run:
+	// it lives on the game session (RpgSession::Battle, Scripting plan SC2), so a new run starts fresh.
 	struct BattleState
 	{
+		// The running session's (RpgSession::Battle). Only while a game runs.
+		static BattleState& Get();
+
 		enum class Result : uint8_t { None, Won, Lost, Fled };
 
 		static constexpr int MaxEnemies = 3;
@@ -195,17 +199,17 @@ namespace Hydro
 
 		// Started from the heroes' data the first time a field or battle scene needs them (StartParty), not when the
 		// program starts: the data isn't loaded then.
-		static inline int HeroHP[HeroCount] = {};
-		static inline int HeroMP[HeroCount] = {};
-		static inline bool PartyStarted = false;
-		static inline bool Active = false;               // a battle was started and has not been settled yet
-		static inline uint64_t EnemyId = 0;              // UUID of the village enemy that started it
-		static inline Result Outcome = Result::None;     // set by the battle for that enemy to read when it is back
-		static inline std::array<EnemyKind, MaxEnemies> Encounter{ EnemyKind::Slime, EnemyKind::None, EnemyKind::None };
+		int HeroHP[HeroCount] = {};
+		int HeroMP[HeroCount] = {};
+		bool PartyStarted = false;
+		bool Active = false;               // a battle was started and has not been settled yet
+		uint64_t EnemyId = 0;              // UUID of the village enemy that started it
+		Result Outcome = Result::None;     // set by the battle for that enemy to read when it is back
+		std::array<EnemyKind, MaxEnemies> Encounter{ EnemyKind::Slime, EnemyKind::None, EnemyKind::None };
 		// Weaknesses the party has found, per enemy kind and weakness slot (kept for the whole game, as in a bestiary).
-		static inline bool Revealed[3][3] = {};
+		bool Revealed[3][3] = {};
 
-		static void RestoreParty()
+		void RestoreParty()
 		{
 			for (int i = 0; i < HeroCount; i++)
 			{
@@ -216,27 +220,11 @@ namespace Hydro
 		}
 
 		// Full HP and MP the first time; nothing after that.
-		static void StartParty()
+		void StartParty()
 		{
 			if (PartyStarted == false)
 			{
 				RestoreParty();
-			}
-		}
-
-		// A new game: forget what the previous run left behind.
-		static void Reset()
-		{
-			RestoreParty();
-			Active = false;
-			EnemyId = 0;
-			Outcome = Result::None;
-			for (auto& kind : Revealed)
-			{
-				for (bool& slot : kind)
-				{
-					slot = false;
-				}
 			}
 		}
 	};
@@ -302,7 +290,6 @@ namespace Hydro
 			{
 				m_Kind = EnemyKind::Wisp;
 			}
-			BattleState::Reset();
 
 			// Dormant: parked far below the map, so its collider (kinematic, it has a script) blocks nobody, and
 			// invisible.
@@ -337,12 +324,12 @@ namespace Hydro
 			}
 
 			// The battle this enemy started is over: the scene below carries on and reads the result.
-			if (BattleState::Active && BattleState::EnemyId == (uint64_t)self.GetUUID() && BattleState::Outcome != BattleState::Result::None)
+			if (BattleState::Get().Active && BattleState::Get().EnemyId == (uint64_t)self.GetUUID() && BattleState::Get().Outcome != BattleState::Result::None)
 			{
-				const BattleState::Result outcome = BattleState::Outcome;
-				BattleState::Active = false;
-				BattleState::Outcome = BattleState::Result::None;
-				BattleState::EnemyId = 0;
+				const BattleState::Result outcome = BattleState::Get().Outcome;
+				BattleState::Get().Active = false;
+				BattleState::Get().Outcome = BattleState::Result::None;
+				BattleState::Get().EnemyId = 0;
 				if (outcome == BattleState::Result::Won)
 				{
 					HY_INFO("{}: defeated, it is gone", GetEnemy(m_Kind).Name);
@@ -381,7 +368,7 @@ namespace Hydro
 			}
 
 			const float homeDistance = glm::length(m_Home - position);
-			const bool canChase = m_Cooldown <= 0.0f && BattleState::Active == false;
+			const bool canChase = m_Cooldown <= 0.0f && BattleState::Get().Active == false;
 			if (canChase && m_State != State::Chase && playerDistance < AggroRange)
 			{
 				m_State = State::Chase;
@@ -485,22 +472,22 @@ namespace Hydro
 		// after a battle or while one runs.
 		void StartBattle()
 		{
-			if (m_Cooldown > 0.0f || BattleState::Active)
+			if (m_Cooldown > 0.0f || BattleState::Get().Active)
 			{
 				return;
 			}
 
 			// The village is paused under the battle: this enemy remembers it started it, and brings friends.
 			Entity self = GetEntity();
-			BattleState::Active = true;
-			BattleState::EnemyId = (uint64_t)self.GetUUID();
-			BattleState::Outcome = BattleState::Result::None;
-			BattleState::Encounter = { m_Kind, EnemyKind::None, EnemyKind::None };
+			BattleState::Get().Active = true;
+			BattleState::Get().EnemyId = (uint64_t)self.GetUUID();
+			BattleState::Get().Outcome = BattleState::Result::None;
+			BattleState::Get().Encounter = { m_Kind, EnemyKind::None, EnemyKind::None };
 			const float roll = Random01();
 			const int extra = roll < 0.3f ? 0 : (roll < 0.75f ? 1 : 2);
 			for (int i = 1; i <= extra; i++)
 			{
-				BattleState::Encounter[i] = Random01() < (m_Kind == EnemyKind::Wisp ? 0.5f : 0.3f) ? EnemyKind::Wisp : EnemyKind::Slime;
+				BattleState::Get().Encounter[i] = Random01() < (m_Kind == EnemyKind::Wisp ? 0.5f : 0.3f) ? EnemyKind::Wisp : EnemyKind::Slime;
 			}
 
 			Physics2D::SetLinearVelocity(self, glm::vec2(0.0f));
@@ -573,7 +560,7 @@ namespace Hydro
 	// Battle
 
 	// The party battle: put it on one entity of Battle.hyscene (the "Battle Director"). The party against
-	// up to three enemies (BattleState::Encounter). Rounds: everyone acts once, fastest first (the order is
+	// up to three enemies (BattleState::Get().Encounter). Rounds: everyone acts once, fastest first (the order is
 	// shown at the top). On a hero's turn: 1 attack, 2 / 3 skills, 4 guard, 5 potion, 6 run, Left / Right pick
 	// the target, Up / Down the boost.
 	//
@@ -624,7 +611,7 @@ namespace Hydro
 	protected:
 		void OnCreate() override
 		{
-			BattleState::StartParty(); // the battle played on its own
+			BattleState::Get().StartParty(); // the battle played on its own
 			Scene& scene = *GetEntity().GetScene();
 			m_Camera = Find(scene, "Camera");
 			UpdateStageCamera(scene);
@@ -650,9 +637,9 @@ namespace Hydro
 				hero.Base = ActorLayout(scene, hero.Sprite, HeroFoot, HeroPivot);
 				hero.Size = ActorSize(scene, hero.Sprite);
 				hero.Momentum = 1;
-				if (BattleState::HeroHP[h] <= 0)
+				if (BattleState::Get().HeroHP[h] <= 0)
 				{
-					BattleState::HeroHP[h] = 1;
+					BattleState::Get().HeroHP[h] = 1;
 				}
 			}
 
@@ -661,7 +648,7 @@ namespace Hydro
 			{
 				const std::string prefix = "Enemy " + std::to_string(e);
 				Enemy& enemy = m_Enemies[e];
-				enemy.Kind = BattleState::Encounter[e];
+				enemy.Kind = BattleState::Get().Encounter[e];
 				enemy.Sprites[0] = Find(scene, prefix + " Slime");
 				enemy.Sprites[1] = Find(scene, prefix + " Wisp");
 				enemy.Shadows[0] = Find(scene, prefix + " Slime Shadow");
@@ -1042,7 +1029,7 @@ namespace Hydro
 			bool heroesLeft = false;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				heroesLeft = heroesLeft || BattleState::HeroHP[h] > 0;
+				heroesLeft = heroesLeft || BattleState::Get().HeroHP[h] > 0;
 			}
 			if (heroesLeft == false)
 			{
@@ -1059,23 +1046,23 @@ namespace Hydro
 		{
 			if (m_Phase == Phase::Victory)
 			{
-				BattleState::Outcome = BattleState::Result::Won;
+				BattleState::Get().Outcome = BattleState::Result::Won;
 			}
 			else if (m_Phase == Phase::Defeat)
 			{
 				// Down: the village sees the party back on their feet.
-				BattleState::RestoreParty();
-				BattleState::Outcome = BattleState::Result::Lost;
+				BattleState::Get().RestoreParty();
+				BattleState::Get().Outcome = BattleState::Result::Lost;
 			}
 			else
 			{
-				BattleState::Outcome = BattleState::Result::Fled;
+				BattleState::Get().Outcome = BattleState::Result::Fled;
 			}
 
 			// Fallen heroes get up with 1 HP after a won or fled battle.
 			for (int h = 0; h < HeroCount; h++)
 			{
-				BattleState::HeroHP[h] = std::max(1, BattleState::HeroHP[h]);
+				BattleState::Get().HeroHP[h] = std::max(1, BattleState::Get().HeroHP[h]);
 			}
 			SetPhase(Phase::Done);
 			SceneTransition::Pop();
@@ -1145,7 +1132,7 @@ namespace Hydro
 			if (command == Command::SkillA || command == Command::SkillB)
 			{
 				const int s = command == Command::SkillA ? 0 : 1;
-				if (BattleState::HeroMP[h] < BattleData::Skill(h, s).Cost)
+				if (BattleState::Get().HeroMP[h] < BattleData::Skill(h, s).Cost)
 				{
 					ShowMessage(BattleLabel::NoMP);
 					return;
@@ -1176,12 +1163,12 @@ namespace Hydro
 			{
 				const int s = command == Command::SkillA ? 0 : 1;
 				const AbilityDefinition& skill = BattleData::Skill(h, s);
-				if (BattleState::HeroMP[h] < skill.Cost)
+				if (BattleState::Get().HeroMP[h] < skill.Cost)
 				{
 					ShowMessage(BattleLabel::NoMP);
 					return;
 				}
-				BattleState::HeroMP[h] -= skill.Cost;
+				BattleState::Get().HeroMP[h] -= skill.Cost;
 				if (skill.Heals)
 				{
 					m_Action.Target = MostHurtHero();
@@ -1480,13 +1467,13 @@ namespace Hydro
 			int living = 0;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				living += BattleState::HeroHP[h] > 0 ? 1 : 0;
+				living += BattleState::Get().HeroHP[h] > 0 ? 1 : 0;
 			}
 			int pick = std::min(living - 1, (int)(Random01() * (float)living));
 			int target = 0;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				if (BattleState::HeroHP[h] > 0)
+				if (BattleState::Get().HeroHP[h] > 0)
 				{
 					if (pick == 0)
 					{
@@ -1547,13 +1534,13 @@ namespace Hydro
 				{
 					damage = std::max(1, damage / 2);
 				}
-				BattleState::HeroHP[m_Action.Target] = std::max(0, BattleState::HeroHP[m_Action.Target] - damage);
+				BattleState::Get().HeroHP[m_Action.Target] = std::max(0, BattleState::Get().HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
 				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, HitSparks(DamageType::Blunt, target.Guarding == false), ParticleSpace::View);
 				Shake(target.Guarding ? 0.04f : 0.08f);
 				Entity sprite = EntityOf(target.Sprite);
-				if (BattleState::HeroHP[m_Action.Target] <= 0)
+				if (BattleState::Get().HeroHP[m_Action.Target] <= 0)
 				{
 					SpriteAnimator::Play(sprite, "Death", true);
 					HY_INFO("Battle: {} falls!", GetHero(m_Action.Target).Name);
@@ -1573,14 +1560,14 @@ namespace Hydro
 			{
 				Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
 				m_Heroes[m_Action.Actor].Offset = glm::vec2(0.0f);
-				if (BattleState::HeroHP[m_Action.Actor] > 0)
+				if (BattleState::Get().HeroHP[m_Action.Actor] > 0)
 				{
 					SpriteAnimator::Play(sprite, GetHero(m_Action.Actor).IdleClip);
 				}
 			}
 			for (int h = 0; h < HeroCount; h++)
 			{
-				if (BattleState::HeroHP[h] > 0 && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
+				if (BattleState::Get().HeroHP[h] > 0 && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
 				{
 					SpriteAnimator::Play(EntityOf(m_Heroes[h].Sprite), GetHero(h).IdleClip);
 				}
@@ -1603,7 +1590,7 @@ namespace Hydro
 				{
 					weak = true;
 					multiplier = 1.5f;
-					BattleState::Revealed[(int)enemy.Kind][w] = true;
+					BattleState::Get().Revealed[(int)enemy.Kind][w] = true;
 				}
 			}
 			for (DamageType resist : definition.Resist)
@@ -1798,24 +1785,24 @@ namespace Hydro
 
 		void HealHero(int h, int amount)
 		{
-			if (BattleState::HeroHP[h] <= 0)
+			if (BattleState::Get().HeroHP[h] <= 0)
 			{
 				return;
 			}
-			const int before = BattleState::HeroHP[h];
-			BattleState::HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::HeroHP[h] + amount);
-			SpawnPopup(ScreenAbove(m_Heroes[h].Base, HeroPopupHeight), BattleState::HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
+			const int before = BattleState::Get().HeroHP[h];
+			BattleState::Get().HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::Get().HeroHP[h] + amount);
+			SpawnPopup(ScreenAbove(m_Heroes[h].Base, HeroPopupHeight), BattleState::Get().HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
 			PlayEffect("Effect Heal", m_Heroes[h].Base, 0.35f, HealMotes(), ParticleSpace::View);
 			PlaySpriteEffect(m_HealEffect, Above(m_Heroes[h].Base, 0.6f) + m_Stage.Back * 0.6f, "Heal", HealEffectTime,
 				glm::vec3(0.55f, 1.0f, 0.6f), 2.5f);
-			HY_INFO("Battle: {} recovers {} HP", GetHero(h).Name, BattleState::HeroHP[h] - before);
+			HY_INFO("Battle: {} recovers {} HP", GetHero(h).Name, BattleState::Get().HeroHP[h] - before);
 		}
 
 		// ---- Helpers ----------------------------------------------------------------------------------------
 
 		bool ActorAlive(int actor) const
 		{
-			return IsHero(actor) ? BattleState::HeroHP[actor] > 0 : m_Enemies[EnemyIndex(actor)].Alive();
+			return IsHero(actor) ? BattleState::Get().HeroHP[actor] > 0 : m_Enemies[EnemyIndex(actor)].Alive();
 		}
 
 		bool IsBroken(const Enemy& enemy) const { return enemy.BrokenUntilRound >= m_Round && enemy.BrokenUntilRound >= 0; }
@@ -1855,8 +1842,8 @@ namespace Hydro
 			float lowest = 2.0f;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				const float fraction = (float)BattleState::HeroHP[h] / (float)GetHero(h).MaxHP;
-				if (BattleState::HeroHP[h] > 0 && fraction < lowest)
+				const float fraction = (float)BattleState::Get().HeroHP[h] / (float)GetHero(h).MaxHP;
+				if (BattleState::Get().HeroHP[h] > 0 && fraction < lowest)
 				{
 					lowest = fraction;
 					best = h;
@@ -1879,7 +1866,7 @@ namespace Hydro
 				std::string cost;
 				if (c == 1 || c == 2)
 				{
-					usable[c] = BattleState::HeroMP[hero] >= BattleData::Skill(hero, c - 1).Cost;
+					usable[c] = BattleState::Get().HeroMP[hero] >= BattleData::Skill(hero, c - 1).Cost;
 					cost = std::to_string(BattleData::Skill(hero, c - 1).Cost) + " MP";
 				}
 				else if (c == 4)
@@ -2544,12 +2531,12 @@ namespace Hydro
 
 				// Her status: HP and MP as numbers and bars (sage, amber below half, red below a quarter), boost points.
 				const CombatantDefinition& definition = GetHero(h);
-				const float hpFraction = (float)BattleState::HeroHP[h] / (float)definition.MaxHP;
+				const float hpFraction = (float)BattleState::Get().HeroHP[h] / (float)definition.MaxHP;
 				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.5f, 0.72f, 0.4f, 1.0f) : hpFraction > 0.25f ? glm::vec4(0.92f, 0.72f, 0.3f, 1.0f) : glm::vec4(0.86f, 0.3f, 0.24f, 1.0f);
-				UI::SetText(EntityOf(hero.StatusHP), std::to_string(BattleState::HeroHP[h]) + " / " + std::to_string(definition.MaxHP));
-				UI::SetText(EntityOf(hero.StatusMP), std::to_string(BattleState::HeroMP[h]) + " / " + std::to_string(definition.MaxMP));
+				UI::SetText(EntityOf(hero.StatusHP), std::to_string(BattleState::Get().HeroHP[h]) + " / " + std::to_string(definition.MaxHP));
+				UI::SetText(EntityOf(hero.StatusMP), std::to_string(BattleState::Get().HeroMP[h]) + " / " + std::to_string(definition.MaxMP));
 				SetFill(EntityOf(hero.StatusHPFill), hpFraction, hpColor);
-				SetFill(EntityOf(hero.StatusMPFill), (float)BattleState::HeroMP[h] / (float)definition.MaxMP, glm::vec4(0.38f, 0.6f, 0.9f, 1.0f));
+				SetFill(EntityOf(hero.StatusMPFill), (float)BattleState::Get().HeroMP[h] / (float)definition.MaxMP, glm::vec4(0.38f, 0.6f, 0.9f, 1.0f));
 				for (int p = 0; p < BattleState::MaxMomentum; p++)
 				{
 					// Full points are gold; the ones the boost is about to spend pulse.
@@ -2629,7 +2616,7 @@ namespace Hydro
 						const std::vector<DamageType>& weak = GetEnemy(enemy.Kind).Weak;
 						const DamageType type = w < (int)weak.size() ? weak[(size_t)w] : DamageType::None;
 						const bool used = type != DamageType::None;
-						const bool known = used && BattleState::Revealed[(int)enemy.Kind][w];
+						const bool known = used && BattleState::Get().Revealed[(int)enemy.Kind][w];
 						Entity icon = EntityOf(enemy.WeakIcons[w]);
 						if (UI::IsVisible(icon) != used)
 						{

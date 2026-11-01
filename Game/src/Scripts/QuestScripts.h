@@ -15,7 +15,7 @@
 // titles and the objective of each stage; Assets/Data/Dialogue/ShrineErrand.hytable: the errand's conversations);
 // what happens when is still code (a story / cutscene system can replace the Shrine Glade's director later).
 //   - QuestLog: the quests of a run (a row of the quests table, its stage, a count), the banners waiting to be shown
-//     and the NPCs a quest speaks for. Game state, shared by every field scene, like BattleState.
+//     and the NPCs a quest speaks for. Run state on the game session (RpgSession::Quests), like BattleState.
 //   - QuestTrackerScript: on "Quest Canvas" (every field scene, scripts/ui/build_game_ui.py): the tracked quest,
 //     top right, and the "New Quest" / "Quest Complete" banner across the middle of the screen, after Octopath
 //     Traveler's story banners (decision D5: the rules, not the look).
@@ -26,6 +26,9 @@ namespace Hydro
 {
 	struct QuestLog
 	{
+		// The running session's (RpgSession::Quests, Scripting plan SC2): a new run starts with an empty log.
+		static QuestLog& Get();
+
 		struct Quest
 		{
 			DataRowRef Definition; // its row of the quests table: the title and the stages' objectives
@@ -54,21 +57,12 @@ namespace Hydro
 			std::string Title;
 		};
 
-		static inline std::vector<Quest> Quests;
-		static inline std::vector<Announcement> Announcements; // oldest first; QuestTrackerScript shows and removes them
-		static inline uint32_t Revision = 0;                   // bumped by every change (the tracker flashes)
+		std::vector<Quest> Quests;
+		std::vector<Announcement> Announcements; // oldest first; QuestTrackerScript shows and removes them
+		uint32_t Revision = 0;                   // bumped by every change (the tracker flashes)
 
-		// A new run: no quests, no banners, no NPC spoken for.
-		static void Reset()
-		{
-			Quests.clear();
-			Announcements.clear();
-			s_Claimed.clear();
-			s_Talked.clear();
-			Revision++;
-		}
 
-		static Quest* Find(const DataRowRef& definition)
+		Quest* Find(const DataRowRef& definition)
 		{
 			for (Quest& quest : Quests)
 			{
@@ -81,7 +75,7 @@ namespace Hydro
 		}
 
 		// Adds the quest at its first stage (or restarts it) and announces it.
-		static void Start(const DataRowRef& definition, int goal = 0)
+		void Start(const DataRowRef& definition, int goal = 0)
 		{
 			Quest* quest = Find(definition);
 			if (quest == nullptr)
@@ -100,7 +94,7 @@ namespace Hydro
 		}
 
 		// Moves the quest on to stage `stage` (its objective in the quests table).
-		static void SetStage(const DataRowRef& definition, int stage, int goal = 0)
+		void SetStage(const DataRowRef& definition, int stage, int goal = 0)
 		{
 			if (Quest* quest = Find(definition))
 			{
@@ -112,7 +106,7 @@ namespace Hydro
 			}
 		}
 
-		static void SetProgress(const DataRowRef& definition, int progress)
+		void SetProgress(const DataRowRef& definition, int progress)
 		{
 			Quest* quest = Find(definition);
 			if (quest != nullptr && quest->Progress != progress)
@@ -123,7 +117,7 @@ namespace Hydro
 			}
 		}
 
-		static void Complete(const DataRowRef& definition)
+		void Complete(const DataRowRef& definition)
 		{
 			Quest* quest = Find(definition);
 			if (quest != nullptr && quest->Done == false)
@@ -135,14 +129,14 @@ namespace Hydro
 			}
 		}
 
-		static void Remove(const DataRowRef& definition)
+		void Remove(const DataRowRef& definition)
 		{
 			Quests.erase(std::remove_if(Quests.begin(), Quests.end(), [&](const Quest& quest) { return quest.Definition == definition; }), Quests.end());
 			Revision++;
 		}
 
 		// The quest the tracker shows: the newest that isn't done (nullptr when there is none).
-		static const Quest* GetTracked()
+		const Quest* GetTracked()
 		{
 			for (auto it = Quests.rbegin(); it != Quests.rend(); ++it)
 			{
@@ -157,43 +151,43 @@ namespace Hydro
 		// NPCs a quest speaks for (by the name after "Npc " in their tag). The field's interaction (MvpDirectorScript)
 		// calls Talk when the player talks to one: true means the quest takes it (TakeTalk, its director, next
 		// update), so the NPC's usual lines are not shown.
-		static void Claim(const std::string& npc)
+		void Claim(const std::string& npc)
 		{
-			if (std::find(s_Claimed.begin(), s_Claimed.end(), npc) == s_Claimed.end())
+			if (std::find(m_Claimed.begin(), m_Claimed.end(), npc) == m_Claimed.end())
 			{
-				s_Claimed.push_back(npc);
+				m_Claimed.push_back(npc);
 			}
 		}
 
-		static void Release(const std::string& npc)
+		void Release(const std::string& npc)
 		{
-			s_Claimed.erase(std::remove(s_Claimed.begin(), s_Claimed.end(), npc), s_Claimed.end());
+			m_Claimed.erase(std::remove(m_Claimed.begin(), m_Claimed.end(), npc), m_Claimed.end());
 		}
 
-		static bool Talk(const std::string& npc)
+		bool Talk(const std::string& npc)
 		{
-			if (std::find(s_Claimed.begin(), s_Claimed.end(), npc) == s_Claimed.end())
+			if (std::find(m_Claimed.begin(), m_Claimed.end(), npc) == m_Claimed.end())
 			{
 				return false;
 			}
-			s_Talked = npc;
+			m_Talked = npc;
 			return true;
 		}
 
 		// True once after the player talked to `npc` (and the quest claims it).
-		static bool TakeTalk(const std::string& npc)
+		bool TakeTalk(const std::string& npc)
 		{
-			if (s_Talked != npc)
+			if (m_Talked != npc)
 			{
 				return false;
 			}
-			s_Talked.clear();
+			m_Talked.clear();
 			return true;
 		}
 
 	private:
-		static inline std::vector<std::string> s_Claimed;
-		static inline std::string s_Talked;
+		std::vector<std::string> m_Claimed;
+		std::string m_Talked;
 	};
 
 	// The UI elements of a group faded together: each image's and text's own alpha is kept, and multiplied.
@@ -308,7 +302,7 @@ namespace Hydro
 			m_TrackerFade.Set(0.0f);
 			UI::SetVisible(m_Tracker, false);
 			UI::SetVisible(m_Banner, false);
-			m_Revision = QuestLog::Revision;
+			m_Revision = QuestLog::Get().Revision;
 		}
 
 		void OnUpdate(float deltaTime) override
@@ -322,10 +316,10 @@ namespace Hydro
 	private:
 		void UpdateTracker(bool held, float deltaTime)
 		{
-			const QuestLog::Quest* quest = QuestLog::GetTracked();
-			if (m_Revision != QuestLog::Revision)
+			const QuestLog::Quest* quest = QuestLog::Get().GetTracked();
+			if (m_Revision != QuestLog::Get().Revision)
 			{
-				m_Revision = QuestLog::Revision;
+				m_Revision = QuestLog::Get().Revision;
 				m_Flash = 1.0f;
 			}
 			m_Flash = std::max(0.0f, m_Flash - deltaTime * 0.8f);
@@ -370,12 +364,12 @@ namespace Hydro
 		{
 			if (m_BannerTime < 0.0f)
 			{
-				if (held || QuestLog::Announcements.empty())
+				if (held || QuestLog::Get().Announcements.empty())
 				{
 					return;
 				}
-				const QuestLog::Announcement next = QuestLog::Announcements.front();
-				QuestLog::Announcements.erase(QuestLog::Announcements.begin());
+				const QuestLog::Announcement next = QuestLog::Get().Announcements.front();
+				QuestLog::Get().Announcements.erase(QuestLog::Get().Announcements.begin());
 				UI::SetText(m_BannerHeader, next.Header);
 				UI::SetText(m_BannerTitle, next.Title);
 				UI::SetVisible(m_Banner, true);
@@ -507,11 +501,8 @@ namespace Hydro
 		void OnCreate() override
 		{
 			Scene& scene = *GetEntity().GetScene();
-			// A new run starts with the first scene; a Shrine Glade entered from another scene keeps the log.
-			if (SceneTransition::GetDepth() == 0)
-			{
-				QuestLog::Reset();
-			}
+			// The log belongs to the run (the game session): a new run starts with an empty one, and a Shrine Glade
+			// entered from another scene keeps it.
 			m_Monk = Find(scene, "Npc " + MonkName);
 			m_Player = Find(scene, "Player");
 			m_Tree = Find(scene, "Sacred Tree");
@@ -543,9 +534,9 @@ namespace Hydro
 
 			UI::SetVisible(m_Cinematic, false);
 			SetLetterbox(0.0f);
-			QuestLog::Claim(MonkName);
+			QuestLog::Get().Claim(MonkName);
 			// Coming back to the glade after the errand: the tree is awake and the monk only says goodbye.
-			if (QuestLog::Find(DutyQuest()) != nullptr)
+			if (QuestLog::Get().Find(DutyQuest()) != nullptr)
 			{
 				m_Step = Step::Done;
 				CreateTreeEffects(scene);
@@ -553,7 +544,7 @@ namespace Hydro
 			}
 			else
 			{
-				QuestLog::Remove(SlimesQuest());
+				QuestLog::Get().Remove(SlimesQuest());
 				m_Step = Step::Offer;
 			}
 			HY_INFO("Shrine quest: talk to the Old Monk on the shrine terrace (E)");
@@ -561,7 +552,7 @@ namespace Hydro
 
 		void OnDestroy() override
 		{
-			QuestLog::Release(MonkName);
+			QuestLog::Get().Release(MonkName);
 			DioramaView::ResetCinematic();
 		}
 
@@ -569,7 +560,7 @@ namespace Hydro
 		{
 			Scene& scene = *GetEntity().GetScene();
 			m_Time += deltaTime;
-			const bool talked = QuestLog::TakeTalk(MonkName);
+			const bool talked = QuestLog::Get().TakeTalk(MonkName);
 			UpdateConversation(scene);
 
 			switch (m_Step)
@@ -585,21 +576,21 @@ namespace Hydro
 					if (IsTalking() == false)
 					{
 						WakeSlimes(scene);
-						QuestLog::Start(SlimesQuest(), m_SlimeCount); // stage 0: drive the slimes from the lower path
+						QuestLog::Get().Start(SlimesQuest(), m_SlimeCount); // stage 0: drive the slimes from the lower path
 						m_Step = Step::Hunt;
 					}
 					break;
 				case Step::Hunt:
 				{
 					const int left = CountSlimes(scene);
-					QuestLog::SetProgress(SlimesQuest(), m_SlimeCount - left);
+					QuestLog::Get().SetProgress(SlimesQuest(), m_SlimeCount - left);
 					if (talked)
 					{
 						Say(left == 1 ? "ReminderOne" : "ReminderMany", std::to_string(left));
 					}
 					if (left == 0 && IsTalking() == false)
 					{
-						QuestLog::SetStage(SlimesQuest(), 1); // return to the Old Monk
+						QuestLog::Get().SetStage(SlimesQuest(), 1); // return to the Old Monk
 						m_Step = Step::Return;
 					}
 					break;
@@ -859,8 +850,8 @@ namespace Hydro
 				DioramaView::ResetCinematic();
 				SetLetterbox(0.0f);
 				UI::SetVisible(m_Cinematic, false);
-				QuestLog::Complete(SlimesQuest());
-				QuestLog::Start(DutyQuest()); // take the road south to the Farm Village
+				QuestLog::Get().Complete(SlimesQuest());
+				QuestLog::Get().Start(DutyQuest()); // take the road south to the Farm Village
 				m_Step = Step::Done;
 			}
 		}

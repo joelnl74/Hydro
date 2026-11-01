@@ -1,0 +1,29 @@
+// Game/src/State/Inventory.h
+#pragma once
+
+#include "Hydro/Data/DataRowRef.h"
+
+#include <vector>
+
+namespace Hydro
+{
+	// The party's items: run state, on the game session (RpgSession::Items, Scripting plan SC2), so every field scene
+	// and interior of a run shares them and a new run starts with none. The field director fills it from its
+	// starting inventory once per run (MvpDirectorScript).
+	struct Inventory
+	{
+		// One line: which item (a row of the items table, looked up when shown or used, so an edit to the table shows
+		// at once) and how many. State, not data.
+		struct Slot
+		{
+			DataRowRef Item;
+			int Count = 0;
+		};
+
+		std::vector<Slot> Slots;
+		bool Started = false; // the starting inventory was given this run
+
+		// The running session's. Only while a game runs.
+		static Inventory& Get();
+	};
+}
