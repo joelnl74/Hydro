@@ -99,6 +99,14 @@ DataTable:
       RestoreHP: 0
       RestoreMP: 0
       UsableInField: false
+    NewItem:
+      Name: Lucky Bell
+      Description: Increases luck by 5%
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
     OldMap:
       Name: Old Map
       Description: A faded map. The road east is marked in red.

@@ -83,13 +83,17 @@ namespace Hydro
 			.Property("ArriveTime", "Arrive Time", &MvpDirectorScript::ArriveTime).Range(0.05f, 5.0f).Tooltip("Fade in after arriving")
 			.Property("RestTime", "Rest Time", &MvpDirectorScript::RestTime).Range(0.05f, 10.0f).Tooltip("Fade out and in when resting at a save point")
 			.Property("StartingInventory", "Starting Inventory", &MvpDirectorScript::StartingInventory).Tooltip("The items a run starts with, in their order").AssetFilter(AssetType::Definition).DataTypeFilter("InventoryDefinition")
-			.Property("ChestItem", "Chest Item", &MvpDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition");
+			.Property("ChestItem", "Chest Item", &MvpDirectorScript::ChestItem).Tooltip("What a chest gives (until chests have a script of their own)").DataTypeFilter("ItemDefinition")
+			.Property("NpcTable", "Npc Table", &MvpDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
+			.Property("SignTable", "Sign Table", &MvpDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition");
 
 		ScriptRegistry::Register<QuestTrackerScript>("QuestTrackerScript")
 			.Property("BannerHoldTime", "Banner Hold Time", &QuestTrackerScript::BannerHoldTime).Range(0.5f, 20.0f).Tooltip("Seconds a banner stays fully shown")
 			.Property("BannerOpenTime", "Banner Open Time", &QuestTrackerScript::BannerOpenTime).Range(0.05f, 5.0f).Tooltip("Seconds a banner takes to open (and a little longer to fade out)");
 
 		ScriptRegistry::Register<ShrineQuestScript>("ShrineQuestScript")
+			.Property("QuestTable", "Quest Table", &ShrineQuestScript::QuestTable).Tooltip("The quests: rows ClearingTheGrounds and GuardiansDuty").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition")
+			.Property("DialogueTable", "Dialogue Table", &ShrineQuestScript::DialogueTable).Tooltip("What is said: rows Intro, ReminderOne, ReminderMany ({Left}), Report, Awake, Farewell").AssetFilter(AssetType::DataTable).DataTypeFilter("DialogueDefinition")
 			.Property("MonkName", "Monk Name", &ShrineQuestScript::MonkName).Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag")
 			.Property("SlimePrefix", "Slime Prefix", &ShrineQuestScript::SlimePrefix).Tooltip("Tag prefix of the quest's slimes")
 			.Property("TreeFocusOffset", "Tree Focus Offset", &ShrineQuestScript::TreeFocusOffset).Tooltip("Metres from the Sacred Tree's foot to where the camera looks, on the ground")
@@ -114,7 +118,8 @@ namespace Hydro
 			.Property("FocusRise", "Focus Rise", &FarmVillageScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
 			.Property("BoundsMin", "Bounds Min", &FarmVillageScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
 			.Property("BoundsMax", "Bounds Max", &FarmVillageScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
-			.Property("StartPreset", "Start Preset", &FarmVillageScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 golden hour, 2 night (keys 1 / 2 / 3)");
+			.Property("StartPreset", "Start Preset", &FarmVillageScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 golden hour, 2 night (keys 1 / 2 / 3)")
+			.Property("Lighting", "Lighting", &FarmVillageScript::Lighting).Tooltip("The day, golden hour and night presets: sun, lanterns, windows, render profile").AssetFilter(AssetType::Definition).DataTypeFilter("SceneLightingDefinition");
 
 		ScriptRegistry::Register<FieldSceneScript>("FieldSceneScript")
 			.Property("SceneName", "Scene Name", &FieldSceneScript::SceneName).Tooltip("The scene's name in the log")
@@ -149,7 +154,8 @@ namespace Hydro
 			.Property("FocusRise", "Focus Rise", &InteriorScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
 			.Property("BoundsMin", "Bounds Min", &InteriorScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
 			.Property("BoundsMax", "Bounds Max", &InteriorScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
-			.Property("StartPreset", "Start Preset", &InteriorScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light when the room is played on its own: 0 day, 1 evening, 2 night (keys 1 / 2 / 3)");
+			.Property("StartPreset", "Start Preset", &InteriorScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light when the room is played on its own: 0 day, 1 evening, 2 night (keys 1 / 2 / 3)")
+			.Property("Lighting", "Lighting", &InteriorScript::Lighting).Tooltip("The day, evening and night presets: window light, fire, render profile").AssetFilter(AssetType::Definition).DataTypeFilter("SceneLightingDefinition");
 
 		ScriptRegistry::Register<ShrineGladeScript>("ShrineGladeScript")
 			.Property("TiltDegrees", "Tilt Degrees", &ShrineGladeScript::TiltDegrees).Range(0.0f, 89.0f).Tooltip("Camera tilt in degrees from straight down")
@@ -158,7 +164,8 @@ namespace Hydro
 			.Property("FocusRise", "Focus Rise", &ShrineGladeScript::FocusRise).Range(-20.0f, 20.0f).Tooltip("Metres above the player's ground the camera aims at")
 			.Property("BoundsMin", "Bounds Min", &ShrineGladeScript::BoundsMin).Tooltip("Lowest x, y the camera's focus may reach")
 			.Property("BoundsMax", "Bounds Max", &ShrineGladeScript::BoundsMax).Tooltip("Highest x, y the camera's focus may reach")
-			.Property("StartPreset", "Start Preset", &ShrineGladeScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)");
+			.Property("StartPreset", "Start Preset", &ShrineGladeScript::StartPreset).Range(0.0f, 2.0f).Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)")
+			.Property("Lighting", "Lighting", &ShrineGladeScript::Lighting).Tooltip("The day, dusk and night presets: sun, lanterns, windows, render profile").AssetFilter(AssetType::Definition).DataTypeFilter("SceneLightingDefinition");
 
 		ScriptRegistry::Register<UIGridCheckScript>("UIGridCheckScript");
 

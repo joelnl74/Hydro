@@ -4,13 +4,16 @@
 #include "PropertyUI.h"
 #include "RenderLookUI.h"
 #include "TerrainTool.h"
+#include "DataFieldRenderer.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Data/Data.h>
+#include <Hydro/Data/DataEditing.h>
 #include <Hydro/Data/DataTableAsset.h>
+#include <Hydro/Data/DefinitionAsset.h>
 #include <Hydro/Renderer/Font.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
@@ -30,6 +33,7 @@
 #include <Hydro/Scene/UI/UIScene.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cfloat>
 #include <climits>
 #include <cstdio>
@@ -173,79 +177,6 @@ namespace Hydro
 		return ImGui::InputText(id, text.data(), text.capacity() + 1, ImGuiInputTextFlags_CallbackResize, StringResizeCallback, &text);
 	}
 
-	// What a table row is called in the editor: its display field (an item's Name) when it has one, else its ID.
-	static std::string GetRowLabel(const DataTableAsset& table, const std::string& id)
-	{
-		const DataTypeInfo* type = table.GetRowType();
-		const DataRecord* record = table.FindRow(id);
-		const DataField* field = type->DisplayField.empty() ? nullptr : type->FindField(type->DisplayField);
-		if (record == nullptr || field == nullptr || field->Type.Kind != DataFieldKind::String)
-		{
-			return id;
-		}
-		const std::string& name = *static_cast<const std::string*>(field->Get(record->Get()));
-		return name.empty() ? id : name;
-	}
-
-	// A DataRowRef property: the table (any .hytable whose rows are `rowType`), then one of its rows by name.
-	// A row that is gone shows as "Missing: <id>". The table window and filtered pickers are D3 (#170).
-	static bool DrawRowRefField(const char* label, DataRowRef& current, const std::string& rowType)
-	{
-		bool changed = false;
-		DrawPropertyRow(label, [&]()
-		{
-			const AssetPickerResult result = AssetPicker::DrawField("##table", current.Table, AssetType::DataTable);
-			if (result.Changed)
-			{
-				const DataTypeInfo* picked = Data::GetDataType(result.Handle);
-				if ((uint64_t)result.Handle != 0 && rowType.empty() == false && (picked == nullptr || picked->Name != rowType))
-				{
-					HY_WARN("That table has rows of {}, not {}", picked != nullptr ? picked->Name : std::string("an unreadable type"), rowType);
-				}
-				else
-				{
-					current.Table = result.Handle;
-					changed = true;
-				}
-			}
-		});
-
-		const Ref<DataTableAsset> table = Data::GetTableAsset(current.Table);
-		DrawPropertyRow("    Row", [&]()
-		{
-			std::string preview = "(none)";
-			if (current.Row.empty() == false)
-			{
-				preview = table != nullptr && table->FindRow(current.Row) != nullptr ? GetRowLabel(*table, current.Row) : "Missing: " + current.Row;
-			}
-			ImGui::BeginDisabled(table == nullptr);
-			if (ImGui::BeginCombo("##row", preview.c_str()))
-			{
-				if (ImGui::Selectable("(none)", current.Row.empty()))
-				{
-					current.Row.clear();
-					changed = true;
-				}
-				for (const auto& [id, record] : table->GetData().Rows)
-				{
-					const std::string rowLabel = GetRowLabel(*table, id) + "##" + id;
-					if (ImGui::Selectable(rowLabel.c_str(), id == current.Row))
-					{
-						current.Row = id;
-						changed = true;
-					}
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("ID: %s", id.c_str());
-					}
-				}
-				ImGui::EndCombo();
-			}
-			ImGui::EndDisabled();
-		});
-		return changed;
-	}
-
 	// One HY_PROPERTY field of a script (#144, #145): the widget for its type, its range, colour picker, asset
 	// filter, tooltip and read-only flag. `value` must hold the property's type. Returns true when it changed.
 	static bool DrawScriptPropertyField(const ScriptProperty& property, ScriptPropertyValue& value)
@@ -328,27 +259,21 @@ namespace Hydro
 				AssetHandle& current = std::get<AssetHandle>(value);
 				DrawPropertyRow(label, [&]()
 				{
-					const AssetPickerResult result = AssetPicker::DrawField("##value", current, property.AssetFilter);
+					// A definition or table property lists only files holding its data type.
+					const AssetPickerResult result = property.DataTypeFilter.empty()
+						? AssetPicker::DrawField("##value", current, property.AssetFilter)
+						: AssetPicker::DrawDataField("##value", current, property.AssetFilter, property.DataTypeFilter);
 					if (result.Changed)
 					{
-						// A definition or table must hold the property's data type (the list isn't filtered by it yet: D3).
-						const DataTypeInfo* picked = property.DataTypeFilter.empty() || (uint64_t)result.Handle == 0 ? nullptr : Data::GetDataType(result.Handle);
-						if (property.DataTypeFilter.empty() == false && (uint64_t)result.Handle != 0 && (picked == nullptr || picked->Name != property.DataTypeFilter))
-						{
-							HY_WARN("{} needs a {} file holding {}", property.DisplayName, AssetTypeToString(property.AssetFilter), property.DataTypeFilter);
-						}
-						else
-						{
-							current = result.Handle;
-							changed = true;
-						}
+						current = result.Handle;
+						changed = true;
 					}
 				});
 				break;
 			}
 			case ScriptPropertyType::RowRef:
 			{
-				changed = DrawRowRefField(label, std::get<DataRowRef>(value), property.DataTypeFilter);
+				changed = DataFieldRenderer::DrawRowRef(label, std::get<DataRowRef>(value), property.DataTypeFilter);
 				break;
 			}
 		}
@@ -714,6 +639,7 @@ namespace Hydro
 				DrawAsset(asset);
 			}
 			SaveEditedMaterial(false);
+			SaveEditedData(false);
 			RenderLookUI::SaveEditedProfile(false);
 			ImGui::End();
 			return;
@@ -730,6 +656,7 @@ namespace Hydro
 		DrawPrefabButton(entity);
 
 		SaveEditedMaterial(false);
+		SaveEditedData(false);
 		RenderLookUI::SaveEditedProfile(false);
 		ImGui::End();
 	}
@@ -997,6 +924,285 @@ namespace Hydro
 		RenderLookUI::EditProfile(profile);
 		ImGui::Spacing();
 		ImGui::TextDisabled("Edits change every scene that uses this profile; saved when an edit is finished.\nA scene uses it from Render Settings > Look (scene).");
+	}
+
+	const DataReport& InspectorWindow::GetValidation(AssetHandle handle)
+	{
+		const double now = ImGui::GetTime();
+		if (m_ValidatedData != handle || m_ValidationTime < 0.0 || now - m_ValidationTime > 1.0)
+		{
+			m_Validation = Data::Validate(handle);
+			m_ValidatedData = handle;
+			m_ValidationTime = now;
+		}
+		return m_Validation;
+	}
+
+	void InspectorWindow::MarkDataEdited(AssetHandle handle)
+	{
+		// Another file edited before this one is written now, so nothing waits for a save behind it.
+		if ((uint64_t)m_UnsavedData != 0 && m_UnsavedData != handle)
+		{
+			SaveEditedData(true);
+		}
+		m_UnsavedData = handle;
+		m_ValidationTime = -1.0;
+	}
+
+	void InspectorWindow::SaveEditedData(bool force)
+	{
+		if ((uint64_t)m_UnsavedData == 0)
+		{
+			return;
+		}
+		// Not while a field is being typed in: a dialogue line would be written at every key.
+		if (force == false && ImGui::IsAnyItemActive())
+		{
+			return;
+		}
+
+		const AssetHandle handle = m_UnsavedData;
+		m_UnsavedData = 0;
+		const AssetMetadata* metadata = AssetManager::GetMetadata(handle);
+		const std::filesystem::path path = AssetManager::GetAbsolutePath(handle);
+		if (metadata == nullptr || path.empty())
+		{
+			return;
+		}
+
+		bool saved = false;
+		if (metadata->Type == AssetType::Definition)
+		{
+			const Ref<DefinitionAsset> definition = AssetManager::GetLoadedAsset<DefinitionAsset>(handle);
+			saved = definition != nullptr && definition->Save(path);
+		}
+		else if (metadata->Type == AssetType::DataTable)
+		{
+			const Ref<DataTableAsset> table = AssetManager::GetLoadedAsset<DataTableAsset>(handle);
+			saved = table != nullptr && table->Save(path);
+		}
+		if (saved)
+		{
+			// The object in memory is what the file holds now: it isn't loaded again under the inspector.
+			AssetManager::MarkSaved(handle);
+		}
+	}
+
+	// The header of a data asset: its file, what it holds and its validation line; a read-only file says why.
+	static void DrawDataHeader(const std::filesystem::path& path, const char* kind, const DataTypeInfo* type, bool readOnly, const DataReport& report)
+	{
+		ImGui::TextUnformatted(path.filename().u8string().c_str());
+		if (type != nullptr)
+		{
+			ImGui::TextDisabled("%s of %s (%s)", kind, type->DisplayName.c_str(), type->Name.c_str());
+		}
+		DataFieldRenderer::DrawValidation(report);
+		if (readOnly)
+		{
+			ImGui::TextColored({ 0.9f, 0.7f, 0.3f, 1.0f }, "Read-only: the file is newer than this build or its structure is broken (see above).\nFix it in a text editor; the editor won't overwrite it.");
+		}
+	}
+
+	void InspectorWindow::DrawDefinitionAsset(const std::filesystem::path& path)
+	{
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		const Ref<DefinitionAsset> definition = Data::GetDefinitionAsset(handle);
+		if (definition == nullptr)
+		{
+			DrawDataHeader(path, "Definition", nullptr, false, GetValidation(handle));
+			ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "Could not read the definition (see above and the console).");
+			return;
+		}
+
+		DefinitionData& data = definition->GetData();
+		DrawDataHeader(path, "Definition", definition->GetDataType(), data.ReadOnly, GetValidation(handle));
+		ImGui::Separator();
+
+		if (DataFieldRenderer::DrawFields(*data.Values.GetType(), data.Values.Get(), data.Values.GetKept(), data.ReadOnly))
+		{
+			MarkDataEdited(handle);
+		}
+
+		ImGui::Spacing();
+		ImGui::TextDisabled("Saved when an edit is finished; scripts see edits at once, also while playing.");
+	}
+
+	void InspectorWindow::DrawDataTableAsset(const std::filesystem::path& path)
+	{
+		const AssetHandle handle = AssetManager::FindHandle(path);
+		const Ref<DataTableAsset> table = Data::GetTableAsset(handle);
+		if (table == nullptr)
+		{
+			DrawDataHeader(path, "Data table", nullptr, false, GetValidation(handle));
+			ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "Could not read the table (see above and the console).");
+			return;
+		}
+
+		DataTableData& data = table->GetData();
+		const bool readOnly = data.ReadOnly;
+		DrawDataHeader(path, "Data table", table->GetRowType(), readOnly, GetValidation(handle));
+		ImGui::Separator();
+
+		// Another table: start on its first row.
+		if (m_RowTable != handle)
+		{
+			m_RowTable = handle;
+			m_SelectedRow = data.Rows.empty() ? std::string() : data.Rows.begin()->first;
+			m_RowSearch[0] = '\0';
+		}
+		if (m_SelectedRow.empty() == false && data.Rows.find(m_SelectedRow) == data.Rows.end())
+		{
+			m_SelectedRow = data.Rows.empty() ? std::string() : data.Rows.begin()->first; // removed outside the editor
+		}
+
+		// The row actions.
+		ImGui::BeginDisabled(readOnly);
+		if (ImGui::Button("Add"))
+		{
+			m_SelectedRow = DataEditing::AddRow(data);
+			MarkDataEdited(handle);
+		}
+		ImGui::SameLine();
+		ImGui::BeginDisabled(m_SelectedRow.empty());
+		if (ImGui::Button("Duplicate"))
+		{
+			m_SelectedRow = DataEditing::DuplicateRow(data, m_SelectedRow);
+			MarkDataEdited(handle);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Delete..."))
+		{
+			m_RowToDelete = m_SelectedRow;
+			ImGui::OpenPopup("Delete Row?");
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Change ID..."))
+		{
+			std::snprintf(m_RowIdBuffer, sizeof(m_RowIdBuffer), "%s", m_SelectedRow.c_str());
+			ImGui::OpenPopup("Change Row ID");
+		}
+		ImGui::EndDisabled();
+		ImGui::EndDisabled();
+
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		ImGui::InputTextWithHint("##RowSearch", "Search rows", m_RowSearch, sizeof(m_RowSearch));
+		std::string search = m_RowSearch;
+		std::transform(search.begin(), search.end(), search.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+
+		// The rows by ID: the display field's name, the ID under it.
+		const float lineHeight = ImGui::GetTextLineHeight();
+		const float rowHeight = lineHeight * 2.0f + 2.0f;
+		const float listHeight = std::min(260.0f, std::max(1.0f, (float)data.Rows.size()) * (rowHeight + ImGui::GetStyle().ItemSpacing.y) + 8.0f);
+		if (ImGui::BeginChild("##Rows", { 0.0f, listHeight }, true))
+		{
+			for (const auto& [id, record] : data.Rows)
+			{
+				const std::string label = DataEditing::GetRowLabel(record, id);
+				if (search.empty() == false)
+				{
+					std::string lower = label + " " + id;
+					std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+					if (lower.find(search) == std::string::npos)
+					{
+						continue;
+					}
+				}
+				ImGui::PushID(id.c_str());
+				const ImVec2 start = ImGui::GetCursorPos();
+				if (ImGui::Selectable("##row", id == m_SelectedRow, ImGuiSelectableFlags_AllowItemOverlap, { 0.0f, rowHeight }))
+				{
+					m_SelectedRow = id;
+				}
+				const ImVec2 end = ImGui::GetCursorPos();
+				ImGui::SetCursorPos({ start.x + 4.0f, start.y + 1.0f });
+				ImGui::TextUnformatted(label.c_str());
+				ImGui::SetCursorPos({ start.x + 4.0f, start.y + 1.0f + lineHeight });
+				ImGui::TextDisabled("ID: %s", id.c_str());
+				ImGui::SetCursorPos(end);
+				ImGui::PopID();
+			}
+			if (data.Rows.empty())
+			{
+				ImGui::TextDisabled("No rows yet: Add makes one.");
+			}
+		}
+		ImGui::EndChild();
+
+		// Delete: references to the row (scenes, other rows, saves) will show it as missing.
+		if (ImGui::BeginPopupModal("Delete Row?", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("Delete row '%s'?", m_RowToDelete.c_str());
+			ImGui::TextDisabled("Scenes, other rows and saves that refer to it will show 'Missing: %s'.", m_RowToDelete.c_str());
+			if (ImGui::Button("Delete", { 120.0f, 0.0f }))
+			{
+				DataEditing::RemoveRow(data, m_RowToDelete);
+				m_SelectedRow = data.Rows.empty() ? std::string() : data.Rows.begin()->first;
+				MarkDataEdited(handle);
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", { 120.0f, 0.0f }))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		// Change ID: a row ID is its lasting identity, so this is a migration, not a rename.
+		if (ImGui::BeginPopupModal("Change Row ID", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("New ID for '%s':", m_SelectedRow.c_str());
+			if (ImGui::IsWindowAppearing())
+			{
+				ImGui::SetKeyboardFocusHere();
+			}
+			ImGui::SetNextItemWidth(260.0f);
+			const bool entered = ImGui::InputText("##RowId", m_RowIdBuffer, sizeof(m_RowIdBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
+			const std::string problem = DataEditing::CheckRowId(data, m_SelectedRow, m_RowIdBuffer);
+			if (problem.empty() == false)
+			{
+				ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "%s", problem.c_str());
+			}
+			ImGui::TextColored({ 0.9f, 0.7f, 0.3f, 1.0f }, "Scenes, other rows and saves refer to rows by ID: they will show\n'Missing: %s' until they are set to the new ID.\nThe display name is a field: edit it below instead.", m_SelectedRow.c_str());
+			ImGui::BeginDisabled(problem.empty() == false);
+			if (ImGui::Button("Change ID", { 120.0f, 0.0f }) || (entered && problem.empty()))
+			{
+				std::string ignored;
+				const std::string newId = m_RowIdBuffer;
+				if (DataEditing::ChangeRowId(data, m_SelectedRow, newId, ignored) && newId != m_SelectedRow)
+				{
+					m_SelectedRow = newId;
+					MarkDataEdited(handle);
+				}
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndDisabled();
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", { 120.0f, 0.0f }))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		// The selected row's values: the same renderer as a definition.
+		auto selected = data.Rows.find(m_SelectedRow);
+		if (selected != data.Rows.end())
+		{
+			ImGui::Spacing();
+			ImGui::Text("%s", DataEditing::GetRowLabel(selected->second, selected->first).c_str());
+			ImGui::SameLine();
+			ImGui::TextDisabled("(ID: %s)", selected->first.c_str());
+			ImGui::Separator();
+			DataRecord& record = selected->second;
+			if (DataFieldRenderer::DrawFields(*record.GetType(), record.Get(), record.GetKept(), readOnly))
+			{
+				MarkDataEdited(handle);
+			}
+		}
+
+		ImGui::Spacing();
+		ImGui::TextDisabled("Saved when an edit is finished; scripts see edits at once, also while playing.");
 	}
 
 	void InspectorWindow::DrawEntityHeader(Entity entity)
@@ -1807,6 +2013,35 @@ namespace Hydro
 					if (instance != nullptr)
 					{
 						ImGui::TextDisabled("Playing: edits apply now and are discarded on Stop.");
+					}
+				}
+
+				// Saved values no property reads (renamed without a former name, or removed; or the script isn't
+				// registered): kept so saving loses nothing (#143). Drop them once they are known to be stale.
+				if (script.KeptProperties.empty() == false)
+				{
+					std::string keys;
+					for (const auto& entry : script.KeptProperties)
+					{
+						keys += (keys.empty() ? "" : ", ") + entry.first;
+					}
+					ImGui::AlignTextToFramePadding();
+					ImGui::TextDisabled("Kept from the file: %s", keys.c_str());
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("Saved values no property of this script reads now (it was renamed or removed, or the script isn't registered).\nThey are written back when the scene is saved. Give a renamed property a FormerName to read its value.");
+					}
+					if (script.Instantiate != nullptr)
+					{
+						ImGui::SameLine();
+						if (ImGui::SmallButton("Drop"))
+						{
+							script.KeptProperties.clear();
+						}
+						if (ImGui::IsItemHovered())
+						{
+							ImGui::SetTooltip("Forget these values: the next save leaves them out.");
+						}
 					}
 				}
 
@@ -2792,6 +3027,18 @@ namespace Hydro
 		if (asset.extension() == RenderProfileSerializer::FileExtension)
 		{
 			DrawRenderProfileAsset(asset);
+			return;
+		}
+
+		if (GetAssetTypeFromExtension(asset) == AssetType::Definition)
+		{
+			DrawDefinitionAsset(asset);
+			return;
+		}
+
+		if (GetAssetTypeFromExtension(asset) == AssetType::DataTable)
+		{
+			DrawDataTableAsset(asset);
 			return;
 		}
 

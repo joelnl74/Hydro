@@ -733,6 +733,22 @@ namespace Hydro
 		return found->second.Object;
 	}
 
+	void AssetManager::MarkSaved(AssetHandle handle)
+	{
+		if (s_Data == nullptr)
+		{
+			return;
+		}
+		auto found = s_Data->Loaded.find(handle);
+		const AssetMetadata* metadata = s_Data->Registry.Get(handle);
+		if (found == s_Data->Loaded.end() || metadata == nullptr || found->second.Object == nullptr)
+		{
+			return;
+		}
+		found->second.Version = GetSourceVersion(s_Data->AssetDirectory / metadata->Path, metadata->Type);
+		found->second.Failed = false;
+	}
+
 	AssetLoadState AssetManager::GetLoadState(AssetHandle handle)
 	{
 		if (IsAssetHandleValid(handle) == false)

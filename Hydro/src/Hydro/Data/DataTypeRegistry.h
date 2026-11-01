@@ -18,9 +18,11 @@ namespace Hydro
 	class DataTypeRegistry
 	{
 	public:
-		// `name` is saved in files: keep it stable (the generator uses the C++ struct name).
+		// `name` is saved in files (the generator uses the C++ struct name): rename it only with a former name.
+		// `formerNames`: type names files may still say (HY_DATA(FormerName("..."))).
 		template<typename T>
-		static DataTypeRegistration<T> Register(const std::string& name, const std::string& displayName);
+		static DataTypeRegistration<T> Register(const std::string& name, const std::string& displayName,
+			const std::vector<std::string>& formerNames = {});
 
 		template<typename E>
 		static DataEnumRegistration<E> RegisterEnum(const std::string& name);
@@ -28,6 +30,8 @@ namespace Hydro
 		// nullptr when nothing is registered under that name or C++ type.
 		static const DataTypeInfo* Find(const std::string& name);
 		static const DataTypeInfo* Find(std::type_index cppType);
+		// The type that had `name` as a former name (a file saved before a rename); nullptr when none.
+		static const DataTypeInfo* FindByFormerName(const std::string& name);
 		static const DataEnumInfo* FindEnum(const std::string& name);
 		static const DataEnumInfo* FindEnum(std::type_index cppType);
 
@@ -40,7 +44,8 @@ namespace Hydro
 	};
 
 	template<typename T>
-	DataTypeRegistration<T> DataTypeRegistry::Register(const std::string& name, const std::string& displayName)
+	DataTypeRegistration<T> DataTypeRegistry::Register(const std::string& name, const std::string& displayName,
+		const std::vector<std::string>& formerNames)
 	{
 		static_assert(std::is_class_v<T>, "Data types are structs");
 		static_assert(std::is_default_constructible_v<T>, "Data types must be default-constructible (field initialisers are the defaults)");
@@ -49,6 +54,7 @@ namespace Hydro
 		DataTypeInfo typeInfo;
 		typeInfo.Name = name;
 		typeInfo.DisplayName = displayName;
+		typeInfo.FormerNames = formerNames;
 		typeInfo.CppType = typeid(T);
 		typeInfo.Construct = []() -> void*
 		{

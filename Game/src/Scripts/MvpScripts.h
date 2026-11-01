@@ -4,11 +4,14 @@
 #include "BattleScripts.h"
 #include "DialogueScripts.h"
 #include "QuestScripts.h"
+#include "Data/DialogueDefinition.h"
+#include "Data/FieldDefinitions.h"
 #include "Data/InventoryDefinition.h"
 #include "Data/ItemDefinition.h"
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cmath>
 #include <filesystem>
 #include <string>
@@ -22,18 +25,19 @@
 // code, like BattleScripts.h: one script holds it all. The UI is runtime UI under the MVP Director on the 1920 x 1080
 // canvas (scripts/ui/build_game_ui.py builds it): the inventory (a scrolling list, the item's details, the party, a
 // help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
-// talk through the dialogue box (DialogueScripts.h).
+// talk through the dialogue box (DialogueScripts.h). What NPCs and signs say is data (Assets/Data/Npcs.hytable,
+// Signs.hytable, Dialogue/*.hydef), found by the name in their tag.
 namespace Hydro
 {
-	// The MVP's messages and prompts (once rows of Sprites/UI/MvpText.png; the runtime UI writes their words,
-	// GetMvpText). The item labels are no longer used: items have names of their own (Assets/Data/Items.hytable).
+	// The MVP's own messages and prompts (once rows of Sprites/UI/MvpText.png; the runtime UI writes their words,
+	// GetMvpText): the game's UI wording, in code until there is a text table (with localisation). Content (items,
+	// what NPCs and signs say) is data: Assets/Data/.
 	enum class MvpLabel : uint32_t
 	{
 		Inventory, EnterUse, EscClose,
-		Potion, HiPotion, Ether, IronSword, HerbBundle, PhoenixFeather, CrystalShard, LeatherBoots, Antidote, AncientKey, CopperOre, OldMap,
 		PromptRead, PromptOpen, PromptEnter, PromptSave, PromptLeave, PromptTalk,
-		SignLine1, SignLine2, FoundPotion, ChestEmpty, Rested, RestedLine2, NoSaveSlot, RoadGoesOn, ToTheVillage,
-		UsedPotion, NotUsableHere, NoneLeft, NpcLine1, NpcLine2, NpcLine3,
+		ChestEmpty, Rested, RestedLine2, NoSaveSlot, RoadGoesOn, ToTheVillage,
+		UsedPotion, NotUsableHere, NoneLeft, SignBlank,
 		Count
 	};
 
@@ -45,27 +49,12 @@ namespace Hydro
 		case MvpLabel::Inventory: return "Inventory";
 		case MvpLabel::EnterUse: return "Enter: use";
 		case MvpLabel::EscClose: return "Esc: close";
-		case MvpLabel::Potion: return "Potion";
-		case MvpLabel::HiPotion: return "Hi-Potion";
-		case MvpLabel::Ether: return "Ether";
-		case MvpLabel::IronSword: return "Iron Sword";
-		case MvpLabel::HerbBundle: return "Herb Bundle";
-		case MvpLabel::PhoenixFeather: return "Phoenix Feather";
-		case MvpLabel::CrystalShard: return "Crystal Shard";
-		case MvpLabel::LeatherBoots: return "Leather Boots";
-		case MvpLabel::Antidote: return "Antidote";
-		case MvpLabel::AncientKey: return "Ancient Key";
-		case MvpLabel::CopperOre: return "Copper Ore";
-		case MvpLabel::OldMap: return "Old Map";
 		case MvpLabel::PromptRead: return "E: Read";
 		case MvpLabel::PromptOpen: return "E: Open";
 		case MvpLabel::PromptEnter: return "E: Enter";
 		case MvpLabel::PromptSave: return "E: Save";
 		case MvpLabel::PromptLeave: return "E: Leave";
 		case MvpLabel::PromptTalk: return "E: Talk";
-		case MvpLabel::SignLine1: return "Shrine Glade Inn";
-		case MvpLabel::SignLine2: return "Village: south";
-		case MvpLabel::FoundPotion: return "Found a Potion!";
 		case MvpLabel::ChestEmpty: return "The chest is empty.";
 		case MvpLabel::Rested: return "You feel rested.";
 		case MvpLabel::RestedLine2: return "HP and MP restored.";
@@ -75,92 +64,9 @@ namespace Hydro
 		case MvpLabel::UsedPotion: return "Used an item.";
 		case MvpLabel::NotUsableHere: return "Not usable here.";
 		case MvpLabel::NoneLeft: return "None left.";
-		case MvpLabel::NpcLine1: return "Lovely evening.";
-		case MvpLabel::NpcLine2: return "Beware the wisps.";
-		case MvpLabel::NpcLine3: return "The inn is warm.";
+		case MvpLabel::SignBlank: return "The sign is too weathered to read.";
 		default: return "";
 		}
-	}
-
-	// What a field NPC says, by the name after "Npc " in its tag (lines in code until there is a dialogue asset).
-	inline std::vector<std::string> GetNpcLines(const std::string& name)
-	{
-		if (name == "Elder")
-		{
-			return {
-				"A lovely evening at the shrine, isn't it? The lanterns are lit early these days.",
-				"Beware the wisps that drift through the meadow after dark. They follow travellers who walk alone.",
-				"If you're weary, the inn down in the village is warm. Rest there before you go on."
-			};
-		}
-		if (name == "Village Elder")
-		{
-			return {
-				"Ah, the shrine maiden. So the tremor reached the mountain too. It cracked the old arch under our bridge.",
-				"Last night the well hummed. Low and steady, like the bell at your shrine. Seventy years, and I never heard it do that.",
-				"If the old monk sent you down, he fears what I fear. Look to the bridge, and the stones beneath it."
-			};
-		}
-		if (name == "Farm Wife")
-		{
-			return {
-				"Mind the rows, love. The cabbages are nearly ready and the slimes know it.",
-				"The ground split right across the east field in the quake. Straight as a plough line, it was.",
-				"My husband swears he saw a light down in that crack. I told him it was the cider."
-			};
-		}
-		if (name == "Pilgrim")
-		{
-			return {
-				"You're from the shrine on the mountain? I've walked twelve days to leave an offering there.",
-				"They say the shrine bell rang by itself when the earth shook. The old songs call that a seal waking.",
-				"Go carefully, child. Old roads remember old things."
-			};
-		}
-		if (name == "Farmer")
-		{
-			return {
-				"The wheat came in heavy this year. Good soil, this side of the stream.",
-				"Slimes keep getting into the cabbages, though. Little thieves."
-			};
-		}
-		if (name == "Gatherer")
-		{
-			return {
-				"I pick herbs along the shrine path every morning. The best ones grow by the old stones.",
-				"If you find a Herb Bundle, keep it. Someone in the village will want it."
-			};
-		}
-		if (name == "Barmaid")
-		{
-			return {
-				"Welcome! The inn's door is just there. A night's rest puts anyone right.",
-				"Travellers say the road east goes all the way to the sea. I wouldn't know."
-			};
-		}
-		if (name == "Blacksmith")
-		{
-			return {
-				"Mind the sparks. An iron sword takes a week if you want it done properly.",
-				"Bring me copper ore and I'll see what I can do. Not today, though."
-			};
-		}
-		if (name == "Innkeeper")
-		{
-			return {
-				"Welcome to the Golden Sheaf. Warm yourself by the hearth, the stew's nearly ready.",
-				"Your room's up the stairs, the first one past the landing. Rest whenever you like, there's no charge for the shrine's people.",
-				"The ground shook again last night. Knocked two mugs off the shelf. Strange times."
-			};
-		}
-		if (name == "Patron")
-		{
-			return {
-				"Best stew this side of the mountain. Don't tell the innkeeper I said so.",
-				"You're from the shrine? My grandmother swore the old stones under the bridge were carved by the same hands."
-			};
-		}
-		return { "Lovely evening.", "Beware the wisps.", "The inn is warm." };
 	}
 
 	HY_SCRIPT()
@@ -171,6 +77,8 @@ namespace Hydro
 		// properties existed) use them without being edited.
 		static constexpr uint64_t DefaultItemsTable = 4741649512266718899ull;        // Assets/Data/Items.hytable
 		static constexpr uint64_t DefaultStartingInventory = 6616718844402080283ull; // Assets/Data/StartingInventory.hydef
+		static constexpr uint64_t DefaultNpcTable = 7308464824897497192ull;          // Assets/Data/Npcs.hytable
+		static constexpr uint64_t DefaultSignTable = 653601014895859085ull;          // Assets/Data/Signs.hytable
 
 		// Interaction: what counts as in reach of the player.
 		HY_PROPERTY(Range(0, 20), Tooltip("Metres: farther items get no prompt"))
@@ -204,6 +112,13 @@ namespace Hydro
 		HY_PROPERTY(DataRow(ItemDefinition), Tooltip("What a chest gives (until chests have a script of their own)"))
 		DataRowRef ChestItem{ DefaultItemsTable, "Potion" };
 
+		// What NPCs and signs say: rows by the name in their tag, without spaces ("Npc Village Elder" -> VillageElder);
+		// a row "Default" for the rest.
+		HY_PROPERTY(Asset(DataTable, NpcDefinition), Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \""))
+		AssetHandle NpcTable = DefaultNpcTable;
+		HY_PROPERTY(Asset(DataTable, SignDefinition), Tooltip("The signs' lines, by the name after \"Sign \""))
+		AssetHandle SignTable = DefaultSignTable;
+
 	protected:
 		void OnCreate() override
 		{
@@ -233,6 +148,8 @@ namespace Hydro
 			m_Menu.StatusMPFill = Find(scene, "Menu Status Miko MP Fill");
 			m_DialogueCanvas = Find(scene, "Dialogue Canvas");
 
+			BattleState::StartParty();
+
 			// Everything the player can interact with, by tag prefix.
 			auto view = scene.m_Registry.view<TagComponent, TransformComponent>();
 			for (auto entity : view)
@@ -240,7 +157,7 @@ namespace Hydro
 				const std::string& tag = view.get<TagComponent>(entity).Tag;
 				Interactable item;
 				item.Entity = entity;
-				if (tag.rfind("Sign", 0) == 0) { item.Type = Kind::Sign; }
+				if (tag.rfind("Sign", 0) == 0) { item.Type = Kind::Sign; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Chest", 0) == 0) { item.Type = Kind::Chest; }
 				else if (tag.rfind("Door", 0) == 0) { item.Type = Kind::Door; item.Target = tag.size() > 5 ? tag.substr(5) : std::string(); }
 				else if (tag.rfind("Rest", 0) == 0) { item.Type = Kind::Rest; }
@@ -402,6 +319,46 @@ namespace Hydro
 
 		static constexpr int MaxRows = 20; // the inventory's rows in the scene ("Item 0" to "Item 19"); more items aren't shown
 
+		// A tag's name as a row ID: what an ID can hold ("Village Elder" -> VillageElder).
+		static std::string ToRowId(const std::string& name)
+		{
+			std::string id;
+			for (char c : name)
+			{
+				if (std::isalnum((unsigned char)c) != 0 || c == '_')
+				{
+					id += c;
+				}
+			}
+			return id;
+		}
+
+		// The row of `table` for the entity named `name` (its tag after "Npc " / "Sign "), else its "Default" row
+		// (`usedDefault` says which).
+		template<typename T>
+		static DataView<T> FindNamedRow(AssetHandle table, const std::string& name, bool* usedDefault = nullptr)
+		{
+			if (usedDefault != nullptr)
+			{
+				*usedDefault = false;
+			}
+			const DataTableView<T> rows = Data::GetTable<T>(table);
+			if (rows.IsValid() == false)
+			{
+				return {};
+			}
+			const std::string id = ToRowId(name);
+			if (rows.FindRow(id) != nullptr)
+			{
+				return Data::GetRow<T>(rows.MakeRef(id));
+			}
+			if (usedDefault != nullptr)
+			{
+				*usedDefault = true;
+			}
+			return Data::GetRow<T>(rows.MakeRef("Default"));
+		}
+
 		// ---- Interaction --------------------------------------------------------------------------------
 
 		void UpdateInteraction(Scene& scene)
@@ -473,8 +430,26 @@ namespace Hydro
 			switch (nearest->Type)
 			{
 				case Kind::Sign:
-					ShowMessage(MvpLabel::SignLine1, MvpLabel::SignLine2);
+				{
+					const DataView<SignDefinition> sign = FindNamedRow<SignDefinition>(SignTable, nearest->Target);
+					std::string text;
+					if (sign.IsValid())
+					{
+						for (const std::string& line : sign->Lines)
+						{
+							text += (text.empty() ? "" : "\n") + line;
+						}
+					}
+					if (text.empty())
+					{
+						ShowMessage(MvpLabel::SignBlank);
+					}
+					else
+					{
+						ShowMessage(text);
+					}
 					break;
+				}
 				case Kind::Chest:
 					if (nearest->Used)
 					{
@@ -538,16 +513,28 @@ namespace Hydro
 						ShowPrompt(false);
 						break;
 					}
-					if (DialogueScript* dialogue = FindDialogue(scene))
 					{
-						dialogue->Open(nearest->Target, GetNpcLines(nearest->Target));
-						ShowPrompt(false);
-					}
-					else
-					{
-						// A scene without the dialogue box: one line in the message box.
-						ShowMessage((MvpLabel)((uint32_t)MvpLabel::NpcLine1 + m_NpcLine));
-						m_NpcLine = (m_NpcLine + 1) % 3;
+						// An NPC without a row of its own says the "Default" row's lines under its own (tag) name.
+						bool usedDefault = false;
+						const DataView<NpcDefinition> npc = FindNamedRow<NpcDefinition>(NpcTable, nearest->Target, &usedDefault);
+						const DataView<DialogueDefinition> lines = npc.IsValid() ? Data::Get<DialogueDefinition>(npc->Dialogue) : DataView<DialogueDefinition>();
+						const std::string name = npc.IsValid() && usedDefault == false && npc->Name.empty() == false ? npc->Name : nearest->Target;
+						if (lines.IsValid() == false || lines->Lines.empty())
+						{
+							HY_WARN("MVP: '{}' has nothing to say (no row or dialogue for it in the NPC table)", nearest->Target);
+							break;
+						}
+						if (DialogueScript* dialogue = FindDialogue(scene))
+						{
+							dialogue->Open(*lines, name);
+							ShowPrompt(false);
+						}
+						else
+						{
+							// A scene without the dialogue box: one line at a time in the message box.
+							ShowMessage(lines->Lines[(size_t)m_NpcLine % lines->Lines.size()].Text);
+							m_NpcLine++;
+						}
 					}
 					break;
 			}
@@ -844,7 +831,7 @@ namespace Hydro
 			PresentDetails();
 
 			// The party's status beside the list (the first hero; the MVP has one).
-			const HeroDefinition& hero = GetHero(0);
+			const CombatantDefinition& hero = GetHero(0);
 			UI::SetText(EntityOf(m_Menu.StatusName), hero.Name);
 			UI::SetText(EntityOf(m_Menu.StatusHP), std::to_string(BattleState::HeroHP[0]) + " / " + std::to_string(hero.MaxHP));
 			UI::SetText(EntityOf(m_Menu.StatusMP), std::to_string(BattleState::HeroMP[0]) + " / " + std::to_string(hero.MaxMP));

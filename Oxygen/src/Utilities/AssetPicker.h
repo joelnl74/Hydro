@@ -24,5 +24,12 @@ namespace Hydro
 		// `detail` is shown in the tooltip under the file's path (an image's size, a set's clip count).
 		// `width` is the whole field's width; 0 fills what is left of the line.
 		static AssetPickerResult DrawField(const char* id, AssetHandle current, AssetType type, const std::string& detail = {}, float width = 0.0f);
+
+		// The same for game data: a definition or data table (`type`) holding `dataType` (an HY_DATA type's name,
+		// "DialogueDefinition"). Only those are listed and accepted when dropped; the tooltip says what it holds.
+		static AssetPickerResult DrawDataField(const char* id, AssetHandle current, AssetType type, const std::string& dataType, float width = 0.0f);
+
+	private:
+		static AssetPickerResult DrawFiltered(const char* id, AssetHandle current, AssetType type, const std::string& dataType, const std::string& detail, float width);
 	};
 }

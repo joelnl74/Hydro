@@ -147,7 +147,7 @@ entity.AddComponent<NativeScriptComponent>().Bind<PlayerController>().Bind("Heal
 
 Scripts are no longer registered by hand. A code generator finds annotated classes and writes their registration:
 
-- **`HY_SCRIPT()`** above a class that derives publicly from `ScriptableEntity` registers it under its **class name** (`SpinScript`, `DioramaWalkScript`). That name is what scenes and prefabs save, so renaming the class breaks saved scenes (there are no aliases yet).
+- **`HY_SCRIPT()`** above a class that derives publicly from `ScriptableEntity` registers it under its **class name** (`SpinScript`, `DioramaWalkScript`). That name is what scenes and prefabs save, so rename it only with a former name ([below](#former-names-and-kept-values-sc1-nov-1-2026)).
 - **`HY_PROPERTY()`** above a **public** field of such a class exposes it: the inspector shows it under the script's name, the value is saved per binding in the scene, and it is pushed into the instance before `OnCreate`. Types (V2, Oct 29, 2026): `bool`, `int`, `float`, `glm::vec2`, `glm::vec3`, `glm::vec4`, `std::string` and `AssetHandle`; since Nov 1, 2026 also `DataRowRef` (a data table's row, saved as `{ Table: <handle>, Row: <id> }`; see [Architecture, Definitions and data tables](Architecture.md#definitions-and-data-tables)). One field per declaration. The saved key is the field name; the label is the field name without `m_`, split at capitals (`m_MoveSpeed` -> "Move Speed").
 - **Arguments** (V2, any order, all optional): `Range(min, max)`, `Min(v)`, `Max(v)` (int, float and each vector component, clamped when the field is left), `Tooltip("...")`, `DisplayName("...")`, `Color` (a `vec3` / `vec4` edited with a colour picker), `Asset(Texture2D)` (required for an `AssetHandle`: the `AssetType` its picker lists; `Asset(Definition, T)` / `Asset(DataTable, T)` for game data of an `HY_DATA` type `T`), `DataRow(T)` (required for a `DataRowRef`), `ReadOnly`, `Hidden` (saved and applied, not shown). Example: `HY_PROPERTY(Range(0, 20), Tooltip("Metres per second")) float Speed = 3.5f;`. The full list is in `ReflectionMacros.h`.
 - **During Play** the inspector shows each field's live value (read back from the running instance with `ScriptProperty::Read`) and an edit is applied to the instance at once (`Apply`). The edits are made on the play copy, so Stop discards them like every other Play edit.
@@ -157,8 +157,8 @@ Scripts are no longer registered by hand. A code generator finds annotated class
 - **Manual registration** still works and goes through the same path: `ScriptRegistry::Register<T>("Name").Property("Speed", &T::Speed)` (or with a separate display name), followed by modifiers that change the property just added: `.Range(min, max)`, `.Min`, `.Max`, `.Tooltip("...")`, `.Color()`, `.AssetFilter(AssetType::Texture2D)`, `.ReadOnly()`, `.Hidden()`. Use it for scripts the generator can't see.
 - **Types**: `ScriptTypeInfo` (name, `std::type_index`, factory, `std::vector<ScriptProperty>`), `ScriptProperty` (name, display name, `ScriptPropertyType`, default, the inspector options, `Apply` that writes the value into an instance and `Read` that reads it back), `ScriptPropertyValue` (`std::variant<bool, int, float, glm::vec2, glm::vec3, glm::vec4, std::string, AssetHandle>`, in the order of `ScriptPropertyType`), `ScriptPropertyMap` (name -> value, one per binding in `NativeScriptComponent::Script::Properties`).
 
-- `NativeScriptComponent` is data: a list of scripts (name, factory, instance, and the binding's property values). An entity has one `NativeScriptComponent` but any number of scripts in it. Instances are created on the scene's next runtime update, live on the heap, and hold their `Entity` by value.
-- **`ScriptRegistry`** maps a name to a script's `ScriptTypeInfo` (factory and properties). Scenes and prefabs save each binding as `{ Name: SpinScript, Properties: { Speed: 3.5 } }` (the old list of plain names still loads) and loading binds them again by name. Every script must be registered before a scene that uses it is loaded (Oxygen calls `RegisterGeneratedScriptReflection()` in `OxygenEditorApplication::OnInit`, before it pushes the editor layer); names must stay stable once saved. A script bound in code but not registered still runs, but isn't saved. A saved name that isn't registered is kept (so the file saves back unchanged) but doesn't run, and the editor shows it in red.
+- `NativeScriptComponent` is data: a list of scripts (name, factory, instance, the binding's property values, and the saved values no property reads, `KeptProperties`). An entity has one `NativeScriptComponent` but any number of scripts in it. Instances are created on the scene's next runtime update, live on the heap, and hold their `Entity` by value.
+- **`ScriptRegistry`** maps a name to a script's `ScriptTypeInfo` (factory and properties). Scenes and prefabs save each binding as `{ Name: SpinScript, Properties: { Speed: 3.5 } }` (the old list of plain names still loads) and loading binds them again by name. Every script must be registered before a scene that uses it is loaded (Oxygen calls `RegisterGeneratedScriptReflection()` in `OxygenEditorApplication::OnInit`, before it pushes the editor layer); names must stay stable once saved. A script bound in code but not registered still runs, but isn't saved. A saved name that isn't registered is kept, with its saved values (so the file saves back unchanged), but doesn't run, and the editor shows it in red. A former name binds the script it belongs to now ([Former names](#former-names-and-kept-values-sc1-nov-1-2026)).
 - Remove scripts with `Scene::RemoveScript(entity, index)` / `Scene::RemoveScripts(entity)`, which call `OnDestroy` on running ones. Oxygen's inspector lists an entity's scripts, removes them, and adds registered ones (**Add Component > Script** or **Add Script**).
 - **Scripts can change the scene.** From `OnCreate`/`OnUpdate` a script may create entities, add components, bind scripts, and destroy entities or remove scripts, including its own. The script stage (`UpdateScripts`) walks a snapshot of the entities that had scripts when it began, and two rules keep it safe ([#40](https://github.com/joelnl74/Hydro/issues/40)):
   - **Created things start next update.** An entity made during the stage exists at once (you can add components to it), but its scripts first run on the next update. A script bound to an existing entity does the same.
@@ -167,6 +167,56 @@ Scripts are no longer registered by hand. A code generator finds annotated class
   - A script removed with `RemoveScripts` leaves an empty `NativeScriptComponent` behind once the stage ends (removing it outright would need a component removal while a stage runs).
   - `m_StageDepth` (private) is what the deferral checks; any stage that runs user code (physics callbacks, later) brackets its work with `Scene::BeginStage` / `EndStage`.
 - `Scene::DestroyEntity` calls `OnDestroy` on the entity's scripts before removing it.
+
+### Former names and kept values (SC1, Nov 1, 2026)
+
+What files save is a name: a script's class name, a property's key, a data type's name (`Type:`) and a data field's key. Renaming one in C++ is safe with a **former name** ([Scripting plan](https://github.com/joelnl74/Hydro/wiki/Scripting-Plan) SC1, [#143](https://github.com/joelnl74/Hydro/issues/143)):
+
+```cpp
+HY_SCRIPT(FormerName("MvpDirectorScript"))
+class FieldDirectorScript : public ScriptableEntity
+{
+public:
+    HY_PROPERTY(Range(0, 20), FormerName("InteractRange"))
+    float ReachMetres = 1.7f;
+};
+
+HY_DATA(Table, FormerName("LootDefinition"))
+struct ItemDefinition
+{
+    HY_PROPERTY(FormerName("Title"))
+    std::string Name;
+};
+```
+
+- **Loading:**
+  - A binding saved as `MvpDirectorScript` binds `FieldDirectorScript`, under that name.
+  - A value saved as `InteractRange` is read into `ReachMetres` when the binding has none under `ReachMetres`.
+  - A `.hydef` / `.hytable` saying `Type: LootDefinition` loads as `ItemDefinition`, and `Title` is read into `Name`.
+- **Saving** always writes the current names.
+- **Each use is reported:** an info line in the log for scripts, a warning in the file's data report for data (the Project window's tooltip). So you can see which files still need a save.
+- **Then delete the former name:** once every scene, prefab and data file that used the old name has been saved, delete the `FormerName`. Former names are a bridge for one rename, not a permanent list.
+- **The generator** accepts `FormerName("A", "B")` (or several `FormerName(...)`). It fails when a former name is the thing's own name, a current name of its kind, or another's former name, because a file saved under it couldn't say which is meant.
+- **Both names in one file:** when a binding or record has values under both the current name and a former one (or two former names), the first one read is used and the other is kept as an unknown value (reported).
+- **Manual registration:**
+  - `ScriptRegistry::Register<T>("Name", { "OldName" })`, then `.Property(...).FormerName("Old")`.
+  - `DataTypeRegistry::Register<T>("Name", "Display", { "OldName" })`, then `.Field<...>(...).FormerName("Old")`.
+- **Lookups:**
+  - `ScriptRegistry::Find` / `FindType` accept a former name and return the current script (its `ScriptTypeInfo::Name` is the one to save).
+  - `DataTypeRegistry::Find` stays exact; `FindByFormerName` and `DataTypeInfo::FindFieldByFormerName` are the former-name lookups the reader uses.
+
+**Kept values** (the rest of #143): a saved script value no property reads (the script isn't registered, or a property was renamed without a former name or removed) used to be dropped on load, so the next save lost it. It is now kept in `NativeScriptComponent::Script::KeptProperties` (key → the value as YAML text):
+- written back among the other values, sorted;
+- copied with the binding (Play, duplicate);
+- logged as a warning on load.
+
+The inspector lists them under the script ("Kept from the file: ..."), and **Drop** forgets them for a registered script. Data files already kept unknown keys (`DataKeptValues`).
+
+**Where:**
+- `Scene/Scripting/ScriptSerializer.*` reads and writes an entity's script bindings (split out of `EntitySerializer`, which calls it).
+- `ScriptRegistry` and `DataTypeRegistry` hold the former names.
+- `DataSerializer::ReadStruct` / `ReadType` read data under former names.
+- Tests: `Tools/DataTests/ScriptSerializerTest.cpp` and `TestFormerNames` in `DataRoundTripTest.cpp`, run by `scripts/test_data.sh`, plus the generator cases in `test_generator.py`.
 
 ## Hierarchy
 
@@ -301,6 +351,29 @@ void UpdateSpriteAnimations(Scene& scene, const SystemContext& context); // Scen
 - The list stays plain function calls. Promote it to a registered list only if applications need their own stages.
 - **Particles (Oct 25, 2026, Roadmap V2).** `UpdateParticles(scene, context)` (`Scene/ParticleScene.h`) is stage 5, after Transforms (emitters read their final position). The live particles live in the scene's `ParticleScene` ([component state rule](#where-runtime-state-lives-component-state-rule) 3), made by `OnRuntimeStart` and dropped by `OnRuntimeStop`, like the `PhysicsScene`: one recycled structure-of-arrays buffer per emitter (no allocation per frame once warm), at most `ParticleScene::MaxLiveParticles` (8192) per scene, extra particles dropped and counted. Emission: `BurstCount` at the start of each loop plus `Rate` per second (fractions carried over); a non-looping emitter stops after `Duration`. Particles are world space; dead ones are swap-removed. A `DestroyWhenFinished` emitter that has emitted, stopped and has no particles left is destroyed after the loop. Game code controls emitters with `Particles2D::Play / Stop / Burst / IsPlaying / GetAliveCount(entity)`, which work before the emitter's first update too. Planned (V6): the stage also runs in `OnUpdateEditor` for previews, advancing only the emitters the editor previews. Effects started by application systems (which run after the scene update) begin emitting the next frame. Design: [Particles and VFX](https://github.com/joelnl74/Hydro/wiki/Roadmap#particles-and-vfx).
 
+## Planned: the scripting upgrade
+
+Agreed Nov 1, 2026, in the wiki's [Scripting plan](https://github.com/joelnl74/Hydro/wiki/Scripting-Plan), after a review of every game script. Steps SC1 to SC7 make the engine safe for a large script refactor (SC8), and SC9 documents it. In short:
+
+- **SC1. Former names.** Done Nov 1, 2026 (uncommitted at the time of writing; see [Former names](#former-names-and-kept-values-sc1-nov-1-2026)).
+- **SC2. The game session.**
+  - One object per game, created when Play starts, destroyed on Stop, surviving scene changes.
+  - Run state lives there, not in statics.
+  - It isn't a service locator: engine services keep their own APIs.
+- **SC3. `GetComponent` for scripts.**
+  - `Entity::GetComponent<T>()`, `HasComponent<T>()`, `TryGetComponent<T>()` and `GetComponents<T>()` also find scripts.
+  - Every new instance gets its properties before any `OnCreate` runs, so in `OnCreate` another script exists (its own `OnCreate` may not have run yet).
+- **SC4. References as properties.**
+  - `EntityRef` and `ComponentRef<T>` (a component or a script), saved as the target's UUID and remapped by `RemapEntityReferences`.
+  - `Required` is checked in the editor and CI; `Get()` still returns `nullptr` when the target is gone.
+  - An entity may hold **one script of a type** (two `BattleScript`s on one entity is an error).
+  - `Entity::FindChild(path)` for the inside of a view or prefab.
+- **SC5 and SC6. Project validation and a convention linter** in CI, without a GPU.
+- **SC7. The battle's data and levels:** hero definitions, enemy and encounter tables.
+- **SC8. The refactor.** Reusable code goes in shared folders by kind (`State/`, `Rules/`, `Views/`, `Scripts/Common/`); code used by one area or scene goes in that area's folder (`Scripts/Battle/`, `Scripts/ShrineGlade/`, ...).
+
+The rules every game script will follow (data, state on the session, pure rules, scripts that orchestrate, views, events for one-off happenings, references for dependencies and paths for internals) are in the plan's [Decisions](https://github.com/joelnl74/Hydro/wiki/Scripting-Plan#decisions). Until SC8, the scripts in `Game/src/Scripts` don't follow them yet; new code should.
+
 ## Planned: component registry
 
 Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` (both directions), `CopyableComponents`, the inspector and the "Add Component" menu. One registry replaces them: per component a display name, save and load functions and an inspector draw function, registered once. Saving, loading, the play copy and the inspector loop over that list, and adding a component becomes one registration.
@@ -336,12 +409,15 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 - `Scene::m_Registry` is public ([#42](https://github.com/joelnl74/Hydro/issues/42)).
 - Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
 - Scripts must be compiled into the application: there's no separate game module or hot reload.
+- Game scripts have no run lifetime: their run state lives in statics that survive Stop and Play, and each script guesses when a run starts (planned: the game session, SC2).
+- An entity's scripts are created and their `OnCreate` run one entity at a time, so in `OnCreate` another entity's script may not exist yet. There's no way to get a script from an entity except a `dynamic_cast` over `NativeScriptComponent::Scripts`, and scripts find each other and their UI by tag name. Planned: `GetComponent` for scripts and the creation order (SC3); `EntityRef` / `ComponentRef<T>` properties (SC4).
+- Code can bind the same script twice to one entity (`Bind<T>()` doesn't refuse it; the editor does). Planned: refused everywhere (SC4).
 - Script reflection (open points):
-  - No `enum class`, `Entity` / `UUID` references, arrays or nested structs as properties yet; an `AssetHandle` isn't checked against the asset's type when the scene loads.
+  - No `enum class`, `Entity` / `UUID` references (planned: SC4), arrays or nested structs as properties yet; an `AssetHandle` isn't checked against the asset's type when the scene loads.
   - No `OnValidate` / property-changed hook: a script that derives state from a property in `OnCreate` doesn't see a live edit until it reads the field again.
-  - Saved values of a script that isn't registered (renamed or deleted class) are dropped on load, so saving loses them; there are no rename aliases for script or property names ([#143](https://github.com/joelnl74/Hydro/issues/143)).
   - The generator is a text scanner, not a C++ parser: macros, `#if` blocks and templates around a script are not understood.
-  - Exposed fields keep their member names as saved keys (`DioramaWalkScript::m_Speed`, now labelled "Speed"); public fields should be `PascalCase`, but renaming one needs #143's aliases first.
+  - Exposed fields keep their member names as saved keys (`DioramaWalkScript::m_Speed`, now labelled "Speed"); public fields should be `PascalCase`. Rename them with `FormerName("m_Speed")` when their script is refactored (Scripting plan SC8).
+  - Former names are read, never written, but nothing yet lists the files that still use one: the log says so when such a file loads. Project validation (SC5) will list them. Saved values kept for a removed property can be dropped in the inspector (**Drop**); kept values of an unregistered script stay until the binding is removed. Enumerator values have no former names yet (a renamed enumerator is kept as an unreadable value).
 - Hierarchy (S3) is in (H1a-H4; the field scenes and the battle are grouped into folders and units, the street lamp prefab is still to save). Scripts read sizes (`Scale`) locally: under a scaled parent a script-placed sprite's size and feet offset are off. A dynamic 2D child under a rotated parent with non-uniform scale gets the closest transform without shear (the inspector warns). 3D rigid bodies don't exist yet; when they come they write back through `SetWorldTransform` like 2D. Prefabs are copies (no link back to the prefab asset, no overrides: G4). No undo for hierarchy edits yet (#165). [Hierarchy and UI plan](https://github.com/joelnl74/Hydro/wiki/Hierarchy-and-UI-Plan).
 - The editor camera reads the keyboard through `Input`, not ImGui: in play mode, flying the Editor view (right button held) also sends W/A/S/D/Q/E to the game's scripts. The camera's pose isn't saved with the session (a reopened editor starts at the default view).
 - `SpriteAnimatorComponent` keeps its playback in the component ([component state rule](#where-runtime-state-lives-component-state-rule) 2). Move it to a `...Scene` object (rule 3) only if animation gains state rule 2 can't hold, such as blend layers or the AN1 state machine's parameters.

@@ -64,7 +64,8 @@ namespace Hydro
 	}
 
 	// What ScriptRegistry::Register<T> returns. Each .Property(...) adds a field; the modifiers after it
-	// (.Range, .Tooltip, .Color, .AssetFilter, .DataTypeFilter, .ReadOnly, .Hidden) change the property added last:
+	// (.Range, .Tooltip, .Color, .AssetFilter, .DataTypeFilter, .ReadOnly, .Hidden, .FormerName) change the property
+	// added last:
 	//
 	//     ScriptRegistry::Register<DoorScript>("DoorScript")
 	//         .Property("OpenSpeed", "Open Speed", &DoorScript::OpenSpeed).Range(0.0f, 10.0f).Tooltip("Metres per second")
@@ -206,6 +207,13 @@ namespace Hydro
 		ScriptRegistration& Hidden()
 		{
 			Last().HideInInspector = true;
+			return *this;
+		}
+
+		// A key scenes may still have saved this property under (HY_PROPERTY(FormerName("..."))). Call once per name.
+		ScriptRegistration& FormerName(const std::string& name)
+		{
+			Last().FormerNames.push_back(name);
 			return *this;
 		}
 

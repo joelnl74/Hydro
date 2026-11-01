@@ -33,6 +33,8 @@ namespace Hydro
 		bool IsEmpty() const;
 		// The field was set by hand (the inspector): its unreadable value and everything kept under it go.
 		void Forget(const std::string& fieldName);
+		// Only the field's unreadable value goes (a list was changed: its entries keep what they kept).
+		void ForgetUnreadable(const std::string& fieldName);
 	};
 
 	// One value of a data type that owns its memory: a definition's values, or one table row. The type is fixed

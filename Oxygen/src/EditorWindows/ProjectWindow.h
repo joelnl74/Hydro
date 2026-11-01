@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro/Asset/Asset.h"
+#include "Hydro/Data/DataType.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Core/Base.h"
@@ -109,6 +110,9 @@ namespace Hydro
 		// Writes "New Render Profile.hyrender" (its own environment, default post-processing) in the current
 		// folder and selects it (post-processing plan P4).
 		void CreateRenderProfile();
+		// "New <Type>.hydef" / "New <Type> Table.hytable" in the current folder, of the HY_DATA type `type`
+		// (chosen now, fixed for the file's life); selected, and its name is edited right away.
+		void CreateDataAsset(const DataTypeInfo& type, bool table);
 		// False for asset types the window doesn't show.
 		static bool ToItemType(AssetType type, ItemType& itemType);
 

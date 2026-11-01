@@ -1,0 +1,59 @@
+Handle: 8386519613842934311
+DataTable:
+  Version: 1
+  Type: CombatantDefinition
+  Rows:
+    Miko:
+      Name: Miko
+      ShortName: ""
+      MaxHP: 90
+      MaxMP: 32
+      Attack: 10
+      Magic: 8
+      Speed: 9
+      WeaponType: Blunt
+      Skills:
+        - {Table: 3379890039159158977, Row: FlameKick}
+        - {Table: 3379890039159158977, Row: HolyPalm}
+      ItemClip: BattleIdle
+      IdleClip: BattleIdle
+      Shield: 0
+      Weak: []
+      Resist: []
+    Slime:
+      Name: Slime
+      ShortName: ""
+      MaxHP: 30
+      MaxMP: 0
+      Attack: 6
+      Magic: 0
+      Speed: 4
+      WeaponType: Blunt
+      Skills: []
+      ItemClip: BattleIdle
+      IdleClip: BattleIdle
+      Shield: 2
+      Weak:
+        - Pierce
+        - Fire
+      Resist:
+        - Blunt
+    Wisp:
+      Name: Spirit Wisp
+      ShortName: Wisp
+      MaxHP: 24
+      MaxMP: 0
+      Attack: 7
+      Magic: 0
+      Speed: 9
+      WeaponType: Blunt
+      Skills: []
+      ItemClip: BattleIdle
+      IdleClip: BattleIdle
+      Shield: 3
+      Weak:
+        - Fire
+        - Light
+      Resist:
+        - Slash
+        - Pierce

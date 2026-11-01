@@ -1,11 +1,62 @@
-# VillageElder: idle only, facing the camera (Characters/NPC/VillageElder/VillageElder.png, 96 x 72 cells, feet on the bottom row).
+# VillageElder: idle in its directions (scripts/characters/build_npc_idle.py).
 Handle: 15607006575960882998
 SpriteAnimationSet:
   TextureHandle: 9535473058665648090
   Texture: VillageElder.png
   DefaultClip: IdleDown
   Clips:
+    - Name: Idle
+      Loop: Loop
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
     - Name: IdleDown
       Loop: Loop
-      FrameRate: 4
-      Frames: [VillageElder_Down_0, VillageElder_Down_1, VillageElder_Down_2, VillageElder_Down_3]
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
+    - Name: IdleRight
+      Loop: Loop
+      Frames:
+        - Sprite: IdleRight_0
+          Duration: 0.5
+        - Sprite: IdleRight_1
+          Duration: 0.4
+        - Sprite: IdleRight_2
+          Duration: 0.5
+        - Sprite: IdleRight_3
+          Duration: 0.4
+    - Name: IdleUp
+      Loop: Loop
+      Frames:
+        - Sprite: IdleUp_0
+          Duration: 0.5
+        - Sprite: IdleUp_1
+          Duration: 0.4
+        - Sprite: IdleUp_2
+          Duration: 0.5
+        - Sprite: IdleUp_3
+          Duration: 0.4
+    - Name: IdleLeft
+      Loop: Loop
+      Frames:
+        - Sprite: IdleLeft_0
+          Duration: 0.5
+        - Sprite: IdleLeft_1
+          Duration: 0.4
+        - Sprite: IdleLeft_2
+          Duration: 0.5
+        - Sprite: IdleLeft_3
+          Duration: 0.4

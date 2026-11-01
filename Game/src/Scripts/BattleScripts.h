@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro.h"
+#include "Data/BattleDefinitions.h"
 #include "DioramaCamera.h"
 
 #include <algorithm>
@@ -18,9 +19,11 @@
 //
 // The party is the shrine maiden Miko alone (HeroCount), with her sheet Characters/Miko (BattleIdle, Walk*, Punch,
 // Kick, Death). The battle is a 3D forest arena (scripts/battle/build_arena.py builds Battle.hyscene); the code is
-// written for any HeroCount, so a second hero is a row in GetHero, its entities in the scene and HeroCount + 1.
+// written for any HeroCount, so a second hero is a row of Combatants.hytable in BattleData::HeroRows, its entities in
+// the scene and HeroCount + 1. The numbers (heroes, enemies, skills) are data: Assets/Data/Combatants.hytable and
+// Abilities.hytable (BattleData).
 //
-// Quick prototype code for play testing: the rules, the data and the presentation live together here. The HUD is
+// Quick prototype code for play testing: the rules and the presentation live together here. The HUD is
 // runtime UI on the 1920 x 1080 canvas (scripts/ui/build_game_ui.py builds it): "Battle UI Canvas", a child of the
 // Battle Director so its buttons' events reach this script, holds the turn order, the party's status, the message
 // banner and the command and target lists; each enemy's shield and weaknesses are a World canvas ("Enemy <i> Info")
@@ -35,17 +38,14 @@ namespace Hydro
 	// ---------------------------------------------------------------------------------------------------------
 	// Data
 
-	enum class DamageType : uint8_t { Slash = 0, Pierce, Blunt, Fire, Light, None };
-
 	enum class EnemyKind : uint8_t { None = 0, Slime, Wisp };
 
-	// Rows of Assets/Sprites/UI/BattleText.png (keep in step with scripts/shrine_glade/battle.py TEXT_ROWS and
-	// NEW_TEXT, which appends the last three rows from the sheet's own glyphs).
+	// The battle's own wording (commands and messages; once rows of Assets/Sprites/UI/BattleText.png): UI text, in
+	// code until there is a text table (with localisation). Names of heroes, enemies and skills are data (BattleData).
 	enum class BattleLabel : uint32_t
 	{
-		Attack = 0, FlameEdge, Crush, HolyLight, Heal, Guard, Potion, Run, Orin, Lila, Slime, Wisp,
-		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape,
-		Miko, FlameKick, HolyPalm
+		Attack = 0, Guard, Potion, Run,
+		Weak, Resist, Break, Victory, Defeated, Escaped, Boost, NoMP, NoPotions, Critical, Guarding, NoEscape
 	};
 
 	// The words a label stands for, as the runtime UI writes them (the command menu and the message box).
@@ -54,17 +54,9 @@ namespace Hydro
 		switch (label)
 		{
 		case BattleLabel::Attack: return "Attack";
-		case BattleLabel::FlameEdge: return "Flame Edge";
-		case BattleLabel::Crush: return "Crush";
-		case BattleLabel::HolyLight: return "Holy Light";
-		case BattleLabel::Heal: return "Heal";
 		case BattleLabel::Guard: return "Guard";
 		case BattleLabel::Potion: return "Potion";
 		case BattleLabel::Run: return "Run";
-		case BattleLabel::Orin: return "Orin";
-		case BattleLabel::Lila: return "Lila";
-		case BattleLabel::Slime: return "Slime";
-		case BattleLabel::Wisp: return "Wisp";
 		case BattleLabel::Weak: return "Weak!";
 		case BattleLabel::Resist: return "Resist";
 		case BattleLabel::Break: return "Break!";
@@ -77,9 +69,6 @@ namespace Hydro
 		case BattleLabel::Critical: return "Critical!";
 		case BattleLabel::Guarding: return "Guarding";
 		case BattleLabel::NoEscape: return "Couldn't get away!";
-		case BattleLabel::Miko: return "Miko";
-		case BattleLabel::FlameKick: return "Flame Kick";
-		case BattleLabel::HolyPalm: return "Holy Palm";
 		default: return "";
 		}
 	}
@@ -97,67 +86,103 @@ namespace Hydro
 		static uint32_t ForType(DamageType type) { return (uint32_t)type; }
 	};
 
-	struct HeroDefinition
-	{
-		const char* Name;
-		BattleLabel NameLabel;
-		int MaxHP;
-		int MaxMP;
-		int Attack;
-		int Magic;
-		int Speed;
-		DamageType WeaponType;
-		// Skill A (key 2) and skill B (key 3). Heal targets the most hurt ally.
-		BattleLabel SkillLabel[2];
-		DamageType SkillType[2];
-		int SkillCost[2];
-		float SkillPower[2];
-		bool SkillHeals[2];
-		// The hero's clips (Characters/<Name>/<Name>.hyanim) for the two skills ("Kick" strikes as a kick, any other clip
-		// as a punch, e.g. "Punch" or "DoublePunch", whose hit lands at PunchImpactTime), whether a skill
-		// walks up to its target first (a strike) or is used from where the hero stands, the item clip, and the
-		// fighting-stance loop she holds between actions (and while guarding), not the field Idle.
-		const char* SkillClip[2];
-		bool SkillApproach[2];
-		const char* ItemClip;
-		const char* IdleClip;
-	};
-
-	// The party: Miko, the shrine maiden, fighting bare-handed (Blunt). Her Attack walks up to the target and
-	// punches (a boost adds a kick, a punch, a kick); Flame Kick walks up and lands her spinning kick in fire;
-	// Holy Palm walks up and strikes with her palm in light. The impacts land on
-	// the clips' contact frames (BattleScript PunchImpactTime, KickImpactTime). Alone she carries the party's HP
-	// and MP, so she is sturdier than Orin and Lila were on their own.
+	// The party is Miko alone (HeroCount); she carries the party's HP and MP, so she is sturdier than Orin and Lila
+	// were on their own. Her Attack walks up to the target and punches (a boost adds a kick, a punch, a kick); her two
+	// skills (Combatants.hytable: Skills) are Flame Kick and Holy Palm. The impacts land on the clips' contact frames
+	// (BattleScript PunchImpactTime, KickImpactTime).
 	constexpr int HeroCount = 1;
 
-	inline const HeroDefinition& GetHero(int index)
+	// The battle's numbers from data: Assets/Data/Combatants.hytable (the heroes and the enemy kinds, by row ID) and
+	// Abilities.hytable (the heroes' skills, referred to by their rows). Looked up once a frame: the views keep their
+	// tables alive until the next frame, so the references handed out are good for the frame and an edit to a table
+	// shows from the next one. A missing row gives the type's defaults (and one warning, from Data).
+	class BattleData
 	{
-		static const HeroDefinition heroes[HeroCount] = {
-			{ "Miko", BattleLabel::Miko, 90, 32, 10, 8, 9, DamageType::Blunt,
-				{ BattleLabel::FlameKick, BattleLabel::HolyPalm }, { DamageType::Fire, DamageType::Light }, { 5, 6 }, { 1.6f, 1.7f }, { false, false }, { "Kick", "DoublePunch" }, { true, true }, "BattleIdle", "BattleIdle" },
-		};
-		return heroes[index];
-	}
+	public:
+		static constexpr uint64_t CombatantTable = 8386519613842934311ull; // Assets/Data/Combatants.hytable
+		// The party's rows, in order. The heroes' scene entities are named after them ("Hero Miko", "Status Miko").
+		static constexpr const char* HeroRows[HeroCount] = { "Miko" };
 
-	struct EnemyDefinition
-	{
-		const char* Name;
-		BattleLabel NameLabel;
-		int MaxHP;
-		int Attack;
-		int Speed;
-		int Shield;
-		std::array<DamageType, 3> Weak;   // DamageType::None = unused slot
-		std::array<DamageType, 2> Resist;
+		static const CombatantDefinition& Hero(int index)
+		{
+			const DataView<CombatantDefinition>& view = Refresh().Heroes[std::clamp(index, 0, HeroCount - 1)];
+			return view.IsValid() ? *view : Fallback();
+		}
+
+		static const CombatantDefinition& Enemy(EnemyKind kind)
+		{
+			const DataView<CombatantDefinition>& view = Refresh().Enemies[(size_t)kind];
+			return view.IsValid() ? *view : Fallback();
+		}
+
+		// Skill `slot` (0: the first skill command, 1: the second) of hero `index`.
+		static const AbilityDefinition& Skill(int index, int slot)
+		{
+			const DataView<AbilityDefinition>& view = Refresh().Skills[std::clamp(index, 0, HeroCount - 1)][std::clamp(slot, 0, 1)];
+			static const AbilityDefinition none;
+			return view.IsValid() ? *view : none;
+		}
+
+		// An enemy kind's row ID.
+		static const char* GetEnemyRow(EnemyKind kind)
+		{
+			switch (kind)
+			{
+				case EnemyKind::Slime: return "Slime";
+				case EnemyKind::Wisp: return "Wisp";
+				default: return "";
+			}
+		}
+
+	private:
+		struct Cache
+		{
+			uint64_t Frame = UINT64_MAX;
+			DataView<CombatantDefinition> Heroes[HeroCount];
+			DataView<CombatantDefinition> Enemies[3]; // by EnemyKind (None stays empty)
+			DataView<AbilityDefinition> Skills[HeroCount][2];
+		};
+
+		static Cache& Refresh()
+		{
+			static Cache cache;
+			const uint64_t frame = Time::GetFrameCount();
+			if (cache.Frame == frame)
+			{
+				return cache;
+			}
+			cache.Frame = frame;
+			for (int h = 0; h < HeroCount; h++)
+			{
+				cache.Heroes[h] = Data::GetRow<CombatantDefinition>(DataRowRef{ CombatantTable, HeroRows[h] });
+				for (int s = 0; s < 2; s++)
+				{
+					const bool has = cache.Heroes[h].IsValid() && s < (int)cache.Heroes[h]->Skills.size();
+					cache.Skills[h][s] = has ? Data::GetRow<AbilityDefinition>(cache.Heroes[h]->Skills[(size_t)s]) : DataView<AbilityDefinition>();
+				}
+			}
+			for (EnemyKind kind : { EnemyKind::Slime, EnemyKind::Wisp })
+			{
+				cache.Enemies[(size_t)kind] = Data::GetRow<CombatantDefinition>(DataRowRef{ CombatantTable, GetEnemyRow(kind) });
+			}
+			return cache;
+		}
+
+		static const CombatantDefinition& Fallback()
+		{
+			static const CombatantDefinition fallback;
+			return fallback;
+		}
 	};
 
-	inline const EnemyDefinition& GetEnemy(EnemyKind kind)
+	inline const CombatantDefinition& GetHero(int index)
 	{
-		static const EnemyDefinition slime{ "Slime", BattleLabel::Slime, 30, 6, 4, 2,
-			{ DamageType::Pierce, DamageType::Fire, DamageType::None }, { DamageType::Blunt, DamageType::None } };
-		static const EnemyDefinition wisp{ "Spirit Wisp", BattleLabel::Wisp, 24, 7, 9, 3,
-			{ DamageType::Fire, DamageType::Light, DamageType::None }, { DamageType::Slash, DamageType::Pierce } };
-		return kind == EnemyKind::Wisp ? wisp : slime;
+		return BattleData::Hero(index);
+	}
+
+	inline const CombatantDefinition& GetEnemy(EnemyKind kind)
+	{
+		return BattleData::Enemy(kind);
 	}
 
 	// What the village and the battle scene tell each other, and what the party keeps between battles.
@@ -168,8 +193,11 @@ namespace Hydro
 		static constexpr int MaxEnemies = 3;
 		static constexpr int MaxMomentum = 5;
 
-		static inline int HeroHP[HeroCount] = { GetHero(0).MaxHP };
-		static inline int HeroMP[HeroCount] = { GetHero(0).MaxMP };
+		// Started from the heroes' data the first time a field or battle scene needs them (StartParty), not when the
+		// program starts: the data isn't loaded then.
+		static inline int HeroHP[HeroCount] = {};
+		static inline int HeroMP[HeroCount] = {};
+		static inline bool PartyStarted = false;
 		static inline bool Active = false;               // a battle was started and has not been settled yet
 		static inline uint64_t EnemyId = 0;              // UUID of the village enemy that started it
 		static inline Result Outcome = Result::None;     // set by the battle for that enemy to read when it is back
@@ -183,6 +211,16 @@ namespace Hydro
 			{
 				HeroHP[i] = GetHero(i).MaxHP;
 				HeroMP[i] = GetHero(i).MaxMP;
+			}
+			PartyStarted = true;
+		}
+
+		// Full HP and MP the first time; nothing after that.
+		static void StartParty()
+		{
+			if (PartyStarted == false)
+			{
+				RestoreParty();
 			}
 		}
 
@@ -586,18 +624,19 @@ namespace Hydro
 	protected:
 		void OnCreate() override
 		{
+			BattleState::StartParty(); // the battle played on its own
 			Scene& scene = *GetEntity().GetScene();
 			m_Camera = Find(scene, "Camera");
 			UpdateStageCamera(scene);
 			CaptureLayout(scene);
 			for (int h = 0; h < HeroCount; h++)
 			{
-				const std::string prefix = std::string("Hero ") + GetHero(h).Name;
+				const std::string prefix = std::string("Hero ") + BattleData::HeroRows[h];
 				Hero& hero = m_Heroes[h];
 				hero.Sprite = Find(scene, prefix);
 				hero.Shadow = Find(scene, prefix + " Shadow");
 				// Her status on the right (runtime UI): "Status <Name>" ...
-				const std::string status = std::string("Status ") + GetHero(h).Name;
+				const std::string status = std::string("Status ") + BattleData::HeroRows[h];
 				hero.StatusName = Find(scene, status + " Name");
 				hero.StatusHP = Find(scene, status + " HP");
 				hero.StatusMP = Find(scene, status + " MP");
@@ -642,7 +681,7 @@ namespace Hydro
 				enemy.Size[1] = ActorSize(scene, enemy.Sprites[1]);
 				if (enemy.Kind != EnemyKind::None)
 				{
-					const EnemyDefinition& definition = GetEnemy(enemy.Kind);
+					const CombatantDefinition& definition = GetEnemy(enemy.Kind);
 					enemy.HP = definition.MaxHP;
 					enemy.Shield = definition.Shield;
 					count++;
@@ -1048,7 +1087,6 @@ namespace Hydro
 		{
 			const int h = m_Action.Actor;
 			Hero& hero = m_Heroes[h];
-			const HeroDefinition& definition = GetHero(h);
 
 			// Up / Down move the menu's focus (the runtime UI), so the boost has keys of its own.
 			if (Pressed(10, KeyCode::E))
@@ -1107,7 +1145,7 @@ namespace Hydro
 			if (command == Command::SkillA || command == Command::SkillB)
 			{
 				const int s = command == Command::SkillA ? 0 : 1;
-				if (BattleState::HeroMP[h] < definition.SkillCost[s])
+				if (BattleState::HeroMP[h] < BattleData::Skill(h, s).Cost)
 				{
 					ShowMessage(BattleLabel::NoMP);
 					return;
@@ -1116,7 +1154,7 @@ namespace Hydro
 
 			// An attack or a damaging skill picks its enemy first; the rest go straight ahead.
 			const bool needsTarget = command == Command::Attack
-				|| ((command == Command::SkillA || command == Command::SkillB) && definition.SkillHeals[command == Command::SkillA ? 0 : 1] == false);
+				|| ((command == Command::SkillA || command == Command::SkillB) && BattleData::Skill(h, command == Command::SkillA ? 0 : 1).Heals == false);
 			if (needsTarget)
 			{
 				m_Targeting = true;
@@ -1133,18 +1171,18 @@ namespace Hydro
 		{
 			const int h = m_Action.Actor;
 			Hero& hero = m_Heroes[h];
-			const HeroDefinition& definition = GetHero(h);
 			const Command command = (Command)c;
 			if (command == Command::SkillA || command == Command::SkillB)
 			{
 				const int s = command == Command::SkillA ? 0 : 1;
-				if (BattleState::HeroMP[h] < definition.SkillCost[s])
+				const AbilityDefinition& skill = BattleData::Skill(h, s);
+				if (BattleState::HeroMP[h] < skill.Cost)
 				{
 					ShowMessage(BattleLabel::NoMP);
 					return;
 				}
-				BattleState::HeroMP[h] -= definition.SkillCost[s];
-				if (definition.SkillHeals[s])
+				BattleState::HeroMP[h] -= skill.Cost;
+				if (skill.Heals)
 				{
 					m_Action.Target = MostHurtHero();
 				}
@@ -1190,7 +1228,7 @@ namespace Hydro
 		{
 			const int h = m_Action.Actor;
 			Entity sprite = EntityOf(m_Heroes[h].Sprite);
-			const HeroDefinition& definition = GetHero(h);
+			const CombatantDefinition& definition = GetHero(h);
 			switch (m_Action.Kind)
 			{
 				case Command::Attack:
@@ -1199,9 +1237,9 @@ namespace Hydro
 				case Command::SkillA:
 				case Command::SkillB:
 				{
-					const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
-					ShowMessage(definition.SkillLabel[s], 0.9f);
-					if (definition.SkillHeals[s] == false && definition.SkillApproach[s])
+					const AbilityDefinition& skill = BattleData::Skill(h, m_Action.Kind == Command::SkillA ? 0 : 1);
+					ShowMessage(skill.Name, 0.9f);
+					if (skill.Heals == false && skill.Approach)
 					{
 						BeginApproach();
 					}
@@ -1236,18 +1274,17 @@ namespace Hydro
 			{
 				return m_Action.Strike % 2 == 0 ? StrikeMove::Punch : StrikeMove::Kick; // punch, kick, punch, kick
 			}
-			const HeroDefinition& definition = GetHero(m_Action.Actor);
-			return std::string(definition.SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1]) == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
+			return BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Clip == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
 		}
 
 		DamageType CurrentDamageType() const
 		{
-			const HeroDefinition& definition = GetHero(m_Action.Actor);
+			const CombatantDefinition& definition = GetHero(m_Action.Actor);
 			if (m_Action.Kind == Command::Attack)
 			{
 				return definition.WeaponType;
 			}
-			return definition.SkillType[m_Action.Kind == Command::SkillA ? 0 : 1];
+			return BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Type;
 		}
 
 		float ImpactTime(StrikeMove move) const { return move == StrikeMove::Punch ? PunchImpactTime : KickImpactTime; }
@@ -1291,10 +1328,10 @@ namespace Hydro
 			// skill's clip falls back to the move's.
 			const Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
 			const char* moveClip = CurrentMove() == StrikeMove::Punch ? "Punch" : "Kick";
-			const char* clip = moveClip;
+			std::string clip = moveClip;
 			if (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB)
 			{
-				clip = GetHero(m_Action.Actor).SkillClip[m_Action.Kind == Command::SkillA ? 0 : 1];
+				clip = BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Clip;
 			}
 			if (SpriteAnimator::Play(sprite, clip, true) == false)
 			{
@@ -1395,18 +1432,18 @@ namespace Hydro
 		bool IsHealing() const
 		{
 			return (m_Action.Kind == Command::SkillA || m_Action.Kind == Command::SkillB)
-				&& GetHero(m_Action.Actor).SkillHeals[m_Action.Kind == Command::SkillA ? 0 : 1];
+				&& BattleData::Skill(m_Action.Actor, m_Action.Kind == Command::SkillA ? 0 : 1).Heals;
 		}
 
 		// The strike lands: damage (or a heal), the impact's particles, light and shake.
 		void LandStrike(StrikeMove move)
 		{
-			const HeroDefinition& definition = GetHero(m_Action.Actor);
+			const CombatantDefinition& definition = GetHero(m_Action.Actor);
 			if (IsHealing())
 			{
 				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
 				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-				HealHero(m_Action.Target, (int)std::lround(definition.SkillPower[s] * (float)definition.Magic * boost * (0.9f + 0.2f * Random01())));
+				HealHero(m_Action.Target, (int)std::lround(BattleData::Skill(m_Action.Actor, s).Power * (float)definition.Magic * boost * (0.9f + 0.2f * Random01())));
 				m_Action.HitsDone++;
 				return;
 			}
@@ -1431,7 +1468,7 @@ namespace Hydro
 				const int s = m_Action.Kind == Command::SkillA ? 0 : 1;
 				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
 				const float stat = type == DamageType::Light || type == DamageType::Fire ? (float)std::max(definition.Magic, definition.Attack) : (float)definition.Attack;
-				strong = HitEnemy(m_Action.Target, type, stat, definition.SkillPower[s] * boost);
+				strong = HitEnemy(m_Action.Target, type, stat, BattleData::Skill(m_Action.Actor, s).Power * boost);
 			}
 			m_Action.HitsDone++;
 			PlayImpact(move, type, m_Action.Target, strong);
@@ -1556,13 +1593,13 @@ namespace Hydro
 		bool HitEnemy(int index, DamageType type, float stat, float power)
 		{
 			Enemy& enemy = m_Enemies[index];
-			const EnemyDefinition& definition = GetEnemy(enemy.Kind);
+			const CombatantDefinition& definition = GetEnemy(enemy.Kind);
 			float multiplier = 1.0f;
 			bool weak = false;
 			bool resisted = false;
-			for (int w = 0; w < 3; w++)
+			for (int w = 0; w < std::min(3, (int)definition.Weak.size()); w++)
 			{
-				if (definition.Weak[w] == type)
+				if (definition.Weak[(size_t)w] == type)
 				{
 					weak = true;
 					multiplier = 1.5f;
@@ -1833,27 +1870,28 @@ namespace Hydro
 		// greyed out (not Interactable, so neither the keys nor the pointer can pick them).
 		void PresentCommandMenu(int hero, bool choosing)
 		{
-			const HeroDefinition& definition = GetHero(hero);
-			const BattleLabel labels[6] = { BattleLabel::Attack, definition.SkillLabel[0], definition.SkillLabel[1], BattleLabel::Guard, BattleLabel::Potion, BattleLabel::Run };
+			const CombatantDefinition& definition = GetHero(hero);
+			const std::string labels[6] = { GetLabelText(BattleLabel::Attack), BattleData::Skill(hero, 0).Name, BattleData::Skill(hero, 1).Name,
+				GetLabelText(BattleLabel::Guard), GetLabelText(BattleLabel::Potion), GetLabelText(BattleLabel::Run) };
 			bool usable[6] = { true, true, true, true, true, true };
 			for (int c = 0; c < 6; c++)
 			{
 				std::string cost;
 				if (c == 1 || c == 2)
 				{
-					usable[c] = BattleState::HeroMP[hero] >= definition.SkillCost[c - 1];
-					cost = std::to_string(definition.SkillCost[c - 1]) + " MP";
+					usable[c] = BattleState::HeroMP[hero] >= BattleData::Skill(hero, c - 1).Cost;
+					cost = std::to_string(BattleData::Skill(hero, c - 1).Cost) + " MP";
 				}
 				else if (c == 4)
 				{
 					usable[c] = Potions > 0;
 					cost = "x" + std::to_string(Potions);
 				}
-				UI::SetText(EntityOf(m_CommandNames[c]), GetLabelText(labels[c]));
+				UI::SetText(EntityOf(m_CommandNames[c]), labels[c]);
 				UI::SetText(EntityOf(m_CommandCosts[c]), cost);
 				UI::SetInteractable(EntityOf(m_Commands[c]), usable[c]);
 			}
-			UI::SetText(EntityOf(m_CommandHeader), GetLabelText(definition.NameLabel));
+			UI::SetText(EntityOf(m_CommandHeader), definition.Name);
 			UI::SetText(EntityOf(m_CommandBoost), m_Action.Boost > 0 ? "Boost " + std::to_string(m_Action.Boost) + "   (E / Q)" : std::string("E  Boost"));
 			UI::SetText(EntityOf(m_CommandHelp), GetCommandHelp(hero, std::clamp(m_HelpCommand, 0, 5)));
 
@@ -1881,7 +1919,8 @@ namespace Hydro
 						before += other < e ? 1 : 0;
 					}
 				}
-				std::string name = GetLabelText(GetEnemy(enemy.Kind).NameLabel);
+				const CombatantDefinition& enemyData = GetEnemy(enemy.Kind);
+				std::string name = enemyData.ShortName.empty() ? enemyData.Name : enemyData.ShortName;
 				if (same > 1)
 				{
 					name += std::string(" ") + (char)('A' + before);
@@ -1891,7 +1930,7 @@ namespace Hydro
 			}
 			if (m_Targeting && m_TargetCommand >= 0 && m_TargetCommand < 6)
 			{
-				UI::SetText(EntityOf(m_TargetHeader), GetLabelText(labels[m_TargetCommand]));
+				UI::SetText(EntityOf(m_TargetHeader), labels[m_TargetCommand]);
 			}
 
 			// Which list is open: the commands, the targets (in the commands' place), or neither.
@@ -1926,7 +1965,6 @@ namespace Hydro
 		// The help line under the commands: what command c does for this hero.
 		std::string GetCommandHelp(int hero, int c) const
 		{
-			const HeroDefinition& definition = GetHero(hero);
 			switch ((Command)c)
 			{
 			case Command::Attack:
@@ -1934,12 +1972,12 @@ namespace Hydro
 			case Command::SkillA:
 			case Command::SkillB:
 			{
-				const int s = c == (int)Command::SkillA ? 0 : 1;
-				if (definition.SkillHeals[s])
+				const AbilityDefinition& skill = BattleData::Skill(hero, c == (int)Command::SkillA ? 0 : 1);
+				if (skill.Heals)
 				{
 					return "Restore the most hurt ally's HP.";
 				}
-				return std::string(GetDamageTypeName(definition.SkillType[s])) + " damage to one foe. Boost: stronger.";
+				return std::string(GetDamageTypeName(skill.Type)) + " damage to one foe. Boost: stronger.";
 			}
 			case Command::Guard:
 				return "Brace yourself: less damage until your next turn.";
@@ -1968,6 +2006,15 @@ namespace Hydro
 		void ShowMessage(BattleLabel label, float seconds = 1.2f)
 		{
 			m_MessageLabel = label;
+			m_MessageWords = GetLabelText(label);
+			m_MessageTime = seconds;
+		}
+
+		// A message of its own words (a skill's name from data).
+		void ShowMessage(const std::string& text, float seconds = 1.2f)
+		{
+			m_MessageLabel = BattleLabel::Attack; // no special tint
+			m_MessageWords = text;
 			m_MessageTime = seconds;
 		}
 
@@ -2496,7 +2543,7 @@ namespace Hydro
 				SetColor(scene, hero.Sprite, glm::vec4(1.0f, 1.0f - 0.6f * heat, 1.0f - 0.6f * heat, 1.0f));
 
 				// Her status: HP and MP as numbers and bars (sage, amber below half, red below a quarter), boost points.
-				const HeroDefinition& definition = GetHero(h);
+				const CombatantDefinition& definition = GetHero(h);
 				const float hpFraction = (float)BattleState::HeroHP[h] / (float)definition.MaxHP;
 				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.5f, 0.72f, 0.4f, 1.0f) : hpFraction > 0.25f ? glm::vec4(0.92f, 0.72f, 0.3f, 1.0f) : glm::vec4(0.86f, 0.3f, 0.24f, 1.0f);
 				UI::SetText(EntityOf(hero.StatusHP), std::to_string(BattleState::HeroHP[h]) + " / " + std::to_string(definition.MaxHP));
@@ -2579,7 +2626,8 @@ namespace Hydro
 					SetUIColor(EntityOf(enemy.WeakLabel), broken ? glm::vec4(1.0f, 0.5f, 0.38f, 1.0f) : glm::vec4(1.0f, 0.84f, 0.5f, 1.0f));
 					for (int w = 0; w < 3; w++)
 					{
-						const DamageType type = GetEnemy(enemy.Kind).Weak[w];
+						const std::vector<DamageType>& weak = GetEnemy(enemy.Kind).Weak;
+						const DamageType type = w < (int)weak.size() ? weak[(size_t)w] : DamageType::None;
 						const bool used = type != DamageType::None;
 						const bool known = used && BattleState::Revealed[(int)enemy.Kind][w];
 						Entity icon = EntityOf(enemy.WeakIcons[w]);
@@ -2665,7 +2713,7 @@ namespace Hydro
 				UI::SetVisible(messagePanel, showMessage);
 			}
 			Entity messageText = EntityOf(m_MessageText);
-			UI::SetText(messageText, GetLabelText(m_MessageLabel));
+			UI::SetText(messageText, m_MessageWords);
 			if (messageText.IsValid() && messageText.HasComponent<UITextComponent>())
 			{
 				const glm::vec3 messageTint = m_MessageLabel == BattleLabel::Break ? glm::vec3(1.0f, 0.45f, 0.3f)
@@ -2729,6 +2777,7 @@ namespace Hydro
 		std::array<Popup, 3> m_Popups;
 		int m_NextPopup = 0;
 		BattleLabel m_MessageLabel = BattleLabel::Attack;
+		std::string m_MessageWords; // what the message box says
 		float m_MessageTime = 0.0f;
 		bool m_Previous[14] = {};
 		std::mt19937 m_Random{ std::random_device{}() };

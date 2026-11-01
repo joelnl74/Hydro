@@ -1,6 +1,8 @@
 #include "hypch.h"
 #include "DataType.h"
 
+#include <algorithm>
+
 namespace Hydro
 {
 	const char* DataFieldKindToString(DataFieldKind kind)
@@ -28,6 +30,18 @@ namespace Hydro
 		for (const DataField& field : Fields)
 		{
 			if (field.Name == name)
+			{
+				return &field;
+			}
+		}
+		return nullptr;
+	}
+
+	const DataField* DataTypeInfo::FindFieldByFormerName(const std::string& name) const
+	{
+		for (const DataField& field : Fields)
+		{
+			if (std::find(field.FormerNames.begin(), field.FormerNames.end(), name) != field.FormerNames.end())
 			{
 				return &field;
 			}

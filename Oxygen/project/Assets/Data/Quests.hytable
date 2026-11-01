@@ -1,0 +1,14 @@
+Handle: 5008924285669857658
+DataTable:
+  Version: 1
+  Type: QuestDefinition
+  Rows:
+    ClearingTheGrounds:
+      Title: Clearing the Grounds
+      Stages:
+        - Objective: Drive the slimes from the lower path
+        - Objective: Return to the Old Monk
+    GuardiansDuty:
+      Title: The Guardian's Duty
+      Stages:
+        - Objective: Take the road south to the Farm Village

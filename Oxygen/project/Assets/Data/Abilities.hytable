@@ -1,0 +1,21 @@
+Handle: 3379890039159158977
+DataTable:
+  Version: 1
+  Type: AbilityDefinition
+  Rows:
+    FlameKick:
+      Name: Flame Kick
+      Type: Fire
+      Cost: 5
+      Power: 1.6
+      Heals: false
+      Clip: Kick
+      Approach: true
+    HolyPalm:
+      Name: Holy Palm
+      Type: Light
+      Cost: 6
+      Power: 1.7
+      Heals: false
+      Clip: DoublePunch
+      Approach: true

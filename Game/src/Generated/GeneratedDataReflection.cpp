@@ -4,8 +4,13 @@
 #include "GeneratedDataReflection.h"
 #include "Hydro/Data/DataTypeRegistry.h"
 
+#include "Data/BattleDefinitions.h"
+#include "Data/DialogueDefinition.h"
+#include "Data/FieldDefinitions.h"
 #include "Data/InventoryDefinition.h"
 #include "Data/ItemDefinition.h"
+#include "Data/QuestDefinition.h"
+#include "Data/SceneLightingDefinition.h"
 
 namespace Hydro
 {
@@ -18,11 +23,70 @@ namespace Hydro
 		}
 		registered = true;
 
+		DataTypeRegistry::RegisterEnum<DamageType>("DamageType")
+			.Value("Slash", DamageType::Slash)
+			.Value("Pierce", DamageType::Pierce)
+			.Value("Blunt", DamageType::Blunt)
+			.Value("Fire", DamageType::Fire)
+			.Value("Light", DamageType::Light)
+			.Value("None", DamageType::None);
+
 		DataTypeRegistry::RegisterEnum<ItemKind>("ItemKind")
 			.Value("Consumable", ItemKind::Consumable)
 			.Value("Equipment", ItemKind::Equipment)
 			.Value("KeyItem", ItemKind::KeyItem)
 			.Value("Material", ItemKind::Material);
+
+		DataTypeRegistry::Register<AbilityDefinition>("AbilityDefinition", "Ability")
+			.Table()
+			.DisplayField("Name")
+			.Field<&AbilityDefinition::Name>("Name", "Name").Tooltip("The command's name and the message when it is used")
+			.Field<&AbilityDefinition::Type>("Type", "Type").Tooltip("What the hit is made of (a heal ignores it)")
+			.Field<&AbilityDefinition::Cost>("Cost", "Cost").Range(0.0f, 99.0f).Tooltip("MP it costs")
+			.Field<&AbilityDefinition::Power>("Power", "Power").Range(0.0f, 10.0f).Tooltip("Times the hero's Attack (a strike) or Magic (a heal)")
+			.Field<&AbilityDefinition::Heals>("Heals", "Heals").Tooltip("Heals the most hurt ally instead of hitting a foe")
+			.Field<&AbilityDefinition::Clip>("Clip", "Clip").Tooltip("The hero's clip for it; \"Kick\" strikes as a kick, any other clip as a punch")
+			.Field<&AbilityDefinition::Approach>("Approach", "Approach").Tooltip("Walks up to the target first (a strike) instead of acting from where the hero stands");
+
+		DataTypeRegistry::Register<CombatantDefinition>("CombatantDefinition", "Combatant")
+			.Definition()
+			.Table()
+			.DisplayField("Name")
+			.Field<&CombatantDefinition::Name>("Name", "Name").Tooltip("Shown in the battle's status, turn order and log")
+			.Field<&CombatantDefinition::ShortName>("ShortName", "Short Name").Tooltip("Shown in the target list; empty = Name")
+			.Field<&CombatantDefinition::MaxHP>("MaxHP", "Max HP").Range(1.0f, 9999.0f)
+			.Field<&CombatantDefinition::MaxMP>("MaxMP", "Max MP").Range(0.0f, 999.0f)
+			.Field<&CombatantDefinition::Attack>("Attack", "Attack").Range(0.0f, 999.0f)
+			.Field<&CombatantDefinition::Magic>("Magic", "Magic").Range(0.0f, 999.0f)
+			.Field<&CombatantDefinition::Speed>("Speed", "Speed").Range(0.0f, 99.0f).Tooltip("Who acts first: higher goes earlier")
+			.Field<&CombatantDefinition::WeaponType>("WeaponType", "Weapon Type").Tooltip("Heroes: what the plain Attack hits with")
+			.Field<&CombatantDefinition::Skills>("Skills", "Skills").Tooltip("Heroes: the two skill commands, in order").DataTypeFilter("AbilityDefinition")
+			.Field<&CombatantDefinition::ItemClip>("ItemClip", "Item Clip").Tooltip("Heroes: the clip played when using an item")
+			.Field<&CombatantDefinition::IdleClip>("IdleClip", "Idle Clip").Tooltip("Heroes: the fighting-stance loop between actions (and while guarding)")
+			.Field<&CombatantDefinition::Shield>("Shield", "Shield").Range(0.0f, 9.0f).Tooltip("Enemies: hits on a weakness it takes to break it")
+			.Field<&CombatantDefinition::Weak>("Weak", "Weak").Tooltip("Enemies: what it is weak to (at most three)")
+			.Field<&CombatantDefinition::Resist>("Resist", "Resist").Tooltip("Enemies: what it resists");
+
+		DataTypeRegistry::Register<DialogueDefinition>("DialogueDefinition", "Dialogue")
+			.Definition()
+			.Table()
+			.Field<&DialogueDefinition::Speaker>("Speaker", "Speaker").Tooltip("The name on the box; empty = whoever opens it (the NPC's name)")
+			.Field<&DialogueDefinition::Portrait>("Portrait", "Portrait").Tooltip("Optional portrait (the dialogue box has no portrait yet)").AssetFilter(AssetType::Texture2D)
+			.Field<&DialogueDefinition::Lines>("Lines", "Lines").Tooltip("Shown in this order; each line can name its own speaker");
+
+		DataTypeRegistry::Register<DialogueLine>("DialogueLine", "Dialogue Line")
+			.Field<&DialogueLine::Speaker>("Speaker", "Speaker").Tooltip("Who says it; empty = the dialogue's speaker")
+			.Field<&DialogueLine::Text>("Text", "Text").Tooltip("The text; wraps in the dialogue box. A quest can fill in {Left} and the like");
+
+		DataTypeRegistry::Register<NpcDefinition>("NpcDefinition", "Npc")
+			.Table()
+			.DisplayField("Name")
+			.Field<&NpcDefinition::Name>("Name", "Name").Tooltip("The name on the dialogue box (when the dialogue has no speaker of its own)")
+			.Field<&NpcDefinition::Dialogue>("Dialogue", "Dialogue").Tooltip("What they say when the player talks to them").AssetFilter(AssetType::Definition).DataTypeFilter("DialogueDefinition");
+
+		DataTypeRegistry::Register<SignDefinition>("SignDefinition", "Sign")
+			.Table()
+			.Field<&SignDefinition::Lines>("Lines", "Lines").Tooltip("The lines shown in the message box (two fit)");
 
 		DataTypeRegistry::Register<InventoryDefinition>("InventoryDefinition", "Inventory")
 			.Definition()
@@ -42,5 +106,29 @@ namespace Hydro
 			.Field<&ItemDefinition::RestoreHP>("RestoreHP", "Restore HP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
 			.Field<&ItemDefinition::RestoreMP>("RestoreMP", "Restore MP").Range(0.0f, 999.0f).Tooltip("Restored to every hero when used")
 			.Field<&ItemDefinition::UsableInField>("UsableInField", "Usable In Field").Tooltip("Can be used from the field inventory");
+
+		DataTypeRegistry::Register<QuestDefinition>("QuestDefinition", "Quest")
+			.Table()
+			.DisplayField("Title")
+			.Field<&QuestDefinition::Title>("Title", "Title").Tooltip("Shown in the tracker and the New Quest / Quest Complete banners")
+			.Field<&QuestDefinition::Stages>("Stages", "Stages").Tooltip("In order; the quest's script moves from one to the next");
+
+		DataTypeRegistry::Register<QuestStage>("QuestStage", "Quest Stage")
+			.Field<&QuestStage::Objective>("Objective", "Objective").Tooltip("What the tracker says to do");
+
+		DataTypeRegistry::Register<LightingPreset>("LightingPreset", "Lighting Preset")
+			.Field<&LightingPreset::Name>("Name", "Name").Tooltip("Its name in the log")
+			.Field<&LightingPreset::Profile>("Profile", "Profile").Tooltip("The ambient, fog, exposure and bloom").AssetFilter(AssetType::RenderProfile)
+			.Field<&LightingPreset::SunColor>("SunColor", "Sun Color").Tooltip("The sun's (or moon's) colour; in an interior, the light through the windows").Color()
+			.Field<&LightingPreset::SunIntensity>("SunIntensity", "Sun Intensity").Range(0.0f, 4.0f)
+			.Field<&LightingPreset::SkyAmbient>("SkyAmbient", "Sky Ambient").Tooltip("Used only when the profile is missing").Color()
+			.Field<&LightingPreset::GroundAmbient>("GroundAmbient", "Ground Ambient").Tooltip("Used only when the profile is missing").Color()
+			.Field<&LightingPreset::FogColor>("FogColor", "Fog Color").Tooltip("Used only when the profile is missing").Color()
+			.Field<&LightingPreset::LanternFactor>("LanternFactor", "Lantern Factor").Range(0.0f, 3.0f).Tooltip("Lantern and fire lights' strength (0 = off, 1 = as placed)")
+			.Field<&LightingPreset::WindowFactor>("WindowFactor", "Window Factor").Range(0.0f, 3.0f).Tooltip("Lit windows' strength (0 = off, 1 = as placed)");
+
+		DataTypeRegistry::Register<SceneLightingDefinition>("SceneLightingDefinition", "Scene Lighting")
+			.Definition()
+			.Field<&SceneLightingDefinition::Presets>("Presets", "Presets").Tooltip("Day, dusk (golden hour, evening), night: keys 1 / 2 / 3");
 	}
 }

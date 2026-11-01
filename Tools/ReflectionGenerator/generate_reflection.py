@@ -55,7 +55,7 @@ DATA_ASSET_TYPES = {"Definition", "DataTable"}
 DATA_VALUE_TYPES = dict(SUPPORTED_TYPES)
 
 # The only arguments HY_DATA(...) accepts; anything else is an error (the generator stays a scanner).
-HY_DATA_ARGUMENTS = "Definition, Table, DisplayField(field)"
+HY_DATA_ARGUMENTS = "Definition, Table, DisplayField(field), FormerName(\"OldName\", ...)"
 
 
 @dataclass
@@ -73,6 +73,7 @@ class Property:
     where: str = ""
     read_only: bool = False
     hidden: bool = False
+    former_names: list[str] = field(default_factory=list)  # FormerName("..."): keys scenes may still use
 
 
 @dataclass
@@ -80,6 +81,8 @@ class ReflectedScript:
     class_name: str
     include_path: str
     properties: list[Property] = field(default_factory=list)
+    former_names: list[str] = field(default_factory=list)  # HY_SCRIPT(FormerName("...")): names scenes may still use
+    where: str = ""
 
 
 @dataclass
@@ -103,6 +106,7 @@ class DataProperty:
     data_row: str | None = None
     read_only: bool = False
     hidden: bool = False
+    former_names: list[str] = field(default_factory=list)
 
     @property
     def value_kind(self) -> str:
@@ -120,6 +124,7 @@ class ReflectedData:
     display_field: str | None = None
     display_field_explicit: bool = False
     properties: list[DataProperty] = field(default_factory=list)
+    former_names: list[str] = field(default_factory=list)  # HY_DATA(FormerName("...")): type names files may still say
 
     @property
     def display_name(self) -> str:
@@ -347,6 +352,17 @@ def check_data_type_reference(asset_type: str | None, data_type: str | None, kin
         raise ReflectionError(f"{where}: Asset(Definition, {data_type}): not an HY_DATA(Definition) type")
 
 
+def parse_former_names(values: list[str], where: str, argument: str) -> list[str]:
+    """FormerName("Old") or FormerName("Old", "Older"): names that files saved before a rename."""
+    if not values:
+        raise ReflectionError(f"{where}: {argument}: FormerName needs at least one name, e.g. FormerName(\"OldName\")")
+    names = [parse_string_argument(value, where) for value in values]
+    for name in names:
+        if re.fullmatch(r"[A-Za-z_]\w*", name) is None:
+            raise ReflectionError(f"{where}: FormerName(\"{name}\"): not a C++ name")
+    return names
+
+
 def apply_arguments(prop: Property, arguments: str, where: str) -> None:
     for argument in split_top_level(arguments):
         if not argument:
@@ -391,10 +407,12 @@ def apply_arguments(prop: Property, arguments: str, where: str) -> None:
         elif name == "Hidden":
             expect(0)
             prop.hidden = True
+        elif name == "FormerName":
+            prop.former_names.extend(parse_former_names(values, where, argument))
         else:
             raise ReflectionError(
                 f"{where}: unknown HY_PROPERTY argument '{name}' "
-                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, DataRow, ReadOnly, Hidden)"
+                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, DataRow, ReadOnly, Hidden, FormerName)"
             )
 
     prop.where = where
@@ -510,6 +528,19 @@ def parse_properties(body: str, body_offset: int, text: str, class_name: str, de
     return properties
 
 
+def parse_script_arguments(arguments: str, where: str) -> list[str]:
+    """HY_SCRIPT(...) -> its former names. Only FormerName("...") is accepted."""
+    former_names: list[str] = []
+    for argument in split_top_level(arguments):
+        if not argument:
+            continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)\s*(?:\((.*)\))?", argument, flags=re.DOTALL)
+        if match is None or match.group(1) != "FormerName" or match.group(2) is None:
+            raise ReflectionError(f"{where}: HY_SCRIPT({arguments.strip()}): unsupported argument '{argument}' (HY_SCRIPT accepts only FormerName(\"OldName\", ...))")
+        former_names.extend(parse_former_names(split_top_level(match.group(2)), where, argument))
+    return former_names
+
+
 def parse_scripts(text: str, header: Path, include_path: str) -> list[ReflectedScript]:
     scripts: list[ReflectedScript] = []
 
@@ -530,6 +561,7 @@ def parse_scripts(text: str, header: Path, include_path: str) -> list[ReflectedS
 
         class_kind = declaration.group("kind")
         class_name = declaration.group("name")
+        former_names = parse_script_arguments(text[marker.end() : close_paren], f"{where}: {class_name}")
         brace = text.find("{", declaration.end())
         if brace < 0:
             raise ReflectionError(f"{where}: {class_name}: class body not found")
@@ -540,6 +572,8 @@ def parse_scripts(text: str, header: Path, include_path: str) -> list[ReflectedS
             ReflectedScript(
                 class_name=class_name,
                 include_path=include_path,
+                former_names=former_names,
+                where=f"{where}: {class_name}",
                 properties=parse_properties(
                     body=body,
                     body_offset=brace + 1,
@@ -557,11 +591,13 @@ def parse_scripts(text: str, header: Path, include_path: str) -> list[ReflectedS
 # ---- Data types (HY_DATA) and enums (HY_ENUM) --------------------------------------------------------
 
 
-def parse_data_arguments(arguments: str, where: str) -> tuple[bool, bool, str | None]:
-    """HY_DATA(...) -> (definition, table, display field). Only Definition, Table and DisplayField(field)."""
+def parse_data_arguments(arguments: str, where: str) -> tuple[bool, bool, str | None, list[str]]:
+    """HY_DATA(...) -> (definition, table, display field, former names). Only Definition, Table, DisplayField(field)
+    and FormerName("...")."""
     definition = False
     table = False
     display_field: str | None = None
+    former_names: list[str] = []
     for argument in split_top_level(arguments):
         if not argument:
             continue
@@ -579,11 +615,13 @@ def parse_data_arguments(arguments: str, where: str) -> tuple[bool, bool, str | 
             if display_field is not None:
                 raise ReflectionError(f"{where}: HY_DATA({arguments.strip()}): DisplayField appears twice")
             display_field = inner.strip()
+        elif name == "FormerName" and inner is not None:
+            former_names.extend(parse_former_names(split_top_level(inner), where, argument))
         else:
             raise ReflectionError(
                 f"{where}: HY_DATA({arguments.strip()}): unsupported argument '{argument}' (HY_DATA accepts only {HY_DATA_ARGUMENTS})"
             )
-    return definition, table, display_field
+    return definition, table, display_field, former_names
 
 
 def parse_data_types(text: str, header: Path, include_path: str) -> list[ReflectedData]:
@@ -592,7 +630,7 @@ def parse_data_types(text: str, header: Path, include_path: str) -> list[Reflect
     for marker in re.finditer(r"\bHY_DATA\s*\(", text):
         where = f"{header}:{line_of(text, marker.start())}"
         close_paren = find_matching(text, marker.end() - 1, "(", ")")
-        definition, table, display_field = parse_data_arguments(text[marker.end() : close_paren], where)
+        definition, table, display_field, former_names = parse_data_arguments(text[marker.end() : close_paren], where)
 
         declaration = re.compile(
             r"\s*(?P<kind>struct|class)\s+"
@@ -620,6 +658,7 @@ def parse_data_types(text: str, header: Path, include_path: str) -> list[Reflect
             table=table,
             display_field=display_field,
             display_field_explicit=display_field is not None,
+            former_names=former_names,
         )
 
         for arguments, field_declaration, field_where in iter_property_declarations(
@@ -768,10 +807,12 @@ def apply_data_arguments(prop: DataProperty, definitions: set[str], tables: set[
         elif name == "Hidden":
             expect(0)
             prop.hidden = True
+        elif name == "FormerName":
+            prop.former_names.extend(parse_former_names(values, where, argument))
         else:
             raise ReflectionError(
                 f"{where}: unknown HY_PROPERTY argument '{name}' "
-                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, DataRow, ReadOnly, Hidden)"
+                "(Range, Min, Max, Tooltip, DisplayName, Color, Asset, DataRow, ReadOnly, Hidden, FormerName)"
             )
 
     kind = prop.value_kind
@@ -789,6 +830,39 @@ def apply_data_arguments(prop: DataProperty, definitions: set[str], tables: set[
         raise ReflectionError(f"{where}: a DataRowRef needs DataRow(<row type>), e.g. HY_PROPERTY(DataRow(ItemDefinition))")
 
 
+def check_unique_former_names(owner: str, current: dict[str, str], formers: list[tuple[str, str, str]]) -> None:
+    """`current`: name -> where; `formers`: (former name, the name it belongs to, where). A former name may not be a
+    current name or another's former name: a file saved under it couldn't say which it means."""
+    taken: dict[str, str] = {}
+    for former, belongs_to, where in formers:
+        if former == belongs_to:
+            raise ReflectionError(f"{where}: FormerName(\"{former}\") is its own current name")
+        if former in current:
+            raise ReflectionError(f"{where}: FormerName(\"{former}\"): {owner} '{former}' exists ({current[former]}); a file saved under it couldn't say which is meant")
+        if former in taken and taken[former] != belongs_to:
+            raise ReflectionError(f"{where}: FormerName(\"{former}\") is also a former name of '{taken[former]}'")
+        taken[former] = belongs_to
+
+
+def check_former_names(scripts: list[ReflectedScript], data_types: list[ReflectedData]) -> None:
+    check_unique_former_names(
+        "a script",
+        {s.class_name: s.where for s in scripts},
+        [(former, s.class_name, s.where) for s in scripts for former in s.former_names],
+    )
+    check_unique_former_names(
+        "a data type",
+        {d.struct_name: d.where for d in data_types},
+        [(former, d.struct_name, d.where) for d in data_types for former in d.former_names],
+    )
+    for script in scripts:
+        check_unique_former_names(
+            f"{script.class_name}'s property",
+            {p.name: p.where for p in script.properties},
+            [(former, p.name, p.where) for p in script.properties for former in p.former_names],
+        )
+
+
 def resolve_data(data_types: list[ReflectedData], enums: list[ReflectedEnum], scripts: list[ReflectedScript]) -> None:
     """Field kinds, arguments and display fields, once every header is read; and names that clash."""
     seen: dict[str, str] = {}
@@ -801,6 +875,8 @@ def resolve_data(data_types: list[ReflectedData], enums: list[ReflectedEnum], sc
         if previous is not None:
             raise ReflectionError(f"Duplicate reflected name '{name}' ({kind}) in {previous} and {where}")
         seen[name] = where
+
+    check_former_names(scripts, data_types)
 
     data_names = {d.struct_name for d in data_types}
     enum_names = {e.enum_name for e in enums}
@@ -821,6 +897,12 @@ def resolve_data(data_types: list[ReflectedData], enums: list[ReflectedEnum], sc
             else:
                 prop.kind = data_value_kind(prop.type_name, prop.where, data_names, enum_names)
             apply_data_arguments(prop, definitions, tables)
+
+        check_unique_former_names(
+            f"{data.struct_name}'s field",
+            {p.name: p.where for p in data.properties},
+            [(former, p.name, p.where) for p in data.properties for former in p.former_names],
+        )
 
         string_fields = {p.name for p in data.properties if p.kind == "String"}
         if data.display_field_explicit:
@@ -873,7 +955,9 @@ def generate_data_cpp(data_types: list[ReflectedData], enums: list[ReflectedEnum
     for data in data_types:
         lines.append("")
         lines.append(
-            f"\t\tDataTypeRegistry::Register<{data.struct_name}>({cpp_string(data.struct_name)}, {cpp_string(data.display_name)})"
+            f"\t\tDataTypeRegistry::Register<{data.struct_name}>({cpp_string(data.struct_name)}, {cpp_string(data.display_name)}"
+            + former_names_argument(data.former_names)
+            + ")"
         )
         if data.definition:
             lines.append("\t\t\t.Definition()")
@@ -901,11 +985,20 @@ def generate_data_cpp(data_types: list[ReflectedData], enums: list[ReflectedEnum
                 call += ".ReadOnly()"
             if prop.hidden:
                 call += ".Hidden()"
+            for former in prop.former_names:
+                call += f".FormerName({cpp_string(former)})"
             lines.append(call)
         lines[-1] += ";"
 
     lines.extend(["\t}", "}", ""])
     return "\r\n".join(lines)
+
+
+def former_names_argument(former_names: list[str]) -> str:
+    """The optional former-names argument of Register<T>(...): ', { "Old", "Older" }', or nothing."""
+    if not former_names:
+        return ""
+    return ", { " + ", ".join(cpp_string(name) for name in former_names) + " }"
 
 
 def iter_headers(source_root: Path) -> Iterable[Path]:
@@ -972,7 +1065,9 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
 
     for script in scripts:
         lines.append("")
-        lines.append(f"\t\tScriptRegistry::Register<{script.class_name}>({cpp_string(script.class_name)})")
+        lines.append(
+            f"\t\tScriptRegistry::Register<{script.class_name}>({cpp_string(script.class_name)}{former_names_argument(script.former_names)})"
+        )
         for prop in script.properties:
             call = f"\t\t\t.Property({cpp_string(prop.name)}, {cpp_string(prop.display_name)}, &{script.class_name}::{prop.name})"
             if prop.minimum is not None and prop.maximum is not None:
@@ -993,6 +1088,8 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
                 call += ".ReadOnly()"
             if prop.hidden:
                 call += ".Hidden()"
+            for former in prop.former_names:
+                call += f".FormerName({cpp_string(former)})"
             lines.append(call)
         lines[-1] += ";"
 

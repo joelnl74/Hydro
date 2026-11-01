@@ -1,4 +1,4 @@
-// Headless tests of the data serializer (D1, #168) and the data API (D2, #169). Built and run by scripts/test_data.sh with g++ on Linux: the
+// Headless tests of the data serializer (D1, #168), the data API (D2, #169) and the editing operations (D3, #170). Built and run by scripts/test_data.sh with g++ on Linux: the
 // engine's Data/ sources, the types in DataTestTypes.h and their generated registration. No window, GPU or project.
 
 #include "hypch.h"
@@ -7,6 +7,8 @@
 #include "GeneratedDataReflection.h"
 
 #include "Hydro/Data/Data.h"
+#include "Hydro/Data/DataEditing.h"
+#include "Hydro/Data/DefinitionAsset.h"
 #include "Hydro/Data/DataSerializer.h"
 #include "Hydro/Data/DataTypeRegistry.h"
 
@@ -571,6 +573,180 @@ namespace Hydro
 		std::error_code ec;
 		std::filesystem::remove_all(folder, ec);
 	}
+
+	static std::string ReadText(const std::filesystem::path& path)
+	{
+		std::ifstream in(path, std::ios::binary);
+		return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+	}
+
+	static void TestEditing()
+	{
+		std::printf("Editing (D3): list entries, rows, saving\n");
+		const DataTypeInfo& dialogueType = *DataTypeRegistry::Find("DialogueDefinition");
+		const DataField& lines = *dialogueType.FindField("Lines");
+
+		// The plan's check: Elder.hydef with three lines, move one up, save, reopen: identical.
+		const std::string text =
+			"Handle: 77\nDefinition:\n  Version: 1\n  Type: DialogueDefinition\n  Values:\n    Speaker: Elder\n    Lines:\n"
+			"      - Text: First\n      - Text: Second\n        Mood: Stern\n      - Text: Third\n";
+		DefinitionData data;
+		DataReport report;
+		CHECK(DataSerializer::ReadDefinition(text, data, report));
+		DialogueDefinition& elder = *data.Values.As<DialogueDefinition>();
+		DataKeptValues& kept = data.Values.GetKept();
+		DataEditing::SwapListEntries(lines.Type, &elder.Lines, kept, "Lines", 1, 0); // "Second" up
+		CHECK(elder.Lines[0].Text == "Second" && elder.Lines[1].Text == "First");
+		CHECK(kept.Nested.count("Lines[0]") == 1 && kept.Nested.count("Lines[1]") == 0); // its unknown key went with it
+
+		const std::filesystem::path file = std::filesystem::temp_directory_path() / "hydro-data-test-Elder.hydef";
+		CHECK(DefinitionAsset::Save(file, data));
+		const std::string saved = ReadText(file);
+		CHECK(saved.find("      - Speaker: \"\"\n        Text: Second\n        Mood: Stern\n      - Speaker: \"\"\n        Text: First\n") != std::string::npos);
+		DefinitionData reopened;
+		DataReport reopenReport;
+		CHECK(DataSerializer::ReadDefinition(saved, reopened, reopenReport));
+		std::string again;
+		CHECK(DataSerializer::WriteDefinition(reopened, again));
+		CHECK(again == saved); // saving what was opened changes nothing
+		std::error_code ec;
+		std::filesystem::remove(file, ec);
+
+		// Insert before it, then remove it: the kept key follows, then goes.
+		DataEditing::InsertListEntry(lines.Type, &elder.Lines, kept, "Lines", 0);
+		CHECK(elder.Lines.size() == 4 && elder.Lines[0].Text.empty() && kept.Nested.count("Lines[1]") == 1);
+		DataEditing::RemoveListEntry(lines.Type, &elder.Lines, kept, "Lines", 1);
+		CHECK(elder.Lines.size() == 3 && elder.Lines[1].Text == "First" && kept.Nested.count("Lines[1]") == 0 && kept.Nested.count("Lines[0]") == 0);
+		DataEditing::SwapListEntries(lines.Type, &elder.Lines, kept, "Lines", 0, 7); // out of range: nothing
+		CHECK(elder.Lines.size() == 3);
+
+		// A list that couldn't be read is kept from the file until it is changed.
+		DefinitionData broken;
+		DataReport brokenReport;
+		CHECK(DataSerializer::ReadDefinition("Definition:\n  Version: 1\n  Type: DialogueDefinition\n  Values:\n    Lines: [not, maps]\n", broken, brokenReport));
+		DialogueDefinition& empty = *broken.Values.As<DialogueDefinition>();
+		CHECK(empty.Lines.empty() && broken.Values.GetKept().Unreadable["Lines"]);
+		DataEditing::InsertListEntry(lines.Type, &empty.Lines, broken.Values.GetKept(), "Lines", 0);
+		std::string brokenText;
+		CHECK(DataSerializer::WriteDefinition(broken, brokenText));
+		CHECK(brokenText.find("[not, maps]") == std::string::npos && brokenText.find("      - Speaker: \"\"\n        Text: \"\"\n") != std::string::npos);
+
+		// Rows: add, duplicate, change ID, delete.
+		DataTableData table;
+		DataReport tableReport;
+		CHECK(DataSerializer::ReadTable("DataTable:\n  Version: 1\n  Type: ItemDefinition\n  Rows:\n    Potion:\n      Name: Potion\n      Price: 5\n", table, tableReport));
+		CHECK(DataEditing::AddRow(table) == "NewItem");
+		CHECK(DataEditing::AddRow(table) == "NewItem2");
+		const std::string copy = DataEditing::DuplicateRow(table, "Potion");
+		CHECK(copy == "PotionCopy" && table.Rows.at(copy).As<ItemDefinition>()->Name == "Potion");
+		CHECK(table.Rows.at(copy).GetKept().Unknown["Price"].as<int>() == 5);
+		CHECK(DataEditing::DuplicateRow(table, "Potion") == "PotionCopy2");
+		CHECK(DataEditing::DuplicateRow(table, "Nope").empty());
+		std::string problem;
+		CHECK(DataEditing::ChangeRowId(table, copy, "Iron Sword", problem) == false && problem.empty() == false);
+		CHECK(DataEditing::ChangeRowId(table, copy, "Potion", problem) == false && problem.find("Another row") != std::string::npos);
+		CHECK(DataEditing::CheckRowId(table, "Potion", "Potion").empty()); // keeping its own ID is fine
+		CHECK(DataEditing::ChangeRowId(table, copy, "HiPotion", problem) && table.Rows.count("HiPotion") == 1 && table.Rows.count(copy) == 0);
+		table.Rows.at("HiPotion").As<ItemDefinition>()->Name = "Hi-Potion";
+		CHECK(DataEditing::GetRowLabel(table.Rows.at("HiPotion"), "HiPotion") == "Hi-Potion");
+		CHECK(DataEditing::GetRowLabel(table.Rows.at("NewItem"), "NewItem") == "NewItem"); // an empty name: the ID
+		CHECK(DataEditing::RemoveRow(table, "NewItem2") && DataEditing::RemoveRow(table, "NewItem2") == false);
+		std::string tableText;
+		CHECK(DataSerializer::WriteTable(table, tableText));
+		CHECK(tableText.find("    HiPotion:\n      Name: Hi-Potion\n") != std::string::npos && tableText.find("NewItem2") == std::string::npos);
+		CHECK(DataEditing::MakeFreeRowId(table, "Potion") == "Potion2" && DataEditing::MakeFreeRowId(table, "Ether") == "Ether");
+	}
+}
+
+namespace Hydro
+{
+	// Former names (SC1): a file saved before a type or field was renamed loads, says so, and saves the new names.
+	static void TestFormerNames()
+	{
+		std::printf("Former names: renamed types and fields\n");
+		CHECK(DataTypeRegistry::Find("PrizeDefinition") == nullptr);
+		CHECK(DataTypeRegistry::FindByFormerName("PrizeDefinition") == DataTypeRegistry::Find("RewardDefinition"));
+
+		const std::string old =
+			"Handle: 77\n"
+			"Definition:\n"
+			"  Version: 1\n"
+			"  Type: PrizeDefinition\n"
+			"  Values:\n"
+			"    Title: Gold\n"
+			"    Amount: 12\n"
+			"    Line:\n"
+			"      Speaker: Chest\n"
+			"      Text: Ka-ching\n"
+			"      Mood: happy\n";
+
+		DefinitionData data;
+		DataReport report;
+		CHECK(DataSerializer::ReadDefinition(old, data, report));
+		PrintReport("read", report);
+		CHECK(report.GetErrorCount() == 0);
+		CHECK(HasMessage(report, DataMessageSeverity::Warning, "", "Type", "RewardDefinition's former name"));
+		CHECK(HasMessage(report, DataMessageSeverity::Warning, "", "Title", "saved under Name's former name"));
+		CHECK(HasMessage(report, DataMessageSeverity::Warning, "", "Amount", "saved under Count's former name"));
+		CHECK(HasMessage(report, DataMessageSeverity::Warning, "", "Line", "saved under Says's former name"));
+		const RewardDefinition* reward = data.Values.As<RewardDefinition>();
+		CHECK(reward != nullptr && reward->Name == "Gold" && reward->Count == 12 && reward->Says.Speaker == "Chest" && reward->Says.Text == "Ka-ching");
+
+		std::string written;
+		CHECK(DataSerializer::WriteDefinition(data, written));
+		std::printf("%s", written.c_str());
+		CHECK(written.find("Type: RewardDefinition") != std::string::npos);
+		CHECK(written.find("    Name: Gold\n    Count: 12\n    Says:\n      Speaker: Chest\n      Text: Ka-ching\n      Mood: happy\n") != std::string::npos);
+		CHECK(written.find("Title") == std::string::npos && written.find("Amount") == std::string::npos && written.find("Line:") == std::string::npos);
+
+		// Saved with the new names: nothing to report any more.
+		DefinitionData saved;
+		DataReport savedReport;
+		CHECK(DataSerializer::ReadDefinition(written, saved, savedReport, true));
+		CHECK(savedReport.GetErrorCount() == 0 && savedReport.GetWarningCount() == 1); // Says.Mood: an unknown key
+		std::string writtenAgain;
+		CHECK(DataSerializer::WriteDefinition(saved, writtenAgain) && writtenAgain == written);
+
+		// Both a field's name and a former name (or two former names): the first one read wins, the other is kept.
+		const std::string both =
+			"Handle: 78\n"
+			"Definition:\n"
+			"  Version: 1\n"
+			"  Type: RewardDefinition\n"
+			"  Values:\n"
+			"    Title: Old\n"
+			"    Name: New\n"
+			"    Amount: lots\n";
+		DefinitionData twice;
+		DataReport twiceReport;
+		CHECK(DataSerializer::ReadDefinition(both, twice, twiceReport, true));
+		PrintReport("read (name and former name)", twiceReport);
+		CHECK(twice.Values.As<RewardDefinition>()->Name == "New" && twice.Values.As<RewardDefinition>()->Count == 0);
+		CHECK(HasMessage(twiceReport, DataMessageSeverity::Warning, "", "Title", "a former name of Name, which has its own value"));
+		CHECK(HasMessage(twiceReport, DataMessageSeverity::Error, "", "Count", "expected a whole number"));
+		std::string twiceWritten;
+		CHECK(DataSerializer::WriteDefinition(twice, twiceWritten));
+		std::printf("%s", twiceWritten.c_str());
+		// The unreadable value read under a former name is kept under the field's name, where it is written.
+		CHECK(twiceWritten.find("Count: lots") != std::string::npos && twiceWritten.find("Amount") == std::string::npos);
+		CHECK(twiceWritten.find("Title: Old") != std::string::npos && twiceWritten.find("Name: New") != std::string::npos);
+
+		const std::string formers =
+			"Handle: 79\n"
+			"Definition:\n"
+			"  Version: 1\n"
+			"  Type: RewardDefinition\n"
+			"  Values:\n"
+			"    Heading: First\n"
+			"    Title: Second\n";
+		DefinitionData two;
+		DataReport twoReport;
+		CHECK(DataSerializer::ReadDefinition(formers, two, twoReport, true));
+		CHECK(two.Values.As<RewardDefinition>()->Name == "First");
+		CHECK(HasMessage(twoReport, DataMessageSeverity::Warning, "", "Title", "a former name of Name"));
+	}
+
+	int TestScriptSerializer(int& checks); // ScriptSerializerTest.cpp: returns its failures
 }
 
 int main()
@@ -588,6 +764,9 @@ int main()
 	Hydro::TestFileLevel();
 	Hydro::TestRecordCopies();
 	Hydro::TestDataApi();
+	Hydro::TestEditing();
+	Hydro::TestFormerNames();
+	Hydro::s_Failures += Hydro::TestScriptSerializer(Hydro::s_Checks);
 
 	std::printf("\n%d checks, %d failed\n", Hydro::s_Checks, Hydro::s_Failures);
 	return Hydro::s_Failures == 0 ? 0 : 1;

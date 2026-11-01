@@ -4,6 +4,7 @@
 #include "../EditorWindows/PropertyUI.h"
 
 #include <Hydro/Asset/AssetManager.h>
+#include <Hydro/Data/Data.h>
 #include <Hydro/Renderer/Texture2D.h>
 
 #include <imgui/imgui.h>
@@ -40,14 +41,25 @@ namespace Hydro
 		return text;
 	}
 
-	// The project's assets of `type` that exist, by path.
-	static void BuildRows(AssetType type)
+	// Whether `handle` holds `dataType` (always, without a data type): definitions and tables are loaded to see.
+	static bool HoldsDataType(AssetHandle handle, const std::string& dataType)
+	{
+		if (dataType.empty())
+		{
+			return true;
+		}
+		const DataTypeInfo* held = Data::GetDataType(handle);
+		return held != nullptr && held->Name == dataType;
+	}
+
+	// The project's assets of `type` (holding `dataType`, for game data) that exist, by path.
+	static void BuildRows(AssetType type, const std::string& dataType)
 	{
 		s_State.Rows.clear();
 		for (const auto& entry : AssetManager::GetRegistry().GetAll())
 		{
 			const AssetMetadata& metadata = entry.second;
-			if (metadata.Type != type || metadata.IsMissing)
+			if (metadata.Type != type || metadata.IsMissing || HoldsDataType(metadata.Handle, dataType) == false)
 			{
 				continue;
 			}
@@ -92,7 +104,7 @@ namespace Hydro
 	}
 
 	// The list popup of one field. Returns true when a row was chosen (`picked`).
-	static bool DrawList(ImGuiID owner, AssetType type, AssetHandle current, AssetHandle& picked)
+	static bool DrawList(ImGuiID owner, AssetType type, const std::string& dataType, AssetHandle current, AssetHandle& picked)
 	{
 		ImGui::SetNextWindowSize({ 380.0f, 360.0f }, ImGuiCond_Appearing);
 		if (ImGui::BeginPopup("##AssetPicker") == false)
@@ -110,7 +122,7 @@ namespace Hydro
 		{
 			s_State.Owner = owner;
 			s_State.Search[0] = '\0';
-			BuildRows(type);
+			BuildRows(type, dataType);
 			ImGui::SetKeyboardFocusHere();
 		}
 
@@ -183,6 +195,22 @@ namespace Hydro
 
 	AssetPickerResult AssetPicker::DrawField(const char* id, AssetHandle current, AssetType type, const std::string& detail, float width)
 	{
+		return DrawFiltered(id, current, type, {}, detail, width);
+	}
+
+	AssetPickerResult AssetPicker::DrawDataField(const char* id, AssetHandle current, AssetType type, const std::string& dataType, float width)
+	{
+		const DataTypeInfo* held = static_cast<uint64_t>(current) != 0 ? Data::GetDataType(current) : nullptr;
+		std::string detail = "Holds " + (held != nullptr ? held->Name : std::string("nothing readable"));
+		if (held != nullptr && held->Name != dataType)
+		{
+			detail += ", not " + dataType;
+		}
+		return DrawFiltered(id, current, type, dataType, static_cast<uint64_t>(current) != 0 ? detail : std::string(), width);
+	}
+
+	AssetPickerResult AssetPicker::DrawFiltered(const char* id, AssetHandle current, AssetType type, const std::string& dataType, const std::string& detail, float width)
+	{
 		AssetPickerResult result;
 		ImGui::PushID(id);
 
@@ -224,8 +252,15 @@ namespace Hydro
 			AssetHandle dropped = 0;
 			if (AssetDragDrop::AcceptHandle(dropped, type))
 			{
-				result.Changed = true;
-				result.Handle = dropped;
+				if (HoldsDataType(dropped, dataType))
+				{
+					result.Changed = true;
+					result.Handle = dropped;
+				}
+				else
+				{
+					HY_WARN("That file doesn't hold {}", dataType);
+				}
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -240,7 +275,7 @@ namespace Hydro
 		ImGui::EndDisabled();
 
 		AssetHandle picked = 0;
-		if (DrawList(ImGui::GetID("##AssetPicker"), type, current, picked))
+		if (DrawList(ImGui::GetID("##AssetPicker"), type, dataType, current, picked))
 		{
 			result.Changed = true;
 			result.Handle = picked;

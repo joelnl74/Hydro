@@ -37,12 +37,17 @@ namespace Hydro
 		return true;
 	}
 
-	void DataKeptValues::Forget(const std::string& fieldName)
+	void DataKeptValues::ForgetUnreadable(const std::string& fieldName)
 	{
 		if (Unreadable.IsMap() && Unreadable[fieldName])
 		{
 			Unreadable.remove(fieldName);
 		}
+	}
+
+	void DataKeptValues::Forget(const std::string& fieldName)
+	{
+		ForgetUnreadable(fieldName);
 
 		// "Reward" and every "Lines[n]" under the field.
 		for (auto it = Nested.begin(); it != Nested.end();)

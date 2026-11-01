@@ -11965,20 +11965,20 @@ Entities:
     TransformComponent:
       Translation: [6.4000001, -4.5999999, 0]
       Rotation: [0, 0, 0]
-      Scale: [3, 2.25, 1]
+      Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 7596897423412270899
-      Sprite: Farmer_Down_0
+      Sprite: IdleDown_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
       Facing: Upright
     SpriteAnimatorComponent:
       AnimationsHandle: 951407229409544592
-      StartClip: IdleLeft
+      StartClip: WorkLeft
       PlayOnStart: true
       Speed: 1
     Shadow2DComponent:
@@ -12005,13 +12005,13 @@ Entities:
     TransformComponent:
       Translation: [-4.19999981, -2.0999999, 0]
       Rotation: [0, 0, 0]
-      Scale: [3, 2.25, 1]
+      Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 13537106793910617173
-      Sprite: Gatherer_Down_0
+      Sprite: IdleDown_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -12125,13 +12125,13 @@ Entities:
     TransformComponent:
       Translation: [-1.89999998, 4.5, 1]
       Rotation: [0, 0, 0]
-      Scale: [3, 2.25, 1]
+      Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 9535473058665648090
-      Sprite: VillageElder_Down_0
+      Sprite: IdleDown_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false
@@ -12205,13 +12205,13 @@ Entities:
     TransformComponent:
       Translation: [1.60000002, -17.2999992, 0]
       Rotation: [0, 0, 0]
-      Scale: [3, 2.25, 1]
+      Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
       SortOrder: 0
       TextureHandle: 5331509464813804732
-      Sprite: Pilgrim_Down_0
+      Sprite: IdleDown_0
       SpriteIndex: 0
       FlipX: false
       FlipY: false

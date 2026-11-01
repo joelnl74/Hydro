@@ -355,6 +355,7 @@ namespace Hydro
 		const std::string& path, DataReadContext& context)
 	{
 		std::set<std::string> seen;
+		std::set<const DataField*> read; // a field read under one key isn't read again under a former name
 		for (const auto& entry : node)
 		{
 			if (entry.first.IsScalar() == false)
@@ -376,20 +377,36 @@ namespace Hydro
 			const DataField* field = type.FindField(key);
 			if (field == nullptr)
 			{
-				kept.Unknown[key] = YAML::Clone(entry.second);
-				if (context.ReportValues)
+				// A former name (HY_PROPERTY(FormerName("..."))): its value is the field's, unless the record also has
+				// one under the field's name (or another former name); then that one wins and this one is kept as an
+				// unknown key.
+				field = type.FindFieldByFormerName(key);
+				if (field != nullptr && node[field->Name].IsDefined() == false && read.count(field) == 0)
 				{
-					context.Report->AddWarning(context.Row, fieldPath, "unknown field (kept in the file; " + type.Name + " has no field '" + key + "' now)");
+					context.Report->AddWarning(context.Row, fieldPath, "saved under " + field->Name + "'s former name; saving the file writes '" + field->Name + "'");
 				}
-				continue;
+				else
+				{
+					kept.Unknown[key] = YAML::Clone(entry.second);
+					if (context.ReportValues)
+					{
+						context.Report->AddWarning(context.Row, fieldPath, field != nullptr
+							? "a former name of " + field->Name + ", which has its own value (this one is kept in the file, unused)"
+							: "unknown field (kept in the file; " + type.Name + " has no field '" + key + "' now)");
+					}
+					continue;
+				}
 			}
+			read.insert(field);
 
 			if (entry.second.IsNull())
 			{
 				continue; // "Speaker:" with nothing after it: the default
 			}
 
-			if (ReadValue(entry.second, field->Type, field->Get(object), kept, key, fieldPath, context) == false)
+			// What the file had that can't be used is kept under the field's current name (also when it was read
+			// under a former one), which is where saving writes the field.
+			if (ReadValue(entry.second, field->Type, field->Get(object), kept, field->Name, JoinPath(path, field->Name), context) == false)
 			{
 				// The field keeps its default; a list may have been half read, so put its default back.
 				if (field->Type.Kind == DataFieldKind::List)
@@ -398,8 +415,8 @@ namespace Hydro
 					field->Type.List->Assign(field->Get(object), field->Get(static_cast<const void*>(defaults)));
 					type.Destroy(defaults);
 				}
-				kept.Forget(key);
-				kept.Unreadable[key] = YAML::Clone(entry.second);
+				kept.Forget(field->Name);
+				kept.Unreadable[field->Name] = YAML::Clone(entry.second);
 			}
 		}
 	}
@@ -515,7 +532,10 @@ namespace Hydro
 			for (const auto& entry : kept.Unknown)
 			{
 				const std::string key = entry.first.Scalar();
-				report.AddWarning(row, JoinPath(path, key), "unknown field (kept in the file; " + type.Name + " has no field '" + key + "' now)");
+				const DataField* renamed = type.FindFieldByFormerName(key);
+				report.AddWarning(row, JoinPath(path, key), renamed != nullptr
+					? "a former name of " + renamed->Name + ", which has its own value (this one is kept in the file, unused)"
+					: "unknown field (kept in the file; " + type.Name + " has no field '" + key + "' now)");
 			}
 		}
 
@@ -690,7 +710,15 @@ namespace Hydro
 		const DataTypeInfo* type = DataTypeRegistry::Find(node.Scalar());
 		if (type == nullptr)
 		{
-			report.AddError("", "Type", "unknown data type '" + node.Scalar() + "' (was the struct renamed, or its HY_DATA removed?)");
+			type = DataTypeRegistry::FindByFormerName(node.Scalar());
+			if (type != nullptr)
+			{
+				report.AddWarning("", "Type", "'" + node.Scalar() + "' is " + type->Name + "'s former name; saving the file writes '" + type->Name + "'");
+			}
+		}
+		if (type == nullptr)
+		{
+			report.AddError("", "Type", "unknown data type '" + node.Scalar() + "' (was the struct renamed without a FormerName, or its HY_DATA removed?)");
 		}
 		return type;
 	}

@@ -40,7 +40,15 @@ Definition:
         Count: 2
       - Item: {Table: 4741649512266718899, Row: SpringWater}
         Count: 3
+      - Item: {Table: 4741649512266718899, Row: NewItem}
+        Count: 1
       - Item: {Table: 4741649512266718899, Row: PineResin}
         Count: 2
       - Item: {Table: 4741649512266718899, Row: FoxMask}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: NewItem}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: PineResin}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: Potion}
         Count: 1

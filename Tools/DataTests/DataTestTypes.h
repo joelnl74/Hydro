@@ -106,4 +106,17 @@ namespace Hydro
 		HY_PROPERTY()
 		DialogueLine Greeting;
 	};
+
+	// Renamed in C++ after files were saved (SC1, former names): the files still say PrizeDefinition, Title, Amount
+	// and Line.
+	HY_DATA(Definition, FormerName("PrizeDefinition"))
+	struct RewardDefinition
+	{
+		HY_PROPERTY(FormerName("Title", "Heading"))
+		std::string Name;
+		HY_PROPERTY(Range(0, 99), FormerName("Amount"))
+		int Count = 0;
+		HY_PROPERTY(FormerName("Line"))
+		DialogueLine Says;
+	};
 }

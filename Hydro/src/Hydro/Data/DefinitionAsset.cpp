@@ -39,4 +39,22 @@ namespace Hydro
 
 		return CreateRef<DefinitionAsset>(std::move(data), std::move(fileReport));
 	}
+
+	bool DefinitionAsset::Save(const std::filesystem::path& file, const DefinitionData& data)
+	{
+		std::string text;
+		if (DataSerializer::WriteDefinition(data, text) == false)
+		{
+			HY_CORE_ERROR("DefinitionAsset: '{}' is read-only (newer than this build, or broken: see its messages); not saved", file.filename().string());
+			return false;
+		}
+		std::ofstream out(file, std::ios::trunc);
+		if (out.is_open() == false)
+		{
+			HY_CORE_ERROR("DefinitionAsset: can't write '{}'", file.string());
+			return false;
+		}
+		out << text;
+		return out.good();
+	}
 }

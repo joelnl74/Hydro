@@ -140,6 +140,13 @@ namespace Hydro
 			return *this;
 		}
 
+		// A key files may still have this field under (HY_PROPERTY(FormerName("..."))). Call once per name.
+		DataTypeRegistration& FormerName(const std::string& name)
+		{
+			Last().FormerNames.push_back(name);
+			return *this;
+		}
+
 	private:
 		DataField& Last()
 		{

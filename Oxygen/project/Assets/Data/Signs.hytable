@@ -1,0 +1,17 @@
+Handle: 653601014895859085
+DataTable:
+  Version: 1
+  Type: SignDefinition
+  Rows:
+    Default:
+      Lines:
+        - Shrine Glade Inn
+        - "Village: south"
+    Shrine:
+      Lines:
+        - Shrine Glade Inn
+        - "Village: south"
+    Village:
+      Lines:
+        - Shrine Glade Inn
+        - "Village: south"

@@ -1,0 +1,12 @@
+Handle: 552294734088370458
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: Mind the sparks. An iron sword takes a week if you want it done properly.
+      - Speaker: ""
+        Text: Bring me copper ore and I'll see what I can do. Not today, though.

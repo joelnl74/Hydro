@@ -6,6 +6,7 @@
 #include "Hydro/Renderer/Material.h"
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Renderer/MeshImporter.h"
+#include "Hydro/Data/DataReport.h"
 
 #include <filesystem>
 #include <functional>
@@ -66,6 +67,17 @@ namespace Hydro
 		void EditMaterialAsset(const Ref<MaterialAsset>& asset);
 		// Writes the material edited last to its .hymat once no field is active (`force`: now).
 		void SaveEditedMaterial(bool force);
+		// A selected .hydef: its validation line and its values (DataFieldRenderer), edited in the loaded asset.
+		void DrawDefinitionAsset(const std::filesystem::path& path);
+		// A selected .hytable: its validation line, its rows (search, add, duplicate, delete, change ID) and the
+		// selected row's values.
+		void DrawDataTableAsset(const std::filesystem::path& path);
+		// The validation of `handle`, checked again after an edit and once a second (it reads other files).
+		const DataReport& GetValidation(AssetHandle handle);
+		// The definition or table was edited in memory: saved once no field is active.
+		void MarkDataEdited(AssetHandle handle);
+		// Writes the definition or table edited last once no field is active (`force`: now).
+		void SaveEditedData(bool force);
 
 	private:
 		TextureImportPanel m_TextureImportPanel;
@@ -75,6 +87,18 @@ namespace Hydro
 		std::filesystem::file_time_type m_InspectedAnimationTime{};
 		// The material asset changed in memory and not written yet (0: none).
 		AssetHandle m_UnsavedMaterial = 0;
+		// The definition or data table changed in memory and not written yet (0: none).
+		AssetHandle m_UnsavedData = 0;
+		// The selected data asset's validation, kept between frames.
+		AssetHandle m_ValidatedData = 0;
+		DataReport m_Validation;
+		double m_ValidationTime = -1.0;
+		// The data table shown and its selected row, the row search, and the row popups' state.
+		AssetHandle m_RowTable = 0;
+		std::string m_SelectedRow;
+		char m_RowSearch[64] = {};
+		char m_RowIdBuffer[64] = {};
+		std::string m_RowToDelete;
 		// The import settings being edited for the selected model (read again when another one is selected).
 		std::filesystem::path m_ModelSettingsPath;
 		MeshImportConfig m_ModelSettings;

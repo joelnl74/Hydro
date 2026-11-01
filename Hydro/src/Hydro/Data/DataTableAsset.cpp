@@ -48,4 +48,22 @@ namespace Hydro
 		auto it = m_Data.Rows.find(id);
 		return it == m_Data.Rows.end() ? nullptr : &it->second;
 	}
+
+	bool DataTableAsset::Save(const std::filesystem::path& file, const DataTableData& data)
+	{
+		std::string text;
+		if (DataSerializer::WriteTable(data, text) == false)
+		{
+			HY_CORE_ERROR("DataTableAsset: '{}' is read-only (newer than this build, or broken: see its messages); not saved", file.filename().string());
+			return false;
+		}
+		std::ofstream out(file, std::ios::trunc);
+		if (out.is_open() == false)
+		{
+			HY_CORE_ERROR("DataTableAsset: can't write '{}'", file.string());
+			return false;
+		}
+		out << text;
+		return out.good();
+	}
 }

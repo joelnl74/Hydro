@@ -1,6 +1,7 @@
 #include "hypch.h"
 #include "EntitySerializer.h"
 #include "Scripting/ScriptableEntity.h"
+#include "Scripting/ScriptSerializer.h"
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Font.h"
@@ -164,69 +165,6 @@ namespace Hydro
 		}
 
 		return Rigidbody2DType::Dynamic;
-	}
-
-	// A script property's value (HY_PROPERTY): scalars and strings as they are, vectors as [x, y, z], an asset as
-	// its handle number, a table row as { Table: <handle>, Row: <id> }.
-	static void WriteScriptPropertyValue(YAML::Emitter& out, const ScriptPropertyValue& value)
-	{
-		std::visit(
-			[&out](const auto& typed)
-			{
-				using Value = std::decay_t<decltype(typed)>;
-				if constexpr (std::is_same_v<Value, AssetHandle>)
-				{
-					out << (uint64_t)typed;
-				}
-				else if constexpr (std::is_same_v<Value, DataRowRef>)
-				{
-					out << YAML::Flow << YAML::BeginMap;
-					out << YAML::Key << "Table" << YAML::Value << (uint64_t)typed.Table;
-					out << YAML::Key << "Row" << YAML::Value << typed.Row;
-					out << YAML::EndMap;
-				}
-				else
-				{
-					out << typed;
-				}
-			},
-			value);
-	}
-
-	// A saved value of `property`; its default when the node holds something else (a property whose type changed).
-	static ScriptPropertyValue ReadScriptPropertyValue(const YAML::Node& node, const ScriptProperty& property)
-	{
-		const ScriptPropertyValue& fallback = property.DefaultValue;
-		try
-		{
-			switch (property.Type)
-			{
-				case ScriptPropertyType::Bool: return node.as<bool>(std::get<bool>(fallback));
-				case ScriptPropertyType::Int: return node.as<int>(std::get<int>(fallback));
-				case ScriptPropertyType::Float: return node.as<float>(std::get<float>(fallback));
-				case ScriptPropertyType::Vec2: return node.as<glm::vec2>(std::get<glm::vec2>(fallback));
-				case ScriptPropertyType::Vec3: return node.as<glm::vec3>(std::get<glm::vec3>(fallback));
-				case ScriptPropertyType::Vec4: return node.as<glm::vec4>(std::get<glm::vec4>(fallback));
-				case ScriptPropertyType::String: return node.as<std::string>(std::get<std::string>(fallback));
-				case ScriptPropertyType::Asset: return AssetHandle(node.as<uint64_t>((uint64_t)std::get<AssetHandle>(fallback)));
-				case ScriptPropertyType::RowRef:
-				{
-					if (node.IsMap() == false)
-					{
-						return fallback;
-					}
-					DataRowRef ref;
-					ref.Table = AssetHandle(node["Table"].as<uint64_t>(0));
-					ref.Row = node["Row"].as<std::string>(std::string());
-					return ref;
-				}
-			}
-		}
-		catch (const YAML::Exception&)
-		{
-			// A vector saved with the wrong number of components, or a scalar where a list was expected.
-		}
-		return fallback;
 	}
 
 	// Saved values the physics engine would choke on are pulled into range. Written as max(minimum, value)
@@ -967,51 +905,10 @@ namespace Hydro
 
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
-			auto& scripts = entity.GetComponent<NativeScriptComponent>();
-
 			out << YAML::Key << "NativeScriptComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
-
-			for (const auto& script : scripts.Scripts)
-			{
-				if (script.Name.empty())
-				{
-					HY_CORE_WARN(
-						"Entity '{}': a script bound in code without a ScriptRegistry name isn't saved",
-						entity.GetName());
-					continue;
-				}
-
-				out << YAML::BeginMap;
-				out << YAML::Key << "Name" << YAML::Value << script.Name;
-
-				if (script.Properties.empty() == false)
-				{
-					out << YAML::Key << "Properties" << YAML::Value << YAML::BeginMap;
-
-					// Sorted by name, so a scene saves the same way every time (the map is unordered).
-					std::vector<const std::pair<const std::string, ScriptPropertyValue>*> sorted;
-					sorted.reserve(script.Properties.size());
-					for (const auto& entry : script.Properties)
-					{
-						sorted.push_back(&entry);
-					}
-					std::sort(sorted.begin(), sorted.end(), [](const auto* a, const auto* b) { return a->first < b->first; });
-
-					for (const auto* entry : sorted)
-					{
-						out << YAML::Key << entry->first << YAML::Value;
-						WriteScriptPropertyValue(out, entry->second);
-					}
-
-					out << YAML::EndMap;
-				}
-
-				out << YAML::EndMap;
-			}
-
-			out << YAML::EndSeq;
+			out << YAML::Key << "Scripts" << YAML::Value;
+			ScriptSerializer::Write(out, entity.GetComponent<NativeScriptComponent>(), entity.GetName());
 			out << YAML::EndMap;
 		}
 
@@ -1481,65 +1378,8 @@ namespace Hydro
 		if (auto scriptNode = entityNode["NativeScriptComponent"])
 		{
 			auto& scripts = entity.AddComponent<NativeScriptComponent>();
-
-			if (auto scriptsNode = scriptNode["Scripts"]; scriptsNode && scriptsNode.IsSequence())
-			{
-				for (const YAML::Node& savedScript : scriptsNode)
-				{
-					std::string scriptName;
-
-					// Backwards compatibility with the original string-only format.
-					if (savedScript.IsScalar())
-					{
-						scriptName = savedScript.as<std::string>("");
-					}
-					else if (savedScript.IsMap())
-					{
-						scriptName = savedScript["Name"].as<std::string>("");
-					}
-
-					if (scriptName.empty())
-						continue;
-
-					// Bind resolves Instantiate and fills the current reflected defaults.
-					scripts.Bind(scriptName);
-
-					NativeScriptComponent::Script& binding = scripts.Scripts.back();
-
-					// Saved values override the defaults. Missing/new fields keep their
-					// current C++ defaults from the registry.
-					if (savedScript.IsMap())
-					{
-						const YAML::Node propertiesNode = savedScript["Properties"];
-
-						if (propertiesNode && propertiesNode.IsMap())
-						{
-							ScriptTypeInfo* typeInfo = ScriptRegistry::FindType(scriptName);
-
-							if (typeInfo != nullptr)
-							{
-								for (const ScriptProperty& property : typeInfo->Properties)
-								{
-									if (const YAML::Node valueNode = propertiesNode[property.Name])
-									{
-										binding.Properties[property.Name] = ReadScriptPropertyValue(valueNode, property);
-									}
-								}
-							}
-						}
-					}
-
-					if (binding.Instantiate == nullptr)
-					{
-						HY_CORE_WARN(
-							"Entity '{}': script '{}' isn't registered; it is kept but won't run",
-							entity.GetName(),
-							scriptName);
-					}
-				}
-			}
+			ScriptSerializer::Read(scriptNode["Scripts"], scripts, entity.GetName());
 		}
-
 
 		return entity;
 	}

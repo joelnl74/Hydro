@@ -1,13 +1,15 @@
 #pragma once
 #include "Hydro.h"
+#include "Data/DialogueDefinition.h"
 
 #include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
 
-// A dialogue box on the runtime UI (UI5): a speaker's lines typed in one by one. Field NPCs open it through the
-// MVP director (MvpScripts.h, E near an "Npc <Name>"); the lines are in code until there is a dialogue asset.
+// A dialogue box on the runtime UI (UI5): lines typed in one by one, each with its speaker's name. What is said is
+// data (a DialogueDefinition: Assets/Data/Dialogue/); field NPCs open it through the MVP director (MvpScripts.h, E
+// near an "Npc <Name>"), quests with their own conversations (QuestScripts.h).
 namespace Hydro
 {
 	// On "Dialogue Canvas" (hidden, captures input, no buttons): its children "Dialogue Name" (text), "Dialogue
@@ -22,7 +24,31 @@ namespace Hydro
 		HY_PROPERTY(Range(1, 200), Tooltip("How fast the lines type in, in characters per second"))
 		float CharactersPerSecond = 40.0f;
 
-		void Open(const std::string& speaker, const std::vector<std::string>& lines)
+		struct Line
+		{
+			std::string Speaker;
+			std::string Text;
+		};
+
+		// The lines of `dialogue`, each under its own speaker, else the dialogue's, else `speaker` (who opened it:
+		// the NPC's name).
+		static std::vector<Line> GetLines(const DialogueDefinition& dialogue, const std::string& speaker = {})
+		{
+			const std::string& fallback = dialogue.Speaker.empty() ? speaker : dialogue.Speaker;
+			std::vector<Line> lines;
+			for (const DialogueLine& line : dialogue.Lines)
+			{
+				lines.push_back(Line{ line.Speaker.empty() ? fallback : line.Speaker, line.Text });
+			}
+			return lines;
+		}
+
+		void Open(const DialogueDefinition& dialogue, const std::string& speaker = {})
+		{
+			Open(GetLines(dialogue, speaker));
+		}
+
+		void Open(const std::vector<Line>& lines)
 		{
 			if (lines.empty())
 			{
@@ -31,7 +57,6 @@ namespace Hydro
 			Scene& scene = *GetEntity().GetScene();
 			m_Lines = lines;
 			m_Line = 0;
-			UI::SetText(Child(scene, "Dialogue Name"), speaker);
 			StartLine(scene);
 			UI::SetVisible(GetEntity(), true);
 		}
@@ -98,7 +123,8 @@ namespace Hydro
 	private:
 		void StartLine(Scene& scene)
 		{
-			const std::string& line = m_Lines[(size_t)m_Line];
+			const std::string& line = m_Lines[(size_t)m_Line].Text;
+			UI::SetText(Child(scene, "Dialogue Name"), m_Lines[(size_t)m_Line].Speaker);
 			UI::SetText(Child(scene, "Dialogue Text"), line);
 			m_Length = CountVisible(line);
 			m_Typed = 0.0f;
@@ -141,7 +167,7 @@ namespace Hydro
 			return {};
 		}
 
-		std::vector<std::string> m_Lines;
+		std::vector<Line> m_Lines;
 		int m_Line = 0;
 		int m_Length = 0;     // the current line's characters (as VisibleCharacters counts them)
 		float m_Typed = 0.0f; // how many are shown

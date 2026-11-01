@@ -1,31 +1,35 @@
 #!/usr/bin/env python3
-"""Builds an NPC's field sheet (Idle<Facing>, and Walk<Facing> when a walk export is given) from PixelLab
-"spritesheet" exports.
+"""Builds an NPC's field sheet (Idle<Facing>, Walk<Facing> and Work<Facing> when given) from PixelLab exports.
 
-    python scripts/characters/build_npc_idle.py <idle.png> <idle.json> <out dir> <Name> [--handles TEX ANIM]
+    python scripts/characters/build_npc_idle.py <idle> [<idle.json>] <out dir> <Name> [--handles TEX ANIM]
         [--durations 0.5 0.4 0.5 0.4] [--idle-step N]
-        [--walk <walk.png> <walk.json>] [--walk-frames east=0,1,2,3,1,2 ...] [--walk-mirror west=east ...]
-        [--no-glow]
+        [--walk <walk> [<walk.json>]] [--walk-frames east=0,1,2,3,1,2 ...] [--walk-mirror west=east ...]
+        [--work <work> [<work.json>]] [--work-frames east=3,4,5,6,7,8] [--work-mirror west=east]
+        [--work-directions east west] [--work-duration 0.12] [--no-glow]
 
-An export is PixelLab's sheet: row 0 the eight rotations, then one row per direction of the animation (south,
-east, north, west), square cells (116 or 128 px) with the pivot at the cell centre. The same clean-up as
-build_miko_field.py (its one-frame flicker test limited to
-isolated specks): every pixel snapped to the colours of the character's own rotations, binary alpha, one-frame
-flicker removed, each animation's lowest foot on the baseline. Fixes for PixelLab's usual faults:
+An export is either PixelLab's "spritesheet" (a .png and its .json: row 0 the eight rotations, then one row per
+direction of the animation, square cells with the pivot at the cell centre) or one state folder of an unpacked
+character zip (<state>/rotations/<direction>.png and <state>/animations/<Animation>/<direction>/*.png, square
+frames of any size, also centred). The same clean-up as build_miko_field.py (its one-frame flicker test limited to
+isolated specks): every pixel snapped to the colours of the character's own rotations, binary alpha, each
+animation's lowest foot on the baseline, every frame clipped to its cell. Fixes for PixelLab's usual faults:
   --idle-step 2           an 8-frame breathing idle kept as every other frame (a whole breath in 4 frames);
   --walk-frames d=list    a direction's walk built from these frames of its row, e.g. east=0,1,2,3,1,2 when the
                           last frames drop or swap the prop the character carries (the strides repeat instead);
   --walk-mirror d=src     a direction's walk is the mirror image of another's (its own frames are broken);
+  --work-...              the same for an optional work loop (hoeing, hammering), kept only for the directions
+                          listed in --work-directions (the others had baked-in effects or props);
   --no-glow               saturated red (a glowing hot spot that only some animations have) painted over with
                           the neighbouring colour, so the prop looks the same standing and walking.
 Writes <Name>.png (96 x 96 cells: rows IdleDown, IdleRight, IdleUp, IdleLeft, then WalkDown, WalkRight, WalkUp,
-WalkLeft), <Name>.png.hymeta (cuts 96 x 90 ending at the feet, pivot [0.5, 0]: the cast's scale 2.5 x 2.34375,
-38.4 pixels per metre) and <Name>.hyanim (Idle = IdleDown, the Idle<Facing> clips, and the Walk<Facing> clips at 0.1 s
-a frame). Pass the old files' handles with --handles so scenes keep their references.
+WalkLeft, then the Work rows), <Name>.png.hymeta (cuts 96 x 90 ending at the feet, pivot [0.5, 0]: the cast's scale
+2.5 x 2.34375, 38.4 pixels per metre) and <Name>.hyanim (Idle = IdleDown, the Idle<Facing>, Walk<Facing> (0.1 s a
+frame) and Work<Facing> clips). Pass the old files' handles with --handles so scenes keep their references.
 """
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import random
 import sys
@@ -68,7 +72,8 @@ def cool_glow(img: Image.Image) -> int:
 def deflicker(frames: list) -> int:
     """One-frame specks only: a pixel that differs from the frames before and after it, where those two agree on its
     whole 3 x 3 neighbourhood and at most one other pixel of that neighbourhood differs in this frame too, takes their
-    colour. (build_miko_field's version also flattens a real two-frame motion, like a breathing loop's rise.)"""
+    colour. (build_miko_field's version also flattens a real two-frame motion, like a breathing loop's rise.) The
+    frames must be the same size."""
     n, fixed = len(frames), 0
     if n < 3:
         return 0
@@ -90,26 +95,50 @@ def deflicker(frames: list) -> int:
     return fixed
 
 
-def load_export(sheet: Path, meta: Path):
-    data = json.loads(meta.read_text(encoding="utf-8"))["spritesheet"]
-    return Image.open(sheet).convert("RGBA"), data["cell_size"]["width"], data["rows"]
+class Export:
+    """One PixelLab export: its rotations and, per direction, the frames of its animation."""
+
+    def __init__(self, paths: list):
+        path = Path(paths[0])
+        self.frames = {}
+        if path.is_dir():
+            self.rotations = [Image.open(f).convert("RGBA") for f in sorted(glob.glob(str(path / "rotations" / "*.png")))]
+            for d in ORDER:
+                files = sorted(glob.glob(str(path / "animations" / "*" / d / "*.png")))
+                if files:
+                    self.frames[d] = [Image.open(f).convert("RGBA") for f in files]
+        else:
+            meta = Path(paths[1]) if len(paths) > 1 else path.with_suffix(".json")
+            data = json.loads(meta.read_text(encoding="utf-8"))["spritesheet"]
+            src, size = Image.open(path).convert("RGBA"), data["cell_size"]["width"]
+            self.rotations = [src.crop((i * size, 0, i * size + size, size)) for i in range(8)]
+            for row in data["rows"]:
+                if row["type"] == "animation" and row["direction"] in ORDER:
+                    r = row["row"]
+                    self.frames[row["direction"]] = [src.crop((i * size, r * size, i * size + size, r * size + size))
+                                                     for i in range(row["frame_count"])]
 
 
-def frames_of(src, size, rows, direction, no_glow):
-    row = next(r for r in rows if r["type"] == "animation" and r["direction"] == direction)
-    frames = [src.crop((i * size, row["row"] * size, i * size + size, row["row"] * size + size))
-              for i in range(row["frame_count"])]
-    if no_glow:
-        for f in frames:
-            cool_glow(f)
-    return frames
+def uniform(frames: list) -> list:
+    """The frames on one canvas (the largest), centred, so a direction's frames can be compared pixel by pixel."""
+    size = max(f.width for f in frames)
+    out = []
+    for f in frames:
+        canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        canvas.paste(f, ((size - f.width) // 2, (size - f.height) // 2))
+        out.append(canvas)
+    return out
 
 
-def place(sheet, frames, out_row, size, label):
+def place(sheet, frames, out_row, label):
+    frames = uniform(frames)
     fixed = deflicker(frames)
+    size = frames[0].width
     lowest = max(bbox(f)[3] for f in frames)
     for i, f in enumerate(frames):
-        sheet.paste(f, (i * CELL + (CELL - size) // 2, out_row * CELL + (CELL - BASE) - lowest), f)
+        cell = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
+        cell.paste(f, ((CELL - size) // 2, (CELL - BASE) - lowest), f)
+        sheet.paste(cell, (i * CELL, out_row * CELL), cell)
     print(f"{label}: {len(frames)} frames, {fixed} flicker pixels fixed")
 
 
@@ -117,86 +146,101 @@ def parse_pairs(items):
     return dict(item.split("=", 1) for item in items or [])
 
 
+def build(export: Export, picks: dict, mirrors: dict, directions, palette, no_glow) -> dict:
+    raw = {}
+    for d in directions:
+        if d not in export.frames and d not in mirrors:
+            sys.exit(f"the export has no {d} frames")
+        frames = export.frames.get(d, [])
+        raw[d] = [frames[int(i)] for i in picks[d].split(",")] if d in picks else frames
+    for d, other in mirrors.items():
+        raw[d] = [ImageOps.mirror(f) for f in raw[other]]
+    out = {}
+    for d in directions:
+        frames = [f.copy() for f in raw[d]]
+        if no_glow:
+            for f in frames:
+                cool_glow(f)
+        out[d] = [snap(f, palette) for f in frames]
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("sheet", type=Path)
-    parser.add_argument("meta", type=Path)
-    parser.add_argument("out", type=Path)
-    parser.add_argument("name")
+    parser.add_argument("inputs", nargs="+", help="<idle> [<idle.json>] <out dir> <Name>")
     parser.add_argument("--handles", type=int, nargs=2, default=None)
     parser.add_argument("--durations", type=float, nargs="+", default=[0.5, 0.4, 0.5, 0.4])
     parser.add_argument("--idle-step", type=int, default=1)
-    parser.add_argument("--walk", type=Path, nargs=2, default=None)
+    parser.add_argument("--walk", nargs="+", default=None)
     parser.add_argument("--walk-frames", nargs="*", default=None)
     parser.add_argument("--walk-mirror", nargs="*", default=None)
     parser.add_argument("--walk-duration", type=float, default=0.1)
+    parser.add_argument("--work", nargs="+", default=None)
+    parser.add_argument("--work-frames", nargs="*", default=None)
+    parser.add_argument("--work-mirror", nargs="*", default=None)
+    parser.add_argument("--work-directions", nargs="*", default=None)
+    parser.add_argument("--work-duration", type=float, default=0.12)
     parser.add_argument("--no-glow", action="store_true")
     args = parser.parse_args()
+    if len(args.inputs) not in (3, 4):
+        parser.error("expected <idle> [<idle.json>] <out dir> <Name>")
+    *idle_paths, out_dir, name = args.inputs
+    out_dir = Path(out_dir)
 
-    idle_src, idle_size, idle_rows = load_export(args.sheet, args.meta)
-    exports = [(idle_src, idle_size)]
-    walk = load_export(*args.walk) if args.walk else None
-    if walk:
-        exports.append((walk[0], walk[1]))
+    exports = {"idle": Export(idle_paths)}
+    if args.walk:
+        exports["walk"] = Export(args.walk)
+    if args.work:
+        exports["work"] = Export(args.work)
     colours = set()
-    for src, size in exports:
-        colours |= {p[:3] for p in src.crop((0, 0, size * 8, size)).get_flattened_data()
-                    if p[3] >= 128 and (args.no_glow == False or is_glow(p) == False)}
+    for export in exports.values():
+        for r in export.rotations:
+            colours |= {p[:3] for p in r.get_flattened_data() if p[3] >= 128 and (args.no_glow == False or is_glow(p) == False)}
     palette = sorted(colours)
 
-    idle = {}
-    for d in ORDER:
-        frames = frames_of(idle_src, idle_size, idle_rows, d, args.no_glow)[::args.idle_step][:4]
-        idle[d] = [snap(f, palette) for f in frames]
-    idle_count = min(len(f) for f in idle.values())
+    idle = build(exports["idle"], {}, {}, ORDER, palette, args.no_glow)
+    idle = {d: f[::args.idle_step][:4] for d, f in idle.items()}
+    walks = build(exports["walk"], parse_pairs(args.walk_frames), parse_pairs(args.walk_mirror), ORDER, palette,
+                  args.no_glow) if args.walk else {}
+    work_dirs = [d for d in ORDER if d in (args.work_directions or ORDER)]
+    works = build(exports["work"], parse_pairs(args.work_frames), parse_pairs(args.work_mirror), work_dirs, palette,
+                  args.no_glow) if args.work else {}
 
-    walks = {}
-    if walk:
-        src, size, rows = walk
-        picks = {d: [int(i) for i in v.split(",")] for d, v in parse_pairs(args.walk_frames).items()}
-        raw = {}
-        for d in ORDER:
-            frames = frames_of(src, size, rows, d, args.no_glow)
-            raw[d] = [frames[i] for i in picks[d]] if d in picks else frames
-        for d, other in parse_pairs(args.walk_mirror).items():
-            raw[d] = [ImageOps.mirror(f) for f in raw[other]]
-        walks = {d: [snap(f, palette) for f in raw[d]] for d in ORDER}
-    walk_count = min((len(f) for f in walks.values()), default=0)
+    blocks = [("Idle", idle, ORDER), ("Walk", walks, ORDER), ("Work", works, work_dirs)]
+    counts = {kind: min((len(f) for f in clips.values()), default=0) for kind, clips, _ in blocks}
+    rows, row = [], 0
+    for kind, clips, dirs in blocks:
+        for d in dirs if clips else []:
+            rows.append((kind, d, row, clips[d][:counts[kind]]))
+            row += 1
+    sheet = Image.new("RGBA", (CELL * max(counts.values()), CELL * len(rows)), (0, 0, 0, 0))
+    for kind, d, r, frames in rows:
+        place(sheet, frames, r, f"{kind} {d}")
 
-    rows_out = 8 if walks else 4
-    columns = max(idle_count, walk_count)
-    sheet = Image.new("RGBA", (CELL * columns, CELL * rows_out), (0, 0, 0, 0))
-    for k, d in enumerate(ORDER):
-        place(sheet, idle[d][:idle_count], k, idle_size, f"Idle {d}")
-    for k, d in enumerate(ORDER if walks else []):
-        place(sheet, walks[d][:walk_count], 4 + k, walk[1], f"Walk {d}")
-
-    args.out.mkdir(parents=True, exist_ok=True)
-    sheet.save(args.out / f"{args.name}.png")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    sheet.save(out_dir / f"{name}.png")
     texture, animations = args.handles if args.handles else (random.getrandbits(63), random.getrandbits(63))
     top = CELL - BASE - CUT
-    cuts = [(f"Idle{FACINGS[d]}", k, idle_count) for k, d in enumerate(ORDER)]
-    cuts += [(f"Walk{FACINGS[d]}", 4 + k, walk_count) for k, d in enumerate(ORDER) if walks]
-    sprites = "\n".join(f"    - {{Name: {clip}_{i}, Rect: [{i * CELL}, {row * CELL + top}, {CELL}, {CUT}], Pivot: [0.5, 0]}}"
-                        for clip, row, count in cuts for i in range(count))
+    sprites = "\n".join(f"    - {{Name: {kind}{FACINGS[d]}_{i}, Rect: [{i * CELL}, {r * CELL + top}, {CELL}, {CUT}], Pivot: [0.5, 0]}}"
+                        for kind, d, r, frames in rows for i in range(len(frames)))
     hymeta = (f"Handle: {texture}\nType: Texture2D\nTextureImport:\n  Format: SRGB\n  Filter: Nearest\n  Wrap: Clamp\n"
               f"  SpriteMode: Multiple\n  PixelsPerUnit: 32\n  Slicing:\n    Mode: Manual\n    CellSize: [{CELL}, {CELL}]\n"
               f"    Offset: [0, 0]\n    Spacing: [0, 0]\n    Columns: 0\n    Rows: 0\n    RowNames: []\n"
               f"    DefaultPivot: [0.5, 0]\n  Sprites:\n{sprites}\n")
-    (args.out / f"{args.name}.png.hymeta").write_bytes(hymeta.replace("\n", "\r\n").encode())
+    (out_dir / f"{name}.png.hymeta").write_bytes(hymeta.replace("\n", "\r\n").encode())
 
-    def clip(name, sprite, count, durations):
+    def clip(clip_name, sprite, count, durations):
         frames = "".join(f"        - Sprite: {sprite}_{i}\n          Duration: {durations[i % len(durations)]}\n"
                          for i in range(count))
-        return f"    - Name: {name}\n      Loop: Loop\n      Frames:\n{frames}"
-    what = "a slow breathing idle and a walk" if walks else "a slow breathing idle"
-    hyanim = (f"# {args.name}: {what} in four directions (scripts/characters/build_npc_idle.py).\n"
-              f"Handle: {animations}\nSpriteAnimationSet:\n  TextureHandle: {texture}\n  Texture: {args.name}.png\n"
-              f"  DefaultClip: IdleDown\n  Clips:\n" + clip("Idle", "IdleDown", idle_count, args.durations)
-              + "".join(clip("Idle" + f, "Idle" + f, idle_count, args.durations) for f in ("Down", "Right", "Up", "Left"))
-              + ("".join(clip("Walk" + f, "Walk" + f, walk_count, [args.walk_duration]) for f in ("Down", "Right", "Up", "Left"))
-                 if walks else ""))
-    (args.out / f"{args.name}.hyanim").write_bytes(hyanim.replace("\n", "\r\n").encode())
+        return f"    - Name: {clip_name}\n      Loop: Loop\n      Frames:\n{frames}"
+    durations = {"Idle": args.durations, "Walk": [args.walk_duration], "Work": [args.work_duration]}
+    what = ", ".join(k.lower() for k, c, _ in blocks if c)
+    text = (f"# {name}: {what} in its directions (scripts/characters/build_npc_idle.py).\n"
+            f"Handle: {animations}\nSpriteAnimationSet:\n  TextureHandle: {texture}\n  Texture: {name}.png\n"
+            f"  DefaultClip: IdleDown\n  Clips:\n" + clip("Idle", "IdleDown", counts["Idle"], args.durations)
+            + "".join(clip(f"{kind}{FACINGS[d]}", f"{kind}{FACINGS[d]}", len(frames), durations[kind])
+                      for kind, d, r, frames in rows))
+    (out_dir / f"{name}.hyanim").write_bytes(text.replace("\n", "\r\n").encode())
 
 
 if __name__ == "__main__":

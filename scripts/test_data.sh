@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Headless tests of the data system (definitions and data tables, #168), for Linux, WSL or a CI/agent container:
+# Headless tests of the data system (definitions and data tables, #168) and of script bindings in scene files
+# (ScriptSerializer: former names and kept values, SC1), for Linux, WSL or a CI/agent container:
 #   1. the reflection generator's HY_DATA / HY_ENUM checks (Tools/DataTests/test_generator.py)
 #   2. the generated registration of Tools/DataTests/DataTestTypes.h, then Tools/DataTests/DataRoundTripTest.cpp
 #      built with g++ against the engine's Data/ sources, yaml-cpp and spdlog and a stand-in AssetManager
-#      (Tools/DataTests/TestAssetManager.cpp), and run
+#      (Tools/DataTests/TestAssetManager.cpp), with Tools/DataTests/ScriptSerializerTest.cpp, and run
 # No window, GPU, project or MSVC. MSVC /W4 stays the real compile check.
 #
 # Usage: scripts/test_data.sh
@@ -52,7 +53,7 @@ sed -i 's/#error "Linux is not supported!"/#define HY_PLATFORM_LINUX/' "$OUT/src
 
 FLAGS=(-std=c++17 -O0 -g -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFINE
 	-I"$OUT/src" -I"$OUT/gen" -I"$ROOT/Tools/DataTests"
-	-isystem "$V/glm" -isystem "$V/spdlog/include" -isystem "$V/yaml-cpp/include")
+	-isystem "$V/glm" -isystem "$V/spdlog/include" -isystem "$V/yaml-cpp/include" -isystem "$V/entt")
 SOURCES=(
 	"$OUT/src/Hydro/Core/Log.cpp"
 	"$OUT/src/Hydro/Core/UUID.cpp"
@@ -60,7 +61,10 @@ SOURCES=(
 	"$OUT/src/Hydro/Utils/YAMLConversions.cpp"
 	"$OUT"/src/Hydro/Data/*.cpp
 	"$OUT/gen/GeneratedDataReflection.cpp"
+	"$OUT/src/Hydro/Scene/Scripting/ScriptRegistry.cpp"
+	"$OUT/src/Hydro/Scene/Scripting/ScriptSerializer.cpp"
 	"$ROOT/Tools/DataTests/DataRoundTripTest.cpp"
+	"$ROOT/Tools/DataTests/ScriptSerializerTest.cpp"
 	"$ROOT/Tools/DataTests/TestAssetManager.cpp"
 )
 

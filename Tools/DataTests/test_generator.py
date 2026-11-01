@@ -47,10 +47,43 @@ FAILING = [
     ("data type on a texture", "HY_DATA()\nstruct A\n{\n\tHY_PROPERTY(Asset(Texture2D, A))\n\tAssetHandle Icon = 0;\n};\n", ["only Definition and DataTable take a data type"]),
     ("script row ref without DataRow", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tDataRowRef Item;\n};\n", ["Bad.h:5", "needs DataRow"]),
     ("script DataRow of an unknown type", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(DataRow(Nothing))\n\tDataRowRef Item;\n};\n", ["DataRow(Nothing): not an HY_DATA(Table) type"]),
+    # Former names (SC1): only FormerName in HY_SCRIPT; names, not clashing with current or other former names.
+    ("HY_SCRIPT argument", "HY_SCRIPT(Hidden)\nclass S : public ScriptableEntity\n{\n};\n", ["Bad.h:1", "HY_SCRIPT accepts only FormerName"]),
+    ("FormerName without a name", "HY_SCRIPT(FormerName())\nclass S : public ScriptableEntity\n{\n};\n", ["Bad.h:1", "FormerName needs at least one name"]),
+    ("FormerName not a name", "HY_SCRIPT(FormerName(\"Old Script\"))\nclass S : public ScriptableEntity\n{\n};\n", ["not a C++ name"]),
+    ("FormerName is its own name", "HY_SCRIPT(FormerName(\"S\"))\nclass S : public ScriptableEntity\n{\n};\n", ["is its own current name"]),
+    ("script FormerName is another script", "HY_SCRIPT()\nclass A : public ScriptableEntity\n{\n};\n" + "HY_SCRIPT(FormerName(\"A\"))\nclass B : public ScriptableEntity\n{\n};\n", ["Bad.h:5", "a script 'A' exists"]),
+    ("script FormerName shared", "HY_SCRIPT(FormerName(\"Old\"))\nclass A : public ScriptableEntity\n{\n};\nHY_SCRIPT(FormerName(\"Old\"))\nclass B : public ScriptableEntity\n{\n};\n", ["also a former name of 'A'"]),
+    ("property FormerName is another property", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tfloat Speed = 1.0f;\n\tHY_PROPERTY(FormerName(\"Speed\"))\n\tfloat Pace = 1.0f;\n};\n", ["Bad.h:7", "S's property 'Speed' exists"]),
+    ("data type FormerName is another type", ITEM + "HY_DATA(Table, FormerName(\"ItemDefinition\"))\nstruct Loot\n{\n};\n", ["a data type 'ItemDefinition' exists"]),
+    ("data field FormerName shared", "HY_DATA()\nstruct A\n{\n\tHY_PROPERTY(FormerName(\"Old\"))\n\tint X = 0;\n\tHY_PROPERTY(FormerName(\"Old\"))\n\tint Y = 0;\n};\n", ["also a former name of 'X'"]),
+    ("HY_DATA FormerName without a name", "HY_DATA(FormerName())\nstruct A\n{\n};\n", ["FormerName needs at least one name"]),
     ("script Asset(DataTable) of a definition", "HY_DATA(Definition)\nstruct D\n{\n};\nHY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Asset(DataTable, D))\n\tAssetHandle Table = 0;\n};\n", ["Asset(DataTable, ...)(D): not an HY_DATA(Table) type"]),
 ]
 
+# (name, header, fragments the generated script / data registration must contain)
 PASSING = [
+    ("former names", """
+HY_SCRIPT(FormerName("OldDoor", "OlderDoor"))
+class Door : public ScriptableEntity
+{
+public:
+	HY_PROPERTY(Range(0, 5), FormerName("Speed"))
+	float OpenSpeed = 1.0f;
+};
+
+HY_DATA(Table, FormerName("LootDefinition"))
+struct ItemDefinition
+{
+	HY_PROPERTY(FormerName("Title"), Tooltip("Shown in lists"))
+	std::string Name;
+};
+""", [
+        'ScriptRegistry::Register<Door>("Door", { "OldDoor", "OlderDoor" })',
+        '.Range(0.0f, 5.0f).FormerName("Speed")',
+        'DataTypeRegistry::Register<ItemDefinition>("ItemDefinition", "Item", { "LootDefinition" })',
+        '.Tooltip("Shown in lists").FormerName("Title")',
+    ]),
     ("all accepted forms", ITEM + """
 HY_ENUM()
 enum class Kind : uint8_t { A, B = 4, C, };
@@ -92,16 +125,16 @@ struct Both
 	HY_PROPERTY()
 	Kind Choice = Kind::C;
 };
-"""),
+""", []),
 ]
 
 
-def run(header: str) -> subprocess.CompletedProcess:
+def run(header: str) -> tuple[subprocess.CompletedProcess, str]:
     with tempfile.TemporaryDirectory() as folder:
         source = Path(folder) / "src"
         source.mkdir()
         (source / "Bad.h").write_text(header, encoding="utf-8")
-        return subprocess.run(
+        result = subprocess.run(
             [
                 sys.executable,
                 str(GENERATOR),
@@ -116,12 +149,14 @@ def run(header: str) -> subprocess.CompletedProcess:
             capture_output=True,
             text=True,
         )
+        generated = "".join((Path(folder) / name).read_text(encoding="utf-8") for name in ("S.cpp", "D.cpp") if (Path(folder) / name).exists())
+        return result, generated
 
 
 def main() -> int:
     failures = 0
     for name, header, fragments in FAILING:
-        result = run(header)
+        result, _ = run(header)
         missing = [fragment for fragment in fragments if fragment not in result.stderr]
         if result.returncode == 0 or missing:
             failures += 1
@@ -129,11 +164,12 @@ def main() -> int:
         else:
             print(f"ok    {name}: {result.stderr.strip().split(': ', 1)[-1]}")
 
-    for name, header in PASSING:
-        result = run(header)
-        if result.returncode != 0:
+    for name, header, fragments in PASSING:
+        result, generated = run(header)
+        missing = [fragment for fragment in fragments if fragment not in generated]
+        if result.returncode != 0 or missing:
             failures += 1
-            print(f"FAIL  {name}: {result.stderr.strip()}")
+            print(f"FAIL  {name}: {result.stderr.strip()} missing {missing}")
         else:
             print(f"ok    {name}")
 

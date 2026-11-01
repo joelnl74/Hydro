@@ -1,0 +1,786 @@
+Handle: 4132845500429822148
+Scene: JapaneseCityKit_Showcase
+RenderSettings:
+  OverrideProject: true
+  Features:
+    Depth: Shared
+    SpriteSorting: ViewDepth
+    Lighting: Forward
+    DefaultSpriteAlpha: Cutout
+    Meshes: true
+    Shadows: Sun
+    SpriteShadows: AsDrawn
+    UprightSprites: Vertical
+    HDR: true
+    Bloom: true
+    DepthOfField: true
+Look:
+  ProfileHandle: 939562278696158235
+  Environment: Profile
+  PostProcess: Profile
+Environment:
+  SkyAmbient: [0.42, 0.36, 0.3]
+  GroundAmbient: [0.16, 0.12, 0.08]
+  Fog: true
+  FogColor: [0.78, 0.6, 0.38]
+  FogStart: 30
+  FogEnd: 90
+Entities:
+  - Entity: 2327963935517327422
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [-6, -2.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 3]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 96
+      TextureHandle: 5407845820862445765
+      Sprite: Miko_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4798671707330513403
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [0.95, 0.6]
+      Strength: 0.6
+    CharacterBodyComponent:
+      Radius: 0.25
+      Height: 1.4
+      MaxSlopeDegrees: 50
+      StepHeight: 0.35
+      StaysOnLedges: true
+      Layer: Player
+    NativeScriptComponent:
+      Scripts:
+        - Name: DioramaWalkScript
+          Properties:
+            RunMultiplier: 1.7
+            m_Speed: 3.5
+  - Entity: 7646077851586170682
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [-6, -15.2, 8]
+      Rotation: [1.22173, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      Projection: Perspective
+      PerspectiveFOV: 35
+      PerspectiveNear: 0.5
+      PerspectiveFar: 260
+      OrthographicSize: 12
+      OrthographicNear: -1
+      OrthographicFar: 1
+      FocusDistance: 0
+    NativeScriptComponent:
+      Scripts:
+        - Name: CameraFollowScript
+          Properties:
+            Bounds: [60, 60]
+            LookAhead: 1.5
+            Smoothing: 8
+  - Entity: 3017861851478988810
+    TagComponent:
+      Tag: Showcase Director
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+        - Name: FieldSceneScript
+          Properties:
+            SceneName: JapaneseCityKit_Showcase
+            TiltDegrees: 70
+            FieldOfView: 35
+            FocusLead: 3
+            FocusRise: 2.2
+            BoundsMin: [-58, -8]
+            BoundsMax: [58, 52]
+            StartPreset: 0
+            DayProfile: 939562278696158235
+            DuskProfile: 8980317795236290852
+            NightProfile: 650936910112136055
+  - Entity: 4371347866214079127
+    TagComponent:
+      Tag: Lighting
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1627604531338812861
+    TagComponent:
+      Tag: Sun
+    RelationshipComponent:
+      Parent: 4371347866214079127
+    TransformComponent:
+      Translation: [-8, -6, 10]
+      Rotation: [1.01229, 0, -0.663225]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 0.86, 0.7]
+      Intensity: 0.8
+      IsMainLight: true
+      CastShadows: true
+      ShadowStrength: 0.85
+      ShadowDistance: 40
+      ShadowBias: 1
+  - Entity: 993724952356159326
+    TagComponent:
+      Tag: Kit
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 780109394759608410
+    TagComponent:
+      Tag: Showcase Floor
+    RelationshipComponent:
+      Parent: 993724952356159326
+    TransformComponent:
+      Translation: [0, -12, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 404730803265170032
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4823775268602905264
+    TagComponent:
+      Tag: Row A Rich
+    RelationshipComponent:
+      Parent: 993724952356159326
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 6986645465447877658
+    TagComponent:
+      Tag: JP_Rich_CityGate_A_DoorL
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-39, 45.05, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 6618076706673834009
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 4783985586616745685
+    TagComponent:
+      Tag: JP_Rich_CityGate_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-37, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 5037532376879736301
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6251199206798192371
+    TagComponent:
+      Tag: JP_Rich_CityGate_A_DoorR
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-35, 45.05, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 7112912247581770557
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 5155046195697974585
+    TagComponent:
+      Tag: JP_Rich_GuardBooth_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-26.8, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3591288107084187893
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 2116420504472845090
+    TagComponent:
+      Tag: JP_Rich_GateWall_4m_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-20.6, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 7351897732836099196
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 7402429818454620214
+    TagComponent:
+      Tag: JP_Rich_LanternInn_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-9.6, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 1482677392569787913
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 8663125790882924445
+    TagComponent:
+      Tag: JP_Rich_GuildHall_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [7.4, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3125511823330431134
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 7431526044109490070
+    TagComponent:
+      Tag: JP_Rich_Residence_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [22.4, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 6130988073423056692
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6882569149287365957
+    TagComponent:
+      Tag: JP_Rich_CompoundWall_4m_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [32.4, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 7945232065716063579
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 430452845132247340
+    TagComponent:
+      Tag: JP_Rich_CompoundGate_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [36.2, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 627608873938746874
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 9066537527550626319
+    TagComponent:
+      Tag: JP_Rich_Storehouse_A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [41, 44, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 7234345998776384186
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 5722501334359400979
+    TagComponent:
+      Tag: Scale Miko A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-45.6, 42.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5407845820862445765
+      Sprite: Miko_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4798671707330513403
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [0.95, 0.6]
+      Strength: 0.6
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
+  - Entity: 4004748272977091526
+    TagComponent:
+      Tag: Scale Villager A
+    RelationshipComponent:
+      Parent: 4823775268602905264
+    TransformComponent:
+      Translation: [-44.3, 42.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4053719590916208210
+      Sprite: IdleDown_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8079240564453792839
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [0.95, 0.6]
+      Strength: 0.6
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
+  - Entity: 5627582269171401217
+    TagComponent:
+      Tag: Row B Middle
+    RelationshipComponent:
+      Parent: 993724952356159326
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3557951256613778540
+    TagComponent:
+      Tag: JP_Mid_Townhouse_A
+    RelationshipComponent:
+      Parent: 5627582269171401217
+    TransformComponent:
+      Translation: [-17.2, 22, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3579987654001892189
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6152735340835888660
+    TagComponent:
+      Tag: JP_Mid_Townhouse_B
+    RelationshipComponent:
+      Parent: 5627582269171401217
+    TransformComponent:
+      Translation: [-7.2, 22, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 7376595049915188377
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 760272236738608015
+    TagComponent:
+      Tag: JP_Mid_Townhouse_C
+    RelationshipComponent:
+      Parent: 5627582269171401217
+    TransformComponent:
+      Translation: [2.8, 22, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 1107995846544451875
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 3813327490012581554
+    TagComponent:
+      Tag: JP_Mid_Shop_A
+    RelationshipComponent:
+      Parent: 5627582269171401217
+    TransformComponent:
+      Translation: [11.8, 22, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 3670668650582732717
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 6994168754658725125
+    TagComponent:
+      Tag: JP_Mid_FireWatchtower_A
+    RelationshipComponent:
+      Parent: 5627582269171401217
+    TransformComponent:
+      Translation: [19, 22, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 6184829666619660182
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 2019087950011090621
+    TagComponent:
+      Tag: Scale Miko B
+    RelationshipComponent:
+      Parent: 5627582269171401217
+    TransformComponent:
+      Translation: [-21.8, 20.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 5407845820862445765
+      Sprite: Miko_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 4798671707330513403
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [0.95, 0.6]
+      Strength: 0.6
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
+  - Entity: 4754292795192973297
+    TagComponent:
+      Tag: Scale Villager B
+    RelationshipComponent:
+      Parent: 5627582269171401217
+    TransformComponent:
+      Translation: [-20.5, 20.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4053719590916208210
+      Sprite: IdleDown_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8079240564453792839
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [0.95, 0.6]
+      Strength: 0.6
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false
+  - Entity: 72598439114073158
+    TagComponent:
+      Tag: Row C Poor
+    RelationshipComponent:
+      Parent: 993724952356159326
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3479231223108233960
+    TagComponent:
+      Tag: JP_Poor_House_A
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [-32, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 8370071611283969101
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 1406779173430776937
+    TagComponent:
+      Tag: JP_Poor_House_B
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [-23, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 5681128601202039309
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 5102626675513470912
+    TagComponent:
+      Tag: JP_Poor_Hut_A
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [-15, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 8556529924098895414
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 7318087908023521475
+    TagComponent:
+      Tag: JP_Poor_Hut_B
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [-7.5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 7703159387774972959
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 5097608051758717179
+    TagComponent:
+      Tag: JP_Poor_RowHouse_A
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [4, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 4102801434367238675
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 1179924054969257727
+    TagComponent:
+      Tag: JP_Poor_Boathouse_A
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [16, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 6256711606916232534
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 3456696009536787640
+    TagComponent:
+      Tag: JP_Poor_NetShed_A
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [24.5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 2749742528712189170
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 8343624223176593328
+    TagComponent:
+      Tag: JP_Poor_FishStore_A
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [32.5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 1966077772465617594
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
+  - Entity: 1265479318210752948
+    TagComponent:
+      Tag: Scale Villager C
+    RelationshipComponent:
+      Parent: 72598439114073158
+    TransformComponent:
+      Translation: [-35.3, -1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [2.5, 2.34375, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 0
+      TextureHandle: 4053719590916208210
+      Sprite: IdleDown_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8079240564453792839
+      StartClip: IdleDown
+      PlayOnStart: true
+      Speed: 1
+    Shadow2DComponent:
+      Offset: [0, -0.04]
+      Size: [0.95, 0.6]
+      Strength: 0.6
+    BoxColliderComponent:
+      Offset: [0, 0.04, 0.8]
+      Size: [0.32, 0.08, 1.6]
+      Layer: Npc
+      IsTrigger: false

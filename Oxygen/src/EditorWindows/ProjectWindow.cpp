@@ -8,6 +8,9 @@
 #include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Asset/AssetMetaSerializer.h>
 #include <Hydro/Data/Data.h>
+#include <Hydro/Data/DataTableAsset.h>
+#include <Hydro/Data/DataTypeRegistry.h>
+#include <Hydro/Data/DefinitionAsset.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
@@ -419,6 +422,36 @@ namespace Hydro
 			{
 				m_DeferredActions.push_back([this]() { CreateRenderProfile(); });
 			}
+			// Game data: one entry per HY_DATA(Definition) / HY_DATA(Table) type, by display name.
+			for (int shape = 0; shape < 2; shape++)
+			{
+				const bool table = shape == 1;
+				if (ImGui::BeginMenu(table ? "New Data Table" : "New Definition"))
+				{
+					bool any = false;
+					for (const DataTypeInfo* type : DataTypeRegistry::GetTypes())
+					{
+						if ((table ? type->CanBeTable : type->CanBeDefinition) == false)
+						{
+							continue;
+						}
+						any = true;
+						if (ImGui::MenuItem(type->DisplayName.c_str()))
+						{
+							m_DeferredActions.push_back([this, type, table]() { CreateDataAsset(*type, table); });
+						}
+						if (ImGui::IsItemHovered())
+						{
+							ImGui::SetTooltip("%s", type->Name.c_str());
+						}
+					}
+					if (any == false)
+					{
+						ImGui::TextDisabled(table ? "No HY_DATA(Table) types in the game's code" : "No HY_DATA(Definition) types in the game's code");
+					}
+					ImGui::EndMenu();
+				}
+			}
 			if (ImGui::MenuItem("Refresh"))
 				m_NeedsRescan = true;
 
@@ -442,7 +475,7 @@ namespace Hydro
 		{
 			m_SelectedPath = item.Path;
 			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material || item.Type == ItemType::Model
-				|| item.Type == ItemType::RenderProfile) && OnAssetSelected)
+				|| item.Type == ItemType::RenderProfile || item.Type == ItemType::Definition || item.Type == ItemType::DataTable) && OnAssetSelected)
 			{
 				OnAssetSelected(item.Path);
 			}
@@ -1017,13 +1050,12 @@ namespace Hydro
 				break;
 			case ItemType::Font:
 			case ItemType::Terrain:
-			case ItemType::Definition:
-			case ItemType::DataTable:
-				// Edited in a text editor until the inspector can (D3, #170).
 				break;
 			case ItemType::Material:
 			case ItemType::Model:
 			case ItemType::RenderProfile:
+			case ItemType::Definition:
+			case ItemType::DataTable:
 				// Edited in the inspector.
 				if (OnAssetSelected)
 				{
@@ -1365,6 +1397,50 @@ namespace Hydro
 		{
 			OnAssetSelected(target);
 		}
+	}
+
+	void ProjectWindow::CreateDataAsset(const DataTypeInfo& type, bool table)
+	{
+		const std::filesystem::path folder = m_CurrentDirectory.empty() ? m_RootDirectory : m_CurrentDirectory;
+		const std::string base = "New " + type.DisplayName + (table ? " Table" : "");
+		const char* extension = table ? DataTableAsset::FileExtension : DefinitionAsset::FileExtension;
+		std::filesystem::path target = folder / std::filesystem::u8path(base + extension);
+		std::error_code error;
+		for (int number = 2; std::filesystem::exists(target, error); number++)
+		{
+			target = folder / std::filesystem::u8path(base + " " + std::to_string(number) + extension);
+		}
+
+		// The handle first (registered now), then the file with it on its first line, like a new scene.
+		const AssetHandle handle = AssetManager::ImportAsset(target);
+		bool written = false;
+		if (table)
+		{
+			DataTableData data;
+			data.Handle = handle;
+			data.RowType = &type;
+			written = DataTableAsset::Save(target, data);
+		}
+		else
+		{
+			DefinitionData data;
+			data.Handle = handle;
+			data.Values = DataRecord(type);
+			written = DefinitionAsset::Save(target, data);
+		}
+		if (written == false)
+		{
+			return;
+		}
+
+		HY_INFO("Created {} ({})", target.filename().u8string(), type.Name);
+		m_SelectedPath = target;
+		m_NeedsRescan = true;
+		if (OnAssetSelected)
+		{
+			OnAssetSelected(target);
+		}
+		BeginRename(target);
 	}
 
 	void ProjectWindow::CreateRenderProfile()

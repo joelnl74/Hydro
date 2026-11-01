@@ -3,16 +3,19 @@
 #include "BattleScripts.h"
 #include "DialogueScripts.h"
 #include "DioramaCamera.h"
+#include "Data/DialogueDefinition.h"
+#include "Data/QuestDefinition.h"
 
 #include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
 
-// A simple quest system for the field scenes: prototype code, hardcoded on purpose (the definitions / data tables
-// asset system replaces the quest data and the lines, and a story / cutscene system the Shrine Glade's director).
-//   - QuestLog: the quests of a run (title, current objective, a count), the banners waiting to be shown and the
-//     NPCs a quest speaks for. Shared by every field scene, like BattleState.
+// A simple quest system for the field scenes: prototype code. The quests' words are data (Assets/Data/Quests.hytable:
+// titles and the objective of each stage; Assets/Data/Dialogue/ShrineErrand.hytable: the errand's conversations);
+// what happens when is still code (a story / cutscene system can replace the Shrine Glade's director later).
+//   - QuestLog: the quests of a run (a row of the quests table, its stage, a count), the banners waiting to be shown
+//     and the NPCs a quest speaks for. Game state, shared by every field scene, like BattleState.
 //   - QuestTrackerScript: on "Quest Canvas" (every field scene, scripts/ui/build_game_ui.py): the tracked quest,
 //     top right, and the "New Quest" / "Quest Complete" banner across the middle of the screen, after Octopath
 //     Traveler's story banners (decision D5: the rules, not the look).
@@ -25,12 +28,24 @@ namespace Hydro
 	{
 		struct Quest
 		{
-			std::string Id;
-			std::string Title;
-			std::string Objective;
+			DataRowRef Definition; // its row of the quests table: the title and the stages' objectives
+			int Stage = 0;
 			int Progress = 0;
-			int Goal = 0;      // 0: the objective has no count
+			int Goal = 0;          // 0: the objective has no count
 			bool Done = false;
+
+			// From the data, every time (an edit to the table shows at once); the row ID when the row is gone.
+			std::string GetTitle() const
+			{
+				const DataView<QuestDefinition> quest = Data::GetRow<QuestDefinition>(Definition);
+				return quest.IsValid() ? quest->Title : Definition.Row;
+			}
+
+			std::string GetObjective() const
+			{
+				const DataView<QuestDefinition> quest = Data::GetRow<QuestDefinition>(Definition);
+				return quest.IsValid() && Stage >= 0 && Stage < (int)quest->Stages.size() ? quest->Stages[(size_t)Stage].Objective : std::string();
+			}
 		};
 
 		struct Announcement
@@ -53,11 +68,11 @@ namespace Hydro
 			Revision++;
 		}
 
-		static Quest* Find(const std::string& id)
+		static Quest* Find(const DataRowRef& definition)
 		{
 			for (Quest& quest : Quests)
 			{
-				if (quest.Id == id)
+				if (quest.Definition == definition)
 				{
 					return &quest;
 				}
@@ -65,64 +80,64 @@ namespace Hydro
 			return nullptr;
 		}
 
-		// Adds the quest (or restarts one with the same id) and announces it.
-		static void Start(const std::string& id, const std::string& title, const std::string& objective, int goal = 0)
+		// Adds the quest at its first stage (or restarts it) and announces it.
+		static void Start(const DataRowRef& definition, int goal = 0)
 		{
-			Quest* quest = Find(id);
+			Quest* quest = Find(definition);
 			if (quest == nullptr)
 			{
 				Quests.push_back(Quest());
 				quest = &Quests.back();
 			}
-			quest->Id = id;
-			quest->Title = title;
-			quest->Objective = objective;
+			quest->Definition = definition;
+			quest->Stage = 0;
 			quest->Progress = 0;
 			quest->Goal = goal;
 			quest->Done = false;
-			Announcements.push_back({ "New Quest", title });
+			Announcements.push_back({ "New Quest", quest->GetTitle() });
 			Revision++;
-			HY_INFO("Quest: started '{}': {}", title, objective);
+			HY_INFO("Quest: started '{}': {}", quest->GetTitle(), quest->GetObjective());
 		}
 
-		static void SetObjective(const std::string& id, const std::string& objective, int goal = 0)
+		// Moves the quest on to stage `stage` (its objective in the quests table).
+		static void SetStage(const DataRowRef& definition, int stage, int goal = 0)
 		{
-			if (Quest* quest = Find(id))
+			if (Quest* quest = Find(definition))
 			{
-				quest->Objective = objective;
+				quest->Stage = stage;
 				quest->Progress = 0;
 				quest->Goal = goal;
 				Revision++;
-				HY_INFO("Quest: '{}': {}", quest->Title, objective);
+				HY_INFO("Quest: '{}': {}", quest->GetTitle(), quest->GetObjective());
 			}
 		}
 
-		static void SetProgress(const std::string& id, int progress)
+		static void SetProgress(const DataRowRef& definition, int progress)
 		{
-			Quest* quest = Find(id);
+			Quest* quest = Find(definition);
 			if (quest != nullptr && quest->Progress != progress)
 			{
 				quest->Progress = progress;
 				Revision++;
-				HY_INFO("Quest: '{}': {} / {}", quest->Title, progress, quest->Goal);
+				HY_INFO("Quest: '{}': {} / {}", quest->GetTitle(), progress, quest->Goal);
 			}
 		}
 
-		static void Complete(const std::string& id)
+		static void Complete(const DataRowRef& definition)
 		{
-			Quest* quest = Find(id);
+			Quest* quest = Find(definition);
 			if (quest != nullptr && quest->Done == false)
 			{
 				quest->Done = true;
-				Announcements.push_back({ "Quest Complete", quest->Title });
+				Announcements.push_back({ "Quest Complete", quest->GetTitle() });
 				Revision++;
-				HY_INFO("Quest: completed '{}'", quest->Title);
+				HY_INFO("Quest: completed '{}'", quest->GetTitle());
 			}
 		}
 
-		static void Remove(const std::string& id)
+		static void Remove(const DataRowRef& definition)
 		{
-			Quests.erase(std::remove_if(Quests.begin(), Quests.end(), [&](const Quest& quest) { return quest.Id == id; }), Quests.end());
+			Quests.erase(std::remove_if(Quests.begin(), Quests.end(), [&](const Quest& quest) { return quest.Definition == definition; }), Quests.end());
 			Revision++;
 		}
 
@@ -327,8 +342,8 @@ namespace Hydro
 				return;
 			}
 
-			UI::SetText(m_TrackerTitle, quest->Title);
-			UI::SetText(m_TrackerObjective, quest->Objective);
+			UI::SetText(m_TrackerTitle, quest->GetTitle());
+			UI::SetText(m_TrackerObjective, quest->GetObjective());
 			UI::SetText(m_TrackerCount, quest->Goal > 0 ? std::to_string(quest->Progress) + " / " + std::to_string(quest->Goal) : std::string());
 			// Eased in from the right as it appears.
 			if (m_Tracker.HasComponent<UIRectComponent>())
@@ -445,12 +460,20 @@ namespace Hydro
 	//      cyan light and rising motes), then the monk's lines while the camera stays on the tree.
 	//   4. The camera returns, "Clearing the Grounds" completes and "The Guardian's Duty" starts: go down to the
 	//      Farm Village. The tree stays awake.
-	// The lines are in code until there is a dialogue asset; the timings and the camera are HY_PROPERTY fields,
+	// The lines are data (DialogueTable, QuestTable); the timings and the camera are HY_PROPERTY fields,
 	// tunable while playing.
 	HY_SCRIPT()
 	class ShrineQuestScript : public ScriptableEntity
 	{
 	public:
+		// The Sandbox project's data files: the defaults below, so the scene didn't have to change.
+		static constexpr uint64_t DefaultQuestTable = 5008924285669857658ull;    // Assets/Data/Quests.hytable
+		static constexpr uint64_t DefaultDialogueTable = 8378147269873057234ull; // Assets/Data/Dialogue/ShrineErrand.hytable
+
+		HY_PROPERTY(Asset(DataTable, QuestDefinition), Tooltip("The quests: rows ClearingTheGrounds and GuardiansDuty"))
+		AssetHandle QuestTable = DefaultQuestTable;
+		HY_PROPERTY(Asset(DataTable, DialogueDefinition), Tooltip("What is said: rows Intro, ReminderOne, ReminderMany ({Left}), Report, Awake, Farewell"))
+		AssetHandle DialogueTable = DefaultDialogueTable;
 		HY_PROPERTY(Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag"))
 		std::string MonkName = "Elder";
 		HY_PROPERTY(Tooltip("Tag prefix of the quest's slimes"))
@@ -522,7 +545,7 @@ namespace Hydro
 			SetLetterbox(0.0f);
 			QuestLog::Claim(MonkName);
 			// Coming back to the glade after the errand: the tree is awake and the monk only says goodbye.
-			if (QuestLog::Find("ShrineDuty") != nullptr)
+			if (QuestLog::Find(DutyQuest()) != nullptr)
 			{
 				m_Step = Step::Done;
 				CreateTreeEffects(scene);
@@ -530,7 +553,7 @@ namespace Hydro
 			}
 			else
 			{
-				QuestLog::Remove("ShrineSlimes");
+				QuestLog::Remove(SlimesQuest());
 				m_Step = Step::Offer;
 			}
 			HY_INFO("Shrine quest: talk to the Old Monk on the shrine terrace (E)");
@@ -554,7 +577,7 @@ namespace Hydro
 				case Step::Offer:
 					if (talked)
 					{
-						Say(GetIntroLines());
+						Say("Intro");
 						m_Step = Step::Briefing;
 					}
 					break;
@@ -562,21 +585,21 @@ namespace Hydro
 					if (IsTalking() == false)
 					{
 						WakeSlimes(scene);
-						QuestLog::Start("ShrineSlimes", "Clearing the Grounds", "Drive the slimes from the lower path", m_SlimeCount);
+						QuestLog::Start(SlimesQuest(), m_SlimeCount); // stage 0: drive the slimes from the lower path
 						m_Step = Step::Hunt;
 					}
 					break;
 				case Step::Hunt:
 				{
 					const int left = CountSlimes(scene);
-					QuestLog::SetProgress("ShrineSlimes", m_SlimeCount - left);
+					QuestLog::SetProgress(SlimesQuest(), m_SlimeCount - left);
 					if (talked)
 					{
-						Say(GetReminderLines(left));
+						Say(left == 1 ? "ReminderOne" : "ReminderMany", std::to_string(left));
 					}
 					if (left == 0 && IsTalking() == false)
 					{
-						QuestLog::SetObjective("ShrineSlimes", "Return to the Old Monk");
+						QuestLog::SetStage(SlimesQuest(), 1); // return to the Old Monk
 						m_Step = Step::Return;
 					}
 					break;
@@ -584,7 +607,7 @@ namespace Hydro
 				case Step::Return:
 					if (talked)
 					{
-						Say(GetReportLines());
+						Say("Report");
 						m_Step = Step::Report;
 					}
 					break;
@@ -613,7 +636,7 @@ namespace Hydro
 					UpdateAwakeTree(scene, deltaTime);
 					if (talked)
 					{
-						Say(GetFarewellLines());
+						Say("Farewell");
 					}
 					break;
 			}
@@ -624,105 +647,60 @@ namespace Hydro
 	private:
 		enum class Step : uint8_t { Offer, Briefing, Hunt, Return, Report, Tremor, Awakened, Release, Done };
 
-		struct Line
-		{
-			const char* Speaker;
-			std::string Text;
-		};
+		// The quests (rows of QuestTable).
+		DataRowRef SlimesQuest() const { return DataRowRef{ QuestTable, "ClearingTheGrounds" }; }
+		DataRowRef DutyQuest() const { return DataRowRef{ QuestTable, "GuardiansDuty" }; }
 
-		// ---- The lines (in code until there is a dialogue asset) --------------------------------------------
+		// ---- Conversations: a row of DialogueTable in the dialogue box ------------------------------------
 
-		static std::vector<Line> GetIntroLines()
+		// Queues the conversation `row`; "{Left}" in its lines becomes `left` (the slimes still to find).
+		void Say(const char* row, const std::string& left = {})
 		{
-			return {
-				{ "Old Monk", "Ah, Miko. Good, you're here. Slimes have crept up from the lower path again. Three of them, by my count." },
-				{ "Old Monk", "Leave them be and they'll be at the offerings by nightfall. A guardian keeps the grounds clean, so off you go." },
-				{ "Miko", "Leave it to me, Master. They won't get past the lanterns." },
-				{ "Old Monk", "Mind the steps on the way down. And come back and tell me when it's done." }
-			};
-		}
-
-		static std::vector<Line> GetReminderLines(int left)
-		{
-			if (left <= 1)
+			const DataView<DialogueDefinition> dialogue = Data::GetRow<DialogueDefinition>(DataRowRef{ DialogueTable, row });
+			if (dialogue.IsValid() == false)
 			{
-				return { { "Old Monk", "Just one left, I think. I can hear it squelching about down there." } };
+				return; // warned once by Data::GetRow
 			}
-			return { { "Old Monk", "Still " + std::to_string(left) + " of them on the lower path, by the sound of it. Off you go." } };
+			m_Lines = DialogueScript::GetLines(*dialogue);
+			for (DialogueScript::Line& line : m_Lines)
+			{
+				for (size_t at = line.Text.find("{Left}"); at != std::string::npos; at = line.Text.find("{Left}", at + left.size()))
+				{
+					line.Text.replace(at, 6, left);
+				}
+			}
+			m_Waiting = true;
 		}
 
-		static std::vector<Line> GetReportLines()
-		{
-			return {
-				{ "Miko", "The lower path is clear, Master. Not a single slime left." },
-				{ "Old Monk", "Well done. My old knees thank you. Now, before the evening prayers..." },
-				{ "Old Monk", "...Hm? The wind has stopped. Miko, do you hear that? The bells are ringing, and there is no wind." }
-			};
-		}
-
-		static std::vector<Line> GetAwakeLines()
-		{
-			return {
-				{ "Old Monk", "The sacred tree... In all my years at this shrine, I have never once seen its roots wake." },
-				{ "Old Monk", "That was no ordinary quake. It ran in a line, straight through the grounds, as if something beneath them was pulled tight." },
-				{ "Miko", "Master... what does it mean?" },
-				{ "Old Monk", "I don't know. The old tales say this shrine sits on a seal, one of many, and that the tree keeps watch over it." },
-				{ "Old Monk", "The line runs south, toward the village. The old bridge, the well... if anything below us stirred, they will have felt it there too." },
-				{ "Old Monk", "I must stay and mend the wards, or the next tremor may break them. So this falls to you." },
-				{ "Old Monk", "Go down to the village, Miko. This is the duty of the shrine's guardian. Not a burden; the promise you made the day you took up the bell." },
-				{ "Miko", "...I understand. I'll go, and I'll come back with answers." },
-				{ "Old Monk", "Take the road south. And Miko, walk carefully. Old roads remember old things." }
-			};
-		}
-
-		static std::vector<Line> GetFarewellLines()
-		{
-			return { { "Old Monk", "The road south leads to the village. Go on, I'll keep the lanterns lit for you." } };
-		}
-
-		// ---- Conversations: lines of several speakers, one dialogue box per run of the same speaker ----------
-
-		void Say(const std::vector<Line>& lines)
-		{
-			m_Lines = lines;
-			m_NextLine = 0;
-		}
-
-		// True while lines are waiting or the dialogue box is open.
+		// True while a conversation waits or the dialogue box is open.
 		bool IsTalking()
 		{
 			DialogueScript* dialogue = FindDialogue();
-			return m_NextLine < m_Lines.size() || (dialogue != nullptr && dialogue->IsOpen());
+			return m_Waiting || (dialogue != nullptr && dialogue->IsOpen());
 		}
 
 		void UpdateConversation([[maybe_unused]] Scene& scene)
 		{
-			DialogueScript* dialogue = FindDialogue();
-			if (m_NextLine >= m_Lines.size())
+			if (m_Waiting == false)
 			{
 				return;
 			}
+			DialogueScript* dialogue = FindDialogue();
 			if (dialogue == nullptr)
 			{
 				// A scene without the dialogue box: the lines go to the log.
-				for (; m_NextLine < m_Lines.size(); m_NextLine++)
+				for (const DialogueScript::Line& line : m_Lines)
 				{
-					HY_INFO("{}: {}", m_Lines[m_NextLine].Speaker, m_Lines[m_NextLine].Text);
+					HY_INFO("{}: {}", line.Speaker, line.Text);
 				}
+				m_Waiting = false;
 				return;
 			}
-			if (dialogue->IsOpen())
+			if (dialogue->IsOpen() == false)
 			{
-				return;
+				dialogue->Open(m_Lines);
+				m_Waiting = false;
 			}
-			const std::string speaker = m_Lines[m_NextLine].Speaker;
-			std::vector<std::string> run;
-			while (m_NextLine < m_Lines.size() && speaker == m_Lines[m_NextLine].Speaker)
-			{
-				run.push_back(m_Lines[m_NextLine].Text);
-				m_NextLine++;
-			}
-			dialogue->Open(speaker, run);
 		}
 
 		DialogueScript* FindDialogue()
@@ -857,7 +835,7 @@ namespace Hydro
 			if (tremor >= TremorTime + AfterTremor)
 			{
 				DioramaView::CinematicShake = 0.0f;
-				Say(GetAwakeLines());
+				Say("Awake");
 				m_Step = Step::Awakened;
 				HY_INFO("Shrine quest: the Sacred Tree is awake");
 			}
@@ -881,8 +859,8 @@ namespace Hydro
 				DioramaView::ResetCinematic();
 				SetLetterbox(0.0f);
 				UI::SetVisible(m_Cinematic, false);
-				QuestLog::Complete("ShrineSlimes");
-				QuestLog::Start("ShrineDuty", "The Guardian's Duty", "Take the road south to the Farm Village");
+				QuestLog::Complete(SlimesQuest());
+				QuestLog::Start(DutyQuest()); // take the road south to the Farm Village
 				m_Step = Step::Done;
 			}
 		}
@@ -1083,8 +1061,8 @@ namespace Hydro
 		Step m_Step = Step::Offer;
 		float m_Time = 0.0f;
 		float m_StepTime = 0.0f;
-		std::vector<Line> m_Lines;
-		size_t m_NextLine = 0;
+		std::vector<DialogueScript::Line> m_Lines; // the conversation waiting for the dialogue box
+		bool m_Waiting = false;
 		Entity m_Monk, m_Player, m_Tree, m_TreeAwake, m_TreeGlow, m_TreeLight, m_Motes;
 		Entity m_DialogueCanvas, m_Cinematic, m_LetterboxTop, m_LetterboxBottom, m_MarkerCanvas, m_Marker;
 		std::vector<entt::entity> m_Slimes;

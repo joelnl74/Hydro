@@ -6,7 +6,8 @@
 // data types and enums into Game/src/Generated/GeneratedDataReflection.cpp.
 //
 // HY_SCRIPT()   above a class or struct that derives publicly from ScriptableEntity (`final` is fine).
-//               It is registered under its class name, which is what scenes save.
+//               It is registered under its class name, which is what scenes save. Its only argument:
+//     FormerName("OldName", ...)  names scenes saved before the class was renamed (see Former names below)
 //
 // HY_PROPERTY(...) above a public field of such a class: shown in the inspector, saved with the scene and
 // applied before OnCreate. Types: bool, int, float, glm::vec2, glm::vec3, glm::vec4, std::string, AssetHandle,
@@ -23,6 +24,7 @@
 //     DataRow(ItemDefinition) required for a DataRowRef: the row type (read it with Data::GetRow)
 //     ReadOnly              shown, not editable
 //     Hidden                saved and applied, not shown
+//     FormerName("Old", ...) keys files saved before the field was renamed (see Former names below)
 //
 //     HY_SCRIPT()
 //     class LanternScript : public ScriptableEntity
@@ -45,6 +47,7 @@
 //     HY_DATA(Definition, Table)        both
 //     DisplayField(Field)               (with Table) the std::string field row lists and pickers show; default:
 //                                       a std::string field called Name, else the row ID. Editor-only
+//     FormerName("OldName", ...)        type names files saved before the struct was renamed
 // Field types: the script types above, plus DataRowRef (a table row), an HY_ENUM enum class (saved by name), another
 // HY_DATA struct (a nested map) and std::vector<T> of any of these except a list. Arguments as for scripts (on a list
 // they apply to its elements), including Asset(Definition, T) / Asset(DataTable, T) and DataRow(T).
@@ -65,6 +68,20 @@
 //         std::string Speaker;
 //         HY_PROPERTY()
 //         std::vector<DialogueLine> Lines;
+//     };
+//
+// Former names: renaming a script class, a property, a data type or a data field changes what files save. Give the
+// new name FormerName("Old") and files saved under the old one still load: the binding, value or file is read into
+// the renamed one, the load is logged (scripts) or reported (data), and saving writes the new name. Once every scene,
+// prefab and data file has been saved, delete the FormerName; the log no longer mentions the old name by then. A
+// former name may not be a current name or another's former name (the generator fails).
+//
+//     HY_SCRIPT(FormerName("MvpDirectorScript"))
+//     class FieldDirectorScript : public ScriptableEntity
+//     {
+//     public:
+//         HY_PROPERTY(Range(0, 20), FormerName("InteractRange"))
+//         float ReachMetres = 1.7f;
 //     };
 //
 // HY_ENUM() above an enum class used by data fields. Saved by the enumerator's name, so reordering or renumbering is

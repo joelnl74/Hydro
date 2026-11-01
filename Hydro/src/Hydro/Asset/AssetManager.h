@@ -132,6 +132,11 @@ namespace Hydro
 			return std::static_pointer_cast<T>(LoadAsset(handle, T::GetStaticType(), true));
 		}
 
+		// The loaded object of `handle` is what its file holds now: the editor just wrote the file from that object
+		// (a definition or table edited in the inspector). Records the file's new version, so the next GetAsset
+		// doesn't load the editor's own write again (which would replace the object being edited).
+		static void MarkSaved(AssetHandle handle);
+
 		static AssetLoadState GetLoadState(AssetHandle handle);
 		// Assets in the cache (loaded successfully).
 		static size_t GetLoadedAssetCount();

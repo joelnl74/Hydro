@@ -1,0 +1,67 @@
+Handle: 8378147269873057234
+DataTable:
+  Version: 1
+  Type: DialogueDefinition
+  Rows:
+    Awake:
+      Speaker: Old Monk
+      Portrait: 0
+      Lines:
+        - Speaker: ""
+          Text: The sacred tree... In all my years at this shrine, I have never once seen its roots wake.
+        - Speaker: ""
+          Text: That was no ordinary quake. It ran in a line, straight through the grounds, as if something beneath them was pulled tight.
+        - Speaker: Miko
+          Text: Master... what does it mean?
+        - Speaker: ""
+          Text: I don't know. The old tales say this shrine sits on a seal, one of many, and that the tree keeps watch over it.
+        - Speaker: ""
+          Text: The line runs south, toward the village. The old bridge, the well... if anything below us stirred, they will have felt it there too.
+        - Speaker: ""
+          Text: I must stay and mend the wards, or the next tremor may break them. So this falls to you.
+        - Speaker: ""
+          Text: Go down to the village, Miko. This is the duty of the shrine's guardian. Not a burden; the promise you made the day you took up the bell.
+        - Speaker: Miko
+          Text: ...I understand. I'll go, and I'll come back with answers.
+        - Speaker: ""
+          Text: Take the road south. And Miko, walk carefully. Old roads remember old things.
+    Farewell:
+      Speaker: Old Monk
+      Portrait: 0
+      Lines:
+        - Speaker: ""
+          Text: The road south leads to the village. Go on, I'll keep the lanterns lit for you.
+    Intro:
+      Speaker: Old Monk
+      Portrait: 0
+      Lines:
+        - Speaker: ""
+          Text: Ah, Miko. Good, you're here. Slimes have crept up from the lower path again. Three of them, by my count.
+        - Speaker: ""
+          Text: Leave them be and they'll be at the offerings by nightfall. A guardian keeps the grounds clean, so off you go.
+        - Speaker: Miko
+          Text: Leave it to me, Master. They won't get past the lanterns.
+        - Speaker: ""
+          Text: Mind the steps on the way down. And come back and tell me when it's done.
+    ReminderMany:
+      Speaker: Old Monk
+      Portrait: 0
+      Lines:
+        - Speaker: ""
+          Text: Still {Left} of them on the lower path, by the sound of it. Off you go.
+    ReminderOne:
+      Speaker: Old Monk
+      Portrait: 0
+      Lines:
+        - Speaker: ""
+          Text: Just one left, I think. I can hear it squelching about down there.
+    Report:
+      Speaker: Old Monk
+      Portrait: 0
+      Lines:
+        - Speaker: Miko
+          Text: The lower path is clear, Master. Not a single slime left.
+        - Speaker: ""
+          Text: Well done. My old knees thank you. Now, before the evening prayers...
+        - Speaker: ""
+          Text: ...Hm? The wind has stopped. Miko, do you hear that? The bells are ringing, and there is no wind.

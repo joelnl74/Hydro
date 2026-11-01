@@ -173,6 +173,7 @@ namespace Hydro
 				binding.Name = script.Name;
 				binding.Instantiate = script.Instantiate;
 				binding.Properties = script.Properties;
+				binding.KeptProperties = script.KeptProperties;
 				copied.Scripts.push_back(std::move(binding));
 			}
 		}
@@ -209,6 +210,7 @@ namespace Hydro
 			binding.Name = script.Name;
 			binding.Instantiate = script.Instantiate;
 			binding.Properties = script.Properties; // HY_PROPERTY values (#141)
+			binding.KeptProperties = script.KeptProperties; // saved values no property reads (#143)
 			bindings.push_back(std::move(binding));
 		}
 		registry.emplace_or_replace<NativeScriptComponent>(destination).Scripts = std::move(bindings);

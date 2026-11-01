@@ -24,6 +24,11 @@ namespace Hydro
 		// nullptr when it can't be used at all (not YAML, not a table, an unknown data type).
 		static Ref<DataTableAsset> LoadUncached(const std::filesystem::path& path);
 
+		// Writes `data` to `file` (canonical, with the platform's line endings, like Hydro's other files). false
+		// (logged) for read-only data or a file that can't be written. The editor calls AssetManager::MarkSaved after.
+		static bool Save(const std::filesystem::path& file, const DataTableData& data);
+		bool Save(const std::filesystem::path& file) const { return Save(file, m_Data); }
+
 		static AssetType GetStaticType() { return AssetType::DataTable; }
 		AssetType GetType() const override { return GetStaticType(); }
 

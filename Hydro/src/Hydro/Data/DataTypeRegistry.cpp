@@ -13,6 +13,8 @@ namespace Hydro
 		std::map<std::string, DataEnumInfo> Enums;
 		std::unordered_map<std::type_index, std::string> TypeNames;
 		std::unordered_map<std::type_index, std::string> EnumNames;
+		// A former type name -> the type's current name.
+		std::unordered_map<std::string, std::string> FormerNames;
 	};
 
 	// Created on first use, so registering from anywhere (even another static) is safe.
@@ -33,6 +35,21 @@ namespace Hydro
 		if (data.Types.find(name) != data.Types.end())
 		{
 			HY_CORE_WARN("DataTypeRegistry: '{}' was already registered; the new type replaces it", name);
+		}
+
+		for (const std::string& formerName : typeInfo.FormerNames)
+		{
+			if (formerName == name || data.Types.find(formerName) != data.Types.end())
+			{
+				HY_CORE_WARN("DataTypeRegistry: '{}' can't have the former name '{}': a data type is registered under it", name, formerName);
+				continue;
+			}
+			auto [it, added] = data.FormerNames.emplace(formerName, name);
+			if (added == false && it->second != name)
+			{
+				HY_CORE_WARN("DataTypeRegistry: '{}' and '{}' both have the former name '{}'; files saved under it load as '{}'",
+					it->second, name, formerName, it->second);
+			}
 		}
 
 		data.TypeNames[typeInfo.CppType] = name;
@@ -67,6 +84,17 @@ namespace Hydro
 			return nullptr;
 		}
 		return &it->second;
+	}
+
+	const DataTypeInfo* DataTypeRegistry::FindByFormerName(const std::string& name)
+	{
+		DataTypeRegistryData& data = GetData();
+		auto it = data.FormerNames.find(name);
+		if (it == data.FormerNames.end())
+		{
+			return nullptr;
+		}
+		return Find(it->second);
 	}
 
 	const DataTypeInfo* DataTypeRegistry::Find(std::type_index cppType)

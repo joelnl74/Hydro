@@ -1,0 +1,14 @@
+Handle: 1573876928913233299
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: Welcome to the Golden Sheaf. Warm yourself by the hearth, the stew's nearly ready.
+      - Speaker: ""
+        Text: Your room's up the stairs, the first one past the landing. Rest whenever you like, there's no charge for the shrine's people.
+      - Speaker: ""
+        Text: The ground shook again last night. Knocked two mugs off the shelf. Strange times.

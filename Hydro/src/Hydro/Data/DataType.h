@@ -73,8 +73,12 @@ namespace Hydro
 	// One HY_PROPERTY field of a data type: what the serializer reads and writes, and what the inspector shows.
 	struct DataField
 	{
-		// The saved key: the field's name. Renaming it in C++ leaves the old key in files as an unknown (kept) key.
+		// The saved key: the field's name. Renaming it in C++ leaves the old key in files as an unknown (kept) key,
+		// unless the old name is one of FormerNames.
 		std::string Name;
+		// Keys files may still have it under (HY_PROPERTY(FormerName("..."))): read when the record has no value
+		// under Name (reported, so the file gets saved); saving writes Name. Delete them once every file is saved.
+		std::vector<std::string> FormerNames;
 		// The inspector's label: the name split at capitals, or DisplayName("...").
 		std::string DisplayName;
 
@@ -119,6 +123,9 @@ namespace Hydro
 		std::string Name;
 		std::string DisplayName;
 		std::type_index CppType = typeid(void);
+		// Type names files may still say (HY_DATA(FormerName("..."))): such a file loads as this type (reported) and is
+		// saved with Name. Delete them once every file is saved.
+		std::vector<std::string> FormerNames;
 
 		// HY_DATA(Definition) / HY_DATA(Table): which assets it can be created as. Neither = a helper type,
 		// only used inside other types.
@@ -138,6 +145,8 @@ namespace Hydro
 		void (*Move)(void* destination, void* source) = nullptr;       // destination = std::move(source)
 
 		const DataField* FindField(const std::string& name) const;
+		// The field that had `name` as a former name; nullptr when none.
+		const DataField* FindFieldByFormerName(const std::string& name) const;
 
 		bool IsCreatable() const
 		{

@@ -58,8 +58,11 @@ namespace Hydro
 
 	struct ScriptProperty
 	{
-		// The saved key: the field's name. Keep it stable once scenes use it.
+		// The saved key: the field's name. Rename it only with a former name (below).
 		std::string Name;
+		// Keys it was saved under before (HY_PROPERTY(FormerName("..."))): read when the scene has no value under
+		// Name; saving writes Name. Delete a former name once every scene and prefab has been saved.
+		std::vector<std::string> FormerNames;
 		// The inspector's label: the name split at capitals ("MoveSpeed" -> "Move Speed"), or DisplayName("...").
 		std::string DisplayName;
 

@@ -1,0 +1,12 @@
+Handle: 5724374815678911623
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: The wheat came in heavy this year. Good soil, this side of the stream.
+      - Speaker: ""
+        Text: Slimes keep getting into the cabbages, though. Little thieves.

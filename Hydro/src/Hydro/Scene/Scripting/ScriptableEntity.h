@@ -7,6 +7,7 @@
 
 #include <glm/glm.hpp>
 
+#include <map>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -91,6 +92,11 @@ namespace Hydro
 			// These exist even when Instance == nullptr.
 			ScriptPropertyMap Properties;
 
+			// Saved values no property of the script reads (the script isn't registered, or a property was renamed
+			// or removed): key -> the value as YAML text. Kept so saving the scene doesn't lose them (#143), and
+			// written back after Properties. ScriptSerializer fills them.
+			std::map<std::string, std::string> KeptProperties;
+
 			bool PendingRemove = false;
 		};
 
@@ -132,15 +138,22 @@ namespace Hydro
 		{
 			Script script;
 
-			script.Name = name;
+			// A former name binds the script it now belongs to, under its current name.
+			const ScriptTypeInfo* typeInfo =
+				ScriptRegistry::FindType(name);
 
-			script.Instantiate =
-				ScriptRegistry::Find(name);
+			script.Name = typeInfo != nullptr
+				? typeInfo->Name
+				: name;
+
+			script.Instantiate = typeInfo != nullptr
+				? typeInfo->Factory
+				: nullptr;
 
 			// Unknown scripts remain valid entries,
 			// but registered ones get their defaults.
 			ScriptRegistry::InitializeProperties(
-				name,
+				script.Name,
 				script.Properties);
 
 			Scripts.push_back(
