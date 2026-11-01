@@ -52,3 +52,13 @@ Definition:
         Count: 1
       - Item: {Table: 4741649512266718899, Row: Potion}
         Count: 1
+      - Item: {Table: 4741649512266718899, Row: Tekko}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: ShrineRobe}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: WardTome}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: Headband}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: PrayerBeads}
+        Count: 1

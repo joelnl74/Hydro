@@ -1,6 +1,7 @@
 // Game/src/Data/ItemDefinition.h
 #pragma once
 
+#include "Data/CombatStats.h"
 #include "Hydro/Asset/Asset.h"
 #include "Hydro/Scene/Scripting/ReflectionMacros.h"
 
@@ -19,6 +20,19 @@ namespace Hydro
 		Equipment,
 		KeyItem,
 		Material
+	};
+
+	// Where a piece of equipment goes (the Menu plan's six slots: Accessory fits either accessory slot; Off-hand is
+	// a shield, a tome or a book). None: not equipment.
+	HY_ENUM()
+	enum class EquipSlot : uint8_t
+	{
+		None,
+		Weapon,
+		OffHand,
+		Head,
+		Body,
+		Accessory
 	};
 
 	// How rare an item is: loot tables (LootTableDefinition) pick a rarity by its chance, then an item of it.
@@ -51,6 +65,10 @@ namespace Hydro
 		int RestoreMP = 0;
 		HY_PROPERTY(Tooltip("Can be used from the field inventory"))
 		bool UsableInField = false;
+		HY_PROPERTY(Tooltip("Equipment: the slot it goes in (None: not equipment)"))
+		EquipSlot Slot = EquipSlot::None;
+		HY_PROPERTY(Tooltip("Equipment: added to the wearer's numbers"))
+		CombatStats Bonus{ 0, 0, 0, 0, 0 };
 
 		// Whether using it from the field inventory does anything.
 		bool CanUseInField() const

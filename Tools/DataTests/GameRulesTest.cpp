@@ -5,9 +5,11 @@
 #include "hypch.h"
 #include "Rules/BattleRules.h"
 #include "Rules/LootRules.h"
+#include "Rules/PartyRules.h"
 
 #include <cstdio>
 #include <deque>
+#include <map>
 
 namespace Hydro
 {
@@ -112,6 +114,37 @@ namespace Hydro
 		table.Rarities.clear();
 		table.Rolls = 1;
 		RULE_CHECK(LootRules::Roll(table, Rolls({ 0.0f, 0.99f, 0.0f }), rarity)[0].Item.Row == "Feather");
+
+		// Equipment (the Menu plan's M1): slots, swapping with the inventory.
+		std::printf("Game rules: equipment and ability slots\n");
+		RULE_CHECK(PartyRules::Fits(EquipSlot::Accessory, EquipPosition::Accessory2) && PartyRules::Fits(EquipSlot::Weapon, EquipPosition::Head) == false);
+		RULE_CHECK(PartyRules::Fits(EquipSlot::None, EquipPosition::Weapon) == false);
+		std::map<std::string, int> held = { { "Tekko", 1 }, { "Sword", 1 } };
+		auto take = [&held](const DataRowRef& item) { if (held[item.Row] <= 0) { return false; } held[item.Row]--; return true; };
+		auto give = [&held](const DataRowRef& item) { held[item.Row]++; };
+		std::array<DataRowRef, 6> worn{};
+		const DataRowRef tekko{ 7, "Tekko" };
+		const DataRowRef sword{ 7, "Sword" };
+		RULE_CHECK(PartyRules::Equip(worn, EquipPosition::Weapon, tekko, EquipSlot::Weapon, take, give) && worn[0] == tekko && held["Tekko"] == 0);
+		RULE_CHECK(PartyRules::Equip(worn, EquipPosition::Head, sword, EquipSlot::Weapon, take, give) == false && held["Sword"] == 1); // doesn't fit
+		RULE_CHECK(PartyRules::Equip(worn, EquipPosition::Weapon, sword, EquipSlot::Weapon, take, give) && worn[0] == sword && held["Tekko"] == 1 && held["Sword"] == 0);
+		RULE_CHECK(PartyRules::Equip(worn, EquipPosition::Weapon, sword, EquipSlot::Weapon, take, give) && held["Sword"] == 0); // already worn
+		RULE_CHECK(PartyRules::Equip(worn, EquipPosition::Weapon, DataRowRef{ 7, "Axe" }, EquipSlot::Weapon, take, give) == false && worn[0] == sword); // none held
+		PartyRules::Unequip(worn, EquipPosition::Weapon, give);
+		RULE_CHECK(worn[0].IsSet() == false && held["Sword"] == 1);
+		const CombatStats sum = PartyRules::Add(CombatStats{ 90, 32, 10, 8, 9 }, CombatStats{ 20, 4, 3, 0, -1 });
+		RULE_CHECK(sum.MaxHP == 110 && sum.MaxMP == 36 && sum.Attack == 13 && sum.Magic == 8 && sum.Speed == 8);
+
+		// Ability slots: known ones only; a move swaps.
+		const DataRowRef kick{ 1, "FlameKick" }, palm{ 1, "HolyPalm" }, lance{ 1, "SpiritLance" };
+		std::array<DataRowRef, 8> slots{};
+		slots[0] = kick;
+		slots[1] = palm;
+		const std::vector<DataRowRef> known = { kick, palm };
+		RULE_CHECK(PartyRules::SetAbilitySlot(slots, known, 2, lance) == false && slots[2].IsSet() == false);
+		RULE_CHECK(PartyRules::SetAbilitySlot(slots, known, 0, palm) && slots[0] == palm && slots[1] == kick);
+		RULE_CHECK(PartyRules::SetAbilitySlot(slots, known, 5, kick) && slots[5] == kick && slots[1].IsSet() == false);
+		RULE_CHECK(PartyRules::SetAbilitySlot(slots, known, 5, DataRowRef()) && slots[5].IsSet() == false);
 
 		return s_RuleFailures;
 	}

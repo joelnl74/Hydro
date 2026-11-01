@@ -86,6 +86,8 @@ DataTable:
       RestoreHP: 0
       RestoreMP: 0
       UsableInField: false
+      Slot: Weapon
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 4, Magic: 0, Speed: 0}
     LanternOil:
       Name: Lantern Oil
       Description: Oil for the stone lanterns along the path.
@@ -102,6 +104,8 @@ DataTable:
       RestoreHP: 0
       RestoreMP: 0
       UsableInField: false
+      Slot: Accessory
+      Bonus: {MaxHP: 5, MaxMP: 0, Attack: 0, Magic: 0, Speed: 1}
     NewItem:
       Name: Lucky Bell
       Description: Increases luck by 5%
@@ -175,3 +179,58 @@ DataTable:
       RestoreHP: 0
       RestoreMP: 0
       UsableInField: false
+    Tekko:
+      Name: Tekko
+      Description: Iron knuckle guards for a bare-handed fighter.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Weapon
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 3, Magic: 0, Speed: 0}
+    ShrineRobe:
+      Name: Shrine Robe
+      Description: A white robe woven at the shrine; it wards off a little harm.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Body
+      Bonus: {MaxHP: 20, MaxMP: 4, Attack: 0, Magic: 0, Speed: 0}
+    WardTome:
+      Name: Ward Tome
+      Description: A slim book of wards, carried in the off hand.
+      Kind: Equipment
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: OffHand
+      Bonus: {MaxHP: 0, MaxMP: 6, Attack: 0, Magic: 4, Speed: 0}
+    Headband:
+      Name: Headband
+      Description: A red cloth headband.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Head
+      Bonus: {MaxHP: 8, MaxMP: 0, Attack: 0, Magic: 0, Speed: 0}
+    PrayerBeads:
+      Name: Prayer Beads
+      Description: Beads of polished wood that steady the mind.
+      Kind: Equipment
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Accessory
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 0, Magic: 3, Speed: 0}
