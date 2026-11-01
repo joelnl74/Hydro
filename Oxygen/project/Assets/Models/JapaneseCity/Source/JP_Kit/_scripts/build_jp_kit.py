@@ -2,80 +2,98 @@
 #
 #   "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" -b --factory-startup --python build_jp_kit.py
 #
-# Phase 1 (this file, JP_PHASE=graybox, the default): every building of the kit as proportioned grey blocks
-# (plinth, storeys, pent roof, balcony / bay window, main roof with eaves, ridge, ridge ends, openings as dark
-# recesses), one prefab per building, exported as glb under the final names so the showcase scene keeps its
-# handles when the textured modules replace the blocks in Phase 2. Re-running rebuilds everything from scratch.
+# Builds the kit's modules (a library in JP_Kit.blend, also exported to Models/JapaneseCity/Modules/ for hand-built
+# variants in the city scene), the 24 building prefabs of the three districts (rich incl. the city gate, middle,
+# poor incl. the harbour sheds) and, from jp_props.py, the 3D props; exports one glb per prefab / prop into
+# Models/JapaneseCity/ and writes kit_summary.json (sizes, faces, lineup positions) for
+# scripts/japanese_city/build_kit_showcase.py. Re-running rebuilds everything from scratch.
 #
 # Conventions (copied from MV_Kit/_scripts/build_kit.py, not imported: the kits stay independent):
-#   1 Blender unit = 1 m, Z up, building fronts face -Y, a prefab's origin is the centre of its front wall at the
-#   ground; box-projected UVs in each part's own frame at 32 texels per metre; COL_ proxies are never exported;
-#   banded vertex-colour AO in "Col" (exported as COLOR_0, multiplied with albedo by Hydro's mesh.frag).
-# Metrics: JP_CITY_MODULAR_PREP.md section 3 (the graybox is where they get locked).
-import bpy, bmesh, math, os, sys
+#   1 Blender unit = 1 m, Z up, building fronts face -Y; a prefab's origin is the centre of its front wall at the
+#   ground (a prop's: its foot); UVs at 32 texels per metre everywhere (axis faces box-projected, roof slopes mapped
+#   along the slope so tile courses stay horizontal, turned surfaces mapped around the circumference); COL_ proxies
+#   are never exported; banded vertex-colour AO in "Col" (exported as COLOR_0, multiplied with albedo by mesh.frag).
+#   Material names are the texture names (the contract with the PixelLab textures in art_incoming/jp_city/textures).
+# Metrics: JP_CITY_MODULAR_PREP.md section 3, locked in the Phase 1 graybox (JP_CITY_KIT_PHASE1_GRAYBOX.md).
+import bpy, bmesh, math, os, sys, json, random
 from mathutils import Matrix, Vector
 from pathlib import Path
 
 ROOT = Path(r"C:\Users\joeln\Hydro\Oxygen\project\Assets\Models\JapaneseCity")
 SRC = ROOT / "Source" / "JP_Kit"
 TEX = SRC / "Textures"
-ASSETS = Path(r"C:\Users\joeln\Hydro\Oxygen\project\Assets")
-PHASE = os.environ.get("JP_PHASE", "graybox")
+SCRIPTS = Path(__file__).resolve().parent
 PPM = 32.0
 
-# ------------------------------------------------------------------ reset
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 scene.name = "JP_Kit"
 scene.unit_settings.system = 'METRIC'
-
 ROOTCOL = bpy.data.collections.new("EONLORE_JapaneseCity")
 scene.collection.children.link(ROOTCOL)
 COL = {}
-for n in ("10_Collision", "90_Prefabs"):
+for n in ("00_Modules", "09_Props_3D", "10_Collision", "90_Prefabs"):
     c = bpy.data.collections.new(n); ROOTCOL.children.link(c); COL[n] = c
 PREVIEW = bpy.data.collections.new("Preview")
 scene.collection.children.link(PREVIEW)
 
-# ------------------------------------------------------------------ graybox materials
-# Flat 4 x 4 px colour textures (not material colours: Hydro's importer reads glb textures; these are replaced by the
-# real JP_* textures in Phase 2). Colours are the values of the final materials, desaturated, so roofs read dark
-# against walls as they will.
-GB = {
-    "GB_Wall":    (0.72, 0.69, 0.63),   # plaster / boards
-    "GB_WallC":   (0.55, 0.52, 0.47),   # poor walls (weathered boards, mud)
-    "GB_Wood":    (0.26, 0.22, 0.19),   # cedar frame, posts, railings
-    "GB_Roof":    (0.24, 0.27, 0.31),   # kawara
-    "GB_RoofC":   (0.38, 0.36, 0.33),   # plank roofs
-    "GB_Stone":   (0.50, 0.50, 0.49),   # granite / rough stone
-    "GB_Opening": (0.09, 0.08, 0.08),   # door and window recesses
-    "GB_Glow":    (0.80, 0.62, 0.36),   # lattice fronts / shoji (lit from inside at dusk)
-    "GB_Floor":   (0.42, 0.41, 0.39),
+# ------------------------------------------------------------------ materials (texture = name; size from the image)
+# extra: emissive mask (+ colour and strength), alpha clip, uv rotation
+MATDEFS = {
+    "JP_Plaster_Warm": {}, "JP_Roof_Kawara": {}, "JP_Roof_KawaraOld": {}, "JP_Roof_Plank": {},
+    "JP_Wood_CedarDark": {}, "JP_Wood_Lattice": {"emi": "JP_Wood_Lattice_EMI.png", "strength": 0.35},
+    "JP_Wood_Weathered": {}, "JP_Wood_Weathered_V": {"file": "JP_Wood_Weathered.png", "rot": True},
+    "JP_Wood_Bamboo": {}, "JP_Gate_DoorStudded": {}, "JP_Net_Alpha": {"alpha": True},
+    "JP_Shoji_Paper": {"emi": "JP_Shoji_Paper_EMI.png", "strength": 1.2},
+    "JP_Shoji_Patched": {"emi": "JP_Shoji_Patched_EMI.png", "strength": 1.0},
+    "JP_Wall_MudStraw": {}, "JP_Wall_Namako": {}, "JP_Stone_Granite": {}, "JP_Stone_Rough": {},
+    "JP_Paving_City": {}, "JP_Ground_AlleyDirt": {},
+    "JP_Wood_Staves": {}, "JP_Clay_Ochre": {}, "JP_Glaze_Brown": {}, "JP_Cloth_Red": {}, "JP_Drum_Hide": {},
+    "JP_Mat_Iron": {}, "JP_Mat_Bronze": {}, "JP_Mat_Rope": {}, "JP_Mat_Glass": {},
+    "JP_Mat_Opening": {"file": "JP_Mat_Opening.png"},     # the dark behind open shop fronts and window bars
 }
-TEX.mkdir(parents=True, exist_ok=True)
-MAT = {}
-for name, rgb in GB.items():
-    path = TEX / ("JP_%s.png" % name)
-    img = bpy.data.images.new("JP_" + name, 4, 4, alpha=False)
-    srgb = [c ** (1 / 2.2) for c in rgb]
-    img.pixels = [v for _ in range(16) for v in (*srgb, 1.0)]
-    img.filepath_raw = str(path); img.file_format = 'PNG'; img.save()
-    m = bpy.data.materials.new("JP_" + name)
+GLOW = (1.0, 0.62, 0.28, 1.0)
+ROOF_MATS = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_Plank"}
+MAT, TEXSIZE, ROT = {}, {}, set()
+if (TEX / "JP_Mat_Opening.png").exists() is False:
+    img = bpy.data.images.new("JP_Mat_Opening", 4, 4, alpha=False)
+    img.pixels = [v for _ in range(16) for v in (0.035, 0.03, 0.03, 1.0)]
+    img.filepath_raw = str(TEX / "JP_Mat_Opening.png"); img.file_format = 'PNG'; img.save()
+for name, ex in MATDEFS.items():
+    path = TEX / ex.get("file", name + ".png")
+    img = bpy.data.images.load(str(path), check_existing=True)
+    m = bpy.data.materials.new(name)
     m.use_nodes = True
     nt = m.node_tree; bsdf = nt.nodes["Principled BSDF"]
-    t = nt.nodes.new("ShaderNodeTexImage"); t.image = bpy.data.images.load(str(path), check_existing=True)
-    t.interpolation = 'Closest'
+    t = nt.nodes.new("ShaderNodeTexImage"); t.image = img; t.interpolation = 'Closest'
     nt.links.new(t.outputs["Color"], bsdf.inputs["Base Color"])
     bsdf.inputs["Roughness"].default_value = 0.92
     if "Specular IOR Level" in bsdf.inputs:
-        bsdf.inputs["Specular IOR Level"].default_value = 0.15
-    if name == "GB_Glow":
-        bsdf.inputs["Emission Color"].default_value = (1.0, 0.62, 0.28, 1)
-        bsdf.inputs["Emission Strength"].default_value = 0.6
+        bsdf.inputs["Specular IOR Level"].default_value = 0.12
+    if ex.get("alpha"):
+        rnd = nt.nodes.new("ShaderNodeMath"); rnd.operation = 'ROUND'          # glTF exporter: alpha MASK, cutoff 0.5
+        nt.links.new(t.outputs["Alpha"], rnd.inputs[0])
+        nt.links.new(rnd.outputs[0], bsdf.inputs["Alpha"])
+        try:
+            m.surface_render_method = 'DITHERED'
+        except Exception:
+            pass
+        m.use_backface_culling = False
+    if "emi" in ex:
+        e = nt.nodes.new("ShaderNodeTexImage"); e.image = bpy.data.images.load(str(TEX / ex["emi"]), check_existing=True)
+        e.interpolation = 'Closest'
+        mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = 'RGBA'; mix.blend_type = 'MULTIPLY'
+        mix.inputs["Factor"].default_value = 1.0
+        nt.links.new(e.outputs["Color"], mix.inputs[6]); mix.inputs[7].default_value = GLOW
+        nt.links.new(mix.outputs[2], bsdf.inputs["Emission Color"])
+        bsdf.inputs["Emission Strength"].default_value = ex["strength"]
     MAT[name] = m
+    TEXSIZE[name] = (img.size[0] / PPM, img.size[1] / PPM)
+    if ex.get("rot"):
+        ROT.add(name)
 
 
-# ------------------------------------------------------------------ mesh builder (MV kit pattern)
+# ------------------------------------------------------------------ mesh builder
 def T(x, y, z):
     return Matrix.Translation((x, y, z))
 
@@ -95,21 +113,42 @@ class MeshBuilder:
             self.mats.append(m)
         return self.mats.index(m)
 
-    def poly(self, cos, mat):
-        """Any planar polygon (counter-clockwise seen from outside), UV box-projected on its dominant axis, 4 m tiles."""
+    def poly(self, cos, mat, uvs=None):
+        """A planar polygon. UVs at 32 texels/m: given, or roof slopes along the slope (courses horizontal),
+        everything else box-projected on its dominant axis (as the MV kit)."""
         vs = [self.bm.verts.new(Vector(c)) for c in cos]
-        f = self.bm.faces.new(vs)
+        try:
+            f = self.bm.faces.new(vs)
+        except ValueError:
+            return None
         f.material_index = self.mi(mat)
         f.normal_update()
+        W, H = TEXSIZE.get(mat, (4.0, 4.0))
         n = f.normal
-        ax = max(range(3), key=lambda i: abs(n[i]))
-        for loop in f.loops:
-            x, y, z = loop.vert.co
-            u, v = ((y, z), (x, z), (x, y))[ax]
-            loop[self.uv].uv = (u / 4.0, v / 4.0)
+        for i, loop in enumerate(f.loops):
+            p = loop.vert.co
+            if uvs is not None:
+                u, v = uvs[i]
+            elif mat in ROOF_MATS and abs(n.z) < 0.995:
+                t = Vector((-n.y, n.x, 0)).normalized()
+                b = n.cross(t).normalized()
+                if b.z < 0:
+                    b = -b
+                u, v = p.dot(t), p.dot(b)
+            else:
+                ax = max(range(3), key=lambda k: abs(n[k]))
+                if ax == 1:
+                    u, v = (p.x if n.y < 0 else -p.x), p.z
+                elif ax == 0:
+                    u, v = (p.y if n.x > 0 else -p.y), p.z
+                else:
+                    u, v = p.x, (p.y if n.z > 0 else -p.y)
+            if mat in ROT:
+                u, v = v, u
+            loop[self.uv].uv = (u / W, v / H)
         return f
 
-    def box(self, x0, y0, z0, x1, y1, z1, mat, M=None, top=None, skip=()):
+    def box(self, x0, y0, z0, x1, y1, z1, mat, M=None, top=None, skip=(), front=None):
         M = M or Matrix.Identity(4)
         p = lambda x, y, z: tuple(M @ Vector((x, y, z)))
         F = {
@@ -123,24 +162,62 @@ class MeshBuilder:
         for k, cos in F.items():
             if k in skip:
                 continue
-            self.poly([p(*c) for c in cos], top if (k == '+z' and top) else mat)
+            m = top if (k == '+z' and top) else (front if (k == '-y' and front) else mat)
+            self.poly([p(*c) for c in cos], m)
         return self
 
-    def solid(self, bottom, top_pts, mat, bottom_mat=None, cap=True):
-        """A closed solid from a bottom ring and a top ring of the same length (prism, frustum, roof wedge).
-        cap=False leaves the top open (a roof skirt whose top is covered by the slopes)."""
+    def solid(self, bottom, top_pts, mat, bottom_mat=None, cap=True, side_mat=None):
         n = len(bottom)
         self.poly(list(reversed(bottom)), bottom_mat or mat)
         for i in range(n):
             a, b = bottom[i], bottom[(i + 1) % n]
             c, d = top_pts[(i + 1) % n], top_pts[i]
             if (Vector(c) - Vector(d)).length < 1e-6:
-                self.poly([a, b, c], mat)
+                self.poly([a, b, c], side_mat or mat)
             else:
-                self.poly([a, b, c, d], mat)
+                self.poly([a, b, c, d], side_mat or mat)
         if cap and len({tuple(round(v, 5) for v in p) for p in top_pts}) >= 3:
             self.poly(list(top_pts), mat)
         return self
+
+    def revolve(self, profile, mat, sides=10, M=None, cap_top=None, cap_bottom=None, phase=0.0):
+        """Turned solid around local Z from a profile [(radius, z), ...] bottom to top. UV u = arc length."""
+        M = M or Matrix.Identity(4)
+        W, H = TEXSIZE.get(mat, (2.0, 2.0))
+        ring = []
+        for (r, z) in profile:
+            ring.append([M @ Vector((r * math.cos(phase + 2 * math.pi * i / sides), r * math.sin(phase + 2 * math.pi * i / sides), z))
+                         for i in range(sides + 1)])
+        for j in range(len(profile) - 1):
+            (r0, z0), (r1, z1) = profile[j], profile[j + 1]
+            for i in range(sides):
+                cos = [ring[j][i], ring[j][i + 1], ring[j + 1][i + 1], ring[j + 1][i]]
+                vs = [self.bm.verts.new(c) for c in cos]
+                try:
+                    f = self.bm.faces.new(vs)
+                except ValueError:
+                    continue
+                f.material_index = self.mi(mat)
+                rm = (r0 + r1) / 2
+                u0, u1 = rm * 2 * math.pi * i / sides, rm * 2 * math.pi * (i + 1) / sides
+                for loop, (u, v) in zip(f.loops, ((u0, z0), (u1, z0), (u1, z1), (u0, z1))):
+                    if mat in ROT:
+                        u, v = v, u
+                    loop[self.uv].uv = (u / W, v / H)
+        for cap, j, rev in ((cap_bottom, 0, True), (cap_top, len(profile) - 1, False)):
+            if cap and profile[j][0] > 1e-4:
+                pts = [tuple(c) for c in ring[j][:sides]]
+                self.poly(list(reversed(pts)) if rev else pts, cap)
+        return self
+
+    def tube(self, p0, p1, r, mat, sides=6, cap=None):
+        """A pole between two points (bamboo, shafts, rails)."""
+        p0, p1 = Vector(p0), Vector(p1)
+        d = p1 - p0
+        L = d.length
+        q = d.normalized().to_track_quat('Z', 'Y')
+        M = T(*p0) @ q.to_matrix().to_4x4()
+        return self.revolve([(r, 0.0), (r, L)], mat, sides, M, cap_top=cap or mat, cap_bottom=cap or mat)
 
     def to_object(self, name, coll, ao=None):
         bmesh.ops.remove_doubles(self.bm, verts=self.bm.verts, dist=1e-5)
@@ -173,108 +250,129 @@ def col_box(parent, x0, y0, z0, x1, y1, z1, suffix=""):
     return ob
 
 
-# ------------------------------------------------------------------ metrics (JP_CITY_MODULAR_PREP.md section 3)
+def ao_band(z_floor, z_top, floors=()):
+    """Banded contact AO (2 bands): darker in the 0.4 m above the ground and above each floor line, and under the eave."""
+    def f(co):
+        z = co.z
+        c = 1.0
+        for zf in (z_floor,) + tuple(floors):
+            if 0.0 <= z - zf < 0.4:
+                c -= (0.22 if zf == z_floor else 0.12) * (1 - (z - zf) / 0.4)
+        if 0.0 <= z_top - z < 0.5:
+            c -= 0.14 * (1 - (z_top - z) / 0.5)
+        return max(0.62, c)
+    return f
+
+
+# ------------------------------------------------------------------ metrics
 TIER = {
-    #      plinth, ground floor, upper floor, pent proj, eave, pitch
     "A": dict(plinth=0.45, gf=3.2, uf=2.8, pent=1.0, eave=1.1, pitch=27.0),
     "B": dict(plinth=0.30, gf=3.0, uf=2.3, pent=0.9, eave=0.9, pitch=26.0),
     "C": dict(plinth=0.20, gf=2.6, uf=0.0, pent=0.0, eave=0.55, pitch=25.0),
 }
-DOOR_H = 2.0          # the medieval kit's door leaf (MV_Door_Wood_A: 1.0 x 2.0 m); characters are 1.6-1.75 m
-WALL_T = 0.25
-SLAB = 0.18           # roof thickness at the eave (kawara roofs read heavy)
-RECESS = 0.1          # openings sit this far back from the wall face
+DOOR_H = 2.0
+SLAB = 0.18
+RECESS = 0.1
+POST = 0.22
+CEDAR, PLASTER, KAWARA, GRANITE = "JP_Wood_CedarDark", "JP_Plaster_Warm", "JP_Roof_Kawara", "JP_Stone_Granite"
+rng = random.Random(1729)
 
 
-def ao_band(z_floor, z_top):
-    """Banded contact AO: darker in the 0.4 m above a floor line and under the eave (2 bands)."""
-    def f(co):
-        z = co.z
-        c = 1.0
-        if z - z_floor < 0.4:
-            c -= 0.22 * (1 - max(0.0, z - z_floor) / 0.4)
-        if z_top - z < 0.5:
-            c -= 0.16 * (1 - max(0.0, z_top - z) / 0.5)
-        return max(0.6, c)
-    return f
+# ------------------------------------------------------------------ roof parts
+def tile_ends(mb, a, b, z_a, z_b, out, mat=KAWARA, step=0.27, r=0.085):
+    """Row of round tile ends (small 6-sided discs) from a to b (2D points) along an eave, facing `out` (2D unit)."""
+    a, b = Vector((a[0], a[1], 0)), Vector((b[0], b[1], 0))
+    L = (b - a).length
+    n = max(1, int(L / step))
+    ang = math.degrees(math.atan2(out[1], out[0])) + 90.0      # the disc's axis turned to face `out` (local -Y)
+    for i in range(n + 1):
+        t = i / n
+        p = a + (b - a) * t
+        z = z_a + (z_b - z_a) * t
+        M = T(p.x, p.y, z - r * 0.4) @ R('Z', ang) @ R('X', 90)
+        mb.revolve([(r, -0.02), (r, 0.1)], mat, 6, M, cap_top=mat, cap_bottom=mat)
 
 
-# ------------------------------------------------------------------ roofs
 def ridge_end_tile(mb, x_outer, ym, z, h, outward, mat, length=0.7, width=0.56):
-    """Ridge-end tile as a flared wedge: long at the ridge, narrowing and leaning outward as it rises (onigawara /
-    cloud end outline). Low and wide, so from the field camera it reads as an ornament, not a chimney."""
+    """Ridge-end tile as a flared wedge leaning outward (onigawara / cloud-end outline): an ornament, never a chimney."""
     xi = x_outer - outward * length
     bot = [(min(xi, x_outer), ym - width / 2, z), (max(xi, x_outer), ym - width / 2, z),
            (max(xi, x_outer), ym + width / 2, z), (min(xi, x_outer), ym + width / 2, z)]
     xo = x_outer + outward * 0.12
-    tl = length * 0.4
-    xt0, xt1 = sorted((xo, xo - outward * tl))
+    xt0, xt1 = sorted((xo, xo - outward * length * 0.4))
     top = [(xt0, ym - width * 0.42, z + h), (xt1, ym - width * 0.42, z + h), (xt1, ym + width * 0.42, z + h), (xt0, ym + width * 0.42, z + h)]
     mb.solid(bot, top, mat)
 
 
-def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_end="plain", ridge_mat="GB_Roof"):
-    """Gable roof, ridge along X (parallel to the street), over the wall rectangle x0..x1, y0..y1 with its wall top at
-    z. eave: overhang beyond the long walls; gable_over: beyond the gable walls (default eave * 0.6)."""
+def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_end="plain", gable_mat=PLASTER,
+               ends=True, barge=CEDAR, slab=SLAB):
+    """Gable roof, ridge along X, over the wall rectangle x0..x1, y0..y1 (wall top at z)."""
     go = eave * 0.6 if gable_over is None else gable_over
     t = math.tan(math.radians(pitch))
     ym = (y0 + y1) / 2
     rise = (ym - y0 + eave) * t
-    ze = z - eave * t                    # eave line height (the roof plane passes z at the wall line)
+    ze = z - eave * t
     X0, X1 = x0 - go, x1 + go
-    # each slope is a slab: bottom plane = the roof plane, thickness SLAB
     for s in (-1, 1):
         ye = y0 - eave if s < 0 else y1 + eave
-        bottom = [(X0, ye, ze - SLAB), (X1, ye, ze - SLAB), (X1, ym, ze - SLAB + rise), (X0, ym, ze - SLAB + rise)]
+        bottom = [(X0, ye, ze - slab), (X1, ye, ze - slab), (X1, ym, ze - slab + rise), (X0, ym, ze - slab + rise)]
         top = [(X0, ye, ze), (X1, ye, ze), (X1, ym, ze + rise), (X0, ym, ze + rise)]
         if s > 0:
             bottom = [bottom[1], bottom[0], bottom[3], bottom[2]]; top = [top[1], top[0], top[3], top[2]]
-        mb.solid(bottom, top, mat)
-    # gable infill (wall material carries up under the roof)
+        mb.solid(bottom, top, mat, bottom_mat=CEDAR if mat != "JP_Roof_Plank" else "JP_Wood_Weathered", side_mat=CEDAR)
+        if ends:
+            tile_ends(mb, (X1, ye), (X0, ye), ze, ze, (0, s))
     for gx in (x0, x1):
-        sgn = -1 if gx == x0 else 1
         tri = [(gx, y0, z), (gx, y1, z), (gx, ym, z + (ym - y0) * t)]
-        if sgn < 0:
-            tri = list(reversed(tri))
-        mb.poly(tri, "_GABLE_")
-    # ridge (heavy tile ridge) and ridge ends
+        mb.poly(list(reversed(tri)) if gx == x0 else tri, gable_mat)
+        if barge:   # barge boards under the roof edge at both gable ends
+            bx = X0 if gx == x0 else X1
+            for s in (-1, 1):
+                ye = y0 - eave if s < 0 else y1 + eave
+                L = math.hypot(ym - ye, rise)
+                ang = math.degrees(math.atan2(rise, abs(ym - ye)))
+                M = T(bx, ye, ze - slab) @ R('Z', 0 if s < 0 else 180) @ R('X', ang)
+                if s > 0:
+                    M = T(bx, ye, ze - slab) @ R('Z', 180) @ R('X', ang)
+                mb.box(-0.05, 0, -0.22, 0.05, L, 0.0, barge, M=M)
     zr = ze + rise
-    mb.box(X0 - 0.05, ym - 0.22, zr - 0.05, X1 + 0.05, ym + 0.22, zr + 0.32, ridge_mat)
+    mb.box(X0 - 0.05, ym - 0.2, zr - 0.05, X1 + 0.05, ym + 0.2, zr + 0.3, mat)
     h = {"plain": 0.3, "cloud": 0.62, "none": 0.0}[ridge_end]
     if h > 0:
         for xe, o in ((X0 - 0.05, -1), (X1 + 0.05, 1)):
-            ridge_end_tile(mb, xe, ym, zr + 0.25, h, o, ridge_mat, length=0.55 if ridge_end == "plain" else 0.8)
+            ridge_end_tile(mb, xe, ym, zr + 0.22, h, o, mat, length=0.55 if ridge_end == "plain" else 0.8)
     return zr
 
 
 def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_end="cloud"):
-    """Irimoya (hip-and-gable): a hip roof whose top third is a small gable. Corners swept up by `upturn`."""
+    """Irimoya (hip-and-gable), corners swept up by `upturn`, tile ends along every eave."""
     t = math.tan(math.radians(pitch))
     ym = (y0 + y1) / 2
     hd = (y1 - y0) / 2 + eave
     rise = hd * t
     ze = z - eave * t
     X0, X1, Y0, Y1 = x0 - eave, x1 + eave, y0 - eave, y1 + eave
-    inset = hd * 0.55                         # where the hip turns into the small gable
+    inset = hd * 0.55
     zr = ze + rise
-    # lower hip skirt: ring at eave level (corners lifted) up to a ring at gable-start height
     zg = ze + inset * t
     ring_lo = [(X0, Y0, ze + upturn), (X1, Y0, ze + upturn), (X1, Y1, ze + upturn), (X0, Y1, ze + upturn)]
     ring_hi = [(X0 + inset, Y0 + inset, zg), (X1 - inset, Y0 + inset, zg), (X1 - inset, Y1 - inset, zg), (X0 + inset, Y1 - inset, zg)]
-    # mid-edge points of the low ring stay at ze (the sweep is only at the corners)
-    lo = []; hi = []
+    lo, hi = [], []
     for i in range(4):
         a, b = ring_lo[i], ring_lo[(i + 1) % 4]
         c, d = ring_hi[i], ring_hi[(i + 1) % 4]
-        mid_lo = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, ze)
-        mid_hi = ((c[0] + d[0]) / 2, (c[1] + d[1]) / 2, zg)
-        lo += [a, mid_lo]; hi += [c, mid_hi]
+        lo += [a, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, ze)]
+        hi += [c, ((c[0] + d[0]) / 2, (c[1] + d[1]) / 2, zg)]
     under = [(p[0], p[1], p[2] - SLAB) for p in lo]
-    mb.solid(under, lo, mat, bottom_mat=mat, cap=False)        # slab edge
+    mb.solid(under, lo, mat, bottom_mat=CEDAR, cap=False, side_mat=CEDAR)
     n = len(lo)
     for i in range(n):
         mb.poly([lo[i], lo[(i + 1) % n], hi[(i + 1) % n], hi[i]], mat)
-    # upper gable roof on the inner rectangle
+    outs = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+    for i in range(4):     # tile ends along each eave side, rising to the corners
+        a, m, b = lo[2 * i], lo[2 * i + 1], lo[(2 * i + 2) % n]
+        tile_ends(mb, a[:2], m[:2], a[2], m[2], outs[i])
+        tile_ends(mb, m[:2], b[:2], m[2], b[2], outs[i])
     gx0, gx1 = X0 + inset, X1 - inset
     for s in (-1, 1):
         ye = Y0 + inset if s < 0 else Y1 - inset
@@ -282,19 +380,17 @@ def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_en
         if s > 0:
             q = [q[1], q[0], q[3], q[2]]
         mb.poly(q, mat)
-    for gx, sgn in ((gx0, -1), (gx1, 1)):         # small gable faces (lattice/plaster triangle)
+    for gx, sgn in ((gx0, -1), (gx1, 1)):
         tri = [(gx, Y0 + inset, zg), (gx, Y1 - inset, zg), (gx, ym, zr - 0.1)]
-        if sgn < 0:
-            tri = list(reversed(tri))
-        mb.poly(tri, "GB_Wood")
-    mb.box(gx0 - 0.3, ym - 0.24, zr - 0.05, gx1 + 0.3, ym + 0.24, zr + 0.36, mat)   # ridge
+        mb.poly(list(reversed(tri)) if sgn < 0 else tri, "JP_Wood_Lattice")      # latticed gable (kitsune-goshi)
+    mb.box(gx0 - 0.3, ym - 0.22, zr - 0.05, gx1 + 0.3, ym + 0.22, zr + 0.34, mat)
     h = {"plain": 0.3, "cloud": 0.66}[ridge_end]
     for xe, o in ((gx0 - 0.3, -1), (gx1 + 0.3, 1)):
-        ridge_end_tile(mb, xe, ym, zr + 0.28, h, o, mat, length=0.55 if ridge_end == "plain" else 0.85)
+        ridge_end_tile(mb, xe, ym, zr + 0.26, h, o, mat, length=0.55 if ridge_end == "plain" else 0.85)
     return zr
 
 
-def roof_hip(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.0):
+def roof_hip(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.0, ends=True):
     t = math.tan(math.radians(pitch))
     X0, X1, Y0, Y1 = x0 - eave, x1 + eave, y0 - eave, y1 + eave
     hd = min(X1 - X0, Y1 - Y0) / 2
@@ -307,269 +403,362 @@ def roof_hip(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.0):
     else:
         top = [(xm, Y0 + hd, zr), (xm, Y0 + hd, zr), (xm, Y1 - hd, zr), (xm, Y1 - hd, zr)]
     under = [(p[0], p[1], p[2] - SLAB) for p in lo]
-    mb.solid(under, lo, mat, cap=False)
+    mb.solid(under, lo, mat, bottom_mat=CEDAR, cap=False, side_mat=CEDAR)
+    outs = [(0, -1), (1, 0), (0, 1), (-1, 0)]
     for i in range(4):
         a, b, c, d = lo[i], lo[(i + 1) % 4], top[(i + 1) % 4], top[i]
         if (Vector(c) - Vector(d)).length < 1e-6:
             mb.poly([a, b, c], mat)
         else:
             mb.poly([a, b, c, d], mat)
+        if ends:
+            tile_ends(mb, a[:2], b[:2], a[2], b[2], outs[i])
     mb.box(min(p[0] for p in top) - 0.1, min(p[1] for p in top) - 0.18, zr - 0.05,
            max(p[0] for p in top) + 0.1, max(p[1] for p in top) + 0.18, zr + 0.25, mat)
     return zr
 
 
-def pent_roof(mb, x0, x1, y_wall, z_top, proj, pitch, mat, sides=0.0):
-    """A pent roof (hisashi) along the front wall: slab from the wall at z_top sloping out to -Y by proj."""
+def pent_roof(mb, x0, x1, y_wall, z_top, proj, pitch, mat=KAWARA, sides=0.0, ends=True):
+    """Pent roof (hisashi) along a front wall: slab from the wall at z_top sloping out to -Y by proj, tile-end row."""
     t = math.tan(math.radians(pitch))
     ze = z_top - proj * t
     a0, a1 = x0 - sides, x1 + sides
     bottom = [(a0, y_wall - proj, ze - 0.14), (a1, y_wall - proj, ze - 0.14), (a1, y_wall, z_top - 0.14), (a0, y_wall, z_top - 0.14)]
     top = [(a0, y_wall - proj, ze), (a1, y_wall - proj, ze), (a1, y_wall, z_top), (a0, y_wall, z_top)]
-    mb.solid(bottom, top, mat)
-    mb.box(a0, y_wall - proj - 0.08, ze - 0.26, a1, y_wall - proj + 0.14, ze + 0.04, "GB_Roof")   # tile-end row
+    mb.solid(bottom, top, mat, bottom_mat=CEDAR, side_mat=CEDAR)
+    mb.box(a0, y_wall - proj - 0.02, ze - 0.2, a1, y_wall - proj + 0.1, ze - 0.06, CEDAR)       # fascia
+    if ends:
+        tile_ends(mb, (a1, y_wall - proj), (a0, y_wall - proj), ze, ze, (0, -1))
+    for px in [a0 + 0.3 + i * 2.0 for i in range(int((a1 - a0) / 2.0) + 1)]:                   # rafter-end brackets
+        if px < a1 - 0.2:
+            mb.box(px - 0.06, y_wall - proj + 0.1, ze - 0.24, px + 0.06, y_wall, ze - 0.12, CEDAR)
     return ze
 
 
-# ------------------------------------------------------------------ prefab helpers
-PREFABS = {}          # name -> (object, info)
-RULES = {"A": {"pent": True}, "B": {"max_features": 1, "cusped": False}, "C": {"pent": False, "balcony": False, "cusped": False, "cloud": False}}
+# ------------------------------------------------------------------ wall modules (write into a MeshBuilder)
+def m_post(mb, x, y, z0, z1, s=POST, mat=CEDAR):
+    mb.box(x - s / 2, y - s / 2, z0, x + s / 2, y + s / 2, z1, mat)
 
 
-def finish(mb, name, w, d, h, tier, info, extra_cols=()):
-    ob = mb.to_object(name, COL["90_Prefabs"], ao=ao_band(0.0, h))
-    col_box(ob, -w / 2, 0, 0, w / 2, d, max(2.0, h * 0.7))
-    for i, c in enumerate(extra_cols):
-        col_box(ob, *c, suffix="_%d" % i)
-    info.update(tier=tier, width=w, depth=d, height=round(h, 2), tris=len(ob.data.polygons))
+def m_plinth(mb, x0, x1, y0, y1, h, mat=GRANITE):
+    mb.box(x0, y0, 0, x1, y1, h, mat)
+
+
+def m_front_lattice(mb, x0, x1, y, z, h=2.6):
+    """A 2 m lattice shop/house front bay (koshi): kickboard, recessed glowing lattice panel, head rail."""
+    mb.box(x0, y - 0.02, z, x1, y + 0.06, z + 0.35, CEDAR)
+    mb.box(x0, y + 0.02, z + 0.35, x1, y + 0.12, z + h - 0.25, "JP_Wood_Lattice")
+    mb.box(x0, y - 0.04, z + h - 0.25, x1, y + 0.06, z + h, CEDAR)
+
+
+def m_door_lattice(mb, cx, y, z, w=1.6, deep=0.35):
+    """Recessed lattice sliding door (entrance). The noren is a sprite card hung at the head beam in the scene."""
+    mb.box(cx - w / 2, y + deep - 0.05, z, cx + w / 2, y + deep + 0.05, z + DOOR_H, "JP_Wood_Lattice")
+    mb.box(cx - w / 2 - 0.1, y - 0.02, z, cx - w / 2, y + deep, z + DOOR_H + 0.15, CEDAR)
+    mb.box(cx + w / 2, y - 0.02, z, cx + w / 2 + 0.1, y + deep, z + DOOR_H + 0.15, CEDAR)
+    mb.box(cx - w / 2 - 0.1, y - 0.04, z + DOOR_H, cx + w / 2 + 0.1, y + deep, z + DOOR_H + 0.2, CEDAR)
+    mb.box(cx - w / 2, y + 0.0, z - 0.01, cx + w / 2, y + deep, z + 0.01, GRANITE)        # threshold
+
+
+def m_window_shoji(mb, cx, y, z, w=1.3, h=1.0):
+    mb.box(cx - w / 2, y - 0.015, z, cx + w / 2, y + 0.01, z + h, "JP_Shoji_Paper")
+    mb.box(cx - w / 2 - 0.08, y - 0.06, z - 0.1, cx + w / 2 + 0.08, y + 0.04, z, CEDAR)       # sill
+    mb.box(cx - w / 2 - 0.08, y - 0.06, z + h, cx + w / 2 + 0.08, y + 0.04, z + h + 0.1, CEDAR)
+    for px in (cx - w / 2 - 0.08, cx + w / 2):
+        mb.box(px, y - 0.06, z, px + 0.08, y + 0.04, z + h, CEDAR)
+
+
+def m_loft_window(mb, cx, y, z, w=3.0, h=0.7):
+    """Mushiko-mado: a long slatted loft window in the low upper floor (plaster with a dark lattice)."""
+    mb.box(cx - w / 2, y - 0.02, z, cx + w / 2, y + 0.08, z + h, "JP_Wood_Lattice")
+    mb.box(cx - w / 2 - 0.1, y - 0.06, z - 0.08, cx + w / 2 + 0.1, y + 0.02, z, CEDAR)
+    mb.box(cx - w / 2 - 0.1, y - 0.06, z + h, cx + w / 2 + 0.1, y + 0.02, z + h + 0.08, CEDAR)
+
+
+def m_bay_window(mb, cx, y, z, w=2.2):
+    mb.box(cx - w / 2, y - 0.55, z, cx + w / 2, y, z + 0.4, CEDAR)                 # base
+    mb.box(cx - w / 2 + 0.08, y - 0.5, z + 0.4, cx + w / 2 - 0.08, y - 0.1, z + 1.3, "JP_Wood_Lattice")
+    for px in (cx - w / 2, cx + w / 2 - 0.1):
+        mb.box(px, y - 0.55, z + 0.4, px + 0.1, y, z + 1.35, CEDAR)
+    mb.box(cx - w / 2, y - 0.55, z + 1.3, cx + w / 2, y, z + 1.4, CEDAR)
+    pent_roof(mb, cx - w / 2 - 0.15, cx + w / 2 + 0.15, y, z + 1.75, 0.75, 28.0, ends=True)
+
+
+def m_balcony(mb, x0, x1, y, z, depth, posts_to=None, bay=2.0):
+    mb.box(x0, y - depth, z, x1, y, z + 0.14, CEDAR)
+    mb.box(x0, y - depth - 0.02, z + 0.14, x1, y - depth + 0.06, z + 0.95, "JP_Wood_Lattice")
+    mb.box(x0, y - depth - 0.05, z + 0.95, x1, y - depth + 0.09, z + 1.03, CEDAR)            # hand rail
+    for bx in (x0, x1 - 0.08):
+        mb.box(bx, y - depth, z + 0.14, bx + 0.08, y, z + 1.03, CEDAR)
+    if posts_to:
+        n = int(round((x1 - x0) / bay))
+        for i in range(n + 1):
+            px = x0 + i * (x1 - x0) / n
+            mb.box(px - 0.08, y - depth, z + 0.14, px + 0.08, y - depth + 0.16, posts_to, CEDAR)
+
+
+def m_wall_frame(mb, x0, x1, y0, y1, z0, z1, wall=PLASTER, bays=None, band=True, open_front=False):
+    """A storey's walls (all four sides of the rectangle) in one wall material, cedar corner posts, posts at the
+    bay lines of the sides and back, and a cedar band at the top."""
+    mb.box(x0, y0, z0, x1, y1, z1, wall, skip=('-z', '-y') if open_front else ('-z',))
+    for (x, y) in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)):
+        m_post(mb, x, y, z0, z1, 0.24)
+    if bays:
+        for i in range(1, int((y1 - y0) / bays)):
+            for x in (x0, x1):
+                m_post(mb, x, y0 + i * bays, z0, z1, 0.18)
+    if band:
+        mb.box(x0 - 0.04, y0 - 0.04, z1 - 0.3, x1 + 0.04, y1 + 0.04, z1 - 0.08, CEDAR, skip=('-z', '+z'))
+
+
+# ------------------------------------------------------------------ prefabs
+PREFABS = {}
+RULES = {"A": {"pent": True}, "B": {"max_features": 1}, "C": {}}
+
+
+def finish(mb, name, w, d, h, tier, info, floors=(), coll="90_Prefabs", col=True):
+    ob = mb.to_object(name, COL[coll], ao=ao_band(0.0, h, floors))
+    if col:
+        col_box(ob, -w / 2, 0, 0, w / 2, d, max(2.0, min(h, 4.0)))
+    info.update(tier=tier, width=w, depth=d, height=round(h, 2), faces=len(ob.data.polygons))
     PREFABS[name] = (ob, info)
     return ob
 
 
-def openings(mb, x0, x1, y, z0, kind, bays, door_bays=(), win_h=1.2, win_z=1.0):
-    """Front openings per 2 m bay as recessed dark (or glowing) panels: 'lattice' = glowing lattice front over the
-    whole bay below the head beam, 'door' = sliding door, 'window' = shoji window."""
-    bw = (x1 - x0) / bays
-    for i in range(bays):
-        bx0, bx1 = x0 + i * bw + 0.15, x0 + (i + 1) * bw - 0.15
-        if i in door_bays:
-            mb.box(bx0 + 0.15, y - 0.02, z0, bx1 - 0.15, y + RECESS, z0 + DOOR_H, "GB_Opening")
-        elif kind == "lattice":
-            mb.box(bx0, y - 0.02, z0 + 0.35, bx1, y + RECESS, z0 + 2.3, "GB_Glow")
-        elif kind == "window":
-            mb.box(bx0 + 0.25, y - 0.02, z0 + win_z, bx1 - 0.25, y + RECESS, z0 + win_z + win_h, "GB_Glow")
-    # posts at every bay line, standing 4 cm proud
-    for i in range(bays + 1):
-        px = x0 + i * bw
-        mb.box(px - 0.1, y - 0.06, z0, px + 0.1, y + 0.02, z0 + 2.6 if kind == "lattice" else z0 + 2.4, "GB_Wood")
-
-
-def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=False, door_bays=(1,), steps=0,
-            cloud=False, shop=False, third_bay=None):
-    """A tier A/B townhouse / hall: plinth, ground floor (lattice fronts, door), pent roof, low upper floor with
-    at most one feature on B (upper = 'bay' | 'balcony' | 'loft'), main roof ('gable' parallel to the street or
-    'hipgable'). Origin: centre of the front wall at the ground, front -Y."""
+def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=False, door_bay=1, steps=0,
+            cloud=False, shop=False, feature_bay=None, brackets=False):
+    """Tier A/B townhouse or hall. One wall material (plaster over a cedar frame), one stone (granite)."""
     m = TIER[tier]
-    r = RULES[tier]
     if tier == "A":
-        assert r["pent"] and floors >= 1, name
+        assert m["pent"] > 0, name
     if tier == "B":
-        assert cusped == False and cloud == False, "%s: tier B has no cusped gable or cloud ridge ends" % name
-    W = bays * 2.0
-    D = depth
+        assert cusped is False and cloud is False, "%s: tier B has no cusped gable or cloud ridge ends" % name
+    W, D = bays * 2.0, depth
     x0, x1 = -W / 2, W / 2
     mb = MeshBuilder()
     pl = m["plinth"]
-    # plinth (granite) with a step band in front
-    mb.box(x0 - 0.15, -0.15, 0, x1 + 0.15, D + 0.15, pl, "GB_Stone")
+    m_plinth(mb, x0 - 0.15, x1 + 0.15, -0.15, D + 0.15, pl)
     if steps:
-        sw = steps
         for k in range(2):
-            mb.box(-sw / 2 - 0.2 * (1 - k), -0.15 - 0.45 * (2 - k), 0, sw / 2 + 0.2 * (1 - k), -0.15, pl * (k + 1) / 2, "GB_Stone")
+            mb.box(-steps / 2 - 0.2 * (1 - k), -0.15 - 0.42 * (2 - k), 0, steps / 2 + 0.2 * (1 - k), -0.15, pl * (k + 1) / 2, GRANITE)
     z = pl
-    # ground floor
     gf = m["gf"]
-    mb.box(x0, 0, z, x1, D, z + gf, "GB_Wall")
-    if shop:   # open shop front: the whole front is a recess with a goods platform
-        mb.box(x0 + 0.2, -0.02, z, x1 - 0.2, 0.9, z + 2.4, "GB_Opening")
-        mb.box(x0 + 0.3, -0.5, z, x1 - 0.3, 0.2, z + 0.45, "GB_Wood")
-        mb.box(x0 + 0.1, -0.9, z + 2.4, x1 - 0.1, -0.05, z + 2.5, "GB_Wood")    # raised shutters (as a lid)
-        for px in (x0 + 0.1, x1 - 0.3):
-            mb.box(px, -0.08, z, px + 0.2, 0.02, z + gf, "GB_Wood")
+    zt0 = z + gf
+    # ground floor: side/back walls + the front made of bays
+    m_wall_frame(mb, x0, x1, 0.0, D, z, z + gf, bays=2.0, open_front=True)
+    if shop:
+        mb.box(x0 + 0.2, -0.01, z, x1 - 0.2, 1.2, z + 2.5, "JP_Mat_Opening", skip=('-y', '+z'))
+        mb.box(x0 + 0.2, 1.15, z, x1 - 0.2, 1.2, z + 2.5, "JP_Mat_Opening")
+        mb.box(x0 + 0.3, -0.6, z, x1 - 0.3, 0.6, z + 0.45, CEDAR)                          # goods platform
+        mb.box(x0 + 0.1, -1.0, z + 2.45, x1 - 0.1, -0.05, z + 2.55, "JP_Wood_Weathered")   # raised shutters
+        mb.box(x0, -0.01, z + 2.5, x1, 0.05, zt0 - 0.28, PLASTER)
+        mb.box(x0, -0.01, z, x0 + 0.2, 1.2, z + 2.5, PLASTER); mb.box(x1 - 0.2, -0.01, z, x1, 1.2, z + 2.5, PLASTER)
+        for px in (x0 + 0.2, x1 - 0.2):
+            m_post(mb, px, -0.05, z, z + gf, POST)
     else:
-        openings(mb, x0, x1, 0.0, z, "lattice", bays, door_bays)
-    z_gf_top = z + gf
-    mb.box(x0 - 0.04, -0.08, z_gf_top - 0.28, x1 + 0.04, 0.02, z_gf_top - 0.02, "GB_Wood")   # head beam
-    # pent roof
+        for i in range(bays):
+            bx0, bx1 = x0 + i * 2.0, x0 + (i + 1) * 2.0
+            if i == door_bay:
+                mb.box(bx0, -0.02, z + DOOR_H + 0.2, bx1, 0.02, z + gf, PLASTER)
+                m_door_lattice(mb, (bx0 + bx1) / 2, 0.0, z)
+                mb.box(bx0, -0.01, z, bx0 + 0.1, 0.36, z + DOOR_H + 0.2, PLASTER)
+                mb.box(bx1 - 0.1, -0.01, z, bx1, 0.36, z + DOOR_H + 0.2, PLASTER)
+            else:
+                m_front_lattice(mb, bx0 + 0.11, bx1 - 0.11, -0.02, z, 2.6)
+                mb.box(bx0, -0.01, z + 2.6, bx1, 0.05, zt0 - 0.28, PLASTER)          # transom above the lattice
+            m_post(mb, bx0, -0.04, z, z + gf, POST)
+        m_post(mb, x1, -0.04, z, z + gf, POST)
+    zt = z + gf
+    mb.box(x0 - 0.06, -0.12, zt - 0.3, x1 + 0.06, 0.02, zt - 0.02, CEDAR)                    # head beam
     if m["pent"] > 0:
-        pent_roof(mb, x0, x1, 0.0, z_gf_top + 0.32, m["pent"], m["pitch"] - 4, "GB_Roof")
+        pent_roof(mb, x0 - 0.1, x1 + 0.1, 0.0, zt + 0.32, m["pent"], m["pitch"] - 4)
     feats = 0
-    top = z_gf_top
+    top = zt
+    floor_lines = [zt]
     if floors >= 2:
         uf = m["uf"]
-        z2 = z_gf_top
-        mb.box(x0, 0, z2, x1, D, z2 + uf, "GB_Wall")
-        # upper floor windows (shoji) in every bay but where a feature sits
-        openings(mb, x0, x1, 0.0, z2, "window", bays, (), win_h=1.0 if tier == "B" else 1.2, win_z=0.7)
+        z2 = zt
+        m_wall_frame(mb, x0, x1, 0.0, D, z2, z2 + uf, bays=2.0)
+        for i in range(bays + 1):
+            m_post(mb, x0 + i * 2.0, -0.03, z2, z2 + uf - 0.22, 0.18)      # stops under the eave
+        fb = feature_bay if feature_bay is not None else bays // 2
+        for i in range(bays):
+            cx = x0 + i * 2.0 + 1.0
+            if upper == "bay" and i == fb:
+                continue
+            if upper == "loft" and abs(cx) < 1.6:
+                continue
+            m_window_shoji(mb, cx, 0.0, z2 + 0.7, 1.3, 1.0 if tier == "B" else 1.2)
         if upper == "bay":
             feats += 1
-            cx = 0.0 if third_bay is None else x0 + third_bay * 2 + 1
-            mb.box(cx - 1.1, -0.55, z2 + 0.55, cx + 1.1, 0.0, z2 + 1.85, "GB_Wood")
-            mb.box(cx - 0.95, -0.57, z2 + 0.75, cx + 0.95, -0.5, z2 + 1.65, "GB_Glow")
-            mb.box(cx - 1.25, -0.7, z2 + 1.85, cx + 1.25, 0.0, z2 + 2.0, "GB_Roof")
+            m_bay_window(mb, x0 + fb * 2.0 + 1.0, -0.02, z2 + 0.45)
         elif upper == "balcony":
             feats += 1
-            bx0, bx1 = (x0 + 0.4, x1 - 0.4) if tier == "A" else (-2.0 if bays > 3 else -1.6, 2.0 if bays > 3 else 1.6)
-            bd = 0.6 if tier == "A" else 0.95          # A: shallow, raised over the pent roof, which stays visible below
-            bz = z2 + (0.5 if tier == "A" else 0.0)
-            mb.box(bx0, -bd, bz, bx1, 0.0, bz + 0.14, "GB_Wood")                         # deck
-            mb.box(bx0, -bd - 0.02, bz + 0.14, bx1, -bd + 0.06, bz + 0.95, "GB_Wood")    # railing (lattice)
-            for bx in (bx0, bx1 - 0.08):
-                mb.box(bx, -bd, bz + 0.14, bx + 0.08, 0.0, bz + 0.95, "GB_Wood")
             if tier == "A":
-                for i in range(bays + 1):
-                    px = x0 + i * 2.0
-                    if bx0 - 0.01 <= px <= bx1 + 0.01:
-                        mb.box(px - 0.08, -bd, bz + 0.14, px + 0.08, -bd + 0.16, z2 + uf, "GB_Wood")   # balcony posts
+                m_balcony(mb, x0 + 0.4, x1 - 0.4, 0.0, z2 + 0.5, 0.6, posts_to=z2 + uf - 0.55)   # stay under the eave
+            else:
+                bw = 2.0 if bays > 3 else 1.6
+                m_balcony(mb, -bw, bw, 0.0, z2, 0.95)
         elif upper == "loft":
             feats += 1
-            mb.box(-1.6, -0.03, z2 + 0.6, 1.6, RECESS, z2 + 1.3, "GB_Wood")                # slatted loft window
+            m_loft_window(mb, 0.0, -0.02, z2 + 0.75, 3.0, 0.75)
         top = z2 + uf
     if tier == "B":
-        assert feats <= r["max_features"], "%s: tier B has at most one upper feature" % name
-    # main roof
+        assert feats <= RULES["B"]["max_features"], "%s: tier B has at most one upper feature" % name
+    if brackets:      # carved eave brackets as plain outlines under the main eave
+        for i in range(bays + 1):
+            mb.box(x0 + i * 2.0 - 0.09, -0.6, top - 0.9, x0 + i * 2.0 + 0.09, 0.0, top - 0.62, CEDAR)
     if roof == "gable":
-        zr = roof_gable(mb, x0, x1, 0.0, D, top, m["pitch"], m["eave"], "GB_Roof",
-                        ridge_end="cloud" if cloud else "plain")
+        zr = roof_gable(mb, x0, x1, 0.0, D, top, m["pitch"], m["eave"], KAWARA, ridge_end="cloud" if cloud else "plain")
     else:
-        zr = roof_hipgable(mb, x0, x1, 0.0, D, top, m["pitch"], m["eave"], "GB_Roof", upturn=0.3 if tier == "A" else 0.0,
+        zr = roof_hipgable(mb, x0, x1, 0.0, D, top, m["pitch"], m["eave"], KAWARA, upturn=0.3 if tier == "A" else 0.0,
                            ridge_end="cloud" if cloud else "plain")
     if cusped:
-        assert tier == "A"
-        # cusped curved gable (karahafu) facing the street: a small cross-gable on the pent roof over the centre bays
-        cw = 4.4
-        zc = z_gf_top + 0.32
-        t = math.tan(math.radians(32))
-        hw = cw / 2 + 0.3
-        for s in (-1, 1):
-            q = [(0, -1.4, zc + hw * t), (0, 0.4, zc + hw * t), (s * hw, 0.4, zc + 0.05), (s * hw, -1.4, zc + 0.05)]
-            if s > 0:
-                q = list(reversed(q))
-            sub = [(p[0], p[1], p[2] - 0.16) for p in q]
-            mb.solid(sub if s < 0 else list(reversed(sub)), q if s < 0 else list(reversed(q)), "GB_Roof")
-        mb.poly([(-cw / 2, -1.3, zc), (cw / 2, -1.3, zc), (0, -1.3, zc + (cw / 2) * t)], "GB_Wood")   # gable board
-        mb.box(-0.25, -1.55, zc + hw * t - 0.1, 0.25, -1.2, zc + hw * t + 0.5, "GB_Roof")            # crest tile
-        for px in (-cw / 2, cw / 2 - 0.22):
-            mb.box(px, -1.4, pl, px + 0.22, -1.18, zc, "GB_Wood")                                     # porch posts
-    # the gable placeholder material ("_GABLE_") = the wall material
-    mb.mats = ["GB_Wall" if mm == "_GABLE_" else mm for mm in mb.mats]
-    info = dict(bays=bays, floors=floors, roof=roof, upper=upper, cusped=cusped, ridge=round(zr, 2))
-    return finish(mb, name, W, D, zr, tier, info)
+        cusped_gable(mb, zt + 0.32, pl)
+    info = dict(bays=bays, floors=floors, roof=roof, upper=upper, cusped=cusped, ridge=round(zr, 2),
+                door_x=(None if shop else x0 + door_bay * 2.0 + 1.0), head_z=round(z + DOOR_H + 0.2, 2),
+                pent_z=round(zt + 0.32 - m["pent"] * math.tan(math.radians(m["pitch"] - 4)), 2) if m["pent"] else None)
+    return finish(mb, name, W, D, zr, tier, info, floors=floor_lines)
 
 
-def poor_house(name, w, d, roof="kawara_old", door_x=(0.0,), win_x=(), open_front=False, units=1, stilts=0.0,
-               water_bay=None, tier="C"):
-    """Tier C: single storey on a low rough base (or posts on stones / stilts), simple gable parallel to the street,
-    low eaves. roof: 'kawara_old' (25 deg, patched tile) or 'plank' (18 deg, planks weighed with rows of stones)."""
+def cusped_gable(mb, zc, plinth, cw=4.4):
+    """Karahafu: a cross-gable on the pent roof over the entrance with a bell-curved, upturned front edge; the gable
+    board under it and two porch posts down to the plinth."""
+    hw = cw / 2 + 0.35
+    H = 1.5
+    n = 10
+    prof = []
+    for i in range(n + 1):
+        x = -hw + 2 * hw * i / n
+        k = abs(x) / hw
+        prof.append((x, zc + H * (1 - k ** 1.7) + 0.18 * max(0.0, k - 0.8) / 0.2))      # flicks up at the ends
+    y0, y1 = -1.45, 0.4
+    for i in range(n):
+        (xa, za), (xb, zb) = prof[i], prof[i + 1]
+        mb.poly([(xa, y0, za), (xb, y0, zb), (xb, y1, zb), (xa, y1, za)], KAWARA)                    # top
+        mb.poly([(xa, y1, za - 0.16), (xb, y1, zb - 0.16), (xb, y0, zb - 0.16), (xa, y0, za - 0.16)], CEDAR)   # under
+        mb.poly([(xa, y0, za - 0.16), (xb, y0, zb - 0.16), (xb, y0, zb), (xa, y0, za)], CEDAR)       # front edge (bargeboard)
+    tile_ends(mb, (hw, y0), (-hw, y0), prof[-1][1], prof[0][1], (0, -1))
+    fan = [(-cw / 2, y0 + 0.12, zc)] + [(x, y0 + 0.12, z - 0.2) for (x, z) in prof if abs(x) <= cw / 2] + [(cw / 2, y0 + 0.12, zc)]
+    mb.poly(fan, "JP_Wood_Lattice")
+    mb.box(-0.3, y0 - 0.1, zc + H - 0.15, 0.3, y0 + 0.3, zc + H + 0.45, KAWARA)            # crest tile (onigawara)
+    for px in (-cw / 2, cw / 2 - 0.24):
+        mb.box(px, y0 + 0.05, plinth, px + 0.24, y0 + 0.29, zc, CEDAR)
+        mb.box(px - 0.06, y0 - 0.01, plinth, px + 0.3, y0 + 0.35, plinth + 0.3, GRANITE)   # post base stones
+    mb.box(-cw / 2, y0 + 0.02, zc - 0.32, cw / 2, y0 + 0.32, zc - 0.02, CEDAR)              # tie beam
+
+
+def poor_house(name, w, d, roof="plank", wall="JP_Wood_Weathered_V", door_x=(0.0,), win_x=(), open_front=False,
+               units=1, stilts=0.0, water_bay=None):
+    """Tier C: single storey on posts on flat stones (or stilts), simple gable parallel to the street, low eaves."""
     m = TIER["C"]
-    assert units >= 1
     x0, x1 = -w / 2, w / 2
     mb = MeshBuilder()
-    base = m["plinth"]
-    z = base
+    z = m["plinth"]
+    post_xs = [x0 + i * w / max(1, round(w / 2)) for i in range(round(w / 2) + 1)]
     if stilts > 0:
         z = stilts
-        for px in [x0 + 0.1 + i * (w - 0.2) / max(1, round(w / 2)) for i in range(round(w / 2) + 1)]:
+        for px in post_xs:
             for py in (0.1, d / 2, d - 0.1):
-                mb.box(px - 0.1, py - 0.1, -1.2, px + 0.1, py + 0.1, z, "GB_Wood")
+                mb.box(px - 0.1, py - 0.1, -1.4, px + 0.1, py + 0.1, z, "JP_Wood_Weathered")
+        floors = [(x0, d)] if water_bay is None else [(x0, water_bay[0]), (water_bay[1], x1)]
+        for (a, b) in floors:
+            mb.box(a, 0, z - 0.15, b, d, z, "JP_Wood_Weathered")
         if water_bay:
-            bx0, bx1 = water_bay
-            mb.box(x0, 0, z - 0.15, bx0, d, z, "GB_Wood"); mb.box(bx1, 0, z - 0.15, x1, d, z, "GB_Wood")
-            mb.box(bx0, d - 1.2, z - 0.15, bx1, d, z, "GB_Wood")
-        else:
-            mb.box(x0, 0, z - 0.15, x1, d, z, "GB_Wood")
-        mb.box(x0 - 0.1, -1.1, z - 0.15, x1 + 0.1, 0, z - 0.03, "GB_Wood")      # plank walkway in front
+            mb.box(water_bay[0], d - 1.2, z - 0.15, water_bay[1], d, z, "JP_Wood_Weathered")
+        mb.box(x0 - 0.1, -1.1, z - 0.15, x1 + 0.1, 0, z - 0.03, "JP_Wood_Weathered")          # walkway
+        for px in (x0, x1):
+            mb.box(px - 0.08, -1.08, -1.4, px + 0.08, -0.92, z - 0.15, "JP_Wood_Weathered")
     else:
-        # posts on flat stones: a low rough-stone base under the sills
-        mb.box(x0 - 0.08, -0.08, 0, x1 + 0.08, d + 0.08, base, "GB_Stone")
+        mb.box(x0 - 0.06, -0.06, 0, x1 + 0.06, d + 0.06, z, "JP_Stone_Rough")                   # low rough base
+        for px in post_xs:
+            mb.box(px - 0.2, -0.22, 0, px + 0.2, 0.18, z + 0.05, "JP_Stone_Rough")              # flat stones under posts
     eave_z = z + m["gf"]
-    # walls
     if open_front:
-        mb.box(x0, d - WALL_T, z, x1, d, eave_z, "GB_WallC")
-        mb.box(x0, 0, z, x0 + WALL_T, d, eave_z, "GB_WallC")
-        mb.box(x1 - WALL_T, 0, z, x1, d, eave_z, "GB_WallC")
-        mb.box(x0, -0.02, eave_z - 0.4, x1, 0.2, eave_z, "GB_Wood")                       # head beam over the opening
-        mb.box(x0 + 0.4, 0.4, z + 0.3, x1 - 0.4, 0.5, eave_z - 0.5, "GB_Opening")         # dark interior back
+        mb.box(x0, d - 0.2, z, x1, d, eave_z, wall)
+        mb.box(x0, 0, z, x0 + 0.2, d, eave_z, wall)
+        mb.box(x1 - 0.2, 0, z, x1, d, eave_z, wall)
+        mb.box(x0 + 0.2, 0.2, z, x1 - 0.2, d - 0.2, z + 0.05, "JP_Wood_Weathered")
+        mb.box(x0 + 0.21, d - 0.21, z + 0.05, x1 - 0.21, d - 0.2, eave_z - 0.3, "JP_Mat_Opening")
+        mb.box(x0, -0.04, eave_z - 0.35, x1, 0.2, eave_z, CEDAR)
     elif water_bay:
         bx0, bx1 = water_bay
-        mb.box(x0, 0, z, bx0, d, eave_z, "GB_WallC"); mb.box(bx1, 0, z, x1, d, eave_z, "GB_WallC")
-        mb.box(bx0, d - 0.25, z, bx1, d, eave_z, "GB_WallC")
-        mb.box(bx0, -0.02, eave_z - 0.5, bx1, 0.2, eave_z, "GB_Wood")
-        mb.box(bx0 + 0.1, 0.3, -1.0, bx1 - 0.1, d - 0.3, z - 0.2, "GB_Opening")            # the dark water bay
+        mb.box(x0, 0, z, bx0, d, eave_z, wall); mb.box(bx1, 0, z, x1, d, eave_z, wall)
+        mb.box(bx0, d - 0.2, z, bx1, d, eave_z, wall)
+        mb.box(bx0, -0.04, eave_z - 0.45, bx1, 0.2, eave_z, CEDAR)
+        mb.box(bx0 + 0.05, d - 0.21, -1.0, bx1 - 0.05, d - 0.2, eave_z - 0.45, "JP_Mat_Opening")
     else:
-        mb.box(x0, 0, z, x1, d, eave_z, "GB_WallC")
+        mb.box(x0, 0, z, x1, d, eave_z, wall, skip=('-z',))
     for dx in door_x:
-        mb.box(dx - 0.55, -0.02, z, dx + 0.55, RECESS, z + DOOR_H - 0.15, "GB_Glow")       # patched paper door
-        mb.box(dx - 0.65, -0.06, z, dx - 0.55, 0.02, z + DOOR_H - 0.05, "GB_Wood")
-        mb.box(dx + 0.55, -0.06, z, dx + 0.65, 0.02, z + DOOR_H - 0.05, "GB_Wood")
+        mb.box(dx - 0.5, -0.02, z, dx + 0.5, 0.06, z + DOOR_H - 0.15, "JP_Shoji_Patched")
+        for px in (dx - 0.6, dx + 0.5):
+            mb.box(px, -0.06, z, px + 0.1, 0.04, z + DOOR_H - 0.05, CEDAR)
+        mb.box(dx - 0.6, -0.06, z + DOOR_H - 0.15, dx + 0.6, 0.04, z + DOOR_H - 0.03, CEDAR)
     for wx in win_x:
-        mb.box(wx - 0.4, -0.02, z + 1.0, wx + 0.4, RECESS, z + 1.6, "GB_Opening")          # barred window
-        mb.box(wx - 0.55, -0.45, z + 1.72, wx + 0.55, 0.0, z + 1.8, "GB_RoofC")            # small plank awning
-    # corner posts
-    for px in (x0, x1):
-        mb.box(px - 0.09, -0.09, z, px + 0.09, 0.09, eave_z, "GB_Wood")
+        mb.box(wx - 0.4, -0.01, z + 1.0, wx + 0.4, 0.04, z + 1.6, "JP_Mat_Opening")
+        for k in range(5):
+            bx = wx - 0.36 + k * 0.18
+            mb.box(bx - 0.025, -0.05, z + 1.0, bx + 0.025, -0.01, z + 1.6, CEDAR)              # bars
+        mb.box(wx - 0.5, -0.06, z + 0.92, wx + 0.5, 0.04, z + 1.0, CEDAR)
+        mb.box(wx - 0.55, -0.45, z + 1.72, wx + 0.55, 0.0, z + 1.79, "JP_Wood_Weathered")    # little plank awning
+    for px in post_xs:
+        m_post(mb, px, 0.0, z, eave_z, 0.16)
+        m_post(mb, px, d, z, eave_z, 0.16)
     if units > 1:
         for i in range(1, units):
-            px = x0 + i * w / units
-            mb.box(px - 0.08, -0.08, z, px + 0.08, 0.04, eave_z, "GB_Wood")
-    # roof
+            m_post(mb, x0 + i * w / units, 0.0, z, eave_z, 0.16)
+    mb.box(x0 - 0.04, -0.06, eave_z - 0.18, x1 + 0.04, d + 0.06, eave_z, CEDAR, skip=('-z', '+z'))
+    gm = wall
     if roof == "kawara_old":
-        zr = roof_gable(mb, x0, x1, 0.0, d, eave_z, 25.0, m["eave"], "GB_Roof", gable_over=0.3, ridge_end="none")
+        zr = roof_gable(mb, x0, x1, 0.0, d, eave_z, 25.0, m["eave"], "JP_Roof_KawaraOld", gable_over=0.3, ridge_end="none",
+                        gable_mat=gm, ends=False)
     else:
-        zr = roof_gable(mb, x0, x1, 0.0, d, eave_z, 18.0, m["eave"], "GB_RoofC", gable_over=0.3, ridge_end="none",
-                        ridge_mat="GB_RoofC")
-        # rows of river stones weighing the planks: two rows per slope, low blocks for the graybox
-        t = math.tan(math.radians(18.0))
-        for frac in (0.3, 0.75):
+        pitch = 18.0
+        zr = roof_gable(mb, x0, x1, 0.0, d, eave_z, pitch, m["eave"], "JP_Roof_Plank", gable_over=0.3, ridge_end="none",
+                        gable_mat=gm, ends=False, barge="JP_Wood_Weathered", slab=0.1)
+        t = math.tan(math.radians(pitch))
+        for frac in (0.3, 0.72):                           # rows of river stones weighing the planks (+ a pole under them)
             for s in (-1, 1):
-                yy = (d / 2) - s * (d / 2 + m["eave"]) * (1 - frac)
-                zz = eave_z - m["eave"] * t + (d / 2 + m["eave"]) * frac * t
-                mb.box(x0 - 0.2, yy - 0.12, zz - 0.02, x1 + 0.2, yy + 0.12, zz + 0.16, "GB_Stone")
-    mb.mats = ["GB_WallC" if mm == "_GABLE_" else mm for mm in mb.mats]
-    info = dict(roof=roof, units=units, stilts=stilts, ridge=round(zr, 2))
-    return finish(mb, name, w, d, zr, tier, info)
+                run = (d / 2 + m["eave"]) * frac
+                yy = (-m["eave"] + run) if s < 0 else (d + m["eave"] - run)
+                zz = eave_z - m["eave"] * t + run * t
+                mb.tube((x0 - 0.25, yy, zz + 0.04), (x1 + 0.25, yy, zz + 0.04), 0.045, "JP_Wood_Weathered", 5)
+                x = x0 - 0.15
+                while x < x1 + 0.15:
+                    r = 0.11 + rng.random() * 0.06
+                    M = T(x, yy + (rng.random() - 0.5) * 0.08, zz) @ R('Z', rng.random() * 60)
+                    mb.revolve([(r * 0.7, 0.0), (r, r * 0.45), (r * 0.6, r * 0.9), (0.0, r * 1.05)], "JP_Stone_Rough", 6, M,
+                               cap_bottom="JP_Stone_Rough")
+                    x += r * 2.1
+    info = dict(roof=roof, wall=wall, units=units, stilts=stilts, ridge=round(zr, 2), door_x=list(door_x),
+                head_z=round(z + DOOR_H - 0.03, 2))
+    return finish(mb, name, w, d, zr, "C", info)
 
 
-# ------------------------------------------------------------------ special buildings
 def storehouse(name):
     mb = MeshBuilder()
     w, d = 6.0, 5.0
-    mb.box(-w / 2 - 0.2, -0.2, 0, w / 2 + 0.2, d + 0.2, 0.6, "GB_Stone")
-    mb.box(-w / 2, 0, 0.6, w / 2, d, 6.2, "GB_Wall")
-    mb.box(-0.8, -0.25, 0.6, 0.8, 0.0, 2.8, "GB_Opening")          # heavy door in a deep frame
-    mb.box(-1.05, -0.45, 2.8, 1.05, 0.0, 3.1, "GB_Roof")           # little door roof
+    m_plinth(mb, -w / 2 - 0.2, w / 2 + 0.2, -0.2, d + 0.2, 0.6)
+    mb.box(-w / 2, 0, 0.6, w / 2, d, 6.2, "JP_Wall_Namako", skip=('-z',))
+    mb.box(-w / 2 - 0.05, -0.05, 5.7, w / 2 + 0.05, d + 0.05, 6.2, CEDAR, skip=('-z', '+z'))
+    mb.box(-0.8, -0.3, 0.6, 0.8, 0.0, 2.8, CEDAR)                                     # heavy door in a deep frame
+    for zz in (1.1, 2.2):
+        mb.box(-0.75, -0.33, zz, 0.75, -0.29, zz + 0.1, "JP_Mat_Iron")
+    pent_roof(mb, -1.1, 1.1, 0.0, 3.25, 0.6, 28.0)
     for wx in (-1.8, 1.8):
-        mb.box(wx - 0.35, -0.12, 4.4, wx + 0.35, 0.0, 5.0, "GB_Opening")
-    zr = roof_gable(mb, -w / 2, w / 2, 0.0, d, 6.2, 30.0, 0.7, "GB_Roof", ridge_end="plain")
-    mb.mats = ["GB_Wall" if mm == "_GABLE_" else mm for mm in mb.mats]
-    return finish(mb, name, w, d, zr, "A", dict(walls="namako (one material)"))
+        mb.box(wx - 0.4, -0.16, 4.3, wx + 0.4, 0.0, 5.0, CEDAR)
+    zr = roof_gable(mb, -w / 2, w / 2, 0.0, d, 6.2, 30.0, 0.7, KAWARA, ridge_end="plain", gable_mat="JP_Wall_Namako")
+    return finish(mb, name, w, d, zr, "A", dict(walls="namako"), floors=(0.6,))
 
 
-def compound_wall(name, length):
+def compound_wall(name, length=4.0):
     mb = MeshBuilder()
-    mb.box(-length / 2, 0, 0, length / 2, 0.5, 0.7, "GB_Stone")
-    mb.box(-length / 2, 0.05, 0.7, length / 2, 0.45, 2.1, "GB_Wall")
-    t = math.tan(math.radians(28))
-    for s in (-1, 1):   # small tile cap, both slopes
-        y_out = -0.25 if s < 0 else 0.75
-        q = [(-length / 2, y_out, 2.1), (length / 2, y_out, 2.1), (length / 2, 0.25, 2.1 + 0.5 * t), (-length / 2, 0.25, 2.1 + 0.5 * t)]
-        if s > 0:
-            q = [q[1], q[0], q[3], q[2]]
-        mb.solid([(p[0], p[1], p[2] - 0.1) for p in q], q, "GB_Roof")
-    mb.box(-length / 2, 0.15, 2.1 + 0.5 * t - 0.05, length / 2, 0.35, 2.1 + 0.5 * t + 0.15, "GB_Roof")
-    ob = mb.to_object(name, COL["90_Prefabs"], ao=ao_band(0.0, 2.6))
+    mb.box(-length / 2, 0, 0, length / 2, 0.5, 0.7, GRANITE)
+    mb.box(-length / 2, 0.05, 0.7, length / 2, 0.45, 2.1, PLASTER, skip=('-z',))
+    zr = roof_gable(mb, -length / 2, length / 2, 0.05, 0.45, 2.1, 28.0, 0.3, KAWARA, gable_over=0.0, ridge_end="none",
+                    gable_mat=PLASTER, barge=None, slab=0.1)
+    ob = finish(mb, name, length, 0.5, zr, "A", dict(), col=False)
     col_box(ob, -length / 2, 0, 0, length / 2, 0.5, 2.2)
-    PREFABS[name] = (ob, dict(tier="A", width=length, depth=0.5, height=2.6, tris=len(ob.data.polygons)))
     return ob
 
 
@@ -577,127 +766,160 @@ def compound_gate(name):
     mb = MeshBuilder()
     w = 3.0
     for px in (-w / 2 - 0.3, w / 2):
-        mb.box(px, 0.0, 0, px + 0.3, 0.5, 3.0, "GB_Wood")
-    mb.box(-w / 2 - 0.4, -0.05, 2.75, w / 2 + 0.4, 0.55, 3.0, "GB_Wood")
-    mb.box(-w / 2, 0.2, 0, w / 2, 0.3, 2.6, "GB_Opening")
-    zr = roof_gable(mb, -w / 2 - 0.3, w / 2 + 0.3, 0.0, 0.5, 3.0, 28.0, 0.8, "GB_Roof", gable_over=0.5)
-    mb.mats = ["GB_Wood" if mm == "_GABLE_" else mm for mm in mb.mats]
-    ob = mb.to_object(name, COL["90_Prefabs"], ao=ao_band(0.0, zr))
+        mb.box(px, 0.0, 0, px + 0.3, 0.5, 3.0, CEDAR)
+        mb.box(px - 0.05, -0.05, 0, px + 0.35, 0.55, 0.25, GRANITE)
+    mb.box(-w / 2 - 0.45, -0.05, 2.75, w / 2 + 0.45, 0.55, 3.0, CEDAR)
+    for side in (-1, 1):                                     # two leaves, half open
+        mb.box(min(0, side * 1.45), 0.22, 0.02, max(0, side * 1.45), 0.3, 2.6, CEDAR)
+    zr = roof_gable(mb, -w / 2 - 0.3, w / 2 + 0.3, 0.0, 0.5, 3.0, 28.0, 0.8, KAWARA, gable_over=0.5, gable_mat=CEDAR)
+    ob = finish(mb, name, w + 0.6, 0.5, zr, "A", dict(), col=False)
     for px in (-w / 2 - 0.3, w / 2):
         col_box(ob, px, 0, 0, px + 0.3, 0.5, 3.0, suffix="_%d" % int(px * 10))
-    PREFABS[name] = (ob, dict(tier="A", width=w + 0.6, depth=0.5, height=round(zr, 2), tris=len(ob.data.polygons)))
     return ob
 
 
 def city_gate(name):
-    """Yagura gate (MODEL_Gate_Front_A): two battered granite bases flanking a 4 m x 4.5 m passage, a plaster upper
-    storey with arrow slits and a barred central window across the top, a hip roof with upturned corners and ridge
-    ornaments, a pent roof over the passage. The two door leaves are separate exports (JP_Rich_CityGate_A_DoorL/R)."""
+    """Yagura gate: battered granite bases flanking a 4 x 4.5 m passage, plaster upper storey with arrow slits and a
+    barred window, hip roof with upturned corners and shachi ridge ornaments, pent roof over the passage. The door
+    leaves are separate exports (JP_Rich_CityGate_A_DoorL / _DoorR) so they can open."""
     mb = MeshBuilder()
     pw, ph = 4.0, 4.5
     bw, bd = 5.0, 7.0
     for s in (-1, 1):
-        xi = s * pw / 2
-        xo = s * (pw / 2 + bw)
-        lo = [(min(xi, xo), 0, 0), (max(xi, xo), 0, 0), (max(xi, xo), bd, 0), (min(xi, xo), bd, 0)]
-        batter = 0.9
-        hi = [(min(xi, xo) + (batter if s < 0 else 0), batter, ph), (max(xi, xo) - (batter if s > 0 else 0), batter, ph),
-              (max(xi, xo) - (batter if s > 0 else 0), bd - batter, ph), (min(xi, xo) + (batter if s < 0 else 0), bd - batter, ph)]
-        mb.solid(lo, hi, "GB_Stone")
-    # passage ceiling beam and lintel
-    mb.box(-pw / 2 - 0.2, 0.6, ph - 0.1, pw / 2 + 0.2, bd - 0.6, ph + 0.3, "GB_Wood")
+        xi, xo = s * pw / 2, s * (pw / 2 + bw)
+        a, b = min(xi, xo), max(xi, xo)
+        bat = 0.9
+        lo = [(a, 0, 0), (b, 0, 0), (b, bd, 0), (a, bd, 0)]
+        hi = [(a + (bat if s < 0 else 0), bat, ph), (b - (bat if s > 0 else 0), bat, ph),
+              (b - (bat if s > 0 else 0), bd - bat, ph), (a + (bat if s < 0 else 0), bd - bat, ph)]
+        mb.solid(lo, hi, GRANITE)
+    mb.box(-pw / 2 - 0.2, 0.6, ph - 0.1, pw / 2 + 0.2, bd - 0.6, ph + 0.35, CEDAR)
     for px in (-pw / 2, pw / 2 - 0.35):
-        mb.box(px, 0.9, 0, px + 0.35, 1.25, ph, "GB_Wood")                       # door posts
-    # upper storey
+        mb.box(px, 0.9, 0, px + 0.35, 1.25, ph, CEDAR)
+    mb.box(-pw / 2, 1.25, ph - 0.6, pw / 2, bd - 0.9, ph - 0.1, CEDAR)                 # passage ceiling
     ux0, ux1 = -(pw / 2 + bw) + 0.9, (pw / 2 + bw) - 0.9
     uy0, uy1 = 0.9, bd - 0.9
-    uz0, uz1 = ph + 0.3, ph + 0.3 + 3.2
-    mb.box(ux0, uy0, uz0, ux1, uy1, uz1, "GB_Wall")
-    mb.box(ux0 - 0.05, uy0 - 0.08, uz0, ux1 + 0.05, uy0 + 0.02, uz0 + 0.3, "GB_Wood")      # sill beam
-    for sx in (-4.2, -2.6, 2.6, 4.2):                                                        # triangular arrow slits
-        mb.poly([(sx - 0.25, uy0 - 0.01, uz0 + 1.1), (sx + 0.25, uy0 - 0.01, uz0 + 1.1), (sx, uy0 - 0.01, uz0 + 1.55)], "GB_Opening")
-    mb.box(-1.4, uy0 - 0.02, uz0 + 0.9, 1.4, uy0 + RECESS, uz0 + 2.2, "GB_Opening")          # barred central window
-    pent_roof(mb, -pw / 2 - 1.2, pw / 2 + 1.2, uy0, uz0 - 0.05, 1.3, 24.0, "GB_Roof")         # roof over the passage
-    zr = roof_hip(mb, ux0, ux1, uy0, uy1, uz1, 30.0, 1.2, "GB_Roof", upturn=0.35)
-    ridge_x = ((ux1 - ux0) + 2.4) / 2 - (uy1 - uy0 + 2.4) / 2                                # hip ridge half-length
-    for xe, o in ((-ridge_x - 0.1, -1), (ridge_x + 0.1, 1)):                                  # ridge ornaments (shachi outline)
-        ridge_end_tile(mb, xe, (uy0 + uy1) / 2, zr + 0.2, 0.9, o, "GB_Roof", length=0.8, width=0.5)
-    mb.mats = ["GB_Wall" if mm == "_GABLE_" else mm for mm in mb.mats]
+    uz0, uz1 = ph + 0.35, ph + 0.35 + 3.2
+    m_wall_frame(mb, ux0, ux1, uy0, uy1, uz0, uz1, bays=None)
+    mb.box(ux0 - 0.06, uy0 - 0.1, uz0, ux1 + 0.06, uy0 + 0.02, uz0 + 0.3, CEDAR)
+    for sx in (-4.2, -2.6, 2.6, 4.2):
+        mb.poly([(sx - 0.25, uy0 - 0.01, uz0 + 1.1), (sx + 0.25, uy0 - 0.01, uz0 + 1.1), (sx, uy0 - 0.01, uz0 + 1.55)], "JP_Mat_Opening")
+        mb.box(sx - 0.25, uy0 - 0.012, uz0 + 0.55, sx + 0.25, uy0 - 0.005, uz0 + 0.9, "JP_Mat_Opening")     # square loophole
+    mb.box(-1.4, uy0 - 0.01, uz0 + 0.9, 1.4, uy0 + 0.06, uz0 + 2.2, "JP_Mat_Opening")
+    for k in range(9):
+        bx = -1.3 + k * 0.325
+        mb.box(bx - 0.04, uy0 - 0.08, uz0 + 0.9, bx + 0.04, uy0 - 0.01, uz0 + 2.2, CEDAR)
+    mb.box(-1.5, uy0 - 0.1, uz0 + 0.82, 1.5, uy0 + 0.0, uz0 + 0.92, CEDAR)
+    mb.box(-1.5, uy0 - 0.1, uz0 + 2.2, 1.5, uy0 + 0.0, uz0 + 2.3, CEDAR)
+    pent_roof(mb, -pw / 2 - 1.3, pw / 2 + 1.3, uy0, uz0 - 0.05, 1.3, 24.0)
+    zr = roof_hip(mb, ux0, ux1, uy0, uy1, uz1, 30.0, 1.2, KAWARA, upturn=0.35)
+    rx = ((ux1 - ux0) + 2.4) / 2 - (uy1 - uy0 + 2.4) / 2
+    for xe, o in ((-rx - 0.1, -1), (rx + 0.1, 1)):
+        ridge_end_tile(mb, xe, (uy0 + uy1) / 2, zr + 0.2, 0.95, o, KAWARA, length=0.8, width=0.5)   # shachi outline (tile, not gold)
     W = pw + 2 * bw
-    ob = finish(mb, name, W, bd, zr + 1.1, "A", dict(passage="%.1f x %.1f m" % (pw, ph)))
-    # collision: the two bases (the passage stays open)
-    for c in ob.children[:]:
-        bpy.data.objects.remove(c)
+    ob = finish(mb, name, W, bd, zr + 1.1, "A", dict(passage="%.1f x %.1f m" % (pw, ph)), floors=(ph,), col=False)
     for s in (-1, 1):
-        x0, x1 = sorted((s * pw / 2, s * (pw / 2 + bw)))
-        col_box(ob, x0, 0, 0, x1, bd, uz1, suffix="_%s" % ("L" if s < 0 else "R"))
-    # door leaves (open-able): hinge at the passage side posts
+        a, b = sorted((s * pw / 2, s * (pw / 2 + bw)))
+        col_box(ob, a, 0, 0, b, bd, uz1, suffix="_%s" % ("L" if s < 0 else "R"))
     for side in ("L", "R"):
         db = MeshBuilder()
-        db.box(0.0 if side == "L" else -pw / 2, 0.0, 0, pw / 2 if side == "L" else 0.0, 0.15, ph - 0.12, "GB_Wood")
-        for z in (0.8, 2.2, 3.6):
-            db.box(0.05 if side == "L" else -pw / 2 + 0.05, -0.04, z, pw / 2 - 0.05 if side == "L" else -0.05, 0.0, z + 0.14, "GB_Stone")   # iron bands
-        dob = db.to_object(name + "_Door" + side, COL["90_Prefabs"])
-        col_box(dob, 0.0 if side == "L" else -pw / 2, 0, 0, pw / 2 if side == "L" else 0.0, 0.15, ph - 0.12)
-        PREFABS[dob.name] = (dob, dict(tier="A", width=pw / 2, depth=0.15, height=ph - 0.12, tris=len(dob.data.polygons),
-                                       note="origin at the hinge; place at x = -2 (L) / +2 (R), y = 1.05 from the gate origin"))
+        a, b = (0.0, pw / 2) if side == "L" else (-pw / 2, 0.0)
+        db.box(a, 0.0, 0, b, 0.15, ph - 0.12, "JP_Gate_DoorStudded")
+        dob = finish(db, name + "_Door" + side, pw / 2, 0.15, ph - 0.12, "A",
+                     dict(note="origin at the hinge; place at x = -2 (L) / +2 (R), y = 1.05 from the gate origin"), col=False)
+        col_box(dob, a, 0, 0, b, 0.15, ph - 0.12)
     return ob
 
 
 def gate_wall(name, length=4.0):
     mb = MeshBuilder()
-    mb.box(-length / 2, 0, 0, length / 2, 1.6, 1.4, "GB_Stone")
-    mb.box(-length / 2, 0.3, 1.4, length / 2, 1.3, 3.6, "GB_Wall")
-    mb.box(-0.3, 0.28, 2.4, 0.3, 0.4, 2.9, "GB_Opening")          # small square window
-    zr = roof_gable(mb, -length / 2, length / 2, 0.3, 1.3, 3.6, 28.0, 0.5, "GB_Roof", gable_over=0.0, ridge_end="none")
-    mb.mats = ["GB_Wall" if mm == "_GABLE_" else mm for mm in mb.mats]
-    ob = mb.to_object(name, COL["90_Prefabs"], ao=ao_band(0.0, zr))
+    mb.box(-length / 2, 0, 0, length / 2, 1.6, 1.4, GRANITE)
+    mb.box(-length / 2, 0.3, 1.4, length / 2, 1.3, 3.6, PLASTER, skip=('-z',))
+    mb.box(-0.3, 0.27, 2.4, 0.3, 0.32, 2.9, "JP_Mat_Opening")
+    for k in range(3):
+        mb.box(-0.2 + k * 0.2 - 0.025, 0.24, 2.4, -0.2 + k * 0.2 + 0.025, 0.28, 2.9, CEDAR)
+    zr = roof_gable(mb, -length / 2, length / 2, 0.3, 1.3, 3.6, 28.0, 0.5, KAWARA, gable_over=0.0, ridge_end="none", barge=None)
+    ob = finish(mb, name, length, 1.6, zr, "A", dict(), col=False)
     col_box(ob, -length / 2, 0, 0, length / 2, 1.6, 3.6)
-    PREFABS[name] = (ob, dict(tier="A", width=length, depth=1.6, height=round(zr, 2), tris=len(ob.data.polygons)))
     return ob
 
 
 def guard_booth(name):
     mb = MeshBuilder()
     w, d = 2.4, 1.8
-    mb.box(-w / 2, 0, 0, w / 2, d, 0.15, "GB_Stone")
-    mb.box(-w / 2, d - 0.12, 0.15, w / 2, d, 2.4, "GB_Wood")
-    mb.box(-w / 2, 0, 0.15, -w / 2 + 0.12, d, 2.4, "GB_Wood")
-    mb.box(w / 2 - 0.12, 0, 0.15, w / 2, d, 2.4, "GB_Wood")
-    mb.box(-w / 2, -0.02, 0.15, w / 2, 0.1, 1.0, "GB_Wood")        # half wall at the front (counter)
-    zr = roof_gable(mb, -w / 2, w / 2, 0.0, d, 2.4, 24.0, 0.45, "GB_Roof", gable_over=0.3, ridge_end="none")
-    mb.mats = ["GB_Wood" if mm == "_GABLE_" else mm for mm in mb.mats]
+    mb.box(-w / 2, 0, 0, w / 2, d, 0.15, GRANITE)
+    mb.box(-w / 2, d - 0.12, 0.15, w / 2, d, 2.4, CEDAR)
+    mb.box(-w / 2, 0, 0.15, -w / 2 + 0.12, d, 2.4, CEDAR)
+    mb.box(w / 2 - 0.12, 0, 0.15, w / 2, d, 2.4, CEDAR)
+    mb.box(-w / 2, -0.02, 0.15, w / 2, 0.1, 1.0, "JP_Wood_Lattice")
+    mb.box(-w / 2, -0.06, 1.0, w / 2, 0.14, 1.08, CEDAR)
+    zr = roof_gable(mb, -w / 2, w / 2, 0.0, d, 2.4, 24.0, 0.45, KAWARA, gable_over=0.3, ridge_end="none", gable_mat=CEDAR)
     return finish(mb, name, w, d, zr, "A", dict(open_front=True))
 
 
 def fire_watchtower(name):
     mb = MeshBuilder()
-    s = 2.4
-    hplat = 9.0
+    s, hp = 2.4, 9.0
     for px in (-s / 2, s / 2 - 0.25):
         for py in (0.0, s - 0.25):
-            mb.box(px, py, 0, px + 0.25, py + 0.25, hplat + 2.2, "GB_Wood")
-            mb.box(px - 0.1, py - 0.1, 0, px + 0.35, py + 0.35, 0.3, "GB_Stone")
+            mb.box(px, py, 0, px + 0.25, py + 0.25, hp + 2.2, CEDAR)
+            mb.box(px - 0.1, py - 0.1, 0, px + 0.35, py + 0.35, 0.3, GRANITE)
     for z in (3.0, 6.0):
-        mb.box(-s / 2, -0.02, z, s / 2, 0.12, z + 0.16, "GB_Wood")
-        mb.box(-s / 2, s - 0.12, z, s / 2, s + 0.02, z + 0.16, "GB_Wood")
-    mb.box(-s / 2 - 0.4, -0.4, hplat, s / 2 + 0.4, s + 0.4, hplat + 0.18, "GB_Wood")      # platform
-    mb.box(-s / 2 - 0.4, -0.44, hplat + 0.18, s / 2 + 0.4, -0.36, hplat + 1.1, "GB_Wood")  # railing front
-    mb.box(-0.3, 0.2, hplat + 1.2, 0.3, 0.8, hplat + 1.9, "GB_Stone")                   # bell
-    mb.box(0.3, -0.3, 0, 0.75, -0.2, hplat, "GB_Wood")                                    # ladder (as a board)
-    zr = roof_hip(mb, -s / 2, s / 2, 0.0, s, hplat + 2.2, 32.0, 0.5, "GB_Roof", upturn=0.1)
-    return finish(mb, name, s, s, zr, "B", dict(platform=hplat))
+        for py in (-0.02, s - 0.12):
+            mb.box(-s / 2, py, z, s / 2, py + 0.14, z + 0.16, CEDAR)
+        for px in (-s / 2 - 0.02, s / 2 - 0.12):
+            mb.box(px, 0, z, px + 0.14, s, z + 0.16, CEDAR)
+    for (a, b) in (((-s / 2 + 0.1, -0.05, 0.3), (s / 2 - 0.1, -0.05, 3.0)), ((s / 2 - 0.1, -0.05, 3.2), (-s / 2 + 0.1, -0.05, 6.0))):
+        mb.tube(a, b, 0.06, CEDAR, 4)                                                    # cross braces
+    mb.box(-s / 2 - 0.4, -0.4, hp, s / 2 + 0.4, s + 0.4, hp + 0.18, CEDAR)
+    mb.box(-s / 2 - 0.4, -0.44, hp + 0.18, s / 2 + 0.4, -0.36, hp + 1.1, "JP_Wood_Lattice")
+    mb.revolve([(0.2, 0.0), (0.32, 0.05), (0.28, 0.45), (0.12, 0.6), (0.0, 0.65)], "JP_Mat_Bronze", 8, T(0, s / 2, hp + 1.3))   # bell
+    for k, z in enumerate([0.3 + i * 0.35 for i in range(int(hp / 0.35))]):           # ladder (bamboo rungs)
+        mb.box(0.25, -0.32, z, 0.85, -0.27, z + 0.05, "JP_Wood_Bamboo")
+    for px in (0.25, 0.8):
+        mb.box(px, -0.34, 0, px + 0.06, -0.26, hp, "JP_Wood_Bamboo")
+    zr = roof_hip(mb, -s / 2, s / 2, 0.0, s, hp + 2.2, 32.0, 0.5, KAWARA, upturn=0.1)
+    return finish(mb, name, s, s, zr, "B", dict(platform=hp))
 
 
 def floor_tile(name, w, d, mat):
     mb = MeshBuilder()
     mb.box(-w / 2, 0, -0.1, w / 2, d, 0.0, mat)
     ob = mb.to_object(name, COL["90_Prefabs"])
-    PREFABS[name] = (ob, dict(tier="-", width=w, depth=d, height=0.0, tris=len(ob.data.polygons)))
+    PREFABS[name] = (ob, dict(tier="-", width=w, depth=d, height=0.0, faces=len(ob.data.polygons)))
     return ob
 
 
-# ------------------------------------------------------------------ the kit's buildings
+# ------------------------------------------------------------------ module library (for hand-built variants)
+MODULES = {}
+
+
+def module(name, fn, coll="00_Modules", col=None):
+    mb = MeshBuilder()
+    fn(mb)
+    ob = mb.to_object(name, COL[coll])
+    if col:
+        col_box(ob, *col)
+    MODULES[name] = ob
+    return ob
+
+
+module("JP_Post_Cedar_3m", lambda mb: m_post(mb, 0, 0, 0, 3.0))
+module("JP_Plinth_Granite_2m", lambda mb: m_plinth(mb, 0, 2.0, -0.15, 0.6, 0.3))
+module("JP_Front_Lattice_2m", lambda mb: m_front_lattice(mb, 0.11, 1.89, -0.02, 0.0, 2.6))
+module("JP_Door_LatticeSlide_2m", lambda mb: m_door_lattice(mb, 1.0, 0.0, 0.0))
+module("JP_Window_Shoji_A", lambda mb: m_window_shoji(mb, 0.0, 0.0, 0.0))
+module("JP_Window_Loft_3m", lambda mb: m_loft_window(mb, 0.0, -0.02, 0.0))
+module("JP_BayWindow_Lattice_2m", lambda mb: m_bay_window(mb, 0.0, 0.0, 0.0))
+module("JP_Balcony_2m", lambda mb: m_balcony(mb, 0.0, 2.0, 0.0, 0.0, 0.95))
+module("JP_Wall_Plaster_2m", lambda mb: m_wall_frame(mb, 0, 2.0, 0.0, 0.25, 0.0, 3.0), col=(0, 0, 0, 2.0, 0.25, 3.0))
+module("JP_PentRoof_2m", lambda mb: pent_roof(mb, 0.0, 2.0, 0.0, 0.0, 0.9, 22.0))
+module("JP_Roof_Kawara_Gable_6m", lambda mb: roof_gable(mb, -3.0, 3.0, 0.0, 9.0, 0.0, 26.0, 0.9, KAWARA))
+module("JP_RidgeEnd_Plain", lambda mb: ridge_end_tile(mb, 0.0, 0.0, 0.0, 0.3, 1, KAWARA, 0.55))
+module("JP_RidgeEnd_Cloud", lambda mb: ridge_end_tile(mb, 0.0, 0.0, 0.0, 0.66, 1, KAWARA, 0.85))
+module("JP_Gable_Cusped", lambda mb: cusped_gable(mb, 0.0, -3.0))
+
+# ------------------------------------------------------------------ buildings
 ROWS = {"A": [], "B": [], "C": []}
 
 
@@ -705,35 +927,35 @@ def add(row, ob, gap=3.0):
     ROWS[row].append((ob, gap))
 
 
-# Tier A (rich, incl. the city gate)
 add("A", city_gate("JP_Rich_CityGate_A"), 2.0)
 add("A", guard_booth("JP_Rich_GuardBooth_A"))
 add("A", gate_wall("JP_Rich_GateWall_4m_A"), 2.0)
-add("A", machiya("JP_Rich_LanternInn_A", "A", 7, 10.0, roof="hipgable", upper="balcony", cusped=True, door_bays=(3,), steps=4.4, cloud=True))
-add("A", machiya("JP_Rich_GuildHall_A", "A", 7, 12.0, roof="hipgable", upper=None, cusped=True, door_bays=(3,), steps=6.0, cloud=True))
-add("A", machiya("JP_Rich_Residence_A", "A", 5, 10.0, roof="hipgable", upper="balcony", door_bays=(2,), steps=2.4, cloud=True))
-add("A", compound_wall("JP_Rich_CompoundWall_4m_A", 4.0), 0.0)
+add("A", machiya("JP_Rich_LanternInn_A", "A", 7, 10.0, roof="hipgable", upper="balcony", cusped=True, door_bay=3, steps=4.4, cloud=True, brackets=True))
+add("A", machiya("JP_Rich_GuildHall_A", "A", 7, 12.0, roof="hipgable", upper=None, cusped=True, door_bay=3, steps=6.0, cloud=True, brackets=True))
+add("A", machiya("JP_Rich_Residence_A", "A", 5, 10.0, roof="hipgable", upper="balcony", door_bay=2, steps=2.4, cloud=True))
+add("A", compound_wall("JP_Rich_CompoundWall_4m_A"), 0.0)
 add("A", compound_gate("JP_Rich_CompoundGate_A"), 0.0)
 add("A", storehouse("JP_Rich_Storehouse_A"))
-# Tier B (middle: the hero-inn grammar, small)
-add("B", machiya("JP_Mid_Townhouse_A", "B", 3, 9.0, upper="bay", door_bays=(1,)))
-add("B", machiya("JP_Mid_Townhouse_B", "B", 4, 10.0, upper="balcony", door_bays=(2,)))
-add("B", machiya("JP_Mid_Townhouse_C", "B", 3, 8.0, upper="loft", door_bays=(0,)))
+add("B", machiya("JP_Mid_Townhouse_A", "B", 3, 9.0, upper="bay", door_bay=1, feature_bay=2))
+add("B", machiya("JP_Mid_Townhouse_B", "B", 4, 10.0, upper="balcony", door_bay=2))
+add("B", machiya("JP_Mid_Townhouse_C", "B", 3, 8.0, upper="loft", door_bay=0))
 add("B", machiya("JP_Mid_Shop_A", "B", 3, 9.0, upper=None, shop=True))
 add("B", fire_watchtower("JP_Mid_FireWatchtower_A"))
-# Tier C (poor, incl. the harbour sheds)
 add("C", poor_house("JP_Poor_House_A", 6.0, 5.0, "kawara_old", door_x=(-1.0,), win_x=(1.6,)))
-add("C", poor_house("JP_Poor_House_B", 6.0, 6.0, "plank", door_x=(1.2,), win_x=(-1.4,)))
+add("C", poor_house("JP_Poor_House_B", 6.0, 6.0, "plank", wall="JP_Wall_MudStraw", door_x=(1.2,), win_x=(-1.4,)))
 add("C", poor_house("JP_Poor_Hut_A", 4.0, 4.0, "plank", door_x=(0.6,), win_x=(-1.1,)))
-add("C", poor_house("JP_Poor_Hut_B", 5.0, 4.0, "plank", door_x=(-1.2,), win_x=(1.0,)))
+add("C", poor_house("JP_Poor_Hut_B", 5.0, 4.0, "plank", wall="JP_Wall_MudStraw", door_x=(-1.2,), win_x=(1.0,)))
 add("C", poor_house("JP_Poor_RowHouse_A", 12.0, 5.0, "plank", door_x=(-4.8, -1.8, 1.2, 4.2), win_x=(-3.6, -0.6, 2.4, 5.4), units=4))
 add("C", poor_house("JP_Poor_Boathouse_A", 6.0, 7.0, "plank", door_x=(-2.2,), win_x=(), stilts=0.6, water_bay=(-1.2, 2.4)))
 add("C", poor_house("JP_Poor_NetShed_A", 5.0, 4.0, "plank", door_x=(), open_front=True))
 add("C", poor_house("JP_Poor_FishStore_A", 5.0, 4.0, "plank", door_x=(0.0,), win_x=(-1.7,)))
+FLOOR = floor_tile("JP_Showcase_Floor", 120.0, 70.0, "JP_Paving_City")
 
-FLOOR = floor_tile("JP_Showcase_Floor", 120.0, 70.0, "GB_Floor")
+# ------------------------------------------------------------------ 3D props (jp_props.py)
+PROPS = {}
+exec(compile((SCRIPTS / "jp_props.py").read_text(encoding="utf-8"), "jp_props.py", "exec"), globals())
 
-# ------------------------------------------------------------------ lay the rows out (the showcase layout)
+# ------------------------------------------------------------------ lineup
 ROW_Y = {"C": 0.0, "B": 22.0, "A": 44.0}
 LAYOUT = {}
 for row, items in ROWS.items():
@@ -751,8 +973,12 @@ for side, dx in (("L", -2.0), ("R", 2.0)):
     LAYOUT[d.name] = (round(d.location.x, 2), round(d.location.y, 2))
 FLOOR.location = (0, -12, 0)
 LAYOUT[FLOOR.name] = (0.0, -12.0)
+for i, (pname, ob) in enumerate(PROPS.items()):          # props library row in front of row C (not in the scene)
+    ob.location = (-40 + (i % 14) * 4.0, -9.0 - (i // 14) * 4.0, 0)
+for i, (mname, ob) in enumerate(MODULES.items()):
+    ob.location = (-40 + i * 5.0, -30.0, 0)
 
-# ------------------------------------------------------------------ preview: scale cards, light, cameras (not exported)
+# ------------------------------------------------------------------ preview (not exported)
 CHAR_PPM = 38.4
 
 
@@ -763,7 +989,6 @@ def card(name, path, x, y):
     nt = m.node_tree; b = nt.nodes["Principled BSDF"]
     t = nt.nodes.new("ShaderNodeTexImage"); t.image = img; t.interpolation = 'Closest'
     nt.links.new(t.outputs["Color"], b.inputs["Base Color"]); nt.links.new(t.outputs["Alpha"], b.inputs["Alpha"])
-    b.inputs["Roughness"].default_value = 1.0
     try:
         m.surface_render_method = 'DITHERED'
     except Exception:
@@ -788,44 +1013,34 @@ for row, y in ROW_Y.items():
 world = bpy.data.worlds.new("JP_World"); scene.world = world
 world.use_nodes = True
 bg = world.node_tree.nodes["Background"]
-bg.inputs["Color"].default_value = (0.32, 0.36, 0.42, 1); bg.inputs["Strength"].default_value = 0.9
-sun_d = bpy.data.lights.new("PV_Sun", 'SUN'); sun_d.color = (1.0, 0.86, 0.7); sun_d.energy = 3.0; sun_d.angle = math.radians(2)
+bg.inputs["Color"].default_value = (0.3, 0.33, 0.4, 1); bg.inputs["Strength"].default_value = 0.8
+sun_d = bpy.data.lights.new("PV_Sun", 'SUN'); sun_d.color = (1.0, 0.82, 0.62); sun_d.energy = 3.2; sun_d.angle = math.radians(2)
 sun = bpy.data.objects.new("PV_Sun", sun_d); PREVIEW.objects.link(sun)
-sun.rotation_euler = (math.radians(52), 0, math.radians(-38))      # key from the upper left of the camera
-
-GAME_FOV = 35.0       # ShrineGlade.hyscene: perspective 35 deg
+sun.rotation_euler = (math.radians(52), 0, math.radians(-38))
 CAMS = []
 
 
-def camera(name, target, pitch, dist, yaw=0.0, fov=GAME_FOV):
+def camera(name, target, pitch, dist, fov=35.0):
     cd = bpy.data.cameras.new(name); cd.sensor_fit = 'VERTICAL'; cd.angle = math.radians(fov)
     cam = bpy.data.objects.new(name, cd); PREVIEW.objects.link(cam)
-    d = Vector((math.sin(math.radians(yaw)) * math.cos(math.radians(pitch)), math.cos(math.radians(yaw)) * math.cos(math.radians(pitch)),
-                -math.sin(math.radians(pitch))))
+    d = Vector((0, math.cos(math.radians(pitch)), -math.sin(math.radians(pitch))))
     cam.location = Vector(target) - d * dist
     cam.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler()
     CAMS.append(name)
     return cam
 
 
-# per row: V1 = the game camera (ShrineGlade framing: about 32 deg down, 35 deg FOV), V2 = closer and lower (street
-# level read of the facades), V3 = higher and wider (roofscape, the whole row)
 for row, y in ROW_Y.items():
     xs = [o.location.x for o, _ in ROWS[row]]
     cx = (min(xs) + max(xs)) / 2
     span = max(xs) - min(xs) + 16
     camera("PV_%s_V1_Game" % row, (cx, y + 3, 3.0), 32.0, span * 1.25)
-    camera("PV_%s_V2_Low" % row, (cx, y + 2, 3.5), 18.0, span * 1.15)
-    camera("PV_%s_V3_High" % row, (cx, y + 4, 2.0), 48.0, span * 1.45)
 camera("PV_All", (0, 22, 2.0), 40.0, 125.0)
-# close-ups of the hero inn and the gate at the game camera's real framing (16 m wide view)
-inn = bpy.data.objects["JP_Rich_LanternInn_A"].location
-camera("PV_Inn_Game", (inn.x, inn.y + 2, 3.5), 32.0, 34.0)
-camera("PV_Gate_Game", (gate.location.x, gate.location.y + 2, 4.0), 32.0, 36.0)
-camera("PV_Townhouses_Game", (bpy.data.objects["JP_Mid_Townhouse_B"].location.x, ROW_Y["B"] + 2, 3.0), 32.0, 34.0)
-camera("PV_Poor_Game", (bpy.data.objects["JP_Poor_RowHouse_A"].location.x, 2, 2.0), 32.0, 30.0)
+for nm, ob in (("Inn", "JP_Rich_LanternInn_A"), ("Gate", "JP_Rich_CityGate_A"), ("Townhouses", "JP_Mid_Townhouse_B"), ("Poor", "JP_Poor_RowHouse_A")):
+    o = bpy.data.objects[ob]
+    camera("PV_%s_Game" % nm, (o.location.x, o.location.y + 2, 3.0), 32.0, 30.0)
+camera("PV_Props", (-14.0, -12.0, 0.6), 30.0, 34.0)
 scene.camera = bpy.data.objects["PV_All"]
-
 r = scene.render
 r.engine = 'BLENDER_EEVEE' if 'BLENDER_EEVEE' in [e.identifier for e in bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items] else 'BLENDER_EEVEE_NEXT'
 r.resolution_x, r.resolution_y, r.resolution_percentage = 1280, 720, 100
@@ -839,7 +1054,7 @@ for k, v in (("use_shadows", True), ("taa_render_samples", 16)):
     except Exception:
         pass
 
-# ------------------------------------------------------------------ export (one glb per prefab, origin at 0)
+# ------------------------------------------------------------------ export
 GLTF_COLOR_ARGS = {}
 try:
     _props = bpy.ops.export_scene.gltf.get_rna_type().properties
@@ -852,23 +1067,64 @@ try:
 except Exception:
     pass
 OUT = Path(os.environ["JP_OUT"]) if os.environ.get("JP_OUT") else ROOT
-OUT.mkdir(parents=True, exist_ok=True)
-EXPORTED = []
-for pname, (ob, info) in PREFABS.items():
+(OUT / "Modules").mkdir(parents=True, exist_ok=True)
+(OUT / "Props").mkdir(parents=True, exist_ok=True)
+
+
+def export(ob, path):
     bpy.ops.object.select_all(action='DESELECT')
     ob.select_set(True)
     saved = ob.location.copy(); ob.location = (0, 0, 0)
     bpy.context.view_layer.update()
-    bpy.ops.export_scene.gltf(filepath=str(OUT / (pname + ".glb")), export_format='GLB', use_selection=True,
-                              export_yup=True, export_apply=False, export_materials='EXPORT',
-                              export_image_format='AUTO', export_cameras=False, export_lights=False, **GLTF_COLOR_ARGS)
+    bpy.ops.export_scene.gltf(filepath=str(path), export_format='GLB', use_selection=True, export_yup=True,
+                              export_apply=False, export_materials='EXPORT', export_image_format='AUTO',
+                              export_cameras=False, export_lights=False, **GLTF_COLOR_ARGS)
     ob.location = saved
-    EXPORTED.append(pname)
+
+
+for pname, (ob, info) in PREFABS.items():
+    export(ob, OUT / (pname + ".glb"))
+for pname, ob in PROPS.items():
+    export(ob, OUT / "Props" / (pname + ".glb"))
+for mname, ob in MODULES.items():
+    export(ob, OUT / "Modules" / (mname + ".glb"))
+
+# Hydro's importer finds a re-exported model's materials by name but keeps the .hymat it made the first time and the
+# texture copies in <model>.textures/ (MeshAssetImport.cpp): bring both in line with this build, so new PixelLab
+# textures and emission changes show without deleting anything.
+SYNCED = 0
+for folder in (OUT, OUT / "Props", OUT / "Modules"):
+    for meta in folder.glob("*.glb.hymeta"):
+        model = meta.name[:-len(".glb.hymeta")]
+        for hm in folder.glob(model + "_JP_*.hymat"):
+            mat = hm.stem[len(model) + 1:]
+            ex = MATDEFS.get(mat)
+            if ex is None:
+                continue
+            lines = [ln for ln in hm.read_bytes().decode("utf-8").replace("\r", "").split("\n") if ln.strip()]
+            col, inten = ((GLOW[0], GLOW[1], GLOW[2]), ex["strength"]) if "emi" in ex else ((0, 0, 0), 1)
+            new = []
+            for ln in lines:
+                if ln.strip().startswith("EmissionColor:"):
+                    ln = "  EmissionColor: [%g, %g, %g]" % col
+                elif ln.strip().startswith("EmissionIntensity:"):
+                    ln = "  EmissionIntensity: %g" % inten
+                new.append(ln)
+            data = ("\r\n".join(new) + "\r\n").encode("utf-8")
+            if data != hm.read_bytes():
+                hm.write_bytes(data); SYNCED += 1
+        texdir = folder / (model + ".textures")
+        if texdir.is_dir():
+            for f in texdir.glob("*.png"):
+                base = f.name.split("_", 1)[1] if "_" in f.name else f.name
+                src = TEX / base
+                if src.exists() and src.read_bytes() != f.read_bytes():
+                    f.write_bytes(src.read_bytes()); SYNCED += 1
 
 SRC.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=os.environ.get("JP_SAVE") or str(SRC / "JP_Kit.blend"), relative_remap=True)
-
-import json
 summary = {n: dict(i, location=LAYOUT.get(n)) for n, (o, i) in PREFABS.items()}
+summary["_props"] = {n: dict(PROP_INFO.get(n, {}), faces=len(o.data.polygons)) for n, o in PROPS.items()}
+summary["_modules"] = {n: len(o.data.polygons) for n, o in MODULES.items()}
 (SRC / "kit_summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
-print("RESULT::" + json.dumps({"phase": PHASE, "exported": EXPORTED, "cams": CAMS}))
+print("RESULT::" + json.dumps({"prefabs": len(PREFABS), "props": len(PROPS), "modules": len(MODULES), "synced": SYNCED, "cams": CAMS}))

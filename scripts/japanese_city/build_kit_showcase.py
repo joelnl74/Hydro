@@ -16,6 +16,7 @@ Close the scene in Oxygen first. Check: Oxygen --scene JapaneseCityKit_Showcase 
 import argparse
 import hashlib
 import json
+import math
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -24,6 +25,8 @@ ASSETS = os.path.join(REPO, "Oxygen", "project", "Assets")
 MODELS = os.path.join(ASSETS, "Models", "JapaneseCity")
 SUMMARY = os.path.join(MODELS, "Source", "JP_Kit", "kit_summary.json")
 SCENE = os.path.join(ASSETS, "Scenes", "JapaneseCityKit_Showcase.hyscene")
+SPRITES = os.path.join(ASSETS, "Sprites", "Props", "JapaneseCity")
+PROPS_DIR = os.path.join(MODELS, "Props")
 
 # existing assets the showcase reuses (handles from their .hymeta / .hyanim)
 MIKO_TEXTURE, MIKO_ANIM = 5407845820862445765, 4798671707330513403
@@ -48,6 +51,12 @@ def ensure_mesh_meta(glb):
     with open(meta, "w", newline="\r\n") as f:
         f.write("Handle: %d\nType: Mesh\nMeshImport:\n  Scale: 1\n  ConvertYUpToZUp: true\n  GenerateNormals: true\n" % h)
     return h
+
+
+def png_size(path):
+    with open(path, "rb") as f:
+        head = f.read(24)
+    return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
 
 
 def f3(v):
@@ -96,9 +105,182 @@ def character_body(texture, anim, clip, sprite, player=False):
     return b
 
 
+LANTERN = "    Light2DComponent:\n      Type: Point\n      Color: [1, 0.62, 0.28]\n      Intensity: %g\n      Radius: %g\n      Height: %g\n"
+WINDOW = "    Light2DComponent:\n      Type: Point\n      Color: [1, 0.66, 0.32]\n      Intensity: 1.1\n      Radius: %g\n      Height: %g\n"
+
+
+class Dresser:
+    """Places the kit's 3D props, sprite cards and lights around the buildings (Phase 5 dressing)."""
+
+    def __init__(self, w, summary):
+        self.w, self.summary, self.n = w, summary, 0
+        self.missing = []
+
+    def _name(self, base):
+        self.n += 1
+        return "%s %d" % (base, self.n)
+
+    def prop(self, parent, name, x, y, rot=0.0, collider=True, z=0.0):
+        glb = os.path.join(PROPS_DIR, name + ".glb")
+        if os.path.exists(glb) is False:
+            self.missing.append(name); return None
+        h = ensure_mesh_meta(glb)
+        tag = self._name(name.replace("JP_Prop_", "").replace("_A", ""))
+        self.w.entity("prop:" + tag, tag, parent=parent, t=(x, y, z), r=(0, 0, math.radians(rot)), body=mesh_body(h, collider))
+        return self.summary["_props"].get(name, {})
+
+    def sprite(self, parent, name, x, y, z, hanging=False, sort=0):
+        """A camera-facing card at 32 px/m; z = its foot, or with hanging=True its top."""
+        png = os.path.join(SPRITES, name + ".png")
+        if os.path.exists(png) is False:
+            self.missing.append(name); return
+        pw, ph = png_size(png)
+        sx, sy = pw / 32.0, ph / 32.0
+        h = handle_of(png + ".hymeta")
+        tag = self._name(name.replace("JP_", ""))
+        self.w.entity("sprite:" + tag, tag, parent=parent, t=(x, y, z - sy if hanging else z), s=(sx, sy, 1), body=(
+            "    SpriteRendererComponent:\n      Color: [1, 1, 1, 1]\n      TilingFactor: 1\n      SortOrder: %d\n      TextureHandle: %d\n"
+            "      SpriteIndex: 0\n      FlipX: false\n      FlipY: false\n      Facing: Upright\n") % (sort, h))
+
+    def lantern(self, parent, x, y, z, intensity=1.2, radius=4.5, kind="Lantern"):
+        tag = self._name("Light %s" % kind)
+        self.w.entity("light:" + tag, tag, parent=parent, t=(x, y, 0), body=LANTERN % (intensity, radius, z))
+
+    def window(self, parent, x, y, z=1.6, radius=3.2):
+        tag = self._name("Light Window")
+        self.w.entity("light:" + tag, tag, parent=parent, t=(x, y, 0), body=WINDOW % (radius, z))
+
+
+def dress(d, summary):
+    """Props, cards and lights per building, relative to each building's origin (front wall centre, front -Y)."""
+    def at(name):
+        x, y = summary[name]["location"]
+        return x, y
+
+    def front_lights(group, name, info, every=4.0):
+        x, y = at(name)
+        n = max(1, int(info["width"] / every))
+        for i in range(n):
+            d.window(group, x - info["width"] / 2 + (i + 0.5) * info["width"] / n, y - 0.7)
+
+    A, B, C = "Row A Rich", "Row B Middle", "Row C Poor"
+    # --- the city gate: banners, braziers, drum, spear racks, barriers, guards' lanterns
+    gx, gy = at("JP_Rich_CityGate_A")
+    for s in (-1, 1):
+        d.prop(A, "JP_Prop_BannerPole_A", gx + s * 3.4, gy - 1.6)
+        d.sprite(A, "JP_Banner_Nobori_Cloth_A", gx + s * 3.4 + 0.45, gy - 1.68, 3.3, hanging=True, sort=2)
+        d.prop(A, "JP_Prop_Brazier_A", gx + s * 2.6, gy - 0.9)
+        d.lantern(A, gx + s * 2.6, gy - 0.9, 1.2, 1.6, 4.0, "Fire")
+        d.prop(A, "JP_Prop_Barrier_A", gx + s * 5.6, gy - 2.6)
+        d.prop(A, "JP_Prop_WallLantern_A", gx + s * 2.25, gy + 0.9)
+        d.lantern(A, gx + s * 2.25, gy + 0.45, 2.2)
+    d.prop(A, "JP_Prop_SpearRack_A", gx - 5.0, gy - 0.7)
+    d.sprite(A, "JP_Spears_Leaning_A", gx + 5.4, gy - 0.4, 0.0)
+    bx, by = at("JP_Rich_GuardBooth_A")
+    d.prop(A, "JP_Prop_WarDrum_A", bx - 1.9, by - 0.6, 0)
+    d.lantern(A, bx, by - 0.2, 2.1, 1.0, 3.0)
+    # --- the Lantern Inn
+    for name, long_noren in (("JP_Rich_LanternInn_A", False), ("JP_Rich_GuildHall_A", True), ("JP_Rich_Residence_A", False)):
+        info = summary[name]
+        x, y = at(name)
+        dx = x + (info.get("door_x") or 0.0)
+        head = info.get("head_z") or 2.6
+        d.sprite(A, "JP_Noren_Inn_Long_A" if long_noren else "JP_Noren_Inn_A", dx, y + 0.3, head - 0.05, hanging=True, sort=1)
+        pz = info.get("pent_z")
+        if pz:
+            for s in (-1, 1):
+                d.sprite(A, "JP_Lantern_Paper_Red_A", dx + s * 1.5, y - 0.75, pz - 0.05, hanging=True, sort=3)
+                d.lantern(A, dx + s * 1.5, y - 0.75, pz - 0.6, 1.0, 3.5)
+        for s in (-1, 1):
+            d.prop(A, "JP_Prop_StoneLantern_A", dx + s * 3.2, y - 2.0)
+            d.lantern(A, dx + s * 3.2, y - 2.0, 1.15, 0.8, 2.5)
+        front_lights(A, name, info)
+    ix, iy = at("JP_Rich_LanternInn_A")
+    d.prop(A, "JP_Prop_LampPost_A", ix - 6.2, iy - 3.0)
+    d.lantern(A, ix - 6.2 + 0.62, iy - 3.0, 2.36)
+    d.prop(A, "JP_Prop_LampPost_A", ix + 6.2, iy - 3.0)
+    d.lantern(A, ix + 6.2 + 0.62, iy - 3.0, 2.36)
+    d.prop(A, "JP_Prop_TeaBench_A", ix + 4.2, iy - 1.2)
+    d.prop(A, "JP_Prop_SakeBarrelStack_A", ix - 4.6, iy - 1.0)
+    d.prop(A, "JP_Prop_BannerPole_A", ix + 2.4, iy - 2.6)
+    d.sprite(A, "JP_Banner_Nobori_Cloth_A", ix + 2.85, iy - 2.68, 3.3, hanging=True, sort=2)
+    hx, hy = at("JP_Rich_GuildHall_A")
+    d.sprite(A, "JP_Lantern_String_A", hx - 4.0, hy - 0.95, summary["JP_Rich_GuildHall_A"]["pent_z"] - 0.1, hanging=True, sort=3)
+    d.sprite(A, "JP_Lantern_String_B", hx + 4.0, hy - 0.95, summary["JP_Rich_GuildHall_A"]["pent_z"] - 0.1, hanging=True, sort=3)
+    sx_, sy_ = at("JP_Rich_Storehouse_A")
+    d.prop(A, "JP_Prop_Crate_A", sx_ - 1.8, sy_ - 1.0, 10)
+    d.prop(A, "JP_Prop_Crate_A", sx_ - 1.5, sy_ - 1.8, -6)
+    d.prop(A, "JP_Prop_Barrel_A", sx_ + 1.8, sy_ - 0.9)
+    # --- the middle district
+    for name in ("JP_Mid_Townhouse_A", "JP_Mid_Townhouse_B", "JP_Mid_Townhouse_C", "JP_Mid_Shop_A"):
+        info = summary[name]
+        x, y = at(name)
+        if info.get("door_x") is not None:
+            d.sprite(B, "JP_Noren_Inn_A", x + info["door_x"], y + 0.3, info["head_z"] - 0.05, hanging=True, sort=1)
+            d.sprite(B, "JP_Lantern_Paper_Red_A", x + info["door_x"] + 1.3, y - 0.65, info["pent_z"] - 0.05, hanging=True, sort=3)
+            d.lantern(B, x + info["door_x"] + 1.3, y - 0.65, info["pent_z"] - 0.6, 1.0, 3.5)
+        front_lights(B, name, info)
+    tx, ty = at("JP_Mid_Townhouse_A")
+    d.prop(B, "JP_Prop_RainBarrel_A", tx - 2.4, ty - 0.7)
+    d.sprite(B, "JP_Signboard_Standing_A", tx + 2.1, ty - 1.0, 0.0)
+    tx, ty = at("JP_Mid_Townhouse_B")
+    d.prop(B, "JP_Prop_Buckets_A", tx - 3.3, ty - 0.6)
+    d.prop(B, "JP_Prop_WaterJar_A", tx + 3.3, ty - 0.7)
+    tx, ty = at("JP_Mid_Townhouse_C")
+    d.prop(B, "JP_Prop_Signboard_A", tx + 1.8, ty - 1.2)
+    d.sprite(B, "JP_Signboard_Standing_B", tx - 2.2, ty - 1.0, 0.0)
+    tx, ty = at("JP_Mid_Shop_A")
+    info = summary["JP_Mid_Shop_A"]
+    d.sprite(B, "JP_Sign_Hanging_A", tx - 1.9, ty - 0.9, info["pent_z"] - 0.1, hanging=True, sort=3)
+    d.prop(B, "JP_Prop_Handcart_A", tx + 3.6, ty - 2.2, -20)
+    d.prop(B, "JP_Prop_Crate_A", tx - 2.4, ty - 0.9, 5)
+    wx, wy = at("JP_Mid_FireWatchtower_A")
+    d.prop(B, "JP_Prop_FenceBamboo_2m_A", wx + 2.0, wy - 0.5)
+    # --- the poor district and the harbour sheds
+    px, py = at("JP_Poor_House_A")
+    d.prop(C, "JP_Prop_Kamado_A", px - 2.0, py - 1.0)
+    d.prop(C, "JP_Prop_WaterJar_A", px + 0.6, py - 0.8)
+    px, py = at("JP_Poor_House_B")
+    d.prop(C, "JP_Prop_LaundryPole_A", px, py - 2.2)
+    d.sprite(C, "JP_Laundry_Cloth_A", px - 0.75, py - 2.25, 1.97, hanging=True, sort=2)
+    d.sprite(C, "JP_Laundry_Cloth_A", px + 0.75, py - 2.25, 1.97, hanging=True, sort=2)
+    px, py = at("JP_Poor_Hut_A")
+    d.prop(C, "JP_Prop_Buckets_A", px - 1.6, py - 0.7)
+    px, py = at("JP_Poor_Hut_B")
+    d.prop(C, "JP_Prop_Well_A", px + 4.3, py - 2.6)
+    d.prop(C, "JP_Prop_FenceBamboo_2m_A", px - 2.5, py - 1.6)
+    px, py = at("JP_Poor_RowHouse_A")
+    d.prop(C, "JP_Prop_LaundryPole_A", px + 2.0, py - 2.4)
+    d.sprite(C, "JP_Laundry_Cloth_A", px + 2.0, py - 2.45, 1.97, hanging=True, sort=2)
+    d.prop(C, "JP_Prop_Barrel_A", px - 5.2, py - 0.7)
+    d.prop(C, "JP_Prop_Buckets_A", px - 1.0, py - 0.7)
+    for i, info_x in enumerate(summary["JP_Poor_RowHouse_A"]["door_x"]):
+        if i % 2 == 0:
+            d.window(C, px + info_x, py - 0.6, 1.4, 2.6)
+    px, py = at("JP_Poor_Boathouse_A")
+    d.prop(C, "JP_Prop_Pier_2m_A", px - 2.0, py - 3.2, 0, True, -0.42)
+    d.prop(C, "JP_Prop_Pier_2m_A", px + 0.2, py - 3.2, 0, True, -0.42)
+    d.prop(C, "JP_Prop_MooringPost_A", px + 2.0, py - 2.4)
+    d.prop(C, "JP_Prop_Boat_A", px + 0.8, py - 5.6, 8, True, 0.15)
+    d.prop(C, "JP_Prop_LampPost_A", px - 3.6, py - 1.4)
+    d.lantern(C, px - 3.6 + 0.62, py - 1.4, 2.36)
+    px, py = at("JP_Poor_NetShed_A")
+    d.prop(C, "JP_Prop_NetFrame_A", px + 0.3, py - 2.0)
+    d.prop(C, "JP_Prop_Crate_A", px - 1.6, py - 0.7, 12)
+    px, py = at("JP_Poor_FishStore_A")
+    d.prop(C, "JP_Prop_FishRack_A", px, py - 2.2)
+    d.sprite(C, "JP_Fish_Hanging_A", px - 0.7, py - 2.45, 1.4, hanging=True, sort=2)
+    d.sprite(C, "JP_Fish_Hanging_B", px + 0.7, py - 2.45, 1.4, hanging=True, sort=2)
+    d.prop(C, "JP_Prop_LadderBamboo_A", px + 2.0, py - 0.15, 0, False)
+    # the props library: every 3D prop in a row in front of row C, so each can be walked around
+    names = sorted(summary["_props"])
+    for i, n in enumerate(names):
+        d.prop("Props Library", n, -42 + i * 3.1, -7.5 - (i % 2) * 2.2, 0, True, -0.42 if "Pier" in n else 0.0)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--profile", default="Day", choices=["Day", "Dusk", "Night"], help="the light at the start (keys 1 / 2 / 3 switch)")
+    ap.add_argument("--profile", default="Dusk", choices=["Day", "Dusk", "Night"], help="the light at the start (keys 1 / 2 / 3 switch)")
     ap.add_argument("--start", default="C", choices=["A", "B", "C"], help="the row Miko starts in front of (for captures)")
     args = ap.parse_args()
     summary = json.load(open(SUMMARY))
@@ -109,7 +291,7 @@ def main():
     w = Writer()
     rows = {"A": [], "B": [], "C": []}
     for name, info in summary.items():
-        if info.get("location") is None:
+        if name.startswith("_") or info.get("location") is None:
             continue
         x, y = info["location"]
         tier = info["tier"]
@@ -161,6 +343,13 @@ def main():
                      body=character_body(MIKO_TEXTURE, MIKO_ANIM, "IdleDown", "Miko_0"))
         w.entity("Scale Villager " + row, "Scale Villager " + row, parent=group, t=(sx + 1.3, y0, 0), s=(2.5, 2.34375, 1),
                  body=character_body(SMITH_TEXTURE, SMITH_ANIM, "IdleDown", "IdleDown_0"))
+
+    w.entity("Dressing", "Dressing")
+    w.entity("Props Library", "Props Library", parent="Kit")
+    d = Dresser(w, summary)
+    dress(d, summary)
+    if d.missing:
+        print("missing (skipped):", sorted(set(d.missing)))
 
     header = (
         "Handle: %d\nScene: JapaneseCityKit_Showcase\nRenderSettings:\n  OverrideProject: true\n  Features:\n    Depth: Shared\n"
