@@ -2,7 +2,9 @@
 #pragma once
 
 #include "Hydro.h"
+#include "Scripts/Field/AbilitiesView.h"
 #include "Scripts/Field/CharacterView.h"
+#include "Scripts/Field/EquipmentView.h"
 #include "Scripts/Field/InventoryView.h"
 #include "Scripts/Field/QuestsView.h"
 #include "State/BattleState.h"
@@ -17,8 +19,8 @@ namespace Hydro
 	// ("Tab 0" to "Tab 4": Inventory, Quests, Character, Abilities, Equipment), the selected tab's page ("Page <Tab>"),
 	// the party's status ("Menu Status Miko") and a help bar ("Help Text", "Help Keys"); scripts/ui/build_game_ui.py
 	// builds it. A view: it opens on the tabs; moving over a tab shows its page, Enter (or a click) moves into the page,
-	// Esc goes back to the tabs and from the tabs closes the menu. The pages: InventoryView, QuestsView and
-	// CharacterView (M4, which takes no focus: Enter stays on the tabs); Abilities and Equipment come with M5.
+	// Esc goes back to the tabs and from the tabs closes the menu. The pages: InventoryView, QuestsView,
+	// CharacterView (M4; it takes no focus: Enter stays on the tabs), AbilitiesView and EquipmentView (M5).
 	class FieldMenuView
 	{
 	public:
@@ -51,6 +53,8 @@ namespace Hydro
 			m_Items.Bind(scene);
 			m_Quests.Bind(scene);
 			m_Character.Bind(scene);
+			m_Abilities.Bind(scene);
+			m_Equipment.Bind(scene);
 		}
 
 		static const char* GetTabName(Tab tab)
@@ -118,6 +122,41 @@ namespace Hydro
 				}
 			}
 
+			AbilitiesView::Request abilities = AbilitiesView::Request::None;
+			if (m_Abilities.HandleEvent(event, abilities))
+			{
+				m_InPage = true;
+				if (abilities == AbilitiesView::Request::Back)
+				{
+					BackToTabs();
+				}
+				else
+				{
+					PresentKeys();
+				}
+				return true;
+			}
+
+			EquipmentView::Request equipment = EquipmentView::Request::None;
+			if (m_Equipment.HandleEvent(event, equipment))
+			{
+				m_InPage = true;
+				if (equipment == EquipmentView::Request::Back)
+				{
+					BackToTabs();
+				}
+				else
+				{
+					PresentKeys();
+				}
+				if (m_Equipment.TakeChanged())
+				{
+					// The status, the Character page and the bag's counts follow what is worn.
+					Present();
+				}
+				return true;
+			}
+
 			QuestsView::Request quest = QuestsView::Request::None;
 			if (m_Quests.HandleEvent(event, quest))
 			{
@@ -182,9 +221,11 @@ namespace Hydro
 			UI::SetText(EntityOf(m_StatusMP), std::to_string(party.HeroMP[0]) + " / " + std::to_string(hero.MaxMP));
 			ViewHelpers::SetBarFill(EntityOf(m_StatusHPFill), (float)party.HeroHP[0] / (float)std::max(1, hero.MaxHP));
 			ViewHelpers::SetBarFill(EntityOf(m_StatusMPFill), (float)party.HeroMP[0] / (float)std::max(1, hero.MaxMP));
-			m_Items.Present();
+			m_Items.Present(m_Selected == Tab::Inventory && m_InPage);
 			m_Quests.Present();
 			m_Character.Present();
+			m_Abilities.Present();
+			m_Equipment.Present();
 			if (m_InPage == false)
 			{
 				PresentTabHelp();
@@ -236,6 +277,18 @@ namespace Hydro
 				m_Quests.Focus();
 				PresentKeys();
 			}
+			else if (m_Selected == Tab::Abilities)
+			{
+				m_InPage = true;
+				m_Abilities.Focus();
+				PresentKeys();
+			}
+			else if (m_Selected == Tab::Equipment)
+			{
+				m_InPage = true;
+				m_Equipment.Focus();
+				PresentKeys();
+			}
 		}
 
 		void BackToTabs()
@@ -259,8 +312,10 @@ namespace Hydro
 				UI::SetText(EntityOf(m_Help), "Level, stats and equipment.");
 				break;
 			case Tab::Abilities:
+				UI::SetText(EntityOf(m_Help), "Choose the abilities the battle's Abilities command offers.");
+				break;
 			case Tab::Equipment:
-				UI::SetText(EntityOf(m_Help), "Not built yet: comes with a later step of the menu plan.");
+				UI::SetText(EntityOf(m_Help), "Change what is worn.");
 				break;
 			}
 			PresentKeys();
@@ -270,10 +325,24 @@ namespace Hydro
 		{
 			if (m_InPage)
 			{
-				UI::SetText(EntityOf(m_Keys), m_Selected == Tab::Inventory ? "Enter  Use        Esc  Back        Tab  Close" : "Esc  Back        Tab  Close");
+				const char* keys = "Esc  Back        Tab  Close";
+				if (m_Selected == Tab::Inventory)
+				{
+					keys = "Enter  Use        Esc  Back        Tab  Close";
+				}
+				else if ((m_Selected == Tab::Abilities && m_Abilities.IsChoosing()) || (m_Selected == Tab::Equipment && m_Equipment.IsChoosing()))
+				{
+					keys = "Enter  Choose        Esc  Back        Tab  Close";
+				}
+				else if (m_Selected == Tab::Abilities || m_Selected == Tab::Equipment)
+				{
+					keys = "Enter  Change        Esc  Back        Tab  Close";
+				}
+				UI::SetText(EntityOf(m_Keys), keys);
 				return;
 			}
-			const bool opens = (m_Selected == Tab::Inventory && m_Items.HasItems()) || (m_Selected == Tab::Quests && m_Quests.HasQuests());
+			const bool opens = (m_Selected == Tab::Inventory && m_Items.HasItems()) || (m_Selected == Tab::Quests && m_Quests.HasQuests())
+				|| m_Selected == Tab::Abilities || m_Selected == Tab::Equipment;
 			UI::SetText(EntityOf(m_Keys), opens ? "Enter  Open        Esc / Tab  Close" : "Esc / Tab  Close");
 		}
 
@@ -283,6 +352,8 @@ namespace Hydro
 		InventoryView m_Items;
 		QuestsView m_Quests;
 		CharacterView m_Character;
+		AbilitiesView m_Abilities;
+		EquipmentView m_Equipment;
 		entt::entity m_Canvas = entt::null;
 		entt::entity m_Title = entt::null;
 		entt::entity m_Tabs[TabCount] = {};

@@ -21,10 +21,9 @@
 namespace Hydro
 {
 	// The party is Miko alone (HeroCount); she carries the party's HP and MP, so she is sturdier than Orin and Lila
-	// were on their own. Her Attack walks up to the target and punches (a boost adds a kick, a punch, a kick); her two
-	// skill commands are the first two abilities she knows (Flame Kick and Holy Palm; the ones levels teach are known
-	// but have no command until the battle gets a skill list). The impacts land on the clips' contact frames
-	// (BattleScript PunchImpactTime, KickImpactTime).
+	// were on their own. Her Attack walks up to the target and punches (a boost adds a kick, a punch, a kick); her
+	// abilities are in the battle's 8 ability slots (HeroAbilitySlots, set in the field menu's Abilities page). The
+	// impacts land on the clips' contact frames (BattleScript PunchImpactTime, KickImpactTime).
 	constexpr int HeroCount = 1;
 
 	// A hero's numbers at a level (HeroDefinition: Base + GrowthPerLevel for every level above 1): what the battle
@@ -84,7 +83,33 @@ namespace Hydro
 			return stats;
 		}
 
-		// Hero `index` at the level the party has reached (BattleState); defined below it.
+		// Hero `index` at `level` wearing `equipment` (each item's Bonus added; the field menu's Equipment page
+		// previews a change with it).
+		template<size_t N>
+		static HeroStats StatsWith(int index, int level, const std::array<DataRowRef, N>& equipment)
+		{
+			HeroStats hero = StatsAt(index, level);
+			for (const DataRowRef& worn : equipment)
+			{
+				if (worn.IsSet() == false)
+				{
+					continue;
+				}
+				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(worn);
+				if (item.IsValid() == false)
+				{
+					continue;
+				}
+				hero.MaxHP = std::max(1, hero.MaxHP + item->Bonus.MaxHP);
+				hero.MaxMP = std::max(0, hero.MaxMP + item->Bonus.MaxMP);
+				hero.Attack = std::max(0, hero.Attack + item->Bonus.Attack);
+				hero.Magic = std::max(0, hero.Magic + item->Bonus.Magic);
+				hero.Speed = std::max(0, hero.Speed + item->Bonus.Speed);
+			}
+			return hero;
+		}
+
+		// Hero `index` at the level the party has reached (BattleState), with what it wears; defined below it.
 		static const HeroStats& Hero(int index);
 
 		// An enemy row of Enemies.hytable ("" or a missing row: the defaults).
@@ -122,8 +147,8 @@ namespace Hydro
 			return found->second.IsValid() ? *found->second : none;
 		}
 
-		// Skill `slot` (0: the first skill command, 1: the second) of hero `index`: the abilities it knows, in order
-		// (BattleState); defined below it.
+		// The ability in battle slot `slot` (0 to 7, BattleState::HeroAbilitySlots) of hero `index` (an empty slot: the
+		// defaults, an empty Name); defined below BattleState.
 		static const AbilityDefinition& Skill(int index, int slot);
 
 		// The experience each level takes: [0] reaches level 2.
@@ -308,29 +333,8 @@ namespace Hydro
 		static HeroStats stats[HeroCount];
 		const int clamped = std::clamp(index, 0, HeroCount - 1);
 		const int level = GameSession::IsRunning() ? std::max(1, BattleState::Get().HeroLevel[clamped]) : 1;
-		stats[clamped] = StatsAt(clamped, level);
-		if (GameSession::IsRunning())
-		{
-			// What the hero wears adds to it (ItemDefinition::Bonus).
-			HeroStats& hero = stats[clamped];
-			for (const DataRowRef& worn : BattleState::Get().HeroEquipment[clamped])
-			{
-				if (worn.IsSet() == false)
-				{
-					continue;
-				}
-				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(worn);
-				if (item.IsValid() == false)
-				{
-					continue;
-				}
-				hero.MaxHP = std::max(1, hero.MaxHP + item->Bonus.MaxHP);
-				hero.MaxMP = std::max(0, hero.MaxMP + item->Bonus.MaxMP);
-				hero.Attack = std::max(0, hero.Attack + item->Bonus.Attack);
-				hero.Magic = std::max(0, hero.Magic + item->Bonus.Magic);
-				hero.Speed = std::max(0, hero.Speed + item->Bonus.Speed);
-			}
-		}
+		// What the hero wears adds to it (ItemDefinition::Bonus).
+		stats[clamped] = GameSession::IsRunning() ? StatsWith(clamped, level, BattleState::Get().HeroEquipment[clamped]) : StatsAt(clamped, level);
 		return stats[clamped];
 	}
 
