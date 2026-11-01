@@ -52,6 +52,7 @@ MATDEFS = {
     "JP_Cloth_Indigo": {}, "JP_Roof_KawaraChannel": {}, "JP_Roof_KawaraRoll": {}, "JP_Roof_KawaraOldRoll": {},
     "JP_Mat_Iron": {}, "JP_Mat_Bronze": {}, "JP_Mat_Rope": {}, "JP_Mat_Glass": {},
     "JP_Mat_Opening": {"file": "JP_Mat_Opening.png"},     # the dark behind open shop fronts and window bars
+    "JP_Plaster_Clean": {}, "JP_Plaster_Warm_B": {},      # the row houses' plasters (PixelLab, Nov 2)
 }
 GLOW = (1.0, 0.62, 0.28, 1.0)
 ROOF_MATS = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_Plank", "JP_Roof_KawaraChannel"}
@@ -795,7 +796,7 @@ def machiya(name, tier, bays, depth, floors=2, roof="gable", upper=None, cusped=
 # sliding door, plank double door, or the open shop), a door canopy or not, udatsu fire walls, the roof tiles.
 ROW_PLINTH = 0.35      # the visible granite base course
 ROW_SKIRT = 0.55       # the cedar board skirt (koshi-ita) on top of it, with a rail
-PLASTER_TINTS = {"cream": (1.0, 0.985, 0.94), "grey": (0.93, 0.935, 0.92), "ochre": (1.0, 0.96, 0.86), "white": (1.03, 1.02, 1.0)}
+PLASTER_TINTS = {"cream": (1.0, 0.985, 0.94), "grey": (0.9, 0.93, 0.93), "ochre": (1.0, 0.96, 0.86), "white": (1.03, 1.02, 1.0)}
 WOOD_TINTS = {"dark": (1.0, 1.0, 1.0), "medium": (1.16, 1.08, 0.96), "red": (1.12, 0.98, 0.9)}
 
 
@@ -832,7 +833,8 @@ def row_house(name, bays, depth=9.0, attach=(False, False), door_bay=1, door="la
     W, D = bays * 2.0, depth
     x0, x1 = -W / 2, W / 2
     mb = MeshBuilder()
-    mb.tint = {PLASTER: PLASTER_TINTS[plaster], CEDAR: WOOD_TINTS[wood]}
+    wall = "JP_Plaster_Warm_B" if plaster == "grey" else "JP_Plaster_Clean"       # the two delivered plasters
+    mb.tint = {wall: PLASTER_TINTS[plaster], PLASTER: PLASTER_TINTS[plaster], CEDAR: WOOD_TINTS[wood]}
     aL, aR = attach
     pl = ROW_PLINTH
     # the base course: granite, standing 0.12 proud of the wall, cut flush at a party wall
@@ -842,19 +844,19 @@ def row_house(name, bays, depth=9.0, attach=(False, False), door_bay=1, door="la
     gf = m["gf"]
     zt = z + gf
     # ground floor: plaster side / back walls over a board skirt, the front made of 2 m bays
-    m_wall_frame(mb, x0, x1, 0.0, D, z, zt, bays=2.0, open_front=True, base=ROW_SKIRT, attach=attach)
+    m_wall_frame(mb, x0, x1, 0.0, D, z, zt, wall=wall, bays=2.0, open_front=True, base=ROW_SKIRT, attach=attach)
     if door == "shop":
         m_shop_interior(mb, x0 + 0.2, x1 - 0.2, z)
         mb.box(x0 + 0.1, -1.0, z + 2.45, x1 - 0.1, -0.05, z + 2.55, CEDAR)                 # raised shutters
-        mb.box(x0, -0.01, z + 2.5, x1, 0.05, zt - 0.28, PLASTER)
-        mb.box(x0, -0.01, z, x0 + 0.2, SHOP_DEPTH, z + 2.5, PLASTER); mb.box(x1 - 0.2, -0.01, z, x1, SHOP_DEPTH, z + 2.5, PLASTER)
+        mb.box(x0, -0.01, z + 2.5, x1, 0.05, zt - 0.28, wall)
+        mb.box(x0, -0.01, z, x0 + 0.2, SHOP_DEPTH, z + 2.5, wall); mb.box(x1 - 0.2, -0.01, z, x1, SHOP_DEPTH, z + 2.5, wall)
         for px in (x0 + 0.2, x1 - 0.2):
             m_post(mb, px, -0.05, z, zt, POST)
     else:
         for i in range(bays):
             bx0, bx1 = x0 + i * 2.0, x0 + (i + 1) * 2.0
             if i == door_bay:
-                mb.box(bx0, -0.02, z + DOOR_H + 0.2, bx1, 0.02, zt, PLASTER)
+                mb.box(bx0, -0.02, z + DOOR_H + 0.2, bx1, 0.02, zt, wall)
                 if door == "wood":
                     m_door_wood(mb, (bx0 + bx1) / 2, 0.0, z, w=1.7)
                 else:
@@ -864,7 +866,7 @@ def row_house(name, bays, depth=9.0, attach=(False, False), door_bay=1, door="la
             else:
                 m_front_lattice(mb, bx0 + 0.11, bx1 - 0.11, -0.02, z + ROW_SKIRT - 0.35, 2.6 - ROW_SKIRT + 0.35)
                 mb.box(bx0, -0.02, z, bx1, 0.06, z + ROW_SKIRT - 0.35, CEDAR)                   # skirt under the lattice
-                mb.box(bx0, -0.01, z + 2.6, bx1, 0.05, zt - 0.28, PLASTER)                      # transom
+                mb.box(bx0, -0.01, z + 2.6, bx1, 0.05, zt - 0.28, wall)                      # transom
             if i > 0:
                 m_post(mb, bx0, -0.04, z, zt, POST)
     mb.box(x0 - (0.0 if aL else 0.06), -0.12, zt - 0.3, x1 + (0.0 if aR else 0.06), 0.02, zt - 0.02, CEDAR)   # head beam
@@ -874,7 +876,7 @@ def row_house(name, bays, depth=9.0, attach=(False, False), door_bay=1, door="la
     # upper floor: a quiet plaster field (no bay posts): a beam at the floor line, the band under the eave, and the
     # windows set in from both ends (plaster, window, window, plaster)
     uf = m["uf"]
-    m_wall_frame(mb, x0, x1, 0.0, D, zt, zt + uf, bays=None, attach=attach)
+    m_wall_frame(mb, x0, x1, 0.0, D, zt, zt + uf, wall=wall, bays=None, attach=attach)
     mb.box(x0, -0.07, zt, x1, 0.0, zt + 0.16, CEDAR)
     nw = n_win if n_win is not None else max(1, bays - 1)
     margin = 1.1

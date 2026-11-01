@@ -87,6 +87,10 @@ def build(c, args):
         c.model(T, "Props/" + name, x, y, 0.0, r)
     d.lantern(T, -14.0, 36.0, 1.2, 1.6, 4.5, "Fire")                                                  # the campsite's fire
     d.sprite(T, "JP_Signboard_Standing_A", 3.0, -30.0, 0.0)
+    c.walker(T, "Merchant", 1.2, 4.0, 0.0, "Y", 36.0, 1.1, "IdleUp", pause=(3.0, 6.0), stop=0.6)
+    c.walker(T, "Townswoman", -1.2, 28.0, 0.0, "Y", 14.0, 1.0, "IdleDown", pause=(2.0, 5.0), delay=5.0)
+    c.npc(T, "Porter", 18.0, 21.0, 0.0, "IdleLeft")
+    c.npc(T, "Pilgrim", -13.0, 34.0, 0.0, "IdleRight")
     # the exits: south back into the city (the gate), north up to the shrine
     X = c.group("Exits")
     for (name, y) in (("Exit JapaneseCitySlice", -34.0), ("Exit ShrineGlade", 48.5)):

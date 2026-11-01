@@ -46,6 +46,24 @@ STAIR_W, CHEEK = 5.0, 1.0           # flight width, stone cheek wall either side
 CAP = 0.12                          # paving / grass cap on top of a terrace's wall box
 
 
+GOODS = os.path.join(REPO, "art_incoming", "jp_city", "goods")       # the delivered goods / shop sprites (Nov 2)
+
+
+def goods_sprite(name):
+    """A delivered goods sprite copied into Sprites/Props/JapaneseCity with a sprite .hymeta (32 px/m, clamped)."""
+    src = os.path.join(GOODS, name + ".png")
+    if os.path.exists(src) is False:
+        return False
+    os.makedirs(kit.SPRITES, exist_ok=True)
+    png = os.path.join(kit.SPRITES, name + ".png")
+    shutil.copy2(src, png)
+    if os.path.exists(png + ".hymeta") is False:
+        with open(png + ".hymeta", "w", newline="\r\n") as f:
+            f.write("Handle: %d\nType: Texture2D\nTextureImport:\n  Format: SRGB\n  Filter: Nearest\n  Wrap: Clamp\n"
+                    "  SpriteMode: Single\n  PixelsPerUnit: 32\n" % city.stable_handle("sprite:" + name))
+    return True
+
+
 def r2_material(src, name, tiling=0.25):
     """A material for a round-2 texture (art_incoming/jp_city/textures_r2/<src>), copied to Textures/JapaneseCity."""
     os.makedirs(city.TEX_DIR, exist_ok=True)
@@ -191,6 +209,22 @@ class Slice(city.City):
             "    MeshComponent:\n      Shape: Stairs\n      Size: [%g, %g, %g]\n      Steps: %d\n      CastShadows: true\n"
             "      Materials:\n        - MaterialHandle: %d\n    MeshColliderComponent:\n      Layer: World\n")
             % (width, run, z1 - z0, steps, mat))
+
+    def walker(self, parent, name, x, y, z, axis="X", length=10.0, speed=1.1, clip="IdleDown", work=None, delay=0.0,
+               pause=(2.0, 6.0), stop=0.5, loop=False):
+        """A townsperson who walks (NpcWanderScript): back and forth along `axis` through (x, y), `length` m in all,
+        pausing at the ends; work="Work" plays the sheet's Work clip at every other stop (the monk's sweeping)."""
+        base = os.path.join(ASSETS, "Characters", "NPC", name, name)
+        if os.path.exists(base + ".png.hymeta") is False or os.path.exists(base + ".hyanim") is False:
+            self.d.missing.append("NPC " + name); return
+        tex, anim = kit.handle_of(base + ".png.hymeta"), kit.handle_of(base + ".hyanim")
+        tag = self._n("Npc " + name)
+        body = kit.character_body(tex, anim, clip, clip + "_0") + (
+            "    NativeScriptComponent:\n      Scripts:\n        - Name: NpcWanderScript\n          Properties:\n"
+            "            PathLength: %g\n            Axis: %s\n            Speed: %g\n            PauseMin: %g\n            PauseMax: %g\n"
+            "            StopChance: %g\n            WorkClip: %s\n            WorkEvery: %d\n            StartDelay: %g\n            Loop: %s\n"
+            % (length, axis, speed, pause[0], pause[1], stop, work or '""', 2 if work else 1, delay, "true" if loop else "false"))
+        self.w.entity("npc:" + tag, tag, parent=parent, t=(x, y, z), s=(2.5, 2.34375, 1), body=body)
 
     def blocker(self, parent, x0, x1, y0, y1, z0=0.0, h=3.0):
         """An invisible wall: keeps the player where the camera can see her."""
@@ -432,6 +466,16 @@ def build(c, args):
         floor_z = info.get("shop_floor_z") or 0.8
         c.npc(M, "Merchant", cx + 0.5, 1.0 + 1.3, Z0 + floor_z, "IdleDown")
         d.lantern(M, cx, 1.0 + 1.0, Z0 + 2.2, 1.2, 4.0)
+        # the painted back wall (shelves full of goods) just in front of the kit's back wall, and goods along the
+        # front edge of the raised floor either side of the merchant
+        shop_n = len([1 for (x_, _) in shops if x_ <= cx])
+        if goods_sprite("JP_Shop_BackWall_A"):
+            d.sprite(M, "JP_Shop_BackWall_A", cx, 1.0 + 2.6 - 0.1, Z0 + floor_z, sort=0)
+        for (gname, gx) in ((("JP_Goods_FabricBolts", -1.5), ("JP_Goods_Sweets", 1.9)) if shop_n % 2 else (("JP_Goods_Pottery", -1.4), ("JP_Goods_DriedFish", 1.9))):
+            if goods_sprite(gname):
+                d.sprite(M, gname, cx + gx, 1.0 - 0.1, Z0 + floor_z, sort=1)
+        if goods_sprite("JP_Goods_Hats_A" if shop_n % 2 else "JP_Goods_Hats_B"):
+            d.sprite(M, "JP_Goods_Hats_A" if shop_n % 2 else "JP_Goods_Hats_B", cx - 3.6, 0.3, Z0, sort=1)
     # along the shopfronts: goods, water barrels, a signboard, lamp posts
     for (name, x, y, r) in (("JP_Prop_SakeBarrelStack_A", -24.4, 0.2, 0), ("JP_Prop_RainBarrel_A", -7.2, 0.3, 0),
                             ("JP_Prop_Buckets_A", -36.6, 0.2, 0), ("JP_Prop_Crate_A", 17.6, 0.2, 6), ("JP_Prop_Crate_A", 18.3, -0.3, -8),
@@ -458,9 +502,9 @@ def build(c, args):
     c.model(N, "Props/JP_Prop_MarketStall_A", -11.5, -9.6, Z0, 0)
     c.model(N, "Props/JP_Prop_MarketStall_B", 11.0, -9.8, Z0, 0)
     c.model(N, "Props/JP_Prop_MarketStall_A", 25.5, -9.4, Z0, 0)
-    for (dx, dy, sc) in ((-0.7, 0.3, 0.55), (0.1, 0.45, 0.45), (0.75, 0.25, 0.6)):
-        c.w.entity("model:" + c._n("Stall Jar"), "Stall Jar", parent=N, t=(11.0 + dx, -9.8 + dy, Z0 + cz), s=(sc, sc, sc),
-                   body=kit.mesh_body(kit.ensure_mesh_meta(os.path.join(MODELS, "Props", "JP_Prop_WaterJar_A.glb")), False))
+    for (gname, sx, sy) in (("JP_Goods_VegBaskets", -11.5, -9.6), ("JP_Goods_Pottery", 11.0, -9.8), ("JP_Goods_DriedFish", 25.5, -9.4)):
+        if goods_sprite(gname):
+            d.sprite(N, gname, sx, sy + 0.45, Z0 + cz, sort=2)
     c.model(N, "Props/JP_Prop_Crate_A", -13.4, -8.6, Z0, 8, collider=False)
     c.model(N, "Props/JP_Prop_Crate_A", -9.6, -8.5, Z0, -6, collider=False)
     c.model(N, "Props/JP_Prop_Buckets_A", 27.4, -8.4, Z0, 0, collider=False)
@@ -589,14 +633,23 @@ def build(c, args):
     # (the two street merchants stand inside their shops now, see the merchant street; a customer at the right one)
     for (name, x, y, z, clip) in (("Townswoman", 13.6, -0.95, Z0, "IdleUp"),
                                   ("Townsman", 17.4, -2.6, Z0, "IdleRight"), ("Townswoman", 18.7, -2.6, Z0, "IdleLeft"),
-                                  ("Townswoman", -15.6, -5.6, Z0, "IdleRight"), ("OldWoman", -14.4, -5.4, Z0, "IdleLeft"),
                                   ("Pilgrim", -9.0, -3.4, Z0, "IdleDown"), ("Townsman", 23.5, -6.4, Z0, "IdleDown"),
-                                  ("Monk", 1.4, 5.0, Z0 + (5.0 - 1.0) / 7.0 * Z1, "IdleDown"), ("OldWoman", -1.6, 9.6, Z1, "IdleDown"),
+                                  ("Monk", 1.4, 5.0, Z0 + (5.0 - 1.0) / 7.0 * Z1, "IdleDown"),
                                   ("Townswoman", -4.6, 23.0, Z2, "IdleRight"), ("Townsman", -3.4, 23.2, Z2, "IdleLeft"),
-                                  ("Merchant", 7.0, 21.0, Z2, "IdleDown"), ("Pilgrim", 5.2, 24.4, Z2, "IdleDown"),
-                                  ("Porter", -6.0, -5.2, Z0, "IdleRight"), ("TownChild", 3.4, -6.6, Z0, "IdleLeft"),
+                                  ("Pilgrim", 5.2, 24.4, Z2, "IdleDown"),
+                                  ("TownChild", 3.4, -6.6, Z0, "IdleLeft"),
                                   ("TownChild", -8.4, 20.6, Z2, "IdleRight")):
         c.npc(T, name, x, y, z, clip)
+    # the walkers (Nov 2, the walk sheets): along the street, up the stair corridor, across the plaza, on the wall
+    c.walker(T, "Townswoman", -22.0, -5.4, Z0, "X", 16.0, 1.1, "IdleRight", delay=1.0)
+    c.walker(T, "OldWoman", -14.0, -6.2, Z0, "X", 7.0, 0.5, "IdleLeft", pause=(4.0, 9.0), delay=3.0)
+    c.walker(T, "Merchant", 24.0, -3.6, Z0, "X", 14.0, 1.0, "IdleLeft", delay=2.0)
+    c.walker(T, "Merchant", 7.0, 21.0, Z2, "Y", 7.0, 0.9, "IdleDown", delay=4.0)
+    c.walker(T, "OldWoman", -1.6, 9.6, Z1, "X", 3.0, 0.4, "IdleDown", pause=(6.0, 12.0))
+    c.walker(T, "TempleMonk", -5.0, 26.5, Z2, "X", 6.0, 0.7, "IdleDown", work="Work", pause=(5.0, 9.0), delay=0.5)
+    c.walker(T, "GateGuard", -26.0, 37.6, Z2 + 4.5, "X", 24.0, 0.9, "IdleRight", pause=(3.0, 7.0), stop=0.2)
+    # the porter does rounds: the whole street from the left end to the right, then reappears at the left (off screen)
+    c.walker(T, "Porter", 0.0, -4.6, Z0, "X", 84.0, 1.4, "IdleRight", pause=(0.5, 1.5), stop=0.3, loop=True)
 
     # ---------------------------------------------------------------- invisible walls: only where the camera sees her
     B = c.group("Blockers")

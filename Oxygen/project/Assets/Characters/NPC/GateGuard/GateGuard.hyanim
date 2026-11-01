@@ -1,4 +1,4 @@
-# GateGuard: idle in its directions (scripts/characters/build_npc_idle.py).
+# GateGuard: idle, walk in its directions (scripts/characters/build_npc_idle.py).
 Handle: 2343531256246649581
 SpriteAnimationSet:
   TextureHandle: 4834766320963332601
@@ -60,3 +60,63 @@ SpriteAnimationSet:
           Duration: 0.5
         - Sprite: IdleLeft_3
           Duration: 0.4
+    - Name: WalkDown
+      Loop: Loop
+      Frames:
+        - Sprite: WalkDown_0
+          Duration: 0.1
+        - Sprite: WalkDown_1
+          Duration: 0.1
+        - Sprite: WalkDown_2
+          Duration: 0.1
+        - Sprite: WalkDown_3
+          Duration: 0.1
+        - Sprite: WalkDown_4
+          Duration: 0.1
+        - Sprite: WalkDown_5
+          Duration: 0.1
+    - Name: WalkRight
+      Loop: Loop
+      Frames:
+        - Sprite: WalkRight_0
+          Duration: 0.1
+        - Sprite: WalkRight_1
+          Duration: 0.1
+        - Sprite: WalkRight_2
+          Duration: 0.1
+        - Sprite: WalkRight_3
+          Duration: 0.1
+        - Sprite: WalkRight_4
+          Duration: 0.1
+        - Sprite: WalkRight_5
+          Duration: 0.1
+    - Name: WalkUp
+      Loop: Loop
+      Frames:
+        - Sprite: WalkUp_0
+          Duration: 0.1
+        - Sprite: WalkUp_1
+          Duration: 0.1
+        - Sprite: WalkUp_2
+          Duration: 0.1
+        - Sprite: WalkUp_3
+          Duration: 0.1
+        - Sprite: WalkUp_4
+          Duration: 0.1
+        - Sprite: WalkUp_5
+          Duration: 0.1
+    - Name: WalkLeft
+      Loop: Loop
+      Frames:
+        - Sprite: WalkLeft_0
+          Duration: 0.1
+        - Sprite: WalkLeft_1
+          Duration: 0.1
+        - Sprite: WalkLeft_2
+          Duration: 0.1
+        - Sprite: WalkLeft_3
+          Duration: 0.1
+        - Sprite: WalkLeft_4
+          Duration: 0.1
+        - Sprite: WalkLeft_5
+          Duration: 0.1

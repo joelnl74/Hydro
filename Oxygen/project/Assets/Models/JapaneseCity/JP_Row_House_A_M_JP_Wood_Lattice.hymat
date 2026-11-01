@@ -5,7 +5,7 @@ Material:
   EmissiveHandle: 13467183905991899061
   Tint: [1, 1, 1, 1]
   Tiling: [1, 1]
-  EmissionColor: [0.349999994, 0.216999993, 0.0979999974]
-  EmissionIntensity: 1
+  EmissionColor: [1, 0.62, 0.28]
+  EmissionIntensity: 0.35
   AlphaCutoff: 0
   Filter: Nearest

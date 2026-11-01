@@ -15,6 +15,7 @@
 #include "Scripts/FarmVillage/FarmVillageScript.h"
 #include "Scripts/Field/EnemyChaseScript.h"
 #include "Scripts/Field/FieldDirectorScript.h"
+#include "Scripts/Field/NpcWanderScript.h"
 #include "Scripts/Interiors/InteriorScript.h"
 #include "Scripts/ShrineGlade/ShrineGladeScript.h"
 #include "Scripts/ShrineGlade/ShrineQuestScript.h"
@@ -157,6 +158,18 @@ namespace Hydro
 			.Property("NpcTable", "Npc Table", &FieldDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
 			.Property("SignTable", "Sign Table", &FieldDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
 			.Property("Dialogue", "Dialogue", &FieldDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
+
+		ScriptRegistry::Register<NpcWanderScript>("NpcWanderScript")
+			.Property("PathLength", "Path Length", &NpcWanderScript::PathLength).Range(0.0f, 60.0f).Tooltip("Metres: the whole length of the line it walks, centred on where it was placed")
+			.Property("Axis", "Axis", &NpcWanderScript::Axis).Tooltip("The line's direction: X (along the street, left-right) or Y (up and down the screen)")
+			.Property("Speed", "Speed", &NpcWanderScript::Speed).Range(0.0f, 5.0f).Tooltip("Metres per second (the player walks at about 3.5)")
+			.Property("PauseMin", "Pause Min", &NpcWanderScript::PauseMin).Range(0.0f, 30.0f).Tooltip("Seconds it stands still at a stop, at least")
+			.Property("PauseMax", "Pause Max", &NpcWanderScript::PauseMax).Range(0.0f, 60.0f).Tooltip("Seconds it stands still at a stop, at most")
+			.Property("StopChance", "Stop Chance", &NpcWanderScript::StopChance).Range(0.0f, 1.0f).Tooltip("Chance of a stop part way along the line, per trip")
+			.Property("WorkClip", "Work Clip", &NpcWanderScript::WorkClip).Tooltip("A clip prefix played instead of Idle<Facing> at stops (\"Work\" plays Work<Facing>); empty: none")
+			.Property("WorkEvery", "Work Every", &NpcWanderScript::WorkEvery).Range(1.0f, 10.0f).Tooltip("With WorkClip: it works at one stop in this many")
+			.Property("StartDelay", "Start Delay", &NpcWanderScript::StartDelay).Range(0.0f, 60.0f).Tooltip("Seconds before it first moves (so a crowd doesn't all set off at once)")
+			.Property("Loop", "Loop", &NpcWanderScript::Loop).Tooltip("A round: it always walks from the line's start to its end, then reappears at the start (for a long street, with both ends off screen) instead of turning back");
 
 		ScriptRegistry::Register<InteriorScript>("InteriorScript")
 			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")

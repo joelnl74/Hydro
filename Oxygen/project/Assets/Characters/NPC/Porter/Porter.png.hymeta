@@ -32,3 +32,35 @@ TextureImport:
     - {Name: IdleLeft_1, Rect: [96, 288, 96, 90], Pivot: [0.5, 0]}
     - {Name: IdleLeft_2, Rect: [192, 288, 96, 90], Pivot: [0.5, 0]}
     - {Name: IdleLeft_3, Rect: [288, 288, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_0, Rect: [0, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_1, Rect: [96, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_2, Rect: [192, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_3, Rect: [288, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_4, Rect: [384, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_5, Rect: [480, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_6, Rect: [576, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_7, Rect: [672, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_0, Rect: [0, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_1, Rect: [96, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_2, Rect: [192, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_3, Rect: [288, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_4, Rect: [384, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_5, Rect: [480, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_6, Rect: [576, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_7, Rect: [672, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_0, Rect: [0, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_1, Rect: [96, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_2, Rect: [192, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_3, Rect: [288, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_4, Rect: [384, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_5, Rect: [480, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_6, Rect: [576, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_7, Rect: [672, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_0, Rect: [0, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_1, Rect: [96, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_2, Rect: [192, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_3, Rect: [288, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_4, Rect: [384, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_5, Rect: [480, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_6, Rect: [576, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_7, Rect: [672, 672, 96, 90], Pivot: [0.5, 0]}
