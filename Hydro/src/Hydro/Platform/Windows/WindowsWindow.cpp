@@ -137,7 +137,9 @@ namespace Hydro
 	void WindowsWindow::Shutdown()
 	{
 		if (m_Window == nullptr)
+		{
 			return;
+		}
 
 		glfwDestroyWindow(m_Window);
 		m_Window = nullptr;

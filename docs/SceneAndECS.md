@@ -364,7 +364,7 @@ Agreed Nov 1, 2026, in the wiki's [Scripting plan](https://github.com/joelnl74/H
 - **SC2. The game session.** Done Nov 1, 2026 (see [Play mode](#play-mode): `GameSession`, `RpgSession`).
 - **SC3. `GetComponent` for scripts.** Done Nov 1, 2026 (see [Scripts](#scripts): `ScriptLookup`, the creation order).
 - **SC4. References as properties.** Done Nov 1, 2026 (see [Script reflection](#script-reflection-hy_script--hy_property-oct-28-2026): `EntityRef`, `ComponentRef<T>`, `Required`, one script of a class, `Entity::FindChild`, `Scene::FindEntityByTag`). Checking `Required` and broken references in CI is SC5.
-- **SC5 and SC6. Project validation and a convention linter** in CI, without a GPU.
+- **SC5 and SC6. Project validation and a convention linter.** Done Nov 1, 2026: `scripts/validate_project.py` (every scene, prefab and data file against the code's reflection: unknown or doubly bound scripts, wrong value types, empty `Required` values, broken references and asset handles, missing rows) and `scripts/lint_conventions.py`, both in `scripts/check.sh` and CI ([Code map](CodeMap.md#checking-without-windows)).
 - **SC7. The battle's data and levels:** hero definitions, enemy and encounter tables.
 - **SC8. The refactor.** Reusable code goes in shared folders by kind (`State/`, `Rules/`, `Views/`, `Scripts/Common/`); code used by one area or scene goes in that area's folder (`Scripts/Battle/`, `Scripts/ShrineGlade/`, ...).
 
@@ -406,7 +406,7 @@ Roadmap A6 (E4). Today a component is listed in four places: `EntitySerializer` 
 - Animation events are saved in `.hyanim` files but not delivered yet (planned: a `ScriptableEntity::OnAnimationEvent(name)` hook fed by `UpdateSpriteAnimations`).
 - Scripts must be compiled into the application: there's no separate game module or hot reload.
 - The run state types (`BattleState`, `QuestLog`) are still defined in their scripts' headers and reach the session through a static `Get()` (`Game/src/State/RpgSession.cpp`); the refactor (SC8) moves them to `Game/src/State/`. `DioramaView` (the field camera) still keeps its framing and cinematic state in statics; directors reset them per scene.
-- The game scripts still find each other and their UI by tag name; only `MvpDirectorScript::Dialogue` is a reference so far (unset in the scenes, so it falls back to the tag). The refactor (SC8) moves them to references and `FindChild`. Nothing checks `Required` references outside the inspector yet (SC5).
+- The game scripts still find each other and their UI by tag name; only `MvpDirectorScript::Dialogue` is a reference so far (unset in the scenes, so it falls back to the tag). The refactor (SC8) moves them to references and `FindChild`. `Required` and broken references are checked by the inspector and `scripts/validate_project.py` (CI); the running game doesn't check them: `Get()` returns `nullptr`.
 - Script reflection (open points):
   - No `enum class`, `Entity` / `UUID` references (planned: SC4), arrays or nested structs as properties yet; an `AssetHandle` isn't checked against the asset's type when the scene loads.
   - No `OnValidate` / property-changed hook: a script that derives state from a property in `OnCreate` doesn't see a live edit until it reads the field again.

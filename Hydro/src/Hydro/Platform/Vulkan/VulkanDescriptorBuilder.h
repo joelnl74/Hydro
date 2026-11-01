@@ -55,11 +55,11 @@ namespace Hydro
 
 		std::vector<VkDescriptorSet> m_DescriptorSets;
 		std::vector<DescriptorAllocation> m_Allocations;
-		std::map<uint32_t, std::vector<PendingWrite>> m_writeDescriptorSets;
-		std::vector<VkDescriptorSetLayoutBinding> m_layoutBinding;
+		std::map<uint32_t, std::vector<PendingWrite>> m_WriteDescriptorSets;
+		std::vector<VkDescriptorSetLayoutBinding> m_LayoutBinding;
 
-		std::vector<VkDescriptorBufferInfo> m_bufferInfo;
-		std::vector<VkDescriptorImageInfo> m_imageInfo;
+		std::vector<VkDescriptorBufferInfo> m_BufferInfo;
+		std::vector<VkDescriptorImageInfo> m_ImageInfo;
 
 		VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE; // owned by the layout cache
 	};

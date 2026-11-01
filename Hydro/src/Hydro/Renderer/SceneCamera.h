@@ -28,7 +28,9 @@ namespace Hydro
 		glm::mat4 GetProjection(float aspectRatio) const
 		{
 			if (Projection == ProjectionType::Perspective)
+			{
 				return Camera::Perspective(glm::radians(PerspectiveFOV), aspectRatio, PerspectiveNear, PerspectiveFar);
+			}
 
 			return Camera::Orthographic(OrthographicSize, aspectRatio, OrthographicNear, OrthographicFar);
 		}

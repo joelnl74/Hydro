@@ -96,12 +96,12 @@ namespace Hydro
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }
 		// Shader is null here: it is only used while the pipeline is created. Set it again before
 		// building a new pipeline from a copy of this specification.
-		const PipelineSpecification& GetSpecification() const { return m_pipelineSpecification; }
+		const PipelineSpecification& GetSpecification() const { return m_PipelineSpecification; }
 
 	private:
 		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
 		VkPipeline m_GraphicsPipeline = VK_NULL_HANDLE;
-		PipelineSpecification m_pipelineSpecification;
+		PipelineSpecification m_PipelineSpecification;
 	};
 }
 

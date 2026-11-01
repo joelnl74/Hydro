@@ -14,7 +14,9 @@ namespace Hydro
 	{
 		std::ifstream file(path, std::ios::in | std::ios::binary);
 		if (file.is_open() == false)
+		{
 			return false;
+		}
 
 		std::stringstream stream;
 		stream << file.rdbuf();
@@ -192,7 +194,9 @@ namespace Hydro
 		}
 
 		if (result.GetNumWarnings() > 0)
+		{
 			HY_CORE_WARN("Shader '{0}' compiled with warnings:\n{1}", sourceName, result.GetErrorMessage());
+		}
 
 		return std::vector<uint32_t>(result.cbegin(), result.cend());
 	}
@@ -200,7 +204,9 @@ namespace Hydro
 	void VulkanShader::DestroyModules()
 	{
 		if (m_ShaderModules.empty())
+		{
 			return;
+		}
 
 		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		for (auto& module : m_ShaderModules)

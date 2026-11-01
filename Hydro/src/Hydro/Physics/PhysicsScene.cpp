@@ -210,11 +210,17 @@ namespace Hydro
 		// duplicated, instantiated from a prefab). Only entities with a Rigidbody2D or a collider are looked at.
 		entt::registry& registry = m_Scene->m_Registry;
 		for (entt::entity handle : registry.view<Rigidbody2DComponent>())
+		{
 			CreateBody(handle);
+		}
 		for (entt::entity handle : registry.view<BoxCollider2DComponent>())
+		{
 			CreateBody(handle);
+		}
 		for (entt::entity handle : registry.view<CircleCollider2DComponent>())
+		{
 			CreateBody(handle);
+		}
 	}
 
 	bool PhysicsScene::EnsureBody(entt::entity handle)
@@ -361,13 +367,17 @@ namespace Hydro
 		{
 			const b2SensorBeginTouchEvent& event = sensors.beginEvents[i];
 			if (b2Shape_IsValid(event.visitorShapeId) && b2Shape_IsSensor(event.visitorShapeId) == false)
+			{
 				add(Event::Type::TriggerBegin, event.sensorShapeId, event.visitorShapeId);
+			}
 		}
 		for (int i = 0; i < sensors.endCount; i++)
 		{
 			const b2SensorEndTouchEvent& event = sensors.endEvents[i];
 			if (b2Shape_IsValid(event.visitorShapeId) && b2Shape_IsSensor(event.visitorShapeId) == false)
+			{
 				add(Event::Type::TriggerEnd, event.sensorShapeId, event.visitorShapeId);
+			}
 		}
 
 		const b2ContactEvents contacts = b2World_GetContactEvents(m_Data->World);
@@ -440,34 +450,31 @@ namespace Hydro
 		return true;
 	}
 
-	namespace Physics2D
+	static PhysicsScene* GetPhysicsWorld(Entity& entity)
 	{
-		static PhysicsScene* GetWorld(Entity& entity)
+		if (entity.IsValid() == false)
 		{
-			if (entity.IsValid() == false)
-			{
-				return nullptr;
-			}
-			Scene* scene = entity.GetScene();
-			return scene != nullptr ? scene->GetPhysicsScene() : nullptr;
+			return nullptr;
 		}
+		Scene* scene = entity.GetScene();
+		return scene != nullptr ? scene->GetPhysicsScene() : nullptr;
+	}
 
-		bool HasBody(Entity entity)
-		{
-			PhysicsScene* world = GetWorld(entity);
-			return world != nullptr && world->EnsureBody(static_cast<entt::entity>(entity));
-		}
+	bool Physics2D::HasBody(Entity entity)
+	{
+		PhysicsScene* world = GetPhysicsWorld(entity);
+		return world != nullptr && world->EnsureBody(static_cast<entt::entity>(entity));
+	}
 
-		bool SetLinearVelocity(Entity entity, const glm::vec2& velocity)
-		{
-			PhysicsScene* world = GetWorld(entity);
-			return world != nullptr && world->SetLinearVelocity(static_cast<entt::entity>(entity), velocity);
-		}
+	bool Physics2D::SetLinearVelocity(Entity entity, const glm::vec2& velocity)
+	{
+		PhysicsScene* world = GetPhysicsWorld(entity);
+		return world != nullptr && world->SetLinearVelocity(static_cast<entt::entity>(entity), velocity);
+	}
 
-		bool GetLinearVelocity(Entity entity, glm::vec2& velocity)
-		{
-			PhysicsScene* world = GetWorld(entity);
-			return world != nullptr && world->GetLinearVelocity(static_cast<entt::entity>(entity), velocity);
-		}
+	bool Physics2D::GetLinearVelocity(Entity entity, glm::vec2& velocity)
+	{
+		PhysicsScene* world = GetPhysicsWorld(entity);
+		return world != nullptr && world->GetLinearVelocity(static_cast<entt::entity>(entity), velocity);
 	}
 }

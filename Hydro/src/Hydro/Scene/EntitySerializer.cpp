@@ -919,11 +919,15 @@ namespace Hydro
 	{
 		std::string name;
 		if (auto tagNode = entityNode["TagComponent"])
+		{
 			name = tagNode["Tag"].as<std::string>("");
+		}
 
 		UUID uuid; // fresh random id by default
 		if (keepUUID && entityNode["Entity"])
+		{
 			uuid = UUID(entityNode["Entity"].as<uint64_t>());
+		}
 
 		// CreateEntityWithUUID adds the Tag + ID components.
 		Entity entity = scene.CreateEntityWithUUID(uuid, name);

@@ -55,7 +55,9 @@ namespace Hydro
 
 		std::error_code ec;
 		if (filepath.has_parent_path())
+		{
 			std::filesystem::create_directories(filepath.parent_path(), ec);
+		}
 
 		std::ofstream fout(filepath);
 		if (fout.is_open() == false)
@@ -93,13 +95,21 @@ namespace Hydro
 		try
 		{
 			if (auto node = projectNode["Name"])
+			{
 				config.Name = node.as<std::string>();
+			}
 			if (auto node = projectNode["AssetDirectory"])
+			{
 				config.AssetDirectory = node.as<std::string>();
+			}
 			if (auto node = projectNode["StartSceneHandle"])
+			{
 				config.StartScene = AssetHandle(node.as<uint64_t>(0));
+			}
 			if (auto node = projectNode["StartScene"])
+			{
 				config.LegacyStartScene = node.as<std::string>();
+			}
 			if (auto node = projectNode["SceneTemplateHandle"])
 			{
 				config.SceneTemplate = AssetHandle(node.as<uint64_t>(0));

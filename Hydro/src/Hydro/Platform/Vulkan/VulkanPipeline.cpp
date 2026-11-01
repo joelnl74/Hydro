@@ -99,7 +99,7 @@ namespace Hydro
 
 	VulkanPipeline::VulkanPipeline(const PipelineSpecification& spec)
 	{
-		m_pipelineSpecification = spec;
+		m_PipelineSpecification = spec;
 
 		if (spec.Shader == nullptr)
 		{
@@ -321,7 +321,7 @@ namespace Hydro
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline));
 
 		// The shader is only needed above.
-		m_pipelineSpecification.Shader = nullptr;
+		m_PipelineSpecification.Shader = nullptr;
 	}
 
 	VulkanPipeline::~VulkanPipeline()
@@ -361,7 +361,7 @@ namespace Hydro
 
 	void VulkanPipeline::BindDescriptorSets(VkCommandBuffer commandBuffer)
 	{
-		if (m_pipelineSpecification.DescriptorSets.empty())
+		if (m_PipelineSpecification.DescriptorSets.empty())
 		{
 			return;
 		}
@@ -369,8 +369,8 @@ namespace Hydro
 		uint32_t currentFrame = Renderer::GetRenderFrame();
 
 		std::vector<VkDescriptorSet> descriptorSets;
-		descriptorSets.reserve(m_pipelineSpecification.DescriptorSets.size());
-		for (VulkanDescriptorBuilder* descriptorSet : m_pipelineSpecification.DescriptorSets)
+		descriptorSets.reserve(m_PipelineSpecification.DescriptorSets.size());
+		for (VulkanDescriptorBuilder* descriptorSet : m_PipelineSpecification.DescriptorSets)
 		{
 			descriptorSets.push_back(descriptorSet->GetDescriptorSet(currentFrame));
 		}
@@ -391,7 +391,7 @@ namespace Hydro
 
 	void VulkanPipeline::PushConstants(VkCommandBuffer commandBuffer, const void* data, uint32_t size)
 	{
-		HY_CORE_ASSERT(size <= m_pipelineSpecification.PushConstantSize, "VulkanPipeline::PushConstants: more bytes than the pipeline declares");
+		HY_CORE_ASSERT(size <= m_PipelineSpecification.PushConstantSize, "VulkanPipeline::PushConstants: more bytes than the pipeline declares");
 		vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
 	}
 }

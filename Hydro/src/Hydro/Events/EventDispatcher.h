@@ -27,12 +27,16 @@ namespace Hydro
 
 			// Ignore events for which we do not have an observer.
 			if (m_Observers.find(type) == m_Observers.end())
+			{
 				return;
+			}
 
 			auto&& observers = m_Observers.at(type);
 
 			for (auto&& observer : observers)
+			{
 				observer(postEvent);
+			}
 		}
 
 	public:

@@ -47,23 +47,31 @@ namespace Hydro
 			std::snprintf(config.Name, sizeof(config.Name), "%s", font.Name.c_str());
 
 			if (io.Fonts->AddFontFromFileTTF(font.Path.string().c_str(), font.Size, &config) == nullptr)
+			{
 				HY_CORE_WARN("ImGui font '{}' could not be loaded from {}", font.Name, font.Path.string());
+			}
 		}
 
 		// The first font added is ImGui's default; with none, ImGui uses its built-in one.
 		if (io.Fonts->Fonts.empty() == false)
+		{
 			io.FontDefault = io.Fonts->Fonts[0];
+		}
 	}
 
 	ImFont* ImGuiLayer::GetFont(const std::string& name)
 	{
 		if (ImGui::GetCurrentContext() == nullptr)
+		{
 			return nullptr;
+		}
 
 		for (ImFont* font : ImGui::GetIO().Fonts->Fonts)
 		{
 			if (font->ConfigData != nullptr && std::strcmp(font->ConfigData->Name, name.c_str()) == 0)
+			{
 				return font;
+			}
 		}
 
 		return nullptr;
@@ -157,7 +165,9 @@ namespace Hydro
 		{
 			ImDrawData* drawData = ImGui::GetDrawData();
 			if (drawData != nullptr)
+			{
 				ImGui_ImplVulkan_RenderDrawData(drawData, frameCommandBuffer);
+			}
 		});
 	}
 

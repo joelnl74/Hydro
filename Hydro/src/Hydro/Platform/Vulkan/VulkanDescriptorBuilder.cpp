@@ -10,7 +10,7 @@ namespace Hydro
 	{
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_writeDescriptorSets.emplace(i, std::vector<PendingWrite>());
+			m_WriteDescriptorSets.emplace(i, std::vector<PendingWrite>());
 		}
 	}
 
@@ -35,7 +35,7 @@ namespace Hydro
 		uboLayoutBinding.pImmutableSamplers = nullptr;
 		uboLayoutBinding.stageFlags = stageFlags;
 
-		m_layoutBinding.push_back(uboLayoutBinding);
+		m_LayoutBinding.push_back(uboLayoutBinding);
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -45,16 +45,16 @@ namespace Hydro
 			bufferInfo.range = (VkDeviceSize)size;
 
 			PendingWrite pending;
-			pending.InfoOffset = m_bufferInfo.size();
+			pending.InfoOffset = m_BufferInfo.size();
 			pending.IsImage = false;
-			m_bufferInfo.push_back(bufferInfo);
+			m_BufferInfo.push_back(bufferInfo);
 
 			pending.Write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			pending.Write.dstBinding = binding;
 			pending.Write.dstArrayElement = 0;
 			pending.Write.descriptorType = type;
 			pending.Write.descriptorCount = descriptorCount;
-			m_writeDescriptorSets[i].push_back(pending);
+			m_WriteDescriptorSets[i].push_back(pending);
 		}
 	}
 
@@ -71,17 +71,17 @@ namespace Hydro
 		samplerLayoutBinding.pImmutableSamplers = nullptr;
 		samplerLayoutBinding.stageFlags = stageFlags;
 
-		m_layoutBinding.push_back(samplerLayoutBinding);
+		m_LayoutBinding.push_back(samplerLayoutBinding);
 
 		// Fill every slot, so the shader never reads an unwritten descriptor whatever index it uses.
-		const size_t infoOffset = m_imageInfo.size();
+		const size_t infoOffset = m_ImageInfo.size();
 		for (uint32_t i = 0; i < descriptorCount; i++)
 		{
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = imageView;
 			imageInfo.sampler = sampler;
-			m_imageInfo.push_back(imageInfo);
+			m_ImageInfo.push_back(imageInfo);
 		}
 
 		// The image infos don't change per frame, so every frame's write points at the same array.
@@ -96,7 +96,7 @@ namespace Hydro
 			pending.Write.dstArrayElement = 0;
 			pending.Write.descriptorType = type;
 			pending.Write.descriptorCount = descriptorCount;
-			m_writeDescriptorSets[i].push_back(pending);
+			m_WriteDescriptorSets[i].push_back(pending);
 		}
 	}
 
@@ -106,7 +106,7 @@ namespace Hydro
 
 		HY_CORE_ASSERT(m_DescriptorSets.empty(), "VulkanDescriptorBuilder::Build called twice");
 
-		m_DescriptorSetLayout = VulkanDescriptorAllocator::GetLayout(m_layoutBinding);
+		m_DescriptorSetLayout = VulkanDescriptorAllocator::GetLayout(m_LayoutBinding);
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			const DescriptorAllocation allocation = VulkanDescriptorAllocator::AllocatePersistent(m_DescriptorSetLayout);
@@ -118,20 +118,20 @@ namespace Hydro
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			std::vector<VkWriteDescriptorSet> writes;
-			writes.reserve(m_writeDescriptorSets[i].size());
+			writes.reserve(m_WriteDescriptorSets[i].size());
 
-			for (auto& pending : m_writeDescriptorSets[i])
+			for (auto& pending : m_WriteDescriptorSets[i])
 			{
 				VkWriteDescriptorSet write = pending.Write;
 				write.dstSet = m_DescriptorSets[i];
 
 				if (pending.IsImage)
 				{
-					write.pImageInfo = &m_imageInfo[pending.InfoOffset];
+					write.pImageInfo = &m_ImageInfo[pending.InfoOffset];
 				}
 				else
 				{
-					write.pBufferInfo = &m_bufferInfo[pending.InfoOffset];
+					write.pBufferInfo = &m_BufferInfo[pending.InfoOffset];
 				}
 
 				writes.push_back(write);
