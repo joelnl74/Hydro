@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-// What the field's people and signs say (MvpDirectorScript). The field scenes find them by their tags: the row ID is
+// What the field's people and signs say (FieldDirectorScript). The field scenes find them by their tags: the row ID is
 // the name after "Npc " / "Sign " without spaces ("Npc Village Elder" -> VillageElder, "Sign Shrine" -> Shrine), so
 // the scenes didn't have to change. Assets/Data/Npcs.hytable and Signs.hytable.
 namespace Hydro

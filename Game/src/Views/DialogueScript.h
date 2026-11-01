@@ -12,7 +12,7 @@
 #include <vector>
 
 // A dialogue box on the runtime UI (UI5): lines typed in one by one, each with its speaker's name. What is said is
-// data (a DialogueDefinition: Assets/Data/Dialogue/); field NPCs open it through the MVP director (MvpDirectorScript, E
+// data (a DialogueDefinition: Assets/Data/Dialogue/); field NPCs open it through the MVP director (FieldDirectorScript, E
 // near an "Npc <Name>"), quests with their own conversations (ShrineQuestScript).
 
 namespace Hydro

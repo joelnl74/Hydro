@@ -9,7 +9,7 @@ namespace Hydro
 {
 	// The party's items: run state, on the game session (RpgSession::Items, Scripting plan SC2), so every field scene
 	// and interior of a run shares them and a new run starts with none. The field director fills it from its
-	// starting inventory once per run (MvpDirectorScript).
+	// starting inventory once per run (FieldDirectorScript).
 	struct Inventory
 	{
 		// One line: which item (a row of the items table, looked up when shown or used, so an edit to the table shows

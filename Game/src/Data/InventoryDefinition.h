@@ -8,7 +8,7 @@
 
 // A list of items with counts, in the order they are listed: the party's starting items
 // (Assets/Data/StartingInventory.hydef); later also loot and shop stock. Data, not game state: what the party
-// carries during a run lives in MvpDirectorScript (and, with J5, the save's GameState).
+// carries during a run lives in FieldDirectorScript (and, with J5, the save's GameState).
 namespace Hydro
 {
 	HY_DATA()

@@ -7,7 +7,7 @@ dialogue (scripts/ui/make_ui_art.py draws the art).
 Close the scenes in the editor first. Each run removes what an earlier run (or the older UI it replaces) put there,
 by tag, with every descendant, and appends the UI again, so it can be run as often as needed; entity IDs come from
 the tags, so they stay the same between runs. Everything else in the scenes is left alone. The entity names are the
-ones BattleScript, MvpDirectorScript and DialogueScript look up: rename them in both places.
+ones BattleScript, FieldDirectorScript (its views) and DialogueScript look up: rename them in both places.
 
 Check the result offline with scripts/ui/preview_ui.py.
 
@@ -247,7 +247,7 @@ ITEMS = [("Potion", "x3"), ("Hi-Potion", "x1"), ("Ether", "x2"), ("Herb Tea", "x
 def build_field(scene_name, director):
     b = Builder(scene_name)
 
-    # The interaction prompt over the player's head: a World canvas MvpDirectorScript moves and shows.
+    # The interaction prompt over the player's head: a World canvas FieldDirectorScript (InteractPromptView) moves and shows.
     prompt = b.add("Prompt Canvas", director, TransformComponent=transform(), UICanvasComponent=canvas(5, world=([220, 52], [0.5, 0])))
     b.add("Prompt Plate", prompt, UIRectComponent=fill(), UIImageComponent=image("Plate"))
     b.add("Prompt Text", prompt, UIRectComponent=fill((16, 0, 16, 0)), UITextComponent=text("E  Talk", FONT_SMALL, CREAM, "Center"))

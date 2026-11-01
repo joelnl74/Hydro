@@ -139,7 +139,7 @@ namespace Hydro
 			return nullptr;
 		}
 
-		// NPCs a quest speaks for (by the name after "Npc " in their tag). The field's interaction (MvpDirectorScript)
+		// NPCs a quest speaks for (by the name after "Npc " in their tag). The field's interaction (FieldDirectorScript)
 		// calls Talk when the player talks to one: true means the quest takes it (TakeTalk, its director, next
 		// update), so the NPC's usual lines are not shown.
 		void Claim(const std::string& npc)
