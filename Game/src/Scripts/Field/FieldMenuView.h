@@ -45,11 +45,18 @@ namespace Hydro
 			}
 			m_Help = ViewHelpers::Find(scene, "Help Text", owner);
 			m_Keys = ViewHelpers::Find(scene, "Help Keys", owner);
-			m_StatusName = ViewHelpers::Find(scene, "Menu Status Miko Name", owner);
-			m_StatusHP = ViewHelpers::Find(scene, "Menu Status Miko HP", owner);
-			m_StatusMP = ViewHelpers::Find(scene, "Menu Status Miko MP", owner);
-			m_StatusHPFill = ViewHelpers::Find(scene, "Menu Status Miko HP Fill", owner);
-			m_StatusMPFill = ViewHelpers::Find(scene, "Menu Status Miko MP Fill", owner);
+			for (int h = 0; h < HeroCount; h++)
+			{
+				// "Menu Status <Id>": one block per hero who can be in the party; those not in it are hidden.
+				const std::string status = std::string("Menu Status ") + BattleData::HeroIds[h];
+				Status& block = m_Status[h];
+				block.Root = ViewHelpers::Find(scene, status, owner);
+				block.Name = ViewHelpers::Find(scene, status + " Name", owner);
+				block.HP = ViewHelpers::Find(scene, status + " HP", owner);
+				block.MP = ViewHelpers::Find(scene, status + " MP", owner);
+				block.HPFill = ViewHelpers::Find(scene, status + " HP Fill", owner);
+				block.MPFill = ViewHelpers::Find(scene, status + " MP Fill", owner);
+			}
 			m_Items.Bind(scene);
 			m_Quests.Bind(scene);
 			m_Character.Bind(scene);
@@ -207,32 +214,85 @@ namespace Hydro
 			return false;
 		}
 
-		// Everything shown: the party's status (the first hero; the party is Miko alone) and the pages' contents.
+		// Everything shown: the party's status (a block per hero in the party; the one the hero pages show has a gold
+		// name) and the pages' contents.
 		void Present()
 		{
 			if (m_Scene == nullptr)
 			{
 				return;
 			}
-			const HeroStats& hero = GetHero(0);
 			const BattleState& party = BattleState::Get();
-			UI::SetText(EntityOf(m_StatusName), hero.Name);
-			UI::SetText(EntityOf(m_StatusHP), std::to_string(party.HeroHP[0]) + " / " + std::to_string(hero.MaxHP));
-			UI::SetText(EntityOf(m_StatusMP), std::to_string(party.HeroMP[0]) + " / " + std::to_string(hero.MaxMP));
-			ViewHelpers::SetBarFill(EntityOf(m_StatusHPFill), (float)party.HeroHP[0] / (float)std::max(1, hero.MaxHP));
-			ViewHelpers::SetBarFill(EntityOf(m_StatusMPFill), (float)party.HeroMP[0] / (float)std::max(1, hero.MaxMP));
+			if (party.InParty(m_Hero) == false)
+			{
+				m_Hero = 0;
+			}
+			for (int h = 0; h < HeroCount; h++)
+			{
+				const Status& block = m_Status[h];
+				const bool shown = party.InParty(h);
+				ViewHelpers::SetVisible(EntityOf(block.Root), shown);
+				if (shown == false)
+				{
+					continue;
+				}
+				const HeroStats& hero = GetHero(h);
+				UI::SetText(EntityOf(block.Name), hero.Name);
+				UI::SetText(EntityOf(block.HP), std::to_string(party.HeroHP[h]) + " / " + std::to_string(hero.MaxHP));
+				UI::SetText(EntityOf(block.MP), std::to_string(party.HeroMP[h]) + " / " + std::to_string(hero.MaxMP));
+				ViewHelpers::SetBarFill(EntityOf(block.HPFill), (float)party.HeroHP[h] / (float)std::max(1, hero.MaxHP));
+				ViewHelpers::SetBarFill(EntityOf(block.MPFill), (float)party.HeroMP[h] / (float)std::max(1, hero.MaxMP));
+				Entity name = EntityOf(block.Name);
+				if (UITextComponent* text = name.IsValid() ? name.TryGetComponent<UITextComponent>() : nullptr)
+				{
+					const bool marked = h == m_Hero && IsHeroPage() && party.PartySize() > 1;
+					text->Color = marked ? glm::vec4(1.0f, 0.84f, 0.5f, 1.0f) : glm::vec4(0.95f, 0.91f, 0.83f, 1.0f);
+				}
+			}
 			m_Items.Present(m_Selected == Tab::Inventory && m_InPage);
 			m_Quests.Present();
-			m_Character.Present();
-			m_Abilities.Present();
-			m_Equipment.Present();
+			m_Character.Present(m_Hero);
+			m_Abilities.SetHero(m_Hero);
+			m_Equipment.SetHero(m_Hero);
 			if (m_InPage == false)
 			{
 				PresentTabHelp();
 			}
 		}
 
+		// Q / E on the Character, Abilities and Equipment pages: the next or previous hero in the party. The focus
+		// stays where it is (a page's list keeps its row).
+		void CycleHero(int direction)
+		{
+			const BattleState& party = BattleState::Get();
+			if (IsOpen() == false || IsHeroPage() == false || party.PartySize() < 2)
+			{
+				return;
+			}
+			for (int step = 1; step <= HeroCount; step++)
+			{
+				const int next = ((m_Hero + direction * step) % HeroCount + HeroCount) % HeroCount;
+				if (party.InParty(next))
+				{
+					m_Hero = next;
+					break;
+				}
+			}
+			Present();
+			PresentKeys();
+		}
+
 	private:
+		struct Status
+		{
+			entt::entity Root = entt::null, Name = entt::null, HP = entt::null, MP = entt::null, HPFill = entt::null, MPFill = entt::null;
+		};
+
+		bool IsHeroPage() const
+		{
+			return m_Selected == Tab::Character || m_Selected == Tab::Abilities || m_Selected == Tab::Equipment;
+		}
+
 		// Selects a tab: its page shown (the others hidden), its mark shown and name gilded, the title.
 		void ShowTab(Tab tab)
 		{
@@ -258,6 +318,7 @@ namespace Hydro
 			{
 				m_Quests.PresentDetails();
 			}
+			Present();
 			PresentTabHelp();
 		}
 
@@ -338,12 +399,18 @@ namespace Hydro
 				{
 					keys = "Enter  Change        Esc  Back        Tab  Close";
 				}
-				UI::SetText(EntityOf(m_Keys), keys);
+				UI::SetText(EntityOf(m_Keys), HeroKeys() + keys);
 				return;
 			}
 			const bool opens = (m_Selected == Tab::Inventory && m_Items.HasItems()) || (m_Selected == Tab::Quests && m_Quests.HasQuests())
 				|| m_Selected == Tab::Abilities || m_Selected == Tab::Equipment;
-			UI::SetText(EntityOf(m_Keys), opens ? "Enter  Open        Esc / Tab  Close" : "Esc / Tab  Close");
+			UI::SetText(EntityOf(m_Keys), HeroKeys() + (opens ? "Enter  Open        Esc / Tab  Close" : "Esc / Tab  Close"));
+		}
+
+		// "Q / E  Hero" on the hero pages while the party has more than one.
+		std::string HeroKeys() const
+		{
+			return IsHeroPage() && BattleState::Get().PartySize() > 1 ? std::string("Q / E  Hero        ") : std::string();
 		}
 
 		Entity EntityOf(entt::entity entity) const { return Entity{ entity, m_Scene }; }
@@ -361,7 +428,8 @@ namespace Hydro
 		entt::entity m_TabMarks[TabCount] = {};
 		entt::entity m_Pages[TabCount] = {};
 		entt::entity m_Help = entt::null, m_Keys = entt::null;
-		entt::entity m_StatusName = entt::null, m_StatusHP = entt::null, m_StatusMP = entt::null, m_StatusHPFill = entt::null, m_StatusMPFill = entt::null;
+		Status m_Status[HeroCount];
+		int m_Hero = 0;                  // whose page the hero pages show (Q / E)
 		Tab m_Selected = Tab::Inventory; // kept between opens
 		bool m_InPage = false;           // the focus is in the page, not on the tabs
 	};

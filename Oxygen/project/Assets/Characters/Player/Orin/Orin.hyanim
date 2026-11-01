@@ -1,0 +1,119 @@
+# Orin (stand-in, build_orin_standin.py): battle clips facing left.
+Handle: 3182937116204411939
+SpriteAnimationSet:
+  TextureHandle: 7924613408950187331
+  Texture: Orin.png
+  DefaultClip: BattleIdle
+  Clips:
+    - Name: Idle
+      Loop: Loop
+      Frames:
+        - Sprite: Orin_0
+          Duration: 0.2
+        - Sprite: Orin_1
+          Duration: 0.2
+        - Sprite: Orin_2
+          Duration: 0.2
+        - Sprite: Orin_3
+          Duration: 0.2
+    - Name: BattleIdle
+      Loop: Loop
+      Frames:
+        - Sprite: Orin_0
+          Duration: 0.2
+        - Sprite: Orin_1
+          Duration: 0.2
+        - Sprite: Orin_2
+          Duration: 0.2
+        - Sprite: Orin_3
+          Duration: 0.2
+    - Name: WalkLeft
+      Loop: Loop
+      Frames:
+        - Sprite: Orin_8
+          Duration: 0.11
+        - Sprite: Orin_9
+          Duration: 0.11
+        - Sprite: Orin_10
+          Duration: 0.11
+        - Sprite: Orin_11
+          Duration: 0.11
+        - Sprite: Orin_12
+          Duration: 0.11
+        - Sprite: Orin_13
+          Duration: 0.11
+    - Name: WalkRight
+      Loop: Loop
+      Frames:
+        - Sprite: Orin_16
+          Duration: 0.11
+        - Sprite: Orin_17
+          Duration: 0.11
+        - Sprite: Orin_18
+          Duration: 0.11
+        - Sprite: Orin_19
+          Duration: 0.11
+        - Sprite: Orin_20
+          Duration: 0.11
+        - Sprite: Orin_21
+          Duration: 0.11
+    - Name: Punch
+      Loop: Once
+      Frames:
+        - Sprite: Orin_24
+          Duration: 0.12
+        - Sprite: Orin_25
+          Duration: 0.1
+        - Sprite: Orin_26
+          Duration: 0.1
+        - Sprite: Orin_27
+          Duration: 0.18
+        - Sprite: Orin_28
+          Duration: 0.12
+        - Sprite: Orin_29
+          Duration: 0.12
+    - Name: Kick
+      Loop: Once
+      Frames:
+        - Sprite: Orin_24
+          Duration: 0.12
+        - Sprite: Orin_25
+          Duration: 0.1
+        - Sprite: Orin_26
+          Duration: 0.1
+        - Sprite: Orin_27
+          Duration: 0.18
+        - Sprite: Orin_28
+          Duration: 0.12
+        - Sprite: Orin_29
+          Duration: 0.12
+    - Name: Slash
+      Loop: Once
+      Frames:
+        - Sprite: Orin_24
+          Duration: 0.12
+        - Sprite: Orin_25
+          Duration: 0.1
+        - Sprite: Orin_26
+          Duration: 0.1
+        - Sprite: Orin_27
+          Duration: 0.18
+        - Sprite: Orin_28
+          Duration: 0.12
+        - Sprite: Orin_29
+          Duration: 0.12
+    - Name: Death
+      Loop: Once
+      Frames:
+        - Sprite: Orin_32
+          Duration: 0.1
+        - Sprite: Orin_33
+          Duration: 0.1
+        - Sprite: Orin_34
+          Duration: 0.1
+        - Sprite: Orin_35
+          Duration: 0.1
+        - Sprite: Orin_36
+          Duration: 0.1
+        - Sprite: Orin_37
+          Duration: 0.1

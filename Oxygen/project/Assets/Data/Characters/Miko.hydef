@@ -15,3 +15,5 @@ Definition:
       - {Level: 5, Ability: {Table: 3379890039159158977, Row: SpiritLance}}
     IdleClip: BattleIdle
     ItemClip: BattleIdle
+    Portrait: 5407845820862445765
+    PortraitSprite: 0

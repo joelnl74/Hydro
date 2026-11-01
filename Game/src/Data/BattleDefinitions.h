@@ -86,6 +86,10 @@ namespace Hydro
 		std::string IdleClip = "BattleIdle";
 		HY_PROPERTY(Tooltip("The clip played when using an item"))
 		std::string ItemClip = "BattleIdle";
+		HY_PROPERTY(Asset(Texture2D), Tooltip("A sprite sheet the field menu's Character page shows a frame of as the portrait"))
+		AssetHandle Portrait = 0;
+		HY_PROPERTY(Range(0, 255), Tooltip("Which sprite of the Portrait sheet"))
+		int PortraitSprite = 0;
 	};
 
 	// An ability an enemy may use, and how often compared with its others.

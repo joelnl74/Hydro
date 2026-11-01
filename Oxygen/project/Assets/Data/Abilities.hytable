@@ -48,3 +48,48 @@ DataTable:
       Heals: false
       Clip: Punch
       Approach: true
+    OrinAttack:
+      Name: Attack
+      Description: A clean cut of the long sword.
+      Type: Slash
+      Cost: 0
+      Power: 1
+      Heals: false
+      Clip: Slash
+      Approach: true
+    Iaido:
+      Name: Iaido
+      Description: "Draw and cut in one motion: a fast, precise slash."
+      Type: Slash
+      Cost: 4
+      Power: 1.7
+      Heals: false
+      Clip: Slash
+      Approach: true
+    CrescentThrust:
+      Name: Crescent Thrust
+      Description: A thrust that finds the gap in a guard.
+      Type: Pierce
+      Cost: 6
+      Power: 1.8
+      Heals: false
+      Clip: Slash
+      Approach: true
+    WindCutter:
+      Name: Wind Cutter
+      Description: A cut so fast its wind strikes first.
+      Type: Slash
+      Cost: 8
+      Power: 2.1
+      Heals: false
+      Clip: Slash
+      Approach: true
+    FallingPetal:
+      Name: Falling Petal
+      Description: Three cuts as soft and sure as falling blossoms.
+      Type: Slash
+      Cost: 11
+      Power: 2.4
+      Heals: false
+      Clip: Slash
+      Approach: true

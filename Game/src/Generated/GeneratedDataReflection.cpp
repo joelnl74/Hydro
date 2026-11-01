@@ -107,7 +107,9 @@ namespace Hydro
 			.Field<&HeroDefinition::StartingAbilities>("StartingAbilities", "Starting Abilities").Tooltip("Known from level 1, in this order; they fill the first battle ability slots").DataTypeFilter("AbilityDefinition")
 			.Field<&HeroDefinition::Learns>("Learns", "Learns").Tooltip("Abilities levels teach (known from then on; each goes into the first empty battle slot)")
 			.Field<&HeroDefinition::IdleClip>("IdleClip", "Idle Clip").Tooltip("The fighting-stance loop between actions (and while guarding)")
-			.Field<&HeroDefinition::ItemClip>("ItemClip", "Item Clip").Tooltip("The clip played when using an item");
+			.Field<&HeroDefinition::ItemClip>("ItemClip", "Item Clip").Tooltip("The clip played when using an item")
+			.Field<&HeroDefinition::Portrait>("Portrait", "Portrait").Tooltip("A sprite sheet the field menu's Character page shows a frame of as the portrait").AssetFilter(AssetType::Texture2D)
+			.Field<&HeroDefinition::PortraitSprite>("PortraitSprite", "Portrait Sprite").Range(0.0f, 255.0f).Tooltip("Which sprite of the Portrait sheet");
 
 		DataTypeRegistry::Register<LearnedAbility>("LearnedAbility", "Learned Ability")
 			.Field<&LearnedAbility::Level>("Level", "Level").Range(2.0f, 99.0f).Tooltip("The level that teaches it")

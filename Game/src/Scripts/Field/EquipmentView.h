@@ -51,6 +51,7 @@ namespace Hydro
 				m_StatNew[i] = ViewHelpers::Find(scene, "Gear Stat " + std::to_string(i) + " New", owner);
 			}
 			m_ChoiceHeader = ViewHelpers::Find(scene, "Gear Choice Panel Header Count", owner);
+			m_SlotHeader = ViewHelpers::Find(scene, "Gear Slot Panel Header Count", owner);
 			m_Help = ViewHelpers::Find(scene, "Help Text", owner);
 		}
 
@@ -60,6 +61,13 @@ namespace Hydro
 		}
 
 		bool IsChoosing() const { return m_Choosing; }
+
+		// The hero whose equipment the page shows (FieldMenuView's Q / E).
+		void SetHero(int hero)
+		{
+			m_Hero = std::clamp(hero, 0, HeroCount - 1);
+			Present();
+		}
 
 		// Whether something was put on or taken off since the last call (the menu then refreshes the other pages).
 		bool TakeChanged()
@@ -138,6 +146,7 @@ namespace Hydro
 				return;
 			}
 			const std::array<DataRowRef, SlotRows>& worn = Worn();
+			UI::SetText(EntityOf(m_SlotHeader), GetHero(m_Hero).Name);
 			for (int i = 0; i < SlotRows; i++)
 			{
 				UI::SetText(EntityOf(m_SlotNames[i]), PartyRules::GetPositionName((EquipPosition)i));
@@ -148,7 +157,7 @@ namespace Hydro
 		}
 
 	private:
-		std::array<DataRowRef, SlotRows>& Worn() { return BattleState::Get().HeroEquipment[0]; }
+		std::array<DataRowRef, SlotRows>& Worn() { return BattleState::Get().HeroEquipment[m_Hero]; }
 
 		static std::string NameOf(const DataRowRef& reference, const char* none)
 		{
@@ -202,9 +211,9 @@ namespace Hydro
 		// Now (what is worn) against `with`: gold where `with` is better, red where it is worse.
 		void PresentStats(const std::array<DataRowRef, SlotRows>& with)
 		{
-			const int level = std::max(1, BattleState::Get().HeroLevel[0]);
-			const HeroStats now = BattleData::StatsWith(0, level, Worn());
-			const HeroStats then = BattleData::StatsWith(0, level, with);
+			const int level = std::max(1, BattleState::Get().HeroLevel[m_Hero]);
+			const HeroStats now = BattleData::StatsWith(m_Hero, level, Worn());
+			const HeroStats then = BattleData::StatsWith(m_Hero, level, with);
 			const int a[StatCount] = { now.MaxHP, now.MaxMP, now.Attack, now.Magic, now.Speed };
 			const int b[StatCount] = { then.MaxHP, then.MaxMP, then.Attack, then.Magic, then.Speed };
 			for (int i = 0; i < StatCount; i++)
@@ -241,9 +250,9 @@ namespace Hydro
 			}
 			// A lower maximum can't leave more HP or MP than it allows.
 			BattleState& party = BattleState::Get();
-			party.HeroHP[0] = std::min(party.HeroHP[0], GetHero(0).MaxHP);
-			party.HeroMP[0] = std::min(party.HeroMP[0], GetHero(0).MaxMP);
-			HY_INFO("Menu: {} = {}", PartyRules::GetPositionName(position), NameOf(Worn()[(size_t)position], "(nothing)"));
+			party.HeroHP[m_Hero] = std::min(party.HeroHP[m_Hero], GetHero(m_Hero).MaxHP);
+			party.HeroMP[m_Hero] = std::min(party.HeroMP[m_Hero], GetHero(m_Hero).MaxMP);
+			HY_INFO("Menu: {}'s {} = {}", GetHero(m_Hero).Name, PartyRules::GetPositionName(position), NameOf(Worn()[(size_t)position], "(nothing)"));
 			m_Choosing = false;
 			m_Changed = true;
 			Present();
@@ -261,8 +270,9 @@ namespace Hydro
 		entt::entity m_ChoiceCounts[ChoiceRows] = {};
 		entt::entity m_StatNow[StatCount] = {};
 		entt::entity m_StatNew[StatCount] = {};
-		entt::entity m_ChoiceHeader = entt::null, m_Help = entt::null;
+		entt::entity m_ChoiceHeader = entt::null, m_SlotHeader = entt::null, m_Help = entt::null;
 		std::vector<DataRowRef> m_ChoiceItems; // the choice rows' items (row 0: none, take off)
+		int m_Hero = 0;
 		int m_Slot = 0;
 		bool m_Choosing = false;
 		bool m_Changed = false;

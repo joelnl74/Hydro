@@ -139,6 +139,10 @@ def ribbon_row(b, tag, parent, width, height, name, detail="", event="", name_fo
     return row
 
 
+# The heroes who can be in the party (BattleData::HeroIds), with sample numbers; the scripts hide those not in it.
+PARTY = [("Miko", "90 / 90", "32 / 32"), ("Orin", "82 / 82", "20 / 20")]
+
+
 def status_block(b, tag, parent, hero="Miko", hp="90 / 90", mp="32 / 32"):
     """A hero's status, frameless over a soft ink fade: name, boost points, HP and MP with thin bars."""
     block = b.add(tag, parent, UIRectComponent=rect(size=(440, 176)))
@@ -190,7 +194,8 @@ def build_battle(director):
 
     # The party, top right.
     party = b.add("Party Status", root, UIRectComponent=rect((1, 1), None, (1, 1), (-36, -24), (440, 10)), UILayoutGroupComponent=group(spacing=10))
-    status_block(b, "Status Miko", party)
+    for hero, hp, mp in PARTY:
+        status_block(b, "Status " + hero, party, hero, hp, mp)
 
     # The skill / message banner, top middle.
     banner = b.add("Battle Message Panel", root, UIRectComponent=rect((0.5, 1), None, (0.5, 1), (0, -168), (600, 72)), UIImageComponent=image("Banner"))
@@ -334,7 +339,8 @@ def build_field_menu(b, director):
     build_equipment_page(b, menu)
 
     party = b.add("Menu Party", menu, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
-    status_block(b, "Menu Status Miko", party)
+    for hero, hp, mp in PARTY:
+        status_block(b, "Menu Status " + hero, party, hero, hp, mp)
 
     help_bar = b.add("Help Bar", menu, UIRectComponent=rect((0, 0), (1, 0), (0.5, 0), (0, 0), (0, 84)), UIImageComponent=image(None, (0.02, 0.02, 0.03, 0.94)))
     b.add("Help Bar Rule", help_bar, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, 0), (0, 2)), UIImageComponent=image(None, (0.78, 0.63, 0.38, 0.6)))

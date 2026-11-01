@@ -13,10 +13,10 @@
 namespace Hydro
 {
 	// The field menu's Character page (the Menu plan's M4; "Page Character" in "Field Menu Canvas"; built by
-	// scripts/ui/build_game_ui.py). Owned by FieldMenuView; nothing on it takes the focus. It shows the first hero (the
-	// party is Miko alone): the portrait (the hero's field sprite, from the builder), name, level, experience and what
-	// the next level takes, the stats at its level with what its equipment adds ("16 (+4)"), and what it wears per
-	// slot (EquipPosition).
+	// scripts/ui/build_game_ui.py). Owned by FieldMenuView; nothing on it takes the focus. It shows one hero (the menu
+	// switches with Q / E): the portrait (HeroDefinition::Portrait, a frame of its field sheet), name, level,
+	// experience and what the next level takes, the stats at its level with what its equipment adds ("(+4)  16"), and
+	// what it wears per slot (EquipPosition).
 	class CharacterView
 	{
 	public:
@@ -27,6 +27,7 @@ namespace Hydro
 			m_Scene = &scene;
 			const char* owner = "Character page";
 			m_Name = ViewHelpers::Find(scene, "Character Name", owner);
+			m_Portrait = ViewHelpers::Find(scene, "Character Portrait", owner);
 			m_Level = ViewHelpers::Find(scene, "Character Level", owner);
 			m_Experience = ViewHelpers::Find(scene, "Character Experience", owner);
 			m_Next = ViewHelpers::Find(scene, "Character Next", owner);
@@ -42,13 +43,21 @@ namespace Hydro
 			}
 		}
 
-		void Present()
+		void Present(int h)
 		{
 			if (m_Scene == nullptr)
 			{
 				return;
 			}
-			const int h = 0;
+			const HeroDefinition& data = BattleData::HeroData(h);
+			Entity portrait = EntityOf(m_Portrait);
+			UIImageComponent* image = portrait.IsValid() ? portrait.TryGetComponent<UIImageComponent>() : nullptr;
+			if (image != nullptr && (uint64_t)data.Portrait != 0)
+			{
+				AssetManager::GetAsset<Texture2D>(data.Portrait); // the renderer never loads
+				image->Texture = data.Portrait;
+				image->SpriteIndex = (uint32_t)std::max(0, data.PortraitSprite);
+			}
 			const BattleState& party = BattleState::Get();
 			const int level = std::max(1, party.HeroLevel[h]);
 			const HeroStats& worn = GetHero(h);                     // with equipment
@@ -98,6 +107,7 @@ namespace Hydro
 		Entity EntityOf(entt::entity entity) const { return Entity{ entity, m_Scene }; }
 
 		Scene* m_Scene = nullptr;
+		entt::entity m_Portrait = entt::null;
 		entt::entity m_Name = entt::null, m_Level = entt::null, m_Experience = entt::null, m_Next = entt::null, m_ExperienceFill = entt::null;
 		entt::entity m_Stats[StatCount] = {};
 		entt::entity m_SlotNames[BattleState::EquipSlotCount] = {};

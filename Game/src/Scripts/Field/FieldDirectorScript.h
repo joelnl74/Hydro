@@ -245,6 +245,14 @@ namespace Hydro
 			{
 				OpenMenu(menuOpen == false);
 			}
+			// Q / E in the menu: the hero its Character, Abilities and Equipment pages show (polled every frame for
+			// the edge; E's interaction never runs while the menu captures the keys).
+			const bool previousHero = KeyPressed(KeyCode::Q, m_Previous[2]);
+			const bool nextHero = KeyPressed(KeyCode::E, m_Previous[3]);
+			if (m_Menu.IsOpen() && (previousHero || nextHero))
+			{
+				m_Menu.CycleHero(nextHero ? 1 : -1);
+			}
 			if (UI::CapturesInput(scene))
 			{
 				m_PromptView.Hide();

@@ -20,11 +20,11 @@
 
 namespace Hydro
 {
-	// The party is Miko alone (HeroCount); she carries the party's HP and MP, so she is sturdier than Orin and Lila
-	// were on their own. Her Attack walks up to the target and punches (a boost adds a kick, a punch, a kick); her
-	// abilities are in the battle's 8 ability slots (HeroAbilitySlots, set in the field menu's Abilities page). The
-	// impacts land on the clips' contact frames (BattleScript PunchImpactTime, KickImpactTime).
-	constexpr int HeroCount = 1;
+	// The heroes who can be in the party (HeroCount, in party order): Miko from the start, Orin Kenshi once he joins
+	// in the countryside (BattleState::Join; the countryside quest). Every per-hero array is HeroCount long; who is in
+	// the party now is BattleState::InParty. A hero's Attack walks up to the target and strikes; its abilities are in
+	// the battle's 8 ability slots (HeroAbilitySlots, set in the field menu's Abilities page).
+	constexpr int HeroCount = 2;
 
 	// A hero's numbers at a level (HeroDefinition: Base + GrowthPerLevel for every level above 1): what the battle
 	// and the field's menu read.
@@ -53,8 +53,11 @@ namespace Hydro
 		static constexpr uint64_t EncounterTable = 5637391413083366177ull; // Assets/Data/Encounters.hytable
 		static constexpr uint64_t LevelCurveFile = 1490334946040604597ull; // Assets/Data/Characters/LevelCurve.hydef
 		// The party, in order: each hero's file, and the name its scene entities carry ("Hero Miko", "Status Miko").
-		static constexpr uint64_t HeroFiles[HeroCount] = { 7766402021591977760ull }; // Assets/Data/Characters/Miko.hydef
-		static constexpr const char* HeroIds[HeroCount] = { "Miko" };
+		static constexpr uint64_t HeroFiles[HeroCount] = {
+			7766402021591977760ull, // Assets/Data/Characters/Miko.hydef
+			2716342829184015873ull, // Assets/Data/Characters/Orin.hydef
+		};
+		static constexpr const char* HeroIds[HeroCount] = { "Miko", "Orin" };
 
 		static const HeroDefinition& HeroData(int index)
 		{
@@ -222,6 +225,7 @@ namespace Hydro
 		int HeroMP[HeroCount] = {};
 		int HeroLevel[HeroCount] = {};
 		int HeroExperience[HeroCount] = {};       // in total, since level 1
+		bool HeroJoined[HeroCount] = {};          // in the party now (Miko from the start; Join for the others)
 		std::vector<DataRowRef> HeroAbilities[HeroCount]; // known, in the order learned
 		// The battle's ability slots (the Menu plan: 7 core and 1 for an ultimate later), set in the field menu's
 		// Abilities tab; a newly learned ability takes the first empty one. Empty: an unset row.
@@ -251,7 +255,8 @@ namespace Hydro
 			}
 		}
 
-		// Level 1 with the starting abilities and full HP and MP the first time; nothing after that.
+		// Level 1 with the starting abilities and full HP and MP the first time; nothing after that. Only Miko is in
+		// the party at the start.
 		void StartParty()
 		{
 			if (PartyStarted)
@@ -261,17 +266,53 @@ namespace Hydro
 			PartyStarted = true;
 			for (int i = 0; i < HeroCount; i++)
 			{
-				HeroLevel[i] = 1;
-				HeroExperience[i] = 0;
-				HeroAbilities[i] = BattleData::HeroData(i).StartingAbilities;
-				HeroAbilitySlots[i] = {};
-				for (size_t a = 0; a < HeroAbilities[i].size() && a < (size_t)AbilitySlotCount; a++)
-				{
-					HeroAbilitySlots[i][a] = HeroAbilities[i][a];
-				}
-				HeroEquipment[i] = {};
+				SetUpHero(i, 1);
+				HeroJoined[i] = i == 0;
 			}
 			RestoreParty();
+		}
+
+		bool InParty(int hero) const
+		{
+			return hero >= 0 && hero < HeroCount && HeroJoined[hero];
+		}
+
+		// In the party and still standing.
+		bool IsStanding(int hero) const
+		{
+			return InParty(hero) && HeroHP[hero] > 0;
+		}
+
+		int PartySize() const
+		{
+			int count = 0;
+			for (int h = 0; h < HeroCount; h++)
+			{
+				count += HeroJoined[h] ? 1 : 0;
+			}
+			return count;
+		}
+
+		// Hero `hero` joins at the party's highest level (its experience at that level's mark), knowing its starting
+		// abilities and those its levels so far teach, with full HP and MP. False when it already is in the party.
+		bool Join(int hero)
+		{
+			StartParty();
+			if (hero < 0 || hero >= HeroCount || HeroJoined[hero])
+			{
+				return false;
+			}
+			int level = 1;
+			for (int h = 0; h < HeroCount; h++)
+			{
+				level = HeroJoined[h] ? std::max(level, HeroLevel[h]) : level;
+			}
+			SetUpHero(hero, level);
+			HeroJoined[hero] = true;
+			HeroHP[hero] = GetHero(hero).MaxHP;
+			HeroMP[hero] = GetHero(hero).MaxMP;
+			HY_INFO("Party: {} joins at level {}", GetHero(hero).Name, level);
+			return true;
 		}
 
 		bool IsRevealed(const std::string& row, int slot) const
@@ -289,7 +330,7 @@ namespace Hydro
 			const std::vector<int>& curve = BattleData::ExperienceToLevel();
 			for (int h = 0; h < HeroCount; h++)
 			{
-				if (HeroHP[h] <= 0 || amount <= 0)
+				if (IsStanding(h) == false || amount <= 0)
 				{
 					continue;
 				}
@@ -325,6 +366,32 @@ namespace Hydro
 				}
 			}
 			return messages;
+		}
+
+	private:
+		// A hero at `level`: the experience of that level's mark, the starting abilities and those levels up to it
+		// teach (in the battle slots in that order), nothing worn.
+		void SetUpHero(int hero, int level)
+		{
+			const HeroDefinition& data = BattleData::HeroData(hero);
+			const std::vector<int>& curve = BattleData::ExperienceToLevel();
+			HeroLevel[hero] = std::max(1, level);
+			HeroExperience[hero] = HeroLevel[hero] >= 2 && HeroLevel[hero] - 2 < (int)curve.size() ? curve[(size_t)(HeroLevel[hero] - 2)] : 0;
+			HeroAbilities[hero] = data.StartingAbilities;
+			for (const LearnedAbility& learned : data.Learns)
+			{
+				const bool known = std::find(HeroAbilities[hero].begin(), HeroAbilities[hero].end(), learned.Ability) != HeroAbilities[hero].end();
+				if (learned.Level <= HeroLevel[hero] && learned.Ability.IsSet() && known == false)
+				{
+					HeroAbilities[hero].push_back(learned.Ability);
+				}
+			}
+			HeroAbilitySlots[hero] = {};
+			for (size_t a = 0; a < HeroAbilities[hero].size() && a < (size_t)AbilitySlotCount; a++)
+			{
+				HeroAbilitySlots[hero][a] = HeroAbilities[hero][a];
+			}
+			HeroEquipment[hero] = {};
 		}
 	};
 

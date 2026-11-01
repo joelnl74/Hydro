@@ -13,7 +13,7 @@ namespace Hydro
 	public:
 		enum class UseResult : uint8_t { Used, NotUsableHere, NoneLeft };
 
-		// Uses one of the inventory's `slot` in the field: restores every hero's MP, and HP of those standing.
+		// Uses one of the inventory's `slot` in the field: restores every party member's MP, and HP of those standing.
 		static UseResult UseInField(Inventory::Slot& slot, const ItemDefinition& item, BattleState& party)
 		{
 			if (item.CanUseInField() == false)
@@ -27,6 +27,10 @@ namespace Hydro
 			slot.Count -= 1;
 			for (int h = 0; h < HeroCount; h++)
 			{
+				if (party.InParty(h) == false)
+				{
+					continue;
+				}
 				party.HeroMP[h] = std::min(GetHero(h).MaxMP, party.HeroMP[h] + item.RestoreMP);
 				if (party.HeroHP[h] > 0)
 				{

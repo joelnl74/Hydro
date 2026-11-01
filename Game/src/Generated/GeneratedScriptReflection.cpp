@@ -44,7 +44,8 @@ namespace Hydro
 			.Property("KickImpactTime", "Kick Impact Time", &BattleScript::KickImpactTime).Range(0.0f, 2.0f).Tooltip("Seconds into the Kick clip when the foot lands (Miko: frame 4, 0.4 s at 10 fps)")
 			.Property("PunchLength", "Punch Length", &BattleScript::PunchLength).Range(0.0f, 3.0f).Tooltip("Length of the Punch clip in seconds; the next strike or the walk back starts after it")
 			.Property("KickLength", "Kick Length", &BattleScript::KickLength).Range(0.0f, 3.0f).Tooltip("Length of the Kick clip in seconds")
-			.Property("ShakeStrength", "Shake Strength", &BattleScript::ShakeStrength).Range(0.0f, 3.0f).Tooltip("Camera shake on impacts (0 = none)");
+			.Property("ShakeStrength", "Shake Strength", &BattleScript::ShakeStrength).Range(0.0f, 3.0f).Tooltip("Camera shake on impacts (0 = none)")
+			.Property("FullPartyWhenAlone", "Full Party When Alone", &BattleScript::FullPartyWhenAlone).Tooltip("When the Battle scene is played on its own (not pushed by a field scene), every hero fights, so the whole party can be tested");
 
 		ScriptRegistry::Register<CameraFollowScript>("CameraFollowScript")
 			.Property("Smoothing", "Smoothing", &CameraFollowScript::Smoothing).Range(0.0f, 50.0f).Tooltip("How quickly the camera catches up with the target (higher is snappier)")

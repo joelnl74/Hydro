@@ -56,6 +56,13 @@ namespace Hydro
 			UI::Focus(EntityOf(m_Slots[std::clamp(m_Slot, 0, SlotRows - 1)]));
 		}
 
+		// The hero whose slots the page shows (FieldMenuView's Q / E).
+		void SetHero(int hero)
+		{
+			m_Hero = std::clamp(hero, 0, HeroCount - 1);
+			Present();
+		}
+
 		// Whether the focus is in the known list (choosing what goes in a slot), for the help bar's keys.
 		bool IsChoosing() const { return m_Choosing; }
 
@@ -134,7 +141,7 @@ namespace Hydro
 				UI::SetText(EntityOf(m_SlotNames[i]), set ? ability.Name : std::string("-"));
 				UI::SetText(EntityOf(m_SlotCosts[i]), set ? std::to_string(ability.Cost) + " MP" : std::string());
 			}
-			UI::SetText(EntityOf(m_SlotCount), std::to_string(filled) + " / " + std::to_string(SlotRows));
+			UI::SetText(EntityOf(m_SlotCount), GetHero(m_Hero).Name + "   " + std::to_string(filled) + " / " + std::to_string(SlotRows));
 
 			const std::vector<DataRowRef>& known = Known();
 			UI::SetText(EntityOf(m_KnownCount), std::to_string(known.size()));
@@ -161,8 +168,8 @@ namespace Hydro
 		}
 
 	private:
-		std::array<DataRowRef, SlotRows>& Slots() { return BattleState::Get().HeroAbilitySlots[0]; }
-		const std::vector<DataRowRef>& Known() { return BattleState::Get().HeroAbilities[0]; }
+		std::array<DataRowRef, SlotRows>& Slots() { return BattleState::Get().HeroAbilitySlots[m_Hero]; }
+		const std::vector<DataRowRef>& Known() { return BattleState::Get().HeroAbilities[m_Hero]; }
 
 		// The known list's row of an ability (0, the "empty" row, for an unset or unknown one).
 		int RowOf(const DataRowRef& ability)
@@ -182,7 +189,7 @@ namespace Hydro
 		void Assign(const DataRowRef& ability)
 		{
 			PartyRules::SetAbilitySlot(Slots(), Known(), (size_t)std::clamp(m_Slot, 0, SlotRows - 1), ability);
-			HY_INFO("Menu: ability slot {} = {}", m_Slot + 1, ability.IsSet() ? BattleData::Ability(ability).Name : std::string("(empty)"));
+			HY_INFO("Menu: {}'s ability slot {} = {}", GetHero(m_Hero).Name, m_Slot + 1, ability.IsSet() ? BattleData::Ability(ability).Name : std::string("(empty)"));
 			m_Choosing = false;
 			Present();
 			Focus();
@@ -235,6 +242,7 @@ namespace Hydro
 		entt::entity m_KnownSlots[KnownRows] = {};
 		entt::entity m_SlotCount = entt::null, m_KnownCount = entt::null;
 		entt::entity m_DetailName = entt::null, m_DetailInfo = entt::null, m_DetailText = entt::null, m_Help = entt::null;
+		int m_Hero = 0;          // whose slots
 		int m_Slot = 0;          // the slot last focused: where a chosen ability goes
 		bool m_Choosing = false; // the focus is in the known list
 	};

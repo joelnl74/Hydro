@@ -25,10 +25,12 @@
 // meadow and the field), and the party battle they start (Assets/Scenes/Battle.hyscene). The village is pushed
 // down on the scene stack while the battle runs (SceneTransition) and carries on when it ends.
 //
-// The party is the shrine maiden Miko alone (HeroCount), with her sheet Characters/Miko (BattleIdle, Walk*, Punch,
-// Kick, Death). The battle is a 3D forest arena (scripts/battle/build_arena.py builds Battle.hyscene); the code is
-// written for any HeroCount, so a second hero is a file in BattleData::HeroFiles and a name in HeroIds, its entities in
-// the scene and HeroCount + 1. The numbers are data (the Scripting plan's SC7): the hero (Data/Characters/Miko.hydef),
+// The party: the shrine maiden Miko (Characters/Player/Miko: BattleIdle, Walk*, Punch, Kick, Death) and, once he
+// has joined (BattleState::InParty), Orin Kenshi (Characters/Player/Orin, a stand-in sheet for now); a hero not in the
+// party is hidden and left out of the turn order, the enemies' targets and the result. Each hero has "Hero <Id>",
+// "Hero <Id> Shadow" (scripts/battle/party_slots.py) and "Status <Id>" (scripts/ui/build_game_ui.py) in the scene,
+// so another hero is a file in BattleData::HeroFiles, a name in HeroIds, its entities and HeroCount + 1. The battle
+// is a 3D forest arena. The numbers are data (the Scripting plan's SC7): the hero (Data/Characters/Miko.hydef),
 // the enemies (Enemies.hytable), who fights together (Encounters.hytable), the abilities (Abilities.hytable) and the
 // level curve (Characters/LevelCurve.hydef), read through BattleData.
 //
@@ -81,11 +83,20 @@ namespace Hydro
 		float KickLength = 0.75f;
 		HY_PROPERTY(Range(0, 3), Tooltip("Camera shake on impacts (0 = none)"))
 		float ShakeStrength = 1.0f;
+		HY_PROPERTY(Tooltip("When the Battle scene is played on its own (not pushed by a field scene), every hero fights, so the whole party can be tested"))
+		bool FullPartyWhenAlone = true;
 
 	protected:
 		void OnCreate() override
 		{
 			BattleState::Get().StartParty(); // the battle played on its own
+			if (FullPartyWhenAlone && SceneTransition::GetDepth() == 0)
+			{
+				for (int h = 0; h < HeroCount; h++)
+				{
+					BattleState::Get().Join(h);
+				}
+			}
 			Scene& scene = *GetEntity().GetScene();
 			m_Camera = Find(scene, "Camera");
 			UpdateStageCamera(scene);
@@ -111,6 +122,14 @@ namespace Hydro
 				hero.Base = ActorLayout(scene, hero.Sprite, HeroFoot, HeroPivot);
 				hero.Size = ActorSize(scene, hero.Sprite);
 				hero.Momentum = 1;
+				if (BattleState::Get().InParty(h) == false)
+				{
+					// Not in the party (yet): no sprite, shadow or status; ActorAlive leaves it out of everything.
+					SetColor(scene, hero.Sprite, glm::vec4(0.0f));
+					SetShadowStrength(scene, hero.Shadow, 0.0f);
+					UI::SetVisible(EntityOf(Find(scene, status)), false);
+					continue;
+				}
 				if (BattleState::Get().HeroHP[h] <= 0)
 				{
 					BattleState::Get().HeroHP[h] = 1;
@@ -570,7 +589,7 @@ namespace Hydro
 			bool heroesLeft = false;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				heroesLeft = heroesLeft || BattleState::Get().HeroHP[h] > 0;
+				heroesLeft = heroesLeft || BattleState::Get().IsStanding(h);
 			}
 			if (heroesLeft == false)
 			{
@@ -1130,13 +1149,13 @@ namespace Hydro
 			int living = 0;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				living += BattleState::Get().HeroHP[h] > 0 ? 1 : 0;
+				living += BattleState::Get().IsStanding(h) ? 1 : 0;
 			}
 			int pick = std::min(living - 1, (int)(Random01() * (float)living));
 			int target = 0;
 			for (int h = 0; h < HeroCount; h++)
 			{
-				if (BattleState::Get().HeroHP[h] > 0)
+				if (BattleState::Get().IsStanding(h))
 				{
 					if (pick == 0)
 					{
@@ -1242,7 +1261,7 @@ namespace Hydro
 			}
 			for (int h = 0; h < HeroCount; h++)
 			{
-				if (BattleState::Get().HeroHP[h] > 0 && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
+				if (BattleState::Get().IsStanding(h) && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
 				{
 					SpriteAnimator::Play(EntityOf(m_Heroes[h].Sprite), GetHero(h).IdleClip);
 				}
@@ -1457,7 +1476,7 @@ namespace Hydro
 
 		bool ActorAlive(int actor) const
 		{
-			return IsHero(actor) ? BattleState::Get().HeroHP[actor] > 0 : m_Enemies[EnemyIndex(actor)].Alive();
+			return IsHero(actor) ? BattleState::Get().IsStanding(actor) : m_Enemies[EnemyIndex(actor)].Alive();
 		}
 
 		bool IsBroken(const Enemy& enemy) const { return BattleRules::IsBroken(enemy.BrokenUntilRound, m_Round); }
@@ -1498,7 +1517,7 @@ namespace Hydro
 			for (int h = 0; h < HeroCount; h++)
 			{
 				const float fraction = (float)BattleState::Get().HeroHP[h] / (float)GetHero(h).MaxHP;
-				if (BattleState::Get().HeroHP[h] > 0 && fraction < lowest)
+				if (BattleState::Get().IsStanding(h) && fraction < lowest)
 				{
 					lowest = fraction;
 					best = h;
@@ -2039,6 +2058,14 @@ namespace Hydro
 			}
 		}
 
+		static void SetShadowStrength(Scene& scene, entt::entity shadow, float strength)
+		{
+			if (Alive(scene, shadow) && scene.m_Registry.has<Shadow2DComponent>(shadow))
+			{
+				scene.m_Registry.get<Shadow2DComponent>(shadow).Strength = strength;
+			}
+		}
+
 		static void SetColor(Scene& scene, entt::entity entity, const glm::vec4& color)
 		{
 			if (Alive(scene, entity) && scene.m_Registry.has<SpriteRendererComponent>(entity))
@@ -2127,6 +2154,10 @@ namespace Hydro
 			// Heroes: where their strikes take them (UpdateHeroStrikes), a shake when hit.
 			for (int h = 0; h < HeroCount; h++)
 			{
+				if (BattleState::Get().InParty(h) == false)
+				{
+					continue;
+				}
 				Hero& hero = m_Heroes[h];
 				glm::vec2 offset = hero.Offset;
 				if (hero.Flash > 0.0f)
