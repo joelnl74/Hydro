@@ -1,6 +1,6 @@
 #pragma once
 #include "Hydro.h"
-#include "Scripts/DioramaCamera.h"
+#include "Scripts/Common/DioramaCamera.h"
 
 #include <algorithm>
 

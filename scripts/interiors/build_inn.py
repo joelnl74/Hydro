@@ -5,7 +5,7 @@ kit's textures, until the inn interior kit is modelled in Blender (see the wiki'
 
     python scripts/interiors/build_inn.py
 
-How interiors work (MvpScripts.h, ShrineScripts.h InteriorScript):
+How interiors work (MvpDirectorScript, Scripts/Interiors/InteriorScript.h):
   - "Door Inn" in the Farm Village opens FarmVillageInn (a door's scene is "<this scene><Name>", else "<Name>"):
     the village fades out and the inn is pushed on top, so the village waits exactly as it was left.
   - "Door Out" (at the room's open front) pops back to the village, at the inn's door.

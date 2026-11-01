@@ -1,6 +1,6 @@
 #include "State/RpgSession.h"
 
-#include "Scripts/ShrineScripts.h"
+#include "Scripts/Common/DioramaDirectorScript.h"
 
 namespace Hydro
 {

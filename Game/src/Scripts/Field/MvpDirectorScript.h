@@ -1,33 +1,37 @@
+// Game/src/Scripts/Field/MvpDirectorScript.h
 #pragma once
+
 #include "Hydro.h"
-#include "VillageScripts.h"
-#include "BattleScripts.h"
-#include "DialogueScripts.h"
-#include "QuestScripts.h"
 #include "Data/DialogueDefinition.h"
 #include "Data/FieldDefinitions.h"
 #include "Data/InventoryDefinition.h"
 #include "Data/ItemDefinition.h"
+#include "Scripts/Common/DioramaCamera.h"
+#include "State/BattleState.h"
 #include "State/Inventory.h"
+#include "State/QuestLog.h"
+#include "Views/DialogueScript.h"
 
 #include <algorithm>
 #include <array>
-#include <cctype>
 #include <cmath>
-#include <filesystem>
+#include <cstdint>
 #include <string>
 #include <vector>
+#include <cctype>
+#include <filesystem>
 
 // The MVP scene's mechanics (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the
 // Shrine Glade, the Farm Village) and the interiors (the Farm Village's inn): interact prompts (a sign, a chest,
 // a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and the party's
 // inventory menu (its items are data: Assets/Data/Items.hytable, the run starting from StartingInventory.hydef),
 // which gates the player's input while it is open. Prototype
-// code, like BattleScripts.h: one script holds it all. The UI is runtime UI under the MVP Director on the 1920 x 1080
+// code, like the battle script: one script holds it all. The UI is runtime UI under the MVP Director on the 1920 x 1080
 // canvas (scripts/ui/build_game_ui.py builds it): the inventory (a scrolling list, the item's details, the party, a
 // help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
-// talk through the dialogue box (DialogueScripts.h). What NPCs and signs say is data (Assets/Data/Npcs.hytable,
+// talk through the dialogue box (Views/DialogueScript.h). What NPCs and signs say is data (Assets/Data/Npcs.hytable,
 // Signs.hytable, Dialogue/*.hydef), found by the name in their tag.
+
 namespace Hydro
 {
 	// The MVP's own messages and prompts (once rows of Sprites/UI/MvpText.png; the runtime UI writes their words,
@@ -508,7 +512,7 @@ namespace Hydro
 					StartLeaving(nearest->Target, false);
 					break;
 				case Kind::Npc:
-					// A quest may have its own words for this NPC (QuestLog::Get().Talk, QuestScripts.h).
+					// A quest may have its own words for this NPC (QuestLog::Get().Talk, State/QuestLog.h).
 					if (QuestLog::Get().Talk(nearest->Target))
 					{
 						ShowPrompt(false);

@@ -10,7 +10,7 @@
 #include <vector>
 
 // A diorama scene's times of day (keys 1 / 2 / 3: day, dusk, night), one file per scene in Assets/Data/Lighting/,
-// used by its director (DioramaDirectorScript in ShrineScripts.h). The ambient and fog colours are the fallback when
+// used by its director (DioramaDirectorScript, Scripts/Common/DioramaDirectorScript.h). The ambient and fog colours are the fallback when
 // the render profile is missing; keep them in step with the profiles.
 namespace Hydro
 {

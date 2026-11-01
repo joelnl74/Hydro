@@ -9,7 +9,8 @@ Reports file:line: rule: message for every break and exits 1 when there is one. 
   namespace     everything in namespace Hydro: no other, nested or anonymous namespaces (`namespace std` and
                 `namespace YAML` are allowed for specialisations of their templates; aliases and `using namespace` too)
   member-name   m_ / s_ names are m_PascalCase / s_PascalCase (not m_camelCase)
-  area-include  a file in Game/src/Scripts/<Area>/ includes nothing from another area (Scripts/Common/ is shared)
+  area-include  a file in Game/src/Scripts/<Area>/ includes nothing from another area (Scripts/Common/, Field/ and
+                Battle/ are shared: the field's and the battle's code, used by every area)
 
 Comments, string and character literals and preprocessor lines are ignored. Skipped: vendor folders, generated
 files (Generated/) and the copied ImGui backends (Platform/Vulkan/imgui_impl_*). Python 3.9+, no packages.
@@ -24,6 +25,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_ROOTS = [ROOT / "Hydro" / "src", ROOT / "Game" / "src"]
 SUFFIXES = {".h", ".hpp", ".cpp"}
 ALLOWED_NAMESPACES = {"Hydro", "std", "YAML"}
+# Game/src/Scripts/ folders every area may include (the rest are areas: one scene or a few of one kind).
+SHARED_SCRIPT_FOLDERS = {"Common", "Field", "Battle"}
 
 
 def skipped(path: Path) -> bool:
@@ -178,10 +181,10 @@ def check_file(path: Path, report_line) -> None:
         index = parts.index("Scripts")
         if index + 2 < len(parts):  # Scripts/<Area>/file
             area = parts[index + 1]
-            if area != "Common":
+            if area not in SHARED_SCRIPT_FOLDERS:
                 for include in re.finditer(r'^\s*#\s*include\s*"([^"]+)"', text, flags=re.M):
                     other = re.match(r"(?:.*/)?Scripts/([^/]+)/", include.group(1))
-                    if other is not None and other.group(1) not in (area, "Common"):
+                    if other is not None and other.group(1) != area and other.group(1) not in SHARED_SCRIPT_FOLDERS:
                         report_line(path, line_of(text, include.start()), "area-include",
                                     f"Scripts/{area}/ includes Scripts/{other.group(1)}/: share it through State/, Rules/, Views/ or Scripts/Common/")
 

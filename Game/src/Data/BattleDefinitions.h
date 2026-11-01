@@ -15,7 +15,7 @@
 // The battle's numbers (the Definitions plan's D5, #172; the Scripting plan's SC7): the hero (Assets/Data/Characters/
 // <Hero>.hydef), the enemies (Enemies.hytable), who fights together (Encounters.hytable), every ability, the plain
 // attack included (Abilities.hytable), and the level curve (Characters/LevelCurve.hydef). Only what the battle reads;
-// the rules that use them stay in BattleScripts.h (Rules/ after SC8).
+// the rules that use them are State/BattleState.h, Rules/ and the battle script.
 namespace Hydro
 {
 	// What a hit is made of; enemies are weak to or resist some. The order is the battle's icons' (BattleIcon).
