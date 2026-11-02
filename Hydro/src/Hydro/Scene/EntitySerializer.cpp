@@ -447,6 +447,10 @@ namespace Hydro
 				out << YAML::Key << "EmissionColor" << YAML::Value << sprite.EmissionColor;
 				out << YAML::Key << "EmissionIntensity" << YAML::Value << sprite.EmissionIntensity;
 			}
+			if (sprite.Opacity < 1.0f)
+			{
+				out << YAML::Key << "Opacity" << YAML::Value << sprite.Opacity;
+			}
 			out << YAML::EndMap;
 		}
 
@@ -981,6 +985,7 @@ namespace Hydro
 			sprite.CastShadows = spriteNode["CastShadows"].as<bool>(true);
 			sprite.EmissionColor = glm::max(spriteNode["EmissionColor"].as<glm::vec3>(sprite.EmissionColor), glm::vec3(0.0f));
 			sprite.EmissionIntensity = AtLeast(0.0f, spriteNode["EmissionIntensity"].as<float>(sprite.EmissionIntensity));
+			sprite.Opacity = std::clamp(spriteNode["Opacity"].as<float>(1.0f), 0.0f, 1.0f);
 			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
 				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));

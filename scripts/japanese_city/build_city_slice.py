@@ -53,6 +53,24 @@ GOODS = os.path.join(REPO, "art_incoming", "jp_city", "goods")       # the deliv
 PROPS_R1 = os.path.join(REPO, "art_incoming", "jp_city", "props_r1")  # cut from the four prop sheets (Nov 2)
 
 
+def tree_bed(c, parent, stone, earth, x, y, z, w, d, h=0.45, rnd=None):
+    """A raised planting bed round a tree's roots where it stands on paving (Nov 2: trees on bare stone looked dropped
+    there): a low stone curb, w x d metres and h tall, with earth inside a little below its top, and a few ground plants
+    in the corners. Returns the earth's height (stand the tree on it)."""
+    t = 0.28
+    for (x0, x1, y0, y1) in ((x - w / 2, x + w / 2, y - d / 2, y - d / 2 + t), (x - w / 2, x + w / 2, y + d / 2 - t, y + d / 2),
+                             (x - w / 2, x - w / 2 + t, y - d / 2 + t, y + d / 2 - t), (x + w / 2 - t, x + w / 2, y - d / 2 + t, y + d / 2 - t)):
+        c.box(parent, stone, x0, x1, y0, y1, z, z + h, tag=c._n("Tree Bed Curb"))
+    top = z + h - 0.07
+    c.box(parent, earth, x - w / 2 + t, x + w / 2 - t, y - d / 2 + t, y + d / 2 - t, z, top, tag=c._n("Tree Bed Earth"), shadows=False)
+    rnd = rnd or random.Random(int(x * 7 + y * 13))
+    for (cx, cy) in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
+        if rnd.random() < 0.75:
+            name = "JP_Shrub_" + rnd.choice(("Mondo", "Fern", "MossStone", "Sasa", "Mondo_V2", "Fern_V2"))
+            c.plant(parent, name, x + cx * (w / 2 - t - 0.35), y + cy * (d / 2 - t - 0.3), top)
+    return top
+
+
 def prop_card(c, parent, name, x, y, z, scale=1.0, sort=1, shadow=0.45, hanging=False, tag=None):
     """A trade-district sprite (props_r1/<name>.png: outline recoloured, halved to 32 px/m) standing upright at
     (x, y) with its foot at z (hanging=True: its top), `scale` times its 32 px/m size, a soft contact shadow under it.
@@ -226,6 +244,11 @@ def city_profiles():
 
 
 class Slice(city.City):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.routes = {}        # route key -> its waypoints' positions (route_walker starts on one)
+        self.shop_x = []        # the open shops' centres along the street, left to right (cloth, pottery, sake, paper)
+
     def box(self, parent, mat, x0, x1, y0, y1, z0, z1, tag=None, shadows=True, collider=True):
         """A box from z0 to z1 (Hydro's Box grows up from its origin; the collider is centred)."""
         tag = tag or self._n("Block")
@@ -302,6 +325,37 @@ class Slice(city.City):
             % (length, axis, speed, pause[0], pause[1], stop, work or '""', 2 if work else 1, delay, "true" if loop else "false",
                kit.stable_id("Player")))
         self.w.entity("npc:" + tag, tag, parent=parent, t=(x, y, z), s=(2.5, 2.34375, 1), body=body)
+
+    def route(self, parent, name, points):
+        """A route for townsfolk (NpcRouteScript): an entity "Route <name>" whose children are its waypoints
+        (WaypointScript), in walking order. A point is (x, y, z), or dict(at=(x, y, z), wait=(min, max), chance=1,
+        facing="Up", action="Work"): stand there wait seconds (with that chance; else walk on), facing that way,
+        playing Action<Facing> or Idle<Facing>. Returns the route's key for route_walker."""
+        key = "route:" + name
+        self.w.entity(key, "Route " + name, parent=parent)
+        for k, p in enumerate(points):
+            p = p if isinstance(p, dict) else dict(at=p)
+            wmin, wmax = p.get("wait", (0.0, 0.0))
+            self.w.entity("%s:%d" % (key, k), "Waypoint %d" % (k + 1), parent=key, t=p["at"], body=(
+                "    NativeScriptComponent:\n      Scripts:\n        - Name: WaypointScript\n          Properties:\n"
+                "            WaitMin: %g\n            WaitMax: %g\n            StopChance: %g\n            Facing: %s\n"
+                "            Action: %s\n" % (wmin, wmax, p.get("chance", 1.0), p.get("facing") or '""', p.get("action") or '""')))
+        self.routes[key] = [(p if isinstance(p, dict) else dict(at=p))["at"] for p in points]
+        return key
+
+    def route_walker(self, parent, sheet, route, mode="Loop", speed=1.1, start=0, delay=0.0):
+        """A townsperson going round `route` (a key from route()), placed on its waypoint `start`."""
+        base = os.path.join(ASSETS, "Characters", "NPC", sheet, sheet)
+        if os.path.exists(base + ".png.hymeta") is False or os.path.exists(base + ".hyanim") is False:
+            self.d.missing.append("NPC " + sheet); return
+        tex, anim = kit.handle_of(base + ".png.hymeta"), kit.handle_of(base + ".hyanim")
+        tag = self._n("Npc " + sheet)
+        body = kit.character_body(tex, anim, "IdleDown", "IdleDown_0") + (
+            "    NativeScriptComponent:\n      Scripts:\n        - Name: NpcRouteScript\n          Properties:\n"
+            "            Route: %d\n            Mode: %s\n            Speed: %g\n            StartAt: %d\n            StartDelay: %g\n"
+            "            Player: %d\n            Clearance: 0.9\n            Patience: 3\n"
+            % (kit.stable_id(route), mode, speed, start, delay, kit.stable_id("Player")))
+        self.w.entity("npc:" + tag, tag, parent=parent, t=self.routes[route][start], s=(2.5, 2.34375, 1), body=body)
 
     def townsperson(self, parent, sheet, x, y, z, clip="IdleDown", row=None, look=None):
         """A standing NPC: tag "Npc <row>" when it has a talk row (Npcs.hytable), else numbered like npc(); look="Down
@@ -548,6 +602,7 @@ def build(c, args):
             info = c.shopfront(M, name, cx, 1.0, Z0)
             if t.startswith("Shop"):
                 shops.append((cx, info))
+                c.shop_x.append(cx)
             x += w
         return x
     place_row(left_row, -3.5 - sum(c.summary.get("JP_Row_%s_F" % t, {}).get("width", 6.0) for t in left_row), -3.5)
@@ -634,17 +689,20 @@ def build(c, args):
     for x in (-4.6, 4.4):
         d.lantern(N, x, -9.0, Z0 + 1.15, 0.9, 3.0)
     # (v3: no trees on the near side; a weeping cherry there hid the whole street. Low bushes only.)
-    for (name, x, y, folder) in (("FlowerBush02", -2.0, -11.0, PLANTS), ("FlowerBush03", 1.6, -11.2, PLANTS),
-                                 ("BushDense03", -27.0, -11.6, PLANTS), ("FlowerBush04", 21.0, -11.6, PLANTS),
-                                 ("BushDense01", -17.0, -11.4, PLANTS), ("BushDense02", 15.8, -11.4, PLANTS)):
+    # (Nov 2: the delivered Japanese garden shrubs, install_jp_trees.py, instead of the field's rose and puff bushes)
+    for (name, x, y, folder) in (("JP_Shrub_Azalea_A", -2.0, -11.0, PLANTS), ("JP_Shrub_Camellia", 1.6, -11.2, PLANTS),
+                                 ("JP_Shrub_Azalea_B", -27.0, -11.6, PLANTS), ("JP_Shrub_Nandina", 21.0, -11.6, PLANTS),
+                                 ("JP_Shrub_Azalea_B_V2", -17.0, -11.4, PLANTS), ("JP_Shrub_Azalea_A_V2", 15.8, -11.4, PLANTS),
+                                 ("JP_Shrub_Sasa", -15.9, -11.6, PLANTS), ("JP_Shrub_Sasa_V2", 17.0, -11.7, PLANTS)):
         c.plant(N, name, x, y, Z0, folder)
 
     # ---------------------------------------------------------------- gardens on the landing level
     L = c.group("Gardens")
     for (name, x, y) in (("SakuraWeeping", -9.0, 13.5), ("SakuraWeeping", 10.0, 13.0), ("PineTall", -16.0, 15.5),
-                         ("LindenAutumnA", 17.5, 15.0), ("OakGnarledSmall", 5.6, 15.8), ("LindenAutumnC", -24.0, 14.5)):
+                         ("LindenAutumnA", 17.5, 15.0), ("JP_Tree_BlackPine_Small", 5.6, 15.8), ("LindenAutumnC", -24.0, 14.5)):
         c.plant(L, name, x, y, Z1, TREES)
-    for (name, x, y) in (("BushDense03", -5.4, 9.6), ("BushDense04", 5.6, 9.6), ("FlowerBush04", -7.0, 16.6), ("FlowerBush05", 7.6, 16.6)):
+    for (name, x, y) in (("JP_Shrub_Azalea_B", -5.4, 9.6), ("JP_Shrub_Azalea_B_V2", 5.6, 9.6), ("JP_Shrub_Camellia_V2", -7.0, 16.6),
+                         ("JP_Shrub_Nandina_V2", 7.6, 16.6), ("JP_Shrub_Fern", -4.4, 9.9), ("JP_Shrub_MossStone", 4.5, 9.9)):
         c.plant(L, name, x, y, Z1)
     for x in range(-30, 30, 2):
         if -6 <= x <= 4:
@@ -761,13 +819,18 @@ def build(c, args):
         for s_ in (-1, 1):
             c.model(P, "Props/JP_Prop_StoneLantern_A", s_ * 3.4, y, Z2)
             d.lantern(P, s_ * 3.4, y, Z2 + 1.15, 0.9, 3.0)
-    for (name, x, y, folder) in (("SakuraWeeping", -9.0, 18.4, TREES), ("PineTall", 9.4, 18.6, TREES),
-                                 ("TopiaryA", -5.6, 19.0, PLANTS), ("TopiaryB", 5.6, 19.0, PLANTS)):
+    earth = r3_material("JP_Ground_PackedDirt_B", (0.25, 0.25), (0.86, 0.82, 0.76), "JP_Ground_TempleEarth")
+    for (name, x, y, w, dd) in (("SakuraWeeping", -9.0, 18.4, 3.2, 2.4), ("PineTall", 9.4, 18.6, 3.0, 2.4)):   # in stone beds
+        c.plant(P, name, x, y, tree_bed(c, P, ishi, earth, x, y, Z2, w, dd), TREES)
+        c.model(P, "Props/JP_Prop_BenchMat_A", x, y - dd / 2 - 0.7, Z2)                   # a bench before each bed
+    for (name, x, y, folder) in (("JP_Shrub_Azalea_B", -5.6, 19.0, PLANTS), ("JP_Shrub_Azalea_B_V2", 5.6, 19.0, PLANTS)):
         c.plant(P, name, x, y, Z2, folder)
     # beyond the wall: the pagoda, forest
     c.building(P, "JP_Rich_Pagoda_A", -26.0, 42.0, Z2)
-    for (name, x, y) in (("FirTallA", -12.0, 44.0), ("FirTallB", -4.0, 47.0), ("FirTallC", 7.0, 45.0), ("FirTallD", 15.0, 48.0),
-                         ("PineTall", 24.0, 44.0), ("FirTallB", 32.0, 47.0), ("FirTallC", -36.0, 46.0), ("PineTall", 2.0, 52.0)):
+    # (Nov 2: Japanese cedars instead of the field's firs, which the farm village keeps)
+    for (name, x, y) in (("JP_Tree_Sugi_A_Large", -12.0, 44.0), ("JP_Tree_Sugi_B_Large", -4.0, 47.0), ("JP_Tree_Sugi_A_Large", 7.0, 45.0),
+                         ("JP_Tree_Sugi_B_Large", 15.0, 48.0), ("PineTall", 24.0, 44.0), ("JP_Tree_Sugi_A_Large", 32.0, 47.0),
+                         ("JP_Tree_Sugi_B_Large", -36.0, 46.0), ("PineTall", 2.0, 52.0)):
         c.plant(P, name, x, y, Z2, TREES)
 
     # ---------------------------------------------------------------- townsfolk
@@ -784,16 +847,72 @@ def build(c, args):
                                   ("TownChild", 3.4, -6.6, Z0, "IdleLeft"),
                                   ("TownChild", -8.4, 20.6, Z2, "IdleRight")):
         c.npc(T, name, x, y, z, clip)
-    # the walkers (Nov 2, the walk sheets): along the street, up the stair corridor, across the plaza, on the wall
-    c.walker(T, "Townswoman", -22.0, -5.4, Z0, "X", 16.0, 1.1, "IdleRight", delay=1.0)
-    c.walker(T, "OldWoman", -14.0, -6.2, Z0, "X", 7.0, 0.5, "IdleLeft", pause=(4.0, 9.0), delay=3.0)
-    c.walker(T, "Merchant", 24.0, -3.6, Z0, "X", 14.0, 1.0, "IdleLeft", delay=2.0)
-    c.walker(T, "Merchant", 7.0, 21.0, Z2, "Y", 7.0, 0.9, "IdleDown", delay=4.0)
-    c.walker(T, "OldWoman", -1.6, 9.6, Z1, "X", 3.0, 0.4, "IdleDown", pause=(6.0, 12.0))
-    c.walker(T, "TempleMonk", -5.0, 26.5, Z2, "X", 6.0, 0.7, "IdleDown", work="Work", pause=(5.0, 9.0), delay=0.5)
-    c.walker(T, "GateGuard", -26.0, 37.6, Z2 + 4.5, "X", 24.0, 0.9, "IdleRight", pause=(3.0, 7.0), stop=0.2)
-    # the porter does rounds: the whole street from the left end to the right, then reappears at the left (off screen)
-    c.walker(T, "Porter", 0.0, -4.6, Z0, "X", 84.0, 1.4, "IdleRight", pause=(0.5, 1.5), stop=0.3, loop=True)
+    # the walkers (Nov 2, routes): who walks where, after the layout references: shoppers browse the open shops and
+    # the stalls, a merchant stops to talk with the chatting pair, the porter carries his load up the stair street
+    # and out of the gate, a traveller reads the noticeboard and rests by the well, the monk sweeps the plaza in
+    # stages, the guard patrols the wall walk looking out over the parapet, two old women take their time.
+    # (NpcRouteScript + WaypointScript; the lanes keep clear of the standing townsfolk and the props.)
+    cloth, pottery, sake, paper = (c.shop_x + [-24.5, -6.5, 12.5, 30.5][len(c.shop_x):])[:4]
+    shop_stop = dict(wait=(3.0, 6.0), facing="Up", chance=0.85)
+    stall_stop = dict(wait=(2.0, 5.0), facing="Down", chance=0.6)
+    west = c.route(T, "ShopperWest", [
+        (-30.0, -4.8, Z0),
+        dict(shop_stop, at=(cloth - 0.8, -0.6, Z0)),
+        (-17.0, -1.2, Z0),
+        dict(stall_stop, at=(-10.6, -7.3, Z0)),
+        dict(shop_stop, at=(pottery - 0.6, -0.7, Z0)),
+        dict(at=(-4.2, -3.0, Z0), wait=(1.0, 3.0), facing="Right", chance=0.3),
+        (-14.0, -5.6, Z0),
+        dict(at=(-24.0, -6.8, Z0), wait=(2.0, 4.0), facing="Down", chance=0.4)])
+    c.route_walker(T, "Townswoman", west, "Loop", 1.0, start=0, delay=1.0)
+    east = c.route(T, "ShopperEast", [
+        (5.5, -3.2, Z0),
+        dict(shop_stop, at=(sake - 1.6, -0.7, Z0), chance=0.9),
+        dict(stall_stop, at=(11.0, -7.3, Z0), chance=0.7),
+        (21.5, -4.6, Z0),
+        dict(shop_stop, at=(paper - 0.6, -0.7, Z0)),
+        dict(stall_stop, at=(27.2, -7.4, Z0)),
+        (21.0, -4.4, Z0)])
+    c.route_walker(T, "Townswoman", east, "Loop", 1.05, start=3, delay=0.5)
+    talk = c.route(T, "MerchantTalk", [
+        dict(at=(17.6, -3.7, Z0), wait=(4.0, 8.0), facing="Up"),          # with the chatting pair
+        dict(at=(31.0, -3.8, Z0), wait=(2.0, 4.0), facing="Down", chance=0.6),
+        dict(at=(36.5, -1.0, Z0), wait=(2.0, 4.0), facing="Up")])
+    c.route_walker(T, "Merchant", talk, "PingPong", 1.0, start=1, delay=2.0)
+    stall = c.route(T, "StallBrowse", [
+        dict(at=(-18.0, -6.0, Z0), wait=(4.0, 8.0), facing="Down"),
+        dict(at=(-12.6, -7.3, Z0), wait=(5.0, 9.0), facing="Down"),
+        dict(at=(-8.6, -5.6, Z0), wait=(3.0, 6.0), facing="Left")])
+    c.route_walker(T, "OldWoman", stall, "PingPong", 0.5, start=0, delay=3.0)
+    rest = c.route(T, "LandingRest", [
+        dict(at=(1.6, 9.2, Z1), wait=(6.0, 12.0), facing="Down"),
+        dict(at=(2.6, 10.3, Z1), wait=(5.0, 10.0), facing="Right")])
+    c.route_walker(T, "OldWoman", rest, "PingPong", 0.4)
+    # the porter: from the street's west end (off screen) up both flights, across the plaza and out of the gate,
+    # then again from the west end
+    porter = c.route(T, "PorterRounds", [
+        (-42.0, -4.4, Z0), (-1.4, -4.0, Z0), (-1.2, 1.0, Z0), (-1.2, 8.0, Z1), (-1.2, 11.0, Z1), (-1.2, 17.5, Z2),
+        (-0.6, 30.5, Z2), (0.0, 37.6, Z2)])
+    c.route_walker(T, "Porter", porter, "Restart", 1.4)
+    reader = c.route(T, "NoticeReader", [
+        (1.6, 18.6, Z2),
+        (-1.6, 28.6, Z2),
+        dict(at=(-5.0, 30.7, Z2), wait=(4.0, 7.0), facing="Up"),         # reading the noticeboard
+        dict(at=(-6.6, 21.0, Z2), wait=(3.0, 5.0), facing="Left"),       # by the well
+        dict(at=(6.4, 20.8, Z2), wait=(3.0, 6.0), facing="Right", chance=0.7)])   # by the tea bench
+    c.route_walker(T, "Merchant", reader, "Loop", 0.9, start=2, delay=4.0)
+    sweep = dict(wait=(4.0, 9.0), facing="Down", action="Work")
+    sweeper = c.route(T, "PlazaSweep", [dict(sweep, at=(-6.0, 26.0, Z2)), dict(sweep, at=(-2.0, 25.6, Z2), chance=0.7),
+                                        dict(sweep, at=(2.0, 25.8, Z2)), dict(sweep, at=(6.0, 26.4, Z2), chance=0.7)])
+    c.route_walker(T, "TempleMonk", sweeper, "PingPong", 0.6, delay=0.5)
+    lookout = dict(wait=(3.0, 6.0), facing="Up")
+    patrol = c.route(T, "WallPatrol", [
+        dict(at=(-13.5, 36.2, Z2 + 4.5), wait=(2.0, 4.0), facing="Right"),
+        dict(lookout, at=(-21.0, 36.2, Z2 + 4.5), chance=0.6),
+        dict(lookout, at=(-30.0, 36.2, Z2 + 4.5), chance=0.4),
+        dict(lookout, at=(-38.0, 36.2, Z2 + 4.5)),
+        dict(at=(-44.5, 36.2, Z2 + 4.5), wait=(2.0, 4.0), facing="Left")])
+    c.route_walker(T, "GateGuard", patrol, "PingPong", 0.8, start=1)
 
     # ---------------------------------------------------------------- invisible walls: only where the camera sees her
     B = c.group("Blockers")
@@ -807,6 +926,20 @@ def build(c, args):
     c.w.entity("exit:Gate", "Exit JapaneseCountryside", parent=B, t=(0.0, 36.0, Z2), body=(
         "    BoxColliderComponent:\n      Offset: [0, 0, 1]\n      Size: [3.6, 2.4, 2]\n      Layer: Trigger\n      IsTrigger: true\n"))
     c.blocker(B, -3.0, 3.0, 38.6, 39.6, Z2)
+    c.w.entity("arrive:countryside", "Arrive JapaneseCountryside", parent=B, t=(0.0, 32.4, Z2))
+    # the street's west end leads to the temple district (TempleDistrict.hyscene, build_temple_district.py): the lane
+    # goes on west and up the temple hill
+    c.w.entity("exit:Temple", "Exit TempleDistrict", parent=B, t=(-31.2, -4.0, Z0), body=(
+        "    BoxColliderComponent:\n      Offset: [0, 0, 1]\n      Size: [1.2, 8, 2]\n      Layer: Trigger\n      IsTrigger: true\n"))
+    c.w.entity("arrive:temple", "Arrive TempleDistrict", parent=B, t=(-29.0, -4.0, Z0))
+    # the way to the temple, so the street's west end reads as a way on: a torii over the street, stone lanterns
+    # either side, a standing board that says where it goes ("Sign TempleRoad")
+    c.model(B, "../Architecture/ToriiGate", -29.6, -4.2, Z0, 90.0, collider=False)
+    for y in (-8.0, -0.6):
+        c.model(B, "Props/JP_Prop_StoneLantern_A", -28.4, y, Z0)
+        c.d.lantern(B, -28.4, y, Z0 + 1.15, 1.0, 3.4)
+    c.d.sprite(B, "JP_Signboard_Standing_A", -27.0, -7.6, Z0, sort=1)
+    c.w.entity("sign:TempleRoad", "Sign TempleRoad", parent=B, t=(-27.0, -7.4, Z0))
     c.blocker(B, -47.6, -47.0, 33.0, 39.5, Z2 + 4.5)        # the far end of the wall walk
     # the city-side edge of the walk (open only where the stairs arrive), so she can't step off the wall
     c.blocker(B, -47.0, -11.8, 33.3, 33.6, Z2 + 4.5, 1.5)
@@ -840,7 +973,8 @@ def main():
     ap.add_argument("--street-rise", type=float, default=3.8)
     ap.add_argument("--street-scale", type=float, default=0.95)
     ap.add_argument("--start-pos", default="", help="x,y,z: start the player here instead (overrides --start)")
-    ap.add_argument("--no-fg", action="store_true", help="leave out the foreground branches")
+    ap.add_argument("--fg", action="store_true", help="add the foreground branches over the frame's corners (off since Nov 2:\n"
+                    "an overlay on the camera felt wrong)")
     ap.add_argument("--plaza-yaw", type=float, default=0.0, help="turn the plaza's camera zone (degrees), to try a yawed view")
     args = ap.parse_args()
     summary = json.load(open(kit.SUMMARY))
@@ -861,7 +995,7 @@ def main():
         "      PerspectiveFar: 300\n      OrthographicSize: 13\n      OrthographicNear: -1\n      OrthographicFar: 1\n      FocusDistance: 0\n"
         "    NativeScriptComponent:\n      Scripts:\n        - Name: CameraFollowScript\n          Properties:\n"
         "            Bounds: [60, 60]\n            LookAhead: 0.5\n            Smoothing: 6\n"
-        "        - Name: OccluderFadeScript\n          Properties:\n            Target: %d\n            FadedOpacity: 0.3\n"
+        "        - Name: OccluderFadeScript\n          Properties:\n            Target: %d\n            FadedOpacity: 0.3\n            SpriteFadedOpacity: 0.12\n"
         "            FadeSpeed: 4\n            Radius: 0.3\n            HeadHeight: 1.5\n            MaxSize: 30\n" % kit.stable_id("Player")))
     w.entity("Director", "City Director", body=(
         "    NativeScriptComponent:\n      Scripts:\n        - Name: FieldSceneScript\n          Properties:\n"
@@ -882,7 +1016,7 @@ def main():
         "    DirectionalLightComponent:\n      Color: [1, 0.86, 0.7]\n      Intensity: 0.8\n      IsMainLight: true\n      CastShadows: true\n"
         "      ShadowStrength: 0.85\n      ShadowDistance: 45\n      ShadowBias: 1\n"))
     build(c, args)
-    if args.no_fg is False:
+    if args.fg:
         foreground_branches(w)
     header = (
         "Handle: %d\nScene: JapaneseCitySlice\nRenderSettings:\n  OverrideProject: true\n  Features:\n    Depth: Shared\n"

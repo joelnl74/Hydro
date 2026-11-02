@@ -7,7 +7,7 @@
   "height": 10.65,
   "faces": 2511,
   "location": [
-   -52.5,
+   -78.7,
    44.0
   ]
  },
@@ -19,7 +19,7 @@
   "height": 4.38,
   "faces": 6,
   "location": [
-   -54.5,
+   -80.7,
    45.05
   ]
  },
@@ -31,7 +31,7 @@
   "height": 4.38,
   "faces": 6,
   "location": [
-   -50.5,
+   -76.7,
    45.05
   ]
  },
@@ -43,7 +43,7 @@
   "height": 2.8,
   "faces": 369,
   "location": [
-   -42.3,
+   -68.5,
    44.0
   ]
  },
@@ -54,7 +54,7 @@
   "height": 3.87,
   "faces": 422,
   "location": [
-   -36.1,
+   -62.3,
    44.0
   ]
  },
@@ -76,7 +76,7 @@
   "height": 9.0,
   "faces": 4989,
   "location": [
-   -25.1,
+   -51.3,
    44.0
   ]
  },
@@ -98,7 +98,7 @@
   "height": 9.51,
   "faces": 5129,
   "location": [
-   -8.1,
+   -34.3,
    44.0
   ]
  },
@@ -120,7 +120,7 @@
   "height": 9.0,
   "faces": 3930,
   "location": [
-   6.9,
+   -19.3,
    44.0
   ]
  },
@@ -131,7 +131,7 @@
   "height": 2.21,
   "faces": 398,
   "location": [
-   16.9,
+   -9.3,
    44.0
   ]
  },
@@ -142,7 +142,7 @@
   "height": 3.13,
   "faces": 532,
   "location": [
-   20.7,
+   -5.5,
    44.0
   ]
  },
@@ -154,7 +154,7 @@
   "height": 7.64,
   "faces": 859,
   "location": [
-   25.5,
+   -0.7,
    44.0
   ]
  },
@@ -166,7 +166,7 @@
   "height": 14.35,
   "faces": 3750,
   "location": [
-   35.5,
+   9.3,
    44.0
   ]
  },
@@ -178,7 +178,7 @@
   "height": 6.1,
   "faces": 801,
   "location": [
-   46.5,
+   20.3,
    44.0
   ]
  },
@@ -190,7 +190,75 @@
   "height": 3.0,
   "faces": 685,
   "location": [
-   56.5,
+   30.3,
+   44.0
+  ]
+ },
+ "JP_Temple_Gate_A": {
+  "passage": "3.6 x 2.8 m",
+  "beam_z": 3.7,
+  "tier": "A",
+  "width": 7.0,
+  "depth": 2.4,
+  "height": 6.35,
+  "faces": 869,
+  "location": [
+   39.8,
+   44.0
+  ]
+ },
+ "JP_Temple_Hall_A": {
+  "floor_z": 0.9,
+  "door_z": 1.02,
+  "eave_z": 5.2,
+  "wall_y": 1.3,
+  "door_x": 0.0,
+  "head_z": 3.62,
+  "tier": "A",
+  "width": 14.2,
+  "depth": 10.6,
+  "height": 10.8,
+  "faces": 5129,
+  "location": [
+   53.4,
+   44.0
+  ]
+ },
+ "JP_Temple_Pagoda_A": {
+  "tiers": 5,
+  "tier": "A",
+  "width": 8.0,
+  "depth": 8.0,
+  "height": 20.59,
+  "faces": 5538,
+  "location": [
+   67.5,
+   44.0
+  ]
+ },
+ "JP_Temple_BellTower_A": {
+  "bell_z": 3.6999999999999997,
+  "floor_z": 0.7,
+  "tier": "A",
+  "width": 4.6,
+  "depth": 4.6,
+  "height": 7.01,
+  "faces": 1620,
+  "location": [
+   76.8,
+   44.0
+  ]
+ },
+ "JP_Temple_Temizuya_A": {
+  "basin_z": 0.82,
+  "basin_y": 1.0,
+  "tier": "A",
+  "width": 3.5999999999999996,
+  "depth": 3.1,
+  "height": 3.38,
+  "faces": 590,
+  "location": [
+   83.9,
    44.0
   ]
  },
@@ -1338,6 +1406,15 @@
    "counter_z": 0.86,
    "counter_y": 0.45,
    "faces": 191
+  },
+  "JP_Prop_IncenseBurner_A": {
+   "light": [
+    0,
+    0,
+    1.0
+   ],
+   "height": 2.12,
+   "faces": 163
   }
  },
  "_modules": {
@@ -1360,6 +1437,8 @@
   "JP_Wall_Retaining_Granite_4m_Low": 12,
   "JP_Stairs_Granite_3m": 48,
   "JP_Stairs_Granite_3m_Low": 36,
-  "JP_Railing_Stone_2m": 54
+  "JP_Railing_Stone_2m": 54,
+  "JP_Fence_Vermilion_4m": 144,
+  "JP_Temple_OmikujiRack_A": 960
  }
 }

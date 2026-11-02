@@ -3,6 +3,7 @@
 
 #include "Hydro.h"
 #include "Hydro/Scene/MeshBounds.h"
+#include "Hydro/Scene/SpriteBounds.h"
 #include "Rules/OccluderRules.h"
 
 #include <algorithm>
@@ -10,15 +11,18 @@
 
 namespace Hydro
 {
-	// Put it on the camera (after CameraFollowScript): meshes standing between the camera and the Target (the player)
-	// fade to FadedOpacity, and back when she comes out from behind them, so she is never lost behind a roof or a
-	// wall (the wall walk behind the inn). A mesh is "in the way" when the line from her chest or head to the camera
-	// passes through its world box (MeshBounds), unless she stands on or in it (the ground, a wall's walk); meshes
-	// larger than MaxSize (ground slabs, terraces) never fade. Sprites aren't faded.
-	// The fade is MeshComponent::Opacity (dithered in mesh.frag; shadows stay). Play mode runs on a copy of the
-	// scene, so nothing it changes is saved.
-	// Known gap: a game script can only set engine-defined material inputs; adding its own shader effect needs the
-	// engine (docs/SceneAndECS.md, Known gaps).
+	// Put it on the camera (after CameraFollowScript): meshes and standing sprites between the camera and the Target
+	// (the player) fade to FadedOpacity, and back when she comes out from behind them, so she is never lost behind a
+	// roof, a wall (the wall walk behind the inn), a gate she walks under or a tree. A mesh is "in the way" when the
+	// line from her chest or head to the camera passes through its world box (MeshBounds), unless it is what she
+	// stands on (CharacterBody::GetGround); a standing sprite when that line crosses its card on the camera's side of
+	// her (SpriteBounds).
+	// Anything larger than MaxSize (ground slabs, terraces, backdrops) never fades, nor do animated sprites
+	// (characters, flames) or the camera's own children (foreground framing).
+	// The fade is MeshComponent::Opacity / SpriteRendererComponent::Opacity, drawn by the engine's fade shader variants
+	// (mesh_fade.frag, sprite_fade.frag; shadows stay). Play mode runs on a copy of the scene, so nothing is saved.
+	// Known gap: the fade shaders are engine files the renderers pick for opacity below 1; once games can register
+	// their own shader variants they move here (docs/SceneAndECS.md, Known gaps).
 	HY_SCRIPT()
 	class OccluderFadeScript : public ScriptableEntity
 	{
@@ -27,15 +31,19 @@ namespace Hydro
 		EntityRef Target;
 		HY_PROPERTY(Range(0, 1), Tooltip("How much of a mesh in the way still shows (0: gone, 1: no fade)"))
 		float FadedOpacity = 0.3f;
+		HY_PROPERTY(Range(0, 1), Tooltip("How much of a sprite in the way still shows: lower than meshes, since a near tree is also in the depth of field's foreground blur, which spreads what is left of it over the player"))
+		float SpriteFadedOpacity = 0.12f;
 		HY_PROPERTY(Range(0, 20), Tooltip("Opacity per second while fading out and back in"))
 		float FadeSpeed = 4.0f;
-		HY_PROPERTY(Range(0, 2), Tooltip("Metres: how close to the line of sight a mesh is in the way"))
+		HY_PROPERTY(Range(0, 2), Tooltip("Metres: how close to the line of sight a thing is in the way"))
 		float Radius = 0.3f;
 		HY_PROPERTY(Range(0, 4), Tooltip("Metres above the target's feet of the highest point kept in sight (its head)"))
 		float HeadHeight = 1.5f;
-		HY_PROPERTY(Min(1), Tooltip("Metres: a mesh larger than this on any side never fades (the ground, terraces)"))
+		HY_PROPERTY(Min(1), Tooltip("Metres: a thing larger than this on any side never fades (the ground, terraces)"))
 		float MaxSize = 30.0f;
-		HY_PROPERTY(Tooltip("Log each mesh as it starts to fade (its name and world box), to tune the radius and size"))
+		HY_PROPERTY(Tooltip("Fade standing sprites too (trees, signs, props); meshes always fade"))
+		bool FadeSprites = true;
+		HY_PROPERTY(Tooltip("Log each thing as it starts to fade (its name and world box), to tune the radius and size"))
 		bool LogFades = false;
 
 	protected:
@@ -52,55 +60,65 @@ namespace Hydro
 				sight.HeadHeight = HeadHeight;
 				sight.ChestHeight = HeadHeight * 0.6f;
 				sight.Radius = Radius;
-				auto view = scene->m_Registry.view<MeshComponent, WorldTransformComponent>();
-				for (auto entity : view)
+				// What she stands on never fades (the wall under a wall walk rises past her chest).
+				CharacterGround ground;
+				const entt::entity standingOn = CharacterBody::GetGround(target, ground) && ground.GroundEntity
+					? (entt::entity)ground.GroundEntity : entt::null;
+				auto meshes = scene->m_Registry.view<MeshComponent, WorldTransformComponent>();
+				for (auto entity : meshes)
 				{
-					glm::vec3 low{ 0.0f };
-					glm::vec3 high{ 0.0f };
-					if (MeshBounds::GetWorld(Entity{ entity, scene }, low, high) == false)
+					if (entity != standingOn)
 					{
-						continue;
+						Test(*scene, sight, entity, Kind::Mesh);
 					}
-					const glm::vec3 size = high - low;
-					if (std::max({ size.x, size.y, size.z }) > MaxSize)
+				}
+				if (FadeSprites)
+				{
+					const UUID self = GetEntity().GetUUID();
+					auto sprites = scene->m_Registry.view<SpriteRendererComponent, WorldTransformComponent>();
+					for (auto entity : sprites)
 					{
-						continue;
-					}
-					if (OccluderRules::Hides(sight, low, high))
-					{
-						m_InTheWay.push_back(entity);
+						if (entity == (entt::entity)target || scene->m_Registry.has<SpriteAnimatorComponent>(entity))
+						{
+							continue;
+						}
+						const RelationshipComponent* relation = scene->m_Registry.try_get<RelationshipComponent>(entity);
+						if (relation != nullptr && (uint64_t)relation->Parent == (uint64_t)self)
+						{
+							continue;
+						}
+						Test(*scene, sight, entity, Kind::Sprite);
 					}
 				}
 			}
 
-			for (entt::entity entity : m_InTheWay)
+			for (const Faded& hit : m_InTheWay)
 			{
-				if (FindFaded(entity) == m_Faded.end())
+				if (Find(hit.Entity, hit.Type) == m_Faded.end())
 				{
-					m_Faded.push_back({ entity, scene->m_Registry.get<MeshComponent>(entity).Opacity });
+					float* opacity = OpacityOf(*scene, hit.Entity, hit.Type);
+					m_Faded.push_back({ hit.Entity, hit.Type, opacity != nullptr ? *opacity : 1.0f });
 					if (LogFades)
 					{
-						Entity faded{ entity, scene };
-						glm::vec3 low{ 0.0f };
-						glm::vec3 high{ 0.0f };
-						MeshBounds::GetWorld(faded, low, high);
-						HY_INFO("OccluderFadeScript: fading '{}' ({:.1f}, {:.1f}, {:.1f}) .. ({:.1f}, {:.1f}, {:.1f})", faded.GetName(),
-							low.x, low.y, low.z, high.x, high.y, high.z);
+						Log(*scene, hit);
 					}
 				}
 			}
 			for (auto it = m_Faded.begin(); it != m_Faded.end();)
 			{
-				if (scene->m_Registry.valid(it->Entity) == false || scene->m_Registry.has<MeshComponent>(it->Entity) == false)
+				float* opacity = scene->m_Registry.valid(it->Entity) ? OpacityOf(*scene, it->Entity, it->Type) : nullptr;
+				if (opacity == nullptr)
 				{
 					it = m_Faded.erase(it);
 					continue;
 				}
-				const bool inTheWay = std::find(m_InTheWay.begin(), m_InTheWay.end(), it->Entity) != m_InTheWay.end();
-				float& opacity = scene->m_Registry.get<MeshComponent>(it->Entity).Opacity;
-				const float goal = inTheWay ? std::min(FadedOpacity, it->Authored) : it->Authored;
-				opacity = OccluderRules::Approach(opacity, goal, FadeSpeed, deltaTime);
-				if (inTheWay == false && opacity == it->Authored)
+				const Faded& faded = *it;
+				const bool inTheWay = std::any_of(m_InTheWay.begin(), m_InTheWay.end(),
+					[&faded](const Faded& hit) { return hit.Entity == faded.Entity && hit.Type == faded.Type; });
+				const float fadeTo = it->Type == Kind::Sprite ? SpriteFadedOpacity : FadedOpacity;
+				const float goal = inTheWay ? std::min(fadeTo, it->Authored) : it->Authored;
+				*opacity = OccluderRules::Approach(*opacity, goal, FadeSpeed, deltaTime);
+				if (inTheWay == false && *opacity == it->Authored)
 				{
 					it = m_Faded.erase(it);
 					continue;
@@ -115,27 +133,89 @@ namespace Hydro
 			Scene* scene = GetEntity().GetScene();
 			for (const Faded& faded : m_Faded)
 			{
-				if (scene->m_Registry.valid(faded.Entity) && scene->m_Registry.has<MeshComponent>(faded.Entity))
+				float* opacity = scene->m_Registry.valid(faded.Entity) ? OpacityOf(*scene, faded.Entity, faded.Type) : nullptr;
+				if (opacity != nullptr)
 				{
-					scene->m_Registry.get<MeshComponent>(faded.Entity).Opacity = faded.Authored;
+					*opacity = faded.Authored;
 				}
 			}
 			m_Faded.clear();
 		}
 
 	private:
+		enum class Kind : uint8_t { Mesh, Sprite };
+
 		struct Faded
 		{
 			entt::entity Entity = entt::null;
+			Kind Type = Kind::Mesh;
 			float Authored = 1.0f; // its Opacity before the fade, restored after
 		};
 
-		std::vector<Faded>::iterator FindFaded(entt::entity entity)
+		void Test(Scene& scene, const OccluderRules::Sight& sight, entt::entity entity, Kind type)
 		{
-			return std::find_if(m_Faded.begin(), m_Faded.end(), [entity](const Faded& faded) { return faded.Entity == entity; });
+			const Entity handle{ entity, &scene };
+			glm::vec3 low{ 0.0f };
+			glm::vec3 high{ 0.0f };
+			if (type == Kind::Mesh)
+			{
+				if (MeshBounds::GetWorld(handle, low, high) == false)
+				{
+					return;
+				}
+				const glm::vec3 size = high - low;
+				if (std::max({ size.x, size.y, size.z }) <= MaxSize && OccluderRules::Hides(sight, low, high))
+				{
+					m_InTheWay.push_back({ entity, type, 1.0f });
+				}
+				return;
+			}
+			glm::vec3 foot{ 0.0f };
+			float width = 0.0f;
+			float height = 0.0f;
+			if (SpriteBounds::GetStanding(handle, foot, width, height) && std::max(width, height) <= MaxSize
+				&& OccluderRules::HidesCard(sight, foot, width, height))
+			{
+				m_InTheWay.push_back({ entity, type, 1.0f });
+			}
+		}
+
+		static float* OpacityOf(Scene& scene, entt::entity entity, Kind type)
+		{
+			if (type == Kind::Mesh)
+			{
+				MeshComponent* mesh = scene.m_Registry.try_get<MeshComponent>(entity);
+				return mesh != nullptr ? &mesh->Opacity : nullptr;
+			}
+			SpriteRendererComponent* sprite = scene.m_Registry.try_get<SpriteRendererComponent>(entity);
+			return sprite != nullptr ? &sprite->Opacity : nullptr;
+		}
+
+		std::vector<Faded>::iterator Find(entt::entity entity, Kind type)
+		{
+			return std::find_if(m_Faded.begin(), m_Faded.end(), [entity, type](const Faded& faded) { return faded.Entity == entity && faded.Type == type; });
+		}
+
+		static void Log(Scene& scene, const Faded& hit)
+		{
+			Entity faded{ hit.Entity, &scene };
+			glm::vec3 low{ 0.0f };
+			glm::vec3 high{ 0.0f };
+			float width = 0.0f;
+			float height = 0.0f;
+			if (hit.Type == Kind::Mesh)
+			{
+				MeshBounds::GetWorld(faded, low, high);
+			}
+			else if (SpriteBounds::GetStanding(faded, low, width, height))
+			{
+				high = low + glm::vec3(width, 0.0f, height);
+			}
+			HY_INFO("OccluderFadeScript: fading {} '{}' ({:.1f}, {:.1f}, {:.1f}) .. ({:.1f}, {:.1f}, {:.1f})", hit.Type == Kind::Mesh ? "mesh" : "sprite",
+				faded.GetName(), low.x, low.y, low.z, high.x, high.y, high.z);
 		}
 
 		std::vector<Faded> m_Faded;
-		std::vector<entt::entity> m_InTheWay; // this frame's (kept so the update allocates nothing once warm)
+		std::vector<Faded> m_InTheWay; // this frame's (kept so the update allocates nothing once warm)
 	};
 }

@@ -1503,6 +1503,14 @@ namespace Hydro
 					ImGui::SetTooltip("The sprite glows: its colours times Emission times this are added after the lighting,\nso it stays bright at night and in shadow (flames, candles, lit windows). 0 = none.\nAbove about 1 it blooms (Render Settings > Rendering: HDR and Bloom). The whole sprite glows:\ngive a torch's flame its own sprite.");
 				}
 			});
+			DrawPropertyRow("Opacity", [&]()
+			{
+				InputFloatField("##SpriteOpacity", sprite.Opacity, "%.2f", 0.0f, 1.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("How much of the sprite shows (1 = all). Cut-out sprites below 1 are screen-door faded,\ntranslucent ones blended; the shadow stays. Game scripts set it (the camera's occluder fade).");
+				}
+			});
 			if (texture != nullptr && entity.HasComponent<TransformComponent>())
 			{
 				DrawPropertyRow("##NativeSize", [&]()

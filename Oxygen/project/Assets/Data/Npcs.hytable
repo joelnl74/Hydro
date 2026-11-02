@@ -78,3 +78,6 @@ DataTable:
     GateGuard:
       Name: Gate Guard
       Dialogue: 3824359530807091376
+    TempleMonk:
+      Name: Temple Monk
+      Dialogue: 439093920711121255

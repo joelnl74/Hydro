@@ -15,6 +15,7 @@
 #include "Hydro/Scene/Components/Components.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/MeshBounds.h"
+#include "Hydro/Scene/SpriteBounds.h"
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"
 #include "Hydro/Scene/UI/UIScene.h"
 
@@ -86,7 +87,16 @@ namespace Hydro
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
-		Renderer2D::SetPostProcess(m_Scene->GetActivePostProcess());
+		// The Editor view shows the scene's depth of field, bloom and fog only when asked (EditorOverlay), so it stays
+		// sharp to edit in; the Game view always does.
+		ScenePostProcess postProcess = m_Scene->GetActivePostProcess();
+		if (overlay.PostProcessing == false)
+		{
+			postProcess.DepthOfField = false;
+			postProcess.Bloom = false;
+		}
+		m_Fog = overlay.Fog;
+		Renderer2D::SetPostProcess(postProcess);
 		Renderer2D::SetViewFocus(m_Camera.GetGroundFocus(), m_Camera.Forward);
 		SubmitMeshes(view);
 		SubmitSprites();
@@ -124,6 +134,7 @@ namespace Hydro
 		m_Camera = MakeCameraBasis(glm::mat3(cameraTransform), GetEffectiveRenderFeatures().UprightSprites);
 		m_Camera.Position = glm::vec3(cameraTransform[3]);
 		PrepareSunShadowCasting();
+		m_Fog = true;
 
 		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
@@ -314,7 +325,8 @@ namespace Hydro
 				SpriteDrawMode mode = SpriteDrawMode::Translucent;
 				if (item.IsEmitter == false && item.Cutout)
 				{
-					mode = SpriteDrawMode::Cutout;
+					// A cut-out sprite being faded (Opacity below 1) goes to the fade variant's list.
+					mode = view.get<SpriteRendererComponent>(item.Entity).Opacity < 1.0f ? SpriteDrawMode::FadedCutout : SpriteDrawMode::Cutout;
 				}
 				else if (item.Standing == false)
 				{
@@ -1111,7 +1123,7 @@ namespace Hydro
 		{
 			lighting.SkyAmbient = environment.SkyAmbient;
 			lighting.GroundAmbient = environment.GroundAmbient;
-			lighting.Fog = environment.Fog;
+			lighting.Fog = environment.Fog && m_Fog;
 			lighting.FogColor = environment.FogColor;
 			lighting.FogStart = environment.FogStart;
 			lighting.FogEnd = environment.FogEnd;
@@ -1193,15 +1205,19 @@ namespace Hydro
 		const glm::mat4 drawn = ApplyFacing(quad, sprite.Facing, camera);
 		// Emission (plan P3) travels in the vertices; the casters queued below are drawn later, after it is reset.
 		Renderer2D::SetEmission(sprite.EmissionColor * std::max(sprite.EmissionIntensity, 0.0f));
+		// Opacity in the quad's alpha: blended for translucent sprites, the screen-door fade's amount for faded
+		// cut-out ones (SpriteDrawMode::FadedCutout). Shadow casters keep the sprite's own colour: the shadow stays.
+		glm::vec4 color = sprite.Color;
+		color.a *= std::clamp(sprite.Opacity, 0.0f, 1.0f);
 		if (shadowCaster == false || m_SunShadows.Sprites == false)
 		{
-			Renderer2D::DrawQuad(drawn, texture, rect, sprite.Color);
+			Renderer2D::DrawQuad(drawn, texture, rect, color);
 			return;
 		}
 
 		if (m_SunShadows.Mode == SpriteShadowMode::AsDrawn)
 		{
-			Renderer2D::DrawQuad(drawn, texture, rect, sprite.Color);
+			Renderer2D::DrawQuad(drawn, texture, rect, color);
 			m_ShadowCasters.push_back({ drawn, texture, rect, sprite.Color });
 			return;
 		}
@@ -1211,7 +1227,7 @@ namespace Hydro
 		const bool upright = sprite.Facing == SpriteFacing::Upright;
 		const glm::vec3 pivot = glm::vec3(quad * (upright ? glm::vec4(0.0f, -0.5f, 0.0f, 1.0f) : glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
 		const glm::mat4 caster = glm::translate(glm::mat4(1.0f), pivot) * glm::mat4(m_SunShadows.SunUpright) * glm::translate(glm::mat4(1.0f), -pivot) * quad;
-		Renderer2D::DrawQuad(drawn, texture, rect, sprite.Color, caster);
+		Renderer2D::DrawQuad(drawn, texture, rect, color, caster);
 		m_ShadowCasters.push_back({ caster, texture, rect, sprite.Color });
 	}
 
@@ -1232,19 +1248,7 @@ namespace Hydro
 
 	glm::mat4 SceneRenderer::GetSpriteQuadTransform(const glm::mat4& transform, const Texture2D* texture, uint32_t spriteIndex)
 	{
-		if (texture == nullptr || texture->GetSpriteMode() != SpriteMode::Multiple)
-		{
-			return transform;
-		}
-
-		// The quad is centred on the entity; move it so the sprite's pivot is there instead
-		// (a feet pivot keeps a character standing on its position while frames change).
-		const glm::vec2 pivot = texture->GetSprite(spriteIndex).Pivot;
-		if (pivot == glm::vec2(0.5f))
-		{
-			return transform;
-		}
-		return transform * glm::translate(glm::mat4(1.0f), glm::vec3(0.5f - pivot.x, 0.5f - pivot.y, 0.0f));
+		return SpriteBounds::GetQuad(transform, texture, spriteIndex);
 	}
 
 	void SceneRenderer::SubmitEditorOverlay(const EditorOverlay& overlay)

@@ -17,8 +17,10 @@
 #include "Scripts/Field/EnemyChaseScript.h"
 #include "Scripts/Field/FieldDirectorScript.h"
 #include "Scripts/Field/NpcLookAroundScript.h"
+#include "Scripts/Field/NpcRouteScript.h"
 #include "Scripts/Field/NpcWanderScript.h"
 #include "Scripts/Field/QuestGiverScript.h"
+#include "Scripts/Field/WaypointScript.h"
 #include "Scripts/Interiors/InteriorScript.h"
 #include "Scripts/ShrineGlade/ShrineGladeScript.h"
 #include "Scripts/ShrineGlade/ShrineQuestScript.h"
@@ -104,11 +106,13 @@ namespace Hydro
 		ScriptRegistry::Register<OccluderFadeScript>("OccluderFadeScript")
 			.Property("Target", "Target", &OccluderFadeScript::Target).Tooltip("The one kept in sight (the player)")
 			.Property("FadedOpacity", "Faded Opacity", &OccluderFadeScript::FadedOpacity).Range(0.0f, 1.0f).Tooltip("How much of a mesh in the way still shows (0: gone, 1: no fade)")
+			.Property("SpriteFadedOpacity", "Sprite Faded Opacity", &OccluderFadeScript::SpriteFadedOpacity).Range(0.0f, 1.0f).Tooltip("How much of a sprite in the way still shows: lower than meshes, since a near tree is also in the depth of field's foreground blur, which spreads what is left of it over the player")
 			.Property("FadeSpeed", "Fade Speed", &OccluderFadeScript::FadeSpeed).Range(0.0f, 20.0f).Tooltip("Opacity per second while fading out and back in")
-			.Property("Radius", "Radius", &OccluderFadeScript::Radius).Range(0.0f, 2.0f).Tooltip("Metres: how close to the line of sight a mesh is in the way")
+			.Property("Radius", "Radius", &OccluderFadeScript::Radius).Range(0.0f, 2.0f).Tooltip("Metres: how close to the line of sight a thing is in the way")
 			.Property("HeadHeight", "Head Height", &OccluderFadeScript::HeadHeight).Range(0.0f, 4.0f).Tooltip("Metres above the target's feet of the highest point kept in sight (its head)")
-			.Property("MaxSize", "Max Size", &OccluderFadeScript::MaxSize).Min(1.0f).Tooltip("Metres: a mesh larger than this on any side never fades (the ground, terraces)")
-			.Property("LogFades", "Log Fades", &OccluderFadeScript::LogFades).Tooltip("Log each mesh as it starts to fade (its name and world box), to tune the radius and size");
+			.Property("MaxSize", "Max Size", &OccluderFadeScript::MaxSize).Min(1.0f).Tooltip("Metres: a thing larger than this on any side never fades (the ground, terraces)")
+			.Property("FadeSprites", "Fade Sprites", &OccluderFadeScript::FadeSprites).Tooltip("Fade standing sprites too (trees, signs, props); meshes always fade")
+			.Property("LogFades", "Log Fades", &OccluderFadeScript::LogFades).Tooltip("Log each thing as it starts to fade (its name and world box), to tune the radius and size");
 
 		ScriptRegistry::Register<CountrysideQuestScript>("CountrysideQuestScript")
 			.Property("QuestTable", "Quest Table", &CountrysideQuestScript::QuestTable).Tooltip("The quests: rows GuardiansDuty and AlongTheLeyline").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition")
@@ -181,6 +185,16 @@ namespace Hydro
 			.Property("Player", "Player", &NpcLookAroundScript::Player).Tooltip("The player: it watches her while she is near")
 			.Property("WatchRange", "Watch Range", &NpcLookAroundScript::WatchRange).Range(0.0f, 10.0f).Tooltip("Metres: closer than this it faces the player (0: never)");
 
+		ScriptRegistry::Register<NpcRouteScript>("NpcRouteScript")
+			.Property("Route", "Route", &NpcRouteScript::Route).Tooltip("The route: an entity whose children are the waypoints (WaypointScript), in order").Required()
+			.Property("Mode", "Mode", &NpcRouteScript::Mode).Tooltip("Loop (back to the first), PingPong (there and back), Once (then stays), Restart (reappears at the first)")
+			.Property("Speed", "Speed", &NpcRouteScript::Speed).Range(0.0f, 5.0f).Tooltip("Metres per second (the player walks at about 3.5)")
+			.Property("StartAt", "Start At", &NpcRouteScript::StartAt).Range(0.0f, 64.0f).Tooltip("The waypoint it starts at (it is placed there), so a crowd on one route is spread out")
+			.Property("StartDelay", "Start Delay", &NpcRouteScript::StartDelay).Range(0.0f, 60.0f).Tooltip("Seconds before it first moves")
+			.Property("Player", "Player", &NpcRouteScript::Player).Tooltip("The player: it waits while she stands in its way")
+			.Property("Clearance", "Clearance", &NpcRouteScript::Clearance).Range(0.0f, 5.0f).Tooltip("Metres ahead it keeps free: it waits while the player or another townsperson stands there (0: walks through)")
+			.Property("Patience", "Patience", &NpcRouteScript::Patience).Range(0.0f, 30.0f).Tooltip("Seconds it waits for its way to clear before it turns back (PingPong) or walks on through");
+
 		ScriptRegistry::Register<NpcWanderScript>("NpcWanderScript")
 			.Property("PathLength", "Path Length", &NpcWanderScript::PathLength).Range(0.0f, 60.0f).Tooltip("Metres: the whole length of the line it walks, centred on where it was placed")
 			.Property("Axis", "Axis", &NpcWanderScript::Axis).Tooltip("The line's direction: X (along the street, left-right) or Y (up and down the screen)")
@@ -198,6 +212,14 @@ namespace Hydro
 
 		ScriptRegistry::Register<QuestGiverScript>("QuestGiverScript")
 			.Property("QuestTable", "Quest Table", &QuestGiverScript::QuestTable).Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition");
+
+		ScriptRegistry::Register<WaypointScript>("WaypointScript")
+			.Property("WaitMin", "Wait Min", &WaypointScript::WaitMin).Range(0.0f, 120.0f).Tooltip("Seconds it stands here, at least (0 and WaitMax 0: walks straight on)")
+			.Property("WaitMax", "Wait Max", &WaypointScript::WaitMax).Range(0.0f, 120.0f).Tooltip("Seconds it stands here, at most")
+			.Property("StopChance", "Stop Chance", &WaypointScript::StopChance).Range(0.0f, 1.0f).Tooltip("Chance it stops here at all on a pass (1: every time)")
+			.Property("Facing", "Facing", &WaypointScript::Facing).Tooltip("While standing: Up (away from the camera), Down, Left or Right; empty: the way it arrived")
+			.Property("LookAt", "Look At", &WaypointScript::LookAt).Tooltip("While standing: face this entity instead (a shop's merchant, a noticeboard)")
+			.Property("Action", "Action", &WaypointScript::Action).Tooltip("The clip prefix played while standing (\"Work\" plays Work<Facing>); empty: Idle<Facing>");
 
 		ScriptRegistry::Register<InteriorScript>("InteriorScript")
 			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")

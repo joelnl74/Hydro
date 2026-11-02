@@ -53,3 +53,10 @@ DataTable:
     HorsePost:
       Lines:
         - "A tethering post and a trough of fresh water. The horse that drank here is long gone."
+    TempleNotices:
+      Lines:
+        - "Prayer slips for safe roads. One ink stroke per wish, the abbot asks."
+        - "Below, in a smaller hand: the bell is not to be rung after dusk. Not by anyone."
+    TempleRoad:
+      Lines:
+        - "West, up the hill: the temple. Follow the lanterns."

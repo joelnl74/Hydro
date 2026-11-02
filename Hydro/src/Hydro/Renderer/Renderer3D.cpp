@@ -121,11 +121,12 @@ namespace Hydro
 		bool Wireframe = false;
 		bool ShadowCaster = false; // depth only, into a sun shadow map (R14)
 		bool TerrainSurface = false; // terrain.frag with the terrain surface's set 1
+		bool Faded = false; // mesh_fade.frag: draws with an opacity below 1 (MeshComponent::Opacity)
 
 		bool operator<(const MeshPipelineKey& other) const
 		{
-			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster, TerrainSurface)
-				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster, other.TerrainSurface);
+			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster, TerrainSurface, Faded)
+				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster, other.TerrainSurface, other.Faded);
 		}
 	};
 
@@ -153,6 +154,9 @@ namespace Hydro
 	static constexpr const char* MeshShaderName = "Mesh";
 	static constexpr const char* MeshShadowCasterShaderName = "MeshShadowCaster";
 	static constexpr const char* TerrainSurfaceShaderName = "TerrainSurface";
+	// The Standard material with a screen-door fade (a game effect: the camera's occluder fade), only for draws whose
+	// opacity is below 1, so the main mesh shader stays without it.
+	static constexpr const char* MeshFadeShaderName = "MeshFade";
 	// Shapes and materials no frame has used for this many frames are freed (the GPU is long done with them).
 	static constexpr uint64_t UnusedFramesBeforeFree = 120;
 
@@ -566,9 +570,9 @@ namespace Hydro
 		return entry.MeshRef;
 	}
 
-	// The mesh pipeline for `target` (the view's, or its shadow map for a shadow caster).
+	// The mesh pipeline for `target` (the view's, or its shadow map for a shadow caster). `faded`: the fade variant.
 	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID, bool shadowCaster = false,
-		bool terrainSurface = false)
+		bool terrainSurface = false, bool faded = false)
 	{
 		MeshPipelineKey key;
 		// In the HDR scene pass the view's target draws into the scene colour (post-processing plan P1).
@@ -578,6 +582,7 @@ namespace Hydro
 		key.Wireframe = Renderer::GetSettings().Wireframe && Renderer::GetCapabilities().Wireframe && shadowCaster == false;
 		key.ShadowCaster = shadowCaster;
 		key.TerrainSurface = terrainSurface && shadowCaster == false;
+		key.Faded = faded && shadowCaster == false && key.TerrainSurface == false;
 
 		auto it = s_Data3D->Pipelines.find(key);
 		if (it != s_Data3D->Pipelines.end())
@@ -588,7 +593,8 @@ namespace Hydro
 		Scope<VulkanPipeline> pipeline;
 		try
 		{
-			const char* shaderName = shadowCaster ? MeshShadowCasterShaderName : (key.TerrainSurface ? TerrainSurfaceShaderName : MeshShaderName);
+			const char* shaderName = shadowCaster ? MeshShadowCasterShaderName
+				: (key.TerrainSurface ? TerrainSurfaceShaderName : (key.Faded ? MeshFadeShaderName : MeshShaderName));
 			VulkanShader* shader = VulkanShaderLibrary::Get(shaderName);
 			if (shader == nullptr)
 			{
@@ -600,6 +606,10 @@ namespace Hydro
 				{
 					// The mesh vertex shader as it is: the tops' UVs are their positions in the terrain's space.
 					shader = &VulkanShaderLibrary::Load(TerrainSurfaceShaderName, "assets/shaders/mesh.vert", "assets/shaders/terrain.frag");
+				}
+				else if (key.Faded)
+				{
+					shader = &VulkanShaderLibrary::Load(MeshFadeShaderName, "assets/shaders/mesh.vert", "assets/shaders/mesh_fade.frag");
 				}
 				else
 				{
@@ -650,7 +660,7 @@ namespace Hydro
 			return;
 		}
 
-		// By pipeline (pickable or not, Standard or terrain surface), then material, then front to back.
+		// By pipeline (pickable or not, faded or not, Standard or terrain surface), then material, then front to back.
 		std::sort(view.MeshDraws.begin(), view.MeshDraws.end(), [](const MeshDraw& a, const MeshDraw& b)
 		{
 			const bool aPickable = a.EntityID >= 0;
@@ -658,6 +668,12 @@ namespace Hydro
 			if (aPickable != bPickable)
 			{
 				return aPickable;
+			}
+			const bool aFaded = a.Opacity < 1.0f;
+			const bool bFaded = b.Opacity < 1.0f;
+			if (aFaded != bFaded)
+			{
+				return bFaded;
 			}
 			const bool aTerrain = a.TerrainSurface != nullptr;
 			const bool bTerrain = b.TerrainSurface != nullptr;
@@ -676,20 +692,21 @@ namespace Hydro
 			return a.SortDepth < b.SortDepth;
 		});
 
-		// [pickable][terrain surface], built when first needed.
+		// [pickable][terrain surface][faded], built when first needed.
 		const bool hasEntityID = view.Target->GetSpecification().EntityID;
-		VulkanPipeline* pipelines[2][2] = { { nullptr, nullptr }, { nullptr, nullptr } };
-		bool pipelinesFetched[2][2] = { { false, false }, { false, false } };
+		VulkanPipeline* pipelines[2][2][2] = {};
+		bool pipelinesFetched[2][2][2] = {};
 		const auto pipelineFor = [&](const MeshDraw& draw)
 		{
 			const int pickable = draw.EntityID >= 0 && hasEntityID ? 1 : 0;
 			const int terrain = draw.TerrainSurface != nullptr ? 1 : 0;
-			if (pipelinesFetched[pickable][terrain] == false)
+			const int faded = draw.Opacity < 1.0f && terrain == 0 ? 1 : 0;
+			if (pipelinesFetched[pickable][terrain][faded] == false)
 			{
-				pipelines[pickable][terrain] = GetPipeline(view, *view.Target, pickable == 1, false, terrain == 1);
-				pipelinesFetched[pickable][terrain] = true;
+				pipelines[pickable][terrain][faded] = GetPipeline(view, *view.Target, pickable == 1, false, terrain == 1, faded == 1);
+				pipelinesFetched[pickable][terrain][faded] = true;
 			}
-			return pipelines[pickable][terrain];
+			return pipelines[pickable][terrain][faded];
 		};
 
 		VkCommandBuffer commandBuffer = context.CommandBuffer;
@@ -822,7 +839,8 @@ namespace Hydro
 
 	void Renderer3D::OnShaderReloaded(const std::string& name)
 	{
-		if (s_Data3D != nullptr && (name == MeshShaderName || name == MeshShadowCasterShaderName || name == TerrainSurfaceShaderName))
+		if (s_Data3D != nullptr && (name == MeshShaderName || name == MeshShadowCasterShaderName || name == TerrainSurfaceShaderName
+			|| name == MeshFadeShaderName))
 		{
 			s_Data3D->Pipelines.clear();
 		}

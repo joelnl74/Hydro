@@ -51,6 +51,7 @@ namespace Hydro
 		Sprite = 0, // translucent quads: depth test (no write) when there is depth
 		Decal,      // ground decals: like Sprite, with a small depth bias towards the camera
 		Cutout,     // cut-out quads: depth test and write, alpha < 0.5 discarded, no blending
+		FadedCutout, // cut-out quads being faded: like Cutout, screen-door faded by the quad's alpha (sprite_fade.frag)
 		Overlay,    // overlay quads (editor outlines, HUD sprites): no depth test
 		Composite,  // the 2D light composite
 		DebugLines, // editor lines in the scene (M7): depth test, no depth write, never IDs
@@ -327,6 +328,9 @@ namespace Hydro
 	// Forward lit (M6): the same vertex shader, lit fragment shaders (lighting.glsl).
 	static constexpr const char* SpriteLitShaderName = "SpriteLit";
 	static constexpr const char* SpriteCutoutLitShaderName = "SpriteCutoutLit";
+	// Cut-out sprites being faded (a game effect, the camera's occluder fade), kept out of the main sprite shaders.
+	static constexpr const char* SpriteFadeShaderName = "SpriteFade";
+	static constexpr const char* SpriteFadeLitShaderName = "SpriteFadeLit";
 	// The SunShadows feature's pass (looked up by name to know whether a view draws a shadow map).
 	static constexpr const char* SunShadowPassName = "SunShadows";
 	// Sun shadow casters (R14): quads into the shadow map, alpha tested.
@@ -493,6 +497,7 @@ namespace Hydro
 		switch (kind)
 		{
 			case ViewPipelineKind::Cutout: return lit ? SpriteCutoutLitShaderName : SpriteCutoutShaderName;
+			case ViewPipelineKind::FadedCutout: return lit ? SpriteFadeLitShaderName : SpriteFadeShaderName;
 			case ViewPipelineKind::Composite: return CompositeShaderName;
 			case ViewPipelineKind::ShadowCaster: return SpriteShadowCasterShaderName;
 			case ViewPipelineKind::Tonemap: return TonemapShaderName;
@@ -538,6 +543,7 @@ namespace Hydro
 			case ViewPipelineKind::Decal:
 			case ViewPipelineKind::Overlay:
 			case ViewPipelineKind::Cutout:
+			case ViewPipelineKind::FadedCutout:
 			case ViewPipelineKind::DebugLines:
 				specification = s_Data->QuadPipeline->GetSpecification();
 				specification.Shader = VulkanShaderLibrary::Get(SpriteShaderName);
@@ -553,8 +559,15 @@ namespace Hydro
 					// Opaque where kept: the shader writes alpha 1, nothing to blend.
 					specification.Blend = BlendMode::None;
 				}
+				if (key.Kind == ViewPipelineKind::FadedCutout)
+				{
+					specification.Shader = key.Lit
+						? &GetOrLoadShader(SpriteFadeLitShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_fade_lit.frag")
+						: &GetOrLoadShader(SpriteFadeShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_fade.frag");
+					specification.Blend = BlendMode::None;
+				}
 				specification.DepthTest = hasDepth && key.Kind != ViewPipelineKind::Overlay;
-				specification.DepthWrite = hasDepth && key.Kind == ViewPipelineKind::Cutout;
+				specification.DepthWrite = hasDepth && (key.Kind == ViewPipelineKind::Cutout || key.Kind == ViewPipelineKind::FadedCutout);
 				if (hasDepth && key.Kind == ViewPipelineKind::Decal)
 				{
 					// In front of ground geometry at the same height (later meshes; the spike box's base), never
@@ -670,7 +683,8 @@ namespace Hydro
 		key.ColorFormats = target.GetPipelineColorFormats(colorTarget);
 		key.DepthFormat = target.GetPipelineDepthFormat();
 		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID;
-		key.Lit = lit && (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Cutout);
+		key.Lit = lit && (kind == ViewPipelineKind::Sprite || kind == ViewPipelineKind::Decal || kind == ViewPipelineKind::Cutout
+			|| kind == ViewPipelineKind::FadedCutout);
 
 		// The plain 2D layout: the pipelines built at Init, exactly as before render features existed.
 		if (key.ColorFormats.size() == 1 && key.ColorFormats[0] == ViewColorFormat && key.DepthFormat == ImageFormat::None && key.Lit == false)
@@ -1155,6 +1169,7 @@ namespace Hydro
 		view.Draws.clear();
 		view.DecalDraws.clear();
 		view.CutoutDraws.clear();
+		view.FadedCutoutDraws.clear();
 		view.OverlayDraws.clear();
 		view.InOverlay = false;
 		view.DebugDraws.clear();
@@ -1193,6 +1208,7 @@ namespace Hydro
 		{
 			case SpriteDrawMode::Decal: return view.DecalDraws;
 			case SpriteDrawMode::Cutout: return view.CutoutDraws;
+			case SpriteDrawMode::FadedCutout: return view.FadedCutoutDraws;
 			default: return view.Draws;
 		}
 	}
@@ -2768,6 +2784,10 @@ namespace Hydro
 		{
 			kind = ViewPipelineKind::Cutout;
 		}
+		else if (mode == SpriteDrawMode::FadedCutout)
+		{
+			kind = ViewPipelineKind::FadedCutout;
+		}
 		else if (mode == SpriteDrawMode::Decal)
 		{
 			kind = ViewPipelineKind::Decal;
@@ -3011,6 +3031,7 @@ namespace Hydro
 						[](RenderPassContext& context)
 						{
 							RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.CutoutDraws, SpriteDrawMode::Cutout, false);
+							RecordQuadDraws(context.CommandBuffer, context.View, context.Frame, context.View.FadedCutoutDraws, SpriteDrawMode::FadedCutout, false);
 						} });
 				}
 				std::vector<std::string> reads = { "SpriteTextures" };

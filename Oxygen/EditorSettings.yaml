@@ -97,6 +97,9 @@ EditorSettings:
     PanSpeed: 1
     ZoomSpeed: 1
     FlySpeed: 5
+  EditorView:
+    PostProcessing: false
+    Fog: false
   Gizmo:
     TranslateSnap: 0.5
     RotateSnap: 15
@@ -113,7 +116,7 @@ EditorSettings:
     IntervalMinutes: 5
   Session:
     LastProject: C:/Users/joeln/Hydro/Oxygen/project/Sandbox.hyproj
-    LastScene: C:/Users/joeln/Hydro/Oxygen/project/Assets/Scenes/JapaneseCitySlice.hyscene
+    LastScene: C:/Users/joeln/Hydro/Oxygen/project/Assets/Scenes/TempleDistrict.hyscene
     OpenWindows:
       Animation: false
       Console: true

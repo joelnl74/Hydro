@@ -7455,7 +7455,7 @@ Entities:
     TransformComponent:
       Translation: [0, 42, 3]
       Rotation: [0, 0, 0]
-      Scale: [3.21875, 4.5625, 1]
+      Scale: [3.71875, 3.59375, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1

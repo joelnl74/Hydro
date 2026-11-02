@@ -490,6 +490,15 @@ namespace Hydro
 		ImGui::TextDisabled("Controls: Alt+LMB orbit, MMB pan, Alt+RMB or the wheel to zoom.");
 		ImGui::TextDisabled("3D: hold RMB to fly (mouse look, WASD, Q/E down/up, Shift faster, wheel = speed).");
 
+		SectionHeading("Editor view");
+		if (BeginSettingsTable("##editorview"))
+		{
+			changed |= CheckboxRow("Post-processing", settings.EditorViewPostProcessing);
+			changed |= CheckboxRow("Fog", settings.EditorViewFog);
+			ImGui::EndTable();
+		}
+		ImGui::TextDisabled("The scene's depth of field and bloom, and its fog, in the Editor view (also Editor > Effects). Off keeps the view sharp; the Game view always shows them.");
+
 		SectionHeading("Transform gizmo");
 		if (BeginSettingsTable("##gizmo"))
 		{
@@ -505,6 +514,8 @@ namespace Hydro
 		{
 			camera = EditorCameraSettings();
 			settings.CameraStartsIn2D = true;
+			settings.EditorViewPostProcessing = false;
+			settings.EditorViewFog = false;
 			settings.Gizmo = GizmoSettings();
 			changed = true;
 		}

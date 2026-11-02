@@ -60,12 +60,18 @@ MATDEFS = {
     "JP_Straw_Woven": {},                                 # rice bales, sake barrels, mats (placeholder, Nov 2)
     "JP_Roof_Thatch": {},                                 # kayabuki farmhouse roofs (placeholder, Nov 2)
     "JP_Roof_ThatchEdge": {"file": "JP_Roof_Thatch.png"}, # the thick cut edge of the thatch, darkened by tint
+    # Nov 2 (morning): the city wall and gate bases take the stair cheek walls' stones (the large ones looked out of
+    # place); the temple district's green copper-patina tiles and vermilion lacquered wood (recoloured kit textures)
+    "JP_Stone_IshigakiSmall": {},
+    "JP_Roof_KawaraGreen": {}, "JP_Roof_KawaraGreenRoll": {}, "JP_Roof_KawaraGreenChannel": {},
+    "JP_Roof_RidgeTileGreen": {"fit": 2.24}, "JP_Wood_Vermilion": {},
 }
 GLOW = (1.0, 0.62, 0.28, 1.0)
 ROOF_MATS = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_Plank", "JP_Roof_KawaraChannel", "JP_Roof_Thatch",
-             "JP_Roof_ThatchEdge"}
+             "JP_Roof_ThatchEdge", "JP_Roof_KawaraGreen", "JP_Roof_KawaraGreenChannel"}
 # the round tile rolls on a kawara slope: their own texture (courses along the roll), UV'd along the roll's arc
-ROLL_MAT = {"JP_Roof_Kawara": "JP_Roof_KawaraRoll", "JP_Roof_KawaraOld": "JP_Roof_KawaraOldRoll"}
+ROLL_MAT = {"JP_Roof_Kawara": "JP_Roof_KawaraRoll", "JP_Roof_KawaraOld": "JP_Roof_KawaraOldRoll",
+            "JP_Roof_KawaraGreen": "JP_Roof_KawaraGreenRoll"}
 MAT, TEXSIZE, ROT, FIT = {}, {}, set(), {}
 if (TEX / "JP_Mat_Opening.png").exists() is False:
     img = bpy.data.images.new("JP_Mat_Opening", 4, 4, alpha=False)
@@ -306,12 +312,15 @@ rng = random.Random(1729)
 
 # ------------------------------------------------------------------ roof parts
 ROLL_SPACING, ROLL_W, ROLL_H = 0.32, 0.2, 0.09
-CHANNEL = {"JP_Roof_Kawara": "JP_Roof_KawaraChannel"}   # the slope under the rolls: the tiles two steps darker
+CHANNEL = {"JP_Roof_Kawara": "JP_Roof_KawaraChannel",   # the slope under the rolls: the tiles two steps darker
+           "JP_Roof_KawaraGreen": "JP_Roof_KawaraGreenChannel"}
+# the tile ends along an eave: the roof's own tile where it has its own colour, else the kawara (as before)
+ENDS = {"JP_Roof_KawaraGreen": "JP_Roof_KawaraGreen"}
 
 
 def chan(mat):
     return CHANNEL.get(mat, mat)
-ROLLED = {"JP_Roof_Kawara", "JP_Roof_KawaraOld"}
+ROLLED = {"JP_Roof_Kawara", "JP_Roof_KawaraOld", "JP_Roof_KawaraGreen"}
 
 
 def tile_rolls(mb, poly, mat):
@@ -434,7 +443,7 @@ def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_e
         mb.solid(bottom, top, chan(mat), bottom_mat=CEDAR if mat != "JP_Roof_Plank" else "JP_Wood_Weathered", side_mat=CEDAR)
         tile_rolls(mb, top, mat)
         if ends:
-            tile_ends(mb, (X1, ye), (X0, ye), ze, ze, (0, s))
+            tile_ends(mb, (X1, ye), (X0, ye), ze, ze, (0, s), mat=ENDS.get(mat, KAWARA))
     for gx in (x0, x1):
         # a thin closed wedge, not a lone triangle: a single face sharing the wall's top edge got its normal turned
         # inwards by the normals pass (the gable end showed from inside, Nov 1)
@@ -454,7 +463,7 @@ def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_e
                 mb.box(-0.05, 0, -0.22, 0.05, L, 0.0, barge, M=M)
     zr = ze + rise
     rx0, rx1 = X0 - (0.05 if free[0] else 0.0), X1 + (0.05 if free[1] else 0.0)
-    ridge = "JP_Roof_RidgeTile" if mat in ("JP_Roof_Kawara", "JP_Roof_KawaraOld") else mat
+    ridge = "JP_Roof_RidgeTile" if mat in ("JP_Roof_Kawara", "JP_Roof_KawaraOld") else ("JP_Roof_RidgeTileGreen" if mat == "JP_Roof_KawaraGreen" else mat)
     mb.box(rx0, ym - 0.2, zr - 0.05, rx1, ym + 0.2, zr + 0.3, ridge, top=mat)
     h = {"plain": 0.3, "cloud": 0.62, "none": 0.0}[ridge_end]
     if h > 0:
@@ -464,9 +473,11 @@ def roof_gable(mb, x0, x1, y0, y1, z, pitch, eave, mat, gable_over=None, ridge_e
     return zr
 
 
-def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_end="cloud", seg=6):
+def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_end="cloud", seg=6, hips=False, band=False):
     """Irimoya (hip-and-gable): eaves swept up toward the corners along a curve, tile rolls on every slope, tile ends
-    along every eave, a latticed gable and a heavy ridge with ridge-end tiles."""
+    along every eave, a latticed gable and a heavy ridge with ridge-end tiles. hips: tiled hip ridges down the four
+    corners and down the gable edges (the roof reads as built, not as one green mass, Nov 2); band: a white plaster
+    line along the ridge; ridge_end "shibi": copper fish-tail ornaments at the ridge's ends (a temple hall's)."""
     t = math.tan(math.radians(pitch))
     ym = (y0 + y1) / 2
     hd = (y1 - y0) / 2 + eave
@@ -488,7 +499,7 @@ def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_en
         a, b = lo[i], lo[(i + 1) % n]
         side = i // seg
         out = [(0, -1), (1, 0), (0, 1), (-1, 0)][side]
-        tile_ends(mb, a[:2], b[:2], a[2], b[2], out)
+        tile_ends(mb, a[:2], b[:2], a[2], b[2], out, mat=ENDS.get(mat, KAWARA))
     gx0, gx1 = X0 + inset, X1 - inset
     for s_ in (-1, 1):
         ye = Y0 + inset if s_ < 0 else Y1 - inset
@@ -502,9 +513,33 @@ def roof_hipgable(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.25, ridge_en
         mb.poly(list(reversed(tri)) if sgn < 0 else tri, "JP_Wood_Lattice")      # latticed gable (kitsune-goshi)
     mb.box(gx0 - 0.3, ym - 0.24, zr - 0.05, gx1 + 0.3, ym + 0.24, zr + 0.42, mat)
     mb.box(gx0 - 0.25, ym - 0.3, zr - 0.05, gx1 + 0.25, ym + 0.3, zr + 0.12, mat)          # stepped ridge base
-    h = {"plain": 0.32, "cloud": 0.8}[ridge_end]
-    for xe, o in ((gx0 - 0.3, -1), (gx1 + 0.3, 1)):
-        ridge_end_tile(mb, xe, ym, zr + 0.32, h, o, mat, length=0.55 if ridge_end == "plain" else 0.95, width=0.62)
+    ridge = "JP_Roof_RidgeTileGreen" if mat == "JP_Roof_KawaraGreen" else "JP_Roof_RidgeTile"
+    if band:
+        mb.box(gx0 - 0.31, ym - 0.255, zr + 0.14, gx1 + 0.31, ym + 0.255, zr + 0.2, "JP_Plaster_Clean")
+    if hips:
+        lo_c = [lo[k * seg] for k in range(4)]                 # the eave ring's corners (swept up) ...
+        hi_c = [hi[k * seg] for k in range(4)]                 # ... and the hips' upper ends
+        for a, b in zip(hi_c, lo_c):
+            ox, oy = (0.12 if b[0] > a[0] else -0.12), (0.12 if b[1] > a[1] else -0.12)
+            mb.tube((a[0], a[1], a[2] + 0.12), (b[0] - ox, b[1] - oy, b[2] + 0.14), 0.15, ridge, 4)
+            mb.box(b[0] - ox - 0.17, b[1] - oy - 0.17, b[2] + 0.02, b[0] - ox + 0.17, b[1] - oy + 0.17, b[2] + 0.38, mat)
+        for gx in (gx0 - 0.2, gx1 + 0.2):                     # down the gable edges
+            for ye in (Y0 + inset, Y1 - inset):
+                mb.tube((gx, ym, zr), (gx, ye, zg + 0.1), 0.13, ridge, 4)
+    if ridge_end == "shibi":
+        for xe, o in ((gx0 - 0.3, -1), (gx1 + 0.3, 1)):
+            # a slender fin rising from the ridge's end, its back upright, its inner edge sweeping in towards the top
+            for k in range(6):
+                zb = zr + 0.42 + k * 0.13
+                x_out = xe - o * (0.02 + 0.03 * k)
+                x_in = xe - o * (0.85 - 0.1 * k)
+                w2 = 0.2 - 0.018 * k
+                mb.box(min(x_out, x_in), ym - w2, zb, max(x_out, x_in), ym + w2, zb + 0.13, ridge)
+            mb.box(min(xe - o * 0.17, xe - o * 0.3), ym - 0.08, zr + 1.2, max(xe - o * 0.17, xe - o * 0.3), ym + 0.08, zr + 1.3, ridge)
+    else:
+        h = {"plain": 0.32, "cloud": 0.8}[ridge_end]
+        for xe, o in ((gx0 - 0.3, -1), (gx1 + 0.3, 1)):
+            ridge_end_tile(mb, xe, ym, zr + 0.32, h, o, mat, length=0.55 if ridge_end == "plain" else 0.95, width=0.62)
     return zr
 
 
@@ -541,7 +576,7 @@ def roof_hip(mb, x0, x1, y0, y1, z, pitch, eave, mat, upturn=0.0, ends=True, seg
         tile_rolls(mb, face, mat)
         if ends:
             for j in range(seg):
-                tile_ends(mb, pts[j][:2], pts[j + 1][:2], pts[j][2], pts[j + 1][2], outs[side])
+                tile_ends(mb, pts[j][:2], pts[j + 1][:2], pts[j][2], pts[j + 1][2], outs[side], mat=ENDS.get(mat, KAWARA))
     mb.box(min(ra.x, rb.x) - 0.15, min(ra.y, rb.y) - 0.2, zr - 0.05, max(ra.x, rb.x) + 0.15, max(ra.y, rb.y) + 0.2, zr + 0.3, mat)
     return zr
 
@@ -557,7 +592,7 @@ def pent_roof(mb, x0, x1, y_wall, z_top, proj, pitch, mat=KAWARA, sides=0.0, end
     tile_rolls(mb, top, mat)
     mb.box(a0, y_wall - proj - 0.02, ze - 0.2, a1, y_wall - proj + 0.1, ze - 0.06, CEDAR)       # fascia
     if ends:
-        tile_ends(mb, (a1, y_wall - proj), (a0, y_wall - proj), ze, ze, (0, -1))
+        tile_ends(mb, (a1, y_wall - proj), (a0, y_wall - proj), ze, ze, (0, -1), mat=ENDS.get(mat, KAWARA))
     for px in [a0 + 0.3 + i * 2.0 for i in range(int((a1 - a0) / 2.0) + 1)]:                   # rafter-end brackets
         if px < a1 - 0.2:
             mb.box(px - 0.06, y_wall - proj + 0.1, ze - 0.24, px + 0.06, y_wall, ze - 0.12, CEDAR)
@@ -1165,7 +1200,7 @@ def city_gate(name):
         bat = 0.9
         lo = [(a, 0, 0), (b, 0, 0), (b, bd, 0), (a, bd, 0)]
         hi = [(a, WALL_BAT_IN, ph), (b, WALL_BAT_IN, ph), (b, bd - bat, ph), (a, bd - bat, ph)]   # same profile as the walls
-        mb.solid(lo, hi, "JP_Stone_IshigakiLarge", bottom_mat=GRANITE, cap=False)
+        mb.solid(lo, hi, "JP_Stone_IshigakiSmall", bottom_mat=GRANITE, cap=False)
         mb.poly(hi, GRANITE)
     mb.box(-pw / 2 - 0.2, 0.6, ph - 0.1, pw / 2 + 0.2, bd - 0.6, ph + 0.35, CEDAR)
     for px in (-pw / 2, pw / 2 - 0.35):
@@ -1208,7 +1243,7 @@ def city_gate(name):
 
 def gate_wall(name, length=4.0):
     mb = MeshBuilder()
-    mb.box(-length / 2, 0, 0, length / 2, 1.6, 1.4, "JP_Stone_IshigakiLarge", top=GRANITE)
+    mb.box(-length / 2, 0, 0, length / 2, 1.6, 1.4, "JP_Stone_IshigakiSmall", top=GRANITE)
     mb.box(-length / 2, 0.3, 1.4, length / 2, 1.3, 3.6, "JP_Plaster_Aged", skip=('-z',))
     mb.box(-0.3, 0.27, 2.4, 0.3, 0.32, 2.9, "JP_Mat_Opening")
     for k in range(3):
@@ -1267,27 +1302,27 @@ def floor_tile(name, w, d, mat):
 
 
 # ------------------------------------------------------------------ city pieces (Nov 1 pass 2: for the city scene)
-def pagoda(name, tiers=3):
+def pagoda(name, tiers=3, roof=KAWARA, wood=CEDAR, shrink=1.1):
     """A three-tier pagoda as the rich district's skyline landmark: swept hip roofs with tile rolls, cedar storeys
-    with lattice panels, a bronze-ringed finial (sorin)."""
+    with lattice panels, a bronze-ringed finial (sorin). The temple's (Nov 2): five tiers, green tiles, vermilion posts."""
     mb = MeshBuilder()
     m_plinth(mb, -4.0, 4.0, -4.0, 4.0, 0.7)
     mb.box(-1.4, -4.9, 0, 1.4, -4.0, 0.35, GRANITE)                                   # step
     z = 0.7
     s0 = 5.2
     for i in range(tiers):
-        s_ = s0 - 1.1 * i
+        s_ = s0 - shrink * i
         h = 3.0 if i == 0 else 2.3
         mb.box(-s_ / 2, -s_ / 2, z, s_ / 2, s_ / 2, z + h, PLASTER if i == 0 else CEDAR, skip=('-z',))
         for (px, py) in ((-s_ / 2, -s_ / 2), (s_ / 2, -s_ / 2), (s_ / 2, s_ / 2), (-s_ / 2, s_ / 2)):
-            m_post(mb, px, py, z, z + h, 0.26)
+            m_post(mb, px, py, z, z + h, 0.26, wood)
         mb.box(-s_ / 2 + 0.5, -s_ / 2 - 0.03, z + 0.3, s_ / 2 - 0.5, -s_ / 2 + 0.05, z + h - 0.4, "JP_Wood_Lattice")
         if i > 0:                                                                     # a little balcony rail per tier
             mb.box(-s_ / 2 - 0.35, -s_ / 2 - 0.35, z, s_ / 2 + 0.35, s_ / 2 + 0.35, z + 0.12, CEDAR)
             mb.box(-s_ / 2 - 0.35, -s_ / 2 - 0.37, z + 0.12, s_ / 2 + 0.35, -s_ / 2 - 0.31, z + 0.7, "JP_Wood_Lattice")
         top = z + h
         eave = 1.35 - 0.12 * i
-        zr = roof_hip(mb, -s_ / 2, s_ / 2, -s_ / 2, s_ / 2, top, 28.0, eave, KAWARA, upturn=0.55)
+        zr = roof_hip(mb, -s_ / 2, s_ / 2, -s_ / 2, s_ / 2, top, 28.0, eave, roof, upturn=0.55)
         z = top + 0.9 if i < tiers - 1 else zr
     mb.tube((0, 0, z - 0.2), (0, 0, z + 3.4), 0.09, "JP_Mat_Iron", 8)
     for k in range(7):
@@ -1311,7 +1346,7 @@ def city_wall(name, length=8.0, h=4.5, d=7.0):
     yo = d - bat                                                   # the outer edge of the walk
     bi = WALL_BAT_IN                                               # the city-side face leans back too (Nov 1)
     top_ = [(x0, bi, h), (x1, bi, h), (x1, yo, h), (x0, yo, h)]
-    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, d, 0), (x0, d, 0)], top_, "JP_Stone_IshigakiLarge", bottom_mat=GRANITE, cap=False)
+    mb.solid([(x0, 0, 0), (x1, 0, 0), (x1, d, 0), (x0, d, 0)], top_, "JP_Stone_IshigakiSmall", bottom_mat=GRANITE, cap=False)
     mb.poly(top_, GRANITE)
     mb.box(x0, bi - 0.06, h - 0.12, x1, yo, h, GRANITE, skip=('-z',))                   # coping along the walk
     py0, py1 = yo - 0.45, yo
@@ -1512,6 +1547,304 @@ add("A", storehouse("JP_Rich_Storehouse_A"))
 add("A", pagoda("JP_Rich_Pagoda_A"))
 add("A", city_wall("JP_Rich_CityWall_8m_A"))
 add("A", moon_gate_wall("JP_Rich_MoonGateWall_6m_A"))
+
+
+# ------------------------------------------------------------------ temple district (Nov 2): gate, hall, fence, pagoda
+VERMILION, GREEN_TILE = "JP_Wood_Vermilion", "JP_Roof_KawaraGreen"
+
+
+def temple_gate(name):
+    """Temple gate (a single-storey yakuimon / romon): four vermilion pillars on stone bases, tie beams and a bracket
+    band, an open 3.6 m passage with the two leaves swung back against the sides, a gable roof in green
+    copper-patina tiles. Origin: the passage's front centre at the ground; the front faces -Y."""
+    mb = MeshBuilder()
+    px, d, ph = 2.0, 2.4, 3.7                   # pillar centres at x = +-px, y = 0.4 and d - 0.4; beams at ph
+    ys = (0.4, d - 0.4)
+    for sx in (-1, 1):
+        for py in ys:
+            x = sx * px
+            mb.box(x - 0.34, py - 0.34, 0, x + 0.34, py + 0.34, 0.28, GRANITE)                    # stone base
+            m_post(mb, x, py, 0.28, ph + 0.55, 0.36, VERMILION)
+        mb.box(sx * px - 0.16, ys[0], 2.85, sx * px + 0.16, ys[1], 3.05, VERMILION)            # side tie beam
+        # the leaf, swung back against the side (studded cedar boards in a vermilion frame)
+        lx = sx * (px - 0.3)
+        mb.box(lx - 0.05, ys[0] + 0.25, 0.08, lx + 0.05, ys[1] - 0.15, 2.75, CEDAR)
+        mb.box(lx - 0.07, ys[0] + 0.25, 2.55, lx + 0.07, ys[1] - 0.15, 2.75, VERMILION)
+    for py in ys:
+        mb.box(-px - 0.25, py - 0.14, 2.85, px + 0.25, py + 0.14, 3.05, VERMILION)              # nuki
+        mb.box(-px - 0.45, py - 0.2, ph + 0.25, px + 0.45, py + 0.2, ph + 0.55, VERMILION)        # head beam
+    mb.box(-px - 0.25, ys[0] - 0.05, ph - 0.2, px + 0.25, ys[1] + 0.05, ph + 0.25, VERMILION)    # frieze
+    for k in range(9):                                                                          # bracket band
+        bx = -px - 0.35 + k * (2 * px + 0.7) / 8
+        for py in ys:
+            mb.box(bx - 0.13, py - 0.24, ph + 0.55, bx + 0.13, py + 0.24, ph + 0.82, CEDAR)
+    # the eave beam stays inside the roof's wall line (y0 .. y1 below): 15 cm past it, it stood above the sloping
+    # roof and showed as a strip of wood across the tiles (Nov 2)
+    mb.box(-px - 0.6, ys[0] - 0.18, ph + 0.82, px + 0.6, ys[1] + 0.18, ph + 0.93, CEDAR)
+    mb.box(-px + 0.2, ys[0], 0, px - 0.2, ys[1], 0.08, GRANITE)                                 # threshold paving
+    # a plain gable (kirizuma), ridge across the passage: an irimoya this small grew two tall gables like ears
+    zr = roof_gable(mb, -px - 0.5, px + 0.5, ys[0] - 0.2, ys[1] + 0.2, ph + 0.95, 42.0, 1.15, GREEN_TILE, gable_over=0.7,
+                    ridge_end="none", gable_mat=CEDAR)       # no ridge-end tiles: they stood up like ears
+    ob = finish(mb, name, 2 * px + 3.0, d, zr + 0.8, "A", dict(passage="3.6 x 2.8 m", beam_z=ph), col=False)
+    for sx in (-1, 1):
+        for py in ys:
+            col_box(ob, sx * px - 0.34, py - 0.34, 0, sx * px + 0.34, py + 0.34, ph, suffix="_%d%d" % (sx + 1, int(py * 10)))
+    return ob
+
+
+def temple_hall(name, w=13.0, d=10.0):
+    """Main hall (hondo) on a stone podium: a vermilion post-and-beam front of five bays with glowing lattice doors under
+    white plaster panels, a veranda with a low vermilion rail, front steps under a step canopy, a bracket band and a
+    big green-tiled irimoya roof. Origin: the podium's front centre at the ground; the front faces -Y."""
+    mb = MeshBuilder()
+    pz = 0.9                                                      # podium (kidan) top / the veranda floor
+    hw = w / 2
+    mb.box(-hw - 0.6, -0.6, 0, hw + 0.6, d + 0.6, pz, "JP_Stone_Foundation", top=GRANITE)
+    for k in range(4):                                            # front steps up to the veranda
+        mb.box(-2.0, -2.4 + k * 0.45, 0, 2.0, -0.6, (k + 1) * pz / 4, GRANITE)
+    mb.box(-hw - 0.2, -0.2, pz, hw + 0.2, d + 0.2, pz + 0.12, "JP_Wood_PlankCounter")         # veranda deck
+    wy = 1.3                                                      # the front wall line (veranda 1.3 m deep)
+    ez = 5.2                                                      # the eave beam
+    bays = [(-hw + 1.0) + i * (w - 2.0) / 5 for i in range(6)]
+    fz = pz + 0.12
+    # walls: plaster body, lattice doors across the front bays (the middle one open, dark, for the curtain)
+    mb.box(-hw + 1.0, wy, fz, hw - 1.0, d - 0.6, ez, "JP_Plaster_Clean", skip=('-z',))
+    for i in range(5):
+        a, b = bays[i] + 0.2, bays[i + 1] - 0.2
+        if i == 2:
+            mb.box(a, wy - 0.03, fz, b, wy + 0.01, fz + 2.6, "JP_Mat_Opening")
+        else:
+            mb.box(a, wy - 0.05, fz, b, wy + 0.01, fz + 2.6, "JP_Wood_Lattice")
+        mb.box(a - 0.2, wy - 0.08, fz + 2.6, b + 0.2, wy + 0.01, fz + 2.8, VERMILION)          # nageshi over the doors
+    for x in bays:                                                # posts on the wall line and the veranda edge
+        m_post(mb, x, wy - 0.12, fz, ez, 0.34, VERMILION)
+        # (the veranda posts under the step canopy stop beneath it; they used to stand up through its roof)
+        m_post(mb, x, -0.05, fz, 4.55 if abs(x) < 2.7 else ez, 0.32, VERMILION)
+    for x in (-hw + 1.0, hw - 1.0):                               # side wall posts
+        for y in (d * 0.45, d - 0.75):
+            m_post(mb, x, y, fz, ez, 0.34, VERMILION)
+    mb.box(-hw + 0.7, -0.25, ez - 0.35, hw - 0.7, wy, ez, VERMILION)                          # head beam over the veranda
+    mb.box(-hw + 0.8, -0.2, fz + 2.6, hw - 0.8, 0.12, fz + 2.8, VERMILION)                    # tie beam at the posts
+    # the bracket band (Nov 2): white plaster between the brackets, a three-block bracket (mitsudo) on each veranda
+    # post and a frog-leg strut (kaerumata) between them; all of it stays behind y -0.36, under the roof's slope
+    mb.box(-hw + 0.8, -0.02, ez, hw - 0.8, 0.04, ez + 0.32, "JP_Plaster_Clean")
+    for x in bays:
+        mb.box(x - 0.22, -0.27, ez, x + 0.22, 0.17, ez + 0.12, CEDAR)                        # bearing block
+        mb.box(x - 0.6, -0.17, ez + 0.12, x + 0.6, 0.07, ez + 0.22, VERMILION)               # bracket arm
+        for bx in (x - 0.45, x, x + 0.45):
+            mb.box(bx - 0.1, -0.2, ez + 0.22, bx + 0.1, 0.1, ez + 0.32, CEDAR)              # small blocks
+        mb.box(x - 0.1, -0.34, ez + 0.12, x + 0.1, wy, ez + 0.22, VERMILION)                # the arm through to the wall
+    for i in range(5):
+        cx = (bays[i] + bays[i + 1]) / 2
+        mb.box(cx - 0.42, -0.12, ez, cx + 0.42, 0.0, ez + 0.06, VERMILION)
+        for sx in (-1, 1):
+            mb.box(cx + sx * 0.3 - 0.07, -0.12, ez + 0.06, cx + sx * 0.3 + 0.07, 0.0, ez + 0.2, VERMILION)
+        mb.box(cx - 0.12, -0.16, ez + 0.18, cx + 0.12, 0.04, ez + 0.32, CEDAR)
+    # the eave beam inside the roof's wall line (y -0.4): at -0.45 it stood 4 cm above the slope (the gate's bug)
+    mb.box(-hw - 0.2, -0.38, ez + 0.32, hw + 0.2, d - 0.3, ez + 0.5, CEDAR)
+    for s_ in (-1, 1):                                            # the veranda rail, open at the steps
+        a, b = sorted((s_ * 2.1, s_ * (hw + 0.1)))
+        mb.box(a, -0.18, fz + 0.62, b, -0.06, fz + 0.72, VERMILION)
+        mb.box(a, -0.16, fz + 0.18, b, -0.08, fz + 0.26, VERMILION)
+        for x in [a + j * 0.9 for j in range(int((b - a) / 0.9) + 1)]:
+            mb.box(x - 0.05, -0.17, fz, x + 0.05, -0.07, fz + 0.72, VERMILION)
+    # the step canopy (kohai) over the stairs, on two vermilion posts
+    for x in (-1.9, 1.9):
+        mb.box(x - 0.3, -2.75, 0, x + 0.3, -2.15, 0.22, GRANITE)
+        m_post(mb, x, -2.45, 0.22, 3.98, 0.26, VERMILION)
+    mb.box(-2.1, -2.6, 3.76, 2.1, -0.1, 3.98, VERMILION)
+    # the canopy hangs from the head beam's front face (tucked under it, so no beam shows above its tiles)
+    pent_roof(mb, -2.3, 2.3, -0.27, 4.88, 2.75, 18.0, mat=GREEN_TILE, sides=0.15)
+    # steep (Nov 2: at 30 degrees the big roof read as a flat block from the field camera); hip ridges and a white
+    # ridge band so it reads as a temple hall's roof. (Shibi were tried: built from stacked boxes they read as stepped
+    # spikes, the "ears" the gate lost; plain ridge ends until a modelled or sprite ornament exists.)
+    zr = roof_hipgable(mb, -hw, hw, -0.4, d - 0.4, ez + 0.5, 40.0, 1.9, GREEN_TILE, upturn=0.65, ridge_end="plain",
+                       hips=True, band=True)
+    # rafter ends with white tips under the front eave (they show below the eave's edge from the field camera)
+    t40 = math.tan(math.radians(40.0))
+    X0, X1, Y0 = -hw - 1.9, hw + 1.9, -0.4 - 1.9
+    ze = ez + 0.5 - 1.9 * t40
+
+    def eave_z(x):
+        f = (x - X0) / (X1 - X0) * 6
+        j = min(5, int(f))
+        za, zb = (ze + 0.65 * abs(2 * (k / 6) - 1) ** 2.4 for k in (j, j + 1))
+        return za + (zb - za) * (f - j)
+    x = X0 + 0.6
+    while x < X1 - 0.5:
+        zt = eave_z(x) - SLAB
+        mb.tube((x, Y0 + 0.1, zt - 0.065), (x, Y0 + 1.3, zt - 0.065 + 1.2 * t40), 0.07, CEDAR, 4)   # along the slope
+        mb.box(x - 0.06, Y0 + 0.06, zt - 0.13, x + 0.06, Y0 + 0.1, zt, "JP_Plaster_Clean")
+        x += 0.4
+    # in front of the open middle bay: the offering box (saisen-bako) and the bell rope (suzu) over it
+    mb.box(-0.72, 0.2, fz, 0.72, 0.78, fz + 0.48, "JP_Wood_WarmAged")
+    mb.box(-0.76, 0.16, fz + 0.48, 0.76, 0.82, fz + 0.53, CEDAR)
+    for k in range(7):
+        mb.box(-0.64 + k * 0.2, 0.24, fz + 0.53, -0.56 + k * 0.2, 0.74, fz + 0.58, "JP_Wood_WarmAged")
+    mb.revolve([(0.0, 0.0), (0.13, 0.04), (0.17, 0.16), (0.13, 0.28), (0.0, 0.32)], "JP_Mat_Bronze", 10, T(0, 0.5, ez - 0.95))
+    mb.tube((0, 0.5, ez - 0.35), (0, 0.5, ez - 0.63), 0.03, "JP_Mat_Iron", 6)
+    mb.tube((0, 0.5, ez - 0.95), (0, 0.5, fz + 0.75), 0.045, "JP_Cloth_Red", 6)
+    # two hanging bronze lanterns (tsuri-doro) between the veranda posts
+    for x in (-4.4, 4.4):
+        mb.tube((x, -0.05, ez - 0.35), (x, -0.05, ez - 1.35), 0.02, "JP_Mat_Iron", 4)
+        mb.revolve([(0.14, 0.0), (0.2, 0.06), (0.2, 0.1)], "JP_Mat_Bronze", 6, T(x, -0.05, ez - 2.0), cap_bottom="JP_Mat_Bronze")
+        mb.revolve([(0.15, 0.1), (0.15, 0.48)], "JP_Shoji_Paper", 6, T(x, -0.05, ez - 2.0))
+        mb.revolve([(0.15, 0.48), (0.27, 0.54), (0.06, 0.66), (0.0, 0.68)], "JP_Mat_Bronze", 6, T(x, -0.05, ez - 2.0),
+                   cap_bottom="JP_Mat_Bronze")
+    ob = finish(mb, name, w + 1.2, d + 0.6, zr + 0.9, "A", dict(floor_z=pz, door_z=fz, eave_z=ez, wall_y=wy,
+                                                              door_x=0.0, head_z=fz + 2.6), floors=(pz,), col=False)
+    col_box(ob, -hw - 0.6, -0.6, 0, hw + 0.6, d + 0.6, 4.0)
+    col_box(ob, -2.0, -2.4, 0, 2.0, -0.6, pz, suffix="_Steps")
+    return ob
+
+
+def bell_tower(name):
+    """Bell tower (shoro): four vermilion posts on a stone podium, tie beams and a bracket band, the bronze bell hanging
+    from a cross beam with the striking log (shumoku) on two ropes beside it, a green-tiled irimoya roof. Origin: the
+    podium's front centre at the ground; the front faces -Y."""
+    mb = MeshBuilder()
+    pz, hw, d = 0.7, 2.3, 4.6                                     # podium top, half width, depth
+    mb.box(-hw, 0, 0, hw, d, pz, "JP_Stone_Foundation", top=GRANITE)
+    for k in range(2):                                            # two steps up at the front
+        mb.box(-1.0, -0.8 + k * 0.4, 0, 1.0, 0.0, (k + 1) * pz / 2, GRANITE)
+    px, ys, ph = 1.6, (0.7, 3.9), 4.8                             # posts at x +-px, y ys; the head beam's top at ph
+    for sx in (-1, 1):
+        for py in ys:
+            mb.box(sx * px - 0.3, py - 0.3, pz, sx * px + 0.3, py + 0.3, pz + 0.2, GRANITE)       # post base
+            m_post(mb, sx * px, py, pz + 0.2, ph, 0.3, VERMILION)
+        mb.box(sx * px - 0.13, ys[0], 1.2, sx * px + 0.13, ys[1], 1.4, VERMILION)                # side nuki
+        mb.box(sx * px - 0.16, ys[0] - 0.25, ph - 0.25, sx * px + 0.16, ys[1] + 0.25, ph, VERMILION)   # side head beam
+    for py in ys:
+        mb.box(-px - 0.25, py - 0.13, 1.2, px + 0.25, py + 0.13, 1.4, VERMILION)                 # front / back nuki
+        mb.box(-px - 0.3, py - 0.16, ph - 0.25, px + 0.3, py + 0.16, ph, VERMILION)              # head beam
+    for k in range(7):                                                                           # bracket band
+        bx = -px - 0.1 + k * (2 * px + 0.2) / 6
+        for py in ys:
+            mb.box(bx - 0.12, py - 0.2, ph, bx + 0.12, py + 0.2, ph + 0.24, CEDAR)
+    ym = (ys[0] + ys[1]) / 2
+    mb.box(-px, ym - 0.12, ph - 0.25, px, ym + 0.12, ph, CEDAR)                                  # the bell beam
+    mb.tube((0, ym, ph - 0.25), (0, ym, ph - 0.5), 0.05, "JP_Mat_Iron", 6)                       # hook
+    bell = [(0.5, 0.0), (0.57, 0.06), (0.5, 0.2), (0.45, 0.85), (0.38, 1.05), (0.2, 1.15), (0.0, 1.17)]
+    mb.revolve(bell, "JP_Mat_Bronze", 12, T(0, ym, ph - 0.5 - 1.17), cap_bottom="JP_Mat_Bronze")
+    for k in range(4):                                                                           # bands on the bell
+        z = ph - 0.5 - 1.17 + 0.3 + k * 0.2
+        mb.revolve([(0.47 - k * 0.012, z), (0.47 - k * 0.012, z + 0.04)], "JP_Mat_Bronze", 12, cap_top="JP_Mat_Bronze")
+    for rx in (0.9, 1.35):                                                                       # the striking log's ropes
+        mb.tube((rx, ym, ph - 0.25), (rx, ym, ph - 1.25), 0.025, "JP_Mat_Rope", 4)
+    mb.tube((0.62, ym, ph - 1.3), (1.55, ym, ph - 1.3), 0.11, CEDAR, 8)
+    # the eave beam inside the wall line, so nothing stands through the roof (the gate's fix, Nov 2)
+    mb.box(-px - 0.15, ys[0] - 0.15, ph + 0.24, px + 0.15, ys[1] + 0.15, ph + 0.34, CEDAR)
+    zr = roof_hipgable(mb, -px - 0.15, px + 0.15, ys[0] - 0.15, ys[1] + 0.15, ph + 0.34, 38.0, 1.25, GREEN_TILE, upturn=0.5,
+                       ridge_end="plain")
+    ob = finish(mb, name, 2 * hw, d, zr + 0.5, "A", dict(bell_z=ph - 1.1, floor_z=pz), col=False)
+    col_box(ob, -hw, 0, 0, hw, d, 1.6)
+    return ob
+
+
+def temizuya(name):
+    """Temizuya: the hand-washing pavilion. Four cedar posts on stone bases under a small green-tiled gable roof, a long
+    granite basin full of water fed by a bamboo spout, bamboo ladles laid across a rest on its rim (Nov 2). Origin: the
+    front centre at the ground; the front faces -Y (worshippers stand in front of it)."""
+    mb = MeshBuilder()
+    w, d, ph = 2.8, 2.0, 2.35
+    mb.box(-w / 2 - 0.2, -0.2, 0, w / 2 + 0.2, d + 0.2, 0.08, GRANITE)                     # paving pad
+    for sx in (-1, 1):
+        for py in (0.25, d - 0.25):
+            x = sx * (w / 2 - 0.15)
+            mb.box(x - 0.2, py - 0.2, 0.08, x + 0.2, py + 0.2, 0.3, GRANITE)
+            m_post(mb, x, py, 0.3, ph, 0.2, CEDAR)
+        mb.box(sx * (w / 2 - 0.15) - 0.08, 0.1, ph - 0.2, sx * (w / 2 - 0.15) + 0.08, d - 0.1, ph, CEDAR)   # side beams
+    for py in (0.25, d - 0.25):
+        mb.box(-w / 2 - 0.1, py - 0.09, ph - 0.2, w / 2 + 0.1, py + 0.09, ph, CEDAR)                      # front / back
+    # the basin: a long granite trough on a low plinth, water a little below its rim
+    mb.box(-0.95, 0.55, 0.08, 0.95, 1.45, 0.3, GRANITE)
+    bx0, bx1, by0, by1, bz = -0.85, 0.85, 0.62, 1.38, 0.82
+    mb.box(bx0, by0, 0.3, bx1, by0 + 0.1, bz, "JP_Stone_Granite")
+    mb.box(bx0, by1 - 0.1, 0.3, bx1, by1, bz, "JP_Stone_Granite")
+    mb.box(bx0, by0 + 0.1, 0.3, bx0 + 0.1, by1 - 0.1, bz, "JP_Stone_Granite")
+    mb.box(bx1 - 0.1, by0 + 0.1, 0.3, bx1, by1 - 0.1, bz, "JP_Stone_Granite")
+    mb.box(bx0 + 0.1, by0 + 0.1, 0.3, bx1 - 0.1, by1 - 0.1, bz - 0.07, "JP_Mat_Glass")                 # the water
+    # the bamboo spout from the back, and the ladle rest along the front rim with three ladles
+    mb.tube((0.55, d - 0.1, 1.25), (0.35, by1 - 0.25, 0.98), 0.045, "JP_Wood_Bamboo", 6)
+    mb.tube((0.6, d - 0.1, 0.3), (0.6, d - 0.1, 1.28), 0.06, "JP_Wood_Bamboo", 6)
+    mb.box(bx0 + 0.1, by0 - 0.06, bz - 0.02, bx1 - 0.1, by0 + 0.02, bz + 0.03, "JP_Wood_Bamboo")
+    for k, lx in enumerate((-0.45, 0.0, 0.45)):
+        mb.tube((lx, by0 - 0.04, bz + 0.04), (lx + 0.08, by0 + 0.42, bz + 0.07), 0.018, "JP_Wood_Bamboo", 4)  # handle
+        mb.revolve([(0.0, 0.0), (0.06, 0.01), (0.065, 0.09)], "JP_Wood_Bamboo", 8, T(lx + 0.09, by0 + 0.48, bz + 0.03),
+                   cap_top="JP_Wood_Bamboo")
+    zr = roof_gable(mb, -w / 2, w / 2, 0.1, d - 0.1, ph, 35.0, 0.55, GREEN_TILE, gable_over=0.4, ridge_end="none",
+                    gable_mat=CEDAR)
+    ob = finish(mb, name, w + 0.8, d + 1.1, zr + 0.4, "A", dict(basin_z=bz, basin_y=(by0 + by1) / 2), col=False)
+    col_box(ob, bx0 - 0.1, 0.55, 0, bx1 + 0.1, 1.45, 0.9)
+    for sx in (-1, 1):
+        for py in (0.25, d - 0.25):
+            col_box(ob, sx * (w / 2 - 0.15) - 0.2, py - 0.2, 0, sx * (w / 2 - 0.15) + 0.2, py + 0.2, ph,
+                    suffix="_%d%d" % (sx + 1, int(py * 10)))
+    return ob
+
+
+def omikuji_rack(name, length=2.6):
+    """Omikuji-kake: where bad fortunes are tied. Two cedar posts with a small plank cap, three iron wires between
+    them thick with knotted white paper slips, and a slotted offering box on a stand beside it (Nov 2). Origin: its
+    middle at the ground; it runs along X, its front faces -Y."""
+    mb = MeshBuilder()
+    a, b, h = -length / 2, length / 2, 1.7
+    rnd = random.Random(7)
+    for x in (a, b):
+        mb.box(x - 0.17, -0.17, 0, x + 0.17, 0.17, 0.16, GRANITE)
+        m_post(mb, x, 0.0, 0.16, h, 0.14, CEDAR)
+    mb.box(a - 0.25, -0.16, h, b + 0.25, 0.16, h + 0.07, CEDAR)                                      # cap board
+    mb.box(a - 0.3, -0.2, h + 0.07, b + 0.3, 0.2, h + 0.12, "JP_Roof_Plank")
+    for z in (0.75, 1.05, 1.35):
+        mb.box(a, -0.012, z - 0.012, b, 0.012, z + 0.012, "JP_Mat_Iron")                            # wire
+        x = a + 0.12
+        while x < b - 0.1:                                                                           # knotted slips
+            if rnd.random() < 0.82:
+                hgt = rnd.uniform(0.07, 0.12)
+                mb.box(x - 0.022, -0.03, z - hgt * 0.6, x + 0.022, 0.03, z + hgt * 0.4, "JP_Plaster_Clean")
+                mb.box(x - 0.045, -0.034, z - 0.02, x + 0.045, 0.034, z + 0.02, "JP_Plaster_Clean")       # the knot
+            x += rnd.uniform(0.06, 0.11)
+    # the offering box on its stand, to the rack's right
+    ox = b + 0.75
+    mb.box(ox - 0.22, -0.2, 0, ox + 0.22, 0.2, 0.6, CEDAR)
+    mb.box(ox - 0.32, -0.26, 0.6, ox + 0.32, 0.26, 0.95, "JP_Wood_WarmAged")
+    for k in range(5):
+        mb.box(ox - 0.27 + k * 0.12, -0.22, 0.95, ox - 0.21 + k * 0.12, 0.22, 0.99, CEDAR)
+    ob = mb.to_object(name, COL["00_Modules"])
+    col_box(ob, a - 0.2, -0.2, 0, b + 0.2, 0.2, h)
+    col_box(ob, ox - 0.32, -0.26, 0, ox + 0.32, 0.26, 0.95, suffix="_Box")
+    MODULES[name] = ob
+    return ob
+
+
+def temple_fence(name, length=4.0):
+    """Vermilion temple fence (tamagaki): posts every 2 m with caps, a top and a bottom rail and close slats between.
+    Origin: its middle; it runs along X."""
+    mb = MeshBuilder()
+    h = 1.15
+    a, b = -length / 2, length / 2
+    for k in range(int(length / 2.0) + 1):
+        x = a + k * 2.0
+        mb.box(x - 0.08, -0.08, 0, x + 0.08, 0.08, h + 0.12, VERMILION)
+        mb.box(x - 0.11, -0.11, h + 0.12, x + 0.11, 0.11, h + 0.2, CEDAR)
+    mb.box(a, -0.06, h - 0.1, b, 0.06, h + 0.02, VERMILION)
+    mb.box(a, -0.05, 0.12, b, 0.05, 0.22, VERMILION)
+    for k in range(int(length / 0.25)):
+        x = a + 0.125 + k * 0.25
+        mb.box(x - 0.03, -0.025, 0.22, x + 0.03, 0.025, h - 0.1, VERMILION)
+    ob = mb.to_object(name, COL["00_Modules"])
+    col_box(ob, a, -0.12, 0, b, 0.12, h)
+    MODULES[name] = ob
+    return ob
+
+
+add("A", temple_gate("JP_Temple_Gate_A"))
+add("A", temple_hall("JP_Temple_Hall_A"))
+add("A", pagoda("JP_Temple_Pagoda_A", tiers=5, roof=GREEN_TILE, wood=VERMILION, shrink=0.7))
+add("A", bell_tower("JP_Temple_BellTower_A"))
+add("A", temizuya("JP_Temple_Temizuya_A"))
+temple_fence("JP_Fence_Vermilion_4m")
+omikuji_rack("JP_Temple_OmikujiRack_A")
 add("B", machiya("JP_Mid_Townhouse_A", "B", 3, 9.0, upper="bay", door_bay=1, feature_bay=2, udatsu=True))
 add("B", machiya("JP_Mid_Townhouse_B", "B", 4, 10.0, upper="balcony", door_bay=2))
 add("B", machiya("JP_Mid_Townhouse_C", "B", 3, 8.0, upper="loft", door_bay=0, udatsu=True))
@@ -1655,6 +1988,32 @@ PROPS = {}
 exec(compile((SCRIPTS / "jp_props.py").read_text(encoding="utf-8"), "jp_props.py", "exec"), globals())
 market_stall("JP_Prop_MarketStall_A", "JP_Cloth_Red")
 market_stall("JP_Prop_MarketStall_B", "JP_Cloth_Indigo")
+
+
+def p_incense_burner():
+    """Jokoro: the temple's bronze incense burner on a granite plinth, a deep bowl on three legs and a small six-sided
+    roof on posts over it (in front of the main hall, Nov 2). Origin: its foot, centred."""
+    mb = MeshBuilder()
+    mb.revolve([(0.6, 0.0), (0.6, 0.22), (0.52, 0.3)], GRANITE, 6, cap_bottom=GRANITE, cap_top=GRANITE)
+    for i in range(3):
+        a = 2 * math.pi * i / 3 + math.pi / 2
+        mb.tube((0.36 * math.cos(a), 0.36 * math.sin(a), 0.3), (0.3 * math.cos(a), 0.3 * math.sin(a), 0.68), 0.05,
+                "JP_Mat_Bronze", 6)
+    mb.revolve([(0.22, 0.6), (0.42, 0.66), (0.5, 0.84), (0.48, 0.98), (0.53, 1.02)], "JP_Mat_Bronze", 10,
+               cap_bottom="JP_Mat_Bronze")
+    mb.revolve([(0.45, 0.96), (0.45, 0.97)], "JP_Stone_Rough", 10, cap_top="JP_Stone_Rough")      # the ash
+    for sx in (-1, 1):
+        mb.box(sx * 0.5 - 0.05, -0.04, 0.86, sx * 0.62, 0.04, 1.0, "JP_Mat_Bronze")              # handles
+    for i in range(4):
+        a = 2 * math.pi * i / 4 + math.pi / 4
+        mb.tube((0.42 * math.cos(a), 0.42 * math.sin(a), 1.0), (0.42 * math.cos(a), 0.42 * math.sin(a), 1.62), 0.03,
+                "JP_Mat_Bronze", 4)
+    mb.revolve([(0.66, 1.62), (0.6, 1.7), (0.16, 1.92), (0.0, 1.96)], "JP_Mat_Bronze", 6, cap_bottom="JP_Mat_Bronze")
+    mb.revolve([(0.06, 1.94), (0.09, 2.0), (0.05, 2.08), (0.0, 2.12)], "JP_Mat_Bronze", 6)       # the finial
+    return prop("JP_Prop_IncenseBurner_A", mb, (-0.6, -0.6, 0, 0.6, 0.6, 1.2), light=[0, 0, 1.0])
+
+
+p_incense_burner()
 
 # ------------------------------------------------------------------ lineup
 ROW_Y = {"C": 0.0, "B": 22.0, "A": 44.0}

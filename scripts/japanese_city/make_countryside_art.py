@@ -285,7 +285,11 @@ def save(img, folder, name):
 def main():
     trees = os.path.join(ASSETS, "Sprites", "Trees")
     props = os.path.join(ASSETS, "Sprites", "Props")
+    delivered = os.path.join(HERE, "..", "..", "art_incoming", "jp_city", "trees_r1", "JP_Tree_Bamboo_Clump_Large.png")
     for name, size, stalks, seed in (("BambooA", (72, 300), 6, 11), ("BambooB", (60, 270), 4, 23), ("BambooC", (88, 320), 8, 37)):
+        if os.path.exists(delivered):
+            # Nov 2: the delivered PixelLab bamboo replaces these drawn clumps (install_jp_trees.py); don't draw over it
+            break
         path = os.path.join(trees, name + ".png")
         bamboo(size[0], size[1], stalks, seed).save(path)
         meta(path, name)

@@ -82,6 +82,10 @@ namespace Hydro
 		// emits: a torch is a body sprite and a flame sprite.
 		glm::vec3 EmissionColor{ 1.0f, 1.0f, 1.0f };
 		float EmissionIntensity = 0.0f;
+		// How much of the sprite shows: 1 = all (as before), 0 = none. A cut-out sprite below 1 is screen-door faded
+		// (SpriteDrawMode::FadedCutout, sprite_fade.frag; depth stays right), a translucent one blended. Its sun
+		// shadow is kept. Game scripts set it (the camera's occluder fade); multiplies Color's alpha.
+		float Opacity = 1.0f;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;

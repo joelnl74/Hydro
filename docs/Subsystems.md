@@ -119,6 +119,7 @@ Every current name was checked against the table. Only one changed:
 | `Renderer2D`, `Renderer3D` | Keep | Parts of `Renderer`, named for the kind of drawing they do |
 | `TerrainCache` | New (Terrain plan TR1) | A part of `Renderer` that keeps terrains' GPU copies (`Cache`, like the material and shape caches); not `TerrainRenderer`: it draws nothing itself, `Renderer3D` does |
 | `MeshBounds` | New (Nov 2, 2026) | Static functions measuring a mesh entity's box (like `ColliderShapes`); a domain facade, so no suffix. Not `MeshBoundsHelper` (banned suffix) |
+| `SpriteBounds` | New (Nov 2, 2026) | The sprite counterpart of `MeshBounds` (static functions: the drawn quad, where a standing sprite stands) |
 | `Terrain`, `TerrainSerializer`, `TerrainMesher`, `TerrainSettings`, `TerrainSurfaceMaterial` | New (Terrain plan TR1) | The asset (domain noun), its file reader / writer and its mesh builder (doers), its settings (live data with `Get` / `SetSettings`), the material Renderer3D draws its tops with |
 | `EditorCommand`, `EditorCommandStack`, `TerrainStrokeCommand` | New (TR1, the start of #165) | The Command pattern's usual names: one undoable edit, the history of them, the terrain brush's edit |
 | `TerrainTool` | New (TR1) | An editor tool (not a window: it draws into the inspector and acts in the Editor view) |

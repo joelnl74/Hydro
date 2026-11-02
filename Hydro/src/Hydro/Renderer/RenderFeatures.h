@@ -36,7 +36,9 @@ namespace Hydro
 	{
 		Translucent = 0, // depth test, no depth write, alpha blended, after the cut-out sprites (particles, effects)
 		Decal,           // the same, but before the cut-out sprites: ground, roads, flat decals in painter's order
-		Cutout           // depth test and write; pixels with alpha under 0.5 are discarded (standing sprites)
+		Cutout,          // depth test and write; pixels with alpha under 0.5 are discarded (standing sprites)
+		FadedCutout      // Cutout for sprites being faded (SpriteRendererComponent::Opacity below 1): the texture's alpha
+		                 // cuts out, the quad's alpha screen-door fades (sprite_fade.frag); drawn after the cut-outs
 	};
 
 	// The alpha mode of sprites that don't choose one.

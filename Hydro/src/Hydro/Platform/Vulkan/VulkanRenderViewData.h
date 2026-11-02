@@ -186,6 +186,7 @@ namespace Hydro
 		// Shared depth only (Renderer2D::SetSpriteDrawMode): decals, then cut-out sprites, drawn before Draws.
 		std::vector<QuadDraw> DecalDraws;
 		std::vector<QuadDraw> CutoutDraws;
+		std::vector<QuadDraw> FadedCutoutDraws; // SpriteDrawMode::FadedCutout, drawn right after CutoutDraws
 		// Draws made between BeginOverlay and EndOverlay. They are recorded after the lighting is
 		// composited, so lights and shadows don't darken them (editor outlines, debug shapes).
 		std::vector<QuadDraw> OverlayDraws;

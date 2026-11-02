@@ -40,6 +40,11 @@ namespace Hydro
 			glm::vec4 TerrainBrushColor{ 1.0f, 1.0f, 1.0f, 0.9f };
 			// The Path brush's points so far (world space), joined by a line; empty when there are none.
 			std::vector<glm::vec3> TerrainPath;
+			// The scene's look in the Editor view (Nov 2, 2026; Oxygen's Editor > Effects menu): off, the view stays sharp
+			// and clear to edit in. PostProcessing: depth of field and bloom (exposure and the tonemap stay); Fog: the
+			// scene environment's fog.
+			bool PostProcessing = false;
+			bool Fog = false;
 		};
 
 		SceneRenderer(const Ref<Scene>& scene)
@@ -206,6 +211,7 @@ namespace Hydro
 
 		Ref<Scene> m_Scene;
 		CameraBasis m_Camera;
+		bool m_Fog = true; // the scene's fog in this frame (off in the Editor view unless EditorOverlay::Fog)
 		// Reused every frame (capacity kept), so sorting allocates nothing once the scene is drawn.
 		std::vector<SpriteDrawItem> m_SpriteQueue;
 		SunShadowCasting m_SunShadows;

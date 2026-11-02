@@ -178,6 +178,11 @@ namespace Hydro
 		out << YAML::Key << "FlySpeed" << YAML::Value << camera.FlySpeed;
 		out << YAML::EndMap;
 
+		out << YAML::Key << "EditorView" << YAML::Value << YAML::BeginMap;
+		out << YAML::Key << "PostProcessing" << YAML::Value << settings.EditorViewPostProcessing;
+		out << YAML::Key << "Fog" << YAML::Value << settings.EditorViewFog;
+		out << YAML::EndMap;
+
 		out << YAML::Key << "Gizmo" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "TranslateSnap" << YAML::Value << settings.Gizmo.TranslateSnap;
 		out << YAML::Key << "RotateSnap" << YAML::Value << settings.Gizmo.RotateSnap;
@@ -322,6 +327,12 @@ namespace Hydro
 			ReadFloat(camera, "PanSpeed", loaded.Camera.PanSpeed);
 			ReadFloat(camera, "ZoomSpeed", loaded.Camera.ZoomSpeed);
 			ReadFloat(camera, "FlySpeed", loaded.Camera.FlySpeed);
+		}
+
+		if (const YAML::Node editorView = node["EditorView"])
+		{
+			ReadBool(editorView, "PostProcessing", loaded.EditorViewPostProcessing);
+			ReadBool(editorView, "Fog", loaded.EditorViewFog);
 		}
 
 		if (const YAML::Node gizmo = node["Gizmo"])

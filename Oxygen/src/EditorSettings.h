@@ -78,6 +78,10 @@ namespace Hydro
 		EditorCameraSettings Camera;
 		bool CameraStartsIn2D = true;
 		GizmoSettings Gizmo;
+		// The scene's look in the Editor view (Editor > Effects): off by default, so the view is sharp and clear to edit
+		// in; the Game view always shows them.
+		bool EditorViewPostProcessing = false; // depth of field and bloom
+		bool EditorViewFog = false;
 
 		ConsoleSettings Console;
 		EditorStartupSettings Startup;

@@ -1,0 +1,12 @@
+Handle: 439093920711121255
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: "Wash your hands at the basin before you climb. The stair keeps count of the careless."
+      - Speaker: ""
+        Text: "A shrine maiden, here? The hall is open to all who come quietly. Mind the third step from the top; it rocks."

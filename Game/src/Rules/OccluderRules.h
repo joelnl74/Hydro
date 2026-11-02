@@ -25,13 +25,17 @@ namespace Hydro
 			float Radius = 0.3f;
 		};
 
-		// True when the box hides the player from the camera: a sight line passes through it (grown by Radius) and
-		// the player doesn't stand on or in it (the ground, the wall under a wall walk). The lines start a little
-		// towards the camera, so a wall the player stands right in front of (camera side) isn't counted.
+		// True when the box hides the player from the camera: a sight line passes through it (grown by Radius). The
+		// lines start a little towards the camera, so a wall the player stands right in front of (camera side) isn't
+		// counted, and from her chest, so the ground under her isn't either. What she stands on when it rises higher
+		// (a wall under a wall walk) the caller leaves out (CharacterBody::GetGround); a gate she walks under fades.
 		static bool Hides(const Sight& sight, const glm::vec3& low, const glm::vec3& high)
 		{
-			const glm::vec3 margin{ 0.05f, 0.05f, 0.25f };
-			if (Contains(low - margin, high + margin, sight.Feet))
+			// A box around her feet that ends below the top of her head is something she walks on or along (a wall
+			// walk's next section, a low terrace), not something over her.
+			const bool aroundFeet = sight.Feet.x >= low.x && sight.Feet.x <= high.x && sight.Feet.y >= low.y && sight.Feet.y <= high.y
+				&& sight.Feet.z >= low.z - 0.25f && sight.Feet.z <= high.z;
+			if (aroundFeet && high.z <= sight.Feet.z + sight.HeadHeight + 0.5f)
 			{
 				return false;
 			}
@@ -48,6 +52,41 @@ namespace Hydro
 				}
 				const glm::vec3 from = eye + toCamera * (skip / distance);
 				if (SegmentHitsBox(from, sight.Camera, low - grow, high + grow))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		// True when a standing card (a sprite facing the camera: standing on `foot`, `width` wide and `height` tall,
+		// turned to face the camera about its vertical axis) hides the player: a sight line crosses its plane on the
+		// camera's side of her, within the card (grown by Radius). A card she stands in front of never hides her.
+		static bool HidesCard(const Sight& sight, const glm::vec3& foot, float width, float height)
+		{
+			glm::vec3 normal = sight.Camera - foot;
+			normal.z = 0.0f;
+			const float length = glm::length(normal);
+			if (length < 1e-4f)
+			{
+				return false;
+			}
+			normal /= length;
+			const glm::vec3 side{ -normal.y, normal.x, 0.0f };
+			for (float eyeHeight : { sight.ChestHeight, sight.HeadHeight })
+			{
+				const glm::vec3 eye = sight.Feet + glm::vec3(0.0f, 0.0f, eyeHeight);
+				const float eyeDistance = glm::dot(eye - foot, normal);       // negative: behind the card
+				const float cameraDistance = glm::dot(sight.Camera - foot, normal);
+				if (eyeDistance >= 0.0f || cameraDistance <= 0.0f)
+				{
+					continue;
+				}
+				const float t = eyeDistance / (eyeDistance - cameraDistance);
+				const glm::vec3 crossing = eye + (sight.Camera - eye) * t;
+				const float across = std::abs(glm::dot(crossing - foot, side));
+				const float up = crossing.z - foot.z;
+				if (across <= 0.5f * width + sight.Radius && up >= -sight.Radius && up <= height + sight.Radius)
 				{
 					return true;
 				}
@@ -85,11 +124,6 @@ namespace Hydro
 				}
 			}
 			return true;
-		}
-
-		static bool Contains(const glm::vec3& low, const glm::vec3& high, const glm::vec3& point)
-		{
-			return point.x >= low.x && point.x <= high.x && point.y >= low.y && point.y <= high.y && point.z >= low.z && point.z <= high.z;
 		}
 
 		// `current` moved towards `target` by at most rate * deltaTime (an opacity fading in or out).

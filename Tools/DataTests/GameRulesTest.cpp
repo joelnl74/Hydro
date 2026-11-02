@@ -1,12 +1,14 @@
 // Tools/DataTests/GameRulesTest.cpp
-// The game's rules (Game/src/Rules: BattleRules, LootRules, Scripting plan SC8d) on fixed numbers: no scene, no data
+// The game's rules (Game/src/Rules: BattleRules, LootRules, Scripting plan SC8d; OccluderRules, RouteRules) on fixed numbers: no scene, no data
 // files, every random draw given. Built into DataRoundTripTest by scripts/test_data.sh.
 
 #include "hypch.h"
 #include "Rules/BattleRules.h"
 #include "Rules/LootRules.h"
+#include "Rules/OccluderRules.h"
 #include "Rules/PartyRules.h"
 #include "Rules/QuestRules.h"
+#include "Rules/RouteRules.h"
 
 #include <cstdio>
 #include <deque>
@@ -209,6 +211,48 @@ namespace Hydro
 		RULE_CHECK(QuestRules::CurrentFor({ "Hunt", "Bring" }, find) == "Bring");
 		RULE_CHECK(QuestRules::CurrentFor({ "Hunt", "Later" }, find) == "Later");
 		RULE_CHECK(QuestRules::CurrentFor({ "Hunt" }, find).empty());
+
+		std::printf("Game rules: occluder fade and routes\n");
+		// The camera south of and above the player: a box between them hides her, the ground she stands on, a box
+		// behind her or beside the line and a wall right behind her (camera side) don't; a gate she stands under does.
+		OccluderRules::Sight sight;
+		sight.Camera = { 0.0f, -10.0f, 12.0f };
+		sight.Feet = { 0.0f, 10.0f, 0.0f };
+		RULE_CHECK(OccluderRules::Hides(sight, { -3.0f, -2.0f, 0.0f }, { 3.0f, 2.0f, 8.0f }));
+		RULE_CHECK(OccluderRules::Hides(sight, { -30.0f, -30.0f, -1.0f }, { 30.0f, 30.0f, 0.0f }) == false);
+		RULE_CHECK(OccluderRules::Hides(sight, { -3.0f, 12.0f, 0.0f }, { 3.0f, 16.0f, 8.0f }) == false);
+		RULE_CHECK(OccluderRules::Hides(sight, { 5.0f, -2.0f, 0.0f }, { 8.0f, 2.0f, 8.0f }) == false);
+		RULE_CHECK(OccluderRules::Hides(sight, { -3.0f, 10.3f, 0.0f }, { 3.0f, 11.0f, 8.0f }) == false);
+		RULE_CHECK(OccluderRules::Hides(sight, { -3.0f, 8.0f, 0.0f }, { 3.0f, 12.0f, 6.0f })); // under a gate
+		OccluderRules::Sight wallWalk; // the slice's wall walk behind the inn
+		wallWalk.Camera = { 0.0f, 24.0f, 20.0f };
+		wallWalk.Feet = { 0.0f, 36.0f, 11.5f };
+		RULE_CHECK(OccluderRules::Hides(wallWalk, { -5.0f, 17.0f, 7.0f }, { 5.0f, 33.0f, 17.0f }));
+		RULE_CHECK(OccluderRules::Hides(wallWalk, { -3.0f, 33.0f, 7.0f }, { 3.0f, 40.0f, 13.1f }) == false);    // the next wall section along the walk
+		RULE_CHECK(OccluderRules::HidesCard(sight, { 0.0f, 7.0f, 0.0f }, 4.0f, 6.0f));            // a tree in front
+		RULE_CHECK(OccluderRules::HidesCard(sight, { 0.0f, 13.0f, 0.0f }, 4.0f, 6.0f) == false);  // behind her
+		RULE_CHECK(OccluderRules::HidesCard(sight, { 5.0f, 7.0f, 0.0f }, 2.0f, 6.0f) == false);   // beside the line
+		RULE_CHECK(std::abs(OccluderRules::Approach(0.3f, 1.0f, 4.0f, 0.1f) - 0.7f) < 1e-4f);
+		RULE_CHECK(OccluderRules::Approach(1.0f, 0.3f, 4.0f, 1.0f) == 0.3f);
+
+		RouteRules::Step step = RouteRules::Next(2, 1, 3, RouteRules::Mode::Loop);
+		RULE_CHECK(step.Index == 0 && step.Direction == 1);
+		step = RouteRules::Next(2, 1, 3, RouteRules::Mode::PingPong);
+		RULE_CHECK(step.Index == 1 && step.Direction == -1);
+		step = RouteRules::Next(0, -1, 3, RouteRules::Mode::PingPong);
+		RULE_CHECK(step.Index == 1 && step.Direction == 1);
+		step = RouteRules::Next(2, 1, 3, RouteRules::Mode::Once);
+		RULE_CHECK(step.Finished && step.Index == 2);
+		step = RouteRules::Next(2, 1, 3, RouteRules::Mode::Restart);
+		RULE_CHECK(step.Teleport && step.Index == 0);
+		RULE_CHECK(RouteRules::Next(0, 1, 1, RouteRules::Mode::Loop).Finished);
+		RULE_CHECK(RouteRules::ParseMode("PingPong") == RouteRules::Mode::PingPong && RouteRules::ParseMode("Bogus") == RouteRules::Mode::Loop);
+		RULE_CHECK(RouteRules::FacingOf({ 1.0f, 0.2f }, "Down") == "Right" && RouteRules::FacingOf({ 0.0f, -1.0f }, "Up") == "Down");
+		RULE_CHECK(RouteRules::FacingOf({ 0.0f, 0.0f }, "Left") == "Left");
+		RULE_CHECK(RouteRules::RollWait(2.0f, 6.0f, 0.5f) == 4.0f && RouteRules::RollWait(6.0f, 2.0f, 0.0f) == 2.0f);
+		RULE_CHECK(RouteRules::RollStop(1.0f, 0.99f) && RouteRules::RollStop(0.0f, 0.0f) == false);
+		RULE_CHECK(RouteRules::IsInTheWay({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.8f, 0.1f, 0.0f }, 0.9f));
+		RULE_CHECK(RouteRules::IsInTheWay({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { -0.8f, 0.0f, 0.0f }, 0.9f) == false);
 
 		return s_RuleFailures;
 	}

@@ -2091,7 +2091,7 @@ Entities:
     TransformComponent:
       Translation: [64.2109, -49.9939, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.26473, 7.46263, 1]
+      Scale: [6.08255, 5.8781, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -2103,7 +2103,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.13296, 0.0804006, 2]
+      Size: [0.115083, 0.102074, 2]
       Layer: World
       IsTrigger: false
   - Entity: 4593789576333430745
@@ -2229,7 +2229,7 @@ Entities:
     TransformComponent:
       Translation: [-55.1692, -46.1497, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.19302, 7.36098, 1]
+      Scale: [5.9997, 5.79803, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -2241,7 +2241,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.134796, 0.0815109, 2]
+      Size: [0.116672, 0.103483, 2]
       Layer: World
       IsTrigger: false
   - Entity: 2088488494866182588
@@ -2551,7 +2551,7 @@ Entities:
     TransformComponent:
       Translation: [67.439, -44.9614, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.17913, 7.3413, 1]
+      Scale: [5.98366, 5.78253, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -2563,7 +2563,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.135158, 0.0817294, 2]
+      Size: [0.116985, 0.103761, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7642536374755504783
@@ -2597,7 +2597,7 @@ Entities:
     TransformComponent:
       Translation: [-65.4373, -41.3352, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.25742, 7.45227, 1]
+      Scale: [6.07411, 5.86994, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -2609,7 +2609,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.133145, 0.0805124, 2]
+      Size: [0.115243, 0.102216, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3410515874222121727
@@ -2689,7 +2689,7 @@ Entities:
     TransformComponent:
       Translation: [-50.6469, -41.4045, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.14935, 7.29907, 1]
+      Scale: [5.94925, 5.74927, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -2701,7 +2701,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.13594, 0.0822022, 2]
+      Size: [0.117662, 0.104361, 2]
       Layer: World
       IsTrigger: false
   - Entity: 8283418519419756556
@@ -2827,7 +2827,7 @@ Entities:
     TransformComponent:
       Translation: [-67.9058, -36.9266, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.12672, 7.26699, 1]
+      Scale: [5.9231, 5.724, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -2839,7 +2839,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.13654, 0.0825651, 2]
+      Size: [0.118182, 0.104822, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6481442370986611730
@@ -2942,7 +2942,7 @@ Entities:
     TransformComponent:
       Translation: [-52.0164, -37.064, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.12777, 7.26849, 1]
+      Scale: [5.92432, 5.72518, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -2954,7 +2954,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.136511, 0.082548, 2]
+      Size: [0.118157, 0.1048, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6065853289215573886
@@ -3172,7 +3172,7 @@ Entities:
     TransformComponent:
       Translation: [-50.768, -34.5934, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.20467, 7.3775, 1]
+      Scale: [6.01316, 5.81104, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -3184,7 +3184,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.134495, 0.0813284, 2]
+      Size: [0.116412, 0.103252, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5553858078112327708
@@ -3494,7 +3494,7 @@ Entities:
     TransformComponent:
       Translation: [-65.302, -26.5085, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.18398, 7.34816, 1]
+      Scale: [5.98926, 5.78793, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -3506,7 +3506,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.135031, 0.0816531, 2]
+      Size: [0.116876, 0.103664, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5494278385003670940
@@ -3724,7 +3724,7 @@ Entities:
     TransformComponent:
       Translation: [-66.0283, -23.162, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.22278, 7.40316, 1]
+      Scale: [6.03409, 5.83126, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -3736,7 +3736,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.134028, 0.0810465, 2]
+      Size: [0.116007, 0.102894, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3662364947717710391
@@ -3816,7 +3816,7 @@ Entities:
     TransformComponent:
       Translation: [-51.2906, -23.0603, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.13057, 7.27246, 1]
+      Scale: [5.92755, 5.72831, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -3828,7 +3828,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.136437, 0.0825031, 2]
+      Size: [0.118093, 0.104743, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3343140619877650993
@@ -4000,7 +4000,7 @@ Entities:
     TransformComponent:
       Translation: [-53.892, -19.4326, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.12794, 7.26873, 1]
+      Scale: [5.92451, 5.72537, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -4012,7 +4012,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.136507, 0.0825454, 2]
+      Size: [0.118153, 0.104797, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7657601046932255492
@@ -4230,7 +4230,7 @@ Entities:
     TransformComponent:
       Translation: [-54.0364, -16.9479, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.31059, 7.52764, 1]
+      Scale: [6.13554, 5.92931, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -4242,7 +4242,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.131812, 0.0797063, 2]
+      Size: [0.114089, 0.101192, 2]
       Layer: World
       IsTrigger: false
   - Entity: 2461258282148621302
@@ -4552,7 +4552,7 @@ Entities:
     TransformComponent:
       Translation: [-41.899, -12.8102, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.1455, 7.29363, 1]
+      Scale: [5.9448, 5.74498, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -4564,7 +4564,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.136041, 0.0822636, 2]
+      Size: [0.11775, 0.104439, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3967397197009995488
@@ -4736,7 +4736,7 @@ Entities:
     TransformComponent:
       Translation: [-53.1345, -11.2241, 1]
       Rotation: [0, 0, 0]
-      Scale: [5.1745, 7.33473, 1]
+      Scale: [5.97831, 5.77736, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -4748,7 +4748,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.135279, 0.0818026, 2]
+      Size: [0.11709, 0.103854, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1453172349935585627
@@ -5012,7 +5012,7 @@ Entities:
     TransformComponent:
       Translation: [-43.1542, -0.935648, 2]
       Rotation: [0, 0, 0]
-      Scale: [5.2673, 7.46627, 1]
+      Scale: [6.08552, 5.88097, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5024,7 +5024,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.132895, 0.0803614, 2]
+      Size: [0.115027, 0.102024, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3150983668122522149
@@ -5035,7 +5035,7 @@ Entities:
     TransformComponent:
       Translation: [-69.1685, 2.70308, 2]
       Rotation: [0, 0, 0]
-      Scale: [5.26191, 7.45863, 1]
+      Scale: [6.07929, 5.87495, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -5047,7 +5047,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.133032, 0.0804437, 2]
+      Size: [0.115145, 0.102129, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7322217861398260268
@@ -6070,7 +6070,7 @@ Entities:
     TransformComponent:
       Translation: [-55.0097, 33.0042, 3]
       Rotation: [0, 0, 0]
-      Scale: [5.28404, 7.49, 1]
+      Scale: [6.10486, 5.89966, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6082,7 +6082,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.132474, 0.0801068, 2]
+      Size: [0.114662, 0.101701, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6435172447605975522
@@ -6116,7 +6116,7 @@ Entities:
     TransformComponent:
       Translation: [-43.1655, 31.5291, 3]
       Rotation: [0, 0, 0]
-      Scale: [5.11794, 7.25455, 1]
+      Scale: [5.91296, 5.7142, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6128,7 +6128,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.136774, 0.0827067, 2]
+      Size: [0.118384, 0.105002, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1387325105134968115
@@ -6300,7 +6300,7 @@ Entities:
     TransformComponent:
       Translation: [67.8692, 36.6893, 3]
       Rotation: [0, 0, 0]
-      Scale: [5.14029, 7.28623, 1]
+      Scale: [5.93878, 5.73915, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6312,7 +6312,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.136179, 0.0823471, 2]
+      Size: [0.117869, 0.104545, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1244059797951508932
@@ -6415,7 +6415,7 @@ Entities:
     TransformComponent:
       Translation: [-44.6977, 40.0651, 3]
       Rotation: [0, 0, 0]
-      Scale: [5.23266, 7.41717, 1]
+      Scale: [6.0455, 5.84229, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6427,7 +6427,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.133775, 0.0808934, 2]
+      Size: [0.115788, 0.102699, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1078443506577758906
@@ -6668,7 +6668,7 @@ Entities:
     TransformComponent:
       Translation: [-64.01, 44.9562, 3]
       Rotation: [0, 0, 0]
-      Scale: [5.16899, 7.32691, 1]
+      Scale: [5.97194, 5.7712, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6680,7 +6680,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.135423, 0.0818899, 2]
+      Size: [0.117215, 0.103965, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5830804507301254659
@@ -6783,7 +6783,7 @@ Entities:
     TransformComponent:
       Translation: [-67.9696, 49.6257, 4]
       Rotation: [0, 0, 0]
-      Scale: [5.26571, 7.46402, 1]
+      Scale: [6.08368, 5.87919, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6795,7 +6795,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.132935, 0.0803856, 2]
+      Size: [0.115061, 0.102055, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5613778143866409805
@@ -6806,7 +6806,7 @@ Entities:
     TransformComponent:
       Translation: [-55.1794, 49.234, 4]
       Rotation: [0, 0, 0]
-      Scale: [5.30845, 7.5246, 1]
+      Scale: [6.13306, 5.92691, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6818,7 +6818,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.131865, 0.0797384, 2]
+      Size: [0.114135, 0.101233, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3488613111297029820
@@ -6829,7 +6829,7 @@ Entities:
     TransformComponent:
       Translation: [-42.5657, 49.7169, 4]
       Rotation: [0, 0, 0]
-      Scale: [5.20268, 7.37468, 1]
+      Scale: [6.01086, 5.80882, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6841,7 +6841,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.134546, 0.0813595, 2]
+      Size: [0.116456, 0.103291, 2]
       Layer: World
       IsTrigger: false
   - Entity: 8446509478799925740
@@ -6875,7 +6875,7 @@ Entities:
     TransformComponent:
       Translation: [-64.6961, 50.6916, 4]
       Rotation: [0, 0, 0]
-      Scale: [5.23207, 7.41633, 1]
+      Scale: [6.04482, 5.84163, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6887,7 +6887,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.13379, 0.0809026, 2]
+      Size: [0.115801, 0.102711, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7218953792781616453
@@ -6944,7 +6944,7 @@ Entities:
     TransformComponent:
       Translation: [-69.4656, 54.1419, 4]
       Rotation: [0, 0, 0]
-      Scale: [5.17171, 7.33077, 1]
+      Scale: [5.97508, 5.77424, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -6956,7 +6956,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.135352, 0.0818468, 2]
+      Size: [0.117153, 0.10391, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5357592540738384642
@@ -7289,7 +7289,7 @@ Entities:
     TransformComponent:
       Translation: [64.302, 64.0931, 4]
       Rotation: [0, 0, 0]
-      Scale: [5.13716, 7.2818, 1]
+      Scale: [5.93517, 5.73566, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7301,7 +7301,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.136262, 0.0823972, 2]
+      Size: [0.117941, 0.104609, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7697581690304219964
@@ -7381,7 +7381,7 @@ Entities:
     TransformComponent:
       Translation: [68.0208, 68.2861, 4]
       Rotation: [0, 0, 0]
-      Scale: [5.26414, 7.46178, 1]
+      Scale: [6.08187, 5.87743, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7393,7 +7393,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.132975, 0.0804097, 2]
+      Size: [0.115096, 0.102085, 2]
       Layer: World
       IsTrigger: false
   - Entity: 60391621695009858
@@ -7565,7 +7565,7 @@ Entities:
     TransformComponent:
       Translation: [-51.9823, 76.0524, 5]
       Rotation: [0, 0, 0]
-      Scale: [5.23176, 7.41589, 1]
+      Scale: [6.04446, 5.84128, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7577,7 +7577,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.133798, 0.0809073, 2]
+      Size: [0.115808, 0.102717, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5498349481975332831
@@ -7634,7 +7634,7 @@ Entities:
     TransformComponent:
       Translation: [67.5436, 76.0941, 5]
       Rotation: [0, 0, 0]
-      Scale: [5.30854, 7.52473, 1]
+      Scale: [6.13317, 5.92701, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7646,7 +7646,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.131863, 0.079737, 2]
+      Size: [0.114134, 0.101231, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3713859477289548268
@@ -7657,7 +7657,7 @@ Entities:
     TransformComponent:
       Translation: [-58.4675, 78.2835, 5]
       Rotation: [0, 0, 0]
-      Scale: [5.16297, 7.31839, 1]
+      Scale: [5.96498, 5.76449, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7669,7 +7669,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.135581, 0.0819853, 2]
+      Size: [0.117352, 0.104086, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5414591692371660997
@@ -7893,7 +7893,7 @@ Entities:
     TransformComponent:
       Translation: [-52.5281, 89.4019, 8]
       Rotation: [0, 0, 0]
-      Scale: [5.18461, 7.34906, 1]
+      Scale: [5.98999, 5.78864, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7947,7 +7947,7 @@ Entities:
     TransformComponent:
       Translation: [47.4017, 89.3023, 7]
       Rotation: [0, 0, 0]
-      Scale: [5.15558, 7.30791, 1]
+      Scale: [5.95645, 5.75623, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -7983,7 +7983,7 @@ Entities:
     TransformComponent:
       Translation: [54.2494, 88.0002, 7]
       Rotation: [0, 0, 0]
-      Scale: [5.29375, 7.50376, 1]
+      Scale: [6.11608, 5.9105, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8001,7 +8001,7 @@ Entities:
     TransformComponent:
       Translation: [58.3237, 88.9368, 7]
       Rotation: [0, 0, 0]
-      Scale: [5.13069, 7.27263, 1]
+      Scale: [5.92769, 5.72844, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8325,7 +8325,7 @@ Entities:
     TransformComponent:
       Translation: [44.0033, 90.8662, 7]
       Rotation: [0, 0, 0]
-      Scale: [5.21459, 7.39156, 1]
+      Scale: [6.02462, 5.82212, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8379,7 +8379,7 @@ Entities:
     TransformComponent:
       Translation: [-27.6103, 95.0737, 7]
       Rotation: [0, 0, 0]
-      Scale: [5.30576, 7.52079, 1]
+      Scale: [6.12996, 5.92391, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8451,7 +8451,7 @@ Entities:
     TransformComponent:
       Translation: [-15.9512, 95.5868, 7]
       Rotation: [0, 0, 0]
-      Scale: [5.1439, 7.29136, 1]
+      Scale: [5.94295, 5.74319, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8721,7 +8721,7 @@ Entities:
     TransformComponent:
       Translation: [-13.3725, 97.8056, 7]
       Rotation: [0, 0, 0]
-      Scale: [5.2147, 7.39171, 1]
+      Scale: [6.02475, 5.82224, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8811,7 +8811,7 @@ Entities:
     TransformComponent:
       Translation: [-64.1829, 102.559, 11.5]
       Rotation: [0, 0, 0]
-      Scale: [5.14926, 7.29895, 1]
+      Scale: [5.94915, 5.74917, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8847,7 +8847,7 @@ Entities:
     TransformComponent:
       Translation: [-58.5931, 102.653, 11.5]
       Rotation: [0, 0, 0]
-      Scale: [5.2712, 7.47179, 1]
+      Scale: [6.09003, 5.88531, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -8955,7 +8955,7 @@ Entities:
     TransformComponent:
       Translation: [14.4536, 100.822, 10.5]
       Rotation: [0, 0, 0]
-      Scale: [5.1289, 7.27009, 1]
+      Scale: [5.92562, 5.72644, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -9081,7 +9081,7 @@ Entities:
     TransformComponent:
       Translation: [-50.5771, 105.454, 11.5]
       Rotation: [0, 0, 0]
-      Scale: [5.27689, 7.47986, 1]
+      Scale: [6.0966, 5.89167, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -9387,7 +9387,7 @@ Entities:
     TransformComponent:
       Translation: [65.8242, 104.427, 11.5]
       Rotation: [0, 0, 0]
-      Scale: [5.26227, 7.45914, 1]
+      Scale: [6.07971, 5.87535, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -9639,7 +9639,7 @@ Entities:
     TransformComponent:
       Translation: [30.3169, 108.183, 10.5]
       Rotation: [0, 0, 0]
-      Scale: [5.19047, 7.35736, 1]
+      Scale: [5.99676, 5.79518, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -9783,7 +9783,7 @@ Entities:
     TransformComponent:
       Translation: [50.981, 110.54, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.18958, 7.3561, 1]
+      Scale: [5.99573, 5.79419, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -9819,7 +9819,7 @@ Entities:
     TransformComponent:
       Translation: [56.3665, 112.168, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.15266, 7.30377, 1]
+      Scale: [5.95307, 5.75297, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -9927,7 +9927,7 @@ Entities:
     TransformComponent:
       Translation: [-55.3627, 114.182, 16]
       Rotation: [0, 0, 0]
-      Scale: [5.31016, 7.52703, 1]
+      Scale: [6.13504, 5.92882, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -9945,7 +9945,7 @@ Entities:
     TransformComponent:
       Translation: [-43.0252, 114.771, 16]
       Rotation: [0, 0, 0]
-      Scale: [5.20054, 7.37164, 1]
+      Scale: [6.00839, 5.80643, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10017,7 +10017,7 @@ Entities:
     TransformComponent:
       Translation: [18.4501, 115.786, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.14046, 7.28647, 1]
+      Scale: [5.93898, 5.73934, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10035,7 +10035,7 @@ Entities:
     TransformComponent:
       Translation: [53.069, 115.964, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.1646, 7.3207, 1]
+      Scale: [5.96687, 5.7663, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10053,7 +10053,7 @@ Entities:
     TransformComponent:
       Translation: [64.6105, 115.42, 16]
       Rotation: [0, 0, 0]
-      Scale: [5.19474, 7.36342, 1]
+      Scale: [6.00169, 5.79995, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10071,7 +10071,7 @@ Entities:
     TransformComponent:
       Translation: [-65.6291, 117.491, 16]
       Rotation: [0, 0, 0]
-      Scale: [5.25998, 7.45589, 1]
+      Scale: [6.07706, 5.87279, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10197,7 +10197,7 @@ Entities:
     TransformComponent:
       Translation: [-24.9763, 117.19, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.22161, 7.40151, 1]
+      Scale: [6.03273, 5.82996, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10305,7 +10305,7 @@ Entities:
     TransformComponent:
       Translation: [50.8683, 118.27, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.20019, 7.37115, 1]
+      Scale: [6.00799, 5.80604, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10359,7 +10359,7 @@ Entities:
     TransformComponent:
       Translation: [-64.7302, 120.787, 16]
       Rotation: [0, 0, 0]
-      Scale: [5.13582, 7.2799, 1]
+      Scale: [5.93362, 5.73417, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10413,7 +10413,7 @@ Entities:
     TransformComponent:
       Translation: [-35.1272, 119.969, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.2422, 7.43069, 1]
+      Scale: [6.05652, 5.85294, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10485,7 +10485,7 @@ Entities:
     TransformComponent:
       Translation: [-16.0853, 120.113, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.21264, 7.3888, 1]
+      Scale: [6.02237, 5.81995, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10539,7 +10539,7 @@ Entities:
     TransformComponent:
       Translation: [10.795, 120.533, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.21797, 7.39635, 1]
+      Scale: [6.02853, 5.82589, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10575,7 +10575,7 @@ Entities:
     TransformComponent:
       Translation: [17.1767, 120.279, 15]
       Rotation: [0, 0, 0]
-      Scale: [5.22772, 7.41017, 1]
+      Scale: [6.03979, 5.83678, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -10845,7 +10845,7 @@ Entities:
     TransformComponent:
       Translation: [-61.712, 127.473, 20]
       Rotation: [0, 0, 0]
-      Scale: [5.18508, 7.34973, 1]
+      Scale: [5.99053, 5.78917, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11115,7 +11115,7 @@ Entities:
     TransformComponent:
       Translation: [-46.0941, 132.135, 20]
       Rotation: [0, 0, 0]
-      Scale: [5.24218, 7.43067, 1]
+      Scale: [6.0565, 5.85293, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11421,7 +11421,7 @@ Entities:
     TransformComponent:
       Translation: [-51.0488, 135.722, 24]
       Rotation: [0, 0, 0]
-      Scale: [5.27653, 7.47935, 1]
+      Scale: [6.09619, 5.89127, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11817,7 +11817,7 @@ Entities:
     TransformComponent:
       Translation: [-64.4211, 138.473, 24]
       Rotation: [0, 0, 0]
-      Scale: [5.14982, 7.29975, 1]
+      Scale: [5.94979, 5.7498, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -11997,7 +11997,7 @@ Entities:
     TransformComponent:
       Translation: [17.5252, 136.522, 19]
       Rotation: [0, 0, 0]
-      Scale: [5.12527, 7.26494, 1]
+      Scale: [5.92143, 5.72238, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12015,7 +12015,7 @@ Entities:
     TransformComponent:
       Translation: [25.0227, 138.76, 19]
       Rotation: [0, 0, 0]
-      Scale: [5.17118, 7.33002, 1]
+      Scale: [5.97447, 5.77365, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12087,7 +12087,7 @@ Entities:
     TransformComponent:
       Translation: [-61.1616, 141.972, 24]
       Rotation: [0, 0, 0]
-      Scale: [5.13083, 7.27283, 1]
+      Scale: [5.92785, 5.7286, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12303,7 +12303,7 @@ Entities:
     TransformComponent:
       Translation: [59.328, 140.003, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.27822, 7.48175, 1]
+      Scale: [6.09814, 5.89316, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12357,7 +12357,7 @@ Entities:
     TransformComponent:
       Translation: [-51.2211, 144.593, 24]
       Rotation: [0, 0, 0]
-      Scale: [5.17977, 7.3422, 1]
+      Scale: [5.98439, 5.78324, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12393,7 +12393,7 @@ Entities:
     TransformComponent:
       Translation: [-41.1506, 143.209, 24]
       Rotation: [0, 0, 0]
-      Scale: [5.13527, 7.27912, 1]
+      Scale: [5.93298, 5.73355, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12501,7 +12501,7 @@ Entities:
     TransformComponent:
       Translation: [9.5523, 143.459, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.24527, 7.43504, 1]
+      Scale: [6.06007, 5.85637, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12879,7 +12879,7 @@ Entities:
     TransformComponent:
       Translation: [-29.4052, 148.035, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.12988, 7.27148, 1]
+      Scale: [5.92675, 5.72754, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12915,7 +12915,7 @@ Entities:
     TransformComponent:
       Translation: [-19.3922, 146.613, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.15117, 7.30166, 1]
+      Scale: [5.95135, 5.75131, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12933,7 +12933,7 @@ Entities:
     TransformComponent:
       Translation: [-8.651, 147.122, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.22993, 7.4133, 1]
+      Scale: [6.04235, 5.83924, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12951,7 +12951,7 @@ Entities:
     TransformComponent:
       Translation: [9.88862, 148.691, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.26548, 7.46368, 1]
+      Scale: [6.08342, 5.87893, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -12987,7 +12987,7 @@ Entities:
     TransformComponent:
       Translation: [25.2898, 146.372, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.15452, 7.30641, 1]
+      Scale: [5.95522, 5.75505, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -13023,7 +13023,7 @@ Entities:
     TransformComponent:
       Translation: [30.0673, 146.868, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.25297, 7.44596, 1]
+      Scale: [6.06897, 5.86497, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -13077,7 +13077,7 @@ Entities:
     TransformComponent:
       Translation: [41.5218, 148.312, 23]
       Rotation: [0, 0, 0]
-      Scale: [5.15943, 7.31337, 1]
+      Scale: [5.96089, 5.76053, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -13246,7 +13246,7 @@ Entities:
     TransformComponent:
       Translation: [46, 48, 3]
       Rotation: [0, 0, 0]
-      Scale: [4.275, 4.5, 1]
+      Scale: [4.5, 4.0125, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -13258,7 +13258,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.187135, 0.155556, 2]
+      Size: [0.177778, 0.174455, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1108323692432277664
@@ -13292,7 +13292,7 @@ Entities:
     TransformComponent:
       Translation: [-4.5, 66.4, 3]
       Rotation: [0, 0, 0]
-      Scale: [4.50625, 6.3875, 1]
+      Scale: [5.20625, 5.03125, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -13304,7 +13304,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.177531, 0.109589, 2]
+      Size: [0.153661, 0.13913, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1412843990693610579
@@ -13315,7 +13315,7 @@ Entities:
     TransformComponent:
       Translation: [5, 80, 4]
       Rotation: [0, 0, 0]
-      Scale: [4.18438, 5.93125, 1]
+      Scale: [4.83438, 4.67188, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -13327,7 +13327,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.191187, 0.118019, 2]
+      Size: [0.165481, 0.149833, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6980131391756211578
@@ -13361,7 +13361,7 @@ Entities:
     TransformComponent:
       Translation: [40, 78, 4]
       Rotation: [0, 0, 0]
-      Scale: [2.85313, 3.60938, 1]
+      Scale: [3.57501, 3.47188, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -13373,7 +13373,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.280394, 0.193939, 2]
+      Size: [0.223776, 0.20162, 2]
       Layer: World
       IsTrigger: false
   - Entity: 994894805250829841
@@ -14147,7 +14147,7 @@ Entities:
     TransformComponent:
       Translation: [-16.5, 41, 2]
       Rotation: [0, 0, 0]
-      Scale: [4.29688, 4.76562, 1]
+      Scale: [4.68751, 4.17968, 1]
     SpriteRendererComponent:
       Color: [1, 0.52, 0.44, 1]
       TilingFactor: 1
@@ -14159,7 +14159,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.186182, 0.146885, 2]
+      Size: [0.170667, 0.167476, 2]
       Layer: World
       IsTrigger: false
   - Entity: 8780957870537733880
@@ -14170,7 +14170,7 @@ Entities:
     TransformComponent:
       Translation: [4.3, 33, 2]
       Rotation: [0, 0, 0]
-      Scale: [3.4375, 3.8125, 1]
+      Scale: [3.75, 3.34375, 1]
     SpriteRendererComponent:
       Color: [1, 0.52, 0.44, 1]
       TilingFactor: 1
@@ -14182,7 +14182,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.232727, 0.183607, 2]
+      Size: [0.213333, 0.209346, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6426417668705133191
@@ -14193,7 +14193,7 @@ Entities:
     TransformComponent:
       Translation: [-3.9, 64, 3]
       Rotation: [0, 0, 0]
-      Scale: [3.60938, 4.00312, 1]
+      Scale: [3.93751, 3.51093, 1]
     SpriteRendererComponent:
       Color: [1, 0.52, 0.44, 1]
       TilingFactor: 1
@@ -14205,7 +14205,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.221645, 0.174863, 2]
+      Size: [0.203175, 0.199377, 2]
       Layer: World
       IsTrigger: false
   - Entity: 2697511232069406551
@@ -15106,7 +15106,7 @@ Entities:
     TransformComponent:
       Translation: [33, 2.5, 1]
       Rotation: [0, 0, 0]
-      Scale: [3.59375, 4.16875, 1]
+      Scale: [4.13281, 4.09687, 1]
     SpriteRendererComponent:
       Color: [1, 0.78, 0.55, 1]
       TilingFactor: 1
@@ -15118,7 +15118,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.222609, 0.167916, 2]
+      Size: [0.193573, 0.170862, 2]
       Layer: World
       IsTrigger: false
   - Entity: 305878671460861739
@@ -15129,7 +15129,7 @@ Entities:
     TransformComponent:
       Translation: [24, 9.5, 1]
       Rotation: [0, 0, 0]
-      Scale: [2.425, 2.925, 1]
+      Scale: [2.875, 2.85, 1]
     SpriteRendererComponent:
       Color: [1, 0.8, 0.6, 1]
       TilingFactor: 1
@@ -15141,7 +15141,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.28866, 0.205128, 2]
+      Size: [0.243478, 0.210526, 2]
       Layer: World
       IsTrigger: false
   - Entity: 4825806644681978480
@@ -15617,7 +15617,7 @@ Entities:
     TransformComponent:
       Translation: [42.3424, 28.2253, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.94061, 10.6931, 1]
+      Scale: [4.74508, 7.95299, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15629,7 +15629,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.306059, 0.046759, 2]
+      Size: [0.18967, 0.0628692, 2]
       Layer: World
       IsTrigger: false
   - Entity: 2911202025025685619
@@ -15640,7 +15640,7 @@ Entities:
     TransformComponent:
       Translation: [46.5572, 27.1165, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.99556, 8.98, 1]
+      Scale: [4.45675, 8.11526, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15652,7 +15652,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.451002, 0.0556793, 2]
+      Size: [0.201941, 0.0616123, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5730694023972666474
@@ -15663,7 +15663,7 @@ Entities:
     TransformComponent:
       Translation: [47.5056, 26.5132, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.93348, 8.70067, 1]
+      Scale: [4.31811, 7.86283, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15675,7 +15675,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.465482, 0.0574669, 2]
+      Size: [0.208425, 0.0635904, 2]
       Layer: World
       IsTrigger: false
   - Entity: 473384775952229918
@@ -15686,7 +15686,7 @@ Entities:
     TransformComponent:
       Translation: [51.9342, 26.8605, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.52391, 10.5163, 1]
+      Scale: [4.97771, 8.34293, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15698,7 +15698,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.356589, 0.0475453, 2]
+      Size: [0.180806, 0.0599311, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6533874861944318705
@@ -15709,7 +15709,7 @@ Entities:
     TransformComponent:
       Translation: [53.9364, 27.9867, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.2882, 9.53415, 1]
+      Scale: [4.51284, 7.56376, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15721,7 +15721,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.393323, 0.0524431, 2]
+      Size: [0.199431, 0.0661047, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1034898943449930381
@@ -15732,7 +15732,7 @@ Entities:
     TransformComponent:
       Translation: [55.8583, 26.4689, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.99583, 10.8939, 1]
+      Scale: [4.83418, 8.10234, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15744,7 +15744,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.300418, 0.0458972, 2]
+      Size: [0.186175, 0.0617105, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3180427621229242233
@@ -15755,7 +15755,7 @@ Entities:
     TransformComponent:
       Translation: [57.8984, 27.897, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.186, 9.10834, 1]
+      Scale: [4.31128, 7.22595, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15767,7 +15767,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.411711, 0.0548948, 2]
+      Size: [0.208755, 0.0691951, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7075317348849920432
@@ -15778,7 +15778,7 @@ Entities:
     TransformComponent:
       Translation: [54.3845, 29.3394, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.10543, 9.47445, 1]
+      Scale: [4.70213, 8.5621, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15790,7 +15790,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.427466, 0.0527735, 2]
+      Size: [0.191403, 0.0583969, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6120414123330886557
@@ -15801,7 +15801,7 @@ Entities:
     TransformComponent:
       Translation: [56.0637, 29.1524, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.90809, 8.58639, 1]
+      Scale: [4.2614, 7.75955, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15813,7 +15813,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.471676, 0.0582317, 2]
+      Size: [0.211198, 0.0644367, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1566283865852498064
@@ -15824,7 +15824,7 @@ Entities:
     TransformComponent:
       Translation: [59.345, 30.5508, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.73439, 9.94322, 1]
+      Scale: [4.41231, 7.39527, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15836,7 +15836,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.329142, 0.0502855, 2]
+      Size: [0.203975, 0.0676108, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7378352016465183385
@@ -15847,7 +15847,7 @@ Entities:
     TransformComponent:
       Translation: [60.2706, 30.1738, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.21508, 9.2295, 1]
+      Scale: [4.36863, 7.32207, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15859,7 +15859,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.406306, 0.0541741, 2]
+      Size: [0.206014, 0.0682867, 2]
       Layer: World
       IsTrigger: false
   - Entity: 181572286159140401
@@ -15870,7 +15870,7 @@ Entities:
     TransformComponent:
       Translation: [42.8419, 33.0589, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.44563, 10.1901, 1]
+      Scale: [4.82333, 8.08415, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15882,7 +15882,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.368003, 0.0490671, 2]
+      Size: [0.186593, 0.0618493, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1629573813623625753
@@ -15893,7 +15893,7 @@ Entities:
     TransformComponent:
       Translation: [58.9043, 31.64, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.94403, 8.74814, 1]
+      Scale: [4.34167, 7.90573, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15905,7 +15905,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.462956, 0.057155, 2]
+      Size: [0.207294, 0.0632453, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1365566263144628302
@@ -15916,7 +15916,7 @@ Entities:
     TransformComponent:
       Translation: [41.1586, 34.3534, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.24258, 9.34408, 1]
+      Scale: [4.42287, 7.41297, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15928,7 +15928,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.401323, 0.0535098, 2]
+      Size: [0.203488, 0.0674493, 2]
       Layer: World
       IsTrigger: false
   - Entity: 4683166308388106568
@@ -15939,7 +15939,7 @@ Entities:
     TransformComponent:
       Translation: [43.4454, 34.1015, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.21067, 9.21111, 1]
+      Scale: [4.35993, 7.30748, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15951,7 +15951,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.407117, 0.0542823, 2]
+      Size: [0.206426, 0.0684231, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3361972014526353639
@@ -15962,7 +15962,7 @@ Entities:
     TransformComponent:
       Translation: [46.5912, 35.4279, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.96954, 8.86292, 1]
+      Scale: [4.39864, 8.00945, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15974,7 +15974,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.45696, 0.0564148, 2]
+      Size: [0.204609, 0.0624262, 2]
       Layer: World
       IsTrigger: false
   - Entity: 5755804482349053543
@@ -15985,7 +15985,7 @@ Entities:
     TransformComponent:
       Translation: [48.1667, 35.7889, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.61576, 9.51186, 1]
+      Scale: [4.22089, 7.07445, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -15997,7 +15997,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.344068, 0.0525659, 2]
+      Size: [0.213225, 0.0706768, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7145535206068619810
@@ -16008,7 +16008,7 @@ Entities:
     TransformComponent:
       Translation: [50.5418, 35.2033, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.88184, 8.46829, 1]
+      Scale: [4.20278, 7.65283, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16020,7 +16020,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.478255, 0.0590438, 2]
+      Size: [0.214144, 0.0653354, 2]
       Layer: World
       IsTrigger: false
   - Entity: 4873113139397144147
@@ -16031,7 +16031,7 @@ Entities:
     TransformComponent:
       Translation: [57.7981, 36.0625, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.95438, 10.7432, 1]
+      Scale: [4.76729, 7.99026, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16043,7 +16043,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.304632, 0.046541, 2]
+      Size: [0.188786, 0.0625761, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3103677147451174026
@@ -16054,7 +16054,7 @@ Entities:
     TransformComponent:
       Translation: [44.0244, 37.3367, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.8502, 8.3259, 1]
+      Scale: [4.13211, 7.52415, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16066,7 +16066,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.486434, 0.0600536, 2]
+      Size: [0.217806, 0.0664528, 2]
       Layer: World
       IsTrigger: false
   - Entity: 4511271551294744558
@@ -16077,7 +16077,7 @@ Entities:
     TransformComponent:
       Translation: [55.328, 37.1943, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.08975, 9.40389, 1]
+      Scale: [4.66711, 8.49833, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16089,7 +16089,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.430673, 0.0531695, 2]
+      Size: [0.192839, 0.0588351, 2]
       Layer: World
       IsTrigger: false
   - Entity: 9003747903332896078
@@ -16100,7 +16100,7 @@ Entities:
     TransformComponent:
       Translation: [59.1548, 36.8308, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.85754, 8.35894, 1]
+      Scale: [4.14851, 7.55401, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16112,7 +16112,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.484511, 0.0598162, 2]
+      Size: [0.216945, 0.0661901, 2]
       Layer: World
       IsTrigger: false
   - Entity: 8631238362805381498
@@ -16123,7 +16123,7 @@ Entities:
     TransformComponent:
       Translation: [42.8067, 40.297, 2]
       Rotation: [0, 0, 0]
-      Scale: [1.89681, 8.53564, 1]
+      Scale: [4.23621, 7.71369, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16135,7 +16135,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.474481, 0.0585779, 2]
+      Size: [0.212454, 0.0648198, 2]
       Layer: World
       IsTrigger: false
   - Entity: 2901139016069561839
@@ -16146,7 +16146,7 @@ Entities:
     TransformComponent:
       Translation: [45.2708, 39.9663, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.64985, 9.63581, 1]
+      Scale: [4.27589, 7.16663, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16158,7 +16158,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.339642, 0.0518898, 2]
+      Size: [0.210482, 0.0697678, 2]
       Layer: World
       IsTrigger: false
   - Entity: 8250463378305481216
@@ -16169,7 +16169,7 @@ Entities:
     TransformComponent:
       Translation: [55.9979, 41.0499, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.00595, 9.02677, 1]
+      Scale: [4.47995, 8.15753, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16181,7 +16181,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.448665, 0.0553908, 2]
+      Size: [0.200895, 0.0612931, 2]
       Layer: World
       IsTrigger: false
   - Entity: 3244545533386187140
@@ -16192,7 +16192,7 @@ Entities:
     TransformComponent:
       Translation: [58.5098, 41.3003, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.69871, 9.8135, 1]
+      Scale: [4.35474, 7.29879, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16204,7 +16204,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.333492, 0.0509502, 2]
+      Size: [0.206671, 0.0685045, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6670268536193915899
@@ -16215,7 +16215,7 @@ Entities:
     TransformComponent:
       Translation: [43.0776, 43.4815, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.18087, 9.08696, 1]
+      Scale: [4.30116, 7.20899, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16227,7 +16227,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.412679, 0.0550239, 2]
+      Size: [0.209246, 0.0693579, 2]
       Layer: World
       IsTrigger: false
   - Entity: 7604122325031572550
@@ -16238,7 +16238,7 @@ Entities:
     TransformComponent:
       Translation: [46.2419, 42.8673, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.33277, 9.71986, 1]
+      Scale: [4.60074, 7.71109, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16250,7 +16250,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.385808, 0.0514411, 2]
+      Size: [0.195621, 0.0648417, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6094567217472203614
@@ -16261,7 +16261,7 @@ Entities:
     TransformComponent:
       Translation: [48.3534, 43.2196, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.65758, 9.66391, 1]
+      Scale: [4.28837, 7.18753, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16273,7 +16273,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.338655, 0.0517389, 2]
+      Size: [0.209871, 0.0695649, 2]
       Layer: World
       IsTrigger: false
   - Entity: 4947519522042714560
@@ -16284,7 +16284,7 @@ Entities:
     TransformComponent:
       Translation: [50.3069, 42.1174, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.06185, 9.27832, 1]
+      Scale: [4.6048, 8.38485, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16296,7 +16296,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.436501, 0.0538891, 2]
+      Size: [0.195448, 0.0596314, 2]
       Layer: World
       IsTrigger: false
   - Entity: 2388962035970939535
@@ -16307,7 +16307,7 @@ Entities:
     TransformComponent:
       Translation: [56.346, 42.6359, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.35067, 9.79448, 1]
+      Scale: [4.63604, 7.77029, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16319,7 +16319,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.382869, 0.0510492, 2]
+      Size: [0.194131, 0.0643477, 2]
       Layer: World
       IsTrigger: false
   - Entity: 1161990889107739429
@@ -16330,7 +16330,7 @@ Entities:
     TransformComponent:
       Translation: [53.5775, 44.6466, 2]
       Rotation: [0, 0, 0]
-      Scale: [2.04471, 9.20121, 1]
+      Scale: [4.56652, 8.31517, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -16342,7 +16342,7 @@ Entities:
       Facing: Upright
     BoxColliderComponent:
       Offset: [0, 0, 1]
-      Size: [0.440159, 0.0543407, 2]
+      Size: [0.197086, 0.0601311, 2]
       Layer: World
       IsTrigger: false
   - Entity: 6452636551765709734

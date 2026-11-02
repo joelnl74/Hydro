@@ -386,6 +386,8 @@ namespace Hydro
 			overlay.Selected = m_HierarchyWindow->GetSelectedEntity();
 			overlay.SelectionOutline = m_ShowSelectionOutline;
 			overlay.Colliders = m_ShowColliders;
+			overlay.PostProcessing = m_EditorSettings.EditorViewPostProcessing;
+			overlay.Fog = m_EditorSettings.EditorViewFog;
 			m_TerrainTool.FillOverlay(overlay);
 			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera, overlay);
 		}
@@ -727,6 +729,19 @@ namespace Hydro
 					if (ImGui::MenuItem("Focus Selected", "F", false, (bool)m_HierarchyWindow->GetSelectedEntity()))
 						FocusEntity(m_HierarchyWindow->GetSelectedEntity());
 
+					ImGui::EndMenu();
+				}
+
+				// The scene's look in this view (EditorSettings; off keeps the view sharp to edit in). Kept until the
+				// settings are saved in the Editor Settings window.
+				if (ImGui::BeginMenu("Effects"))
+				{
+					ImGui::MenuItem("Post-Processing", nullptr, &m_EditorSettings.EditorViewPostProcessing);
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("Depth of field and bloom, as in the Game view");
+					}
+					ImGui::MenuItem("Fog", nullptr, &m_EditorSettings.EditorViewFog);
 					ImGui::EndMenu();
 				}
 
