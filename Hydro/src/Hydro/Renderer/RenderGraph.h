@@ -10,19 +10,11 @@
 
 namespace Hydro
 {
-	// The fixed-stage RenderGraph v1 (3D renderer MVP plan, "Render features and presets"): features are
-	// validated once, add their passes at fixed stages and declare what they read and write; the frame
-	// runs the resulting pass list. Deliberately small: no dependency tracking, no automatic barriers or
-	// resource scheduling, no transient resources, no pass culling, no plugin registry, no graph editor
-	// (the dependency-aware graph, Roadmap RA6, comes later). Layout transitions stay hand-written in the
-	// few places listed in the plan.
+	// A view's frame as a list of passes at fixed stages, added by render features that are validated once. Small on
+	// purpose: no dependency tracking, automatic barriers or transient resources (see docs/Architecture.md).
 
-	// Where a pass runs, in this order. BeforeScene passes render into their own targets before the view's
-	// target is begun. Without HDR every other stage records into the view's one rendering pass (PostProcess
-	// and Resolve have no passes then). With HDR (a Resolve pass in the graph) the frame is split:
-	//   the scene pass   Opaque, Translucent, AfterLighting into the HDR scene colour (and the view's depth and ID),
-	//   PostProcess      outside any pass (bloom: their own targets, reading the scene colour),
-	//   the output pass  Resolve, Overlay, Debug into the view's colour (its depth and ID loaded).
+	// Where a pass runs, in this order. Without HDR the stages after BeforeScene share the view's one rendering pass;
+	// with HDR the scene pass ends after AfterLighting, PostProcess runs outside any pass, and the output pass follows.
 	enum class RenderStage : uint8_t
 	{
 		BeforeScene = 0, // the 2D light buffer, the sun shadow map
@@ -38,8 +30,7 @@ namespace Hydro
 
 	const char* RenderStageToString(RenderStage stage);
 
-	// Backend data a pass records with (the command buffer, the frame in flight, the view). Defined by the
-	// backend (Platform/Vulkan/VulkanRenderViewData.h); features only pass it on.
+	// The command buffer, frame in flight and view a pass records with. Defined by the backend (VulkanRenderViewData.h).
 	struct RenderPassContext;
 
 	struct RenderPassDeclaration
@@ -66,17 +57,15 @@ namespace Hydro
 	class RenderGraphBuilder
 	{
 	public:
-		// A resource made outside the graph: the view's target images (read by ImGui, captures and picking
-		// after the graph), asset textures. Never flagged as "read before written".
+		// A resource made outside the graph (the view's target images, asset textures): never "read before written".
 		void ImportResource(const std::string& name);
 		void AddPass(RenderPassDeclaration pass);
 		// Attachments a feature needs on the view's target.
 		void RequireDepthAttachment(ImageFormat format) { m_DepthFormat = format; }
 		void RequireEntityIDAttachment() { m_EntityID = true; }
-		// An HDR scene colour target the scene pass draws into (P1), instead of the view's own colour.
+		// An HDR scene colour the scene pass draws into instead of the view's own colour.
 		void RequireSceneColor(ImageFormat format) { m_SceneColorFormat = format; }
-		// The depth attachment is sampled between the scene pass and the output pass (depth of field): the view's
-		// target leaves it readable after each pass.
+		// The depth is sampled between the scene pass and the output pass (depth of field), so it is left readable.
 		void RequireSampledDepth() { m_SampledDepth = true; }
 
 	private:
@@ -92,18 +81,17 @@ namespace Hydro
 		friend class RenderGraph;
 	};
 
-	// A piece of the frame. Checked and set up when the render graph is built, never per frame. One
-	// instance per view's graph, so a feature may keep per-view state between its passes (the light
-	// buffer knows whether it was drawn this frame).
+	// A piece of the frame, checked and set up when the graph is built, never per frame. One instance per view's
+	// graph, so it may keep per-view state between its passes.
 	class RenderFeature
 	{
 	public:
 		virtual ~RenderFeature() = default;
 		virtual const char* GetName() const = 0;
 
-		// Problems with the settings, the other features or the GPU. An error leaves this feature out;
-		// a warning keeps it.
-		virtual void Validate([[maybe_unused]] const RenderGraphContext& context, [[maybe_unused]] std::vector<RenderValidationMessage>& out) const {}
+		// An error leaves this feature out; a warning keeps it.
+		virtual void Validate([[maybe_unused]] const RenderGraphContext& context,
+			[[maybe_unused]] std::vector<RenderValidationMessage>& out) const {}
 
 		// Declares imported resources and attachments, and adds the feature's passes.
 		virtual void Setup(RenderGraphBuilder& builder) = 0;
@@ -120,8 +108,7 @@ namespace Hydro
 	class RenderGraph
 	{
 	public:
-		// Validates every feature, sets up the ones without errors, then checks the declared reads. The
-		// messages are kept (GetValidationMessages) and logged once.
+		// Sets up the features that validate without errors, then checks the declared reads. Messages are logged once.
 		RenderGraph(std::vector<Scope<RenderFeature>> features, const RenderGraphContext& context, const std::string& viewName);
 
 		RenderGraph(const RenderGraph&) = delete;
@@ -132,7 +119,7 @@ namespace Hydro
 		bool HasPasses(RenderStage stage) const;
 		// Whether a pass of that name made it into the graph (its feature passed validation).
 		bool HasPass(const std::string& name) const;
-		// Every pass, sorted by stage (stable), for backends that wrap each pass (debug labels, timers).
+		// Sorted by stage (stable), for backends that wrap each pass (debug labels, timers).
 		const std::vector<RenderPassDeclaration>& GetPasses() const { return m_Passes; }
 
 		const std::vector<RenderValidationMessage>& GetValidationMessages() const { return m_Messages; }
@@ -146,7 +133,8 @@ namespace Hydro
 		bool NeedsSampledDepth() const { return m_SampledDepth; }
 
 		// Validation only, for settings UI: the messages a graph built from `context` would report.
-		static std::vector<RenderValidationMessage> Validate(const std::vector<Scope<RenderFeature>>& features, const RenderGraphContext& context);
+		static std::vector<RenderValidationMessage> Validate(const std::vector<Scope<RenderFeature>>& features,
+			const RenderGraphContext& context);
 
 	private:
 		std::vector<Scope<RenderFeature>> m_Features;

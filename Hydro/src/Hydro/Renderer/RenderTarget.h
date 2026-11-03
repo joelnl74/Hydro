@@ -9,21 +9,17 @@
 
 namespace Hydro
 {
-	// The images a view (or an effect such as the 2D light buffer) renders into. Made by
-	// VulkanRenderTarget; with dynamic rendering there are no VkRenderPass or VkFramebuffer objects,
-	// so pipelines are built from these formats (PipelineSpecification::ColorFormats / DepthFormat).
+	// The images a view or effect renders into. With dynamic rendering there are no render passes, so pipelines are
+	// built from these formats.
 	struct RenderTargetSpecification
 	{
 		uint32_t Width = 1;
 		uint32_t Height = 1;
-		// One image per entry, in attachment order (location 0, 1, ... in the fragment shader). May be empty
-		// for a depth-only target (a shadow map), which then needs a DepthFormat.
+		// One image per entry, in attachment order. May be empty for a depth-only target, which then needs a DepthFormat.
 		std::vector<ImageFormat> ColorFormats = { ImageFormat::SRGB };
 		// ImageFormat::None: no depth attachment.
 		ImageFormat DepthFormat = ImageFormat::None;
-		// The depth attachment is sampled after End (a shadow map; a view's depth read by the depth of field):
-		// End moves it to SHADER_READ_ONLY_OPTIMAL, the next Begin back to its attachment layout.
-		// Otherwise it stays in its attachment layout.
+		// The depth is sampled after End (a shadow map, the depth of field): End moves it to SHADER_READ_ONLY_OPTIMAL.
 		bool SampledDepth = false;
 		// An extra R32I colour attachment after ColorFormats, for click-to-select (Editor view only).
 		bool EntityID = false;

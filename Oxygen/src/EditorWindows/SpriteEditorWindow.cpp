@@ -171,7 +171,8 @@ namespace Hydro
 		}
 
 		SyncRowNamesToConfig();
-		std::vector<SpriteRegion> sliced = SpriteSlicer::SliceGrid(m_Texture->GetWidth(), m_Texture->GetHeight(), m_Config.Slicing, m_Path.stem().u8string());
+		std::vector<SpriteRegion> sliced = SpriteSlicer::SliceGrid(m_Texture->GetWidth(), m_Texture->GetHeight(), m_Config.Slicing,
+			m_Path.stem().u8string());
 
 		// A sprite whose rectangle didn't move keeps the pivot it was given.
 		for (SpriteRegion& sprite : sliced)
@@ -438,7 +439,8 @@ namespace Hydro
 			}
 		});
 		PropertyUI::Row("Position", [&]() { m_Dirty |= PropertyUI::InputUVec2("##Position", sprite.Position, 0, m_Texture->GetWidth()); });
-		PropertyUI::Row("Size", [&]() { m_Dirty |= PropertyUI::InputUVec2("##Size", sprite.Size, 1, std::max(m_Texture->GetWidth(), m_Texture->GetHeight())); });
+		PropertyUI::Row("Size", [&]()
+			{ m_Dirty |= PropertyUI::InputUVec2("##Size", sprite.Size, 1, std::max(m_Texture->GetWidth(), m_Texture->GetHeight())); });
 		PropertyUI::Row("Pivot", [&]() { m_Dirty |= DrawPivotField("##Pivot", sprite.Pivot); });
 
 		const float half = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
@@ -478,7 +480,8 @@ namespace Hydro
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 		// A frame behind the image so transparent parts are visible against the window.
-		drawList->AddRectFilled(origin, { origin.x + drawnSize.x, origin.y + drawnSize.y }, ImGui::GetColorU32(ImGuiCol_FrameBg));
+		drawList->AddRectFilled(origin, { origin.x + drawnSize.x, origin.y + drawnSize.y },
+			ImGui::GetColorU32(ImGuiCol_FrameBg));
 		ImGui::Image((ImTextureID)Renderer2D::GetImGuiTexture(m_Texture), drawnSize);
 		const bool imageHovered = ImGui::IsItemHovered();
 

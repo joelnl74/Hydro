@@ -1,0 +1,77 @@
+{
+  "character": {
+    "id": "ef1920a7-d4a2-459b-bec9-d3891ff5ac28",
+    "name": "walk",
+    "prompt": "HD-2D JRPG field sprite, three heads tall, slender proportions, small expressive face, selective dark coloured outline, hue-shifted shading with warm highlights and cool shadows, single soft key light from top-left, subtle rim light, limited palette, crisp clean pixel clusters, no dithering noise, feet at bottom of canvas, transparent background, no ground shadow\n\nburly village blacksmith, broad shoulders and thick forearms, about three heads tall. Keep these features: short dark hair, thick dark beard, soot smudges on the cheeks, sleeveless charcoal wool shirt, heavy dark leather apron reaching the knees with scorch marks, thick leather gloves tucked into the belt, worn leather bracers on the forearms, a smithing hammer held at his side, tongs hanging from the belt, dark trousers tucked into heavy boots. Gruff but kind face. Relaxed standing idle facing the viewer. Accent colour: the orange glow of a heated iron spot on the hammer head. Same art style as the style character: match its pixel grain, selective coloured outline and shading ramps, but not its costume. HD-2D JRPG field sprite, muted earthy medieval colours, selective dark brown outline, no black outline, hue-shifted shading with warm highlights and cool shadows, soft light from top-left, crisp clean pixel clusters, transparent background, no ground shadow",
+    "size": {
+      "width": 96,
+      "height": 96
+    },
+    "directions": 8,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "HD-2D_JRPG_field_sprite-walk.png",
+    "cell_size": {
+      "width": 128,
+      "height": 128
+    },
+    "sheet_size": {
+      "width": 1024,
+      "height": 640
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      },
+      {
+        "row": 1,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "f93add22-5b7e-4f3a-91c4-304c7b6e821d",
+        "direction": "south"
+      },
+      {
+        "row": 2,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "f93add22-5b7e-4f3a-91c4-304c7b6e821d",
+        "direction": "east"
+      },
+      {
+        "row": 3,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "f93add22-5b7e-4f3a-91c4-304c7b6e821d",
+        "direction": "north"
+      },
+      {
+        "row": 4,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "f93add22-5b7e-4f3a-91c4-304c7b6e821d",
+        "direction": "west"
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-10-31T17:30:31.585353+00:00"
+}

@@ -1,0 +1,10 @@
+Handle: 2027616071729114627
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: "...The shrine is quiet. A breath of wind, and somewhere a little bell rings."

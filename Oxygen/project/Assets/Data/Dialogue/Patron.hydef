@@ -1,0 +1,12 @@
+Handle: 6587077769872871563
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: Best stew this side of the mountain. Don't tell the innkeeper I said so.
+      - Speaker: ""
+        Text: You're from the shrine? My grandmother swore the old stones under the bridge were carved by the same hands.

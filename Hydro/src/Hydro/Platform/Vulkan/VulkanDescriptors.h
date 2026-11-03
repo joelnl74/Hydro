@@ -13,15 +13,8 @@ namespace Hydro
 		VkDescriptorPool Pool = VK_NULL_HANDLE;
 	};
 
-	// Descriptor set layouts and descriptor sets for the whole renderer (plan M2b). Started and stopped by
-	// Renderer::Init / Shutdown.
-	//
-	// - Layouts come from a cache: one per distinct list of bindings, kept until Shutdown. Builders with the
-	//   same bindings share a layout, so their sets and the pipelines built from either are compatible.
-	// - Persistent sets (a view's texture sets, materials from M4) come from growable pools and are freed
-	//   one by one through the deletion queue, after the frames that may still bind them.
-	// - Per-frame sets are valid for the frame being recorded only: their pools belong to that frame in
-	//   flight and are reset (all at once) right after its fence has signalled. Never keep one past the frame.
+	// Descriptor set layouts (cached per binding list, so equal bindings are compatible), persistent sets (freed
+	// through the deletion queue) and per-frame sets (reset after the frame's fence: never keep one past the frame).
 	class VulkanDescriptorAllocator
 	{
 	public:
@@ -29,16 +22,16 @@ namespace Hydro
 		// After the deletion queue is flushed (persistent sets are freed through it).
 		static void Shutdown();
 
-		// The layout for `bindings` (no immutable samplers), made the first time it is asked for.
+		// Made the first time it is asked for (no immutable samplers).
 		static VkDescriptorSetLayout GetLayout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
 
 		static DescriptorAllocation AllocatePersistent(VkDescriptorSetLayout layout);
 		// Through the deletion queue: frames in flight may still have it bound.
 		static void FreePersistent(const DescriptorAllocation& allocation);
 
-		// A set for the frame being recorded (Renderer::GetRenderFrame()); gone when that frame slot is next used.
+		// Valid for the frame being recorded only.
 		static VkDescriptorSet AllocateFrame(VkDescriptorSetLayout layout);
-		// Called by Renderer::BeginFrame after the frame's fence: the frame's pools are reset.
+		// After the frame's fence (Renderer::BeginFrame).
 		static void ResetFrame(uint32_t frameIndex);
 	};
 }

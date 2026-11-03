@@ -1,0 +1,62 @@
+Handle: 653601014895859085
+DataTable:
+  Version: 1
+  Type: SignDefinition
+  Rows:
+    Crossroads:
+      Lines:
+        - "North: the shrine road. South: the city gate"
+        - "East: Nishida farm. West: the cedar wood"
+    RiddlePond:
+      Lines:
+        - "Where the cherry weeps into the water,"
+        - "it keeps what the pond once swallowed."
+    RiddleKura:
+      Lines:
+        - "The storehouse turns its back to the sun;"
+        - "what it keeps, it keeps behind."
+    RiddleCedar:
+      Lines:
+        - "Past the camp, where no path goes,"
+        - "the oldest cedar keeps a ronin's oath."
+    RiddleShrine:
+      Lines:
+        - "Toward the setting sun, at the top of the stairs,"
+        - "the mountain keeps a gift for those who climb."
+    RiddleRoots:
+      Lines:
+        - "The roots drink from the leyline;"
+        - "what they cannot hold, they hide."
+    FoxShrine:
+      Lines:
+        - "Inari's shrine. Five charms were offered here,"
+        - "and the wind took them. Bring them home."
+    Default:
+      Lines:
+        - Shrine Glade Inn
+        - "Village: south"
+    Shrine:
+      Lines:
+        - Shrine Glade Inn
+        - "Village: south"
+    Village:
+      Lines:
+        - Shrine Glade Inn
+        - "Village: south"
+    CityNotices:
+      Lines:
+        - "A notice: the guild hall seeks hands to carry rice in from the farms."
+        - "Another, half torn away: a reward for word of the lights in the cedar wood."
+    Palanquin:
+      Lines:
+        - "A lacquered palanquin, its blind drawn. Someone of rank is staying at the inn."
+    HorsePost:
+      Lines:
+        - "A tethering post and a trough of fresh water. The horse that drank here is long gone."
+    TempleNotices:
+      Lines:
+        - "Prayer slips for safe roads. One ink stroke per wish, the abbot asks."
+        - "Below, in a smaller hand: the bell is not to be rung after dusk. Not by anyone."
+    TempleRoad:
+      Lines:
+        - "West, up the hill: the temple. Follow the lanterns."

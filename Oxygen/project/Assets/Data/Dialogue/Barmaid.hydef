@@ -1,0 +1,12 @@
+Handle: 2074513754332297624
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: Welcome! The inn's door is just there. A night's rest puts anyone right.
+      - Speaker: ""
+        Text: Travellers say the road east goes all the way to the sea. I wouldn't know.

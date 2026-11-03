@@ -37,11 +37,110 @@ namespace Hydro
 
 		scene.BeginStage();
 
+		// All new scripts are made and given their properties, then their OnCreate run, then every OnUpdate. So an
+		// OnCreate can find another entity's script with its properties set, whatever the entity order.
+		struct NewScript
+		{
+			entt::entity Handle;
+			size_t Index;
+			ScriptableEntity* Instance;
+		};
+		std::vector<NewScript> created;
+
 		for (const entt::entity entityHandle : entities)
 		{
 			const Entity entity{ entityHandle, &scene };
 
-			if (scene.m_Registry.valid(entityHandle) == false || scene.m_Registry.has<NativeScriptComponent>(entityHandle) == false || scene.IsPendingDestroy(entity))
+			if (scene.m_Registry.valid(entityHandle) == false || scene.m_Registry.has<NativeScriptComponent>(entityHandle) == false
+				|| scene.IsPendingDestroy(entity))
+			{
+				continue;
+			}
+
+			auto& scripts =
+				scene.m_Registry
+					.get<NativeScriptComponent>(entityHandle)
+					.Scripts;
+
+			for (size_t index = 0; index < scripts.size(); index++)
+			{
+				NativeScriptComponent::Script& script =
+					scripts[index];
+
+				if (script.Instantiate == nullptr || script.PendingRemove || script.Instance != nullptr)
+				{
+					continue;
+				}
+
+				script.Instance.reset(
+					script.Instantiate());
+
+				if (script.Instance == nullptr)
+				{
+					continue;
+				}
+
+				script.Instance->m_Entity = entity;
+
+				// Apply exposed values before any OnCreate.
+				if (ScriptTypeInfo* typeInfo =
+						ScriptRegistry::FindType(script.Name))
+				{
+					for (const ScriptProperty& property :
+						typeInfo->Properties)
+					{
+						auto it =
+							script.Properties.find(
+								property.Name);
+
+						if (it == script.Properties.end())
+						{
+							continue;
+						}
+
+						if (property.Apply == nullptr)
+						{
+							continue;
+						}
+
+						property.Apply(
+							*script.Instance,
+							it->second);
+					}
+				}
+
+				created.push_back({ entityHandle, index, script.Instance.get() });
+			}
+		}
+
+		// Still the script made above: an earlier OnCreate may have destroyed its entity or removed it.
+		auto stillThere = [&scene](const NewScript& item) -> bool
+		{
+			const Entity entity{ item.Handle, &scene };
+			if (scene.m_Registry.valid(item.Handle) == false || scene.m_Registry.has<NativeScriptComponent>(item.Handle) == false
+				|| scene.IsPendingDestroy(entity))
+			{
+				return false;
+			}
+			const auto& scripts = scene.m_Registry.get<NativeScriptComponent>(item.Handle).Scripts;
+			return item.Index < scripts.size() && scripts[item.Index].PendingRemove == false
+				&& scripts[item.Index].Instance.get() == item.Instance;
+		};
+
+		for (const NewScript& item : created)
+		{
+			if (stillThere(item))
+			{
+				item.Instance->OnCreate();
+			}
+		}
+
+		for (const entt::entity entityHandle : entities)
+		{
+			const Entity entity{ entityHandle, &scene };
+
+			if (scene.m_Registry.valid(entityHandle) == false || scene.m_Registry.has<NativeScriptComponent>(entityHandle) == false
+				|| scene.IsPendingDestroy(entity))
 			{
 				continue;
 			}
@@ -71,68 +170,14 @@ namespace Hydro
 				NativeScriptComponent::Script& script =
 					scripts[index];
 
-				if (script.Instantiate == nullptr || script.PendingRemove)
+				// A script bound during this frame's OnCreate / OnUpdate is made next frame.
+				if (script.Instance == nullptr || script.PendingRemove)
 				{
 					continue;
 				}
 
-				if (script.Instance == nullptr)
-				{
-					script.Instance.reset(
-						script.Instantiate());
-
-					if (script.Instance == nullptr)
-					{
-						continue;
-					}
-
-					script.Instance->m_Entity = entity;
-
-					// Apply exposed values before OnCreate.
-					if (ScriptTypeInfo* typeInfo =
-							ScriptRegistry::FindType(script.Name))
-					{
-						for (const ScriptProperty& property :
-							typeInfo->Properties)
-						{
-							auto it =
-								script.Properties.find(
-									property.Name);
-
-							if (it == script.Properties.end())
-							{
-								continue;
-							}
-
-							if (property.Apply == nullptr)
-							{
-								continue;
-							}
-
-							property.Apply(
-								*script.Instance,
-								it->second);
-						}
-					}
-
-					ScriptableEntity* instance =
-						script.Instance.get();
-
-					instance->OnCreate();
-
-					if (scene.IsPendingDestroy(entity))
-					{
-						break;
-					}
-
-					instance->OnUpdate(
-						context.DeltaTime);
-				}
-				else
-				{
-					script.Instance->OnUpdate(
-						context.DeltaTime);
-				}
+				script.Instance->OnUpdate(
+					context.DeltaTime);
 			}
 		}
 

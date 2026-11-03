@@ -1,0 +1,12 @@
+Handle: 1470308436504009792
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: "Washi, brushes, ink sticks. The guild hall buys more paper than the temple these days."
+      - Speaker: ""
+        Text: "Everyone in this city is writing to someone. Mostly about money."

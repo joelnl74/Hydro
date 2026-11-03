@@ -1,0 +1,65 @@
+Handle: 6616718844402080283
+Definition:
+  Version: 1
+  Type: InventoryDefinition
+  Values:
+    Items:
+      - Item: {Table: 4741649512266718899, Row: Potion}
+        Count: 3
+      - Item: {Table: 4741649512266718899, Row: HiPotion}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: Ether}
+        Count: 2
+      - Item: {Table: 4741649512266718899, Row: HerbTea}
+        Count: 2
+      - Item: {Table: 4741649512266718899, Row: IronSword}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: HerbBundle}
+        Count: 4
+      - Item: {Table: 4741649512266718899, Row: PhoenixFeather}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: CrystalShard}
+        Count: 2
+      - Item: {Table: 4741649512266718899, Row: LeatherBoots}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: Antidote}
+        Count: 2
+      - Item: {Table: 4741649512266718899, Row: AncientKey}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: CopperOre}
+        Count: 5
+      - Item: {Table: 4741649512266718899, Row: OldMap}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: ShrineCharm}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: LanternOil}
+        Count: 3
+      - Item: {Table: 4741649512266718899, Row: Rope}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: SmokedFish}
+        Count: 2
+      - Item: {Table: 4741649512266718899, Row: SpringWater}
+        Count: 3
+      - Item: {Table: 4741649512266718899, Row: NewItem}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: PineResin}
+        Count: 2
+      - Item: {Table: 4741649512266718899, Row: FoxMask}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: NewItem}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: PineResin}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: Potion}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: Tekko}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: ShrineRobe}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: WardTome}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: Headband}
+        Count: 1
+      - Item: {Table: 4741649512266718899, Row: PrayerBeads}
+        Count: 1
+    Money: 50

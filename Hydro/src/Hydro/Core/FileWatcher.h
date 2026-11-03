@@ -5,17 +5,14 @@
 
 namespace Hydro
 {
-	// Watches a fixed set of files by comparing their last-write times when Poll() is called.
-	// Meant for a handful of files polled a few times per second (shader hot reload), not for
-	// watching whole directories.
+	// Watches a few files by comparing last-write times on Poll (shader hot reload), not whole directories.
 	class FileWatcher
 	{
 	public:
 		FileWatcher() = default;
 		explicit FileWatcher(const std::vector<std::filesystem::path>& files);
 
-		// True when any watched file was modified, created or deleted since the previous call
-		// (or since construction). Never throws.
+		// True when a watched file was modified, created or deleted since the previous call. Never throws.
 		bool Poll();
 
 		const std::vector<std::filesystem::path>& GetFiles() const { return m_Paths; }

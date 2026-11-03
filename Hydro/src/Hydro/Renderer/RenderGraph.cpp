@@ -37,7 +37,8 @@ namespace Hydro
 		m_PassFeatures.push_back(m_CurrentFeature);
 	}
 
-	std::vector<RenderValidationMessage> RenderGraph::Validate(const std::vector<Scope<RenderFeature>>& features, const RenderGraphContext& context)
+	std::vector<RenderValidationMessage> RenderGraph::Validate(const std::vector<Scope<RenderFeature>>& features,
+		const RenderGraphContext& context)
 	{
 		std::vector<RenderValidationMessage> messages;
 		for (const Scope<RenderFeature>& feature : features)

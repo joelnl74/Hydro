@@ -26,7 +26,9 @@ namespace Hydro
 		ImGui::SameLine();
 		ImGui::TextDisabled("(?)");
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("%s", text);
+		}
 	}
 
 	// Warning / error colours that stay readable on light and dark themes (as the Console's).
@@ -107,6 +109,8 @@ namespace Hydro
 		changed |= ImGui::Checkbox("Depth of field", &features.DepthOfField);
 		ImGui::EndDisabled();
 		HelpMarker("Blurs what lies far in front of or behind where the camera looks, so the band the player walks in\nstays sharp (the tilt-shift look of a model). Needs HDR and shared depth. Distances and blur: Look (scene).");
+		changed |= ImGui::Checkbox("Pixel snap", &features.PixelSnap);
+		HelpMarker("Keeps pixel-art textures from shimmering while the camera moves: the Game view's camera moves in whole screen pixels (at its focus point), and light, shadows and fog are taken texel by texel on meshes, terrain and lit sprites, so a shadow edge steps along the art's pixels. The Editor view's camera moves freely.");
 
 		// Errors leave the feature out (the frame still draws); warnings keep it.
 		const std::vector<RenderValidationMessage> messages = Renderer2D::ValidateRenderFeatures(features, false);
@@ -210,7 +214,8 @@ namespace Hydro
 		drawSource("Environment from", look.Environment);
 		if (look.Environment == RenderLookSource::Profile && profile != nullptr)
 		{
-			ImGui::TextDisabled("Shared: edits change every scene using %s.", AssetManager::GetAbsolutePath(look.Profile).filename().u8string().c_str());
+			ImGui::TextDisabled("Shared: edits change every scene using %s.",
+				AssetManager::GetAbsolutePath(look.Profile).filename().u8string().c_str());
 			RenderLookUI::EditProfile(profile, true, false);
 		}
 		else
@@ -236,7 +241,8 @@ namespace Hydro
 		drawSource("Post-processing from", look.PostProcess);
 		if (look.PostProcess == RenderLookSource::Profile && profile != nullptr)
 		{
-			ImGui::TextDisabled("Shared: edits change every scene using %s.", AssetManager::GetAbsolutePath(look.Profile).filename().u8string().c_str());
+			ImGui::TextDisabled("Shared: edits change every scene using %s.",
+				AssetManager::GetAbsolutePath(look.Profile).filename().u8string().c_str());
 			RenderLookUI::EditProfile(profile, false, true);
 		}
 		else
@@ -260,7 +266,9 @@ namespace Hydro
 	void RenderSettingsWindow::OnImguiRender(Scene* editorScene, Scene* activeScene)
 	{
 		if (m_Open == false)
+		{
 			return;
+		}
 
 		ImGui::SetNextWindowSize(ImVec2(380.0f, 420.0f), ImGuiCond_FirstUseEver);
 		if (ImGui::Begin("Render Settings", &m_Open) == false)
@@ -347,8 +355,7 @@ namespace Hydro
 			}
 			else
 			{
-				// Edits go to the editor scene (what is saved) and, while playing, to the running copy too,
-				// so the change is visible at once. Saved with the scene (File > Save Scene).
+				// Edits go to the editor scene (what is saved) and, while playing, to the running copy too.
 				SceneRenderSettings sceneSettings = editorScene->GetRenderSettings();
 				bool sceneChanged = ImGui::Checkbox("Override the project", &sceneSettings.OverrideProject);
 				HelpMarker("Give this scene its own render features (a 3D area in a 2D project, say).");
@@ -400,14 +407,17 @@ namespace Hydro
 		}
 
 		if (changed)
+		{
 			Renderer::SetSettings(settings);
+		}
 
 		// ---- Device (read-only) ------------------------------------------------
 		if (ImGui::CollapsingHeader("Device") && StatsUI::BeginStatTable("##render_device"))
 		{
 			const Statistics stats = Renderer2D::GetStats();
 			StatsUI::Row("GPU", "%s", capabilities.GPUName);
-			StatsUI::Row("Vulkan", "%u.%u.%u", capabilities.VulkanVersionMajor, capabilities.VulkanVersionMinor, capabilities.VulkanVersionPatch);
+			StatsUI::Row("Vulkan", "%u.%u.%u", capabilities.VulkanVersionMajor, capabilities.VulkanVersionMinor,
+				capabilities.VulkanVersionPatch);
 			StatsUI::Row("Frames in flight", "%u", capabilities.FramesInFlight);
 			StatsUI::Row("Viewport", "%u x %u", stats.ViewportWidth, stats.ViewportHeight);
 			StatsUI::Row("Quads per batch", "%u", stats.MaxQuadsPerBatch);
@@ -416,11 +426,13 @@ namespace Hydro
 			StatsUI::Row("Independent blend", "%s", capabilities.IndependentBlend ? "yes" : "no");
 			StatsUI::Row("Dynamic rendering", "%s", capabilities.DynamicRendering ? "yes" : "no");
 			StatsUI::Row("Synchronization2", "%s", capabilities.Synchronization2 ? "yes" : "no");
-			StatsUI::Row("Sampler anisotropy", "%s (max %.0f)", capabilities.SamplerAnisotropy ? "yes" : "no", capabilities.MaxSamplerAnisotropy);
+			StatsUI::Row("Sampler anisotropy", "%s (max %.0f)", capabilities.SamplerAnisotropy ? "yes" : "no",
+				capabilities.MaxSamplerAnisotropy);
 			StatsUI::Row("Descriptor indexing", "%s", capabilities.DescriptorIndexing ? "supported (not enabled)" : "no");
 			StatsUI::Row("Push constants", "%u bytes", capabilities.MaxPushConstantsSize);
 			StatsUI::Row("Sampled images / stage", "%u", capabilities.MaxSampledImagesPerStage);
-			StatsUI::Row("Depth formats", "D32F %s, D24S8 %s", capabilities.DepthFormat32F ? "yes" : "no", capabilities.DepthFormat24Stencil8 ? "yes" : "no");
+			StatsUI::Row("Depth formats", "D32F %s, D24S8 %s", capabilities.DepthFormat32F ? "yes" : "no",
+				capabilities.DepthFormat24Stencil8 ? "yes" : "no");
 			ImGui::EndTable();
 		}
 
@@ -436,20 +448,31 @@ namespace Hydro
 			const bool unsaved = SameSettings(Renderer::GetSettings(), project->GetConfig().Renderer) == false;
 
 			if (ImGui::Button("Save to project") && OnSaveProject)
+			{
 				OnSaveProject();
+			}
 			ImGui::SameLine();
 			ImGui::BeginDisabled(unsaved == false);
 			if (ImGui::Button("Revert"))
+			{
 				Renderer::SetSettings(project->GetConfig().Renderer);
+			}
 			ImGui::EndDisabled();
 			ImGui::SameLine();
 			if (ImGui::Button("Defaults"))
+			{
 				Renderer::SetSettings(RendererSettings());
+			}
 
 			if (unsaved)
-				ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "Unsaved changes (%s)", project->GetProjectFilePath().filename().string().c_str());
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "Unsaved changes (%s)",
+					project->GetProjectFilePath().filename().string().c_str());
+			}
 			else
+			{
 				ImGui::TextDisabled("Saved in %s", project->GetProjectFilePath().filename().string().c_str());
+			}
 		}
 
 		ImGui::End();

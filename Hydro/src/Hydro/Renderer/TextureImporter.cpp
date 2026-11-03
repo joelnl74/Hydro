@@ -5,8 +5,7 @@
 
 #include "Hydro/Renderer/Texture2D.h"
 
-// stb_image's implementation is compiled here, once for the whole engine (VulkanImage.cpp and
-// SpriteSlicer.cpp use it too). Vendored code: its warnings are not ours.
+// stb_image's implementation is compiled here, once for the engine. Vendored code: its warnings are not ours.
 #if defined(_MSC_VER)
 	#pragma warning(push, 0)
 #endif
@@ -21,8 +20,7 @@
 
 namespace Hydro
 {
-	// Pixels of exactly the key colour become fully transparent (and black, so linear filtering
-	// doesn't pull the key colour into the sprite's edge).
+	// Key-coloured pixels become transparent black, so linear filtering doesn't pull the key colour into the edge.
 	static void ApplyColorKey(uint8_t* pixels, size_t pixelCount, const glm::uvec3& key)
 	{
 		for (size_t i = 0; i < pixelCount; i++)
@@ -89,8 +87,7 @@ namespace Hydro
 		imported.Pixels.assign(decoded, decoded + (size_t)width * (size_t)height * 4);
 		stbi_image_free(decoded);
 
-		// A sheet whose .hymeta has slicing settings but no sprite list is sliced now (written by hand,
-		// or Mode: Auto). The sprites aren't written back; the file stays as it is.
+		// A sheet with slicing settings but no sprite list is sliced now; the sprites aren't written back.
 		if (config.Mode == SpriteMode::Multiple && config.Sprites.empty() && config.Slicing.Mode != SpriteSlicingMode::Manual)
 		{
 			if (config.Slicing.Mode == SpriteSlicingMode::Auto &&

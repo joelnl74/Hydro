@@ -17,10 +17,8 @@
 
 #include <cmath>
 
-// MVP0 spike (see the Jolt physics MVP page): proves Jolt builds and links, and that its Y-up defaults
-// are all replaced for a Z-up world. The layer setup below is the smallest Jolt accepts; the real one
-// belongs to PhysicsScene3D (MVP1) and is not built from this.
-// TODO(physics): remove once PhysicsScene3D has real tests.
+// Proves Jolt builds and links and that its Y-up defaults are all replaced for a Z-up world. The layer setup is
+// the smallest Jolt accepts. TODO(physics): remove once PhysicsScene3D has real tests.
 namespace Hydro
 {
 	static constexpr JPH::ObjectLayer s_SpikeLayerStatic = 0;
@@ -107,8 +105,7 @@ namespace Hydro
 				JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, s_SpikeLayerMoving),
 			JPH::EActivation::Activate);
 
-		// A slab that rises along +X: its top surface meets the floor at x = rampStartX and climbs at
-		// rampAngle. A rotation about +Y by a negative angle lifts the +X end.
+		// A slab rising along +X from x = rampStartX at rampAngle (a negative rotation about +Y lifts the +X end).
 		const float sinAngle = std::sin(rampAngle);
 		const float cosAngle = std::cos(rampAngle);
 		const JPH::RVec3 rampCentre(rampStartX + rampHalfLength * cosAngle + rampHalfThickness * sinAngle, 0.0f,
@@ -118,8 +115,7 @@ namespace Hydro
 				JPH::Quat::sRotation(JPH::Vec3::sAxisY(), -rampAngle), JPH::EMotionType::Static, s_SpikeLayerStatic),
 			JPH::EActivation::DontActivate);
 
-		// The character: Jolt's capsule stands along Y, so it is turned to stand along Z and lifted so
-		// that the character's position is its feet.
+		// Jolt's capsule stands along Y: turned to stand along Z and lifted so the position is its feet.
 		const float cylinderHalfHeight = 0.5f * (characterHeight - 2.0f * characterRadius);
 		const JPH::ShapeRefC characterShape = JPH::RotatedTranslatedShapeSettings(
 			JPH::Vec3(0.0f, 0.0f, 0.5f * characterHeight), JPH::Quat::sRotation(JPH::Vec3::sAxisX(), 0.5f * JPH::JPH_PI),
@@ -170,7 +166,8 @@ namespace Hydro
 		// The character should have walked up the ramp: grounded, with its feet on the ramp's surface.
 		const JPH::RVec3 feet = character->GetPosition();
 		const float surfaceZ = (static_cast<float>(feet.GetX()) - rampStartX) * std::tan(rampAngle);
-		const bool onRamp = static_cast<float>(feet.GetX()) > rampStartX + 2.0f && std::fabs(static_cast<float>(feet.GetZ()) - surfaceZ) < 0.1f;
+		const bool onRamp = static_cast<float>(feet.GetX()) > rampStartX + 2.0f
+			&& std::fabs(static_cast<float>(feet.GetZ()) - surfaceZ) < 0.1f;
 		const bool grounded = character->GetGroundState() == JPH::CharacterBase::EGroundState::OnGround;
 
 		HY_CORE_INFO("Physics: Jolt self test: box z {0} (expect 0.5), character feet ({1}, {2}, {3}), ramp surface z {4}, grounded {5}",

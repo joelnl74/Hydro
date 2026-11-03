@@ -2,6 +2,7 @@
 #include "SceneStack.h"
 
 #include "Hydro/Core/Log.h"
+#include "Hydro/Scene/GameSession.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/SceneSerializer.h"
 
@@ -13,6 +14,10 @@ namespace Hydro
 
 		SceneTransition::Clear();
 		SceneTransition::SetDepth(0);
+		SceneTransition::SetBelowName(std::string());
+
+		// A new run: a fresh game session before the first scene's scripts exist.
+		GameSession::Start();
 
 		m_Active = scene;
 		m_Active->OnRuntimeStart(); // builds the physics worlds
@@ -36,9 +41,15 @@ namespace Hydro
 
 		SceneTransition::Clear();
 		SceneTransition::SetDepth(0);
+		SceneTransition::SetBelowName(std::string());
+
+		// The run is over once its scenes (and their scripts' OnDestroy) are gone. A host that still holds a scene
+		// releases it before Stop, so those scripts end while the session exists.
+		GameSession::Stop();
 	}
 
-	SceneTransition::Type SceneStack::ProcessTransition(const std::filesystem::path& scenesDirectory, uint32_t viewportWidth, uint32_t viewportHeight)
+	SceneTransition::Type SceneStack::ProcessTransition(const std::filesystem::path& scenesDirectory, uint32_t viewportWidth,
+		uint32_t viewportHeight)
 	{
 		const SceneTransition::Request request = SceneTransition::Take();
 		if (request.Kind == SceneTransition::Type::None || m_Active == nullptr)
@@ -84,6 +95,7 @@ namespace Hydro
 
 		m_Active->OnViewportResize(viewportWidth, viewportHeight);
 		SceneTransition::SetDepth((uint32_t)m_Suspended.size());
+		SceneTransition::SetBelowName(m_Suspended.empty() ? std::string() : m_Suspended.back()->GetName());
 		return request.Kind;
 	}
 

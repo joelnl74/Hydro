@@ -1,0 +1,32 @@
+Handle: 8974298991319115416
+RenderProfile:
+  Environment:
+    SkyAmbient: [0.27, 0.2, 0.2]
+    GroundAmbient: [0.1, 0.07, 0.055]
+    Fog: true
+    FogColor: [0.72, 0.48, 0.4]
+    FogStart: 30
+    FogEnd: 260
+  PostProcess:
+    Exposure: 0
+    Bloom: true
+    BloomThreshold: 0.9
+    BloomKnee: 0.5
+    BloomIntensity: 0.85
+    BloomRadius: 1
+    DepthOfField: true
+    DofNearStart: 1
+    DofFarStart: 9
+    DofRange: 9
+    DofMaxRadius: 0.9
+    VignetteIntensity: 0.5
+    VignetteRadius: 0.42
+    VignetteSoftness: 0.6
+    Grading: true
+    Temperature: 0.06
+    Tint: 0.01
+    Contrast: 1.06
+    Saturation: 1.04
+    Lift: [0, 0, 0.003]
+    Gamma: [1, 1, 1]
+    Gain: [1.02, 1, 0.98]

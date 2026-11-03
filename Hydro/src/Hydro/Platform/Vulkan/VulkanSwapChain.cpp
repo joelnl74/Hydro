@@ -45,13 +45,21 @@ namespace Hydro
 
 		VkDevice device = m_Device->GetDevice();
 		for (VkFramebuffer framebuffer : oldFramebuffers)
+		{
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
 		for (VkImageView view : oldViews)
+		{
 			vkDestroyImageView(device, view, nullptr);
+		}
 		for (VkSemaphore semaphore : oldSemaphores)
+		{
 			vkDestroySemaphore(device, semaphore, nullptr);
+		}
 		if (oldSwapChain != VK_NULL_HANDLE)
+		{
 			vkDestroySwapchainKHR(device, oldSwapChain, nullptr);
+		}
 
 		return created;
 	}
@@ -141,7 +149,8 @@ namespace Hydro
 			viewInfo.image = m_Images[i];
 			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			viewInfo.format = m_SurfaceFormat.format;
-			viewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
+			viewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+				VK_COMPONENT_SWIZZLE_IDENTITY };
 			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			viewInfo.subresourceRange.baseMipLevel = 0;
 			viewInfo.subresourceRange.levelCount = 1;
@@ -172,16 +181,22 @@ namespace Hydro
 		VkDevice device = m_Device->GetDevice();
 
 		for (VkFramebuffer framebuffer : m_Framebuffers)
+		{
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
 		for (VkImageView view : m_ImageViews)
+		{
 			vkDestroyImageView(device, view, nullptr);
+		}
 		for (VkSemaphore semaphore : m_RenderFinishedSemaphores)
+		{
 			vkDestroySemaphore(device, semaphore, nullptr);
+		}
 
 		m_Framebuffers.clear();
 		m_ImageViews.clear();
 		m_RenderFinishedSemaphores.clear();
-		m_Images.clear(); // Owned by the swapchain.
+		m_Images.clear(); // owned by the swapchain
 
 		if (m_SwapChain != VK_NULL_HANDLE)
 		{
@@ -211,8 +226,7 @@ namespace Hydro
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 
-		// The image-acquired semaphore is waited on at COLOR_ATTACHMENT_OUTPUT, so the layout
-		// transition and the clear must not start before that stage.
+		// The acquire semaphore is waited on at COLOR_ATTACHMENT_OUTPUT: the transition and clear must not start before.
 		VkSubpassDependency dependency{};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependency.dstSubpass = 0;
@@ -316,19 +330,25 @@ namespace Hydro
 	{
 		// FIFO is always available and is true vsync (capped to the display rate).
 		if (vsync)
+		{
 			return VK_PRESENT_MODE_FIFO_KHR;
+		}
 
 		// Without vsync prefer mailbox (no tearing, uncapped), then immediate (may tear).
 		for (VkPresentModeKHR mode : availablePresentModes)
 		{
 			if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
+			{
 				return mode;
+			}
 		}
 
 		for (VkPresentModeKHR mode : availablePresentModes)
 		{
 			if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+			{
 				return mode;
+			}
 		}
 
 		return VK_PRESENT_MODE_FIFO_KHR;

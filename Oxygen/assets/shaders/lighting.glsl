@@ -26,6 +26,13 @@ bool IsForwardLit()
 	return lighting.counts.y == 1;
 }
 
+// Pixel stability (#136, RenderFeatureSettings::PixelSnap): lighting, shadows and fog are taken at the centre of the
+// texel a pixel samples (TexelCentreOffset in surface_derivatives.glsl), so they step texel by texel like the art.
+bool SnapsToTexels()
+{
+	return lighting.counts.w == 1;
+}
+
 // How much sunlight reaches `position` (1 = all, 0 = none, less shadow with a lower strength), looked up
 // `offset` metres along `pushDirection` (out of the surface, or towards the sun for a sprite) so a surface
 // doesn't shadow itself. Outside the map: lit.

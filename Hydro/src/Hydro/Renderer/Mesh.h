@@ -26,23 +26,21 @@ namespace Hydro
 		uint32_t FirstIndex = 0;
 		uint32_t IndexCount = 0;
 		uint32_t MaterialSlot = 0;
-		// Where an imported sub-mesh came from (M5): the glTF node (index, name) and the primitive of its
-		// mesh. -1 for built-in shapes.
+		// Where an imported sub-mesh came from: the glTF node (index, name) and its primitive. -1 for built-in shapes.
 		int32_t SourceNode = -1;
 		uint32_t SourcePrimitive = 0;
 		std::string SourceName;
 	};
 
-	// What a model's collision proxy is (World collision plan WC3).
+	// What a model's collision proxy is.
 	enum class MeshCollisionKind : uint8_t
 	{
 		Convex = 0, // a "_COL" node: solid, the convex hull of its points (a pillar, a rock, a building's block)
 		Walk        // a "_WALK" node: its triangles as they are, walkable ground (a bridge's arch, a slope, a floor)
 	};
 
-	// A collision shape a model carries for the 3D physics world: the triangles of a glTF node whose name ends in
-	// _COL or _WALK (MeshImporter), authored in Blender next to the pretty mesh. Not drawn and not part of the
-	// bounds. In the model's space (Z up, metres), like its vertices.
+	// A collision shape a model carries for the physics world (a _COL or _WALK node): not drawn, not in the bounds.
+	// In the model's space, like its vertices.
 	struct MeshCollisionProxy
 	{
 		std::string Name; // the glTF node's name
@@ -60,8 +58,7 @@ namespace Hydro
 		std::vector<MeshCollisionProxy> CollisionProxies; // kept on the CPU by Mesh; never uploaded
 	};
 
-	// A material slot of an imported mesh: its name in the model and the material asset (.hymat) the import
-	// made for it, which a MeshComponent uses unless it names another one.
+	// A material slot of an imported mesh: its name and the .hymat the import made, unless a MeshComponent names another.
 	struct MeshMaterialInfo
 	{
 		std::string Name;
@@ -70,21 +67,15 @@ namespace Hydro
 
 	struct MeshBuffers; // Platform/Vulkan/VulkanMeshData.h
 
-	// A static mesh on the GPU: vertex and index buffers in GPU-only memory (uploaded once, at creation),
-	// its sub-meshes and local bounds. Shared through Ref<Mesh> (several entities may draw it). Frees its
-	// buffers through the deletion queue when the last Ref goes.
-	//
-	// Built-in shapes (MeshFactory) are made in code and have no handle. A model file (.gltf, .glb) is an
-	// asset (AssetType::Mesh): the AssetManager imports it once (LoadUncached) and shares it.
+	// A static mesh on the GPU with its sub-meshes and bounds, shared through Ref. Built-in shapes have no handle;
+	// model files are assets imported once by the AssetManager.
 	class Mesh : public Asset
 	{
 	public:
 		Mesh(const MeshData& data, const std::string& debugName);
 		~Mesh() override;
 
-		// Imports a .gltf / .glb with the import settings in its .hymeta (MeshImporter::ImportAsset): makes its
-		// textures and materials assets on the first import. nullptr (logged) when it can't be read. The
-		// AssetManager's loader calls this.
+		// The AssetManager's loader (MeshImporter::ImportAsset). nullptr (logged) when the file can't be read.
 		static Ref<Mesh> LoadUncached(const std::filesystem::path& path);
 
 		static AssetType GetStaticType() { return AssetType::Mesh; }
@@ -94,8 +85,7 @@ namespace Hydro
 		Mesh& operator=(const Mesh&) = delete;
 
 		const std::vector<SubMesh>& GetSubMeshes() const { return m_SubMeshes; }
-		// The model's _COL / _WALK nodes (WC3), for the physics world and the collider outlines; empty for built-in
-		// shapes and for models without any (they collide as their bounding box).
+		// The model's _COL / _WALK nodes; empty for built-in shapes and models without any (they collide as their box).
 		const std::vector<MeshCollisionProxy>& GetCollisionProxies() const { return m_CollisionProxies; }
 		const glm::vec3& GetBoundsMin() const { return m_BoundsMin; }
 		const glm::vec3& GetBoundsMax() const { return m_BoundsMax; }

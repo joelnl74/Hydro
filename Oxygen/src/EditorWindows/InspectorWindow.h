@@ -1,30 +1,32 @@
 #pragma once
-#include "Hydro/Scene/Entity.h"
 #include "TextureImportPanel.h"
-#include "Hydro/Scene/SpriteAnimation.h"
-#include "Hydro/Scene/Components/Components.h"
-#include "Hydro/Renderer/Material.h"
-#include "Hydro/Renderer/Mesh.h"
+#include "Inspector/DataAssetInspector.h"
+#include "Inspector/MaterialEditor.h"
+
+#include "Hydro/Core/UUID.h"
 #include "Hydro/Renderer/MeshImporter.h"
+#include "Hydro/Scene/Entity.h"
+#include "Hydro/Scene/SpriteAnimation.h"
 
 #include <filesystem>
 #include <functional>
+#include <string>
+#include <vector>
 
 namespace Hydro
 {
 	class TerrainTool;
 
-	// Shows and edits the components of the entity selected in the hierarchy, or, when no entity is
-	// selected, the asset selected in the Project window (an image's import settings, a .hyanim's clips, a
-	// material's fields).
-	// Editor UI only: it reads and writes component data, it holds no behaviour of its own.
+	// Shows and edits the selected entity's components, or, with no entity selected, the asset selected in the
+	// Project window. Editor UI only: it holds no behaviour of its own. The sections are in Inspector/.
 	class InspectorWindow
 	{
 	public:
-		// Set by the editor layer.
 		std::function<void(const std::filesystem::path&)> OnTextureReimported;
 		std::function<void(const std::filesystem::path&)> OnOpenSpriteEditor;
 		std::function<void(const std::filesystem::path&)> OnOpenAnimation;
+		// An entity clicked in the Used by list.
+		std::function<void(Entity)> OnSelectEntity;
 
 		InspectorWindow() = default;
 		~InspectorWindow() = default;
@@ -32,52 +34,48 @@ namespace Hydro
 		// `asset` is shown when `entity` isn't valid (empty: nothing).
 		void OnImguiRender(Entity entity, const std::filesystem::path& asset);
 
-		// The Terrain tool draws the Terrain section's asset, layers and brush (EditorLayer owns it; may be null).
+		// Draws the Terrain section's asset, layers and brush (owned by EditorLayer; may be null).
 		void SetTerrainTool(TerrainTool* tool) { m_TerrainTool = tool; }
-		// Play mode, every frame: some edits (painting a terrain asset, shared with the editor scene) wait for Stop.
+		// While playing, some edits (painting a terrain asset shared with the editor scene) wait for Stop.
 		void SetPlaying(bool playing) { m_Playing = playing; }
 
 	private:
 		void DrawEntityHeader(Entity entity);
-		void DrawComponents(Entity entity);
+		// The entities whose fields or script properties refer to this one (a route's walkers, a button's neighbours).
+		void DrawUsedBy(Entity entity);
 		void DrawAddComponentButton(Entity entity);
-		// The runtime UI's sections (canvas, rect, image, text, button, layout group); removals are requested like DrawComponents'.
-		void DrawUIComponents(Entity entity, bool& removeCanvas, bool& removeRect, bool& removeImage, bool& removeText, bool& removeButton, bool& removeLayoutGroup);
-		// One menu item per registered script; picking one binds it to the entity (adding its
-		// NativeScriptComponent if needed).
-		void DrawScriptMenuItems(Entity entity);
 		void DrawPrefabButton(Entity entity);
 		void DrawAsset(const std::filesystem::path& asset);
 		void DrawAnimationSetAsset(const std::filesystem::path& path);
 		void DrawMaterialAsset(const std::filesystem::path& path);
-		// A selected .hyrender: its environment and post-processing (RenderLookUI), shared by every scene using it.
+		// A selected .hyrender's environment and post-processing, shared by every scene using it.
 		void DrawRenderProfileAsset(const std::filesystem::path& path);
-		// A mesh's material slot: its material asset (picked or dropped), whose fields edit the shared asset,
-		// or its inline settings with "Save as Material Asset".
-		void DrawMeshMaterialSlot(Entity entity, MeshMaterialSlot& slot);
-		// Every slot of a mesh (a tree node per slot for models, named after the model's materials).
-		void DrawMeshMaterialSlots(Entity entity, MeshComponent& mesh, const Mesh* model);
-		// Gives `mesh` one slot per material of `model`, each using the material asset its import made.
-		static void AssignModelMaterials(MeshComponent& mesh, const Mesh& model);
-		// A selected .gltf / .glb: its import settings (Apply re-imports) and what it holds.
+		// A selected .gltf / .glb: its import settings (Apply re-imports) and contents.
 		void DrawModelAsset(const std::filesystem::path& path);
-		// The fields of a material asset; a change applies to the loaded asset at once (every mesh using it)
-		// and marks it to be saved.
-		void EditMaterialAsset(const Ref<MaterialAsset>& asset);
-		// Writes the material edited last to its .hymat once no field is active (`force`: now).
-		void SaveEditedMaterial(bool force);
+		// Writes what was edited last (materials, data, render profiles) once no field is active.
+		void SaveEdits();
 
 	private:
+		// Who refers to the selected entity, found again when the selection changes and twice a second.
+		struct Referrer
+		{
+			UUID Source = 0;
+			std::string Where;
+		};
+
 		TextureImportPanel m_TextureImportPanel;
-		// Held so the shared set isn't loaded again every frame (LoadFromFile shares only live sets).
+		MaterialEditor m_Materials;
+		DataAssetInspector m_DataAssets;
+		// Held so the shared set isn't loaded again every frame.
 		Ref<SpriteAnimationSet> m_InspectedAnimationSet;
 		std::filesystem::path m_InspectedAnimationPath;
 		std::filesystem::file_time_type m_InspectedAnimationTime{};
-		// The material asset changed in memory and not written yet (0: none).
-		AssetHandle m_UnsavedMaterial = 0;
 		// The import settings being edited for the selected model (read again when another one is selected).
 		std::filesystem::path m_ModelSettingsPath;
 		MeshImportConfig m_ModelSettings;
+		std::vector<Referrer> m_Referrers;
+		UUID m_ReferrersOf = 0;
+		double m_ReferrersTime = -1.0;
 		TerrainTool* m_TerrainTool = nullptr;
 		bool m_Playing = false;
 	};

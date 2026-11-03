@@ -1,0 +1,117 @@
+Handle: 207747700610060598
+DataTable:
+  Version: 1
+  Type: LootTableDefinition
+  Rows:
+    SlimeDrops:
+      DropChance: 60
+      Rolls: 1
+      Rarities:
+        - {Rarity: Common, Percent: 70}
+        - {Rarity: Uncommon, Percent: 25}
+        - {Rarity: Rare, Percent: 5}
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: Potion}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: SlimeJelly}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: PineResin}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: HiPotion}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: PhoenixFeather}, MinCount: 1, MaxCount: 1}
+    WispDrops:
+      DropChance: 70
+      Rolls: 1
+      Rarities:
+        - {Rarity: Common, Percent: 60}
+        - {Rarity: Uncommon, Percent: 32}
+        - {Rarity: Rare, Percent: 8}
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: SpringWater}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: WispEssence}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: CrystalShard}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: PhoenixFeather}, MinCount: 1, MaxCount: 1}
+    RoadsideCache:
+      DropChance: 100
+      Rolls: 2
+      Rarities:
+        - {Rarity: Common, Percent: 75}
+        - {Rarity: Uncommon, Percent: 22}
+        - {Rarity: Rare, Percent: 3}
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: Potion}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: HerbTea}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: MedicinalHerb}, MinCount: 1, MaxCount: 3}
+        - {Item: {Table: 4741649512266718899, Row: Antidote}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: HiPotion}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: PhoenixFeather}, MinCount: 1, MaxCount: 1}
+      MinMoney: 20
+      MaxMoney: 40
+    ForestCache:
+      DropChance: 100
+      Rolls: 2
+      Rarities:
+        - {Rarity: Common, Percent: 55}
+        - {Rarity: Uncommon, Percent: 38}
+        - {Rarity: Rare, Percent: 7}
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: SpringWater}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: PineResin}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: WispEssence}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: CrystalShard}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: HiPotion}, MinCount: 1, MaxCount: 1}
+        - {Item: {Table: 4741649512266718899, Row: PhoenixFeather}, MinCount: 1, MaxCount: 1}
+      MinMoney: 30
+      MaxMoney: 60
+    PondCache:
+      DropChance: 100
+      Rolls: 1
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: HiPotion}, MinCount: 2, MaxCount: 2}
+      MinMoney: 60
+      MaxMoney: 60
+    KuraCache:
+      DropChance: 100
+      Rolls: 1
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: Jingasa}, MinCount: 1, MaxCount: 1}
+      MinMoney: 120
+      MaxMoney: 120
+    RoninOath:
+      DropChance: 100
+      Rolls: 1
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: RoninHaori}, MinCount: 1, MaxCount: 1}
+      MinMoney: 80
+      MaxMoney: 80
+    ShrineGift:
+      DropChance: 100
+      Rolls: 1
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: PrayerBeads}, MinCount: 1, MaxCount: 1}
+      MinMoney: 50
+      MaxMoney: 50
+    LeyRoots:
+      DropChance: 100
+      Rolls: 2
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: CrystalShard}, MinCount: 2, MaxCount: 3}
+        - {Item: {Table: 4741649512266718899, Row: WispEssence}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: PhoenixFeather}, MinCount: 1, MaxCount: 1}
+      MinMoney: 0
+      MaxMoney: 0
+    FoxOffering:
+      DropChance: 100
+      Rolls: 1
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 3, MaxCount: 3}
+      MinMoney: 88
+      MaxMoney: 88
+    WallWatch:
+      DropChance: 100
+      Rolls: 2
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: HiPotion}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 1, MaxCount: 1}
+      MinMoney: 70
+      MaxMoney: 70

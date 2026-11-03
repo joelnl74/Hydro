@@ -7,13 +7,13 @@ Entity:
   TransformComponent:
     Translation: [2, 4, 0]
     Rotation: [0, 0, 0]
-    Scale: [3, 2.25, 1]
+    Scale: [2.5, 2.34375, 1]
   SpriteRendererComponent:
     Color: [1, 1, 1, 1]
     TilingFactor: 1
     SortOrder: 0
     TextureHandle: 7596897423412270899
-    Sprite: Farmer_Down_0
+    Sprite: IdleDown_0
     SpriteIndex: 0
     FlipX: false
     FlipY: false

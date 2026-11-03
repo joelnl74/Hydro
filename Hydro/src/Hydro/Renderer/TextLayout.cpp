@@ -97,8 +97,8 @@ namespace Hydro
 		}
 		return width;
 	}
-
-	void TextLayout::Layout(const std::string& text, const FontData& data, const TextLayoutProperties& properties, TextLayoutResult& result, const Font* font)
+	void TextLayout::Layout(const std::string& text, const FontData& data, const TextLayoutProperties& properties,
+		TextLayoutResult& result, const Font* font)
 	{
 		result.Glyphs.clear();
 		result.Size = { 0.0f, 0.0f };

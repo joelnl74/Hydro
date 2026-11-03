@@ -22,12 +22,15 @@
 #include "Hydro/Scene/SceneSerializer.h"
 #include "Hydro/Scene/SceneTransition.h"
 #include "Hydro/Scene/SceneStack.h"
+#include "Hydro/Scene/GameSession.h"
 #include "Hydro/Scene/PrefabSerializer.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "Hydro/Scene/SpriteAnimationSerializer.h"
 #include "Hydro/Scene/SpriteAnimator.h"
 #include "Hydro/Scene/ParticleScene.h"
 #include "Hydro/Scene/Prefab.h"
+#include "Hydro/Scene/MeshBounds.h"
+#include "Hydro/Scene/SpriteBounds.h"
 #include "Hydro/Scene/Vfx.h"
 #include "Hydro/Scene/UI/UI.h"
 #include "Hydro/Scene/UI/UIEvent.h"
@@ -37,6 +40,8 @@
 // Scripting
 #include "Hydro/Scene/Scripting/ScriptableEntity.h"
 #include "Hydro/Scene/Scripting/ReflectionMacros.h"
+#include "Hydro/Scene/Scripting/Gizmos.h"
+#include "Hydro/Scene/ComponentRegistry.h"
 
 // PHYSICS.
 #include "Hydro/Physics/PhysicsScene.h"
@@ -48,6 +53,10 @@
 #include "Hydro/Asset/AssetRegistry.h"
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
+
+// DATA (definitions and data tables).
+#include "Hydro/Data/Data.h"
+#include "Hydro/Data/DataRowRef.h"
 
 // RENDERING.
 #include "Hydro/Renderer/SceneRenderer.h"

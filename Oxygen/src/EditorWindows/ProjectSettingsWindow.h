@@ -4,8 +4,7 @@
 
 namespace Hydro
 {
-	// "Project Settings" window: the active project's general settings (name, start scene, scene template) and
-	// where its files are. Render settings have their own window (RenderSettingsWindow).
+	// The "Project Settings" window: the active project's name, start scene, scene template and file locations.
 	class ProjectSettingsWindow
 	{
 	public:

@@ -1,0 +1,1591 @@
+{
+ "JP_Rich_CityGate_A": {
+  "passage": "4.0 x 4.5 m",
+  "tier": "A",
+  "width": 14.0,
+  "depth": 7.0,
+  "height": 10.65,
+  "faces": 2511,
+  "location": [
+   -99.8,
+   44.0
+  ]
+ },
+ "JP_Rich_CityGate_A_DoorL": {
+  "note": "origin at the hinge; place at x = -2 (L) / +2 (R), y = 1.05 from the gate origin",
+  "tier": "A",
+  "width": 2.0,
+  "depth": 0.15,
+  "height": 4.38,
+  "faces": 6,
+  "location": [
+   -101.8,
+   45.05
+  ]
+ },
+ "JP_Rich_CityGate_A_DoorR": {
+  "note": "origin at the hinge; place at x = -2 (L) / +2 (R), y = 1.05 from the gate origin",
+  "tier": "A",
+  "width": 2.0,
+  "depth": 0.15,
+  "height": 4.38,
+  "faces": 6,
+  "location": [
+   -97.8,
+   45.05
+  ]
+ },
+ "JP_Rich_GuardBooth_A": {
+  "open_front": true,
+  "tier": "A",
+  "width": 2.4,
+  "depth": 1.8,
+  "height": 2.8,
+  "faces": 369,
+  "location": [
+   -89.6,
+   44.0
+  ]
+ },
+ "JP_Rich_GateWall_4m_A": {
+  "tier": "A",
+  "width": 4.0,
+  "depth": 1.6,
+  "height": 3.87,
+  "faces": 422,
+  "location": [
+   -83.4,
+   44.0
+  ]
+ },
+ "JP_Rich_LanternInn_A": {
+  "bays": 7,
+  "floors": 2,
+  "roof": "hipgable",
+  "upper": "balcony",
+  "cusped": true,
+  "ridge": 9.2,
+  "door_x": 0.0,
+  "head_z": 2.65,
+  "arm_z": 3.53,
+  "shop_floor_z": null,
+  "pent_z": 3.55,
+  "deck_y": -1.0,
+  "lanterns": [
+   [
+    -7.55,
+    -0.55,
+    2.97
+   ],
+   [
+    7.55,
+    -0.55,
+    2.97
+   ],
+   [
+    -7.55,
+    4.6,
+    2.97
+   ],
+   [
+    -6.0,
+    -1.1,
+    5.48
+   ],
+   [
+    6.0,
+    -1.1,
+    5.48
+   ]
+  ],
+  "tier": "A",
+  "width": 14.0,
+  "depth": 10.0,
+  "height": 9.2,
+  "faces": 8685,
+  "location": [
+   -72.4,
+   44.0
+  ]
+ },
+ "JP_Rich_GuildHall_A": {
+  "bays": 7,
+  "floors": 2,
+  "roof": "hipgable",
+  "upper": null,
+  "cusped": true,
+  "ridge": 9.51,
+  "door_x": 0.0,
+  "head_z": 2.65,
+  "arm_z": 3.53,
+  "shop_floor_z": null,
+  "pent_z": 3.55,
+  "tier": "A",
+  "width": 14.0,
+  "depth": 12.0,
+  "height": 9.51,
+  "faces": 5117,
+  "location": [
+   -55.4,
+   44.0
+  ]
+ },
+ "JP_Rich_Residence_A": {
+  "bays": 5,
+  "floors": 2,
+  "roof": "hipgable",
+  "upper": "balcony",
+  "cusped": false,
+  "ridge": 9.0,
+  "door_x": 0.0,
+  "head_z": 2.65,
+  "arm_z": 3.53,
+  "shop_floor_z": null,
+  "pent_z": 3.55,
+  "tier": "A",
+  "width": 10.0,
+  "depth": 10.0,
+  "height": 9.0,
+  "faces": 3918,
+  "location": [
+   -40.4,
+   44.0
+  ]
+ },
+ "JP_Rich_CompoundWall_4m_A": {
+  "tier": "A",
+  "width": 4.0,
+  "depth": 0.5,
+  "height": 2.21,
+  "faces": 398,
+  "location": [
+   -30.4,
+   44.0
+  ]
+ },
+ "JP_Rich_CompoundGate_A": {
+  "tier": "A",
+  "width": 3.6,
+  "depth": 0.5,
+  "height": 3.13,
+  "faces": 532,
+  "location": [
+   -26.6,
+   44.0
+  ]
+ },
+ "JP_Rich_Storehouse_A": {
+  "walls": "plank skirt, aged plaster",
+  "entrance": "gable end",
+  "tier": "A",
+  "width": 6.0,
+  "depth": 5.0,
+  "height": 7.74,
+  "faces": 1476,
+  "location": [
+   -21.8,
+   44.0
+  ]
+ },
+ "JP_Rich_Storehouse_B": {
+  "walls": "half-timbered plaster",
+  "entrance": "gable end",
+  "roof": "tile",
+  "tier": "A",
+  "width": 6.0,
+  "depth": 5.0,
+  "height": 7.12,
+  "faces": 1343,
+  "location": [
+   -12.8,
+   44.0
+  ]
+ },
+ "JP_Rich_Pagoda_A": {
+  "tiers": 3,
+  "tier": "A",
+  "width": 12.0,
+  "depth": 12.0,
+  "height": 17.58,
+  "faces": 7098,
+  "location": [
+   -0.8,
+   44.0
+  ]
+ },
+ "JP_Rich_CityWall_8m_A": {
+  "walk_z": 4.5,
+  "tier": "A",
+  "width": 8.0,
+  "depth": 7.0,
+  "height": 6.1,
+  "faces": 801,
+  "location": [
+   12.2,
+   44.0
+  ]
+ },
+ "JP_Rich_MoonGateWall_6m_A": {
+  "opening": 2.4,
+  "tier": "A",
+  "width": 6.0,
+  "depth": 0.45,
+  "height": 3.0,
+  "faces": 685,
+  "location": [
+   22.2,
+   44.0
+  ]
+ },
+ "JP_Temple_Gate_A": {
+  "passage": "3.6 x 2.8 m",
+  "beam_z": 3.7,
+  "tier": "A",
+  "width": 7.0,
+  "depth": 2.4,
+  "height": 6.35,
+  "faces": 869,
+  "location": [
+   31.7,
+   44.0
+  ]
+ },
+ "JP_Temple_Hall_A": {
+  "floor_z": 0.9,
+  "door_z": 1.02,
+  "eave_z": 5.2,
+  "wall_y": 1.3,
+  "door_x": 0.0,
+  "head_z": 3.62,
+  "tier": "A",
+  "width": 14.2,
+  "depth": 10.6,
+  "height": 10.8,
+  "faces": 5129,
+  "location": [
+   45.3,
+   44.0
+  ]
+ },
+ "JP_Temple_Pagoda_A": {
+  "tiers": 3,
+  "tier": "A",
+  "width": 12.0,
+  "depth": 12.0,
+  "height": 17.58,
+  "faces": 7098,
+  "location": [
+   61.4,
+   44.0
+  ]
+ },
+ "JP_Temple_BellTower_A": {
+  "bell_z": 3.6999999999999997,
+  "floor_z": 0.7,
+  "tier": "A",
+  "width": 4.6,
+  "depth": 4.6,
+  "height": 7.01,
+  "faces": 1620,
+  "location": [
+   72.7,
+   44.0
+  ]
+ },
+ "JP_Temple_Temizuya_A": {
+  "basin_z": 0.82,
+  "basin_y": 1.0,
+  "tier": "A",
+  "width": 3.5999999999999996,
+  "depth": 3.1,
+  "height": 3.38,
+  "faces": 590,
+  "location": [
+   79.8,
+   44.0
+  ]
+ },
+ "JP_Temple_Temizuya_B": {
+  "basin_z": 0.82,
+  "basin_y": 1.0,
+  "tier": "A",
+  "width": 3.5999999999999996,
+  "depth": 3.1,
+  "height": 3.38,
+  "faces": 590,
+  "location": [
+   86.4,
+   44.0
+  ]
+ },
+ "JP_Shrine_Torii_A": {
+  "posts": 1.6,
+  "beam_z": 3.08,
+  "tier": "A",
+  "width": 5.7,
+  "depth": 0.6,
+  "height": 4.6,
+  "faces": 676,
+  "location": [
+   94.05,
+   44.0
+  ]
+ },
+ "JP_Shrine_Haiden_A": {
+  "deck_z": 0.52,
+  "door_y": -1.35,
+  "sanctuary_depth": 1.0,
+  "bell_hang": [
+   0.0,
+   -1.72,
+   2.64
+  ],
+  "box_front_y": -2.33,
+  "lantern_hang": [
+   2.05,
+   -2.7,
+   3.074
+  ],
+  "tier": "A",
+  "width": 6.9,
+  "depth": 5.0,
+  "height": 5.49,
+  "faces": 2513,
+  "location": [
+   103.35,
+   44.0
+  ]
+ },
+ "JP_Mid_Townhouse_A": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "bay",
+  "cusped": false,
+  "ridge": 7.79,
+  "door_x": 0.0,
+  "head_z": 2.5,
+  "arm_z": 3.18,
+  "shop_floor_z": null,
+  "pent_z": 3.26,
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.79,
+  "faces": 1689,
+  "location": [
+   -87.45,
+   22.0
+  ]
+ },
+ "JP_Mid_Townhouse_B": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "balcony",
+  "cusped": false,
+  "ridge": 8.04,
+  "door_x": 1.0,
+  "head_z": 2.5,
+  "arm_z": 3.18,
+  "shop_floor_z": null,
+  "pent_z": 3.26,
+  "tier": "B",
+  "width": 8.0,
+  "depth": 10.0,
+  "height": 8.04,
+  "faces": 1904,
+  "location": [
+   -77.45,
+   22.0
+  ]
+ },
+ "JP_Mid_Townhouse_C": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "loft",
+  "cusped": false,
+  "ridge": 7.55,
+  "door_x": -2.0,
+  "head_z": 2.5,
+  "arm_z": 3.18,
+  "shop_floor_z": null,
+  "pent_z": 3.26,
+  "tier": "B",
+  "width": 6.0,
+  "depth": 8.0,
+  "height": 7.55,
+  "faces": 1538,
+  "location": [
+   -67.45,
+   22.0
+  ]
+ },
+ "JP_Mid_Shop_A": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": null,
+  "cusped": false,
+  "ridge": 7.79,
+  "door_x": null,
+  "head_z": 2.5,
+  "arm_z": 3.18,
+  "shop_floor_z": 0.75,
+  "pent_z": 3.26,
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.79,
+  "faces": 2287,
+  "location": [
+   -58.45,
+   22.0
+  ]
+ },
+ "JP_Mid_FireWatchtower_A": {
+  "platform": 9.0,
+  "tier": "B",
+  "width": 2.4,
+  "depth": 2.4,
+  "height": 11.95,
+  "faces": 965,
+  "location": [
+   -51.25,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1313,
+  "location": [
+   -44.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1191,
+  "location": [
+   -37.55,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1313,
+  "location": [
+   -31.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_A_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 0.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1430,
+  "location": [
+   -24.55,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_L": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1603,
+  "location": [
+   -17.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_M": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1488,
+  "location": [
+   -8.55,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_R": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1603,
+  "location": [
+   -0.05,
+   22.0
+  ]
+ },
+ "JP_Row_House_B_F": {
+  "bays": 4,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "wood",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": 1.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "grey",
+  "wood": "medium",
+  "tier": "B",
+  "width": 8.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1720,
+  "location": [
+   8.45,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1347,
+  "location": [
+   15.95,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1207,
+  "location": [
+   22.45,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1329,
+  "location": [
+   28.95,
+   22.0
+  ]
+ },
+ "JP_Row_House_C_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "lattice",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": -2.0,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": null,
+  "pent_z": 3.31,
+  "plaster": "ochre",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1464,
+  "location": [
+   35.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2073,
+  "location": [
+   41.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1951,
+  "location": [
+   48.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2073,
+  "location": [
+   54.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_A_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "shoji",
+  "door": "shop",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "cream",
+  "wood": "dark",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2190,
+  "location": [
+   61.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_L": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   false,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2109,
+  "location": [
+   67.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_M": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   true,
+   true
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 1969,
+  "location": [
+   74.45,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_R": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   true,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2091,
+  "location": [
+   80.95,
+   22.0
+  ]
+ },
+ "JP_Row_Shop_B_F": {
+  "bays": 3,
+  "floors": 2,
+  "roof": "gable",
+  "upper": "lattice",
+  "door": "shop",
+  "attach": [
+   false,
+   false
+  ],
+  "ridge": 7.84,
+  "door_x": null,
+  "head_z": 2.55,
+  "arm_z": 3.23,
+  "shop_floor_z": 0.8,
+  "pent_z": 3.31,
+  "plaster": "white",
+  "wood": "red",
+  "tier": "B",
+  "width": 6.0,
+  "depth": 9.0,
+  "height": 7.84,
+  "faces": 2226,
+  "location": [
+   87.45,
+   22.0
+  ]
+ },
+ "JP_Poor_House_A": {
+  "roof": "kawara_old",
+  "wall": "JP_Wood_Weathered_V",
+  "units": 1,
+  "stilts": 0.0,
+  "ridge": 3.97,
+  "door_x": [
+   -1.0
+  ],
+  "head_z": 2.17,
+  "tier": "C",
+  "width": 6.0,
+  "depth": 5.0,
+  "height": 3.97,
+  "faces": 410,
+  "location": [
+   -61.5,
+   0.0
+  ]
+ },
+ "JP_Poor_House_B": {
+  "roof": "plank",
+  "wall": "JP_Wall_MudStraw",
+  "units": 1,
+  "stilts": 0.0,
+  "ridge": 3.77,
+  "door_x": [
+   1.2
+  ],
+  "head_z": 2.17,
+  "tier": "C",
+  "width": 6.0,
+  "depth": 6.0,
+  "height": 3.77,
+  "faces": 1910,
+  "location": [
+   -52.5,
+   0.0
+  ]
+ },
+ "JP_Poor_Hut_A": {
+  "roof": "plank",
+  "wall": "JP_Wood_Weathered_V",
+  "units": 1,
+  "stilts": 0.0,
+  "ridge": 3.45,
+  "door_x": [
+   0.6
+  ],
+  "head_z": 2.17,
+  "tier": "C",
+  "width": 4.0,
+  "depth": 4.0,
+  "height": 3.45,
+  "faces": 1360,
+  "location": [
+   -44.5,
+   0.0
+  ]
+ },
+ "JP_Poor_Hut_B": {
+  "roof": "plank",
+  "wall": "JP_Wall_MudStraw",
+  "units": 1,
+  "stilts": 0.0,
+  "ridge": 3.45,
+  "door_x": [
+   -1.2
+  ],
+  "head_z": 2.17,
+  "tier": "C",
+  "width": 5.0,
+  "depth": 4.0,
+  "height": 3.45,
+  "faces": 1626,
+  "location": [
+   -37.0,
+   0.0
+  ]
+ },
+ "JP_Poor_RowHouse_A": {
+  "roof": "plank",
+  "wall": "JP_Wood_Weathered_V",
+  "units": 4,
+  "stilts": 0.0,
+  "ridge": 3.61,
+  "door_x": [
+   -4.8,
+   -1.8,
+   1.2,
+   4.2
+  ],
+  "head_z": 2.17,
+  "tier": "C",
+  "width": 12.0,
+  "depth": 5.0,
+  "height": 3.61,
+  "faces": 3731,
+  "location": [
+   -25.5,
+   0.0
+  ]
+ },
+ "JP_Poor_Boathouse_A": {
+  "roof": "plank",
+  "wall": "JP_Wood_Weathered_V",
+  "units": 1,
+  "stilts": 0.6,
+  "ridge": 4.34,
+  "door_x": [
+   -2.2
+  ],
+  "head_z": 2.57,
+  "tier": "C",
+  "width": 6.0,
+  "depth": 7.0,
+  "height": 4.34,
+  "faces": 1944,
+  "location": [
+   -13.5,
+   0.0
+  ]
+ },
+ "JP_Poor_NetShed_A": {
+  "roof": "plank",
+  "wall": "JP_Wood_Weathered_V",
+  "units": 1,
+  "stilts": 0.0,
+  "ridge": 3.45,
+  "door_x": [],
+  "head_z": 2.17,
+  "tier": "C",
+  "width": 5.0,
+  "depth": 4.0,
+  "height": 3.45,
+  "faces": 1585,
+  "location": [
+   -5.0,
+   0.0
+  ]
+ },
+ "JP_Poor_FishStore_A": {
+  "roof": "plank",
+  "wall": "JP_Wood_Weathered_V",
+  "units": 1,
+  "stilts": 0.0,
+  "ridge": 3.45,
+  "door_x": [
+   0.0
+  ],
+  "head_z": 2.17,
+  "tier": "C",
+  "width": 5.0,
+  "depth": 4.0,
+  "height": 3.45,
+  "faces": 1683,
+  "location": [
+   3.0,
+   0.0
+  ]
+ },
+ "JP_Farm_Minka_A": {
+  "roof": "thatch",
+  "wall": "JP_Plaster_Aged",
+  "ridge": 8.27,
+  "head_z": 2.32,
+  "door_x": [
+   -3.0
+  ],
+  "tier": "C",
+  "width": 10.0,
+  "depth": 7.0,
+  "height": 8.27,
+  "faces": 1606,
+  "location": [
+   13.5,
+   0.0
+  ]
+ },
+ "JP_Farm_Minka_B": {
+  "roof": "thatch",
+  "wall": "JP_Wood_WarmAged",
+  "ridge": 6.42,
+  "head_z": 2.32,
+  "door_x": [
+   1.5
+  ],
+  "tier": "C",
+  "width": 7.0,
+  "depth": 5.5,
+  "height": 6.42,
+  "faces": 1092,
+  "location": [
+   25.0,
+   0.0
+  ]
+ },
+ "JP_Farm_Minka_C": {
+  "roof": "thatch",
+  "wall": "JP_Plaster_Aged",
+  "ridge": 7.17,
+  "head_z": 2.32,
+  "door_x": [
+   2.2
+  ],
+  "tier": "C",
+  "width": 8.0,
+  "depth": 6.0,
+  "height": 7.17,
+  "faces": 1238,
+  "location": [
+   35.5,
+   0.0
+  ]
+ },
+ "JP_Farm_Barn_A": {
+  "roof": "thatch",
+  "wall": "JP_Wood_Weathered_V",
+  "ridge": 5.32,
+  "head_z": 2.32,
+  "door_x": [],
+  "tier": "C",
+  "width": 6.0,
+  "depth": 4.5,
+  "height": 5.32,
+  "faces": 147,
+  "location": [
+   45.5,
+   0.0
+  ]
+ },
+ "JP_Farm_Shed_A": {
+  "roof": "thatch",
+  "open": true,
+  "tier": "C",
+  "width": 4.0,
+  "depth": 3.0,
+  "height": 4.35,
+  "faces": 97,
+  "location": [
+   53.5,
+   0.0
+  ]
+ },
+ "JP_Farm_Storehouse_A": {
+  "walls": "half-timbered plaster",
+  "entrance": "gable end",
+  "roof": "thatch",
+  "tier": "A",
+  "width": 6.0,
+  "depth": 5.0,
+  "height": 8.0,
+  "faces": 827,
+  "location": [
+   61.5,
+   0.0
+  ]
+ },
+ "JP_Showcase_Floor": {
+  "tier": "-",
+  "width": 120.0,
+  "depth": 70.0,
+  "height": 0.0,
+  "faces": 6,
+  "location": [
+   0.0,
+   -12.0
+  ]
+ },
+ "_props": {
+  "JP_Prop_Barrel_A": {
+   "height": 0.9,
+   "faces": 102
+  },
+  "JP_Prop_SakeBarrelStack_A": {
+   "height": 1.64,
+   "faces": 372
+  },
+  "JP_Prop_RainBarrel_A": {
+   "height": 1.21,
+   "faces": 65
+  },
+  "JP_Prop_Buckets_A": {
+   "height": 0.87,
+   "faces": 62
+  },
+  "JP_Prop_Crate_A": {
+   "height": 0.57,
+   "faces": 24
+  },
+  "JP_Prop_StoneLantern_A": {
+   "light": [
+    0,
+    0,
+    1.15
+   ],
+   "height": 1.76,
+   "faces": 118
+  },
+  "JP_Prop_Well_A": {
+   "height": 2.9,
+   "faces": 375
+  },
+  "JP_Prop_TeaBench_A": {
+   "height": 0.5,
+   "faces": 36
+  },
+  "JP_Prop_Handcart_A": {
+   "height": 0.84,
+   "faces": 70
+  },
+  "JP_Prop_FenceBamboo_2m_A": {
+   "height": 1.2,
+   "faces": 173
+  },
+  "JP_Prop_LaundryPole_A": {
+   "card_z": 1.97,
+   "card_span": 3.0,
+   "height": 2.06,
+   "faces": 58
+  },
+  "JP_Prop_BannerPole_A": {
+   "card_top": 3.25,
+   "card_x": 0.05,
+   "height": 3.4,
+   "faces": 33
+  },
+  "JP_Prop_LampPost_A": {
+   "light": [
+    0.62,
+    0.0,
+    2.24
+   ],
+   "height": 3.02,
+   "faces": 75
+  },
+  "JP_Prop_WallLantern_A": {
+   "light": [
+    0.0,
+    -0.45,
+    2.06
+   ],
+   "height": 2.5,
+   "faces": 59
+  },
+  "JP_Prop_Pier_2m_A": {
+   "deck_z": 0.42,
+   "height": 0.55,
+   "faces": 74
+  },
+  "JP_Prop_MooringPost_A": {
+   "height": 1.1,
+   "faces": 87
+  },
+  "JP_Prop_Boat_A": {
+   "height": 0.62,
+   "faces": 28
+  },
+  "JP_Prop_NetFrame_A": {
+   "height": 2.2,
+   "faces": 30
+  },
+  "JP_Prop_FishRack_A": {
+   "rail_z": 1.4,
+   "rail_y": -0.25,
+   "height": 1.81,
+   "faces": 49
+  },
+  "JP_Prop_SpearRack_A": {
+   "height": 2.55,
+   "faces": 74
+  },
+  "JP_Prop_Barrier_A": {
+   "height": 1.03,
+   "faces": 44
+  },
+  "JP_Prop_WarDrum_A": {
+   "height": 1.54,
+   "faces": 68
+  },
+  "JP_Prop_Brazier_A": {
+   "light": [
+    0,
+    0,
+    1.2
+   ],
+   "height": 0.95,
+   "faces": 66
+  },
+  "JP_Prop_Kamado_A": {
+   "height": 0.8,
+   "faces": 66
+  },
+  "JP_Prop_WaterJar_A": {
+   "height": 0.86,
+   "faces": 58
+  },
+  "JP_Prop_Signboard_A": {
+   "height": 2.05,
+   "faces": 127
+  },
+  "JP_Prop_Embankment_2m_A": {
+   "height": 0.0,
+   "faces": 12
+  },
+  "JP_Prop_LadderBamboo_A": {
+   "height": 2.6,
+   "faces": 62
+  },
+  "JP_Prop_LanternPole_A": {
+   "rope_z": 5.23,
+   "height": 5.52,
+   "faces": 26
+  },
+  "JP_Prop_LanternRope_8m_A": {
+   "drops": [
+    [
+     -3.0,
+     -0.381
+    ],
+    [
+     -2.0,
+     -0.537
+    ],
+    [
+     -1.0,
+     -0.631
+    ],
+    [
+     0.0,
+     -0.663
+    ],
+    [
+     1.0,
+     -0.631
+    ],
+    [
+     2.0,
+     -0.537
+    ],
+    [
+     3.0,
+     -0.381
+    ]
+   ],
+   "span": 8.0,
+   "height": 0.02,
+   "faces": 131
+  },
+  "JP_Prop_LanternBracket_A": {
+   "drop": [
+    -0.53,
+    -0.2
+   ],
+   "height": 0.06,
+   "faces": 23
+  },
+  "JP_Prop_RiceBales_A": {
+   "height": 0.88,
+   "faces": 246
+  },
+  "JP_Prop_SakeBarrelStraw_A": {
+   "height": 0.7,
+   "faces": 122
+  },
+  "JP_Prop_TeaChests_A": {
+   "height": 0.53,
+   "faces": 111
+  },
+  "JP_Prop_LacquerBoxes_A": {
+   "height": 0.55,
+   "faces": 30
+  },
+  "JP_Prop_StoragePots_A": {
+   "height": 0.87,
+   "faces": 184
+  },
+  "JP_Prop_RolledMats_A": {
+   "height": 1.12,
+   "faces": 78
+  },
+  "JP_Prop_CratesCovered_A": {
+   "height": 1.01,
+   "faces": 48
+  },
+  "JP_Prop_BenchMat_A": {
+   "height": 0.46,
+   "faces": 30
+  },
+  "JP_Prop_MarketStall_A": {
+   "counter_z": 0.86,
+   "counter_y": 0.45,
+   "faces": 191
+  },
+  "JP_Prop_MarketStall_B": {
+   "counter_z": 0.86,
+   "counter_y": 0.45,
+   "faces": 191
+  },
+  "JP_Prop_IncenseBurner_A": {
+   "light": [
+    0,
+    0,
+    1.0
+   ],
+   "height": 2.12,
+   "faces": 163
+  },
+  "JP_Prop_SuzuRope_A": {
+   "length": 1.62,
+   "height": 0.0,
+   "faces": 226
+  },
+  "JP_Prop_LanternHanging_A": {
+   "light": [
+    0.0,
+    0.0,
+    -0.59
+   ],
+   "height": 0.0,
+   "faces": 86
+  },
+  "JP_Prop_LanternHanging_B": {
+   "light": [
+    0.0,
+    0.0,
+    -0.99
+   ],
+   "height": 0.0,
+   "faces": 86
+  },
+  "JP_Prop_Komainu_A": {
+   "height": 1.54,
+   "faces": 4218
+  },
+  "JP_Prop_Komainu_B": {
+   "height": 1.54,
+   "faces": 4218
+  },
+  "JP_Prop_SaisenBako_A": {
+   "height": 0.51,
+   "faces": 107
+  },
+  "JP_Prop_ShrineAltar_A": {
+   "height": 1.04,
+   "faces": 268
+  }
+ },
+ "_modules": {
+  "JP_Post_Cedar_3m": 6,
+  "JP_Plinth_Granite_2m": 6,
+  "JP_Front_Lattice_2m": 18,
+  "JP_Door_LatticeSlide_2m": 54,
+  "JP_Window_Shoji_A": 30,
+  "JP_Window_Loft_3m": 18,
+  "JP_BayWindow_Lattice_2m": 168,
+  "JP_Balcony_2m": 30,
+  "JP_Wall_Plaster_2m": 33,
+  "JP_PentRoof_2m": 112,
+  "JP_Roof_Kawara_Gable_6m": 715,
+  "JP_RidgeEnd_Plain": 6,
+  "JP_RidgeEnd_Cloud": 6,
+  "JP_Gable_Cusped": 219,
+  "JP_Wall_Retaining_Granite_4m": 12,
+  "JP_Wall_Retaining_Rough_4m": 12,
+  "JP_Wall_Retaining_Granite_4m_Low": 12,
+  "JP_Stairs_Granite_3m": 48,
+  "JP_Stairs_Granite_3m_Low": 36,
+  "JP_Railing_Stone_2m": 54,
+  "JP_Fence_Vermilion_4m": 144,
+  "JP_Temple_OmikujiRack_A": 960
+ }
+}

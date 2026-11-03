@@ -340,7 +340,8 @@ namespace Hydro
 	}
 
 	// Region(>= level) in a cell: the cycle's points at that level or higher, in order.
-	static uint32_t Region(const TerrainMesher::BoundaryPoint* cycle, uint32_t count, int32_t level, TerrainMesher::BoundaryPoint* out)
+	static uint32_t Region(const TerrainMesher::BoundaryPoint* cycle, uint32_t count, int32_t level,
+		TerrainMesher::BoundaryPoint* out)
 	{
 		uint32_t n = 0;
 		for (uint32_t k = 0; k < count; k++)
@@ -377,9 +378,8 @@ namespace Hydro
 
 	glm::vec3 TerrainMesher::WallPointAt(const BoundaryPoint& point, int32_t level) const
 	{
-		// A wall's vertex: the outline point, stepped out (away from the higher corner) by the wall layer's Slope times
-		// the height below the edge's top. Only walls, their edges and their decor use it: the tops keep the outline,
-		// so a sloped wall covers the lower ground at its foot.
+		// A wall's vertex: the outline point stepped out by the layer's Slope times the height below the edge's top.
+		// Only walls and their decor use it; the tops keep the outline, so a sloped wall covers the ground at its foot.
 		glm::vec3 p = PointAt(point, level);
 		if (KeyKind(point.Key) == KeyCorner)
 		{
@@ -407,9 +407,8 @@ namespace Hydro
 
 	void TerrainMesher::FindRampRuns()
 	{
-		// A run is consecutive cells with the same direction; its height goes linearly from the low edge (all corners
-		// one level) to the high edge (all corners one higher level). The surface comes only from the run's two ends:
-		// the levels on a ramp's side corners belong to the neighbouring ground.
+		// A run is consecutive cells with the same direction, rising linearly from its low edge to its high edge.
+		// Only the run's two ends shape it: the levels on a ramp's side corners belong to the neighbouring ground.
 		m_RampCells.assign((size_t)m_CellsX * m_CellsY, RampCell{});
 		std::vector<uint8_t> seen((size_t)m_CellsX * m_CellsY, 0);
 		const int64_t nx = (int64_t)m_CellsX;
@@ -489,9 +488,9 @@ namespace Hydro
 				const int32_t high1 = Level(high[1].x, high[1].y);
 				if (low0 != low1 || high0 != high1 || high0 <= low0)
 				{
-					m_Problems.push_back("Ramp at cell (" + std::to_string(cells.front().x) + ", " + std::to_string(cells.front().y) + "): low edge at levels "
-						+ std::to_string(low0) + " and " + std::to_string(low1) + ", high edge at " + std::to_string(high0) + " and "
-						+ std::to_string(high1) + "; drawn as a cliff");
+					m_Problems.push_back("Ramp at cell (" + std::to_string(cells.front().x) + ", " + std::to_string(cells.front().y)
+						+ "): low edge at levels " + std::to_string(low0) + " and " + std::to_string(low1) + ", high edge at "
+						+ std::to_string(high0) + " and " + std::to_string(high1) + "; drawn as a cliff");
 					continue;
 				}
 
@@ -507,7 +506,8 @@ namespace Hydro
 					edgeCorners(cells[n], false, lowCorners);
 					edgeCorners(cells[n], true, highCorners);
 					// Corners SW, SE, NE, NW of the cell.
-					const glm::i64vec2 corners[4] = { cells[n], cells[n] + glm::i64vec2(1, 0), cells[n] + glm::i64vec2(1, 1), cells[n] + glm::i64vec2(0, 1) };
+					const glm::i64vec2 corners[4] = { cells[n], cells[n] + glm::i64vec2(1, 0), cells[n] + glm::i64vec2(1, 1),
+						cells[n] + glm::i64vec2(0, 1) };
 					for (int k = 0; k < 4; k++)
 					{
 						const bool isLow = corners[k] == lowCorners[0] || corners[k] == lowCorners[1];
@@ -771,9 +771,8 @@ namespace Hydro
 
 	void TerrainMesher::AddWall(const WallSegment& segment, TerrainMeshBuilder* parts, TerrainCollisionBuilder* collision) const
 	{
-		// Region(>= Level)'s outline extruded down one level. Outward (the lower ground) is on the right of A -> B, so
-		// the quad is counter-clockwise seen from outside. UVs in metres: u along the outline, v = -z (images have v = 0 at the
-		// top, as in MeshFactory).
+		// Region(>= Level)'s outline extruded down one level, counter-clockwise seen from outside (the lower ground is
+		// right of A -> B). UVs in metres: u along the outline, v = -z (v = 0 at the image's top, as in MeshFactory).
 		const glm::vec3 at = WallPointAt(segment.A, segment.Level);
 		const glm::vec3 bt = WallPointAt(segment.B, segment.Level);
 		const glm::vec3 ab = WallPointAt(segment.A, segment.Level - 1);
@@ -836,8 +835,8 @@ namespace Hydro
 				const glm::vec3 aod(ao.x, ao.y, zt - lipFace);
 				const glm::vec3 bod(bo.x, bo.y, zt - lipFace);
 				const glm::vec3 shading = WallShading(ao, bo, aod, bod);
-				parts.Quad(GetPartSlot(TerrainPartKind::LipFace, material), aod, bod, bo, ao, glm::vec2(ua, lipFace - zt), glm::vec2(ub, lipFace - zt),
-					glm::vec2(ub, -zt), glm::vec2(ua, -zt), &shading);
+				parts.Quad(GetPartSlot(TerrainPartKind::LipFace, material), aod, bod, bo, ao, glm::vec2(ua, lipFace - zt),
+					glm::vec2(ub, lipFace - zt), glm::vec2(ub, -zt), glm::vec2(ua, -zt), &shading);
 			}
 		}
 
@@ -849,19 +848,22 @@ namespace Hydro
 			const glm::vec2 inward(-edge.y / length, edge.x / length); // left of A -> B: into the shelf
 			const glm::vec2 middle = 0.5f * glm::vec2(at.x + bt.x, at.y + bt.y) + inward * 0.06f;
 			const uint32_t layer = GetTopLayerAt(m_Terrain, middle);
-			if (layer < settings.Layers.size() && (uint64_t)settings.Layers[layer].Fringe != 0 && settings.Layers[layer].FringeLength > 0.0f)
+			if (layer < settings.Layers.size() && (uint64_t)settings.Layers[layer].Fringe != 0
+				&& settings.Layers[layer].FringeLength > 0.0f)
 			{
 				const float fringe = settings.Layers[layer].FringeLength / TerrainArtPixelsPerMetre;
 				const float offset = 0.004f;
 				const glm::vec3 af(ao.x + da.x * offset, ao.y + da.y * offset, zt + 0.002f);
 				const glm::vec3 bf(bo.x + db.x * offset, bo.y + db.y * offset, zt + 0.002f);
 				// On a sloped wall the strip lies along the slope instead of hanging into it.
-				const float sa = KeyKind(segment.A.Key) == KeyCorner ? 0.0f : EdgeSlope(KeyOrient(segment.A.Key), KeyI(segment.A.Key), KeyJ(segment.A.Key));
-				const float sb = KeyKind(segment.B.Key) == KeyCorner ? 0.0f : EdgeSlope(KeyOrient(segment.B.Key), KeyI(segment.B.Key), KeyJ(segment.B.Key));
+				const float sa = KeyKind(segment.A.Key) == KeyCorner ? 0.0f
+					: EdgeSlope(KeyOrient(segment.A.Key), KeyI(segment.A.Key), KeyJ(segment.A.Key));
+				const float sb = KeyKind(segment.B.Key) == KeyCorner ? 0.0f
+					: EdgeSlope(KeyOrient(segment.B.Key), KeyI(segment.B.Key), KeyJ(segment.B.Key));
 				const glm::vec3 afd(af.x + da.x * sa * fringe, af.y + da.y * sa * fringe, zt - fringe);
 				const glm::vec3 bfd(bf.x + db.x * sb * fringe, bf.y + db.y * sb * fringe, zt - fringe);
-				parts.Quad(GetPartSlot(TerrainPartKind::Fringe, layer), afd, bfd, bf, af, glm::vec2(ua, 1.0f), glm::vec2(ub, 1.0f), glm::vec2(ub, 0.0f),
-					glm::vec2(ua, 0.0f));
+				parts.Quad(GetPartSlot(TerrainPartKind::Fringe, layer), afd, bfd, bf, af, glm::vec2(ua, 1.0f), glm::vec2(ub, 1.0f),
+					glm::vec2(ub, 0.0f), glm::vec2(ua, 0.0f));
 			}
 		}
 
@@ -938,7 +940,8 @@ namespace Hydro
 		profile.emplace_back(1.0f, LevelZ((float)lb));
 	}
 
-	void TerrainMesher::AddRamp(uint32_t i, uint32_t j, TerrainMeshBuilder* tops, TerrainMeshBuilder* parts, TerrainCollisionBuilder* collision) const
+	void TerrainMesher::AddRamp(uint32_t i, uint32_t j, TerrainMeshBuilder* tops, TerrainMeshBuilder* parts,
+		TerrainCollisionBuilder* collision) const
 	{
 		const float cell = m_Terrain.GetSettings().CellSize;
 		const RampCell& ramp = GetRamp(i, j);
@@ -950,7 +953,8 @@ namespace Hydro
 		}
 		if (tops != nullptr)
 		{
-			tops->Quad(TopsSlot, points[0], points[1], points[2], points[3], TopUV(points[0]), TopUV(points[1]), TopUV(points[2]), TopUV(points[3]));
+			tops->Quad(TopsSlot, points[0], points[1], points[2], points[3], TopUV(points[0]), TopUV(points[1]), TopUV(points[2]),
+				TopUV(points[3]));
 		}
 		if (collision != nullptr)
 		{
@@ -993,8 +997,8 @@ namespace Hydro
 				// The neighbour's heights at the two shared corners.
 				auto heightAt = [&](const glm::uvec2& corner)
 				{
-					const glm::uvec2 own[4] = { { (uint32_t)ni, (uint32_t)nj }, { (uint32_t)ni + 1, (uint32_t)nj }, { (uint32_t)ni + 1, (uint32_t)nj + 1 },
-						{ (uint32_t)ni, (uint32_t)nj + 1 } };
+					const glm::uvec2 own[4] = { { (uint32_t)ni, (uint32_t)nj }, { (uint32_t)ni + 1, (uint32_t)nj },
+						{ (uint32_t)ni + 1, (uint32_t)nj + 1 }, { (uint32_t)ni, (uint32_t)nj + 1 } };
 					for (int k = 0; k < 4; k++)
 					{
 						if (own[k] == corner)
@@ -1191,7 +1195,8 @@ namespace Hydro
 			const RampCell& ramp = GetRamp(i, j);
 			const float u = fx - (float)i;
 			const float v = fy - (float)j;
-			const float h = (ramp.Heights[0] * (1.0f - u) + ramp.Heights[1] * u) * (1.0f - v) + (ramp.Heights[3] * (1.0f - u) + ramp.Heights[2] * u) * v;
+			const float h = (ramp.Heights[0] * (1.0f - u) + ramp.Heights[1] * u) * (1.0f - v)
+				+ (ramp.Heights[3] * (1.0f - u) + ramp.Heights[2] * u) * v;
 			return LevelZ(h);
 		}
 

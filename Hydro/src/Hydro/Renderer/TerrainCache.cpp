@@ -102,7 +102,7 @@ namespace Hydro
 			entry.Data.Chunks.assign(chunkCount, TerrainChunkDraw{});
 		}
 
-		// The decor sprites load with the scene; a chunk built before they were all there is built again once they are.
+		// A chunk built before every decor sprite had loaded is built again once they have.
 		const bool decorComplete = TerrainDecor::AreSpritesLoaded(terrain);
 		const bool decorArrived = decorComplete && entry.DecorComplete == false;
 		entry.DecorComplete = decorComplete;
@@ -212,7 +212,7 @@ namespace Hydro
 		return &entry->Data;
 	}
 
-	// Whether a ray meets a box before `limit` (in units of `direction`). (Not "near" / "far": windows.h defines those.)
+	// Whether a ray meets a box before `limit` (in units of `direction`). Not "near"/"far": windows.h defines those.
 	static bool RayHitsBox(const glm::vec3& origin, const glm::vec3& direction, const glm::vec3& low, const glm::vec3& high, float limit)
 	{
 		float enter = 0.0f;
@@ -244,7 +244,8 @@ namespace Hydro
 	}
 
 	// Möller-Trumbore, both faces.
-	static bool RayHitsTriangle(const glm::vec3& origin, const glm::vec3& direction, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& t)
+	static bool RayHitsTriangle(const glm::vec3& origin, const glm::vec3& direction, const glm::vec3& a, const glm::vec3& b,
+		const glm::vec3& c, float& t)
 	{
 		const glm::vec3 edge1 = b - a;
 		const glm::vec3 edge2 = c - a;

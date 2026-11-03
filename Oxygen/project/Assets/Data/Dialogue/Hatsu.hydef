@@ -1,0 +1,12 @@
+Handle: 5581634057468186291
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: When I was a girl, nobody went near the old tree in the cedar wood. Old stories. I never believed them.
+      - Speaker: ""
+        Text: I believe them a little more since the ground shook.

@@ -19,7 +19,7 @@ namespace Hydro {
 			LPCTSTR path = reinterpret_cast<LPCTSTR>(lpData);
 			::SendMessage(hwnd, BFFM_SETSELECTION, true, (LPARAM)path);
 		}
-		
+
 		return 0;
 	}
 
@@ -34,13 +34,17 @@ namespace Hydro {
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		if (GetCurrentDirectoryA(256, currentDir))
+		{
 			ofn.lpstrInitialDir = currentDir;
+		}
 		ofn.lpstrFilter = filter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 		if (GetOpenFileNameA(&ofn) == TRUE)
+		{
 			return ofn.lpstrFile;
+		}
 
 		return std::string();
 
@@ -64,12 +68,10 @@ namespace Hydro {
 
 		if (pidl != 0)
 		{
-			//get the name of the folder and put it in path
 			SHGetPathFromIDList(pidl, path);
 
-			//free memory used
 			IMalloc* imalloc = 0;
-			
+
 			if (SUCCEEDED(SHGetMalloc(&imalloc)))
 			{
 				imalloc->Free(pidl);
@@ -77,7 +79,7 @@ namespace Hydro {
 			}
 
 			std::wstring wstrPath(path);
-			std::string strPath(wstrPath.begin(), wstrPath.end());  
+			std::string strPath(wstrPath.begin(), wstrPath.end());
 
 			return strPath;
 		}
@@ -96,16 +98,19 @@ namespace Hydro {
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		if (GetCurrentDirectoryA(256, currentDir))
+		{
 			ofn.lpstrInitialDir = currentDir;
+		}
 		ofn.lpstrFilter = filter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
 
-		// Sets the default extension by extracting it from the filter
 		ofn.lpstrDefExt = strchr(filter, '\0') + 1;
 
 		if (GetSaveFileNameA(&ofn) == TRUE)
+		{
 			return ofn.lpstrFile;
+		}
 
 		return std::string();
 	}

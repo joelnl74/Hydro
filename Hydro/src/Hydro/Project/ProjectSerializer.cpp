@@ -55,7 +55,9 @@ namespace Hydro
 
 		std::error_code ec;
 		if (filepath.has_parent_path())
+		{
 			std::filesystem::create_directories(filepath.parent_path(), ec);
+		}
 
 		std::ofstream fout(filepath);
 		if (fout.is_open() == false)
@@ -93,13 +95,21 @@ namespace Hydro
 		try
 		{
 			if (auto node = projectNode["Name"])
+			{
 				config.Name = node.as<std::string>();
+			}
 			if (auto node = projectNode["AssetDirectory"])
+			{
 				config.AssetDirectory = node.as<std::string>();
+			}
 			if (auto node = projectNode["StartSceneHandle"])
+			{
 				config.StartScene = AssetHandle(node.as<uint64_t>(0));
+			}
 			if (auto node = projectNode["StartScene"])
+			{
 				config.LegacyStartScene = node.as<std::string>();
+			}
 			if (auto node = projectNode["SceneTemplateHandle"])
 			{
 				config.SceneTemplate = AssetHandle(node.as<uint64_t>(0));
@@ -124,7 +134,7 @@ namespace Hydro
 				{
 					renderer.ShaderHotReload = node.as<bool>();
 				}
-				// Projects saved before 2D lighting have none of these keys: they keep the defaults.
+				// Older projects have none of these keys: they keep the defaults.
 				if (auto node = rendererNode["Lighting"])
 				{
 					renderer.Lighting = node.as<bool>(renderer.Lighting);
@@ -142,7 +152,7 @@ namespace Hydro
 				{
 					renderer.Shadows = node.as<bool>(renderer.Shadows);
 				}
-				// Projects saved before sun shadows (R14) keep the defaults.
+				// Older projects keep the defaults.
 				if (auto node = rendererNode["SunShadowMapSize"])
 				{
 					renderer.SunShadowMapSize = node.as<uint32_t>(renderer.SunShadowMapSize);

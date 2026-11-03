@@ -14,7 +14,9 @@ namespace Hydro
 	{
 		std::ifstream file(path, std::ios::in | std::ios::binary);
 		if (file.is_open() == false)
+		{
 			return false;
+		}
 
 		std::stringstream stream;
 		stream << file.rdbuf();
@@ -38,8 +40,7 @@ namespace Hydro
 		throw std::runtime_error("Unsupported shader stage for GLSL compilation.");
 	}
 
-	// Resolves #include "file" (and <file>) relative to the file that includes it, and records
-	// every included path so hot reload also triggers when only an included file changes.
+	// Resolves #include relative to the including file and records every included path for hot reload.
 	class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface
 	{
 	public:
@@ -48,7 +49,8 @@ namespace Hydro
 		{
 		}
 
-		shaderc_include_result* GetInclude(const char* requestedSource, shaderc_include_type /*type*/, const char* requestingSource, size_t /*includeDepth*/) override
+		shaderc_include_result* GetInclude(const char* requestedSource, shaderc_include_type /*type*/, const char* requestingSource,
+			size_t /*includeDepth*/) override
 		{
 			auto* include = new IncludeData();
 			const std::filesystem::path path = (std::filesystem::path(requestingSource).parent_path() / requestedSource).lexically_normal();
@@ -184,7 +186,8 @@ namespace Hydro
 #endif
 
 		shaderc::Compiler compiler;
-		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, ShaderStageToShadercKind(info.shaderStage), sourceName.c_str(), "main", options);
+		shaderc::SpvCompilationResult result =
+			compiler.CompileGlslToSpv(source, ShaderStageToShadercKind(info.shaderStage), sourceName.c_str(), "main", options);
 		if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 		{
 			HY_CORE_ERROR("Shader compilation failed:\n{0}", result.GetErrorMessage());
@@ -192,7 +195,9 @@ namespace Hydro
 		}
 
 		if (result.GetNumWarnings() > 0)
+		{
 			HY_CORE_WARN("Shader '{0}' compiled with warnings:\n{1}", sourceName, result.GetErrorMessage());
+		}
 
 		return std::vector<uint32_t>(result.cbegin(), result.cend());
 	}
@@ -200,7 +205,9 @@ namespace Hydro
 	void VulkanShader::DestroyModules()
 	{
 		if (m_ShaderModules.empty())
+		{
 			return;
+		}
 
 		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		for (auto& module : m_ShaderModules)

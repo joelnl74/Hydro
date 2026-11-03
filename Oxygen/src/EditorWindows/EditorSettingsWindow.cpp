@@ -42,7 +42,9 @@ namespace Hydro
 	static bool BeginSettingsTable(const char* id)
 	{
 		if (ImGui::BeginTable(id, 2, ImGuiTableFlags_SizingStretchProp) == false)
+		{
 			return false;
+		}
 
 		ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, SettingsLabelWidth);
 		ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
@@ -55,10 +57,14 @@ namespace Hydro
 		ImGui::Spacing();
 		ImFont* bold = EditorChrome::GetBoldFont();
 		if (bold != nullptr)
+		{
 			ImGui::PushFont(bold);
+		}
 		ImGui::TextUnformatted(text);
 		if (bold != nullptr)
+		{
 			ImGui::PopFont();
+		}
 		ImGui::Separator();
 	}
 
@@ -67,7 +73,9 @@ namespace Hydro
 		ImGui::SameLine();
 		ImGui::TextDisabled("(?)");
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("%s", text);
+		}
 	}
 
 	// Typed number, clamped once the field is left (not while typing).
@@ -92,7 +100,9 @@ namespace Hydro
 		float values[2] = { value.x, value.y };
 		bool changed = ImGui::InputFloat2("##value", values, "%.1f");
 		if (changed)
+		{
 			value = ImVec2(values[0], values[1]);
+		}
 		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
 			value = ImVec2(std::clamp(value.x, min, max), std::clamp(value.y, min, max));
@@ -131,7 +141,9 @@ namespace Hydro
 	void EditorSettingsWindow::OnImguiRender(EditorSettings& settings)
 	{
 		if (m_Open == false)
+		{
 			return;
+		}
 
 		ImGui::SetNextWindowSize(ImVec2(640.0f, 560.0f), ImGuiCond_FirstUseEver);
 		if (ImGui::Begin("Editor Settings", &m_Open) == false)
@@ -152,7 +164,9 @@ namespace Hydro
 
 		ImGui::BeginChild("##page", ImVec2(0.0f, bodyHeight), false);
 		if (DrawPage(settings))
+		{
 			m_Unsaved = true;
+		}
 		ImGui::EndChild();
 
 		DrawFooter(settings);
@@ -180,10 +194,14 @@ namespace Hydro
 
 		ImFont* bold = EditorChrome::GetBoldFont();
 		if (bold != nullptr)
+		{
 			ImGui::PushFont(bold);
+		}
 		ImGui::TextUnformatted(info.Name);
 		if (bold != nullptr)
+		{
 			ImGui::PopFont();
+		}
 		ImGui::TextDisabled("%s", info.Description);
 		ImGui::Spacing();
 
@@ -203,7 +221,9 @@ namespace Hydro
 
 		// The style is copied into ImGui; everything else the editor reads every frame.
 		if (styleChanged)
+		{
 			settings.Style.Apply();
+		}
 
 		return changed || styleChanged;
 	}
@@ -224,7 +244,9 @@ namespace Hydro
 			m_Unsaved = false;
 		}
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("Reload the saved settings.");
+		}
 
 		ImGui::SameLine();
 		if (ImGui::Button("Defaults"))
@@ -237,16 +259,24 @@ namespace Hydro
 			m_Unsaved = true;
 		}
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("Every setting back to its default. Save to keep it.");
+		}
 
 		ImGui::SameLine();
 		if (m_Unsaved)
+		{
 			ImGui::TextColored(settings.Style.GetHighlightColor(), "Unsaved changes");
+		}
 		else
+		{
 			ImGui::TextDisabled("%s", EditorPaths::GetEditorSettingsPath().filename().string().c_str());
+		}
 
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("%s", EditorPaths::GetEditorSettingsPath().string().c_str());
+		}
 	}
 
 	bool EditorSettingsWindow::DrawAppearancePage(EditorSettings& settings)
@@ -272,7 +302,9 @@ namespace Hydro
 					}
 
 					if (theme == EditorTheme::Glacier)
+					{
 						ImGui::Separator(); // the Hydro themes above, ImGui's presets below
+					}
 				}
 				ImGui::EndCombo();
 			}
@@ -297,9 +329,13 @@ namespace Hydro
 				changed = true;
 			}
 			if (ImGui::IsItemHovered())
+			{
 				ImGui::SetTooltip("%s", preset.Name);
+			}
 			if (selected)
+			{
 				EditorChrome::OutlineLastItem(style.Colors[ImGuiCol_Text], 2.0f);
+			}
 			ImGui::PopID();
 			ImGui::SameLine();
 		}
@@ -315,9 +351,13 @@ namespace Hydro
 		ImGui::EndDisabled();
 
 		if (usesAccent)
+		{
 			ImGui::TextDisabled("Changing the accent recolours the theme (colour edits are replaced).");
+		}
 		else
+		{
 			ImGui::TextDisabled("ImGui's presets have fixed colours; pick Hydro, Abyss or Glacier for an accent.");
+		}
 
 		SectionHeading("Text");
 		if (BeginSettingsTable("##text"))
@@ -328,9 +368,13 @@ namespace Hydro
 			BeginSettingsRow("Font size (px)");
 			ImGui::PushID("FontSize");
 			if (ImGui::InputFloat("##value", &settings.FontSize, 0.0f, 0.0f, "%.0f"))
+			{
 				m_Unsaved = true;
+			}
 			if (ImGui::IsItemDeactivatedAfterEdit())
+			{
 				settings.FontSize = std::clamp(settings.FontSize, 10.0f, 32.0f);
+			}
 			ImGui::PopID();
 
 			ImGui::EndTable();
@@ -346,7 +390,9 @@ namespace Hydro
 			changed = true;
 		}
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("Undo colour and size edits: back to the %s theme.", EditorStyle::GetThemeName(style.Theme));
+		}
 
 		return changed;
 	}
@@ -454,11 +500,14 @@ namespace Hydro
 			{
 				const char* name = ImGui::GetStyleColorName(i);
 				if (m_ColorFilter.PassFilter(name) == false)
+				{
 					continue;
+				}
 
 				BeginSettingsRow(name);
 				ImGui::PushID(i);
-				changed |= ImGui::ColorEdit4("##color", &style.Colors[i].x, ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
+				changed |= ImGui::ColorEdit4("##color", &style.Colors[i].x,
+					ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
 				ImGui::PopID();
 			}
 
@@ -490,6 +539,15 @@ namespace Hydro
 		ImGui::TextDisabled("Controls: Alt+LMB orbit, MMB pan, Alt+RMB or the wheel to zoom.");
 		ImGui::TextDisabled("3D: hold RMB to fly (mouse look, WASD, Q/E down/up, Shift faster, wheel = speed).");
 
+		SectionHeading("Editor view");
+		if (BeginSettingsTable("##editorview"))
+		{
+			changed |= CheckboxRow("Post-processing", settings.EditorViewPostProcessing);
+			changed |= CheckboxRow("Fog", settings.EditorViewFog);
+			ImGui::EndTable();
+		}
+		ImGui::TextDisabled("The scene's depth of field and bloom, and its fog, in the Editor view (also Editor > Effects). Off keeps the view sharp; the Game view always shows them.");
+
 		SectionHeading("Transform gizmo");
 		if (BeginSettingsTable("##gizmo"))
 		{
@@ -505,6 +563,8 @@ namespace Hydro
 		{
 			camera = EditorCameraSettings();
 			settings.CameraStartsIn2D = true;
+			settings.EditorViewPostProcessing = false;
+			settings.EditorViewFog = false;
 			settings.Gizmo = GizmoSettings();
 			changed = true;
 		}
@@ -543,10 +603,14 @@ namespace Hydro
 		const EditorSession& session = settings.Session;
 		ImGui::TextDisabled("Last project: %s", session.LastProject.empty() ? "-" : session.LastProject.filename().string().c_str());
 		if (ImGui::IsItemHovered() && session.LastProject.empty() == false)
+		{
 			ImGui::SetTooltip("%s", session.LastProject.string().c_str());
+		}
 		ImGui::TextDisabled("Last scene: %s", session.LastScene.empty() ? "-" : session.LastScene.filename().string().c_str());
 		if (ImGui::IsItemHovered() && session.LastScene.empty() == false)
+		{
 			ImGui::SetTooltip("%s", session.LastScene.string().c_str());
+		}
 
 		SectionHeading("Autosave");
 		if (BeginSettingsTable("##autosave"))

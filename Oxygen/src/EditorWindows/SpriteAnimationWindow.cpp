@@ -29,7 +29,8 @@ namespace Hydro
 		{
 			return name;
 		}
-		const bool numbered = std::all_of(name.begin() + (std::ptrdiff_t)underscore + 1, name.end(), [](char c) { return std::isdigit((unsigned char)c) != 0; });
+		const bool numbered = std::all_of(name.begin() + (std::ptrdiff_t)underscore + 1, name.end(),
+			[](char c) { return std::isdigit((unsigned char)c) != 0; });
 		return numbered ? name.substr(0, underscore) : name;
 	}
 
@@ -238,7 +239,8 @@ namespace Hydro
 		m_Dirty = true;
 		if (texture->GetSpriteMode() == SpriteMode::Single)
 		{
-			HY_WARN("Animation: {} is a Single texture (one sprite). Set its Sprite Mode to Multiple to animate it.", texture->GetPath().filename().u8string());
+			HY_WARN("Animation: {} is a Single texture (one sprite). Set its Sprite Mode to Multiple to animate it.",
+				texture->GetPath().filename().u8string());
 		}
 	}
 
@@ -325,10 +327,11 @@ namespace Hydro
 		ImGui::TextDisabled("Sheet:");
 		ImGui::SameLine();
 
-		// The sprite sheet: pick one of the project's images, or drop one from the Project window.
-		// Frames keep the sprites the new sheet has by name. (Clearing it isn't an option: a set needs a sheet.)
+		// The sprite sheet, picked or dropped from the Project window. Frames keep the sprites the new sheet has by name;
+		// it can't be cleared because a set needs a sheet.
 		const AssetHandle current = m_Texture != nullptr ? m_Texture->GetHandle() : AssetHandle(0);
-		const AssetPickerResult result = AssetPicker::DrawField("##Sheet", current, AssetType::Texture2D, "Frames keep sprites the new sheet has by name.", 240.0f);
+		const AssetPickerResult result = AssetPicker::DrawField("##Sheet", current, AssetType::Texture2D,
+			"Frames keep sprites the new sheet has by name.", 240.0f);
 		if (result.Changed && static_cast<uint64_t>(result.Handle) != 0)
 		{
 			SetTexture(AssetManager::GetAsset<Texture2D>(result.Handle));
@@ -338,7 +341,8 @@ namespace Hydro
 		ImGui::TextDisabled("Default clip:");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(160.0f);
-		const char* defaultName = m_DefaultClip >= 0 && m_DefaultClip < (int32_t)m_Clips.size() ? m_Clips[m_DefaultClip].Name.c_str() : "None";
+		const char* defaultName = m_DefaultClip >= 0 && m_DefaultClip < (int32_t)m_Clips.size()
+			? m_Clips[m_DefaultClip].Name.c_str() : "None";
 		if (ImGui::BeginCombo("##DefaultClip", defaultName))
 		{
 			for (int32_t i = 0; i < (int32_t)m_Clips.size(); i++)
@@ -440,7 +444,8 @@ namespace Hydro
 			size_t added = 0;
 			for (SpriteAnimationClip& clip : MakeClipsFromSpriteNames(*m_Texture, m_FrameRateForAll))
 			{
-				const bool exists = std::any_of(m_Clips.begin(), m_Clips.end(), [&](const SpriteAnimationClip& other) { return other.Name == clip.Name; });
+				const bool exists = std::any_of(m_Clips.begin(), m_Clips.end(),
+					[&](const SpriteAnimationClip& other) { return other.Name == clip.Name; });
 				if (exists == false)
 				{
 					m_Clips.push_back(std::move(clip));
@@ -545,7 +550,8 @@ namespace Hydro
 			ImGui::TableSetupColumn("##Image", ImGuiTableColumnFlags_WidthFixed, thumbnail);
 			ImGui::TableSetupColumn("Sprite", ImGuiTableColumnFlags_WidthStretch, 2.0f);
 			ImGui::TableSetupColumn("Seconds", ImGuiTableColumnFlags_WidthStretch, 1.0f);
-			ImGui::TableSetupColumn("##Actions", ImGuiTableColumnFlags_WidthFixed, 3.0f * ImGui::GetFrameHeight() + 2.0f * ImGui::GetStyle().ItemSpacing.x);
+			ImGui::TableSetupColumn("##Actions", ImGuiTableColumnFlags_WidthFixed,
+				3.0f * ImGui::GetFrameHeight() + 2.0f * ImGui::GetStyle().ItemSpacing.x);
 			ImGui::TableHeadersRow();
 
 			for (int32_t i = 0; i < (int32_t)clip.Frames.size(); i++)
@@ -773,7 +779,8 @@ namespace Hydro
 				}
 				if (ImGui::IsItemHovered())
 				{
-					ImGui::GetWindowDrawList()->AddRect(min, { min.x + tile, min.y + tile }, ImGui::GetColorU32(ImGuiCol_CheckMark), 3.0f, 0, 2.0f);
+					ImGui::GetWindowDrawList()->AddRect(min, { min.x + tile, min.y + tile }, ImGui::GetColorU32(ImGuiCol_CheckMark),
+						3.0f, 0, 2.0f);
 					if (clip != nullptr)
 					{
 						ImGui::SetTooltip("%u: %s\nClick to add to the clip", i, name.c_str());

@@ -82,8 +82,7 @@ namespace Hydro
 
 		for (auto& [name, entry] : s_Library->Shaders)
 		{
-			// Every watcher is polled (a poll takes the new file times); a broken shader is retried on its
-			// next save, not on every poll.
+			// Every watcher is polled (a poll takes the new file times), so a broken shader is retried on its next save.
 			if (entry.Watcher.Poll() == false)
 			{
 				continue;

@@ -11,24 +11,22 @@ namespace Hydro
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		std::vector<uint8_t> Pixels; // RGBA8, first row = top
-		// Made smaller (and so smooth: draw it with linear sampling); otherwise it is the image as it is
-		// (small pixel art stays crisp with nearest sampling).
+		// Made smaller (draw it with linear sampling); otherwise the image as it is (pixel art stays crisp with nearest).
 		bool Downscaled = false;
 		// The image is a sprite sheet (sprite mode Multiple).
 		bool IsSheet = false;
 	};
 
-	// Makes thumbnails and keeps them in a file, so a big project doesn't decode every image again each
-	// time the editor starts. No GPU and no engine types: it works on pixels and files only.
+	// Makes thumbnails and caches them in files, so the editor doesn't decode every image at each start. Pixels and
+	// files only: no GPU, no engine types.
 	class ThumbnailBaker
 	{
 	public:
 		// The longest side of a thumbnail, in pixels.
 		static constexpr uint32_t MaxSize = 128;
 
-		// `rgba` is width * height RGBA8 pixels. An image that fits in MaxSize is copied as it is; a bigger one
-		// is averaged down (colours weighted by alpha, so transparent pixels don't darken the edges) to fit,
-		// keeping its aspect ratio.
+		// `rgba` is width * height RGBA8. A bigger image than MaxSize is averaged down to fit (colours weighted by alpha),
+		// keeping its aspect ratio; a smaller one is copied.
 		static ThumbnailPixels Downscale(const uint8_t* rgba, uint32_t width, uint32_t height);
 
 		// Writes `thumbnail` to `file` (folders are created) with the version of the image it was made from.

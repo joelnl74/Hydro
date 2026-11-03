@@ -10,26 +10,20 @@ namespace Hydro
 {
 	class Scene;
 
-	// The scenes of a running game: the top one updates and draws, the ones below it wait exactly as they
-	// were (entities, scripts, physics bodies). Owned by whatever runs the game (the editor's Play mode, the
-	// standalone Runtime), which calls ProcessTransition after each frame's update to do what scripts asked
-	// for with SceneTransition.
+	// The scenes of a running game: the top one updates and draws, the ones below wait as they were. Owned by the host,
+	// which calls ProcessTransition after each frame's update.
 	class SceneStack
 	{
 	public:
-		// Starts a game on `scene` (already Init'ed): it becomes the only scene and starts running
-		// (Scene::OnRuntimeStart). A pending SceneTransition request is forgotten.
+		// Starts a game on `scene` (already Init'ed) as the only scene; a pending SceneTransition request is forgotten.
 		void Start(const Ref<Scene>& scene);
-		// Ends the game: the running scene stops (Scene::OnRuntimeStop) and every scene goes, the top one
-		// first. Nothing happens when it isn't running.
+		// Stops the running scene and drops every scene, top first. Nothing happens when not running.
 		void Stop();
 
-		// Takes the pending SceneTransition request and does it: Push loads
-		// <scenesDirectory>/<name>.hyscene on top (sized to viewportWidth x viewportHeight; nothing changes when
-		// it can't be loaded), Pop throws the top scene away. Quit is only reported: what quitting means is up
-		// to the host (the Runtime closes, the editor stops playing). Returns what was done: None when there
-		// was no request or it failed (logged).
-		SceneTransition::Type ProcessTransition(const std::filesystem::path& scenesDirectory, uint32_t viewportWidth, uint32_t viewportHeight);
+		// Does the pending SceneTransition: Push loads <scenesDirectory>/<name>.hyscene on top, Pop drops the top scene,
+		// Quit is only reported. Returns what was done (None when there was no request or it failed).
+		SceneTransition::Type ProcessTransition(const std::filesystem::path& scenesDirectory, uint32_t viewportWidth,
+			uint32_t viewportHeight);
 
 		// The scene that runs; null when the game isn't running.
 		const Ref<Scene>& GetActiveScene() const { return m_Active; }

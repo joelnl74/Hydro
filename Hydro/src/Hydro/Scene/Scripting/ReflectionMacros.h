@@ -1,41 +1,24 @@
 // Hydro/Scene/Scripting/ReflectionMacros.h
 #pragma once
 
-// These macros expand to nothing. They are markers for Tools/ReflectionGenerator/generate_reflection.py,
-// which reads the headers and writes the scripts' registration (Oxygen/src/Generated/GeneratedScriptReflection.cpp).
+// Markers that expand to nothing; Tools/ReflectionGenerator/generate_reflection.py reads them and writes the
+// registration into Game/src/Generated. Examples and details: docs/Scripting.md and docs/SceneAndECS.md.
 //
-// HY_SCRIPT()   above a class or struct that derives publicly from ScriptableEntity (`final` is fine).
-//               It is registered under its class name, which is what scenes save.
+// HY_SCRIPT(FormerName("Old", ...))   a class deriving publicly from ScriptableEntity, registered by class name
+// HY_COMPONENT(FormerName(...))       a plain-data game ECS component (ComponentRegistry)
+// HY_DATA(Definition, Table)          a data type; also HY_DATA() for nested helpers, DisplayField(Field), FormerName
+// HY_ENUM()                           an enum class saved by enumerator name (reordering is safe, renaming is not)
+// HY_PROPERTY(...)                    a public field: shown, saved, applied before OnCreate. One field per declaration.
+//   Types: bool, int, float, glm::vec2/3/4, std::string, AssetHandle, DataRowRef, EntityRef, ComponentRef<T>,
+//   HY_ENUM enums, HY_DATA structs and std::vector of those (no nested lists).
+//   Arguments: Range(min, max), Min(v), Max(v), Tooltip("text"), DisplayName("Label"), Color, Asset(Type),
+//   Asset(Definition, T), Asset(DataTable, T), DataRow(T), ReadOnly, Hidden, FormerName("Old", ...), Required.
 //
-// HY_PROPERTY(...) above a public field of such a class: shown in the inspector, saved with the scene and
-// applied before OnCreate. Types: bool, int, float, glm::vec2, glm::vec3, glm::vec4, std::string, AssetHandle.
-// One field per declaration. Arguments, in any order, all optional:
-//     Range(min, max)       int / float / vector components: clamped when the field is left
-//     Min(value), Max(value)
-//     Tooltip("text")
-//     DisplayName("Label")  instead of the field's name split at capitals
-//     Color                 glm::vec3 / glm::vec4 edited with a colour picker
-//     Asset(Texture2D)      required for an AssetHandle: the AssetType its picker lists
-//     ReadOnly              shown, not editable
-//     Hidden                saved and applied, not shown
-//
-//     HY_SCRIPT()
-//     class LanternScript : public ScriptableEntity
-//     {
-//     public:
-//         HY_PROPERTY(Range(0, 10), Tooltip("Flicker strength"))
-//         float Flicker = 2.0f;
-//         HY_PROPERTY(Color)
-//         glm::vec3 Glow{ 1.0f, 0.7f, 0.3f };
-//         HY_PROPERTY(Asset(Texture2D))
-//         AssetHandle LitSprite = 0;
-//     };
+// FormerName keeps files saved under an old name loading; delete it once every file has been saved again.
 
 #define HY_SCRIPT(...)
 #define HY_PROPERTY(...)
-// Reserved for data types (definitions and data tables, not read by the generator yet): HY_DATA() above a
-// struct of HY_PROPERTY fields, HY_DATA(Definition) / HY_DATA(Table) for the ones that can be created as
-// .hydef / .hytable assets, HY_ENUM() above an enum class. See the wiki's Definitions and data tables plan
-// (issues #168 to #172).
 #define HY_DATA(...)
+#define HY_COMPONENT(...)
+#define HY_ENUM(...)
 #define HY_REFLECT(...)

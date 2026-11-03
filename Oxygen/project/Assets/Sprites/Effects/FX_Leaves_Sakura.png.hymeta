@@ -1,0 +1,17 @@
+Handle: 5593904683077237459
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 32
+  Slicing:
+    Mode: Grid
+    CellSize: [12, 12]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 8
+    Rows: 8
+    RowNames: [SakuraA, SakuraB, SakuraC, SakuraD, SakuraE, SakuraF, SakuraG, SakuraH]
+    DefaultPivot: [0.5, 0.5]

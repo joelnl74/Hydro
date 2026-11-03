@@ -1,5 +1,6 @@
 #pragma once
 #include "Hydro/Asset/Asset.h"
+#include "Hydro/Data/DataType.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Core/Base.h"
@@ -15,41 +16,32 @@
 
 namespace Hydro
 {
-	// Content browser for <project>/Assets: folders, scenes, prefabs, images, animation sets, materials and
-	// models (.gltf / .glb).
-	// It lists the AssetRegistry (every item that isn't a folder is a registered asset with a handle), plus
-	// the folders on disk. Images show a small cached thumbnail (ThumbnailManager). A prefab shows the
-	// first frame of its animation, or its sprite's image (a blue strip marks it as a prefab); an
-	// animation set shows its first frame. .hymeta sidecars are hidden; deleting an image deletes its
-	// sidecar too. When the folder's contents change (here or in Explorer) it asks the AssetManager to
-	// rescan, so new files get handles.
-	//
-	// Double-click: folder -> open, prefab -> instantiate into the scene, scene -> open.
-	// Drag a prefab or scene onto the viewport or the hierarchy to do the same.
+	// Content browser for <project>/Assets: the registered assets plus the folders on disk, with thumbnails.
+	// Double-click opens a folder or scene and instantiates a prefab; dragging onto the viewport does the same.
 	class ProjectWindow
 	{
 	public:
-		// Set by the editor layer. Called after the window has finished drawing.
+		// Called after the window has finished drawing.
 		std::function<void(const std::filesystem::path&)> OnOpenScene;
 		std::function<void(Entity)> OnEntityCreated;
-		// A folder or asset was renamed: from -> to. The editor layer moves the paths it holds (open scene,
-		// last session, the asset the inspector shows, the Sprite Editor's image) that point at or into it.
+		// A folder or asset was renamed (from, to); the editor layer moves the paths it holds that point into it.
 		std::function<void(const std::filesystem::path&, const std::filesystem::path&)> OnPathRenamed;
-		// A file was deleted (always through AssetManager::DeleteAsset): windows editing it let go of it.
+		// A file was deleted; windows editing it let go of it.
 		std::function<void(const std::filesystem::path&)> OnPathDeleted;
-		// A file was clicked (the inspector shows it), or double-clicked / opened from its menu
-		// (images open in the Sprite Editor, .hyanim files in the Animation window).
+		// A file was clicked (the inspector shows it), or opened (images in the Sprite Editor, .hyanim files in the
+		// Animation window).
 		std::function<void(const std::filesystem::path&)> OnAssetSelected;
 		std::function<void(const std::filesystem::path&)> OnOpenAsset;
 
 		void OnImguiRender(const Ref<Scene>& scene);
 
-		// Rescan the folder on the next frame (e.g. after saving a prefab from elsewhere).
+		// Rescans the folder on the next frame.
 		void Refresh() { m_NeedsRescan = true; }
 
 	private:
-		// What the window shows an item as (Hydro::AssetType, plus folders).
-		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model, RenderProfile, Font, Terrain };
+		// What the window shows an item as (an AssetType, plus folders).
+		enum class ItemType { Folder, Scene, Prefab, Texture, Animation, Material, Model, RenderProfile, Font, Terrain,
+			Definition, DataTable };
 
 		struct AssetItem
 		{
@@ -59,7 +51,7 @@ namespace Hydro
 			AssetHandle Handle = 0;     // 0 for folders
 		};
 
-		// What a prefab looks like, read from its file. Rebuilt when the file changes.
+		// What a prefab looks like, read from its file and rebuilt when the file changes.
 		struct PrefabPreview
 		{
 			std::filesystem::file_time_type WriteTime{};
@@ -70,7 +62,7 @@ namespace Hydro
 			glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 			float RotationZ = 0.0f;
 			glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			// What the sprite shows, for the tile: its animation's first frame when it has one, else its sprite.
+			// Its animation's first frame when it has one, else its sprite.
 			AssetHandle TextureHandle = 0;
 			uint32_t SpriteIndex = 0;
 			bool FlipX = false;
@@ -86,7 +78,7 @@ namespace Hydro
 		void DrawThumbnail(const AssetItem& item, const glm::vec2& min, float size, bool hovered, bool selected);
 		void DrawItemTooltip(const AssetItem& item);
 		void DrawDeletePopup();
-		// "New Folder" and "Rename" both ask for a name in this popup.
+		// The name popup of "New Folder" and "Rename".
 		void DrawNamePopup();
 
 		void ActivateItem(const AssetItem& item, const Ref<Scene>& scene);
@@ -94,21 +86,22 @@ namespace Hydro
 		// Opens the name popup to create a folder in the current folder, or to rename `path`.
 		void BeginCreateFolder();
 		void BeginRename(const std::filesystem::path& path);
-		// Folders and every registered asset (scenes, prefabs, images, animation sets): references are asset
-		// handles, which a rename (AssetManager::MoveAsset) keeps.
+		// Folders and every registered asset (a rename keeps the asset handle that references use).
 		static bool CanRename(const std::filesystem::path& path);
-		// Empty when `name` + `extension` is a valid new file / folder name in `parent`, otherwise why
-		// it isn't. `ignore` is the item being renamed (keeping its own name is allowed).
-		static std::string ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore);
+		// Empty when `name` + `extension` is a valid new name in `parent`, else why it isn't. `ignore` is the item
+		// being renamed.
+		static std::string ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent,
+			const std::filesystem::path& ignore);
 
 		const PrefabPreview& GetPrefabPreview(const std::filesystem::path& path);
 		// Writes "<image name>.hyanim" next to a sprite sheet, one clip per sprite group, and opens it.
 		void CreateSpriteAnimation(const std::filesystem::path& imagePath);
-		// Writes "New Material.hymat" (a default Standard material) in the current folder and selects it.
+		// Writes "New Material.hymat" in the current folder and selects it.
 		void CreateMaterial();
-		// Writes "New Render Profile.hyrender" (its own environment, default post-processing) in the current
-		// folder and selects it (post-processing plan P4).
+		// Writes "New Render Profile.hyrender" in the current folder and selects it.
 		void CreateRenderProfile();
+		// "New <Type>.hydef" or "New <Type> Table.hytable" of the HY_DATA type `type`, selected and named right away.
+		void CreateDataAsset(const DataTypeInfo& type, bool table);
 		// False for asset types the window doesn't show.
 		static bool ToItemType(AssetType type, ItemType& itemType);
 
@@ -123,14 +116,13 @@ namespace Hydro
 		std::filesystem::path m_ListedDirectory;
 		std::vector<std::filesystem::path> m_ListedPaths;
 		std::unordered_map<std::string, PrefabPreview> m_PrefabPreviews;
-		// Full images (sprite sheets, animation sets) the tiles may load this frame, so opening a folder of
-		// many prefabs fills in over a few frames. Set when the window starts drawing.
+		// Full images the tiles may still load this frame, so a folder of many prefabs fills in over a few frames.
 		int m_PreviewLoadsLeft = 0;
 
 		bool m_RequestDeletePopup = false;
 
-		// Name popup: create a folder (m_RenamePath empty) or rename m_RenamePath. Files keep their
-		// extension (m_RenameExtension); only the name in front of it is edited.
+		// Name popup: create a folder (m_RenamePath empty) or rename m_RenamePath; only the part before the
+		// extension is edited.
 		std::filesystem::path m_RenamePath;
 		std::string m_RenameExtension;
 		char m_NameBuffer[256] = {};
@@ -140,7 +132,7 @@ namespace Hydro
 		float m_ThumbnailSize = 88.0f;
 		char m_SearchBuffer[128] = {};
 
-		// Actions that change the scene or the folder run after drawing, never mid-iteration.
+		// Actions that change the scene or the folder run after drawing.
 		std::vector<std::function<void()>> m_DeferredActions;
 	};
 }

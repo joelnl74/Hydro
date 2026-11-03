@@ -1,6 +1,9 @@
 #include "hypch.h"
 #include "EntitySerializer.h"
+#include "ComponentRegistry.h"
+#include "Hydro/Data/DataSerializer.h"
 #include "Scripting/ScriptableEntity.h"
+#include "Scripting/ScriptSerializer.h"
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Renderer/Font.h"
@@ -16,14 +19,11 @@
 
 namespace Hydro
 {
-	// Sprites and animators save the AssetHandle of their texture / animation set (TextureHandle,
-	// AnimationsHandle). Scenes saved before handles hold the file's path instead (Texture, Animations,
-	// relative to the project's asset folder when the file is inside it); those are still read, and
-	// the next save writes the handle.
+	// Sprites and animators save asset handles (TextureHandle, AnimationsHandle); older scenes saved paths
+	// (Texture, Animations), which are still read.
 
-	// The asset a saved reference points to: the handle when the registry knows it, else the file a
-	// path-only (older) scene names, registered now. A handle the registry doesn't know and no path to
-	// fall back on is returned as it is, so saving the scene again keeps it (a deleted file can come back).
+	// The saved handle when the registry knows it, else the file an older scene names (registered now). An unknown
+	// handle with no path is kept as it is, so a deleted file that comes back is found again.
 	static AssetHandle ResolveSavedAsset(const YAML::Node& handleNode, const YAML::Node& pathNode)
 	{
 		AssetHandle handle = 0;
@@ -71,6 +71,7 @@ namespace Hydro
 		case SpriteAlphaMode::Default: return "Default";
 		case SpriteAlphaMode::Cutout: return "Cutout";
 		case SpriteAlphaMode::Translucent: return "Translucent";
+		case SpriteAlphaMode::Additive: return "Additive";
 		}
 
 		return "Default";
@@ -85,6 +86,10 @@ namespace Hydro
 		if (name == "Translucent")
 		{
 			return SpriteAlphaMode::Translucent;
+		}
+		if (name == "Additive")
+		{
+			return SpriteAlphaMode::Additive;
 		}
 
 		return SpriteAlphaMode::Default;
@@ -166,53 +171,6 @@ namespace Hydro
 		return Rigidbody2DType::Dynamic;
 	}
 
-	// A script property's value (HY_PROPERTY): scalars and strings as they are, vectors as [x, y, z], an asset as
-	// its handle number.
-	static void WriteScriptPropertyValue(YAML::Emitter& out, const ScriptPropertyValue& value)
-	{
-		std::visit(
-			[&out](const auto& typed)
-			{
-				using Value = std::decay_t<decltype(typed)>;
-				if constexpr (std::is_same_v<Value, AssetHandle>)
-				{
-					out << (uint64_t)typed;
-				}
-				else
-				{
-					out << typed;
-				}
-			},
-			value);
-	}
-
-	// A saved value of `property`; its default when the node holds something else (a property whose type changed).
-	static ScriptPropertyValue ReadScriptPropertyValue(const YAML::Node& node, const ScriptProperty& property)
-	{
-		const ScriptPropertyValue& fallback = property.DefaultValue;
-		try
-		{
-			switch (property.Type)
-			{
-				case ScriptPropertyType::Bool: return node.as<bool>(std::get<bool>(fallback));
-				case ScriptPropertyType::Int: return node.as<int>(std::get<int>(fallback));
-				case ScriptPropertyType::Float: return node.as<float>(std::get<float>(fallback));
-				case ScriptPropertyType::Vec2: return node.as<glm::vec2>(std::get<glm::vec2>(fallback));
-				case ScriptPropertyType::Vec3: return node.as<glm::vec3>(std::get<glm::vec3>(fallback));
-				case ScriptPropertyType::Vec4: return node.as<glm::vec4>(std::get<glm::vec4>(fallback));
-				case ScriptPropertyType::String: return node.as<std::string>(std::get<std::string>(fallback));
-				case ScriptPropertyType::Asset: return AssetHandle(node.as<uint64_t>((uint64_t)std::get<AssetHandle>(fallback)));
-			}
-		}
-		catch (const YAML::Exception&)
-		{
-			// A vector saved with the wrong number of components, or a scalar where a list was expected.
-		}
-		return fallback;
-	}
-
-	// Saved values the physics engine would choke on are pulled into range. Written as max(minimum, value)
-	// so that NaN (which compares false with everything) also becomes the minimum.
 	static const char* UIScaleModeToString(UIScaleMode mode)
 	{
 		switch (mode)
@@ -305,6 +263,7 @@ namespace Hydro
 		return UINavigation::Auto;
 	}
 
+	// Pulls saved values the physics engine would choke on into range. max(minimum, value) also turns NaN into minimum.
 	static float AtLeast(float minimum, float value)
 	{
 		return std::max(minimum, value);
@@ -428,7 +387,8 @@ namespace Hydro
 		}
 
 		// Roots have none (and nothing is written).
-		if (includeParent && entity.HasComponent<RelationshipComponent>() && (uint64_t)entity.GetComponent<RelationshipComponent>().Parent != 0)
+		if (includeParent && entity.HasComponent<RelationshipComponent>()
+			&& (uint64_t)entity.GetComponent<RelationshipComponent>().Parent != 0)
 		{
 			out << YAML::Key << "RelationshipComponent";
 			out << YAML::BeginMap;
@@ -472,7 +432,7 @@ namespace Hydro
 			out << YAML::Key << "FlipX" << YAML::Value << sprite.FlipX;
 			out << YAML::Key << "FlipY" << YAML::Value << sprite.FlipY;
 			out << YAML::Key << "Facing" << YAML::Value << SpriteFacingToString(sprite.Facing);
-			// Only when set, so scenes that don't use them are saved as before.
+			// Only when set, to keep scenes that don't use them small.
 			if (sprite.AlphaMode != SpriteAlphaMode::Default)
 			{
 				out << YAML::Key << "AlphaMode" << YAML::Value << SpriteAlphaModeToString(sprite.AlphaMode);
@@ -485,11 +445,15 @@ namespace Hydro
 			{
 				out << YAML::Key << "CastShadows" << YAML::Value << false;
 			}
-			// Emission (plan P3), only when the sprite glows.
+			// Emission, only when the sprite glows.
 			if (sprite.EmissionIntensity > 0.0f)
 			{
 				out << YAML::Key << "EmissionColor" << YAML::Value << sprite.EmissionColor;
 				out << YAML::Key << "EmissionIntensity" << YAML::Value << sprite.EmissionIntensity;
+			}
+			if (sprite.Opacity < 1.0f)
+			{
+				out << YAML::Key << "Opacity" << YAML::Value << sprite.Opacity;
 			}
 			out << YAML::EndMap;
 		}
@@ -519,7 +483,8 @@ namespace Hydro
 			out << YAML::Key << "CameraComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
-			out << YAML::Key << "Projection" << YAML::Value << (camera.Projection == ProjectionType::Perspective ? "Perspective" : "Orthographic");
+			out << YAML::Key << "Projection" << YAML::Value
+				<< (camera.Projection == ProjectionType::Perspective ? "Perspective" : "Orthographic");
 			out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.PerspectiveFOV;
 			out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.PerspectiveNear;
 			out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.PerspectiveFar;
@@ -536,7 +501,8 @@ namespace Hydro
 
 			out << YAML::Key << "Light2DComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Type" << YAML::Value << (light.Type == Light2DType::Global ? "Global" : (light.Type == Light2DType::Spot ? "Spot" : "Point"));
+			out << YAML::Key << "Type" << YAML::Value
+				<< (light.Type == Light2DType::Global ? "Global" : (light.Type == Light2DType::Spot ? "Spot" : "Point"));
 			out << YAML::Key << "Color" << YAML::Value << light.Color;
 			out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
 			out << YAML::Key << "Radius" << YAML::Value << light.Radius;
@@ -586,6 +552,10 @@ namespace Hydro
 				out << YAML::Key << "Segments" << YAML::Value << mesh.Segments;
 			}
 			out << YAML::Key << "CastShadows" << YAML::Value << mesh.CastShadows;
+			if (mesh.Opacity < 1.0f)
+			{
+				out << YAML::Key << "Opacity" << YAML::Value << mesh.Opacity;
+			}
 			out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
 			// Each slot: its material asset's handle (when it has one) and its inline settings, the fallback.
 			for (const MeshMaterialSlot& slot : mesh.Materials)
@@ -755,7 +725,7 @@ namespace Hydro
 			out << YAML::Key << "SortOrder" << YAML::Value << canvas.SortOrder;
 			out << YAML::Key << "Visible" << YAML::Value << canvas.Visible;
 			out << YAML::Key << "BlocksGameplayInput" << YAML::Value << canvas.BlocksGameplayInput;
-			// A World canvas's box, only for World canvases (older files and screen canvases stay as they were).
+			// WorldSize and WorldPivot, only for World canvases.
 			if (canvas.Space == UICanvasSpace::World)
 			{
 				out << YAML::Key << "Space" << YAML::Value << "World";
@@ -840,11 +810,13 @@ namespace Hydro
 
 			out << YAML::Key << "UILayoutGroupComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Direction" << YAML::Value << (group.Direction == UILayoutDirection::Horizontal ? "Horizontal" : "Vertical");
+			out << YAML::Key << "Direction" << YAML::Value
+				<< (group.Direction == UILayoutDirection::Horizontal ? "Horizontal" : "Vertical");
 			out << YAML::Key << "Spacing" << YAML::Value << group.Spacing;
 			out << YAML::Key << "Padding" << YAML::Value << group.Padding;
 			out << YAML::Key << "ChildAlignment" << YAML::Value
-				<< (group.ChildAlignment == UILayoutAlignment::Center ? "Center" : (group.ChildAlignment == UILayoutAlignment::End ? "End" : "Start"));
+				<< (group.ChildAlignment == UILayoutAlignment::Center ? "Center"
+				: (group.ChildAlignment == UILayoutAlignment::End ? "End" : "Start"));
 			out << YAML::Key << "StretchCrossAxis" << YAML::Value << group.StretchCrossAxis;
 			out << YAML::Key << "FitContent" << YAML::Value << group.FitContent;
 			out << YAML::EndMap;
@@ -888,7 +860,8 @@ namespace Hydro
 			out << YAML::Key << "DisabledTint" << YAML::Value << button.DisabledTint;
 			out << YAML::Key << "Navigation" << YAML::Value << UINavigationToString(button.Navigation);
 			// Explicit navigation's neighbours, only when set.
-			const std::pair<const char*, UUID> neighbours[] = { { "Up", button.Up }, { "Down", button.Down }, { "Left", button.Left }, { "Right", button.Right } };
+			const std::pair<const char*, UUID> neighbours[] = { { "Up", button.Up }, { "Down", button.Down }, { "Left", button.Left },
+				{ "Right", button.Right } };
 			for (const auto& neighbour : neighbours)
 			{
 				if ((uint64_t)neighbour.second != 0)
@@ -947,53 +920,22 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 
+		// The game's own components (HY_COMPONENT): their fields as a data file writes a struct.
+		for (const ComponentTypeInfo& type : ComponentRegistry::GetTypes())
+		{
+			if (const void* data = type.Get(entity))
+			{
+				out << YAML::Key << type.Name << YAML::Value;
+				DataSerializer::WriteValue(out, type.Type, data);
+			}
+		}
+
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
-			auto& scripts = entity.GetComponent<NativeScriptComponent>();
-
 			out << YAML::Key << "NativeScriptComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
-
-			for (const auto& script : scripts.Scripts)
-			{
-				if (script.Name.empty())
-				{
-					HY_CORE_WARN(
-						"Entity '{}': a script bound in code without a ScriptRegistry name isn't saved",
-						entity.GetName());
-					continue;
-				}
-
-				out << YAML::BeginMap;
-				out << YAML::Key << "Name" << YAML::Value << script.Name;
-
-				if (script.Properties.empty() == false)
-				{
-					out << YAML::Key << "Properties" << YAML::Value << YAML::BeginMap;
-
-					// Sorted by name, so a scene saves the same way every time (the map is unordered).
-					std::vector<const std::pair<const std::string, ScriptPropertyValue>*> sorted;
-					sorted.reserve(script.Properties.size());
-					for (const auto& entry : script.Properties)
-					{
-						sorted.push_back(&entry);
-					}
-					std::sort(sorted.begin(), sorted.end(), [](const auto* a, const auto* b) { return a->first < b->first; });
-
-					for (const auto* entry : sorted)
-					{
-						out << YAML::Key << entry->first << YAML::Value;
-						WriteScriptPropertyValue(out, entry->second);
-					}
-
-					out << YAML::EndMap;
-				}
-
-				out << YAML::EndMap;
-			}
-
-			out << YAML::EndSeq;
+			out << YAML::Key << "Scripts" << YAML::Value;
+			ScriptSerializer::Write(out, entity.GetComponent<NativeScriptComponent>(), entity.GetName());
 			out << YAML::EndMap;
 		}
 
@@ -1004,18 +946,21 @@ namespace Hydro
 	{
 		std::string name;
 		if (auto tagNode = entityNode["TagComponent"])
+		{
 			name = tagNode["Tag"].as<std::string>("");
+		}
 
 		UUID uuid; // fresh random id by default
 		if (keepUUID && entityNode["Entity"])
+		{
 			uuid = UUID(entityNode["Entity"].as<uint64_t>());
+		}
 
 		// CreateEntityWithUUID adds the Tag + ID components.
 		Entity entity = scene.CreateEntityWithUUID(uuid, name);
 
-		// Only when loading a scene: the parent is another entity of the same file, and the scene's loader puts
-		// the list in order afterwards (Scene::RepairHierarchy). Instantiating a prefab links its entities itself
-		// (PrefabSerializer::Instantiate), since they get new UUIDs.
+		// Only when loading a scene: the parent is in the same file, and the loader orders the list afterwards
+		// (Scene::RepairHierarchy). Prefab instances get new UUIDs and are linked by PrefabSerializer::Instantiate.
 		if (keepUUID)
 		{
 			if (auto relationshipNode = entityNode["RelationshipComponent"])
@@ -1043,21 +988,21 @@ namespace Hydro
 			sprite.TilingFactor = spriteNode["TilingFactor"].as<float>(sprite.TilingFactor);
 			sprite.SortOrder = spriteNode["SortOrder"].as<int32_t>(sprite.SortOrder);
 
-			// The asset is loaded now (a texture that can't be loaded is logged by the manager) so the
-			// renderer, which never loads, finds it. The handle is kept either way.
+			// Loaded now (failures are logged by the manager) so the renderer, which never loads, finds it.
 			sprite.Texture = ResolveSavedAsset(spriteNode["TextureHandle"], spriteNode["Texture"]);
 			const Ref<Texture2D> texture = (uint64_t)sprite.Texture != 0 ? AssetManager::GetAsset<Texture2D>(sprite.Texture) : nullptr;
 
 			sprite.SpriteIndex = spriteNode["SpriteIndex"].as<uint32_t>(sprite.SpriteIndex);
 			sprite.FlipX = spriteNode["FlipX"].as<bool>(sprite.FlipX);
 			sprite.FlipY = spriteNode["FlipY"].as<bool>(sprite.FlipY);
-			// Scenes from before facings have none: Flat, which draws as they always did.
+			// Missing facing: Flat.
 			sprite.Facing = SpriteFacingFromString(spriteNode["Facing"].as<std::string>("Flat"));
 			sprite.AlphaMode = SpriteAlphaModeFromString(spriteNode["AlphaMode"].as<std::string>("Default"));
 			sprite.Overlay = spriteNode["Overlay"].as<bool>(false);
 			sprite.CastShadows = spriteNode["CastShadows"].as<bool>(true);
 			sprite.EmissionColor = glm::max(spriteNode["EmissionColor"].as<glm::vec3>(sprite.EmissionColor), glm::vec3(0.0f));
 			sprite.EmissionIntensity = AtLeast(0.0f, spriteNode["EmissionIntensity"].as<float>(sprite.EmissionIntensity));
+			sprite.Opacity = std::clamp(spriteNode["Opacity"].as<float>(1.0f), 0.0f, 1.0f);
 			if (auto spriteNameNode = spriteNode["Sprite"]; spriteNameNode && texture != nullptr)
 			{
 				const int32_t found = texture->FindSprite(spriteNameNode.as<std::string>(""));
@@ -1089,7 +1034,8 @@ namespace Hydro
 			SceneCamera& camera = cameraComponent.Camera;
 
 			cameraComponent.Primary = cameraNode["Primary"].as<bool>(cameraComponent.Primary);
-			camera.Projection = cameraNode["Projection"].as<std::string>("Orthographic") == "Perspective" ? ProjectionType::Perspective : ProjectionType::Orthographic;
+			camera.Projection = cameraNode["Projection"].as<std::string>("Orthographic") == "Perspective" ? ProjectionType::Perspective
+				: ProjectionType::Orthographic;
 			camera.PerspectiveFOV = cameraNode["PerspectiveFOV"].as<float>(camera.PerspectiveFOV);
 			camera.PerspectiveNear = cameraNode["PerspectiveNear"].as<float>(camera.PerspectiveNear);
 			camera.PerspectiveFar = cameraNode["PerspectiveFar"].as<float>(camera.PerspectiveFar);
@@ -1141,6 +1087,7 @@ namespace Hydro
 			mesh.Steps = meshNode["Steps"].as<uint32_t>(mesh.Steps);
 			mesh.Segments = meshNode["Segments"].as<uint32_t>(mesh.Segments);
 			mesh.CastShadows = meshNode["CastShadows"].as<bool>(mesh.CastShadows);
+			mesh.Opacity = std::clamp(meshNode["Opacity"].as<float>(1.0f), 0.0f, 1.0f);
 			if (auto materialsNode = meshNode["Materials"]; materialsNode && materialsNode.IsSequence())
 			{
 				mesh.Materials.clear();
@@ -1148,7 +1095,7 @@ namespace Hydro
 				{
 					MeshMaterialSlot slot;
 					slot.Material = AssetHandle(materialNode["MaterialHandle"].as<uint64_t>(0));
-					// Scenes saved before material assets (M4) have the settings in the slot itself.
+					// Older scenes keep the settings in the slot itself.
 					const YAML::Node inlineNode = materialNode["Inline"];
 					slot.Inline = MaterialSerializer::DeserializeData(inlineNode.IsDefined() ? inlineNode : materialNode);
 					// Loaded now (with its textures), so the renderer, which never loads, finds it.
@@ -1299,7 +1246,8 @@ namespace Hydro
 		if (auto canvasNode = entityNode["UICanvasComponent"])
 		{
 			auto& canvas = entity.AddComponent<UICanvasComponent>();
-			canvas.ReferenceResolution = glm::max(canvasNode["ReferenceResolution"].as<glm::vec2>(canvas.ReferenceResolution), glm::vec2(1.0f));
+			canvas.ReferenceResolution = glm::max(canvasNode["ReferenceResolution"].as<glm::vec2>(canvas.ReferenceResolution),
+				glm::vec2(1.0f));
 			canvas.ScaleMode = UIScaleModeFromString(canvasNode["ScaleMode"].as<std::string>("IntegerScale"));
 			canvas.SortOrder = canvasNode["SortOrder"].as<int32_t>(canvas.SortOrder);
 			canvas.Visible = canvasNode["Visible"].as<bool>(canvas.Visible);
@@ -1370,11 +1318,13 @@ namespace Hydro
 		if (auto groupNode = entityNode["UILayoutGroupComponent"])
 		{
 			auto& group = entity.AddComponent<UILayoutGroupComponent>();
-			group.Direction = groupNode["Direction"].as<std::string>("Vertical") == "Horizontal" ? UILayoutDirection::Horizontal : UILayoutDirection::Vertical;
+			group.Direction = groupNode["Direction"].as<std::string>("Vertical") == "Horizontal" ? UILayoutDirection::Horizontal
+				: UILayoutDirection::Vertical;
 			group.Spacing = AtLeast(0.0f, groupNode["Spacing"].as<float>(group.Spacing));
 			group.Padding = glm::max(groupNode["Padding"].as<glm::vec4>(group.Padding), glm::vec4(0.0f));
 			const std::string alignment = groupNode["ChildAlignment"].as<std::string>("Start");
-			group.ChildAlignment = alignment == "Center" ? UILayoutAlignment::Center : (alignment == "End" ? UILayoutAlignment::End : UILayoutAlignment::Start);
+			group.ChildAlignment = alignment == "Center" ? UILayoutAlignment::Center
+				: (alignment == "End" ? UILayoutAlignment::End : UILayoutAlignment::Start);
 			group.StretchCrossAxis = groupNode["StretchCrossAxis"].as<bool>(group.StretchCrossAxis);
 			group.FitContent = groupNode["FitContent"].as<bool>(group.FitContent);
 		}
@@ -1390,7 +1340,8 @@ namespace Hydro
 		if (auto visibilityNode = entityNode["UIFocusVisibilityComponent"])
 		{
 			entity.AddComponent<UIFocusVisibilityComponent>().Show =
-				visibilityNode["Show"].as<std::string>("Focused") == "Unfocused" ? UIFocusVisibility::Unfocused : UIFocusVisibility::Focused;
+				visibilityNode["Show"].as<std::string>("Focused") == "Unfocused" ? UIFocusVisibility::Unfocused
+					: UIFocusVisibility::Focused;
 		}
 
 		if (auto buttonNode = entityNode["UIButtonComponent"])
@@ -1460,68 +1411,38 @@ namespace Hydro
 			}
 		}
 
-		if (auto scriptNode = entityNode["NativeScriptComponent"])
+		// The game's own components (HY_COMPONENT): under their name, or a former one (logged; saving writes the name).
+		for (const ComponentTypeInfo& type : ComponentRegistry::GetTypes())
 		{
-			auto& scripts = entity.AddComponent<NativeScriptComponent>();
-
-			if (auto scriptsNode = scriptNode["Scripts"]; scriptsNode && scriptsNode.IsSequence())
+			std::string key = type.Name;
+			YAML::Node componentNode = entityNode[key];
+			for (size_t i = 0; componentNode.IsDefined() == false && i < type.FormerNames.size(); i++)
 			{
-				for (const YAML::Node& savedScript : scriptsNode)
-				{
-					std::string scriptName;
-
-					// Backwards compatibility with the original string-only format.
-					if (savedScript.IsScalar())
-					{
-						scriptName = savedScript.as<std::string>("");
-					}
-					else if (savedScript.IsMap())
-					{
-						scriptName = savedScript["Name"].as<std::string>("");
-					}
-
-					if (scriptName.empty())
-						continue;
-
-					// Bind resolves Instantiate and fills the current reflected defaults.
-					scripts.Bind(scriptName);
-
-					NativeScriptComponent::Script& binding = scripts.Scripts.back();
-
-					// Saved values override the defaults. Missing/new fields keep their
-					// current C++ defaults from the registry.
-					if (savedScript.IsMap())
-					{
-						const YAML::Node propertiesNode = savedScript["Properties"];
-
-						if (propertiesNode && propertiesNode.IsMap())
-						{
-							ScriptTypeInfo* typeInfo = ScriptRegistry::FindType(scriptName);
-
-							if (typeInfo != nullptr)
-							{
-								for (const ScriptProperty& property : typeInfo->Properties)
-								{
-									if (const YAML::Node valueNode = propertiesNode[property.Name])
-									{
-										binding.Properties[property.Name] = ReadScriptPropertyValue(valueNode, property);
-									}
-								}
-							}
-						}
-					}
-
-					if (binding.Instantiate == nullptr)
-					{
-						HY_CORE_WARN(
-							"Entity '{}': script '{}' isn't registered; it is kept but won't run",
-							entity.GetName(),
-							scriptName);
-					}
-				}
+				key = type.FormerNames[i];
+				componentNode = entityNode[key];
+			}
+			if (componentNode.IsDefined() == false)
+			{
+				continue;
+			}
+			if (key != type.Name)
+			{
+				HY_CORE_INFO("Entity '{}': {} is saved under its former name '{}'; saving writes '{}'", name, type.Name, key, type.Name);
+			}
+			void* data = type.Add(entity);
+			if (componentNode.IsNull() == false)
+			{
+				DataReport report;
+				DataSerializer::ReadValue(componentNode, type.Type, data, report, type.Name);
+				report.Log("Entity '" + name + "'");
 			}
 		}
 
+		if (auto scriptNode = entityNode["NativeScriptComponent"])
+		{
+			auto& scripts = entity.AddComponent<NativeScriptComponent>();
+			ScriptSerializer::Read(scriptNode["Scripts"], scripts, entity.GetName());
+		}
 
 		return entity;
 	}

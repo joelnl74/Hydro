@@ -47,9 +47,10 @@ namespace Hydro
 		return item == nullptr ? -1 : (int32_t)(item - base);
 	}
 
-	// The image a texture view shows, or -1. Formats stb_image can't decode (KTX2 / basisu, WebP) leave
-	// the texture without an image: reported once per texture.
-	static int32_t ReadTextureImage(const cgltf_texture_view& view, const cgltf_data* data, const std::filesystem::path& path, std::set<const cgltf_texture*>& reported)
+	// The image a texture view shows, or -1. Formats stb_image can't decode (KTX2, WebP) leave it without one,
+	// reported once per texture.
+	static int32_t ReadTextureImage(const cgltf_texture_view& view, const cgltf_data* data, const std::filesystem::path& path,
+		std::set<const cgltf_texture*>& reported)
 	{
 		if (view.texture == nullptr)
 		{
@@ -66,7 +67,8 @@ namespace Hydro
 		}
 		if (view.texcoord != 0)
 		{
-			HY_CORE_WARN("MeshImporter: '{}': a texture uses TEXCOORD_{}; only TEXCOORD_0 is imported", path.filename().string(), view.texcoord);
+			HY_CORE_WARN("MeshImporter: '{}': a texture uses TEXCOORD_{}; only TEXCOORD_0 is imported",
+				path.filename().string(), view.texcoord);
 		}
 		return IndexOf(view.texture->image, data->images);
 	}
@@ -95,7 +97,8 @@ namespace Hydro
 		const std::string fileName = path.filename().string();
 		if (data->skins_count > 0 || data->animations_count > 0)
 		{
-			HY_CORE_INFO("MeshImporter: '{}': {} skins and {} animations ignored (static meshes only)", fileName, data->skins_count, data->animations_count);
+			HY_CORE_INFO("MeshImporter: '{}': {} skins and {} animations ignored (static meshes only)", fileName, data->skins_count,
+				data->animations_count);
 		}
 
 		// Images.
@@ -195,13 +198,19 @@ namespace Hydro
 				material.EmissiveStrength = source.emissive_strength.emissive_strength;
 			}
 
+			material.NormalImage = ReadTextureImage(source.normal_texture, data, path, reportedTextures);
+			if (source.normal_texture.texture != nullptr)
+			{
+				material.NormalScale = source.normal_texture.scale;
+			}
+
 			if (source.alpha_mode == cgltf_alpha_mode_mask)
 			{
 				material.AlphaCutoff = source.alpha_cutoff;
 			}
 			else if (source.alpha_mode == cgltf_alpha_mode_blend)
 			{
-				// No translucent meshes in the MVP: cut out at half, which keeps leaves and railings.
+				// No translucent meshes yet: cut out at half, which keeps leaves and railings.
 				material.AlphaCutoff = 0.5f;
 				if (reportedBlend == false)
 				{
@@ -210,10 +219,10 @@ namespace Hydro
 				}
 			}
 
-			if (reportedIgnoredMaps == false && (source.normal_texture.texture != nullptr || source.occlusion_texture.texture != nullptr
+			if (reportedIgnoredMaps == false && (source.occlusion_texture.texture != nullptr
 				|| source.pbr_metallic_roughness.metallic_roughness_texture.texture != nullptr))
 			{
-				HY_CORE_INFO("MeshImporter: '{}': normal, occlusion and metallic-roughness maps are ignored (Standard material)", fileName);
+				HY_CORE_INFO("MeshImporter: '{}': occlusion and metallic-roughness maps are ignored (Standard material)", fileName);
 				reportedIgnoredMaps = true;
 			}
 		}
@@ -237,7 +246,8 @@ namespace Hydro
 				}
 				if (primitiveSource.has_draco_mesh_compression)
 				{
-					HY_CORE_WARN("MeshImporter: '{}': mesh '{}' uses Draco compression, which isn't supported; left out", fileName, mesh.Name);
+					HY_CORE_WARN("MeshImporter: '{}': mesh '{}' uses Draco compression, which isn't supported; left out",
+						fileName, mesh.Name);
 					continue;
 				}
 				if (primitiveSource.targets_count > 0 && reportedMorphs == false)
@@ -288,7 +298,8 @@ namespace Hydro
 							primitive.Colors.assign(count, glm::vec4(1.0f));
 							for (cgltf_size v = 0; v < count; v++)
 							{
-								cgltf_accessor_read_float(accessor, v, glm::value_ptr(primitive.Colors[v]), components < 4 ? components : 4);
+								cgltf_accessor_read_float(accessor, v, glm::value_ptr(primitive.Colors[v]),
+									components < 4 ? components : 4);
 							}
 							break;
 						}
@@ -345,7 +356,8 @@ namespace Hydro
 		const cgltf_scene* scene = data->scene != nullptr ? data->scene : (data->scenes_count > 0 ? &data->scenes[0] : nullptr);
 		if (data->scenes_count > 1)
 		{
-			HY_CORE_INFO("MeshImporter: '{}' has {} scenes; only '{}' is imported", fileName, data->scenes_count, ToName(scene->name, "the first"));
+			HY_CORE_INFO("MeshImporter: '{}' has {} scenes; only '{}' is imported", fileName, data->scenes_count,
+				ToName(scene->name, "the first"));
 		}
 		if (scene != nullptr)
 		{
@@ -452,8 +464,7 @@ namespace Hydro
 				continue;
 			}
 
-			// Normals with the inverse transpose; a mirroring transform turns the triangles inside out, so
-			// their winding is flipped back.
+			// Normals with the inverse transpose; a mirroring transform turns triangles inside out, so the winding is flipped.
 			const glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(world)));
 			const bool flipWinding = glm::determinant(glm::mat3(world)) < 0.0f;
 

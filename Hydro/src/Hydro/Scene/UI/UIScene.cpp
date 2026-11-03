@@ -82,8 +82,8 @@ namespace Hydro
 
 	Entity UIScene::HitTest(Scene& scene, const glm::vec2& viewPosition) const
 	{
-		// The canvases that take the pointer, topmost first: the capturing one alone while it is shown (it is modal),
-		// else every visible top-level canvas shown since the last update, by SortOrder and then hierarchy order.
+		// The canvases that take the pointer, topmost first: the capturing one alone while shown (modal), else every
+		// visible top-level canvas shown since the last update.
 		struct Candidate
 		{
 			int32_t SortOrder = 0;
@@ -123,7 +123,7 @@ namespace Hydro
 		std::vector<Entity> subtree;
 		for (const Candidate& candidate : canvases)
 		{
-			// Where the last layout put the canvas (a World canvas follows its entity); not placed: not under the pointer.
+			// Where the last layout put the canvas; one it didn't place isn't under the pointer.
 			UICanvasMetrics metrics;
 			if (scene.GetUICanvasMetrics(candidate.Canvas.GetUUID(), metrics) == false)
 			{
@@ -246,8 +246,8 @@ namespace Hydro
 			return IsUsable(next) && next.GetComponent<UIButtonComponent>().Interactable ? next : Entity{};
 		}
 
-		// Auto: the nearest interactable button on the same canvas whose centre lies that way; buttons in line with
-		// this one count as nearer than ones off to the side.
+		// Auto: the nearest interactable button on the same canvas whose centre lies that way; buttons in line count as
+		// nearer than ones off to the side.
 		static const glm::vec2 s_Directions[4] = { { 0.0f, 1.0f }, { 0.0f, -1.0f }, { -1.0f, 0.0f }, { 1.0f, 0.0f } };
 		const glm::vec2 direction = s_Directions[(uint32_t)action];
 		const glm::vec2 origin = GetCentre(from);
@@ -328,7 +328,8 @@ namespace Hydro
 			Input::IsKeyPressed(KeyCode::Down) || Input::IsKeyPressed(KeyCode::S),
 			Input::IsKeyPressed(KeyCode::Left) || Input::IsKeyPressed(KeyCode::A),
 			Input::IsKeyPressed(KeyCode::Right) || Input::IsKeyPressed(KeyCode::D),
-			Input::IsKeyPressed(KeyCode::Enter) || Input::IsKeyPressed(KeyCode::KPEnter) || Input::IsKeyPressed(KeyCode::Space) || Input::IsKeyPressed(KeyCode::Z),
+			Input::IsKeyPressed(KeyCode::Enter) || Input::IsKeyPressed(KeyCode::KPEnter) || Input::IsKeyPressed(KeyCode::Space)
+				|| Input::IsKeyPressed(KeyCode::Z),
 			Input::IsKeyPressed(KeyCode::Escape) || Input::IsKeyPressed(KeyCode::Backspace) || Input::IsKeyPressed(KeyCode::X) };
 		bool pressed[ActionCount] = {};
 		bool anyPressed = false;
@@ -378,8 +379,8 @@ namespace Hydro
 		const bool pointerHeld = UpdatePointer(scene, events);
 		focused = GetFocused(scene);
 
-		// UI keys only while something is focused on a canvas shown since the last update, or a capturing canvas is.
-		// The topmost capturing canvas is modal: a focus left on another canvas behind it takes no keys meanwhile.
+		// UI keys only while something is focused on a recently shown canvas, or a capturing canvas is shown. The top
+		// capturing canvas is modal: a focus on another canvas behind it takes no keys.
 		const Entity capturing = FindTopCapturingCanvas(scene);
 		bool focusUsable = (bool)focused && m_ShownCanvases.count(GetCanvasID(focused)) != 0;
 		if (focusUsable && (bool)capturing && GetCanvasID(focused) != (uint64_t)capturing.GetUUID())

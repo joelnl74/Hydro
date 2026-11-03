@@ -1,0 +1,122 @@
+# Townswoman: idle, walk in its directions (scripts/characters/build_npc_idle.py).
+Handle: 2710444539959070412
+SpriteAnimationSet:
+  TextureHandle: 2261030952570639090
+  Texture: Townswoman.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: Idle
+      Loop: Loop
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
+    - Name: IdleDown
+      Loop: Loop
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
+    - Name: IdleRight
+      Loop: Loop
+      Frames:
+        - Sprite: IdleRight_0
+          Duration: 0.5
+        - Sprite: IdleRight_1
+          Duration: 0.4
+        - Sprite: IdleRight_2
+          Duration: 0.5
+        - Sprite: IdleRight_3
+          Duration: 0.4
+    - Name: IdleUp
+      Loop: Loop
+      Frames:
+        - Sprite: IdleUp_0
+          Duration: 0.5
+        - Sprite: IdleUp_1
+          Duration: 0.4
+        - Sprite: IdleUp_2
+          Duration: 0.5
+        - Sprite: IdleUp_3
+          Duration: 0.4
+    - Name: IdleLeft
+      Loop: Loop
+      Frames:
+        - Sprite: IdleLeft_0
+          Duration: 0.5
+        - Sprite: IdleLeft_1
+          Duration: 0.4
+        - Sprite: IdleLeft_2
+          Duration: 0.5
+        - Sprite: IdleLeft_3
+          Duration: 0.4
+    - Name: WalkDown
+      Loop: Loop
+      Frames:
+        - Sprite: WalkDown_0
+          Duration: 0.1
+        - Sprite: WalkDown_1
+          Duration: 0.1
+        - Sprite: WalkDown_2
+          Duration: 0.1
+        - Sprite: WalkDown_3
+          Duration: 0.1
+        - Sprite: WalkDown_4
+          Duration: 0.1
+        - Sprite: WalkDown_5
+          Duration: 0.1
+    - Name: WalkRight
+      Loop: Loop
+      Frames:
+        - Sprite: WalkRight_0
+          Duration: 0.1
+        - Sprite: WalkRight_1
+          Duration: 0.1
+        - Sprite: WalkRight_2
+          Duration: 0.1
+        - Sprite: WalkRight_3
+          Duration: 0.1
+        - Sprite: WalkRight_4
+          Duration: 0.1
+        - Sprite: WalkRight_5
+          Duration: 0.1
+    - Name: WalkUp
+      Loop: Loop
+      Frames:
+        - Sprite: WalkUp_0
+          Duration: 0.1
+        - Sprite: WalkUp_1
+          Duration: 0.1
+        - Sprite: WalkUp_2
+          Duration: 0.1
+        - Sprite: WalkUp_3
+          Duration: 0.1
+        - Sprite: WalkUp_4
+          Duration: 0.1
+        - Sprite: WalkUp_5
+          Duration: 0.1
+    - Name: WalkLeft
+      Loop: Loop
+      Frames:
+        - Sprite: WalkLeft_0
+          Duration: 0.1
+        - Sprite: WalkLeft_1
+          Duration: 0.1
+        - Sprite: WalkLeft_2
+          Duration: 0.1
+        - Sprite: WalkLeft_3
+          Duration: 0.1
+        - Sprite: WalkLeft_4
+          Duration: 0.1
+        - Sprite: WalkLeft_5
+          Duration: 0.1

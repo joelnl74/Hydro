@@ -81,9 +81,8 @@ namespace Hydro
 			return {};
 		}
 
-		// Created in file order (depth-first), each with a new UUID. A saved parent is another entity of the
-		// prefab, listed before it: the entity becomes that copy's last child, which keeps the subtree's order. A
-		// parent the prefab doesn't contain (a hand-edited file) makes it a child of the root.
+		// Created in file order with new UUIDs; each becomes its saved parent's copy's last child, keeping the subtree's
+		// order. A parent outside the prefab (a hand-edited file) makes it a child of the root.
 		std::vector<Entity> created;
 		std::unordered_map<UUID, UUID> remap;
 		std::unordered_map<UUID, Entity> bySavedId;

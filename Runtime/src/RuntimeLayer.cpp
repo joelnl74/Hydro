@@ -13,8 +13,7 @@ namespace Hydro
 
 	void RuntimeLayer::OnAttach()
 	{
-		// ImGui only shows the game's picture: no saved window layout, and the keys are the game's (no
-		// keyboard navigation).
+		// ImGui only shows the game's picture: no saved layout, and the keys are the game's.
 		ImGuiIO& io = ImGui::GetIO();
 		io.IniFilename = nullptr;
 		io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
@@ -42,7 +41,11 @@ namespace Hydro
 
 	void RuntimeLayer::OnDetach()
 	{
-		// The scenes first (their scripts' OnDestroy), then the GPU objects, then the project.
+		// The scenes first (their OnDestroy, while the game session exists), then the GPU objects, then the project.
+		if (m_SceneRenderer != nullptr)
+		{
+			m_SceneRenderer->SetScene(nullptr);
+		}
 		m_Scenes.Stop();
 		m_SceneRenderer.reset();
 		m_View.reset();
@@ -75,7 +78,7 @@ namespace Hydro
 	{
 		const ProjectConfig& config = Project::GetActive()->GetConfig();
 
-		// A project file from before handles names its start scene by path.
+		// An older project file names its start scene by path.
 		AssetHandle handle = config.StartScene;
 		if ((uint64_t)handle == 0 && config.LegacyStartScene.empty() == false)
 		{

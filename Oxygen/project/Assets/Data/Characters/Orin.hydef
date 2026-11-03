@@ -1,0 +1,19 @@
+Handle: 2716342829184015873
+Definition:
+  Version: 1
+  Type: HeroDefinition
+  Values:
+    Name: Orin
+    ShortName: ""
+    Base: {MaxHP: 82, MaxMP: 20, Attack: 13, Magic: 4, Speed: 11}
+    GrowthPerLevel: {MaxHP: 8, MaxMP: 2, Attack: 3, Magic: 1, Speed: 1}
+    WeaponType: Slash
+    BasicAttack: {Table: 3379890039159158977, Row: OrinAttack}
+    StartingAbilities: [{Table: 3379890039159158977, Row: Iaido}, {Table: 3379890039159158977, Row: CrescentThrust}]
+    Learns:
+      - {Level: 3, Ability: {Table: 3379890039159158977, Row: WindCutter}}
+      - {Level: 5, Ability: {Table: 3379890039159158977, Row: FallingPetal}}
+    IdleClip: BattleIdle
+    ItemClip: BattleIdle
+    Portrait: 6290817403346251521
+    PortraitSprite: 0

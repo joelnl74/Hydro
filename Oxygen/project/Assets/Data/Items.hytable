@@ -1,0 +1,336 @@
+Handle: 4741649512266718899
+DataTable:
+  Version: 1
+  Type: ItemDefinition
+  Rows:
+    AncientKey:
+      Name: Ancient Key
+      Description: An old bronze key with a lantern crest.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    Antidote:
+      Name: Antidote
+      Description: Cures poison. Nothing here is poisoned.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    CopperOre:
+      Name: Copper Ore
+      Description: A lump of ore for the blacksmith.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    CrystalShard:
+      Name: Crystal Shard
+      Description: A shard that hums faintly near the shrine.
+      Kind: Material
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    Ether:
+      Name: Ether
+      Description: Water drawn at dawn from the sacred spring. Restores 10 MP.
+      Kind: Consumable
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 10
+      UsableInField: true
+    FoxMask:
+      Name: Fox Mask
+      Description: A festival mask, painted white and red.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    HerbBundle:
+      Name: Herb Bundle
+      Description: Fresh herbs tied with twine. Someone in the village may want them.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    HerbTea:
+      Name: Herb Tea
+      Description: Warm tea of mountain herbs. Restores 15 HP.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 15
+      RestoreMP: 0
+      UsableInField: true
+    HiPotion:
+      Name: Hi-Potion
+      Description: A stronger draught, sealed with wax. Restores 60 HP.
+      Kind: Consumable
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 60
+      RestoreMP: 0
+      UsableInField: true
+    IronSword:
+      Name: Iron Sword
+      Description: A plain blade from the village smithy. Miko fights bare-handed.
+      Kind: Equipment
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Weapon
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 4, Magic: 0, Speed: 0}
+    LanternOil:
+      Name: Lantern Oil
+      Description: Oil for the stone lanterns along the path.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    LeatherBoots:
+      Name: Leather Boots
+      Description: Sturdy boots for the mountain road.
+      Kind: Equipment
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Accessory
+      Bonus: {MaxHP: 5, MaxMP: 0, Attack: 0, Magic: 0, Speed: 1}
+    NewItem:
+      Name: Lucky Bell
+      Description: Increases luck by 5%
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    OldMap:
+      Name: Old Map
+      Description: A faded map. The road east is marked in red.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    PhoenixFeather:
+      Name: Phoenix Feather
+      Description: A feather that is warm to the touch. What it is for, nobody knows yet.
+      Kind: KeyItem
+      Rarity: Rare
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    PineResin:
+      Name: Pine Resin
+      Description: Sticky resin from the glade's pines.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    Potion:
+      Name: Potion
+      Description: A bitter brew of the shrine's herbs. Restores 25 HP.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 25
+      RestoreMP: 0
+      UsableInField: true
+    Rope:
+      Name: Rope
+      Description: A coil of hemp rope.
+      Kind: Material
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    ShrineCharm:
+      Name: Shrine Charm
+      Description: A paper charm from the shrine. It keeps the wisps at a distance, they say.
+      Kind: KeyItem
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    SmokedFish:
+      Name: Smoked Fish
+      Description: Smoked river trout, wrapped in leaves.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    SpringWater:
+      Name: Spring Water
+      Description: Cold water from the shrine spring.
+      Kind: Consumable
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    Tekko:
+      Name: Tekko
+      Description: Iron knuckle guards for a bare-handed fighter.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Weapon
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 3, Magic: 0, Speed: 0}
+    ShrineRobe:
+      Name: Shrine Robe
+      Description: A white robe woven at the shrine; it wards off a little harm.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Body
+      Bonus: {MaxHP: 20, MaxMP: 4, Attack: 0, Magic: 0, Speed: 0}
+    WardTome:
+      Name: Ward Tome
+      Description: A slim book of wards, carried in the off hand.
+      Kind: Equipment
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: OffHand
+      Bonus: {MaxHP: 0, MaxMP: 6, Attack: 0, Magic: 4, Speed: 0}
+    Headband:
+      Name: Headband
+      Description: A red cloth headband.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Head
+      Bonus: {MaxHP: 8, MaxMP: 0, Attack: 0, Magic: 0, Speed: 0}
+    PrayerBeads:
+      Name: Prayer Beads
+      Description: Beads of polished wood that steady the mind.
+      Kind: Equipment
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Accessory
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 0, Magic: 3, Speed: 0}
+    SlimeJelly:
+      Name: Slime Jelly
+      Description: A wobbling lump left behind by a slime. Farmers say it keeps rice seed from rotting.
+      Kind: Material
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    WispEssence:
+      Name: Wisp Essence
+      Description: A faint blue glow that clings to the fingers. The monks burn it to quiet restless spirits.
+      Kind: Material
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    MedicinalHerb:
+      Name: Medicinal Herb
+      Description: Bitter leaves from the forest floor. Chewed, they ease a wound a little.
+      Kind: Consumable
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 15
+      RestoreMP: 0
+      UsableInField: true
+    BambooShoot:
+      Name: Bamboo Shoot
+      Description: A young shoot from the bamboo grove, tender if it's cooked the same day.
+      Kind: Material
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    RoninBlade:
+      Name: Wanderer's Blade
+      Description: A plain, well-kept katana from the ronin's camp. It suits a swordsman.
+      Kind: Equipment
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Weapon
+      Bonus: {MaxHP: 0, MaxMP: 0, Attack: 6, Magic: 0, Speed: 1}
+    StrawCharm:
+      Name: Straw Charm
+      Description: A little straw figure from the farm. Tied to a belt, it keeps the wearer light on their feet.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Accessory
+      Bonus: {MaxHP: 6, MaxMP: 0, Attack: 0, Magic: 0, Speed: 1}
+    FoxCharm:
+      Name: Fox Charm
+      Description: A tiny white fox carved from bone, tied with red thread. The fox shrine by the road lost five of them.
+      Kind: KeyItem
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+    KitsuneBell:
+      Name: Kitsune Bell
+      Description: A small brass bell on a red cord, given by the fox shrine. Its ring is quick and clear, like a fox's step.
+      Kind: Equipment
+      Rarity: Rare
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Accessory
+      Bonus: {MaxHP: 0, MaxMP: 8, Attack: 0, Magic: 2, Speed: 3}
+    RoninHaori:
+      Name: Ronin's Haori
+      Description: A faded indigo coat, the crest unpicked from its back. Someone buried it with an oath and never came back.
+      Kind: Equipment
+      Rarity: Uncommon
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Body
+      Bonus: {MaxHP: 14, MaxMP: 0, Attack: 2, Magic: 0, Speed: 0}
+    Jingasa:
+      Name: Jingasa
+      Description: A lacquered conical hat, the kind foot soldiers wore on the road. Light, and it keeps the rain off.
+      Kind: Equipment
+      Rarity: Common
+      Icon: 0
+      RestoreHP: 0
+      RestoreMP: 0
+      UsableInField: false
+      Slot: Head
+      Bonus: {MaxHP: 8, MaxMP: 0, Attack: 0, Magic: 0, Speed: 1}

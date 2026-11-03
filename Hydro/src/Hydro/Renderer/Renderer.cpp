@@ -100,7 +100,7 @@ namespace Hydro
 		// 5. Sub-renderers. Renderer2D draws into RenderViews the application creates.
 		Renderer2D::Init();
 		Renderer3D::Init();
-		// Terrains' weight maps and chunk meshes (Terrain plan).
+		// Terrains' weight maps and chunk meshes.
 		TerrainCache::Init();
 	}
 
@@ -145,8 +145,8 @@ namespace Hydro
 			return; // Init picks them up.
 		}
 
-		// Present mode is fixed per swapchain: rebuild it at the start of the next frame.
-		// Clear colour, wireframe, hot reload and the lighting options are read by Renderer2D every frame.
+		// The present mode is fixed per swapchain: rebuild it at the start of the next frame. The other options are
+		// read by Renderer2D every frame.
 		if (vsyncChanged)
 		{
 			s_Instance->m_SwapChain->SetVSync(settings.VSync);
@@ -164,7 +164,8 @@ namespace Hydro
 
 	void Renderer::SubmitResourceFree(ResourceFreeFunction freeFunction)
 	{
-		HY_CORE_ASSERT(s_Instance != nullptr, "Renderer::SubmitResourceFree after Renderer::Shutdown: a GPU resource outlived the renderer");
+		HY_CORE_ASSERT(s_Instance != nullptr,
+			"Renderer::SubmitResourceFree after Renderer::Shutdown: a GPU resource outlived the renderer");
 		if (s_Instance == nullptr)
 		{
 			// The device is gone, so there is nothing left to free it with. Never happens when every
@@ -181,10 +182,8 @@ namespace Hydro
 
 	void Renderer::FlushResourceFrees(bool all)
 	{
-		// BeginFrame has just waited for the fence of frame m_FrameNumber - MAX_FRAMES_IN_FLIGHT (the
-		// last frame that used this slot), so that frame and every frame before it are finished.
-		// Frees run in the order they were queued, so an owner that queues "children first"
-		// (framebuffers before their images) keeps that order.
+		// BeginFrame has just waited for the last frame that used this slot, so it and every earlier frame are done.
+		// Frees run in queue order, so an owner that queues children first keeps that order.
 		while (m_ResourceFreeQueue.empty() == false)
 		{
 			PendingResourceFree& pending = m_ResourceFreeQueue.front();
@@ -318,8 +317,7 @@ namespace Hydro
 			return false;
 		}
 
-		// RenderViews are sized by whoever shows them (the editor's windows), not the window, so they
-		// are not touched here.
+		// RenderViews are sized by whoever shows them, not by the window.
 		m_SwapChainDirty = false;
 		return true;
 	}

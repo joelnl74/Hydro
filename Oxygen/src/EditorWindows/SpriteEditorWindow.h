@@ -9,24 +9,22 @@
 
 namespace Hydro
 {
-	// Slices a sprite sheet (a texture in sprite mode Multiple) into named sprites: grid settings,
-	// Detect Grid (SpriteSlicer::DetectGrid), Slice, and per-sprite name, rectangle and pivot, with
-	// the sprites drawn over the image. Apply writes the image's .hymeta and asks the editor to
-	// re-import it. Opened from the texture's inspector or by double-clicking an image.
+	// Slices a sprite sheet into named sprites (grid, Detect Grid, per-sprite name, rectangle and pivot).
+	// Apply writes the image's .hymeta and asks the editor to re-import it.
 	class SpriteEditorWindow
 	{
 	public:
-		// Set by the editor layer: the .hymeta of this image was saved.
+		// Called after the image's .hymeta was saved.
 		std::function<void(const std::filesystem::path&)> OnReimported;
 
-		// Shows `imagePath` (asks first when the open one has unapplied changes).
+		// Shows `imagePath`, asking first when the open one has unapplied changes.
 		void Open(const std::filesystem::path& imagePath);
 		void OnImguiRender();
 		bool& IsOpen() { return m_Open; }
 
-		// The Project window renamed or moved a file or folder: the image shown follows it.
+		// The image shown follows a rename or move in the Project window.
 		void OnAssetMoved(const std::filesystem::path& from, const std::filesystem::path& to);
-		// The Project window deleted a file: the window closes if it was showing it (it would write it back).
+		// Closes the window when its file was deleted, so it isn't written back.
 		void OnAssetDeleted(const std::filesystem::path& path);
 
 	private:

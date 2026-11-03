@@ -1,0 +1,14 @@
+Handle: 2160059811581225333
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: You're from the shrine on the mountain? I've walked twelve days to leave an offering there.
+      - Speaker: ""
+        Text: They say the shrine bell rang by itself when the earth shook. The old songs call that a seal waking.
+      - Speaker: ""
+        Text: Go carefully, child. Old roads remember old things.

@@ -11,8 +11,7 @@ namespace Hydro
 {
 	class Scene;
 
-	// What game code asks the 3D physics world of its scene (PhysicsScene3D). Everything answers "nothing" (false,
-	// no entities) when the game isn't running or the scene has no 3D world.
+	// Game code's queries of its scene's 3D world. Everything answers "nothing" when the game isn't running.
 	class Physics3D
 	{
 	public:
@@ -21,26 +20,25 @@ namespace Hydro
 		// Everything that blocks: all layers but Trigger.
 		static constexpr uint32_t SolidLayers = AllLayers & ~(1u << (uint32_t)PhysicsLayer::Trigger);
 
-		// The first collider on the segment from `from` to `to` on one of the layers in `layerMask`. A ray starting
-		// inside a collider hits it at once (distance 0). Characters are not hit (they have no collider).
-		static bool Raycast(Scene& scene, const glm::vec3& from, const glm::vec3& to, uint32_t layerMask, RaycastHit3D& hit);
-		// Appends every entity whose collider on one of the layers in `layerMask` overlaps the sphere (no repeats).
-		static void OverlapSphere(Scene& scene, const glm::vec3& centre, float radius, uint32_t layerMask, std::vector<Entity>& entities);
-		// True when the entity has a collider body in its scene's running 3D world.
+		// The first collider on the segment, on the layers in `layerMask`; one containing the start hits at distance 0.
+		// Characters have no collider and are not hit.
+		static bool Raycast(Scene& scene, const glm::vec3& from, const glm::vec3& to, uint32_t layerMask,
+			RaycastHit3D& hit);
+		// Appends the entities whose collider on those layers overlaps the sphere, without repeats.
+		static void OverlapSphere(Scene& scene, const glm::vec3& centre, float radius, uint32_t layerMask,
+			std::vector<Entity>& entities);
+		// A collider body in its scene's running 3D world.
 		static bool HasBody(Entity entity);
 	};
 
-	// A character of the 3D world (CharacterBodyComponent): game code says where it wants to go; the physics stage
-	// walks it there over the ground and writes its transform.
+	// A character of the 3D world: game code says where it wants to go; the physics stage walks it there.
 	class CharacterBody
 	{
 	public:
-		// The velocity the character wants, in metres per second along X and Y (Z is ignored). Kept until changed:
-		// pass zero to stop. Call it every update from a script (stage 1). False when the entity has no character.
+		// Metres per second along X and Y, kept until changed (zero stops). Call it from a script's update.
 		static bool Move(Entity entity, const glm::vec3& velocity);
-		// What the character stands on. False when the entity has no character.
+		// False when the entity has no character.
 		static bool GetGround(Entity entity, CharacterGround& ground);
-		// True when the entity is a character in its scene's running 3D world.
 		static bool IsCharacter(Entity entity);
 	};
 }

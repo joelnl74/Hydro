@@ -12,8 +12,7 @@
 
 namespace Hydro
 {
-	// Small widgets shared by the asset editors (texture import, Sprite Editor, Animation window),
-	// so their rows look like the inspector's.
+	// Widgets shared by the asset editors so their rows look like the inspector's.
 	class PropertyUI
 	{
 	public:
@@ -77,8 +76,7 @@ namespace Hydro
 			return changed;
 		}
 
-		// Draws sprite `index` of `texture` into a size x size box, keeping its aspect ratio
-		// (letterboxed). Flipped horizontally when flipX.
+		// Draws sprite `index` of `texture` letterboxed into a size x size box.
 		static void SpriteImage(const Ref<Texture2D>& texture, uint32_t index, float size, bool flipX = false)
 		{
 			const ImVec2 cursor = ImGui::GetCursorPos();
@@ -102,7 +100,8 @@ namespace Hydro
 
 			const ImVec2 after = ImGui::GetCursorPos();
 			ImGui::SetCursorPos({ cursor.x + (size - imageSize.x) * 0.5f, cursor.y + (size - imageSize.y) * 0.5f });
-			ImGui::Image((ImTextureID)Renderer2D::GetImGuiTexture(texture), imageSize, { rect.Min.x, rect.Min.y }, { rect.Max.x, rect.Max.y });
+			ImGui::Image((ImTextureID)Renderer2D::GetImGuiTexture(texture), imageSize, { rect.Min.x, rect.Min.y },
+				{ rect.Max.x, rect.Max.y });
 			ImGui::SetCursorPos(after);
 		}
 	};

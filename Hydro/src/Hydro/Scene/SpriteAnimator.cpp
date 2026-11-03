@@ -34,7 +34,8 @@ namespace Hydro
 			{
 				return index;
 			}
-			HY_CORE_WARN("SpriteAnimator: start clip '{}' isn't in '{}'; playing the default clip", startClip, set.GetPath().filename().string());
+			HY_CORE_WARN("SpriteAnimator: start clip '{}' isn't in '{}'; playing the default clip", startClip,
+				set.GetPath().filename().string());
 		}
 		return (int32_t)set.GetDefaultClip();
 	}
@@ -90,8 +91,7 @@ namespace Hydro
 		}
 	}
 
-	// The entity's animator when it has one whose animation set is loaded, else nullptr; `set` is that
-	// set. The AssetManager keeps loaded sets, so it stays valid for the call.
+	// The entity's animator when its set is loaded (returned in `set`), else nullptr.
 	static SpriteAnimatorComponent* FindAnimator(Entity entity, Ref<SpriteAnimationSet>& set)
 	{
 		if ((bool)entity == false || entity.GetScene() == nullptr || entity.GetScene()->m_Registry.valid(entity) == false)
@@ -163,8 +163,7 @@ namespace Hydro
 			if (animator.State.Playing)
 			{
 				animator.State.FrameTime += context.DeltaTime * std::max(animator.Speed, 0.0f);
-				// while, not if: a long frame (a hitch, a high Speed) may pass several frames. Durations
-				// are at least MinFrameDuration, so this ends.
+				// A long frame may pass several frames; durations are at least MinFrameDuration, so this ends.
 				while (animator.State.Playing && animator.State.FrameTime >= clip.Frames[animator.State.FrameIndex].Duration)
 				{
 					animator.State.FrameTime -= clip.Frames[animator.State.FrameIndex].Duration;

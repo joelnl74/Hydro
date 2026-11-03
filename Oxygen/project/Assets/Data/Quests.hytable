@@ -1,0 +1,128 @@
+Handle: 5008924285669857658
+DataTable:
+  Version: 1
+  Type: QuestDefinition
+  Rows:
+    SideCampSpirits:
+      Title: Restless Spirits
+      Stages:
+        - Objective: Calm the wisps in the cedar forest
+        - Objective: Return to Jokai at the camp
+      Kind: Defeat
+      Giver: Jokai
+      Enemy: {Table: 8285570869007471512, Row: Wisp}
+      Count: 3
+      RewardItems:
+        - {Item: {Table: 4741649512266718899, Row: Ether}, Count: 2}
+      RewardExperience: 45
+      RewardMoney: 60
+      OfferLines:
+        - {Speaker: "", Text: "Ah, a shrine maiden. The forest has not slept since the tremor; the wisps drift between the cedars and will not settle."}
+        - {Speaker: "", Text: "I am too old to chase them. Calm three of them for me, and I will share what the road has given me."}
+        - {Speaker: Miko, Text: "Three wisps. I'll see to it."}
+      ProgressLines:
+        - {Speaker: "", Text: "The forest is still restless. {Left} more, I think."}
+      DoneLines:
+        - {Speaker: "", Text: "The forest breathes easier. Thank you, child. Take these; a pilgrim travels light, but not empty-handed."}
+    SideCampJelly:
+      Title: A Ronin's Errand
+      Stages:
+        - Objective: Bring 4 Slime Jelly to Sanzo
+        - Objective: Return to Sanzo at the camp
+      Kind: Collect
+      Giver: Sanzo
+      Item: {Table: 4741649512266718899, Row: SlimeJelly}
+      Count: 4
+      RewardItems:
+        - {Item: {Table: 4741649512266718899, Row: RoninBlade}, Count: 1}
+      RewardExperience: 30
+      RewardMoney: 40
+      OfferLines:
+        - {Speaker: "", Text: "You there. You fight slimes? Good. Their jelly keeps a blade's oil from going sour, and I'm out."}
+        - {Speaker: "", Text: "Bring me four lumps of it. I'll trade you a sword I no longer carry; your swordsman might like it."}
+        - {Speaker: Miko, Text: "Four slime jelly. Deal."}
+      ProgressLines:
+        - {Speaker: "", Text: "Still {Left} short. The slimes in the paddies drop it, if you hit them hard enough."}
+      DoneLines:
+        - {Speaker: "", Text: "That's the stuff. Here, as promised: a plain blade, but it never failed me."}
+    SideFarmPests:
+      Title: Pests in the Paddies
+      Stages:
+        - Objective: Drive 4 slimes from the rice paddies
+        - Objective: Return to Genji at the farm
+      Kind: Defeat
+      Giver: Genji
+      Enemy: {Table: 8285570869007471512, Row: Slime}
+      Count: 4
+      RewardItems:
+        - {Item: {Table: 4741649512266718899, Row: Potion}, Count: 3}
+      RewardExperience: 40
+      RewardMoney: 80
+      OfferLines:
+        - {Speaker: "", Text: "Shrine maiden! Thank the gods. Slimes have come up out of the paddy water since the ground shook."}
+        - {Speaker: "", Text: "They eat the young rice right down to the mud. Four of them would make a difference. Will you?"}
+        - {Speaker: Miko, Text: "Leave it to me. They won't touch your rice."}
+      ProgressLines:
+        - {Speaker: "", Text: "{Left} more of them still squelching through my fields, I'm afraid."}
+      DoneLines:
+        - {Speaker: "", Text: "The paddies are quiet again! Here, it isn't much, but take it, and something for the road."}
+    SideFarmShoots:
+      Title: Shoots for Supper
+      Stages:
+        - Objective: Gather 3 Bamboo Shoots in the grove
+        - Objective: Return to Okiku at the farm
+      Kind: Collect
+      Giver: Okiku
+      Item: {Table: 4741649512266718899, Row: BambooShoot}
+      Count: 3
+      RewardItems:
+        - {Item: {Table: 4741649512266718899, Row: HerbTea}, Count: 2}
+        - {Item: {Table: 4741649512266718899, Row: StrawCharm}, Count: 1}
+      RewardExperience: 25
+      RewardMoney: 30
+      OfferLines:
+        - {Speaker: "", Text: "Oh, you're the girl from the shrine! Would you do me a kindness? My knees won't take me into the bamboo grove today."}
+        - {Speaker: "", Text: "Three young shoots is all I need for supper. They grow at the edge of the grove, past the storehouse."}
+        - {Speaker: Miko, Text: "Three bamboo shoots. I'll be right back."}
+      ProgressLines:
+        - {Speaker: "", Text: "Only {Left} more to go. Look low, by the foot of the bamboo."}
+      DoneLines:
+        - {Speaker: "", Text: "Lovely, nice and tender. Here's a little something, and a charm I tie on the children. It's yours now."}
+    SideFoxCharms:
+      Title: The Fox's Lost Charms
+      Stages:
+        - Objective: Find the 5 fox charms the wind scattered
+        - Objective: Return the charms to the fox shrine
+      Kind: Collect
+      Giver: Inari
+      Item: {Table: 4741649512266718899, Row: FoxCharm}
+      Count: 5
+      RewardItems:
+        - {Item: {Table: 4741649512266718899, Row: KitsuneBell}, Count: 1}
+      RewardExperience: 60
+      RewardMoney: 100
+      OfferLines:
+        - {Speaker: "", Text: "...A shrine maiden. You can hear me, then. Few still can."}
+        - {Speaker: "", Text: "When the ground shook, the wind came down the hill and took my charms: five white foxes on red thread."}
+        - {Speaker: "", Text: "One rests where the fire burns among the cedars. One where the cherry weeps. One under the red leaves. One where the stairs end. One where the rice is planted."}
+        - {Speaker: Miko, Text: "A voice from the shrine... I'll find them. All five."}
+      ProgressLines:
+        - {Speaker: "", Text: "{Left} of my foxes are still out in the wind. Listen for the little bells."}
+      DoneLines:
+        - {Speaker: "", Text: "All five, home again. You have a kind heart, and quick feet. Take my bell; it will keep them quick."}
+    ClearingTheGrounds:
+      Title: Clearing the Grounds
+      Stages:
+        - Objective: Drive the slimes from the lower path
+        - Objective: Return to the Old Monk
+    AlongTheLeyline:
+      Title: Along the Leyline
+      Stages:
+        - Objective: Find where the leyline sinks into the earth
+        - Objective: The way into the leyline is not open yet
+    GuardiansDuty:
+      Title: The Guardian's Duty
+      Stages:
+        - Objective: Take the shrine road south into the rice fields
+        - Objective: Follow the leyline across the rice fields
+        - Objective: Help the swordsman at the ancient tree

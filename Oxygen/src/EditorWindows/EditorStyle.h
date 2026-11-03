@@ -7,8 +7,7 @@
 
 namespace Hydro
 {
-	// The preset a style starts from. Editing a colour or size afterwards keeps the theme name
-	// (it says where the style came from); "Reset to theme" goes back to the preset.
+	// The preset a style starts from. Editing afterwards keeps the theme name; "Reset to theme" goes back to it.
 	enum class EditorTheme : uint8_t
 	{
 		Hydro = 0, // the editor's own theme (default): deep ocean blues, one accent colour
@@ -26,12 +25,8 @@ namespace Hydro
 		ImVec4 Color;
 	};
 
-	// How the Oxygen editor's ImGui UI looks: every ImGui colour, the rounding/border/spacing sizes
-	// and the font scale. Editor-only: the engine (Hydro library) never reads it. Saved as part of
-	// EditorSettings (EditorSettings.yaml), edited in the Editor Settings window.
-	//
-	// The Hydro themes (Hydro, Abyss, Glacier) are built from one accent colour: picking another
-	// accent recolours every highlight (selection, checkmarks, sliders, tabs, the menu-bar waterline).
+	// How the editor's ImGui UI looks: every colour, size and the font scale. Saved in EditorSettings.yaml;
+	// the Hydro themes are built from one accent colour that recolours every highlight.
 	struct EditorStyle
 	{
 		EditorTheme Theme = EditorTheme::Hydro;
@@ -49,14 +44,12 @@ namespace Hydro
 		float GrabRounding = 4.0f;
 		float TabRounding = 5.0f;
 
-		// Borders.
 		float WindowBorderSize = 1.0f;
 		float ChildBorderSize = 1.0f;
 		float FrameBorderSize = 0.0f;
 		float PopupBorderSize = 1.0f;
 		float TabBorderSize = 0.0f;
 
-		// Spacing.
 		ImVec2 WindowPadding = { 10.0f, 8.0f };
 		ImVec2 FramePadding = { 8.0f, 5.0f };
 		ImVec2 CellPadding = { 6.0f, 3.0f };
@@ -69,7 +62,7 @@ namespace Hydro
 		// All text, relative to the loaded font (ImGuiIO::FontGlobalScale).
 		float FontScale = 1.0f;
 
-		// A complete style for a theme: its colours and sizes. `accent` is used by the Hydro themes.
+		// A complete style for a theme. `accent` is used by the Hydro themes.
 		static EditorStyle FromTheme(EditorTheme theme, const ImVec4& accent = GetDefaultAccent());
 		static const char* GetThemeName(EditorTheme theme);
 		// False (and `out` unchanged) when `name` isn't a theme name.
@@ -82,15 +75,13 @@ namespace Hydro
 		static ImVec4 GetDefaultAccent() { return ImVec4(0.13f, 0.76f, 0.85f, 1.0f); } // Aqua
 		static const std::array<EditorAccentPreset, 6>& GetAccentPresets();
 
-		// The colour the editor's own decorations use: the accent for the Hydro themes, the checkmark
-		// colour for ImGui's presets.
+		// The colour the editor's own decorations use: the accent, or the checkmark colour for ImGui's presets.
 		ImVec4 GetHighlightColor() const;
 
-		// Rebuilds the colours from Theme and Accent (sizes are kept). Used when the accent changes.
+		// Rebuilds the colours from Theme and Accent, keeping the sizes.
 		void RecolorFromAccent();
 
-		// Copies this style into ImGui (ImGui::GetStyle(), ImGuiIO::FontGlobalScale). Call when it
-		// changed; the ImGui context must exist (after the ImGui layer is attached).
+		// Copies this style into ImGui. The ImGui context must exist.
 		void Apply() const;
 	};
 }

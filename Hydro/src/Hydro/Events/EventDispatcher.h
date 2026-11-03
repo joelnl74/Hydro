@@ -7,8 +7,8 @@
 
 namespace Hydro
 {
-	// Event subsystem: observers subscribe per EventType; the window posts into it.
-	// Explicit lifetime: Application calls Init() before the window exists and Shutdown() after it is gone.
+	// Event subsystem: observers subscribe per EventType; the window posts into it. Application calls Init() before
+	// the window exists and Shutdown() after it is gone.
 	class EventDispatcher
 	{
 	public:
@@ -27,12 +27,16 @@ namespace Hydro
 
 			// Ignore events for which we do not have an observer.
 			if (m_Observers.find(type) == m_Observers.end())
+			{
 				return;
+			}
 
 			auto&& observers = m_Observers.at(type);
 
 			for (auto&& observer : observers)
+			{
 				observer(postEvent);
+			}
 		}
 
 	public:
@@ -40,7 +44,7 @@ namespace Hydro
 		static void Shutdown();
 		static EventDispatcher& Get() { return *s_Instance; }
 
-		// [TODO] Should probally do this once and then send derrived class to all observers.
+		// TODO: do this once and send the derived class to all observers.
 		template<typename T>
 		static T GetEvent(Event &e)
 		{

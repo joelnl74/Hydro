@@ -7,10 +7,8 @@ namespace Hydro
 {
 	class Scene;
 
-	// The runtime UI for scripts (like Physics2D and Particles2D): plain functions over entities. Scripts may edit the
-	// UI components directly too; these are for what touches the scene's UIScene (focus) or must stay consistent.
-	// Focus only works while the game runs (the scene has a UIScene); while editing it does nothing.
-	// docs/SceneAndECS.md#runtime-ui.
+	// The runtime UI for scripts: plain functions for what touches the scene's UIScene (focus) or must stay
+	// consistent. Focus only works while the game runs.
 	class UI
 	{
 	public:
@@ -27,12 +25,10 @@ namespace Hydro
 		// The focused button, or an empty Entity.
 		static Entity GetFocused(Scene& scene);
 
-		// True while a visible canvas has BlocksGameplayInput: gameplay scripts (walking, interacting) ignore the
-		// keyboard then. The script that owns the menu keeps reading its own keys (Tab to close it).
+		// True while a visible canvas has BlocksGameplayInput: gameplay scripts ignore the keyboard then.
 		static bool CapturesInput(Scene& scene);
 
-		// The canvas `entity` is drawn on (itself for a canvas), or an empty Entity; `nested` when that canvas is inside
-		// another one (not drawn, takes no input).
+		// The canvas `entity` is drawn on (itself for a canvas), or empty; `nested` when that canvas is inside another.
 		static Entity FindCanvas(Entity entity, bool& nested);
 	};
 }

@@ -1,0 +1,83 @@
+Handle: 7308464824897497192
+DataTable:
+  Version: 1
+  Type: NpcDefinition
+  Rows:
+    Barmaid:
+      Name: Barmaid
+      Dialogue: 2074513754332297624
+    Blacksmith:
+      Name: Blacksmith
+      Dialogue: 552294734088370458
+    Default:
+      Name: Anyone else
+      Dialogue: 8285401502875637881
+    Elder:
+      Name: Old Monk
+      Dialogue: 1091959940797801212
+    FarmWife:
+      Name: Farm Wife
+      Dialogue: 126005546227698343
+    Farmer:
+      Name: Farmer
+      Dialogue: 5724374815678911623
+    FieldHand:
+      Name: Field Hand
+      Dialogue: 5268298787814366642
+    Gatherer:
+      Name: Gatherer
+      Dialogue: 601377773650924383
+    Genji:
+      Name: Genji
+      Dialogue: 438069288391016153
+    Hatsu:
+      Name: Hatsu
+      Dialogue: 5581634057468186291
+    Inari:
+      Name: Fox Shrine
+      Dialogue: 2027616071729114627
+    Innkeeper:
+      Name: Innkeeper
+      Dialogue: 1573876928913233299
+    Jokai:
+      Name: Jokai
+      Dialogue: 1018095280451232322
+    Kenta:
+      Name: Kenta
+      Dialogue: 1898010611832773198
+    Okiku:
+      Name: Okiku
+      Dialogue: 2449487106656759536
+    Patron:
+      Name: Patron
+      Dialogue: 6587077769872871563
+    Pilgrim:
+      Name: Pilgrim
+      Dialogue: 2160059811581225333
+    Ronin:
+      Name: Ronin
+      Dialogue: 9179118661306197895
+    Sanzo:
+      Name: Sanzo
+      Dialogue: 354060732494804104
+    VillageElder:
+      Name: Village Elder
+      Dialogue: 4544577340776314683
+    ClothMerchant:
+      Name: Cloth Merchant
+      Dialogue: 611862581019631971
+    PotteryMerchant:
+      Name: Potter
+      Dialogue: 8934795963015759287
+    SakeMerchant:
+      Name: Sake Merchant
+      Dialogue: 5812481699741625291
+    PaperMerchant:
+      Name: Paper Merchant
+      Dialogue: 1470308436504009792
+    GateGuard:
+      Name: Gate Guard
+      Dialogue: 3824359530807091376
+    TempleMonk:
+      Name: Temple Monk
+      Dialogue: 439093920711121255

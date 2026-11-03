@@ -39,6 +39,7 @@
 namespace Hydro
 {
 	// ---- Layers ----------------------------------------------------------------------------------------------
+
 	// A Jolt object layer is the PhysicsLayer and whether the body moves: layer * 2 + moving. Broad-phase layers
 	// keep what never moves, what does, and triggers (only queries look at those) in separate trees.
 
@@ -228,10 +229,8 @@ namespace Hydro
 		return JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w).Normalized();
 	}
 
-	// An entity's pose in the world now. A root's comes from its TransformComponent, exactly as before hierarchies
-	// (rotation: its Euler angles as TransformComponent::GetTransform uses them). A child's from Scene::
-	// GetWorldTransform, which is current: WorldTransformComponent is from the last transforms stage, which runs
-	// after physics, so a child spawned this frame would start at the origin.
+	// An entity's world pose now: a root's TransformComponent, a child's Scene::GetWorldTransform (the
+	// WorldTransformComponent is from the last transforms stage, after physics).
 	struct Pose3D
 	{
 		glm::vec3 Translation{ 0.0f };
@@ -310,13 +309,14 @@ namespace Hydro
 					rotation = StandUp();
 					break;
 				case ColliderShapeType::Cylinder:
-					part = new JPH::CylinderShape(shape.HalfHeight, shape.Radius, ConvexRadiusFor(std::min(shape.HalfHeight, shape.Radius)));
+					part = new JPH::CylinderShape(shape.HalfHeight, shape.Radius,
+						ConvexRadiusFor(std::min(shape.HalfHeight, shape.Radius)));
 					rotation = StandUp();
 					break;
 				case ColliderShapeType::TriangleMesh:
 				{
-					// Walkable ground as it was modelled (a bridge's arch, a slope): hollow triangles, which only
-					// static and game-moved bodies may have (which is all there are).
+					// Walkable ground as modelled (a bridge's arch, a slope): hollow triangles, allowed for static and
+					// game-moved bodies only.
 					JPH::VertexList vertices;
 					vertices.reserve(shape.Points.size());
 					for (const glm::vec3& point : shape.Points)
@@ -330,7 +330,8 @@ namespace Hydro
 						triangles.push_back(JPH::IndexedTriangle(shape.Indices[i], shape.Indices[i + 1], shape.Indices[i + 2]));
 					}
 					position = JPH::Vec3::sZero();
-					const JPH::ShapeSettings::ShapeResult result = JPH::MeshShapeSettings(std::move(vertices), std::move(triangles)).Create();
+					const JPH::ShapeSettings::ShapeResult result =
+						JPH::MeshShapeSettings(std::move(vertices), std::move(triangles)).Create();
 					if (result.HasError())
 					{
 						HY_CORE_WARN("Physics 3D: '{}': a walk mesh could not be built ({})", entityName, result.GetError().c_str());
@@ -463,7 +464,8 @@ namespace Hydro
 			character.Layer = ToObjectLayer(component.Layer == PhysicsLayer::Trigger ? PhysicsLayer::Player : component.Layer, true);
 
 			const float cylinderHalfHeight = 0.5f * character.Height - character.Radius;
-			const JPH::ShapeSettings::ShapeResult shape = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0.0f, 0.0f, 0.5f * character.Height), StandUp(),
+			const JPH::ShapeSettings::ShapeResult shape = JPH::RotatedTranslatedShapeSettings(
+				JPH::Vec3(0.0f, 0.0f, 0.5f * character.Height), StandUp(),
 				new JPH::CapsuleShape(cylinderHalfHeight, character.Radius)).Create();
 			if (shape.HasError())
 			{
@@ -539,8 +541,8 @@ namespace Hydro
 				layer = solid->Layer == PhysicsLayer::Trigger ? PhysicsLayer::World : solid->Layer;
 			}
 
-			JPH::BodyCreationSettings settings(shape, position, rotation, kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Static,
-				ToObjectLayer(layer, kinematic));
+			JPH::BodyCreationSettings settings(shape, position, rotation,
+				kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Static, ToObjectLayer(layer, kinematic));
 			settings.mIsSensor = triggers;
 			settings.mUserData = (JPH::uint64)(uint32_t)handle;
 			if (kinematic)
@@ -578,8 +580,7 @@ namespace Hydro
 
 	void PhysicsScene3D::CreateNewBodies()
 	{
-		// Entities that got their components after the world was built. Only entities with a 3D collider or a
-		// character are looked at; CreateBodies skips the ones that have theirs.
+		// Entities that got a 3D collider or a character after the world was built.
 		entt::registry& registry = m_Scene->m_Registry;
 		for (entt::entity handle : registry.view<CharacterBodyComponent>())
 		{
@@ -628,8 +629,7 @@ namespace Hydro
 				continue;
 			}
 
-			// The game moved it (or its parent): the bodies are put where it is. Nothing is pushed by them, so no
-			// velocity is needed.
+			// The game moved it (or its parent). It pushes nothing, so no velocity is needed.
 			const JPH::RVec3 position = ToJoltPosition(pose.Translation);
 			const JPH::Quat rotation = ToJoltRotation(pose.Rotation);
 			for (const JPH::BodyID& id : { entry.Solid, entry.Trigger })
@@ -666,9 +666,8 @@ namespace Hydro
 			const JPH::RVec3 start = body.GetPosition();
 			const JPH::Vec3 startVelocity = body.GetLinearVelocity();
 
-			// Ground right under the feet, within a step. The ledge guard trusts this rather than the ground state:
-			// the rounded capsule still stands on a terrace's corner with its middle over the drop, and just inside
-			// the edge it can count as not supported while there is ground under it.
+			// Ground right under the feet, within a step. The ledge guard trusts this over the ground state: at a
+			// terrace's corner the rounded capsule can count as unsupported while there is ground under it.
 			const auto groundUnder = [&](JPH::RVec3Arg feet)
 			{
 				const JPH::RRayCast down{ feet + JPH::Vec3(0.0f, 0.0f, 0.1f), JPH::Vec3(0.0f, 0.0f, -(character.StepHeight + 0.15f)) };
@@ -677,9 +676,8 @@ namespace Hydro
 			};
 			const bool guarded = character.StaysOnLedges && groundUnder(start);
 
-			// One move with `walk` (the wanted velocity along the ground). On the ground the character also moves with
-			// what it stands on; in the air gravity keeps pulling it down. False when it would have walked off a ledge
-			// it must stay on: the move is undone.
+			// One move along the ground (with what it stands on; gravity in the air). False, and undone, when it
+			// would walk off a ledge it must stay on.
 			const auto tryWalk = [&](const glm::vec2& walk)
 			{
 				JPH::Vec3 velocity(walk.x, walk.y, 0.0f);
@@ -692,7 +690,8 @@ namespace Hydro
 					velocity += startVelocity.Dot(up) * up + gravity * fixed;
 				}
 				body.SetLinearVelocity(velocity);
-				body.ExtendedUpdate(fixed, gravity, update, broadPhaseFilter, layerFilter, JPH::BodyFilter(), JPH::ShapeFilter(), m_Data->TempAllocator);
+				body.ExtendedUpdate(fixed, gravity, update, broadPhaseFilter, layerFilter, JPH::BodyFilter(), JPH::ShapeFilter(),
+					m_Data->TempAllocator);
 
 				const bool walking = walk.x != 0.0f || walk.y != 0.0f;
 				if (guarded == false || walking == false || groundUnder(body.GetPosition()))
@@ -706,7 +705,7 @@ namespace Hydro
 				return false;
 			};
 
-			// At a ledge: slide along it on one axis, else stop (as DioramaWalk did before the character body).
+			// At a ledge: slide along it on one axis, else stop.
 			const glm::vec2 desired{ character.Desired.x, character.Desired.y };
 			if (tryWalk(desired) == false && tryWalk({ desired.x, 0.0f }) == false && tryWalk({ 0.0f, desired.y }) == false)
 			{

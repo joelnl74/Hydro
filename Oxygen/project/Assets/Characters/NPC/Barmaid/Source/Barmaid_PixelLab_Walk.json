@@ -1,0 +1,77 @@
+{
+  "character": {
+    "id": "d540d957-c3b8-4d94-8019-b0f2ee507e0b",
+    "name": "Walk",
+    "prompt": "HD-2D JRPG field sprite, three heads tall, slender proportions, small expressive face, selective dark coloured outline, hue-shifted shading with warm highlights and cool shadows, single soft key light from top-left, subtle rim light, limited palette, crisp clean pixel clusters, no dithering noise, feet at bottom of canvas, transparent background, no ground shadow\n\nmiddle-aged woman innkeeper of a medieval village tavern, sturdy and warm, about three heads tall. Keep these features: copper-red hair pinned up in a loose bun with a few strands falling loose, small round spectacles, rosy cheeks, cream linen blouse with sleeves rolled to the elbow, dark brown laced bodice, long rust-brown skirt, long off-white apron with a stain at the hem, a cloth tucked into the apron string, holding a wooden tankard in one hand, soft leather shoes. Friendly, busy expression. Relaxed standing idle facing the viewer. Accent colour: copper hair. Same art style as the style character: match its pixel grain, selective coloured outline and shading ramps, but not its costume. HD-2D JRPG field sprite, muted earthy medieval colours, selective dark brown outline, no black outline, hue-shifted shading with warm highlights and cool shadows, soft light from top-left, crisp clean pixel clusters, transparent background, no ground shadow",
+    "size": {
+      "width": 96,
+      "height": 96
+    },
+    "directions": 8,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "HD-2D_JRPG_field_sprite-Walk.png",
+    "cell_size": {
+      "width": 128,
+      "height": 128
+    },
+    "sheet_size": {
+      "width": 1024,
+      "height": 640
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      },
+      {
+        "row": 1,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "38137aac-0898-4d72-a879-f95da62622e5",
+        "direction": "south"
+      },
+      {
+        "row": 2,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "38137aac-0898-4d72-a879-f95da62622e5",
+        "direction": "east"
+      },
+      {
+        "row": 3,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "38137aac-0898-4d72-a879-f95da62622e5",
+        "direction": "north"
+      },
+      {
+        "row": 4,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Walking",
+        "animation_group_id": "38137aac-0898-4d72-a879-f95da62622e5",
+        "direction": "west"
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-10-31T17:29:38.902549+00:00"
+}

@@ -12,8 +12,8 @@
 
 namespace Hydro
 {
-	// Keeps the last Log::MaxKeptMessages messages of both loggers in memory (a ring buffer), so the
-	// application can show them. spdlog calls sink_it_ with the sink's mutex held.
+	// The last Log::MaxKeptMessages messages of both loggers (a ring buffer), for the application to show. spdlog
+	// calls sink_it_ with the sink's mutex held.
 	class LogHistorySink : public spdlog::sinks::base_sink<std::mutex>
 	{
 	public:
@@ -29,7 +29,9 @@ namespace Hydro
 			for (const LogMessage& message : m_Messages)
 			{
 				if (message.Sequence > afterSequence)
+				{
 					out.push_back(message);
+				}
 			}
 
 			return m_Messages.empty() ? afterSequence : std::max(afterSequence, m_Messages.back().Sequence);
@@ -50,7 +52,9 @@ namespace Hydro
 
 			m_Messages.push_back(std::move(message));
 			if (m_Messages.size() > Log::MaxKeptMessages)
+			{
 				m_Messages.pop_front();
+			}
 		}
 
 		void flush_() override
@@ -84,10 +88,11 @@ namespace Hydro
 
 	void Log::Init()
 	{
-		// Create "logs" directory if doesn't exist
 		std::string logsDirectory = "logs";
 		if (std::filesystem::exists(logsDirectory) == false)
+		{
 			std::filesystem::create_directories(logsDirectory);
+		}
 
 		// One history shared by both loggers, so the order between engine and client lines is kept.
 		s_History = std::make_shared<LogHistorySink>();
@@ -130,7 +135,9 @@ namespace Hydro
 	uint64_t Log::GetMessagesSince(uint64_t afterSequence, std::vector<LogMessage>& out)
 	{
 		if (s_History == nullptr)
+		{
 			return afterSequence;
+		}
 
 		return s_History->GetMessagesSince(afterSequence, out);
 	}

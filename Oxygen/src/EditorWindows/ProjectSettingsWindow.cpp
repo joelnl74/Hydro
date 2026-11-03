@@ -85,7 +85,8 @@ namespace Hydro
 		ImGui::Spacing();
 
 		// A scene saved inside the asset folder has a handle; an unsaved or outside one has none.
-		const AssetHandle currentScene = currentScenePath.empty() ? AssetHandle(0) : AssetManager::FindHandle(currentScenePath);
+		const AssetHandle currentScene = currentScenePath.empty() ? AssetHandle(0)
+			: AssetManager::FindHandle(currentScenePath);
 
 		// Both stored as the scene's asset handle, so renaming or moving the scene keeps them.
 		DrawSceneSetting("Start scene", "The scene the game and the editor open first.", config.StartScene, currentScene);

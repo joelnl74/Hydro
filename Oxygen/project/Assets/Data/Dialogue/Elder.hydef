@@ -1,0 +1,14 @@
+Handle: 1091959940797801212
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: A lovely evening at the shrine, isn't it? The lanterns are lit early these days.
+      - Speaker: ""
+        Text: Beware the wisps that drift through the meadow after dark. They follow travellers who walk alone.
+      - Speaker: ""
+        Text: If you're weary, the inn down in the village is warm. Rest there before you go on.

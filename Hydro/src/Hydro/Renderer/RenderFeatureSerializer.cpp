@@ -41,6 +41,7 @@ namespace Hydro
 		out << YAML::Key << "HDR" << YAML::Value << settings.HDR;
 		out << YAML::Key << "Bloom" << YAML::Value << settings.Bloom;
 		out << YAML::Key << "DepthOfField" << YAML::Value << settings.DepthOfField;
+		out << YAML::Key << "PixelSnap" << YAML::Value << settings.PixelSnap;
 		out << YAML::EndMap;
 	}
 
@@ -107,7 +108,7 @@ namespace Hydro
 		{
 			settings.Meshes = value.as<bool>(settings.Meshes);
 		}
-		// Settings saved before sun shadows (R14) have neither key: shadows stay off.
+		// Older settings have neither key: shadows stay off.
 		if (auto value = node["Shadows"])
 		{
 			const std::string name = value.as<std::string>("");
@@ -120,7 +121,7 @@ namespace Hydro
 				settings.Shadows = ShadowMode::Off;
 			}
 		}
-		// Settings saved before HDR (P1) have no key: the 8-bit path, as before.
+		// Older settings have no key: the 8-bit path.
 		if (auto value = node["HDR"])
 		{
 			settings.HDR = value.as<bool>(settings.HDR);
@@ -129,10 +130,14 @@ namespace Hydro
 		{
 			settings.Bloom = value.as<bool>(settings.Bloom);
 		}
-		// Settings saved before depth of field (#135) have no key: off, as before.
+		// Older settings have no key: off.
 		if (auto value = node["DepthOfField"])
 		{
 			settings.DepthOfField = value.as<bool>(settings.DepthOfField);
+		}
+		if (auto value = node["PixelSnap"])
+		{
+			settings.PixelSnap = value.as<bool>(settings.PixelSnap);
 		}
 		if (auto value = node["SpriteShadows"])
 		{
@@ -150,7 +155,7 @@ namespace Hydro
 				settings.SpriteShadows = SpriteShadowMode::FaceSun;
 			}
 		}
-		// Settings saved before standing sprites have no key: they lean to the camera, as before.
+		// Older settings have no key: sprites lean to the camera.
 		if (auto value = node["UprightSprites"])
 		{
 			const std::string name = value.as<std::string>("");

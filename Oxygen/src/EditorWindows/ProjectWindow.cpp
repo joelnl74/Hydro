@@ -7,6 +7,10 @@
 
 #include <Hydro/Asset/AssetManager.h>
 #include <Hydro/Asset/AssetMetaSerializer.h>
+#include <Hydro/Data/Data.h>
+#include <Hydro/Data/DataTableAsset.h>
+#include <Hydro/Data/DataTypeRegistry.h>
+#include <Hydro/Data/DefinitionAsset.h>
 #include <Hydro/Renderer/Texture2D.h>
 #include <Hydro/Renderer/Material.h>
 #include <Hydro/Renderer/MaterialSerializer.h>
@@ -60,7 +64,9 @@ namespace Hydro
 			for (float x = min.x; x < max.x; x += cell, column++)
 			{
 				if ((row + column) % 2 == 0)
+				{
 					drawList->AddRectFilled({ x, y }, { x + cell, y + cell }, dark);
+				}
 			}
 		}
 
@@ -68,8 +74,8 @@ namespace Hydro
 	}
 
 
-	// The loaded asset for a tile. A full image is only loaded while `loadsLeft` allows it (one is used per
-	// load), so a folder of many prefabs fills in over a few frames. Never retries an asset that failed.
+	// The loaded asset for a tile. A full image only loads while `loadsLeft` allows it, so a folder of many prefabs
+	// fills in over a few frames. An asset that failed is never retried.
 	template<typename T>
 	static Ref<T> FindAsset(AssetHandle handle, int& loadsLeft)
 	{
@@ -93,7 +99,8 @@ namespace Hydro
 	}
 
 	// The first frame of the clip an animator starts with.
-	static bool GetStartFrame(const SpriteAnimationSet& set, const std::string& startClip, Ref<Texture2D>& texture, uint32_t& spriteIndex, bool& flipX)
+	static bool GetStartFrame(const SpriteAnimationSet& set, const std::string& startClip, Ref<Texture2D>& texture, uint32_t& spriteIndex,
+		bool& flipX)
 	{
 		const int32_t clipIndex = set.FindStartClip(startClip);
 		if (clipIndex < 0 || set.GetTexture() == nullptr)
@@ -113,9 +120,10 @@ namespace Hydro
 		return true;
 	}
 
-	// What a sprite entity looks like at the start: its animation's first frame (the inspector shows the
-	// same one), else its own sprite. False when there is nothing to draw yet (no image, or not loaded).
-	static bool ResolveSprite(AssetHandle textureHandle, uint32_t spriteIndex, bool flipX, AssetHandle animations, const std::string& startClip,
+	// What a sprite entity looks like at the start: its animation's first frame, else its own sprite. False when
+	// there is nothing to draw yet.
+	static bool ResolveSprite(AssetHandle textureHandle, uint32_t spriteIndex, bool flipX, AssetHandle animations,
+		const std::string& startClip,
 		int& loadsLeft, Ref<Texture2D>& texture, uint32_t& outIndex, bool& outFlipX)
 	{
 		if (static_cast<uint64_t>(animations) != 0)
@@ -134,7 +142,8 @@ namespace Hydro
 	}
 
 	// Sprite `spriteIndex` of `texture` fitted into the box, keeping its aspect ratio, tinted.
-	static void DrawTileSprite(ImDrawList* drawList, const Ref<Texture2D>& texture, uint32_t spriteIndex, bool flipX, ImU32 tint, const ImVec2& boxMin, const ImVec2& boxMax)
+	static void DrawTileSprite(ImDrawList* drawList, const Ref<Texture2D>& texture, uint32_t spriteIndex, bool flipX, ImU32 tint,
+		const ImVec2& boxMin, const ImVec2& boxMax)
 	{
 		const SpriteRegion& sprite = texture->GetSprite(spriteIndex);
 		const float width = (float)std::max(sprite.Size.x, 1u);
@@ -150,7 +159,8 @@ namespace Hydro
 		{
 			std::swap(rect.Min.x, rect.Max.x);
 		}
-		drawList->AddImage((ImTextureID)Renderer2D::GetImGuiTexture(texture), imageMin, imageMax, { rect.Min.x, rect.Min.y }, { rect.Max.x, rect.Max.y }, tint);
+		drawList->AddImage((ImTextureID)Renderer2D::GetImGuiTexture(texture), imageMin, imageMax, { rect.Min.x, rect.Min.y },
+			{ rect.Max.x, rect.Max.y }, tint);
 	}
 
 	// A sheet of paper: for files whose picture isn't ready or can't be made.
@@ -158,7 +168,8 @@ namespace Hydro
 	{
 		const ImU32 page = ToColor(0.62f, 0.64f, 0.68f);
 		drawList->AddRectFilled(TilePoint(min, size, 0.28f, 0.18f), TilePoint(min, size, 0.72f, 0.82f), page, 2.0f);
-		drawList->AddTriangleFilled(TilePoint(min, size, 0.58f, 0.18f), TilePoint(min, size, 0.72f, 0.18f), TilePoint(min, size, 0.72f, 0.32f), ToColor(0.17f, 0.17f, 0.19f));
+		drawList->AddTriangleFilled(TilePoint(min, size, 0.58f, 0.18f), TilePoint(min, size, 0.72f, 0.18f),
+			TilePoint(min, size, 0.72f, 0.32f), ToColor(0.17f, 0.17f, 0.19f));
 		for (int line = 0; line < 3; line++)
 		{
 			const float v = 0.42f + 0.12f * line;
@@ -172,7 +183,9 @@ namespace Hydro
 		m_PreviewLoadsLeft = 2;
 
 		if (m_NeedsRescan || ImGui::GetTime() - m_LastScanTime > RescanInterval)
+		{
 			Rescan();
+		}
 
 		ImGui::Begin("Project");
 
@@ -188,7 +201,9 @@ namespace Hydro
 		std::vector<std::function<void()>> actions;
 		actions.swap(m_DeferredActions);
 		for (auto& action : actions)
+		{
 			action();
+		}
 	}
 
 	void ProjectWindow::EnsureRoot()
@@ -225,8 +240,8 @@ namespace Hydro
 		m_LastScanTime = ImGui::GetTime();
 		m_Items.clear();
 
-		// The folder on disk: its sub-folders are items (folders aren't assets), and its asset files tell
-		// whether anything was added, removed or renamed since the last look.
+		// The folder on disk: its sub-folders are items (folders aren't assets), and its asset files tell whether
+		// anything was added, removed or renamed since the last look.
 		std::vector<std::filesystem::path> folders;
 		std::vector<std::filesystem::path> listed;
 		std::error_code ec;
@@ -251,8 +266,8 @@ namespace Hydro
 		}
 		std::sort(listed.begin(), listed.end());
 
-		// Files added, removed or renamed in this folder (by this window or outside the editor): rescan the
-		// assets so they keep or get their handles. Not when only the folder changed.
+		// Files added, removed or renamed in this folder: rescan the assets so they keep or get their handles. Not
+		// when only the folder changed.
 		const bool sameFolder = m_ListedDirectory == m_CurrentDirectory;
 		if (sameFolder && listed != m_ListedPaths)
 		{
@@ -270,8 +285,8 @@ namespace Hydro
 			m_Items.push_back(std::move(item));
 		}
 
-		// The files are the registry's assets that live in this folder (the registry keeps paths relative to the
-		// asset folder, with forward slashes). Files that are gone but still registered are left out.
+		// The files are the registry's assets in this folder (paths relative to the asset folder, forward slashes).
+		// Files that are gone but still registered are left out.
 		std::string folderKey = m_CurrentDirectory.lexically_relative(m_RootDirectory).generic_u8string();
 		if (folderKey == ".")
 		{
@@ -282,7 +297,8 @@ namespace Hydro
 		{
 			const AssetMetadata& metadata = entry.second;
 			ItemType type = ItemType::Folder;
-			if (metadata.IsMissing || ToItemType(metadata.Type, type) == false || metadata.Path.parent_path().generic_u8string() != folderKey)
+			if (metadata.IsMissing || ToItemType(metadata.Type, type) == false
+				|| metadata.Path.parent_path().generic_u8string() != folderKey)
 			{
 				continue;
 			}
@@ -291,7 +307,8 @@ namespace Hydro
 			item.Path = m_CurrentDirectory / metadata.Path.filename();
 			item.Type = type;
 			item.Handle = metadata.Handle;
-			item.DisplayName = (type == ItemType::Scene || type == ItemType::Prefab) ? item.Path.stem().u8string() : item.Path.filename().u8string();
+			item.DisplayName = (type == ItemType::Scene || type == ItemType::Prefab) ? item.Path.stem().u8string()
+				: item.Path.filename().u8string();
 			m_Items.push_back(std::move(item));
 		}
 
@@ -301,7 +318,9 @@ namespace Hydro
 			const bool aFolder = a.Type == ItemType::Folder;
 			const bool bFolder = b.Type == ItemType::Folder;
 			if (aFolder != bFolder)
+			{
 				return aFolder;
+			}
 
 			return ToLower(a.DisplayName) < ToLower(b.DisplayName);
 		});
@@ -380,7 +399,9 @@ namespace Hydro
 			for (const AssetItem& item : m_Items)
 			{
 				if (search.empty() == false && ToLower(item.DisplayName).find(search) == std::string::npos)
+				{
 					continue;
+				}
 
 				ImGui::TableNextColumn();
 				DrawItem(item, scene, m_ThumbnailSize);
@@ -391,11 +412,17 @@ namespace Hydro
 		}
 
 		if (visibleCount == 0)
-			ImGui::TextDisabled("%s", search.empty() ? (AssetManager::IsProjectOpen() ? "This folder is empty. Save a prefab from the hierarchy or inspector." : "No project is open.") : "No assets match the search.");
+		{
+			ImGui::TextDisabled("%s", search.empty()
+				? (AssetManager::IsProjectOpen() ? "This folder is empty. Save a prefab from the hierarchy or inspector." : "No project is open.")
+				: "No assets match the search.");
+		}
 
 		// Click on empty space clears the selection; right-click opens the folder menu.
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsAnyItemHovered() == false)
+		{
 			m_SelectedPath.clear();
+		}
 
 		// F2 renames the selected folder or asset.
 		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_F2, false) &&
@@ -418,8 +445,41 @@ namespace Hydro
 			{
 				m_DeferredActions.push_back([this]() { CreateRenderProfile(); });
 			}
+			// Game data: one entry per HY_DATA(Definition) / HY_DATA(Table) type, by display name.
+			for (int shape = 0; shape < 2; shape++)
+			{
+				const bool table = shape == 1;
+				if (ImGui::BeginMenu(table ? "New Data Table" : "New Definition"))
+				{
+					bool any = false;
+					for (const DataTypeInfo* type : DataTypeRegistry::GetTypes())
+					{
+						if ((table ? type->CanBeTable : type->CanBeDefinition) == false)
+						{
+							continue;
+						}
+						any = true;
+						if (ImGui::MenuItem(type->DisplayName.c_str()))
+						{
+							m_DeferredActions.push_back([this, type, table]() { CreateDataAsset(*type, table); });
+						}
+						if (ImGui::IsItemHovered())
+						{
+							ImGui::SetTooltip("%s", type->Name.c_str());
+						}
+					}
+					if (any == false)
+					{
+						ImGui::TextDisabled(table ? "No HY_DATA(Table) types in the game's code"
+							: "No HY_DATA(Definition) types in the game's code");
+					}
+					ImGui::EndMenu();
+				}
+			}
 			if (ImGui::MenuItem("Refresh"))
+			{
 				m_NeedsRescan = true;
+			}
 
 			ImGui::EndPopup();
 		}
@@ -432,7 +492,8 @@ namespace Hydro
 		ImGui::PushID(item.Path.u8string().c_str());
 
 		const ImVec2 cursor = ImGui::GetCursorScreenPos();
-		ImGui::InvisibleButton("##Tile", { thumbnailSize, thumbnailSize }, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+		ImGui::InvisibleButton("##Tile", { thumbnailSize, thumbnailSize },
+			ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
 		const bool hovered = ImGui::IsItemHovered();
 		const bool selected = m_SelectedPath == item.Path;
@@ -440,8 +501,9 @@ namespace Hydro
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 		{
 			m_SelectedPath = item.Path;
-			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material || item.Type == ItemType::Model
-				|| item.Type == ItemType::RenderProfile) && OnAssetSelected)
+			if ((item.Type == ItemType::Texture || item.Type == ItemType::Animation || item.Type == ItemType::Material
+				|| item.Type == ItemType::Model || item.Type == ItemType::RenderProfile || item.Type == ItemType::Definition
+				|| item.Type == ItemType::DataTable) && OnAssetSelected)
 			{
 				OnAssetSelected(item.Path);
 			}
@@ -454,17 +516,17 @@ namespace Hydro
 			m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
 		}
 
-		// Prefabs and scenes can be dragged onto the viewport / hierarchy, images onto a sprite's
-		// Texture field in the inspector, sprite animations onto a Sprite Animator's Animations field.
-		// What is dragged is the asset's handle (AssetDragDrop).
+		// Assets are dragged by handle: prefabs and scenes onto the viewport or hierarchy, images, animations and the
+		// rest onto matching inspector fields.
 		const bool isTexture = item.Type == ItemType::Texture;
 		const bool isAnimationSet = item.Type == ItemType::Animation;
 		const bool isMaterial = item.Type == ItemType::Material;
 		const bool isModel = item.Type == ItemType::Model;
 		const bool isRenderProfile = item.Type == ItemType::RenderProfile;
 		const bool isTerrain = item.Type == ItemType::Terrain;
-		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel || isRenderProfile
-			|| isTerrain) && ImGui::BeginDragDropSource())
+		const bool isData = item.Type == ItemType::Definition || item.Type == ItemType::DataTable;
+		if ((item.Type == ItemType::Prefab || item.Type == ItemType::Scene || isTexture || isAnimationSet || isMaterial || isModel
+			|| isRenderProfile || isTerrain || isData) && ImGui::BeginDragDropSource())
 		{
 			AssetDragDrop::SetPayload(item.Path);
 			ImGui::TextUnformatted(item.DisplayName.c_str());
@@ -505,11 +567,17 @@ namespace Hydro
 			Ref<Scene> sceneCopy = scene;
 
 			if (item.Type == ItemType::Prefab && ImGui::MenuItem("Instantiate"))
+			{
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { InstantiatePrefab(copy.Path, sceneCopy); });
+			}
 			if (item.Type == ItemType::Scene && ImGui::MenuItem("Open Scene"))
+			{
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
+			}
 			if (item.Type == ItemType::Folder && ImGui::MenuItem("Open Folder"))
+			{
 				m_DeferredActions.push_back([this, copy, sceneCopy]() { ActivateItem(copy, sceneCopy); });
+			}
 			if (isTexture)
 			{
 				if (ImGui::MenuItem("Import Settings") && OnAssetSelected)
@@ -573,7 +641,9 @@ namespace Hydro
 		// Tile background + selection.
 		drawList->AddRectFilled(tileMin, tileMax, hovered ? ToColor(0.24f, 0.24f, 0.27f) : ToColor(0.17f, 0.17f, 0.19f), rounding);
 		if (selected)
+		{
 			drawList->AddRect(tileMin, tileMax, ToColor(0.26f, 0.59f, 0.98f), rounding, 0, 2.0f);
+		}
 
 		switch (item.Type)
 		{
@@ -591,11 +661,14 @@ namespace Hydro
 				const ImVec2 frameMax = TilePoint(min, size, 0.84f, 0.78f);
 				drawList->AddRectFilled(frameMin, frameMax, ToColor(0.16f, 0.30f, 0.50f), 3.0f);
 				drawList->AddCircleFilled(TilePoint(min, size, 0.68f, 0.36f), size * 0.06f, ToColor(0.98f, 0.85f, 0.35f));
-				drawList->AddTriangleFilled(TilePoint(min, size, 0.20f, 0.76f), TilePoint(min, size, 0.42f, 0.44f), TilePoint(min, size, 0.62f, 0.76f), ToColor(0.30f, 0.62f, 0.35f));
-				drawList->AddTriangleFilled(TilePoint(min, size, 0.46f, 0.76f), TilePoint(min, size, 0.62f, 0.54f), TilePoint(min, size, 0.80f, 0.76f), ToColor(0.22f, 0.50f, 0.28f));
+				drawList->AddTriangleFilled(TilePoint(min, size, 0.20f, 0.76f), TilePoint(min, size, 0.42f, 0.44f),
+					TilePoint(min, size, 0.62f, 0.76f), ToColor(0.30f, 0.62f, 0.35f));
+				drawList->AddTriangleFilled(TilePoint(min, size, 0.46f, 0.76f), TilePoint(min, size, 0.62f, 0.54f),
+					TilePoint(min, size, 0.80f, 0.76f), ToColor(0.22f, 0.50f, 0.28f));
 				drawList->AddRect(frameMin, frameMax, ToColor(0.60f, 0.75f, 0.95f), 3.0f, 0, 1.5f);
 				// Green strip = scene.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.30f, 0.70f, 0.40f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.30f, 0.70f, 0.40f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 			case ItemType::Prefab:
@@ -607,7 +680,8 @@ namespace Hydro
 				uint32_t spriteIndex = 0;
 				bool spriteFlipX = false;
 				const bool hasImage = preview.Valid && preview.HasSprite &&
-					ResolveSprite(preview.TextureHandle, preview.SpriteIndex, preview.FlipX, preview.AnimationsHandle, preview.StartClip, m_PreviewLoadsLeft, spriteTexture, spriteIndex, spriteFlipX);
+					ResolveSprite(preview.TextureHandle, preview.SpriteIndex, preview.FlipX, preview.AnimationsHandle, preview.StartClip,
+						m_PreviewLoadsLeft, spriteTexture, spriteIndex, spriteFlipX);
 
 				const ImVec2 innerMin = TilePoint(min, size, 0.10f, 0.10f);
 				const ImVec2 innerMax = TilePoint(min, size, 0.90f, 0.88f);
@@ -619,17 +693,20 @@ namespace Hydro
 				if (preview.Valid == false)
 				{
 					// Couldn't read the file.
-					drawList->AddLine({ center.x - extent, center.y - extent }, { center.x + extent, center.y + extent }, ToColor(0.90f, 0.30f, 0.30f), 3.0f);
-					drawList->AddLine({ center.x - extent, center.y + extent }, { center.x + extent, center.y - extent }, ToColor(0.90f, 0.30f, 0.30f), 3.0f);
+					drawList->AddLine({ center.x - extent, center.y - extent }, { center.x + extent, center.y + extent },
+						ToColor(0.90f, 0.30f, 0.30f), 3.0f);
+					drawList->AddLine({ center.x - extent, center.y + extent }, { center.x + extent, center.y - extent },
+						ToColor(0.90f, 0.30f, 0.30f), 3.0f);
 				}
 				else if (hasImage)
 				{
 					DrawTileSprite(drawList, spriteTexture, spriteIndex, spriteFlipX,
-						ImGui::ColorConvertFloat4ToU32({ preview.Color.r, preview.Color.g, preview.Color.b, preview.Color.a }), innerMin, innerMax);
+						ImGui::ColorConvertFloat4ToU32({ preview.Color.r, preview.Color.g, preview.Color.b, preview.Color.a }),
+						innerMin, innerMax);
 				}
 				else if (preview.HasSprite)
 				{
-					// No image (none set, or not loaded yet): the sprite as a coloured quad: colour, aspect ratio from scale, Z rotation.
+					// No image (none set, or not loaded yet): a coloured quad with the sprite's aspect ratio and Z rotation.
 					const float sx = std::max(std::abs(preview.Scale.x), 0.0001f);
 					const float sy = std::max(std::abs(preview.Scale.y), 0.0001f);
 					const float largest = std::max(sx, sy);
@@ -645,7 +722,8 @@ namespace Hydro
 					const ImVec2 p2 = corner(halfW, halfH);
 					const ImVec2 p3 = corner(-halfW, halfH);
 
-					drawList->AddQuadFilled(p0, p1, p2, p3, ImGui::ColorConvertFloat4ToU32({ preview.Color.r, preview.Color.g, preview.Color.b, preview.Color.a }));
+					drawList->AddQuadFilled(p0, p1, p2, p3,
+						ImGui::ColorConvertFloat4ToU32({ preview.Color.r, preview.Color.g, preview.Color.b, preview.Color.a }));
 					drawList->AddQuad(p0, p1, p2, p3, ToColor(0.0f, 0.0f, 0.0f, 0.45f), 1.0f);
 				}
 				else
@@ -658,7 +736,8 @@ namespace Hydro
 				}
 
 				// Blue strip = prefab.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.26f, 0.59f, 0.98f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.26f, 0.59f, 0.98f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 			case ItemType::Texture:
@@ -674,7 +753,8 @@ namespace Hydro
 					// Sprite sheets get a strip, like scenes and prefabs.
 					if (thumbnail.IsSheet)
 					{
-						drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ImGui::GetColorU32(ImGuiCol_CheckMark), rounding, ImDrawFlags_RoundCornersBottom);
+						drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ImGui::GetColorU32(ImGuiCol_CheckMark),
+							rounding, ImDrawFlags_RoundCornersBottom);
 					}
 				}
 				else
@@ -702,7 +782,8 @@ namespace Hydro
 				}
 
 				// Purple strip = animation set.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.62f, 0.40f, 0.90f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.62f, 0.40f, 0.90f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 			case ItemType::Material:
@@ -720,14 +801,16 @@ namespace Hydro
 					const Ref<Texture2D> albedo = (uint64_t)data.Albedo != 0 ? ThumbnailManager::Get(data.Albedo).Texture : nullptr;
 					if (albedo != nullptr)
 					{
-						drawList->AddImageRounded((ImTextureID)Renderer2D::GetImGuiTexture(albedo), swatchMin, swatchMax, { 0.0f, 0.0f }, { 1.0f, 1.0f }, tint, radius);
+						drawList->AddImageRounded((ImTextureID)Renderer2D::GetImGuiTexture(albedo), swatchMin, swatchMax, { 0.0f, 0.0f },
+							{ 1.0f, 1.0f }, tint, radius);
 					}
 					else
 					{
 						drawList->AddCircleFilled(center, radius, tint, 32);
 					}
 					// A highlight, so it reads as a ball.
-					drawList->AddCircleFilled({ center.x - radius * 0.35f, center.y - radius * 0.35f }, radius * 0.18f, ToColor(1.0f, 1.0f, 1.0f, 0.35f), 16);
+					drawList->AddCircleFilled({ center.x - radius * 0.35f, center.y - radius * 0.35f }, radius * 0.18f,
+						ToColor(1.0f, 1.0f, 1.0f, 0.35f), 16);
 				}
 				else
 				{
@@ -736,13 +819,14 @@ namespace Hydro
 				drawList->AddCircle(center, radius, ToColor(0.0f, 0.0f, 0.0f, 0.5f), 32, 1.5f);
 
 				// Orange strip = material.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.95f, 0.55f, 0.20f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.95f, 0.55f, 0.20f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 			case ItemType::RenderProfile:
 			{
-				// A little landscape: the sky ambient over the ground ambient, a fog band at the horizon. The
-				// colours are linear and dim: brightened so they read on the tile.
+				// A little landscape: the sky ambient over the ground ambient, a fog band at the horizon. The colours are
+				// linear and dim, so they are brightened to read on the tile.
 				const Ref<RenderProfile> profile = FindAsset<RenderProfile>(item.Handle, m_PreviewLoadsLeft);
 				const ImVec2 viewMin = TilePoint(min, size, 0.14f, 0.14f);
 				const ImVec2 viewMax = TilePoint(min, size, 0.86f, 0.80f);
@@ -760,7 +844,8 @@ namespace Hydro
 					if (environment.Fog)
 					{
 						const float band = (viewMax.y - viewMin.y) * 0.12f;
-						drawList->AddRectFilled({ viewMin.x, horizon - band }, { viewMax.x, horizon + band }, (shown(environment.FogColor) & 0x00FFFFFF) | 0xB0000000);
+						drawList->AddRectFilled({ viewMin.x, horizon - band }, { viewMax.x, horizon + band },
+							(shown(environment.FogColor) & 0x00FFFFFF) | 0xB0000000);
 					}
 				}
 				else
@@ -770,21 +855,26 @@ namespace Hydro
 				drawList->AddRect(viewMin, viewMax, ToColor(0.0f, 0.0f, 0.0f, 0.5f), 0.0f, 0, 1.5f);
 
 				// Teal strip = render profile.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.20f, 0.75f, 0.70f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.20f, 0.75f, 0.70f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 			case ItemType::Model:
 			{
 				// A cube seen from above the front-right: three shaded faces.
-				const ImVec2 top[4] = { TilePoint(min, size, 0.50f, 0.18f), TilePoint(min, size, 0.80f, 0.32f), TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.20f, 0.32f) };
-				const ImVec2 left[4] = { TilePoint(min, size, 0.20f, 0.32f), TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.50f, 0.82f), TilePoint(min, size, 0.20f, 0.68f) };
-				const ImVec2 right[4] = { TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.80f, 0.32f), TilePoint(min, size, 0.80f, 0.68f), TilePoint(min, size, 0.50f, 0.82f) };
+				const ImVec2 top[4] = { TilePoint(min, size, 0.50f, 0.18f), TilePoint(min, size, 0.80f, 0.32f),
+					TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.20f, 0.32f) };
+				const ImVec2 left[4] = { TilePoint(min, size, 0.20f, 0.32f), TilePoint(min, size, 0.50f, 0.46f),
+					TilePoint(min, size, 0.50f, 0.82f), TilePoint(min, size, 0.20f, 0.68f) };
+				const ImVec2 right[4] = { TilePoint(min, size, 0.50f, 0.46f), TilePoint(min, size, 0.80f, 0.32f),
+					TilePoint(min, size, 0.80f, 0.68f), TilePoint(min, size, 0.50f, 0.82f) };
 				drawList->AddConvexPolyFilled(top, 4, ToColor(0.78f, 0.80f, 0.86f));
 				drawList->AddConvexPolyFilled(left, 4, ToColor(0.52f, 0.55f, 0.62f));
 				drawList->AddConvexPolyFilled(right, 4, ToColor(0.38f, 0.41f, 0.48f));
 
 				// Teal strip = model.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.20f, 0.70f, 0.70f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.20f, 0.70f, 0.70f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 			case ItemType::Font:
@@ -797,18 +887,48 @@ namespace Hydro
 				drawList->AddText({ centre.x - textSize.x * 0.5f, centre.y - textSize.y * 0.5f }, ToColor(0.10f, 0.10f, 0.12f), sample);
 
 				// Gold strip = font.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.90f, 0.75f, 0.30f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.90f, 0.75f, 0.30f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 			case ItemType::Terrain:
 			{
 				// Two grass shelves with a stone face between them and a dirt path across the lower one.
-				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.22f), TilePoint(min, size, 0.84f, 0.44f), ToColor(0.42f, 0.62f, 0.26f), 2.0f);
-				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.44f), TilePoint(min, size, 0.84f, 0.54f), ToColor(0.40f, 0.40f, 0.44f));
-				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.54f), TilePoint(min, size, 0.84f, 0.80f), ToColor(0.36f, 0.56f, 0.22f), 2.0f);
-				drawList->AddRectFilled(TilePoint(min, size, 0.44f, 0.54f), TilePoint(min, size, 0.58f, 0.80f), ToColor(0.62f, 0.44f, 0.28f));
+				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.22f), TilePoint(min, size, 0.84f, 0.44f),
+					ToColor(0.42f, 0.62f, 0.26f), 2.0f);
+				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.44f), TilePoint(min, size, 0.84f, 0.54f),
+					ToColor(0.40f, 0.40f, 0.44f));
+				drawList->AddRectFilled(TilePoint(min, size, 0.16f, 0.54f), TilePoint(min, size, 0.84f, 0.80f),
+					ToColor(0.36f, 0.56f, 0.22f), 2.0f);
+				drawList->AddRectFilled(TilePoint(min, size, 0.44f, 0.54f), TilePoint(min, size, 0.58f, 0.80f),
+					ToColor(0.62f, 0.44f, 0.28f));
 				// Green strip = terrain.
-				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.45f, 0.70f, 0.30f), rounding, ImDrawFlags_RoundCornersBottom);
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.45f, 0.70f, 0.30f), rounding,
+					ImDrawFlags_RoundCornersBottom);
+				break;
+			}
+			case ItemType::Definition:
+			{
+				// A page: one record.
+				DrawPageIcon(drawList, min, size);
+				// Amber strip = definition.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.95f, 0.60f, 0.20f), rounding,
+					ImDrawFlags_RoundCornersBottom);
+				break;
+			}
+			case ItemType::DataTable:
+			{
+				// A grid: rows of records.
+				const ImU32 cell = ToColor(0.62f, 0.64f, 0.68f);
+				for (int row = 0; row < 4; row++)
+				{
+					const float top = 0.22f + 0.15f * row;
+					drawList->AddRectFilled(TilePoint(min, size, 0.20f, top), TilePoint(min, size, 0.38f, top + 0.11f), cell, 1.0f);
+					drawList->AddRectFilled(TilePoint(min, size, 0.42f, top), TilePoint(min, size, 0.80f, top + 0.11f), cell, 1.0f);
+				}
+				// Rust strip = data table.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.80f, 0.40f, 0.25f), rounding,
+					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
 		}
@@ -834,12 +954,15 @@ namespace Hydro
 				ImGui::Separator();
 				ImGui::BulletText("Tag");
 				if (preview.HasTransform)
+				{
 					ImGui::BulletText("Transform  (scale %.1f x %.1f)", preview.Scale.x, preview.Scale.y);
+				}
 				if (preview.HasSprite)
 				{
 					ImGui::BulletText("Sprite Renderer");
 					ImGui::SameLine();
-					ImGui::ColorButton("##color", { preview.Color.r, preview.Color.g, preview.Color.b, preview.Color.a }, ImGuiColorEditFlags_NoTooltip, { 12.0f, 12.0f });
+					ImGui::ColorButton("##color", { preview.Color.r, preview.Color.g, preview.Color.b, preview.Color.a },
+						ImGuiColorEditFlags_NoTooltip, { 12.0f, 12.0f });
 				}
 				ImGui::Spacing();
 				ImGui::TextDisabled("Double-click or drag into the scene");
@@ -872,6 +995,38 @@ namespace Hydro
 			case ItemType::Terrain:
 				ImGui::TextDisabled("Terrain - pick it in a Terrain component's Terrain field");
 				break;
+			case ItemType::Definition:
+			case ItemType::DataTable:
+			{
+				// Loads the file (once; the manager caches it) to say what it holds and whether it is valid.
+				const DataTypeInfo* type = Data::GetDataType(item.Handle);
+				const bool isTable = item.Type == ItemType::DataTable;
+				if (type == nullptr)
+				{
+					ImGui::TextColored({ 0.9f, 0.4f, 0.4f, 1.0f }, "%s - can't be read (see the console)",
+						isTable ? "Data table" : "Definition");
+					break;
+				}
+				ImGui::TextDisabled("%s of %s - pick it in a script's %s field", isTable ? "Data table" : "Definition", type->Name.c_str(),
+					isTable ? "Asset(DataTable, ...) or DataRow(...)" : "Asset(Definition, ...)");
+				const DataReport report = Data::Validate(item.Handle);
+				if (report.IsEmpty() == false)
+				{
+					ImGui::TextColored(report.HasErrors() ? ImVec4(0.9f, 0.4f, 0.4f, 1.0f) : ImVec4(0.9f, 0.7f, 0.3f, 1.0f), "%s",
+						report.GetSummary().c_str());
+					size_t shown = 0;
+					for (const DataMessage& message : report.GetMessages())
+					{
+						if (shown++ == 6)
+						{
+							ImGui::TextDisabled("...");
+							break;
+						}
+						ImGui::BulletText("%s", message.ToString().c_str());
+					}
+				}
+				break;
+			}
 		}
 
 		if (item.Type != ItemType::Folder)
@@ -898,16 +1053,20 @@ namespace Hydro
 
 			ImGui::Text("Delete '%s'?", m_PendingDeletePath.filename().u8string().c_str());
 			if (canDelete)
+			{
 				ImGui::TextDisabled("This cannot be undone. Scenes that use it will report it as missing.");
+			}
 			else
+			{
 				ImGui::TextColored({ 0.9f, 0.6f, 0.3f, 1.0f }, "Only empty folders can be deleted.");
+			}
 
 			ImGui::Spacing();
 			ImGui::BeginDisabled(canDelete == false);
 			if (ImGui::Button("Delete", { 120.0f, 0.0f }))
 			{
-				// The manager deletes the file and its .hymeta, keeps the handle (marked missing, so scenes that
-				// use it report it) and logs why when it can't.
+				// The manager deletes the file and its .hymeta, keeps the handle marked missing (so scenes that use it
+				// report it) and logs why when it can't.
 				if (AssetManager::DeleteAsset(m_PendingDeletePath))
 				{
 					HY_INFO("Deleted {}", m_PendingDeletePath.u8string());
@@ -920,7 +1079,9 @@ namespace Hydro
 
 				m_PrefabPreviews.erase(m_PendingDeletePath.u8string());
 				if (m_SelectedPath == m_PendingDeletePath)
+				{
 					m_SelectedPath.clear();
+				}
 				m_PendingDeletePath.clear();
 				m_NeedsRescan = true;
 				ImGui::CloseCurrentPopup();
@@ -952,7 +1113,9 @@ namespace Hydro
 				break;
 			case ItemType::Scene:
 				if (OnOpenScene)
+				{
 					OnOpenScene(item.Path);
+				}
 				break;
 			case ItemType::Texture:
 			case ItemType::Animation:
@@ -967,6 +1130,8 @@ namespace Hydro
 			case ItemType::Material:
 			case ItemType::Model:
 			case ItemType::RenderProfile:
+			case ItemType::Definition:
+			case ItemType::DataTable:
 				// Edited in the inspector.
 				if (OnAssetSelected)
 				{
@@ -979,11 +1144,15 @@ namespace Hydro
 	void ProjectWindow::InstantiatePrefab(const std::filesystem::path& path, const Ref<Scene>& scene)
 	{
 		if (scene == nullptr)
+		{
 			return;
+		}
 
 		Entity entity = PrefabSerializer::Instantiate(*scene, path);
 		if (entity && OnEntityCreated)
+		{
 			OnEntityCreated(entity);
+		}
 	}
 
 	void ProjectWindow::BeginCreateFolder()
@@ -1020,7 +1189,8 @@ namespace Hydro
 		m_RequestNamePopup = true;
 	}
 
-	std::string ProjectWindow::ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent, const std::filesystem::path& ignore)
+	std::string ProjectWindow::ValidateName(const std::string& name, const std::string& extension, const std::filesystem::path& parent,
+		const std::filesystem::path& ignore)
 	{
 		if (name.empty())
 		{
@@ -1036,7 +1206,8 @@ namespace Hydro
 		}
 		for (char c : name)
 		{
-			if (c == '<' || c == '>' || c == ':' || c == '"' || c == '/' || c == '\\' || c == '|' || c == '?' || c == '*' || (unsigned char)c < 32)
+			if (c == '<' || c == '>' || c == ':' || c == '"' || c == '/' || c == '\\' || c == '|' || c == '?' || c == '*'
+				|| (unsigned char)c < 32)
 			{
 				return "Names can't contain < > : \" / \\ | ? *";
 			}
@@ -1092,8 +1263,7 @@ namespace Hydro
 			}
 			else if (renaming && renamingFile == false)
 			{
-				// Sprites and animators reference textures and .hyanim files by asset handle, so they follow a
-				// rename. Scenes saved before handles existed are given one the next time they are saved.
+				// Sprites and animators reference assets by handle, so they follow a rename.
 				ImGui::TextDisabled("Sprites in saved scenes follow by asset handle. Scenes from before handles follow once re-saved.");
 			}
 
@@ -1111,8 +1281,8 @@ namespace Hydro
 				bool succeeded = false;
 				if (renaming)
 				{
-					// The manager moves the file with its .hymeta and keeps the handle, so everything that refers
-					// to it by handle follows; it logs why when it can't.
+					// The manager moves the file with its .hymeta and keeps the handle, so references follow; it logs why
+					// when it can't.
 					succeeded = AssetManager::MoveAsset(m_RenamePath, target);
 				}
 				else
@@ -1166,10 +1336,11 @@ namespace Hydro
 		const std::string key = path.u8string();
 		auto it = m_PrefabPreviews.find(key);
 		if (it != m_PrefabPreviews.end() && it->second.WriteTime == writeTime)
+		{
 			return it->second;
+		}
 
-		// (Re)load: deserialize into a throwaway scene and copy out what the thumbnail needs.
-		// Uses the same loader as instantiating, so previews always match what you'd get.
+		// Reload with the same loader as instantiating, so previews always match what you'd get.
 		PrefabPreview preview;
 		preview.WriteTime = writeTime;
 
@@ -1240,6 +1411,12 @@ namespace Hydro
 			case AssetType::Terrain:
 				itemType = ItemType::Terrain;
 				return true;
+			case AssetType::Definition:
+				itemType = ItemType::Definition;
+				return true;
+			case AssetType::DataTable:
+				itemType = ItemType::DataTable;
+				return true;
 			default:
 				return false;
 		}
@@ -1253,7 +1430,7 @@ namespace Hydro
 			return;
 		}
 
-		// "<image>.hyanim", or "<image> 2.hyanim"... when taken.
+		// "<image>.hyanim", or "<image> 2.hyanim" when taken.
 		const std::filesystem::path folder = imagePath.parent_path();
 		const std::string stem = imagePath.stem().u8string();
 		std::filesystem::path target = folder / std::filesystem::u8path(stem + SpriteAnimationSerializer::FileExtension);
@@ -1302,6 +1479,50 @@ namespace Hydro
 		{
 			OnAssetSelected(target);
 		}
+	}
+
+	void ProjectWindow::CreateDataAsset(const DataTypeInfo& type, bool table)
+	{
+		const std::filesystem::path folder = m_CurrentDirectory.empty() ? m_RootDirectory : m_CurrentDirectory;
+		const std::string base = "New " + type.DisplayName + (table ? " Table" : "");
+		const char* extension = table ? DataTableAsset::FileExtension : DefinitionAsset::FileExtension;
+		std::filesystem::path target = folder / std::filesystem::u8path(base + extension);
+		std::error_code error;
+		for (int number = 2; std::filesystem::exists(target, error); number++)
+		{
+			target = folder / std::filesystem::u8path(base + " " + std::to_string(number) + extension);
+		}
+
+		// The handle first (registered now), then the file with it on its first line, like a new scene.
+		const AssetHandle handle = AssetManager::ImportAsset(target);
+		bool written = false;
+		if (table)
+		{
+			DataTableData data;
+			data.Handle = handle;
+			data.RowType = &type;
+			written = DataTableAsset::Save(target, data);
+		}
+		else
+		{
+			DefinitionData data;
+			data.Handle = handle;
+			data.Values = DataRecord(type);
+			written = DefinitionAsset::Save(target, data);
+		}
+		if (written == false)
+		{
+			return;
+		}
+
+		HY_INFO("Created {} ({})", target.filename().u8string(), type.Name);
+		m_SelectedPath = target;
+		m_NeedsRescan = true;
+		if (OnAssetSelected)
+		{
+			OnAssetSelected(target);
+		}
+		BeginRename(target);
 	}
 
 	void ProjectWindow::CreateRenderProfile()

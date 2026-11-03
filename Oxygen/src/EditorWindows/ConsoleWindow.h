@@ -11,10 +11,8 @@
 
 namespace Hydro
 {
-	// "Console" window: the engine (Hydro) and client (APP) log, as also written to the terminal and
-	// logs/*.log. Reads Log::GetMessagesSince each frame, so it shows messages from before it opened
-	// too (the last Log::MaxKeptMessages). Opens docked as a tab next to the Project window.
-	// What each line shows comes from the editor's ConsoleSettings (Editor Settings > Console).
+	// The "Console" window: the engine and client log, including messages from before it opened (the last
+	// Log::MaxKeptMessages). What each line shows comes from Editor Settings > Console.
 	class ConsoleWindow
 	{
 	public:
@@ -22,7 +20,7 @@ namespace Hydro
 
 		bool& IsOpen() { return m_Open; }
 
-		// Empties this window only; the log files and terminal are untouched.
+		// Empties this window only; the log files and terminal keep their messages.
 		void Clear();
 
 	private:
@@ -36,7 +34,7 @@ namespace Hydro
 		uint64_t m_LastSequence = 0;
 		std::vector<LogMessage> m_Incoming; // reused every frame
 
-		// Filters: which levels to show, and a text filter ("-word" excludes, "a,b" matches either).
+		// Which levels to show, and a text filter ("-word" excludes, "a,b" matches either).
 		bool m_ShowLevel[5] = { true, true, true, true, true };
 		ImGuiTextFilter m_TextFilter;
 	};

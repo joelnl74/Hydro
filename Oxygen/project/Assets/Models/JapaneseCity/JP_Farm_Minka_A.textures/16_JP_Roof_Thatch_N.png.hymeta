@@ -1,0 +1,8 @@
+Handle: 6692990131469357376
+Type: Texture2D
+TextureImport:
+  Format: RGBA
+  Filter: Nearest
+  Wrap: Repeat
+  SpriteMode: Single
+  PixelsPerUnit: 32

@@ -7,11 +7,64 @@ TextureImport:
   SpriteMode: Multiple
   PixelsPerUnit: 32
   Slicing:
-    Mode: Grid
-    CellSize: [96, 72]
+    Mode: Manual
+    CellSize: [96, 96]
     Offset: [0, 0]
     Spacing: [0, 0]
-    Columns: 8
-    Rows: 4
-    RowNames: [Farmer_Down, Farmer_Right, Farmer_Up, Farmer_Left]
+    Columns: 0
+    Rows: 0
+    RowNames: []
     DefaultPivot: [0.5, 0]
+  Sprites:
+    - {Name: IdleDown_0, Rect: [0, 0, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleDown_1, Rect: [96, 0, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleDown_2, Rect: [192, 0, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleDown_3, Rect: [288, 0, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleRight_0, Rect: [0, 96, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleRight_1, Rect: [96, 96, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleRight_2, Rect: [192, 96, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleRight_3, Rect: [288, 96, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleUp_0, Rect: [0, 192, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleUp_1, Rect: [96, 192, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleUp_2, Rect: [192, 192, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleUp_3, Rect: [288, 192, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_0, Rect: [0, 288, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_1, Rect: [96, 288, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_2, Rect: [192, 288, 96, 90], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_3, Rect: [288, 288, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_0, Rect: [0, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_1, Rect: [96, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_2, Rect: [192, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_3, Rect: [288, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_4, Rect: [384, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkDown_5, Rect: [480, 384, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_0, Rect: [0, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_1, Rect: [96, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_2, Rect: [192, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_3, Rect: [288, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_4, Rect: [384, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkRight_5, Rect: [480, 480, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_0, Rect: [0, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_1, Rect: [96, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_2, Rect: [192, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_3, Rect: [288, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_4, Rect: [384, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkUp_5, Rect: [480, 576, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_0, Rect: [0, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_1, Rect: [96, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_2, Rect: [192, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_3, Rect: [288, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_4, Rect: [384, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_5, Rect: [480, 672, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkRight_0, Rect: [0, 768, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkRight_1, Rect: [96, 768, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkRight_2, Rect: [192, 768, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkRight_3, Rect: [288, 768, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkRight_4, Rect: [384, 768, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkRight_5, Rect: [480, 768, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkLeft_0, Rect: [0, 864, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkLeft_1, Rect: [96, 864, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkLeft_2, Rect: [192, 864, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkLeft_3, Rect: [288, 864, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkLeft_4, Rect: [384, 864, 96, 90], Pivot: [0.5, 0]}
+    - {Name: WorkLeft_5, Rect: [480, 864, 96, 90], Pivot: [0.5, 0]}

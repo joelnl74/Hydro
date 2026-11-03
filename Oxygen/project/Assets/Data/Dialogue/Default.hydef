@@ -1,0 +1,14 @@
+Handle: 8285401502875637881
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: Lovely evening.
+      - Speaker: ""
+        Text: Beware the wisps.
+      - Speaker: ""
+        Text: The inn is warm.

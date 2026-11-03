@@ -1,0 +1,12 @@
+Handle: 3824359530807091376
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: "The gate shuts at the last bell. After that the road to the farms belongs to you and the wolves."
+      - Speaker: ""
+        Text: "Lights in the cedar wood again, they say. Keep to the lantern-lit roads."

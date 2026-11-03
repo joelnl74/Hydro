@@ -29,18 +29,12 @@ namespace Hydro
 		float GetPhaseMs(FramePhase phase) const { return PhaseMs[(size_t)phase]; }
 	};
 
-	// Time subsystem: the frame clock (delta time, frame count, uptime) and per-phase CPU timings.
-	// Like Log, it is a static facade with an explicit lifetime: Application calls Init() first thing
-	// and Shutdown() last, and drives BeginFrame/EndFrame once per loop iteration.
-	//
-	//   float dt = Time::GetDeltaTime();                        // seconds, for gameplay
-	//   const FrameTimings& t = Time::GetFrameTimings();        // last complete frame, for stats UI
-	//   float renderMs = t.GetPhaseMs(FramePhase::Render);
+	// Time subsystem: the frame clock (delta time, frame count, uptime) and per-phase CPU timings. Application
+	// drives BeginFrame / EndFrame once per loop iteration.
 	class Time
 	{
 	public:
-		// Delta time is clamped to this, so a breakpoint or a long hitch doesn't make the
-		// simulation jump. FrameTimings::DeltaMs keeps the real value.
+		// Delta time is clamped to this so a breakpoint doesn't make the simulation jump (DeltaMs keeps the real value).
 		static constexpr float MaxDeltaTime = 0.1f;
 
 		static void Init();
@@ -56,14 +50,12 @@ namespace Hydro
 		// For phases measured elsewhere (the Renderer times its own recording and present).
 		static void SetPhaseMs(FramePhase phase, float ms);
 
-		// Seconds between the start of the previous frame and this one, clamped to MaxDeltaTime.
-		// 0 on the first frame.
+		// Clamped to MaxDeltaTime; 0 on the first frame.
 		static float GetDeltaTime();
 		static uint64_t GetFrameCount();
-		// Seconds since Init.
 		static double GetUptime();
 
-		// The last complete frame. Readers (e.g. the editor's stats window) never see a half-filled frame.
+		// The last complete frame, never a half-filled one.
 		static const FrameTimings& GetFrameTimings();
 	};
 }

@@ -2,7 +2,7 @@
 #include <yaml-cpp/yaml.h>
 #include <glm/glm.hpp>
 
-// YAML encoding for glm vectors (float, and unsigned for pixel sizes and colours), shared by every serializer (scenes, prefabs, projects).
+// YAML encoding for glm vectors (float, and unsigned for pixel sizes and colours), shared by every serializer.
 // Vectors are written as flow sequences: [x, y, z].
 
 namespace YAML
@@ -22,7 +22,9 @@ namespace YAML
 		static bool decode(const Node& node, glm::vec2& rhs)
 		{
 			if (node.IsSequence() == false || node.size() != 2)
+			{
 				return false;
+			}
 
 			rhs.x = node[0].as<float>();
 			rhs.y = node[1].as<float>();
@@ -46,7 +48,9 @@ namespace YAML
 		static bool decode(const Node& node, glm::vec3& rhs)
 		{
 			if (node.IsSequence() == false || node.size() != 3)
+			{
 				return false;
+			}
 
 			rhs.x = node[0].as<float>();
 			rhs.y = node[1].as<float>();
@@ -72,7 +76,9 @@ namespace YAML
 		static bool decode(const Node& node, glm::vec4& rhs)
 		{
 			if (node.IsSequence() == false || node.size() != 4)
+			{
 				return false;
+			}
 
 			rhs.x = node[0].as<float>();
 			rhs.y = node[1].as<float>();
@@ -97,7 +103,9 @@ namespace YAML
 		static bool decode(const Node& node, glm::uvec2& rhs)
 		{
 			if (node.IsSequence() == false || node.size() != 2)
+			{
 				return false;
+			}
 
 			rhs.x = node[0].as<uint32_t>();
 			rhs.y = node[1].as<uint32_t>();
@@ -121,7 +129,9 @@ namespace YAML
 		static bool decode(const Node& node, glm::uvec3& rhs)
 		{
 			if (node.IsSequence() == false || node.size() != 3)
+			{
 				return false;
+			}
 
 			rhs.x = node[0].as<uint32_t>();
 			rhs.y = node[1].as<uint32_t>();

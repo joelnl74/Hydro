@@ -1,0 +1,33 @@
+Handle: 1569287181202592509
+Definition:
+  Version: 1
+  Type: SceneLightingDefinition
+  Values:
+    Presets:
+      - Name: Day
+        Profile: 4079332127942478140
+        SunColor: [1, 0.95, 0.86]
+        SunIntensity: 1.15
+        SkyAmbient: [0.55, 0.6, 0.66]
+        GroundAmbient: [0.22, 0.2, 0.15]
+        FogColor: [0.72, 0.76, 0.74]
+        LanternFactor: 0
+        WindowFactor: 0
+      - Name: Golden
+        Profile: 8644953574432083781
+        SunColor: [1, 0.8, 0.56]
+        SunIntensity: 0.7
+        SkyAmbient: [0.231, 0.198, 0.165]
+        GroundAmbient: [0.088, 0.066, 0.044]
+        FogColor: [0.78, 0.6, 0.38]
+        LanternFactor: 0.8
+        WindowFactor: 1
+      - Name: Night
+        Profile: 7835265479306610603
+        SunColor: [0.55, 0.65, 1]
+        SunIntensity: 0.18
+        SkyAmbient: [0.036, 0.045, 0.078]
+        GroundAmbient: [0.012, 0.012, 0.018]
+        FogColor: [0.08, 0.1, 0.18]
+        LanternFactor: 1.4
+        WindowFactor: 1.15

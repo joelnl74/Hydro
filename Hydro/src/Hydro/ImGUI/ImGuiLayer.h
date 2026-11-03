@@ -19,12 +19,10 @@ namespace Hydro
 		float Size = 16.0f;         // pixels
 	};
 
-	// How the ImGui layer starts. Part of ApplicationSpecification, so the application chooses its
-	// fonts (the engine itself loads no font files).
+	// How the ImGui layer starts, part of ApplicationSpecification: the application chooses its fonts.
 	struct ImGuiLayerSpecification
 	{
-		// Loaded in order; the first one that loads is the default font. A missing file is logged and
-		// skipped. Empty, or none loaded: ImGui's built-in font.
+		// Loaded in order; the first that loads is the default. Missing files are logged and skipped; none: ImGui's own.
 		std::vector<ImGuiFontSpecification> Fonts;
 	};
 
@@ -40,8 +38,7 @@ namespace Hydro
 		void Begin();
 		void End();
 
-		// A font loaded from ImGuiLayerSpecification::Fonts, by name; nullptr if it wasn't loaded.
-		// Use with ImGui::PushFont / PopFont.
+		// A loaded font by name for ImGui::PushFont / PopFont; nullptr if it wasn't loaded.
 		static ImFont* GetFont(const std::string& name);
 
 	private:

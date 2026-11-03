@@ -1,0 +1,19 @@
+{
+ "JP_Noren_Inn_5.png": ["JP_Noren_Inn_A", "top"],
+ "JP_Noren_Inn.png": ["JP_Noren_Inn_Long_A", "top"],
+ "JP_Lantern_Paper_Red_2.png": ["JP_Lantern_Paper_Red_A", "top"],
+ "JP_Lantern_Paper_Red_3.png": ["JP_Lantern_Paper_Red_B", "top"],
+ "JP_Banner_Nobori.png": ["JP_Banner_Nobori_A", "bottom"],
+ "JP_Lantern_Iron.png": ["JP_Lantern_Iron_A", "top"],
+ "JP_Lantern_Iron_3.png": ["JP_Lantern_Iron_B", "top"],
+ "JP_Laundy_Cloth_1.png": ["JP_Laundry_Cloth_A", "top"],
+ "JP_Fish_Hanging.png": ["JP_Fish_Hanging_A", "top"],
+ "JP_Fish_Hanging_3.png": ["JP_Fish_Hanging_B", "top"],
+ "JP_Lantern_String.png": ["JP_Lantern_String_A", "top"],
+ "JP_Lantern_String_2.png": ["JP_Lantern_String_B", "top"],
+ "JP_Sign_Hanging.png": ["JP_Sign_Hanging_A", "top"],
+ "JP_Signboard_Standing_2.png": ["JP_Signboard_Standing_A", "bottom"],
+ "JP_Signboard_Standing_3.png": ["JP_Signboard_Standing_B", "bottom"],
+ "JP_Spears_Leaning_2.png": ["JP_Spears_Leaning_A", "bottom"],
+ "JP_Spears_Leaning.png": ["JP_Spears_Leaning_B", "bottom"]
+}

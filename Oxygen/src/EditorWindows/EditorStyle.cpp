@@ -107,8 +107,7 @@ namespace Hydro
 		colors[ImGuiCol_ResizeGripHovered] = WithAlpha(accent, 0.55f);
 		colors[ImGuiCol_ResizeGripActive] = WithAlpha(accent, 0.90f);
 
-		// Tabs sit on the deep colour; the selected one lifts towards the window and takes a hint of
-		// the accent.
+		// Tabs sit on the deep colour; the selected one lifts towards the window and takes a hint of the accent.
 		colors[ImGuiCol_Tab] = s.Deep;
 		colors[ImGuiCol_TabHovered] = Mix(s.Window, accent, 0.30f);
 		colors[ImGuiCol_TabActive] = Mix(s.Frame, accent, 0.22f);
@@ -195,7 +194,9 @@ namespace Hydro
 
 			// On the light theme, fields need an outline to stand out from the panel.
 			if (surfaces.Light)
+			{
 				style.FrameBorderSize = 1.0f;
+			}
 
 			return style;
 		}
@@ -213,7 +214,9 @@ namespace Hydro
 		}
 
 		for (int i = 0; i < ImGuiCol_COUNT; i++)
+		{
 			style.Colors[i] = imguiStyle.Colors[i];
+		}
 
 		style.WindowRounding = imguiStyle.WindowRounding;
 		style.ChildRounding = imguiStyle.ChildRounding;
@@ -315,8 +318,7 @@ namespace Hydro
 		ImGuiIO& io = ImGui::GetIO();
 		io.FontGlobalScale = FontScale;
 
-		// Windows dragged out of the main window become OS windows: they must be square and opaque
-		// (the same rule the engine's ImGui layer applies).
+		// Windows dragged out of the main window become OS windows, which must be square and opaque.
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			style.WindowRounding = 0.0f;

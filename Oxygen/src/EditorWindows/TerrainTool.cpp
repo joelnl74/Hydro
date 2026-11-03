@@ -23,7 +23,7 @@
 
 namespace Hydro
 {
-	// A section title: a separator and a label (the vendored ImGui, 1.89 WIP, has no SeparatorText).
+	// A section title: a separator and a label (the vendored ImGui has no SeparatorText).
 	static void DrawSection(const char* title)
 	{
 		ImGui::Spacing();
@@ -108,13 +108,15 @@ namespace Hydro
 	void TerrainTool::DrawInspector(Entity entity, TerrainComponent& component, bool playing)
 	{
 		// The asset: picked, dropped, or made here.
-		Ref<Terrain> terrain = (uint64_t)component.Terrain != 0 ? AssetManager::GetLoadedAsset<Terrain>(component.Terrain) : nullptr;
+		Ref<Terrain> terrain = (uint64_t)component.Terrain != 0 ? AssetManager::GetLoadedAsset<Terrain>(component.Terrain)
+			: nullptr;
 		std::string detail;
 		if (terrain != nullptr)
 		{
 			const glm::vec2 size = terrain->GetSize();
 			char text[96];
-			std::snprintf(text, sizeof(text), "%.1f x %.1f m, %u x %u corners", size.x, size.y, terrain->GetCornerCountX(), terrain->GetCornerCountY());
+			std::snprintf(text, sizeof(text), "%.1f x %.1f m, %u x %u corners", size.x, size.y, terrain->GetCornerCountX(),
+				terrain->GetCornerCountY());
 			detail = text;
 		}
 		PropertyUI::Row("Terrain", [&]()
@@ -123,7 +125,8 @@ namespace Hydro
 			if (result.Changed)
 			{
 				// Only a terrain that loads is kept.
-				const Ref<Terrain> picked = (uint64_t)result.Handle != 0 ? AssetManager::GetAsset<Terrain>(result.Handle) : nullptr;
+				const Ref<Terrain> picked = (uint64_t)result.Handle != 0 ? AssetManager::GetAsset<Terrain>(result.Handle)
+					: nullptr;
 				if ((uint64_t)result.Handle == 0 || picked != nullptr)
 				{
 					component.Terrain = result.Handle;
@@ -180,8 +183,8 @@ namespace Hydro
 		const TerrainSettings& settings = terrain->GetSettings();
 		DrawSection("Brush");
 		ImGui::Checkbox("Edit in the Editor view", &m_Editing);
-		const TerrainBrush brushes[] = { TerrainBrush::Paint, TerrainBrush::Raise, TerrainBrush::Lower, TerrainBrush::Flatten, TerrainBrush::Wall,
-			TerrainBrush::Ramp, TerrainBrush::Path };
+		const TerrainBrush brushes[] = { TerrainBrush::Paint, TerrainBrush::Raise, TerrainBrush::Lower, TerrainBrush::Flatten,
+			TerrainBrush::Wall, TerrainBrush::Ramp, TerrainBrush::Path };
 		for (size_t i = 0; i < sizeof(brushes) / sizeof(brushes[0]); i++)
 		{
 			if (i != 0 && i != 4)
@@ -336,7 +339,8 @@ namespace Hydro
 			});
 			if ((uint64_t)layer.Fringe != 0)
 			{
-				PropertyUI::Row("Fringe Length", [&]() { PropertyUI::InputFloat("##FringeLength", layer.FringeLength, "%.1f px", 0.0f, 32.0f); });
+				PropertyUI::Row("Fringe Length", [&]()
+					{ PropertyUI::InputFloat("##FringeLength", layer.FringeLength, "%.1f px", 0.0f, 32.0f); });
 			}
 			ImGui::PopID();
 		}
@@ -468,7 +472,8 @@ namespace Hydro
 					rule.Shape = (TerrainDecorShape)shape;
 				}
 			});
-			PropertyUI::Row("Density", [&]() { PropertyUI::InputFloat("##DecorDensity", rule.Density, onWalls ? "%.2f / m" : "%.2f / m2", 0.0f, 64.0f); });
+			PropertyUI::Row("Density", [&]()
+				{ PropertyUI::InputFloat("##DecorDensity", rule.Density, onWalls ? "%.2f / m" : "%.2f / m2", 0.0f, 64.0f); });
 			PropertyUI::Row("Scale", [&]()
 			{
 				float values[2] = { rule.Scale.x, rule.Scale.y };
@@ -483,8 +488,10 @@ namespace Hydro
 				ImGui::PushID((int)s);
 				PropertyUI::Row(s == 0 ? "Sprites" : "", [&]()
 				{
-					const AssetPickerResult result = AssetPicker::DrawField("##DecorSprite", rule.Sprites[s], AssetType::Texture2D, {}, -30.0f);
-					if (result.Changed && ((uint64_t)result.Handle == 0 || AssetManager::GetAsset<Texture2D>(result.Handle) != nullptr))
+					const AssetPickerResult result = AssetPicker::DrawField("##DecorSprite", rule.Sprites[s], AssetType::Texture2D,
+						{}, -30.0f);
+					if (result.Changed
+						&& ((uint64_t)result.Handle == 0 || AssetManager::GetAsset<Texture2D>(result.Handle) != nullptr))
 					{
 						rule.Sprites[s] = result.Handle;
 					}
@@ -521,7 +528,8 @@ namespace Hydro
 		}
 
 		DrawSection("Edge Noise");
-		PropertyUI::Row("Cluster Size", [&]() { PropertyUI::InputFloat("##EdgeClusterSize", settings.EdgeClusterSize, "%.1f px", 0.5f, 16.0f); });
+		PropertyUI::Row("Cluster Size", [&]()
+			{ PropertyUI::InputFloat("##EdgeClusterSize", settings.EdgeClusterSize, "%.1f px", 0.5f, 16.0f); });
 		PropertyUI::Row("Pixel Noise", [&]() { PropertyUI::InputFloat("##EdgePixelNoise", settings.EdgePixelNoise, "%.2f", 0.0f, 1.0f); });
 		PropertyUI::Row("Seed", [&]() { PropertyUI::InputUInt("##TerrainSeed", settings.Seed, 0, 0x7fffffffu); });
 
@@ -531,8 +539,8 @@ namespace Hydro
 		}
 	}
 
-	bool TerrainTool::UpdateViewport(Entity selected, const EditorCamera& camera, const glm::vec2& imageMin, const glm::vec2& imageSize, bool hovered,
-		bool playing, float deltaTime, EditorCommandStack& commands)
+	bool TerrainTool::UpdateViewport(Entity selected, const EditorCamera& camera, const glm::vec2& imageMin, const glm::vec2& imageSize,
+		bool hovered, bool playing, float deltaTime, EditorCommandStack& commands)
 	{
 		m_HasHit = false;
 		const bool hasTerrain = m_Editing && playing == false && selected.IsValid() && selected.HasComponent<TerrainComponent>()
@@ -578,8 +586,8 @@ namespace Hydro
 			}
 		}
 
-		// A ray from the camera through the cursor: unproject the cursor at the near and far planes (zero-to-one depth,
-		// the projection's Y flip puts the image's top at -1).
+		// A ray from the camera through the cursor, unprojected at the near and far planes (zero-to-one depth; the
+		// projection's Y flip puts the image's top at -1).
 		const glm::vec2 mouse(io.MousePos.x, io.MousePos.y);
 		const glm::vec2 uv = (mouse - imageMin) / glm::max(imageSize, glm::vec2(1.0f));
 		m_Origin = selected.GetComponent<WorldTransformComponent>().Translation;
@@ -706,7 +714,8 @@ namespace Hydro
 			// The cells touching the corners.
 			TerrainRect cells;
 			cells.Min = glm::uvec2((uint32_t)std::max(minX - 1, 0), (uint32_t)std::max(minY - 1, 0));
-			cells.Max = glm::uvec2((uint32_t)std::min(maxX, (int)terrain.GetCellCountX() - 1), (uint32_t)std::min(maxY, (int)terrain.GetCellCountY() - 1));
+			cells.Max = glm::uvec2((uint32_t)std::min(maxX, (int)terrain.GetCellCountX() - 1),
+				(uint32_t)std::min(maxY, (int)terrain.GetCellCountY() - 1));
 			terrain.MarkCellsChanged(cells);
 		}
 	}
@@ -818,7 +827,8 @@ namespace Hydro
 				const float t = (float)n / (float)samples;
 				const float t2 = t * t;
 				const float t3 = t2 * t;
-				curve.push_back(0.5f * ((2.0f * p1) + (-p0 + p2) * t + (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2 + (-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3));
+				curve.push_back(0.5f * ((2.0f * p1) + (-p0 + p2) * t + (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2
+					+ (-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3));
 			}
 		}
 		curve.push_back(glm::vec2(m_PathPoints.back()));
@@ -861,7 +871,8 @@ namespace Hydro
 					distance = std::min(distance, glm::distance(p, a + d * t));
 				}
 				// The edge wanders in and out slowly along the road.
-				const float wander = m_PathWander * (0.6f * std::sin(1.7f * p.x + 0.9f * p.y + seed) + 0.4f * std::sin(0.6f * p.x - 1.3f * p.y + 2.0f * seed));
+				const float wander = m_PathWander * (0.6f * std::sin(1.7f * p.x + 0.9f * p.y + seed)
+					+ 0.4f * std::sin(0.6f * p.x - 1.3f * p.y + 2.0f * seed));
 				const float target = glm::clamp((half + wander - distance) / soft + 0.5f, 0.0f, 1.0f);
 				if (target <= 0.0f)
 				{
@@ -880,7 +891,8 @@ namespace Hydro
 		}
 		if (changed)
 		{
-			terrain->MarkWeightsChanged(TerrainRect{ glm::uvec2((uint32_t)minX, (uint32_t)minY), glm::uvec2((uint32_t)maxX, (uint32_t)maxY) });
+			terrain->MarkWeightsChanged(TerrainRect{ glm::uvec2((uint32_t)minX, (uint32_t)minY),
+				glm::uvec2((uint32_t)maxX, (uint32_t)maxY) });
 		}
 		m_StrokeBrush = TerrainBrush::Path;
 		EndStroke(commands);
@@ -1049,7 +1061,8 @@ namespace Hydro
 
 		if (changed)
 		{
-			terrain.MarkWeightsChanged(TerrainRect{ glm::uvec2((uint32_t)minX, (uint32_t)minY), glm::uvec2((uint32_t)maxX, (uint32_t)maxY) });
+			terrain.MarkWeightsChanged(TerrainRect{ glm::uvec2((uint32_t)minX, (uint32_t)minY),
+				glm::uvec2((uint32_t)maxX, (uint32_t)maxY) });
 		}
 	}
 

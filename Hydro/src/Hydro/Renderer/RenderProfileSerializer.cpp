@@ -54,6 +54,17 @@ namespace Hydro
 		out << YAML::Key << "DofFarStart" << YAML::Value << postProcess.DofFarStart;
 		out << YAML::Key << "DofRange" << YAML::Value << postProcess.DofRange;
 		out << YAML::Key << "DofMaxRadius" << YAML::Value << postProcess.DofMaxRadius;
+		out << YAML::Key << "VignetteIntensity" << YAML::Value << postProcess.VignetteIntensity;
+		out << YAML::Key << "VignetteRadius" << YAML::Value << postProcess.VignetteRadius;
+		out << YAML::Key << "VignetteSoftness" << YAML::Value << postProcess.VignetteSoftness;
+		out << YAML::Key << "Grading" << YAML::Value << postProcess.Grading;
+		out << YAML::Key << "Temperature" << YAML::Value << postProcess.Temperature;
+		out << YAML::Key << "Tint" << YAML::Value << postProcess.Tint;
+		out << YAML::Key << "Contrast" << YAML::Value << postProcess.Contrast;
+		out << YAML::Key << "Saturation" << YAML::Value << postProcess.Saturation;
+		out << YAML::Key << "Lift" << YAML::Value << postProcess.Lift;
+		out << YAML::Key << "Gamma" << YAML::Value << postProcess.Gamma;
+		out << YAML::Key << "Gain" << YAML::Value << postProcess.Gain;
 		out << YAML::EndMap;
 	}
 
@@ -89,7 +100,7 @@ namespace Hydro
 		{
 			postProcess.BloomRadius = radius.as<float>(postProcess.BloomRadius);
 		}
-		// Saved before depth of field (#135): no keys, the defaults.
+		// Older files have no depth of field keys: the defaults.
 		if (auto depthOfField = node["DepthOfField"])
 		{
 			postProcess.DepthOfField = depthOfField.as<bool>(postProcess.DepthOfField);
@@ -110,6 +121,28 @@ namespace Hydro
 		{
 			postProcess.DofMaxRadius = maxRadius.as<float>(postProcess.DofMaxRadius);
 		}
+		// Older files have no vignette keys: none.
+		if (auto vignette = node["VignetteIntensity"])
+		{
+			postProcess.VignetteIntensity = vignette.as<float>(postProcess.VignetteIntensity);
+		}
+		if (auto vignetteRadius = node["VignetteRadius"])
+		{
+			postProcess.VignetteRadius = vignetteRadius.as<float>(postProcess.VignetteRadius);
+		}
+		if (auto vignetteSoftness = node["VignetteSoftness"])
+		{
+			postProcess.VignetteSoftness = vignetteSoftness.as<float>(postProcess.VignetteSoftness);
+		}
+		// Older files have no grading keys: the defaults, which change nothing.
+		postProcess.Grading = node["Grading"].as<bool>(postProcess.Grading);
+		postProcess.Temperature = node["Temperature"].as<float>(postProcess.Temperature);
+		postProcess.Tint = node["Tint"].as<float>(postProcess.Tint);
+		postProcess.Contrast = node["Contrast"].as<float>(postProcess.Contrast);
+		postProcess.Saturation = node["Saturation"].as<float>(postProcess.Saturation);
+		postProcess.Lift = node["Lift"].as<glm::vec3>(postProcess.Lift);
+		postProcess.Gamma = node["Gamma"].as<glm::vec3>(postProcess.Gamma);
+		postProcess.Gain = node["Gain"].as<glm::vec3>(postProcess.Gain);
 		return postProcess;
 	}
 

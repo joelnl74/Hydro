@@ -17,7 +17,8 @@ layout(push_constant) uniform ObjectPushConstants {
     mat4 transform;
     int entityID;
     uint materialIndex;
-    uvec2 padding;
+    float opacity; // MeshComponent::Opacity (mesh.frag dithers below 1)
+    uint padding;
 } object;
 
 layout(location = 0) out vec2 fragUV;

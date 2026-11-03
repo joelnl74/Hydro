@@ -32,19 +32,20 @@ namespace Hydro
 		glm::vec4 Emission{ 0.0f }; // rgb = colour * intensity
 		glm::vec2 Tiling{ 1.0f };
 		float AlphaCutoff = 0.0f;
-		float Padding = 0.0f;
+		float NormalStrength = 0.0f; // 0 = no normal map (binding 3 is the flat one, unread)
 	};
 	static_assert(sizeof(MaterialUniform) == 48, "MaterialUniform: must match the std140 block in mesh.frag");
 	static_assert(offsetof(MaterialUniform, Emission) == 16 && offsetof(MaterialUniform, Tiling) == 32
 		&& offsetof(MaterialUniform, AlphaCutoff) == 40, "MaterialUniform: must match the std140 block in mesh.frag");
 
 	// A Standard material on the GPU: its uniform data and a persistent descriptor set (set 1) with the
-	// albedo and emissive textures. Immutable: a change to the data is another material.
+	// albedo, emissive and normal textures. Immutable: a change to the data is another material.
 	struct MeshMaterial
 	{
 		MaterialData Data;
 		Ref<Texture2D> Albedo;   // what the set points at (the loaded asset, or null = white)
 		Ref<Texture2D> Emissive;
+		Ref<Texture2D> Normal;   // null = the flat normal
 		Scope<VulkanBuffer> Uniform;
 		DescriptorAllocation Set;
 		uint64_t LastUsedFrame = 0;
@@ -59,7 +60,7 @@ namespace Hydro
 	struct TerrainSurfaceUniform
 	{
 		glm::vec4 LayerTint[MaxTerrainLayers];
-		glm::vec4 LayerTiling[MaxTerrainLayers]; // xy: repeats per metre
+		glm::vec4 LayerTiling[MaxTerrainLayers]; // xy: repeats per metre, z: normal strength (0 = no normal map)
 		glm::vec4 Roughness{ 0.0f };             // per layer, weight units
 		glm::vec4 Blend{ 0.0f };                 // per layer, weight units
 		glm::vec4 HeightBlend{ 0.0f };           // per layer
@@ -70,11 +71,12 @@ namespace Hydro
 	static_assert(sizeof(TerrainSurfaceUniform) == 224, "TerrainSurfaceUniform: must match the std140 block in terrain.frag");
 
 	// A terrain surface material on the GPU: its uniform data and a persistent descriptor set (set 1 of terrain.frag)
-	// with the weight map and the layers' albedos. Immutable, like MeshMaterial.
+	// with the weight map and the layers' albedos and normal maps. Immutable, like MeshMaterial.
 	struct TerrainSurfaceGPU
 	{
 		TerrainSurfaceMaterial Data;
 		Ref<Texture2D> Albedos[MaxTerrainLayers]; // what the set points at (the loaded assets, or null = white)
+		Ref<Texture2D> Normals[MaxTerrainLayers]; // null = the flat normal
 		Scope<VulkanBuffer> Uniform;
 		DescriptorAllocation Set;
 		uint64_t LastUsedFrame = 0;
@@ -87,7 +89,8 @@ namespace Hydro
 
 	bool TerrainSurfaceMaterial::operator==(const TerrainSurfaceMaterial& other) const
 	{
-		if (Weights != other.Weights || WeightMapSize != other.WeightMapSize || LayerCount != other.LayerCount || EdgeClusterSize != other.EdgeClusterSize
+		if (Weights != other.Weights || WeightMapSize != other.WeightMapSize || LayerCount != other.LayerCount
+			|| EdgeClusterSize != other.EdgeClusterSize
 			|| EdgePixelNoise != other.EdgePixelNoise || Seed != other.Seed)
 		{
 			return false;
@@ -119,13 +122,15 @@ namespace Hydro
 		ImageFormat DepthFormat = ImageFormat::None;
 		bool WriteEntityID = false;
 		bool Wireframe = false;
-		bool ShadowCaster = false; // depth only, into a sun shadow map (R14)
+		bool ShadowCaster = false; // depth only, into a sun shadow map
 		bool TerrainSurface = false; // terrain.frag with the terrain surface's set 1
+		bool Faded = false; // mesh_fade.frag: draws with an opacity below 1 (MeshComponent::Opacity)
 
 		bool operator<(const MeshPipelineKey& other) const
 		{
-			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster, TerrainSurface)
-				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster, other.TerrainSurface);
+			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster, TerrainSurface, Faded)
+				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster,
+					other.TerrainSurface, other.Faded);
 		}
 	};
 
@@ -137,6 +142,7 @@ namespace Hydro
 		std::map<MeshPipelineKey, Scope<VulkanPipeline>> Pipelines; // a null entry failed to build (logged once)
 
 		Ref<Texture2D> WhiteTexture;
+		Ref<Texture2D> FlatNormalTexture; // (0.5, 0.5, 1): what a material without a normal map binds
 		VkSampler NearestSampler = VK_NULL_HANDLE;
 		VkSampler LinearSampler = VK_NULL_HANDLE;
 		VkSampler LinearClampSampler = VK_NULL_HANDLE; // terrain weight maps
@@ -153,6 +159,9 @@ namespace Hydro
 	static constexpr const char* MeshShaderName = "Mesh";
 	static constexpr const char* MeshShadowCasterShaderName = "MeshShadowCaster";
 	static constexpr const char* TerrainSurfaceShaderName = "TerrainSurface";
+	// The Standard material with a screen-door fade (a game effect: the camera's occluder fade), only for draws whose
+	// opacity is below 1, so the main mesh shader stays without it.
+	static constexpr const char* MeshFadeShaderName = "MeshFade";
 	// Shapes and materials no frame has used for this many frames are freed (the GPU is long done with them).
 	static constexpr uint64_t UnusedFramesBeforeFree = 120;
 
@@ -185,18 +194,22 @@ namespace Hydro
 		whiteSpecification.Height = 1;
 		whiteSpecification.Format = ImageFormat::SRGB;
 		s_Data3D->WhiteTexture = CreateRef<Texture2D>(whiteSpecification, &whitePixel);
+		const uint32_t flatNormalPixel = 0xffff8080; // RGBA8 little-endian: (128, 128, 255, 255)
+		ImageSpecification flatNormalSpecification = whiteSpecification;
+		flatNormalSpecification.Format = ImageFormat::RGBA;
+		s_Data3D->FlatNormalTexture = CreateRef<Texture2D>(flatNormalSpecification, &flatNormalPixel);
 
 		// Materials sample with their own filter (TextureFilter), always repeating (tiling).
 		s_Data3D->NearestSampler = CreateSampler(VK_FILTER_NEAREST);
 		s_Data3D->LinearSampler = CreateSampler(VK_FILTER_LINEAR);
 
-		// Set 1 of mesh.frag: the material's uniform data, albedo and emissive textures.
-		std::vector<VkDescriptorSetLayoutBinding> bindings(3);
+		// Set 1 of mesh.frag: the material's uniform data, albedo, emissive and normal textures.
+		std::vector<VkDescriptorSetLayoutBinding> bindings(4);
 		bindings[0].binding = 0;
 		bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		bindings[0].descriptorCount = 1;
 		bindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		for (uint32_t i = 1; i < 3; i++)
+		for (uint32_t i = 1; i < 4; i++)
 		{
 			bindings[i].binding = i;
 			bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -205,10 +218,10 @@ namespace Hydro
 		}
 		s_Data3D->MaterialLayout = VulkanDescriptorAllocator::GetLayout(bindings);
 
-		// Set 1 of terrain.frag: the surface's uniform data, the weight map and the layers' albedos (one binding each:
-		// the shader picks a layer per pixel through a switch, so no non-uniform indexing is needed).
+		// Set 1 of terrain.frag: the surface's uniform data, the weight map, the layers' albedos and then their normal maps
+		// (one binding each: the shader picks a layer per pixel through a switch, so no non-uniform indexing is needed).
 		s_Data3D->LinearClampSampler = CreateSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-		std::vector<VkDescriptorSetLayoutBinding> terrainBindings(2 + MaxTerrainLayers);
+		std::vector<VkDescriptorSetLayoutBinding> terrainBindings(2 + 2 * MaxTerrainLayers);
 		for (uint32_t i = 0; i < (uint32_t)terrainBindings.size(); i++)
 		{
 			terrainBindings[i].binding = i;
@@ -232,8 +245,10 @@ namespace Hydro
 		s_Data3D->TerrainSurfaces.clear();
 		s_Data3D->Shapes.clear();
 		s_Data3D->WhiteTexture.reset();
+		s_Data3D->FlatNormalTexture.reset();
 		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
-		Renderer::SubmitResourceFree([device, nearest = s_Data3D->NearestSampler, linear = s_Data3D->LinearSampler, clamp = s_Data3D->LinearClampSampler]()
+		Renderer::SubmitResourceFree([device, nearest = s_Data3D->NearestSampler, linear = s_Data3D->LinearSampler,
+			clamp = s_Data3D->LinearClampSampler]()
 		{
 			vkDestroySampler(device, nearest, nullptr);
 			vkDestroySampler(device, linear, nullptr);
@@ -261,18 +276,27 @@ namespace Hydro
 		return GetTexture2DData(*shown).Image->GetVulkanImageInfo();
 	}
 
-	static Scope<MeshMaterial> CreateMaterial(const MaterialData& data, const Ref<Texture2D>& albedo, const Ref<Texture2D>& emissive)
+	static const VulkanImageInfo& GetNormalImage(const Ref<Texture2D>& texture)
+	{
+		const Ref<Texture2D>& shown = texture != nullptr ? texture : s_Data3D->FlatNormalTexture;
+		return GetTexture2DData(*shown).Image->GetVulkanImageInfo();
+	}
+
+	static Scope<MeshMaterial> CreateMaterial(const MaterialData& data, const Ref<Texture2D>& albedo, const Ref<Texture2D>& emissive,
+		const Ref<Texture2D>& normal)
 	{
 		Scope<MeshMaterial> material = CreateScope<MeshMaterial>();
 		material->Data = data;
 		material->Albedo = albedo;
 		material->Emissive = emissive;
+		material->Normal = normal;
 
 		MaterialUniform uniform;
 		uniform.Tint = data.Tint;
 		uniform.Emission = glm::vec4(data.EmissionColor * data.EmissionIntensity, 0.0f);
 		uniform.Tiling = data.Tiling;
 		uniform.AlphaCutoff = data.AlphaCutoff;
+		uniform.NormalStrength = normal != nullptr ? std::max(data.NormalStrength, 0.0f) : 0.0f;
 
 		// Written once (materials are immutable), so one buffer is enough for every frame in flight.
 		BufferSpecification specification;
@@ -291,14 +315,16 @@ namespace Hydro
 		const VkSampler sampler = data.Filter == TextureFilter::Linear ? s_Data3D->LinearSampler : s_Data3D->NearestSampler;
 		const VulkanImageInfo& albedoImage = GetTextureImage(albedo);
 		const VulkanImageInfo& emissiveImage = GetTextureImage(emissive);
+		const VulkanImageInfo& normalImage = GetNormalImage(normal);
 
 		VkDescriptorBufferInfo bufferInfo{ material->Uniform->GetVulkanBuffer(), 0, sizeof(MaterialUniform) };
-		VkDescriptorImageInfo images[2]{};
+		VkDescriptorImageInfo images[3]{};
 		images[0] = { sampler, albedoImage.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		images[1] = { sampler, emissiveImage.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		images[2] = { sampler, normalImage.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
-		VkWriteDescriptorSet writes[3]{};
-		for (uint32_t i = 0; i < 3; i++)
+		VkWriteDescriptorSet writes[4]{};
+		for (uint32_t i = 0; i < 4; i++)
 		{
 			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writes[i].dstSet = material->Set.Set;
@@ -311,7 +337,9 @@ namespace Hydro
 		writes[1].pImageInfo = &images[0];
 		writes[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		writes[2].pImageInfo = &images[1];
-		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 3, writes, 0, nullptr);
+		writes[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writes[3].pImageInfo = &images[2];
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 4, writes, 0, nullptr);
 		return material;
 	}
 
@@ -321,6 +349,7 @@ namespace Hydro
 	{
 		const Ref<Texture2D> albedo = (uint64_t)data.Albedo != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Albedo) : nullptr;
 		const Ref<Texture2D> emissive = (uint64_t)data.Emissive != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Emissive) : nullptr;
+		const Ref<Texture2D> normal = (uint64_t)data.Normal != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Normal) : nullptr;
 		const uint64_t frame = Time::GetFrameCount();
 
 		std::vector<Scope<MeshMaterial>>& materials = s_Data3D->Materials;
@@ -331,19 +360,18 @@ namespace Hydro
 			{
 				continue;
 			}
-			if (material.Albedo == albedo && material.Emissive == emissive)
+			if (material.Albedo == albedo && material.Emissive == emissive && material.Normal == normal)
 			{
 				material.LastUsedFrame = frame;
 				return &material;
 			}
-			// A texture was loaded or reloaded since: make a new one. Textures change between frames, never
-			// while a frame is being submitted, so no draw of this frame points at the stale one; frames in
-			// flight still may, so its set and buffer are freed through the deletion queue.
+			// Textures change between frames, so no draw of this frame points at the stale material; frames in flight
+			// still may, so its set and buffer go through the deletion queue.
 			materials.erase(it);
 			break;
 		}
 
-		Scope<MeshMaterial> material = CreateMaterial(data, albedo, emissive);
+		Scope<MeshMaterial> material = CreateMaterial(data, albedo, emissive, normal);
 		if (material == nullptr)
 		{
 			return nullptr;
@@ -353,8 +381,8 @@ namespace Hydro
 		return materials.back().get();
 	}
 
-	void Renderer3D::DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID,
-		bool castShadows)
+	void Renderer3D::DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform,
+		int32_t entityID, bool castShadows, float opacity)
 	{
 		HY_CORE_ASSERT(s_Data3D->CurrentView != nullptr, "Renderer3D::DrawMesh outside BeginScene/EndScene");
 		RenderViewData* view = s_Data3D->CurrentView;
@@ -381,23 +409,27 @@ namespace Hydro
 		draw.EntityID = entityID < 0 ? -1 : entityID;
 		draw.SortDepth = clip.w != 0.0f ? clip.z / clip.w : clip.z;
 		draw.CastShadows = castShadows;
+		draw.Opacity = std::clamp(opacity, 0.0f, 1.0f);
 		view->MeshDraws.push_back(std::move(draw));
 	}
 
-	static Scope<TerrainSurfaceGPU> CreateTerrainSurface(const TerrainSurfaceMaterial& data, const Ref<Texture2D> (&albedos)[MaxTerrainLayers])
+	static Scope<TerrainSurfaceGPU> CreateTerrainSurface(const TerrainSurfaceMaterial& data,
+		const Ref<Texture2D> (&albedos)[MaxTerrainLayers], const Ref<Texture2D> (&normals)[MaxTerrainLayers])
 	{
 		Scope<TerrainSurfaceGPU> surface = CreateScope<TerrainSurfaceGPU>();
 		surface->Data = data;
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			surface->Albedos[i] = albedos[i];
+			surface->Normals[i] = normals[i];
 		}
 
 		TerrainSurfaceUniform uniform;
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			uniform.LayerTint[i] = data.Layers[i].Tint;
-			uniform.LayerTiling[i] = glm::vec4(data.Layers[i].Tiling, 0.0f, 0.0f);
+			uniform.LayerTiling[i] = glm::vec4(data.Layers[i].Tiling,
+				normals[i] != nullptr ? std::max(data.Layers[i].NormalStrength, 0.0f) : 0.0f, 0.0f);
 			uniform.Roughness[(int)i] = data.EdgeRoughness[i];
 			uniform.Blend[(int)i] = std::max(data.Blend[i], 0.0f);
 			uniform.HeightBlend[(int)i] = std::max(data.HeightBlend[i], 0.0f);
@@ -421,16 +453,17 @@ namespace Hydro
 		}
 
 		VkDescriptorBufferInfo bufferInfo{ surface->Uniform->GetVulkanBuffer(), 0, sizeof(TerrainSurfaceUniform) };
-		VkDescriptorImageInfo images[1 + MaxTerrainLayers]{};
+		VkDescriptorImageInfo images[1 + 2 * MaxTerrainLayers]{};
 		images[0] = { s_Data3D->LinearClampSampler, GetTextureImage(data.Weights).ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			const VkSampler sampler = data.Layers[i].Filter == TextureFilter::Linear ? s_Data3D->LinearSampler : s_Data3D->NearestSampler;
 			images[1 + i] = { sampler, GetTextureImage(albedos[i]).ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+			images[1 + MaxTerrainLayers + i] = { sampler, GetNormalImage(normals[i]).ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		}
 
-		VkWriteDescriptorSet writes[2 + MaxTerrainLayers]{};
-		for (uint32_t i = 0; i < 2 + MaxTerrainLayers; i++)
+		VkWriteDescriptorSet writes[2 + 2 * MaxTerrainLayers]{};
+		for (uint32_t i = 0; i < 2 + 2 * MaxTerrainLayers; i++)
 		{
 			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writes[i].dstSet = surface->Set.Set;
@@ -446,7 +479,7 @@ namespace Hydro
 				writes[i].pImageInfo = &images[i - 1];
 			}
 		}
-		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 2 + MaxTerrainLayers, writes, 0, nullptr);
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 2 + 2 * MaxTerrainLayers, writes, 0, nullptr);
 		return surface;
 	}
 
@@ -454,9 +487,11 @@ namespace Hydro
 	static TerrainSurfaceGPU* GetTerrainSurface(const TerrainSurfaceMaterial& data)
 	{
 		Ref<Texture2D> albedos[MaxTerrainLayers];
+		Ref<Texture2D> normals[MaxTerrainLayers];
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			albedos[i] = (uint64_t)data.Layers[i].Albedo != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Layers[i].Albedo) : nullptr;
+			normals[i] = (uint64_t)data.Layers[i].Normal != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Layers[i].Normal) : nullptr;
 		}
 		const uint64_t frame = Time::GetFrameCount();
 
@@ -471,7 +506,7 @@ namespace Hydro
 			bool same = true;
 			for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 			{
-				same = same && surface.Albedos[i] == albedos[i];
+				same = same && surface.Albedos[i] == albedos[i] && surface.Normals[i] == normals[i];
 			}
 			if (same)
 			{
@@ -482,7 +517,7 @@ namespace Hydro
 			break;
 		}
 
-		Scope<TerrainSurfaceGPU> surface = CreateTerrainSurface(data, albedos);
+		Scope<TerrainSurfaceGPU> surface = CreateTerrainSurface(data, albedos, normals);
 		if (surface == nullptr)
 		{
 			return nullptr;
@@ -492,8 +527,8 @@ namespace Hydro
 		return surfaces.back().get();
 	}
 
-	void Renderer3D::DrawTerrainSurface(const Ref<Mesh>& mesh, uint32_t subMesh, const TerrainSurfaceMaterial& material, const glm::mat4& transform,
-		int32_t entityID, bool castShadows)
+	void Renderer3D::DrawTerrainSurface(const Ref<Mesh>& mesh, uint32_t subMesh, const TerrainSurfaceMaterial& material,
+		const glm::mat4& transform, int32_t entityID, bool castShadows)
 	{
 		HY_CORE_ASSERT(s_Data3D->CurrentView != nullptr, "Renderer3D::DrawTerrainSurface outside BeginScene/EndScene");
 		RenderViewData* view = s_Data3D->CurrentView;
@@ -565,18 +600,19 @@ namespace Hydro
 		return entry.MeshRef;
 	}
 
-	// The mesh pipeline for `target` (the view's, or its shadow map for a shadow caster).
-	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID, bool shadowCaster = false,
-		bool terrainSurface = false)
+	// The mesh pipeline for `target` (the view's, or its shadow map for a shadow caster). `faded`: the fade variant.
+	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID,
+		bool shadowCaster = false, bool terrainSurface = false, bool faded = false)
 	{
 		MeshPipelineKey key;
-		// In the HDR scene pass the view's target draws into the scene colour (post-processing plan P1).
+		// In the HDR scene pass the view's target draws into the scene colour.
 		key.ColorFormats = target.GetPipelineColorFormats(&target == view.Target.get() ? view.PassColorTarget : nullptr);
 		key.DepthFormat = target.GetPipelineDepthFormat();
 		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID && shadowCaster == false;
 		key.Wireframe = Renderer::GetSettings().Wireframe && Renderer::GetCapabilities().Wireframe && shadowCaster == false;
 		key.ShadowCaster = shadowCaster;
 		key.TerrainSurface = terrainSurface && shadowCaster == false;
+		key.Faded = faded && shadowCaster == false && key.TerrainSurface == false;
 
 		auto it = s_Data3D->Pipelines.find(key);
 		if (it != s_Data3D->Pipelines.end())
@@ -587,18 +623,25 @@ namespace Hydro
 		Scope<VulkanPipeline> pipeline;
 		try
 		{
-			const char* shaderName = shadowCaster ? MeshShadowCasterShaderName : (key.TerrainSurface ? TerrainSurfaceShaderName : MeshShaderName);
+			const char* shaderName = shadowCaster ? MeshShadowCasterShaderName
+				: (key.TerrainSurface ? TerrainSurfaceShaderName : (key.Faded ? MeshFadeShaderName : MeshShaderName));
 			VulkanShader* shader = VulkanShaderLibrary::Get(shaderName);
 			if (shader == nullptr)
 			{
 				if (shadowCaster)
 				{
-					shader = &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "assets/shaders/mesh_shadow.vert", "assets/shaders/mesh_shadow.frag");
+					shader = &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "assets/shaders/mesh_shadow.vert",
+						"assets/shaders/mesh_shadow.frag");
 				}
 				else if (key.TerrainSurface)
 				{
 					// The mesh vertex shader as it is: the tops' UVs are their positions in the terrain's space.
-					shader = &VulkanShaderLibrary::Load(TerrainSurfaceShaderName, "assets/shaders/mesh.vert", "assets/shaders/terrain.frag");
+					shader = &VulkanShaderLibrary::Load(TerrainSurfaceShaderName, "assets/shaders/mesh.vert",
+						"assets/shaders/terrain.frag");
+				}
+				else if (key.Faded)
+				{
+					shader = &VulkanShaderLibrary::Load(MeshFadeShaderName, "assets/shaders/mesh.vert", "assets/shaders/mesh_fade.frag");
 				}
 				else
 				{
@@ -649,7 +692,7 @@ namespace Hydro
 			return;
 		}
 
-		// By pipeline (pickable or not, Standard or terrain surface), then material, then front to back.
+		// By pipeline (pickable or not, faded or not, Standard or terrain surface), then material, then front to back.
 		std::sort(view.MeshDraws.begin(), view.MeshDraws.end(), [](const MeshDraw& a, const MeshDraw& b)
 		{
 			const bool aPickable = a.EntityID >= 0;
@@ -657,6 +700,12 @@ namespace Hydro
 			if (aPickable != bPickable)
 			{
 				return aPickable;
+			}
+			const bool aFaded = a.Opacity < 1.0f;
+			const bool bFaded = b.Opacity < 1.0f;
+			if (aFaded != bFaded)
+			{
+				return bFaded;
 			}
 			const bool aTerrain = a.TerrainSurface != nullptr;
 			const bool bTerrain = b.TerrainSurface != nullptr;
@@ -675,20 +724,21 @@ namespace Hydro
 			return a.SortDepth < b.SortDepth;
 		});
 
-		// [pickable][terrain surface], built when first needed.
+		// [pickable][terrain surface][faded], built when first needed.
 		const bool hasEntityID = view.Target->GetSpecification().EntityID;
-		VulkanPipeline* pipelines[2][2] = { { nullptr, nullptr }, { nullptr, nullptr } };
-		bool pipelinesFetched[2][2] = { { false, false }, { false, false } };
+		VulkanPipeline* pipelines[2][2][2] = {};
+		bool pipelinesFetched[2][2][2] = {};
 		const auto pipelineFor = [&](const MeshDraw& draw)
 		{
 			const int pickable = draw.EntityID >= 0 && hasEntityID ? 1 : 0;
 			const int terrain = draw.TerrainSurface != nullptr ? 1 : 0;
-			if (pipelinesFetched[pickable][terrain] == false)
+			const int faded = draw.Opacity < 1.0f && terrain == 0 ? 1 : 0;
+			if (pipelinesFetched[pickable][terrain][faded] == false)
 			{
-				pipelines[pickable][terrain] = GetPipeline(view, *view.Target, pickable == 1, false, terrain == 1);
-				pipelinesFetched[pickable][terrain] = true;
+				pipelines[pickable][terrain][faded] = GetPipeline(view, *view.Target, pickable == 1, false, terrain == 1, faded == 1);
+				pipelinesFetched[pickable][terrain][faded] = true;
 			}
-			return pipelines[pickable][terrain];
+			return pipelines[pickable][terrain][faded];
 		};
 
 		VkCommandBuffer commandBuffer = context.CommandBuffer;
@@ -706,7 +756,7 @@ namespace Hydro
 			if (pipeline != boundPipeline)
 			{
 				pipeline->Bind(commandBuffer, view.Target->GetExtent());
-				// Texture set 0's descriptor set has the view's camera at binding 0 (written in RecordView).
+				// Texture set 0's descriptor set has the view's camera at binding 0 (written by ViewRenderer).
 				pipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
 				boundPipeline = pipeline;
 				boundSet = VK_NULL_HANDLE;
@@ -728,6 +778,7 @@ namespace Hydro
 			ObjectPushConstants constants;
 			constants.Transform = draw.Transform;
 			constants.EntityID = draw.EntityID;
+			constants.Opacity = draw.Opacity;
 			pipeline->PushConstants(commandBuffer, &constants, (uint32_t)sizeof(constants));
 
 			const SubMesh& subMesh = draw.MeshRef->GetSubMeshes()[draw.SubMesh];
@@ -744,7 +795,8 @@ namespace Hydro
 	void Renderer3D::RecordShadowCasters(RenderPassContext& context)
 	{
 		RenderViewData& view = context.View;
-		if (view.ShadowTarget == nullptr || std::none_of(view.MeshDraws.begin(), view.MeshDraws.end(), [](const MeshDraw& draw) { return draw.CastShadows; }))
+		if (view.ShadowTarget == nullptr || std::none_of(view.MeshDraws.begin(), view.MeshDraws.end(),
+			[](const MeshDraw& draw) { return draw.CastShadows; }))
 		{
 			return;
 		}
@@ -759,7 +811,7 @@ namespace Hydro
 		// order only costs overdraw.
 		VkCommandBuffer commandBuffer = context.CommandBuffer;
 		pipeline->Bind(commandBuffer, view.ShadowTarget->GetExtent());
-		// Set 0 for the shadow matrix (FrameLightingUniform, written in RecordView).
+		// Set 0 for the shadow matrix (FrameLightingUniform, written by SceneLightingBuffer).
 		pipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
 		const MeshMaterial* boundMaterial = nullptr;
 		const Mesh* boundMesh = nullptr;
@@ -806,11 +858,14 @@ namespace Hydro
 		const uint64_t frame = Time::GetFrameCount();
 		const auto unused = [frame](uint64_t lastUsed) { return lastUsed + UnusedFramesBeforeFree < frame; };
 		std::vector<Scope<MeshMaterial>>& materials = s_Data3D->Materials;
-		materials.erase(std::remove_if(materials.begin(), materials.end(), [&](const Scope<MeshMaterial>& material) { return unused(material->LastUsedFrame); }), materials.end());
+		materials.erase(std::remove_if(materials.begin(), materials.end(),
+			[&](const Scope<MeshMaterial>& material) { return unused(material->LastUsedFrame); }), materials.end());
 		std::vector<Scope<TerrainSurfaceGPU>>& surfaces = s_Data3D->TerrainSurfaces;
-		surfaces.erase(std::remove_if(surfaces.begin(), surfaces.end(), [&](const Scope<TerrainSurfaceGPU>& surface) { return unused(surface->LastUsedFrame); }), surfaces.end());
+		surfaces.erase(std::remove_if(surfaces.begin(), surfaces.end(),
+			[&](const Scope<TerrainSurfaceGPU>& surface) { return unused(surface->LastUsedFrame); }), surfaces.end());
 		std::vector<ShapeEntry>& shapes = s_Data3D->Shapes;
-		shapes.erase(std::remove_if(shapes.begin(), shapes.end(), [&](const ShapeEntry& entry) { return unused(entry.LastUsedFrame); }), shapes.end());
+		shapes.erase(std::remove_if(shapes.begin(), shapes.end(), [&](const ShapeEntry& entry) { return unused(entry.LastUsedFrame); }),
+			shapes.end());
 
 		s_Data3D->Stats.CachedMeshes = (uint32_t)shapes.size();
 		s_Data3D->Stats.CachedMaterials = (uint32_t)(materials.size() + surfaces.size());
@@ -820,7 +875,8 @@ namespace Hydro
 
 	void Renderer3D::OnShaderReloaded(const std::string& name)
 	{
-		if (s_Data3D != nullptr && (name == MeshShaderName || name == MeshShadowCasterShaderName || name == TerrainSurfaceShaderName))
+		if (s_Data3D != nullptr && (name == MeshShaderName || name == MeshShadowCasterShaderName || name == TerrainSurfaceShaderName
+			|| name == MeshFadeShaderName))
 		{
 			s_Data3D->Pipelines.clear();
 		}

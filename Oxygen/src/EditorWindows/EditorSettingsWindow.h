@@ -8,10 +8,8 @@
 
 namespace Hydro
 {
-	// "Editor Settings" window: how the editor looks and behaves (theme, accent, fonts, play-mode
-	// tint, editor camera, console, startup and autosave). Pages are picked from a list on the left.
-	// Changes apply immediately; Save writes EditorSettings.yaml through OnSave, Revert reloads it
-	// through OnRevert. The window doesn't touch files itself.
+	// The "Editor Settings" window: how the editor looks and behaves. Changes apply at once; Save and Revert go
+	// through OnSave and OnRevert, so the window never touches files itself.
 	class EditorSettingsWindow
 	{
 	public:

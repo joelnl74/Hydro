@@ -24,35 +24,45 @@ namespace Hydro
 	static void ReadFloat(const YAML::Node& node, const char* key, float& value)
 	{
 		if (auto child = node[key])
+		{
 			value = child.as<float>(value);
+		}
 	}
 
 	static void ReadBool(const YAML::Node& node, const char* key, bool& value)
 	{
 		if (auto child = node[key])
+		{
 			value = child.as<bool>(value);
+		}
 	}
 
 	static void ReadPath(const YAML::Node& node, const char* key, std::filesystem::path& value)
 	{
 		if (auto child = node[key])
+		{
 			value = child.as<std::string>(value.string());
+		}
 	}
 
-	// A missing key gives an invalid node: asking it anything but "is it there?" throws
-	// YAML::InvalidNode, so every reader checks that first.
+	// A missing key gives an invalid node that throws on anything but "is it there?", so every reader checks first.
 	static void ReadVec2(const YAML::Node& node, const char* key, ImVec2& value)
 	{
 		const YAML::Node child = node[key];
 		if (child.IsDefined() && child.IsSequence() && child.size() == 2)
+		{
 			value = ImVec2(child[0].as<float>(value.x), child[1].as<float>(value.y));
+		}
 	}
 
 	static void ReadVec4(const YAML::Node& node, const char* key, ImVec4& value)
 	{
 		const YAML::Node child = node[key];
 		if (child.IsDefined() && child.IsSequence() && child.size() == 4)
-			value = ImVec4(child[0].as<float>(value.x), child[1].as<float>(value.y), child[2].as<float>(value.z), child[3].as<float>(value.w));
+		{
+			value = ImVec4(child[0].as<float>(value.x), child[1].as<float>(value.y), child[2].as<float>(value.z),
+				child[3].as<float>(value.w));
+		}
 	}
 
 	static void WriteStyle(YAML::Emitter& out, const EditorStyle& style)
@@ -88,7 +98,9 @@ namespace Hydro
 		// Colours by ImGui's own names, so the file stays readable and survives ImGui adding colours.
 		out << YAML::Key << "Colors" << YAML::Value << YAML::BeginMap;
 		for (int i = 0; i < ImGuiCol_COUNT; i++)
+		{
 			WriteVec4(out, ImGui::GetStyleColorName(i), style.Colors[i]);
+		}
 		out << YAML::EndMap; // Colors
 
 		out << YAML::EndMap; // Style
@@ -99,7 +111,9 @@ namespace Hydro
 		// Start from the saved theme's preset, so anything the file doesn't list keeps that theme's value.
 		EditorTheme theme = EditorTheme::Hydro;
 		if (auto themeNode = styleNode["Theme"])
+		{
 			EditorStyle::TryParseTheme(themeNode.as<std::string>(""), theme);
+		}
 
 		ImVec4 accent = EditorStyle::GetDefaultAccent();
 		ReadVec4(styleNode, "Accent", accent);
@@ -109,7 +123,9 @@ namespace Hydro
 
 		// Version 1 stored the old Hydro theme's colours and sizes in full; they'd hide the new theme.
 		if (version < 2)
+		{
 			return style;
+		}
 
 		ReadFloat(styleNode, "WindowRounding", style.WindowRounding);
 		ReadFloat(styleNode, "ChildRounding", style.ChildRounding);
@@ -137,7 +153,9 @@ namespace Hydro
 		if (const YAML::Node colors = styleNode["Colors"])
 		{
 			for (int i = 0; i < ImGuiCol_COUNT; i++)
+			{
 				ReadVec4(colors, ImGui::GetStyleColorName(i), style.Colors[i]);
+			}
 		}
 
 		return style;
@@ -176,6 +194,11 @@ namespace Hydro
 		out << YAML::Key << "PanSpeed" << YAML::Value << camera.PanSpeed;
 		out << YAML::Key << "ZoomSpeed" << YAML::Value << camera.ZoomSpeed;
 		out << YAML::Key << "FlySpeed" << YAML::Value << camera.FlySpeed;
+		out << YAML::EndMap;
+
+		out << YAML::Key << "EditorView" << YAML::Value << YAML::BeginMap;
+		out << YAML::Key << "PostProcessing" << YAML::Value << settings.EditorViewPostProcessing;
+		out << YAML::Key << "Fog" << YAML::Value << settings.EditorViewFog;
 		out << YAML::EndMap;
 
 		out << YAML::Key << "Gizmo" << YAML::Value << YAML::BeginMap;
@@ -220,7 +243,9 @@ namespace Hydro
 	{
 		std::ofstream file(path);
 		if (file.is_open() == false)
+		{
 			return false;
+		}
 
 		file << text;
 		return true;
@@ -257,7 +282,9 @@ namespace Hydro
 	{
 		std::error_code ec;
 		if (std::filesystem::exists(path, ec) == false)
+		{
 			return false;
+		}
 
 		YAML::Node root;
 		try
@@ -272,7 +299,9 @@ namespace Hydro
 
 		const YAML::Node node = root["EditorSettings"];
 		if (node.IsDefined() == false || node.IsMap() == false)
+		{
 			return false;
+		}
 
 		// A value of the wrong type (e.g. text where a number belongs) throws; treat the file as unreadable.
 		try
@@ -297,11 +326,16 @@ namespace Hydro
 		{
 			loaded.Style = ReadStyle(styleNode, version);
 			if (version < EditorSettingsSerializer::Version)
-				HY_INFO("Editor settings are from an older version: colours and sizes reset to the {} theme", EditorStyle::GetThemeName(loaded.Style.Theme));
+			{
+				HY_INFO("Editor settings are from an older version: colours and sizes reset to the {} theme",
+					EditorStyle::GetThemeName(loaded.Style.Theme));
+			}
 		}
 
 		if (const YAML::Node font = node["Font"])
+		{
 			ReadFloat(font, "Size", loaded.FontSize);
+		}
 
 		if (const YAML::Node playMode = node["PlayMode"])
 		{
@@ -322,6 +356,12 @@ namespace Hydro
 			ReadFloat(camera, "PanSpeed", loaded.Camera.PanSpeed);
 			ReadFloat(camera, "ZoomSpeed", loaded.Camera.ZoomSpeed);
 			ReadFloat(camera, "FlySpeed", loaded.Camera.FlySpeed);
+		}
+
+		if (const YAML::Node editorView = node["EditorView"])
+		{
+			ReadBool(editorView, "PostProcessing", loaded.EditorViewPostProcessing);
+			ReadBool(editorView, "Fog", loaded.EditorViewFog);
 		}
 
 		if (const YAML::Node gizmo = node["Gizmo"])
@@ -373,13 +413,17 @@ namespace Hydro
 	{
 		std::error_code ec;
 		if (std::filesystem::exists(path, ec) == false)
+		{
 			return false;
+		}
 
 		try
 		{
 			const YAML::Node size = YAML::LoadFile(path.string())["EditorSettings"]["Font"]["Size"];
 			if (size.IsScalar() == false)
+			{
 				return false;
+			}
 
 			fontSize = std::clamp(size.as<float>(fontSize), 10.0f, 32.0f);
 			return true;

@@ -9,6 +9,8 @@ namespace Hydro
 	{
 		std::map<std::string, ScriptTypeInfo> Types;
 		std::unordered_map<std::type_index, std::string> Names;
+		// A former name -> the script's current name.
+		std::unordered_map<std::string, std::string> FormerNames;
 	};
 
 	// Created on first use, so registering from anywhere (even another static) is safe.
@@ -49,6 +51,40 @@ namespace Hydro
 				name);
 		}
 
+		for (const std::string& formerName :
+			typeInfo.FormerNames)
+		{
+			if (formerName == name ||
+				data.Types.find(formerName) != data.Types.end())
+			{
+				HY_CORE_WARN(
+					"ScriptRegistry: '{}' can't have the "
+					"former name '{}': a script is "
+					"registered under it",
+					name,
+					formerName);
+				continue;
+			}
+
+			auto [it, added] =
+				data.FormerNames.emplace(
+					formerName,
+					name);
+
+			if (added == false &&
+				it->second != name)
+			{
+				HY_CORE_WARN(
+					"ScriptRegistry: '{}' and '{}' both "
+					"have the former name '{}'; scenes "
+					"saved under it bind '{}'",
+					it->second,
+					name,
+					formerName,
+					it->second);
+			}
+		}
+
 		data.Types[name] =
 			std::move(typeInfo);
 
@@ -62,18 +98,12 @@ namespace Hydro
 	ScriptRegistry::Find(
 		const std::string& name)
 	{
-		ScriptRegistryData& data =
-			GetData();
+		ScriptTypeInfo* typeInfo =
+			FindType(name);
 
-		auto it =
-			data.Types.find(name);
-
-		if (it == data.Types.end())
-		{
-			return nullptr;
-		}
-
-		return it->second.Factory;
+		return typeInfo != nullptr
+			? typeInfo->Factory
+			: nullptr;
 	}
 
 	ScriptTypeInfo*
@@ -86,12 +116,24 @@ namespace Hydro
 		auto it =
 			data.Types.find(name);
 
-		if (it == data.Types.end())
+		if (it != data.Types.end())
+		{
+			return &it->second;
+		}
+
+		auto former =
+			data.FormerNames.find(name);
+
+		if (former == data.FormerNames.end())
 		{
 			return nullptr;
 		}
 
-		return &it->second;
+		it = data.Types.find(former->second);
+
+		return it != data.Types.end()
+			? &it->second
+			: nullptr;
 	}
 
 	const std::string&

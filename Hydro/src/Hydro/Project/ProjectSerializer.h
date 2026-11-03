@@ -3,24 +3,8 @@
 
 namespace Hydro
 {
-	// Saves / loads a project as YAML (.hyproj). Keys missing from the file keep their defaults,
-	// so older project files still load after new settings are added.
-	//
-	// Project:
-	//   Name: Sandbox
-	//   AssetDirectory: Assets
-	//   StartSceneHandle: 1234567890123456789
-	// (older files have `StartScene: Scenes/Scene.hyscene`; it is read, and written back only while there is no handle)
-	//   SceneTemplateHandle: 1234567890123456789   (optional: the scene New Scene starts as)
-	// Renderer:
-	//   ClearColor: [0, 0, 0, 1]
-	//   VSync: true
-	//   Wireframe: false
-	//   ShaderHotReload: true
-	//   Lighting: true
-	//   LightFalloff: Smooth    (or Banded)
-	//   LightBands: 8
-	//   Shadows: true
+	// Saves and loads a project as YAML (.hyproj): a Project map and a Renderer map. Missing keys keep their defaults,
+	// so older project files still load.
 	class ProjectSerializer
 	{
 	public:

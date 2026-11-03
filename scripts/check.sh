@@ -2,6 +2,8 @@
 # Quick checks that don't need Windows, MSVC or a GPU (for Linux, WSL or a CI/agent container):
 #   1. syntax check of engine and editor sources with g++ -fsyntax-only -Wall -Wextra
 #   2. compile every shader in Oxygen/assets/shaders to SPIR-V with glslang
+#   3. the code conventions (scripts/lint_conventions.py: `!`, braces, namespaces, m_ names; Hydro, Oxygen, Game and
+#      Runtime sources, or the given files there) and the project's scenes, prefabs and data (scripts/validate_project.py; needs PyYAML)
 # It is not a build: nothing links and Windows-only files are skipped. MSVC /W4 stays the real check.
 #
 # Usage:
@@ -142,7 +144,26 @@ echo "$(grep -c '^ok' "$LOG") ok, $(grep -c '^FAIL' "$LOG" || true) with errors 
 
 shader_status=0
 check_shaders || shader_status=1
+
+log "Conventions"
+lint_status=0
+if [ $# -gt 0 ]; then
+	lint_files=()
+	for f in "$@"; do case "$(cd "$(dirname "$f")" && pwd)/" in "$ROOT/Hydro/src/"*|"$ROOT/Oxygen/src/"*|"$ROOT/Game/src/"*|"$ROOT/Runtime/src/"*) lint_files+=("$f") ;; esac; done
+	if [ ${#lint_files[@]} -gt 0 ]; then python3 "$ROOT/scripts/lint_conventions.py" "${lint_files[@]}" || lint_status=1; fi
+else
+	python3 "$ROOT/scripts/lint_conventions.py" || lint_status=1
+fi
+
+log "Project validation"
+validate_status=0
+if python3 -c "import yaml" 2>/dev/null; then
+	python3 "$ROOT/scripts/validate_project.py" || validate_status=1
+else
+	echo "skip  (no PyYAML: pip install pyyaml)"
+fi
+
 rm -f "$CACHE/files.$$.txt"
-if grep -q '^FAIL' "$LOG" || [ $shader_status -ne 0 ]; then
+if grep -q '^FAIL' "$LOG" || [ $shader_status -ne 0 ] || [ $lint_status -ne 0 ] || [ $validate_status -ne 0 ]; then
 	exit 1
 fi

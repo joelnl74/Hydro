@@ -33,8 +33,8 @@ namespace Hydro
 			}
 		}
 	}
-
-	bool MeshImportSerializer::Serialize(const std::filesystem::path& sidecar, const MeshImportConfig& config, const MeshImportMapping& mapping)
+	bool MeshImportSerializer::Serialize(const std::filesystem::path& sidecar, const MeshImportConfig& config,
+		const MeshImportMapping& mapping)
 	{
 		// The file is also the model's asset sidecar: keep its Handle and Type (AssetMetaSerializer).
 		YAML::Node existing;

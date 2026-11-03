@@ -6,8 +6,7 @@
 
 namespace Hydro
 {
-	// Live options of an EditorCamera. The editor keeps them in its own settings and passes them in
-	// with EditorCamera::SetSettings; they apply immediately.
+	// Live options of an EditorCamera, kept in the editor's settings and passed in with SetSettings.
 	struct EditorCameraSettings
 	{
 		float VerticalFOV = 45.0f; // degrees (perspective)
@@ -18,8 +17,7 @@ namespace Hydro
 		float OrbitSpeed = 1.0f;
 		float PanSpeed = 1.0f;   // 1: the scene follows the cursor exactly
 		float ZoomSpeed = 1.0f;
-		// Fly mode (right mouse button held, perspective): metres per second; Shift moves faster, the
-		// wheel scales it while flying.
+		// Fly mode (right button held, perspective), metres per second; Shift moves faster, the wheel scales it.
 		float FlySpeed = 5.0f;
 	};
 
@@ -34,30 +32,17 @@ namespace Hydro
 		Right = 5    // level, looking west
 	};
 
-	// Free camera for looking at a scene in an editor viewport. Not part of the scene: the editor
-	// owns one and passes it to SceneRenderer::RenderEditor.
-	//
-	// The world is Z-up. The camera orbits a focal point like a turntable: yaw turns about the world's
-	// Z axis, pitch is the angle from straight down (0 = top-down, 90 = level with the ground), so the
-	// horizon never rolls. Controls (read through Input while Update is called):
-	//  - Alt + left drag:   orbit around the focal point (perspective only)
-	//  - Right drag:        fly (perspective only): look around from where the camera is, W/A/S/D move,
-	//                       Q/E down/up, Shift faster, the wheel changes the speed
-	//  - Middle drag:       pan (also Alt + left drag in orthographic mode)
-	//  - Alt + right drag:  zoom
-	//  - Scroll:            zoom (call Zoom with the wheel delta)
-	// Orthographic mode is the 2D view: it looks straight down -Z and can't orbit or fly. Switching to
-	// perspective goes back to the last 3D angle (the Diorama angle the first time).
+	// The editor viewport's free camera: a Z-up turntable that orbits, pans, zooms and flies; orthographic is the 2D
+	// view looking straight down. Controls: docs/SceneAndECS.md, "Editor camera controls".
 	class EditorCamera : public Camera
 	{
 	public:
 		EditorCamera();
 
-		// Applies mouse drags and fly keys since the last call. A drag only starts while acceptInput is
-		// true (the viewport is hovered), but keeps going until its button is released. Call it every frame.
+		// Applies mouse drags and fly keys since the last call; call it every frame. A drag only starts while
+		// acceptInput is true (the viewport is hovered), but keeps going until its button is released.
 		void Update(float deltaTime, bool acceptInput);
-		// Zoom towards the focal point by a mouse-wheel delta (positive = closer); while flying it changes
-		// the fly speed instead.
+		// Zooms towards the focal point by a wheel delta (positive = closer); while flying it changes the fly speed.
 		void Zoom(float scrollDelta);
 
 		void SetViewportSize(float width, float height);
@@ -67,26 +52,22 @@ namespace Hydro
 		void SetProjectionType(ProjectionType type);
 		ProjectionType GetProjectionType() const { return m_ProjectionType; }
 
-		// Back to the default view at the origin, 10 units visible vertically: top-down in 2D, the
-		// Diorama angle in 3D.
+		// Back to the default view at the origin, 10 units visible vertically: top-down in 2D, the Diorama angle in 3D.
 		void Reset();
 		void Focus(const glm::vec3& point);
-		// Centres on point and zooms so a square of frameSize world units fills about a third of the
-		// view height (never closer than minHeight units of view), e.g. to look at a selected entity.
+		// Centres on point and zooms so frameSize world units fill about a third of the view height (at least minHeight).
 		void Frame(const glm::vec3& point, float frameSize, float minHeight = 6.0f);
 
-		// Turns the camera around the focal point (degrees: pitch from straight down, 0..175; yaw about
-		// +Z, 0 = looking north). Perspective only; ignored in the 2D view.
+		// Degrees: pitch from straight down (0..175), yaw about +Z (0 = north). Perspective only.
 		void SetViewAngles(float pitchDegrees, float yawDegrees);
 		// One of the standard views (Top, Diorama, Front...); switches to perspective first.
 		void SetView(EditorCameraView view);
 		float GetPitchDegrees() const;
 		float GetYawDegrees() const;
 
-		// True while the right mouse button flies the camera: W/A/S/D/Q/E belong to it, so the editor
-		// shouldn't treat them as shortcuts.
+		// While the right button flies the camera, W/A/S/D/Q/E belong to it, not to editor shortcuts.
 		bool IsFlying() const { return m_DragMode == DragMode::Fly; }
-		// A mouse drag (orbit, pan, zoom or fly) is going on: the editor keeps other mouse tools (the gizmo) out of it.
+		// A mouse drag is going on: the editor keeps other mouse tools (the gizmo) out of it.
 		bool IsDragging() const { return m_DragMode != DragMode::None; }
 		// The fly speed this session, in metres per second (the setting times the wheel's multiplier).
 		float GetFlySpeed() const;
@@ -109,8 +90,7 @@ namespace Hydro
 		void UpdateView();
 		void UpdateProjection();
 		glm::quat GetOrientation() const;
-		// Height of the view at the focal point; also the orthographic size, so switching between
-		// perspective and orthographic keeps the focal plane framed the same.
+		// Height of the view at the focal point; also the orthographic size, so switching projection keeps the framing.
 		float GetViewHeight() const;
 		float GetWorldUnitsPerPixel() const;
 

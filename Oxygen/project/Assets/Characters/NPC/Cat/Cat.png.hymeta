@@ -1,0 +1,105 @@
+Handle: 707953810633971444
+Type: Texture2D
+TextureImport:
+  Format: SRGB
+  Filter: Nearest
+  Wrap: Clamp
+  SpriteMode: Multiple
+  PixelsPerUnit: 32
+  Slicing:
+    Mode: Manual
+    CellSize: [48, 48]
+    Offset: [0, 0]
+    Spacing: [0, 0]
+    Columns: 0
+    Rows: 0
+    RowNames: []
+    DefaultPivot: [0.5, 0]
+  Sprites:
+    - {Name: IdleDown_0, Rect: [0, 0, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleDown_1, Rect: [48, 0, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleDown_2, Rect: [96, 0, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleDown_3, Rect: [144, 0, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleRight_0, Rect: [0, 48, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleRight_1, Rect: [48, 48, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleRight_2, Rect: [96, 48, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleRight_3, Rect: [144, 48, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleUp_0, Rect: [0, 96, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleUp_1, Rect: [48, 96, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleUp_2, Rect: [96, 96, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleUp_3, Rect: [144, 96, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_0, Rect: [0, 144, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_1, Rect: [48, 144, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_2, Rect: [96, 144, 48, 45], Pivot: [0.5, 0]}
+    - {Name: IdleLeft_3, Rect: [144, 144, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkDown_0, Rect: [0, 192, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkDown_1, Rect: [48, 192, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkDown_2, Rect: [96, 192, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkDown_3, Rect: [144, 192, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkDown_4, Rect: [192, 192, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkDown_5, Rect: [240, 192, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkRight_0, Rect: [0, 240, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkRight_1, Rect: [48, 240, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkRight_2, Rect: [96, 240, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkRight_3, Rect: [144, 240, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkRight_4, Rect: [192, 240, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkRight_5, Rect: [240, 240, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkUp_0, Rect: [0, 288, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkUp_1, Rect: [48, 288, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkUp_2, Rect: [96, 288, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkUp_3, Rect: [144, 288, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkUp_4, Rect: [192, 288, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkUp_5, Rect: [240, 288, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_0, Rect: [0, 336, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_1, Rect: [48, 336, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_2, Rect: [96, 336, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_3, Rect: [144, 336, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_4, Rect: [192, 336, 48, 45], Pivot: [0.5, 0]}
+    - {Name: WalkLeft_5, Rect: [240, 336, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_0, Rect: [0, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_1, Rect: [48, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_2, Rect: [96, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_3, Rect: [144, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_4, Rect: [192, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_5, Rect: [240, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_6, Rect: [288, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_7, Rect: [336, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_8, Rect: [384, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownRight_9, Rect: [432, 384, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_0, Rect: [0, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_1, Rect: [48, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_2, Rect: [96, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_3, Rect: [144, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_4, Rect: [192, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_5, Rect: [240, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_6, Rect: [288, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_7, Rect: [336, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_8, Rect: [384, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: LieDownLeft_9, Rect: [432, 432, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_0, Rect: [0, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_1, Rect: [48, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_2, Rect: [96, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_3, Rect: [144, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_4, Rect: [192, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_5, Rect: [240, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_6, Rect: [288, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_7, Rect: [336, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepRight_8, Rect: [384, 480, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_0, Rect: [0, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_1, Rect: [48, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_2, Rect: [96, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_3, Rect: [144, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_4, Rect: [192, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_5, Rect: [240, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_6, Rect: [288, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_7, Rect: [336, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepLeft_8, Rect: [384, 528, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_0, Rect: [0, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_1, Rect: [48, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_2, Rect: [96, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_3, Rect: [144, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_4, Rect: [192, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_5, Rect: [240, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_6, Rect: [288, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_7, Rect: [336, 576, 48, 45], Pivot: [0.5, 0]}
+    - {Name: SleepDown_8, Rect: [384, 576, 48, 45], Pivot: [0.5, 0]}

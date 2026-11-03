@@ -49,20 +49,14 @@ namespace Hydro
 
 	struct SpriteAnimationSetSpecification
 	{
-		// The sprite sheet every clip's frames come from (a Multiple texture).
-		// TODO(assets): becomes an AssetHandle.
+		// The sprite sheet every clip's frames come from (a Multiple texture). TODO(assets): becomes an AssetHandle.
 		Ref<Texture2D> Texture;
 		std::vector<SpriteAnimationClip> Clips;
 		uint32_t DefaultClip = 0;
 	};
 
-	// Named clips over the sprites of one texture, loaded from a .hyanim file
-	// (SpriteAnimationSerializer). The clip name is what SpriteAnimator::Play takes, so give every
-	// character its own set with the same clip names ("IdleDown", "WalkLeft", ...) and one script can
-	// drive any of them.
-	//
-	// A resource: made from a specification and immutable afterwards (the editor saves a new file and
-	// loads it again); shared by every animator that uses it, so held in a Ref.
+	// Named clips over one texture's sprites, from a .hyanim file. Give every character the same clip names ("WalkLeft")
+	// so one script drives any of them. Immutable once made; shared in a Ref.
 	class SpriteAnimationSet : public Asset
 	{
 	public:
@@ -71,17 +65,11 @@ namespace Hydro
 		SpriteAnimationSet(const SpriteAnimationSet&) = delete;
 		SpriteAnimationSet& operator=(const SpriteAnimationSet&) = delete;
 
-		// Reads a .hyanim file and its texture, without sharing: every call makes a new set. Returns
-		// nullptr (logged) when either can't be read. The AssetManager's loader calls this.
+		// Reads a .hyanim file and its texture into a new, unshared set; null (logged) on failure. The asset loader uses it.
 		static Ref<SpriteAnimationSet> LoadUncached(const std::filesystem::path& path);
 
-		// Reads a .hyanim file and its texture. Returns nullptr (logged) when either can't be read.
-		// A file in the open project's asset folder is an asset: the AssetManager loads it once and
-		// shares it until the project closes (AssetManager::GetAsset<SpriteAnimationSet>(handle)); the
-		// set then knows its handle. A file anywhere else is shared while a set from it (same
-		// modification time) is alive.
-		// `reload` reads the file (and its texture's current import) again even when it is shared,
-		// e.g. after the texture was re-sliced; later loads then share the new set.
+		// Reads a .hyanim file and its texture; null (logged) on failure. Asset-folder files are shared by the AssetManager,
+		// others while a set from them is alive. `reload` reads them again even when shared (after a re-slice).
 		static Ref<SpriteAnimationSet> LoadFromFile(const std::filesystem::path& path, bool reload = false);
 
 		static AssetType GetStaticType() { return AssetType::SpriteAnimation; }
@@ -94,8 +82,7 @@ namespace Hydro
 		int32_t FindClip(std::string_view name) const;
 		// Index of the clip played when an animator names none; only valid when GetClipCount() > 0.
 		uint32_t GetDefaultClip() const { return m_DefaultClip; }
-		// The clip an animator starts with: `startClip` by name, else the default clip. -1 when the set has
-		// no clips. Quiet: editors use it to show the start frame.
+		// `startClip` by name, else the default clip; -1 without clips. Quiet, so editors can show the start frame.
 		int32_t FindStartClip(std::string_view startClip) const;
 		// The .hyanim file it was loaded from (absolute), or empty for sets made in code.
 		const std::filesystem::path& GetPath() const { return m_Path; }

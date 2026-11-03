@@ -66,10 +66,8 @@ namespace Hydro
 			delete[] base;
 		}
 
-		// The GPU objects (vertex and uniform buffers, descriptor sets, target) free themselves when
-		// m_Data goes, through the deletion queue, so frames in flight can still finish with them.
-		// The ImGui texture handles belong to ImGui's descriptor pool, which the ImGui layer frees
-		// (this ImGui version has no RemoveTexture).
+		// The GPU objects free themselves through the deletion queue when m_Data goes. The ImGui texture handles belong to
+		// ImGui's descriptor pool, which the ImGui layer frees.
 	}
 
 	void RenderView::SetSize(uint32_t width, uint32_t height)

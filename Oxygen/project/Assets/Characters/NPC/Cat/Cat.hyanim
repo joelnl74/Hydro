@@ -1,0 +1,277 @@
+# Cat: idle, walk, lying down, getting up and sleeping (scripts/characters/build_cat.py, Nov 3).
+Handle: 1464375335230931911
+SpriteAnimationSet:
+  TextureHandle: 707953810633971444
+  Texture: Cat.png
+  DefaultClip: IdleDown
+  Clips:
+    - Name: Idle
+      Loop: Loop
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
+    - Name: IdleDown
+      Loop: Loop
+      Frames:
+        - Sprite: IdleDown_0
+          Duration: 0.5
+        - Sprite: IdleDown_1
+          Duration: 0.4
+        - Sprite: IdleDown_2
+          Duration: 0.5
+        - Sprite: IdleDown_3
+          Duration: 0.4
+    - Name: IdleRight
+      Loop: Loop
+      Frames:
+        - Sprite: IdleRight_0
+          Duration: 0.5
+        - Sprite: IdleRight_1
+          Duration: 0.4
+        - Sprite: IdleRight_2
+          Duration: 0.5
+        - Sprite: IdleRight_3
+          Duration: 0.4
+    - Name: IdleUp
+      Loop: Loop
+      Frames:
+        - Sprite: IdleUp_0
+          Duration: 0.5
+        - Sprite: IdleUp_1
+          Duration: 0.4
+        - Sprite: IdleUp_2
+          Duration: 0.5
+        - Sprite: IdleUp_3
+          Duration: 0.4
+    - Name: IdleLeft
+      Loop: Loop
+      Frames:
+        - Sprite: IdleLeft_0
+          Duration: 0.5
+        - Sprite: IdleLeft_1
+          Duration: 0.4
+        - Sprite: IdleLeft_2
+          Duration: 0.5
+        - Sprite: IdleLeft_3
+          Duration: 0.4
+    - Name: WalkDown
+      Loop: Loop
+      Frames:
+        - Sprite: WalkDown_0
+          Duration: 0.12
+        - Sprite: WalkDown_1
+          Duration: 0.12
+        - Sprite: WalkDown_2
+          Duration: 0.12
+        - Sprite: WalkDown_3
+          Duration: 0.12
+        - Sprite: WalkDown_4
+          Duration: 0.12
+        - Sprite: WalkDown_5
+          Duration: 0.12
+    - Name: WalkRight
+      Loop: Loop
+      Frames:
+        - Sprite: WalkRight_0
+          Duration: 0.12
+        - Sprite: WalkRight_1
+          Duration: 0.12
+        - Sprite: WalkRight_2
+          Duration: 0.12
+        - Sprite: WalkRight_3
+          Duration: 0.12
+        - Sprite: WalkRight_4
+          Duration: 0.12
+        - Sprite: WalkRight_5
+          Duration: 0.12
+    - Name: WalkUp
+      Loop: Loop
+      Frames:
+        - Sprite: WalkUp_0
+          Duration: 0.12
+        - Sprite: WalkUp_1
+          Duration: 0.12
+        - Sprite: WalkUp_2
+          Duration: 0.12
+        - Sprite: WalkUp_3
+          Duration: 0.12
+        - Sprite: WalkUp_4
+          Duration: 0.12
+        - Sprite: WalkUp_5
+          Duration: 0.12
+    - Name: WalkLeft
+      Loop: Loop
+      Frames:
+        - Sprite: WalkLeft_0
+          Duration: 0.12
+        - Sprite: WalkLeft_1
+          Duration: 0.12
+        - Sprite: WalkLeft_2
+          Duration: 0.12
+        - Sprite: WalkLeft_3
+          Duration: 0.12
+        - Sprite: WalkLeft_4
+          Duration: 0.12
+        - Sprite: WalkLeft_5
+          Duration: 0.12
+    - Name: LieDownRight
+      Loop: Once
+      Frames:
+        - Sprite: LieDownRight_0
+          Duration: 0.11
+        - Sprite: LieDownRight_1
+          Duration: 0.11
+        - Sprite: LieDownRight_2
+          Duration: 0.11
+        - Sprite: LieDownRight_3
+          Duration: 0.11
+        - Sprite: LieDownRight_4
+          Duration: 0.11
+        - Sprite: LieDownRight_5
+          Duration: 0.11
+        - Sprite: LieDownRight_6
+          Duration: 0.11
+        - Sprite: LieDownRight_7
+          Duration: 0.11
+        - Sprite: LieDownRight_8
+          Duration: 0.11
+        - Sprite: LieDownRight_9
+          Duration: 0.11
+    - Name: GetUpRight
+      Loop: Once
+      Frames:
+        - Sprite: LieDownRight_9
+          Duration: 0.09
+        - Sprite: LieDownRight_8
+          Duration: 0.09
+        - Sprite: LieDownRight_7
+          Duration: 0.09
+        - Sprite: LieDownRight_6
+          Duration: 0.09
+        - Sprite: LieDownRight_5
+          Duration: 0.09
+        - Sprite: LieDownRight_4
+          Duration: 0.09
+        - Sprite: LieDownRight_3
+          Duration: 0.09
+        - Sprite: LieDownRight_2
+          Duration: 0.09
+        - Sprite: LieDownRight_1
+          Duration: 0.09
+        - Sprite: LieDownRight_0
+          Duration: 0.09
+    - Name: LieDownLeft
+      Loop: Once
+      Frames:
+        - Sprite: LieDownLeft_0
+          Duration: 0.11
+        - Sprite: LieDownLeft_1
+          Duration: 0.11
+        - Sprite: LieDownLeft_2
+          Duration: 0.11
+        - Sprite: LieDownLeft_3
+          Duration: 0.11
+        - Sprite: LieDownLeft_4
+          Duration: 0.11
+        - Sprite: LieDownLeft_5
+          Duration: 0.11
+        - Sprite: LieDownLeft_6
+          Duration: 0.11
+        - Sprite: LieDownLeft_7
+          Duration: 0.11
+        - Sprite: LieDownLeft_8
+          Duration: 0.11
+        - Sprite: LieDownLeft_9
+          Duration: 0.11
+    - Name: GetUpLeft
+      Loop: Once
+      Frames:
+        - Sprite: LieDownLeft_9
+          Duration: 0.09
+        - Sprite: LieDownLeft_8
+          Duration: 0.09
+        - Sprite: LieDownLeft_7
+          Duration: 0.09
+        - Sprite: LieDownLeft_6
+          Duration: 0.09
+        - Sprite: LieDownLeft_5
+          Duration: 0.09
+        - Sprite: LieDownLeft_4
+          Duration: 0.09
+        - Sprite: LieDownLeft_3
+          Duration: 0.09
+        - Sprite: LieDownLeft_2
+          Duration: 0.09
+        - Sprite: LieDownLeft_1
+          Duration: 0.09
+        - Sprite: LieDownLeft_0
+          Duration: 0.09
+    - Name: SleepRight
+      Loop: Loop
+      Frames:
+        - Sprite: SleepRight_0
+          Duration: 0.32
+        - Sprite: SleepRight_1
+          Duration: 0.32
+        - Sprite: SleepRight_2
+          Duration: 0.32
+        - Sprite: SleepRight_3
+          Duration: 0.32
+        - Sprite: SleepRight_4
+          Duration: 0.32
+        - Sprite: SleepRight_5
+          Duration: 0.32
+        - Sprite: SleepRight_6
+          Duration: 0.32
+        - Sprite: SleepRight_7
+          Duration: 0.32
+        - Sprite: SleepRight_8
+          Duration: 0.32
+    - Name: SleepLeft
+      Loop: Loop
+      Frames:
+        - Sprite: SleepLeft_0
+          Duration: 0.32
+        - Sprite: SleepLeft_1
+          Duration: 0.32
+        - Sprite: SleepLeft_2
+          Duration: 0.32
+        - Sprite: SleepLeft_3
+          Duration: 0.32
+        - Sprite: SleepLeft_4
+          Duration: 0.32
+        - Sprite: SleepLeft_5
+          Duration: 0.32
+        - Sprite: SleepLeft_6
+          Duration: 0.32
+        - Sprite: SleepLeft_7
+          Duration: 0.32
+        - Sprite: SleepLeft_8
+          Duration: 0.32
+    - Name: SleepDown
+      Loop: Loop
+      Frames:
+        - Sprite: SleepDown_0
+          Duration: 0.32
+        - Sprite: SleepDown_1
+          Duration: 0.32
+        - Sprite: SleepDown_2
+          Duration: 0.32
+        - Sprite: SleepDown_3
+          Duration: 0.32
+        - Sprite: SleepDown_4
+          Duration: 0.32
+        - Sprite: SleepDown_5
+          Duration: 0.32
+        - Sprite: SleepDown_6
+          Duration: 0.32
+        - Sprite: SleepDown_7
+          Duration: 0.32
+        - Sprite: SleepDown_8
+          Duration: 0.32

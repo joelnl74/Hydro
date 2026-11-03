@@ -18,8 +18,8 @@ namespace Hydro
 
 	struct ShaderInformation
 	{
-		// GLSL source (.vert, .frag, .comp, ...), compiled with shaderc when the shader is created,
-		// or precompiled SPIR-V (.spv), loaded as is. GLSL may #include "file" relative to itself.
+		// GLSL (.vert, .frag, .comp, ...) compiled with shaderc, or SPIR-V (.spv) as is. GLSL may #include "file"
+		// relative to itself.
 		std::string path;
 		VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
 		ShaderType shaderType = ShaderType::None;
@@ -30,8 +30,8 @@ namespace Hydro
 		std::vector<ShaderInformation> shaderInformation;
 	};
 
-	// Owns one VkShaderModule per stage. Throws std::runtime_error (with the compiler's
-	// message) when a stage fails to load or compile; nothing is leaked in that case.
+	// One VkShaderModule per stage. Throws std::runtime_error (with the compiler's message) when a stage fails;
+	// nothing leaks then.
 	class VulkanShader
 	{
 	public:
@@ -43,16 +43,13 @@ namespace Hydro
 
 		VkShaderModule& GetModule(ShaderType type)
 		{
-			// TODO ASSERT.
 			return m_ShaderModules[(uint32_t)type];
 		}
 
-		// Get methods
 		const std::vector<VkPipelineShaderStageCreateInfo>& GetShaderStageInformation() const { return m_ShaderStages; }
 		const ShaderSpecification& GetSpecification() const { return m_Specification; }
 
-		// Every file this shader was built from: each stage's source plus the files it #includes.
-		// Watch these to know when the shader needs rebuilding (see RendererSettings::ShaderHotReload).
+		// Each stage's source plus the files it #includes: watched for hot reload.
 		const std::vector<std::filesystem::path>& GetSourceFiles() const { return m_SourceFiles; }
 
 	private:

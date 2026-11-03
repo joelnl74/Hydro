@@ -12,15 +12,14 @@
 // Internal to the terrain's meshing (TerrainMesher, TerrainDecor): how triangles are collected.
 namespace Hydro
 {
-	// Triangles per sub-mesh slot, flat shaded (three vertices each, the face's normal), joined into one MeshData at
-	// the end with the slots in order.
+	// Triangles per sub-mesh slot, flat shaded, joined into one MeshData at the end with the slots in order.
 	struct TerrainMeshBuilder
 	{
 		std::map<uint32_t, std::vector<MeshVertex>> Slots;
 
 		// `shading`: the normal to light it with instead of the face's (decor sprites are lit like the ground).
-		void Triangle(uint32_t slot, const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec2& uv0, const glm::vec2& uv1,
-			const glm::vec2& uv2, const glm::vec3* shading = nullptr)
+		void Triangle(uint32_t slot, const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec2& uv0,
+			const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec3* shading = nullptr)
 		{
 			const glm::dvec3 a = glm::dvec3(p1) - glm::dvec3(p0);
 			const glm::dvec3 b = glm::dvec3(p2) - glm::dvec3(p0);
@@ -65,10 +64,12 @@ namespace Hydro
 				const float sx = (k & 1) != 0 ? 0.5f : -0.5f;
 				const float sy = (k & 2) != 0 ? 0.5f : -0.5f;
 				const float sz = (k & 4) != 0 ? height : 0.0f;
-				corners[k] = glm::vec3(base.x + ax.x * sx * width + ay.x * sy * depth, base.y + ax.y * sx * width + ay.y * sy * depth, base.z + sz - 0.01f);
+				corners[k] = glm::vec3(base.x + ax.x * sx * width + ay.x * sy * depth, base.y + ax.y * sx * width + ay.y * sy * depth,
+					base.z + sz - 0.01f);
 			}
 			// Corner index: x + 2y + 4z; faces counter-clockwise from outside.
-			static const int faces[6][4] = { { 4, 5, 7, 6 }, { 0, 2, 3, 1 }, { 0, 1, 5, 4 }, { 2, 6, 7, 3 }, { 1, 3, 7, 5 }, { 0, 4, 6, 2 } };
+			static const int faces[6][4] = {
+				{ 4, 5, 7, 6 }, { 0, 2, 3, 1 }, { 0, 1, 5, 4 }, { 2, 6, 7, 3 }, { 1, 3, 7, 5 }, { 0, 4, 6, 2 } };
 			for (const auto& face : faces)
 			{
 				glm::vec3 p[4];
@@ -106,8 +107,7 @@ namespace Hydro
 		}
 	};
 
-	// A builder that keeps only positions, welded, for the collision mesh: triangles that share an edge share its
-	// vertices, so Jolt sees which edges are inside a flat area and characters don't catch on them.
+	// Positions only, welded, for the collision mesh: shared edges share vertices so characters don't catch on them.
 	struct TerrainCollisionBuilder
 	{
 		std::vector<glm::vec3>& Positions;

@@ -82,7 +82,8 @@ namespace Hydro
 		const AssetHandle handle = AssetManager::ImportAsset(filepath);
 		// The texture is saved by handle (follows renames) and by path (readable, and for files outside a project).
 		const AssetHandle textureHandle = texture->GetHandle();
-		const std::filesystem::path texturePath = AssetManager::IsAssetHandleValid(textureHandle) ? AssetManager::GetAbsolutePath(textureHandle) : texture->GetPath();
+		const std::filesystem::path texturePath = AssetManager::IsAssetHandleValid(textureHandle)
+			? AssetManager::GetAbsolutePath(textureHandle) : texture->GetPath();
 
 		YAML::Emitter out;
 		out << YAML::BeginMap;

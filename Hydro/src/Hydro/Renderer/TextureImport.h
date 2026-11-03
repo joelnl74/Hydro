@@ -16,8 +16,7 @@ namespace Hydro
 		Multiple
 	};
 
-	// How the sprites of a Multiple texture were produced. Only the editor uses it (to slice again);
-	// the runtime reads TextureImportConfig::Sprites.
+	// How a Multiple texture's sprites were made; only the editor uses it (to slice again).
 	enum class SpriteSlicingMode : uint8_t
 	{
 		Manual = 0, // rectangles placed by hand
@@ -49,9 +48,8 @@ namespace Hydro
 		glm::vec2 DefaultPivot{ 0.5f, 0.5f };
 	};
 
-	// How an image file is imported: saved next to it as "<file>.hymeta" (TextureImportSerializer) and
-	// read by Texture2D::LoadFromFile. Files without one import with these defaults.
-	// TODO(assets): becomes the texture's entry in the asset registry (Roadmap AS2).
+	// How an image is imported, saved next to it as "<file>.hymeta"; files without one use these defaults.
+	// TODO(assets): becomes the texture's entry in the asset registry.
 	struct TextureImportConfig
 	{
 		ImageFormat Format = ImageFormat::SRGB;   // SRGB for colour, RGBA for data
@@ -63,8 +61,7 @@ namespace Hydro
 		SpriteMode Mode = SpriteMode::Single;
 		float PixelsPerUnit = 32.0f;
 		SpriteSlicingConfig Slicing;
-		// Multiple only. When it is empty, Texture2D::LoadFromFile slices the image with Slicing
-		// (Grid, or Auto: grid detected first). Single textures have one sprite: the whole image.
+		// Multiple only. Empty: LoadFromFile slices the image with Slicing. Single textures have one whole-image sprite.
 		std::vector<SpriteRegion> Sprites;
 	};
 }

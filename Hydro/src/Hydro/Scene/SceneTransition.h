@@ -5,18 +5,8 @@
 
 namespace Hydro
 {
-	// How game code asks the program that runs the scenes (the editor's Play mode, the standalone Runtime)
-	// to switch scenes while the game plays. A scene stack (SceneStack): Push loads another scene on top and
-	// stops updating and drawing the one below it (that one is kept exactly as it was: entities, scripts,
-	// physics bodies), Pop throws the top scene away and the one below carries on. Quit ends the game: the
-	// Runtime closes, the editor stops playing (a script never closes the editor).
-	//
-	// Scripts only record the request; the host reads it with Take() after the frame's update (never in
-	// the middle of it) and does the switch. At most one request is kept: the last one wins. A host that
-	// does not support scenes ignores it.
-	//
-	// SceneName is a scene file name without folder or extension, looked up in the project's scenes folder
-	// (Push("Battle") loads Assets/Scenes/Battle.hyscene).
+	// How game code asks the host (Play mode, the Runtime) to switch scenes: Push a scene on top of the stack, Pop back,
+	// or Quit. The host takes the last request after the frame's update. Names are scene file names ("Battle").
 	class SceneTransition
 	{
 	public:
@@ -63,11 +53,16 @@ namespace Hydro
 		static uint32_t GetDepth() { return s_Depth; }
 		static void SetDepth(uint32_t depth) { s_Depth = depth; }
 
+		// The scene right below the running one (what Pop returns to); empty for the first scene. Set by the host.
+		static const std::string& GetBelowName() { return s_BelowName; }
+		static void SetBelowName(const std::string& name) { s_BelowName = name; }
+
 	private:
-		// Defined after the class: g++ can't initialise an inline static of a nested type with default
-		// member initialisers inside the class (MSVC can).
+		// Defined after the class: g++ can't initialise an inline static of a nested type with default member
+		// initialisers inside the class (MSVC can).
 		static Request s_Request;
 		static inline uint32_t s_Depth = 0;
+		static inline std::string s_BelowName;
 	};
 
 	inline SceneTransition::Request SceneTransition::s_Request;

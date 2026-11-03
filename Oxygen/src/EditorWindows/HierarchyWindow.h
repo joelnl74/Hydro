@@ -2,6 +2,7 @@
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Core/Base.h"
+#include "EditorContext.h"
 
 #include <filesystem>
 #include <functional>
@@ -9,32 +10,25 @@
 
 namespace Hydro
 {
-	// The scene's entities as a tree (Roadmap S3): each row indented by its depth, with an arrow to fold its
-	// children. Drag a row onto the middle of another to make it a child, onto its top or bottom edge to place it
-	// before or after as a sibling, onto "Root" to make it a root; children keep their place in the world.
-	// Prefabs from the Project window can be dropped onto "Root" or onto a row (as its child).
+	// The scene's entities as a foldable tree. Drag a row onto another to parent it or onto its edge to reorder;
+	// children keep their place in the world. Prefabs can be dropped onto a row or onto "Root".
 	class HierarchyWindow
 	{
 	public:
-		HierarchyWindow();
+		explicit HierarchyWindow(EditorContext& context);
 		~HierarchyWindow();
 		void OnImguiAttach();
 		void OnImguiRender(Ref<Scene> scene);
 
-		Entity GetSelectedEntity() const { return m_SelectedEntity; }
-		void ClearSelection() { m_SelectedEntity = {}; }
-		void SetSelectedEntity(Entity entity) { m_SelectedEntity = entity; }
-
-		// Called with the entity of a row that was double-clicked (it is selected too). The editor uses
-		// it to move the scene camera to the entity.
+		// Called with a double-clicked row's entity (it is selected too); the editor frames the camera on it.
 		std::function<void(Entity)> OnEntityFocus;
 
 	private:
-		// What the user asked for during the frame's loop: applied after it, since the list must not change
-		// while it is drawn.
+		// An edit asked for while drawing, applied afterwards because the list must not change mid-loop.
 		struct PendingEdit
 		{
-			enum class Type : uint8_t { None = 0, MoveBefore, MoveAfter, MakeChild, MakeRoot, Duplicate, Delete, CreateChild, InstantiatePrefab };
+			enum class Type : uint8_t { None = 0, MoveBefore, MoveAfter, MakeChild, MakeRoot, Duplicate, Delete, CreateChild,
+				InstantiatePrefab };
 			enum class Template : uint8_t { Empty = 0, Sprite, Light, UICanvas, UIPanel, UIImage, UIText, UIButton, UIList };
 
 			Type Kind = Type::None;
@@ -43,7 +37,7 @@ namespace Hydro
 			Template Create = Template::Empty;
 			std::filesystem::path Prefab;
 
-			// Move, reparent, duplicate, delete: `subject`, and the row it was dropped on.
+			// Move, reparent, duplicate or delete `subject` relative to the row it was dropped on.
 			static PendingEdit Of(Type kind, Entity subject, Entity target = {})
 			{
 				PendingEdit edit;
@@ -73,8 +67,7 @@ namespace Hydro
 		void DrawRowContextMenu(Scene& scene, Entity entity);
 		void ApplyPendingEdit(Scene& scene);
 		Entity CreateFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent);
-		// The UI templates (Create > UI): a canvas, or an element under `parent`. An element with no canvas at or
-		// above `parent` gets a new canvas (a root) to sit on.
+		// A UI canvas, or an element under `parent`; an element without a canvas above it gets a new root canvas.
 		Entity CreateUIFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent);
 		// The Create > UI menu items, creating under `parent` (empty: a root).
 		void DrawCreateUIMenu(Entity parent);
@@ -84,7 +77,8 @@ namespace Hydro
 		bool MatchesSearch(const std::string& name) const;
 
 	private:
-		Entity m_SelectedEntity;
+		// Its Selection is the selected row.
+		EditorContext& m_Context;
 		PendingEdit m_Pending;
 		char m_SearchBuffer[128] = {};
 	};

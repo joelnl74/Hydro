@@ -1,0 +1,12 @@
+Handle: 601377773650924383
+Definition:
+  Version: 1
+  Type: DialogueDefinition
+  Values:
+    Speaker: ""
+    Portrait: 0
+    Lines:
+      - Speaker: ""
+        Text: I pick herbs along the shrine path every morning. The best ones grow by the old stones.
+      - Speaker: ""
+        Text: If you find a Herb Bundle, keep it. Someone in the village will want it.

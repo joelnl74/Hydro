@@ -41,19 +41,15 @@ namespace Hydro
 		uint32_t CharacterCount = 0;          // characters that count for VisibleCharacters (not spaces or line breaks)
 	};
 
-	// Lays text out in a bitmap font (UI2): UTF-8 decoding, line breaks ('\n'), wrapping on spaces, kerning and
-	// horizontal alignment, all in whole pixels. A pure function of its inputs; the caller places the box (vertical
-	// alignment) and draws the quads. The layout never depends on how much of the text is shown, so a typewriter
-	// reveal (VisibleCharacters) never moves or re-wraps anything.
+	// Lays text out in a bitmap font, in whole pixels: UTF-8, line breaks, wrapping, kerning, horizontal alignment. The
+	// layout never depends on how much is shown, so a typewriter reveal never moves anything.
 	class TextLayout
 	{
 	public:
-		// Clears `result` and fills it (keeps its capacity). Characters the font lacks draw as '?' (nothing if it lacks
-		// that too); with `font`, each one is logged once for that font.
-		static void Layout(const std::string& text, const FontData& data, const TextLayoutProperties& properties, TextLayoutResult& result, const Font* font = nullptr);
-
-		// The next code point of UTF-8 `text` at `position` (moved past it). A malformed sequence gives U+FFFD and
-		// moves one byte.
+		// Clears and fills `result` (keeping its capacity). Missing characters draw as '?'; with `font`, each is logged once.
+		static void Layout(const std::string& text, const FontData& data, const TextLayoutProperties& properties, TextLayoutResult& result,
+			const Font* font = nullptr);
+		// The next code point at `position` (moved past it). A malformed sequence gives U+FFFD and moves one byte.
 		static uint32_t DecodeUTF8(const std::string& text, size_t& position);
 	};
 }

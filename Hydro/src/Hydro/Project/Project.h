@@ -15,24 +15,20 @@ namespace Hydro
 
 		// Relative to the project directory (the folder that holds the .hyproj file).
 		std::filesystem::path AssetDirectory = "Assets";
-		// The scene to open first, by asset handle (so renaming or moving it changes nothing here). 0 = the
-		// application decides what to open first.
+		// The scene to open first, by handle. 0 = the application decides.
 		AssetHandle StartScene = 0;
-		// A project file saved before handles holds the scene's path, relative to the asset directory. It is
-		// read into this, and whoever opens the project turns it into `StartScene` once the asset registry
-		// exists (the editor does, and saves the project). Written back only while `StartScene` is 0.
+		// An older project file's start scene path (relative to the asset directory). Whoever opens the project turns it
+		// into `StartScene` once the registry exists; written back only while `StartScene` is 0.
 		std::filesystem::path LegacyStartScene;
-		// The scene a new scene starts as, by asset handle (the editor's New Scene loads it and saves the copy
-		// under a new name). 0 = a new scene is empty apart from a camera.
+		// The scene New Scene starts as a copy of, by handle. 0 = a new scene has only a camera.
 		AssetHandle SceneTemplate = 0;
 
 		// Applied with Renderer::SetSettings when the project is opened.
 		RendererSettings Renderer;
 	};
 
-	// The project that is open: its settings and where its files live. Not a subsystem: it is data
-	// that applications open and close (Load/New, Close), and it never calls into other subsystems.
-	// Whoever opens a project applies its settings (e.g. Renderer::SetSettings(config.Renderer)).
+	// The open project: its settings and where its files live. Data, not a subsystem: whoever opens it applies its
+	// settings (e.g. Renderer::SetSettings).
 	class Project
 	{
 	public:
@@ -47,8 +43,7 @@ namespace Hydro
 
 		static Ref<Project> GetActive() { return s_ActiveProject; }
 
-		// Makes a new, unsaved project active. `projectFile` is where SaveActive will write it
-		// (<directory>/<Name>.hyproj); its folder is the project directory.
+		// Makes a new, unsaved project active; SaveActive writes it to `projectFile`, whose folder is the project's.
 		static Ref<Project> New(const std::filesystem::path& projectFile);
 		// Loads a .hyproj and makes it active. On failure, returns nullptr and keeps the current project.
 		static Ref<Project> Load(const std::filesystem::path& projectFile);

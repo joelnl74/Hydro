@@ -18,15 +18,14 @@ namespace Hydro
 	{
 		// Multiplies every position after the axis conversion (glTF is in metres: 1 keeps the size).
 		float Scale = 1.0f;
-		// glTF is Y-up; the engine is Z-up with the ground on XY. Rotates +90 degrees about X, so the
-		// model's front (+Z in glTF) faces -Y, towards the diorama camera.
+		// glTF is Y-up; the engine is Z-up. Rotates +90 degrees about X, so the model's front faces -Y (the camera).
 		bool ConvertYUpToZUp = true;
 		// Flat normals for primitives that have none.
 		bool GenerateNormals = true;
 	};
 
-	// What a model's first import made, kept in the .hymeta so a re-import (or a changed file) keeps the
-	// same assets: glTF image index -> texture handle, glTF material index -> material (.hymat) handle.
+	// What a model's first import made, kept so a re-import keeps the same assets: glTF image index -> texture
+	// handle, glTF material index -> material (.hymat) handle.
 	struct MeshImportMapping
 	{
 		std::map<uint32_t, AssetHandle> Images;
@@ -80,6 +79,8 @@ namespace Hydro
 		glm::vec3 Emissive{ 0.0f };
 		float EmissiveStrength = 1.0f; // KHR_materials_emissive_strength
 		int32_t EmissiveImage = -1;
+		int32_t NormalImage = -1;      // the tangent-space normal map (glTF normalTexture); -1 = none
+		float NormalScale = 1.0f;      // its scale (MaterialData::NormalStrength)
 		float AlphaCutoff = 0.0f;      // 0 = opaque (glTF OPAQUE); MASK uses its cutoff
 		bool LinearFilter = false;     // the base colour sampler's mag filter is LINEAR
 	};
@@ -93,44 +94,30 @@ namespace Hydro
 		std::vector<ImportedImage> Images;
 	};
 
-	// Imports glTF 2.0 models (.gltf with its .bin and images, or .glb) through cgltf. Editor-only: the
-	// runtime will read a cooked mesh format (RT8).
-	//
-	// One model file = one Mesh asset = one MeshComponent: the selected scene's nodes are flattened into one
-	// Mesh, every (node, primitive) pair a sub-mesh with the node's world transform baked in and a material
-	// slot per glTF material (plus one default slot for primitives without a material). Nodes whose name ends in
-	// _COL or _WALK are collision proxies instead (MeshCollisionProxy, World collision plan WC3): kept for the
-	// physics world, never drawn, not in the bounds. The ImportedModel
-	// keeps the node tree, so "import as hierarchy" can be added later.
+	// Imports glTF 2.0 models (.gltf or .glb) through cgltf; editor-only. A model is one Mesh: its nodes are flattened
+	// into sub-meshes with a slot per material. Nodes ending in _COL or _WALK are collision proxies, never drawn.
 	class MeshImporter
 	{
 	public:
-		// Reads the file. Logs what it ignores (skins, animations, morph targets, other scenes, BLEND,
-		// metallic-roughness, unsupported image formats). False (logged) when it can't be read.
+		// Reads the file, logging what it ignores (skins, animations, morph targets, other scenes, unsupported images).
+		// False (logged) when it can't be read.
 		static bool Import(const std::filesystem::path& path, ImportedModel& model);
 
-		// One MeshData from the model: sub-meshes in node order, positions in metres, Z-up, counter-clockwise
-		// (a node with a mirroring transform has its winding flipped), normals generated when missing.
+		// One MeshData: sub-meshes in node order, in metres, Z-up, counter-clockwise, normals generated when missing.
 		static MeshData Flatten(const ImportedModel& model, const MeshImportConfig& config);
 
-		// Whether a glTF node is a collision proxy, and which kind (any case):
-		//  - its name ends in "_COL" or "_WALK", optionally followed by Blender's ".001" numbering
-		//    ("Torii_Pillar_L_COL", "Bridge_WALK.001");
-		//  - or it starts with "COL_" (the medieval village kit's proxies): walk when "_WALK" is in its name
-		//    ("COL_MV_Bridge_Stone_A_WALK_Deck"), else convex ("COL_MV_Bridge_Stone_A_COL_RailS").
+		// Whether a node is a collision proxy and which kind (any case): a name ending in "_COL" or "_WALK" (Blender's
+		// ".001" allowed), or starting with "COL_" (walk when "_WALK" is in it). See docs/ResourceCreation.md.
 		static bool GetCollisionKind(const std::string& nodeName, MeshCollisionKind& kind);
 
 		// The engine's axis and unit conversion for `config` (applied once, after the node transforms).
 		static glm::mat4 GetImportTransform(const MeshImportConfig& config);
 
-		// The file extension an embedded image is written with, from its MIME type (".png", ".jpg"); empty
-		// for formats the engine can't decode.
+		// The extension an embedded image is written with (".png", ".jpg"); empty for formats the engine can't decode.
 		static std::string GetImageExtension(const std::string& mimeType);
 
-		// The AssetManager's loader: reads the .hymeta (settings and mapping), imports the file, writes its
-		// embedded images to "<model>.textures/" and a .hymat per material next to the model the first time
-		// (later imports reuse the mapped handles and never overwrite a material), records the mapping, and
-		// uploads the Mesh with each slot's material. nullptr (logged) on failure.
+		// The AssetManager's loader: imports the file, writes embedded images and a .hymat per material the first time
+		// (never overwriting a material), records the mapping and uploads the Mesh. nullptr (logged) on failure.
 		static Ref<Mesh> ImportAsset(const std::filesystem::path& path);
 	};
 }

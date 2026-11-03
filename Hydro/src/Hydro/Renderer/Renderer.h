@@ -11,12 +11,8 @@
 
 namespace Hydro
 {
-	// Renderer subsystem. Owns the GPU context, the swapchain and the per-frame resources, and runs
-	// one frame: acquire -> record (scene passes, then the present pass) -> submit -> present.
-	//
-	// Explicit lifetime: Application calls Init after the window and Shutdown before it. Init starts
-	// the renderer's parts in order (context, swapchain, frames, allocator, Renderer2D, Renderer3D)
-	// and Shutdown stops them in reverse.
+	// Owns the GPU context, swapchain and per-frame resources, and runs a frame: acquire, record, submit, present.
+	// Application calls Init after the window and Shutdown before it.
 	class Renderer
 	{
 	public:
@@ -30,17 +26,11 @@ namespace Hydro
 		static void OnWindowResize(uint32_t width, uint32_t height);
 		static void WaitIdle();
 
-		// Deletion queue. Runs `freeFunction` once the GPU has finished every frame that may still use
-		// what it frees: frames already submitted and the one being recorded. That is at the start of
-		// the frame MAX_FRAMES_IN_FLIGHT frames later (after its fence wait), after a swapchain rebuild
-		// (the device is idle then) or at Renderer::Shutdown, whichever comes first.
-		// Destructors of GPU resources hand their handles to it, so a resource can be released at any
-		// point in the frame without Renderer::WaitIdle. The function must only capture handles, never
-		// the object being destroyed.
+		// Deletion queue: runs `freeFunction` once the GPU has finished every frame that may still use what it frees, so a
+		// resource can be released at any point in a frame. Capture only handles, never the object being destroyed.
 		static void SubmitResourceFree(ResourceFreeFunction freeFunction);
 
-		// Live options (clear colour, vsync, wireframe, shader hot reload). May be called before Init;
-		// after Init, changes apply from the next frame (a vsync change recreates the swapchain).
+		// May be called before Init; after it, changes apply from the next frame (vsync recreates the swapchain).
 		static const RendererSettings& GetSettings() { return s_Settings; }
 		static void SetSettings(const RendererSettings& settings);
 
@@ -54,9 +44,7 @@ namespace Hydro
 		static uint32_t GetRenderFrame() { return s_Instance->m_Frames.GetFrameIndex(); }
 		static VkCommandBuffer GetCurrentCommandBuffer() { return s_Instance->m_Frames.GetCommandBuffer(); }
 
-		// Backend access (Platform/Vulkan, Renderer2D, ImGuiLayer). Valid between Init and Shutdown.
-		// The device is the common case (handles, queues, SubmitImmediate); the context is only for the
-		// instance and surface.
+		// Backend access, valid between Init and Shutdown. The context is only for the instance and surface.
 		static VulkanDevice& GetVulkanDevice() { return s_Instance->m_RendererContext->GetVulkanDevice(); }
 		static VulkanRendererContext& GetRendererContext() { return *s_Instance->m_RendererContext; }
 		static VulkanSwapChain& GetVulkanSwapChain() { return *s_Instance->m_SwapChain; }
@@ -66,8 +54,7 @@ namespace Hydro
 		void EndFrame(uint32_t imageIndex);
 		bool RecreateSwapChain();
 
-		// Runs the queued frees whose frames the GPU has finished (all of them when `all` is true;
-		// only call that when the device is idle).
+		// Runs the queued frees whose frames the GPU has finished (all of them when `all`: only when the device is idle).
 		void FlushResourceFrees(bool all);
 
 	private:

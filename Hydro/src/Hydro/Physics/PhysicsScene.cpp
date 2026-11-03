@@ -34,10 +34,8 @@ namespace Hydro
 		return radians;
 	}
 
-	// An entity's 2D pose in the world now: position (x, y), angle about Z and scale (x, y). A root's are its
-	// TransformComponent's, exactly as before hierarchies. A child's come from Scene::GetWorldTransform, which is
-	// current: WorldTransformComponent is from the last transforms stage, which runs after physics, so a child
-	// spawned this frame would start at the origin.
+	// An entity's 2D world pose now: a root's TransformComponent, a child's Scene::GetWorldTransform (the
+	// WorldTransformComponent is from the last transforms stage, after physics).
 	struct Pose2D
 	{
 		glm::vec2 Position{ 0.0f };
@@ -90,7 +88,8 @@ namespace Hydro
 	};
 
 	// Adds the entity's collider components as shapes of the body.
-	static void CreateShapes(b2BodyId body, b2BodyType bodyType, entt::registry& registry, entt::entity handle, const glm::vec2& scale)
+	static void CreateShapes(b2BodyId body, b2BodyType bodyType, entt::registry& registry, entt::entity handle,
+		const glm::vec2& scale)
 	{
 		const float scaleX = std::abs(scale.x);
 		const float scaleY = std::abs(scale.y);
@@ -102,9 +101,8 @@ namespace Hydro
 			shapeDef.material.friction = material.Friction;
 			shapeDef.material.restitution = material.Restitution;
 			shapeDef.isSensor = isSensor;
-			// Box2D 3.1 has both kinds of events off by default. Sensors need it on to work at all; a shape
-			// is seen by sensors when it can move (a static wall never triggers a zone); solid shapes report
-			// when they start and stop touching.
+			// Box2D has both kinds of events off by default. Sensors need them to work; a shape is seen by sensors when
+			// it can move (a static wall never triggers a zone).
 			shapeDef.enableSensorEvents = isSensor || bodyType != b2_staticBody;
 			shapeDef.enableContactEvents = isSensor == false;
 			return shapeDef;
@@ -189,7 +187,7 @@ namespace Hydro
 		}
 		bodyDef.position = { pose.Position.x, pose.Position.y };
 		bodyDef.rotation = b2MakeRot(pose.Angle);
-		// For the collision callbacks (E2): the entity this body belongs to.
+		// For the collision callbacks: the entity this body belongs to.
 		bodyDef.userData = reinterpret_cast<void*>(static_cast<std::uintptr_t>(static_cast<uint32_t>(handle)));
 
 		const b2BodyId body = b2CreateBody(m_Data->World, &bodyDef);
@@ -206,15 +204,20 @@ namespace Hydro
 
 	void PhysicsScene::CreateNewBodies()
 	{
-		// Entities that got their physics components after the world was built (spawned by a script,
-		// duplicated, instantiated from a prefab). Only entities with a Rigidbody2D or a collider are looked at.
+		// Entities that got a Rigidbody2D or a collider after the world was built.
 		entt::registry& registry = m_Scene->m_Registry;
 		for (entt::entity handle : registry.view<Rigidbody2DComponent>())
+		{
 			CreateBody(handle);
+		}
 		for (entt::entity handle : registry.view<BoxCollider2DComponent>())
+		{
 			CreateBody(handle);
+		}
 		for (entt::entity handle : registry.view<CircleCollider2DComponent>())
+		{
 			CreateBody(handle);
+		}
 	}
 
 	bool PhysicsScene::EnsureBody(entt::entity handle)
@@ -267,7 +270,8 @@ namespace Hydro
 		// Kinematic bodies: carry them to where the game put their transform during these steps.
 		for (const Data::Body& body : m_Data->Bodies)
 		{
-			if (body.Type != b2_kinematicBody || registry.valid(body.Handle) == false || registry.has<TransformComponent>(body.Handle) == false)
+			if (body.Type != b2_kinematicBody || registry.valid(body.Handle) == false
+				|| registry.has<TransformComponent>(body.Handle) == false)
 			{
 				continue;
 			}
@@ -287,11 +291,11 @@ namespace Hydro
 			CollectEvents();
 		}
 
-		// Dynamic bodies: the simulation's result becomes the entity's transform. A body that is asleep
-		// has not moved.
+		// Dynamic bodies: the simulation's result becomes the entity's transform (a sleeping body hasn't moved).
 		for (const Data::Body& body : m_Data->Bodies)
 		{
-			if (body.Type != b2_dynamicBody || registry.valid(body.Handle) == false || registry.has<TransformComponent>(body.Handle) == false)
+			if (body.Type != b2_dynamicBody || registry.valid(body.Handle) == false
+				|| registry.has<TransformComponent>(body.Handle) == false)
 			{
 				continue;
 			}
@@ -361,13 +365,17 @@ namespace Hydro
 		{
 			const b2SensorBeginTouchEvent& event = sensors.beginEvents[i];
 			if (b2Shape_IsValid(event.visitorShapeId) && b2Shape_IsSensor(event.visitorShapeId) == false)
+			{
 				add(Event::Type::TriggerBegin, event.sensorShapeId, event.visitorShapeId);
+			}
 		}
 		for (int i = 0; i < sensors.endCount; i++)
 		{
 			const b2SensorEndTouchEvent& event = sensors.endEvents[i];
 			if (b2Shape_IsValid(event.visitorShapeId) && b2Shape_IsSensor(event.visitorShapeId) == false)
+			{
 				add(Event::Type::TriggerEnd, event.sensorShapeId, event.visitorShapeId);
+			}
 		}
 
 		const b2ContactEvents contacts = b2World_GetContactEvents(m_Data->World);
@@ -440,34 +448,31 @@ namespace Hydro
 		return true;
 	}
 
-	namespace Physics2D
+	static PhysicsScene* GetPhysicsWorld(Entity& entity)
 	{
-		static PhysicsScene* GetWorld(Entity& entity)
+		if (entity.IsValid() == false)
 		{
-			if (entity.IsValid() == false)
-			{
-				return nullptr;
-			}
-			Scene* scene = entity.GetScene();
-			return scene != nullptr ? scene->GetPhysicsScene() : nullptr;
+			return nullptr;
 		}
+		Scene* scene = entity.GetScene();
+		return scene != nullptr ? scene->GetPhysicsScene() : nullptr;
+	}
 
-		bool HasBody(Entity entity)
-		{
-			PhysicsScene* world = GetWorld(entity);
-			return world != nullptr && world->EnsureBody(static_cast<entt::entity>(entity));
-		}
+	bool Physics2D::HasBody(Entity entity)
+	{
+		PhysicsScene* world = GetPhysicsWorld(entity);
+		return world != nullptr && world->EnsureBody(static_cast<entt::entity>(entity));
+	}
 
-		bool SetLinearVelocity(Entity entity, const glm::vec2& velocity)
-		{
-			PhysicsScene* world = GetWorld(entity);
-			return world != nullptr && world->SetLinearVelocity(static_cast<entt::entity>(entity), velocity);
-		}
+	bool Physics2D::SetLinearVelocity(Entity entity, const glm::vec2& velocity)
+	{
+		PhysicsScene* world = GetPhysicsWorld(entity);
+		return world != nullptr && world->SetLinearVelocity(static_cast<entt::entity>(entity), velocity);
+	}
 
-		bool GetLinearVelocity(Entity entity, glm::vec2& velocity)
-		{
-			PhysicsScene* world = GetWorld(entity);
-			return world != nullptr && world->GetLinearVelocity(static_cast<entt::entity>(entity), velocity);
-		}
+	bool Physics2D::GetLinearVelocity(Entity entity, glm::vec2& velocity)
+	{
+		PhysicsScene* world = GetPhysicsWorld(entity);
+		return world != nullptr && world->GetLinearVelocity(static_cast<entt::entity>(entity), velocity);
 	}
 }

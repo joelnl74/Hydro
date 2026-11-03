@@ -31,15 +31,16 @@ namespace Hydro
 
 	void TextureImportPanel::Apply()
 	{
-		// A sheet without sprites yet gets them from its grid now, so the file lists them (and the
-		// Sprite Editor has something to show).
-		if (m_Config.Mode == SpriteMode::Multiple && m_Config.Sprites.empty() && m_Config.Slicing.Mode != SpriteSlicingMode::Manual && m_Texture != nullptr)
+		// A sheet without sprites yet gets them from its grid now, so the file lists them for the Sprite Editor.
+		if (m_Config.Mode == SpriteMode::Multiple && m_Config.Sprites.empty() && m_Config.Slicing.Mode != SpriteSlicingMode::Manual
+			&& m_Texture != nullptr)
 		{
 			if (m_Config.Slicing.Mode == SpriteSlicingMode::Auto)
 			{
 				SpriteSlicer::DetectGrid(m_Path, m_Config, m_Config.Slicing);
 			}
-			m_Config.Sprites = SpriteSlicer::SliceGrid(m_Texture->GetWidth(), m_Texture->GetHeight(), m_Config.Slicing, m_Path.stem().u8string());
+			m_Config.Sprites = SpriteSlicer::SliceGrid(m_Texture->GetWidth(), m_Texture->GetHeight(), m_Config.Slicing,
+				m_Path.stem().u8string());
 		}
 
 		if (TextureImportSerializer::Serialize(Texture2D::GetImportFilePath(m_Path), m_Config) == false)
@@ -58,8 +59,7 @@ namespace Hydro
 
 	void TextureImportPanel::OnImguiRender(const std::filesystem::path& imagePath)
 	{
-		// Another image, or the file changed elsewhere (the Sprite Editor saved it) while nothing here
-		// was edited: read it again.
+		// Another image, or the file changed elsewhere while nothing here was edited: read it again.
 		if (imagePath != m_Path || (m_Dirty == false && GetImportFileTime(imagePath) != m_LoadedImportTime))
 		{
 			Load(imagePath);
@@ -180,7 +180,8 @@ namespace Hydro
 			else
 			{
 				ImGui::TextDisabled("%zu sprites (%s slicing)", spriteCount,
-					m_Config.Slicing.Mode == SpriteSlicingMode::Manual ? "manual" : (m_Config.Slicing.Mode == SpriteSlicingMode::Auto ? "auto" : "grid"));
+					m_Config.Slicing.Mode == SpriteSlicingMode::Manual ? "manual"
+						: (m_Config.Slicing.Mode == SpriteSlicingMode::Auto ? "auto" : "grid"));
 			}
 
 			ImGui::BeginDisabled(m_Dirty);

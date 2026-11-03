@@ -1,0 +1,42 @@
+#pragma once
+
+#include "Data/ItemDefinition.h"
+#include "State/BattleState.h"
+#include "State/Inventory.h"
+
+namespace Hydro
+{
+	// Using items: plain rules on the run's state, no UI.
+	class ItemRules
+	{
+	public:
+		enum class UseResult : uint8_t { Used, NotUsableHere, NoneLeft };
+
+		// Restores every party member's MP, and the HP of those standing.
+		static UseResult UseInField(Inventory::Slot& slot, const ItemDefinition& item, BattleState& party)
+		{
+			if (item.CanUseInField() == false)
+			{
+				return UseResult::NotUsableHere;
+			}
+			if (slot.Count <= 0)
+			{
+				return UseResult::NoneLeft;
+			}
+			slot.Count -= 1;
+			for (int h = 0; h < HeroCount; h++)
+			{
+				if (party.InParty(h) == false)
+				{
+					continue;
+				}
+				party.HeroMP[h] = std::min(GetHero(h).MaxMP, party.HeroMP[h] + item.RestoreMP);
+				if (party.HeroHP[h] > 0)
+				{
+					party.HeroHP[h] = std::min(GetHero(h).MaxHP, party.HeroHP[h] + item.RestoreHP);
+				}
+			}
+			return UseResult::Used;
+		}
+	};
+}

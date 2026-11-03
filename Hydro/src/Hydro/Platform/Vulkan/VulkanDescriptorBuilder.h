@@ -9,14 +9,12 @@
 
 namespace Hydro
 {
-	// One persistent descriptor set per frame in flight, described with Begin -> Bind... -> Build. The
-	// layout comes from VulkanDescriptorAllocator's cache (shared with every builder that has the same
-	// bindings), the sets from its persistent pools. A resource: owns its sets (freed through
-	// Renderer::SubmitResourceFree when it is destroyed) and is non-copyable; hold it in a Scope.
+	// One persistent descriptor set per frame in flight, described with Begin, Bind... and Build. The layout comes
+	// from VulkanDescriptorAllocator's cache, so builders with the same bindings are compatible.
 	class VulkanDescriptorBuilder
 	{
 	public:
-		// Size of an image array binding (must match the sampler array in the shader).
+		// Must match the sampler array in the shader.
 		static constexpr uint32_t MaxImageArraySize = 32;
 
 		VulkanDescriptorBuilder() = default;
@@ -25,27 +23,25 @@ namespace Hydro
 		VulkanDescriptorBuilder(const VulkanDescriptorBuilder&) = delete;
 		VulkanDescriptorBuilder& operator=(const VulkanDescriptorBuilder&) = delete;
 
-		// Creation methods.
 		void Begin();
-		// Each frame's set points at that frame's buffer. The buffers must outlive the descriptor sets' use.
-		void BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags);
-		// Binds an array of `count` images (MaxImageArraySize by default; 1 for a single sampler). Every slot is
-		// written with the given image, so a shader that indexes any slot always reads a valid descriptor.
+		// Each frame's set points at that frame's buffer, which must outlive the sets' use.
+		void BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type,
+			VkShaderStageFlags stageFlags);
+		// An array of `count` images (1 for a single sampler), every slot written with the given image so any index is
+		// valid.
 		void BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags,
 			uint32_t count = MaxImageArraySize);
 		bool Build();
 
-		// After Build: rewrites `count` (<= MaxImageArraySize) elements, starting at element 0, of the
-		// image array at `binding` in the set of frame `frameIndex`. Only call it once the GPU is done
-		// with that frame's set (after the frame's fence) and before the set is bound this frame.
-		void WriteImages(uint32_t frameIndex, uint32_t binding, const VkDescriptorImageInfo* images, uint32_t count, VkDescriptorType type);
+		// After Build: rewrites elements 0..count-1 of the image array at `binding` in frame `frameIndex`'s set. Only
+		// after that frame's fence and before the set is bound this frame.
+		void WriteImages(uint32_t frameIndex, uint32_t binding, const VkDescriptorImageInfo* images, uint32_t count,
+			VkDescriptorType type);
 
-		// Get methods.
 		VkDescriptorSetLayout& GetDescriptorSetLayout() { return m_DescriptorSetLayout; };
 		VkDescriptorSet& GetDescriptorSet(uint32_t index) { return m_DescriptorSets[index]; };
 	private:
-		// A write whose pBufferInfo / pImageInfo is resolved in Build(), once the info vectors
-		// have stopped growing and their addresses are stable.
+		// pBufferInfo / pImageInfo are resolved in Build, once the info vectors stop growing.
 		struct PendingWrite
 		{
 			VkWriteDescriptorSet Write{};
@@ -55,11 +51,11 @@ namespace Hydro
 
 		std::vector<VkDescriptorSet> m_DescriptorSets;
 		std::vector<DescriptorAllocation> m_Allocations;
-		std::map<uint32_t, std::vector<PendingWrite>> m_writeDescriptorSets;
-		std::vector<VkDescriptorSetLayoutBinding> m_layoutBinding;
+		std::map<uint32_t, std::vector<PendingWrite>> m_WriteDescriptorSets;
+		std::vector<VkDescriptorSetLayoutBinding> m_LayoutBinding;
 
-		std::vector<VkDescriptorBufferInfo> m_bufferInfo;
-		std::vector<VkDescriptorImageInfo> m_imageInfo;
+		std::vector<VkDescriptorBufferInfo> m_BufferInfo;
+		std::vector<VkDescriptorImageInfo> m_ImageInfo;
 
 		VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE; // owned by the layout cache
 	};

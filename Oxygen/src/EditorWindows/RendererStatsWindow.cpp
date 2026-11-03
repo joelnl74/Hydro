@@ -13,12 +13,13 @@ namespace Hydro
 {
 	void RendererStatsPanel::Draw()
 	{
-		// Renderer2D::Render() runs after ImGui is built, so this is the previous frame.
+		// The views are rendered after ImGui is built, so these are the previous frame's.
 		Statistics stats = Renderer2D::GetStats();
 		char a[32], b[32];
 
 		// ---- Geometry ----------------------------------------------------------
-		if (ImGui::CollapsingHeader("Geometry", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##geometry"))
+		if (ImGui::CollapsingHeader("Geometry", ImGuiTreeNodeFlags_DefaultOpen)
+			&& StatsUI::BeginStatTable("##geometry"))
 		{
 			StatsUI::Row("Draw calls", "%u", stats.DrawCalls);
 			StatsUI::Row("Quads", "%u", stats.QuadCount);
@@ -28,7 +29,7 @@ namespace Hydro
 			ImGui::EndTable();
 		}
 
-		// ---- Meshes (Renderer3D) ----------------------------------------------
+		// ---- Meshes ------------------------------------------------------------
 		const Renderer3DStatistics meshStats = Renderer3D::GetStats();
 		if (ImGui::CollapsingHeader("Meshes", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##meshes"))
 		{
@@ -43,13 +44,14 @@ namespace Hydro
 		}
 
 		// ---- Batching ----------------------------------------------------------
-		if (ImGui::CollapsingHeader("Batching", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##batching"))
+		if (ImGui::CollapsingHeader("Batching", ImGuiTreeNodeFlags_DefaultOpen)
+			&& StatsUI::BeginStatTable("##batching"))
 		{
 			StatsUI::Row("Batches used", "%u / %u allocated", stats.BatchCount, stats.BatchesAllocated);
 			StatsUI::Row("Quads per batch", "%u max", stats.MaxQuadsPerBatch);
 
-			// How full the fullest batch is - how close a view is to another batch (and draw call). Every view has
-			// its own batches, so this can't be worked out from the totals (that underflowed with two views).
+			// How close the fullest batch is to needing another batch and draw call. Every view has its own batches,
+			// so this can't be worked out from the totals.
 			const uint32_t fullest = stats.FullestBatchQuads;
 			const float fill = stats.MaxQuadsPerBatch ? (float)fullest / stats.MaxQuadsPerBatch : 0.0f;
 
@@ -62,7 +64,8 @@ namespace Hydro
 		}
 
 		// ---- Textures ----------------------------------------------------------
-		if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##textures"))
+		if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen)
+			&& StatsUI::BeginStatTable("##textures"))
 		{
 			StatsUI::Row("Slots per draw", "%u (slot 0 = white)", stats.MaxTextureSlots);
 			StatsUI::Row("Slots used", "%u", stats.TextureSlotsUsed);
@@ -70,8 +73,9 @@ namespace Hydro
 			ImGui::EndTable();
 		}
 
-		// ---- Forward lighting and debug lines (M6, M7) ---------------------------
-		if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##lighting"))
+		// ---- Forward lighting and debug lines ----------------------------------
+		if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen)
+			&& StatsUI::BeginStatTable("##lighting"))
 		{
 			StatsUI::Row("Forward-lit views", "%u", stats.ForwardLitViewCount);
 			StatsUI::Row("Forward lights", "%u (point and spot)", stats.ForwardLightCount);
@@ -81,12 +85,14 @@ namespace Hydro
 			StatsUI::Row("Sun shadow maps", "%u", stats.SunShadowViewCount);
 			StatsUI::Row("Sprite shadow casters", "%u", stats.ShadowCasterQuads);
 			StatsUI::Row("HDR views", "%u (scene colour + tonemap)", stats.HDRViewCount);
-			StatsUI::Row("Bloom", "%u views, %u levels from %u x %u", stats.BloomViewCount, stats.BloomLevelCount, stats.BloomWidth, stats.BloomHeight);
-			StatsUI::Row("Depth of field", "%u views, blur at %u x %u", stats.DepthOfFieldViewCount, stats.DepthOfFieldWidth, stats.DepthOfFieldHeight);
+			StatsUI::Row("Bloom", "%u views, %u levels from %u x %u", stats.BloomViewCount, stats.BloomLevelCount,
+				stats.BloomWidth, stats.BloomHeight);
+			StatsUI::Row("Depth of field", "%u views, blur at %u x %u", stats.DepthOfFieldViewCount, stats.DepthOfFieldWidth,
+				stats.DepthOfFieldHeight);
 			ImGui::EndTable();
 		}
 
-		// ---- Passes: GPU time per render-graph pass (summed over views, a couple of frames old) ----
+		// ---- Passes: GPU time per render-graph pass, summed over views, a couple of frames old ----
 		const std::vector<PassTiming>& passes = Renderer2D::GetPassTimings();
 		if (ImGui::CollapsingHeader("Passes", ImGuiTreeNodeFlags_DefaultOpen) && StatsUI::BeginStatTable("##passes"))
 		{
@@ -106,9 +112,13 @@ namespace Hydro
 		{
 			StatsUI::Row("Device", "%s", stats.GPUName);
 			if (stats.GPUTimeMs >= 0.0f)
+			{
 				StatsUI::Row("2D pass GPU time", "%.3f ms", stats.GPUTimeMs);
+			}
 			else
+			{
 				StatsUI::Row("2D pass GPU time", "n/a (no timestamp support)");
+			}
 			StatsUI::Row("GPU memory", "%s used / %s free",
 				StatsUI::FormatBytes(stats.GPUMemoryUsed, a, sizeof(a)),
 				StatsUI::FormatBytes(stats.GPUMemoryFree, b, sizeof(b)));

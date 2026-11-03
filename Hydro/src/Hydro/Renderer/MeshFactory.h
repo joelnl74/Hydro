@@ -7,11 +7,8 @@
 
 namespace Hydro
 {
-	// Built-in shapes for blockout (plan M4, Diorama RPG H4). All are Z-up, in metres, standing on the XY
-	// plane: their base is centred on the origin at z = 0, `size` is width (X), depth (Y) and height (Z).
-	// Faces are flat-shaded (each has its own vertices and normal), counter-clockwise seen from outside.
-	// UVs are in world units (1 = one metre), so a material's tiling repeats a texture per metre whatever
-	// the shape's size: a 32 x 32 texture at tiling 1 shows 32 pixels per metre on every face.
+	// Built-in blockout shapes: Z-up, in metres, base centred on the origin, flat-shaded, counter-clockwise. UVs are in
+	// metres, so a material's tiling repeats a texture per metre whatever the shape's size.
 	class MeshFactory
 	{
 	public:

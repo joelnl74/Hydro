@@ -19,13 +19,12 @@ namespace Hydro
 	// Drag-and-drop payload of a hierarchy row: the dragged entt::entity.
 	static const char* s_EntityPayloadType = "HYDRO_HIERARCHY_ENTITY";
 
-	// The share of a row's height, at its top and its bottom, that drops before / after it as a sibling; the
-	// middle makes the dragged entity its child.
+	// The share of a row's height, at its top and bottom, that drops before or after it as a sibling; the middle
+	// makes the dragged entity its child.
 	static constexpr float SiblingDropEdge = 0.25f;
 
-	// The project's first font (by path), loaded, so new UI text shows at once; 0 when the project has none.
-	// The font new UI text gets: a smooth font nearest 30 px (body text on the 1920 x 1080 canvas, D5), else the
-	// first pixel font; ties go to the first by path.
+	// The font new UI text gets: a smooth font nearest 30 px (body text on the 1920 x 1080 canvas), else the first
+	// pixel font; ties go to the first by path. 0 when the project has none.
 	static AssetHandle FindDefaultFont()
 	{
 		AssetHandle found = 0;
@@ -54,7 +53,8 @@ namespace Hydro
 		return found;
 	}
 
-	HierarchyWindow::HierarchyWindow()
+	HierarchyWindow::HierarchyWindow(EditorContext& context)
+		: m_Context(context)
 	{
 	}
 
@@ -82,9 +82,10 @@ namespace Hydro
 	void HierarchyWindow::OnImguiRender(Ref<Scene> scene)
 	{
 		// Drop a selection that belongs to a scene that was replaced or an entity that was destroyed.
-		if (m_SelectedEntity && (m_SelectedEntity.GetScene() != scene.get() || scene->m_Registry.valid(m_SelectedEntity) == false))
+		if (m_Context.Selection
+			&& (m_Context.Selection.GetScene() != scene.get() || scene->m_Registry.valid(m_Context.Selection) == false))
 		{
-			m_SelectedEntity = {};
+			m_Context.Selection = {};
 		}
 		m_Pending = {};
 
@@ -171,7 +172,8 @@ namespace Hydro
 		}
 
 		// Right-click on empty space in the window.
-		if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		if (ImGui::BeginPopupContextWindow(nullptr,
+			ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
@@ -196,10 +198,10 @@ namespace Hydro
 
 			if (ImGui::MenuItem("Create Camera"))
 			{
-				m_SelectedEntity = scene->CreateEntity("Camera");
-				m_SelectedEntity.AddComponent<TransformComponent>();
+				m_Context.Selection = scene->CreateEntity("Camera");
+				m_Context.Selection.AddComponent<TransformComponent>();
 				// Only the first camera in a scene is primary by default.
-				m_SelectedEntity.AddComponent<CameraComponent>().Primary = (bool)scene->GetPrimaryCameraEntity() == false;
+				m_Context.Selection.AddComponent<CameraComponent>().Primary = (bool)scene->GetPrimaryCameraEntity() == false;
 			}
 
 			ImGui::Separator();
@@ -241,7 +243,7 @@ namespace Hydro
 		{
 			flags |= ImGuiTreeNodeFlags_Leaf;
 		}
-		if (m_SelectedEntity == entity)
+		if (m_Context.Selection == entity)
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -251,12 +253,12 @@ namespace Hydro
 		// Clicking the arrow only folds or unfolds.
 		if (ImGui::IsItemClicked() && ImGui::IsItemToggledOpen() == false)
 		{
-			m_SelectedEntity = entity;
+			m_Context.Selection = entity;
 		}
 		// Double-click: select it and look at it in the scene view.
 		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
-			m_SelectedEntity = entity;
+			m_Context.Selection = entity;
 			if (OnEntityFocus)
 			{
 				OnEntityFocus(entity);
@@ -301,7 +303,8 @@ namespace Hydro
 			const entt::entity draggedHandle = *(const entt::entity*)payload->Data;
 			const Entity dragged{ draggedHandle, &scene };
 			// Onto itself or something inside it: nowhere to go.
-			const bool allowed = scene.m_Registry.valid(draggedHandle) && dragged != entity && scene.IsAncestorOf(dragged, entity) == false;
+			const bool allowed = scene.m_Registry.valid(draggedHandle) && dragged != entity
+				&& scene.IsAncestorOf(dragged, entity) == false;
 			if (allowed)
 			{
 				const ImVec2 rowMin = ImGui::GetItemRectMin();
@@ -472,7 +475,7 @@ namespace Hydro
 		}
 		case PendingEdit::Template::UIList:
 		{
-			// A panel stacking three buttons; it grows with its rows (Fit Content). On its canvas first, so the rows find it.
+			// A panel stacking three buttons that grows with its rows. On its canvas first, so the rows find it.
 			scene.SetParent(element, parent, false);
 			rect.SizeDelta = { 420.0f, 240.0f };
 			element.AddComponent<UIImageComponent>().Color = { 0.05f, 0.06f, 0.09f, 0.82f };
@@ -525,7 +528,8 @@ namespace Hydro
 			return CreateUIFromTemplate(scene, kind, parent);
 		}
 
-		const char* name = kind == PendingEdit::Template::Sprite ? "Sprite" : (kind == PendingEdit::Template::Light ? "Light" : "Empty Entity");
+		const char* name = kind == PendingEdit::Template::Sprite ? "Sprite"
+			: (kind == PendingEdit::Template::Light ? "Light" : "Empty Entity");
 		Entity entity = scene.CreateEntity(name);
 		entity.AddComponent<TransformComponent>();
 		if (kind == PendingEdit::Template::Sprite)
@@ -564,24 +568,25 @@ namespace Hydro
 		case PendingEdit::Type::Duplicate:
 			if (Entity duplicate = scene.DuplicateEntity(edit.Subject))
 			{
-				m_SelectedEntity = duplicate;
+				m_Context.Selection = duplicate;
 			}
 			break;
 		case PendingEdit::Type::Delete:
 			// Its children go with it, so the selection may be one of them.
-			if (m_SelectedEntity && (m_SelectedEntity == edit.Subject || scene.IsAncestorOf(edit.Subject, m_SelectedEntity)))
+			if (m_Context.Selection
+				&& (m_Context.Selection == edit.Subject || scene.IsAncestorOf(edit.Subject, m_Context.Selection)))
 			{
-				m_SelectedEntity = {};
+				m_Context.Selection = {};
 			}
 			scene.DestroyEntity(edit.Subject);
 			break;
 		case PendingEdit::Type::CreateChild:
-			m_SelectedEntity = CreateFromTemplate(scene, edit.Create, edit.Target);
+			m_Context.Selection = CreateFromTemplate(scene, edit.Create, edit.Target);
 			break;
 		case PendingEdit::Type::InstantiatePrefab:
 			if (Entity instance = PrefabSerializer::Instantiate(scene, edit.Prefab, edit.Target))
 			{
-				m_SelectedEntity = instance;
+				m_Context.Selection = instance;
 			}
 			break;
 		default:

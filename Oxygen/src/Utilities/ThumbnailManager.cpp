@@ -68,7 +68,8 @@ namespace Hydro
 		}
 
 		uint64_t value = 1469598103934665603ull;
-		const uint64_t parts[3] = { size, (uint64_t)time.time_since_epoch().count(), (uint64_t)TextureImporter::GetImportConfigVersion(file) };
+		const uint64_t parts[3] = { size, (uint64_t)time.time_since_epoch().count(),
+			(uint64_t)TextureImporter::GetImportConfigVersion(file) };
 		for (uint64_t part : parts)
 		{
 			value ^= part;

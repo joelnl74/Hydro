@@ -20,7 +20,8 @@ namespace Hydro
 			static std::unordered_set<uint64_t> s_Reported;
 			if (s_Reported.insert((uint64_t)effect).second)
 			{
-				HY_CORE_WARN("Vfx::Play: effect {} isn't loaded (load it once with AssetManager::GetAsset<Prefab>, e.g. in OnCreate)", (uint64_t)effect);
+				HY_CORE_WARN("Vfx::Play: effect {} isn't loaded (load it once with AssetManager::GetAsset<Prefab>, e.g. in OnCreate)",
+					(uint64_t)effect);
 			}
 			return {};
 		}

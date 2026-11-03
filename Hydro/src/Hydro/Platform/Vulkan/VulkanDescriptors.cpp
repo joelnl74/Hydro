@@ -24,8 +24,7 @@ namespace Hydro
 
 	static VulkanDescriptorData* s_Descriptors = nullptr;
 
-	// Sets per pool. Each pool has room for that many sets of any of the layouts the renderer uses (a
-	// 32-texture array per set at most); a full pool is followed by a new one.
+	// Sets per pool, for any layout the renderer uses (a 32-texture array per set at most); a full pool gets a successor.
 	static constexpr uint32_t SetsPerPool = 64;
 
 	static VkDescriptorPool CreatePool(bool freeSets)
@@ -81,7 +80,8 @@ namespace Hydro
 			return;
 		}
 
-		HY_CORE_ASSERT(s_Descriptors->PersistentSets == 0, "VulkanDescriptorAllocator::Shutdown: persistent descriptor sets were not freed");
+		HY_CORE_ASSERT(s_Descriptors->PersistentSets == 0,
+			"VulkanDescriptorAllocator::Shutdown: persistent descriptor sets were not freed");
 
 		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		for (VkDescriptorPool pool : s_Descriptors->PersistentPools)
@@ -110,7 +110,8 @@ namespace Hydro
 		key.reserve(bindings.size());
 		for (const VkDescriptorSetLayoutBinding& binding : bindings)
 		{
-			HY_CORE_ASSERT(binding.pImmutableSamplers == nullptr, "VulkanDescriptorAllocator::GetLayout: immutable samplers aren't supported");
+			HY_CORE_ASSERT(binding.pImmutableSamplers == nullptr,
+				"VulkanDescriptorAllocator::GetLayout: immutable samplers aren't supported");
 			key.push_back({ binding.binding, (uint32_t)binding.descriptorType, binding.descriptorCount, (uint32_t)binding.stageFlags });
 		}
 
@@ -149,7 +150,8 @@ namespace Hydro
 		{
 			pools.push_back(CreatePool(true));
 			const bool allocated = TryAllocate(pools.back(), layout, allocation.Set);
-			HY_CORE_ASSERT(allocated, "VulkanDescriptorAllocator: a set doesn't fit in an empty pool (more descriptors than SetsPerPool allows)");
+			HY_CORE_ASSERT(allocated,
+				"VulkanDescriptorAllocator: a set doesn't fit in an empty pool (more descriptors than SetsPerPool allows)");
 			allocation.Pool = allocated ? pools.back() : VK_NULL_HANDLE;
 		}
 
@@ -196,7 +198,8 @@ namespace Hydro
 
 		pools.push_back(CreatePool(false));
 		const bool allocated = TryAllocate(pools.back(), layout, set);
-		HY_CORE_ASSERT(allocated, "VulkanDescriptorAllocator: a set doesn't fit in an empty pool (more descriptors than SetsPerPool allows)");
+		HY_CORE_ASSERT(allocated,
+			"VulkanDescriptorAllocator: a set doesn't fit in an empty pool (more descriptors than SetsPerPool allows)");
 		return allocated ? set : VK_NULL_HANDLE;
 	}
 

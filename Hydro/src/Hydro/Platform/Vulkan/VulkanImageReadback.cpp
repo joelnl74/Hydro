@@ -100,8 +100,7 @@ namespace Hydro
 			height = image.GetHeight() - y;
 		}
 
-		// Grow the host buffer when needed. The old buffer's last copy was taken (the slot isn't
-		// pending), but it goes through the deletion queue like every GPU object.
+		// Grow the host buffer when needed (the old one goes through the deletion queue like every GPU object).
 		const VkDeviceSize size = (VkDeviceSize)width * height * bytesPerPixel;
 		if (slot.Capacity < size)
 		{
@@ -146,8 +145,7 @@ namespace Hydro
 		toTransfer.image = vkImage;
 		toTransfer.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
-		// Rarely used (a capture, a click), so the broad stage masks cost nothing that matters and cover
-		// whatever wrote the image before (a render pass, a transfer).
+		// Rare (a capture, a click), so broad stage masks are fine and cover whatever wrote the image.
 		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
 			0, 0, nullptr, 0, nullptr, 1, &toTransfer);
 

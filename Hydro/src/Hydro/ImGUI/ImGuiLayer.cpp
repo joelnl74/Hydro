@@ -47,23 +47,31 @@ namespace Hydro
 			std::snprintf(config.Name, sizeof(config.Name), "%s", font.Name.c_str());
 
 			if (io.Fonts->AddFontFromFileTTF(font.Path.string().c_str(), font.Size, &config) == nullptr)
+			{
 				HY_CORE_WARN("ImGui font '{}' could not be loaded from {}", font.Name, font.Path.string());
+			}
 		}
 
 		// The first font added is ImGui's default; with none, ImGui uses its built-in one.
 		if (io.Fonts->Fonts.empty() == false)
+		{
 			io.FontDefault = io.Fonts->Fonts[0];
+		}
 	}
 
 	ImFont* ImGuiLayer::GetFont(const std::string& name)
 	{
 		if (ImGui::GetCurrentContext() == nullptr)
+		{
 			return nullptr;
+		}
 
 		for (ImFont* font : ImGui::GetIO().Fonts->Fonts)
 		{
 			if (font->ConfigData != nullptr && std::strcmp(font->ConfigData->Name, name.c_str()) == 0)
+			{
 				return font;
+			}
 		}
 
 		return nullptr;
@@ -71,7 +79,7 @@ namespace Hydro
 
 	void ImGuiLayer::OnAttach()
 	{
-		// Create descriptor pool for IMGUI.
+		// Descriptor pool for ImGui.
 		VkDescriptorPoolSize pool_sizes[] =
 		{
 			{ VK_DESCRIPTOR_TYPE_SAMPLER, 100 },
@@ -99,17 +107,14 @@ namespace Hydro
 
 		VK_CHECK_RESULT(vkCreateDescriptorPool(device.GetDevice(), &pool_info, nullptr, &m_DescriptorPool));
 
-		// Create context.
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls.
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls.
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking.
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows.
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-		// Initializes imgui for GLFW.
 		auto& window = Application::Get().GetWindow();
 		auto glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());
 
@@ -127,7 +132,6 @@ namespace Hydro
 
 		ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
 
-		// Initializes imgui for Vulkan.
 		uint32_t minImageCount = std::max(swapChain.GetMinImageCount(), 2u);
 		uint32_t imageCount = std::max(swapChain.GetImageCount(), minImageCount);
 
@@ -157,7 +161,9 @@ namespace Hydro
 		{
 			ImDrawData* drawData = ImGui::GetDrawData();
 			if (drawData != nullptr)
+			{
 				ImGui_ImplVulkan_RenderDrawData(drawData, frameCommandBuffer);
+			}
 		});
 	}
 
@@ -190,10 +196,7 @@ namespace Hydro
 	void ImGuiLayer::End()
 	{
 		// DisplaySize is set by ImGui_ImplGlfw_NewFrame() from the real window size.
-		// (It used to be overwritten here with the window size from startup, which
-		// never changed, so after a resize ImGui laid out and clipped for the old size.)
 
-		// Rendering
 		ImGui::Render();
 	}
 }

@@ -6,8 +6,7 @@
 
 namespace Hydro
 {
-	// The vertex attributes of a pipeline (PipelineSpecification::Layout): types, offsets and the stride,
-	// in the order of the shader's input locations. Vertex data itself lives in a VulkanBuffer.
+	// The vertex attributes of a pipeline: types, offsets and stride, in the order of the shader's input locations.
 	enum class ShaderDataType
 	{
 		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool

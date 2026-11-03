@@ -7,7 +7,8 @@ project "Game"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
-	-- The game's own code: its scripts (HY_SCRIPT classes) and their generated reflection. Linked by
+	-- The game's own code: its scripts (HY_SCRIPT classes), data types (HY_DATA, HY_ENUM) and their generated
+	-- reflection. Linked by
 	-- every application that runs the game: the editor (Oxygen) and the standalone player (Runtime).
 	files
 	{
@@ -15,9 +16,9 @@ project "Game"
 		"src/**.cpp"
 	}
 
-	-- Writes src/Generated/GeneratedScriptReflection.cpp from the HY_SCRIPT / HY_PROPERTY annotations
-	-- before every build (only touched when it changes).
-	prebuildmessage "Generating Hydro native-script reflection"
+	-- Writes src/Generated/GeneratedScriptReflection.cpp and GeneratedDataReflection.cpp from the HY_SCRIPT /
+	-- HY_DATA / HY_ENUM / HY_PROPERTY annotations before every build (each only touched when it changes).
+	prebuildmessage "Generating Hydro script and data reflection"
 	prebuildcommands
 	{
 		'py "%{wks.location}/Tools/ReflectionGenerator/generate_reflection.py" "%{wks.location}/."'

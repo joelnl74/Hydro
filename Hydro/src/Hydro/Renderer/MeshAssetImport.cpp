@@ -7,13 +7,13 @@
 #include "Hydro/Renderer/Material.h"
 #include "Hydro/Renderer/MaterialSerializer.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Renderer/TextureImportSerializer.h"
 
 #include <algorithm>
 #include <fstream>
 #include <iterator>
 
-// The asset side of a model import (MeshImporter::ImportAsset): turning the model's images and materials
-// into project assets with stable handles. MeshImporter.cpp holds the file reading and flattening.
+// The asset side of a model import: the model's images and materials become project assets with stable handles.
 
 namespace Hydro
 {
@@ -55,9 +55,8 @@ namespace Hydro
 		return std::all_of(stem.begin() + (std::ptrdiff_t)expected.size() + 1, stem.end(), [](char c) { return c >= '0' && c <= '9'; });
 	}
 
-	// The sidecar maps a model's images and materials by index, and a model exported again may list them in another
-	// order: a mapping is only kept while its file still carries the name ("<index>_<name>.<ext>" for an image,
-	// "<model>_<name>.hymat" for a material). Otherwise the same-named file is found again (or made).
+	// A re-exported model may list its images and materials in another order, so a mapping is only kept while its
+	// file still carries the name; otherwise the same-named file is found again (or made).
 	static bool ImageFileCarriesName(AssetHandle handle, const std::string& name)
 	{
 		const std::string stem = AssetManager::GetAbsolutePath(handle).stem().u8string();
@@ -65,7 +64,7 @@ namespace Hydro
 		return underscore != std::string::npos && stem.compare(underscore + 1, std::string::npos, ToFileNamePart(name)) == 0;
 	}
 
-	// An image file this model's import made earlier for an image of this name, at any index; empty when there is none.
+	// An image file an earlier import made for an image of this name, at any index; empty when there is none.
 	static std::filesystem::path FindImageFile(const std::filesystem::path& folder, const std::string& name, const std::string& extension)
 	{
 		std::error_code error;
@@ -100,10 +99,10 @@ namespace Hydro
 		return true;
 	}
 
-	// The texture asset for image `index`, made the first time: an embedded image is written to
-	// "<model>.textures/<index>_<name>.<ext>" byte for byte (rewritten when the model's copy changed); an
-	// external file is registered where it is. 0 when there is none (logged).
-	static AssetHandle ResolveImage(const ImportedModel& model, uint32_t index, const std::filesystem::path& modelPath, MeshImportMapping& mapping)
+	// The texture asset for image `index`, made the first time: an embedded image is written to "<model>.textures/",
+	// an external file is registered where it is. 0 when there is none (logged).
+	static AssetHandle ResolveImage(const ImportedModel& model, uint32_t index, const std::filesystem::path& modelPath,
+		MeshImportMapping& mapping)
 	{
 		const ImportedImage& image = model.Images[index];
 
@@ -140,7 +139,6 @@ namespace Hydro
 					modelPath.filename().string(), image.Name, image.MimeType.empty() ? std::string("of an unknown type") : image.MimeType);
 				return 0;
 			}
-
 			const std::filesystem::path folder = modelPath.parent_path() / std::filesystem::u8path(modelPath.stem().u8string() + ".textures");
 			std::filesystem::path file = FindImageFile(folder, image.Name, extension);
 			if (file.empty())
@@ -176,9 +174,26 @@ namespace Hydro
 		return handle;
 	}
 
-	// The material asset for material `index`, made the first time as "<model>_<name>.hymat" next to the
-	// model. An existing one is never rewritten: it may have been edited.
-	static AssetHandle ResolveMaterial(const ImportedModel& model, uint32_t index, const std::filesystem::path& modelPath, MeshImportMapping& mapping)
+	// A normal map is data: its .hymeta is switched from SRGB to RGBA (linear), keeping its handle.
+	static void ImportAsNormalMap(AssetHandle image)
+	{
+		if ((uint64_t)image == 0)
+		{
+			return;
+		}
+		const std::filesystem::path sidecar = AssetMetaSerializer::GetSidecarPath(AssetManager::GetAbsolutePath(image));
+		TextureImportConfig config;
+		TextureImportSerializer::Deserialize(sidecar, config);
+		if (config.Format != ImageFormat::RGBA)
+		{
+			config.Format = ImageFormat::RGBA;
+			TextureImportSerializer::Serialize(sidecar, config);
+		}
+	}
+
+	// The material asset for material `index`, made the first time next to the model. Never rewritten: it may be edited.
+	static AssetHandle ResolveMaterial(const ImportedModel& model, uint32_t index, const std::filesystem::path& modelPath,
+		MeshImportMapping& mapping)
 	{
 		const ImportedMaterial& source = model.Materials[index];
 		const std::filesystem::path folder = modelPath.parent_path();
@@ -223,6 +238,12 @@ namespace Hydro
 		if (source.EmissiveImage >= 0 && source.EmissiveImage < (int32_t)model.Images.size())
 		{
 			material.Emissive = ResolveImage(model, (uint32_t)source.EmissiveImage, modelPath, mapping);
+		}
+		if (source.NormalImage >= 0 && source.NormalImage < (int32_t)model.Images.size())
+		{
+			material.Normal = ResolveImage(model, (uint32_t)source.NormalImage, modelPath, mapping);
+			material.NormalStrength = source.NormalScale;
+			ImportAsNormalMap(material.Normal);
 		}
 
 		for (int number = 2; std::filesystem::exists(file, error); number++)
@@ -301,7 +322,8 @@ namespace Hydro
 
 		Ref<Mesh> mesh = CreateRef<Mesh>(data, path.stem().u8string());
 		mesh->SetMaterials(materials);
-		HY_CORE_INFO("MeshImporter: imported '{}': {} sub-meshes, {} triangles, {} materials, {} collision shapes", path.filename().u8string(),
+		HY_CORE_INFO("MeshImporter: imported '{}': {} sub-meshes, {} triangles, {} materials, {} collision shapes",
+			path.filename().u8string(),
 			mesh->GetSubMeshes().size(), mesh->GetIndexCount() / 3, slotCount, mesh->GetCollisionProxies().size());
 		return mesh;
 	}

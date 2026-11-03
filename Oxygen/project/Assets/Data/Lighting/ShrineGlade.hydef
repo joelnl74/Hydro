@@ -1,0 +1,33 @@
+Handle: 6651133902390268617
+Definition:
+  Version: 1
+  Type: SceneLightingDefinition
+  Values:
+    Presets:
+      - Name: Day
+        Profile: 2942191429723082034
+        SunColor: [1, 0.95, 0.85]
+        SunIntensity: 1.1
+        SkyAmbient: [0.55, 0.6, 0.68]
+        GroundAmbient: [0.2, 0.19, 0.16]
+        FogColor: [0.7, 0.74, 0.78]
+        LanternFactor: 0
+        WindowFactor: 0
+      - Name: Dusk
+        Profile: 7825868437817689624
+        SunColor: [1, 0.72, 0.46]
+        SunIntensity: 0.75
+        SkyAmbient: [0.198, 0.154, 0.176]
+        GroundAmbient: [0.066, 0.0495, 0.044]
+        FogColor: [0.66, 0.44, 0.36]
+        LanternFactor: 1
+        WindowFactor: 1
+      - Name: Night
+        Profile: 1732228253238388371
+        SunColor: [0.55, 0.65, 1]
+        SunIntensity: 0.18
+        SkyAmbient: [0.036, 0.045, 0.078]
+        GroundAmbient: [0.012, 0.012, 0.018]
+        FogColor: [0.08, 0.1, 0.18]
+        LanternFactor: 1.4
+        WindowFactor: 1.15

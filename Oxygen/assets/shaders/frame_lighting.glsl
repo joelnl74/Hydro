@@ -11,7 +11,8 @@ layout(set = 0, binding = 2) uniform FrameLighting {
     vec4 groundAmbient; // and facing down
     vec4 fogColor;      // w = 1 when fog is on
     vec4 fogParams;     // x start, y end (metres from fogOrigin), z bands of the point lights' falloff
-    ivec4 counts;       // x lights, y = 1 when the view is forward lit, z = 1 when it has a sun shadow map
+    ivec4 counts;       // x lights, y = 1 when the view is forward lit, z = 1 when it has a sun shadow map,
+                        // w = 1 when lighting snaps to texel centres (pixel snap, #136)
     vec4 fogOrigin;     // xyz: what the camera looks at (its point on the ground)
     mat4 shadowMatrix;  // world -> the sun shadow map's clip space (xy -1..1, z 0..1)
     vec4 shadowParams;  // x strength, y one texel in UV, z 1 = soft (3 x 3) / 0 = hard, w normal offset (metres)
