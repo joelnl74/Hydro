@@ -3,11 +3,13 @@
 #extension GL_GOOGLE_include_directive : require
 
 #include "lighting.glsl"
+#include "normal_mapping.glsl"
 
 // A terrain's top surface (Terrain plan, "Surface"; scripts/terrain/splat.py is the reference): per art pixel
 // (1/32 m) the layer whose painted weight plus edge noise plus texture height is highest wins. Near the border (Blend)
 // its colour is mixed with the runner-up's in two steps (75 %, 50 %), so borders soften but stay pixel art; with
-// Blend 0 and HeightBlend 0 a layer has the hard pixel borders of TR1. Lit and fogged like mesh.frag. Runs on mesh.vert: fragUV is the position in the terrain's
+// Blend 0 and HeightBlend 0 a layer has the hard pixel borders of TR1. Lit and fogged like mesh.frag, with the
+// layers' normal maps (their materials' Normal) sampled and mixed like their albedos. Runs on mesh.vert: fragUV is the position in the terrain's
 // own space (TerrainMesher), so the pattern doesn't move with the entity.
 
 layout(location = 0) in vec2 fragUV;
@@ -19,7 +21,7 @@ layout(location = 4) in vec3 fragWorldPos;
 // Must match TerrainSurfaceUniform in Renderer3D.cpp (std140, 224 bytes).
 layout(set = 1, binding = 0) uniform TerrainSurface {
     vec4 layerTint[4];
-    vec4 layerTiling[4]; // xy: repeats per metre
+    vec4 layerTiling[4]; // xy: repeats per metre, z: normal strength (0 = no normal map)
     vec4 roughness;      // per layer, weight units
     vec4 blend;          // per layer: width of the mixed band, weight units
     vec4 heightBlend;    // per layer: how much the texture's brightness raises its score
@@ -32,6 +34,11 @@ layout(set = 1, binding = 2) uniform sampler2D layer0;
 layout(set = 1, binding = 3) uniform sampler2D layer1;
 layout(set = 1, binding = 4) uniform sampler2D layer2;
 layout(set = 1, binding = 5) uniform sampler2D layer3;
+// The layers' normal maps (tangent space, green up; the flat normal for a layer without one).
+layout(set = 1, binding = 6) uniform sampler2D layerNormal0;
+layout(set = 1, binding = 7) uniform sampler2D layerNormal1;
+layout(set = 1, binding = 8) uniform sampler2D layerNormal2;
+layout(set = 1, binding = 9) uniform sampler2D layerNormal3;
 
 layout(location = 0) out vec4 outColor;
 // The Editor view's entity-ID attachment; ignored in views without it.
@@ -99,6 +106,26 @@ vec4 SampleLayer(int layer, vec2 position)
 	}
 }
 
+// A layer's normal map at `position` (terrain space, metres), decoded with its strength (DecodeTangentNormal).
+vec3 SampleLayerNormal(int layer, vec2 position)
+{
+	float strength = surface.layerTiling[layer].z;
+	if (strength <= 0.0)
+	{
+		return vec3(0.0, 0.0, 1.0);
+	}
+	vec2 uv = position * surface.layerTiling[layer].xy;
+	vec3 encoded;
+	switch (layer)
+	{
+		case 0: encoded = texture(layerNormal0, uv).rgb; break;
+		case 1: encoded = texture(layerNormal1, uv).rgb; break;
+		case 2: encoded = texture(layerNormal2, uv).rgb; break;
+		default: encoded = texture(layerNormal3, uv).rgb; break;
+	}
+	return DecodeTangentNormal(encoded, strength);
+}
+
 // Brightness of an albedo, as its height for HeightBlend.
 float Luminance(vec3 colour)
 {
@@ -107,6 +134,9 @@ float Luminance(vec3 colour)
 
 void main()
 {
+	// The tangent frame follows the terrain's own space (fragUV), continuous across art pixels; taken before any return.
+	SurfaceDerivatives derivatives = GetSurfaceDerivatives(fragWorldPos, fragUV);
+
 	// 1. The art pixel this fragment is in (in the terrain's space) and its centre.
 	ivec2 pixel = ivec2(floor(fragUV * ArtPixelsPerMetre));
 	vec2 centre = (vec2(pixel) + 0.5) / ArtPixelsPerMetre;
@@ -152,9 +182,10 @@ void main()
 	// the scores tie, 75 % halfway out, the winner alone beyond.
 	vec4 albedo = albedos[best];
 	float band = 0.5 * (surface.blend[best] + surface.blend[second]);
+	float share = 1.0;
 	if (layerCount > 1 && band > 0.0)
 	{
-		float share = clamp(0.5 + 0.5 * (bestScore - secondScore) / band, 0.5, 1.0);
+		share = clamp(0.5 + 0.5 * (bestScore - secondScore) / band, 0.5, 1.0);
 		share = floor(share * 4.0 + 0.5) / 4.0;
 		albedo = mix(albedos[second], albedos[best], share);
 	}
@@ -171,7 +202,15 @@ void main()
 	{
 		normal = -normal;
 	}
-	vec3 lit = albedo.rgb * ComputeLighting(fragWorldPos, normal, 0.5, SunShadowSurface(fragWorldPos, normal));
+	// The shadow lookup keeps the surface's own normal; the light uses the layers' normal maps, mixed as the albedos.
+	float sun = SunShadowSurface(fragWorldPos, normal);
+	vec3 mapped = SampleLayerNormal(best, centre);
+	if (share < 1.0)
+	{
+		mapped = mix(SampleLayerNormal(second, centre), mapped, share);
+	}
+	normal = ApplyTangentNormal(normal, derivatives, mapped);
+	vec3 lit = albedo.rgb * ComputeLighting(fragWorldPos, normal, 0.5, sun);
 	outColor = vec4(ApplyFog(lit, fragWorldPos), 1.0);
 	outEntityID = entityID;
 }

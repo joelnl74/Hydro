@@ -9,6 +9,7 @@
 #include "Scripts/Common/CameraZoneScript.h"
 #include "Scripts/Common/DioramaDirectorScript.h"
 #include "Scripts/Common/DioramaWalkScript.h"
+#include "Scripts/Common/FoliageSwayScript.h"
 #include "Scripts/Common/OccluderFadeScript.h"
 #include "Scripts/Countryside/CountrysideQuestScript.h"
 #include "Scripts/Examples/SpawnerScript.h"
@@ -103,6 +104,11 @@ namespace Hydro
 			.Property("m_Speed", "Speed", &DioramaWalkScript::m_Speed).Range(0.0f, 20.0f).Tooltip("Walking speed in metres per second")
 			.Property("RunMultiplier", "Run Multiplier", &DioramaWalkScript::RunMultiplier).Range(1.0f, 5.0f).Tooltip("Shift multiplies the speed by this");
 
+		ScriptRegistry::Register<FoliageSwayScript>("FoliageSwayScript")
+			.Property("Degrees", "Degrees", &FoliageSwayScript::Degrees).Range(0.0f, 10.0f).Tooltip("Degrees a card leans either way at most")
+			.Property("Period", "Period", &FoliageSwayScript::Period).Range(0.5f, 20.0f).Tooltip("Seconds of one sway")
+			.Property("Gust", "Gust", &FoliageSwayScript::Gust).Range(0.0f, 1.0f).Tooltip("How much a slow gust over the whole group adds (0 = a steady breeze)");
+
 		ScriptRegistry::Register<OccluderFadeScript>("OccluderFadeScript")
 			.Property("Target", "Target", &OccluderFadeScript::Target).Tooltip("The one kept in sight (the player)")
 			.Property("FadedOpacity", "Faded Opacity", &OccluderFadeScript::FadedOpacity).Range(0.0f, 1.0f).Tooltip("How much of a mesh in the way still shows (0: gone, 1: no fade)")
@@ -176,7 +182,8 @@ namespace Hydro
 			.Property("LootTable", "Loot Table", &FieldDirectorScript::LootTable).Tooltip("The loot tables chests roll: \"Chest <row> ...\" rolls that row (items and aster)").AssetFilter(AssetType::DataTable).DataTypeFilter("LootTableDefinition")
 			.Property("NpcTable", "Npc Table", &FieldDirectorScript::NpcTable).Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \"").AssetFilter(AssetType::DataTable).DataTypeFilter("NpcDefinition")
 			.Property("SignTable", "Sign Table", &FieldDirectorScript::SignTable).Tooltip("The signs' lines, by the name after \"Sign \"").AssetFilter(AssetType::DataTable).DataTypeFilter("SignDefinition")
-			.Property("Dialogue", "Dialogue", &FieldDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript");
+			.Property("Dialogue", "Dialogue", &FieldDirectorScript::Dialogue).Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\"").TargetType("DialogueScript")
+			.Property("FieldUI", "Field UI", &FieldDirectorScript::FieldUI).Tooltip("The field UI, instantiated under this director when the scene has none of its own (no \"Field Menu Canvas\" or \"Field UI\" child)").AssetFilter(AssetType::Prefab);
 
 		ScriptRegistry::Register<NpcLookAroundScript>("NpcLookAroundScript")
 			.Property("Facings", "Facings", &NpcLookAroundScript::Facings).Tooltip("The facings it looks in, in turn, separated by spaces (Down, Up, Left, Right)")
@@ -204,6 +211,9 @@ namespace Hydro
 			.Property("StopChance", "Stop Chance", &NpcWanderScript::StopChance).Range(0.0f, 1.0f).Tooltip("Chance of a stop part way along the line, per trip")
 			.Property("WorkClip", "Work Clip", &NpcWanderScript::WorkClip).Tooltip("A clip prefix played instead of Idle<Facing> at stops (\"Work\" plays Work<Facing>); empty: none")
 			.Property("WorkEvery", "Work Every", &NpcWanderScript::WorkEvery).Range(1.0f, 10.0f).Tooltip("With WorkClip: it works at one stop in this many")
+			.Property("WorkFacesCamera", "Work Faces Camera", &NpcWanderScript::WorkFacesCamera).Tooltip("With WorkClip: the work faces the camera (Work Down, where the broom shows); off: the way it stopped (Work<Facing>, else Down)")
+			.Property("WorkStartClip", "Work Start Clip", &NpcWanderScript::WorkStartClip).Tooltip("With WorkClip: a clip prefix played once before the work (\"LieDown\" plays LieDown<Facing>, a Once clip); empty: none")
+			.Property("WorkEndClip", "Work End Clip", &NpcWanderScript::WorkEndClip).Tooltip("With WorkClip: a clip prefix played once after the work, before it walks on (\"GetUp\"); empty: none")
 			.Property("StartDelay", "Start Delay", &NpcWanderScript::StartDelay).Range(0.0f, 60.0f).Tooltip("Seconds before it first moves (so a crowd doesn't all set off at once)")
 			.Property("Loop", "Loop", &NpcWanderScript::Loop).Tooltip("A round: it always walks from the line's start to its end, then reappears at the start (for a long street, with both ends off screen) instead of turning back")
 			.Property("Player", "Player", &NpcWanderScript::Player).Tooltip("The player: it waits while she stands in its way")
@@ -211,7 +221,9 @@ namespace Hydro
 			.Property("Patience", "Patience", &NpcWanderScript::Patience).Range(0.0f, 30.0f).Tooltip("Seconds it waits for its way to clear before it turns back (a round walker goes on through)");
 
 		ScriptRegistry::Register<QuestGiverScript>("QuestGiverScript")
-			.Property("QuestTable", "Quest Table", &QuestGiverScript::QuestTable).Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition");
+			.Property("QuestTable", "Quest Table", &QuestGiverScript::QuestTable).Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition")
+			.Property("OfferMark", "Offer Mark", &QuestGiverScript::OfferMark).Tooltip("The marker over a giver with a quest to offer").AssetFilter(AssetType::Texture2D)
+			.Property("ReturnMark", "Return Mark", &QuestGiverScript::ReturnMark).Tooltip("The marker over a giver when a quest can be turned in").AssetFilter(AssetType::Texture2D);
 
 		ScriptRegistry::Register<WaypointScript>("WaypointScript")
 			.Property("WaitMin", "Wait Min", &WaypointScript::WaitMin).Range(0.0f, 120.0f).Tooltip("Seconds it stands here, at least (0 and WaitMax 0: walks straight on)")
@@ -247,6 +259,8 @@ namespace Hydro
 			.Property("DialogueTable", "Dialogue Table", &ShrineQuestScript::DialogueTable).Tooltip("What is said: rows Intro, ReminderOne, ReminderMany ({Left}), Report, Awake, Farewell").AssetFilter(AssetType::DataTable).DataTypeFilter("DialogueDefinition")
 			.Property("MonkName", "Monk Name", &ShrineQuestScript::MonkName).Tooltip("The NPC this quest speaks for: the name after \"Npc \" in its tag")
 			.Property("SlimePrefix", "Slime Prefix", &ShrineQuestScript::SlimePrefix).Tooltip("Tag prefix of the quest's slimes")
+			.Property("OfferMark", "Offer Mark", &ShrineQuestScript::OfferMark).Tooltip("The marker over the monk while he has the errand to give").AssetFilter(AssetType::Texture2D)
+			.Property("ReturnMark", "Return Mark", &ShrineQuestScript::ReturnMark).Tooltip("The marker over the monk when the errand can be reported").AssetFilter(AssetType::Texture2D)
 			.Property("TreeFocusOffset", "Tree Focus Offset", &ShrineQuestScript::TreeFocusOffset).Tooltip("Metres from the Sacred Tree's foot to where the camera looks, on the ground")
 			.Property("TreeFocusRise", "Tree Focus Rise", &ShrineQuestScript::TreeFocusRise).Range(0.0f, 20.0f).Tooltip("Metres above the tree's foot the camera looks at")
 			.Property("TreeZoom", "Tree Zoom", &ShrineQuestScript::TreeZoom).Range(0.3f, 2.0f).Tooltip("How much the camera sees at the end of the slow push in (1 = as in play)")

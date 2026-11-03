@@ -7,6 +7,7 @@
 #include "Hydro/Renderer/Material.h"
 #include "Hydro/Renderer/MaterialSerializer.h"
 #include "Hydro/Renderer/Texture2D.h"
+#include "Hydro/Renderer/TextureImportSerializer.h"
 
 #include <algorithm>
 #include <fstream>
@@ -176,6 +177,24 @@ namespace Hydro
 		return handle;
 	}
 
+	// A normal map is data, not colour: its texture imports as RGBA (linear). Rewrites the image's .hymeta when it
+	// still says SRGB (the default a new image gets), keeping its handle.
+	static void ImportAsNormalMap(AssetHandle image)
+	{
+		if ((uint64_t)image == 0)
+		{
+			return;
+		}
+		const std::filesystem::path sidecar = AssetMetaSerializer::GetSidecarPath(AssetManager::GetAbsolutePath(image));
+		TextureImportConfig config;
+		TextureImportSerializer::Deserialize(sidecar, config);
+		if (config.Format != ImageFormat::RGBA)
+		{
+			config.Format = ImageFormat::RGBA;
+			TextureImportSerializer::Serialize(sidecar, config);
+		}
+	}
+
 	// The material asset for material `index`, made the first time as "<model>_<name>.hymat" next to the
 	// model. An existing one is never rewritten: it may have been edited.
 	static AssetHandle ResolveMaterial(const ImportedModel& model, uint32_t index, const std::filesystem::path& modelPath, MeshImportMapping& mapping)
@@ -223,6 +242,12 @@ namespace Hydro
 		if (source.EmissiveImage >= 0 && source.EmissiveImage < (int32_t)model.Images.size())
 		{
 			material.Emissive = ResolveImage(model, (uint32_t)source.EmissiveImage, modelPath, mapping);
+		}
+		if (source.NormalImage >= 0 && source.NormalImage < (int32_t)model.Images.size())
+		{
+			material.Normal = ResolveImage(model, (uint32_t)source.NormalImage, modelPath, mapping);
+			material.NormalStrength = source.NormalScale;
+			ImportAsNormalMap(material.Normal);
 		}
 
 		for (int number = 2; std::filesystem::exists(file, error); number++)

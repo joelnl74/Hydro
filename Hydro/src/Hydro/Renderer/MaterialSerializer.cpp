@@ -25,6 +25,11 @@ namespace Hydro
 		{
 			out << YAML::Key << "EmissiveHandle" << YAML::Value << (uint64_t)data.Emissive;
 		}
+		if ((uint64_t)data.Normal != 0)
+		{
+			out << YAML::Key << "NormalHandle" << YAML::Value << (uint64_t)data.Normal;
+			out << YAML::Key << "NormalStrength" << YAML::Value << data.NormalStrength;
+		}
 		out << YAML::Key << "Tint" << YAML::Value << data.Tint;
 		out << YAML::Key << "Tiling" << YAML::Value << data.Tiling;
 		out << YAML::Key << "EmissionColor" << YAML::Value << data.EmissionColor;
@@ -46,6 +51,8 @@ namespace Hydro
 		MaterialData data;
 		data.Albedo = AssetHandle(node["AlbedoHandle"].as<uint64_t>(0));
 		data.Emissive = AssetHandle(node["EmissiveHandle"].as<uint64_t>(0));
+		data.Normal = AssetHandle(node["NormalHandle"].as<uint64_t>(0));
+		data.NormalStrength = node["NormalStrength"].as<float>(data.NormalStrength);
 		if ((uint64_t)data.Albedo != 0)
 		{
 			AssetManager::GetAsset<Texture2D>(data.Albedo);
@@ -53,6 +60,10 @@ namespace Hydro
 		if ((uint64_t)data.Emissive != 0)
 		{
 			AssetManager::GetAsset<Texture2D>(data.Emissive);
+		}
+		if ((uint64_t)data.Normal != 0)
+		{
+			AssetManager::GetAsset<Texture2D>(data.Normal);
 		}
 		data.Tint = node["Tint"].as<glm::vec4>(data.Tint);
 		data.Tiling = node["Tiling"].as<glm::vec2>(data.Tiling);

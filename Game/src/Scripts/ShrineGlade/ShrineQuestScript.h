@@ -10,6 +10,7 @@
 #include "Views/DialogueScript.h"
 #include "Scripts/ShrineGlade/TreeAwakening.h"
 #include "Views/LetterboxView.h"
+#include "Views/QuestMarkerView.h"
 #include "Views/QuestTrackerScript.h"
 
 #include <algorithm>
@@ -26,7 +27,7 @@ namespace Hydro
 	//      and wakes the dormant slimes on the lower path (tags starting "Slime Grounds", EnemyChaseScript
 	//      Dormant).
 	//   2. Hunt: the tracker counts them as their battles are won (a won battle removes the slime).
-	//   3. Return: the marker turns gold; talking to him plays the cutscene: letterbox bars ("Cinematic Canvas",
+	//   3. Return: the marker turns to "?"; talking to him plays the cutscene: letterbox bars ("Cinematic Canvas",
 	//      which captures input, so Miko stands still), the camera glides to the Sacred Tree, the ground rumbles
 	//      (camera shake) and stops dead, the tree wakes ("Sacred Tree Awake" and "Sacred Tree Glow" fade in, a
 	//      cyan light and rising motes), then the monk's lines while the camera stays on the tree.
@@ -50,6 +51,10 @@ namespace Hydro
 		std::string MonkName = "Elder";
 		HY_PROPERTY(Tooltip("Tag prefix of the quest's slimes"))
 		std::string SlimePrefix = "Slime Grounds";
+		HY_PROPERTY(Asset(Texture2D), Tooltip("The marker over the monk while he has the errand to give"))
+		AssetHandle OfferMark = QuestMarkerView::DefaultOfferMark;
+		HY_PROPERTY(Asset(Texture2D), Tooltip("The marker over the monk when the errand can be reported"))
+		AssetHandle ReturnMark = QuestMarkerView::DefaultReturnMark;
 
 		// The cutscene's camera.
 		HY_PROPERTY(Tooltip("Metres from the Sacred Tree's foot to where the camera looks, on the ground"))
@@ -401,14 +406,11 @@ namespace Hydro
 			{
 				return;
 			}
-			// Over the monk's head, bobbing a little: vermilion for a new errand, gold for "come back to me".
+			// Over the monk's head, bobbing a little: a black-on-yellow "!" for a new errand, "?" for "come back to me".
 			const glm::vec3 foot = TreeAwakening::Foot(scene, m_Monk);
 			const float bob = 0.08f * std::sin(m_Time * 3.0f);
 			scene.SetWorldPosition(m_MarkerCanvas, DioramaView::Above(foot, 2.35f + bob));
-			if (m_Marker.IsValid() && m_Marker.HasComponent<UIImageComponent>())
-			{
-				m_Marker.GetComponent<UIImageComponent>().Color = offer ? glm::vec4(1.0f, 0.42f, 0.3f, 1.0f) : glm::vec4(1.0f, 0.84f, 0.42f, 1.0f);
-			}
+			QuestMarkerView::Present(m_Marker, report, OfferMark, ReturnMark);
 		}
 
 		// ---- Helpers -------------------------------------------------------------------------------------

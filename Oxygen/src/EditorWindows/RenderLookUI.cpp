@@ -79,6 +79,38 @@ namespace Hydro
 		changed |= ImGui::SliderFloat("Max radius", &postProcess.DofMaxRadius, 0.0f, 3.0f, "%.2f %%");
 		HelpMarker("The largest blur radius, in percent of the view's height (0.6 = about 6 pixels at 1080 lines),\nso it looks the same in any window size. 0: no blur.");
 		ImGui::EndDisabled();
+
+		ImGui::Separator();
+		ImGui::TextDisabled("Vignette");
+		changed |= ImGui::SliderFloat("Vignette", &postProcess.VignetteIntensity, 0.0f, 1.0f, "%.2f");
+		HelpMarker("How dark the frame's corners get (0: none). HDR views only. The Editor view leaves it out\nunless Editor > Effects > Post-Processing is on; the Game view always shows it.");
+		ImGui::BeginDisabled(postProcess.VignetteIntensity <= 0.0f);
+		changed |= ImGui::SliderFloat("Vignette radius", &postProcess.VignetteRadius, 0.0f, 1.0f, "%.2f");
+		HelpMarker("Where the darkening starts: 0 the centre, about 0.7 the middle of an edge, 1 the corners.");
+		changed |= ImGui::SliderFloat("Vignette softness", &postProcess.VignetteSoftness, 0.05f, 1.0f, "%.2f");
+		HelpMarker("Over how much further the darkening reaches its full strength.");
+		ImGui::EndDisabled();
+
+		ImGui::Separator();
+		ImGui::TextDisabled("Colour grading");
+		changed |= ImGui::Checkbox("Grading on", &postProcess.Grading);
+		HelpMarker("HDR views only. Off: a quick before/after comparison. The defaults change nothing.");
+		ImGui::BeginDisabled(postProcess.Grading == false);
+		changed |= ImGui::SliderFloat("Temperature", &postProcess.Temperature, -1.0f, 1.0f, "%.2f");
+		HelpMarker("White balance: below 0 cooler (bluer), above 0 warmer (more orange). Keeps the brightness.");
+		changed |= ImGui::SliderFloat("Tint", &postProcess.Tint, -1.0f, 1.0f, "%.2f");
+		HelpMarker("White balance: below 0 greener, above 0 more magenta.");
+		changed |= ImGui::SliderFloat("Contrast", &postProcess.Contrast, 0.5f, 2.0f, "%.2f");
+		HelpMarker("Around middle grey, in stops (never clips): above 1 darker darks and brighter lights.");
+		changed |= ImGui::SliderFloat("Saturation", &postProcess.Saturation, 0.0f, 2.0f, "%.2f");
+		HelpMarker("0: grey, 1: as painted, 2: twice as colourful.");
+		changed |= ImGui::DragFloat3("Lift", &postProcess.Lift.x, 0.002f, -0.3f, 0.3f, "%.3f");
+		HelpMarker("Added to the darks, fading out towards white (R, G, B). A little blue lifts the shadows cool.");
+		changed |= ImGui::DragFloat3("Gamma", &postProcess.Gamma.x, 0.005f, 0.3f, 3.0f, "%.3f");
+		HelpMarker("The mid-tones (R, G, B): above 1 brighter, below 1 darker.");
+		changed |= ImGui::DragFloat3("Gain", &postProcess.Gain.x, 0.005f, 0.0f, 3.0f, "%.3f");
+		HelpMarker("Multiplies everything, mostly visible in the lights (R, G, B). A little red and green warms the sun.");
+		ImGui::EndDisabled();
 		if (ImGui::Button("Reset post-processing"))
 		{
 			postProcess = ScenePostProcess{};

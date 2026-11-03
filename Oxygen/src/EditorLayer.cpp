@@ -739,7 +739,7 @@ namespace Hydro
 					ImGui::MenuItem("Post-Processing", nullptr, &m_EditorSettings.EditorViewPostProcessing);
 					if (ImGui::IsItemHovered())
 					{
-						ImGui::SetTooltip("Depth of field and bloom, as in the Game view");
+						ImGui::SetTooltip("Depth of field, bloom and the vignette, as in the Game view");
 					}
 					ImGui::MenuItem("Fog", nullptr, &m_EditorSettings.EditorViewFog);
 					ImGui::EndMenu();

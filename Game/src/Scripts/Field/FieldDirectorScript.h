@@ -95,6 +95,7 @@ namespace Hydro
 		static constexpr uint64_t DefaultNpcTable = 7308464824897497192ull;          // Assets/Data/Npcs.hytable
 		static constexpr uint64_t DefaultSignTable = 653601014895859085ull;          // Assets/Data/Signs.hytable
 		static constexpr uint64_t DefaultLootTable = 207747700610060598ull;          // Assets/Data/Loot.hytable
+		static constexpr uint64_t DefaultFieldUI = 1324405221109369128ull;           // Assets/Prefabs/UI/FieldUI.hyprefab
 
 		// Interaction: what counts as in reach of the player.
 		HY_PROPERTY(Range(0, 20), Tooltip("Metres: farther items get no prompt"))
@@ -142,12 +143,20 @@ namespace Hydro
 		HY_PROPERTY(Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\""))
 		ComponentRef<DialogueScript> Dialogue;
 
+		// The field UI (Nov 3, 2026): the canvases the views bind to (field menu, dialogue box, prompt, message banner,
+		// quest tracker, fade). The scenes built before the prefab have them baked in under this director
+		// (scripts/ui/build_game_ui.py field); any other scene gets a copy of this prefab under the director when it
+		// starts, so the UI is there whichever scene a run starts in (a save, Play on any scene).
+		HY_PROPERTY(Asset(Prefab), Tooltip("The field UI, instantiated under this director when the scene has none of its own (no \"Field Menu Canvas\" or \"Field UI\" child)"))
+		AssetHandle FieldUI = DefaultFieldUI;
+
 	protected:
 		void OnCreate() override
 		{
 			Scene& scene = *GetEntity().GetScene();
 			m_Camera = Find(scene, "Camera");
 			m_Player = Find(scene, "Player");
+			EnsureFieldUI();
 			// The views (runtime UI on canvases under this director, so their buttons' events reach OnUIEvent).
 			m_PromptView.Bind(scene);
 			m_Fade.Bind(scene);
@@ -843,6 +852,26 @@ namespace Hydro
 			ShowMessage(FieldLabel::UsedPotion);
 			HY_INFO("Field: used {} ({} left): {} {} HP {} MP", item->Name, slot.Count, GetHero(0).Name, BattleState::Get().HeroHP[0], BattleState::Get().HeroMP[0]);
 			m_Menu.Present();
+		}
+
+		// Gives the scene the field UI when it has none: a copy of the FieldUI prefab as this director's last child
+		// (under it, so the UI's events reach OnUIEvent). Scenes with the UI baked in keep theirs.
+		void EnsureFieldUI()
+		{
+			Entity self = GetEntity();
+			if ((bool)self.FindChild("Field Menu Canvas") || (bool)self.FindChild("Field UI") || (uint64_t)FieldUI == 0)
+			{
+				return;
+			}
+			const Entity ui = PrefabSerializer::Instantiate(*self.GetScene(), FieldUI, self);
+			if ((bool)ui)
+			{
+				HY_INFO("Field: the scene has no field UI; instantiated the FieldUI prefab under {}", self.GetName());
+			}
+			else
+			{
+				HY_WARN("Field: the scene has no field UI and the FieldUI prefab ({}) could not be instantiated", (uint64_t)FieldUI);
+			}
 		}
 
 		// The dialogue box's script: the Dialogue property's, else the one on "Dialogue Canvas"; nullptr in a scene

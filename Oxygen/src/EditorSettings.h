@@ -80,7 +80,7 @@ namespace Hydro
 		GizmoSettings Gizmo;
 		// The scene's look in the Editor view (Editor > Effects): off by default, so the view is sharp and clear to edit
 		// in; the Game view always shows them.
-		bool EditorViewPostProcessing = false; // depth of field and bloom
+		bool EditorViewPostProcessing = false; // depth of field, bloom and the vignette
 		bool EditorViewFog = false;
 
 		ConsoleSettings Console;

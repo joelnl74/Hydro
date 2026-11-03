@@ -8,3 +8,5 @@ Material:
   EmissionIntensity: 1
   AlphaCutoff: 0.5
   Filter: Nearest
+  NormalHandle: 867936598458031106
+  NormalStrength: 1

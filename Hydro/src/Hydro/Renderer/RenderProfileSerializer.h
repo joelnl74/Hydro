@@ -25,6 +25,9 @@ namespace Hydro
 	//       BloomKnee: 0.5
 	//       BloomIntensity: 0.6
 	//       BloomRadius: 1
+	//       VignetteIntensity: 0.35
+	//       VignetteRadius: 0.55
+	//       VignetteSoftness: 0.5
 	//
 	// The Environment and PostProcess maps are the same ones a scene saves for its own values (SceneSerializer).
 	class RenderProfileSerializer

@@ -12,7 +12,7 @@ layout(set = 1, binding = 0) uniform Material {
     vec4 emission;
     vec2 tiling;
     float alphaCutoff;
-    float padding;
+    float normalStrength;
 } material;
 layout(set = 1, binding = 1) uniform sampler2D albedoTexture;
 

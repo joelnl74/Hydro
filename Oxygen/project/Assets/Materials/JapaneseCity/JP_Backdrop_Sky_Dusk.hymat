@@ -4,7 +4,7 @@ Material:
   AlbedoHandle: 1873669794648653220
   EmissiveHandle: 1873669794648653220
   Tint: [0.2, 0.2, 0.2, 1]
-  Tiling: [0.00238095, 0.00714286]
+  Tiling: [0.00174825, 0.00524476]
   EmissionColor: [0.78, 0.72, 0.7]
   EmissionIntensity: 1
   AlphaCutoff: 0.5

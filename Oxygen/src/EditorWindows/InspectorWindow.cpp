@@ -456,6 +456,25 @@ namespace Hydro
 				ImGui::SetTooltip("Texture repeats per metre.");
 			}
 		});
+		DrawPropertyRow("Normal map", [&]()
+		{
+			DrawTextureField("##MaterialNormal", material.Normal);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("Tangent space, green up (glTF / OpenGL). Import it as RGBA (data), not SRGB.\nscripts/game/textures/make_normal_maps.py makes them from albedos.");
+			}
+		});
+		if ((uint64_t)material.Normal != 0)
+		{
+			DrawPropertyRow("Normal strength", [&]()
+			{
+				InputFloatField("##MaterialNormalStrength", material.NormalStrength, "%.2f", 0.0f, 4.0f);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("0 = flat, 1 = as the map says, 2 = twice as steep.");
+				}
+			});
+		}
 		DrawPropertyRow("Emissive", [&]() { DrawTextureField("##MaterialEmissive", material.Emissive); });
 		DrawPropertyRow("Emission", [&]() { ImGui::ColorEdit3("##MaterialEmission", glm::value_ptr(material.EmissionColor)); });
 		DrawPropertyRow("Intensity", [&]() { InputFloatField("##MaterialEmissionIntensity", material.EmissionIntensity, "%.2f", 0.0f, 100.0f); });

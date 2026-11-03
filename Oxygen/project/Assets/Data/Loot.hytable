@@ -107,3 +107,11 @@ DataTable:
         - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 3, MaxCount: 3}
       MinMoney: 88
       MaxMoney: 88
+    WallWatch:
+      DropChance: 100
+      Rolls: 2
+      Items:
+        - {Item: {Table: 4741649512266718899, Row: HiPotion}, MinCount: 1, MaxCount: 2}
+        - {Item: {Table: 4741649512266718899, Row: Ether}, MinCount: 1, MaxCount: 1}
+      MinMoney: 70
+      MaxMoney: 70

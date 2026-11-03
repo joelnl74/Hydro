@@ -19,3 +19,14 @@ RenderProfile:
     DofFarStart: 9
     DofRange: 9
     DofMaxRadius: 0.9
+    VignetteIntensity: 0.5
+    VignetteRadius: 0.42
+    VignetteSoftness: 0.6
+    Grading: true
+    Temperature: 0.06
+    Tint: 0.01
+    Contrast: 1.06
+    Saturation: 1.04
+    Lift: [0, 0, 0.003]
+    Gamma: [1, 1, 1]
+    Gain: [1.02, 1, 0.98]

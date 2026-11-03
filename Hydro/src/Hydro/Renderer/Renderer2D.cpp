@@ -857,11 +857,11 @@ namespace Hydro
 			});
 		}
 
-		// HDR: the tonemap's inputs (scene colour, bloom, the depth of field's circle of confusion and blur), a bloom
-		// pass's source and a depth of field pass's two sources, sampled images.
+		// HDR: the tonemap's inputs (scene colour, bloom, the depth of field's circle of confusion, blur and half-size
+		// colour), a bloom pass's source and a depth of field pass's two sources, sampled images.
 		{
-			std::vector<VkDescriptorSetLayoutBinding> bindings(4);
-			for (uint32_t i = 0; i < 4; i++)
+			std::vector<VkDescriptorSetLayoutBinding> bindings(5);
+			for (uint32_t i = 0; i < 5; i++)
 			{
 				bindings[i].binding = i;
 				bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -2708,6 +2708,30 @@ namespace Hydro
 		s_Data->Stats.DepthOfFieldHeight = halfHeight;
 	}
 
+	// The Tonemap pass's push constants from a scene's post-processing (#137 for the vignette and the grade).
+	static TonemapPushConstants MakeTonemapConstants(const ScenePostProcess& settings, float bloomIntensity, bool depthOfField)
+	{
+		TonemapPushConstants constants;
+		constants.Params = glm::vec4(std::exp2(std::clamp(settings.Exposure, -16.0f, 16.0f)), bloomIntensity, depthOfField ? 1.0f : 0.0f,
+			settings.Grading ? 1.0f : 0.0f);
+		constants.Vignette = glm::vec4(std::clamp(settings.VignetteIntensity, 0.0f, 1.0f), std::clamp(settings.VignetteRadius, 0.0f, 1.5f),
+			std::max(settings.VignetteSoftness, 0.01f), 0.0f);
+		if (settings.Grading)
+		{
+			// White balance: temperature moves red against blue, tint green against magenta; then scaled back to the
+			// same brightness (Rec. 709 luma), so only the hue moves.
+			const float temperature = std::clamp(settings.Temperature, -1.0f, 1.0f);
+			const float tint = std::clamp(settings.Tint, -1.0f, 1.0f);
+			glm::vec3 balance(1.0f + 0.2f * temperature + 0.1f * tint, 1.0f - 0.2f * tint, 1.0f - 0.2f * temperature + 0.1f * tint);
+			balance /= glm::dot(balance, glm::vec3(0.2126f, 0.7152f, 0.0722f));
+			constants.WhiteBalance = glm::vec4(balance, std::clamp(settings.Contrast, 0.1f, 4.0f));
+			constants.Lift = glm::vec4(glm::clamp(settings.Lift, glm::vec3(-1.0f), glm::vec3(1.0f)), std::max(settings.Saturation, 0.0f));
+			constants.InverseGamma = glm::vec4(1.0f / glm::max(settings.Gamma, glm::vec3(0.05f)), 0.0f);
+			constants.Gain = glm::vec4(glm::max(settings.Gain, glm::vec3(0.0f)), 0.0f);
+		}
+		return constants;
+	}
+
 	void Renderer2D::RecordTonemap(RenderPassContext& context)
 	{
 		RenderViewData& view = context.View;
@@ -2722,21 +2746,23 @@ namespace Hydro
 		}
 
 		// This frame's scene colour (left in SHADER_READ_ONLY_OPTIMAL by the scene pass's End), read texel for texel,
-		// the bloom's level 0 (filtered: half the size), and the depth of field's circle of confusion (texel for texel)
-		// and blur (filtered: half the size). What wasn't drawn this frame repeats the scene colour, unread.
+		// the bloom's level 0 (filtered: half the size), and the depth of field's circle of confusion (texel for texel),
+		// blur (filtered: half the size) and half-size colour (its alpha: each texel's circle of confusion, for the
+		// depth-aware upsample). What wasn't drawn this frame repeats the scene colour, unread.
 		const VulkanImage& image = view.SceneColor->GetImage(context.Frame);
 		const VulkanImage& bloom = view.BloomDrawn ? view.BloomLevels[0]->GetImage(context.Frame) : image;
 		const VulkanImage& circleOfConfusion = view.DofDrawn ? view.DofCoc->GetImage(context.Frame) : image;
 		const VulkanImage& depthOfField = view.DofDrawn ? view.DofBlur->GetImage(context.Frame) : image;
+		const VulkanImage& depthOfFieldHalf = view.DofDrawn ? view.DofHalf->GetImage(context.Frame) : image;
 		view.TonemapSet = VulkanDescriptorAllocator::AllocateFrame(s_Data->TonemapLayout);
 		if (view.TonemapSet == VK_NULL_HANDLE)
 		{
 			return;
 		}
-		const VkDescriptorImageInfo imageInfos[4] = { GetSampledImage(image), GetSampledImage(bloom), GetSampledImage(circleOfConfusion),
-			GetSampledImage(depthOfField) };
-		VkWriteDescriptorSet writes[4]{};
-		for (uint32_t i = 0; i < 4; i++)
+		const VkDescriptorImageInfo imageInfos[5] = { GetSampledImage(image), GetSampledImage(bloom), GetSampledImage(circleOfConfusion),
+			GetSampledImage(depthOfField), GetSampledImage(depthOfFieldHalf) };
+		VkWriteDescriptorSet writes[5]{};
+		for (uint32_t i = 0; i < 5; i++)
 		{
 			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writes[i].dstSet = view.TonemapSet;
@@ -2745,13 +2771,12 @@ namespace Hydro
 			writes[i].descriptorCount = 1;
 			writes[i].pImageInfo = &imageInfos[i];
 		}
-		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 4, writes, 0, nullptr);
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 5, writes, 0, nullptr);
 
-		TonemapPushConstants constants;
-		constants.ExposureScale = std::exp2(std::clamp(view.PostProcess.Exposure, -16.0f, 16.0f));
-		// Level 0 holds every level added together (the up chain): divide by the count for one level's worth.
-		constants.BloomIntensity = view.BloomDrawn ? std::max(view.PostProcess.BloomIntensity, 0.0f) / (float)view.BloomLevels.size() : 0.0f;
-		constants.DepthOfField = view.DofDrawn ? 1.0f : 0.0f;
+		const TonemapPushConstants constants = MakeTonemapConstants(view.PostProcess,
+			// Level 0 holds every level added together (the up chain): divide by the count for one level's worth.
+			view.BloomDrawn ? std::max(view.PostProcess.BloomIntensity, 0.0f) / (float)view.BloomLevels.size() : 0.0f,
+			view.DofDrawn);
 
 		pipeline->Bind(context.CommandBuffer, view.Target->GetExtent());
 		pipeline->BindDescriptorSet(context.CommandBuffer, 0, view.TonemapSet);

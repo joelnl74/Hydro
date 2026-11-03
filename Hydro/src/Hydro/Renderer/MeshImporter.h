@@ -80,6 +80,8 @@ namespace Hydro
 		glm::vec3 Emissive{ 0.0f };
 		float EmissiveStrength = 1.0f; // KHR_materials_emissive_strength
 		int32_t EmissiveImage = -1;
+		int32_t NormalImage = -1;      // the tangent-space normal map (glTF normalTexture); -1 = none
+		float NormalScale = 1.0f;      // its scale (MaterialData::NormalStrength)
 		float AlphaCutoff = 0.0f;      // 0 = opaque (glTF OPAQUE); MASK uses its cutoff
 		bool LinearFilter = false;     // the base colour sampler's mag filter is LINEAR
 	};

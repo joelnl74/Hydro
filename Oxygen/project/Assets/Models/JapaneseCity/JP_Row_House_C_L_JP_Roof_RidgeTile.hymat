@@ -2,6 +2,8 @@ Handle: 5427701911998739210
 Material:
   Type: Standard
   AlbedoHandle: 8209997820438213345
+  NormalHandle: 4583083835466699441
+  NormalStrength: 1
   Tint: [1, 1, 1, 1]
   Tiling: [1, 1]
   EmissionColor: [0, 0, 0]

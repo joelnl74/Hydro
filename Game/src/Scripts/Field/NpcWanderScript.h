@@ -14,7 +14,9 @@ namespace Hydro
 	// A townsperson who walks: back and forth along a line through where it was placed (Axis X: along the street,
 	// Y: towards and away from the camera), stopping for a while at each end and sometimes in between, playing the
 	// sheet's Walk<Facing> clips while moving and Idle<Facing> while standing. With WorkClip set (for example "Work",
-	// the temple monk's sweeping) it plays Work<Facing> instead of standing still, one pause in WorkEvery.
+	// the temple monk's sweeping) it plays Work<Facing> instead of standing still, one pause in WorkEvery; with
+	// WorkStartClip / WorkEndClip (Once clips) it plays those first and last, the shrine cat lying down to sleep and
+	// getting up again (Nov 3, 2026).
 	// Moves the transform directly (no physics body): its collider follows, so the player still bumps into it.
 	// It keeps Clearance metres ahead free: when the Player or another townsperson (a collider on the Npc layer)
 	// stands there, it stops and waits, facing that way; after Patience seconds it turns back (a round walker, Loop,
@@ -41,6 +43,12 @@ namespace Hydro
 		std::string WorkClip;
 		HY_PROPERTY(Range(1, 10), Tooltip("With WorkClip: it works at one stop in this many"))
 		int WorkEvery = 2;
+		HY_PROPERTY(Tooltip("With WorkClip: the work faces the camera (Work Down, where the broom shows); off: the way it stopped (Work<Facing>, else Down)"))
+		bool WorkFacesCamera = true;
+		HY_PROPERTY(Tooltip("With WorkClip: a clip prefix played once before the work (\"LieDown\" plays LieDown<Facing>, a Once clip); empty: none"))
+		std::string WorkStartClip;
+		HY_PROPERTY(Tooltip("With WorkClip: a clip prefix played once after the work, before it walks on (\"GetUp\"); empty: none"))
+		std::string WorkEndClip;
 		HY_PROPERTY(Range(0, 60), Tooltip("Seconds before it first moves (so a crowd doesn't all set off at once)"))
 		float StartDelay = 0.0f;
 		HY_PROPERTY(Tooltip("A round: it always walks from the line's start to its end, then reappears at the start (for a long street, with both ends off screen) instead of turning back"))
@@ -73,12 +81,31 @@ namespace Hydro
 		{
 			if (m_Wait > 0.0f)
 			{
+				if (m_Work == WorkStage::Starting && SpriteAnimator::IsFinished(GetEntity()))
+				{
+					PlayWork();
+				}
 				m_Wait -= deltaTime;
 				if (m_Wait <= 0.0f)
 				{
+					if (m_Work != WorkStage::None && WorkEndClip.empty() == false && PlayFacing(WorkEndClip))
+					{
+						m_Work = WorkStage::Ending;
+						return;
+					}
+					m_Work = WorkStage::None;
 					PickNextTarget();
 				}
 				return;
+			}
+			if (m_Work == WorkStage::Ending)
+			{
+				if (SpriteAnimator::IsFinished(GetEntity()) == false)
+				{
+					return;
+				}
+				m_Work = WorkStage::None;
+				PickNextTarget();
 			}
 
 			const float step = Speed * deltaTime;
@@ -233,12 +260,18 @@ namespace Hydro
 			SetWorldPosition(position);
 		}
 
-		// Standing: the work clip at one stop in WorkEvery (facing the camera, where the broom shows), else idle.
+		// Standing: the work clip at one stop in WorkEvery (facing the camera, where the broom shows, unless
+		// WorkFacesCamera is off), after WorkStartClip when it has one, else idle.
 		void PlayStanding()
 		{
 			if (WorkClip.empty() == false && WorkEvery > 0 && (m_Stops % WorkEvery) == 0)
 			{
-				if (SpriteAnimator::Play(GetEntity(), WorkClip + "Down"))
+				if (WorkStartClip.empty() == false && PlayFacing(WorkStartClip))
+				{
+					m_Work = WorkStage::Starting;
+					return;
+				}
+				if (PlayWork())
 				{
 					return;
 				}
@@ -247,6 +280,23 @@ namespace Hydro
 			{
 				SpriteAnimator::Play(GetEntity(), "Idle");
 			}
+		}
+
+		bool PlayWork()
+		{
+			const bool played = WorkFacesCamera ? SpriteAnimator::Play(GetEntity(), WorkClip + "Down") : PlayFacing(WorkClip);
+			m_Work = played ? WorkStage::Working : WorkStage::None;
+			return played;
+		}
+
+		// A clip prefix in the way it faces, else facing the camera; from its first frame.
+		bool PlayFacing(const std::string& prefix)
+		{
+			if (SpriteAnimator::Play(GetEntity(), prefix + m_Facing, true))
+			{
+				return true;
+			}
+			return SpriteAnimator::Play(GetEntity(), prefix + "Down", true);
 		}
 
 		// 0 to 1 from a xorshift: every townsperson walks its own way, the same way every run.
@@ -262,6 +312,14 @@ namespace Hydro
 		float m_Along = 0.0f;      // metres from home along the axis
 		float m_Target = 0.0f;
 		float m_Wait = 0.0f;
+		enum class WorkStage : uint8_t
+		{
+			None = 0,
+			Starting, // WorkStartClip playing
+			Working,  // the work clip
+			Ending    // WorkEndClip playing: it walks on when it has finished
+		};
+		WorkStage m_Work = WorkStage::None;
 		int m_Stops = 0;
 		std::string m_Facing = "Down";
 		float m_Blocked = 0.0f;      // seconds waiting for the way to clear

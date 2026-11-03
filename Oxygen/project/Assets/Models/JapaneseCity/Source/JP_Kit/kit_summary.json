@@ -7,7 +7,7 @@
   "height": 10.65,
   "faces": 2511,
   "location": [
-   -78.7,
+   -99.8,
    44.0
   ]
  },
@@ -19,7 +19,7 @@
   "height": 4.38,
   "faces": 6,
   "location": [
-   -80.7,
+   -101.8,
    45.05
   ]
  },
@@ -31,7 +31,7 @@
   "height": 4.38,
   "faces": 6,
   "location": [
-   -76.7,
+   -97.8,
    45.05
   ]
  },
@@ -43,7 +43,7 @@
   "height": 2.8,
   "faces": 369,
   "location": [
-   -68.5,
+   -89.6,
    44.0
   ]
  },
@@ -54,7 +54,7 @@
   "height": 3.87,
   "faces": 422,
   "location": [
-   -62.3,
+   -83.4,
    44.0
   ]
  },
@@ -64,19 +64,47 @@
   "roof": "hipgable",
   "upper": "balcony",
   "cusped": true,
-  "ridge": 9.0,
+  "ridge": 9.2,
   "door_x": 0.0,
   "head_z": 2.65,
   "arm_z": 3.53,
   "shop_floor_z": null,
   "pent_z": 3.55,
+  "deck_y": -1.0,
+  "lanterns": [
+   [
+    -7.55,
+    -0.55,
+    2.97
+   ],
+   [
+    7.55,
+    -0.55,
+    2.97
+   ],
+   [
+    -7.55,
+    4.6,
+    2.97
+   ],
+   [
+    -6.0,
+    -1.1,
+    5.48
+   ],
+   [
+    6.0,
+    -1.1,
+    5.48
+   ]
+  ],
   "tier": "A",
   "width": 14.0,
   "depth": 10.0,
-  "height": 9.0,
-  "faces": 4989,
+  "height": 9.2,
+  "faces": 8685,
   "location": [
-   -51.3,
+   -72.4,
    44.0
   ]
  },
@@ -96,9 +124,9 @@
   "width": 14.0,
   "depth": 12.0,
   "height": 9.51,
-  "faces": 5129,
+  "faces": 5117,
   "location": [
-   -34.3,
+   -55.4,
    44.0
   ]
  },
@@ -118,9 +146,9 @@
   "width": 10.0,
   "depth": 10.0,
   "height": 9.0,
-  "faces": 3930,
+  "faces": 3918,
   "location": [
-   -19.3,
+   -40.4,
    44.0
   ]
  },
@@ -131,7 +159,7 @@
   "height": 2.21,
   "faces": 398,
   "location": [
-   -9.3,
+   -30.4,
    44.0
   ]
  },
@@ -142,31 +170,46 @@
   "height": 3.13,
   "faces": 532,
   "location": [
-   -5.5,
+   -26.6,
    44.0
   ]
  },
  "JP_Rich_Storehouse_A": {
-  "walls": "namako",
+  "walls": "plank skirt, aged plaster",
+  "entrance": "gable end",
   "tier": "A",
   "width": 6.0,
   "depth": 5.0,
-  "height": 7.64,
-  "faces": 859,
+  "height": 7.74,
+  "faces": 1476,
   "location": [
-   -0.7,
+   -21.8,
+   44.0
+  ]
+ },
+ "JP_Rich_Storehouse_B": {
+  "walls": "half-timbered plaster",
+  "entrance": "gable end",
+  "roof": "tile",
+  "tier": "A",
+  "width": 6.0,
+  "depth": 5.0,
+  "height": 7.12,
+  "faces": 1343,
+  "location": [
+   -12.8,
    44.0
   ]
  },
  "JP_Rich_Pagoda_A": {
   "tiers": 3,
   "tier": "A",
-  "width": 8.0,
-  "depth": 8.0,
-  "height": 14.35,
-  "faces": 3750,
+  "width": 12.0,
+  "depth": 12.0,
+  "height": 17.58,
+  "faces": 7098,
   "location": [
-   9.3,
+   -0.8,
    44.0
   ]
  },
@@ -178,7 +221,7 @@
   "height": 6.1,
   "faces": 801,
   "location": [
-   20.3,
+   12.2,
    44.0
   ]
  },
@@ -190,7 +233,7 @@
   "height": 3.0,
   "faces": 685,
   "location": [
-   30.3,
+   22.2,
    44.0
   ]
  },
@@ -203,7 +246,7 @@
   "height": 6.35,
   "faces": 869,
   "location": [
-   39.8,
+   31.7,
    44.0
   ]
  },
@@ -220,19 +263,19 @@
   "height": 10.8,
   "faces": 5129,
   "location": [
-   53.4,
+   45.3,
    44.0
   ]
  },
  "JP_Temple_Pagoda_A": {
-  "tiers": 5,
+  "tiers": 3,
   "tier": "A",
-  "width": 8.0,
-  "depth": 8.0,
-  "height": 20.59,
-  "faces": 5538,
+  "width": 12.0,
+  "depth": 12.0,
+  "height": 17.58,
+  "faces": 7098,
   "location": [
-   67.5,
+   61.4,
    44.0
   ]
  },
@@ -245,7 +288,7 @@
   "height": 7.01,
   "faces": 1620,
   "location": [
-   76.8,
+   72.7,
    44.0
   ]
  },
@@ -258,7 +301,58 @@
   "height": 3.38,
   "faces": 590,
   "location": [
-   83.9,
+   79.8,
+   44.0
+  ]
+ },
+ "JP_Temple_Temizuya_B": {
+  "basin_z": 0.82,
+  "basin_y": 1.0,
+  "tier": "A",
+  "width": 3.5999999999999996,
+  "depth": 3.1,
+  "height": 3.38,
+  "faces": 590,
+  "location": [
+   86.4,
+   44.0
+  ]
+ },
+ "JP_Shrine_Torii_A": {
+  "posts": 1.6,
+  "beam_z": 3.08,
+  "tier": "A",
+  "width": 5.7,
+  "depth": 0.6,
+  "height": 4.6,
+  "faces": 676,
+  "location": [
+   94.05,
+   44.0
+  ]
+ },
+ "JP_Shrine_Haiden_A": {
+  "deck_z": 0.52,
+  "door_y": -1.35,
+  "sanctuary_depth": 1.0,
+  "bell_hang": [
+   0.0,
+   -1.72,
+   2.64
+  ],
+  "box_front_y": -2.33,
+  "lantern_hang": [
+   2.05,
+   -2.7,
+   3.074
+  ],
+  "tier": "A",
+  "width": 6.9,
+  "depth": 5.0,
+  "height": 5.49,
+  "faces": 2513,
+  "location": [
+   103.35,
    44.0
   ]
  },
@@ -938,7 +1032,7 @@
   "height": 3.97,
   "faces": 410,
   "location": [
-   -57.0,
+   -61.5,
    0.0
   ]
  },
@@ -958,7 +1052,7 @@
   "height": 3.77,
   "faces": 1910,
   "location": [
-   -48.0,
+   -52.5,
    0.0
   ]
  },
@@ -978,7 +1072,7 @@
   "height": 3.45,
   "faces": 1360,
   "location": [
-   -40.0,
+   -44.5,
    0.0
   ]
  },
@@ -998,7 +1092,7 @@
   "height": 3.45,
   "faces": 1626,
   "location": [
-   -32.5,
+   -37.0,
    0.0
   ]
  },
@@ -1021,7 +1115,7 @@
   "height": 3.61,
   "faces": 3731,
   "location": [
-   -21.0,
+   -25.5,
    0.0
   ]
  },
@@ -1041,7 +1135,7 @@
   "height": 4.34,
   "faces": 1944,
   "location": [
-   -9.0,
+   -13.5,
    0.0
   ]
  },
@@ -1059,7 +1153,7 @@
   "height": 3.45,
   "faces": 1585,
   "location": [
-   -0.5,
+   -5.0,
    0.0
   ]
  },
@@ -1079,14 +1173,14 @@
   "height": 3.45,
   "faces": 1683,
   "location": [
-   7.5,
+   3.0,
    0.0
   ]
  },
  "JP_Farm_Minka_A": {
   "roof": "thatch",
-  "wall": "JP_Plaster_Clean",
-  "ridge": 7.32,
+  "wall": "JP_Plaster_Aged",
+  "ridge": 8.27,
   "head_z": 2.32,
   "door_x": [
    -3.0
@@ -1094,17 +1188,17 @@
   "tier": "C",
   "width": 10.0,
   "depth": 7.0,
-  "height": 7.32,
-  "faces": 362,
+  "height": 8.27,
+  "faces": 1606,
   "location": [
-   18.0,
+   13.5,
    0.0
   ]
  },
  "JP_Farm_Minka_B": {
   "roof": "thatch",
-  "wall": "JP_Plaster_Clean",
-  "ridge": 6.57,
+  "wall": "JP_Wood_WarmAged",
+  "ridge": 6.42,
   "head_z": 2.32,
   "door_x": [
    1.5
@@ -1112,17 +1206,17 @@
   "tier": "C",
   "width": 7.0,
   "depth": 5.5,
-  "height": 6.57,
-  "faces": 260,
+  "height": 6.42,
+  "faces": 1092,
   "location": [
-   29.5,
+   25.0,
    0.0
   ]
  },
  "JP_Farm_Minka_C": {
   "roof": "thatch",
-  "wall": "JP_Plaster_Clean",
-  "ridge": 6.82,
+  "wall": "JP_Plaster_Aged",
+  "ridge": 7.17,
   "head_z": 2.32,
   "door_x": [
    2.2
@@ -1130,26 +1224,26 @@
   "tier": "C",
   "width": 8.0,
   "depth": 6.0,
-  "height": 6.82,
-  "faces": 278,
+  "height": 7.17,
+  "faces": 1238,
   "location": [
-   40.0,
+   35.5,
    0.0
   ]
  },
  "JP_Farm_Barn_A": {
   "roof": "thatch",
   "wall": "JP_Wood_Weathered_V",
-  "ridge": 5.47,
+  "ridge": 5.32,
   "head_z": 2.32,
   "door_x": [],
   "tier": "C",
   "width": 6.0,
   "depth": 4.5,
-  "height": 5.47,
-  "faces": 149,
+  "height": 5.32,
+  "faces": 147,
   "location": [
-   50.0,
+   45.5,
    0.0
   ]
  },
@@ -1159,10 +1253,24 @@
   "tier": "C",
   "width": 4.0,
   "depth": 3.0,
-  "height": 4.5,
-  "faces": 85,
+  "height": 4.35,
+  "faces": 97,
   "location": [
-   58.0,
+   53.5,
+   0.0
+  ]
+ },
+ "JP_Farm_Storehouse_A": {
+  "walls": "half-timbered plaster",
+  "entrance": "gable end",
+  "roof": "thatch",
+  "tier": "A",
+  "width": 6.0,
+  "depth": 5.0,
+  "height": 8.0,
+  "faces": 827,
+  "location": [
+   61.5,
    0.0
   ]
  },
@@ -1415,6 +1523,45 @@
    ],
    "height": 2.12,
    "faces": 163
+  },
+  "JP_Prop_SuzuRope_A": {
+   "length": 1.62,
+   "height": 0.0,
+   "faces": 226
+  },
+  "JP_Prop_LanternHanging_A": {
+   "light": [
+    0.0,
+    0.0,
+    -0.59
+   ],
+   "height": 0.0,
+   "faces": 86
+  },
+  "JP_Prop_LanternHanging_B": {
+   "light": [
+    0.0,
+    0.0,
+    -0.99
+   ],
+   "height": 0.0,
+   "faces": 86
+  },
+  "JP_Prop_Komainu_A": {
+   "height": 1.54,
+   "faces": 4218
+  },
+  "JP_Prop_Komainu_B": {
+   "height": 1.54,
+   "faces": 4218
+  },
+  "JP_Prop_SaisenBako_A": {
+   "height": 0.51,
+   "faces": 107
+  },
+  "JP_Prop_ShrineAltar_A": {
+   "height": 1.04,
+   "faces": 268
   }
  },
  "_modules": {

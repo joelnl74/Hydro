@@ -195,6 +195,12 @@ namespace Hydro
 				material.EmissiveStrength = source.emissive_strength.emissive_strength;
 			}
 
+			material.NormalImage = ReadTextureImage(source.normal_texture, data, path, reportedTextures);
+			if (source.normal_texture.texture != nullptr)
+			{
+				material.NormalScale = source.normal_texture.scale;
+			}
+
 			if (source.alpha_mode == cgltf_alpha_mode_mask)
 			{
 				material.AlphaCutoff = source.alpha_cutoff;
@@ -210,10 +216,10 @@ namespace Hydro
 				}
 			}
 
-			if (reportedIgnoredMaps == false && (source.normal_texture.texture != nullptr || source.occlusion_texture.texture != nullptr
+			if (reportedIgnoredMaps == false && (source.occlusion_texture.texture != nullptr
 				|| source.pbr_metallic_roughness.metallic_roughness_texture.texture != nullptr))
 			{
-				HY_CORE_INFO("MeshImporter: '{}': normal, occlusion and metallic-roughness maps are ignored (Standard material)", fileName);
+				HY_CORE_INFO("MeshImporter: '{}': occlusion and metallic-roughness maps are ignored (Standard material)", fileName);
 				reportedIgnoredMaps = true;
 			}
 		}

@@ -41,8 +41,8 @@ namespace Hydro
 			// The Path brush's points so far (world space), joined by a line; empty when there are none.
 			std::vector<glm::vec3> TerrainPath;
 			// The scene's look in the Editor view (Nov 2, 2026; Oxygen's Editor > Effects menu): off, the view stays sharp
-			// and clear to edit in. PostProcessing: depth of field and bloom (exposure and the tonemap stay); Fog: the
-			// scene environment's fog.
+			// and clear to edit in. PostProcessing: depth of field, bloom and the vignette (exposure and the tonemap
+			// stay); Fog: the scene environment's fog.
 			bool PostProcessing = false;
 			bool Fog = false;
 		};

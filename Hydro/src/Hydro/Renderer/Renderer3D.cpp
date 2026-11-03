@@ -32,19 +32,20 @@ namespace Hydro
 		glm::vec4 Emission{ 0.0f }; // rgb = colour * intensity
 		glm::vec2 Tiling{ 1.0f };
 		float AlphaCutoff = 0.0f;
-		float Padding = 0.0f;
+		float NormalStrength = 0.0f; // 0 = no normal map (binding 3 is the flat one, unread)
 	};
 	static_assert(sizeof(MaterialUniform) == 48, "MaterialUniform: must match the std140 block in mesh.frag");
 	static_assert(offsetof(MaterialUniform, Emission) == 16 && offsetof(MaterialUniform, Tiling) == 32
 		&& offsetof(MaterialUniform, AlphaCutoff) == 40, "MaterialUniform: must match the std140 block in mesh.frag");
 
 	// A Standard material on the GPU: its uniform data and a persistent descriptor set (set 1) with the
-	// albedo and emissive textures. Immutable: a change to the data is another material.
+	// albedo, emissive and normal textures. Immutable: a change to the data is another material.
 	struct MeshMaterial
 	{
 		MaterialData Data;
 		Ref<Texture2D> Albedo;   // what the set points at (the loaded asset, or null = white)
 		Ref<Texture2D> Emissive;
+		Ref<Texture2D> Normal;   // null = the flat normal
 		Scope<VulkanBuffer> Uniform;
 		DescriptorAllocation Set;
 		uint64_t LastUsedFrame = 0;
@@ -59,7 +60,7 @@ namespace Hydro
 	struct TerrainSurfaceUniform
 	{
 		glm::vec4 LayerTint[MaxTerrainLayers];
-		glm::vec4 LayerTiling[MaxTerrainLayers]; // xy: repeats per metre
+		glm::vec4 LayerTiling[MaxTerrainLayers]; // xy: repeats per metre, z: normal strength (0 = no normal map)
 		glm::vec4 Roughness{ 0.0f };             // per layer, weight units
 		glm::vec4 Blend{ 0.0f };                 // per layer, weight units
 		glm::vec4 HeightBlend{ 0.0f };           // per layer
@@ -70,11 +71,12 @@ namespace Hydro
 	static_assert(sizeof(TerrainSurfaceUniform) == 224, "TerrainSurfaceUniform: must match the std140 block in terrain.frag");
 
 	// A terrain surface material on the GPU: its uniform data and a persistent descriptor set (set 1 of terrain.frag)
-	// with the weight map and the layers' albedos. Immutable, like MeshMaterial.
+	// with the weight map and the layers' albedos and normal maps. Immutable, like MeshMaterial.
 	struct TerrainSurfaceGPU
 	{
 		TerrainSurfaceMaterial Data;
 		Ref<Texture2D> Albedos[MaxTerrainLayers]; // what the set points at (the loaded assets, or null = white)
+		Ref<Texture2D> Normals[MaxTerrainLayers]; // null = the flat normal
 		Scope<VulkanBuffer> Uniform;
 		DescriptorAllocation Set;
 		uint64_t LastUsedFrame = 0;
@@ -138,6 +140,7 @@ namespace Hydro
 		std::map<MeshPipelineKey, Scope<VulkanPipeline>> Pipelines; // a null entry failed to build (logged once)
 
 		Ref<Texture2D> WhiteTexture;
+		Ref<Texture2D> FlatNormalTexture; // (0.5, 0.5, 1): what a material without a normal map binds
 		VkSampler NearestSampler = VK_NULL_HANDLE;
 		VkSampler LinearSampler = VK_NULL_HANDLE;
 		VkSampler LinearClampSampler = VK_NULL_HANDLE; // terrain weight maps
@@ -189,18 +192,22 @@ namespace Hydro
 		whiteSpecification.Height = 1;
 		whiteSpecification.Format = ImageFormat::SRGB;
 		s_Data3D->WhiteTexture = CreateRef<Texture2D>(whiteSpecification, &whitePixel);
+		const uint32_t flatNormalPixel = 0xffff8080; // RGBA8 little-endian: (128, 128, 255, 255)
+		ImageSpecification flatNormalSpecification = whiteSpecification;
+		flatNormalSpecification.Format = ImageFormat::RGBA;
+		s_Data3D->FlatNormalTexture = CreateRef<Texture2D>(flatNormalSpecification, &flatNormalPixel);
 
 		// Materials sample with their own filter (TextureFilter), always repeating (tiling).
 		s_Data3D->NearestSampler = CreateSampler(VK_FILTER_NEAREST);
 		s_Data3D->LinearSampler = CreateSampler(VK_FILTER_LINEAR);
 
-		// Set 1 of mesh.frag: the material's uniform data, albedo and emissive textures.
-		std::vector<VkDescriptorSetLayoutBinding> bindings(3);
+		// Set 1 of mesh.frag: the material's uniform data, albedo, emissive and normal textures.
+		std::vector<VkDescriptorSetLayoutBinding> bindings(4);
 		bindings[0].binding = 0;
 		bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		bindings[0].descriptorCount = 1;
 		bindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		for (uint32_t i = 1; i < 3; i++)
+		for (uint32_t i = 1; i < 4; i++)
 		{
 			bindings[i].binding = i;
 			bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -209,10 +216,10 @@ namespace Hydro
 		}
 		s_Data3D->MaterialLayout = VulkanDescriptorAllocator::GetLayout(bindings);
 
-		// Set 1 of terrain.frag: the surface's uniform data, the weight map and the layers' albedos (one binding each:
-		// the shader picks a layer per pixel through a switch, so no non-uniform indexing is needed).
+		// Set 1 of terrain.frag: the surface's uniform data, the weight map, the layers' albedos and then their normal maps
+		// (one binding each: the shader picks a layer per pixel through a switch, so no non-uniform indexing is needed).
 		s_Data3D->LinearClampSampler = CreateSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-		std::vector<VkDescriptorSetLayoutBinding> terrainBindings(2 + MaxTerrainLayers);
+		std::vector<VkDescriptorSetLayoutBinding> terrainBindings(2 + 2 * MaxTerrainLayers);
 		for (uint32_t i = 0; i < (uint32_t)terrainBindings.size(); i++)
 		{
 			terrainBindings[i].binding = i;
@@ -236,6 +243,7 @@ namespace Hydro
 		s_Data3D->TerrainSurfaces.clear();
 		s_Data3D->Shapes.clear();
 		s_Data3D->WhiteTexture.reset();
+		s_Data3D->FlatNormalTexture.reset();
 		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		Renderer::SubmitResourceFree([device, nearest = s_Data3D->NearestSampler, linear = s_Data3D->LinearSampler, clamp = s_Data3D->LinearClampSampler]()
 		{
@@ -265,18 +273,27 @@ namespace Hydro
 		return GetTexture2DData(*shown).Image->GetVulkanImageInfo();
 	}
 
-	static Scope<MeshMaterial> CreateMaterial(const MaterialData& data, const Ref<Texture2D>& albedo, const Ref<Texture2D>& emissive)
+	static const VulkanImageInfo& GetNormalImage(const Ref<Texture2D>& texture)
+	{
+		const Ref<Texture2D>& shown = texture != nullptr ? texture : s_Data3D->FlatNormalTexture;
+		return GetTexture2DData(*shown).Image->GetVulkanImageInfo();
+	}
+
+	static Scope<MeshMaterial> CreateMaterial(const MaterialData& data, const Ref<Texture2D>& albedo, const Ref<Texture2D>& emissive,
+		const Ref<Texture2D>& normal)
 	{
 		Scope<MeshMaterial> material = CreateScope<MeshMaterial>();
 		material->Data = data;
 		material->Albedo = albedo;
 		material->Emissive = emissive;
+		material->Normal = normal;
 
 		MaterialUniform uniform;
 		uniform.Tint = data.Tint;
 		uniform.Emission = glm::vec4(data.EmissionColor * data.EmissionIntensity, 0.0f);
 		uniform.Tiling = data.Tiling;
 		uniform.AlphaCutoff = data.AlphaCutoff;
+		uniform.NormalStrength = normal != nullptr ? std::max(data.NormalStrength, 0.0f) : 0.0f;
 
 		// Written once (materials are immutable), so one buffer is enough for every frame in flight.
 		BufferSpecification specification;
@@ -295,14 +312,16 @@ namespace Hydro
 		const VkSampler sampler = data.Filter == TextureFilter::Linear ? s_Data3D->LinearSampler : s_Data3D->NearestSampler;
 		const VulkanImageInfo& albedoImage = GetTextureImage(albedo);
 		const VulkanImageInfo& emissiveImage = GetTextureImage(emissive);
+		const VulkanImageInfo& normalImage = GetNormalImage(normal);
 
 		VkDescriptorBufferInfo bufferInfo{ material->Uniform->GetVulkanBuffer(), 0, sizeof(MaterialUniform) };
-		VkDescriptorImageInfo images[2]{};
+		VkDescriptorImageInfo images[3]{};
 		images[0] = { sampler, albedoImage.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		images[1] = { sampler, emissiveImage.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		images[2] = { sampler, normalImage.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
-		VkWriteDescriptorSet writes[3]{};
-		for (uint32_t i = 0; i < 3; i++)
+		VkWriteDescriptorSet writes[4]{};
+		for (uint32_t i = 0; i < 4; i++)
 		{
 			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writes[i].dstSet = material->Set.Set;
@@ -315,7 +334,9 @@ namespace Hydro
 		writes[1].pImageInfo = &images[0];
 		writes[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		writes[2].pImageInfo = &images[1];
-		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 3, writes, 0, nullptr);
+		writes[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writes[3].pImageInfo = &images[2];
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 4, writes, 0, nullptr);
 		return material;
 	}
 
@@ -325,6 +346,7 @@ namespace Hydro
 	{
 		const Ref<Texture2D> albedo = (uint64_t)data.Albedo != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Albedo) : nullptr;
 		const Ref<Texture2D> emissive = (uint64_t)data.Emissive != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Emissive) : nullptr;
+		const Ref<Texture2D> normal = (uint64_t)data.Normal != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Normal) : nullptr;
 		const uint64_t frame = Time::GetFrameCount();
 
 		std::vector<Scope<MeshMaterial>>& materials = s_Data3D->Materials;
@@ -335,7 +357,7 @@ namespace Hydro
 			{
 				continue;
 			}
-			if (material.Albedo == albedo && material.Emissive == emissive)
+			if (material.Albedo == albedo && material.Emissive == emissive && material.Normal == normal)
 			{
 				material.LastUsedFrame = frame;
 				return &material;
@@ -347,7 +369,7 @@ namespace Hydro
 			break;
 		}
 
-		Scope<MeshMaterial> material = CreateMaterial(data, albedo, emissive);
+		Scope<MeshMaterial> material = CreateMaterial(data, albedo, emissive, normal);
 		if (material == nullptr)
 		{
 			return nullptr;
@@ -389,20 +411,22 @@ namespace Hydro
 		view->MeshDraws.push_back(std::move(draw));
 	}
 
-	static Scope<TerrainSurfaceGPU> CreateTerrainSurface(const TerrainSurfaceMaterial& data, const Ref<Texture2D> (&albedos)[MaxTerrainLayers])
+	static Scope<TerrainSurfaceGPU> CreateTerrainSurface(const TerrainSurfaceMaterial& data, const Ref<Texture2D> (&albedos)[MaxTerrainLayers],
+		const Ref<Texture2D> (&normals)[MaxTerrainLayers])
 	{
 		Scope<TerrainSurfaceGPU> surface = CreateScope<TerrainSurfaceGPU>();
 		surface->Data = data;
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			surface->Albedos[i] = albedos[i];
+			surface->Normals[i] = normals[i];
 		}
 
 		TerrainSurfaceUniform uniform;
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			uniform.LayerTint[i] = data.Layers[i].Tint;
-			uniform.LayerTiling[i] = glm::vec4(data.Layers[i].Tiling, 0.0f, 0.0f);
+			uniform.LayerTiling[i] = glm::vec4(data.Layers[i].Tiling, normals[i] != nullptr ? std::max(data.Layers[i].NormalStrength, 0.0f) : 0.0f, 0.0f);
 			uniform.Roughness[(int)i] = data.EdgeRoughness[i];
 			uniform.Blend[(int)i] = std::max(data.Blend[i], 0.0f);
 			uniform.HeightBlend[(int)i] = std::max(data.HeightBlend[i], 0.0f);
@@ -426,16 +450,17 @@ namespace Hydro
 		}
 
 		VkDescriptorBufferInfo bufferInfo{ surface->Uniform->GetVulkanBuffer(), 0, sizeof(TerrainSurfaceUniform) };
-		VkDescriptorImageInfo images[1 + MaxTerrainLayers]{};
+		VkDescriptorImageInfo images[1 + 2 * MaxTerrainLayers]{};
 		images[0] = { s_Data3D->LinearClampSampler, GetTextureImage(data.Weights).ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			const VkSampler sampler = data.Layers[i].Filter == TextureFilter::Linear ? s_Data3D->LinearSampler : s_Data3D->NearestSampler;
 			images[1 + i] = { sampler, GetTextureImage(albedos[i]).ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+			images[1 + MaxTerrainLayers + i] = { sampler, GetNormalImage(normals[i]).ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		}
 
-		VkWriteDescriptorSet writes[2 + MaxTerrainLayers]{};
-		for (uint32_t i = 0; i < 2 + MaxTerrainLayers; i++)
+		VkWriteDescriptorSet writes[2 + 2 * MaxTerrainLayers]{};
+		for (uint32_t i = 0; i < 2 + 2 * MaxTerrainLayers; i++)
 		{
 			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writes[i].dstSet = surface->Set.Set;
@@ -451,7 +476,7 @@ namespace Hydro
 				writes[i].pImageInfo = &images[i - 1];
 			}
 		}
-		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 2 + MaxTerrainLayers, writes, 0, nullptr);
+		vkUpdateDescriptorSets(Renderer::GetVulkanDevice().GetDevice(), 2 + 2 * MaxTerrainLayers, writes, 0, nullptr);
 		return surface;
 	}
 
@@ -459,9 +484,11 @@ namespace Hydro
 	static TerrainSurfaceGPU* GetTerrainSurface(const TerrainSurfaceMaterial& data)
 	{
 		Ref<Texture2D> albedos[MaxTerrainLayers];
+		Ref<Texture2D> normals[MaxTerrainLayers];
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			albedos[i] = (uint64_t)data.Layers[i].Albedo != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Layers[i].Albedo) : nullptr;
+			normals[i] = (uint64_t)data.Layers[i].Normal != 0 ? AssetManager::GetLoadedAsset<Texture2D>(data.Layers[i].Normal) : nullptr;
 		}
 		const uint64_t frame = Time::GetFrameCount();
 
@@ -476,7 +503,7 @@ namespace Hydro
 			bool same = true;
 			for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 			{
-				same = same && surface.Albedos[i] == albedos[i];
+				same = same && surface.Albedos[i] == albedos[i] && surface.Normals[i] == normals[i];
 			}
 			if (same)
 			{
@@ -487,7 +514,7 @@ namespace Hydro
 			break;
 		}
 
-		Scope<TerrainSurfaceGPU> surface = CreateTerrainSurface(data, albedos);
+		Scope<TerrainSurfaceGPU> surface = CreateTerrainSurface(data, albedos, normals);
 		if (surface == nullptr)
 		{
 			return nullptr;

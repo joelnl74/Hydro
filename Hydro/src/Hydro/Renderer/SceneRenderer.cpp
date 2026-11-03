@@ -87,13 +87,14 @@ namespace Hydro
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
-		// The Editor view shows the scene's depth of field, bloom and fog only when asked (EditorOverlay), so it stays
-		// sharp to edit in; the Game view always does.
+		// The Editor view shows the scene's depth of field, bloom, vignette and fog only when asked (EditorOverlay), so
+		// it stays sharp and evenly lit to edit in; the Game view always does.
 		ScenePostProcess postProcess = m_Scene->GetActivePostProcess();
 		if (overlay.PostProcessing == false)
 		{
 			postProcess.DepthOfField = false;
 			postProcess.Bloom = false;
+			postProcess.VignetteIntensity = 0.0f;
 		}
 		m_Fog = overlay.Fog;
 		Renderer2D::SetPostProcess(postProcess);

@@ -9,6 +9,7 @@
 #include "State/Inventory.h"
 #include "State/QuestLog.h"
 #include "Views/DialogueScript.h"
+#include "Views/QuestMarkerView.h"
 
 #include <algorithm>
 #include <cmath>
@@ -25,7 +26,8 @@ namespace Hydro
 	// experience, listed after DoneLines) and the quest completes. A giver with nothing left to offer talks as usual
 	// (Npcs.hytable). The counting is QuestRules: battles record defeats (BattleScript), Collect quests follow the
 	// inventory every frame. A marker floats over a giver ("Quest Marker <Giver>", a World canvas the scene's builder
-	// adds): vermilion with a quest to offer, gold when one can be turned in. Put it once in a scene, on any entity.
+	// adds): QuestMarkerView's black-on-yellow "!" with a quest to offer, "?" when one can be turned in. Put it once in
+	// a scene, on any entity.
 	HY_SCRIPT()
 	class QuestGiverScript : public ScriptableEntity
 	{
@@ -34,6 +36,10 @@ namespace Hydro
 
 		HY_PROPERTY(Asset(DataTable, QuestDefinition), Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered"))
 		AssetHandle QuestTable = DefaultQuestTable;
+		HY_PROPERTY(Asset(Texture2D), Tooltip("The marker over a giver with a quest to offer"))
+		AssetHandle OfferMark = QuestMarkerView::DefaultOfferMark;
+		HY_PROPERTY(Asset(Texture2D), Tooltip("The marker over a giver when a quest can be turned in"))
+		AssetHandle ReturnMark = QuestMarkerView::DefaultReturnMark;
 
 	protected:
 		void OnCreate() override
@@ -209,11 +215,7 @@ namespace Hydro
 			}
 			const float bob = 0.08f * std::sin(m_Time * 3.0f);
 			scene.SetWorldPosition(giver.Marker, DioramaView::Above(scene.GetWorldPosition(giver.Npc), 2.35f + bob));
-			Entity image = giver.Image;
-			if (image.IsValid() && image.HasComponent<UIImageComponent>())
-			{
-				image.GetComponent<UIImageComponent>().Color = ready ? glm::vec4(1.0f, 0.84f, 0.42f, 1.0f) : glm::vec4(1.0f, 0.42f, 0.3f, 1.0f);
-			}
+			QuestMarkerView::Present(giver.Image, ready, OfferMark, ReturnMark);
 		}
 
 		// ---- Conversations ----------------------------------------------------------------------------------

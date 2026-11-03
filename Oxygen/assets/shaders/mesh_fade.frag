@@ -3,6 +3,7 @@
 #extension GL_GOOGLE_include_directive : require
 
 #include "lighting.glsl"
+#include "normal_mapping.glsl"
 #include "mesh_standard.glsl"
 #include "fade_dither.glsl"
 

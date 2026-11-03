@@ -9,7 +9,7 @@
 
 namespace Hydro
 {
-	// The Standard material (plan M4): albedo times tint, plus emission, opaque or cut out. The MVP's only
+	// The Standard material (plan M4): albedo times tint, an optional normal map, plus emission, opaque or cut out. The MVP's only
 	// material type; lit by M6's forward lights, otherwise unlit. Plain data: inline on a MeshComponent's
 	// material slot, or saved as a material asset (.hymat, MaterialAsset). Renderer3D turns it into GPU
 	// state (a cached uniform buffer and descriptor set per distinct MaterialData).
@@ -17,6 +17,12 @@ namespace Hydro
 	{
 		AssetHandle Albedo = 0;   // a Texture2D; 0 = white
 		AssetHandle Emissive = 0; // a Texture2D multiplied by EmissionColor * EmissionIntensity; 0 = white
+		// A tangent-space normal map (a Texture2D imported as RGBA data, not SRGB), sampled at the albedo's UV with the
+		// material's filter: red = right (+U), green = up the image (-V, glTF / OpenGL), blue = out of the surface.
+		// The tangent frame comes from the surface's UVs in the fragment shader (no tangents in the vertices).
+		// 0 = none (the surface's own normal). scripts/game/textures/make_normal_maps.py makes them from albedos.
+		AssetHandle Normal = 0;
+		float NormalStrength = 1.0f; // 0 = flat, 1 = as the map says, 2 = twice as steep
 		glm::vec4 Tint{ 1.0f };   // linear RGBA, multiplies the albedo
 		glm::vec2 Tiling{ 1.0f }; // texture repeats per metre (built-in shapes have UVs in metres)
 		glm::vec3 EmissionColor{ 0.0f }; // linear RGB; black = no emission
@@ -27,7 +33,8 @@ namespace Hydro
 
 		bool operator==(const MaterialData& other) const
 		{
-			return Albedo == other.Albedo && Emissive == other.Emissive && Tint == other.Tint && Tiling == other.Tiling
+			return Albedo == other.Albedo && Emissive == other.Emissive && Normal == other.Normal && NormalStrength == other.NormalStrength
+				&& Tint == other.Tint && Tiling == other.Tiling
 				&& EmissionColor == other.EmissionColor && EmissionIntensity == other.EmissionIntensity
 				&& AlphaCutoff == other.AlphaCutoff && Filter == other.Filter;
 		}

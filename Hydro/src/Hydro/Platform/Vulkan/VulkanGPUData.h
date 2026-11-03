@@ -61,15 +61,19 @@ namespace Hydro
 	// dropped, the farthest from the camera first.
 	static constexpr uint32_t MaxForwardLights = MaxForwardLightsPerView;
 
-	// Push constants (std430) of the Tonemap pass (tonemap.frag, post-processing plan P1).
+	// Push constants (std430) of the Tonemap pass (tonemap.frag, post-processing plan P1; vignette and grading #137).
 	struct TonemapPushConstants
 	{
-		float ExposureScale = 1.0f;  // 2^Exposure
-		float BloomIntensity = 0.0f; // 0 = no bloom (binding 1 is then the scene colour, unread)
-		float DepthOfField = 0.0f;   // 1 = mix in the depth of field's blur (bindings 2 and 3); 0 = they are unread
-		float Padding = 0.0f;
+		// x: 2^Exposure; y: bloom intensity (0 = no bloom: binding 1 is then the scene colour, unread);
+		// z: 1 = mix in the depth of field's blur (bindings 2 to 4; 0 = they are unread); w: 1 = grade.
+		glm::vec4 Params{ 1.0f, 0.0f, 0.0f, 0.0f };
+		glm::vec4 Vignette{ 0.0f, 0.55f, 0.5f, 0.0f };    // x: intensity (0 = no vignette), y: radius, z: softness
+		glm::vec4 WhiteBalance{ 1.0f, 1.0f, 1.0f, 1.0f }; // rgb: white balance multiplier, w: contrast
+		glm::vec4 Lift{ 0.0f, 0.0f, 0.0f, 1.0f };         // rgb: lift, w: saturation
+		glm::vec4 InverseGamma{ 1.0f };                   // rgb: 1 / gamma
+		glm::vec4 Gain{ 1.0f };                           // rgb: gain
 	};
-	static_assert(sizeof(TonemapPushConstants) == 16, "TonemapPushConstants: must match the push_constant block in tonemap.frag");
+	static_assert(sizeof(TonemapPushConstants) == 96, "TonemapPushConstants: must match the push_constant block in tonemap.frag");
 
 	// Push constants (std430) of the bloom passes (bloom_prefilter.frag, bloom_down.frag, bloom_up.frag; plan P2):
 	// xy = one texel of the source image in UV, z and w per pass (prefilter: threshold, knee; up: radius).
