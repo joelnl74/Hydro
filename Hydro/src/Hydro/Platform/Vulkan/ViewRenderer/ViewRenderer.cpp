@@ -1,6 +1,7 @@
 #include "hypch.h"
 #include "ViewRenderer.h"
 
+#include "Hydro/Platform/Vulkan/ViewRenderer/EntityPicker.h"
 #include "Hydro/Platform/Vulkan/ViewRenderer/PassTimers.h"
 #include "Hydro/Platform/Vulkan/ViewRenderer/QuadBatcher.h"
 #include "Hydro/Platform/Vulkan/ViewRenderer/SceneLightingBuffer.h"
@@ -242,6 +243,7 @@ namespace Hydro
 		const uint32_t frame = Renderer::GetRenderFrame();
 		UpdateImGuiTextures(frame);
 		ViewCapture::Resolve(s_Data->Views, frame);
+		EntityPicker::Resolve(s_Data->Views, frame);
 		PassTimers::BeginFrame(commandBuffer, frame);
 
 		for (RenderViewData* view : s_Data->QueuedViews)
@@ -358,6 +360,7 @@ namespace Hydro
 
 		// After the pass, so a capture has everything the view drew, overlay included.
 		ViewCapture::Record(commandBuffer, view, frame);
+		EntityPicker::Record(commandBuffer, view, frame);
 		PassTimers::EndLabel(commandBuffer);
 	}
 

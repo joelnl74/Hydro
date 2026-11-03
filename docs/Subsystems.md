@@ -115,6 +115,7 @@ Every current name was checked against the table. Only one changed:
 
 | Name | Verdict | Why |
 | --- | --- | --- |
+| `SceneGraph`, `SceneTransforms`, `SceneUILayout`, `SceneStage`, `EntityReferences`, `EditorContext`, `EditorViewport`, `GameViewport`, `CaptureControls`, `EditorMenuBar`, `EditorLaunch`, `ComponentDrawers`, `InspectorUI`, `ScriptFieldUI`, `MaterialEditor`, `DataAssetInspector` | New (Nov 3-4, 2026), splits by responsibility | Parts of `Scene`, `EditorLayer` and `InspectorWindow` that had grown past 1000 lines, each named for what it holds or does. `Scene...` parts are owned by `Scene`, which forwards its API; `...Viewport` is the window that shows a view; `...UI` classes are static ImGui helpers like `PropertyUI`; `ComponentDrawers` and `CaptureControls` are plural because they list several. No `Manager`, `System` or `Helper` |
 | `Renderer` | Keep (not `RenderEngine`) | It is a doer: layers submit draw calls and it renders them. `Engine` is for things that step a simulation or host a foreign runtime (audio mixer, script VM, physics world). `Renderer` is also the name every engine and every reader expects |
 | `Renderer2D`, `Renderer3D` | Keep | Parts of `Renderer`, named for the kind of drawing they do |
 | `TerrainCache` | New (Terrain plan TR1) | A part of `Renderer` that keeps terrains' GPU copies (`Cache`, like the material and shape caches); not `TerrainRenderer`: it draws nothing itself, `Renderer3D` does |

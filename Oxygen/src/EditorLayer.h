@@ -1,6 +1,8 @@
 #pragma once
 #include "Hydro.h"
 #include "EditorContext.h"
+#include "EditorLaunch.h"
+#include "EditorMenuBar.h"
 #include "Viewports/EditorViewport.h"
 #include "Viewports/GameViewport.h"
 #include "EditorWindows/HierarchyWindow.h"
@@ -17,28 +19,16 @@
 
 namespace Hydro
 {
-	// Oxygen's command line (--project, --scene, --play, --frames, --capture, --validate, --exit; --help lists them),
-	// so a scene can be opened, played, captured and checked unattended. See docs/TestBed.md.
-	struct EditorLaunchOptions
-	{
-		std::filesystem::path Project;
-		std::string Scene;
-		bool Play = false;
-		uint32_t Frames = 120;
-		std::filesystem::path Capture;
-		bool Validate = false;
-		bool Exit = false;
-
-		static EditorLaunchOptions Parse(const ApplicationCommandLine& commandLine);
-		bool IsAutomated() const { return Capture.empty() == false || Validate || Exit; }
-	};
-
 	class EditorLayer : public Layer
 	{
 	public:
-		EditorLayer() {};
+		EditorLayer()
+			: EditorLayer(EditorLaunchOptions{})
+		{
+		}
 		explicit EditorLayer(const EditorLaunchOptions& launch)
-			: m_Launch(launch) {
+			: m_Launch(launch, m_Context, m_GameViewport)
+		{
 		}
 		virtual ~EditorLayer() {};
 
@@ -59,14 +49,6 @@ namespace Hydro
 		void OpenDefaultProject();
 		// At startup: the last project and scene (Editor Settings > Startup), else the default project.
 		void OpenStartupProject();
-		// The command line's project and scene, after the startup project; then --validate or --play.
-		void ApplyLaunchOptions();
-		// A scene by name (in the project's Assets/Scenes) or path; empty when there is none.
-		std::filesystem::path FindScene(const std::string& nameOrPath) const;
-		// --validate: loads every scene of the project into a scratch scene; true when none warned.
-		bool ValidateProject();
-		// Counts frames for --frames, then captures (--capture) and quits (--exit).
-		void UpdateLaunchAutomation();
 
 		// Editor settings (EditorSettings.yaml): loading applies them to ImGui and the editor camera.
 		void LoadEditorSettings();
@@ -77,12 +59,7 @@ namespace Hydro
 		void UpdateAutosave(float deltaTime);
 
 		// The View menu's windows: the menu, the session and the restore all use this one list.
-		struct ViewWindow
-		{
-			const char* Name;
-			bool* Open;
-		};
-		std::vector<ViewWindow> GetViewWindows();
+		std::vector<EditorMenuBar::ViewWindow> GetViewWindows();
 		// Opens and closes the View menu windows as the session left them.
 		void RestoreOpenWindows();
 		// Copies the windows' open state into the session; returns true when it changed.
@@ -123,12 +100,6 @@ namespace Hydro
 		// A .hyanim was saved: animators that play it get the new set.
 		void OnAnimationSetSaved(const std::filesystem::path& path);
 
-		// The Play / Pause / Step buttons, centred in the main menu bar.
-		void DrawPlayControls();
-		// Ctrl+Z undoes, Ctrl+Y and Ctrl+Shift+Z redo (edit mode, not while typing); the Edit menu does the same.
-		void UpdateUndoKeys();
-		void Undo();
-		void Redo();
 		// A new scene starts with a primary camera framing the origin.
 		void CreateDefaultCamera();
 
@@ -137,6 +108,9 @@ namespace Hydro
 		EditorContext m_Context;
 		EditorViewport m_EditorViewport{ m_Context };
 		GameViewport m_GameViewport{ m_Context };
+		EditorMenuBar m_MenuBar{ m_Context };
+		// What the command line asked for (unattended runs).
+		EditorLaunch m_Launch;
 		SceneStack m_GameScenes; // the scenes that run while playing (a copy of the editor scene at the bottom); empty in Edit
 		Scope<SceneRenderer> m_SceneRenderer;
 
@@ -153,12 +127,6 @@ namespace Hydro
 		Hydro::Ref<SpriteAnimationWindow> m_SpriteAnimationWindow;
 		entt::entity m_LastSelectedEntity = entt::null;
 		float m_AutosaveTimer = 0.0f; // seconds since the last save
-
-		// Unattended runs (EditorLaunchOptions): what was asked and how far it got.
-		enum class LaunchStep : uint8_t { None, Waiting, Capturing, Done };
-		EditorLaunchOptions m_Launch;
-		LaunchStep m_LaunchStep = LaunchStep::None;
-		uint32_t m_LaunchFramesLeft = 0;
 	};
 }
 

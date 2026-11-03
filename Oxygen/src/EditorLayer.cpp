@@ -94,6 +94,21 @@ namespace Hydro
 		m_EditorSettingsWindow->OnSave = [this]() { SaveEditorSettings(); };
 		m_EditorSettingsWindow->OnRevert = [this]() { RevertEditorSettings(); };
 
+		m_MenuBar.OnNewProject = [this]() { NewProject(); };
+		m_MenuBar.OnOpenProject = [this]() { OpenProject(); };
+		m_MenuBar.OnSaveProject = [this]() { SaveProject(); };
+		m_MenuBar.OnBuild = [this]() { m_BuildWindow->IsOpen() = true; };
+		m_MenuBar.OnNewScene = [this]() { NewScene(); };
+		m_MenuBar.OnNewEmptyScene = [this]() { NewEmptyScene(); };
+		m_MenuBar.OnOpenScene = [this]() { OpenScene(); };
+		m_MenuBar.OnSaveScene = [this]() { SaveScene(); };
+		m_MenuBar.OnSaveSceneAs = [this]() { SaveSceneAs(); };
+		m_MenuBar.OnPlay = [this]() { PlayScene(); };
+		m_MenuBar.OnStop = [this]() { StopScene(); };
+		m_Launch.OnOpenProject = [this](const std::filesystem::path& path) { OpenProject(path); };
+		m_Launch.OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
+		m_Launch.OnPlay = [this]() { PlayScene(); };
+
 		// The ImGui layer is attached before the client's layers, so its context exists and the editor's style
 		// replaces the engine's default.
 		LoadEditorSettings();
@@ -105,193 +120,7 @@ namespace Hydro
 
 		// After the demo scene: a project with a start scene replaces it.
 		OpenStartupProject();
-		ApplyLaunchOptions();
-	}
-
-	EditorLaunchOptions EditorLaunchOptions::Parse(const ApplicationCommandLine& commandLine)
-	{
-		EditorLaunchOptions options;
-		options.Project = commandLine.Get("--project");
-		options.Scene = commandLine.Get("--scene");
-		options.Play = commandLine.Has("--play");
-		const std::string frames = commandLine.Get("--frames");
-		if (frames.empty() == false)
-		{
-			options.Frames = (uint32_t)std::max(0, std::atoi(frames.c_str()));
-		}
-		options.Capture = commandLine.Get("--capture");
-		options.Validate = commandLine.Has("--validate");
-		options.Exit = commandLine.Has("--exit") || options.Capture.empty() == false || options.Validate;
-		return options;
-	}
-
-	void EditorLayer::ApplyLaunchOptions()
-	{
-		if (m_Launch.Project.empty() == false)
-		{
-			std::error_code ec;
-			if (std::filesystem::exists(m_Launch.Project, ec))
-			{
-				OpenProject(m_Launch.Project);
-			}
-			else
-			{
-				HY_ERROR("--project: {} doesn't exist", m_Launch.Project.string());
-			}
-		}
-		if (m_Launch.Scene.empty() == false)
-		{
-			const std::filesystem::path scene = FindScene(m_Launch.Scene);
-			if (scene.empty())
-			{
-				HY_ERROR("--scene: no scene '{}' in the project", m_Launch.Scene);
-			}
-			else
-			{
-				OpenScene(scene);
-			}
-		}
-
-		if (m_Launch.Validate)
-		{
-			const bool clean = ValidateProject();
-			Application::Get().Quit(clean ? 0 : 1);
-			return;
-		}
-		if (m_Launch.Play)
-		{
-			PlayScene();
-		}
-		if (m_Launch.IsAutomated())
-		{
-			// The Game view is drawn whatever the docking says, and at the capture size.
-			if (m_Launch.Capture.empty() == false)
-			{
-				m_GameViewport.SetFullscreen(true);
-				m_Context.Captures.FixedSize = true;
-			}
-			m_LaunchStep = LaunchStep::Waiting;
-			m_LaunchFramesLeft = m_Launch.Frames;
-			HY_INFO("Unattended run: {} frames{}{}", m_Launch.Frames,
-				m_Launch.Capture.empty() ? "" : ", then capture " + m_Launch.Capture.string(),
-				m_Launch.Exit ? ", then exit" : "");
-		}
-	}
-
-	std::filesystem::path EditorLayer::FindScene(const std::string& nameOrPath) const
-	{
-		std::error_code ec;
-		const std::filesystem::path given = nameOrPath;
-		if (given.extension().string() == SceneSerializer::FileExtension && std::filesystem::exists(given, ec))
-		{
-			return given;
-		}
-		if (Project::GetActive() == nullptr)
-		{
-			return {};
-		}
-		const std::filesystem::path inProject = EditorPaths::GetScenesDirectory() / (given.stem().string() + SceneSerializer::FileExtension);
-		if (std::filesystem::exists(inProject, ec))
-		{
-			return inProject;
-		}
-		return {};
-	}
-
-	bool EditorLayer::ValidateProject()
-	{
-		if (Project::GetActive() == nullptr)
-		{
-			HY_ERROR("--validate: no project is open");
-			return false;
-		}
-
-		std::vector<LogMessage> messages;
-		const uint64_t before = Log::GetMessagesSince(0, messages);
-		uint32_t scenes = 0;
-		std::error_code ec;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(Project::GetActive()->GetAssetDirectory(), ec))
-		{
-			if (entry.is_regular_file() == false || entry.path().extension().string() != SceneSerializer::FileExtension)
-			{
-				continue;
-			}
-			// Into a scratch scene, like OpenScene; the serializer logs every missing asset and script.
-			Ref<Scene> scene = CreateRef<Scene>("Validate", true);
-			SceneSerializer serializer(scene);
-			if (serializer.Deserialize(entry.path()))
-			{
-				HY_INFO("Validated {}: {} entities", entry.path().filename().string(), scene->m_Registry.size<IDComponent>());
-			}
-			else
-			{
-				HY_ERROR("Validate: {} failed to load", entry.path().filename().string());
-			}
-			scenes++;
-		}
-
-		messages.clear();
-		Log::GetMessagesSince(before, messages);
-		uint32_t problems = 0;
-		for (const LogMessage& message : messages)
-		{
-			if (message.Level >= LogLevel::Warn)
-			{
-				problems++;
-			}
-		}
-		HY_INFO("Validated {} scenes: {} warnings or errors", scenes, problems);
-		return problems == 0;
-	}
-
-	void EditorLayer::UpdateLaunchAutomation()
-	{
-		switch (m_LaunchStep)
-		{
-			case LaunchStep::Waiting:
-			{
-				if (m_LaunchFramesLeft > 0)
-				{
-					m_LaunchFramesLeft--;
-					return;
-				}
-				if (m_Launch.Capture.empty())
-				{
-					m_LaunchStep = LaunchStep::Done;
-					return;
-				}
-				// Through the normal capture request, so the view is drawn at the capture size first.
-				std::error_code ec;
-				std::filesystem::create_directories(m_Launch.Capture.parent_path(), ec);
-				m_Context.Captures.Game = true;
-				m_Context.Captures.GamePath = m_Launch.Capture;
-				m_LaunchStep = LaunchStep::Capturing;
-				return;
-			}
-			case LaunchStep::Capturing:
-			{
-				// The request is taken when the Game view is drawn, and the file is written after that frame.
-				if (m_Context.Captures.Game == false && m_GameViewport.IsCapturePending() == false)
-				{
-					HY_INFO("Captured the Game view to {}", m_Launch.Capture.string());
-					m_LaunchStep = LaunchStep::Done;
-				}
-				return;
-			}
-			case LaunchStep::Done:
-			{
-				if (m_Launch.Exit)
-				{
-					Application::Get().Quit(0);
-				}
-				m_LaunchStep = LaunchStep::None;
-				return;
-			}
-			case LaunchStep::None:
-			{
-				return;
-			}
-		}
+		m_Launch.Apply();
 	}
 
 	void EditorLayer::OnDetach()
@@ -360,8 +189,8 @@ namespace Hydro
 		ImGuizmo::BeginFrame();
 		m_GameViewport.UpdateKeys();
 		CaptureControls::UpdateKeys(m_Context.Captures);
-		UpdateUndoKeys();
-		UpdateLaunchAutomation();
+		m_MenuBar.UpdateKeys();
+		m_Launch.Update();
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -413,170 +242,7 @@ namespace Hydro
 
 		style.WindowMinSize.x = minWinSizeX;
 
-		if (ImGui::BeginMenuBar())
-		{
-			EditorChrome::DrawBrand(m_Context.Settings.Style.GetHighlightColor());
-
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("New Project..."))
-				{
-					NewProject();
-				}
-				if (ImGui::MenuItem("Open Project..."))
-				{
-					OpenProject();
-				}
-				if (ImGui::MenuItem("Save Project", nullptr, false, Project::GetActive() != nullptr))
-				{
-					SaveProject();
-				}
-				if (ImGui::MenuItem("Build...", nullptr, false, Project::GetActive() != nullptr))
-				{
-					m_BuildWindow->IsOpen() = true;
-				}
-				ImGui::Separator();
-				if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-				{
-					NewScene();
-				}
-				if (ImGui::MenuItem("New Empty Scene"))
-				{
-					NewEmptyScene();
-				}
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::SetTooltip("A scene with only a camera, without the project's scene template");
-				}
-				if (ImGui::MenuItem("Open Scene..."))
-				{
-					OpenScene();
-				}
-				if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-				{
-					SaveScene();
-				}
-				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-				{
-					SaveSceneAs();
-				}
-				ImGui::Separator();
-				if (ImGui::MenuItem("Exit"))
-				{
-					Application::Get().Quit();
-				}
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("Edit"))
-			{
-				const std::string undoName = m_Context.Commands.GetUndoName();
-				const std::string redoName = m_Context.Commands.GetRedoName();
-				const std::string undoLabel = undoName.empty() ? std::string("Undo") : "Undo " + undoName;
-				const std::string redoLabel = redoName.empty() ? std::string("Redo") : "Redo " + redoName;
-				if (ImGui::MenuItem(undoLabel.c_str(), "Ctrl+Z", false, m_Context.Commands.CanUndo() && IsPlaying() == false))
-				{
-					Undo();
-				}
-				if (ImGui::MenuItem(redoLabel.c_str(), "Ctrl+Y", false, m_Context.Commands.CanRedo() && IsPlaying() == false))
-				{
-					Redo();
-				}
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("View"))
-			{
-				for (const ViewWindow& window : GetViewWindows())
-				{
-					ImGui::MenuItem(window.Name, nullptr, window.Open);
-				}
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("Create"))
-			{
-				if (ImGui::MenuItem("Empty Entity"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Entity");
-					m_Context.Selection = entity;
-				}
-				if (ImGui::MenuItem("Sprite"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Sprite");
-					entity.AddComponent<TransformComponent>();
-					entity.AddComponent<SpriteRendererComponent>();
-					m_Context.Selection = entity;
-				}
-				if (ImGui::MenuItem("Camera"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Camera");
-					entity.AddComponent<TransformComponent>();
-					entity.AddComponent<CameraComponent>();
-					m_Context.Selection = entity;
-				}
-				if (ImGui::MenuItem("Light"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Light");
-					entity.AddComponent<TransformComponent>();
-					m_Context.Selection = entity;
-				}
-				if (ImGui::BeginMenu("Meshes"))
-				{
-					if (ImGui::MenuItem("Box"))
-					{
-						Entity entity = m_Context.ActiveScene->CreateEntity("Box");
-						entity.AddComponent<TransformComponent>();
-						entity.AddComponent<MeshComponent>().Shape = MeshShape::Box;
-						m_Context.Selection = entity;
-					}
-					if (ImGui::MenuItem("Cylinder"))
-					{
-						Entity entity = m_Context.ActiveScene->CreateEntity("Cylinder");
-						entity.AddComponent<TransformComponent>();
-						entity.AddComponent<MeshComponent>().Shape = MeshShape::Cylinder;
-						m_Context.Selection = entity;
-					}
-					if (ImGui::MenuItem("Plane"))
-					{
-						Entity entity = m_Context.ActiveScene->CreateEntity("Plane");
-						entity.AddComponent<TransformComponent>();
-						entity.AddComponent<MeshComponent>().Shape = MeshShape::Plane;
-						m_Context.Selection = entity;
-					}
-					if (ImGui::MenuItem("Stairs"))
-					{
-						Entity entity = m_Context.ActiveScene->CreateEntity("Stairs");
-						entity.AddComponent<TransformComponent>();
-						entity.AddComponent<MeshComponent>().Shape = MeshShape::Stairs;
-						m_Context.Selection = entity;
-					}
-					if (ImGui::MenuItem("Ramp"))
-					{
-						Entity entity = m_Context.ActiveScene->CreateEntity("Ramp");
-						entity.AddComponent<TransformComponent>();
-						entity.AddComponent<MeshComponent>().Shape = MeshShape::Ramp;
-						m_Context.Selection = entity;
-					}
-
-
-					ImGui::EndMenu();
-				}
-
-				ImGui::EndMenu();
-			}
-
-
-			DrawPlayControls();
-
-			// The waterline: the accent while editing, the play-mode tint while playing.
-			const bool tinted = IsPlaying() && m_Context.Settings.PlayMode.Tint;
-			EditorChrome::DrawMenuBarWaterline(tinted ? m_Context.Settings.PlayMode.TintColor
-				: m_Context.Settings.Style.GetHighlightColor());
-
-			ImGui::EndMenuBar();
-		}
+		m_MenuBar.Draw(GetViewWindows());
 
 		m_HierarchyWindow->OnImguiRender(m_Context.ActiveScene);
 		// Picking an entity in the hierarchy takes the inspector back from an asset.
@@ -618,91 +284,6 @@ namespace Hydro
 		}
 
 		EditorChrome::PopPlayModeTint();
-	}
-
-	void EditorLayer::DrawPlayControls()
-	{
-		const ImGuiStyle& style = ImGui::GetStyle();
-		const float buttonSize = ImGui::GetFrameHeight() * 1.4f;
-		const float totalWidth = 3.0f * buttonSize + 2.0f * style.ItemSpacing.x;
-		const float centre = (ImGui::GetWindowWidth() - totalWidth) * 0.5f;
-		if (centre > ImGui::GetCursorPosX())
-		{
-			ImGui::SetCursorPosX(centre);
-		}
-
-		const ImVec4 accent = m_Context.Settings.Style.GetHighlightColor();
-		const ImVec4 playColor = m_Context.Settings.PlayMode.Tint ? m_Context.Settings.PlayMode.TintColor : accent;
-
-		// Play turns into Stop (in the play-mode colour) while the game runs.
-		const bool playing = IsPlaying();
-		if (EditorChrome::IconButton("##PlayStop", playing ? ToolbarIcon::Stop : ToolbarIcon::Play, buttonSize, playing, playColor,
-			playing ? "Stop (back to the editor scene)" : "Play (runs a copy of the scene)"))
-		{
-			if (playing)
-			{
-				StopScene();
-			}
-			else
-			{
-				PlayScene();
-			}
-		}
-
-		ImGui::BeginDisabled(playing == false);
-
-		const bool paused = m_Context.Paused;
-		if (EditorChrome::IconButton("##Pause", paused ? ToolbarIcon::Play : ToolbarIcon::Pause, buttonSize, paused, accent,
-			paused ? "Resume" : "Pause"))
-		{
-			m_Context.Paused = m_Context.Paused == false;
-		}
-
-		ImGui::BeginDisabled(m_Context.Paused == false);
-		if (EditorChrome::IconButton("##Step", ToolbarIcon::Step, buttonSize, false, accent, "Step one frame"))
-		{
-			m_Context.StepFrames++;
-		}
-		ImGui::EndDisabled();
-
-		ImGui::EndDisabled();
-	}
-
-	void EditorLayer::UpdateUndoKeys()
-	{
-		const ImGuiIO& io = ImGui::GetIO();
-		if (IsPlaying() || io.WantTextInput || io.KeyCtrl == false)
-		{
-			return;
-		}
-		if (ImGui::IsKeyPressed(ImGuiKey_Z, false))
-		{
-			if (io.KeyShift)
-			{
-				Redo();
-			}
-			else
-			{
-				Undo();
-			}
-		}
-		else if (ImGui::IsKeyPressed(ImGuiKey_Y, false))
-		{
-			Redo();
-		}
-	}
-
-	void EditorLayer::Undo()
-	{
-		// A stroke in progress becomes a step first, so it is what is undone.
-		m_Context.Terrain.EndStroke(m_Context.Commands);
-		m_Context.Commands.Undo();
-	}
-
-	void EditorLayer::Redo()
-	{
-		m_Context.Terrain.EndStroke(m_Context.Commands);
-		m_Context.Commands.Redo();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -1029,7 +610,7 @@ namespace Hydro
 		}
 	}
 
-	std::vector<EditorLayer::ViewWindow> EditorLayer::GetViewWindows()
+	std::vector<EditorMenuBar::ViewWindow> EditorLayer::GetViewWindows()
 	{
 		return {
 			{ "Console", &m_ConsoleWindow->IsOpen() },
@@ -1045,7 +626,7 @@ namespace Hydro
 	void EditorLayer::RestoreOpenWindows()
 	{
 		const std::map<std::string, bool>& saved = m_Context.Settings.Session.OpenWindows;
-		for (const ViewWindow& window : GetViewWindows())
+		for (const EditorMenuBar::ViewWindow& window : GetViewWindows())
 		{
 			if (auto it = saved.find(window.Name); it != saved.end())
 			{
@@ -1058,7 +639,7 @@ namespace Hydro
 	{
 		bool changed = false;
 		std::map<std::string, bool>& saved = m_Context.Settings.Session.OpenWindows;
-		for (const ViewWindow& window : GetViewWindows())
+		for (const EditorMenuBar::ViewWindow& window : GetViewWindows())
 		{
 			auto it = saved.find(window.Name);
 			if (it == saved.end() || it->second != *window.Open)

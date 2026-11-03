@@ -15,6 +15,7 @@
 #include "Components/Components.h"
 #include "SceneGraph.h"
 #include "SceneTransforms.h"
+#include "SceneUILayout.h"
 #include "SystemContext.h"
 #include "UI/UILayout.h"
 
@@ -217,13 +218,6 @@ namespace Hydro
 			entt::entity Handle{ entt::null };
 		};
 
-		// Places the visible UI children of layout group entry `index` and, with FitContent, resizes the group (min, max).
-		void ArrangeUIChildren(size_t index, const UIRectComponent& rect, const UILayoutGroupComponent& group,
-			glm::vec2& min, glm::vec2& max);
-		// Moves, clips and sizes the scrollbar of scroll view entry `index`.
-		void ScrollUIView(size_t index);
-		// False when canvas entry `index` isn't shown (a World canvas behind the camera).
-		bool PlaceUICanvas(size_t index, const UICanvasComponent& canvas, const glm::vec2& viewSize, UICanvasMetrics& metrics);
 		// Drops entries for entities destroyed behind the scene's back and adds IDComponents made without CreateEntity.
 		void RebuildEntityMap();
 
@@ -231,36 +225,10 @@ namespace Hydro
 		void DestroySingleEntityNow(Entity entity);
 
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
-		// The entity list as a hierarchy, and the world transforms resolved from it.
+		// The entity list as a hierarchy, and the world transforms and UI rects resolved from it.
 		SceneGraph m_Graph{ *this };
 		SceneTransforms m_Transforms{ *this, m_Graph };
-		// The rect a list entry's UI children resolve against.
-		struct UILayoutEntry
-		{
-			glm::vec2 Min{ 0.0f, 0.0f };
-			glm::vec2 Max{ 0.0f, 0.0f };
-			bool Visible = false;
-			bool InCanvas = false; // below a canvas (even an ignored, nested one)
-			UUID Canvas = 0;       // the canvas its UI children are drawn on (0 = none)
-		};
-		std::vector<UILayoutEntry> m_UILayout;
-		// The rect a layout group placed each entry at, and scratch lists.
-		struct UIDrivenRect
-		{
-			glm::vec2 Min{ 0.0f, 0.0f };
-			glm::vec2 Max{ 0.0f, 0.0f };
-			bool Driven = false;
-		};
-		std::vector<UIDrivenRect> m_UIDriven;
-		std::vector<size_t> m_UIChildIndices;
-		std::vector<UILayoutItem> m_UIItems;
-		std::vector<size_t> m_UIItemIndices;
-		// Placed canvases by UUID, and the primary camera's world-to-view-pixels matrix for World canvases (once per pass).
-		std::unordered_map<uint64_t, UICanvasMetrics> m_UICanvasMetrics;
-		glm::mat4 m_UIWorldToView{ 1.0f };
-		int m_UIWorldToViewState = 0; // 0 not worked out this pass, 1 ready, -1 no camera
-		// Already warned about, so the log isn't flooded.
-		std::unordered_set<entt::entity> m_NestedCanvasWarned;
+		SceneUILayout m_UILayout{ *this, m_Graph, m_Transforms };
 		int m_StageDepth = 0;
 		std::vector<DeferredCommand> m_Deferred;
 		std::unordered_set<entt::entity> m_PendingDestroy;
