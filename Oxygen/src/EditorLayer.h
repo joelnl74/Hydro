@@ -1,5 +1,8 @@
 #pragma once
 #include "Hydro.h"
+#include "EditorContext.h"
+#include "Viewports/EditorViewport.h"
+#include "Viewports/GameViewport.h"
 #include "EditorWindows/HierarchyWindow.h"
 #include "EditorWindows/StatsWindow.h"
 #include "EditorWindows/ConsoleWindow.h"
@@ -11,12 +14,6 @@
 #include "EditorWindows/EditorSettingsWindow.h"
 #include "EditorWindows/SpriteEditorWindow.h"
 #include "EditorWindows/SpriteAnimationWindow.h"
-#include "EditorWindows/TerrainTool.h"
-#include "EditorCommands/EditorCommand.h"
-#include "EditorSettings.h"
-
-#include <glm/glm.hpp>
-#include <imgui/imgui.h>
 
 namespace Hydro
 {
@@ -108,7 +105,7 @@ namespace Hydro
 		void ProcessSceneTransition();
 		// Selects the entity in `scene` with the same UUID as `previous`, or clears the selection. Keeps it across Play/Stop.
 		void SelectSameEntity(Entity previous, Scene& scene);
-		bool IsPlaying() const { return m_SceneState == SceneState::Play; }
+		bool IsPlaying() const { return m_Context.Playing; }
 
 		// A prefab or scene dropped from the Project window onto the Editor or Game window.
 		void OnAssetDropped(const std::filesystem::path& path);
@@ -117,7 +114,6 @@ namespace Hydro
 		void OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to);
 		// A file was deleted in the Project window: whatever shows or edits it lets go.
 		void OnPathDeleted(const std::filesystem::path& path);
-		void AcceptAssetDrop();
 
 		// Asset editors. Images open in the Sprite Editor, .hyanim files in the Animation window.
 		void OpenAsset(const std::filesystem::path& path);
@@ -129,70 +125,20 @@ namespace Hydro
 
 		// The Play / Pause / Step buttons, centred in the main menu bar.
 		void DrawPlayControls();
-		// Editor window: the active scene through the editor camera, which it controls.
-		void DrawEditorWindow();
-		// The Editor window's Camera menu (2D / 3D, the standard views, the controls) and the 2D/3D switch.
-		void DrawEditorCameraMenu();
-		// Over the Editor window's image: the fly speed while the camera flies.
-		void DrawEditorCameraHint(const ImVec2& imageMin);
-		// The script gizmos' labels (OnDrawGizmos), projected onto the Editor window's image.
-		void DrawScriptGizmoLabels(const ImVec2& imageMin, const ImVec2& imageSize);
-		// Game window: the active scene through its primary camera, as the game will show it.
-		void DrawGameWindow();
-		// Game full screen (F11): the game view covers the editor's window, and with FullscreenCoversMonitor the window
-		// covers the monitor too. F11 or Escape leaves it.
-		void SetGameFullscreen(bool fullscreen);
-		void DrawGameFullscreen();
-		void UpdateFullscreenKeys();
-		// Sizes a view and its camera's viewport to its window. A pending capture is requested here, at the fixed
-		// capture size if that option is on.
-		void ResizeGameView(uint32_t width, uint32_t height);
-		// Tells the active scene where the pointer is over the Game view's image (view pixels, Y up), for the runtime UI.
-		void UpdateGamePointer(const ImVec2& imagePosition, const ImVec2& imageSize);
-		void ResizeEditorView(uint32_t width, uint32_t height);
-		// The Capture menu, shown in the Editor and Game windows' menu bars.
-		void DrawCaptureMenu();
-		void UpdateCaptureKeys();
 		// Ctrl+Z undoes, Ctrl+Y and Ctrl+Shift+Z redo (edit mode, not while typing); the Edit menu does the same.
 		void UpdateUndoKeys();
 		void Undo();
 		void Redo();
-		// <project>/.hydro/captures/<scene>_<view>_<yyyymmdd-hhmmss-mmm>.png
-		std::filesystem::path MakeCapturePath(const std::string& viewName) const;
-		// The transform gizmo over the Editor view's image, on the selected entity, in edit mode only.
-		// Holding Ctrl snaps to EditorSettings::Gizmo.
-		void DrawTransformGizmo(const ImVec2& imageMin, const ImVec2& imageSize);
-		// The gizmo's switches in the Editor window's menu bar: Move / Rotate / Scale and Local / World.
-		void DrawGizmoMenu();
-		// W move, E rotate, R scale, Q none, T local/world: over the Editor window, in edit mode, while the camera isn't
-		// dragging and nothing takes text.
-		void UpdateGizmoKeys();
-		// Moves the editor camera to the entity and zooms to frame it (the selection outline shows which).
-		void FocusEntity(Entity entity);
-		// Click-to-select: a left click in the Editor view's image asks the view for the entity under it; the answer
-		// arrives a frame or two later.
-		void UpdateClickSelection(const ImVec2& imageMin, const ImVec2& imageSize);
 		// A new scene starts with a primary camera framing the origin.
 		void CreateDefaultCamera();
 
-		// Demo scene: an animated spiral galaxy. The stars are raw registry entities (not saved, not copied by
-		// Scene::Copy), so PlayScene copies them itself.
-		void CreateGalaxy();
-		void UpdateGalaxy(Scene& scene, float deltaTime);
-		static void CopyGalaxyStars(Scene& source, Scene& destination);
-
 	private:
-		enum class SceneState { Edit, Play };
-
-		Hydro::Ref<Scene> m_EditorScene;  // what is edited and saved
-		SceneStack m_GameScenes;         // the scenes that run while playing (a copy of m_EditorScene at the bottom); empty in Edit
-		Hydro::Ref<Scene> m_ActiveScene; // the stack's running scene while playing, else m_EditorScene
-		Hydro::Scope<SceneRenderer> m_SceneRenderer;
-		std::filesystem::path m_EditorScenePath; // empty until the scene is saved / opened
-
-		SceneState m_SceneState = SceneState::Edit;
-		bool m_Paused = false;
-		uint32_t m_StepFrames = 0; // runtime frames still to run while paused (Step button)
+		// The editor's shared state, which the windows and the viewports below are given.
+		EditorContext m_Context;
+		EditorViewport m_EditorViewport{ m_Context };
+		GameViewport m_GameViewport{ m_Context };
+		SceneStack m_GameScenes; // the scenes that run while playing (a copy of the editor scene at the bottom); empty in Edit
+		Scope<SceneRenderer> m_SceneRenderer;
 
 		Hydro::Ref<HierarchyWindow> m_HierarchyWindow;
 		Hydro::Ref<StatsWindow> m_StatsWindow;
@@ -205,57 +151,8 @@ namespace Hydro
 		Hydro::Ref<EditorSettingsWindow> m_EditorSettingsWindow;
 		Hydro::Ref<SpriteEditorWindow> m_SpriteEditorWindow;
 		Hydro::Ref<SpriteAnimationWindow> m_SpriteAnimationWindow;
-		// The asset the inspector shows while no entity is selected (picked in the Project window).
-		std::filesystem::path m_InspectedAsset;
 		entt::entity m_LastSelectedEntity = entt::null;
-
-		// Loaded from EditorSettings.yaml in OnAttach; the session part is kept up to date here and written on close.
-		EditorSettings m_EditorSettings;
 		float m_AutosaveTimer = 0.0f; // seconds since the last save
-
-		// The two pictures of the scene. Only windows that are visible are rendered.
-		Hydro::Scope<RenderView> m_EditorView;
-		Hydro::Scope<RenderView> m_GameView;
-		EditorCamera m_EditorCamera;
-		bool m_EditorViewVisible = false;
-		bool m_EditorViewHovered = false;
-		// Editor window overlays (this session only): outline the selected entity / every collider.
-		bool m_ShowSelectionOutline = true;
-		bool m_ShowColliders = false;
-		// What scripts draw for the Editor view (OnDrawGizmos), collected every frame while shown.
-		bool m_ShowScriptGizmos = true;
-		Gizmos m_ScriptGizmos;
-		bool m_FocusKeyDown = false; // F pressed last frame, so holding it focuses once
-		// Transform gizmo (this session only). None hides it.
-		enum class GizmoOperation : uint8_t { None, Translate, Rotate, Scale };
-		GizmoOperation m_GizmoOperation = GizmoOperation::Translate;
-		bool m_GizmoLocal = false;   // the entity's own axes instead of the world's (scaling always uses its own)
-		bool m_GizmoHovered = false; // the mouse is over a handle or drags one: a click there doesn't select
-		bool m_GizmoUsing = false;   // a handle is being dragged: the editor camera takes no new drags
-		// The undo history (#165) and the Terrain tool, whose strokes are its first commands.
-		EditorCommandStack m_Commands;
-		TerrainTool m_TerrainTool;
-		bool m_TerrainToolOwnsMouse = false; // painting a terrain: no click-to-select, no gizmo
-		// Click-to-select in the Editor view: a left press in the image, then a release without moving.
-		bool m_ClickPending = false;
-		ImVec2 m_ClickStart{ 0.0f, 0.0f };
-		bool m_GameViewVisible = false;
-		bool m_SceneHasCamera = true; // false when the game view found no primary camera last frame
-		bool m_GameFullscreen = false;
-		bool m_FocusFullscreen = false;        // bring the full screen view to the front on its first frame
-		bool m_WindowFullscreenByGame = false; // the editor's window went full screen for the game, and goes back with it
-		int m_PendingWindowFullscreen = -1;    // -1 nothing, 0 / 1: change the window in OnUpdate, outside the ImGui frame
-		bool m_FullscreenKeyDown = false;      // F11 last frame, so holding it toggles once
-		bool m_EscapeKeyDown = false;
-		float m_FullscreenHintTime = 0.0f;     // seconds left to show how to leave full screen
-		// View captures (this session only). A request waits until its view is drawn.
-		static constexpr uint32_t CaptureWidth = 1280;
-		static constexpr uint32_t CaptureHeight = 720;
-		bool m_CaptureFixedSize = true;        // render the captured frame at CaptureWidth x CaptureHeight
-		bool m_CaptureGameRequested = false;
-		bool m_CaptureEditorRequested = false;
-		bool m_CaptureKeyDown = false;         // F9 last frame, so holding it captures once
-		float m_Time = 0.0f;
 
 		// Unattended runs (EditorLaunchOptions): what was asked and how far it got.
 		enum class LaunchStep : uint8_t { None, Waiting, Capturing, Done };

@@ -2,6 +2,7 @@
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Core/Base.h"
+#include "EditorContext.h"
 
 #include <filesystem>
 #include <functional>
@@ -14,14 +15,10 @@ namespace Hydro
 	class HierarchyWindow
 	{
 	public:
-		HierarchyWindow();
+		explicit HierarchyWindow(EditorContext& context);
 		~HierarchyWindow();
 		void OnImguiAttach();
 		void OnImguiRender(Ref<Scene> scene);
-
-		Entity GetSelectedEntity() const { return m_SelectedEntity; }
-		void ClearSelection() { m_SelectedEntity = {}; }
-		void SetSelectedEntity(Entity entity) { m_SelectedEntity = entity; }
 
 		// Called with a double-clicked row's entity (it is selected too); the editor frames the camera on it.
 		std::function<void(Entity)> OnEntityFocus;
@@ -80,7 +77,8 @@ namespace Hydro
 		bool MatchesSearch(const std::string& name) const;
 
 	private:
-		Entity m_SelectedEntity;
+		// Its Selection is the selected row.
+		EditorContext& m_Context;
 		PendingEdit m_Pending;
 		char m_SearchBuffer[128] = {};
 	};

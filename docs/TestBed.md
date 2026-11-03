@@ -32,7 +32,7 @@ The test bed is growing into the engine's first full test project, the **Diorama
 | **E** | Drops a crate in front of the player (at most 10; the oldest disappears) | `VillageCrateSpawner` on `Crate Spawner` |
 | **1** to **6** in a battle | Attack, skill, skill, guard, potion, run for the hero whose turn it is; **Left / Right** (A / D) pick the target, **Up / Down** (W / S) set the boost. Only in the battle scene | `Battle` on `Battle Director` |
 | **[** / **]** | Point light radius smaller / larger | `VillageDirector` |
-| **F11** (or **Full screen** in the Game window's menu bar) | The Game window fills the editor and, by default, the whole monitor; **F11** or **Escape** leaves. Stop leaves too. Both are options in the Game window's **Options** menu and under Editor Settings > Play mode | Oxygen (`EditorLayer`) |
+| **F11** (or **Full screen** in the Game window's menu bar) | The Game window fills the editor and, by default, the whole monitor; **F11** or **Escape** leaves. Stop leaves too. Both are options in the Game window's **Options** menu and under Editor Settings > Play mode | Oxygen (`GameViewport`) |
 | **P** | Pause / resume the scenery animations (pond, torches: the animators no script drives) through `SpriteAnimator::Pause` / `Resume` | `VillageDirector` |
 
 There is no in-game text: the Director's status line goes to the **Console** window, and the **Stats** window shows lit views, light and shadow counts and GPU time.

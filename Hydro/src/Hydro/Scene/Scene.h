@@ -13,7 +13,9 @@
 #include "Hydro/Renderer/PostProcess.h"
 #include "Hydro/Renderer/RenderProfile.h"
 #include "Components/Components.h"
-#include "SceneHierarchy.h"
+#include "SceneGraph.h"
+#include "SceneTransforms.h"
+#include "SystemContext.h"
 #include "UI/UILayout.h"
 
 namespace Hydro
@@ -26,7 +28,6 @@ namespace Hydro
 	struct UIEvent;
 	class ScriptableEntity;
 	class Gizmos;
-	struct SystemContext;
 
 	// A world of entities and their components, with the update stages that run it (editing or playing).
 	class Scene
@@ -51,10 +52,12 @@ namespace Hydro
 		ParticleScene* GetParticleScene() { return m_Particles.get(); }
 		UIScene* GetUIScene() { return m_UI.get(); }
 
-		// Runs the stages in order: UI input, scripts, physics, sprite animation, transforms, particles, UI layout.
+		// Runs every stage in order: UI input, scripts, physics, sprite animation, transforms, particles, UI layout.
 		void OnUpdateRuntime(float deltaTime);
-		// Runs only the stages that keep the scene consistent while editing (transforms).
+		// Runs only the stages that keep the scene consistent while editing (transforms, UI layout).
 		void OnUpdateEditor(float deltaTime);
+		// The update's stages, in the order they run (docs/SceneAndECS.md#frame-order). A new engine system is a stage here.
+		static const std::vector<SceneStage>& GetStages();
 		void OnRender();
 
 		// The pointer over the Game view for the runtime UI: view pixels from the bottom-left (Y up), over or not,
@@ -224,26 +227,13 @@ namespace Hydro
 		// Drops entries for entities destroyed behind the scene's back and adds IDComponents made without CreateEntity.
 		void RebuildEntityMap();
 
-		// m_Hierarchy lays out m_EntityOrder; rebuilt with m_OrderIndex on first use after a change (m_HierarchyDirty).
-		void EnsureHierarchy();
-		std::vector<SceneHierarchy::Node> MakeHierarchyNodes();
-		// -1 when not in the list.
-		int32_t GetOrderIndex(entt::entity handle);
-		// Parent 0 removes the RelationshipComponent; nothing moves in the list.
-		void SetParentUUID(entt::entity handle, UUID parent);
-		// `insertAt` is an index from before the move (SceneHierarchy::GetLastChildInsertIndex / GetSiblingInsertIndex).
-		void MoveSubtree(size_t index, size_t insertAt);
-		// Debug builds: ValidateHierarchy. Release: nothing.
-		void CheckHierarchyAfterEdit();
 		// Destroys one entity at once, not its children.
 		void DestroySingleEntityNow(Entity entity);
 
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
-		SceneHierarchy m_Hierarchy;
-		std::unordered_map<entt::entity, uint32_t> m_OrderIndex;
-		bool m_HierarchyDirty = true;
-		// Kept between passes so the pass allocates nothing once warm.
-		std::vector<glm::mat4> m_WorldMatrices;
+		// The entity list as a hierarchy, and the world transforms resolved from it.
+		SceneGraph m_Graph{ *this };
+		SceneTransforms m_Transforms{ *this, m_Graph };
 		// The rect a list entry's UI children resolve against.
 		struct UILayoutEntry
 		{
@@ -271,8 +261,6 @@ namespace Hydro
 		int m_UIWorldToViewState = 0; // 0 not worked out this pass, 1 ready, -1 no camera
 		// Already warned about, so the log isn't flooded.
 		std::unordered_set<entt::entity> m_NestedCanvasWarned;
-		// Already warned about shear, so the log isn't flooded.
-		std::unordered_set<entt::entity> m_ShearWarned;
 		int m_StageDepth = 0;
 		std::vector<DeferredCommand> m_Deferred;
 		std::unordered_set<entt::entity> m_PendingDestroy;
@@ -290,7 +278,6 @@ namespace Hydro
 		ScenePostProcess m_PostProcess;
 		SceneLook m_Look;
 		bool m_MainLightWarned = false;
-		std::vector<entt::entity> m_EntityOrder;
 		uint32_t m_ViewportWidth = 1280;
 		uint32_t m_ViewportHeight = 720;
 

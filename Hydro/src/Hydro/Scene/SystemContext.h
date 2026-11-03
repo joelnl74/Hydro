@@ -3,6 +3,7 @@
 
 namespace Hydro
 {
+	class Scene;
 	// What a scene system is told about its frame. Every system takes (Scene&, const SystemContext&); Scene builds one
 	// per update and passes it to each stage, so all stages of a frame agree.
 	struct SystemContext
@@ -18,5 +19,14 @@ namespace Hydro
 		uint64_t FrameIndex = 0;
 		// False while editing; game-only systems return at once then.
 		bool IsPlaying = false;
+	};
+
+	// One step of a scene update. Scene::GetStages lists them in order; OnUpdateRuntime runs every one, OnUpdateEditor
+	// those that RunsInEditor.
+	struct SceneStage
+	{
+		const char* Name = "";
+		bool RunsInEditor = false;
+		void (*Run)(Scene& scene, const SystemContext& context) = nullptr;
 	};
 }

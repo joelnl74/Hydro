@@ -1,5 +1,5 @@
 #include "EditorLayer.h"
-#include <iostream>
+#include "Viewports/CaptureControls.h"
 
 #include <imgui/imgui.h>
 #include <ImGuizmo.h>
@@ -11,25 +11,14 @@
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "EditorPaths.h"
-#include "Utilities/AssetDragDrop.h"
 #include "Utilities/EditorChrome.h"
 #include "Utilities/PathFollower.h"
 
-#include <glm/gtc/constants.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <ctime>
 #include <map>
-#include <random>
 
 namespace Hydro
 {
-	static glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t) { return a + (b - a) * t; }
-
 	// The registered scene that comes first by path, or 0 when the project has none (or only missing ones).
 	static AssetHandle FindFirstScene()
 	{
@@ -52,42 +41,37 @@ namespace Hydro
 
 	void EditorLayer::OnAttach()
 	{
-		m_EditorScene = CreateRef<Scene>("Scene", false);
-		m_EditorScene->Init();
-		m_ActiveScene = m_EditorScene;
-		m_SceneRenderer = CreateScope<SceneRenderer>(m_ActiveScene);
+		m_Context.EditorScene = CreateRef<Scene>("Scene", false);
+		m_Context.EditorScene->Init();
+		m_Context.ActiveScene = m_Context.EditorScene;
+		m_SceneRenderer = CreateScope<SceneRenderer>(m_Context.ActiveScene);
 
-		RenderViewSpecification editorViewSpecification;
-		editorViewSpecification.DebugName = "Editor";
-		editorViewSpecification.EditorView = true;
-		m_EditorView = CreateScope<RenderView>(editorViewSpecification);
+		m_EditorViewport.Init();
+		m_GameViewport.Init();
+		m_Context.OnAssetDropped = [this](const std::filesystem::path& path) { OnAssetDropped(path); };
 
-		RenderViewSpecification gameViewSpecification;
-		gameViewSpecification.DebugName = "Game";
-		m_GameView = CreateScope<RenderView>(gameViewSpecification);
-
-		m_HierarchyWindow = CreateRef<HierarchyWindow>();
+		m_HierarchyWindow = CreateRef<HierarchyWindow>(m_Context);
 		m_StatsWindow = CreateRef<StatsWindow>();
 		m_ConsoleWindow = CreateRef<ConsoleWindow>();
 		m_InspectorWindow = CreateRef<InspectorWindow>();
 		m_ProjectWindow = CreateRef<ProjectWindow>();
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
-		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
-		m_HierarchyWindow->OnEntityFocus = [this](Entity entity) { FocusEntity(entity); };
+		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_Context.Selection = entity; };
+		m_HierarchyWindow->OnEntityFocus = [this](Entity entity) { m_EditorViewport.FocusEntity(entity); };
 		m_ProjectWindow->OnPathRenamed = [this](const std::filesystem::path& from, const std::filesystem::path& to) { OnPathRenamed(from, to); };
 		m_ProjectWindow->OnPathDeleted = [this](const std::filesystem::path& path) { OnPathDeleted(path); };
 		m_ProjectWindow->OnAssetSelected = [this](const std::filesystem::path& path)
 		{
 			// The inspector shows the asset instead of an entity.
-			m_InspectedAsset = path;
-			m_HierarchyWindow->ClearSelection();
+			m_Context.InspectedAsset = path;
+			m_Context.Selection = {};
 		};
 		m_ProjectWindow->OnOpenAsset = [this](const std::filesystem::path& path) { OpenAsset(path); };
 		m_InspectorWindow->OnTextureReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
 		m_InspectorWindow->OnOpenSpriteEditor = [this](const std::filesystem::path& path) { OpenAsset(path); };
 		m_InspectorWindow->OnOpenAnimation = [this](const std::filesystem::path& path) { OpenAsset(path); };
-		m_InspectorWindow->OnSelectEntity = [this](Entity entity) { m_HierarchyWindow->SetSelectedEntity(entity); };
-		m_InspectorWindow->SetTerrainTool(&m_TerrainTool);
+		m_InspectorWindow->OnSelectEntity = [this](Entity entity) { m_Context.Selection = entity; };
+		m_InspectorWindow->SetTerrainTool(&m_Context.Terrain);
 		m_SpriteEditorWindow = CreateRef<SpriteEditorWindow>();
 		m_SpriteEditorWindow->OnReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
 		m_SpriteAnimationWindow = CreateRef<SpriteAnimationWindow>();
@@ -101,7 +85,7 @@ namespace Hydro
 		{
 			// A build packages the files on disk: save what is open first (the editor scene, never a play copy).
 			SaveProject();
-			if (m_EditorScenePath.empty() == false)
+			if (m_Context.EditorScenePath.empty() == false)
 			{
 				SaveScene();
 			}
@@ -114,7 +98,8 @@ namespace Hydro
 		// replaces the engine's default.
 		LoadEditorSettings();
 		RestoreOpenWindows();
-		m_EditorCamera.SetProjectionType(m_EditorSettings.CameraStartsIn2D ? ProjectionType::Orthographic : ProjectionType::Perspective);
+		m_EditorViewport.GetCamera().SetProjectionType(m_Context.Settings.CameraStartsIn2D ? ProjectionType::Orthographic
+			: ProjectionType::Perspective);
 
 		CreateDefaultCamera();
 
@@ -182,8 +167,8 @@ namespace Hydro
 			// The Game view is drawn whatever the docking says, and at the capture size.
 			if (m_Launch.Capture.empty() == false)
 			{
-				SetGameFullscreen(true);
-				m_CaptureFixedSize = true;
+				m_GameViewport.SetFullscreen(true);
+				m_Context.Captures.FixedSize = true;
 			}
 			m_LaunchStep = LaunchStep::Waiting;
 			m_LaunchFramesLeft = m_Launch.Frames;
@@ -278,14 +263,15 @@ namespace Hydro
 				// Through the normal capture request, so the view is drawn at the capture size first.
 				std::error_code ec;
 				std::filesystem::create_directories(m_Launch.Capture.parent_path(), ec);
-				m_CaptureGameRequested = true;
+				m_Context.Captures.Game = true;
+				m_Context.Captures.GamePath = m_Launch.Capture;
 				m_LaunchStep = LaunchStep::Capturing;
 				return;
 			}
 			case LaunchStep::Capturing:
 			{
 				// The request is taken when the Game view is drawn, and the file is written after that frame.
-				if (m_CaptureGameRequested == false && m_GameView->IsCapturePending() == false)
+				if (m_Context.Captures.Game == false && m_GameViewport.IsCapturePending() == false)
 				{
 					HY_INFO("Captured the Game view to {}", m_Launch.Capture.string());
 					m_LaunchStep = LaunchStep::Done;
@@ -327,14 +313,14 @@ namespace Hydro
 		m_HierarchyWindow = nullptr;
 		m_SceneRenderer.reset();
 		m_GameScenes.Stop();
-		m_ActiveScene = nullptr;
-		m_EditorScene = nullptr;
+		m_Context.ActiveScene = nullptr;
+		m_Context.EditorScene = nullptr;
 		// The GPU is idle here (Application waits before detaching layers), so the views can go.
-		m_GameView.reset();
-		m_EditorView.reset();
+		m_GameViewport.Shutdown();
+		m_EditorViewport.Shutdown();
 
 		// Remember what was open for the next start (only the session part of the file changes).
-		EditorSettingsSerializer::SaveSession(m_EditorSettings.Session, EditorPaths::GetEditorSettingsPath());
+		EditorSettingsSerializer::SaveSession(m_Context.Settings.Session, EditorPaths::GetEditorSettingsPath());
 
 		// The editor opened the project, so it closes it.
 		AssetManager::OnProjectClosed();
@@ -343,72 +329,37 @@ namespace Hydro
 
 	void EditorLayer::OnUpdate(float deltaTime)
 	{
-		// The window goes in or out of full screen here, between ImGui frames (SetGameFullscreen asks).
-		if (m_PendingWindowFullscreen >= 0)
-		{
-			Window& window = Application::Get().GetWindow();
-			window.SetFullscreen(m_PendingWindowFullscreen == 1);
-			m_WindowFullscreenByGame = m_PendingWindowFullscreen == 1 && window.IsFullscreen();
-			m_PendingWindowFullscreen = -1;
-		}
-		m_FullscreenHintTime = std::max(0.0f, m_FullscreenHintTime - deltaTime);
-
-		const bool runGame = IsPlaying() && (m_Paused == false || m_StepFrames > 0);
+		const bool runGame = IsPlaying() && (m_Context.Paused == false || m_Context.StepFrames > 0);
 		if (runGame)
 		{
 			// Scripts and engine systems, then the application's systems.
-			m_ActiveScene->OnUpdateRuntime(deltaTime);
+			m_Context.ActiveScene->OnUpdateRuntime(deltaTime);
 
 			// A script may have asked for another scene (the scene was not touched while it ran).
 			ProcessSceneTransition();
 
-			if (m_StepFrames > 0)
+			if (m_Context.StepFrames > 0)
 			{
-				m_StepFrames--;
+				m_Context.StepFrames--;
 			}
 		}
 		else
 		{
-			m_ActiveScene->OnUpdateEditor(deltaTime);
+			m_Context.ActiveScene->OnUpdateEditor(deltaTime);
 		}
 
 		UpdateAutosave(deltaTime);
 
-		// One view per visible window. The editor camera updates every frame so a drag never jumps, but only takes new
-		// input over the Editor window.
-		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
-		m_EditorCamera.Update(deltaTime, m_EditorViewVisible && m_EditorViewHovered && m_GizmoUsing == false);
-
-		// In game full screen the Editor window is covered: don't draw it.
-		if (m_EditorViewVisible && m_GameFullscreen == false)
-		{
-			SceneRenderer::EditorOverlay overlay;
-			overlay.Selected = m_HierarchyWindow->GetSelectedEntity();
-			overlay.SelectionOutline = m_ShowSelectionOutline;
-			overlay.Colliders = m_ShowColliders;
-			overlay.PostProcessing = m_EditorSettings.EditorViewPostProcessing;
-			overlay.Fog = m_EditorSettings.EditorViewFog;
-			m_ScriptGizmos.Clear();
-			if (m_ShowScriptGizmos && m_ActiveScene != nullptr)
-			{
-				CollectScriptGizmos(*m_ActiveScene, overlay.Selected, m_ScriptGizmos);
-				overlay.ScriptGizmos = &m_ScriptGizmos;
-			}
-			m_TerrainTool.FillOverlay(overlay);
-			m_SceneRenderer->RenderEditor(*m_EditorView, m_EditorCamera, overlay);
-		}
-
-		if (m_GameViewVisible || m_GameFullscreen)
-		{
-			m_SceneHasCamera = m_SceneRenderer->RenderRuntime(*m_GameView);
-		}
+		// One render per visible window; in game full screen the Editor window is covered.
+		m_GameViewport.OnUpdate(deltaTime, *m_SceneRenderer);
+		m_EditorViewport.OnUpdate(deltaTime, *m_SceneRenderer, m_GameViewport.IsFullscreen());
 	}
 
 	void EditorLayer::OnImGuiRender()
 	{
 		ImGuizmo::BeginFrame();
-		UpdateFullscreenKeys();
-		UpdateCaptureKeys();
+		m_GameViewport.UpdateKeys();
+		CaptureControls::UpdateKeys(m_Context.Captures);
 		UpdateUndoKeys();
 		UpdateLaunchAutomation();
 
@@ -432,7 +383,7 @@ namespace Hydro
 		}
 
 		// While playing, every window drawn this frame takes on the play-mode tint (popped after End below).
-		EditorChrome::PushPlayModeTint(m_EditorSettings.PlayMode, IsPlaying());
+		EditorChrome::PushPlayModeTint(m_Context.Settings.PlayMode, IsPlaying());
 
 		// With PassthruCentralNode, DockSpace() draws the background and the pass-through hole, so Begin() doesn't.
 		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
@@ -464,7 +415,7 @@ namespace Hydro
 
 		if (ImGui::BeginMenuBar())
 		{
-			EditorChrome::DrawBrand(m_EditorSettings.Style.GetHighlightColor());
+			EditorChrome::DrawBrand(m_Context.Settings.Style.GetHighlightColor());
 
 			if (ImGui::BeginMenu("File"))
 			{
@@ -520,15 +471,15 @@ namespace Hydro
 
 			if (ImGui::BeginMenu("Edit"))
 			{
-				const std::string undoName = m_Commands.GetUndoName();
-				const std::string redoName = m_Commands.GetRedoName();
+				const std::string undoName = m_Context.Commands.GetUndoName();
+				const std::string redoName = m_Context.Commands.GetRedoName();
 				const std::string undoLabel = undoName.empty() ? std::string("Undo") : "Undo " + undoName;
 				const std::string redoLabel = redoName.empty() ? std::string("Redo") : "Redo " + redoName;
-				if (ImGui::MenuItem(undoLabel.c_str(), "Ctrl+Z", false, m_Commands.CanUndo() && IsPlaying() == false))
+				if (ImGui::MenuItem(undoLabel.c_str(), "Ctrl+Z", false, m_Context.Commands.CanUndo() && IsPlaying() == false))
 				{
 					Undo();
 				}
-				if (ImGui::MenuItem(redoLabel.c_str(), "Ctrl+Y", false, m_Commands.CanRedo() && IsPlaying() == false))
+				if (ImGui::MenuItem(redoLabel.c_str(), "Ctrl+Y", false, m_Context.Commands.CanRedo() && IsPlaying() == false))
 				{
 					Redo();
 				}
@@ -548,70 +499,65 @@ namespace Hydro
 			{
 				if (ImGui::MenuItem("Empty Entity"))
 				{
-					Entity entity = m_ActiveScene->CreateEntity("Entity");
-					m_HierarchyWindow->SetSelectedEntity(entity);
+					Entity entity = m_Context.ActiveScene->CreateEntity("Entity");
+					m_Context.Selection = entity;
 				}
 				if (ImGui::MenuItem("Sprite"))
 				{
-					Entity entity = m_ActiveScene->CreateEntity("Sprite");
+					Entity entity = m_Context.ActiveScene->CreateEntity("Sprite");
 					entity.AddComponent<TransformComponent>();
 					entity.AddComponent<SpriteRendererComponent>();
-					m_HierarchyWindow->SetSelectedEntity(entity);
+					m_Context.Selection = entity;
 				}
 				if (ImGui::MenuItem("Camera"))
 				{
-					Entity entity = m_ActiveScene->CreateEntity("Camera");
+					Entity entity = m_Context.ActiveScene->CreateEntity("Camera");
 					entity.AddComponent<TransformComponent>();
 					entity.AddComponent<CameraComponent>();
-					m_HierarchyWindow->SetSelectedEntity(entity);
+					m_Context.Selection = entity;
 				}
 				if (ImGui::MenuItem("Light"))
 				{
-					Entity entity = m_ActiveScene->CreateEntity("Light");
+					Entity entity = m_Context.ActiveScene->CreateEntity("Light");
 					entity.AddComponent<TransformComponent>();
-					m_HierarchyWindow->SetSelectedEntity(entity);
+					m_Context.Selection = entity;
 				}
 				if (ImGui::BeginMenu("Meshes"))
 				{
 					if (ImGui::MenuItem("Box"))
 					{
-						Entity entity = m_ActiveScene->CreateEntity("Box");
+						Entity entity = m_Context.ActiveScene->CreateEntity("Box");
 						entity.AddComponent<TransformComponent>();
-						auto x = entity.AddComponent<MeshComponent>();
-						x.Shape = MeshShape::Box;
-						m_HierarchyWindow->SetSelectedEntity(entity);
+						entity.AddComponent<MeshComponent>().Shape = MeshShape::Box;
+						m_Context.Selection = entity;
 					}
 					if (ImGui::MenuItem("Cylinder"))
 					{
-						Entity entity = m_ActiveScene->CreateEntity("Cylinder");
+						Entity entity = m_Context.ActiveScene->CreateEntity("Cylinder");
 						entity.AddComponent<TransformComponent>();
-						auto x = entity.AddComponent<MeshComponent>();
-						x.Shape = MeshShape::Cylinder;
-						m_HierarchyWindow->SetSelectedEntity(entity);
+						entity.AddComponent<MeshComponent>().Shape = MeshShape::Cylinder;
+						m_Context.Selection = entity;
 					}
 					if (ImGui::MenuItem("Plane"))
 					{
-						Entity entity = m_ActiveScene->CreateEntity("Plane");
+						Entity entity = m_Context.ActiveScene->CreateEntity("Plane");
 						entity.AddComponent<TransformComponent>();
-						auto x = entity.AddComponent<MeshComponent>();
-						x.Shape = MeshShape::Plane;
-						m_HierarchyWindow->SetSelectedEntity(entity);
+						entity.AddComponent<MeshComponent>().Shape = MeshShape::Plane;
+						m_Context.Selection = entity;
 					}
 					if (ImGui::MenuItem("Stairs"))
 					{
-						Entity entity = m_ActiveScene->CreateEntity("Stairs");
+						Entity entity = m_Context.ActiveScene->CreateEntity("Stairs");
 						entity.AddComponent<TransformComponent>();
-						auto x = entity.AddComponent<MeshComponent>();
-						x.Shape = MeshShape::Stairs;
-						m_HierarchyWindow->SetSelectedEntity(entity);
+						entity.AddComponent<MeshComponent>().Shape = MeshShape::Stairs;
+						m_Context.Selection = entity;
 					}
 					if (ImGui::MenuItem("Ramp"))
 					{
-						Entity entity = m_ActiveScene->CreateEntity("Ramp");
+						Entity entity = m_Context.ActiveScene->CreateEntity("Ramp");
 						entity.AddComponent<TransformComponent>();
-						auto x = entity.AddComponent<MeshComponent>();
-						x.Shape = MeshShape::Ramp;
-						m_HierarchyWindow->SetSelectedEntity(entity);
+						entity.AddComponent<MeshComponent>().Shape = MeshShape::Ramp;
+						m_Context.Selection = entity;
 					}
 
 
@@ -625,49 +571,50 @@ namespace Hydro
 			DrawPlayControls();
 
 			// The waterline: the accent while editing, the play-mode tint while playing.
-			const bool tinted = IsPlaying() && m_EditorSettings.PlayMode.Tint;
-			EditorChrome::DrawMenuBarWaterline(tinted ? m_EditorSettings.PlayMode.TintColor : m_EditorSettings.Style.GetHighlightColor());
+			const bool tinted = IsPlaying() && m_Context.Settings.PlayMode.Tint;
+			EditorChrome::DrawMenuBarWaterline(tinted ? m_Context.Settings.PlayMode.TintColor
+				: m_Context.Settings.Style.GetHighlightColor());
 
 			ImGui::EndMenuBar();
 		}
 
-		m_HierarchyWindow->OnImguiRender(m_ActiveScene);
+		m_HierarchyWindow->OnImguiRender(m_Context.ActiveScene);
 		// Picking an entity in the hierarchy takes the inspector back from an asset.
-		const Entity selectedEntity = m_HierarchyWindow->GetSelectedEntity();
+		const Entity selectedEntity = m_Context.Selection;
 		if ((entt::entity)selectedEntity != m_LastSelectedEntity && (bool)selectedEntity)
 		{
-			m_InspectedAsset.clear();
+			m_Context.InspectedAsset.clear();
 		}
 		m_LastSelectedEntity = (entt::entity)selectedEntity;
 		m_InspectorWindow->SetPlaying(IsPlaying());
-		m_InspectorWindow->OnImguiRender(selectedEntity, m_InspectedAsset);
+		m_InspectorWindow->OnImguiRender(selectedEntity, m_Context.InspectedAsset);
 		m_SpriteEditorWindow->OnImguiRender();
 		m_SpriteAnimationWindow->OnImguiRender();
-		m_StatsWindow->OnImguiRender(m_ActiveScene);
-		m_RenderSettingsWindow->OnImguiRender(m_EditorScene.get(), m_ActiveScene.get());
-		m_ProjectSettingsWindow->OnImguiRender(m_EditorScenePath);
+		m_StatsWindow->OnImguiRender(m_Context.ActiveScene);
+		m_RenderSettingsWindow->OnImguiRender(m_Context.EditorScene.get(), m_Context.ActiveScene.get());
+		m_ProjectSettingsWindow->OnImguiRender(m_Context.EditorScenePath);
 		m_BuildWindow->OnImguiRender();
-		m_EditorSettingsWindow->OnImguiRender(m_EditorSettings);
+		m_EditorSettingsWindow->OnImguiRender(m_Context.Settings);
 
-		m_ProjectWindow->OnImguiRender(m_ActiveScene);
+		m_ProjectWindow->OnImguiRender(m_Context.ActiveScene);
 		// After the Project window, which it docks next to the first time.
-		m_ConsoleWindow->OnImguiRender(m_EditorSettings.Console);
+		m_ConsoleWindow->OnImguiRender(m_Context.Settings.Console);
 
-		DrawEditorWindow();
-		DrawGameWindow();
+		m_EditorViewport.OnImGuiRender();
+		m_GameViewport.OnImGuiRender();
 
 		// A window opened or closed: remember it now, not only on close, so it holds when the debugger stops the editor.
 		if (StoreOpenWindows())
 		{
-			EditorSettingsSerializer::SaveSession(m_EditorSettings.Session, EditorPaths::GetEditorSettingsPath());
+			EditorSettingsSerializer::SaveSession(m_Context.Settings.Session, EditorPaths::GetEditorSettingsPath());
 		}
 
 		ImGui::End();
 
 		// Over everything else, so it is drawn last.
-		if (m_GameFullscreen)
+		if (m_GameViewport.IsFullscreen())
 		{
-			DrawGameFullscreen();
+			m_GameViewport.DrawFullscreen();
 		}
 
 		EditorChrome::PopPlayModeTint();
@@ -684,8 +631,8 @@ namespace Hydro
 			ImGui::SetCursorPosX(centre);
 		}
 
-		const ImVec4 accent = m_EditorSettings.Style.GetHighlightColor();
-		const ImVec4 playColor = m_EditorSettings.PlayMode.Tint ? m_EditorSettings.PlayMode.TintColor : accent;
+		const ImVec4 accent = m_Context.Settings.Style.GetHighlightColor();
+		const ImVec4 playColor = m_Context.Settings.PlayMode.Tint ? m_Context.Settings.PlayMode.TintColor : accent;
 
 		// Play turns into Stop (in the play-mode colour) while the game runs.
 		const bool playing = IsPlaying();
@@ -704,710 +651,21 @@ namespace Hydro
 
 		ImGui::BeginDisabled(playing == false);
 
-		if (EditorChrome::IconButton("##Pause", m_Paused ? ToolbarIcon::Play : ToolbarIcon::Pause, buttonSize, m_Paused, accent,
-			m_Paused ? "Resume" : "Pause"))
+		const bool paused = m_Context.Paused;
+		if (EditorChrome::IconButton("##Pause", paused ? ToolbarIcon::Play : ToolbarIcon::Pause, buttonSize, paused, accent,
+			paused ? "Resume" : "Pause"))
 		{
-			m_Paused = m_Paused == false;
+			m_Context.Paused = m_Context.Paused == false;
 		}
 
-		ImGui::BeginDisabled(m_Paused == false);
+		ImGui::BeginDisabled(m_Context.Paused == false);
 		if (EditorChrome::IconButton("##Step", ToolbarIcon::Step, buttonSize, false, accent, "Step one frame"))
 		{
-			m_StepFrames++;
+			m_Context.StepFrames++;
 		}
 		ImGui::EndDisabled();
 
 		ImGui::EndDisabled();
-	}
-
-	void EditorLayer::DrawEditorWindow()
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		m_EditorViewVisible = ImGui::Begin("Editor", nullptr, ImGuiWindowFlags_MenuBar);
-		m_EditorViewHovered = false;
-		m_GizmoHovered = false;
-		m_GizmoUsing = false;
-
-		if (m_EditorViewVisible)
-		{
-			if (ImGui::BeginMenuBar())
-			{
-				DrawEditorCameraMenu();
-				DrawGizmoMenu();
-
-				if (ImGui::BeginMenu("Overlays"))
-				{
-					ImGui::MenuItem("Selection Outline", nullptr, &m_ShowSelectionOutline);
-					ImGui::MenuItem("Collider Outlines", nullptr, &m_ShowColliders);
-					ImGui::MenuItem("Script Gizmos", nullptr, &m_ShowScriptGizmos);
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("What scripts draw here (OnDrawGizmos): routes and their waypoint numbers, ...");
-					}
-					ImGui::Separator();
-					if (ImGui::MenuItem("Focus Selected", "F", false, (bool)m_HierarchyWindow->GetSelectedEntity()))
-					{
-						FocusEntity(m_HierarchyWindow->GetSelectedEntity());
-					}
-
-					ImGui::EndMenu();
-				}
-
-				// The scene's look in this view (off keeps it sharp to edit in), kept until the Editor Settings are saved.
-				if (ImGui::BeginMenu("Effects"))
-				{
-					ImGui::MenuItem("Post-Processing", nullptr, &m_EditorSettings.EditorViewPostProcessing);
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("Depth of field, bloom and the vignette, as in the Game view");
-					}
-					ImGui::MenuItem("Fog", nullptr, &m_EditorSettings.EditorViewFog);
-					ImGui::EndMenu();
-				}
-
-				DrawCaptureMenu();
-
-				ImGui::EndMenuBar();
-			}
-
-			const ImVec2 size = ImGui::GetContentRegionAvail();
-			if (size.x >= 1.0f && size.y >= 1.0f)
-			{
-				ResizeEditorView((uint32_t)size.x, (uint32_t)size.y);
-			}
-
-			// Camera projections flip Y for Vulkan, so the image is shown the right way up as is.
-			ImGui::Image((ImTextureID)m_EditorView->GetImGuiTexture(), size);
-			m_EditorViewHovered = ImGui::IsItemHovered();
-			const ImVec2 imageMin = ImGui::GetItemRectMin();
-			DrawScriptGizmoLabels(imageMin, size);
-			DrawEditorCameraHint(imageMin);
-			// The Terrain tool first: while it paints, the left button is its own (no gizmo, no click-to-select).
-			m_TerrainToolOwnsMouse = m_TerrainTool.UpdateViewport(m_HierarchyWindow->GetSelectedEntity(), m_EditorCamera,
-				glm::vec2(imageMin.x, imageMin.y),
-				glm::vec2(size.x, size.y), m_EditorViewHovered, IsPlaying(), Time::GetDeltaTime(), m_Commands);
-			if (m_TerrainToolOwnsMouse == false)
-			{
-				// The gizmo first: a click on one of its handles is not a click to select.
-				DrawTransformGizmo(imageMin, size);
-				UpdateClickSelection(imageMin, size);
-			}
-			UpdateGizmoKeys();
-			AcceptAssetDrop();
-
-			// F: look at the selected entity (edit mode only; play mode scripts may use F).
-			const bool focusKey = Input::IsKeyPressed(KeyCode::F);
-			if (focusKey && m_FocusKeyDown == false && m_EditorViewHovered && IsPlaying() == false && ImGui::GetIO().WantTextInput == false)
-			{
-				FocusEntity(m_HierarchyWindow->GetSelectedEntity());
-			}
-			m_FocusKeyDown = focusKey;
-		}
-
-		ImGui::End();
-		ImGui::PopStyleVar();
-	}
-
-	void EditorLayer::DrawEditorCameraMenu()
-	{
-		const bool orthographic = m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic;
-
-		if (ImGui::BeginMenu("Camera"))
-		{
-			if (ImGui::MenuItem("2D", "Orthographic, top-down", orthographic))
-			{
-				m_EditorCamera.SetProjectionType(ProjectionType::Orthographic);
-			}
-			if (ImGui::MenuItem("3D", "Perspective", orthographic == false))
-			{
-				m_EditorCamera.SetProjectionType(ProjectionType::Perspective);
-			}
-
-			ImGui::Separator();
-			// The standard views turn the camera around what it looks at (and switch to 3D).
-			struct ViewItem
-			{
-				const char* Label;
-				EditorCameraView View;
-			};
-			static const ViewItem views[] = {
-				{ "Top", EditorCameraView::Top }, { "Diorama (50 degrees)", EditorCameraView::Diorama },
-				{ "Front (looking north)", EditorCameraView::Front }, { "Back (looking south)", EditorCameraView::Back },
-				{ "Left (looking east)", EditorCameraView::Left }, { "Right (looking west)", EditorCameraView::Right }
-			};
-			for (const ViewItem& item : views)
-			{
-				if (ImGui::MenuItem(item.Label))
-				{
-					m_EditorCamera.SetView(item.View);
-				}
-			}
-
-			ImGui::Separator();
-			if (ImGui::MenuItem("Reset View"))
-			{
-				m_EditorCamera.Reset();
-			}
-
-			ImGui::Separator();
-			ImGui::TextDisabled("Alt+LMB orbit, MMB pan, wheel / Alt+RMB zoom");
-			ImGui::TextDisabled("3D: hold RMB to fly: mouse look, WASD move, Q/E down/up,");
-			ImGui::TextDisabled("Shift faster, wheel changes the speed");
-
-			ImGui::EndMenu();
-		}
-
-		// A one-click switch next to the menu: shows the mode you're in, switches to the other.
-		if (ImGui::MenuItem(orthographic ? "2D" : "3D"))
-		{
-			m_EditorCamera.SetProjectionType(orthographic ? ProjectionType::Perspective : ProjectionType::Orthographic);
-		}
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::SetTooltip(orthographic ? "2D view (orthographic, top-down). Click for 3D" : "3D view (perspective). Click for 2D");
-		}
-	}
-
-	void EditorLayer::DrawScriptGizmoLabels(const ImVec2& imageMin, const ImVec2& imageSize)
-	{
-		if (m_ShowScriptGizmos == false || m_ScriptGizmos.GetLabels().empty())
-		{
-			return;
-		}
-		// The camera the view was drawn with this frame (zero-to-one depth; the Y flip puts the image's top at -1).
-		const glm::mat4 viewProjection = m_EditorCamera.GetViewProjection();
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->PushClipRect(imageMin, ImVec2(imageMin.x + imageSize.x, imageMin.y + imageSize.y), true);
-		for (const Gizmos::LabelItem& label : m_ScriptGizmos.GetLabels())
-		{
-			const glm::vec4 clip = viewProjection * glm::vec4(label.Position, 1.0f);
-			if (clip.w <= 1e-4f)
-			{
-				continue; // behind the camera
-			}
-			const glm::vec3 ndc = glm::vec3(clip) / clip.w;
-			if (ndc.z < 0.0f || ndc.z > 1.0f)
-			{
-				continue;
-			}
-			const ImVec2 textSize = ImGui::CalcTextSize(label.Text.c_str());
-			const ImVec2 position{ imageMin.x + (ndc.x * 0.5f + 0.5f) * imageSize.x - textSize.x * 0.5f,
-				imageMin.y + (ndc.y * 0.5f + 0.5f) * imageSize.y - textSize.y * 0.5f };
-			const ImU32 shadow = IM_COL32(0, 0, 0, (int)(200.0f * label.Color.a));
-			for (const ImVec2 offset : { ImVec2(-1.0f, 0.0f), ImVec2(1.0f, 0.0f), ImVec2(0.0f, -1.0f), ImVec2(0.0f, 1.0f) })
-			{
-				drawList->AddText(ImVec2(position.x + offset.x, position.y + offset.y), shadow, label.Text.c_str());
-			}
-			drawList->AddText(position, ImGui::GetColorU32(ImVec4(label.Color.r, label.Color.g, label.Color.b, label.Color.a)),
-				label.Text.c_str());
-		}
-		drawList->PopClipRect();
-	}
-
-	void EditorLayer::DrawEditorCameraHint(const ImVec2& imageMin)
-	{
-		// While flying: the speed in the view's corner, so the wheel's change is visible.
-		if (m_EditorCamera.IsFlying() == false)
-		{
-			return;
-		}
-
-		char text[64];
-		std::snprintf(text, sizeof(text), "Fly %.1f m/s", m_EditorCamera.GetFlySpeed());
-		const ImVec2 position{ imageMin.x + 8.0f, imageMin.y + 6.0f };
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddText(ImVec2(position.x + 1.0f, position.y + 1.0f), ImGui::GetColorU32(ImGuiCol_WindowBg), text);
-		drawList->AddText(position, ImGui::GetColorU32(ImGuiCol_Text), text);
-	}
-
-	void EditorLayer::UpdateClickSelection(const ImVec2& imageMin, const ImVec2& imageSize)
-	{
-		// The answer to an earlier click: the entity drawn under it, or nothing (clears the selection).
-		int32_t picked = -1;
-		if (m_EditorView->TakeEntityIDResult(picked) && m_ActiveScene != nullptr)
-		{
-			const entt::entity handle = (entt::entity)(uint32_t)picked;
-			if (picked >= 0 && m_ActiveScene->m_Registry.valid(handle))
-			{
-				m_HierarchyWindow->SetSelectedEntity(Entity(handle, m_ActiveScene.get()));
-			}
-			else
-			{
-				m_HierarchyWindow->ClearSelection();
-			}
-		}
-
-		// A click is a press and release in the image without moving, and without Alt (camera controls).
-		const ImGuiIO& io = ImGui::GetIO();
-		const bool alt = io.KeyAlt;
-		if (m_EditorViewHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && alt == false && m_GizmoHovered == false
-			&& ImGui::GetDragDropPayload() == nullptr)
-		{
-			m_ClickPending = true;
-			m_ClickStart = io.MousePos;
-		}
-		if (m_ClickPending == false || ImGui::IsMouseReleased(ImGuiMouseButton_Left) == false)
-		{
-			return;
-		}
-		m_ClickPending = false;
-
-		const float dx = io.MousePos.x - m_ClickStart.x;
-		const float dy = io.MousePos.y - m_ClickStart.y;
-		if (m_EditorViewHovered == false || alt || dx * dx + dy * dy > 16.0f || imageSize.x < 1.0f || imageSize.y < 1.0f)
-		{
-			return;
-		}
-
-		// ImGui pixels to the view's own (the same unless the view hasn't caught up with a resize yet).
-		const float u = (io.MousePos.x - imageMin.x) / imageSize.x;
-		const float v = (io.MousePos.y - imageMin.y) / imageSize.y;
-		if (u < 0.0f || v < 0.0f || u >= 1.0f || v >= 1.0f)
-		{
-			return;
-		}
-		const uint32_t x = std::min((uint32_t)(u * (float)m_EditorView->GetWidth()), m_EditorView->GetWidth() - 1);
-		const uint32_t y = std::min((uint32_t)(v * (float)m_EditorView->GetHeight()), m_EditorView->GetHeight() - 1);
-		m_EditorView->RequestEntityIDReadback(x, y);
-	}
-
-	void EditorLayer::FocusEntity(Entity entity)
-	{
-		if (entity.IsValid() == false || entity.HasComponent<TransformComponent>() == false)
-		{
-			return;
-		}
-
-		// Where it is in the world (a child's transform is relative to its parent).
-		const glm::mat4 world = entity.GetScene()->GetWorldTransform(entity);
-		const float extent = std::max({ glm::length(glm::vec3(world[0])), glm::length(glm::vec3(world[1])), 1.0f });
-		m_EditorCamera.Frame(glm::vec3(world[3]), extent);
-	}
-
-	// Each angle moved by whole turns to the one nearest `previous` (radians), so a rotation handed back as -90
-	// degrees stays 270 when it was 265.
-	static glm::vec3 NearestAngles(glm::vec3 angles, const glm::vec3& previous)
-	{
-		const float turn = glm::two_pi<float>();
-		for (int axis = 0; axis < 3; axis++)
-		{
-			angles[axis] += turn * std::round((previous[axis] - angles[axis]) / turn);
-		}
-		return angles;
-	}
-
-	void EditorLayer::DrawTransformGizmo(const ImVec2& imageMin, const ImVec2& imageSize)
-	{
-		// Edits go to the editor scene, so there is no gizmo while playing.
-		Entity selected = m_HierarchyWindow->GetSelectedEntity();
-		if (m_GizmoOperation == GizmoOperation::None || IsPlaying() || m_ActiveScene == nullptr || selected.IsValid() == false
-			|| selected.HasComponent<TransformComponent>() == false || imageSize.x < 1.0f || imageSize.y < 1.0f)
-		{
-			return;
-		}
-
-		ImGuizmo::SetOrthographic(m_EditorCamera.GetProjectionType() == ProjectionType::Orthographic);
-		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(imageMin.x, imageMin.y, imageSize.x, imageSize.y);
-		// Alt + left drag belongs to the camera, and so does the mouse while a camera drag lasts.
-		ImGuizmo::Enable(ImGui::GetIO().KeyAlt == false && m_EditorCamera.IsDragging() == false);
-		ImGuizmo::GetStyle().Colors[ImGuizmo::SELECTION] = m_EditorSettings.Style.GetHighlightColor();
-
-		// ImGuizmo uses OpenGL's Y-up clip space: take out the Vulkan Y flip. The zero-to-one depth doesn't matter to it.
-		glm::mat4 projection = m_EditorCamera.GetProjection();
-		projection[1][1] *= -1.0f;
-		const glm::mat4& view = m_EditorCamera.GetView();
-
-		ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
-		float snapStep = m_EditorSettings.Gizmo.TranslateSnap;
-		switch (m_GizmoOperation)
-		{
-		case GizmoOperation::Rotate:
-			operation = ImGuizmo::ROTATE;
-			snapStep = m_EditorSettings.Gizmo.RotateSnap;
-			break;
-		case GizmoOperation::Scale:
-			operation = ImGuizmo::SCALE;
-			snapStep = m_EditorSettings.Gizmo.ScaleSnap;
-			break;
-		default:
-			break;
-		}
-		// ImGuizmo scales along the entity's own axes only.
-		const ImGuizmo::MODE mode = (m_GizmoLocal || m_GizmoOperation == GizmoOperation::Scale) ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
-		const float snap[3] = { snapStep, snapStep, snapStep };
-		const bool snapping = ImGui::GetIO().KeyCtrl;
-
-		// The gizmo sits on the entity's world transform; the result goes back into the parent's space so the write-back
-		// below works on the local transform.
-		Scene& scene = *selected.GetScene();
-		const glm::mat4 parentWorld = scene.GetWorldTransform(scene.GetParent(selected));
-		TransformComponent& transform = selected.GetComponent<TransformComponent>();
-		glm::mat4 matrix = parentWorld * transform.GetTransform();
-		const bool changed = ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode,
-			glm::value_ptr(matrix), nullptr, snapping ? snap : nullptr);
-
-		m_GizmoUsing = ImGuizmo::IsUsing();
-		m_GizmoHovered = m_GizmoUsing || ImGuizmo::IsOver();
-		if (changed == false || m_GizmoUsing == false)
-		{
-			return;
-		}
-		if (std::abs(glm::determinant(glm::mat3(parentWorld))) < 1e-12f)
-		{
-			return; // a parent with a zero scale: there is no local transform to go back to
-		}
-		matrix = glm::inverse(parentWorld) * matrix;
-
-		// Only the dragged part is written back, so the others keep their exact values. Column i of the matrix is the
-		// rotation's axis i times Scale[i], signs included (a mirrored sprite stays mirrored).
-		switch (m_GizmoOperation)
-		{
-		case GizmoOperation::Translate:
-			transform.Translation = glm::vec3(matrix[3]);
-			break;
-		case GizmoOperation::Rotate:
-		{
-			const glm::vec3& scale = transform.Scale;
-			if (scale.x == 0.0f || scale.y == 0.0f || scale.z == 0.0f)
-			{
-				break;
-			}
-			const glm::mat3 rotation(glm::vec3(matrix[0]) / scale.x, glm::vec3(matrix[1]) / scale.y, glm::vec3(matrix[2]) / scale.z);
-			transform.Rotation = NearestAngles(glm::eulerAngles(glm::normalize(glm::quat_cast(rotation))), transform.Rotation);
-			break;
-		}
-		case GizmoOperation::Scale:
-			for (int axis = 0; axis < 3; axis++)
-			{
-				const float length = glm::length(glm::vec3(matrix[axis]));
-				transform.Scale[axis] = transform.Scale[axis] < 0.0f ? -length : length;
-			}
-			break;
-		default:
-			break;
-		}
-	}
-
-	void EditorLayer::DrawGizmoMenu()
-	{
-		// One-click switches; the active tool shows selected, and a second click hides the gizmo.
-		struct GizmoItem
-		{
-			const char* Label;
-			const char* Tooltip;
-			GizmoOperation Operation;
-		};
-		static const GizmoItem items[] = {
-			{ "Move", "Move the selected entity (W). Ctrl snaps.", GizmoOperation::Translate },
-			{ "Rotate", "Rotate the selected entity (E). Ctrl snaps.", GizmoOperation::Rotate },
-			{ "Scale", "Scale the selected entity (R). Ctrl snaps.", GizmoOperation::Scale }
-		};
-
-		ImGui::Separator();
-		ImGui::BeginDisabled(IsPlaying());
-		for (const GizmoItem& item : items)
-		{
-			const bool active = m_GizmoOperation == item.Operation;
-			if (ImGui::MenuItem(item.Label, nullptr, active))
-			{
-				m_GizmoOperation = active ? GizmoOperation::None : item.Operation;
-			}
-			if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-			{
-				ImGui::SetTooltip("%s", IsPlaying() ? "The gizmo edits the editor scene: stop playing to use it" : item.Tooltip);
-			}
-		}
-
-		if (ImGui::MenuItem(m_GizmoLocal ? "Local" : "World"))
-		{
-			m_GizmoLocal = m_GizmoLocal == false;
-		}
-		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-		{
-			ImGui::SetTooltip(m_GizmoLocal ? "Gizmo along the entity's own axes. Click or T for the world's" : "Gizmo along the world's axes. Click or T for the entity's own (Scale always uses its own)");
-		}
-		ImGui::EndDisabled();
-		ImGui::Separator();
-	}
-
-	void EditorLayer::UpdateGizmoKeys()
-	{
-		// Ctrl+key belongs to menu shortcuts; while the camera drags (flying), W/E/Q move it.
-		const ImGuiIO& io = ImGui::GetIO();
-		if (m_EditorViewHovered == false || IsPlaying() || io.WantTextInput || io.KeyCtrl || m_EditorCamera.IsDragging() || m_GizmoUsing)
-		{
-			return;
-		}
-
-		if (ImGui::IsKeyPressed(ImGuiKey_Q, false))
-		{
-			m_GizmoOperation = GizmoOperation::None;
-		}
-		else if (ImGui::IsKeyPressed(ImGuiKey_W, false))
-		{
-			m_GizmoOperation = GizmoOperation::Translate;
-		}
-		else if (ImGui::IsKeyPressed(ImGuiKey_E, false))
-		{
-			m_GizmoOperation = GizmoOperation::Rotate;
-		}
-		else if (ImGui::IsKeyPressed(ImGuiKey_R, false))
-		{
-			m_GizmoOperation = GizmoOperation::Scale;
-		}
-		else if (ImGui::IsKeyPressed(ImGuiKey_T, false))
-		{
-			m_GizmoLocal = m_GizmoLocal == false;
-		}
-	}
-
-	void EditorLayer::DrawGameWindow()
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		m_GameViewVisible = ImGui::Begin("Game", nullptr, ImGuiWindowFlags_MenuBar);
-
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::MenuItem("Full screen", "F11", m_GameFullscreen))
-			{
-				SetGameFullscreen(m_GameFullscreen == false);
-			}
-			if (ImGui::BeginMenu("Options"))
-			{
-				bool changed = ImGui::MenuItem("Full screen covers the monitor", nullptr,
-					&m_EditorSettings.PlayMode.FullscreenCoversMonitor);
-				changed |= ImGui::MenuItem("Leave full screen on Stop", nullptr, &m_EditorSettings.PlayMode.LeaveFullscreenOnStop);
-				if (changed)
-				{
-					EditorSettingsSerializer::Save(m_EditorSettings, EditorPaths::GetEditorSettingsPath());
-				}
-				ImGui::EndMenu();
-			}
-			DrawCaptureMenu();
-			ImGui::EndMenuBar();
-		}
-
-		// The pointer is off the game until the Game view's image says otherwise (UpdateGamePointer).
-		if (m_ActiveScene != nullptr)
-		{
-			m_ActiveScene->SetUIPointer(m_ActiveScene->GetUIPointer().Position, false, ImGui::IsMouseDown(ImGuiMouseButton_Left));
-		}
-
-		if (m_GameViewVisible && m_GameFullscreen)
-		{
-			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + 8.0f, ImGui::GetCursorPosY() + 8.0f));
-			ImGui::TextDisabled("The game is in full screen. F11 or Escape to leave.");
-		}
-		else if (m_GameViewVisible)
-		{
-			const ImVec2 size = ImGui::GetContentRegionAvail();
-			if (size.x >= 1.0f && size.y >= 1.0f)
-			{
-				ResizeGameView((uint32_t)size.x, (uint32_t)size.y);
-			}
-
-			const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
-			ImGui::Image((ImTextureID)m_GameView->GetImGuiTexture(), size);
-			UpdateGamePointer(imagePosition, size);
-			if (IsPlaying() && m_EditorSettings.PlayMode.Tint)
-			{
-				EditorChrome::OutlineLastItem(m_EditorSettings.PlayMode.TintColor, 2.0f);
-			}
-			AcceptAssetDrop();
-
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			const ImVec2 textPosition = { imagePosition.x + 8.0f, imagePosition.y + 8.0f };
-			if (m_SceneHasCamera == false)
-			{
-				drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255),
-					"No primary camera in the scene. Add a Camera component and tick Primary.");
-			}
-			else if (IsPlaying() && m_Paused)
-			{
-				drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255), "Paused");
-			}
-		}
-
-		ImGui::End();
-		ImGui::PopStyleVar();
-	}
-
-	void EditorLayer::UpdateGamePointer(const ImVec2& imagePosition, const ImVec2& imageSize)
-	{
-		if (m_ActiveScene == nullptr || imageSize.x < 1.0f || imageSize.y < 1.0f)
-		{
-			return;
-		}
-
-		// Scale anyway: the view's size can differ from the image's for a frame after a resize.
-		const ImVec2 mouse = ImGui::GetMousePos();
-		const float scaleX = (float)m_GameView->GetWidth() / imageSize.x;
-		const float scaleY = (float)m_GameView->GetHeight() / imageSize.y;
-		const glm::vec2 position{ (mouse.x - imagePosition.x) * scaleX, (imagePosition.y + imageSize.y - mouse.y) * scaleY };
-		const bool inside = ImGui::IsItemHovered();
-		m_ActiveScene->SetUIPointer(position, inside, ImGui::IsMouseDown(ImGuiMouseButton_Left));
-	}
-
-	void EditorLayer::SetGameFullscreen(bool fullscreen)
-	{
-		if (fullscreen == m_GameFullscreen)
-		{
-			return;
-		}
-
-		m_GameFullscreen = fullscreen;
-		if (fullscreen)
-		{
-			m_FocusFullscreen = true;
-			m_FullscreenHintTime = 2.5f;
-			// Only when the window isn't full screen already, so leaving gives back what the user had.
-			if (m_EditorSettings.PlayMode.FullscreenCoversMonitor && Application::Get().GetWindow().IsFullscreen() == false)
-			{
-				m_PendingWindowFullscreen = 1;
-			}
-		}
-		else if (m_WindowFullscreenByGame || m_PendingWindowFullscreen == 1)
-		{
-			m_PendingWindowFullscreen = 0;
-		}
-	}
-
-	void EditorLayer::UpdateFullscreenKeys()
-	{
-		// Polled like the editor's other keys; F11 toggles, Escape only leaves.
-		const bool f11 = Input::IsKeyPressed(KeyCode::F11);
-		const bool escape = Input::IsKeyPressed(KeyCode::Escape);
-		if (f11 && m_FullscreenKeyDown == false)
-		{
-			SetGameFullscreen(m_GameFullscreen == false);
-		}
-		else if (escape && m_EscapeKeyDown == false && m_GameFullscreen)
-		{
-			SetGameFullscreen(false);
-		}
-		m_FullscreenKeyDown = f11;
-		m_EscapeKeyDown = escape;
-	}
-
-	void EditorLayer::DrawGameFullscreen()
-	{
-		// One undecorated window over the main viewport, in front of the dockspace and every docked window.
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		if (m_FocusFullscreen)
-		{
-			ImGui::SetNextWindowFocus();
-			m_FocusFullscreen = false;
-		}
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse;
-		ImGui::Begin("##GameFullscreen", nullptr, flags);
-		ImGui::PopStyleVar(3);
-
-		const ImVec2 size = ImGui::GetContentRegionAvail();
-		if (size.x >= 1.0f && size.y >= 1.0f)
-		{
-			ResizeGameView((uint32_t)size.x, (uint32_t)size.y);
-		}
-
-		const ImVec2 imagePosition = ImGui::GetCursorScreenPos();
-		ImGui::Image((ImTextureID)m_GameView->GetImGuiTexture(), size);
-		UpdateGamePointer(imagePosition, size);
-
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		const ImVec2 textPosition = { imagePosition.x + 12.0f, imagePosition.y + 12.0f };
-		if (m_SceneHasCamera == false)
-		{
-			drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255),
-				"No primary camera in the scene. Add a Camera component and tick Primary.");
-		}
-		else if (IsPlaying() && m_Paused)
-		{
-			drawList->AddText(textPosition, IM_COL32(255, 200, 80, 255), "Paused");
-		}
-
-		// How to get out, for a moment after going in.
-		if (m_FullscreenHintTime > 0.0f)
-		{
-			const float alpha = std::min(1.0f, m_FullscreenHintTime / 0.5f);
-			const char* hint = "Full screen: F11 or Escape to leave";
-			const ImVec2 textSize = ImGui::CalcTextSize(hint);
-			const ImVec2 position = { imagePosition.x + 0.5f * (size.x - textSize.x), imagePosition.y + 24.0f };
-			drawList->AddRectFilled({ position.x - 12.0f, position.y - 6.0f },
-				{ position.x + textSize.x + 12.0f, position.y + textSize.y + 6.0f },
-				IM_COL32(0, 0, 0, (int)(160.0f * alpha)), 6.0f);
-			drawList->AddText(position, IM_COL32(255, 255, 255, (int)(255.0f * alpha)), hint);
-		}
-
-		ImGui::End();
-	}
-
-	void EditorLayer::ResizeGameView(uint32_t width, uint32_t height)
-	{
-		if (m_CaptureGameRequested)
-		{
-			if (m_CaptureFixedSize)
-			{
-				width = CaptureWidth;
-				height = CaptureHeight;
-			}
-			m_GameView->RequestCapture(m_LaunchStep == LaunchStep::Capturing ? m_Launch.Capture : MakeCapturePath("Game"));
-			m_CaptureGameRequested = false;
-		}
-
-		// The game's cameras take their aspect ratio from the scene's viewport.
-		m_GameView->SetSize(width, height);
-		m_ActiveScene->OnViewportResize(width, height);
-	}
-
-	void EditorLayer::ResizeEditorView(uint32_t width, uint32_t height)
-	{
-		if (m_CaptureEditorRequested)
-		{
-			if (m_CaptureFixedSize)
-			{
-				width = CaptureWidth;
-				height = CaptureHeight;
-			}
-			m_EditorView->RequestCapture(MakeCapturePath("Editor"));
-			m_CaptureEditorRequested = false;
-		}
-
-		m_EditorView->SetSize(width, height);
-		m_EditorCamera.SetViewportSize((float)width, (float)height);
-	}
-
-	void EditorLayer::DrawCaptureMenu()
-	{
-		if (ImGui::BeginMenu("Capture"))
-		{
-			if (ImGui::MenuItem("Capture Game View", "F9"))
-			{
-				m_CaptureGameRequested = true;
-			}
-			if (ImGui::MenuItem("Capture Editor View", "Shift+F9"))
-			{
-				m_CaptureEditorRequested = true;
-			}
-
-			ImGui::Separator();
-			ImGui::MenuItem("Fixed Size (1280 x 720)", nullptr, &m_CaptureFixedSize);
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::SetTooltip("Render the captured frame at 1280 x 720, whatever the window's size,\nso captures can be compared. Pause first so the scene stands still.");
-			}
-
-			ImGui::Separator();
-			ImGui::TextDisabled("Saved in <project>/.hydro/captures");
-			ImGui::EndMenu();
-		}
 	}
 
 	void EditorLayer::UpdateUndoKeys()
@@ -1437,82 +695,19 @@ namespace Hydro
 	void EditorLayer::Undo()
 	{
 		// A stroke in progress becomes a step first, so it is what is undone.
-		m_TerrainTool.EndStroke(m_Commands);
-		m_Commands.Undo();
+		m_Context.Terrain.EndStroke(m_Context.Commands);
+		m_Context.Commands.Undo();
 	}
 
 	void EditorLayer::Redo()
 	{
-		m_TerrainTool.EndStroke(m_Commands);
-		m_Commands.Redo();
-	}
-
-	void EditorLayer::UpdateCaptureKeys()
-	{
-		// F9: the Game view (also in full screen); Shift+F9: the Editor view. Not F12: Windows reserves it for
-		// debuggers (UserDebuggerHotKey).
-		const bool captureKey = Input::IsKeyPressed(KeyCode::F9);
-		if (captureKey && m_CaptureKeyDown == false && ImGui::GetIO().WantTextInput == false)
-		{
-			const bool shift = Input::IsKeyPressed(KeyCode::LeftShift) || Input::IsKeyPressed(KeyCode::RightShift);
-			if (shift)
-			{
-				m_CaptureEditorRequested = true;
-			}
-			else
-			{
-				m_CaptureGameRequested = true;
-			}
-		}
-		m_CaptureKeyDown = captureKey;
-	}
-
-	std::filesystem::path EditorLayer::MakeCapturePath(const std::string& viewName) const
-	{
-		const std::string sceneName = m_ActiveScene != nullptr && m_ActiveScene->GetName().empty() == false
-			? m_ActiveScene->GetName() : std::string("Untitled");
-
-		const auto now = std::chrono::system_clock::now();
-		const std::time_t seconds = std::chrono::system_clock::to_time_t(now);
-		const long long milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
-
-		std::tm local = {};
-#if defined(_WIN32)
-		localtime_s(&local, &seconds);
-#else
-		localtime_r(&seconds, &local);
-#endif
-		char stamp[32] = {};
-		std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", &local);
-		char suffix[8] = {};
-		std::snprintf(suffix, sizeof(suffix), "-%03lld", milliseconds);
-
-		const std::string fileName = EditorPaths::ToFileName(sceneName) + "_" + viewName + "_" + stamp + suffix + ".png";
-		return EditorPaths::GetCapturesDirectory() / fileName;
-	}
-
-	void EditorLayer::AcceptAssetDrop()
-	{
-		// Drop prefabs / scenes from the project window onto the image.
-		if (ImGui::BeginDragDropTarget())
-		{
-			std::filesystem::path droppedPath;
-			if (AssetDragDrop::AcceptPayload(droppedPath))
-			{
-				OnAssetDropped(droppedPath);
-			}
-
-			ImGui::EndDragDropTarget();
-		}
+		m_Context.Terrain.EndStroke(m_Context.Commands);
+		m_Context.Commands.Redo();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
 	{
-		if (e.GetEventType() == EventType::MouseScrolled && m_EditorViewVisible && m_EditorViewHovered)
-		{
-			m_EditorCamera.Zoom(static_cast<MouseScrolledEvent&>(e).GetYOffset());
-			e.Handled = true;
-		}
+		m_EditorViewport.OnEvent(e);
 	}
 
 	void EditorLayer::PlayScene()
@@ -1523,35 +718,35 @@ namespace Hydro
 		}
 
 		// A brush stroke in progress ends here (its undo step is kept); the tool waits for Stop.
-		m_TerrainTool.EndStroke(m_Commands);
+		m_Context.Terrain.EndStroke(m_Context.Commands);
 
-		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
+		const Entity selectedBefore = m_Context.Selection;
 
 		// The game runs on a copy of the editor scene, at the bottom of the scene stack.
-		Ref<Scene> runtimeScene = Scene::Copy(m_EditorScene);
+		Ref<Scene> runtimeScene = Scene::Copy(m_Context.EditorScene);
 		runtimeScene->Init();
 		m_GameScenes.Start(runtimeScene); // builds the physics world
 
-		m_ActiveScene = m_GameScenes.GetActiveScene();
-		m_SceneRenderer->SetScene(m_ActiveScene);
-		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
-		m_SceneState = SceneState::Play;
-		m_Paused = false;
-		m_StepFrames = 0;
+		m_Context.ActiveScene = m_GameScenes.GetActiveScene();
+		m_SceneRenderer->SetScene(m_Context.ActiveScene);
+		m_EditorViewport.OnSceneChanged(); // a click on the old scene picks nothing in this one
+		m_Context.Playing = true;
+		m_Context.Paused = false;
+		m_Context.StepFrames = 0;
 
 		// The copy has the same UUIDs, so what was selected stays selected (the copy's entity).
-		SelectSameEntity(selectedBefore, *m_ActiveScene);
+		SelectSameEntity(selectedBefore, *m_Context.ActiveScene);
 	}
 
 	void EditorLayer::SelectSameEntity(Entity previous, Scene& scene)
 	{
 		if (previous.IsValid() && previous.HasComponent<IDComponent>())
 		{
-			m_HierarchyWindow->SetSelectedEntity(scene.GetEntityByUUID(previous.GetUUID()));
+			m_Context.Selection = scene.GetEntityByUUID(previous.GetUUID());
 		}
 		else
 		{
-			m_HierarchyWindow->ClearSelection();
+			m_Context.Selection = {};
 		}
 	}
 
@@ -1562,34 +757,34 @@ namespace Hydro
 			return;
 		}
 
-		const Entity selectedBefore = m_HierarchyWindow->GetSelectedEntity();
+		const Entity selectedBefore = m_Context.Selection;
 
-		m_SceneState = SceneState::Edit;
-		m_Paused = false;
-		m_StepFrames = 0;
+		m_Context.Playing = false;
+		m_Context.Paused = false;
+		m_Context.StepFrames = 0;
 
-		m_ActiveScene = m_EditorScene;
-		m_SceneRenderer->SetScene(m_ActiveScene);
-		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
+		m_Context.ActiveScene = m_Context.EditorScene;
+		m_SceneRenderer->SetScene(m_Context.ActiveScene);
+		m_EditorViewport.OnSceneChanged(); // a click on the old scene picks nothing in this one
 
 		// Back to the editor scene's entity with the same UUID; cleared if it only existed while playing
 		// (made or destroyed by a script).
-		SelectSameEntity(selectedBefore, *m_ActiveScene);
+		SelectSameEntity(selectedBefore, *m_Context.ActiveScene);
 
 		// Destroying the copy runs its scripts' OnDestroy; scenes pushed on top of it go with it, the top one first.
 		m_GameScenes.Stop();
 
-		if (m_EditorSettings.PlayMode.LeaveFullscreenOnStop)
+		if (m_Context.Settings.PlayMode.LeaveFullscreenOnStop)
 		{
-			SetGameFullscreen(false);
+			m_GameViewport.SetFullscreen(false);
 		}
 	}
 
 	void EditorLayer::ProcessSceneTransition()
 	{
 		// The scene stack does what a script asked for; the editor only follows the new scene.
-		const SceneTransition::Type done = m_GameScenes.ProcessTransition(EditorPaths::GetScenesDirectory(), m_GameView->GetWidth(),
-			m_GameView->GetHeight());
+		const SceneTransition::Type done = m_GameScenes.ProcessTransition(EditorPaths::GetScenesDirectory(), m_GameViewport.GetWidth(),
+			m_GameViewport.GetHeight());
 		if (done == SceneTransition::Type::None || IsPlaying() == false)
 		{
 			return;
@@ -1603,10 +798,10 @@ namespace Hydro
 			return;
 		}
 
-		m_ActiveScene = m_GameScenes.GetActiveScene();
-		m_SceneRenderer->SetScene(m_ActiveScene);
-		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
-		m_HierarchyWindow->ClearSelection();
+		m_Context.ActiveScene = m_GameScenes.GetActiveScene();
+		m_SceneRenderer->SetScene(m_Context.ActiveScene);
+		m_EditorViewport.OnSceneChanged(); // a click on the old scene picks nothing in this one
+		m_Context.Selection = {};
 	}
 
 	void EditorLayer::NewProject()
@@ -1622,7 +817,7 @@ namespace Hydro
 		const std::filesystem::path projectDirectory = directory;
 		const std::string name = EditorPaths::ToFileName(projectDirectory.filename().string());
 		Ref<Project> project = Project::New(projectDirectory / (name + Project::FileExtension));
-		m_EditorSettings.Session.LastProject = projectDirectory / (name + Project::FileExtension);
+		m_Context.Settings.Session.LastProject = projectDirectory / (name + Project::FileExtension);
 
 		std::error_code ec;
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Scenes", ec);
@@ -1658,7 +853,7 @@ namespace Hydro
 		}
 
 		std::error_code pathError;
-		m_EditorSettings.Session.LastProject = std::filesystem::absolute(path, pathError);
+		m_Context.Settings.Session.LastProject = std::filesystem::absolute(path, pathError);
 		Renderer::SetSettings(project->GetConfig().Renderer);
 		// Gives every asset file without a handle one (written into the file or a .hymeta next to it).
 		AssetManager::OnProjectOpened(project->GetAssetDirectory());
@@ -1726,9 +921,9 @@ namespace Hydro
 			HY_INFO("No editor settings at {}; using the defaults", EditorPaths::GetEditorSettingsPath().string());
 		}
 
-		m_EditorSettings = settings;
-		m_EditorSettings.Style.Apply();
-		m_EditorCamera.SetSettings(m_EditorSettings.Camera);
+		m_Context.Settings = settings;
+		m_Context.Settings.Style.Apply();
+		m_EditorViewport.GetCamera().SetSettings(m_Context.Settings.Camera);
 	}
 
 	void EditorLayer::OpenAsset(const std::filesystem::path& path)
@@ -1776,7 +971,7 @@ namespace Hydro
 			}
 		}
 
-		for (const Ref<Scene>& scene : { m_EditorScene, m_GameScenes.GetActiveScene() })
+		for (const Ref<Scene>& scene : { m_Context.EditorScene, m_GameScenes.GetActiveScene() })
 		{
 			if (scene == nullptr || before == nullptr || before == texture)
 			{
@@ -1815,7 +1010,7 @@ namespace Hydro
 			return;
 		}
 
-		for (const Ref<Scene>& scene : { m_EditorScene, m_GameScenes.GetActiveScene() })
+		for (const Ref<Scene>& scene : { m_Context.EditorScene, m_GameScenes.GetActiveScene() })
 		{
 			if (scene == nullptr)
 			{
@@ -1849,7 +1044,7 @@ namespace Hydro
 
 	void EditorLayer::RestoreOpenWindows()
 	{
-		const std::map<std::string, bool>& saved = m_EditorSettings.Session.OpenWindows;
+		const std::map<std::string, bool>& saved = m_Context.Settings.Session.OpenWindows;
 		for (const ViewWindow& window : GetViewWindows())
 		{
 			if (auto it = saved.find(window.Name); it != saved.end())
@@ -1862,7 +1057,7 @@ namespace Hydro
 	bool EditorLayer::StoreOpenWindows()
 	{
 		bool changed = false;
-		std::map<std::string, bool>& saved = m_EditorSettings.Session.OpenWindows;
+		std::map<std::string, bool>& saved = m_Context.Settings.Session.OpenWindows;
 		for (const ViewWindow& window : GetViewWindows())
 		{
 			auto it = saved.find(window.Name);
@@ -1877,15 +1072,15 @@ namespace Hydro
 
 	void EditorLayer::RevertEditorSettings()
 	{
-		const EditorSession session = m_EditorSettings.Session;
+		const EditorSession session = m_Context.Settings.Session;
 		LoadEditorSettings();
-		m_EditorSettings.Session = session;
+		m_Context.Settings.Session = session;
 	}
 
 	void EditorLayer::UpdateAutosave(float deltaTime)
 	{
-		const AutosaveSettings& autosave = m_EditorSettings.Autosave;
-		if (autosave.Enabled == false || IsPlaying() || m_EditorScenePath.empty())
+		const AutosaveSettings& autosave = m_Context.Settings.Autosave;
+		if (autosave.Enabled == false || IsPlaying() || m_Context.EditorScenePath.empty())
 		{
 			m_AutosaveTimer = 0.0f;
 			return;
@@ -1899,14 +1094,14 @@ namespace Hydro
 
 		m_AutosaveTimer = 0.0f;
 		SaveScene();
-		HY_INFO("Autosaved {}", m_EditorScenePath.filename().string());
+		HY_INFO("Autosaved {}", m_Context.EditorScenePath.filename().string());
 	}
 
 	void EditorLayer::OpenStartupProject()
 	{
-		const EditorStartupSettings& startup = m_EditorSettings.Startup;
+		const EditorStartupSettings& startup = m_Context.Settings.Startup;
 		// Copy: opening a project or scene updates the session.
-		const EditorSession session = m_EditorSettings.Session;
+		const EditorSession session = m_Context.Settings.Session;
 
 		std::error_code ec;
 		if (startup.ReopenLastProject && session.LastProject.empty() == false && std::filesystem::exists(session.LastProject, ec))
@@ -1920,7 +1115,7 @@ namespace Hydro
 		}
 
 		// The project opened its start scene; the last scene replaces it if it was another one.
-		if (startup.ReopenLastScene && session.LastScene.empty() == false && session.LastScene != m_EditorScenePath &&
+		if (startup.ReopenLastScene && session.LastScene.empty() == false && session.LastScene != m_Context.EditorScenePath &&
 			std::filesystem::exists(session.LastScene, ec))
 		{
 			OpenScene(session.LastScene);
@@ -1929,7 +1124,7 @@ namespace Hydro
 
 	void EditorLayer::SaveEditorSettings()
 	{
-		EditorSettingsSerializer::Save(m_EditorSettings, EditorPaths::GetEditorSettingsPath());
+		EditorSettingsSerializer::Save(m_Context.Settings, EditorPaths::GetEditorSettingsPath());
 	}
 
 	void EditorLayer::OpenDefaultProject()
@@ -1959,16 +1154,16 @@ namespace Hydro
 	{
 		StopScene();
 		// Undo steps belong to the scene they were made in.
-		m_TerrainTool.EndStroke(m_Commands);
-		m_Commands.Clear();
+		m_Context.Terrain.EndStroke(m_Context.Commands);
+		m_Context.Commands.Clear();
 
-		m_EditorScene = scene;
-		m_EditorScene->Init();
-		m_EditorScene->OnViewportResize(m_GameView->GetWidth(), m_GameView->GetHeight());
-		m_ActiveScene = m_EditorScene;
-		m_SceneRenderer->SetScene(m_ActiveScene);
-		m_EditorView->InvalidateEntityIDRequests(); // a click on the old scene picks nothing in this one
-		m_HierarchyWindow->ClearSelection();
+		m_Context.EditorScene = scene;
+		m_Context.EditorScene->Init();
+		m_Context.EditorScene->OnViewportResize(m_GameViewport.GetWidth(), m_GameViewport.GetHeight());
+		m_Context.ActiveScene = m_Context.EditorScene;
+		m_SceneRenderer->SetScene(m_Context.ActiveScene);
+		m_EditorViewport.OnSceneChanged(); // a click on the old scene picks nothing in this one
+		m_Context.Selection = {};
 	}
 
 	void EditorLayer::NewScene()
@@ -1987,8 +1182,8 @@ namespace Hydro
 				{
 					scene->SetName("Untitled");
 					SetEditorScene(scene);
-					m_EditorScenePath.clear();
-					m_EditorSettings.Session.LastScene.clear();
+					m_Context.EditorScenePath.clear();
+					m_Context.Settings.Session.LastScene.clear();
 					HY_INFO("New scene from the template {}", metadata->Path.generic_string());
 					return;
 				}
@@ -2002,13 +1197,13 @@ namespace Hydro
 	{
 		SetEditorScene(CreateRef<Scene>("Untitled", true));
 		CreateDefaultCamera();
-		m_EditorScenePath.clear();
-		m_EditorSettings.Session.LastScene.clear();
+		m_Context.EditorScenePath.clear();
+		m_Context.Settings.Session.LastScene.clear();
 	}
 
 	void EditorLayer::CreateDefaultCamera()
 	{
-		Entity camera = m_EditorScene->CreateEntity("Camera");
+		Entity camera = m_Context.EditorScene->CreateEntity("Camera");
 		camera.AddComponent<TransformComponent>();
 		camera.AddComponent<CameraComponent>();
 	}
@@ -2044,20 +1239,20 @@ namespace Hydro
 		// The file name is the scene's name, so a scene renamed on disk shows its new name.
 		newScene->SetName(path.stem().string());
 		SetEditorScene(newScene);
-		m_EditorScenePath = path;
+		m_Context.EditorScenePath = path;
 
 		std::error_code ec;
-		m_EditorSettings.Session.LastScene = std::filesystem::absolute(path, ec);
+		m_Context.Settings.Session.LastScene = std::filesystem::absolute(path, ec);
 	}
 
 	void EditorLayer::SaveScene()
 	{
 		// A new scene's first save goes to Assets/Scenes/<SceneName>.hyscene, numbered ("Untitled 2") so it never
 		// overwrites another scene.
-		if (m_EditorScenePath.empty())
+		if (m_Context.EditorScenePath.empty())
 		{
 			const std::filesystem::path directory = EditorPaths::GetScenesDirectory();
-			const std::string baseName = EditorPaths::ToFileName(m_EditorScene->GetName());
+			const std::string baseName = EditorPaths::ToFileName(m_Context.EditorScene->GetName());
 			std::string name = baseName;
 			std::error_code ec;
 			for (int i = 2; std::filesystem::exists(directory / (name + SceneSerializer::FileExtension), ec); i++)
@@ -2066,20 +1261,20 @@ namespace Hydro
 			}
 
 			std::filesystem::create_directories(directory, ec);
-			m_EditorScene->SetName(name);
-			m_EditorScenePath = directory / (name + SceneSerializer::FileExtension);
+			m_Context.EditorScene->SetName(name);
+			m_Context.EditorScenePath = directory / (name + SceneSerializer::FileExtension);
 		}
 
 		// Terrain assets edited in this scene are written with it (a stroke in progress ends first).
-		m_TerrainTool.EndStroke(m_Commands);
-		TerrainTool::SaveModifiedTerrains(*m_EditorScene);
+		m_Context.Terrain.EndStroke(m_Context.Commands);
+		TerrainTool::SaveModifiedTerrains(*m_Context.EditorScene);
 
 		// Always the editor scene: what happens while playing is not saved.
-		SceneSerializer serializer(m_EditorScene);
-		if (serializer.Serialize(m_EditorScenePath))
+		SceneSerializer serializer(m_Context.EditorScene);
+		if (serializer.Serialize(m_Context.EditorScenePath))
 		{
 			std::error_code ec;
-			m_EditorSettings.Session.LastScene = std::filesystem::absolute(m_EditorScenePath, ec);
+			m_Context.Settings.Session.LastScene = std::filesystem::absolute(m_Context.EditorScenePath, ec);
 		}
 	}
 
@@ -2099,17 +1294,17 @@ namespace Hydro
 		}
 
 		// Name the scene after its file.
-		m_EditorScene->SetName(path.stem().string());
-		m_TerrainTool.EndStroke(m_Commands);
-		TerrainTool::SaveModifiedTerrains(*m_EditorScene);
+		m_Context.EditorScene->SetName(path.stem().string());
+		m_Context.Terrain.EndStroke(m_Context.Commands);
+		TerrainTool::SaveModifiedTerrains(*m_Context.EditorScene);
 
-		SceneSerializer serializer(m_EditorScene);
+		SceneSerializer serializer(m_Context.EditorScene);
 		if (serializer.Serialize(path))
 		{
-			m_EditorScenePath = path;
+			m_Context.EditorScenePath = path;
 
 			std::error_code ec;
-			m_EditorSettings.Session.LastScene = std::filesystem::absolute(path, ec);
+			m_Context.Settings.Session.LastScene = std::filesystem::absolute(path, ec);
 		}
 	}
 
@@ -2117,12 +1312,12 @@ namespace Hydro
 	{
 		// The open and last scenes are remembered by path, so they follow a rename here. Assets referenced by handle
 		// follow on their own.
-		if (PathFollower::Follow(m_EditorScenePath, from, to))
+		if (PathFollower::Follow(m_Context.EditorScenePath, from, to))
 		{
-			m_EditorScene->SetName(m_EditorScenePath.stem().string());
+			m_Context.EditorScene->SetName(m_Context.EditorScenePath.stem().string());
 		}
-		PathFollower::Follow(m_EditorSettings.Session.LastScene, from, to);
-		PathFollower::Follow(m_InspectedAsset, from, to);
+		PathFollower::Follow(m_Context.Settings.Session.LastScene, from, to);
+		PathFollower::Follow(m_Context.InspectedAsset, from, to);
 		m_SpriteEditorWindow->OnAssetMoved(from, to);
 		m_SpriteAnimationWindow->OnAssetMoved(from, to);
 	}
@@ -2130,9 +1325,9 @@ namespace Hydro
 	void EditorLayer::OnPathDeleted(const std::filesystem::path& path)
 	{
 		// What was open for editing is gone; saving it would bring the file back.
-		if (PathFollower::Follow(m_InspectedAsset, path, path))
+		if (PathFollower::Follow(m_Context.InspectedAsset, path, path))
 		{
-			m_InspectedAsset.clear();
+			m_Context.InspectedAsset.clear();
 		}
 		m_SpriteEditorWindow->OnAssetDeleted(path);
 		m_SpriteAnimationWindow->OnAssetDeleted(path);
@@ -2144,9 +1339,9 @@ namespace Hydro
 
 		if (extension == PrefabSerializer::FileExtension)
 		{
-			if (Entity entity = PrefabSerializer::Instantiate(*m_ActiveScene, path))
+			if (Entity entity = PrefabSerializer::Instantiate(*m_Context.ActiveScene, path))
 			{
-				m_HierarchyWindow->SetSelectedEntity(entity);
+				m_Context.Selection = entity;
 			}
 		}
 		else if (extension == SceneSerializer::FileExtension)
@@ -2163,13 +1358,13 @@ namespace Hydro
 				return;
 			}
 
-			Entity entity = m_ActiveScene->CreateEntity(path.stem().u8string());
-			const glm::vec3 focus = m_EditorCamera.GetFocalPoint();
+			Entity entity = m_Context.ActiveScene->CreateEntity(path.stem().u8string());
+			const glm::vec3 focus = m_EditorViewport.GetCamera().GetFocalPoint();
 			entity.AddComponent<TransformComponent>().Translation = { focus.x, focus.y, 0.0f };
 			auto& mesh = entity.AddComponent<MeshComponent>();
 			mesh.Model = handle;
 			mesh.Materials.clear();
-			m_HierarchyWindow->SetSelectedEntity(entity);
+			m_Context.Selection = entity;
 		}
 	}
 }

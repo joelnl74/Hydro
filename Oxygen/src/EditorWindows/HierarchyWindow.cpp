@@ -53,7 +53,8 @@ namespace Hydro
 		return found;
 	}
 
-	HierarchyWindow::HierarchyWindow()
+	HierarchyWindow::HierarchyWindow(EditorContext& context)
+		: m_Context(context)
 	{
 	}
 
@@ -81,10 +82,10 @@ namespace Hydro
 	void HierarchyWindow::OnImguiRender(Ref<Scene> scene)
 	{
 		// Drop a selection that belongs to a scene that was replaced or an entity that was destroyed.
-		if (m_SelectedEntity
-			&& (m_SelectedEntity.GetScene() != scene.get() || scene->m_Registry.valid(m_SelectedEntity) == false))
+		if (m_Context.Selection
+			&& (m_Context.Selection.GetScene() != scene.get() || scene->m_Registry.valid(m_Context.Selection) == false))
 		{
-			m_SelectedEntity = {};
+			m_Context.Selection = {};
 		}
 		m_Pending = {};
 
@@ -197,10 +198,10 @@ namespace Hydro
 
 			if (ImGui::MenuItem("Create Camera"))
 			{
-				m_SelectedEntity = scene->CreateEntity("Camera");
-				m_SelectedEntity.AddComponent<TransformComponent>();
+				m_Context.Selection = scene->CreateEntity("Camera");
+				m_Context.Selection.AddComponent<TransformComponent>();
 				// Only the first camera in a scene is primary by default.
-				m_SelectedEntity.AddComponent<CameraComponent>().Primary = (bool)scene->GetPrimaryCameraEntity() == false;
+				m_Context.Selection.AddComponent<CameraComponent>().Primary = (bool)scene->GetPrimaryCameraEntity() == false;
 			}
 
 			ImGui::Separator();
@@ -242,7 +243,7 @@ namespace Hydro
 		{
 			flags |= ImGuiTreeNodeFlags_Leaf;
 		}
-		if (m_SelectedEntity == entity)
+		if (m_Context.Selection == entity)
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -252,12 +253,12 @@ namespace Hydro
 		// Clicking the arrow only folds or unfolds.
 		if (ImGui::IsItemClicked() && ImGui::IsItemToggledOpen() == false)
 		{
-			m_SelectedEntity = entity;
+			m_Context.Selection = entity;
 		}
 		// Double-click: select it and look at it in the scene view.
 		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
-			m_SelectedEntity = entity;
+			m_Context.Selection = entity;
 			if (OnEntityFocus)
 			{
 				OnEntityFocus(entity);
@@ -567,25 +568,25 @@ namespace Hydro
 		case PendingEdit::Type::Duplicate:
 			if (Entity duplicate = scene.DuplicateEntity(edit.Subject))
 			{
-				m_SelectedEntity = duplicate;
+				m_Context.Selection = duplicate;
 			}
 			break;
 		case PendingEdit::Type::Delete:
 			// Its children go with it, so the selection may be one of them.
-			if (m_SelectedEntity
-				&& (m_SelectedEntity == edit.Subject || scene.IsAncestorOf(edit.Subject, m_SelectedEntity)))
+			if (m_Context.Selection
+				&& (m_Context.Selection == edit.Subject || scene.IsAncestorOf(edit.Subject, m_Context.Selection)))
 			{
-				m_SelectedEntity = {};
+				m_Context.Selection = {};
 			}
 			scene.DestroyEntity(edit.Subject);
 			break;
 		case PendingEdit::Type::CreateChild:
-			m_SelectedEntity = CreateFromTemplate(scene, edit.Create, edit.Target);
+			m_Context.Selection = CreateFromTemplate(scene, edit.Create, edit.Target);
 			break;
 		case PendingEdit::Type::InstantiatePrefab:
 			if (Entity instance = PrefabSerializer::Instantiate(scene, edit.Prefab, edit.Target))
 			{
-				m_SelectedEntity = instance;
+				m_Context.Selection = instance;
 			}
 			break;
 		default:
