@@ -1,32 +1,28 @@
-// Game/src/Scripts/Field/NpcRouteScript.h
 #pragma once
 
 #include "Hydro.h"
 #include "Rules/RouteRules.h"
-#include "Scripts/Field/WaypointScript.h"
+#include "Scripts/Field/WaypointComponent.h"
 
 #include <cstdint>
+#include <cstdio>
 #include <string>
 #include <vector>
 
 namespace Hydro
 {
-	// A townsperson who goes round a route: the Route entity's children are its waypoints (WaypointScript), walked in
-	// the hierarchy's order by Mode (Loop, PingPong, Once, Restart; RouteRules). It walks straight from one to the
-	// next (up a flight of stairs too: the waypoints carry the height), playing Walk<Facing>; at each it may stop and
-	// do what the waypoint says (wait, face a way or an entity, play Action<Facing>). It keeps Clearance metres ahead
-	// free: while the Player or another townsperson (a collider on the Npc layer) stands there it waits, facing
-	// that way; after Patience seconds it turns back (PingPong) or walks on through for a moment.
-	// Moves the transform directly (no physics body): its collider follows. Waypoints are read when they are
-	// reached, so moving one while playing changes the route. Replaces NpcWanderScript (a two-waypoint route).
+	// A townsperson who walks a route of waypoints by Mode, doing what each WaypointComponent says, and waits while the way
+	// ahead is blocked. Moves the transform directly; waypoints are read when reached, so they can be moved while playing.
 	HY_SCRIPT()
 	class NpcRouteScript : public ScriptableEntity
 	{
 	public:
-		HY_PROPERTY(Required, Tooltip("The route: an entity whose children are the waypoints (WaypointScript), in order"))
+		HY_PROPERTY(Tooltip("The waypoints in the order they are walked (any entities, in any order in the hierarchy); empty: the Route's children"))
+		std::vector<EntityRef> Waypoints;
+		HY_PROPERTY(Tooltip("Used when Waypoints is empty: an entity whose children are the waypoints, in the hierarchy's order"))
 		EntityRef Route;
 		HY_PROPERTY(Tooltip("Loop (back to the first), PingPong (there and back), Once (then stays), Restart (reappears at the first)"))
-		std::string Mode = "Loop";
+		RouteMode Mode = RouteMode::Loop;
 		HY_PROPERTY(Range(0, 5), Tooltip("Metres per second (the player walks at about 3.5)"))
 		float Speed = 1.1f;
 		HY_PROPERTY(Range(0, 64), Tooltip("The waypoint it starts at (it is placed there), so a crowd on one route is spread out"))
@@ -41,9 +37,79 @@ namespace Hydro
 		float Patience = 3.0f;
 
 	protected:
+		// Bright while the townsperson, its route or a waypoint is selected, with each waypoint's number and what it does there.
+		void OnDrawGizmos(Gizmos& gizmos) override
+		{
+			std::vector<Entity> points;
+			GatherWaypoints(points, false);
+			if (points.empty())
+			{
+				return;
+			}
+			Scene& scene = *GetEntity().GetScene();
+			bool selected = gizmos.IsSelected() || gizmos.IsSelected(Route.Get());
+			for (const Entity& point : points)
+			{
+				selected = selected || gizmos.IsSelected(point);
+			}
+			const glm::vec4 color = selected ? Gizmos::Highlight : Gizmos::Normal;
+			const glm::vec3 lift(0.0f, 0.0f, 0.05f);
+
+			const size_t count = points.size();
+			const bool closes = Mode == RouteMode::Loop && count > 2;
+			for (size_t i = 0; i < count; i++)
+			{
+				const glm::vec3 here = scene.GetWorldPosition(points[i]) + lift;
+				gizmos.Cross(here, 0.35f, color);
+				if (i + 1 < count || closes)
+				{
+					const glm::vec3 next = scene.GetWorldPosition(points[(i + 1) % count]) + lift;
+					if (Mode == RouteMode::PingPong)
+					{
+						gizmos.Line(here, next, color);
+					}
+					else
+					{
+						gizmos.Arrow(here, next, color);
+					}
+				}
+				if (selected)
+				{
+					std::string text = std::to_string(i + 1);
+					if (const WaypointComponent* waypoint = points[i].TryGetComponent<WaypointComponent>())
+					{
+						if (waypoint->WaitMax > 0.0f)
+						{
+							char wait[48];
+							std::snprintf(wait, sizeof(wait), "  wait %g-%g s", waypoint->WaitMin,
+								std::max(waypoint->WaitMin, waypoint->WaitMax));
+							text += wait;
+							if (waypoint->StopChance < 1.0f)
+							{
+								std::snprintf(wait, sizeof(wait), " (%d%%)", (int)(waypoint->StopChance * 100.0f + 0.5f));
+								text += wait;
+							}
+						}
+						if (waypoint->Action.empty() == false)
+						{
+							text += ", " + waypoint->Action;
+						}
+					}
+					gizmos.Label(here + glm::vec3(0.0f, 0.0f, 0.5f), text, color);
+				}
+			}
+			// Where it starts: a line from the townsperson to its first waypoint.
+			if (selected)
+			{
+				const size_t start = std::min((size_t)std::max(0, StartAt), count - 1);
+				gizmos.Line(GetWorldPosition() + lift, scene.GetWorldPosition(points[start]) + lift,
+					glm::vec4(color.r, color.g, color.b, 0.4f), 1.0f);
+			}
+		}
+
 		void OnCreate() override
 		{
-			m_Mode = RouteRules::ParseMode(Mode);
+			m_Mode = Mode;
 			m_Seed = 2654435761u ^ (uint32_t)((uint64_t)GetEntity().GetUUID() >> 3);
 			m_Index = std::max(0, StartAt);
 			m_Delay = StartDelay;
@@ -52,13 +118,12 @@ namespace Hydro
 
 		void OnUpdate(float deltaTime) override
 		{
-			if (Waypoints() == false)
+			if (ResolveWaypoints() == false)
 			{
 				return;
 			}
 			if (m_Placed == false)
 			{
-				// Start on its waypoint, then head for the next one.
 				m_Index = std::min(m_Index, (int)m_Waypoints.size() - 1);
 				SetWorldPosition(WaypointPosition(m_Index));
 				m_Placed = true;
@@ -112,24 +177,48 @@ namespace Hydro
 		}
 
 	private:
-		// The route's waypoints, looked up once (the route's children in order).
-		bool Waypoints()
+		// Entries whose entity is gone are skipped. `warn`: say what is missing (once, when it starts walking; not for gizmos).
+		void GatherWaypoints(std::vector<Entity>& waypoints, bool warn)
 		{
-			if (m_Looked)
+			waypoints.clear();
+			if (Waypoints.empty() == false)
 			{
-				return m_Waypoints.empty() == false;
+				for (const EntityRef& waypoint : Waypoints)
+				{
+					if (Entity entity = waypoint.Get())
+					{
+						waypoints.push_back(entity);
+					}
+					else if (warn)
+					{
+						HY_WARN("NpcRouteScript on '{}': a waypoint in its list is missing (skipped)", GetEntity().GetName());
+					}
+				}
+				return;
 			}
-			m_Looked = true;
 			Entity route = Route.Get();
 			if ((bool)route == false)
 			{
-				HY_WARN("NpcRouteScript on '{}': no Route set", GetEntity().GetName());
-				return false;
+				if (warn)
+				{
+					HY_WARN("NpcRouteScript on '{}': no Waypoints and no Route set", GetEntity().GetName());
+				}
+				return;
 			}
-			GetEntity().GetScene()->GetChildren(route, m_Waypoints);
-			if (m_Waypoints.empty())
+			GetEntity().GetScene()->GetChildren(route, waypoints);
+			if (waypoints.empty() && warn)
 			{
 				HY_WARN("NpcRouteScript on '{}': route '{}' has no waypoints (children)", GetEntity().GetName(), route.GetName());
+			}
+		}
+
+		// Looked up once, when it first moves.
+		bool ResolveWaypoints()
+		{
+			if (m_Looked == false)
+			{
+				m_Looked = true;
+				GatherWaypoints(m_Waypoints, true);
 			}
 			return m_Waypoints.empty() == false;
 		}
@@ -139,10 +228,10 @@ namespace Hydro
 			return GetEntity().GetScene()->GetWorldPosition(m_Waypoints[(size_t)index]);
 		}
 
-		// At waypoint m_Index: maybe stop there (its wait, facing and action), else go straight on.
+		// Maybe stop at waypoint m_Index (its wait, facing and action), else go straight on.
 		void Arrive()
 		{
-			const WaypointScript* waypoint = m_Waypoints[(size_t)m_Index].TryGetComponent<WaypointScript>();
+			const WaypointComponent* waypoint = m_Waypoints[(size_t)m_Index].TryGetComponent<WaypointComponent>();
 			m_Wait = 0.0f;
 			if (waypoint != nullptr && RouteRules::RollStop(waypoint->StopChance, Random01()))
 			{
@@ -165,7 +254,7 @@ namespace Hydro
 			Play(waypoint->Action.empty() ? "Idle" : waypoint->Action, "Idle");
 		}
 
-		// On to the next waypoint (or appear at the first: Restart; or stay: Once).
+		// Appears at the first waypoint for Restart, stays for Once.
 		void Leave()
 		{
 			const RouteRules::Step next = RouteRules::Next(m_Index, m_Direction, (int)m_Waypoints.size(), m_Mode);
@@ -184,8 +273,7 @@ namespace Hydro
 			}
 		}
 
-		// True (standing, facing the way) while the player or another townsperson is within Clearance ahead; after
-		// Patience seconds of that it turns back (PingPong) or walks on through for a moment.
+		// True while someone is within Clearance ahead; after Patience seconds it turns back (PingPong) or walks on through.
 		bool WaitWhileBlocked(const glm::vec3& position, const glm::vec3& forward, float deltaTime)
 		{
 			if (m_PassThrough > 0.0f)

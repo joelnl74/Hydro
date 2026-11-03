@@ -27,10 +27,8 @@ namespace Hydro
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
-		// One feature chain: VkPhysicalDeviceFeatures2 (the Vulkan 1.0 features) -> Vulkan 1.3 features.
-		// Required features were checked when the GPU was picked (VulkanPhysicalDevice); optional ones
-		// are enabled only when the GPU has them, and what was enabled is what the rest of the
-		// engine asks for (IsWideLinesEnabled, ...), never what the GPU merely supports.
+		// Required features were checked when the GPU was picked; optional ones are enabled when present, and the rest
+		// of the engine asks what was enabled (IsWideLinesEnabled, ...), never what the GPU merely supports.
 		const VkPhysicalDeviceFeatures& supported = m_PhysicalDevice->GetFeatures();
 		const VkPhysicalDeviceVulkan13Features& supported13 = m_PhysicalDevice->GetVulkan13Features();
 
@@ -56,12 +54,10 @@ namespace Hydro
 		enabledFeatures.features.fillModeNonSolid = m_FillModeNonSolidEnabled ? VK_TRUE : VK_FALSE;
 		m_WideLinesEnabled = supported.wideLines == VK_TRUE;
 		enabledFeatures.features.wideLines = m_WideLinesEnabled ? VK_TRUE : VK_FALSE;
-		// A different blend state per colour attachment: the Editor view's entity ID is never blended (and
-		// sometimes not written) next to the alpha-blended scene colour. Every desktop GPU has it.
+		// A blend state per colour attachment: the entity ID is never blended next to the alpha-blended colour.
 		m_IndependentBlendEnabled = supported.independentBlend == VK_TRUE;
 		enabledFeatures.features.independentBlend = m_IndependentBlendEnabled ? VK_TRUE : VK_FALSE;
-		// Descriptor indexing (Vulkan 1.2, for bindless textures later) is reported in
-		// RendererCapabilities but not enabled: nothing uses it yet.
+		// Descriptor indexing is reported in RendererCapabilities but not enabled: nothing uses it yet.
 
 		const std::vector<const char*>& deviceExtensions = VulkanPhysicalDevice::GetRequiredExtensions();
 

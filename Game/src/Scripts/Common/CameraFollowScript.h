@@ -1,4 +1,3 @@
-// Game/src/Scripts/Common/CameraFollowScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -13,11 +12,8 @@
 
 namespace Hydro
 {
-	// Put it on the camera: the camera glides after the first entity tagged "Player" (the zoom is left alone)
-	// and its focus stays inside the bounds. V switches between top-down and the tilted diorama view, O
-	// between perspective and orthographic in the diorama (DioramaCamera.h). It follows in play mode only,
-	// because scripts only run there. Where the target stands in a camera zone (CameraZoneScript) the camera
-	// takes the zone's framing and pan area, blending over the zone's BlendSeconds; elsewhere the scene's.
+	// On the camera: glides after the entity tagged "Player", keeping its focus inside the bounds and taking the framing of
+	// the camera zone the target stands in. V and O switch the view (DioramaCamera.h).
 	HY_SCRIPT()
 	class CameraFollowScript : public ScriptableEntity
 	{
@@ -38,8 +34,7 @@ namespace Hydro
 			{
 				const glm::vec3 position = scene->GetWorldPosition(Entity{ m_Target, scene });
 
-				// The framing: the zone the target stands in, else the scene's; eased so a new zone settles in about
-				// its BlendSeconds (the yaw turns the short way).
+				// The zone the target stands in, else the scene's; eased so a new zone settles in about its BlendSeconds.
 				DioramaFraming goalFraming = DioramaView::GetSceneFraming();
 				const DioramaCameraZone* zone = DioramaView::FindZone(scene, { position.x, position.y });
 				if (zone != nullptr)
@@ -76,7 +71,7 @@ namespace Hydro
 				}
 				const float t = 1.0f - std::exp(-Smoothing * deltaTime);
 				m_Focus += (goal - m_Focus) * t;
-				// The height of the ground the character stands on (a terrace, stairs), so it stays in frame.
+				// The height of the ground it stands on (a terrace, stairs), so it stays in frame.
 				m_FocusHeight += (position.z - m_FocusHeight) * t;
 				m_Snap = false;
 			}
@@ -88,8 +83,7 @@ namespace Hydro
 
 			if (self.HasComponent<CameraComponent>())
 			{
-				// A cutscene may hold the camera (DioramaView::CinematicWeight); the follow goes on underneath, so
-				// letting go glides back to the target.
+				// The follow goes on under a cutscene's hold, so letting go glides back to the target.
 				glm::vec2 focus = m_Focus;
 				float height = m_FocusHeight + m_Framing.FocusRise * DioramaView::Blend;
 				DioramaView::MixCinematic(focus, height);
@@ -123,8 +117,8 @@ namespace Hydro
 		entt::entity m_Target = entt::null;
 		bool m_Snap = true;
 		glm::vec2 m_Focus{ 0.0f };  // where the camera looks, on the ground
-		float m_FocusHeight = 0.0f; // and how high that ground is (the target's z, smoothed)
-		DioramaFraming m_Framing;   // the framing now, easing towards the zone's or the scene's
-		float m_BlendSeconds = 0.8f; // how quickly: the last zone entered
+		float m_FocusHeight = 0.0f; // and how high that ground is (smoothed)
+		DioramaFraming m_Framing;   // easing towards the zone's or the scene's
+		float m_BlendSeconds = 0.8f; // the last zone entered
 	};
 }

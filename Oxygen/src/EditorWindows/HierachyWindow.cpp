@@ -40,7 +40,9 @@ namespace Hydro
 	{
 		// Drop a selection that belongs to a scene that was replaced or an entity that was destroyed.
 		if (m_SelectedEntity && (m_SelectedEntity.GetScene() != scene.get() || scene->m_Registry.valid(m_SelectedEntity) == false))
+		{
 			m_SelectedEntity = {};
+		}
 
 		// Destroying while iterating the registry is unsafe, so it happens after the loop.
 		Entity entityToDelete;
@@ -76,7 +78,9 @@ namespace Hydro
 			if (AssetDragDrop::AcceptPayload(droppedPath) && droppedPath.extension().string() == PrefabSerializer::FileExtension)
 			{
 				if (Entity instance = PrefabSerializer::Instantiate(*scene, droppedPath))
+				{
 					m_SelectedEntity = instance;
+				}
 			}
 
 			ImGui::EndDragDropTarget();
@@ -102,17 +106,23 @@ namespace Hydro
 
 				ImGuiTreeNodeFlags child = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth;
 				if (m_SelectedEntity == entity)
+				{
 					child |= ImGuiTreeNodeFlags_Selected;
+				}
 
 				bool opened = ImGui::TreeNodeEx((void*)id, child, "%s", tag.c_str());
 				if (ImGui::IsItemClicked())
+				{
 					m_SelectedEntity = entity;
+				}
 				// Double-click: select it and look at it in the scene view.
 				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 				{
 					m_SelectedEntity = entity;
 					if (OnEntityFocus)
+					{
 						OnEntityFocus(entity);
+					}
 				}
 
 				// Drag a row onto the upper half of another row to put it before that row, onto the
@@ -157,20 +167,26 @@ namespace Hydro
 				if (ImGui::BeginPopupContextItem())
 				{
 					if (ImGui::MenuItem("Save as Prefab"))
+					{
 						SaveAsPrefab(entity);
+					}
 					if (ImGui::MenuItem("Duplicate Entity"))
 					{
 						entityToDuplicate = entity;
 					}
 					if (ImGui::MenuItem("Delete Entity"))
+					{
 						entityToDelete = entity;
+					}
 
 
 					ImGui::EndPopup();
 				}
 
 				if (opened)
+				{
 					ImGui::TreePop();
+				}
 			}
 
 			ImGui::TreePop();
@@ -208,7 +224,9 @@ namespace Hydro
 				if (filepath.empty() == false)
 				{
 					if (Entity instance = PrefabSerializer::Instantiate(*scene, filepath))
+					{
 						m_SelectedEntity = instance;
+					}
 				}
 			}
 
@@ -233,7 +251,9 @@ namespace Hydro
 		if (entityToDelete)
 		{
 			if (m_SelectedEntity == entityToDelete)
+			{
 				m_SelectedEntity = {};
+			}
 
 			scene->DestroyEntity(entityToDelete);
 		}

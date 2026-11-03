@@ -1,4 +1,3 @@
-// Game/src/Scripts/ShrineGlade/ShrineQuestScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -22,24 +21,13 @@
 
 namespace Hydro
 {
-	// The Shrine Glade's opening errand, start to finish (docs/TestBed.md, "Shrine Glade quest"):
-	//   1. Offer: a quest marker over the Old Monk ("Npc Elder"). Talking to him starts "Clearing the Grounds"
-	//      and wakes the dormant slimes on the lower path (tags starting "Slime Grounds", EnemyChaseScript
-	//      Dormant).
-	//   2. Hunt: the tracker counts them as their battles are won (a won battle removes the slime).
-	//   3. Return: the marker turns to "?"; talking to him plays the cutscene: letterbox bars ("Cinematic Canvas",
-	//      which captures input, so Miko stands still), the camera glides to the Sacred Tree, the ground rumbles
-	//      (camera shake) and stops dead, the tree wakes ("Sacred Tree Awake" and "Sacred Tree Glow" fade in, a
-	//      cyan light and rising motes), then the monk's lines while the camera stays on the tree.
-	//   4. The camera returns, "Clearing the Grounds" completes and "The Guardian's Duty" starts: down the shrine
-	//      road into the rice fields, where CountrysideQuestScript takes it on. The tree stays awake.
-	// The lines are data (DialogueTable, QuestTable); the timings and the camera are HY_PROPERTY fields,
-	// tunable while playing.
+	// The Shrine Glade's opening errand: clear the slimes for the Old Monk, then the Sacred Tree wakes in a cutscene and
+	// "The Guardian's Duty" starts (docs/TestBed.md, "Shrine Glade quest"). Timings and camera are tunable while playing.
 	HY_SCRIPT()
 	class ShrineQuestScript : public ScriptableEntity
 	{
 	public:
-		// The Sandbox project's data files: the defaults below, so the scene didn't have to change.
+		// Defaults for the data properties, so the scene didn't have to change.
 		static constexpr uint64_t DefaultQuestTable = 5008924285669857658ull;    // Assets/Data/Quests.hytable
 		static constexpr uint64_t DefaultDialogueTable = 8378147269873057234ull; // Assets/Data/Dialogue/ShrineErrand.hytable
 
@@ -66,7 +54,6 @@ namespace Hydro
 		HY_PROPERTY(Range(0.1, 10), Tooltip("Seconds the camera takes to glide to the tree (and a little less back)"))
 		float GlideTime = 2.4f;
 
-		// The tremor.
 		HY_PROPERTY(Range(0, 2), Tooltip("Metres the camera shakes at the tremor's peak"))
 		float ShakeStrength = 0.22f;
 		HY_PROPERTY(Range(0, 30), Tooltip("Seconds into the cutscene the ground starts to move"))
@@ -84,8 +71,7 @@ namespace Hydro
 		void OnCreate() override
 		{
 			Scene& scene = *GetEntity().GetScene();
-			// The log belongs to the run (the game session): a new run starts with an empty one, and a Shrine Glade
-			// entered from another scene keeps it.
+			// The log belongs to the run: a new run starts empty, and a Shrine Glade entered from another scene keeps it.
 			m_Monk = Find(scene, "Npc " + MonkName);
 			m_Player = Find(scene, "Player");
 			m_Tree.Bind(scene, GlowColor, &Find);
@@ -106,7 +92,7 @@ namespace Hydro
 			m_Letterbox.SetShown(false);
 			m_Letterbox.Set(0.0f);
 			QuestLog::Get().Claim(MonkName);
-			// Coming back to the glade after the errand: the tree is awake and the monk only says goodbye.
+			// Coming back after the errand: the tree is awake and the monk only says goodbye.
 			if (QuestLog::Get().Find(DutyQuest()) != nullptr)
 			{
 				m_Step = Step::Done;
@@ -209,13 +195,12 @@ namespace Hydro
 	private:
 		enum class Step : uint8_t { Offer, Briefing, Hunt, Return, Report, Tremor, Awakened, Release, Done };
 
-		// The quests (rows of QuestTable).
 		DataRowRef SlimesQuest() const { return DataRowRef{ QuestTable, "ClearingTheGrounds" }; }
 		DataRowRef DutyQuest() const { return DataRowRef{ QuestTable, "GuardiansDuty" }; }
 
-		// ---- Conversations: a row of DialogueTable in the dialogue box ------------------------------------
+		// ---- Conversations ------------------------------------------------------------------------------------
 
-		// Queues the conversation `row`; "{Left}" in its lines becomes `left` (the slimes still to find).
+		// "{Left}" in its lines becomes `left` (the slimes still to find).
 		void Say(const char* row, const std::string& left = {})
 		{
 			const DataView<DialogueDefinition> dialogue = Data::GetRow<DialogueDefinition>(DataRowRef{ DialogueTable, row });
@@ -234,7 +219,6 @@ namespace Hydro
 			m_Waiting = true;
 		}
 
-		// True while a conversation waits or the dialogue box is open.
 		bool IsTalking()
 		{
 			DialogueScript* dialogue = FindDialogue();
@@ -298,7 +282,7 @@ namespace Hydro
 			}
 		}
 
-		// The slimes still there (a won battle destroys the slime that started it).
+		// A won battle destroys the slime that started it.
 		int CountSlimes(Scene& scene) const
 		{
 			int left = 0;
@@ -319,7 +303,7 @@ namespace Hydro
 			m_Step = Step::Tremor;
 			m_StepTime = 0.0f;
 			m_Letterbox.SetShown(true);
-			// Where the camera looks: the tree's foot (an Upright sprite stands on its bottom edge), on its terrace.
+			// The tree's foot on its terrace (an Upright sprite stands on its bottom edge).
 			const glm::vec3 foot = m_Tree.GetFoot(scene);
 			DioramaView::CinematicFocus = glm::vec2(foot) + TreeFocusOffset;
 			DioramaView::CinematicHeight = foot.z + TreeFocusRise;
@@ -337,7 +321,7 @@ namespace Hydro
 			m_Letterbox.Set(Smooth(t / 0.8f));
 			DioramaView::CinematicWeight = Smooth(t / GlideTime);
 
-			// The ground moves: it builds over a second, judders at the peak, then stops dead.
+			// The tremor builds over a second, judders at the peak, then stops dead.
 			const float tremor = t - TremorStart;
 			float shake = 0.0f;
 			if (tremor >= 0.0f && tremor < TremorTime)
@@ -353,7 +337,6 @@ namespace Hydro
 				m_Tree.ShakeLoose(scene);
 			}
 
-			// The slow push in, and the tree waking from the tremor's start.
 			DioramaView::CinematicZoom = 1.0f + (TreeZoom - 1.0f) * Smooth((t - 1.0f) / (TremorStart + AwakenTime));
 			const float awake = Smooth(tremor / AwakenTime);
 			m_Tree.Set(awake, m_Time);
@@ -367,7 +350,6 @@ namespace Hydro
 			}
 		}
 
-		// The tree once awake: its veins and light breathe slowly.
 		void UpdateAwakeTree([[maybe_unused]] Scene& scene, [[maybe_unused]] float deltaTime)
 		{
 			m_Tree.Set(1.0f, m_Time);
@@ -406,7 +388,7 @@ namespace Hydro
 			{
 				return;
 			}
-			// Over the monk's head, bobbing a little: a black-on-yellow "!" for a new errand, "?" for "come back to me".
+			// "!" for a new errand, "?" for "come back to me".
 			const glm::vec3 foot = TreeAwakening::Foot(scene, m_Monk);
 			const float bob = 0.08f * std::sin(m_Time * 3.0f);
 			scene.SetWorldPosition(m_MarkerCanvas, DioramaView::Above(foot, 2.35f + bob));
@@ -438,12 +420,12 @@ namespace Hydro
 		Step m_Step = Step::Offer;
 		float m_Time = 0.0f;
 		float m_StepTime = 0.0f;
-		std::vector<DialogueScript::Line> m_Lines; // the conversation waiting for the dialogue box
+		std::vector<DialogueScript::Line> m_Lines; // waiting for the dialogue box
 		bool m_Waiting = false;
 		Entity m_Monk, m_Player;
 		Entity m_DialogueCanvas, m_MarkerCanvas, m_Marker;
-		TreeAwakening m_Tree;    // the Sacred Tree waking (Scripts/ShrineGlade/TreeAwakening.h)
-		LetterboxView m_Letterbox; // the cutscene bars (Views/LetterboxView.h)
+		TreeAwakening m_Tree;
+		LetterboxView m_Letterbox;
 		std::vector<entt::entity> m_Slimes;
 		int m_SlimeCount = 0;
 		bool m_LeavesFallen = false;

@@ -23,11 +23,10 @@ namespace Hydro {
 	}
 
 #if 0
-	void VulkanAllocator::Allocate(VkMemoryRequirements requirements, VkDeviceMemory* dest, VkMemoryPropertyFlags flags /*= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT*/)
+	void VulkanAllocator::Allocate(VkMemoryRequirements requirements, VkDeviceMemory* dest, VkMemoryPropertyFlags flags)
 	{
 		HZ_CORE_ASSERT(m_Device);
 
-		// TODO: Tracking
 		HZ_CORE_TRACE("VulkanAllocator ({0}): allocating {1}", m_Tag, Utils::BytesToString(requirements.size));
 
 		{
@@ -49,7 +48,8 @@ namespace Hydro {
 		return AllocateBuffer(bufferCreateInfo, usage, outBuffer, 0, nullptr);
 	}
 
-	VmaAllocation VulkanAllocator::AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer, VmaAllocationCreateFlags flags, VmaAllocationInfo* outInfo)
+	VmaAllocation VulkanAllocator::AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage usage, VkBuffer& outBuffer,
+		VmaAllocationCreateFlags flags, VmaAllocationInfo* outInfo)
 	{
 		VmaAllocationCreateInfo allocCreateInfo = {};
 		allocCreateInfo.usage = usage;
@@ -58,14 +58,11 @@ namespace Hydro {
 		VmaAllocation allocation;
 		VK_CHECK_RESULT(vmaCreateBuffer(s_Data->Allocator, &bufferCreateInfo, &allocCreateInfo, &outBuffer, &allocation, outInfo));
 
-		// TODO: Tracking
 		VmaAllocationInfo allocInfo;
 		vmaGetAllocationInfo(s_Data->Allocator, allocation, &allocInfo);
-		// HZ_ALLOCATOR_LOG("VulkanAllocator ({0}): allocating buffer; size = {1}", m_Tag, Utils::BytesToString(allocInfo.size));
 
 		{
 			s_Data->TotalAllocatedBytes += allocInfo.size;
-			// HZ_ALLOCATOR_LOG("VulkanAllocator ({0}): total allocated since start is {1}", m_Tag, Utils::BytesToString(s_Data->TotalAllocatedBytes));
 		}
 
 		return allocation;
@@ -79,14 +76,11 @@ namespace Hydro {
 		VmaAllocation allocation;
 		vmaCreateImage(s_Data->Allocator, &imageCreateInfo, &allocCreateInfo, &outImage, &allocation, nullptr);
 
-		// TODO: Tracking
 		VmaAllocationInfo allocInfo;
 		vmaGetAllocationInfo(s_Data->Allocator, allocation, &allocInfo);
-		// HZ_ALLOCATOR_LOG("VulkanAllocator ({0}): allocating image; size = {1}", m_Tag, Utils::BytesToString(allocInfo.size));
 
 		{
 			s_Data->TotalAllocatedBytes += allocInfo.size;
-			// HZ_ALLOCATOR_LOG("VulkanAllocator ({0}): total allocated since start is {1}", m_Tag, Utils::BytesToString(s_Data->TotalAllocatedBytes));
 		}
 		return allocation;
 	}
@@ -98,15 +92,11 @@ namespace Hydro {
 
 	void VulkanAllocator::DestroyImage(VkImage image, VmaAllocation allocation)
 	{
-		// HZ_CORE_ASSERT(image);
-		// HZ_CORE_ASSERT(allocation);
 		vmaDestroyImage(s_Data->Allocator, image, allocation);
 	}
 
 	void VulkanAllocator::DestroyBuffer(VkBuffer buffer, VmaAllocation allocation)
 	{
-		// HZ_CORE_ASSERT(buffer);
-		// HZ_CORE_ASSERT(allocation);
 		vmaDestroyBuffer(s_Data->Allocator, buffer, allocation);
 	}
 
@@ -140,10 +130,9 @@ namespace Hydro {
 	{
 		s_Data = new VulkanAllocatorData();
 
-		// Initialize VulkanMemoryAllocator
 		VmaAllocatorCreateInfo allocatorInfo = {};
-		// Stays 1.2 on the 1.3 device: the vendored VMA (3.0.0-development, 2021) asserts on anything
-		// above 1.2. It only decides which memory functions VMA loads, and those are the same.
+		// Stays 1.2 on the 1.3 device: the vendored VMA asserts on anything above 1.2, and it only picks which memory
+		// functions VMA loads (the same ones).
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
 		allocatorInfo.physicalDevice = device.GetPhysicalDevice().GetVulkanPhysicalDevice();
 		allocatorInfo.device = device.GetDevice();

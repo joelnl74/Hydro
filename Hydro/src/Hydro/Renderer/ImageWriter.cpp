@@ -1,8 +1,8 @@
 #include "hypch.h"
 #include "ImageWriter.h"
 
-// stb_image_write's implementation is compiled here, once for the whole engine. Vendored code: its
-// warnings are not ours. STBIW_WINDOWS_UTF8 makes it open UTF-8 paths correctly on Windows.
+// stb_image_write's implementation, compiled once for the engine (its warnings are not ours). STBIW_WINDOWS_UTF8
+// makes it open UTF-8 paths on Windows.
 #if defined(_MSC_VER)
 	#pragma warning(push, 0)
 #endif
@@ -60,8 +60,7 @@ namespace Hydro
 			return false;
 		}
 
-		// stb's compression level and filter choice are fixed (stbi_write_png_compression_level is never
-		// changed in Hydro), so the output depends only on the pixels.
+		// stb's compression settings are fixed, so the output depends only on the pixels.
 		return stbi_write_png_to_func(AppendPNGBytes, &out, (int)width, (int)height, 4, rgba, (int)width * 4) != 0;
 	}
 }

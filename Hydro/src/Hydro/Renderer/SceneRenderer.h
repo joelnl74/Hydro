@@ -19,15 +19,15 @@
 
 namespace Hydro
 {
+	class Gizmos;
+
 	class Texture2D;
 
-	// Submits a scene to Renderer2D (render submission, step 4 of the frame order), into a RenderView
-	// and through a camera.
+	// Submits a scene to Renderer2D through a camera, into a RenderView.
 	class SceneRenderer
 	{
 	public:
-		// Editor-only drawing on top of the scene (lines, never lit): what is selected and where the
-		// colliders are. Not drawn by RenderRuntime.
+		// Editor-only lines over the scene (never lit): the selection and the colliders.
 		struct EditorOverlay
 		{
 			Entity Selected;                 // outlined when SelectionOutline is on
@@ -40,11 +40,12 @@ namespace Hydro
 			glm::vec4 TerrainBrushColor{ 1.0f, 1.0f, 1.0f, 0.9f };
 			// The Path brush's points so far (world space), joined by a line; empty when there are none.
 			std::vector<glm::vec3> TerrainPath;
-			// The scene's look in the Editor view (Nov 2, 2026; Oxygen's Editor > Effects menu): off, the view stays sharp
-			// and clear to edit in. PostProcessing: depth of field, bloom and the vignette (exposure and the tonemap
-			// stay); Fog: the scene environment's fog.
+			// Off keeps the Editor view sharp. PostProcessing: depth of field, bloom and vignette (exposure and tonemap stay);
+			// Fog: the environment's fog.
 			bool PostProcessing = false;
 			bool Fog = false;
+			// What scripts draw with OnDrawGizmos: lines over the scene; Oxygen draws the labels. Not owned.
+			const Gizmos* ScriptGizmos = nullptr;
 		};
 
 		SceneRenderer(const Ref<Scene>& scene)
@@ -56,21 +57,21 @@ namespace Hydro
 
 		// Editing: the scene seen through the editor's camera.
 		void RenderEditor(RenderView& view, const EditorCamera& camera, const EditorOverlay& overlay);
-		// Without an overlay (an overload, not a default argument: g++ can't default a nested type with
-		// default member initialisers inside the class; MSVC can).
+		// An overload, not a default argument: g++ can't default a nested type with member initialisers.
 		void RenderEditor(RenderView& view, const EditorCamera& camera);
-		// Runtime: the scene seen through its primary CameraComponent, with the scene's viewport
-		// aspect ratio (keep Scene::OnViewportResize in step with the view's size), and its UI canvases on top.
-		// Without a primary camera it draws only the UI and returns false.
+		// The scene through its primary camera, with its UI canvases on top. Keep Scene::OnViewportResize in step
+		// with the view's size. Without a primary camera it draws only the UI and returns false.
 		bool RenderRuntime(RenderView& view);
 
 		// The scene's render features when it overrides the project's, else RendererSettings::Features.
-		// RenderEditor and RenderRuntime hand them to the view every frame.
 		RenderFeatureSettings GetEffectiveRenderFeatures() const;
 
 	private:
-		// How the camera of the view being drawn is turned, for SpriteFacing (Diorama RPG H1). Made once
-		// per RenderEditor / RenderRuntime from the camera's rotation.
+		// Moves the camera to whole screen pixels of a `viewHeight` view, measured at its focus point (#136).
+		// Only the drawn view moves; the camera entity is left as it is.
+		static void SnapCameraToPixels(glm::mat4& cameraTransform, const SceneCamera& camera, uint32_t viewHeight);
+
+		// How the camera of the view being drawn is turned, for SpriteFacing. Made once per frame.
 		struct CameraBasis
 		{
 			glm::mat3 Rotation{ 1.0f };          // the camera's rotation: what a Billboard quad turns by
@@ -96,8 +97,8 @@ namespace Hydro
 				return true;
 			}
 
-			// Where the camera's view meets the ground (z = 0): what the fog and the depth of field measure from, so
-			// how far away the camera is doesn't matter. A camera looking level or up measures from itself.
+			// Where the camera's view meets the ground (z = 0): the fog and depth of field measure from it.
+			// A camera looking level or up measures from itself.
 			glm::vec3 GetGroundFocus() const
 			{
 				if (Forward.z < -0.05f)
@@ -109,16 +110,14 @@ namespace Hydro
 		};
 		static CameraBasis MakeCameraBasis(const glm::mat3& rotation, UprightSpriteMode upright);
 
-		// How the sprites of the view being drawn cast sun shadows (R14). Made once per RenderEditor /
-		// RenderRuntime by PrepareSunShadowCasting.
+		// How sprites cast sun shadows in the view being drawn (PrepareSunShadowCasting).
 		struct SunShadowCasting
 		{
 			bool Sprites = false;                      // cut-out standing sprites cast (the feature is on, the sun casts)
 			SpriteShadowMode Mode = SpriteShadowMode::FaceSun;
 			glm::mat3 SunUpright{ 1.0f };              // FaceSun: what turns a flat quad to stand facing the sun
 		};
-		// One sprite's shadow caster, queued while the sprites are submitted and drawn after them in one block
-		// (so the casters don't split the sprites' draw calls).
+		// One sprite's shadow caster, queued and drawn after the sprites so it doesn't split their draw calls.
 		struct ShadowCasterQuad
 		{
 			glm::mat4 Transform{ 1.0f };
@@ -127,71 +126,54 @@ namespace Hydro
 			glm::vec4 Color{ 1.0f };
 		};
 
-		// Sorts the scene's sprites and lit particle emitters together (SortOrder; then Flat sprites by Z,
-		// then the standing ones, Upright, Billboard and emitters, from far to near along the camera's
-		// ground direction; then storage order) and submits them back to front. An emitter is one entry:
-		// its particles are drawn together. With shared depth it also picks each one's SpriteDrawMode (decal,
-		// cut-out or translucent).
+		// Sorts sprites and lit emitters (SortOrder, then flat sprites by Z, then standing ones far to near) and
+		// submits them back to front. With shared depth it also picks each one's SpriteDrawMode.
 		void SubmitSprites();
-		// Whether and how sprites cast sun shadows this frame (m_SunShadows), from the render features and the
-		// scene's main light.
+		// Whether and how sprites cast sun shadows this frame, from the render features and the main light.
 		void PrepareSunShadowCasting();
-		// MeshComponents and TerrainComponents (Renderer3D), when the render features draw meshes; a warning once per
-		// scene otherwise.
+		// Meshes and terrains (Renderer3D) when the render features draw meshes; warns once per scene otherwise.
 		void SubmitMeshes(RenderView& renderView);
-		// TerrainComponents (TerrainCache, Renderer3D::DrawTerrainSurface); inside SubmitMeshes' Renderer3D scene.
+		// Called inside SubmitMeshes' Renderer3D scene.
 		void SubmitTerrains();
-		// Unlit emitters (ParticleLighting::Unlit): drawn after the view's lighting is composited, so they
-		// are not darkened at night. They go on top of every sprite (no SortOrder against sprites yet;
-		// the emissive path is decided by the Roadmap V4 spike).
+		// Unlit emitters: drawn after the lighting is composited, so night doesn't darken them. They go on top of
+		// every sprite.
 		void SubmitUnlitParticles();
-		// Sprites marked Overlay (HUD): in the overlay pass, after the unlit particles, in SortOrder; unlit, no depth test.
+		// Overlay (HUD) sprites in SortOrder: unlit, no depth test.
 		void SubmitOverlaySprites();
-		// The runtime UI (#164): every visible canvas in SortOrder (equal orders in hierarchy order), each drawing its
-		// elements in hierarchy order (parents behind children; an element's image, then its text) at its resolved rects,
-		// tinted by the state of the button they belong to (the nearest UIButtonComponent at or above them: its
-		// Normal / Focused / Pressed / Disabled tint, from the running UIScene; Normal or Disabled while editing), in screen space
-		// (Renderer2D::BeginScreenOverlay) after the overlay sprites: after the tonemap, untouched by lighting, bloom and
-		// grading. Positions are whole view pixels. A canvas with DrawDebug also outlines itself and its rects.
-		// UI6: each canvas where the layout placed it (Scene::GetUICanvasMetrics: World canvases follow their entity),
-		// everything cut to the scroll views above it (UIResolvedRectComponent::ClipMin / ClipMax), elements with a
-		// UIFocusVisibilityComponent drawn only in their button's matching state, text shadows under the glyphs.
-		// RenderRuntime only (the Game view): a screen-space canvas has no place in the Editor view.
+		// The runtime UI (#164): every visible canvas in SortOrder, in screen space after the tonemap, in whole view
+		// pixels. Runtime only: a screen-space canvas has no place in the Editor view.
 		void SubmitUI();
-		// One image over a resolved rect (canvas pixels), whole or nine-sliced.
-		// clipMin..clipMax (view pixels) is what the scroll views above it show.
-		static void SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+		// One image over a resolved rect (canvas pixels), whole or nine-sliced, cut to clipMin..clipMax (view pixels).
+		static void SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics,
+			const glm::vec4& tint,
 			const glm::vec2& clipMin, const glm::vec2& clipMax);
-		// One text in a resolved rect: laid out in its font (TextLayout, wrapped at the rect's width), placed by its
-		// vertical alignment, glyphs past VisibleCharacters left out. Nothing without a loaded font.
-		void SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+		// One text laid out in its rect (wrapped, vertically aligned, up to VisibleCharacters). Nothing without a font.
+		void SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics,
+			const glm::vec4& tint,
 			const glm::vec2& clipMin, const glm::vec2& clipMax);
 		// One emitter's live particles, at the emitter's Z; billboards when the camera is tilted.
-		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera);
-		// Submits the scene's Light2DComponents (they light the view when RendererSettings::Lighting is on).
-		// A point light's Height moves it up along the camera's up, as a point on an Upright sprite moves.
+		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime,
+			const glm::vec3& origin, const CameraBasis& camera);
+		// A point light's Height moves it up along the camera's up, like a point on an Upright sprite.
 		void SubmitLights();
-		// Forward lighting (plan M6): the sun (Scene::GetMainLight), ambient and fog (the scene's environment,
-		// else its Global lights) and the point and spot lights, handed to Renderer2D::SetSceneLighting.
+		// The sun, ambient, fog and the point and spot lights, handed to Renderer2D::SetSceneLighting.
 		void SubmitForwardLighting();
-		// Submits the scene's Shadow2DComponents (blob shadows in lit views, RendererSettings::Shadows).
+		// Blob shadows (Shadow2DComponents) in lit views.
 		void SubmitShadows();
-		// The editor overlay: selection outline and collider outlines (Renderer2D lines, after lighting).
+		// The selection and collider outlines (lines, after lighting).
 		void SubmitEditorOverlay(const EditorOverlay& overlay);
-		// Depth-tested 3D lines for the selection (Renderer2D::DrawLine3D, plan M7): a mesh's bounds, a light's
-		// reach or cone, the sun's direction.
+		// Depth-tested 3D lines for the selection: a mesh's bounds, a light's reach or cone, the sun's direction.
 		void SubmitSelectionDebugLines(Entity selected);
-		// The 3D colliders (ColliderShapes) and character capsules, depth tested (Overlays > Collider Outlines).
+		// 3D colliders and character capsules, depth tested.
 		void SubmitColliderDebugLines();
 		// The sprite's quad: the entity transform, moved so a sprite sheet's pivot sits on the entity.
 		static glm::mat4 GetSpriteQuadTransform(const glm::mat4& transform, const Texture2D* texture, uint32_t spriteIndex);
 		// The quad turned for its facing: Upright about the middle of its bottom edge, Billboard about its
 		// centre; Flat (and any facing under a top-down camera) unchanged.
 		static glm::mat4 ApplyFacing(const glm::mat4& quad, SpriteFacing facing, const CameraBasis& camera);
-		// One sprite: the whole texture (tiled), or a sprite of a sheet placed by its pivot; flipped as asked,
-		// turned for its facing. `shadowCaster` (cut-out standing sprites with sun shadows): also queue its
-		// shadow caster, as drawn or turned to face the sun, and look its pixels up on that caster.
-		void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const CameraBasis& camera, bool shadowCaster = false);
+		// One sprite, flipped and turned for its facing. `shadowCaster`: also queue its sun shadow caster.
+		void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const CameraBasis& camera,
+			bool shadowCaster = false);
 		// The texture a sprite draws (null = a plain colour quad) and the part of it, flipped as asked.
 		static Ref<Texture2D> GetSpriteImage(const SpriteRendererComponent& sprite, TextureRect& rect);
 
@@ -207,6 +189,7 @@ namespace Hydro
 			float Depth = 0.0f;     // along CameraBasis::GroundForward: larger is further away
 			float ViewDepth = 0.0f; // along CameraBasis::Forward from the camera (SpriteSortMode::ViewDepth): larger is further away
 			bool Cutout = false;    // drawn as a cut-out with shared depth (its AlphaMode, or the view's default)
+			bool Additive = false;  // SpriteDrawMode::Additive (AlphaMode Additive, or an additive lit particle emitter)
 		};
 
 		Ref<Scene> m_Scene;

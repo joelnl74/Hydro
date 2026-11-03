@@ -54,7 +54,8 @@ namespace Hydro
 		{
 			const std::string& key = it->first;
 			const bool isField = key == fieldName;
-			const bool isEntry = key.size() > fieldName.size() && key.compare(0, fieldName.size(), fieldName) == 0 && key[fieldName.size()] == '[';
+			const bool isEntry = key.size() > fieldName.size() && key.compare(0, fieldName.size(), fieldName) == 0
+				&& key[fieldName.size()] == '[';
 			if (isField || isEntry)
 			{
 				it = Nested.erase(it);

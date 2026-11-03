@@ -1,4 +1,3 @@
-// Game/src/Scripts/Tests/UICheckScripts.h
 #pragma once
 
 #include "Hydro.h"
@@ -10,17 +9,12 @@
 #include <string>
 #include <vector>
 
-// Test bed checks for the runtime UI's keyboard and pointer steps (UI3a, UI3b): a 3 x 3 button grid and a dialogue
-// without buttons, on capturing canvases in the Battle scene, the runtime UI's test scene (docs/TestBed.md, "Runtime
-// UI"). Checks of the system, next to the battle's real menus.
+// Test bed checks for the runtime UI's keyboard and pointer steps, in the Battle scene (docs/TestBed.md, "Runtime UI").
 
 namespace Hydro
 {
-	// On "UI Grid Canvas" (hidden, captures input). U shows and hides it, focusing the first button. Arrows / WASD
-	// move the focus (held: repeat), Enter / Space / Z press a button, Esc / Backspace / X close the grid; the mouse
-	// hovers and clicks. The status line says what the canvas's script heard (every button's events bubble up to it).
-	// "Off" is not interactable; "Msg" opens "UI Message Canvas" on top. Gameplay keys (the battle's commands) do
-	// nothing while the grid is shown; U is this script's own key, so it still works then.
+	// On "UI Grid Canvas": U shows a 3 x 3 button grid; the status line says what the canvas heard from its buttons. "Off"
+	// is not interactable; "Msg" opens "UI Message Canvas" on top.
 	HY_SCRIPT()
 	class UIGridCheckScript : public ScriptableEntity
 	{
@@ -60,7 +54,7 @@ namespace Hydro
 		}
 
 	private:
-		// An entity by its name: below `root` (its subtree), or anywhere in the scene with an empty root.
+		// Below `root`, or anywhere in the scene with an empty root.
 		static Entity Find(Scene& scene, Entity root, const std::string& name)
 		{
 			if ((bool)root)
@@ -106,8 +100,7 @@ namespace Hydro
 		bool m_UDown = false;
 	};
 
-	// On "UI Message Canvas" (hidden, captures input, sorted above the grid, no buttons): Enter or Esc closes it. With
-	// nothing focused on it, Submit and Cancel go to the canvas itself; the grid behind it gets no keys meanwhile.
+	// On "UI Message Canvas": Enter or Esc closes it. With nothing focused, Submit and Cancel go to the canvas itself.
 	HY_SCRIPT()
 	class UIMessageCheckScript : public ScriptableEntity
 	{

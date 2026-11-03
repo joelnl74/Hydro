@@ -8,9 +8,8 @@
 
 namespace Hydro
 {
-	// Drag & drop of assets between editor windows (project window -> viewport / hierarchy / inspector fields).
-	// The payload is the asset's handle, so what is dropped is the asset itself (it stays the same asset
-	// if it is renamed meanwhile); files that aren't registered assets carry nothing and can't be dropped.
+	// Drag and drop of assets between editor windows. The payload is the asset's handle, so a rename meanwhile is fine;
+	// files that aren't registered assets can't be dropped.
 	class AssetDragDrop
 	{
 	public:
@@ -26,9 +25,8 @@ namespace Hydro
 			}
 		}
 
-		// Call between ImGui::BeginDragDropTarget / EndDragDropTarget. Returns true and fills `outHandle`
-		// when an asset was dropped this frame. With a `type` other than None, only assets of that type
-		// light up the target and can be dropped on it.
+		// Call between BeginDragDropTarget / EndDragDropTarget. True (with `outHandle`) when an asset was dropped this frame;
+		// with a `type`, only assets of that type light up the target.
 		static bool AcceptHandle(AssetHandle& outHandle, AssetType type = AssetType::None)
 		{
 			const ImGuiPayload* peek = ImGui::AcceptDragDropPayload(PayloadType, ImGuiDragDropFlags_AcceptPeekOnly);

@@ -2,7 +2,7 @@
 #include <yaml-cpp/yaml.h>
 #include <glm/glm.hpp>
 
-// YAML encoding for glm vectors (float, and unsigned for pixel sizes and colours), shared by every serializer (scenes, prefabs, projects).
+// YAML encoding for glm vectors (float, and unsigned for pixel sizes and colours), shared by every serializer.
 // Vectors are written as flow sequences: [x, y, z].
 
 namespace YAML

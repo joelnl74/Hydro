@@ -8,20 +8,8 @@
 
 namespace Hydro
 {
-	// An entity's scripts in a scene or prefab file (EntitySerializer's NativeScriptComponent):
-	//
-	//     Scripts:
-	//       - Name: SpinScript
-	//         Properties: { Speed: 3.5 }
-	//       - VillageYSortScript        (a plain name: the first format, still read)
-	//
-	// Former names (HY_SCRIPT(FormerName("...")), HY_PROPERTY(FormerName("..."))): a binding or a value saved under
-	// one is read into the script or property it belongs to now and written under its current name. Each use is
-	// logged, so the file can be saved and the former name deleted.
-	//
-	// Saved values no property reads (the script isn't registered, or a property was renamed without a former name
-	// or removed) are kept in NativeScriptComponent::Script::KeptProperties and written back, so saving loses
-	// nothing (#143).
+	// An entity's scripts in a scene or prefab file (`Scripts:` with Name and Properties). Former names are read into
+	// the current script or property and logged; values no property reads are kept and written back (#143).
 	class ScriptSerializer
 	{
 	public:
@@ -31,8 +19,8 @@ namespace Hydro
 		// Binds the scripts of a Scripts sequence on `scripts`, with their saved values.
 		static void Read(const YAML::Node& scriptsNode, NativeScriptComponent& scripts, const std::string& owner);
 
-		// One property value: scalars and strings as they are, vectors as [x, y, z], an asset as its handle number, a
-		// table row as { Table: <handle>, Row: <id> }. Read gives the property's default for a value of another kind.
+		// One property value as YAML: vectors as [x, y, z], assets as handles, rows as { Table, Row }, data values as a
+		// data file has them. Read falls back to the property's default for a value of another kind.
 		static void WriteValue(YAML::Emitter& out, const ScriptPropertyValue& value);
 		static ScriptPropertyValue ReadValue(const YAML::Node& node, const ScriptProperty& property);
 	};

@@ -24,67 +24,57 @@ namespace Hydro
 	class Scene;
 	class UUID;
 
-	// How a sprite's quad is turned towards the camera. The ground is the XY plane and +Z is up (Diorama RPG
-	// H1), so a top-down camera (looking down -Z) sees every facing the same way: as a flat quad in XY.
+	// How a sprite's quad turns towards the camera. The ground is the XY plane and +Z is up, so a top-down
+	// camera (looking down -Z) sees every facing as a flat quad.
 	enum class SpriteFacing : uint8_t
 	{
 		Flat = 0,  // lies on the ground (XY), as it is authored: ground, roads, decals, water, bridges
-		Upright,   // stands on the bottom edge of its quad and turns to face the camera (yaw and pitch, never
-		           // roll): trees, buildings, props, characters. With a top-down camera it lies flat, so
-		           // tilting the camera stands it up gradually
+		Upright,   // stands on its bottom edge and turns to face the camera (yaw and pitch, never roll):
+		           // trees, buildings, props, characters
 		Billboard  // turns about its centre to face the camera fully: particles, glows, icons, world-space UI
 	};
 
-	// How a sprite is drawn in a view with shared depth (RenderFeatureSettings::Depth). Without it every sprite
-	// is translucent and drawn in sort order, as in the 2D preset.
+	// How a sprite draws in a view with shared depth (RenderFeatureSettings::Depth). Without shared depth every
+	// sprite is translucent and drawn in sort order.
 	enum class SpriteAlphaMode : uint8_t
 	{
 		Default = 0,  // the view's RenderFeatureSettings::DefaultSpriteAlpha (translucent in the 2D preset)
 		Cutout,       // pixels under half alpha are dropped, the rest are opaque: depth test and write, no blending
-		Translucent   // alpha blended: depth test, no depth write, sorted back to front (glows, water, effects)
+		Translucent,  // alpha blended: depth test, no depth write, sorted back to front (glows, water, effects)
+		Additive      // light added onto what is behind, unlit, sorted with the translucent ones;
+		              // works without shared depth too (light shafts, glows)
 	};
 
-	// A quad drawn with the entity's TransformComponent: Texture (white when 0 or not loaded) multiplied by Color
-	// (alpha blended). A Single texture is drawn whole, repeated TilingFactor times; a Multiple texture
-	// (a sprite sheet, see TextureImportConfig) draws its sprite SpriteIndex, placed by the sprite's pivot.
-	// Facing decides how the quad turns towards a tilted camera (SceneRenderer).
+	// A quad drawn with the entity's TransformComponent: Texture (white when 0) times Color. A Multiple texture
+	// (sprite sheet) draws sprite SpriteIndex, placed by its pivot; Facing decides how it turns to a tilted camera.
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		// The image to draw: the AssetHandle of a Texture2D in the project's asset folder (0 = none).
-		// Saved as TextureHandle. SceneRenderer draws it when the AssetManager has it loaded
-		// (GetLoadedAsset), so whatever assigns a handle makes sure it is loaded: loading a scene and the
-		// editor's pickers do; game code calls AssetManager::GetAsset<Texture2D>(handle) once.
+		// A Texture2D asset (0 = none), saved as TextureHandle. Drawn only once loaded: scene loading and the editor's
+		// pickers load it; game code calls AssetManager::GetAsset<Texture2D>(handle) once.
 		AssetHandle Texture = 0;
 		float TilingFactor = 1.0f; // Single textures only
-		// Draw order: sprites are drawn from low to high SortOrder, so higher values end up on top.
-		// Equal values: Flat sprites first (lower Translation.z first), then Upright and Billboard ones from
-		// far to near along the camera's ground direction (feet of an Upright, centre of a Billboard), then
-		// the order the scene stores them in.
+		// Higher draws on top. Ties: Flat sprites first (lower z first), then Upright and Billboard ones far to near
+		// along the camera's ground direction, then scene order.
 		int32_t SortOrder = 0;
-		// Which of the texture's sprites to draw (Texture2D::GetSprite). 0 is the whole image of a
-		// Single texture and the first sprite of a Multiple one; out of range draws sprite 0.
+		// Texture2D::GetSprite index: 0 is the whole Single texture or the first sprite of a sheet; out of range draws 0.
 		// A playing SpriteAnimatorComponent sets it every frame.
 		uint32_t SpriteIndex = 0;
 		bool FlipX = false;
 		bool FlipY = false;
 		SpriteFacing Facing = SpriteFacing::Flat;
 		SpriteAlphaMode AlphaMode = SpriteAlphaMode::Default;
-		// HUD: drawn in the view's overlay pass, after everything else and the lighting: unlit, never depth
-		// tested, in SortOrder among the overlay sprites. For world-space prompts and menus until runtime UI.
+		// HUD: drawn in the overlay pass after everything else and the lighting, unlit, never depth tested.
 		bool Overlay = false;
-		// Sun shadows: a cut-out Upright or Billboard sprite casts one (RenderFeatureSettings::SpriteShadows);
-		// off for grass, flowers and anything that shouldn't darken the ground.
+		// A cut-out Upright or Billboard sprite casts a sun shadow (RenderFeatureSettings::SpriteShadows); turn off for
+		// grass, flowers and anything that shouldn't darken the ground.
 		bool CastShadows = true;
-		// Emission (post-processing plan P3): the sprite's own pixels (texture times Color) times EmissionColor
-		// times EmissionIntensity are added after the lighting, so a flame or a lit window glows at night and in
-		// shadow. Linear; above 1 it blooms (with the Bloom render feature). 0 = none, as before. The whole sprite
-		// emits: a torch is a body sprite and a flame sprite.
+		// Texture times Color times EmissionColor times EmissionIntensity is added after the lighting, so flames and
+		// lit windows glow in the dark. Linear; above 1 it blooms. The whole sprite emits.
 		glm::vec3 EmissionColor{ 1.0f, 1.0f, 1.0f };
 		float EmissionIntensity = 0.0f;
-		// How much of the sprite shows: 1 = all (as before), 0 = none. A cut-out sprite below 1 is screen-door faded
-		// (SpriteDrawMode::FadedCutout, sprite_fade.frag; depth stays right), a translucent one blended. Its sun
-		// shadow is kept. Game scripts set it (the camera's occluder fade); multiplies Color's alpha.
+		// 1 = fully shown, 0 = hidden. Cut-out sprites below 1 are screen-door faded (depth stays right), translucent
+		// ones blended; the sun shadow is kept. Multiplies Color's alpha.
 		float Opacity = 1.0f;
 
 		SpriteRendererComponent() = default;
@@ -94,7 +84,7 @@ namespace Hydro
 		}
 	};
 
-	// A built-in shape of a MeshComponent (MeshFactory). Z-up, standing on its position.
+	// A built-in MeshComponent shape (MeshFactory). Z-up, standing on its position.
 	enum class MeshShape : uint8_t
 	{
 		Box = 0,
@@ -104,32 +94,28 @@ namespace Hydro
 		Cylinder
 	};
 
-	// One material slot of a MeshComponent: a material asset (.hymat, plan M4b), shared with every slot that
-	// names it, or the slot's own settings. Inline is drawn when there is no asset, or its file is missing.
+	// A MeshComponent material slot: a shared material asset (.hymat), or the slot's own Inline settings, used when
+	// there is no asset or its file is missing.
 	struct MeshMaterialSlot
 	{
 		AssetHandle Material = 0; // a MaterialAsset; 0 = use Inline
 		MaterialData Inline;
 	};
 
-	// A static mesh drawn with shared depth when the view's render features have Meshes on (plan M4).
-	// Plain data: SceneRenderer turns it into a cached Mesh and materials every frame.
+	// A static mesh, drawn with shared depth when the view's Meshes feature is on.
 	struct MeshComponent
 	{
-		// A model (a Mesh asset: .gltf / .glb, M5); 0 = the built-in Shape below.
+		// A Mesh asset (.gltf / .glb); 0 = the built-in Shape.
 		AssetHandle Model = 0;
 		MeshShape Shape = MeshShape::Box;
-		// Width (X), depth (Y), height (Z) in metres, before the transform's scale. Built-in shapes stand on
-		// the entity's position (their base is centred there at z = 0).
+		// Width (X), depth (Y), height (Z) in metres, before scale. Built-in shapes stand on the entity's position.
 		glm::vec3 Size{ 1.0f };
 		uint32_t Steps = 4;     // Stairs
 		uint32_t Segments = 16; // Cylinder
-		// One per material slot (built-in shapes have one; a model has one per glTF material). A model's slots
-		// that aren't here use the model's own materials (the assets its import made): empty = all of them.
+		// One per material slot. A model's slots missing here use the model's own imported materials.
 		std::vector<MeshMaterialSlot> Materials{ MeshMaterialSlot{} };
 		bool CastShadows = true; // into the sun's shadow map (RenderFeatureSettings::Shadows = Sun)
-		// How much of the mesh shows: 1 = solid, 0 = gone, between: dithered (screen-door), so depth and sorting
-		// stay right. Its shadow is kept. Game scripts set it (a camera fading what stands in front of the player).
+		// 1 = solid, 0 = gone; in between it is dithered so depth and sorting stay right. Its shadow is kept.
 		float Opacity = 1.0f;
 	};
 
@@ -158,10 +144,8 @@ namespace Hydro
 		}
 	};
 
-	// The entity's parent in the scene's hierarchy (Roadmap S3), by UUID. An entity without this component is
-	// a root; the component is removed rather than set to 0. Saved with scenes and copied on Play.
-	// Change it only through Scene::SetParent / Scene::MoveEntity: they keep the scene's entity list in
-	// depth-first order, which the hierarchy relies on (docs/SceneAndECS.md#hierarchy).
+	// The entity's parent in the hierarchy, by UUID; roots have no component. Change it only through
+	// Scene::SetParent / MoveEntity, which keep the entity list depth-first (docs/SceneAndECS.md#hierarchy).
 	struct RelationshipComponent
 	{
 		UUID Parent = 0;
@@ -201,17 +185,12 @@ namespace Hydro
 		}
 	};
 
-	// The entity's transform in the world: its TransformComponent (local, relative to its parent) combined with
-	// every ancestor's. Derived data: added and removed together with the TransformComponent (Scene connects
-	// to the registry's construct / destroy signals), written only by Scene::ResolveTransforms, never saved,
-	// copied on Play or shown in the inspector. Read it instead of TransformComponent wherever the position in
-	// the world matters (rendering, lights, particles, the editor's outlines). It is as of the last ResolveTransforms
-	// (stage 4, the start of the game, the start of rendering); Scene::GetWorldTransform is always current.
+	// Derived data: the world transform (local TransformComponent combined with every ancestor's), written only by
+	// Scene::ResolveTransforms and never saved. Scene::GetWorldTransform is always current; this is as of the last resolve.
 	struct WorldTransformComponent
 	{
 		glm::mat4 Matrix{ 1.0f };
-		// Matrix split once here, so readers don't each decompose it (TransformMath::Decompose; a mirror is a
-		// negative Scale.x).
+		// Decomposed once so readers don't each decompose it (a mirror is a negative Scale.x).
 		glm::vec3 Translation{ 0.0f, 0.0f, 0.0f };
 		glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
 		glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
@@ -220,9 +199,8 @@ namespace Hydro
 		WorldTransformComponent(const WorldTransformComponent&) = default;
 	};
 
-	// A camera the scene can be viewed through. Its position and rotation come from the entity's
-	// TransformComponent (scale is ignored), and its aspect ratio from the scene's viewport.
-	// SceneRenderer::RenderRuntime draws the scene from the first camera with Primary set.
+	// A camera placed by the entity's TransformComponent (scale ignored); the aspect ratio is the viewport's.
+	// SceneRenderer::RenderRuntime uses the first camera with Primary set.
 	struct CameraComponent
 	{
 		SceneCamera Camera;
@@ -232,10 +210,8 @@ namespace Hydro
 		CameraComponent(const CameraComponent&) = default;
 	};
 
-	// Playback of a SpriteAnimatorComponent: runtime state kept in the component (component state rule 2
-	// in docs/SceneAndECS.md). Not saved; reset for every animator when the game starts
-	// (ResetSpriteAnimations); written only by UpdateSpriteAnimations and SpriteAnimator. Everything else
-	// reads it through SpriteAnimator (GetCurrentClip, GetFrameIndex, IsPlaying, IsFinished).
+	// Playback state of a SpriteAnimatorComponent: not saved, reset when the game starts, written only by
+	// UpdateSpriteAnimations and SpriteAnimator. Read it through SpriteAnimator.
 	struct SpriteAnimatorState
 	{
 		int32_t ClipIndex = -1; // -1 = nothing started yet
@@ -246,19 +222,16 @@ namespace Hydro
 		bool Finished = false;  // a Once clip reached its last frame
 	};
 
-	// Plays clips from a SpriteAnimationSet on the entity's SpriteRendererComponent (it sets the
-	// sprite's Texture, SpriteIndex and FlipX). Control it with SpriteAnimator (Play, Stop, Pause...);
-	// UpdateSpriteAnimations advances it, in play mode only.
+	// Plays clips of a SpriteAnimationSet on the entity's SpriteRendererComponent (Texture, SpriteIndex, FlipX).
+	// Control it with SpriteAnimator; it advances in play mode only.
 	struct SpriteAnimatorComponent
 	{
-		// Saved. The AssetHandle of a SpriteAnimationSet (.hyanim) in the asset folder (0 = none), as
-		// SpriteRendererComponent::Texture. Saved as AnimationsHandle.
+		// A SpriteAnimationSet asset (.hyanim, 0 = none), saved as AnimationsHandle.
 		AssetHandle Animations = 0;
 		std::string StartClip; // played when the game starts; empty = the set's default clip
 		bool PlayOnStart = true;
 		float Speed = 1.0f;    // 2 = twice as fast
 
-		// Runtime, not saved: see SpriteAnimatorState.
 		SpriteAnimatorState State;
 
 		SpriteAnimatorComponent() = default;
@@ -269,27 +242,21 @@ namespace Hydro
 	{
 		Point = 0, // lights the area around the entity, out to Radius
 		Global,    // lights the whole view equally: the ambient light
-		Spot       // forward lighting only (M6): a cone along the entity's -Z, out to Radius
+		Spot       // forward lighting only: a cone along the entity's -Z, out to Radius
 	};
 
-	// A light for the 2D renderer. A point light is placed by the entity's TransformComponent; a global
-	// light ignores the position. SceneRenderer submits every light to Renderer2D, which draws a view
-	// that has at least one light lit (RendererSettings::Lighting): the global lights are the ambient
-	// colour of the scene, point lights add to it. Without a global light, the unlit parts are black.
-	// The light is drawn through the same camera as the sprites, so give it the Z of the sprites it lights.
+	// A 2D-renderer light. Global lights are the ambient colour (unlit parts are black without one); point lights
+	// add to it. Drawn through the sprites' camera, so give it the Z of the sprites it lights.
 	struct Light2DComponent
 	{
 		Light2DType Type = Light2DType::Point;
 		glm::vec3 Color{ 1.0f, 1.0f, 1.0f }; // linear RGB
 		float Intensity = 1.0f;              // multiplies Color; values above 1 over-brighten (up to 2x the sprite's colour)
 		float Radius = 5.0f;                 // Point only: how far the light reaches, in world units
-		// Point only: how high above its ground position the light sits, measured up an Upright sprite (a
-		// lantern's glass, a window). The light moves with the camera's tilt the way a point on an Upright
-		// sprite does: Height units up the screen in a top-down view, that far up the standing sprite in a
-		// tilted one. 0 = on the ground.
+		// Point only: how high above its ground position the light sits, measured up an Upright sprite (a lantern's
+		// glass), so it follows the camera's tilt like a point on that sprite. 0 = on the ground.
 		float Height = 0.0f;
-		// Spot only: the cone's half angles in degrees; full light inside InnerAngle, none outside OuterAngle
-		// (InnerAngle <= OuterAngle). Its direction is the transform's -Z (a lamp over a door points down).
+		// Spot only: cone half angles in degrees (InnerAngle <= OuterAngle). It points along the transform's -Z.
 		float InnerAngle = 20.0f;
 		float OuterAngle = 30.0f;
 
@@ -297,32 +264,29 @@ namespace Hydro
 		Light2DComponent(const Light2DComponent&) = default;
 	};
 
-	// The sun or moon of a scene with forward lighting (plan M6): parallel light shining along the
-	// transform's -Z (rotate the entity to aim it). One per scene is used: the one marked IsMainLight, else
-	// the first (Scene::GetMainLight). Ignored by the 2D light buffer.
+	// The sun or moon for forward lighting: parallel light along the transform's -Z. The one marked IsMainLight is
+	// used, else the first (Scene::GetMainLight).
 	struct DirectionalLightComponent
 	{
 		glm::vec3 Color{ 1.0f, 0.95f, 0.85f }; // linear RGB
 		float Intensity = 1.0f;
 		bool IsMainLight = false;
-		// Sun shadows (the main light only, when the render features have Shadows = Sun).
+		// Only the main light casts shadows, when the render features have Shadows = Sun.
 		bool CastShadows = true;
 		float ShadowStrength = 1.0f;  // 0 = no shadow, 1 = no direct sun at all in the shadow (ambient stays)
-		float ShadowDistance = 24.0f; // metres from what the camera looks at that get shadows (the map's half width)
-		float ShadowBias = 1.0f;      // scales how far receivers are pushed out of their own shadow (acne vs. gaps)
+		float ShadowDistance = 24.0f; // how far from what the camera looks at shadows reach, in metres
+		float ShadowBias = 1.0f;      // scales how far receivers are pushed out of their own shadow (acne vs gaps)
 
 		DirectionalLightComponent() = default;
 		DirectionalLightComponent(const DirectionalLightComponent&) = default;
 	};
 
-	// A soft blob shadow under the entity, for the 2D renderer: an ellipse that darkens the light buffer of a
-	// lit view (RendererSettings::Shadows). Placed by the TransformComponent plus Offset; Size is in world
-	// units and ignores the transform's scale. It is not cast from lights, so it does not move with them: it grounds the
-	// sprite. It darkens whatever light reaches that spot, ambient included.
+	// A soft ellipse that darkens a lit 2D view's light buffer under the entity, grounding the sprite. Size is in
+	// world units and ignores scale; it does not move with the lights.
 	struct Shadow2DComponent
 	{
-		glm::vec2 Offset{ 0.0f, 0.0f };  // from the entity's position, in world units (0 for a sprite whose pivot is at its feet)
-		glm::vec2 Size{ 1.5f, 0.5f };    // width and height of the ellipse, in world units (not scaled by the transform)
+		glm::vec2 Offset{ 0.0f, 0.0f };  // world units from the entity's position (0 when the sprite's pivot is at its feet)
+		glm::vec2 Size{ 1.5f, 0.5f };    // ellipse width and height, world units (not scaled)
 		float Strength = 0.5f;           // 0 = no shadow, 1 = black at the centre
 
 		Shadow2DComponent() = default;
@@ -336,7 +300,6 @@ namespace Hydro
 		Kinematic   // moved only by the game (velocity or teleport); pushes dynamic bodies but is not pushed
 	};
 
-	// How a collider's surface behaves. Shared by the 2D collider components.
 	struct PhysicsMaterial2D
 	{
 		float Density = 1.0f;     // mass per unit area (a 1 x 1 box of density 1 weighs 1)
@@ -344,10 +307,8 @@ namespace Hydro
 		float Restitution = 0.0f; // bounciness: 0 = none, 1 = keeps all its speed
 	};
 
-	// Makes the entity a body in the 2D physics world while the game plays, moved by the simulation
-	// (Dynamic) or by the game (Kinematic). Position and angle come from the TransformComponent
-	// (Translation.xy and Rotation.z). An entity with a collider but no Rigidbody2D is a static body.
-	// Data only for now: nothing simulates it yet.
+	// A 2D physics body, moved by the simulation (Dynamic) or the game (Kinematic). Colliders without it are static.
+	// Data only: nothing simulates it yet.
 	struct Rigidbody2DComponent
 	{
 		Rigidbody2DType Type = Rigidbody2DType::Dynamic;
@@ -361,9 +322,8 @@ namespace Hydro
 		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
 	};
 
-	// A rectangle that collides, in the entity's local space. Size is the full width and height in world
-	// units at scale 1: the entity's XY scale multiplies it (and Offset) when the body is created.
-	// IsSensor: it detects overlaps (trigger events) but nothing bounces off it.
+	// A 2D box collider in local space: Size is the full width and height at scale 1 (XY scale multiplies it).
+	// A sensor detects overlaps but blocks nothing.
 	struct BoxCollider2DComponent
 	{
 		glm::vec2 Offset{ 0.0f, 0.0f };
@@ -375,8 +335,7 @@ namespace Hydro
 		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
 
-	// A circle that collides. Radius is in world units at scale 1; the larger of the entity's X and Y
-	// scales multiplies it (and Offset) when the body is created.
+	// A 2D circle collider; the larger of the XY scales multiplies Radius and Offset.
 	struct CircleCollider2DComponent
 	{
 		glm::vec2 Offset{ 0.0f, 0.0f };
@@ -388,12 +347,8 @@ namespace Hydro
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
 
-	// What a 3D collider is, for which things meet it (PhysicsScene3D) and which a query looks for (Physics3D).
-	// One layer per entity: the first of its colliders decides.
-	//  - World: ground, walls and props. Characters stand on it and are blocked by it.
-	//  - Player, Npc: what characters and the things that walk with them are.
-	//  - Trigger: an area that blocks nothing; queries find it, and characters walking in and out of it send
-	//    OnTriggerEnter / OnTriggerExit. Colliders with IsTrigger are always on this layer.
+	// Which things meet a 3D collider and which queries find it; the entity's first collider decides. Trigger blocks
+	// nothing and sends OnTriggerEnter / OnTriggerExit; colliders with IsTrigger are always on it.
 	enum class PhysicsLayer : uint8_t
 	{
 		World = 0,
@@ -402,12 +357,8 @@ namespace Hydro
 		Trigger
 	};
 
-	// A box that collides in the 3D physics world (Jolt) while the game plays. Offset is the box's centre and
-	// Size its full width (X), depth (Y) and height (Z), both in the entity's local space before its scale: the
-	// transform's scale multiplies them and its rotation turns the box when the body is made (changing them later
-	// has no effect on the body). An entity with 3D colliders is a static body, or a kinematic one that follows
-	// its transform when it has native scripts (it moves). The 3D colliders are read by Physics/PhysicsScene3D;
-	// their shapes come from Scene/ColliderShapes.
+	// A 3D box collider (Jolt). Offset is its centre and Size its full extent, in local space before scale; read when
+	// the body is made. Static, or kinematic when the entity has native scripts.
 	struct BoxColliderComponent
 	{
 		glm::vec3 Offset{ 0.0f, 0.0f, 0.5f };
@@ -416,7 +367,7 @@ namespace Hydro
 		bool IsTrigger = false; // detects characters walking in and out; blocks nothing
 	};
 
-	// A sphere that collides (3D). Radius in world units at scale 1: the largest of the entity's scales multiplies it.
+	// A 3D sphere collider; the largest scale multiplies Radius.
 	struct SphereColliderComponent
 	{
 		glm::vec3 Offset{ 0.0f, 0.0f, 0.5f };
@@ -425,8 +376,7 @@ namespace Hydro
 		bool IsTrigger = false;
 	};
 
-	// A capsule standing along the entity's Z (3D). Height is from the bottom of the lower half sphere to the top
-	// of the upper one; Offset is its centre. The larger of the X and Y scales multiplies the radius, Z the height.
+	// A 3D capsule along Z, Offset at its centre; Height spans both end caps. XY scale multiplies the radius, Z the height.
 	struct CapsuleColliderComponent
 	{
 		glm::vec3 Offset{ 0.0f, 0.0f, 0.9f };
@@ -436,7 +386,7 @@ namespace Hydro
 		bool IsTrigger = false;
 	};
 
-	// A cylinder standing along the entity's Z (3D): a tree trunk, a post. Offset is its centre.
+	// A 3D cylinder along Z (trunks, posts); Offset is its centre.
 	struct CylinderColliderComponent
 	{
 		glm::vec3 Offset{ 0.0f, 0.0f, 1.0f };
@@ -446,70 +396,57 @@ namespace Hydro
 		bool IsTrigger = false;
 	};
 
-	// The entity's MeshComponent collides as what it is (3D). A built-in shape collides as its own shape, except
-	// Stairs, which collide as a ramp through the middle of their treads (smooth to walk, the camera doesn't bob)
-	// and Plane, a thin slab under its surface. A model collides through its collision nodes (World collision plan
-	// WC3): every node named "..._COL" as a solid convex hull and every "..._WALK" as walkable triangles, both
-	// authored in Blender next to the drawn mesh and never drawn. A model without such nodes collides as its
-	// bounding box. It needs the model loaded. Never the render triangles.
+	// Collides as the MeshComponent: built-in shapes as themselves (Stairs as a ramp, Plane as a thin slab), models
+	// through their "_COL" (convex hull) and "_WALK" (triangles) nodes, else their bounding box.
 	struct MeshColliderComponent
 	{
 		PhysicsLayer Layer = PhysicsLayer::World;
 	};
 
-	// A character that walks over the 3D collision world (Jolt's CharacterVirtual): a capsule standing on the
-	// entity's position (its feet), that slides along walls, walks up slopes up to MaxSlopeDegrees and steps up
-	// and down StepHeight, and sticks to the ground. Game code says where it wants to go with
-	// CharacterBody::Move (Physics/Physics3D.h); the physics stage moves it and writes the result to the
-	// transform, blended between fixed steps so it moves smoothly at any frame rate. The capsule never depends on
-	// the sprite or its animation. Runtime state lives in PhysicsScene3D, not here.
+	// A character walking the 3D collision world (Jolt CharacterVirtual): a capsule on the entity's feet. Move it
+	// with CharacterBody::Move; runtime state lives in PhysicsScene3D.
 	struct CharacterBodyComponent
 	{
 		float Radius = 0.25f;
 		float Height = 1.4f;          // feet to the top of the head
 		float MaxSlopeDegrees = 50.0f; // steeper is a wall
 		float StepHeight = 0.35f;     // the highest step it walks up or down without falling
-		// It never walks off a drop higher than StepHeight: at a terrace's edge it stops (or slides along the edge)
-		// instead of falling, as a JRPG field character does. Off: it walks off and falls.
+		// Stops at drops higher than StepHeight instead of falling, as a JRPG field character does.
 		bool StaysOnLedges = false;
 		PhysicsLayer Layer = PhysicsLayer::Player;
 	};
 
-	// A terrain (Terrain plan): a .hyterrain asset drawn with its corner (0, 0) at the entity's position. The
-	// transform's rotation and scale are ignored (terrains are axis-aligned in v1; their outlines are free anyway).
-	// Plain data: SceneRenderer draws it through the TerrainCache; the editor's Terrain tool edits the asset.
+	// A terrain asset with its corner (0, 0) at the entity's position; rotation and scale are ignored.
 	struct TerrainComponent
 	{
 		AssetHandle Terrain = 0; // a Terrain (.hyterrain); 0 = none
 		bool CastShadows = true; // into the sun's shadow map (RenderFeatureSettings::Shadows = Sun)
-		PhysicsLayer Layer = PhysicsLayer::World; // TR2: the layer of its collision
+		PhysicsLayer Layer = PhysicsLayer::World; // the layer of its collision
 	};
 
-	// Every engine component that is plain, copyable data, apart from TagComponent and IDComponent
-	// (every entity has those). Scene::Copy copies these; add new copyable components here.
-	// How a particle's colour is combined with what is already drawn.
+	// How a particle's colour combines with what is already drawn.
 	enum class ParticleBlend : uint8_t
 	{
 		Alpha = 0, // like sprites: smoke, dust, leaves
 		Additive   // adds light: sparks, embers, magic
 	};
 
-	// Whether the view's lighting darkens a particle. Unlit + Additive is "emissive" (stays bright at night).
+	// Whether lighting darkens a particle. Unlit + Additive stays bright at night.
 	enum class ParticleLighting : uint8_t
 	{
 		Lit = 0, // multiplied by the view's light buffer, like sprites
-		Unlit    // not darkened by scene lighting (Roadmap V4; drawn lit until then)
+		Unlit    // not darkened by scene lighting
 	};
 
-	// How a tilted camera shows the particles. They are simulated in 2D either way (X, Y and Gravity, as authored).
+	// How a tilted camera shows particles. They are simulated in 2D either way.
 	enum class ParticleSpace : uint8_t
 	{
-		Ground = 0, // on the ground plane, where they move: dust, leaves, fireflies, puddle splashes (as in a top-down view)
-		View        // in the plane facing the camera through the emitter: X right and Y up the screen, so a burst
-		            // sprays and falls like it does top-down (hit sparks, impacts, magic; H10 gives Ground a height)
+		Ground = 0, // on the ground plane: dust, leaves, fireflies, splashes
+		View        // in the plane facing the camera: X right, Y up the screen,
+		            // so bursts spray and fall as they do top-down (sparks, impacts, magic)
 	};
 
-	// Where new particles appear, around the entity's position. A cone is a Point with a narrow Spread.
+	// Where new particles appear around the entity. A cone is a Point with a narrow Spread.
 	enum class EmitterShape : uint8_t
 	{
 		Point = 0,
@@ -524,14 +461,11 @@ namespace Hydro
 		float Max = 1.0f;
 	};
 
-	// Emits 2D particles at the entity's position (world space: a particle stays where it was emitted).
-	// Settings only (component state rule 3 in docs/SceneAndECS.md): the live particles and the playback
-	// state will be in the scene's ParticleScene, simulated by UpdateParticles and controlled with
-	// Particles2D (Roadmap V2, V5). Until then this component is saved, copied on Play and edited in the
-	// inspector, but nothing is drawn.
+	// Emits 2D particles in world space. Settings only: live particles will live in the scene's ParticleScene.
+	// Saved and edited, but nothing draws it yet.
 	struct ParticleEmitter2DComponent
 	{
-		// Limits the editor and the loader clamp to.
+		// The most the editor and the loader allow.
 		static constexpr uint32_t MaxParticlesLimit = 4096;
 
 		// Emission
@@ -554,7 +488,7 @@ namespace Hydro
 		FloatRange StartRotation{ 0.0f, 0.0f };   // degrees
 		FloatRange AngularVelocity{ 0.0f, 0.0f }; // degrees per second
 
-		// Over a particle's life (start to end; curves are Roadmap V3)
+		// Over a particle's life
 		float EndSizeScale = 1.0f;                // size at death = start size * this
 		glm::vec4 StartColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 		glm::vec4 EndColor{ 1.0f, 1.0f, 1.0f, 0.0f };
@@ -563,15 +497,15 @@ namespace Hydro
 		float Turbulence = 0.0f;                  // random push, world units / s^2 (wandering fireflies)
 
 		// Look
-		AssetHandle Texture = 0;                  // 0 = a soft round dot
-		uint32_t SpriteIndex = 0;                 // for a sprite sheet texture
+		AssetHandle Texture = 0;            // 0 = a soft round dot
+		uint32_t SpriteIndex = 0;           // for a sprite sheet texture
 		ParticleBlend Blend = ParticleBlend::Alpha;
 		ParticleLighting Lighting = ParticleLighting::Lit;
 		ParticleSpace Space = ParticleSpace::Ground; // with a tilted camera: on the ground or facing the camera
-		int32_t SortOrder = 0;                    // sorted with sprites (higher = on top)
-		float EmissionIntensity = 0.0f;           // a particle's own colour times this is added after the lighting (sparks, embers; plan P3)
+		int32_t SortOrder = 0;            // sorted with sprites (higher = on top)
+		float EmissionIntensity = 0.0f;           // a particle's colour times this is added after the lighting (sparks, embers)
 
-		// Light per emitter (Roadmap V4, optional; 0 radius = none)
+		// A light per particle (optional; radius 0 = none)
 		float LightRadius = 0.0f;
 		float LightIntensity = 1.0f;
 		uint32_t MaxLights = 0;                   // the youngest particles that get a light
@@ -582,10 +516,9 @@ namespace Hydro
 		ParticleEmitter2DComponent() = default;
 		ParticleEmitter2DComponent(const ParticleEmitter2DComponent&) = default;
 	};
+
 	// ---- Runtime UI (#164; docs/SceneAndECS.md#runtime-ui) ------------------------------------------
-	// A canvas is an entity with a UICanvasComponent, normally a root; its UI elements are the descendants with a
-	// UIRectComponent. Elements are placed by their rect (resolved in canvas pixels, Y up, by Scene::ResolveUILayout),
-	// never by a TransformComponent, and drawn in hierarchy order on top of the scene (SceneRenderer, the Game view).
+	// A canvas is a UICanvasComponent entity; its elements are descendants with a UIRectComponent (canvas pixels, Y up).
 
 	// How a canvas's pixels map to the view's.
 	enum class UIScaleMode : uint8_t
@@ -595,40 +528,40 @@ namespace Hydro
 		ConstantPixelSize  // 1 canvas pixel = 1 view pixel
 	};
 
-	// Where a canvas is (UI6).
+	// Where a canvas is.
 	enum class UICanvasSpace : uint8_t
 	{
 		Screen = 0, // covers the view
-		World       // a WorldSize box pinned to the entity's world position (projected through the primary camera),
-		            // the same size on screen however far away: labels over characters, enemy info, prompts
+		World       // a WorldSize box pinned to the entity's projected position,
+		            // the same size on screen at any distance: labels, enemy info, prompts
 	};
 
 	struct UICanvasComponent
 	{
-		// Canvas pixels the layout is designed for (sets the scale). The game's UI is a 1920 x 1080 canvas scaled
-		// smoothly with the view, with smooth fonts (decision D5, Oct 30, 2026); 480 x 270 IntegerScale suits pixel UI.
+		// Canvas pixels the layout is designed for (sets the scale). The game uses 1920 x 1080 scaled smoothly;
+		// 480 x 270 IntegerScale suits pixel UI.
 		glm::vec2 ReferenceResolution{ 1920.0f, 1080.0f };
 		UIScaleMode ScaleMode = UIScaleMode::ScaleWithScreen;
 		UICanvasSpace Space = UICanvasSpace::Screen;
 		glm::vec2 WorldSize{ 320.0f, 80.0f };  // World: the canvas's size in canvas pixels
 		glm::vec2 WorldPivot{ 0.5f, 0.0f };    // World: the point of the box (0..1) that sits on the entity's position
 		int32_t SortOrder = 0;            // canvases with a higher order draw on top
-		bool Visible = true;              // false hides the canvas and everything on it
-		bool BlocksGameplayInput = false; // while visible, gameplay scripts don't get keyboard input (UI3a)
+		bool Visible = true;                // false hides the canvas and everything on it
+		bool BlocksGameplayInput = false; // while visible, gameplay scripts don't get keyboard input
 		bool DrawDebug = false;           // outlines of the canvas and its rects in the Game view
 
 		UICanvasComponent() = default;
 		UICanvasComponent(const UICanvasComponent&) = default;
 	};
 
-	// Where an element sits in its parent's rect (the canvas, for a direct child): Unity's RectTransform, Y up.
-	// Authored: saved, copied and edited; never written by a system (the result is UIResolvedRectComponent).
+	// Where an element sits in its parent's rect (Unity's RectTransform, Y up). Authored, never written by a system;
+	// the result is UIResolvedRectComponent.
 	struct UIRectComponent
 	{
 		glm::vec2 AnchorMin{ 0.5f, 0.5f };  // corners in the parent rect, 0..1 (0,0 = bottom-left)
 		glm::vec2 AnchorMax{ 0.5f, 0.5f };
 		glm::vec2 Pivot{ 0.5f, 0.5f };      // the point AnchoredPosition places, as a fraction of the rect's size
-		glm::vec2 AnchoredPosition{ 0.0f, 0.0f }; // the pivot's offset from the anchors (where AnchorMin..Max puts it), canvas pixels
+		glm::vec2 AnchoredPosition{ 0.0f, 0.0f }; // the pivot's offset from the anchors, canvas pixels
 		glm::vec2 SizeDelta{ 100.0f, 100.0f };   // the size added to the anchors' span (the size itself when the anchors meet)
 		bool Visible = true;                // false hides the element and its subtree
 
@@ -636,15 +569,14 @@ namespace Hydro
 		UIRectComponent(const UIRectComponent&) = default;
 	};
 
-	// An element's rect as laid out. Derived data, like WorldTransformComponent: added and removed together with the
-	// UIRectComponent (registry signals), written only by Scene::ResolveUILayout, never saved, copied or edited.
+	// Derived data: the laid-out rect, written only by Scene::ResolveUILayout, never saved.
 	struct UIResolvedRectComponent
 	{
 		glm::vec2 Min{ 0.0f, 0.0f };        // canvas pixels, Y up, whole pixels
 		glm::vec2 Max{ 0.0f, 0.0f };
 		bool Visible = false;               // its own Visible, every ancestor's and the canvas's
 		UUID Canvas = 0;                    // the canvas it is drawn on; 0 = none (no canvas above it, or a nested one)
-		// What of it can show: the scroll views above it (canvas pixels). Drawing and the pointer are cut to it.
+		// The visible part, cut by scroll views above it (canvas pixels); drawing and the pointer are cut to it.
 		glm::vec2 ClipMin{ -1.0e9f, -1.0e9f };
 		glm::vec2 ClipMax{ 1.0e9f, 1.0e9f };
 
@@ -653,15 +585,10 @@ namespace Hydro
 	};
 
 	enum class UILayoutDirection : uint8_t { Vertical = 0, Horizontal };
-	// Where children sit along an axis of a layout group's content rect.
 	enum class UILayoutAlignment : uint8_t { Start = 0, Center, End }; // Start = top (vertical) / left (horizontal)
 
-	// Stacks the element's visible UI children one after another (UI4), top to bottom or left to right, inside its rect
-	// less Padding. It only changes their resolved rects: their UIRectComponents keep what was authored (the inspector
-	// shows their placement as driven), so removing the group puts every child back where it was. A child's size
-	// along the stack is its own resolved size; across it, the content's when StretchCrossAxis, else its own, placed by
-	// ChildAlignment. Hidden children take no room. With FitContent the group's own size along the stack follows its
-	// children (its pivot stays put), so a list grows and shrinks with its rows.
+	// Stacks the visible UI children one after another inside the rect less Padding. Only the resolved rects change,
+	// so removing the group restores the authored layout. FitContent sizes the group to its children.
 	struct UILayoutGroupComponent
 	{
 		UILayoutDirection Direction = UILayoutDirection::Vertical;
@@ -678,11 +605,10 @@ namespace Hydro
 	// An image filling the element's rect: a texture (a sprite of a sheet), or a flat colour without one.
 	struct UIImageComponent
 	{
-		AssetHandle Texture = 0;            // 0 = a flat colour. Load it before assigning (the renderer never loads)
+		AssetHandle Texture = 0;            // 0 = a flat colour; load it before assigning (the renderer never loads)
 		uint32_t SpriteIndex = 0;           // for a sprite sheet texture
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		// Nine-slice borders in texture pixels: left, bottom, right, top (#81). The corners keep their size (1 texture
-		// pixel = 1 canvas pixel), the edges stretch along one axis and the centre along both; all 0 = stretch it all.
+		// Nine-slice borders in texture pixels: left, bottom, right, top (#81); all 0 = stretch it all.
 		glm::vec4 NineSlice{ 0.0f, 0.0f, 0.0f, 0.0f };
 		bool FlipX = false;
 		bool FlipY = false;
@@ -691,12 +617,11 @@ namespace Hydro
 		UIImageComponent(const UIImageComponent&) = default;
 	};
 
-	// Text in the element's rect, in a bitmap font (Font, laid out by TextLayout, drawn by SceneRenderer::SubmitUI).
-	// The alignment enums are TextLayout's (TextAlignH / TextAlignV).
+	// Text in the element's rect in a bitmap font (laid out by TextLayout, drawn by SceneRenderer::SubmitUI).
 	struct UITextComponent
 	{
 		std::string Text;                   // UTF-8; \n breaks a line
-		AssetHandle Font = 0;               // a Font asset (.fnt). Load it before assigning (the renderer never loads)
+		AssetHandle Font = 0;               // a Font asset (.fnt); load it before assigning (the renderer never loads)
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		uint32_t Scale = 1;                 // whole multiples of the font's pixel size
 		TextAlignH AlignH = TextAlignH::Left;
@@ -711,7 +636,7 @@ namespace Hydro
 		UITextComponent(const UITextComponent&) = default;
 	};
 
-	// How a button finds the next one when focus moves with the keyboard (UI3a).
+	// How keyboard focus finds the next button.
 	enum class UINavigation : uint8_t
 	{
 		Auto = 0, // the nearest interactable button in that direction, on the same canvas
@@ -719,8 +644,7 @@ namespace Hydro
 		None
 	};
 
-	// Makes the element focusable and pressable (UI3a, UI3b; UI1 saves and edits it). The tints are applied to the
-	// entity's UIImageComponent and UITextComponent by state.
+	// Makes the element focusable and pressable; the state tints apply to its UIImageComponent and UITextComponent.
 	struct UIButtonComponent
 	{
 		bool Interactable = true;
@@ -730,7 +654,7 @@ namespace Hydro
 		glm::vec4 PressedTint{ 0.8f, 0.8f, 0.8f, 1.0f };
 		glm::vec4 DisabledTint{ 1.0f, 1.0f, 1.0f, 0.4f };
 		UINavigation Navigation = UINavigation::Auto;
-		// Explicit navigation's neighbours, by UUID (0 = none); Scene::RemapEntityReferences keeps them inside copies.
+		// Explicit navigation's neighbours by UUID (0 = none); Scene::RemapEntityReferences keeps them inside copies.
 		UUID Up = 0;
 		UUID Down = 0;
 		UUID Left = 0;
@@ -740,26 +664,21 @@ namespace Hydro
 		UIButtonComponent(const UIButtonComponent&) = default;
 	};
 
-	// A vertical scrolling area (UI6): its direct children (the content, typically one fitted layout group anchored at
-	// the top) move up by ScrollPosition, and everything below it is cut to its rect when drawn and hit-tested.
-	// ScrollPosition is kept between 0 and how much taller the content is than the view; with FollowFocus,
-	// Scene::ResolveUILayout scrolls so the focused button inside it is always whole in view (the art guide: focus
-	// never scrolls off-screen). It is runtime state the layout writes, like Unity's ScrollRect position: saved as
-	// the starting position.
+	// A vertical scrolling area: its children move up by ScrollPosition and are cut to its rect. With FollowFocus the
+	// layout keeps the focused button in view. ScrollPosition is saved as the starting position.
 	struct UIScrollViewComponent
 	{
 		float ScrollPosition = 0.0f;        // canvas pixels the content is moved up by
 		bool FollowFocus = true;
-		// An element outside the view (in a track beside it) that the layout sizes and moves as the scrollbar's thumb
-		// in its parent's rect, by UUID (0 = none); hidden while everything fits.
+		// The scrollbar thumb element by UUID (0 = none); the layout sizes and moves it, hidden while everything fits.
 		UUID Scrollbar = 0;
 
 		UIScrollViewComponent() = default;
 		UIScrollViewComponent(const UIScrollViewComponent&) = default;
 	};
 
-	// When an element shows, by the state of the button it belongs to (itself or the nearest one above it, UI6): a
-	// cursor or a highlight that only the focused row has, or a resting look the focused row drops.
+	// When an element shows, by the state of its button (itself or the nearest one above): a focused-row cursor or
+	// a resting look the focused row drops.
 	enum class UIFocusVisibility : uint8_t
 	{
 		Focused = 0, // while the button is focused or pressed
@@ -779,7 +698,13 @@ namespace Hydro
 	{
 	};
 
-	using CopyableComponents = ComponentGroup<RelationshipComponent, TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent, Light2DComponent, Shadow2DComponent,
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent, CharacterBodyComponent, TerrainComponent, UICanvasComponent, UIRectComponent, UIImageComponent, UIButtonComponent, UITextComponent, UILayoutGroupComponent, UIScrollViewComponent, UIFocusVisibilityComponent>;
+	// Engine components that are plain copyable data (not Tag or ID, which every entity has). Scene::Copy copies
+	// these: add new copyable components here.
+	using CopyableComponents = ComponentGroup<
+		RelationshipComponent, TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent,
+		Light2DComponent, Shadow2DComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
+		ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent, BoxColliderComponent,
+		SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent,
+		CharacterBodyComponent, TerrainComponent, UICanvasComponent, UIRectComponent, UIImageComponent,
+		UIButtonComponent, UITextComponent, UILayoutGroupComponent, UIScrollViewComponent, UIFocusVisibilityComponent>;
 }

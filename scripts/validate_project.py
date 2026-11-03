@@ -59,7 +59,7 @@ def load_generator():
 class Reflection:
     scripts: dict = field(default_factory=dict)  # current name -> ReflectedScript
     former_scripts: dict = field(default_factory=dict)  # former name -> current name
-    data_types: dict = field(default_factory=dict)  # name -> ReflectedData
+    data_types: dict = field(default_factory=dict)  # name -> ReflectedData (HY_COMPONENT structs too: .component)
     former_data: dict = field(default_factory=dict)
     bases: dict = field(default_factory=dict)  # class -> its base class
 
@@ -232,12 +232,22 @@ class Checker:
         for entity in entities:
             if isinstance(entity, dict) and "Entity" in entity:
                 by_id[entity["Entity"]] = entity
+        self.by_id = by_id  # for EntityRef fields of the game's components
+        components = [d for d in self.reflection.data_types.values() if getattr(d, "component", False)]
 
         for entity in entities:
             if not isinstance(entity, dict):
                 continue
             tag = ((entity.get("TagComponent") or {}).get("Tag")) or "?"
             label = f"{file_label}: '{tag}'"
+            # The game's components (HY_COMPONENT): their fields, as a data record's
+            for component in components:
+                key = next((k for k in [component.struct_name] + component.former_names if k in entity), None)
+                if key is None:
+                    continue
+                if key != component.struct_name:
+                    self.report.warning(f"{label} {component.struct_name}", f"saved under its former name '{key}'")
+                self.check_record(f"{label} {component.struct_name}", component, entity[key])
             scripts = (entity.get("NativeScriptComponent") or {}).get("Scripts") or []
             bound: set[str] = set()
             for binding in scripts:
@@ -275,25 +285,44 @@ class Checker:
             here = f"{where}.{prop.name}"
             if prop.kind == "EntityRef":
                 self.check_reference(here, prop, value, by_id)
+            elif prop.kind == "Data":
+                self.check_script_data(here, prop, value, by_id)
             else:
                 self.check_value(here, prop.kind, value, prop)
         for key in values:
             if key not in read:
                 self.report.warning(f"{where}.{key}", "no property reads this saved value now (kept in the file)")
 
+    def check_script_data(self, where: str, prop, value, by_id: dict) -> None:
+        """A list, enum or struct property (Nov 3, 2026): saved as a data file saves it; a list of entities as UUIDs."""
+        if value is None:
+            return
+        if prop.data_kind == "List":
+            if not isinstance(value, list):
+                self.report.error(where, f"expected a list, got {value!r}")
+                return
+            for index, element in enumerate(value):
+                here = f"{where}[{index}]"
+                if prop.element_kind == "EntityRef":
+                    self.check_reference(here, prop, element, by_id)
+                else:
+                    self.check_element(here, prop.element_kind, prop.element_type, element, prop)
+            return
+        self.check_element(where, prop.data_kind, prop.type_name, value, prop)
+
     def check_reference(self, where: str, prop, value, by_id: dict) -> None:
         if not isinstance(value, int) or isinstance(value, bool):
             self.report.error(where, f"a reference is an entity's UUID, got {value!r}")
             return
         if value == 0:
-            if prop.required:
+            if getattr(prop, "required", False):
                 self.report.error(where, "Required: no entity set")
             return
         target = by_id.get(value)
         if target is None:
             self.report.error(where, f"entity {value} isn't in this file (deleted, or outside the prefab)")
             return
-        if prop.target_type is not None:
+        if getattr(prop, "target_type", None) is not None:
             wanted = prop.target_type.split("::")[-1]
             if not self.entity_has(target, wanted):
                 tag = ((target.get("TagComponent") or {}).get("Tag")) or value
@@ -320,6 +349,9 @@ class Checker:
         if kind == "Enum":
             if not isinstance(value, str):
                 self.report.error(where, f"an enum value is saved by name, got {value!r}")
+            return
+        if kind == "EntityRef":  # a game component's field
+            self.check_reference(where, prop, value, getattr(self, "by_id", {}))
             return
         self.check_value(where, kind, value, prop)
 

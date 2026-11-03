@@ -86,7 +86,7 @@ namespace Hydro
 			return;
 		}
 
-		// A first buffer: reuse a freed one that is big enough (the smallest such), else make one.
+		// A first buffer: reuse the smallest freed one that is big enough, else make one.
 		if (buffer.GetCapacity() == 0 && buffer.Count == 0)
 		{
 			size_t best = m_FreeBuffers.size();
@@ -125,7 +125,8 @@ namespace Hydro
 
 	// ---- Emission and simulation --------------------------------------------------
 
-	uint32_t ParticleScene::Emit(EmitterRuntime& runtime, const ParticleEmitter2DComponent& emitter, const glm::vec2& origin, uint32_t count)
+	uint32_t ParticleScene::Emit(EmitterRuntime& runtime, const ParticleEmitter2DComponent& emitter, const glm::vec2& origin,
+		uint32_t count)
 	{
 		ParticleBuffer& buffer = runtime.Particles;
 		const uint32_t limit = std::min(emitter.MaxParticles, buffer.GetCapacity());
@@ -189,7 +190,8 @@ namespace Hydro
 			if (runtime.Random == 0)
 			{
 				// Seed 0: a different pattern on every playback; otherwise the same every time.
-				runtime.Random = MakeSeed(emitter.Seed != 0 ? emitter.Seed : (uint32_t)entt::to_integral(entity) ^ (++m_PlaybackCounter * 0x85EBCA6Bu));
+				runtime.Random = MakeSeed(emitter.Seed != 0 ? emitter.Seed
+					: (uint32_t)entt::to_integral(entity) ^ (++m_PlaybackCounter * 0x85EBCA6Bu));
 			}
 			if (runtime.Started == false)
 			{
@@ -202,7 +204,7 @@ namespace Hydro
 				}
 			}
 
-			// The buffer follows MaxParticles (changed in the inspector during play: grows, or drops the extra).
+			// The buffer follows MaxParticles (changed in the inspector during play).
 			Reserve(runtime, emitter.MaxParticles);
 			ParticleBuffer& buffer = runtime.Particles;
 			if (buffer.Count > emitter.MaxParticles)
@@ -211,8 +213,7 @@ namespace Hydro
 				buffer.Count = emitter.MaxParticles;
 			}
 
-			// Emission: the rate over time, and BurstCount at the start of every loop. A long frame can
-			// cross several loops (Duration is at least 0.01 s and dt at most Time::MaxDeltaTime).
+			// The rate over time plus BurstCount at the start of every loop. A long frame can cross several loops.
 			if (runtime.LoopBurstPending)
 			{
 				runtime.LoopBurstPending = false;
@@ -285,7 +286,8 @@ namespace Hydro
 				dropped += Emit(runtime, emitter, glm::vec2(transform.Translation), toEmit);
 			}
 
-			if (emitter.DestroyWhenFinished && runtime.HasEmitted && runtime.Emitting == false && buffer.Count == 0 && runtime.PendingBurst == 0)
+			if (emitter.DestroyWhenFinished && runtime.HasEmitted && runtime.Emitting == false && buffer.Count == 0
+				&& runtime.PendingBurst == 0)
 			{
 				m_Finished.push_back(entity);
 			}

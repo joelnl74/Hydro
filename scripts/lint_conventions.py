@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""The engine's code conventions, checked (Scripting plan SC6; the hydro-engine-architecture skill has the rules).
+"""The engine's code conventions, checked (the hydro-engine-architecture skill has the rules).
 
-    python scripts/lint_conventions.py [files or folders...]     # default: Hydro/src and Game/src
+    python scripts/lint_conventions.py [--warnings] [files or folders...]   # default: Hydro/src, Oxygen/src, Game/src, Runtime/src
 
 Reports file:line: rule: message for every break and exits 1 when there is one. Rules:
   not-operator  no `!` operator: write `== false` / `== nullptr` (`!=` is fine)
@@ -12,8 +12,15 @@ Reports file:line: rule: message for every break and exits 1 when there is one. 
   area-include  a file in Game/src/Scripts/<Area>/ includes nothing from another area (Scripts/Common/, Field/ and
                 Battle/ are shared: the field's and the battle's code, used by every area)
 
-Comments, string and character literals and preprocessor lines are ignored. Skipped: vendor folders, generated
-files (Generated/) and the copied ImGui backends (Platform/Vulkan/imgui_impl_*). Python 3.9+, no packages.
+Comments, string and character literals and preprocessor lines are ignored by those rules. Skipped: vendor folders,
+generated files (Generated/) and the copied ImGui backends (Platform/Vulkan/imgui_impl_*). Python 3.9+, no packages.
+
+Warnings (counted, listed with --warnings, never fail the run; docs/Architecture.md, Code conventions, Comments):
+  comment-date    a date in a comment ("Nov 3, 2026"): history belongs in git
+  comment-plan    a plan or step ID in a comment (SC4, M6, TR1): meaningless without the wiki; #123 issues are fine
+  comment-length  more than two comment lines in a row: say it in a name, or move it to docs/
+  line-length     a line over 140 columns (tabs count as 4)
+  file-length     a file over 1000 lines: it probably has more than one responsibility, split it
 """
 from __future__ import annotations
 
@@ -22,11 +29,16 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_ROOTS = [ROOT / "Hydro" / "src", ROOT / "Game" / "src"]
+DEFAULT_ROOTS = [ROOT / "Hydro" / "src", ROOT / "Oxygen" / "src", ROOT / "Game" / "src", ROOT / "Runtime" / "src"]
 SUFFIXES = {".h", ".hpp", ".cpp"}
 ALLOWED_NAMESPACES = {"Hydro", "std", "YAML"}
 # Game/src/Scripts/ folders every area may include (the rest are areas: one scene or a few of one kind).
 SHARED_SCRIPT_FOLDERS = {"Common", "Field", "Battle"}
+MAX_COMMENT_LINES = 2
+MAX_LINE_LENGTH = 140
+MAX_FILE_LINES = 1000
+DATE = re.compile(r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}(?:, \d{4})?\b|\b20\d\d-\d\d-\d\d\b")
+PLAN_ID = re.compile(r"\b(?:SC|AN|TR|WC|UI|M|P|R|H|D|V|G|E|A|S|C)\d{1,2}[a-z]?\b")
 
 
 def skipped(path: Path) -> bool:
@@ -149,9 +161,36 @@ def check_braces(code: str, report) -> None:
         report(match.start(), "braces", f"the {keyword} body needs braces")
 
 
-def check_file(path: Path, report_line) -> None:
+def check_comments(text: str, warn) -> None:
+    """The comment, line-length and file-length warnings, per line of the original text."""
+    lines = text.split("\n")
+    if len(lines) > MAX_FILE_LINES:
+        warn(1, "file-length", f"{len(lines)} lines (soft limit {MAX_FILE_LINES}): split it by responsibility")
+    run = 0
+    for number, line in enumerate(lines, start=1):
+        if len(line.expandtabs(4)) > MAX_LINE_LENGTH:
+            warn(number, "line-length", f"{len(line.expandtabs(4))} columns (soft limit {MAX_LINE_LENGTH})")
+        comment = line.find("//")
+        stripped = line.strip()
+        if stripped.startswith("//"):
+            run += 1
+            if run == MAX_COMMENT_LINES + 1:
+                warn(number - MAX_COMMENT_LINES, "comment-length", f"more than {MAX_COMMENT_LINES} comment lines in a row")
+        else:
+            run = 0
+        if comment >= 0 and '"' not in line[:comment]:
+            note = line[comment:]
+            if DATE.search(note):
+                warn(number, "comment-date", "a date in a comment: git has the history")
+            elif PLAN_ID.search(note):
+                warn(number, "comment-plan", f"{PLAN_ID.search(note).group(0)}: a plan ID in a comment (keep only #issue numbers)")
+
+
+def check_file(path: Path, report_line, warn_line=None) -> None:
     text = path.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
     code = blank_preprocessor(blank_out(text))
+    if warn_line is not None:
+        check_comments(text, lambda line, rule, message: warn_line(path, line, rule, message))
 
     def report(offset: int, rule: str, message: str) -> None:
         report_line(path, line_of(code, offset), rule, message)
@@ -202,23 +241,35 @@ def iter_files(arguments: list[str]):
                 yield path
 
 
+def shown_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def main() -> int:
+    arguments = [a for a in sys.argv[1:] if a != "--warnings"]
+    list_warnings = "--warnings" in sys.argv[1:]
     problems = 0
+    warnings: dict[str, int] = {}
 
     def report_line(path: Path, line: int, rule: str, message: str) -> None:
         nonlocal problems
         problems += 1
-        try:
-            shown = path.resolve().relative_to(ROOT)
-        except ValueError:
-            shown = path
-        print(f"{shown.as_posix()}:{line}: {rule}: {message}")
+        print(f"{shown_path(path)}:{line}: {rule}: {message}")
+
+    def warn_line(path: Path, line: int, rule: str, message: str) -> None:
+        warnings[rule] = warnings.get(rule, 0) + 1
+        if list_warnings:
+            print(f"{shown_path(path)}:{line}: warning: {rule}: {message}")
 
     count = 0
-    for path in iter_files(sys.argv[1:]):
+    for path in iter_files(arguments):
         count += 1
-        check_file(path, report_line)
-    print(f"Conventions: {count} file(s), {problems} problem(s)")
+        check_file(path, report_line, warn_line)
+    summary = ", ".join(f"{n} {rule}" for rule, n in sorted(warnings.items()))
+    print(f"Conventions: {count} file(s), {problems} problem(s)" + (f"; warnings: {summary} (--warnings lists them)" if summary else ""))
     return 1 if problems else 0
 
 

@@ -1,4 +1,3 @@
-// Game/src/Data/DialogueDefinition.h
 #pragma once
 
 #include "Hydro/Asset/Asset.h"
@@ -7,9 +6,8 @@
 #include <string>
 #include <vector>
 
-// What someone says: lines shown one after another in the dialogue box (DialogueScript). Stored either as a file of
-// its own (an NPC's dialogue: Assets/Data/Dialogue/<Npc>.hydef) or as rows of a table (a quest's conversations:
-// Assets/Data/Dialogue/ShrineErrand.hytable), the same type both ways.
+// Lines shown one after another in the dialogue box. The same type is a file of its own (an NPC's dialogue) or rows of
+// a table (a quest's conversations).
 namespace Hydro
 {
 	HY_DATA()

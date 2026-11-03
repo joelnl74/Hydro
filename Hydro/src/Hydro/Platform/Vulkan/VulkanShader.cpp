@@ -40,8 +40,7 @@ namespace Hydro
 		throw std::runtime_error("Unsupported shader stage for GLSL compilation.");
 	}
 
-	// Resolves #include "file" (and <file>) relative to the file that includes it, and records
-	// every included path so hot reload also triggers when only an included file changes.
+	// Resolves #include relative to the including file and records every included path for hot reload.
 	class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface
 	{
 	public:
@@ -50,7 +49,8 @@ namespace Hydro
 		{
 		}
 
-		shaderc_include_result* GetInclude(const char* requestedSource, shaderc_include_type /*type*/, const char* requestingSource, size_t /*includeDepth*/) override
+		shaderc_include_result* GetInclude(const char* requestedSource, shaderc_include_type /*type*/, const char* requestingSource,
+			size_t /*includeDepth*/) override
 		{
 			auto* include = new IncludeData();
 			const std::filesystem::path path = (std::filesystem::path(requestingSource).parent_path() / requestedSource).lexically_normal();
@@ -186,7 +186,8 @@ namespace Hydro
 #endif
 
 		shaderc::Compiler compiler;
-		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, ShaderStageToShadercKind(info.shaderStage), sourceName.c_str(), "main", options);
+		shaderc::SpvCompilationResult result =
+			compiler.CompileGlslToSpv(source, ShaderStageToShadercKind(info.shaderStage), sourceName.c_str(), "main", options);
 		if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 		{
 			HY_CORE_ERROR("Shader compilation failed:\n{0}", result.GetErrorMessage());

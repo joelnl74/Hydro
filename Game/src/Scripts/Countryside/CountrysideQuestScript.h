@@ -1,4 +1,3 @@
-// Game/src/Scripts/Countryside/CountrysideQuestScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -17,24 +16,8 @@
 
 namespace Hydro
 {
-	// The countryside's part of "The Guardian's Duty" (JapaneseCountryside.hyscene; scripts/quests/build_countryside_quest.py
-	// adds what it uses; docs/TestBed.md, "Countryside quest"):
-	//   1. Arriving from the Shrine Glade with the quest at its first stage, it moves on to "Follow the leyline": a
-	//      line of cyan motes ("Leyline 0" to "Leyline N", in order) runs down the road and west along the paddies'
-	//      south edge to the ancient tree ("Ley Tree"), whose roots glow.
-	//   2. Near the tree Orin Kenshi ("Npc Orin") fights the spirits circling it ("Ley Wisp ..."). Coming close (or
-	//      talking to him) moves the quest on ("Help the swordsman") and he speaks (Leyline.hytable, OrinMeet).
-	//   3. When the box closes he joins for the battle (BattleState::Join) and the Battle scene is pushed with the
-	//      Encounter (LeyWisps). Lost or fled: he steps out of the party again and talking to him tries again.
-	//   4. Won: he says OrinJoins and stays in the party; the duty completes and "Along the Leyline" starts. He and
-	//      the spirits are gone from the field (he walks with Miko now; only the leader shows).
-	//   5. Then the ground opens (Nov 2, 2026): a rumble, the camera drawn to the tree's roots, the rift there fading
-	//      in ("Ley Rift", its veins "Ley Rift Glow" glowing up), motes bursting out of it, and Orin's GateOpens. The
-	//      leyline's motes flow on into it from then on. Walking into its trigger area ("Leyline Gate") says
-	//      GateSealed and moves Along the Leyline to "The way into the leyline is not open yet": the way down is
-	//      for later (a scene under the leyline); this only shows that something happens there.
-	// Played on its own (not pushed by the Shrine Glade), StartQuestWhenAlone starts the duty at step 1 so the
-	// scene can be tested by itself. The words are data (Quests.hytable, Dialogue/Leyline.hytable).
+	// The countryside's part of "The Guardian's Duty": follow the leyline, help Orin fight at the ancient tree, then the rift
+	// opens (docs/TestBed.md, "Countryside quest"). StartQuestWhenAlone starts the duty when the scene is played on its own.
 	HY_SCRIPT()
 	class CountrysideQuestScript : public ScriptableEntity
 	{
@@ -98,7 +81,8 @@ namespace Hydro
 
 			BattleState& party = BattleState::Get();
 			party.StartParty();
-			if (StartQuestWhenAlone && SceneTransition::GetDepth() == 0 && QuestLog::Get().Find(DutyQuest()) == nullptr && party.InParty(OrinHero) == false)
+			if (StartQuestWhenAlone && SceneTransition::GetDepth() == 0 && QuestLog::Get().Find(DutyQuest()) == nullptr
+				&& party.InParty(OrinHero) == false)
 			{
 				QuestLog::Get().Start(DutyQuest());
 				QuestLog::Get().SetStage(DutyQuest(), 1);
@@ -107,8 +91,7 @@ namespace Hydro
 			const QuestLog::Quest* duty = QuestLog::Get().Find(DutyQuest());
 			if (party.InParty(OrinHero) || duty == nullptr || duty->Done)
 			{
-				// Orin travels with Miko already, or the shrine hasn't sent her yet: nothing happens here, except that
-				// the way down stays open once it has opened.
+				// Orin travels with Miko already, or the shrine hasn't sent her yet: nothing happens here (an opened way stays open).
 				RemoveEncounter(scene);
 				m_Step = Step::Done;
 				if (party.InParty(OrinHero) && QuestLog::Get().Find(LeylineQuest()) != nullptr)
@@ -201,7 +184,7 @@ namespace Hydro
 
 		enum class Gate : uint8_t { Sealed, Opening, Speaking, Open };
 
-		// Opens the rift: at once (the scene was entered with it open already), or with the rumble and the lines.
+		// At once (the scene was entered with it open already), or with the rumble and the lines.
 		void OpenGate(Scene& scene, bool atOnce)
 		{
 			if (m_Rift.IsValid() == false)
@@ -247,8 +230,7 @@ namespace Hydro
 					return;
 				case Gate::Opening:
 				{
-					// The camera glides to the roots, the ground rumbles harder, then the rift fades in and the veins
-					// flare; the rumble stops dead as it opens.
+					// The rumble stops dead as the rift opens.
 					DioramaView::CinematicWeight = Smooth(t / 0.9f);
 					const float open = Smooth((t - 0.45f * GateOpenTime) / (0.55f * GateOpenTime));
 					const float surge = 0.75f + 0.25f * std::sin(t * 9.0f) * std::sin(t * 2.3f);
@@ -279,7 +261,7 @@ namespace Hydro
 					break;
 			}
 
-			// Open: the veins breathe; walking into the area tells her the way is sealed, once per visit to it.
+			// Walking into the area says the way is sealed, once per visit to it.
 			const float breath = 0.5f + 0.5f * std::sin(t * 1.4f);
 			SetRift(1.0f, 0.75f + 0.25f * breath);
 			SetGateEffects(1.0f, 0.8f + 0.4f * breath);
@@ -301,7 +283,7 @@ namespace Hydro
 			}
 		}
 
-		// The rift's and its veins' opacity (0..1; the veins above 1 are brighter, through their emission).
+		// Opacity 0..1; the veins above 1 are brighter, through their emission.
 		void SetRift(float rift, float glow)
 		{
 			if (m_Rift.IsValid() && m_Rift.HasComponent<SpriteRendererComponent>())
@@ -328,7 +310,7 @@ namespace Hydro
 			}
 		}
 
-		// Whether the player stands in the gate's area (its box collider's footprint, unscaled).
+		// Its box collider's footprint, unscaled.
 		bool InsideGate(Scene& scene) const
 		{
 			if (m_GateArea.IsValid() == false || m_Player.IsValid() == false)
@@ -365,13 +347,13 @@ namespace Hydro
 				m_Step = Step::Retry;
 				return;
 			}
-			party.Join(OrinHero); // he fights beside her; he only stays if they win
+			party.Join(OrinHero); // he only stays if they win
 			m_Step = Step::Battle;
 			HY_INFO("Countryside quest: the battle at the ancient tree starts");
 			SceneTransition::Push("Battle");
 		}
 
-		// The scene resumes under the popped battle: its result, once.
+		// The scene resumes under the popped battle: take its result once.
 		void UpdateBattleResult([[maybe_unused]] Scene& scene)
 		{
 			BattleState& party = BattleState::Get();
@@ -413,8 +395,7 @@ namespace Hydro
 
 		void CreateEffects(Scene& scene)
 		{
-			// A drifting stream of motes per point of the line, flowing towards the next one (towards the tree), and a
-			// faint light every third point.
+			// A stream of motes per point, flowing towards the tree, and a faint light every third point.
 			for (size_t i = 0; i < m_Line.size(); i++)
 			{
 				const glm::vec3 next = i + 1 < m_Line.size() ? m_Line[i + 1] : m_Line[i];
@@ -461,7 +442,6 @@ namespace Hydro
 		void PresentEffects(Scene& scene)
 		{
 			const bool active = m_Step != Step::Done || m_Gate != Gate::Sealed; // after the join the line runs into the rift
-			// A pulse runs along the line towards the tree.
 			for (size_t i = 0; i < m_LineMotes.size(); i++)
 			{
 				if (m_LineMotes[i].IsValid() && m_LineMotes[i].HasComponent<ParticleEmitter2DComponent>())
@@ -487,7 +467,6 @@ namespace Hydro
 			{
 				m_TreeMotes.GetComponent<ParticleEmitter2DComponent>().Rate = active ? 10.0f : 3.0f;
 			}
-			// The spirits circle where they were placed, bobbing above the ground.
 			for (size_t i = 0; i < m_Wisps.size() && i < m_WispHome.size(); i++)
 			{
 				if (m_Wisps[i].IsValid())
@@ -547,7 +526,7 @@ namespace Hydro
 			return motes;
 		}
 
-		// The marker over Orin while he waits to be talked to (after a lost battle).
+		// Shown while he waits to be talked to after a lost battle.
 		void PresentMarker(Scene& scene)
 		{
 			const bool shown = m_Step == Step::Retry && m_Orin.IsValid() && UI::CapturesInput(scene) == false;
@@ -640,7 +619,7 @@ namespace Hydro
 		Gate m_Gate = Gate::Sealed;
 		float m_GateTime = 0.0f;
 		bool m_GateArmed = true;
-		std::vector<glm::vec3> m_Line;      // the leyline's points, in order towards the tree
+		std::vector<glm::vec3> m_Line;      // in order towards the tree
 		std::vector<Entity> m_LineMotes, m_LineLights, m_Wisps;
 		std::vector<glm::vec3> m_WispHome;
 	};

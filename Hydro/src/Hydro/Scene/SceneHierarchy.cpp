@@ -79,8 +79,7 @@ namespace Hydro
 	{
 		const std::unordered_map<UUID, size_t> indices = MakeIndexMap(nodes);
 
-		// The open ancestors of the entry being looked at: in a depth-first list, an entry's parent must be one
-		// of them.
+		// The open ancestors of the current entry: in a depth-first list its parent must be one of them.
 		std::vector<size_t> open;
 		bool valid = true;
 		auto report = [&](size_t index, Problem problem)
@@ -163,9 +162,8 @@ namespace Hydro
 			}
 		}
 
-		// 2. Cycles: walk up from every entry. Coming back to an entry of the same walk is a cycle; the member
-		// listed first becomes a root and the walk starts again. Entries already known to reach a root are
-		// not walked twice.
+		// 2. Cycles: walk up from every entry; returning to an entry of the same walk is a cycle, whose first-listed
+		// member becomes a root. Entries known to reach a root aren't walked twice.
 		std::vector<uint8_t> reachesRoot(count, 0);
 		std::vector<uint8_t> onPath(count, 0);
 		std::vector<size_t> path;

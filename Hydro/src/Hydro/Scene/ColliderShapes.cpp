@@ -59,9 +59,8 @@ namespace Hydro
 			}
 			case MeshShape::Stairs:
 			{
-				// A ramp through the middle of each tread: half a step under the front of a tread, half a step over
-				// its back, so the feet stay close to the steps that are drawn while walking stays smooth. Its foot is
-				// a lip of half a step (the character steps up it); the top tread is flat.
+				// A ramp through the middle of each tread, so the feet stay close to the drawn steps while walking stays smooth.
+				// Its foot is a half-step lip; the top tread is flat.
 				const float steps = (float)std::clamp(mesh.Steps, 1u, 64u);
 				const float depth = size.y / steps;
 				const float rise = h / steps;
@@ -93,7 +92,8 @@ namespace Hydro
 	{
 		return registry.has<BoxColliderComponent>(entity) || registry.has<SphereColliderComponent>(entity)
 			|| registry.has<CapsuleColliderComponent>(entity) || registry.has<CylinderColliderComponent>(entity)
-			|| (registry.has<MeshColliderComponent>(entity) && registry.has<MeshComponent>(entity)) || registry.has<TerrainComponent>(entity);
+			|| (registry.has<MeshColliderComponent>(entity) && registry.has<MeshComponent>(entity))
+			|| registry.has<TerrainComponent>(entity);
 	}
 
 	bool ColliderShapes::Get(entt::registry& registry, entt::entity entity, const glm::vec3& worldScale, std::vector<ColliderShape>& shapes)
@@ -173,7 +173,8 @@ namespace Hydro
 					for (const MeshCollisionProxy& proxy : model->GetCollisionProxies())
 					{
 						ColliderShape shape;
-						shape.Type = proxy.Kind == MeshCollisionKind::Walk ? ColliderShapeType::TriangleMesh : ColliderShapeType::ConvexHull;
+						shape.Type = proxy.Kind == MeshCollisionKind::Walk ? ColliderShapeType::TriangleMesh
+							: ColliderShapeType::ConvexHull;
 						shape.Points.reserve(proxy.Positions.size());
 						for (const glm::vec3& position : proxy.Positions)
 						{
@@ -203,9 +204,10 @@ namespace Hydro
 
 		if (registry.has<TerrainComponent>(entity))
 		{
-			// The terrain's tops, ramps and walls as one hollow mesh, in its own space (terrains are unscaled, v1).
+			// The terrain's tops, ramps and walls as one hollow mesh in its own space (terrains are unscaled).
 			const TerrainComponent& component = registry.get<TerrainComponent>(entity);
-			const Ref<Terrain> terrain = (uint64_t)component.Terrain != 0 ? AssetManager::GetLoadedAsset<Terrain>(component.Terrain) : nullptr;
+			const Ref<Terrain> terrain = (uint64_t)component.Terrain != 0 ? AssetManager::GetLoadedAsset<Terrain>(component.Terrain)
+				: nullptr;
 			if (terrain == nullptr)
 			{
 				complete = (uint64_t)component.Terrain == 0;

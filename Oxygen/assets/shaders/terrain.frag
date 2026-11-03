@@ -202,15 +202,21 @@ void main()
 	{
 		normal = -normal;
 	}
+	// Pixel snap (#136): light, shadow and fog at the art pixel's centre, as the albedo already is.
+	vec3 position = fragWorldPos;
+	if (SnapsToTexels())
+	{
+		position += TexelCentreOffset(derivatives, fragUV, vec2(ArtPixelsPerMetre));
+	}
 	// The shadow lookup keeps the surface's own normal; the light uses the layers' normal maps, mixed as the albedos.
-	float sun = SunShadowSurface(fragWorldPos, normal);
+	float sun = SunShadowSurface(position, normal);
 	vec3 mapped = SampleLayerNormal(best, centre);
 	if (share < 1.0)
 	{
 		mapped = mix(SampleLayerNormal(second, centre), mapped, share);
 	}
 	normal = ApplyTangentNormal(normal, derivatives, mapped);
-	vec3 lit = albedo.rgb * ComputeLighting(fragWorldPos, normal, 0.5, sun);
-	outColor = vec4(ApplyFog(lit, fragWorldPos), 1.0);
+	vec3 lit = albedo.rgb * ComputeLighting(position, normal, 0.5, sun);
+	outColor = vec4(ApplyFog(lit, position), 1.0);
 	outEntityID = entityID;
 }

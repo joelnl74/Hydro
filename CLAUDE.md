@@ -10,7 +10,7 @@ Vulkan game engine (`Hydro`, static library), the game's code (`Game`, static li
 
 ## Rules
 
-The `hydro-engine-architecture` skill has the rules and the before-finishing checklist; follow `docs/` when they disagree with anything else, or ask. The ones most often missed: everything in `namespace Hydro` (no other, nested or anonymous namespaces), no `!` operator (`== false`, `== nullptr`), braces on every `if`/`else`/loop body, `m_PascalCase` members, `Init`/`Shutdown` for subsystems and RAII for resources, components are plain data, no Vulkan in new `Renderer/` headers, CRLF line endings.
+The `hydro-engine-architecture` skill has the rules and the before-finishing checklist; follow `docs/` when they disagree with anything else, or ask. The ones most often missed: everything in `namespace Hydro` (no other, nested or anonymous namespaces), no `!` operator (`== false`, `== nullptr`), braces on every `if`/`else`/loop body, `m_PascalCase` members, `Init`/`Shutdown` for subsystems and RAII for resources, components are plain data, no Vulkan in new `Renderer/` headers, CRLF line endings, comments of at most two lines that say why (no dates, no plan IDs, no history; `docs/Architecture.md`, Code conventions), lines up to 140 columns.
 
 ## Test bed
 

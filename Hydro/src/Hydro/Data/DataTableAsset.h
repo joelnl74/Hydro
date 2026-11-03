@@ -10,9 +10,8 @@
 
 namespace Hydro
 {
-	// A data table (.hytable) loaded by the AssetManager: rows of one HY_DATA type by row ID, such as the game's
-	// items. Game code reads it through Data::GetTable<T>(handle) and Data::GetRow<T>(ref). Loaded again when its
-	// file changes; holders of the old object keep it (DataView relies on that).
+	// A data table (.hytable): rows of one HY_DATA type by ID, read through Data::GetTable / GetRow. Reloaded when its
+	// file changes; holders of the old object keep it.
 	class DataTableAsset : public Asset
 	{
 	public:
@@ -20,12 +19,11 @@ namespace Hydro
 
 		DataTableAsset(DataTableData&& data, DataReport&& fileReport);
 
-		// Reads the file; logs what is wrong with it (once per file version: the manager caches the result).
-		// nullptr when it can't be used at all (not YAML, not a table, an unknown data type).
+		// Reads the file and logs its problems (once per version: the manager caches it). Null when unusable.
 		static Ref<DataTableAsset> LoadUncached(const std::filesystem::path& path);
 
-		// Writes `data` to `file` (canonical, with the platform's line endings, like Hydro's other files). false
-		// (logged) for read-only data or a file that can't be written. The editor calls AssetManager::MarkSaved after.
+		// Writes `data` canonically. False (logged) for read-only data or an unwritable file. The editor then calls
+		// AssetManager::MarkSaved.
 		static bool Save(const std::filesystem::path& file, const DataTableData& data);
 		bool Save(const std::filesystem::path& file) const { return Save(file, m_Data); }
 

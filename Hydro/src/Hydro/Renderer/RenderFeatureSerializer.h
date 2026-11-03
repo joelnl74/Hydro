@@ -5,9 +5,7 @@
 
 namespace Hydro
 {
-	// Writes and reads RenderFeatureSettings as a YAML map (Depth, SpriteSorting, Lighting,
-	// DefaultSpriteAlpha, Meshes; enums by name). Used by the project file (RendererSettings::Features)
-	// and scene files (SceneRenderSettings).
+	// Writes and reads RenderFeatureSettings as a YAML map (enums by name), for project and scene files.
 	class RenderFeatureSerializer
 	{
 	public:

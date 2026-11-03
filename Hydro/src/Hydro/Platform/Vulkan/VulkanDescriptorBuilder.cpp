@@ -16,15 +16,15 @@ namespace Hydro
 
 	VulkanDescriptorBuilder::~VulkanDescriptorBuilder()
 	{
-		// Frames in flight may still have the sets bound: they are freed through the deletion queue. The
-		// layout belongs to the cache.
+		// Frames in flight may still have the sets bound; the layout belongs to the cache.
 		for (const DescriptorAllocation& allocation : m_Allocations)
 		{
 			VulkanDescriptorAllocator::FreePersistent(allocation);
 		}
 	}
 
-	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type, VkShaderStageFlags stageFlags)
+	void VulkanDescriptorBuilder::BindBuffer(uint32_t binding, const PerFrameBuffers& buffers, uint32_t size, VkDescriptorType type,
+		VkShaderStageFlags stageFlags)
 	{
 		const uint32_t descriptorCount = 1;
 
@@ -58,8 +58,8 @@ namespace Hydro
 		}
 	}
 
-	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type, VkShaderStageFlags stageFlags,
-		uint32_t count)
+	void VulkanDescriptorBuilder::BindImage(uint32_t binding, VkImageView imageView, VkSampler sampler, VkDescriptorType type,
+		VkShaderStageFlags stageFlags, uint32_t count)
 	{
 		HY_CORE_ASSERT(count > 0 && count <= MaxImageArraySize, "VulkanDescriptorBuilder::BindImage: count must be 1..MaxImageArraySize");
 		const uint32_t descriptorCount = count;
@@ -143,7 +143,8 @@ namespace Hydro
 		return true;
 	}
 
-	void VulkanDescriptorBuilder::WriteImages(uint32_t frameIndex, uint32_t binding, const VkDescriptorImageInfo* images, uint32_t count, VkDescriptorType type)
+	void VulkanDescriptorBuilder::WriteImages(uint32_t frameIndex, uint32_t binding, const VkDescriptorImageInfo* images, uint32_t count,
+		VkDescriptorType type)
 	{
 		HY_CORE_ASSERT(frameIndex < m_DescriptorSets.size(), "VulkanDescriptorBuilder::WriteImages before Build");
 		HY_CORE_ASSERT(count <= MaxImageArraySize, "VulkanDescriptorBuilder::WriteImages: too many images");

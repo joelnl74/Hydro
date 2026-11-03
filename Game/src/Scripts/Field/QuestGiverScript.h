@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/QuestGiverScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -19,15 +18,8 @@
 
 namespace Hydro
 {
-	// The side quests of a field scene (Nov 2, 2026): every row of the quests table whose Kind is Defeat or Collect and
-	// whose Giver stands in this scene ("Npc <Giver>") is offered by that NPC, one at a time in row order. Talking to a
-	// giver: the offer (OfferLines; the quest starts when the box closes), how many are left (ProgressLines, {Left}),
-	// or, once it is done, the hand-in: the collected items are handed over, the rewards given (items, aster,
-	// experience, listed after DoneLines) and the quest completes. A giver with nothing left to offer talks as usual
-	// (Npcs.hytable). The counting is QuestRules: battles record defeats (BattleScript), Collect quests follow the
-	// inventory every frame. A marker floats over a giver ("Quest Marker <Giver>", a World canvas the scene's builder
-	// adds): QuestMarkerView's black-on-yellow "!" with a quest to offer, "?" when one can be turned in. Put it once in
-	// a scene, on any entity.
+	// Offers a scene's side quests: each Defeat or Collect row whose Giver stands here ("Npc <Giver>"), one at a time,
+	// with the offer, progress and hand-in lines, rewards and a marker over the giver. Put it once in a scene.
 	HY_SCRIPT()
 	class QuestGiverScript : public ScriptableEntity
 	{
@@ -103,7 +95,6 @@ namespace Hydro
 				PresentMarker(scene, giver, current);
 			}
 
-			// The offer's box closed: the quest starts.
 			if (m_PendingStart.empty() == false && IsTalking() == false)
 			{
 				const QuestDefinition* quest = Find(m_PendingStart);
@@ -154,7 +145,7 @@ namespace Hydro
 			TurnIn(name, row, *quest);
 		}
 
-		// Hands the quest in: the collected items go, the rewards come, the lines say so.
+		// The collected items go, the rewards come, the lines say so.
 		void TurnIn(const std::string& name, const std::string& row, const QuestDefinition& quest)
 		{
 			Inventory& inventory = Inventory::Get();
@@ -172,7 +163,8 @@ namespace Hydro
 				inventory.Add(reward.Item, reward.Count);
 				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(reward.Item);
 				const std::string itemName = item.IsValid() ? item->Name : reward.Item.Row;
-				rewards.push_back({ std::string(), "Received " + itemName + (reward.Count > 1 ? " x" + std::to_string(reward.Count) : std::string()) + "." });
+				rewards.push_back({ std::string(),
+					"Received " + itemName + (reward.Count > 1 ? " x" + std::to_string(reward.Count) : std::string()) + "." });
 			}
 			if (quest.RewardMoney > 0)
 			{

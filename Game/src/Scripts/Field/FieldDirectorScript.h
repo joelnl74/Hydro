@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/FieldDirectorScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -29,24 +28,12 @@
 #include <filesystem>
 #include <random>
 
-// The field director (FieldDirectorScript; MvpDirectorScript until Nov 1, 2026): the MVP scene's mechanics
-// (docs/DioramaRPG.md, the GDD's first-scene test), used by the field scenes (the Shrine Glade, the Farm Village)
-// and the interiors (the Farm Village's inn): interact prompts (a sign, a chest,
-// a door into a building and back out, a bed to rest in, a save point, the map's exits, an NPC) and the field menu
-// (Tab; its Inventory page lists the party's items, which are data: Assets/Data/Items.hytable, the run starting from
-// StartingInventory.hydef), which gates the player's input while it is open. The director decides; the views show
-// (Scripting plan SC8f): FieldMenuView with its InventoryView (Scripts/Field/), InteractPromptView,
-// MessageBannerView and ScreenFadeView (Views/); using an item is Rules/ItemRules.h. The UI is runtime UI under the
-// director ("MVP Director" in the scenes) on the 1920 x 1080 canvas (scripts/ui/build_game_ui.py builds it): the
-// field menu (tabs, a page per tab, the party, a help bar), the message banner, the fade, and the "E  Talk" prompt as a World canvas over the player's head; NPCs
-// talk through the dialogue box (Views/DialogueScript.h). What NPCs and signs say is data (Assets/Data/Npcs.hytable,
-// Signs.hytable, Dialogue/*.hydef), found by the name in their tag.
+// The field director: interact prompts (signs, chests, doors, beds, save points, exits, NPCs) and the field menu in the
+// field scenes and interiors. It decides; the views show (FieldMenuView, InteractPromptView, MessageBannerView, ScreenFadeView).
 
 namespace Hydro
 {
-	// The field's own messages and prompts (once rows of Sprites/UI/MvpText.png; the runtime UI writes their words,
-	// GetFieldText): the game's UI wording, in code until there is a text table (with localisation). Content (items,
-	// what NPCs and signs say) is data: Assets/Data/.
+	// The field's own UI wording, in code until there is a text table. Content (items, NPC and sign lines) is data.
 	enum class FieldLabel : uint32_t
 	{
 		Inventory, EnterUse, EscClose,
@@ -56,7 +43,6 @@ namespace Hydro
 		Count
 	};
 
-	// The words of a label, for the runtime UI.
 	inline const char* GetFieldText(FieldLabel label)
 	{
 		switch (label)
@@ -88,8 +74,7 @@ namespace Hydro
 	class FieldDirectorScript : public ScriptableEntity
 	{
 	public:
-		// The Sandbox project's data files: the defaults of the properties below, so the scenes (saved before these
-		// properties existed) use them without being edited.
+		// Defaults of the data properties below, so scenes saved before the properties existed use them unedited.
 		static constexpr uint64_t DefaultItemsTable = 4741649512266718899ull;        // Assets/Data/Items.hytable
 		static constexpr uint64_t DefaultStartingInventory = 6616718844402080283ull; // Assets/Data/StartingInventory.hydef
 		static constexpr uint64_t DefaultNpcTable = 7308464824897497192ull;          // Assets/Data/Npcs.hytable
@@ -97,7 +82,6 @@ namespace Hydro
 		static constexpr uint64_t DefaultLootTable = 207747700610060598ull;          // Assets/Data/Loot.hytable
 		static constexpr uint64_t DefaultFieldUI = 1324405221109369128ull;           // Assets/Prefabs/UI/FieldUI.hyprefab
 
-		// Interaction: what counts as in reach of the player.
 		HY_PROPERTY(Range(0, 20), Tooltip("Metres: farther items get no prompt"))
 		float InteractRange = 1.7f;
 		HY_PROPERTY(Range(0, 10), Tooltip("Metres between the player's ground and the item's (another terrace is out of reach)"))
@@ -113,7 +97,7 @@ namespace Hydro
 		HY_PROPERTY(Range(0, 5), Tooltip("...and ends this high on the item"))
 		float ItemHeight = 0.6f;
 
-		// Timing, in seconds.
+		// Seconds.
 		HY_PROPERTY(Range(0.1, 30), Tooltip("How long a message stays up"))
 		float MessageTime = 3.0f;
 		HY_PROPERTY(Range(0.05, 5), Tooltip("Fade out when leaving through an exit"))
@@ -123,7 +107,6 @@ namespace Hydro
 		HY_PROPERTY(Range(0.05, 10), Tooltip("Fade out and in when resting at a save point"))
 		float RestTime = 1.2f;
 
-		// Items (data, the Definitions plan's D4: #171).
 		HY_PROPERTY(Asset(Definition, InventoryDefinition), Tooltip("The items a run starts with, in their order"))
 		AssetHandle StartingInventory = DefaultStartingInventory;
 		HY_PROPERTY(DataRow(ItemDefinition), Tooltip("What a chest gives when its tag names no loot table (a plain \"Chest\")"))
@@ -131,22 +114,17 @@ namespace Hydro
 		HY_PROPERTY(Asset(DataTable, LootTableDefinition), Tooltip("The loot tables chests roll: \"Chest <row> ...\" rolls that row (items and aster)"))
 		AssetHandle LootTable = DefaultLootTable;
 
-		// What NPCs and signs say: rows by the name in their tag, without spaces ("Npc Village Elder" -> VillageElder);
-		// a row "Default" for the rest.
+		// NPC and sign rows are found by the name in their tag without spaces ("Npc Village Elder" -> VillageElder), else "Default".
 		HY_PROPERTY(Asset(DataTable, NpcDefinition), Tooltip("The NPCs: name on the box and dialogue, by the name after \"Npc \""))
 		AssetHandle NpcTable = DefaultNpcTable;
 		HY_PROPERTY(Asset(DataTable, SignDefinition), Tooltip("The signs' lines, by the name after \"Sign \""))
 		AssetHandle SignTable = DefaultSignTable;
 
-		// The dialogue box (Scripting plan SC4): set it in the inspector, or drag "Dialogue Canvas" onto it. Unset,
-		// the director looks for the entity tagged "Dialogue Canvas" (the scenes made before references).
 		HY_PROPERTY(Tooltip("The dialogue box NPCs talk through (the Dialogue Canvas); unset: the entity tagged \"Dialogue Canvas\""))
 		ComponentRef<DialogueScript> Dialogue;
 
-		// The field UI (Nov 3, 2026): the canvases the views bind to (field menu, dialogue box, prompt, message banner,
-		// quest tracker, fade). The scenes built before the prefab have them baked in under this director
-		// (scripts/ui/build_game_ui.py field); any other scene gets a copy of this prefab under the director when it
-		// starts, so the UI is there whichever scene a run starts in (a save, Play on any scene).
+		// Scenes built before the prefab have the field UI baked in under this director; any other scene gets a copy at start,
+		// so the UI is there whichever scene a run starts in.
 		HY_PROPERTY(Asset(Prefab), Tooltip("The field UI, instantiated under this director when the scene has none of its own (no \"Field Menu Canvas\" or \"Field UI\" child)"))
 		AssetHandle FieldUI = DefaultFieldUI;
 
@@ -157,7 +135,7 @@ namespace Hydro
 			m_Camera = Find(scene, "Camera");
 			m_Player = Find(scene, "Player");
 			EnsureFieldUI();
-			// The views (runtime UI on canvases under this director, so their buttons' events reach OnUIEvent).
+			// The views are runtime UI on canvases under this director, so their buttons' events reach OnUIEvent.
 			m_PromptView.Bind(scene);
 			m_Fade.Bind(scene);
 			m_Banner.Bind(scene);
@@ -166,7 +144,6 @@ namespace Hydro
 
 			BattleState::Get().StartParty();
 
-			// Everything the player can interact with, by tag prefix.
 			auto view = scene.m_Registry.view<TagComponent, TransformComponent>();
 			for (auto entity : view)
 			{
@@ -184,10 +161,10 @@ namespace Hydro
 				else { continue; }
 				if (scene.m_Registry.has<SpriteRendererComponent>(entity))
 				{
-					// a sprite's entity sits at its middle; the player talks to its feet
+					// A sprite's entity sits at its middle; the player talks to its feet.
 					item.FeetDrop = 0.5f * view.get<TransformComponent>(entity).Scale.y;
 				}
-				// Found already this run (Inventory::Found): a chest stays open, a picked-up spot stays gone.
+				// Found already this run: a chest stays open, a picked-up spot stays gone.
 				if ((item.Type == Kind::Chest || item.Type == Kind::Gather) && Inventory::Get().WasFound(FoundKey(scene, tag)))
 				{
 					if (item.Type == Kind::Gather)
@@ -206,9 +183,8 @@ namespace Hydro
 			}
 			m_Gone.clear();
 
-			// The party's items: rows of the items table and counts, on the game session, so every field scene and interior
-			// of a run shares them (what is used in the inn is gone in the village too). The first director of a run gives
-			// the starting inventory (twenty items, more than the list shows, so it scrolls).
+			// The inventory lives on the game session, so every scene of a run shares it. The first director of a run gives the
+			// starting inventory.
 			Inventory& inventory = Inventory::Get();
 			if (inventory.Started == false)
 			{
@@ -228,7 +204,7 @@ namespace Hydro
 			PlaceArrival(scene);
 			m_Menu.SetOpen(false);
 			m_PromptView.Hide();
-			// Arriving (the scene was just loaded, or the player came back to it): fade in from black.
+			// Arriving (just loaded, or the player came back): fade in from black.
 			m_Arriving = ArriveTime;
 			m_Fade.Set(1.0f);
 			HY_INFO("Field: WASD walk, E interact / talk (Enter next line, Esc close), Tab menu (Up/Down tabs, Enter open, Esc back / close), 1/2/3 day-dusk-night");
@@ -239,7 +215,6 @@ namespace Hydro
 			Scene& scene = *GetEntity().GetScene();
 			m_Time += deltaTime;
 
-			// a scene change in progress: fade, then go
 			if (m_Leaving > 0.0f)
 			{
 				m_Leaving = std::max(0.0f, m_Leaving - deltaTime);
@@ -254,7 +229,7 @@ namespace Hydro
 					{
 						Leave(m_LeavingTo);
 					}
-					// Kept as it is while the next scene runs: when the player comes back here it fades in.
+					// Kept while the next scene runs, so coming back here fades in.
 					m_Arriving = ArriveTime;
 				}
 				return;
@@ -264,7 +239,6 @@ namespace Hydro
 				m_Arriving = std::max(0.0f, m_Arriving - deltaTime);
 				m_Fade.Set(m_Arriving / ArriveTime);
 			}
-			// a rest at the inn: a dip to black and back
 			if (m_Resting > 0.0f)
 			{
 				m_Resting = std::max(0.0f, m_Resting - deltaTime);
@@ -272,15 +246,13 @@ namespace Hydro
 				m_Fade.Set(k > 0.5f ? (1.0f - k) * 2.0f : k * 2.0f);
 			}
 
-			// A runtime UI canvas that captures input (UI::CapturesInput: the menu, the dialogue, any other) owns the
-			// keys: no interaction. Tab is the menu's own key, so it also closes it.
+			// A UI canvas that captures input owns the keys: no interaction. Tab is the menu's own key, so it also closes it.
 			const bool menuOpen = m_Menu.IsOpen();
 			if (KeyPressed(KeyCode::Tab, m_Previous[0]) && (menuOpen || UI::CapturesInput(scene) == false))
 			{
 				OpenMenu(menuOpen == false);
 			}
-			// Q / E in the menu: the hero its Character, Abilities and Equipment pages show (polled every frame for
-			// the edge; E's interaction never runs while the menu captures the keys).
+			// Polled every frame for the edge; E's interaction never runs while the menu captures the keys.
 			const bool previousHero = KeyPressed(KeyCode::Q, m_Previous[2]);
 			const bool nextHero = KeyPressed(KeyCode::E, m_Previous[3]);
 			if (m_Menu.IsOpen() && (previousHero || nextHero))
@@ -299,8 +271,6 @@ namespace Hydro
 			m_Banner.Update(deltaTime);
 		}
 
-		// The field menu's tabs and rows bubble their events up to the director; the view says what the player asked
-		// for: use the selected item, or close.
 		bool OnUIEvent(const UIEvent& event) override
 		{
 			FieldMenuView::Request request = FieldMenuView::Request::None;
@@ -326,16 +296,14 @@ namespace Hydro
 		{
 			entt::entity Entity = entt::null;
 			Kind Type = Kind::Sign;
-			float FeetDrop = 0.0f; // from its position (in the world, read when needed: it may have a parent) to its feet
+			float FeetDrop = 0.0f; // from its world position to its feet
 			bool Used = false;   // chests open once
-			std::string Target;  // exits: the scene they lead to (the tag after "Exit "); doors: the building (after "Door ",
-			                     // "Out" in an interior); NPCs: their name (after "Npc ")
+			std::string Target;  // exits: the scene they lead to; doors: the building ("Out" in an interior); NPCs: their name
 		};
 
 		using Slot = Inventory::Slot;
 
-
-		// A tag's name as a row ID: what an ID can hold ("Village Elder" -> VillageElder).
+		// "Village Elder" -> VillageElder.
 		static std::string ToRowId(const std::string& name)
 		{
 			std::string id;
@@ -349,8 +317,7 @@ namespace Hydro
 			return id;
 		}
 
-		// The row of `table` for the entity named `name` (its tag after "Npc " / "Sign "), else its "Default" row
-		// (`usedDefault` says which).
+		// The row of `table` for the entity named `name`, else its "Default" row (`usedDefault` says which).
 		template<typename T>
 		static DataView<T> FindNamedRow(AssetHandle table, const std::string& name, bool* usedDefault = nullptr)
 		{
@@ -380,7 +347,6 @@ namespace Hydro
 		void UpdateInteraction(Scene& scene)
 		{
 			const glm::vec2 player = Position(scene, m_Player);
-			// The ground the player stands on (the character's feet in the field scenes).
 			const float playerHeight = Height(scene, m_Player);
 
 			// Where the player faces: the way it last walked.
@@ -391,9 +357,9 @@ namespace Hydro
 			}
 			m_LastPlayer = player;
 
-			// The triggers the player stands in (an exit's area), from the 3D world's colliders.
 			std::vector<Entity> inside;
-			Physics3D::OverlapSphere(scene, glm::vec3(player, playerHeight + 0.5f), 0.3f, Physics3D::LayerBit(PhysicsLayer::Trigger), inside);
+			Physics3D::OverlapSphere(scene, glm::vec3(player, playerHeight + 0.5f), 0.3f, Physics3D::LayerBit(PhysicsLayer::Trigger),
+				inside);
 
 			Interactable* nearest = nullptr;
 			float best = InteractRange;
@@ -433,8 +399,7 @@ namespace Hydro
 				m_PromptView.Hide();
 				return;
 			}
-			// Just above the player's head, in either camera view (DioramaCamera.h): the World canvas sits on that point.
-			// 1.95 m (Oct 31, 2026, was 2.35): close over her hair, under the torii's shimenawa and door lintels.
+			// Just above the player's head in either camera view: close over her hair, under the torii's shimenawa and door lintels.
 			const glm::vec3 overHead = DioramaView::Above(glm::vec3(player, playerHeight), 1.95f);
 			m_PromptView.Show(PromptFor(*nearest), overHead);
 
@@ -467,8 +432,7 @@ namespace Hydro
 				}
 				case Kind::Gather:
 				{
-					// "Gather <ItemRow> ...": one of that row of the items table, then the spot is gone (until the scene
-					// is loaded again): herbs, bamboo shoots, side quests' Collect items.
+					// "Gather <ItemRow> ...": one of that item, then the spot is gone until the scene is loaded again.
 					Inventory::Get().MarkFound(FoundKey(scene, scene.m_Registry.get<TagComponent>(nearest->Entity).Tag));
 					GiveItem(DataRowRef{ ChestItem.Table, nearest->Target });
 					scene.DestroyEntity(Entity{ nearest->Entity, &scene });
@@ -490,7 +454,7 @@ namespace Hydro
 					break;
 				case Kind::Door:
 				{
-					// "Door Out": back to the scene below (the one the player came in from, exactly as it was left).
+					// "Door Out": back to the scene below, exactly as it was left.
 					if (nearest->Target == "Out")
 					{
 						if (SceneTransition::GetDepth() == 0)
@@ -502,11 +466,10 @@ namespace Hydro
 						StartLeaving(std::string(), false);
 						break;
 					}
-					// "Door <Name>": into the building's interior scene.
 					const std::string interior = FindInteriorScene(scene, nearest->Target);
 					if (interior.empty())
 					{
-						// No interior scene for it (yet): the door rests the party, as the inn's door did before interiors.
+						// No interior scene for it: the door rests the party instead.
 						HY_WARN("Field: no interior scene for '{}' (looked for {}{} and {}); resting instead",
 							scene.m_Registry.get<TagComponent>(nearest->Entity).Tag, scene.GetName(), nearest->Target, nearest->Target);
 						Rest();
@@ -519,7 +482,7 @@ namespace Hydro
 					Rest();
 					break;
 				case Kind::Save:
-					// J5 (a save slot) is not written yet: the save point only says so.
+					// Save slots are not written yet: the save point only says so.
 					ShowMessage(FieldLabel::NoSaveSlot);
 					HY_INFO("Field: save point: saving is not implemented yet (DioramaRPG.md J5)");
 					break;
@@ -533,7 +496,7 @@ namespace Hydro
 					StartLeaving(nearest->Target, false);
 					break;
 				case Kind::Npc:
-					// A quest may have its own words for this NPC (QuestLog::Get().Talk, State/QuestLog.h).
+					// A quest may have its own words for this NPC.
 					if (QuestLog::Get().Talk(nearest->Target))
 					{
 						m_PromptView.Hide();
@@ -543,7 +506,8 @@ namespace Hydro
 						// An NPC without a row of its own says the "Default" row's lines under its own (tag) name.
 						bool usedDefault = false;
 						const DataView<NpcDefinition> npc = FindNamedRow<NpcDefinition>(NpcTable, nearest->Target, &usedDefault);
-						const DataView<DialogueDefinition> lines = npc.IsValid() ? Data::Get<DialogueDefinition>(npc->Dialogue) : DataView<DialogueDefinition>();
+						const DataView<DialogueDefinition> lines = npc.IsValid() ? Data::Get<DialogueDefinition>(npc->Dialogue)
+							: DataView<DialogueDefinition>();
 						const std::string name = npc.IsValid() && usedDefault == false && npc->Name.empty() == false ? npc->Name : nearest->Target;
 						if (lines.IsValid() == false || lines->Lines.empty())
 						{
@@ -566,11 +530,10 @@ namespace Hydro
 			}
 		}
 
-		// Whether the player can use `item` now, and how far it is (the prompt goes to the nearest). An exit with a
-		// trigger collider is in reach while the player stands in it. Anything else must be within InteractRange, at
-		// about the player's height (not on the terrace above), in front of the player (unless very close) and in
-		// sight: a ray from the player's chest to the item hits nothing solid before it (Physics3D).
-		bool InReach(Scene& scene, const Interactable& item, const glm::vec2& player, float playerHeight, const std::vector<Entity>& inside, float& distance) const
+		// An exit with a trigger is in reach while the player stands in it. Anything else must be within InteractRange, at about
+		// the player's height, in front (unless very close) and in sight. `distance` lets the prompt pick the nearest.
+		bool InReach(Scene& scene, const Interactable& item, const glm::vec2& player, float playerHeight, const std::vector<Entity>& inside,
+			float& distance) const
 		{
 			if (Alive(scene, item.Entity) == false)
 			{
@@ -625,10 +588,8 @@ namespace Hydro
 			return true;
 		}
 
-		// An exit's tag names the scene it leads to ("Exit JapaneseCountryside"). Going back to the scene below on the
-		// stack pops (it is exactly as the player left it, at that exit); any other scene is pushed on top, so the
-		// field scenes can form a line (the Shrine Glade, the countryside, the city) walked both ways. "Door Out" (no
-		// target) always pops. A world map or scene graph replaces this when the world stops being a line.
+		// Going back to the scene below on the stack pops it (exactly as left); any other scene is pushed on top, so the field
+		// scenes form a line walked both ways. "Door Out" (no target) always pops.
 		static void Leave(const std::string& target)
 		{
 			if (SceneTransition::GetDepth() > 0 && (target.empty() || target == SceneTransition::GetBelowName()))
@@ -641,8 +602,7 @@ namespace Hydro
 			}
 		}
 
-		// A scene pushed from another starts with the player at "Arrive <that scene>" when it has one (an empty
-		// entity just inside the exit back), instead of where the scene was saved.
+		// A pushed scene starts the player at "Arrive <previous scene>" when it has one, instead of where the scene was saved.
 		void PlaceArrival(Scene& scene)
 		{
 			const std::string& from = SceneTransition::GetBelowName();
@@ -655,15 +615,14 @@ namespace Hydro
 			{
 				return;
 			}
-			// The marker stands on the ground where she arrives (on a terrain the two ends of a scene can be metres
-			// apart in height), so her height is the marker's too.
+			// On a terrain the two ends of a scene can be metres apart in height, so she takes the marker's height too.
 			Entity player{ m_Player, &scene };
 			const glm::vec3 at = scene.GetWorldPosition(marker);
 			scene.SetWorldPosition(player, at);
 			HY_INFO("Field: arrived from {} at ({:.1f}, {:.1f})", from, at.x, at.y);
 		}
 
-		// Fades out, then goes: Push(scene) into an interior, or Leave(scene) through an exit (and "Door Out").
+		// Fades out, then pushes an interior or leaves through an exit.
 		void StartLeaving(const std::string& scene, bool push)
 		{
 			m_LeavingTo = scene;
@@ -681,8 +640,7 @@ namespace Hydro
 			HY_INFO("Field: the party rests: HP and MP restored");
 		}
 
-		// The interior scene a door leads to: "<this scene><Name>" (the Farm Village's "Door Inn" is FarmVillageInn, so
-		// every village can have its own inn), else "<Name>"; empty when neither file is in the project's scenes folder.
+		// "<this scene><Name>" (the Farm Village's "Door Inn" is FarmVillageInn), else "<Name>"; empty when neither exists.
 		static std::string FindInteriorScene(Scene& scene, const std::string& name)
 		{
 			if (name.empty() || AssetManager::IsProjectOpen() == false)
@@ -732,7 +690,6 @@ namespace Hydro
 			m_Banner.Show(text, MessageTime);
 		}
 
-		// A message of its own (an item's name in it), instead of the FieldLabel lines.
 		void ShowMessage(const std::string& text)
 		{
 			m_Banner.Show(text, MessageTime);
@@ -740,7 +697,7 @@ namespace Hydro
 
 		// ---- The field menu --------------------------------------------------------------------------------
 
-		// Opens or closes it; open, the prompt hides.
+		// The prompt hides while the menu is open.
 		void OpenMenu(bool open)
 		{
 			if (open)
@@ -755,7 +712,7 @@ namespace Hydro
 			return word.empty() == false && std::string("AEIOUaeiou").find(word[0]) != std::string::npos;
 		}
 
-		// One more of `item` (a chest, a gathering spot): onto its line, or a new line at the end.
+		// Adds to the item's line, or a new line at the end.
 		void GiveItem(const DataRowRef& itemRef)
 		{
 			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(itemRef);
@@ -769,7 +726,7 @@ namespace Hydro
 			HY_INFO("Field: found a {} ({} now)", item->Name, now);
 		}
 
-		// A chest's contents: its loot table row ("Chest <row>", Loot.hytable: items and aster), else ChestItem.
+		// Its loot table row ("Chest <row>" in Loot.hytable), else ChestItem.
 		void OpenChest(const std::string& row)
 		{
 			// FindRow, not GetRow: a chest named after its place ("Chest Barn") has no row and quietly gives ChestItem.
@@ -813,7 +770,7 @@ namespace Hydro
 			return scene.GetName() + "/" + tag;
 		}
 
-		// The word of `tag` starting at `from` (a chest's loot row, a gathering spot's item), up to the next space.
+		// Up to the next space.
 		static std::string FirstWord(const std::string& tag, size_t from)
 		{
 			if (tag.size() <= from)
@@ -854,8 +811,7 @@ namespace Hydro
 			m_Menu.Present();
 		}
 
-		// Gives the scene the field UI when it has none: a copy of the FieldUI prefab as this director's last child
-		// (under it, so the UI's events reach OnUIEvent). Scenes with the UI baked in keep theirs.
+		// A copy of the FieldUI prefab as this director's last child, so the UI's events reach OnUIEvent.
 		void EnsureFieldUI()
 		{
 			Entity self = GetEntity();
@@ -874,8 +830,7 @@ namespace Hydro
 			}
 		}
 
-		// The dialogue box's script: the Dialogue property's, else the one on "Dialogue Canvas"; nullptr in a scene
-		// without one.
+		// The Dialogue property's script, else the one on "Dialogue Canvas"; nullptr when the scene has none.
 		DialogueScript* FindDialogue(Scene& scene)
 		{
 			if (Dialogue.IsSet())
@@ -919,8 +874,7 @@ namespace Hydro
 			return entity != entt::null && scene.m_Registry.valid(entity);
 		}
 
-		// Positions are in the world (Scene::GetWorldPosition / SetWorldPosition), so these entities may sit under
-		// any parent.
+		// World positions, so these entities may sit under any parent.
 		static glm::vec2 Position(Scene& scene, entt::entity entity)
 		{
 			if (Alive(scene, entity) && scene.m_Registry.has<TransformComponent>(entity))
@@ -987,7 +941,7 @@ namespace Hydro
 		float m_Arriving = 0.0f;
 		float m_Resting = 0.0f;
 		std::string m_LeavingTo;
-		bool m_LeavingPush = false; // into an interior (Push) rather than out through an exit (Leave)
+		bool m_LeavingPush = false; // into an interior rather than out through an exit
 		bool m_Previous[9] = {};
 	};
 }

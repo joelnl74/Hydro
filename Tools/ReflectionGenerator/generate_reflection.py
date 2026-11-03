@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Hydro reflection generator.
 
-Reads C++ headers for HY_SCRIPT() classes and their HY_PROPERTY(...) fields, HY_DATA(...) structs and HY_ENUM()
-enums, and writes two .cpp files: RegisterGeneratedScriptReflection() (scripts, with ScriptRegistry) and
-RegisterGeneratedDataReflection() (data types and enums, with DataTypeRegistry). Run by the Game project's
+Reads C++ headers for HY_SCRIPT() classes and their HY_PROPERTY(...) fields, HY_DATA(...) structs, HY_COMPONENT(...)
+structs and HY_ENUM() enums, and writes two .cpp files: RegisterGeneratedScriptReflection() (scripts, with
+ScriptRegistry, and components, with ComponentRegistry) and RegisterGeneratedDataReflection() (data types, the
+components' fields and enums, with DataTypeRegistry). Run by the Game project's
 pre-build step; see Hydro/src/Hydro/Scene/Scripting/ReflectionMacros.h for what the macros accept.
 
     generate_reflection.py [repo_root] [--source DIR]... [--output FILE] [--data-output FILE] [--check]
@@ -61,9 +62,13 @@ DATA_ASSET_TYPES = {"Definition", "DataTable"}
 # resolved once every header has been read (the types can live in other headers).
 # References to entities aren't data: a definition or table has no scene.
 DATA_VALUE_TYPES = {name: kind for name, kind in SUPPORTED_TYPES.items() if kind != "EntityRef"}
+# A script's list may hold entities, though (std::vector<EntityRef> Waypoints): its values live in a scene.
+SCRIPT_ELEMENT_TYPES = dict(SUPPORTED_TYPES)
 
 # The only arguments HY_DATA(...) accepts; anything else is an error (the generator stays a scanner).
 HY_DATA_ARGUMENTS = "Definition, Table, DisplayField(field), FormerName(\"OldName\", ...)"
+# And HY_COMPONENT(...): a game component's fields are data fields (EntityRef allowed: it lives in a scene).
+HY_COMPONENT_ARGUMENTS = "FormerName(\"OldName\", ...)"
 
 
 @dataclass
@@ -84,6 +89,19 @@ class Property:
     former_names: list[str] = field(default_factory=list)  # FormerName("..."): keys scenes may still use
     required: bool = False  # Required: an Asset, DataRowRef or reference that must be set
     target_type: str | None = None  # ComponentRef<T>: T as written
+    # Data properties (Nov 3, 2026): an HY_ENUM, an HY_DATA struct or a std::vector, resolved once every header is read
+    # (kind "Data"); `arguments` waits until then, as its checks need the element's kind.
+    data_kind: str | None = None  # "Enum", "Struct" or "List"
+    element_type: str | None = None  # List: the element's C++ type
+    element_kind: str | None = None
+    arguments: str = ""
+
+    @property
+    def value_kind(self) -> str:
+        """The kind the arguments apply to: a list's elements, an enum or struct itself, or the field."""
+        if self.kind != "Data":
+            return self.kind
+        return self.element_kind if self.data_kind == "List" else self.data_kind
 
 
 @dataclass
@@ -93,6 +111,7 @@ class ReflectedScript:
     properties: list[Property] = field(default_factory=list)
     former_names: list[str] = field(default_factory=list)  # HY_SCRIPT(FormerName("...")): names scenes may still use
     where: str = ""
+    draws_gizmos: bool = False  # the class overrides OnDrawGizmos (Editor view gizmos)
 
 
 @dataclass
@@ -135,13 +154,15 @@ class ReflectedData:
     display_field_explicit: bool = False
     properties: list[DataProperty] = field(default_factory=list)
     former_names: list[str] = field(default_factory=list)  # HY_DATA(FormerName("...")): type names files may still say
+    component: bool = False  # HY_COMPONENT: a game component (ComponentRegistry), not a data type files hold
 
     @property
     def display_name(self) -> str:
-        # Create > Definition > Dialogue for DialogueDefinition.
+        # Create > Definition > Dialogue for DialogueDefinition; Add Component > Waypoint for WaypointComponent.
         name = self.struct_name
-        if name.endswith("Definition") and len(name) > len("Definition"):
-            name = name[: -len("Definition")]
+        suffix = "Component" if self.component else "Definition"
+        if name.endswith(suffix) and len(name) > len(suffix):
+            name = name[: -len(suffix)]
         return make_display_name(name)
 
 
@@ -429,17 +450,18 @@ def apply_arguments(prop: Property, arguments: str, where: str) -> None:
             )
 
     prop.where = where
-    if prop.kind == "RowRef" and (prop.data_type is None or prop.asset_type is not None):
+    kind = prop.value_kind  # a list's elements for a list
+    if kind == "RowRef" and (prop.data_type is None or prop.asset_type is not None):
         raise ReflectionError(f"{where}: a DataRowRef needs DataRow(<row type>), e.g. HY_PROPERTY(DataRow(ItemDefinition))")
-    if prop.kind != "RowRef" and prop.data_type is not None and prop.asset_type is None:
+    if kind != "RowRef" and prop.data_type is not None and prop.asset_type is None:
         raise ReflectionError(f"{where}: DataRow(...) needs a DataRowRef field")
-    if (prop.minimum is not None or prop.maximum is not None) and prop.kind not in NUMERIC_KINDS:
-        raise ReflectionError(f"{where}: Range / Min / Max need an int, float or vector field")
-    if prop.color and prop.kind not in COLOR_KINDS:
-        raise ReflectionError(f"{where}: Color needs a glm::vec3 or glm::vec4 field")
-    if prop.asset_type is not None and prop.kind != "Asset":
-        raise ReflectionError(f"{where}: Asset(...) needs an AssetHandle field")
-    if prop.kind == "Asset" and prop.asset_type is None:
+    if (prop.minimum is not None or prop.maximum is not None) and kind not in NUMERIC_KINDS:
+        raise ReflectionError(f"{where}: Range / Min / Max need an int, float or vector field (or a list of them)")
+    if prop.color and kind not in COLOR_KINDS:
+        raise ReflectionError(f"{where}: Color needs a glm::vec3 or glm::vec4 field (or a list of them)")
+    if prop.asset_type is not None and kind != "Asset":
+        raise ReflectionError(f"{where}: Asset(...) needs an AssetHandle field (or a list of them)")
+    if kind == "Asset" and prop.asset_type is None:
         raise ReflectionError(f"{where}: an AssetHandle needs Asset(<AssetType>), e.g. HY_PROPERTY(Asset(Texture2D))")
     if prop.required and prop.kind not in REQUIRED_KINDS:
         raise ReflectionError(f"{where}: Required needs an AssetHandle, DataRowRef, EntityRef or ComponentRef<T> field")
@@ -520,7 +542,7 @@ def parse_properties(body: str, body_offset: int, text: str, class_name: str, de
     ):
         # float MoveSpeed = 3.5f;   glm::vec3 Offset{ 0.0f };   std::string Name = "x";   AssetHandle Icon = 0;
         field_match = re.fullmatch(
-            r"(?P<type>[A-Za-z_][\w:]*(?:\s*<\s*[A-Za-z_][\w:]*\s*>)?)\s+"
+            r"(?P<type>[A-Za-z_][\w:]*(?:\s*<[\w:<>\s,]*>)?)\s+"
             r"(?P<name>[A-Za-z_]\w*)\s*"
             r"(?:=.*|\{.*\})?;",
             declaration,
@@ -538,8 +560,13 @@ def parse_properties(body: str, body_offset: int, text: str, class_name: str, de
             kind = "EntityRef"
             target_type = component_ref.group("target")
         if kind is None:
-            supported = ", ".join(sorted({t for t in SUPPORTED_TYPES if not t.startswith("Hydro::")} | {"ComponentRef<T>"}))
-            raise ReflectionError(f"{where}.{field_name}: unsupported property type '{type_name}'. Supported: {supported}")
+            # A list, an HY_ENUM or an HY_DATA struct, maybe from another header: resolved by resolve_data, which
+            # reports a type that is none of these.
+            prop = Property(type_name=type_name, kind="Data", name=field_name, display_name=make_display_name(field_name))
+            prop.arguments = arguments
+            prop.where = f"{where}.{field_name}"
+            properties.append(prop)
+            continue
 
         prop = Property(type_name=type_name, kind=kind, name=field_name, display_name=make_display_name(field_name))
         prop.target_type = target_type
@@ -595,6 +622,8 @@ def parse_scripts(text: str, header: Path, include_path: str) -> list[ReflectedS
                 include_path=include_path,
                 former_names=former_names,
                 where=f"{where}: {class_name}",
+                # Its own override (one inherited from a base script isn't seen: add .DrawsGizmos() by hand there).
+                draws_gizmos=re.search(r"\bvoid\s+OnDrawGizmos\s*\(", body) is not None,
                 properties=parse_properties(
                     body=body,
                     body_offset=brace + 1,
@@ -645,13 +674,34 @@ def parse_data_arguments(arguments: str, where: str) -> tuple[bool, bool, str | 
     return definition, table, display_field, former_names
 
 
-def parse_data_types(text: str, header: Path, include_path: str) -> list[ReflectedData]:
-    data_types: list[ReflectedData] = []
+def parse_component_arguments(arguments: str, where: str) -> list[str]:
+    former_names: list[str] = []
+    for argument in split_top_level(arguments):
+        if not argument:
+            continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)\s*(?:\((.*)\))?", argument, flags=re.DOTALL)
+        if match is not None and match.group(1) == "FormerName" and match.group(2) is not None:
+            former_names.extend(parse_former_names(split_top_level(match.group(2)), where, argument))
+        else:
+            raise ReflectionError(
+                f"{where}: HY_COMPONENT({arguments.strip()}): unsupported argument '{argument}' (HY_COMPONENT accepts only {HY_COMPONENT_ARGUMENTS})"
+            )
+    return former_names
 
-    for marker in re.finditer(r"\bHY_DATA\s*\(", text):
+
+def parse_data_types(text: str, header: Path, include_path: str, macro: str = "HY_DATA") -> list[ReflectedData]:
+    """HY_DATA structs, or (macro="HY_COMPONENT") game components: both are structs of HY_PROPERTY data fields."""
+    data_types: list[ReflectedData] = []
+    component = macro == "HY_COMPONENT"
+
+    for marker in re.finditer(r"\b%s\s*\(" % macro, text):
         where = f"{header}:{line_of(text, marker.start())}"
         close_paren = find_matching(text, marker.end() - 1, "(", ")")
-        definition, table, display_field, former_names = parse_data_arguments(text[marker.end() : close_paren], where)
+        if component:
+            definition, table, display_field = False, False, None
+            former_names = parse_component_arguments(text[marker.end() : close_paren], where)
+        else:
+            definition, table, display_field, former_names = parse_data_arguments(text[marker.end() : close_paren], where)
 
         declaration = re.compile(
             r"\s*(?P<kind>struct|class)\s+"
@@ -661,11 +711,11 @@ def parse_data_types(text: str, header: Path, include_path: str) -> list[Reflect
             r"(?P<next>[:{])"
         ).match(text, close_paren + 1)
         if declaration is None:
-            raise ReflectionError(f"{where}: HY_DATA(...) must be right above a struct")
+            raise ReflectionError(f"{where}: {macro}(...) must be right above a struct")
 
         struct_name = declaration.group("name")
         if declaration.group("next") == ":":
-            raise ReflectionError(f"{where}: {struct_name}: data types can't derive from another type (no inheritance between data types)")
+            raise ReflectionError(f"{where}: {struct_name}: {'components' if component else 'data types'} can't derive from another type")
 
         brace = declaration.end() - 1
         body_end = find_matching(text, brace, "{", "}")
@@ -680,6 +730,7 @@ def parse_data_types(text: str, header: Path, include_path: str) -> list[Reflect
             display_field=display_field,
             display_field_explicit=display_field is not None,
             former_names=former_names,
+            component=component,
         )
 
         for arguments, field_declaration, field_where in iter_property_declarations(
@@ -756,16 +807,18 @@ def parse_header(header: Path, include_path: str) -> ParsedHeader:
     text = strip_comments(header.read_text(encoding="utf-8"))
     return ParsedHeader(
         scripts=parse_scripts(text, header, include_path),
-        data=parse_data_types(text, header, include_path),
+        data=parse_data_types(text, header, include_path) + parse_data_types(text, header, include_path, "HY_COMPONENT"),
         enums=parse_enums(text, header, include_path),
     )
 
 
-def data_value_kind(type_name: str, where: str, data_names: set[str], enum_names: set[str]) -> str:
+def data_value_kind(type_name: str, where: str, data_names: set[str], enum_names: set[str], allow_entity: bool = False) -> str:
     plain = type_name.removeprefix("Hydro::")
     kind = DATA_VALUE_TYPES.get(type_name) or DATA_VALUE_TYPES.get(plain)
     if kind is not None:
         return kind
+    if allow_entity and plain == "EntityRef":
+        return "EntityRef"  # a component's field: it lives in a scene
     if plain in enum_names:
         return "Enum"
     if plain in data_names:
@@ -777,6 +830,41 @@ def data_value_kind(type_name: str, where: str, data_names: set[str], enum_names
         f"{where}: unsupported data field type '{type_name}'. Supported: {supported}, an HY_ENUM enum class, "
         "an HY_DATA struct, or a std::vector of one of these"
     )
+
+
+def resolve_script_data_property(prop: Property, data_names: set[str], enum_names: set[str]) -> None:
+    """A script property of a type the scanner didn't know: a std::vector of a script kind (EntityRef included), an
+    HY_ENUM or an HY_DATA struct; then its arguments."""
+    where = prop.where
+    plain = prop.type_name.removeprefix("Hydro::")
+    list_match = re.fullmatch(r"(?:std::)?vector\s*<\s*(.+?)\s*>", plain)
+    supported = ", ".join(sorted({t for t in SUPPORTED_TYPES if not t.startswith("Hydro::")} | {"ComponentRef<T>"}))
+    if list_match is not None:
+        element = list_match.group(1)
+        element_plain = element.removeprefix("Hydro::")
+        kind = SCRIPT_ELEMENT_TYPES.get(element) or SCRIPT_ELEMENT_TYPES.get(element_plain)
+        if kind is None and element_plain in enum_names:
+            kind = "Enum"
+        elif kind is None and element_plain in data_names:
+            kind = "Struct"
+        if kind is None:
+            if COMPONENT_REF_PATTERN.fullmatch(element) is not None:
+                raise ReflectionError(f"{where}: lists of ComponentRef<T> are not supported; use std::vector<EntityRef>")
+            raise ReflectionError(
+                f"{where}: unsupported list element '{element}'. A script's list holds {supported.replace(', ComponentRef<T>', '')}, "
+                "an HY_ENUM enum class or an HY_DATA struct"
+            )
+        prop.data_kind, prop.element_type, prop.element_kind = "List", element, kind
+    elif plain in enum_names:
+        prop.data_kind = "Enum"
+    elif plain in data_names:
+        prop.data_kind = "Struct"
+    else:
+        raise ReflectionError(
+            f"{where}: unsupported property type '{prop.type_name}'. Supported: {supported}, an HY_ENUM enum class, "
+            "an HY_DATA struct, or a std::vector of one of these"
+        )
+    apply_arguments(prop, prop.arguments, where)
 
 
 def apply_data_arguments(prop: DataProperty, definitions: set[str], tables: set[str]) -> None:
@@ -899,14 +987,16 @@ def resolve_data(data_types: list[ReflectedData], enums: list[ReflectedEnum], sc
 
     check_former_names(scripts, data_types)
 
-    data_names = {d.struct_name for d in data_types}
+    data_names = {d.struct_name for d in data_types if not d.component}  # a component can't be nested in data
     enum_names = {e.enum_name for e in enums}
     tables = {d.struct_name for d in data_types if d.table}
     definitions = {d.struct_name for d in data_types if d.definition}
 
     for script in scripts:
         for prop in script.properties:
-            check_data_type_reference(prop.asset_type, prop.data_type, prop.kind, prop.where, definitions, tables)
+            if prop.kind == "Data":
+                resolve_script_data_property(prop, data_names, enum_names)
+            check_data_type_reference(prop.asset_type, prop.data_type, prop.value_kind, prop.where, definitions, tables)
 
     for data in data_types:
         for prop in data.properties:
@@ -914,9 +1004,9 @@ def resolve_data(data_types: list[ReflectedData], enums: list[ReflectedEnum], sc
             if list_match is not None:
                 prop.kind = "List"
                 prop.element_type = list_match.group(1)
-                prop.element_kind = data_value_kind(prop.element_type, prop.where, data_names, enum_names)
+                prop.element_kind = data_value_kind(prop.element_type, prop.where, data_names, enum_names, data.component)
             else:
-                prop.kind = data_value_kind(prop.type_name, prop.where, data_names, enum_names)
+                prop.kind = data_value_kind(prop.type_name, prop.where, data_names, enum_names, data.component)
             apply_data_arguments(prop, definitions, tables)
 
         check_unique_former_names(
@@ -1053,7 +1143,8 @@ def include_path_for(header: Path, include_roots: list[Path]) -> str:
     raise ReflectionError(f"Header is outside the include roots: {header}")
 
 
-def generate_cpp(scripts: list[ReflectedScript]) -> str:
+def generate_cpp(scripts: list[ReflectedScript], components: list[ReflectedData] | None = None) -> str:
+    components = components or []
     lines: list[str] = [
         "// AUTO-GENERATED by Tools/ReflectionGenerator/generate_reflection.py.",
         "// DO NOT EDIT. Annotate source with HY_SCRIPT() and HY_PROPERTY() instead.",
@@ -1061,8 +1152,10 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
         '#include "GeneratedScriptReflection.h"',
         '#include "Hydro/Scene/Scripting/ScriptRegistry.h"',
     ]
+    if components:
+        lines.append('#include "Hydro/Scene/ComponentRegistry.h"')
 
-    include_paths = sorted({script.include_path for script in scripts})
+    include_paths = sorted({script.include_path for script in scripts} | {c.include_path for c in components})
     if include_paths:
         lines.append("")
         for include_path in include_paths:
@@ -1088,6 +1181,7 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
         lines.append("")
         lines.append(
             f"\t\tScriptRegistry::Register<{script.class_name}>({cpp_string(script.class_name)}{former_names_argument(script.former_names)})"
+            + (".DrawsGizmos()" if script.draws_gizmos else "")
         )
         for prop in script.properties:
             call = f"\t\t\t.Property({cpp_string(prop.name)}, {cpp_string(prop.display_name)}, &{script.class_name}::{prop.name})"
@@ -1118,6 +1212,16 @@ def generate_cpp(scripts: list[ReflectedScript]) -> str:
                 call += f".FormerName({cpp_string(former)})"
             lines.append(call)
         lines[-1] += ";"
+
+    # Game components (HY_COMPONENT): their fields are registered with the data types (RegisterGeneratedDataReflection).
+    if components:
+        lines.append("")
+    for component in components:
+        lines.append(
+            f"\t\tComponentRegistry::Register<{component.struct_name}>({cpp_string(component.struct_name)}, {cpp_string(component.display_name)}"
+            + former_names_argument(component.former_names)
+            + ");"
+        )
 
     lines.extend(["\t}", "}", ""])
     # CRLF, like the rest of the repository (.editorconfig).
@@ -1165,7 +1269,12 @@ def main() -> int:
         enums.sort(key=lambda e: (e.include_path.lower(), e.enum_name.lower()))
 
         outputs = [
-            (output, generate_cpp(scripts), f"{len(scripts)} script(s), {sum(len(s.properties) for s in scripts)} property/properties"),
+            (
+                output,
+                generate_cpp(scripts, [d for d in data_types if d.component]),
+                f"{len(scripts)} script(s), {sum(len(s.properties) for s in scripts)} property/properties, "
+                f"{sum(1 for d in data_types if d.component)} component(s)",
+            ),
             (
                 data_output,
                 generate_data_cpp(data_types, enums),

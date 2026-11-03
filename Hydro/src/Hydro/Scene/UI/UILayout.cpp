@@ -37,7 +37,8 @@ namespace Hydro
 		return metrics;
 	}
 
-	void UILayout::ResolveRect(const UIRectComponent& rect, const glm::vec2& parentMin, const glm::vec2& parentMax, glm::vec2& outMin, glm::vec2& outMax)
+	void UILayout::ResolveRect(const UIRectComponent& rect, const glm::vec2& parentMin, const glm::vec2& parentMax, glm::vec2& outMin,
+		glm::vec2& outMax)
 	{
 		const glm::vec2 parentSize = parentMax - parentMin;
 		const glm::vec2 anchorMin = parentMin + rect.AnchorMin * parentSize;
@@ -51,7 +52,8 @@ namespace Hydro
 		outMax = glm::max(glm::round(min + size), outMin);
 	}
 
-	void UILayout::ArrangeGroup(const UILayoutGroupComponent& group, const glm::vec2& pivot, glm::vec2& groupMin, glm::vec2& groupMax, std::vector<UILayoutItem>& items)
+	void UILayout::ArrangeGroup(const UILayoutGroupComponent& group, const glm::vec2& pivot, glm::vec2& groupMin, glm::vec2& groupMax,
+		std::vector<UILayoutItem>& items)
 	{
 		const bool vertical = group.Direction == UILayoutDirection::Vertical;
 		const int main = vertical ? 1 : 0;   // the axis children are stacked along
@@ -176,10 +178,14 @@ namespace Hydro
 		FitBorders(destinationMax.x - destinationMin.x, destinationLeft, destinationRight);
 		FitBorders(destinationMax.y - destinationMin.y, destinationBottom, destinationTop);
 
-		const float columns[4] = { destinationMin.x, destinationMin.x + destinationLeft, destinationMax.x - destinationRight, destinationMax.x };
-		const float rows[4] = { destinationMin.y, destinationMin.y + destinationBottom, destinationMax.y - destinationTop, destinationMax.y }; // bottom to top
-		const float sourceColumns[4] = { sourcePosition.x, sourcePosition.x + left, sourcePosition.x + sourceSize.x - right, sourcePosition.x + sourceSize.x };
-		const float sourceBands[4] = { sourcePosition.y, sourcePosition.y + top, sourcePosition.y + sourceSize.y - bottom, sourcePosition.y + sourceSize.y }; // top to bottom
+		const float columns[4] = { destinationMin.x, destinationMin.x + destinationLeft, destinationMax.x - destinationRight,
+			destinationMax.x };
+		const float rows[4] = { destinationMin.y, destinationMin.y + destinationBottom, destinationMax.y - destinationTop,
+			destinationMax.y }; // bottom to top
+		const float sourceColumns[4] = { sourcePosition.x, sourcePosition.x + left, sourcePosition.x + sourceSize.x - right,
+			sourcePosition.x + sourceSize.x };
+		const float sourceBands[4] = { sourcePosition.y, sourcePosition.y + top, sourcePosition.y + sourceSize.y - bottom,
+			sourcePosition.y + sourceSize.y }; // top to bottom
 
 		uint32_t count = 0;
 		for (uint32_t row = 0; row < 3; row++)

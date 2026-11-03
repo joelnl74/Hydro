@@ -1,4 +1,3 @@
-// Game/src/Scripts/Interiors/InteriorScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -13,21 +12,15 @@
 
 namespace Hydro
 {
-	// On an interior's director entity (the Farm Village's inn, Assets/Scenes/FarmVillageInn.hyscene, built by
-	// scripts/interiors/build_inn.py). Interiors are scenes of their own, pushed by a door ("Door Inn" in the village
-	// opens FarmVillageInn) and popped by "Door Out", so the village waits exactly as it was left. The room is built
-	// at the characters' scale with its camera-facing wall left out and black around it; the camera comes in closer
-	// than the field's (the Camera's OrthographicSize, and a narrower view here). The light: no sun; the preset
-	// lights the "Light Window *" point lights (daylight, evening, moonlight through the windows) and sets how
-	// strongly the "Light Fire *" lights (the hearth, candles) burn. It starts in the time of day of the scene the
-	// player came in from.
+	// The director of an interior (a scene pushed by a door and popped by "Door Out"): a closer camera, no sun, window and
+	// fire lights per preset, starting in the time of day of the scene the player came from.
 	HY_SCRIPT()
 	class InteriorScript : public DioramaDirectorScript
 	{
 	public:
 		HY_PROPERTY(Tooltip("The interior's name in the log"))
 		std::string RoomName = "Inn";
-		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		// Applied every frame, so it can be tuned while playing.
 		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
 		float TiltDegrees = 52.0f;
 		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
@@ -57,15 +50,14 @@ namespace Hydro
 		}
 		int GetStartPreset() const override { return StartPreset; }
 		bool FollowsOutsideLight() const override { return true; }
-		// Presets line up with the field scenes' (day, golden hour / dusk, night). The "sun" is the light through
-		// the windows; the profiles keep the room dim so the fire carries it.
+		// Presets line up with the field scenes'. The "sun" is the light through the windows; the profiles keep the room dim
+		// so the fire carries it.
 		const LightingPreset& GetPreset(int index) const override
 		{
 			return GetLightingPreset(Lighting, index);
 		}
 
-		// The windows (DioramaDirectorScript's "Light Window *" lights) let the daylight in: the sun's colour, at the
-		// preset's WindowFactor (its sun's strength).
+		// The windows let the daylight in: the sun's colour at the preset's WindowFactor.
 		bool WindowsTakeSunColor() const override { return true; }
 	};
 }

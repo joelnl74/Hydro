@@ -52,3 +52,45 @@ vec4 SampleTexture(int index, vec2 uv)
 
 	return textureGrad(inTextures[0], uv, dx, dy);
 }
+
+// The texture's size in texels (level 0), for the texel snap of the lit sprite shaders (TexelCentreOffset, #136).
+vec2 TextureSize(int index)
+{
+	switch (index)
+	{
+		case 0: return vec2(textureSize(inTextures[0], 0));
+		case 1: return vec2(textureSize(inTextures[1], 0));
+		case 2: return vec2(textureSize(inTextures[2], 0));
+		case 3: return vec2(textureSize(inTextures[3], 0));
+		case 4: return vec2(textureSize(inTextures[4], 0));
+		case 5: return vec2(textureSize(inTextures[5], 0));
+		case 6: return vec2(textureSize(inTextures[6], 0));
+		case 7: return vec2(textureSize(inTextures[7], 0));
+		case 8: return vec2(textureSize(inTextures[8], 0));
+		case 9: return vec2(textureSize(inTextures[9], 0));
+		case 10: return vec2(textureSize(inTextures[10], 0));
+		case 11: return vec2(textureSize(inTextures[11], 0));
+		case 12: return vec2(textureSize(inTextures[12], 0));
+		case 13: return vec2(textureSize(inTextures[13], 0));
+		case 14: return vec2(textureSize(inTextures[14], 0));
+		case 15: return vec2(textureSize(inTextures[15], 0));
+		case 16: return vec2(textureSize(inTextures[16], 0));
+		case 17: return vec2(textureSize(inTextures[17], 0));
+		case 18: return vec2(textureSize(inTextures[18], 0));
+		case 19: return vec2(textureSize(inTextures[19], 0));
+		case 20: return vec2(textureSize(inTextures[20], 0));
+		case 21: return vec2(textureSize(inTextures[21], 0));
+		case 22: return vec2(textureSize(inTextures[22], 0));
+		case 23: return vec2(textureSize(inTextures[23], 0));
+		case 24: return vec2(textureSize(inTextures[24], 0));
+		case 25: return vec2(textureSize(inTextures[25], 0));
+		case 26: return vec2(textureSize(inTextures[26], 0));
+		case 27: return vec2(textureSize(inTextures[27], 0));
+		case 28: return vec2(textureSize(inTextures[28], 0));
+		case 29: return vec2(textureSize(inTextures[29], 0));
+		case 30: return vec2(textureSize(inTextures[30], 0));
+		case 31: return vec2(textureSize(inTextures[31], 0));
+	}
+
+	return vec2(textureSize(inTextures[0], 0));
+}

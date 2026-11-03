@@ -14,25 +14,20 @@ namespace Hydro
 		Banded      // RendererSettings::LightBands visible steps: the retro, pixel-art look
 	};
 
-	// Live options of the Renderer subsystem. Unlike a Specification these may change while the
-	// engine runs: Renderer::SetSettings applies them from the next frame. They are saved with the
-	// project (ProjectConfig::Renderer, in the .hyproj file).
+	// Live options of the Renderer, applied from the next frame by Renderer::SetSettings and saved with the project.
 	struct RendererSettings
 	{
 		// Colour the scene's offscreen target is cleared to each frame.
 		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-		// Wait for the display's refresh (FIFO). Off: mailbox if available, else immediate.
-		// Changing it recreates the swapchain.
+		// Wait for the display's refresh (FIFO). Off: mailbox if available, else immediate. Recreates the swapchain.
 		bool VSync = true;
 
-		// Draw sprites as outlines. Needs the GPU's fillModeNonSolid feature
-		// (RendererCapabilities::Wireframe); ignored with a warning otherwise.
+		// Draw sprites as outlines. Needs fillModeNonSolid (RendererCapabilities::Wireframe); ignored with a warning otherwise.
 		bool Wireframe = false;
 
-		// 2D lighting. On: a view that has Light2DComponents is drawn lit (lights are drawn into a
-		// light buffer that is multiplied over the scene). Off: lights are ignored and the scene is
-		// drawn as it is. Views without lights are never changed.
+		// 2D lighting: a view with Light2DComponents is drawn lit (a light buffer multiplied over the scene).
+		// Off: lights are ignored. Views without lights are never changed.
 		bool Lighting = true;
 		// How lights fade out: Smooth, or Banded in LightBands steps (clamped to 2..32 when used).
 		LightFalloffStyle LightFalloff = LightFalloffStyle::Smooth;
@@ -40,15 +35,13 @@ namespace Hydro
 		// Blob shadows (Shadow2DComponent) in lit views: they darken the light buffer. Needs Lighting.
 		bool Shadows = true;
 
-		// Sun shadows (RenderFeatureSettings::Shadows = Sun): the shadow map's width and height in texels
-		// (clamped to 512..4096), and whether its edges are filtered (soft, 3 x 3 taps) or one texel per
-		// sample (hard: crisp pixel steps, which suit pixel art).
+		// Sun shadow map size in texels (clamped to 512..4096), and whether its edges are filtered (soft, 3 x 3 taps) or
+		// hard (crisp pixel steps, which suit pixel art).
 		uint32_t SunShadowMapSize = 2048;
 		bool SoftSunShadows = true;
 
-		// The project's render features (RenderFeatures.h): what every scene uses unless it overrides
-		// them (SceneRenderSettings). Changing them rebuilds the views' render graphs. Missing from an
-		// older .hyproj: the 2D preset, today's frame.
+		// The project's render features: what every scene uses unless it overrides them. Changing them rebuilds the views'
+		// render graphs. Missing from an older .hyproj: the 2D preset.
 		RenderFeatureSettings Features;
 
 		// Rebuild shaders when their source files change (checked a few times per second).
@@ -59,9 +52,7 @@ namespace Hydro
 #endif
 	};
 
-	// What the GPU supports, for UI that offers settings. Read-only, filled by Renderer::Init.
-	// What the GPU and its driver can do, found when the renderer starts (Renderer::GetCapabilities).
-	// Read-only. Optional features are true only when they were enabled on the device.
+	// What the GPU and driver can do, found when the renderer starts. Optional features are true only when enabled.
 	struct RendererCapabilities
 	{
 		const char* GPUName = "";

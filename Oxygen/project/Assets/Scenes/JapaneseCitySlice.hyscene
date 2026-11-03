@@ -1164,7 +1164,7 @@ Entities:
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [22.9475, -5.54424, 0.009]
+      Translation: [22.9475, -5.54424, 0.029]
       Rotation: [0, 0, 3.44498]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1172,14 +1172,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 3087461367004998895
     TagComponent:
       Tag: Decal 58
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [14.0079, -6.30492, 0.009]
+      Translation: [14.0079, -6.30492, 0.029]
       Rotation: [0, 0, 0.134439]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1187,14 +1187,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 6232873119776203778
     TagComponent:
       Tag: Decal 59
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [-18.0028, -5.52716, 0.009]
+      Translation: [-18.0028, -5.52716, 0.029]
       Rotation: [0, 0, 5.02251]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1202,14 +1202,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 2263745389314274608
     TagComponent:
       Tag: Decal 60
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [-9.37904, -5.49794, 0.009]
+      Translation: [-9.37904, -5.49794, 0.029]
       Rotation: [0, 0, 4.56392]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1217,14 +1217,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 6195017015819493699
     TagComponent:
       Tag: Decal 61
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [26.4128, -6.5104, 0.009]
+      Translation: [26.4128, -6.5104, 0.029]
       Rotation: [0, 0, 0.645736]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1232,14 +1232,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 2442935043548985995
     TagComponent:
       Tag: Decal 62
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [-5.52234, -10.7394, 0.009]
+      Translation: [-5.52234, -10.7394, 0.029]
       Rotation: [0, 0, 4.70922]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1247,14 +1247,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 6736262710779276950
     TagComponent:
       Tag: Decal 63
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [12.5887, -14.235, 0.009]
+      Translation: [12.5887, -14.235, 0.029]
       Rotation: [0, 0, 0.874938]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1262,14 +1262,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 7988460506767588830
     TagComponent:
       Tag: Decal 64
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [-20.8859, -14.3198, 0.009]
+      Translation: [-20.8859, -14.3198, 0.029]
       Rotation: [0, 0, 6.19867]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1277,14 +1277,14 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 4845169048119805509
     TagComponent:
       Tag: Decal 65
     RelationshipComponent:
       Parent: 6950031332994373924
     TransformComponent:
-      Translation: [22.6717, -11.3707, 0.009]
+      Translation: [22.6717, -11.3707, 0.029]
       Rotation: [0, 0, 1.224]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -1292,52 +1292,7 @@ Entities:
       Size: [4, 4, 0.01]
       CastShadows: false
       Materials:
-        - MaterialHandle: 7964596600640201080
-  - Entity: 3854381326954257702
-    TagComponent:
-      Tag: Decal 66
-    RelationshipComponent:
-      Parent: 6950031332994373924
-    TransformComponent:
-      Translation: [-8, 26.1157, 7.009]
-      Rotation: [0, 0, 5.49092]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [4, 4, 0.01]
-      CastShadows: false
-      Materials:
-        - MaterialHandle: 7964596600640201080
-  - Entity: 648784705109194815
-    TagComponent:
-      Tag: Decal 67
-    RelationshipComponent:
-      Parent: 6950031332994373924
-    TransformComponent:
-      Translation: [8, 26.5727, 7.009]
-      Rotation: [0, 0, 0.17589]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [4, 4, 0.01]
-      CastShadows: false
-      Materials:
-        - MaterialHandle: 7964596600640201080
-  - Entity: 1063602012313688263
-    TagComponent:
-      Tag: Decal 68
-    RelationshipComponent:
-      Parent: 6950031332994373924
-    TransformComponent:
-      Translation: [8, 21.5591, 7.009]
-      Rotation: [0, 0, 1.33693]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [4, 4, 0.01]
-      CastShadows: false
-      Materials:
-        - MaterialHandle: 7964596600640201080
+        - MaterialHandle: 8256784897914852265
   - Entity: 3687831766655650625
     TagComponent:
       Tag: Decal 69
@@ -1376,36 +1331,6 @@ Entities:
     TransformComponent:
       Translation: [24, -1.5, 0.011]
       Rotation: [0, 0, 3.14159]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [3, 1.5, 0.01]
-      CastShadows: false
-      Materials:
-        - MaterialHandle: 8876488645436718853
-  - Entity: 4754418757827160679
-    TagComponent:
-      Tag: Decal 72
-    RelationshipComponent:
-      Parent: 6950031332994373924
-    TransformComponent:
-      Translation: [-6, 21, 7.011]
-      Rotation: [0, 0, 3.14159]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      Shape: Box
-      Size: [3, 1.5, 0.01]
-      CastShadows: false
-      Materials:
-        - MaterialHandle: 8876488645436718853
-  - Entity: 3700252684172372047
-    TagComponent:
-      Tag: Decal 73
-    RelationshipComponent:
-      Parent: 6950031332994373924
-    TransformComponent:
-      Translation: [7.5, 28.5, 7.011]
-      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       Shape: Box
@@ -1728,6 +1653,51 @@ Entities:
       CastShadows: false
       Materials:
         - MaterialHandle: 1725667733812104279
+  - Entity: 179547514682404994
+    TagComponent:
+      Tag: Decal Plaza Petals L
+    RelationshipComponent:
+      Parent: 6950031332994373924
+    TransformComponent:
+      Translation: [-7.4, 27.8, 7.031]
+      Rotation: [0, 0, 1.5708]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [8, 8, 0.01]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 7465399616292429137
+  - Entity: 3039871061052120739
+    TagComponent:
+      Tag: Decal Plaza Petals R
+    RelationshipComponent:
+      Parent: 6950031332994373924
+    TransformComponent:
+      Translation: [7, 22.6, 7.031]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [8, 8, 0.01]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 7465399616292429137
+  - Entity: 7089949450533784957
+    TagComponent:
+      Tag: Decal Plaza Petals R2
+    RelationshipComponent:
+      Parent: 6950031332994373924
+    TransformComponent:
+      Translation: [7.8, 28.6, 7.031]
+      Rotation: [0, 0, 3.14159]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Shape: Box
+      Size: [8, 8, 0.01]
+      CastShadows: false
+      Materials:
+        - MaterialHandle: 7465399616292429137
   - Entity: 4152468765516062741
     TagComponent:
       Tag: Decal 95
@@ -5054,28 +5024,24 @@ Entities:
       Offset: [0, -0.02]
       Size: [0.7, 0.29]
       Strength: 0.3
-  - Entity: 4931531064442772527
+  - Entity: 5116201290151867071
     TagComponent:
-      Tag: Display_Umbrellas 188
+      Tag: Prop_RolledMats_A 188
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [-30.1, 0.3, 0]
+      Translation: [-30.1, 0.15, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.75, 1.21875, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 5297457401211642351
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.64, 0.26]
-      Strength: 0.45
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 5123709557093284731
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 910357251117510114
     TagComponent:
       Tag: Npc PotteryMerchant
@@ -5508,28 +5474,24 @@ Entities:
       Offset: [0, -0.02]
       Size: [0.9, 0.37]
       Strength: 0.3
-  - Entity: 181027418461604106
+  - Entity: 1789590229826061235
     TagComponent:
-      Tag: Display_HatStack 204
+      Tag: Prop_LacquerBoxes_A 204
     RelationshipComponent:
       Parent: 7134674512985231667
     TransformComponent:
-      Translation: [28.9, 0.3, 0]
+      Translation: [28.9, 0.15, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.9375, 0.84375, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 5099265440189490319
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.8, 0.33]
-      Strength: 0.45
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 2167019401574595377
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 4195519796211994530
     TagComponent:
       Tag: Prop_SakeBarrelStack_A 205
@@ -5784,134 +5746,6 @@ Entities:
       Offset: [0, -0.02]
       Size: [0.69, 0.28]
       Strength: 0.45
-  - Entity: 6430353286603811536
-    TagComponent:
-      Tag: Display_PlantShelf 219
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [23.4, 0.4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.125, 1.21875, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 1514619594003096391
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.96, 0.39]
-      Strength: 0.45
-  - Entity: 773149121827895536
-    TagComponent:
-      Tag: Prop_Firewood 220
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [37.4, 0.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.125, 0.875, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 622159641429072886
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.96, 0.39]
-      Strength: 0.45
-  - Entity: 5178296768418848804
-    TagComponent:
-      Tag: Display_Persimmons 221
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [-35.4, 0.4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9375, 1.3125, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 5241503922852558783
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.8, 0.33]
-      Strength: 0.45
-  - Entity: 5100831534283944007
-    TagComponent:
-      Tag: Display_BasketRack 222
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [19.4, 0.35, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1.1875, 1.25, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 2197190632034445011
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [1.01, 0.42]
-      Strength: 0.45
-  - Entity: 908541741344670128
-    TagComponent:
-      Tag: Display_SandalRack 223
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [-40, 0.45, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.875, 1.21875, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 4545116351205600334
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.74, 0.31]
-      Strength: 0.45
-  - Entity: 5854639302320325050
-    TagComponent:
-      Tag: Signboard_Standing_A 114
-    RelationshipComponent:
-      Parent: 7134674512985231667
-    TransformComponent:
-      Translation: [-4.6, -0.2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 2, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 0
-      TextureHandle: 546754059538595644
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
   - Entity: 4035601387649476517
     TagComponent:
       Tag: Prop_LampPost_A 224
@@ -8874,24 +8708,6 @@ Entities:
       Intensity: 1.5
       Radius: 4
       Height: 10.23
-  - Entity: 3544910073202507614
-    TagComponent:
-      Tag: Signboard_Standing_A 189
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [-10.3, 21.4, 7]
-      Rotation: [0, 0, 0]
-      Scale: [1, 2, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 546754059538595644
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
   - Entity: 5443823234356703506
     TagComponent:
       Tag: Prop_Barrel_A 315
@@ -8903,24 +8719,6 @@ Entities:
       Scale: [1, 1, 1]
     MeshComponent:
       ModelHandle: 3304004235013540419
-      Shape: Box
-      Size: [1, 1, 1]
-      CastShadows: true
-      Materials:
-        []
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 7871480497083707115
-    TagComponent:
-      Tag: Prop_Crate_A 316
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [-10.6, 18.3, 7]
-      Rotation: [0, 0, 0.174533]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      ModelHandle: 4802485565323208310
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
@@ -10012,21 +9810,48 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
+  - Entity: 173462463844346272
+    TagComponent:
+      Tag: Brazier Fire L
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [-2.7, 31.98, 7.7]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 2
+      TextureHandle: 4531822875402664581
+      Sprite: Fire_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      CastShadows: false
+      EmissionColor: [1, 0.78, 0.5]
+      EmissionIntensity: 1.4
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8978363132490886
+      StartClip: Burn
+      PlayOnStart: true
+      Speed: 1
   - Entity: 4995616341430168442
     TagComponent:
       Tag: Light Fire 244
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [-2.7, 32, 0]
+      Translation: [-2.7, 31.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
       Color: [1, 0.62, 0.28]
-      Intensity: 1.6
-      Radius: 4.5
-      Height: 8.2
+      Intensity: 2
+      Radius: 7.5
+      Height: 8.3
   - Entity: 3706470813941223884
     TagComponent:
       Tag: Prop_WallLantern_A 331
@@ -10174,21 +9999,48 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
+  - Entity: 8965837569292807427
+    TagComponent:
+      Tag: Brazier Fire R
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [2.7, 31.98, 7.7]
+      Rotation: [0, 0, 0]
+      Scale: [0.75, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+      SortOrder: 2
+      TextureHandle: 4531822875402664581
+      Sprite: Fire_0
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      CastShadows: false
+      EmissionColor: [1, 0.78, 0.5]
+      EmissionIntensity: 1.4
+    SpriteAnimatorComponent:
+      AnimationsHandle: 8978363132490886
+      StartClip: Burn
+      PlayOnStart: true
+      Speed: 1
   - Entity: 7632428727970358805
     TagComponent:
       Tag: Light Fire 247
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [2.7, 32, 0]
+      Translation: [2.7, 31.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
       Color: [1, 0.62, 0.28]
-      Intensity: 1.6
-      Radius: 4.5
-      Height: 8.2
+      Intensity: 2
+      Radius: 7.5
+      Height: 8.3
   - Entity: 3073540482475188345
     TagComponent:
       Tag: Prop_WallLantern_A 336
@@ -11122,24 +10974,6 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 1229073170957418048
-    TagComponent:
-      Tag: Prop_TeaBench_A 375
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [7.4, 20, 7]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      ModelHandle: 2363513505496368172
-      Shape: Box
-      Size: [1, 1, 1]
-      CastShadows: true
-      Materials:
-        []
-    MeshColliderComponent:
-      Layer: World
   - Entity: 8636447993471050650
     TagComponent:
       Tag: Prop_SakeBarrelStack_A 376
@@ -11151,24 +10985,6 @@ Entities:
       Scale: [1, 1, 1]
     MeshComponent:
       ModelHandle: 1124488715372317827
-      Shape: Box
-      Size: [1, 1, 1]
-      CastShadows: true
-      Materials:
-        []
-    MeshColliderComponent:
-      Layer: World
-  - Entity: 3800033381752803439
-    TagComponent:
-      Tag: Prop_Crate_A 377
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [9.8, 30, 7]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      ModelHandle: 4802485565323208310
       Shape: Box
       Size: [1, 1, 1]
       CastShadows: true
@@ -11194,94 +11010,6 @@ Entities:
         []
     MeshColliderComponent:
       Layer: World
-  - Entity: 7043215305908283161
-    TagComponent:
-      Tag: Sign CityNotices
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [-5.3, 31.9, 7]
-      Rotation: [0, 0, 0]
-      Scale: [1.75, 1.875, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 3314651116431894698
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [1.49, 0.5]
-      Strength: 0.45
-  - Entity: 2012007880584903540
-    TagComponent:
-      Tag: Sign Palanquin
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [-8.8, 22.6, 7]
-      Rotation: [0, 0, 0]
-      Scale: [1.96875, 1.59375, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 2560002977399365166
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [1.67, 0.5]
-      Strength: 0.45
-  - Entity: 8413697227461340865
-    TagComponent:
-      Tag: Sign HorsePost
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [8.5, 23.4, 7]
-      Rotation: [0, 0, 0]
-      Scale: [1.4375, 1.4375, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 1229163377882157509
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [1.22, 0.5]
-      Strength: 0.45
-  - Entity: 5360248752073292553
-    TagComponent:
-      Tag: Field_Kakehi 379
-    RelationshipComponent:
-      Parent: 1757610385855947880
-    TransformComponent:
-      Translation: [-9.4, 27.6, 7]
-      Rotation: [0, 0, 0]
-      Scale: [1.09375, 1.40625, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 6966204291307669517
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
-    Shadow2DComponent:
-      Offset: [0, -0.02]
-      Size: [0.93, 0.38]
-      Strength: 0.45
   - Entity: 4499656255034586449
     TagComponent:
       Tag: Gate_LanternPair 380
@@ -11300,21 +11028,38 @@ Entities:
       FlipX: false
       FlipY: false
       Facing: Upright
+      EmissionColor: [1, 0.8, 0.55]
+      EmissionIntensity: 1.2
   - Entity: 3027398216538639303
     TagComponent:
       Tag: Light Lantern 260
     RelationshipComponent:
       Parent: 1757610385855947880
     TransformComponent:
-      Translation: [0, 32.6, 0]
+      Translation: [0, 32.2, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Light2DComponent:
       Type: Point
       Color: [1, 0.62, 0.28]
-      Intensity: 1
-      Radius: 4
-      Height: 10.4
+      Intensity: 1.6
+      Radius: 6.5
+      Height: 10
+  - Entity: 4699944963160796305
+    TagComponent:
+      Tag: Light Fire Gate Pool
+    RelationshipComponent:
+      Parent: 1757610385855947880
+    TransformComponent:
+      Translation: [0, 29.6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light2DComponent:
+      Type: Point
+      Color: [1, 0.62, 0.28]
+      Intensity: 1.8
+      Radius: 6
+      Height: 7.8
   - Entity: 3925867374590165751
     TagComponent:
       Tag: Field_Jizo_B 381
@@ -22412,7 +22157,7 @@ Entities:
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
-      Translation: [-4.6, 23, 7]
+      Translation: [7.4, 27, 7]
       Rotation: [0, 0, 0]
       Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
@@ -22445,7 +22190,7 @@ Entities:
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
-      Translation: [-3.4, 23.2, 7]
+      Translation: [8.6, 27.2, 7]
       Rotation: [0, 0, 0]
       Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
@@ -22589,15 +22334,12 @@ Entities:
       Translation: [-30, -4.8, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 919124944028498557
     TagComponent:
       Tag: Waypoint 2
@@ -22607,15 +22349,12 @@ Entities:
       Translation: [-27.3, -0.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 0.85
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 0.85
+      Facing: Up
+      Action: ""
   - Entity: 5226083065960701108
     TagComponent:
       Tag: Waypoint 3
@@ -22625,15 +22364,12 @@ Entities:
       Translation: [-17, -1.2, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 4308978078314677914
     TagComponent:
       Tag: Waypoint 4
@@ -22643,15 +22379,12 @@ Entities:
       Translation: [-10.6, -7.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 5
-            StopChance: 0.6
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 5
+      StopChance: 0.6
+      Facing: Down
+      Action: ""
   - Entity: 1691687785997899166
     TagComponent:
       Tag: Waypoint 5
@@ -22661,15 +22394,12 @@ Entities:
       Translation: [-7.1, -0.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 0.85
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 0.85
+      Facing: Up
+      Action: ""
   - Entity: 9002874303228960407
     TagComponent:
       Tag: Waypoint 6
@@ -22679,15 +22409,12 @@ Entities:
       Translation: [-4.2, -3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 1
-            WaitMax: 3
-            StopChance: 0.3
-            Facing: Right
-            Action: ""
+    WaypointComponent:
+      WaitMin: 1
+      WaitMax: 3
+      StopChance: 0.3
+      Facing: Right
+      Action: ""
   - Entity: 6882096433117200652
     TagComponent:
       Tag: Waypoint 7
@@ -22697,15 +22424,12 @@ Entities:
       Translation: [-14, -5.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 5941268305559027182
     TagComponent:
       Tag: Waypoint 8
@@ -22715,15 +22439,12 @@ Entities:
       Translation: [-24, -6.8, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 4
-            StopChance: 0.4
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 4
+      StopChance: 0.4
+      Facing: Down
+      Action: ""
   - Entity: 7613012358327071757
     TagComponent:
       Tag: Npc Townswoman 866
@@ -22787,15 +22508,12 @@ Entities:
       Translation: [5.5, -3.2, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 6941214170086914776
     TagComponent:
       Tag: Waypoint 2
@@ -22805,15 +22523,12 @@ Entities:
       Translation: [10.9, -0.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 0.9
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 0.9
+      Facing: Up
+      Action: ""
   - Entity: 6805663432220276757
     TagComponent:
       Tag: Waypoint 3
@@ -22823,15 +22538,12 @@ Entities:
       Translation: [11, -7.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 5
-            StopChance: 0.7
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 5
+      StopChance: 0.7
+      Facing: Down
+      Action: ""
   - Entity: 7835566390260810714
     TagComponent:
       Tag: Waypoint 4
@@ -22841,15 +22553,12 @@ Entities:
       Translation: [21.5, -4.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 5095957494460480197
     TagComponent:
       Tag: Waypoint 5
@@ -22859,15 +22568,12 @@ Entities:
       Translation: [31.9, -0.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 0.85
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 0.85
+      Facing: Up
+      Action: ""
   - Entity: 2192157916059414159
     TagComponent:
       Tag: Waypoint 6
@@ -22877,15 +22583,12 @@ Entities:
       Translation: [27.2, -7.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 5
-            StopChance: 0.6
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 5
+      StopChance: 0.6
+      Facing: Down
+      Action: ""
   - Entity: 5844605746398283725
     TagComponent:
       Tag: Waypoint 7
@@ -22895,15 +22598,12 @@ Entities:
       Translation: [21, -4.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 5122358795179998616
     TagComponent:
       Tag: Npc Townswoman 867
@@ -22967,15 +22667,12 @@ Entities:
       Translation: [17.6, -3.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 4
-            WaitMax: 8
-            StopChance: 1
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 4
+      WaitMax: 8
+      StopChance: 1
+      Facing: Up
+      Action: ""
   - Entity: 8399908050466428799
     TagComponent:
       Tag: Waypoint 2
@@ -22985,15 +22682,12 @@ Entities:
       Translation: [31, -3.8, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 4
-            StopChance: 0.6
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 4
+      StopChance: 0.6
+      Facing: Down
+      Action: ""
   - Entity: 4293473990441221025
     TagComponent:
       Tag: Waypoint 3
@@ -23003,15 +22697,12 @@ Entities:
       Translation: [36.5, -1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 4
-            StopChance: 1
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 4
+      StopChance: 1
+      Facing: Up
+      Action: ""
   - Entity: 8616406013811016038
     TagComponent:
       Tag: Npc Merchant 868
@@ -23075,15 +22766,12 @@ Entities:
       Translation: [-18, -6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 4
-            WaitMax: 8
-            StopChance: 1
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 4
+      WaitMax: 8
+      StopChance: 1
+      Facing: Down
+      Action: ""
   - Entity: 2186389001245169130
     TagComponent:
       Tag: Waypoint 2
@@ -23093,15 +22781,12 @@ Entities:
       Translation: [-12.6, -7.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 5
-            WaitMax: 9
-            StopChance: 1
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 5
+      WaitMax: 9
+      StopChance: 1
+      Facing: Down
+      Action: ""
   - Entity: 7651303527317795235
     TagComponent:
       Tag: Waypoint 3
@@ -23111,15 +22796,12 @@ Entities:
       Translation: [-8.6, -5.6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 1
-            Facing: Left
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 1
+      Facing: Left
+      Action: ""
   - Entity: 7244027378617695236
     TagComponent:
       Tag: Npc OldWoman 869
@@ -23183,15 +22865,12 @@ Entities:
       Translation: [1.6, 9.2, 3.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 6
-            WaitMax: 12
-            StopChance: 1
-            Facing: Down
-            Action: ""
+    WaypointComponent:
+      WaitMin: 6
+      WaitMax: 12
+      StopChance: 1
+      Facing: Down
+      Action: ""
   - Entity: 1030555173989743120
     TagComponent:
       Tag: Waypoint 2
@@ -23201,15 +22880,12 @@ Entities:
       Translation: [2.6, 10.3, 3.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 5
-            WaitMax: 10
-            StopChance: 1
-            Facing: Right
-            Action: ""
+    WaypointComponent:
+      WaitMin: 5
+      WaitMax: 10
+      StopChance: 1
+      Facing: Right
+      Action: ""
   - Entity: 7216129666727900462
     TagComponent:
       Tag: Npc OldWoman 870
@@ -23273,15 +22949,12 @@ Entities:
       Translation: [-42, -4.4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 1713855962057921281
     TagComponent:
       Tag: Waypoint 2
@@ -23291,15 +22964,12 @@ Entities:
       Translation: [-1.4, -4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 2029803547572875942
     TagComponent:
       Tag: Waypoint 3
@@ -23309,15 +22979,12 @@ Entities:
       Translation: [-1.2, 1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 5254534144351765691
     TagComponent:
       Tag: Waypoint 4
@@ -23327,15 +22994,12 @@ Entities:
       Translation: [-1.2, 8, 3.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 1106799456585463541
     TagComponent:
       Tag: Waypoint 5
@@ -23345,15 +23009,12 @@ Entities:
       Translation: [-1.2, 11, 3.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 125991681797989543
     TagComponent:
       Tag: Waypoint 6
@@ -23363,15 +23024,12 @@ Entities:
       Translation: [-1.2, 17.5, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 85668283728347970
     TagComponent:
       Tag: Waypoint 7
@@ -23381,15 +23039,12 @@ Entities:
       Translation: [-0.6, 30.5, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 3177598243102917691
     TagComponent:
       Tag: Waypoint 8
@@ -23399,15 +23054,12 @@ Entities:
       Translation: [0, 37.6, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 4550363507336624046
     TagComponent:
       Tag: Npc Porter 871
@@ -23471,15 +23123,12 @@ Entities:
       Translation: [1.6, 18.6, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 7943132105229158076
     TagComponent:
       Tag: Waypoint 2
@@ -23489,33 +23138,27 @@ Entities:
       Translation: [-1.6, 28.6, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 0
-            WaitMax: 0
-            StopChance: 1
-            Facing: ""
-            Action: ""
+    WaypointComponent:
+      WaitMin: 0
+      WaitMax: 0
+      StopChance: 1
+      Facing: ""
+      Action: ""
   - Entity: 507543372747660451
     TagComponent:
       Tag: Waypoint 3
     RelationshipComponent:
       Parent: 2214600938674030054
     TransformComponent:
-      Translation: [-5, 30.7, 7]
+      Translation: [-4.6, 30, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 4
-            WaitMax: 7
-            StopChance: 1
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 4
+      WaitMax: 7
+      StopChance: 1
+      Facing: Right
+      Action: ""
   - Entity: 8502122285009617241
     TagComponent:
       Tag: Waypoint 4
@@ -23525,40 +23168,34 @@ Entities:
       Translation: [-6.6, 21, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 5
-            StopChance: 1
-            Facing: Left
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 5
+      StopChance: 1
+      Facing: Left
+      Action: ""
   - Entity: 150244948559461433
     TagComponent:
       Tag: Waypoint 5
     RelationshipComponent:
       Parent: 2214600938674030054
     TransformComponent:
-      Translation: [6.4, 20.8, 7]
+      Translation: [7, 22.6, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 0.7
-            Facing: Right
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 0.7
+      Facing: Right
+      Action: ""
   - Entity: 3175701346902026508
     TagComponent:
       Tag: Npc Merchant 872
     RelationshipComponent:
       Parent: 3522262952570621161
     TransformComponent:
-      Translation: [-5, 30.7, 7]
+      Translation: [-4.6, 30, 7]
       Rotation: [0, 0, 0]
       Scale: [2.5, 2.34375, 1]
     SpriteRendererComponent:
@@ -23615,15 +23252,12 @@ Entities:
       Translation: [-6, 26, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 4
-            WaitMax: 9
-            StopChance: 1
-            Facing: Down
-            Action: Work
+    WaypointComponent:
+      WaitMin: 4
+      WaitMax: 9
+      StopChance: 1
+      Facing: Down
+      Action: Work
   - Entity: 1827478322458609659
     TagComponent:
       Tag: Waypoint 2
@@ -23633,15 +23267,12 @@ Entities:
       Translation: [-2, 25.6, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 4
-            WaitMax: 9
-            StopChance: 0.7
-            Facing: Down
-            Action: Work
+    WaypointComponent:
+      WaitMin: 4
+      WaitMax: 9
+      StopChance: 0.7
+      Facing: Down
+      Action: Work
   - Entity: 5985850178123148408
     TagComponent:
       Tag: Waypoint 3
@@ -23651,33 +23282,27 @@ Entities:
       Translation: [2, 25.8, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 4
-            WaitMax: 9
-            StopChance: 1
-            Facing: Down
-            Action: Work
+    WaypointComponent:
+      WaitMin: 4
+      WaitMax: 9
+      StopChance: 1
+      Facing: Down
+      Action: Work
   - Entity: 6940471672568496390
     TagComponent:
       Tag: Waypoint 4
     RelationshipComponent:
       Parent: 4761464194521385542
     TransformComponent:
-      Translation: [6, 26.4, 7]
+      Translation: [5, 25, 7]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 4
-            WaitMax: 9
-            StopChance: 0.7
-            Facing: Down
-            Action: Work
+    WaypointComponent:
+      WaitMin: 4
+      WaitMax: 9
+      StopChance: 0.7
+      Facing: Down
+      Action: Work
   - Entity: 7679884548231415795
     TagComponent:
       Tag: Npc TempleMonk 873
@@ -23741,15 +23366,12 @@ Entities:
       Translation: [-13.5, 36.2, 11.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 4
-            StopChance: 1
-            Facing: Right
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 4
+      StopChance: 1
+      Facing: Right
+      Action: ""
   - Entity: 3873547626728782999
     TagComponent:
       Tag: Waypoint 2
@@ -23759,15 +23381,12 @@ Entities:
       Translation: [-21, 36.2, 11.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 0.6
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 0.6
+      Facing: Up
+      Action: ""
   - Entity: 6304189950258246401
     TagComponent:
       Tag: Waypoint 3
@@ -23777,15 +23396,12 @@ Entities:
       Translation: [-26, 36.2, 11.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 3
-            WaitMax: 6
-            StopChance: 0.4
-            Facing: Up
-            Action: ""
+    WaypointComponent:
+      WaitMin: 3
+      WaitMax: 6
+      StopChance: 0.4
+      Facing: Up
+      Action: ""
   - Entity: 1580968791140936650
     TagComponent:
       Tag: Waypoint 4
@@ -23795,15 +23411,12 @@ Entities:
       Translation: [-29.8, 36, 11.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            WaitMin: 2
-            WaitMax: 4
-            StopChance: 1
-            Facing: Left
-            Action: ""
+    WaypointComponent:
+      WaitMin: 2
+      WaitMax: 4
+      StopChance: 1
+      Facing: Left
+      Action: ""
   - Entity: 2079280817453035638
     TagComponent:
       Tag: Npc GateGuard 874
@@ -24082,24 +23695,24 @@ Entities:
       Intensity: 1
       Radius: 3.4
       Height: 1.15
-  - Entity: 5062952255075341217
+  - Entity: 2381216009341174548
     TagComponent:
-      Tag: Signboard_Standing_A 405
+      Tag: Prop_Signboard_TempleRoad
     RelationshipComponent:
       Parent: 5918943490694464008
     TransformComponent:
       Translation: [-27, -7.6, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 2, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-      SortOrder: 1
-      TextureHandle: 546754059538595644
-      SpriteIndex: 0
-      FlipX: false
-      FlipY: false
-      Facing: Upright
+      Scale: [1, 1, 1]
+    MeshComponent:
+      ModelHandle: 4088394516822034353
+      Shape: Box
+      Size: [1, 1, 1]
+      CastShadows: true
+      Materials:
+        []
+    MeshColliderComponent:
+      Layer: World
   - Entity: 26791441278944213
     TagComponent:
       Tag: Sign TempleRoad

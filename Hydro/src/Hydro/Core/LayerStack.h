@@ -18,8 +18,7 @@ namespace Hydro
 		void PopLayer(Layer* layer);
 		void PopOverlay(Layer* overlay);
 
-		// Detaches and deletes every layer, top-most first. Application::Shutdown calls this
-		// while the renderer still exists; the destructor does not.
+		// Top-most first. Application::Shutdown calls it while the renderer exists; the destructor does not.
 		void Clear();
 
 		std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }

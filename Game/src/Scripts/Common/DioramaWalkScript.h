@@ -1,4 +1,3 @@
-// Game/src/Scripts/Common/DioramaWalkScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -11,19 +10,10 @@
 #include <string>
 #include <vector>
 
-// The Shrine Glade (Assets/Scenes/ShrineGlade.hyscene): the first scene that mixes meshes (terraces,
-// retaining walls, stairs, the imported shrine and stone lanterns) with upright sprites (trees, props,
-// characters), the Farm Village below it (Assets/Scenes/FarmVillage.hyscene), built the same way from the
-// medieval village kit, and the village's interiors (the inn, Assets/Scenes/FarmVillageInn.hyscene). See
-// docs/TestBed.md, "Shrine Glade", "Farm Village" and "Interiors".
-
 namespace Hydro
 {
-	// Walks the player like VillagerWalk (WASD / arrows, Shift to hurry, Walk<Facing> / Idle<Facing> clips) over
-	// the diorama's 3D collision: the entity's CharacterBodyComponent carries it up the terraces' stairs, over the
-	// bridge and down slopes, and is blocked by walls, trees, posts and people (their 3D colliders). The script
-	// only says where it wants to go (CharacterBody::Move); the physics stage moves it and writes the transform.
-	// The scene's build script gives the player its Character Body (scripts/shrine_glade/collision.py).
+	// Walks the player (WASD / arrows, Shift to hurry) over the 3D collision through its CharacterBodyComponent. The script
+	// only says where it wants to go (CharacterBody::Move); the physics stage moves it.
 	HY_SCRIPT()
 	class DioramaWalkScript : public ScriptableEntity
 	{
@@ -40,7 +30,7 @@ namespace Hydro
 		void OnUpdate([[maybe_unused]] float deltaTime) override
 		{
 			glm::vec2 move{ 0.0f };
-			// A runtime UI canvas that captures input (a menu, a dialogue) owns the keys: she stands still.
+			// A UI canvas that captures input owns the keys: she stands still.
 			const bool inputAllowed = UI::CapturesInput(*GetEntity().GetScene()) == false;
 			if (inputAllowed && (Input::IsKeyPressed(KeyCode::A) || Input::IsKeyPressed(KeyCode::Left)))
 			{
@@ -77,7 +67,7 @@ namespace Hydro
 			}
 
 			const bool moving = move.x != 0.0f || move.y != 0.0f;
-			// Standing still she keeps facing the way she walked (Idle<Facing>); a sheet with one "Idle" still works.
+			// Standing still she keeps facing the way she walked; a sheet with one "Idle" still works.
 			if (moving)
 			{
 				SpriteAnimator::Play(GetEntity(), "Walk" + m_Facing);
@@ -91,7 +81,7 @@ namespace Hydro
 			if (moving)
 			{
 				const float speed = Input::IsKeyPressed(KeyCode::LeftShift) ? m_Speed * RunMultiplier : m_Speed;
-				// The keys are screen directions: turned by the camera's yaw, so up is always into the view.
+				// The keys are screen directions, turned by the camera's yaw, so up is always into the view.
 				velocity = glm::vec3(DioramaView::ScreenToGround(glm::normalize(move)) * speed, 0.0f);
 			}
 			CharacterBody::Move(GetEntity(), velocity);

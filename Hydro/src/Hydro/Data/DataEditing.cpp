@@ -9,7 +9,8 @@ namespace Hydro
 	// "Lines[3]" -> 3 for `fieldName` "Lines"; false for keys of other fields.
 	static bool ParseEntryKey(const std::string& key, const std::string& fieldName, size_t& index)
 	{
-		if (key.size() < fieldName.size() + 3 || key.compare(0, fieldName.size(), fieldName) != 0 || key[fieldName.size()] != '[' || key.back() != ']')
+		if (key.size() < fieldName.size() + 3 || key.compare(0, fieldName.size(), fieldName) != 0 || key[fieldName.size()] != '['
+			|| key.back() != ']')
 		{
 			return false;
 		}
@@ -60,7 +61,8 @@ namespace Hydro
 		}
 	}
 
-	void DataEditing::InsertListEntry(const DataValueType& listType, void* list, DataKeptValues& kept, const std::string& fieldName, size_t index)
+	void DataEditing::InsertListEntry(const DataValueType& listType, void* list, DataKeptValues& kept, const std::string& fieldName,
+		size_t index)
 	{
 		HY_CORE_ASSERT(listType.Kind == DataFieldKind::List, "InsertListEntry: not a list");
 		index = std::min(index, listType.List->Size(list));
@@ -73,7 +75,8 @@ namespace Hydro
 		});
 	}
 
-	void DataEditing::RemoveListEntry(const DataValueType& listType, void* list, DataKeptValues& kept, const std::string& fieldName, size_t index)
+	void DataEditing::RemoveListEntry(const DataValueType& listType, void* list, DataKeptValues& kept, const std::string& fieldName,
+		size_t index)
 	{
 		HY_CORE_ASSERT(listType.Kind == DataFieldKind::List, "RemoveListEntry: not a list");
 		if (index >= listType.List->Size(list))
@@ -89,7 +92,8 @@ namespace Hydro
 		});
 	}
 
-	void DataEditing::SwapListEntries(const DataValueType& listType, void* list, DataKeptValues& kept, const std::string& fieldName, size_t first, size_t second)
+	void DataEditing::SwapListEntries(const DataValueType& listType, void* list, DataKeptValues& kept, const std::string& fieldName,
+		size_t first, size_t second)
 	{
 		HY_CORE_ASSERT(listType.Kind == DataFieldKind::List, "SwapListEntries: not a list");
 		const size_t size = listType.List->Size(list);

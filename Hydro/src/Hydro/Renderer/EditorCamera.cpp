@@ -20,8 +20,7 @@ namespace Hydro
 	constexpr float MaxFlyStep = 0.1f;        // seconds: a hitch doesn't throw the camera away
 	constexpr float MinDistance = 0.01f;
 	constexpr float MaxDistance = 100000.0f;
-	// From straight down (0) past level (90 degrees) to 175: looking up from under the ground is allowed,
-	// straight up isn't (the view would flip).
+	// Up to 175 degrees: looking up from under the ground is allowed, straight up isn't (the view would flip).
 	constexpr float MaxPitch = 3.0543262f;    // 175 degrees
 	constexpr float DioramaPitchDegrees = 50.0f;
 
@@ -253,8 +252,7 @@ namespace Hydro
 			}
 			case DragMode::Orbit:
 			{
-				// Drag right: the camera goes round to the left (the scene turns right); drag down: the
-				// camera rises towards the top-down view.
+				// Drag right turns the scene right; drag down raises the camera towards top-down.
 				const float speed = RotationSpeed * m_Settings.OrbitSpeed;
 				m_Yaw -= delta.x * speed;
 				m_Pitch = std::clamp(m_Pitch - delta.y * speed, 0.0f, MaxPitch);
@@ -263,7 +261,8 @@ namespace Hydro
 			case DragMode::Zoom:
 			{
 				// Drag up or right to zoom in.
-				m_Distance = std::clamp(m_Distance * std::exp((delta.y - delta.x) * DragZoomSpeed * m_Settings.ZoomSpeed), MinDistance, MaxDistance);
+				m_Distance = std::clamp(m_Distance * std::exp((delta.y - delta.x) * DragZoomSpeed * m_Settings.ZoomSpeed),
+					MinDistance, MaxDistance);
 				UpdateProjection();
 				break;
 			}
@@ -335,8 +334,7 @@ namespace Hydro
 
 	glm::quat EditorCamera::GetOrientation() const
 	{
-		// Turntable: tip the top-down camera (looking down -Z, +Y up on screen) by the pitch about X, so it
-		// looks towards +Y, then turn it about the world's Z by the yaw. No roll, whatever the angles.
+		// Turntable: tip the top-down camera by the pitch about X, then turn it about the world's Z by the yaw. No roll.
 		return glm::angleAxis(m_Yaw, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(m_Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
 	}
 

@@ -12,6 +12,7 @@ RenderSettings:
     SpriteShadows: AsDrawn
     HDR: true
     Bloom: true
+    PixelSnap: true
 Look:
   ProfileHandle: 6276585983680921063
   Environment: Profile

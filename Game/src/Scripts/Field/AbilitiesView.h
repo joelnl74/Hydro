@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/AbilitiesView.h
 #pragma once
 
 #include "Hydro.h"
@@ -12,12 +11,8 @@
 
 namespace Hydro
 {
-	// The field menu's Abilities page (the Menu plan's M5; "Page Abilities" in "Field Menu Canvas"; built by
-	// scripts/ui/build_game_ui.py). Owned by FieldMenuView. The battle's 8 ability slots on the left ("Ability Slot 0"
-	// to "7"), the abilities the hero knows on the right ("Known Ability 0" to "9"; row 0 empties a slot), the
-	// focused ability's details below. Enter on a slot moves to the known list; Enter on a known ability puts it in
-	// the slot last focused (PartyRules::SetAbilitySlot: if it sits in another slot, the two swap) and goes back to
-	// the slot. The battle's Abilities sub-menu lists the slots in this order.
+	// The field menu's Abilities page: the battle's 8 ability slots, the abilities the hero knows and the focused one's
+	// details. Choosing an ability puts it in the slot (swapping if it sits in another) and returns to the slot.
 	class AbilitiesView
 	{
 	public:
@@ -50,23 +45,22 @@ namespace Hydro
 			m_Help = ViewHelpers::Find(scene, "Help Text", owner);
 		}
 
-		// Moves the focus to the slots, on the one chosen last.
+		// On the slot chosen last.
 		void Focus()
 		{
 			UI::Focus(EntityOf(m_Slots[std::clamp(m_Slot, 0, SlotRows - 1)]));
 		}
 
-		// The hero whose slots the page shows (FieldMenuView's Q / E).
 		void SetHero(int hero)
 		{
 			m_Hero = std::clamp(hero, 0, HeroCount - 1);
 			Present();
 		}
 
-		// Whether the focus is in the known list (choosing what goes in a slot), for the help bar's keys.
+		// The focus is in the known list (choosing what goes in a slot).
 		bool IsChoosing() const { return m_Choosing; }
 
-		// The rows' events. Returns whether the event was the page's.
+		// Returns whether the event was the page's.
 		bool HandleEvent(const UIEvent& event, Request& request)
 		{
 			request = Request::None;
@@ -171,7 +165,7 @@ namespace Hydro
 		std::array<DataRowRef, SlotRows>& Slots() { return BattleState::Get().HeroAbilitySlots[m_Hero]; }
 		const std::vector<DataRowRef>& Known() { return BattleState::Get().HeroAbilities[m_Hero]; }
 
-		// The known list's row of an ability (0, the "empty" row, for an unset or unknown one).
+		// 0, the "empty" row, for an unset or unknown ability.
 		int RowOf(const DataRowRef& ability)
 		{
 			const std::vector<DataRowRef>& known = Known();
@@ -189,13 +183,14 @@ namespace Hydro
 		void Assign(const DataRowRef& ability)
 		{
 			PartyRules::SetAbilitySlot(Slots(), Known(), (size_t)std::clamp(m_Slot, 0, SlotRows - 1), ability);
-			HY_INFO("Menu: {}'s ability slot {} = {}", GetHero(m_Hero).Name, m_Slot + 1, ability.IsSet() ? BattleData::Ability(ability).Name : std::string("(empty)"));
+			HY_INFO("Menu: {}'s ability slot {} = {}", GetHero(m_Hero).Name, m_Slot + 1,
+				ability.IsSet() ? BattleData::Ability(ability).Name : std::string("(empty)"));
 			m_Choosing = false;
 			Present();
 			Focus();
 		}
 
-		// The details of an ability (an unset one: the slot is empty).
+		// An unset ability: the slot is empty.
 		void PresentDetail(const DataRowRef& reference, int slot)
 		{
 			if (reference.IsSet() == false)

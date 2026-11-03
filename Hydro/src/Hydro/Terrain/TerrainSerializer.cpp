@@ -203,7 +203,8 @@ namespace Hydro
 		const size_t row = (size_t)width * 4;
 		for (uint32_t y = 0; y < height; y++)
 		{
-			std::copy(rgba.begin() + (size_t)y * row, rgba.begin() + (size_t)(y + 1) * row, flipped.begin() + (size_t)(height - 1 - y) * row);
+			std::copy(rgba.begin() + (size_t)y * row, rgba.begin() + (size_t)(y + 1) * row,
+				flipped.begin() + (size_t)(height - 1 - y) * row);
 		}
 		return flipped;
 	}
@@ -341,7 +342,8 @@ namespace Hydro
 			return false;
 		}
 		std::vector<uint8_t> runs;
-		return TerrainSerializer::DecodeBase64(node.as<std::string>(std::string()), runs) && TerrainSerializer::DecodeRunLength(runs, count, values);
+		return TerrainSerializer::DecodeBase64(node.as<std::string>(std::string()), runs)
+			&& TerrainSerializer::DecodeRunLength(runs, count, values);
 	}
 
 	Ref<Terrain> TerrainSerializer::Deserialize(const std::filesystem::path& filepath)
@@ -372,7 +374,8 @@ namespace Hydro
 			const uint32_t version = node["Version"].as<uint32_t>(CurrentVersion);
 			if (version > CurrentVersion)
 			{
-				HY_CORE_WARN("TerrainSerializer: '{}' is version {}, newer than this editor ({}); unknown fields are ignored", filepath.string(), version, CurrentVersion);
+				HY_CORE_WARN("TerrainSerializer: '{}' is version {}, newer than this editor ({}); unknown fields are ignored",
+					filepath.string(), version, CurrentVersion);
 			}
 			settings.CellSize = node["CellSize"].as<float>(settings.CellSize);
 			settings.StepHeight = node["StepHeight"].as<float>(settings.StepHeight);
@@ -402,7 +405,7 @@ namespace Hydro
 					TerrainLayer layer;
 					layer.Material = AssetHandle(layerNode["Material"].as<uint64_t>(0));
 					layer.EdgeRoughness = layerNode["EdgeRoughness"].as<float>(layer.EdgeRoughness);
-					// Terrains written before blending (Oct 31) keep their hard pixel borders.
+					// Terrains written before blending existed keep their hard pixel borders.
 					layer.Blend = layerNode["Blend"].as<float>(0.0f);
 					layer.HeightBlend = layerNode["HeightBlend"].as<float>(0.0f);
 					layer.Fringe = AssetHandle(layerNode["Fringe"].as<uint64_t>(0));
@@ -455,7 +458,8 @@ namespace Hydro
 				{
 					if (settings.Decor.size() == MaxTerrainDecorRules)
 					{
-						HY_CORE_WARN("TerrainSerializer: '{}' has more than {} decor rules; the rest are ignored", filepath.string(), MaxTerrainDecorRules);
+						HY_CORE_WARN("TerrainSerializer: '{}' has more than {} decor rules; the rest are ignored", filepath.string(),
+							MaxTerrainDecorRules);
 						break;
 					}
 					TerrainDecorRule rule;
@@ -484,10 +488,11 @@ namespace Hydro
 			return nullptr;
 		}
 
-		if (corners.x < 2 || corners.y < 2 || corners.x > 4097 || corners.y > 4097 || settings.CellSize <= 0.0f || settings.StepHeight <= 0.0f)
+		if (corners.x < 2 || corners.y < 2 || corners.x > 4097 || corners.y > 4097 || settings.CellSize <= 0.0f
+			|| settings.StepHeight <= 0.0f)
 		{
-			HY_CORE_ERROR("TerrainSerializer: '{}' has a bad size ({} x {} corners, cell {} m, step {} m)", filepath.string(), corners.x, corners.y,
-				settings.CellSize, settings.StepHeight);
+			HY_CORE_ERROR("TerrainSerializer: '{}' has a bad size ({} x {} corners, cell {} m, step {} m)", filepath.string(),
+				corners.x, corners.y, settings.CellSize, settings.StepHeight);
 			return nullptr;
 		}
 
@@ -512,7 +517,8 @@ namespace Hydro
 		}
 		if (ok == false)
 		{
-			HY_CORE_ERROR("TerrainSerializer: the data of '{}' doesn't fit its size ({} x {} corners)", filepath.string(), corners.x, corners.y);
+			HY_CORE_ERROR("TerrainSerializer: the data of '{}' doesn't fit its size ({} x {} corners)", filepath.string(), corners.x,
+				corners.y);
 			return nullptr;
 		}
 
@@ -537,7 +543,8 @@ namespace Hydro
 		}
 
 		std::vector<int8_t> levels(levelBytes.begin(), levelBytes.end());
-		if (terrain->SetData(std::move(levels), std::move(ramps), std::move(walls), std::move(weights), (uint32_t)width, (uint32_t)height) == false)
+		if (terrain->SetData(std::move(levels), std::move(ramps), std::move(walls), std::move(weights), (uint32_t)width,
+			(uint32_t)height) == false)
 		{
 			HY_CORE_ERROR("TerrainSerializer: the data of '{}' doesn't fit its size", filepath.string());
 			return nullptr;

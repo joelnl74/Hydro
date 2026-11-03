@@ -1,5 +1,6 @@
-// Game/src/Rules/RouteRules.h
 #pragma once
+
+#include "Hydro/Scene/Scripting/ReflectionMacros.h"
 
 #include <glm/glm.hpp>
 
@@ -10,20 +11,23 @@
 
 namespace Hydro
 {
-	// How a townsperson goes round a route of waypoints (NpcRouteScript, WaypointScript): plain rules with every
-	// random draw passed in, no entities.
+	// Saved by name, so routes saved with the older string property keep their mode.
+	HY_ENUM()
+	enum class RouteMode : uint8_t
+	{
+		Loop = 0,  // the last waypoint leads back to the first
+		PingPong,  // first to last and back again
+		Once,      // first to last, then it stays
+		Restart    // first to last, then it reappears at the first (a round through a street)
+	};
+
+	// Plain rules with every random draw passed in, no entities.
 	class RouteRules
 	{
 	public:
-		enum class Mode : uint8_t
-		{
-			Loop = 0,  // the last waypoint leads back to the first, round and round
-			PingPong,  // first to last and back again
-			Once,      // first to last, then it stays
-			Restart    // first to last, then it reappears at the first (both ends off screen: rounds through a street)
-		};
+		using Mode = RouteMode;
 
-		// The saved name ("Loop", "PingPong", "Once", "Restart"); anything else is Loop.
+		// Anything unknown is Loop.
 		static Mode ParseMode(const std::string& name)
 		{
 			if (name == "PingPong")
@@ -49,7 +53,7 @@ namespace Hydro
 			bool Finished = false;  // Once: the last one is reached, stay
 		};
 
-		// After reaching waypoint `index` (going `direction`) of `count`: where to go next.
+		// After reaching waypoint `index` (going `direction`) of `count`.
 		static Step Next(int index, int direction, int count, Mode mode)
 		{
 			Step step;
@@ -87,7 +91,6 @@ namespace Hydro
 			}
 		}
 
-		// Whether it stops at a waypoint with this chance (0..1), and for how long.
 		static bool RollStop(float chance, float random01)
 		{
 			return random01 < std::clamp(chance, 0.0f, 1.0f);
@@ -100,8 +103,7 @@ namespace Hydro
 			return low + (high - low) * std::clamp(random01, 0.0f, 1.0f);
 		}
 
-		// The sheet facing ("Up" = away from the camera, +Y; "Right" = +X) for a direction on the ground; `current`
-		// when it is too short to tell.
+		// "Up" is away from the camera (+Y), "Right" is +X; `current` when the direction is too short to tell.
 		static std::string FacingOf(const glm::vec2& direction, const std::string& current)
 		{
 			if (std::abs(direction.x) < 1e-4f && std::abs(direction.y) < 1e-4f)
@@ -115,8 +117,7 @@ namespace Hydro
 			return direction.y > 0.0f ? "Up" : "Down";
 		}
 
-		// True when `other` stands within `clearance` metres ahead of `position` along `forward` (unit, on the
-		// ground), close to its line and at about the same height: it should wait.
+		// True when `other` stands within `clearance` ahead along `forward`, close to its line and at about the same height.
 		static bool IsInTheWay(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& other, float clearance)
 		{
 			const glm::vec3 offset = other - position;

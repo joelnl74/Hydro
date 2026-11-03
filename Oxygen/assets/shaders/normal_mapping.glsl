@@ -6,25 +6,7 @@
 // Convention (MaterialData::Normal): red = +U (right in the image), green = -V (up in the image: glTF and OpenGL),
 // blue = out of the surface; 0.5 is zero. scripts/game/textures/make_normal_maps.py writes them this way.
 
-// How the position and the UV change to the next pixel across and down. Take them at the top of main, before any
-// discard or early return: derivatives are only defined while the whole 2 x 2 quad still runs.
-struct SurfaceDerivatives
-{
-	vec3 positionX;
-	vec3 positionY;
-	vec2 uvX;
-	vec2 uvY;
-};
-
-SurfaceDerivatives GetSurfaceDerivatives(vec3 position, vec2 uv)
-{
-	SurfaceDerivatives d;
-	d.positionX = dFdx(position);
-	d.positionY = dFdy(position);
-	d.uvX = dFdx(uv);
-	d.uvY = dFdy(uv);
-	return d;
-}
+#include "surface_derivatives.glsl"
 
 // The frame whose columns are the directions of +U, +V and the normal at the pixel, scaled alike.
 mat3 CotangentFrame(vec3 normal, SurfaceDerivatives d)

@@ -5,17 +5,8 @@
 
 namespace Hydro
 {
-	// Reads and writes a model's import settings and mapping in its "<model>.hymeta" (YAML). The same file
-	// holds the model's asset handle (AssetMetaSerializer): Serialize keeps its Handle and Type keys.
-	//
-	//   Handle: 1234567890
-	//   Type: Mesh
-	//   MeshImport:
-	//     Scale: 1
-	//     ConvertYUpToZUp: true
-	//     GenerateNormals: true
-	//     Images: { 0: 99887766 }     # glTF image index -> texture handle
-	//     Materials: { 0: 55443322 }  # glTF material index -> .hymat handle
+	// Reads and writes a model's import settings and mapping in the MeshImport section of its .hymeta, keeping the
+	// file's Handle and Type keys.
 	class MeshImportSerializer
 	{
 	public:

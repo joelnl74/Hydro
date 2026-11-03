@@ -47,9 +47,7 @@ namespace Hydro
 	};
 }
 
-// IMPORTANT:
-// The complete ScriptRegistration<T> definition must
-// become visible to users of ScriptRegistry.h.
+// ScriptRegistry's templates need the complete ScriptRegistration<T>.
 #include "ScriptRegistration.h"
 
 namespace Hydro

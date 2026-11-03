@@ -62,7 +62,13 @@ FAILING = [
     ("Required on a float", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Required)\n\tfloat Speed = 1.0f;\n};\n", ["Bad.h:5", "Required needs an AssetHandle, DataRowRef, EntityRef or ComponentRef<T> field"]),
     ("Required with a value", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Required(true))\n\tEntityRef Door;\n};\n", ["Required(...) takes 0 argument(s)"]),
     ("EntityRef in data", "HY_DATA()\nstruct A\n{\n\tHY_PROPERTY()\n\tEntityRef Door;\n};\n", ["Bad.h:4", "unsupported data field type 'EntityRef'"]),
-    ("other template", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tstd::vector<int> Counts;\n};\n", ["unsupported property type 'std::vector<int>'"]),
+    ("other template", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tstd::optional<int> Count;\n};\n", ["unsupported property type 'std::optional<int>'"]),
+    # Lists, enums and structs on scripts (Nov 3, 2026)
+    ("list of an unknown type", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tstd::vector<Thing> Things;\n};\n", ["S.Things", "unsupported list element 'Thing'"]),
+    ("list of ComponentRef", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tstd::vector<ComponentRef<S>> Others;\n};\n", ["lists of ComponentRef<T> are not supported"]),
+    ("Range on a list of text", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Range(0, 1))\n\tstd::vector<std::string> Names;\n};\n", ["Range / Min / Max need an int, float or vector field (or a list of them)"]),
+    ("Required on a list", "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY(Required)\n\tstd::vector<EntityRef> Stops;\n};\n", ["Required needs an AssetHandle"]),
+    ("list of rows without DataRow", ITEM + "HY_SCRIPT()\nclass S : public ScriptableEntity\n{\npublic:\n\tHY_PROPERTY()\n\tstd::vector<DataRowRef> Stock;\n};\n", ["a DataRowRef needs DataRow(<row type>)"]),
 ]
 
 # (name, header, fragments the generated script / data registration must contain)
@@ -108,6 +114,53 @@ public:
         '.Property("Anchor", "Anchor", &Lever::Anchor).Required().TargetType("TransformComponent")',
         '.AssetFilter(AssetType::Texture2D).Required()',
     ]),
+    ("script lists, enums and structs", ITEM + """
+HY_ENUM()
+enum class RouteMode : uint8_t { Loop, PingPong };
+
+HY_DATA()
+struct Stop
+{
+	HY_PROPERTY(Range(0, 60))
+	float Wait = 0.0f;
+};
+
+HY_SCRIPT()
+class Route : public ScriptableEntity
+{
+public:
+	HY_PROPERTY(Tooltip("How it repeats"))
+	RouteMode Mode = RouteMode::Loop;
+	HY_PROPERTY()
+	std::vector<EntityRef> Waypoints;
+	HY_PROPERTY(DataRow(ItemDefinition))
+	std::vector<DataRowRef> Stock;
+	HY_PROPERTY(Range(0, 10))
+	std::vector<float> Waits;
+	HY_PROPERTY()
+	Stop First;
+	HY_PROPERTY()
+	std::vector< Stop > Stops;
+};
+""", [
+        '.Property("Mode", "Mode", &Route::Mode).Tooltip("How it repeats")',
+        '.Property("Waypoints", "Waypoints", &Route::Waypoints)',
+        '.Property("Stock", "Stock", &Route::Stock).DataTypeFilter("ItemDefinition")',
+        '.Property("Waits", "Waits", &Route::Waits).Range(0.0f, 10.0f)',
+        '.Property("First", "First", &Route::First)',
+        '.Property("Stops", "Stops", &Route::Stops)',
+    ]),
+    ("gizmos", """
+HY_SCRIPT()
+class Zone : public ScriptableEntity
+{
+public:
+	HY_PROPERTY()
+	float Radius = 1.0f;
+protected:
+	void OnDrawGizmos(Gizmos& gizmos) override { }
+};
+""", ['ScriptRegistry::Register<Zone>("Zone").DrawsGizmos()']),
     ("all accepted forms", ITEM + """
 HY_ENUM()
 enum class Kind : uint8_t { A, B = 4, C, };

@@ -1,4 +1,3 @@
-// Game/src/Views/InteractPromptView.h
 #pragma once
 
 #include "Views/ViewHelpers.h"
@@ -7,8 +6,7 @@
 
 namespace Hydro
 {
-	// The "E  Talk" prompt over the player's head ("Prompt Canvas", a World canvas, and its "Prompt Text"). A view
-	// (Scripting plan SC8f): the director picks the thing in reach and where the head is.
+	// The "E  Talk" prompt over the player's head (a World canvas). The director picks what is in reach and where the head is.
 	class InteractPromptView
 	{
 	public:
@@ -27,7 +25,7 @@ namespace Hydro
 			}
 		}
 
-		// Shows `text` with the canvas at `position` (world).
+		// `position` is in the world.
 		void Show(const std::string& text, const glm::vec3& position)
 		{
 			if (m_Scene == nullptr)

@@ -1,4 +1,3 @@
-// Game/src/Rules/OccluderRules.h
 #pragma once
 
 #include <glm/glm.hpp>
@@ -9,30 +8,26 @@
 
 namespace Hydro
 {
-	// What stands between the camera and the player (the camera's occluder fade, OccluderFadeScript): plain geometry
-	// on world boxes, no entities.
+	// What stands between the camera and the player, for the camera's occluder fade: plain geometry on world boxes.
 	class OccluderRules
 	{
 	public:
-		// The sight lines a box is tested against: from the player's chest and head to the camera.
+		// From the player's chest and head to the camera.
 		struct Sight
 		{
 			glm::vec3 Camera{ 0.0f };
 			glm::vec3 Feet{ 0.0f };
 			float ChestHeight = 0.9f;
 			float HeadHeight = 1.5f;
-			// The lines' thickness: a box closer than this to them is in the way.
+			// A box closer than this to the lines is in the way.
 			float Radius = 0.3f;
 		};
 
-		// True when the box hides the player from the camera: a sight line passes through it (grown by Radius). The
-		// lines start a little towards the camera, so a wall the player stands right in front of (camera side) isn't
-		// counted, and from her chest, so the ground under her isn't either. What she stands on when it rises higher
-		// (a wall under a wall walk) the caller leaves out (CharacterBody::GetGround); a gate she walks under fades.
+		// The lines start a little towards the camera and at her chest, so a wall she stands right in front of and the ground
+		// under her don't count. The caller leaves out what she stands on (CharacterBody::GetGround).
 		static bool Hides(const Sight& sight, const glm::vec3& low, const glm::vec3& high)
 		{
-			// A box around her feet that ends below the top of her head is something she walks on or along (a wall
-			// walk's next section, a low terrace), not something over her.
+			// A box around her feet that ends below the top of her head is something she walks on or along, not over her.
 			const bool aroundFeet = sight.Feet.x >= low.x && sight.Feet.x <= high.x && sight.Feet.y >= low.y && sight.Feet.y <= high.y
 				&& sight.Feet.z >= low.z - 0.25f && sight.Feet.z <= high.z;
 			if (aroundFeet && high.z <= sight.Feet.z + sight.HeadHeight + 0.5f)
@@ -59,9 +54,8 @@ namespace Hydro
 			return false;
 		}
 
-		// True when a standing card (a sprite facing the camera: standing on `foot`, `width` wide and `height` tall,
-		// turned to face the camera about its vertical axis) hides the player: a sight line crosses its plane on the
-		// camera's side of her, within the card (grown by Radius). A card she stands in front of never hides her.
+		// A standing card faces the camera about its vertical axis. It hides her when a sight line crosses it on the camera's
+		// side of her (grown by Radius); a card she stands in front of never does.
 		static bool HidesCard(const Sight& sight, const glm::vec3& foot, float width, float height)
 		{
 			glm::vec3 normal = sight.Camera - foot;
@@ -94,7 +88,7 @@ namespace Hydro
 			return false;
 		}
 
-		// The slab test: true when the segment from `from` to `to` touches the box.
+		// The slab test.
 		static bool SegmentHitsBox(const glm::vec3& from, const glm::vec3& to, const glm::vec3& low, const glm::vec3& high)
 		{
 			const glm::vec3 delta = to - from;
@@ -126,7 +120,7 @@ namespace Hydro
 			return true;
 		}
 
-		// `current` moved towards `target` by at most rate * deltaTime (an opacity fading in or out).
+		// Moves by at most rate * deltaTime (an opacity fading in or out).
 		static float Approach(float current, float target, float rate, float deltaTime)
 		{
 			const float step = std::max(0.0f, rate) * std::max(0.0f, deltaTime);

@@ -52,8 +52,7 @@ namespace Hydro
 		TextureCube
 	};
 
-	// How a texture is sampled. Whether it is sRGB is part of what the image is
-	// (ImageSpecification::Format = ImageFormat::SRGB or RGBA), not of how it is used.
+	// How a texture is sampled. Whether it is sRGB is part of the image (ImageSpecification::Format), not of this.
 	struct TextureProperties
 	{
 		TextureWrap SamplerWrap = TextureWrap::Repeat;

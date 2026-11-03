@@ -1,4 +1,3 @@
-// Game/src/Scripts/Examples/SpawnerScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -6,12 +5,8 @@
 #include <algorithm>
 #include <vector>
 
-// An example (Scripting plan SC8b, rewritten from the deleted village's crate spawner): spawning and removing
-// entities while the game runs. It shows a prefab property (an asset set in the editor), the input edge (pressed
-// this frame, not held), entities created and destroyed during play, and a one-shot effect where they appear.
-//
-// Put it on any entity. Pressing E instantiates the Spawn Prefab in front of the entity tagged
-// "Player" (or at this entity when there is none); at most MaxAlive copies exist, the oldest is removed first.
+// Example: spawning and removing entities while the game runs. E instantiates Spawn Prefab in front of the player; at
+// most MaxAlive copies exist, the oldest is removed first.
 namespace Hydro
 {
 	HY_SCRIPT()
@@ -91,7 +86,7 @@ namespace Hydro
 			}
 		}
 
-		std::vector<UUID> m_Alive; // the copies, oldest first (by ID: a copy may be destroyed by something else)
+		std::vector<UUID> m_Alive; // oldest first, by ID: a copy may be destroyed by something else
 		bool m_Previous = false;
 	};
 }

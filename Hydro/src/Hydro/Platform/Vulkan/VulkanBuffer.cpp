@@ -26,7 +26,8 @@ namespace Hydro
 	{
 		HY_CORE_ASSERT(specification.Size > 0, "VulkanBuffer: Size must not be 0");
 		const bool gpuOnly = specification.Memory == BufferMemory::GpuOnly;
-		HY_CORE_ASSERT(gpuOnly == false || specification.Usage != BufferUsage::Staging, "VulkanBuffer: a staging buffer must be HostVisible");
+		HY_CORE_ASSERT(gpuOnly == false || specification.Usage != BufferUsage::Staging,
+			"VulkanBuffer: a staging buffer must be HostVisible");
 		HY_CORE_ASSERT(gpuOnly == false || data != nullptr, "VulkanBuffer: a GpuOnly buffer needs its data at creation");
 
 		VkBufferCreateInfo bufferInfo{};
@@ -35,9 +36,8 @@ namespace Hydro
 		bufferInfo.usage = GetVulkanUsage(specification.Usage) | (gpuOnly ? VK_BUFFER_USAGE_TRANSFER_DST_BIT : 0);
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		// Staging memory only needs to be visible to the CPU; the rest of the host-visible buffers are read by
-		// the GPU every frame, so VMA prefers memory the GPU reads quickly. Host-visible buffers are mapped
-		// once, for their whole life (VMA unmaps them when they are destroyed).
+		// Staging memory only needs CPU visibility; other host-visible buffers are read by the GPU every frame, so VMA
+		// prefers memory the GPU reads quickly. Host-visible buffers stay mapped for their whole life.
 		VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY;
 		VmaAllocationCreateFlags flags = 0;
 		if (gpuOnly == false)
@@ -62,8 +62,7 @@ namespace Hydro
 			return;
 		}
 
-		// GpuOnly: through a staging buffer. SubmitImmediate waits, so the staging buffer can go right after
-		// (it is freed through the deletion queue anyway).
+		// GpuOnly: through a staging buffer (SubmitImmediate waits, so it can go right after).
 		BufferSpecification stagingSpecification;
 		stagingSpecification.Usage = BufferUsage::Staging;
 		stagingSpecification.Memory = BufferMemory::HostVisible;
@@ -143,7 +142,8 @@ namespace Hydro
 
 	PerFrameBuffers CreatePerFrameBuffers(const BufferSpecification& specification)
 	{
-		HY_CORE_ASSERT(specification.Memory == BufferMemory::HostVisible, "CreatePerFrameBuffers: per-frame buffers are written by the CPU");
+		HY_CORE_ASSERT(specification.Memory == BufferMemory::HostVisible,
+			"CreatePerFrameBuffers: per-frame buffers are written by the CPU");
 		PerFrameBuffers buffers;
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{

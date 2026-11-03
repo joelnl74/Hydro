@@ -17,7 +17,6 @@ namespace Hydro
 	class EditorCommandStack;
 	struct TerrainSnapshot;
 
-	// The Terrain tool's brushes (Terrain plan, "Editing").
 	enum class TerrainBrush : uint8_t
 	{
 		Paint = 0, // raise one layer's weight; Shift lowers it
@@ -29,28 +28,23 @@ namespace Hydro
 		Path       // click points, Enter paints a layer along the curve through them with wandering edges
 	};
 
-	// The Terrain tool: edits the terrain asset of the selected entity's TerrainComponent with brushes in the Editor
-	// view. Each stroke is one undo step (TerrainStrokeCommand). Its settings and the terrain's own settings are drawn
-	// in the inspector's Terrain section. Owned by EditorLayer.
-	//
-	// The brush finds the ground with a ray from the editor camera through the cursor against the terrain's triangles
-	// (TerrainCache::Raycast), so it works in the 2D and 3D views alike.
+	// Edits the selected entity's terrain asset with brushes in the Editor view; each stroke is one undo step.
+	// The brush finds the ground by raycasting the terrain's triangles, so it works in 2D and 3D views alike.
 	class TerrainTool
 	{
 	public:
 		TerrainTool();
 		~TerrainTool();
 
-		// The inspector's Terrain section, after the component's own rows: the asset (or Create Terrain), the brush, and
-		// the terrain's settings (layers, walls, edges, cap stones, decor; changes apply at once, saved with the scene).
+		// The inspector's Terrain section after the component's own rows: the asset, the brush and the terrain's
+		// settings (applied at once, saved with the scene).
 		void DrawInspector(Entity entity, TerrainComponent& component, bool playing);
 
-		// The Editor view, every frame: where the brush is, and editing while the left button is down. `imageMin` and
-		// `imageSize` are the view's image in ImGui pixels. True while the tool owns the mouse in the view (editing is on
-		// and a terrain is selected): the caller then skips click-to-select and the gizmo.
-		bool UpdateViewport(Entity selected, const EditorCamera& camera, const glm::vec2& imageMin, const glm::vec2& imageSize, bool hovered,
-			bool playing, float deltaTime, EditorCommandStack& commands);
-		// Ends a stroke in progress (pushing its undo step), e.g. before Play or another scene.
+		// Every frame in the Editor view: tracks the brush and edits while the left button is down. True while the tool
+		// owns the mouse, so the caller skips click-to-select and the gizmo.
+		bool UpdateViewport(Entity selected, const EditorCamera& camera, const glm::vec2& imageMin, const glm::vec2& imageSize,
+			bool hovered, bool playing, float deltaTime, EditorCommandStack& commands);
+		// Ends a stroke in progress, pushing its undo step.
 		void EndStroke(EditorCommandStack& commands);
 
 		// The brush circle and the Path brush's points for the Editor view's overlay.
@@ -59,20 +53,19 @@ namespace Hydro
 		bool IsPainting() const { return m_Editing; }
 		void SetPainting(bool editing) { m_Editing = editing; }
 
-		// Writes every terrain asset `scene` uses that changed since it was loaded or saved (EditorLayer::SaveScene).
+		// Writes every terrain asset `scene` uses that changed since it was loaded or saved.
 		static void SaveModifiedTerrains(Scene& scene);
 
 	private:
 		void BeginStroke(const Ref<Terrain>& terrain, AssetHandle handle);
-		// One dab of the Paint brush at `centre` (the terrain's own space, metres) for `deltaTime` seconds.
+		// One dab at `centre` (the terrain's space, metres) for `deltaTime` seconds.
 		void Paint(Terrain& terrain, const glm::vec2& centre, bool lower, float deltaTime);
-		// The level brushes: Raise / Lower (`step` +1 or -1, each corner once per stroke) and Flatten (to m_FlattenLevel).
+		// Raise / Lower (`step` +1 or -1, each corner once per stroke) or Flatten to m_FlattenLevel.
 		void ChangeLevels(Terrain& terrain, const glm::vec2& centre, int32_t step, bool flatten);
-		// The Wall brush: the cells under the brush get m_WallLayer.
 		void PaintWalls(Terrain& terrain, const glm::vec2& centre);
-		// The Ramp brush: the cells under the brush get the direction from the stroke's start to `centre` (or none).
+		// Gives the cells under the brush the direction from the stroke's start to `centre`, or none.
 		void PaintRamps(Terrain& terrain, const glm::vec2& centre, bool clear);
-		// The Path brush: paints m_Layer along the curve through m_PathPoints, as one stroke.
+		// Paints m_Layer along the curve through m_PathPoints as one stroke.
 		void ApplyPath(const Ref<Terrain>& terrain, AssetHandle handle, EditorCommandStack& commands);
 		// A new .hyterrain in Assets/Terrains, named after the entity, assigned to `component`.
 		void CreateTerrainAsset(Entity entity, TerrainComponent& component);
@@ -81,7 +74,7 @@ namespace Hydro
 		void DrawTerrainSettings(const Ref<Terrain>& terrain);
 
 	private:
-		// Brush settings (the session's, not saved).
+		// Brush settings, for this session only.
 		bool m_Editing = false;
 		TerrainBrush m_Brush = TerrainBrush::Paint;
 		uint32_t m_Layer = 1;      // Paint and Path: the layer

@@ -89,7 +89,8 @@ namespace Hydro
 
 	bool TerrainSurfaceMaterial::operator==(const TerrainSurfaceMaterial& other) const
 	{
-		if (Weights != other.Weights || WeightMapSize != other.WeightMapSize || LayerCount != other.LayerCount || EdgeClusterSize != other.EdgeClusterSize
+		if (Weights != other.Weights || WeightMapSize != other.WeightMapSize || LayerCount != other.LayerCount
+			|| EdgeClusterSize != other.EdgeClusterSize
 			|| EdgePixelNoise != other.EdgePixelNoise || Seed != other.Seed)
 		{
 			return false;
@@ -121,14 +122,15 @@ namespace Hydro
 		ImageFormat DepthFormat = ImageFormat::None;
 		bool WriteEntityID = false;
 		bool Wireframe = false;
-		bool ShadowCaster = false; // depth only, into a sun shadow map (R14)
+		bool ShadowCaster = false; // depth only, into a sun shadow map
 		bool TerrainSurface = false; // terrain.frag with the terrain surface's set 1
 		bool Faded = false; // mesh_fade.frag: draws with an opacity below 1 (MeshComponent::Opacity)
 
 		bool operator<(const MeshPipelineKey& other) const
 		{
 			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster, TerrainSurface, Faded)
-				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster, other.TerrainSurface, other.Faded);
+				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster,
+					other.TerrainSurface, other.Faded);
 		}
 	};
 
@@ -245,7 +247,8 @@ namespace Hydro
 		s_Data3D->WhiteTexture.reset();
 		s_Data3D->FlatNormalTexture.reset();
 		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
-		Renderer::SubmitResourceFree([device, nearest = s_Data3D->NearestSampler, linear = s_Data3D->LinearSampler, clamp = s_Data3D->LinearClampSampler]()
+		Renderer::SubmitResourceFree([device, nearest = s_Data3D->NearestSampler, linear = s_Data3D->LinearSampler,
+			clamp = s_Data3D->LinearClampSampler]()
 		{
 			vkDestroySampler(device, nearest, nullptr);
 			vkDestroySampler(device, linear, nullptr);
@@ -362,9 +365,8 @@ namespace Hydro
 				material.LastUsedFrame = frame;
 				return &material;
 			}
-			// A texture was loaded or reloaded since: make a new one. Textures change between frames, never
-			// while a frame is being submitted, so no draw of this frame points at the stale one; frames in
-			// flight still may, so its set and buffer are freed through the deletion queue.
+			// Textures change between frames, so no draw of this frame points at the stale material; frames in flight
+			// still may, so its set and buffer go through the deletion queue.
 			materials.erase(it);
 			break;
 		}
@@ -379,8 +381,8 @@ namespace Hydro
 		return materials.back().get();
 	}
 
-	void Renderer3D::DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID,
-		bool castShadows, float opacity)
+	void Renderer3D::DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform,
+		int32_t entityID, bool castShadows, float opacity)
 	{
 		HY_CORE_ASSERT(s_Data3D->CurrentView != nullptr, "Renderer3D::DrawMesh outside BeginScene/EndScene");
 		RenderViewData* view = s_Data3D->CurrentView;
@@ -411,8 +413,8 @@ namespace Hydro
 		view->MeshDraws.push_back(std::move(draw));
 	}
 
-	static Scope<TerrainSurfaceGPU> CreateTerrainSurface(const TerrainSurfaceMaterial& data, const Ref<Texture2D> (&albedos)[MaxTerrainLayers],
-		const Ref<Texture2D> (&normals)[MaxTerrainLayers])
+	static Scope<TerrainSurfaceGPU> CreateTerrainSurface(const TerrainSurfaceMaterial& data,
+		const Ref<Texture2D> (&albedos)[MaxTerrainLayers], const Ref<Texture2D> (&normals)[MaxTerrainLayers])
 	{
 		Scope<TerrainSurfaceGPU> surface = CreateScope<TerrainSurfaceGPU>();
 		surface->Data = data;
@@ -426,7 +428,8 @@ namespace Hydro
 		for (uint32_t i = 0; i < MaxTerrainLayers; i++)
 		{
 			uniform.LayerTint[i] = data.Layers[i].Tint;
-			uniform.LayerTiling[i] = glm::vec4(data.Layers[i].Tiling, normals[i] != nullptr ? std::max(data.Layers[i].NormalStrength, 0.0f) : 0.0f, 0.0f);
+			uniform.LayerTiling[i] = glm::vec4(data.Layers[i].Tiling,
+				normals[i] != nullptr ? std::max(data.Layers[i].NormalStrength, 0.0f) : 0.0f, 0.0f);
 			uniform.Roughness[(int)i] = data.EdgeRoughness[i];
 			uniform.Blend[(int)i] = std::max(data.Blend[i], 0.0f);
 			uniform.HeightBlend[(int)i] = std::max(data.HeightBlend[i], 0.0f);
@@ -524,8 +527,8 @@ namespace Hydro
 		return surfaces.back().get();
 	}
 
-	void Renderer3D::DrawTerrainSurface(const Ref<Mesh>& mesh, uint32_t subMesh, const TerrainSurfaceMaterial& material, const glm::mat4& transform,
-		int32_t entityID, bool castShadows)
+	void Renderer3D::DrawTerrainSurface(const Ref<Mesh>& mesh, uint32_t subMesh, const TerrainSurfaceMaterial& material,
+		const glm::mat4& transform, int32_t entityID, bool castShadows)
 	{
 		HY_CORE_ASSERT(s_Data3D->CurrentView != nullptr, "Renderer3D::DrawTerrainSurface outside BeginScene/EndScene");
 		RenderViewData* view = s_Data3D->CurrentView;
@@ -598,11 +601,11 @@ namespace Hydro
 	}
 
 	// The mesh pipeline for `target` (the view's, or its shadow map for a shadow caster). `faded`: the fade variant.
-	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID, bool shadowCaster = false,
-		bool terrainSurface = false, bool faded = false)
+	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID,
+		bool shadowCaster = false, bool terrainSurface = false, bool faded = false)
 	{
 		MeshPipelineKey key;
-		// In the HDR scene pass the view's target draws into the scene colour (post-processing plan P1).
+		// In the HDR scene pass the view's target draws into the scene colour.
 		key.ColorFormats = target.GetPipelineColorFormats(&target == view.Target.get() ? view.PassColorTarget : nullptr);
 		key.DepthFormat = target.GetPipelineDepthFormat();
 		key.WriteEntityID = writeEntityID && target.GetSpecification().EntityID && shadowCaster == false;
@@ -627,12 +630,14 @@ namespace Hydro
 			{
 				if (shadowCaster)
 				{
-					shader = &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "assets/shaders/mesh_shadow.vert", "assets/shaders/mesh_shadow.frag");
+					shader = &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "assets/shaders/mesh_shadow.vert",
+						"assets/shaders/mesh_shadow.frag");
 				}
 				else if (key.TerrainSurface)
 				{
 					// The mesh vertex shader as it is: the tops' UVs are their positions in the terrain's space.
-					shader = &VulkanShaderLibrary::Load(TerrainSurfaceShaderName, "assets/shaders/mesh.vert", "assets/shaders/terrain.frag");
+					shader = &VulkanShaderLibrary::Load(TerrainSurfaceShaderName, "assets/shaders/mesh.vert",
+						"assets/shaders/terrain.frag");
 				}
 				else if (key.Faded)
 				{
@@ -751,7 +756,7 @@ namespace Hydro
 			if (pipeline != boundPipeline)
 			{
 				pipeline->Bind(commandBuffer, view.Target->GetExtent());
-				// Texture set 0's descriptor set has the view's camera at binding 0 (written in RecordView).
+				// Texture set 0's descriptor set has the view's camera at binding 0 (written by ViewRenderer).
 				pipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
 				boundPipeline = pipeline;
 				boundSet = VK_NULL_HANDLE;
@@ -790,7 +795,8 @@ namespace Hydro
 	void Renderer3D::RecordShadowCasters(RenderPassContext& context)
 	{
 		RenderViewData& view = context.View;
-		if (view.ShadowTarget == nullptr || std::none_of(view.MeshDraws.begin(), view.MeshDraws.end(), [](const MeshDraw& draw) { return draw.CastShadows; }))
+		if (view.ShadowTarget == nullptr || std::none_of(view.MeshDraws.begin(), view.MeshDraws.end(),
+			[](const MeshDraw& draw) { return draw.CastShadows; }))
 		{
 			return;
 		}
@@ -805,7 +811,7 @@ namespace Hydro
 		// order only costs overdraw.
 		VkCommandBuffer commandBuffer = context.CommandBuffer;
 		pipeline->Bind(commandBuffer, view.ShadowTarget->GetExtent());
-		// Set 0 for the shadow matrix (FrameLightingUniform, written in RecordView).
+		// Set 0 for the shadow matrix (FrameLightingUniform, written by SceneLightingBuffer).
 		pipeline->BindDescriptorSet(commandBuffer, 0, *view.TextureSets[0].DescriptorSet);
 		const MeshMaterial* boundMaterial = nullptr;
 		const Mesh* boundMesh = nullptr;
@@ -852,11 +858,14 @@ namespace Hydro
 		const uint64_t frame = Time::GetFrameCount();
 		const auto unused = [frame](uint64_t lastUsed) { return lastUsed + UnusedFramesBeforeFree < frame; };
 		std::vector<Scope<MeshMaterial>>& materials = s_Data3D->Materials;
-		materials.erase(std::remove_if(materials.begin(), materials.end(), [&](const Scope<MeshMaterial>& material) { return unused(material->LastUsedFrame); }), materials.end());
+		materials.erase(std::remove_if(materials.begin(), materials.end(),
+			[&](const Scope<MeshMaterial>& material) { return unused(material->LastUsedFrame); }), materials.end());
 		std::vector<Scope<TerrainSurfaceGPU>>& surfaces = s_Data3D->TerrainSurfaces;
-		surfaces.erase(std::remove_if(surfaces.begin(), surfaces.end(), [&](const Scope<TerrainSurfaceGPU>& surface) { return unused(surface->LastUsedFrame); }), surfaces.end());
+		surfaces.erase(std::remove_if(surfaces.begin(), surfaces.end(),
+			[&](const Scope<TerrainSurfaceGPU>& surface) { return unused(surface->LastUsedFrame); }), surfaces.end());
 		std::vector<ShapeEntry>& shapes = s_Data3D->Shapes;
-		shapes.erase(std::remove_if(shapes.begin(), shapes.end(), [&](const ShapeEntry& entry) { return unused(entry.LastUsedFrame); }), shapes.end());
+		shapes.erase(std::remove_if(shapes.begin(), shapes.end(), [&](const ShapeEntry& entry) { return unused(entry.LastUsedFrame); }),
+			shapes.end());
 
 		s_Data3D->Stats.CachedMeshes = (uint32_t)shapes.size();
 		s_Data3D->Stats.CachedMaterials = (uint32_t)(materials.size() + surfaces.size());

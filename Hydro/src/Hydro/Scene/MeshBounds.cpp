@@ -41,7 +41,8 @@ namespace Hydro
 		high = glm::vec3(-std::numeric_limits<float>::max());
 		for (int i = 0; i < 8; i++)
 		{
-			const glm::vec3 local{ (i & 1) ? localHigh.x : localLow.x, (i & 2) ? localHigh.y : localLow.y, (i & 4) ? localHigh.z : localLow.z };
+			const glm::vec3 local{ (i & 1) ? localHigh.x : localLow.x, (i & 2) ? localHigh.y : localLow.y,
+				(i & 4) ? localHigh.z : localLow.z };
 			const glm::vec3 corner = glm::vec3(transform->Matrix * glm::vec4(local, 1.0f));
 			low = glm::min(low, corner);
 			high = glm::max(high, corner);

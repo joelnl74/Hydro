@@ -113,10 +113,15 @@ One script of a type per entity: `Bind<T>()` and **Add Script** refuse a second,
 | `DataRowRef` | A row of a data table (an item, an enemy, a quest) | `DataRow(ItemDefinition)` (required) |
 | `EntityRef` | Another entity, picked in the inspector or dragged onto the field | |
 | `ComponentRef<T>` | A component or script on another entity (`T` from the declaration) | |
+| An `HY_ENUM` enum class | A choice from a fixed set (a route's `Mode`), saved by name | |
+| An `HY_DATA` struct | A group of values (a nested foldout) | |
+| `std::vector<T>` of any of these, or of `EntityRef` | A route's waypoints, a shop's stock (`std::vector<DataRowRef>`), a list of tags | The element's: `Range`, `Color`, `Asset(...)`, `DataRow(...)` |
 
-All take `Tooltip("...")`, `DisplayName("...")`, `ReadOnly`, `Hidden`, `FormerName("...")`, and the reference kinds `Required` (the inspector and `scripts/validate_project.py` flag it while empty; the code still handles `nullptr`). The full list is in `Hydro/Scene/Scripting/ReflectionMacros.h`. Property types not there yet: enums, lists and nested structs (data types have them: [Rules, views and data](#rules-views-and-data)).
+All take `Tooltip("...")`, `DisplayName("...")`, `ReadOnly`, `Hidden`, `FormerName("...")`, and the single reference kinds `Required` (the inspector and `scripts/validate_project.py` flag it while empty; the code still handles `nullptr`). The full list is in `Hydro/Scene/Scripting/ReflectionMacros.h`. Enums, structs and lists (Nov 3, 2026) are saved and drawn exactly like data fields ([Rules, views and data](#rules-views-and-data)): a list has up / down / remove and **+ Add** in the inspector, and an entity entry is picked like a reference.
 
-Real uses: `EnemyChaseScript` (`DataRowRef Enemy`, `DataRowRef Encounter`), `SpawnerScript` (`Asset(Prefab)`), `FieldDirectorScript` (`ComponentRef<DialogueScript> Dialogue`, `Asset(Definition, InventoryDefinition) StartingInventory`).
+Real uses: `EnemyChaseScript` (`DataRowRef Enemy`, `DataRowRef Encounter`), `SpawnerScript` (`Asset(Prefab)`), `FieldDirectorScript` (`ComponentRef<DialogueScript> Dialogue`, `Asset(Definition, InventoryDefinition) StartingInventory`), `NpcRouteScript` (`RouteMode Mode`, `std::vector<EntityRef> Waypoints`).
+
+**Data on an entity without behaviour** is a game component, not a script (Nov 3, 2026): `HY_COMPONENT()` above a struct of `HY_PROPERTY` fields (the data kinds plus `EntityRef`). It is saved with the entity, copied on Play and Duplicate, and in **Add Component > Game**; scripts read it with `TryGetComponent<T>()`. `WaypointComponent` (what a townsperson does at a waypoint) is one: it was a script that did nothing at runtime. See [Scene and ECS, Game components](SceneAndECS.md#game-components-hy_component-nov-3-2026).
 
 ## Reaching other objects
 
@@ -249,6 +254,7 @@ All `protected virtual` on `ScriptableEntity`, empty by default.
 | `OnCollisionEnter/Exit(Entity other)` | After the physics step two solid colliders started / stopped touching (2D; 3D sends triggers only) | Damage, battle start |
 | `OnTriggerEnter/Exit(Entity other)` | After the step something entered / left this entity's sensor | Zones, exits, pickups |
 | `bool OnUIEvent(const UIEvent& event)` | Stage 0, for a button or capturing canvas at or below this entity | Menus: hand it to the view; return `true` when handled |
+| `OnDrawGizmos(Gizmos& gizmos)` | Every editor frame, also outside Play (then on a stand-in with the saved values, no `OnCreate`) | Lines and labels in the Editor view: a route, a zone's reach (`Gizmos.h`; `NpcRouteScript`) |
 
 `other` may be pending destroy or have no scripts: test `other.IsValid()` and use `TryGetComponent`.
 
@@ -319,11 +325,11 @@ A header can be checked on its own by including it from a temporary `.cpp` under
 
 ## Not there yet
 
-- **No per-step hook** (`OnFixedUpdate`), no enable / disable, late-update or draw hooks, no hook when a scene is suspended or resumed.
+- **No per-step hook** (`OnFixedUpdate`), no enable / disable or late-update hooks, no hook when a scene is suspended or resumed. Drawing is editor-only (`OnDrawGizmos`); no runtime debug draw.
 - **No timers, tweens or coroutines** (G6): member timers and `deltaTime`.
 - **No animation events** (AN6).
 - **No event queue on the session** yet (the plan's decision is ready: double-buffered, read the frame after); state does the job so far.
-- **Property types:** no enums, lists or nested structs on scripts (data types have them).
+- **Property types:** no lists of `ComponentRef<T>` (use `std::vector<EntityRef>`), no `Required` list, no maps.
 - **3D physics sends trigger events only**; no contact points or hit speed.
 - **Compiled in:** a change needs a rebuild and an editor restart; no game DLL or hot reload (E7).
 - **The field camera** (`DioramaView`) still keeps static state.

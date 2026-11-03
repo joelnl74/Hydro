@@ -27,14 +27,8 @@ namespace Hydro
 		return &(static_cast<typename Traits::ClassType*>(object)->*Member);
 	}
 
-	// What DataTypeRegistry::Register<T> returns. The generator writes these calls from HY_DATA / HY_PROPERTY;
-	// each .Field<&T::Member>(...) adds a field, the modifiers after it change the field added last:
-	//
-	//     DataTypeRegistry::Register<ItemDefinition>("ItemDefinition", "Item")
-	//         .Table()
-	//         .DisplayField("Name")
-	//         .Field<&ItemDefinition::Name>("Name", "Name")
-	//         .Field<&ItemDefinition::RestoreHP>("RestoreHP", "Restore HP").Range(0.0f, 999.0f);
+	// What DataTypeRegistry::Register<T> returns (the generator writes these calls). Each .Field<&T::Member>(...) adds
+	// a field; the modifiers after it change the field added last.
 	template<typename T>
 	class DataTypeRegistration
 	{
@@ -69,7 +63,8 @@ namespace Hydro
 		DataTypeRegistration& Field(const std::string& name, const std::string& displayName)
 		{
 			using Traits = DataMemberTraits<decltype(Member)>;
-			static_assert(std::is_same_v<typename Traits::ClassType, T>, "Field<&T::Member>: the member must belong to the registered type");
+			static_assert(std::is_same_v<typename Traits::ClassType, T>,
+				"Field<&T::Member>: the member must belong to the registered type");
 
 			DataField field;
 			field.Name = name;

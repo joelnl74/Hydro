@@ -5,8 +5,7 @@ extern Hydro::Application* Hydro::CreateApplication(const Hydro::ApplicationComm
 
 int main(int argc, char** argv)
 {
-	// The command line, as given: the application reads its own options from it (Oxygen: --project,
-	// --scene, --play, --capture... see EditorLaunchOptions).
+	// The application reads its own options from it (Oxygen: EditorLaunchOptions).
 	Hydro::ApplicationCommandLine commandLine;
 	for (int i = 1; i < argc; i++)
 	{

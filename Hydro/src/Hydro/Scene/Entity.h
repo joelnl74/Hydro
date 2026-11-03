@@ -27,8 +27,8 @@ namespace Hydro
 	{
 	};
 
-	// Entity's lookups of the scripts on an entity (Scripting plan SC3). Declared here and defined in
-	// ScriptableEntity.h, which every script type includes, so Entity.h doesn't need the script headers.
+	// Entity's script lookups. Defined in ScriptableEntity.h, which every script includes, so Entity.h doesn't need
+	// the script headers.
 	struct ScriptLookup
 	{
 		// The entity's running script that is a T (the script's own class or a class it derives from), or nullptr.
@@ -40,8 +40,7 @@ namespace Hydro
 		template<typename T>
 		static std::vector<T*> FindAll(const Entity& entity);
 
-		// A running script that is a T, or a binding of exactly T without an instance yet (outside Play, or before
-		// the script system creates it).
+		// A running script that is a T, or a binding of exactly T without an instance yet (outside Play).
 		template<typename T>
 		static bool Has(const Entity& entity);
 	};
@@ -53,23 +52,15 @@ namespace Hydro
 		Entity(entt::entity handle, Scene* scene);
 		Entity(const Entity& other) = default;
 
-		// True when the handle refers to a live entity of a scene that isn't about to remove it: not
-		// empty, not destroyed, and not queued for destruction by Scene::DestroyEntity during a stage
-		// (see Scene::IsPendingDestroy). Check it before using an Entity you kept from an earlier
-		// frame or got from another system. An entity pending destruction can still be read until its
-		// stage ends, so the component functions below only require it to exist.
+		// A live entity that isn't empty, destroyed or pending destruction. Check it on Entities kept from an earlier
+		// frame. Pending ones can still be read until their stage ends.
 		bool IsValid() const
 		{
 			return IsAlive() && m_Scene->IsPendingDestroy(*this) == false;
 		}
 
-		// Debug builds assert that the entity exists (AddComponent, RemoveComponent) and, for
-		// GetComponent, that it has the component: check HasComponent, or use TryGetComponent, when it may not.
-		//
-		// GetComponent, TryGetComponent, HasComponent and GetComponents also take a script type (Scripting plan SC3):
-		// `entity.GetComponent<DialogueScript>()` is the entity's running script of that class (or of a class deriving
-		// from it). Scripts run only while playing, so outside Play the script lookups find nothing and HasComponent
-		// means "bound". Scripts are bound with NativeScriptComponent::Bind, not AddComponent.
+		// These also take a script type: the entity's running script of that class (or a derived one). Outside Play
+		// lookups find nothing and HasComponent means "bound". Debug builds assert the entity (and component) exist.
 		template<typename T, typename... Args>
 		T& AddComponent(Args&&... args)
 		{
@@ -165,7 +156,8 @@ namespace Hydro
 		template<typename T>
 		void RemoveComponent()
 		{
-			static_assert(IsScriptType<T>::value == false, "Remove scripts through NativeScriptComponent (Scene::RemoveScript), not RemoveComponent");
+			static_assert(IsScriptType<T>::value == false,
+				"Remove scripts through NativeScriptComponent (Scene::RemoveScript), not RemoveComponent");
 			HY_CORE_ASSERT(IsAlive(), "Entity::RemoveComponent<{0}> on an entity that doesn't exist", typeid(T).name());
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
@@ -189,10 +181,8 @@ namespace Hydro
 			return m_Scene;
 		}
 
-		// The descendant at `path`: child names (tags) separated by '/', each a direct child of the one before
-		// ("Panel/Buttons/Ok"); the first child of that name at each step. An empty Entity when a step isn't found
-		// or this entity doesn't exist. For the inside of a view or prefab, whose names its author controls
-		// (Scripting plan SC4); a dependency on another part of the scene is an EntityRef property instead.
+		// The descendant at `path` ("Panel/Buttons/Ok"; the first child of that name at each step), or empty. For the
+		// inside of a view or prefab; other parts of the scene are EntityRef properties.
 		Entity FindChild(const std::string& path) const;
 
 		UUID GetUUID() const { return GetComponent<IDComponent>().Id; }

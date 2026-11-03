@@ -3,6 +3,7 @@
 #include "Hydro/Asset/Asset.h"
 #include "Hydro/Data/DataRowRef.h"
 #include "Hydro/Scene/EntityRef.h"
+#include "Hydro/Scene/Scripting/ScriptDataValue.h"
 
 #include <glm/glm.hpp>
 
@@ -31,7 +32,9 @@ namespace Hydro
 		String,
 		Asset, // an AssetHandle (0 = none); ScriptProperty::AssetFilter says which kind of asset
 		RowRef, // a DataRowRef (a data table's row); ScriptProperty::DataTypeFilter says the row type
-		EntityRef // an EntityRef or a ComponentRef<T> (SC4): an entity's UUID; AcceptsEntity / TargetType say what it needs
+		EntityRef, // an EntityRef or ComponentRef<T>: an entity's UUID; AcceptsEntity / TargetType say what it needs
+		Data // a ScriptDataValue (HY_ENUM, HY_DATA struct or std::vector), saved and drawn like a data field;
+		     // Min / Max, IsColor, AssetFilter and DataTypeFilter apply to its elements
 	};
 
 	using ScriptPropertyValue =
@@ -45,7 +48,8 @@ namespace Hydro
 			std::string,
 			AssetHandle,
 			DataRowRef,
-			EntityRef>;
+			EntityRef,
+			ScriptDataValue>;
 
 	using ScriptPropertyMap =
 		std::unordered_map<
@@ -64,8 +68,7 @@ namespace Hydro
 	{
 		// The saved key: the field's name. Rename it only with a former name (below).
 		std::string Name;
-		// Keys it was saved under before (HY_PROPERTY(FormerName("..."))): read when the scene has no value under
-		// Name; saving writes Name. Delete a former name once every scene and prefab has been saved.
+		// Old keys, read when the scene has nothing under Name; saving writes Name. Delete once every file is saved.
 		std::vector<std::string> FormerNames;
 		// The inspector's label: the name split at capitals ("MoveSpeed" -> "Move Speed"), or DisplayName("...").
 		std::string DisplayName;
@@ -85,16 +88,15 @@ namespace Hydro
 		std::string DataTypeFilter;   // Asset of a Definition / DataTable: the HY_DATA type it holds; RowRef: the row type
 		bool ReadOnly = false;        // shown, not editable (runtime state a script writes)
 		bool HideInInspector = false; // saved and applied, not shown
-		// Asset, RowRef, EntityRef: must be set (HY_PROPERTY(Required)). The inspector shows an empty or broken one in
-		// the warning colour; project validation (SC5) reports it. Code still checks Get() for nullptr.
+		// Asset, RowRef, EntityRef: must be set. The inspector and project validation flag an empty or broken one; code
+		// still checks Get() for nullptr.
 		bool Required = false;
-		// EntityRef of a ComponentRef<T>: the name of T for the inspector ("needs a DialogueScript"), and whether an
-		// entity has a T (outside Play a bound script counts). Unset for a plain EntityRef: any entity.
+		// ComponentRef<T>: T's name for the inspector, and whether an entity has a T (outside Play a bound script counts).
+		// Unset for a plain EntityRef.
 		std::string TargetType;
 		std::function<bool(const Entity&)> AcceptsEntity;
 
-		// Takes the stored editor/scene value and
-		// pushes it into the actual C++ script object.
+		// Pushes the stored value into the running C++ script object.
 		std::function<void(
 			ScriptableEntity&,
 			const ScriptPropertyValue&)>

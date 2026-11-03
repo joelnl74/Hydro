@@ -11,7 +11,6 @@ namespace Hydro
 	class VulkanDevice
 	{
 	public:
-		// Takes ownership of the GPU it was created for.
 		explicit VulkanDevice(Scope<VulkanPhysicalDevice> physicalDevice);
 
 		VulkanDevice(const VulkanDevice&) = delete;
@@ -23,10 +22,8 @@ namespace Hydro
 		VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
 		VkQueue GetPresentQueue() const { return m_PresentQueue; }
 
-		// One-off GPU work outside the frame (uploads, layout transitions): records `record` into a
-		// one-time command buffer from the device's upload pool, submits it to the graphics queue and
-		// waits for it, so staging memory can be freed right after. Blocks: never use it for per-frame
-		// work (record that into Renderer::GetCurrentCommandBuffer()). Main thread only.
+		// One-off GPU work outside the frame (uploads, transitions): records, submits and waits, so staging memory
+		// can be freed right after. Blocks: never for per-frame work. Main thread only.
 		void SubmitImmediate(const std::function<void(VkCommandBuffer)>& record);
 
 		// Enabled features (Vulkan 1.3 core: dynamic rendering, synchronization2; optional: the rest).

@@ -52,11 +52,8 @@ namespace Hydro
 		}
 	};
 
-	// A bitmap font asset (runtime UI, UI2): an AngelCode BMFont in its text format (.fnt, written by BMFont, Hiero,
-	// fontbm or scripts/fonts/make_bmfont.py) and its page images, loaded as Texture2D assets. Pixel fonts want their
-	// pages imported with nearest filtering (the page's .hymeta), smooth ones (info smooth=1) with linear filtering;
-	// a page that doesn't match is warned about once.
-	// The AssetManager loads it (AssetManager::GetAsset<Font>); text is laid out by TextLayout and drawn as quads.
+	// A bitmap font asset: an AngelCode BMFont text file (.fnt) and its page textures. Pixel fonts want nearest-filtered
+	// pages, smooth ones linear; a mismatch is warned about once.
 	class Font : public Asset
 	{
 	public:
@@ -66,11 +63,9 @@ namespace Hydro
 		Font(const Font&) = delete;
 		Font& operator=(const Font&) = delete;
 
-		// Reads a .fnt file and loads its pages (from the same folder), without sharing: every call makes a new
-		// asset. nullptr (logged) when the file can't be read or a page can't be loaded. The AssetManager's loader calls this.
+		// Reads a .fnt and loads its pages, unshared (the AssetManager's loader). nullptr (logged) on failure.
 		static Ref<Font> LoadUncached(const std::filesystem::path& path);
-		// Parses the text format of a BMFont file. False (with `error` set) when it isn't one: no "common" line,
-		// no pages or no characters. Unknown lines and keys are ignored.
+		// Parses a BMFont text file. False (with `error`) without a "common" line, pages or characters; unknown keys are ignored.
 		static bool Parse(const std::string& text, FontData& data, std::string& error);
 
 		static AssetType GetStaticType() { return AssetType::Font; }

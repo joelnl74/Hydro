@@ -1,4 +1,3 @@
-// Game/src/Views/QuestTrackerScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -11,21 +10,9 @@
 #include <string>
 #include <vector>
 
-// A simple quest system for the field scenes: prototype code. The quests' words are data (Assets/Data/Quests.hytable:
-// titles and the objective of each stage; Assets/Data/Dialogue/ShrineErrand.hytable: the errand's conversations);
-// what happens when is still code (a story / cutscene system can replace the Shrine Glade's director later).
-//   - QuestLog: the quests of a run (a row of the quests table, its stage, a count), the banners waiting to be shown
-//     and the NPCs a quest speaks for. Run state on the game session (RpgSession::Quests), like BattleState.
-//   - QuestTrackerScript: on "Quest Canvas" (every field scene, scripts/ui/build_game_ui.py): the tracked quest,
-//     top right, and the "New Quest" / "Quest Complete" banner across the middle of the screen, after Octopath
-//     Traveler's story banners (decision D5: the rules, not the look).
-//   - ShrineQuestScript: on "Quest Director" in the Shrine Glade (scripts/quests/build_shrine_quest.py): the Old
-//     Monk's errand (clear the slimes from the lower path), and the cutscene when Miko reports back: the
-//     tremor (camera shake), the Sacred Tree waking, the monk sending her down to the village.
-
 namespace Hydro
 {
-	// The UI elements of a group faded together: each image's and text's own alpha is kept, and multiplied.
+	// Each image's and text's own alpha is kept and multiplied by the group's.
 	class QuestUIFade
 	{
 	public:
@@ -86,13 +73,8 @@ namespace Hydro
 		std::vector<Item> m_Items;
 	};
 
-	// On "Quest Canvas" (a screen canvas that doesn't capture input): the quest tracker and the banners.
-	//   - "Quest Tracker" (top right): "Quest Tracker Title", "Quest Tracker Objective", "Quest Tracker Count"; shown
-	//     while a quest is tracked and no menu, dialogue or cutscene holds the screen (UI::CapturesInput); its
-	//     title flashes gold when the quest changes.
-	//   - "Quest Banner" (across the middle): "Quest Banner Header", "Quest Banner Title", "Quest Banner Band" and
-	//     the two rules "Quest Banner Rule Top" / "Bottom", which open out from the middle; one announcement at a
-	//     time, again only while nothing holds the screen (a quest completed in a cutscene is shown after it).
+	// On "Quest Canvas": the tracked quest (top right) and the "New Quest" / "Quest Complete" banner, both shown only while
+	// no menu, dialogue or cutscene holds the screen.
 	HY_SCRIPT()
 	class QuestTrackerScript : public ScriptableEntity
 	{
@@ -173,7 +155,8 @@ namespace Hydro
 
 			UI::SetText(m_TrackerTitle, quest->GetTitle());
 			UI::SetText(m_TrackerObjective, quest->GetObjective());
-			UI::SetText(m_TrackerCount, quest->Goal > 0 ? std::to_string(quest->Progress) + " / " + std::to_string(quest->Goal) : std::string());
+			UI::SetText(m_TrackerCount,
+				quest->Goal > 0 ? std::to_string(quest->Progress) + " / " + std::to_string(quest->Goal) : std::string());
 			// Eased in from the right as it appears.
 			if (m_Tracker.HasComponent<UIRectComponent>())
 			{
@@ -227,7 +210,6 @@ namespace Hydro
 			}
 			open = open * open * (3.0f - 2.0f * open);
 			m_BannerFade.Set(alpha);
-			// The rules open out from the middle and the band unfolds with them.
 			for (int i = 0; i < 2; i++)
 			{
 				if (m_BannerRules[i].IsValid() && m_BannerRules[i].HasComponent<UIRectComponent>())

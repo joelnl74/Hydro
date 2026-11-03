@@ -3,11 +3,13 @@
 
 #include "Hydro/Asset/Asset.h"
 #include "Hydro/Data/DataRowRef.h"
+#include "Hydro/Scene/EntityRef.h"
 
 #include <glm/glm.hpp>
 
 #include <cfloat>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <type_traits>
 #include <typeindex>
@@ -15,8 +17,8 @@
 
 namespace Hydro
 {
-	// The kinds of value a data field can hold (an HY_PROPERTY inside an HY_DATA struct). The first eight are the
-	// kinds scripts have (ScriptPropertyType); data adds enums, nested structs, lists and row references.
+	// The kinds of value an HY_DATA field can hold: the script kinds plus enums, structs, lists and row references.
+	// EntityRef is for script properties only (a definition has no scene, so the generator refuses it in data).
 	enum class DataFieldKind : uint8_t
 	{
 		Bool,
@@ -30,21 +32,26 @@ namespace Hydro
 		Enum,   // an HY_ENUM enum class, saved by the enumerator's name
 		Struct, // an HY_DATA struct, saved as a nested map
 		List,   // a std::vector of any other kind (not of lists), saved as a sequence
-		RowRef  // a DataRowRef; DataField::DataTypeFilter names the table's row type
+		RowRef, // a DataRowRef; DataField::DataTypeFilter names the table's row type
+		EntityRef // an EntityRef (scripts only), saved as the entity's UUID
 	};
 
 	const char* DataFieldKindToString(DataFieldKind kind);
 
 	struct DataListOps;
+	struct DataValueType;
 
-	// What a value is, without its name: its kind and, for the kinds that need it, how to reach the C++ type
-	// behind it. Built at compile time by MakeDataValueType<T>(); nothing here is written by hand.
+	// Every EntityRef inside a value at any depth, for a script's data-typed property: its scene is set when it is
+	// applied, and copies remap its UUID.
+	void ForEachEntityRef(const DataValueType& type, void* value, const std::function<void(EntityRef&)>& visit);
+
+	// What a value is, without its name: its kind and how to reach the C++ type behind it. Built at compile time by
+	// MakeDataValueType<T>().
 	struct DataValueType
 	{
 		DataFieldKind Kind = DataFieldKind::Int;
 
-		// Enum: the enum; Struct: the struct; List: the std::vector. Enum and Struct are looked up in the
-		// DataTypeRegistry with it (DataTypeRegistry::FindEnum / Find).
+		// Enum: the enum; Struct: the struct (both looked up in the DataTypeRegistry); List: the std::vector.
 		std::type_index CppType = typeid(void);
 
 		// Enum: the value as a number, whatever the enum's underlying type is.
@@ -73,11 +80,10 @@ namespace Hydro
 	// One HY_PROPERTY field of a data type: what the serializer reads and writes, and what the inspector shows.
 	struct DataField
 	{
-		// The saved key: the field's name. Renaming it in C++ leaves the old key in files as an unknown (kept) key,
-		// unless the old name is one of FormerNames.
+		// The saved key. Renaming the field leaves the old key in files as an unknown (kept) key unless it is a FormerName.
 		std::string Name;
-		// Keys files may still have it under (HY_PROPERTY(FormerName("..."))): read when the record has no value
-		// under Name (reported, so the file gets saved); saving writes Name. Delete them once every file is saved.
+		// Old keys read when the record has nothing under Name (reported, so the file gets saved). Delete them once every
+		// file is saved.
 		std::vector<std::string> FormerNames;
 		// The inspector's label: the name split at capitals, or DisplayName("...").
 		std::string DisplayName;
@@ -90,7 +96,7 @@ namespace Hydro
 		float Max = FLT_MAX;
 		bool IsColor = false;                    // Vec3 / Vec4 edited as a colour
 		AssetType AssetFilter = AssetType::None; // Asset: which assets the picker lists
-		std::string DataTypeFilter;              // RowRef: the row type ("ItemDefinition"); Asset of a Definition / DataTable: its data type
+		std::string DataTypeFilter;              // RowRef: the row type; Asset of a Definition / DataTable: its data type
 		bool ReadOnly = false;                   // shown, not editable
 		bool HideInInspector = false;            // saved, not shown
 
@@ -113,30 +119,25 @@ namespace Hydro
 		}
 	};
 
-	// A data type: an HY_DATA struct. Read-only output of the registration (like ScriptTypeInfo). The registry
-	// makes, copies and frees instances through the type-erased functions, never by copying bytes: data types
-	// hold strings, lists and nested structs.
+	// An HY_DATA struct, as registered. Instances are made, copied and freed only through these functions, since data
+	// types hold strings, lists and nested structs.
 	struct DataTypeInfo
 	{
-		// The saved type name (the C++ struct's name) and the label of the Create menus ("Dialogue" for
-		// DialogueDefinition).
+		// The saved type name (the struct's name) and the Create menu label ("Dialogue" for DialogueDefinition).
 		std::string Name;
 		std::string DisplayName;
 		std::type_index CppType = typeid(void);
-		// Type names files may still say (HY_DATA(FormerName("..."))): such a file loads as this type (reported) and is
-		// saved with Name. Delete them once every file is saved.
+		// Old type names: such a file loads as this type (reported) and saves with Name. Delete them once every file is saved.
 		std::vector<std::string> FormerNames;
 
-		// HY_DATA(Definition) / HY_DATA(Table): which assets it can be created as. Neither = a helper type,
-		// only used inside other types.
+		// Which assets it can be created as; neither means a helper type used inside other types.
 		bool CanBeDefinition = false;
 		bool CanBeTable = false;
 
-		// HY_DATA(DisplayField(Name)): the string field row lists and pickers show. Empty = the row ID.
-		// Editor-only: it changes no saving, identity or validity.
+		// The string field row lists and pickers show (empty = the row ID). Editor only.
 		std::string DisplayField;
 
-		// In declaration order, which is also the order they are written in.
+		// In declaration order, which is also the write order.
 		std::vector<DataField> Fields;
 
 		void* (*Construct)() = nullptr;                              // new T()
@@ -160,8 +161,7 @@ namespace Hydro
 		int64_t Value = 0;
 	};
 
-	// An HY_ENUM enum class: its enumerators by name, in declaration order. Saved by name, so reordering or
-	// renumbering enumerators never changes data; renaming one does (validation reports the old name).
+	// An HY_ENUM enum class, saved by enumerator name: reordering is safe, renaming is not (validation reports it).
 	struct DataEnumInfo
 	{
 		std::string Name;
@@ -195,7 +195,7 @@ namespace Hydro
 		std::is_class_v<T> && std::is_same_v<T, std::string> == false && std::is_same_v<T, glm::vec2> == false &&
 		std::is_same_v<T, glm::vec3> == false && std::is_same_v<T, glm::vec4> == false &&
 		std::is_same_v<T, AssetHandle> == false && std::is_same_v<T, DataRowRef> == false &&
-		DataIsList<T>::value == false;
+		std::is_same_v<T, EntityRef> == false && DataIsList<T>::value == false;
 
 	template<typename T>
 	DataValueType MakeDataValueType();
@@ -204,7 +204,8 @@ namespace Hydro
 	const DataListOps& GetDataListOps()
 	{
 		using Element = typename List::value_type;
-		static_assert(DataIsList<Element>::value == false, "Lists of lists are not supported in data types; wrap the inner list in an HY_DATA struct");
+		static_assert(DataIsList<Element>::value == false,
+			"Lists of lists are not supported in data types; wrap the inner list in an HY_DATA struct");
 
 		static const DataListOps ops = []()
 		{
@@ -293,6 +294,10 @@ namespace Hydro
 		{
 			type.Kind = DataFieldKind::RowRef;
 		}
+		else if constexpr (std::is_same_v<T, EntityRef>)
+		{
+			type.Kind = DataFieldKind::EntityRef;
+		}
 		else if constexpr (std::is_enum_v<T>)
 		{
 			type.Kind = DataFieldKind::Enum;
@@ -320,7 +325,7 @@ namespace Hydro
 		{
 			static_assert(DataAlwaysFalse<T>,
 				"Unsupported data field type: bool, int, float, glm::vec2/3/4, std::string, AssetHandle, DataRowRef, "
-				"an HY_ENUM enum class, an HY_DATA struct or a std::vector of one of these");
+				"EntityRef (script properties), an HY_ENUM enum class, an HY_DATA struct or a std::vector of one of these");
 		}
 
 		return type;

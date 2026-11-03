@@ -9,18 +9,8 @@ namespace Hydro
 	class Entity;
 	class Scene;
 
-	// A reference to an entity, kept as its UUID (Scripting plan SC4): a script's HY_PROPERTY set in the editor (pick
-	// an entity, or drag one from the hierarchy onto the field), saved as the UUID and followed by copies (a prefab
-	// instance's or a duplicate's reference to an entity inside the copied set points at its own copy,
-	// Scene::RemapEntityReferences). Get() looks the entity up each call in the scene it belongs to, so it is never
-	// stale: an empty Entity once the target is gone. A script's references belong to its entity's scene (the
-	// property's Apply sets it); one made in code from an Entity belongs to that entity's scene.
-	//
-	//     HY_PROPERTY(Required) EntityRef Door;
-	//     ...
-	//     if (Entity door = Door.Get()) { ... }
-	//
-	// For a component or a script on the entity, ComponentRef<T> (ComponentRef.h).
+	// A reference to an entity, kept as its UUID (a script property, saved and followed by copies). Get() looks it up
+	// each call, so it is never stale. For a component or script on it, use ComponentRef<T>.
 	class EntityRef
 	{
 	public:
@@ -32,8 +22,8 @@ namespace Hydro
 		// The entity's UUID and scene; an empty Entity gives an empty reference.
 		EntityRef(const Entity& entity);
 
-		// The entity, or an empty Entity (false) when the reference is empty, has no scene, or the entity is gone.
-		// An entity pending destruction is still returned: check Entity::IsValid for that.
+		// Empty (false) when the reference is empty, has no scene, or the entity is gone. Pending destruction still
+		// returns it: check Entity::IsValid.
 		Entity Get() const;
 
 		// The saved UUID (0 = none).

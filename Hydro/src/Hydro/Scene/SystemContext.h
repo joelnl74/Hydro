@@ -3,10 +3,8 @@
 
 namespace Hydro
 {
-	// What a scene system is told about the frame it runs in. Every system takes
-	// (Scene&, const SystemContext&), so a new piece of frame data is one more field here rather than
-	// one more parameter on every system. Scene builds it once per update (OnUpdateRuntime /
-	// OnUpdateEditor) and passes the same one to each stage, so all stages of a frame agree.
+	// What a scene system is told about its frame. Every system takes (Scene&, const SystemContext&); Scene builds one
+	// per update and passes it to each stage, so all stages of a frame agree.
 	struct SystemContext
 	{
 		// The step the fixed-timestep stages (physics) advance by, in seconds: 60 Hz.
@@ -18,8 +16,7 @@ namespace Hydro
 		float FixedDeltaTime = DefaultFixedDeltaTime;
 		// Frames completed since Time::Init (Time::GetFrameCount()).
 		uint64_t FrameIndex = 0;
-		// The game is running (Scene::OnUpdateRuntime). False while editing. Game-only systems
-		// return immediately when it is false.
+		// False while editing; game-only systems return at once then.
 		bool IsPlaying = false;
 	};
 }

@@ -1,4 +1,3 @@
-// Game/src/Rules/ItemRules.h
 #pragma once
 
 #include "Data/ItemDefinition.h"
@@ -7,13 +6,13 @@
 
 namespace Hydro
 {
-	// Using items (Scripting plan SC8f): plain rules on the run's state, no UI.
+	// Using items: plain rules on the run's state, no UI.
 	class ItemRules
 	{
 	public:
 		enum class UseResult : uint8_t { Used, NotUsableHere, NoneLeft };
 
-		// Uses one of the inventory's `slot` in the field: restores every party member's MP, and HP of those standing.
+		// Restores every party member's MP, and the HP of those standing.
 		static UseResult UseInField(Inventory::Slot& slot, const ItemDefinition& item, BattleState& party)
 		{
 			if (item.CanUseInField() == false)

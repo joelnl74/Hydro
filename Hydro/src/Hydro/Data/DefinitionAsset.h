@@ -9,9 +9,8 @@
 
 namespace Hydro
 {
-	// A definition (.hydef) loaded by the AssetManager: one record of one HY_DATA type, such as a dialogue or a
-	// shop. Game code reads it through Data::Get<T>(handle), never directly. Loaded again when its file changes;
-	// holders of the old object keep it (DataView relies on that).
+	// A definition (.hydef): one record of one HY_DATA type, read through Data::Get<T>. Reloaded when its file changes;
+	// holders of the old object keep it.
 	class DefinitionAsset : public Asset
 	{
 	public:
@@ -19,12 +18,11 @@ namespace Hydro
 
 		DefinitionAsset(DefinitionData&& data, DataReport&& fileReport);
 
-		// Reads the file; logs what is wrong with it (once per file version: the manager caches the result).
-		// nullptr when it can't be used at all (not YAML, not a definition, an unknown data type).
+		// Reads the file and logs its problems (once per version: the manager caches it). Null when unusable.
 		static Ref<DefinitionAsset> LoadUncached(const std::filesystem::path& path);
 
-		// Writes `data` to `file` (canonical, with the platform's line endings, like Hydro's other files). false
-		// (logged) for read-only data or a file that can't be written. The editor calls AssetManager::MarkSaved after.
+		// Writes `data` canonically. False (logged) for read-only data or an unwritable file. The editor then calls
+		// AssetManager::MarkSaved.
 		static bool Save(const std::filesystem::path& file, const DefinitionData& data);
 		bool Save(const std::filesystem::path& file) const { return Save(file, m_Data); }
 

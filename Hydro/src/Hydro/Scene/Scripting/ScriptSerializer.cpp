@@ -1,6 +1,8 @@
 #include "hypch.h"
 #include "ScriptSerializer.h"
 
+#include "Hydro/Data/DataSerializer.h"
+
 #include <algorithm>
 #include <set>
 
@@ -28,6 +30,18 @@ namespace Hydro
 				{
 					// The target's UUID (0 = none); copies remap it (Scene::RemapEntityReferences).
 					out << (uint64_t)typed.GetId();
+				}
+				else if constexpr (std::is_same_v<Value, ScriptDataValue>)
+				{
+					// A list, enum or struct, as data files write it.
+					if (typed.IsSet())
+					{
+						DataSerializer::WriteValue(out, *typed.GetType(), typed.Get());
+					}
+					else
+					{
+						out << YAML::Null;
+					}
 				}
 				else if constexpr (std::is_same_v<Value, DataRowRef>)
 				{
@@ -70,7 +84,22 @@ namespace Hydro
 					ref.Row = node["Row"].as<std::string>(std::string());
 					return ref;
 				}
-				case ScriptPropertyType::EntityRef: return EntityRef(UUID(node.as<uint64_t>((uint64_t)std::get<EntityRef>(fallback).GetId())));
+				case ScriptPropertyType::EntityRef:
+					return EntityRef(UUID(node.as<uint64_t>((uint64_t)std::get<EntityRef>(fallback).GetId())));
+				case ScriptPropertyType::Data:
+				{
+					// Read over a copy of the default, so what the file leaves out keeps it.
+					const ScriptDataValue* defaults = std::get_if<ScriptDataValue>(&fallback);
+					if (defaults == nullptr || defaults->IsSet() == false)
+					{
+						return fallback;
+					}
+					ScriptDataValue value = *defaults;
+					DataReport report;
+					const bool read = DataSerializer::ReadValue(node, *value.GetType(), value.Get(), report, property.Name);
+					report.Log(read ? "Script property" : "Script property (its default is used)");
+					return read ? ScriptPropertyValue(std::move(value)) : fallback;
+				}
 			}
 		}
 		catch (const YAML::Exception&)
@@ -99,8 +128,8 @@ namespace Hydro
 			{
 				out << YAML::Key << "Properties" << YAML::Value << YAML::BeginMap;
 
-				// Sorted by key, the kept values among the rest, so a scene saves the same way every time (the
-				// property map is unordered). A property's own value wins over a kept one under the same key.
+				// Sorted by key with the kept values, so a scene saves the same way every time. A property's own value wins
+				// over a kept one under the same key.
 				std::vector<std::string> keys;
 				keys.reserve(script.Properties.size() + script.KeptProperties.size());
 				for (const auto& entry : script.Properties)
@@ -158,7 +187,7 @@ namespace Hydro
 		{
 			std::string savedName;
 
-			// Backwards compatibility with the original string-only format.
+			// The original format: a plain script name.
 			if (savedScript.IsScalar())
 			{
 				savedName = savedScript.as<std::string>("");
@@ -174,8 +203,7 @@ namespace Hydro
 				continue;
 			}
 
-			// An entity holds one script of a class (SC4): a second binding (an old file, or one edited by hand) is
-			// dropped, keeping the first; saving writes the scene without it.
+			// One script per class: a second binding (an old or hand-edited file) is dropped, keeping the first.
 			const ScriptTypeInfo* savedType = ScriptRegistry::FindType(savedName);
 			const std::string currentName = savedType != nullptr ? savedType->Name : savedName;
 			if (scripts.Has(currentName))

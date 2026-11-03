@@ -8,27 +8,25 @@
 
 namespace Hydro
 {
-	// The project's assets: handle -> AssetMetadata, plus path -> handle. Plain data, not a subsystem
-	// and not saved: the AssetManager rebuilds it from the files (their "Handle:" lines and .hymeta
-	// sidecars) whenever it scans the asset folder, so the files are the source of truth.
+	// The project's assets: handle -> AssetMetadata, plus path -> handle. Not saved: the AssetManager rebuilds it from
+	// the files whenever it scans the asset folder.
 	class AssetRegistry
 	{
 	public:
-		// Adds `metadata`, replacing an entry with the same handle (and whatever was at its path).
+		// Replaces an entry with the same handle (and whatever was at its path).
 		void Add(const AssetMetadata& metadata);
 		void Remove(AssetHandle handle);
 		void Clear();
 
 		bool Contains(AssetHandle handle) const;
-		// nullptr when the handle isn't registered.
 		const AssetMetadata* Get(AssetHandle handle) const;
-		// The handle of the asset at `relativePath` (relative to the asset folder), or 0.
+		// `relativePath` is relative to the asset folder; 0 when not registered.
 		AssetHandle Find(const std::filesystem::path& relativePath) const;
 
 		size_t GetCount() const { return m_Assets.size(); }
 		const std::unordered_map<AssetHandle, AssetMetadata>& GetAll() const { return m_Assets; }
 
-		// The key paths are compared by: normalised, forward slashes.
+		// Normalised, forward slashes: how paths are compared.
 		static std::string MakePathKey(const std::filesystem::path& relativePath);
 
 	private:

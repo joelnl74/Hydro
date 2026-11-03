@@ -16,9 +16,8 @@ namespace Hydro
 	class RenderView;
 	struct RenderPassContext;
 
-	// A terrain's top surface (Terrain plan, "Surface"; terrain.frag): per art pixel the layer whose weight plus edge
-	// noise plus texture height is highest, its albedo sampled there and mixed with the runner-up's near the border. Plain data, made by SceneRenderer every frame from a Terrain and its
-	// layers' materials; Renderer3D caches its GPU state by value, like Standard materials.
+	// A terrain's top surface material (terrain.frag picks a layer per art pixel), made by SceneRenderer every frame.
+	// Plain data: Renderer3D caches its GPU state by value, like Standard materials.
 	struct TerrainSurfaceMaterial
 	{
 		Ref<Texture2D> Weights;          // the weight map (TerrainCache), sampled linearly and clamped
@@ -47,47 +46,35 @@ namespace Hydro
 		uint32_t TerrainDraws = 0;    // of the mesh draws, terrain surfaces
 	};
 
-	// The 3D part of Renderer (plan M4): static meshes with the Standard material, drawn by the view's Meshes
-	// render feature at the Opaque stage, into the shared depth buffer, before the sprites. Started and
-	// stopped by Renderer::Init / Shutdown.
-	//
-	//   Renderer2D::BeginScene(view, ...);   // the camera
-	//   Renderer3D::BeginScene(view);
-	//   Renderer3D::DrawMesh(mesh, subMesh, material, transform, entityID);
-	//   Renderer3D::EndScene();
-	//   Renderer2D::EndScene();
+	// Queues meshes and terrain surfaces for a view and records them for MeshPass and ShadowMapPass. Call between
+	// Renderer2D::BeginScene and EndScene (its camera); started and stopped by Renderer.
 	class Renderer3D
 	{
 	public:
 		static void Init();
 		static void Shutdown();
 
-		// Queue meshes for `view`, seen through the camera of its Renderer2D::BeginScene this frame. Only
-		// views with shared depth and RenderFeatureSettings::Meshes draw them.
+		// Only views with shared depth and RenderFeatureSettings::Meshes draw them.
 		static void BeginScene(RenderView& view);
 		static void EndScene();
 
-		// One sub-mesh with a Standard material. `entityID` is written to the Editor view's entity-ID
-		// attachment (-1 = not pickable). The material is cached by its data, so meshes with equal materials
-		// share one descriptor set. `castShadows`: also drawn into the view's sun shadow map (R14), when it has one.
-		// `opacity` below 1 dithers the mesh away (screen-door, so depth stays right; 0 = gone); its shadow stays.
-		static void DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform, int32_t entityID,
-			bool castShadows = true, float opacity = 1.0f);
+		// Materials are cached by their data, so equal ones share a descriptor set. `entityID` -1 = not pickable;
+		// `opacity` below 1 dithers the mesh away (0 = gone) while its shadow stays.
+		static void DrawMesh(const Ref<Mesh>& mesh, uint32_t subMesh, const MaterialData& material, const glm::mat4& transform,
+			int32_t entityID, bool castShadows = true, float opacity = 1.0f);
 
-		// One sub-mesh of a terrain's tops with its surface material (TerrainCache's chunk meshes: UVs are positions in
-		// the terrain's space). Drawn in the Meshes pass like DrawMesh; it casts like an opaque mesh.
-		static void DrawTerrainSurface(const Ref<Mesh>& mesh, uint32_t subMesh, const TerrainSurfaceMaterial& material, const glm::mat4& transform,
-			int32_t entityID, bool castShadows = true);
+		// A TerrainCache chunk mesh (UVs are positions in the terrain's space); it casts like an opaque mesh.
+		static void DrawTerrainSurface(const Ref<Mesh>& mesh, uint32_t subMesh, const TerrainSurfaceMaterial& material,
+			const glm::mat4& transform, int32_t entityID, bool castShadows = true);
 
-		// The built-in shape of `component` (shape, size, steps, segments), made once and kept while used.
+		// Made once per shape and parameters, and kept while used.
 		static Ref<Mesh> GetShapeMesh(const MeshComponent& component);
 
-		// The Meshes feature's pass (Renderer2D's render graph). Records the view's queued meshes.
+		// MeshPass: the view's queued meshes.
 		static void RecordMeshes(RenderPassContext& context);
-		// Part of the SunShadows pass (Renderer2D, R14): the view's queued meshes that cast shadows, depth only
-		// (cut out like their material), into the view's shadow map, which the pass has begun.
+		// ShadowMapPass, inside the map it has begun: the casting meshes, depth only, cut out like their material.
 		static void RecordShadowCasters(RenderPassContext& context);
-		// After the frame is recorded: frees shapes and materials no frame has used for a while, updates the stats.
+		// Frees shapes and materials no frame has used for a while and updates the stats.
 		static void EndFrame();
 		// A shader of the VulkanShaderLibrary was reloaded: drops the pipelines built from it.
 		static void OnShaderReloaded(const std::string& name);

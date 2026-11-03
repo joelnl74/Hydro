@@ -9,18 +9,14 @@
 
 namespace Hydro
 {
-	// The Standard material (plan M4): albedo times tint, an optional normal map, plus emission, opaque or cut out. The MVP's only
-	// material type; lit by M6's forward lights, otherwise unlit. Plain data: inline on a MeshComponent's
-	// material slot, or saved as a material asset (.hymat, MaterialAsset). Renderer3D turns it into GPU
-	// state (a cached uniform buffer and descriptor set per distinct MaterialData).
+	// The Standard material: albedo times tint, an optional normal map, emission, opaque or cut out. Plain data, inline
+	// on a mesh slot or saved as a .hymat; Renderer3D caches GPU state per distinct MaterialData.
 	struct MaterialData
 	{
 		AssetHandle Albedo = 0;   // a Texture2D; 0 = white
 		AssetHandle Emissive = 0; // a Texture2D multiplied by EmissionColor * EmissionIntensity; 0 = white
-		// A tangent-space normal map (a Texture2D imported as RGBA data, not SRGB), sampled at the albedo's UV with the
-		// material's filter: red = right (+U), green = up the image (-V, glTF / OpenGL), blue = out of the surface.
-		// The tangent frame comes from the surface's UVs in the fragment shader (no tangents in the vertices).
-		// 0 = none (the surface's own normal). scripts/game/textures/make_normal_maps.py makes them from albedos.
+		// A tangent-space normal map (imported as RGBA data, green up the image, glTF style), sampled at the albedo's UV.
+		// 0 = the surface's own normal. scripts/game/textures/make_normal_maps.py makes them from albedos.
 		AssetHandle Normal = 0;
 		float NormalStrength = 1.0f; // 0 = flat, 1 = as the map says, 2 = twice as steep
 		glm::vec4 Tint{ 1.0f };   // linear RGBA, multiplies the albedo
@@ -41,13 +37,8 @@ namespace Hydro
 		bool operator!=(const MaterialData& other) const { return (*this == other) == false; }
 	};
 
-	// A material asset (plan M4b): a .hymat file (MaterialSerializer) holding one MaterialData, shared by
-	// every mesh slot that names its handle. The AssetManager loads it (AssetManager::GetAsset<MaterialAsset>),
-	// together with its textures, and keeps it until the project closes or the file changes.
-	//
-	// Unlike GPU resources it is editable: it is only data, and Renderer3D builds GPU state from whatever
-	// data a mesh resolves to each frame. The editor changes it with SetData (every mesh using it changes at
-	// once) and then saves the file; loading the saved file gives the same data.
+	// A .hymat material asset shared by every mesh slot that names it. Only data, so it is editable: SetData changes
+	// every mesh using it at once.
 	class MaterialAsset : public Asset
 	{
 	public:
@@ -57,8 +48,7 @@ namespace Hydro
 		MaterialAsset(const MaterialAsset&) = delete;
 		MaterialAsset& operator=(const MaterialAsset&) = delete;
 
-		// Reads a .hymat file and loads its textures, without sharing: every call makes a new asset. Returns
-		// nullptr (logged) when the file can't be read. The AssetManager's loader calls this.
+		// Reads a .hymat and loads its textures, unshared (the AssetManager's loader). nullptr (logged) on failure.
 		static Ref<MaterialAsset> LoadUncached(const std::filesystem::path& path);
 
 		static AssetType GetStaticType() { return AssetType::Material; }

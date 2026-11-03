@@ -11,7 +11,7 @@
 
 namespace Hydro
 {
-	// The type name in the file; the only material type of the MVP.
+	// The type name in the file; the only material type so far.
 	static constexpr const char* StandardMaterialType = "Standard";
 
 	// The fields of a material, inside a map the caller opened.
@@ -128,7 +128,8 @@ namespace Hydro
 			const std::string type = material["Type"].as<std::string>(StandardMaterialType);
 			if (type != StandardMaterialType)
 			{
-				HY_CORE_WARN("MaterialSerializer: '{}' is a '{}' material; read as Standard (the only type so far)", filepath.string(), type);
+				HY_CORE_WARN("MaterialSerializer: '{}' is a '{}' material; read as Standard (the only type so far)",
+					filepath.string(), type);
 			}
 			data = DeserializeData(material);
 		}

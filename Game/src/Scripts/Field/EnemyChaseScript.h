@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/EnemyChaseScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -13,17 +12,8 @@
 
 namespace Hydro
 {
-	// ---------------------------------------------------------------------------------------------------------
-	// Village
-
-	// An enemy for the field: wanders around where it was placed, runs after the entity tagged "Player" when
-	// it comes close, gives up when the player gets far away, and starts a battle when it touches the player
-	// (OnCollisionEnter: both need a body). What it is is its Enemy row (Enemies.hytable: its name, its field speed,
-	// whether it floats and sways); unset, its tag decides: tags starting with "Wisp" are spirit wisps, everything else
-	// a slime. Who fights is its Encounter row (Encounters.hytable); unset, it and up to two random slimes or wisps. After a battle the
-	// player did not win it goes home and ignores the player for a few seconds; after a win it disappears.
-	// A Dormant one waits hidden until a quest wakes it (Wake(), the Shrine Glade's slimes, ShrineQuestScript).
-	// Put it on a Dynamic Rigidbody2D (GravityScale 0, high LinearDamping, FixedRotation) with a Box collider.
+	// A field enemy: wanders near home, chases the player when close and starts a battle on touch. Its Enemy and Encounter
+	// rows say what it is and who fights; a Dormant one waits hidden until a quest wakes it.
 	HY_SCRIPT()
 	class EnemyChaseScript : public ScriptableEntity
 	{
@@ -51,7 +41,7 @@ namespace Hydro
 		HY_PROPERTY(DataRow(EncounterDefinition), Tooltip("Who fights when it touches the player; unset: it and up to two random slimes or wisps"))
 		DataRowRef Encounter;
 
-		// A dormant enemy appears where it was placed (fading in) and starts wandering. Nothing when it is awake.
+		// Nothing when it is awake.
 		void Wake()
 		{
 			if (Dormant == false)
@@ -84,8 +74,7 @@ namespace Hydro
 				m_Row = "Wisp";
 			}
 
-			// Dormant: parked far below the map, so its collider (kinematic, it has a script) blocks nobody, and
-			// invisible.
+			// Dormant: invisible and parked far below the map, so its collider blocks nobody.
 			m_DormantPlace = position;
 			if (Dormant)
 			{
@@ -117,7 +106,8 @@ namespace Hydro
 			}
 
 			// The battle this enemy started is over: the scene below carries on and reads the result.
-			if (BattleState::Get().Active && BattleState::Get().EnemyId == (uint64_t)self.GetUUID() && BattleState::Get().Outcome != BattleState::Result::None)
+			if (BattleState::Get().Active && BattleState::Get().EnemyId == (uint64_t)self.GetUUID()
+				&& BattleState::Get().Outcome != BattleState::Result::None)
 			{
 				const BattleState::Result outcome = BattleState::Get().Outcome;
 				BattleState::Get().Active = false;
@@ -150,8 +140,7 @@ namespace Hydro
 				m_PlayerPosition = { playerPosition.x, playerPosition.y };
 				playerDistance = glm::length(m_PlayerPosition - position);
 
-				// A player without a physics body (DioramaWalk in the Shrine Glade) never collides: touching
-				// is being this close on the same level.
+				// A player without a physics body never collides: touching is being this close on the same level.
 				if (scene->m_Registry.has<Rigidbody2DComponent>(m_Player) == false && playerDistance < TouchRange
 					&& std::abs(playerPosition.z - world.z) < 0.5f)
 				{
@@ -190,7 +179,6 @@ namespace Hydro
 					const glm::vec2 toTarget = m_Target - position;
 					if (glm::length(toTarget) < 0.25f || m_WalkTime > 4.0f)
 					{
-						// Rest, then pick a spot near home.
 						m_WalkTime = 0.0f;
 						m_Wait = 1.0f + 2.0f * Random01();
 						const float angle = Random01() * 6.2831853f;
@@ -228,7 +216,7 @@ namespace Hydro
 				}
 			}
 
-			// Floating ones (wisps) drift: a slow sideways sway on top of where they are going.
+			// Floating ones (wisps) sway sideways on top of where they are going.
 			if (definition.FloatHeight > 0.0f)
 			{
 				velocity.x += std::sin(m_Time * 1.7f + (float)(m_Seed & 7)) * 0.35f;
@@ -241,7 +229,6 @@ namespace Hydro
 
 			SpriteAnimator::SetSpeed(self, animationSpeed);
 
-			// Its own light (a wisp's) breathes a little.
 			if (self.HasComponent<Light2DComponent>())
 			{
 				if (m_LightBase < 0.0f)
@@ -262,8 +249,7 @@ namespace Hydro
 		}
 
 	private:
-		// The village (or field) is paused under the battle scene. Once per touch: not while cooling down
-		// after a battle or while one runs.
+		// Once per touch: not while cooling down after a battle or while one runs.
 		void StartBattle()
 		{
 			if (m_Cooldown > 0.0f || BattleState::Get().Active)
@@ -271,7 +257,6 @@ namespace Hydro
 				return;
 			}
 
-			// The village is paused under the battle: this enemy remembers it started it, and brings friends.
 			Entity self = GetEntity();
 			BattleState::Get().Active = true;
 			BattleState::Get().EnemyId = (uint64_t)self.GetUUID();
@@ -279,7 +264,8 @@ namespace Hydro
 			std::array<std::string, BattleState::MaxEnemies>& slots = BattleState::Get().Encounter;
 			slots = { m_Row, std::string(), std::string() };
 			int count = 1;
-			const DataView<EncounterDefinition> encounter = Encounter.IsSet() ? Data::GetRow<EncounterDefinition>(Encounter) : DataView<EncounterDefinition>();
+			const DataView<EncounterDefinition> encounter = Encounter.IsSet() ? Data::GetRow<EncounterDefinition>(Encounter)
+				: DataView<EncounterDefinition>();
 			BattleState::Get().EncounterLoot = encounter.IsValid() ? encounter->Loot : DataRowRef();
 			if (encounter.IsValid() && encounter->Enemies.empty() == false)
 			{
@@ -294,7 +280,7 @@ namespace Hydro
 			}
 			else
 			{
-				// The default: it brings up to two friends, wisps more often when it is one.
+				// The default: up to two friends, wisps more often when it is one.
 				const float roll = Random01();
 				const int extra = roll < 0.3f ? 0 : (roll < 0.75f ? 1 : 2);
 				for (int i = 1; i <= extra; i++)
@@ -310,7 +296,6 @@ namespace Hydro
 		}
 
 		enum class State : uint8_t { Wander, Chase, Return };
-
 
 		static entt::entity FindPlayer(Scene& scene)
 		{
@@ -335,7 +320,7 @@ namespace Hydro
 			return (float)(m_Seed & 0xFFFFFF) / (float)0x1000000;
 		}
 
-		// The sprite's and its blob shadow's opacity (a dormant enemy is invisible, a woken one fades in).
+		// The sprite's and its blob shadow's opacity.
 		void SetAlpha(float alpha)
 		{
 			Entity self = GetEntity();
@@ -361,7 +346,7 @@ namespace Hydro
 		glm::vec2 m_PlayerPosition{ 0.0f };
 		float m_Wait = 1.0f;
 		float m_WalkTime = 0.0f;
-		float m_Cooldown = 0.0f; // seconds the enemy ignores the player (after a battle)
+		float m_Cooldown = 0.0f; // seconds the enemy ignores the player after a battle
 		float m_Time = 0.0f;
 		float m_LightBase = -1.0f;
 		float m_ShadowStrength = -1.0f;

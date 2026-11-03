@@ -1,11 +1,10 @@
-// Game/src/Data/CombatStats.h
 #pragma once
 
 #include "Hydro/Scene/Scripting/ReflectionMacros.h"
 
 namespace Hydro
 {
-	// A combatant's numbers. A hero's grow with its level (HeroDefinition: Base + GrowthPerLevel per level above 1).
+	// A combatant's numbers. A hero's grow with its level (Base + GrowthPerLevel per level above 1).
 	HY_DATA()
 	struct CombatStats
 	{

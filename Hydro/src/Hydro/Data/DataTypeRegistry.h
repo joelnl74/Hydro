@@ -11,15 +11,12 @@
 
 namespace Hydro
 {
-	// The data types (HY_DATA structs) and enums (HY_ENUM) by name. A lookup table like ScriptRegistry, not a
-	// subsystem: no lifecycle, filled by the generated RegisterGeneratedDataReflection() before any data is read.
-	//
-	// The engine only knows the mechanism; the types themselves (dialogue, items, combatants) are the game's.
+	// The data types (HY_DATA) and enums (HY_ENUM) by name: a lookup table filled by the generated
+	// RegisterGeneratedDataReflection() before any data is read. The types themselves are the game's.
 	class DataTypeRegistry
 	{
 	public:
-		// `name` is saved in files (the generator uses the C++ struct name): rename it only with a former name.
-		// `formerNames`: type names files may still say (HY_DATA(FormerName("..."))).
+		// `name` is saved in files: rename it only with a former name (`formerNames`).
 		template<typename T>
 		static DataTypeRegistration<T> Register(const std::string& name, const std::string& displayName,
 			const std::vector<std::string>& formerNames = {});

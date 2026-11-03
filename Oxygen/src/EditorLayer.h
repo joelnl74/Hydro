@@ -20,17 +20,8 @@
 
 namespace Hydro
 {
-	// What Oxygen was started with (OxygenEditorApplication parses the command line), so a scene can be
-	// opened, played, captured and checked without anyone at the keyboard:
-	//
-	//   Oxygen [--project <file.hyproj>] [--scene <name | file.hyscene>] [--play] [--frames <n>]
-	//          [--capture <file.png>] [--validate] [--exit]
-	//
-	// --project opens that project instead of the last one; --scene a scene of it (a name looks in its
-	// Assets/Scenes). --play presses Play. After --frames frames (120 by default) --capture saves the Game
-	// view (1280 x 720) to that file, and --exit closes the editor (--capture and --validate imply it).
-	// --validate loads every scene of the project, logs what is missing, and exits with code 1 when any
-	// warned. All of it is logged (logs/Hydro.log and the console).
+	// Oxygen's command line (--project, --scene, --play, --frames, --capture, --validate, --exit; --help lists them),
+	// so a scene can be opened, played, captured and checked unattended. See docs/TestBed.md.
 	struct EditorLaunchOptions
 	{
 		std::filesystem::path Project;
@@ -61,7 +52,7 @@ namespace Hydro
 		virtual void OnEvent(Event& e) override;
 
 	private:
-		// Projects (.hyproj, YAML). Opening one applies its render settings and opens its start scene.
+		// Projects (.hyproj). Opening one applies its render settings and opens its start scene.
 		void NewProject();
 		bool OpenProject();
 		void OpenProject(const std::filesystem::path& path);
@@ -88,22 +79,20 @@ namespace Hydro
 		// Saves the open scene every Autosave.IntervalMinutes while editing.
 		void UpdateAutosave(float deltaTime);
 
-		// The windows in the View menu, by menu name: the menu, the session and the restore all use
-		// this one list, so a window added here is remembered too.
+		// The View menu's windows: the menu, the session and the restore all use this one list.
 		struct ViewWindow
 		{
 			const char* Name;
 			bool* Open;
 		};
 		std::vector<ViewWindow> GetViewWindows();
-		// Opens / closes the View menu windows as the session left them (windows not listed keep their default).
+		// Opens and closes the View menu windows as the session left them.
 		void RestoreOpenWindows();
 		// Copies the windows' open state into the session; returns true when it changed.
 		bool StoreOpenWindows();
 
-		// Scenes (.hyscene, YAML). These always work on the editor scene and stop play mode first.
-		// New Scene starts as a copy of the project's scene template (ProjectConfig::SceneTemplate) when it has
-		// one; New Empty Scene, or a template that can't be loaded, gives a scene with only a camera.
+		// Scenes (.hyscene). These work on the editor scene and stop play mode first. New Scene copies the project's
+		// scene template when it has one; otherwise, and for New Empty Scene, the scene has only a camera.
 		void NewScene();
 		void NewEmptyScene();
 		void OpenScene();
@@ -112,22 +101,19 @@ namespace Hydro
 		void SaveSceneAs();
 		void SetEditorScene(const Ref<Scene>& scene);
 
-		// Play mode. Play runs a copy of the editor scene (Scene::Copy) with OnUpdateRuntime; Stop
-		// throws the copy away, so nothing done while playing changes the editor scene.
+		// Play runs a copy of the editor scene; Stop throws the copy away, so playing never changes the editor scene.
 		void PlayScene();
 		void StopScene();
-		// Runs the Push / Pop a script asked for through SceneTransition (see there): the running scene goes
-		// on a stack, or is replaced by the one below it. Called after the frame's update.
+		// Runs the Push or Pop a script asked for through SceneTransition. Called after the frame's update.
 		void ProcessSceneTransition();
-		// Selects, in `scene`, the entity with the same UUID as `previous` (an entity of the scene being
-		// left); clears the selection when there is none. Play and Stop use it to keep the selection.
+		// Selects the entity in `scene` with the same UUID as `previous`, or clears the selection. Keeps it across Play/Stop.
 		void SelectSameEntity(Entity previous, Scene& scene);
 		bool IsPlaying() const { return m_SceneState == SceneState::Play; }
 
-		// Prefab / scene dropped from the project window onto the editor or game window.
+		// A prefab or scene dropped from the Project window onto the Editor or Game window.
 		void OnAssetDropped(const std::filesystem::path& path);
-		// A folder or asset was renamed in the Project window: moves the open scene's path (and its name),
-		// the last session scene, the inspected asset and the sprite windows' files if they were at or inside it.
+		// A path renamed in the Project window: the open scene, the session scene, the inspected asset and the sprite
+		// windows' files follow it.
 		void OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to);
 		// A file was deleted in the Project window: whatever shows or edits it lets go.
 		void OnPathDeleted(const std::filesystem::path& path);
@@ -135,9 +121,8 @@ namespace Hydro
 
 		// Asset editors. Images open in the Sprite Editor, .hyanim files in the Animation window.
 		void OpenAsset(const std::filesystem::path& path);
-		// An image's .hymeta was saved: sprites (editor and play scene) and the animation sets that
-		// use the image get the re-imported texture (the AssetManager reloads it into the same handle), keeping
-		// each sprite by name. Called before the window that saved the file reads the image again.
+		// An image's .hymeta was saved: sprites and animation sets that use it get the re-imported texture (same handle),
+		// keeping each sprite by name. Called before the saving window reads the image again.
 		void OnTextureReimported(const std::filesystem::path& imagePath);
 		// A .hyanim was saved: animators that play it get the new set.
 		void OnAnimationSetSaved(const std::filesystem::path& path);
@@ -150,20 +135,19 @@ namespace Hydro
 		void DrawEditorCameraMenu();
 		// Over the Editor window's image: the fly speed while the camera flies.
 		void DrawEditorCameraHint(const ImVec2& imageMin);
+		// The script gizmos' labels (OnDrawGizmos), projected onto the Editor window's image.
+		void DrawScriptGizmoLabels(const ImVec2& imageMin, const ImVec2& imageSize);
 		// Game window: the active scene through its primary camera, as the game will show it.
 		void DrawGameWindow();
-		// Game full screen (F11, or Full screen in the Game window's menu bar): the game view covers the
-		// editor's whole window, drawn over everything else, and with PlayModeSettings::FullscreenCoversMonitor
-		// the editor's window covers the monitor too. F11 or Escape leaves it.
+		// Game full screen (F11): the game view covers the editor's window, and with FullscreenCoversMonitor the window
+		// covers the monitor too. F11 or Escape leaves it.
 		void SetGameFullscreen(bool fullscreen);
 		void DrawGameFullscreen();
 		void UpdateFullscreenKeys();
-		// Sizes a view (and the scene's or editor camera's viewport) to its window. A capture asked for
-		// with the Capture menu or F9 / Shift+F9 is requested here, at the fixed capture size if that
-		// option is on (the window shows that one frame stretched).
+		// Sizes a view and its camera's viewport to its window. A pending capture is requested here, at the fixed
+		// capture size if that option is on.
 		void ResizeGameView(uint32_t width, uint32_t height);
-		// Tells the active scene where the pointer is over the Game view's image just drawn (the last ImGui item, at
-		// `imagePosition`, `imageSize` big), for the runtime UI: view pixels with Y up, over it or not, button down.
+		// Tells the active scene where the pointer is over the Game view's image (view pixels, Y up), for the runtime UI.
 		void UpdateGamePointer(const ImVec2& imagePosition, const ImVec2& imageSize);
 		void ResizeEditorView(uint32_t width, uint32_t height);
 		// The Capture menu, shown in the Editor and Game windows' menu bars.
@@ -175,25 +159,24 @@ namespace Hydro
 		void Redo();
 		// <project>/.hydro/captures/<scene>_<view>_<yyyymmdd-hhmmss-mmm>.png
 		std::filesystem::path MakeCapturePath(const std::string& viewName) const;
-		// The transform gizmo (ImGuizmo) over the Editor view's image (at `imageMin`, `imageSize` ImGui
-		// pixels), on the selected entity, in edit mode only. Dragging it changes the editor scene's
-		// TransformComponent; holding Ctrl snaps to EditorSettings::Gizmo.
+		// The transform gizmo over the Editor view's image, on the selected entity, in edit mode only.
+		// Holding Ctrl snaps to EditorSettings::Gizmo.
 		void DrawTransformGizmo(const ImVec2& imageMin, const ImVec2& imageSize);
 		// The gizmo's switches in the Editor window's menu bar: Move / Rotate / Scale and Local / World.
 		void DrawGizmoMenu();
-		// W move, E rotate, R scale, Q no gizmo, T local / world: over the Editor window, in edit mode,
-		// while the camera isn't dragging (W/E/Q fly it) and nothing takes text.
+		// W move, E rotate, R scale, Q none, T local/world: over the Editor window, in edit mode, while the camera isn't
+		// dragging and nothing takes text.
 		void UpdateGizmoKeys();
 		// Moves the editor camera to the entity and zooms to frame it (the selection outline shows which).
 		void FocusEntity(Entity entity);
-		// Click-to-select: a left click in the Editor view's image (at `imageMin`, `imageSize` ImGui pixels)
-		// asks the view for the entity under it; the answer, a frame or two later, selects it (or clears).
+		// Click-to-select: a left click in the Editor view's image asks the view for the entity under it; the answer
+		// arrives a frame or two later.
 		void UpdateClickSelection(const ImVec2& imageMin, const ImVec2& imageSize);
 		// A new scene starts with a primary camera framing the origin.
 		void CreateDefaultCamera();
 
-		// Demo scene: animated spiral galaxy, big enough to need several batches. The stars are raw
-		// registry entities (not saved, not copied by Scene::Copy), so PlayScene copies them itself.
+		// Demo scene: an animated spiral galaxy. The stars are raw registry entities (not saved, not copied by
+		// Scene::Copy), so PlayScene copies them itself.
 		void CreateGalaxy();
 		void UpdateGalaxy(Scene& scene, float deltaTime);
 		static void CopyGalaxyStars(Scene& source, Scene& destination);
@@ -211,7 +194,6 @@ namespace Hydro
 		bool m_Paused = false;
 		uint32_t m_StepFrames = 0; // runtime frames still to run while paused (Step button)
 
-		// Editor Windows.
 		Hydro::Ref<HierarchyWindow> m_HierarchyWindow;
 		Hydro::Ref<StatsWindow> m_StatsWindow;
 		Hydro::Ref<ConsoleWindow> m_ConsoleWindow;
@@ -227,8 +209,7 @@ namespace Hydro
 		std::filesystem::path m_InspectedAsset;
 		entt::entity m_LastSelectedEntity = entt::null;
 
-		// How the editor looks and behaves; loaded from EditorSettings.yaml in OnAttach. The session
-		// part (last project / scene) is kept up to date here and written on close.
+		// Loaded from EditorSettings.yaml in OnAttach; the session part is kept up to date here and written on close.
 		EditorSettings m_EditorSettings;
 		float m_AutosaveTimer = 0.0f; // seconds since the last save
 
@@ -241,6 +222,9 @@ namespace Hydro
 		// Editor window overlays (this session only): outline the selected entity / every collider.
 		bool m_ShowSelectionOutline = true;
 		bool m_ShowColliders = false;
+		// What scripts draw for the Editor view (OnDrawGizmos), collected every frame while shown.
+		bool m_ShowScriptGizmos = true;
+		Gizmos m_ScriptGizmos;
 		bool m_FocusKeyDown = false; // F pressed last frame, so holding it focuses once
 		// Transform gizmo (this session only). None hides it.
 		enum class GizmoOperation : uint8_t { None, Translate, Rotate, Scale };
@@ -248,11 +232,11 @@ namespace Hydro
 		bool m_GizmoLocal = false;   // the entity's own axes instead of the world's (scaling always uses its own)
 		bool m_GizmoHovered = false; // the mouse is over a handle or drags one: a click there doesn't select
 		bool m_GizmoUsing = false;   // a handle is being dragged: the editor camera takes no new drags
-		// The undo history (EditorCommand; issue #165) and the Terrain tool, whose strokes are its first commands.
+		// The undo history (#165) and the Terrain tool, whose strokes are its first commands.
 		EditorCommandStack m_Commands;
 		TerrainTool m_TerrainTool;
 		bool m_TerrainToolOwnsMouse = false; // painting a terrain: no click-to-select, no gizmo
-		// Click-to-select in the Editor view (M7): a left press in the image, a release without moving.
+		// Click-to-select in the Editor view: a left press in the image, then a release without moving.
 		bool m_ClickPending = false;
 		ImVec2 m_ClickStart{ 0.0f, 0.0f };
 		bool m_GameViewVisible = false;

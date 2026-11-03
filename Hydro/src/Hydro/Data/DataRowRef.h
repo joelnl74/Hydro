@@ -7,9 +7,8 @@
 
 namespace Hydro
 {
-	// Names one row of a data table: the table asset and the row's ID. Scenes, other rows and (later) saves
-	// store this, never a pointer: the row ID is the row's lasting identity, the table namespaces it
-	// ("Items:Potion"). Saved as { Table: <handle>, Row: <id> }.
+	// Names one data table row (table asset + row ID); store this, never a pointer. The row ID is the row's lasting
+	// identity. Saved as { Table: <handle>, Row: <id> }.
 	struct DataRowRef
 	{
 		AssetHandle Table = 0;

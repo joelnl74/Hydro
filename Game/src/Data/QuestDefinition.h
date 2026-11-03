@@ -1,4 +1,3 @@
-// Game/src/Data/QuestDefinition.h
 #pragma once
 
 #include "Data/DialogueDefinition.h"
@@ -10,14 +9,11 @@
 #include <string>
 #include <vector>
 
-// A quest's words: its title and the objective of each stage (Assets/Data/Quests.hytable). A story quest is moved on by
-// its scripts (ShrineQuestScript, CountrysideQuestScript); a side quest (Kind Defeat or Collect) is entirely data: an
-// NPC offers it, the run counts it (Rules/QuestRules.h) and the NPC takes it back (QuestGiverScript). QuestLog keeps
-// which quests the run has, their stage and progress (game state, not data).
+// A quest's title and the objective of each stage. Story quests are moved on by their scripts; side quests (Defeat or
+// Collect) are entirely data. QuestLog keeps the run's progress.
 namespace Hydro
 {
-	// What a quest asks. Story: its scripts decide. Defeat: win battles against Count of Enemy. Collect: bring
-	// Count of Item (from loot or gathering), handed over when it is turned in. Saved by name.
+	// Story: its scripts decide. Defeat: win battles against Count of Enemy. Collect: bring Count of Item. Saved by name.
 	HY_ENUM()
 	enum class QuestKind : uint8_t
 	{
@@ -41,7 +37,7 @@ namespace Hydro
 		HY_PROPERTY(Tooltip("In order; the quest's script moves from one to the next (a side quest: what to do, then whom to return to)"))
 		std::vector<QuestStage> Stages;
 
-		// Side quests (Kind Defeat or Collect; a story quest leaves these empty).
+		// A story quest leaves these empty.
 		HY_PROPERTY(Tooltip("Story: its scripts move it on; Defeat / Collect: a side quest an NPC offers (QuestGiverScript)"))
 		QuestKind Kind = QuestKind::Story;
 		HY_PROPERTY(Tooltip("Side quests: who offers it and takes it back: the name after \"Npc \" in their tag"))

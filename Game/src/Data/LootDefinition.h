@@ -1,4 +1,3 @@
-// Game/src/Data/LootDefinition.h
 #pragma once
 
 #include "Data/ItemDefinition.h"
@@ -7,14 +6,11 @@
 
 #include <vector>
 
-// What a won battle or an opened chest gives (Assets/Data/Loot.hytable): an enemy and an encounter name a loot table
-// (EnemyDefinition::Loot, EncounterDefinition::Loot), a chest names one in its tag ("Chest <row>", FieldDirectorScript). A roll first decides whether anything drops (DropChance), then
-// picks a rarity by its chance among the table's rarities that have items, then one of those items (their rarity is
-// the item's, ItemDefinition::Rarity) and a count. Rules/LootRules.h rolls it.
+// What a won battle or an opened chest gives: whether anything drops, then a rarity by its chance, then one of its items
+// and a count. Rules/LootRules.h rolls it.
 namespace Hydro
 {
-	// A rarity's share of a table's drops, in percent (the shares of the rarities present are compared, so they
-	// needn't add up to 100).
+	// A rarity's share of a table's drops; the present rarities' shares are compared, so they needn't add up to 100.
 	HY_DATA()
 	struct RarityChance
 	{

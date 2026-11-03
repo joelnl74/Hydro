@@ -35,7 +35,8 @@ namespace Hydro
 	VulkanImage::VulkanImage(const ImageSpecification& spec, const void* pixels, const TextureProperties& properties)
 	{
 		HY_CORE_ASSERT(spec.Width > 0 && spec.Height > 0, "VulkanImage: a texture needs a size");
-		HY_CORE_ASSERT(spec.Format == ImageFormat::RGBA || spec.Format == ImageFormat::SRGB, "VulkanImage: pixel uploads are RGBA8 (RGBA or SRGB)");
+		HY_CORE_ASSERT(spec.Format == ImageFormat::RGBA || spec.Format == ImageFormat::SRGB,
+			"VulkanImage: pixel uploads are RGBA8 (RGBA or SRGB)");
 		HY_CORE_ASSERT(pixels != nullptr, "VulkanImage: no pixels");
 
 		m_Width = spec.Width;
@@ -60,8 +61,9 @@ namespace Hydro
 		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 		if (spec.Usage == ImageUsage::Attachment)
 		{
-			// Colour targets can be copied out (VulkanImageReadback: view captures, later picking).
-			usage |= isDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+			// Colour targets can be copied out (VulkanImageReadback).
+			usage |= isDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+				: (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
 		}
 		else
 		{
@@ -79,13 +81,13 @@ namespace Hydro
 
 	VulkanImage::~VulkanImage()
 	{
-		if (m_VulkanImageInfo.Image == VK_NULL_HANDLE && m_VulkanImageInfo.ImageView == VK_NULL_HANDLE && m_VulkanImageInfo.Sampler == VK_NULL_HANDLE)
+		if (m_VulkanImageInfo.Image == VK_NULL_HANDLE && m_VulkanImageInfo.ImageView == VK_NULL_HANDLE
+			&& m_VulkanImageInfo.Sampler == VK_NULL_HANDLE)
 		{
 			return;
 		}
 
-		// Frames in flight may still sample or render to it (a sprite's texture dropped mid-frame, a
-		// render target replaced on resize): free it once they are done.
+		// Frames in flight may still use it (a texture dropped mid-frame, a target replaced on resize).
 		VkDevice device = Renderer::GetVulkanDevice().GetDevice();
 		Renderer::SubmitResourceFree([device, info = m_VulkanImageInfo]()
 		{
@@ -209,7 +211,8 @@ namespace Hydro
 			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 			barrier.srcAccessMask = 0;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0,
+				nullptr, 1, &barrier);
 
 			vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
@@ -218,7 +221,8 @@ namespace Hydro
 			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0,
+				nullptr, 1, &barrier);
 		});
 
 		allocator.DestroyBuffer(stagingBuffer, stagingAlloc);
@@ -265,17 +269,18 @@ namespace Hydro
 			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-				0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-			vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_VulkanImageInfo.Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+			vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_VulkanImageInfo.Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+				&region);
 
 			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+				VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		});
 
 		allocator.DestroyBuffer(stagingBuffer, stagingAlloc);

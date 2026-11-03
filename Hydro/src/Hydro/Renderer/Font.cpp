@@ -9,8 +9,7 @@
 
 namespace Hydro
 {
-	// One line of a BMFont text file: its tag ("char", "common"...) and its key=value pairs (quoted values may hold
-	// spaces).
+	// One line of a BMFont text file: its tag ("char", "common"...) and key=value pairs (quoted values may hold spaces).
 	struct BMFontLine
 	{
 		std::string Tag;
@@ -230,8 +229,8 @@ namespace Hydro
 			}
 			pages.push_back(page);
 		}
-
-		HY_CORE_INFO("Font: '{}' ({} px, {} characters, {} kerning pairs)", path.filename().string(), data.Size, data.Glyphs.size(), data.Kerning.size());
+		HY_CORE_INFO("Font: '{}' ({} px, {} characters, {} kerning pairs)", path.filename().string(), data.Size, data.Glyphs.size(),
+			data.Kerning.size());
 		return CreateRef<Font>(data, std::move(pages));
 	}
 

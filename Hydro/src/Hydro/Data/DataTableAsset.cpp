@@ -54,7 +54,8 @@ namespace Hydro
 		std::string text;
 		if (DataSerializer::WriteTable(data, text) == false)
 		{
-			HY_CORE_ERROR("DataTableAsset: '{}' is read-only (newer than this build, or broken: see its messages); not saved", file.filename().string());
+			HY_CORE_ERROR("DataTableAsset: '{}' is read-only (newer than this build, or broken: see its messages); not saved",
+				file.filename().string());
 			return false;
 		}
 		std::ofstream out(file, std::ios::trunc);

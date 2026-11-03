@@ -8,8 +8,8 @@ namespace Hydro
 {
 	class Scene;
 
-	// Main "Stats" window: frame rate / frame time benchmarks at the top,
-	// with tabs for the frame's CPU/GPU breakdown, rendering and the scene.
+	// The "Stats" window: frame rate and frame time at the top, and tabs for the frame breakdown, rendering
+	// and the scene.
 	class StatsWindow
 	{
 	public:
@@ -30,7 +30,7 @@ namespace Hydro
 		int m_HistoryOffset = 0;
 		int m_HistoryCount = 0;
 
-		// Summary over the history window (recomputed every frame).
+		// Summary of the history, recomputed every frame.
 		float m_AvgMs = 0.0f, m_MinMs = 0.0f, m_MaxMs = 0.0f, m_OnePercentLowFps = 0.0f;
 
 		bool m_Open = true;

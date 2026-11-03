@@ -1,4 +1,3 @@
-// Game/src/Rules/QuestRules.h
 #pragma once
 
 #include "Data/QuestDefinition.h"
@@ -10,16 +9,12 @@
 
 namespace Hydro
 {
-	// Side quests' counting (QuestDefinition Kind Defeat / Collect): plain rules on the quest log's entries, no scene,
-	// no data files (the Scripting plan's Rules/ layer; tested in Tools/DataTests/GameRulesTest.cpp). A quest entry is
-	// anything with Definition, Stage, Progress, Goal and Done (QuestLog::Quest); `lookup` finds its definition (the
-	// game asks the quests table, a test answers itself). A side quest has two stages: do it (stage 0), then go back
-	// to its giver (stage 1), which is where the counting moves it once Progress reaches Goal.
+	// Side quest counting (Defeat / Collect) on the quest log's entries, with no scene or data files (tested in
+	// Tools/DataTests/GameRulesTest.cpp). Stage 0 is doing it; reaching Goal moves it to stage 1, back to the giver.
 	class QuestRules
 	{
 	public:
-		// A defeated enemy (its row of Enemies.hytable) counts for every unfinished Defeat quest on it. Returns
-		// whether any quest changed.
+		// Counts for every unfinished Defeat quest on `enemyRow`. Returns whether any quest changed.
 		template<typename Quest, typename Lookup>
 		static bool RecordDefeat(std::vector<Quest>& quests, const std::string& enemyRow, Lookup lookup)
 		{
@@ -27,7 +22,8 @@ namespace Hydro
 			for (Quest& quest : quests)
 			{
 				const QuestDefinition* definition = quest.Done ? nullptr : lookup(quest.Definition);
-				if (definition == nullptr || definition->Kind != QuestKind::Defeat || definition->Enemy.Row != enemyRow || quest.Progress >= quest.Goal)
+				if (definition == nullptr || definition->Kind != QuestKind::Defeat || definition->Enemy.Row != enemyRow
+					|| quest.Progress >= quest.Goal)
 				{
 					continue;
 				}
@@ -41,9 +37,8 @@ namespace Hydro
 			return changed;
 		}
 
-		// Collect quests: their progress is how many the party holds (`countOf` an item row), at most Goal; enough
-		// moves the quest to its second stage, too few (an item used up meanwhile) back to its first. Returns whether
-		// any quest changed.
+		// Progress is how many the party holds, at most Goal: enough moves the quest to stage 1, too few back to stage 0.
+		// Returns whether any quest changed.
 		template<typename Quest, typename Lookup, typename CountOf>
 		static bool RefreshCollect(std::vector<Quest>& quests, Lookup lookup, CountOf countOf)
 		{
@@ -67,15 +62,14 @@ namespace Hydro
 			return changed;
 		}
 
-		// Whether a side quest can be turned in.
 		template<typename Quest>
 		static bool IsReady(const Quest& quest)
 		{
 			return quest.Done == false && quest.Goal > 0 && quest.Progress >= quest.Goal;
 		}
 
-		// The quest a giver has for the party now: the first of theirs (in `order`) that isn't finished, or "" when
-		// every one is. `find` returns the log's entry for a definition, or nullptr when the run doesn't have it yet.
+		// The first of the giver's quests (in `order`) that isn't finished, or "" when every one is. `find` returns the log's
+		// entry, or nullptr when the run doesn't have it yet.
 		template<typename Find>
 		static std::string CurrentFor(const std::vector<std::string>& order, Find find)
 		{

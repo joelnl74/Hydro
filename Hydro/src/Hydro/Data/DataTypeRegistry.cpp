@@ -41,7 +41,8 @@ namespace Hydro
 		{
 			if (formerName == name || data.Types.find(formerName) != data.Types.end())
 			{
-				HY_CORE_WARN("DataTypeRegistry: '{}' can't have the former name '{}': a data type is registered under it", name, formerName);
+				HY_CORE_WARN("DataTypeRegistry: '{}' can't have the former name '{}': a data type is registered under it", name,
+					formerName);
 				continue;
 			}
 			auto [it, added] = data.FormerNames.emplace(formerName, name);

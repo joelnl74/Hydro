@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/CharacterView.h
 #pragma once
 
 #include "Hydro.h"
@@ -12,11 +11,8 @@
 
 namespace Hydro
 {
-	// The field menu's Character page (the Menu plan's M4; "Page Character" in "Field Menu Canvas"; built by
-	// scripts/ui/build_game_ui.py). Owned by FieldMenuView; nothing on it takes the focus. It shows one hero (the menu
-	// switches with Q / E): the portrait (HeroDefinition::Portrait, a frame of its field sheet), name, level,
-	// experience and what the next level takes, the stats at its level with what its equipment adds ("(+4)  16"), and
-	// what it wears per slot (EquipPosition).
+	// The field menu's Character page for one hero: portrait, level and experience, stats with what the equipment adds, and
+	// what it wears. Nothing on it takes the focus.
 	class CharacterView
 	{
 	public:
@@ -73,7 +69,8 @@ namespace Hydro
 				const int from = level >= 2 ? curve[(size_t)(level - 2)] : 0;
 				const int to = curve[(size_t)(level - 1)];
 				UI::SetText(EntityOf(m_Next), "Next level: " + std::to_string(std::max(0, to - party.HeroExperience[h])));
-				ViewHelpers::SetBarFill(EntityOf(m_ExperienceFill), (float)(party.HeroExperience[h] - from) / (float)std::max(1, to - from));
+				ViewHelpers::SetBarFill(EntityOf(m_ExperienceFill),
+					(float)(party.HeroExperience[h] - from) / (float)std::max(1, to - from));
 			}
 			else
 			{
@@ -99,7 +96,8 @@ namespace Hydro
 				UI::SetText(EntityOf(m_SlotNames[i]), PartyRules::GetPositionName((EquipPosition)i));
 				const DataRowRef& item = party.HeroEquipment[h][(size_t)i];
 				const DataView<ItemDefinition> definition = item.IsSet() ? Data::GetRow<ItemDefinition>(item) : DataView<ItemDefinition>();
-				UI::SetText(EntityOf(m_Equipped[i]), definition.IsValid() ? definition->Name : (item.IsSet() ? "Missing: " + item.Row : std::string("-")));
+				UI::SetText(EntityOf(m_Equipped[i]),
+					definition.IsValid() ? definition->Name : (item.IsSet() ? "Missing: " + item.Row : std::string("-")));
 			}
 		}
 
@@ -108,7 +106,8 @@ namespace Hydro
 
 		Scene* m_Scene = nullptr;
 		entt::entity m_Portrait = entt::null;
-		entt::entity m_Name = entt::null, m_Level = entt::null, m_Experience = entt::null, m_Next = entt::null, m_ExperienceFill = entt::null;
+		entt::entity m_Name = entt::null, m_Level = entt::null, m_Experience = entt::null, m_Next = entt::null,
+			m_ExperienceFill = entt::null;
 		entt::entity m_Stats[StatCount] = {};
 		entt::entity m_SlotNames[BattleState::EquipSlotCount] = {};
 		entt::entity m_Equipped[BattleState::EquipSlotCount] = {};

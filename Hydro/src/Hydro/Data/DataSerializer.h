@@ -9,6 +9,12 @@
 #include <map>
 #include <string>
 
+namespace YAML
+{
+	class Emitter;
+	class Node;
+}
+
 namespace Hydro
 {
 	// The data file format's version. Every file has it; a file with a newer one is read-only in this build.
@@ -31,53 +37,38 @@ namespace Hydro
 		uint32_t Version = DataFormatVersion;
 		bool ReadOnly = false;
 		const DataTypeInfo* RowType = nullptr;
-		// Sorted by ID, which is also the order they are written in. Row order means nothing to gameplay: where
-		// order matters (a shop's stock), it is stored explicitly, as a list of DataRowRef.
+		// Sorted by ID, which is also the write order. Row order means nothing to gameplay: store order explicitly
+		// (a list of DataRowRef) where it matters.
 		std::map<std::string, DataRecord> Rows;
 	};
 
-	// Reads and writes definitions and data tables as YAML text (files are the asset loaders' job).
-	//
-	// Writing is canonical: Handle, then the root section (Definition / DataTable) with Version, Type, then
-	// Values / Rows; every field of a record in declaration order (defaults too); rows sorted by ID; enums by
-	// name; floats in the shortest form that reads back exactly. So reading what was written and writing it
-	// again gives the same bytes. Formatting and comments of hand-edited files are not kept.
-	//
-	// Nothing else is lost: keys the type doesn't have and values that can't be read are reported and kept
-	// (DataKeptValues), and written back where they were. Missing keys keep the field's default.
-	//
-	//     Handle: 7104338611223409153
-	//     Definition:
-	//       Version: 1
-	//       Type: DialogueDefinition
-	//       Values:
-	//         Speaker: Innkeeper
-	//         Lines:
-	//           - Speaker: ""
-	//             Text: Welcome to the Golden Sheaf.
+	// Reads and writes definitions and data tables as YAML text: canonical output, and unknown or unreadable values
+	// are kept and written back (docs/Architecture.md#definitions-and-data-tables).
 	class DataSerializer
 	{
 	public:
 		static constexpr const char* DefinitionKey = "Definition";
 		static constexpr const char* TableKey = "DataTable";
 
-		// false when the text can't be used at all (not YAML, not a definition, an unknown type). Problems with
-		// single values go into `report` and the rest is still read. With `checkRecords` false only the file's own
-		// problems are reported (the asset loaders keep those, and check the records separately: CheckRecord).
+		// False when the text can't be used at all. Problems with single values go into `report` and the rest is read.
+		// With `checkRecords` false only the file's own problems are reported (see CheckRecord).
 		static bool ReadDefinition(const std::string& text, DefinitionData& data, DataReport& report, bool checkRecords = true);
 		static bool ReadTable(const std::string& text, DataTableData& data, DataReport& report, bool checkRecords = true);
 
-		// false (and nothing written) for read-only data.
+		// False, writing nothing, for read-only data.
 		static bool WriteDefinition(const DefinitionData& data, std::string& text);
 		static bool WriteTable(const DataTableData& data, std::string& text);
 
-		// What is wrong with a record's values, in memory or just read: values kept from the file (unknown keys,
-		// unreadable values, with why), values outside a field's Range, an empty display field (table rows). The
-		// file's own problems (duplicates, version) are only found when reading. `row` is the row ID (empty for a
-		// definition). Reading a file runs this on every record.
+		// What is wrong with a record's values: kept values, values outside a field's Range, an empty display field.
+		// `row` is the row ID (empty for a definition).
 		static void CheckRecord(const DataRecord& record, const std::string& row, bool isTableRow, DataReport& report);
 
-		// A row ID: a letter or '_', then letters, digits or '_'. PascalCase by convention (Potion, IronSword).
+		// A letter or '_', then letters, digits or '_'. PascalCase by convention (Potion, IronSword).
 		static bool IsValidRowId(const std::string& id);
+
+		// One value of any kind on its own (a script's data-typed property). False when unreadable; problems go into
+		// `report`, named by `path`. A value read halfway keeps what was read.
+		static bool ReadValue(const YAML::Node& node, const DataValueType& type, void* value, DataReport& report, const std::string& path);
+		static void WriteValue(YAML::Emitter& out, const DataValueType& type, const void* value);
 	};
 }

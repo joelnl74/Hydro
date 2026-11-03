@@ -1,4 +1,3 @@
-// Game/src/Scripts/Common/OccluderFadeScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -11,18 +10,8 @@
 
 namespace Hydro
 {
-	// Put it on the camera (after CameraFollowScript): meshes and standing sprites between the camera and the Target
-	// (the player) fade to FadedOpacity, and back when she comes out from behind them, so she is never lost behind a
-	// roof, a wall (the wall walk behind the inn), a gate she walks under or a tree. A mesh is "in the way" when the
-	// line from her chest or head to the camera passes through its world box (MeshBounds), unless it is what she
-	// stands on (CharacterBody::GetGround); a standing sprite when that line crosses its card on the camera's side of
-	// her (SpriteBounds).
-	// Anything larger than MaxSize (ground slabs, terraces, backdrops) never fades, nor do animated sprites
-	// (characters, flames) or the camera's own children (foreground framing).
-	// The fade is MeshComponent::Opacity / SpriteRendererComponent::Opacity, drawn by the engine's fade shader variants
-	// (mesh_fade.frag, sprite_fade.frag; shadows stay). Play mode runs on a copy of the scene, so nothing is saved.
-	// Known gap: the fade shaders are engine files the renderers pick for opacity below 1; once games can register
-	// their own shader variants they move here (docs/SceneAndECS.md, Known gaps).
+	// On the camera: meshes and standing sprites between the camera and the player fade to FadedOpacity, so she is never
+	// lost behind a roof, wall or tree. Large pieces (MaxSize), animated sprites and the camera's children never fade.
 	HY_SCRIPT()
 	class OccluderFadeScript : public ScriptableEntity
 	{
@@ -193,7 +182,8 @@ namespace Hydro
 
 		std::vector<Faded>::iterator Find(entt::entity entity, Kind type)
 		{
-			return std::find_if(m_Faded.begin(), m_Faded.end(), [entity, type](const Faded& faded) { return faded.Entity == entity && faded.Type == type; });
+			return std::find_if(m_Faded.begin(), m_Faded.end(),
+				[entity, type](const Faded& faded) { return faded.Entity == entity && faded.Type == type; });
 		}
 
 		static void Log(Scene& scene, const Faded& hit)
@@ -216,6 +206,6 @@ namespace Hydro
 		}
 
 		std::vector<Faded> m_Faded;
-		std::vector<Faded> m_InTheWay; // this frame's (kept so the update allocates nothing once warm)
+		std::vector<Faded> m_InTheWay; // this frame's, kept so the update allocates nothing once warm
 	};
 }

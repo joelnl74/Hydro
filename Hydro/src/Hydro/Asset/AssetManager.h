@@ -28,85 +28,54 @@ namespace Hydro
 		Missing    // not in the registry, or its file is gone (a reference to it is dangling)
 	};
 
-	// Assets subsystem: knows every asset in the open project by handle (AssetRegistry), and keeps the
-	// handles stable when files are renamed, moved or copied. Started after Renderer (it will create
-	// GPU textures); the application tells it which project is open.
-	//
-	// Steps 1 and 2 of the asset system (docs/Architecture.md, "Asset system"). Identity: every texture,
-	// scene, prefab and animation set file gets a handle. Loading: textures are loaded through the
-	// manager, which keeps them (strong Refs) until the project closes.
-	// Components hold handles; render and animation code resolve them with GetLoadedAsset every frame.
-	//
-	//   AssetManager::OnProjectOpened(project->GetAssetDirectory()); // scans the folder
-	//   AssetHandle handle = AssetManager::FindHandle(path);       // 0 when not registered
-	//   const AssetMetadata* metadata = AssetManager::GetMetadata(handle);
-	//   Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(handle);        // loads if needed
-	//   Ref<Texture2D> drawn = AssetManager::GetLoadedAsset<Texture2D>(handle);    // never loads
+	// Assets subsystem: every asset of the open project by handle, kept stable when files are renamed, moved
+	// or copied, and the cache of loaded assets. See docs/Architecture.md, "Asset system".
 	class AssetManager
 	{
 	public:
 		static void Init();
 		static void Shutdown();
 
-		// The application calls these when it opens or closes a project, like Renderer::SetSettings.
-		// Opening scans `assetDirectory` (the project's asset folder), writing a handle for every asset
-		// file that has none, and replaces the registry of any project opened before.
+		// Opening scans the asset folder, writes a handle for every asset file without one and replaces the
+		// previous project's registry.
 		static void OnProjectOpened(const std::filesystem::path& assetDirectory);
 		static void OnProjectClosed();
 		static bool IsProjectOpen();
 		// Absolute; empty when no project is open.
 		static const std::filesystem::path& GetAssetDirectory();
 
-		// Scans the asset folder again, picking up files added, renamed, moved or copied since the last
-		// scan (in the editor or outside it). A file keeps its handle wherever it is; a file without one
-		// gets a new one; when two files have the same handle (one was copied), the one at the path
-		// registered before keeps it (else the first path in alphabetical order) and the other gets a new
-		// one. Registered files that are gone stay in the registry as missing. Synchronous: it reads the
-		// first line of every scene and prefab and every sidecar. Does nothing when no project is open.
+		// Scans the asset folder again for added, renamed, moved or copied files. A copy (a duplicate handle) gets
+		// a new handle; files that are gone stay registered as missing. Synchronous.
 		static AssetScanInfo Rescan();
 
-		// The handle for `file` (absolute, or relative to the asset folder), registering the file when it is
-		// in the asset folder and isn't yet. Its stored handle is used when it has one (unless another file
-		// already has it: then it is a copy and gets a new one); otherwise a new handle is made, and written
-		// to the sidecar of an existing image. A scene or prefab that is about to be saved may not exist yet:
-		// the serializer writes the returned handle into it. Returns 0 for files that aren't assets
-		// (GetAssetTypeFromExtension) and for images that don't exist.
+		// The handle for `file`, registering it when it is in the asset folder (a copy gets a new handle). Works for
+		// a scene or prefab not written yet; 0 for files that aren't assets and for images that don't exist.
 		static AssetHandle ImportAsset(const std::filesystem::path& file);
 
-		// Renames or moves a file or folder inside the asset folder (`from` and `to` are absolute, or relative to
-		// it) and keeps every handle: a file's own handle moves with it (a scene's first line, an image's
-		// .hymeta, which is moved along), so everything that refers to it by handle follows. Fails (logged,
-		// nothing changed) when `to` exists, when either path is outside the asset folder, or when a file's
-		// extension would turn it into another kind of asset. A moved folder is scanned again.
+		// Renames or moves a file or folder inside the asset folder, keeping every handle (an image's .hymeta moves
+		// along). Fails (logged, nothing changed) when `to` exists, a path is outside the folder or the type changes.
 		static bool MoveAsset(const std::filesystem::path& from, const std::filesystem::path& to);
 		static bool MoveAsset(AssetHandle handle, const std::filesystem::path& to);
 
-		// Deletes a file (with its .hymeta) or an empty folder inside the asset folder. The file's handle stays
-		// in the registry, marked missing, so a scene that refers to it reports a missing asset instead of
-		// quietly turning into "none"; its loaded object is dropped. Fails (logged) for a folder with files in it.
+		// Deletes a file (with its .hymeta) or an empty folder. The handle stays registered as missing, so scenes
+		// referring to it report a missing asset instead of quietly showing "none".
 		static bool DeleteAsset(const std::filesystem::path& file);
 		static bool DeleteAsset(AssetHandle handle);
 
-		// Gives a loaded `asset` the handle of the file it was loaded from (ImportAsset). Loaders call this;
-		// the handle stays 0 for files outside the asset folder.
+		// Gives a loaded asset the handle of its file; stays 0 for files outside the asset folder. Loaders call this.
 		static void BindHandle(Asset& asset, const std::filesystem::path& file);
 
-		// The handle of the registered file at `file` (absolute, or relative to the asset folder), or 0.
+		// `file` is absolute or relative to the asset folder; 0 when not registered.
 		static AssetHandle FindHandle(const std::filesystem::path& file);
-		// nullptr when the handle isn't registered.
 		static const AssetMetadata* GetMetadata(AssetHandle handle);
-		// Registered and its file exists.
 		static bool IsAssetHandleValid(AssetHandle handle);
-		// Absolute path of a registered asset's file; empty when the handle isn't registered.
+		// Empty when the handle isn't registered.
 		static std::filesystem::path GetAbsolutePath(AssetHandle handle);
 
 		static const AssetRegistry& GetRegistry();
 
-		// The loaded asset for `handle`, loading it from its file when it isn't cached yet or its file
-		// (or, for images, its .hymeta) changed or moved since. Synchronous, reads the disk: for scene
-		// loading and the editor, never for code that runs every frame. nullptr (logged, once per file
-		// version) when the handle is unknown, its file is missing or unreadable, or it isn't a T.
-		// Texture2D, SpriteAnimationSet, Prefab, MaterialAsset, Mesh (.gltf / .glb), RenderProfile, Font (.fnt), Terrain (.hyterrain), DefinitionAsset (.hydef) and DataTableAsset (.hytable) can be loaded so far.
+		// Loads the asset when it isn't cached or its file changed. Reads the disk: for scene loading and the
+		// editor, never per frame. nullptr (logged once per file version) when unknown, missing, unreadable or not a T.
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle handle)
 		{
@@ -114,8 +83,7 @@ namespace Hydro
 			return std::static_pointer_cast<T>(LoadAsset(handle, T::GetStaticType()));
 		}
 
-		// The asset if it is already loaded, else nullptr. Never touches the disk and never logs: the
-		// only one render code calls. Pair it with GetAsset when a scene is loaded so it is loaded first.
+		// The asset if it is already loaded, else nullptr. Never touches the disk or logs: the one for render code.
 		template<typename T>
 		static Ref<T> GetLoadedAsset(AssetHandle handle)
 		{
@@ -123,8 +91,7 @@ namespace Hydro
 			return std::static_pointer_cast<T>(FindLoadedAsset(handle, T::GetStaticType()));
 		}
 
-		// Loads the asset again now (settings or file changed) into the same handle, replacing the cached
-		// one. Holders of the old object keep it. Returns the new object, nullptr on failure.
+		// Loads the asset again into the same handle; holders of the old object keep it. nullptr on failure.
 		template<typename T>
 		static Ref<T> ReloadAsset(AssetHandle handle)
 		{
@@ -132,13 +99,12 @@ namespace Hydro
 			return std::static_pointer_cast<T>(LoadAsset(handle, T::GetStaticType(), true));
 		}
 
-		// The loaded object of `handle` is what its file holds now: the editor just wrote the file from that object
-		// (a definition or table edited in the inspector). Records the file's new version, so the next GetAsset
-		// doesn't load the editor's own write again (which would replace the object being edited).
+		// The editor just wrote the handle's file from its loaded object: record the new file version so the next
+		// GetAsset doesn't reload the editor's own write.
 		static void MarkSaved(AssetHandle handle);
 
 		static AssetLoadState GetLoadState(AssetHandle handle);
-		// Assets in the cache (loaded successfully).
+		// Loaded successfully.
 		static size_t GetLoadedAssetCount();
 
 	private:

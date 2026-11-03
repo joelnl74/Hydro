@@ -1,4 +1,3 @@
-// Game/src/State/BattleState.h
 #pragma once
 
 #include "Hydro.h"
@@ -15,19 +14,15 @@
 #include <vector>
 #include <unordered_map>
 
-// The party and the battle hand-off: the run's battle state (RpgSession::Battle) and BattleData, the battle's
-// numbers read from data (the Scripting plan's SC7). Moved out of the battle script (SC8a).
+// The party and the battle hand-off (BattleState, on the game session) and the battle's numbers read from data (BattleData).
 
 namespace Hydro
 {
-	// The heroes who can be in the party (HeroCount, in party order): Miko from the start, Orin Kenshi once he joins
-	// in the countryside (BattleState::Join; the countryside quest). Every per-hero array is HeroCount long; who is in
-	// the party now is BattleState::InParty. A hero's Attack walks up to the target and strikes; its abilities are in
-	// the battle's 8 ability slots (HeroAbilitySlots, set in the field menu's Abilities page).
+	// Party order: Miko from the start, Orin Kenshi once he joins in the countryside. Every per-hero array is HeroCount
+	// long; who is in the party now is BattleState::InParty.
 	constexpr int HeroCount = 2;
 
-	// A hero's numbers at a level (HeroDefinition: Base + GrowthPerLevel for every level above 1): what the battle
-	// and the field's menu read.
+	// A hero's numbers at a level: Base plus GrowthPerLevel for every level above 1.
 	struct HeroStats
 	{
 		std::string Name;
@@ -42,17 +37,15 @@ namespace Hydro
 		std::string ItemClip = "BattleIdle";
 	};
 
-	// The battle's numbers from data (the Scripting plan's SC7): the heroes' files, Assets/Data/Enemies.hytable,
-	// Encounters.hytable, Abilities.hytable and Characters/LevelCurve.hydef. Looked up once a frame: the views keep
-	// their files alive until the next frame, so the references handed out are good for the frame and an edit shows
-	// from the next one. A missing file or row gives the type's defaults (and one warning, from Data).
+	// Looked up once a frame: the views keep their files alive until the next frame, so references are good for the frame.
+	// A missing file or row gives the type's defaults (and one warning, from Data).
 	class BattleData
 	{
 	public:
 		static constexpr uint64_t EnemyTable = 8285570869007471512ull;     // Assets/Data/Enemies.hytable
 		static constexpr uint64_t EncounterTable = 5637391413083366177ull; // Assets/Data/Encounters.hytable
 		static constexpr uint64_t LevelCurveFile = 1490334946040604597ull; // Assets/Data/Characters/LevelCurve.hydef
-		// The party, in order: each hero's file, and the name its scene entities carry ("Hero Miko", "Status Miko").
+		// Each hero's file; HeroIds is the name its scene entities carry ("Hero Miko", "Status Miko").
 		static constexpr uint64_t HeroFiles[HeroCount] = {
 			7766402021591977760ull, // Assets/Data/Characters/Miko.hydef
 			2716342829184015873ull, // Assets/Data/Characters/Orin.hydef
@@ -66,7 +59,6 @@ namespace Hydro
 			return view.IsValid() ? *view : none;
 		}
 
-		// Hero `index` at `level`.
 		static HeroStats StatsAt(int index, int level)
 		{
 			const HeroDefinition& hero = HeroData(index);
@@ -86,8 +78,7 @@ namespace Hydro
 			return stats;
 		}
 
-		// Hero `index` at `level` wearing `equipment` (each item's Bonus added; the field menu's Equipment page
-		// previews a change with it).
+		// Each item's Bonus is added; the Equipment page previews a change with it.
 		template<size_t N>
 		static HeroStats StatsWith(int index, int level, const std::array<DataRowRef, N>& equipment)
 		{
@@ -112,10 +103,10 @@ namespace Hydro
 			return hero;
 		}
 
-		// Hero `index` at the level the party has reached (BattleState), with what it wears; defined below it.
+		// At the party's level, with what it wears; defined below BattleState.
 		static const HeroStats& Hero(int index);
 
-		// An enemy row of Enemies.hytable ("" or a missing row: the defaults).
+		// "" or a missing row: the defaults.
 		static const EnemyDefinition& Enemy(const std::string& row)
 		{
 			static const EnemyDefinition none;
@@ -132,7 +123,7 @@ namespace Hydro
 			return found->second.IsValid() ? *found->second : none;
 		}
 
-		// Any ability by its row (an unset one: the defaults).
+		// An unset row: the defaults.
 		static const AbilityDefinition& Ability(const DataRowRef& reference)
 		{
 			static const AbilityDefinition none;
@@ -150,11 +141,10 @@ namespace Hydro
 			return found->second.IsValid() ? *found->second : none;
 		}
 
-		// The ability in battle slot `slot` (0 to 7, BattleState::HeroAbilitySlots) of hero `index` (an empty slot: the
-		// defaults, an empty Name); defined below BattleState.
+		// An empty slot gives the defaults (an empty Name); defined below BattleState.
 		static const AbilityDefinition& Skill(int index, int slot);
 
-		// The experience each level takes: [0] reaches level 2.
+		// [0] reaches level 2.
 		static const std::vector<int>& ExperienceToLevel()
 		{
 			const DataView<LevelCurve>& view = Refresh().Curve;
@@ -207,11 +197,11 @@ namespace Hydro
 		return BattleData::Enemy(row);
 	}
 
-	// What the field and the battle scene tell each other, and what the party keeps between battles. One per run:
-	// it lives on the game session (RpgSession::Battle, Scripting plan SC2), so a new run starts fresh.
+	// What the field and the battle tell each other, and what the party keeps between battles. One per run, on the game
+	// session, so a new run starts fresh.
 	struct BattleState
 	{
-		// The running session's (RpgSession::Battle). Only while a game runs.
+		// Only while a game runs.
 		static BattleState& Get();
 
 		enum class Result : uint8_t { None, Won, Lost, Fled };
@@ -219,31 +209,28 @@ namespace Hydro
 		static constexpr int MaxEnemies = 3;
 		static constexpr int MaxMomentum = 5;
 
-		// Started from the heroes' data the first time a field or battle scene needs them (StartParty), not when the
-		// program starts: the data isn't loaded then.
+		// Filled by StartParty the first time a scene needs them: the data isn't loaded when the program starts.
 		int HeroHP[HeroCount] = {};
 		int HeroMP[HeroCount] = {};
 		int HeroLevel[HeroCount] = {};
 		int HeroExperience[HeroCount] = {};       // in total, since level 1
-		bool HeroJoined[HeroCount] = {};          // in the party now (Miko from the start; Join for the others)
+		bool HeroJoined[HeroCount] = {};          // in the party now
 		std::vector<DataRowRef> HeroAbilities[HeroCount]; // known, in the order learned
-		// The battle's ability slots (the Menu plan: 7 core and 1 for an ultimate later), set in the field menu's
-		// Abilities tab; a newly learned ability takes the first empty one. Empty: an unset row.
+		// Set in the field menu's Abilities page; a newly learned ability takes the first empty one. Empty: an unset row.
 		static constexpr int AbilitySlotCount = 8;
 		std::array<DataRowRef, AbilitySlotCount> HeroAbilitySlots[HeroCount];
-		// What each hero wears (the Menu plan's slots; EquipPosition). Empty: an unset row. Equipped items are not in
-		// the inventory (Rules/PartyRules.h moves them).
+		// Empty: an unset row. Equipped items are not in the inventory (Rules/PartyRules.h moves them).
 		static constexpr int EquipSlotCount = 6;
 		std::array<DataRowRef, EquipSlotCount> HeroEquipment[HeroCount];
 		bool PartyStarted = false;
-		bool Active = false;               // a battle was started and has not been settled yet
+		bool Active = false;               // a battle was started and is not settled yet
 		uint64_t EnemyId = 0;              // UUID of the field enemy that started it
-		Result Outcome = Result::None;     // set by the battle for that enemy to read when it is back
-		// The enemies (rows of Enemies.hytable; "" = an empty slot), in slot order.
+		Result Outcome = Result::None;     // set by the battle, read by that enemy when its scene resumes
+		// Rows of Enemies.hytable in slot order; "" is an empty slot.
 		std::array<std::string, MaxEnemies> Encounter{ "Slime", "", "" };
-		// The encounter's own loot table (EncounterDefinition::Loot), rolled on top of each enemy's; unset: none.
+		// Rolled on top of each enemy's loot; unset: none.
 		DataRowRef EncounterLoot;
-		// Weaknesses the party has found, per enemy row and weakness slot (kept for the whole run, as in a bestiary).
+		// Weaknesses found per enemy row and slot, kept for the whole run like a bestiary.
 		std::unordered_map<std::string, std::array<bool, 3>> Revealed;
 
 		void RestoreParty()
@@ -255,8 +242,7 @@ namespace Hydro
 			}
 		}
 
-		// Level 1 with the starting abilities and full HP and MP the first time; nothing after that. Only Miko is in
-		// the party at the start.
+		// Only the first time: level 1, the starting abilities, full HP and MP. Only Miko is in the party at the start.
 		void StartParty()
 		{
 			if (PartyStarted)
@@ -277,7 +263,6 @@ namespace Hydro
 			return hero >= 0 && hero < HeroCount && HeroJoined[hero];
 		}
 
-		// In the party and still standing.
 		bool IsStanding(int hero) const
 		{
 			return InParty(hero) && HeroHP[hero] > 0;
@@ -293,8 +278,7 @@ namespace Hydro
 			return count;
 		}
 
-		// Hero `hero` joins at the party's highest level (its experience at that level's mark), knowing its starting
-		// abilities and those its levels so far teach, with full HP and MP. False when it already is in the party.
+		// Joins at the party's highest level, knowing what its levels so far teach, with full HP and MP. False when already in.
 		bool Join(int hero)
 		{
 			StartParty();
@@ -321,7 +305,7 @@ namespace Hydro
 			return found != Revealed.end() && slot >= 0 && slot < 3 && found->second[(size_t)slot];
 		}
 
-		// Takes a hero out of the party again (a guest who only fought one battle). Miko always stays.
+		// For a guest who only fought one battle. Miko always stays.
 		void Leave(int hero)
 		{
 			if (hero > 0 && hero < HeroCount)
@@ -330,9 +314,8 @@ namespace Hydro
 			}
 		}
 
-		// Starts the battle hand-off for `starter` (the UUID of what started it; it reads Outcome when its scene
-		// resumes): the encounter's enemies in slot order and its loot. The caller pushes the Battle scene. False
-		// while another battle is unsettled.
+		// `starter` reads Outcome when its scene resumes. The caller pushes the Battle scene. False while another battle is
+		// unsettled.
 		bool BeginEncounter(uint64_t starter, const EncounterDefinition& encounter)
 		{
 			if (Active)
@@ -355,8 +338,7 @@ namespace Hydro
 			return true;
 		}
 
-		// The result of the battle `starter` began, once it is over (Result::None until then, or for another
-		// starter); taking it settles the hand-off.
+		// Result::None until the battle is over (or for another starter); taking it settles the hand-off.
 		Result TakeOutcome(uint64_t starter)
 		{
 			if (Active == false || EnemyId != starter || Outcome == Result::None)
@@ -370,9 +352,8 @@ namespace Hydro
 			return outcome;
 		}
 
-		// Experience for every hero still standing; a hero passing a level's mark (BattleData::ExperienceToLevel) goes
-		// up a level: its maximums rise (and its HP and MP by as much), and the abilities that level teaches are known
-		// from then on. Returns a message for each level up ("Miko reached level 3! Learned Radiant Kick.").
+		// For every hero still standing; a level up raises the maximums (and HP and MP by as much) and teaches its abilities.
+		// Returns a message per level up.
 		std::vector<std::string> GainExperience(int amount)
 		{
 			std::vector<std::string> messages;
@@ -394,7 +375,8 @@ namespace Hydro
 					std::string message = after.Name + " reached level " + std::to_string(HeroLevel[h]) + "!";
 					for (const LearnedAbility& learned : BattleData::HeroData(h).Learns)
 					{
-						const bool known = std::find(HeroAbilities[h].begin(), HeroAbilities[h].end(), learned.Ability) != HeroAbilities[h].end();
+						const bool known = std::find(HeroAbilities[h].begin(), HeroAbilities[h].end(), learned.Ability)
+							!= HeroAbilities[h].end();
 						if (learned.Level == HeroLevel[h] && learned.Ability.IsSet() && known == false)
 						{
 							HeroAbilities[h].push_back(learned.Ability);
@@ -418,8 +400,7 @@ namespace Hydro
 		}
 
 	private:
-		// A hero at `level`: the experience of that level's mark, the starting abilities and those levels up to it
-		// teach (in the battle slots in that order), nothing worn.
+		// The experience of that level's mark, the abilities up to it in the battle slots, nothing worn.
 		void SetUpHero(int hero, int level)
 		{
 			const HeroDefinition& data = BattleData::HeroData(hero);
@@ -429,7 +410,8 @@ namespace Hydro
 			HeroAbilities[hero] = data.StartingAbilities;
 			for (const LearnedAbility& learned : data.Learns)
 			{
-				const bool known = std::find(HeroAbilities[hero].begin(), HeroAbilities[hero].end(), learned.Ability) != HeroAbilities[hero].end();
+				const bool known = std::find(HeroAbilities[hero].begin(), HeroAbilities[hero].end(), learned.Ability)
+					!= HeroAbilities[hero].end();
 				if (learned.Level <= HeroLevel[hero] && learned.Ability.IsSet() && known == false)
 				{
 					HeroAbilities[hero].push_back(learned.Ability);
@@ -449,8 +431,8 @@ namespace Hydro
 		static HeroStats stats[HeroCount];
 		const int clamped = std::clamp(index, 0, HeroCount - 1);
 		const int level = GameSession::IsRunning() ? std::max(1, BattleState::Get().HeroLevel[clamped]) : 1;
-		// What the hero wears adds to it (ItemDefinition::Bonus).
-		stats[clamped] = GameSession::IsRunning() ? StatsWith(clamped, level, BattleState::Get().HeroEquipment[clamped]) : StatsAt(clamped, level);
+		stats[clamped] = GameSession::IsRunning() ? StatsWith(clamped, level, BattleState::Get().HeroEquipment[clamped])
+			: StatsAt(clamped, level);
 		return stats[clamped];
 	}
 

@@ -272,7 +272,7 @@ namespace Hydro
 #define KEY_RIGHT_SUPER     ::Hydro::Key::RightSuper
 #define KEY_MENU            ::Hydro::Key::Menu
 
-// Mouse (TODO: move into separate file probably)
+ // Mouse buttons
 #define MOUSE_BUTTON_LEFT    0
 #define MOUSE_BUTTON_RIGHT   1
 #define MOUSE_BUTTON_MIDDLE  2

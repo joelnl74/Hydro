@@ -8,9 +8,8 @@
 
 namespace Hydro
 {
-	// Sets loaded from files that are still alive, so animators using one file share one set.
-	// Weak: the cache never keeps a set alive by itself.
-	// Sets loaded from files outside the asset folder (project files are shared by the AssetManager).
+	// Weak cache of sets loaded from files outside the asset folder, so animators using one file share one set.
+	// Project files are shared by the AssetManager instead.
 	static std::unordered_map<std::string, std::weak_ptr<SpriteAnimationSet>> s_LoadedAnimationSets;
 
 	float SpriteAnimationClip::GetLength() const

@@ -149,7 +149,8 @@ namespace Hydro
 			viewInfo.image = m_Images[i];
 			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			viewInfo.format = m_SurfaceFormat.format;
-			viewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
+			viewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+				VK_COMPONENT_SWIZZLE_IDENTITY };
 			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			viewInfo.subresourceRange.baseMipLevel = 0;
 			viewInfo.subresourceRange.levelCount = 1;
@@ -195,7 +196,7 @@ namespace Hydro
 		m_Framebuffers.clear();
 		m_ImageViews.clear();
 		m_RenderFinishedSemaphores.clear();
-		m_Images.clear(); // Owned by the swapchain.
+		m_Images.clear(); // owned by the swapchain
 
 		if (m_SwapChain != VK_NULL_HANDLE)
 		{
@@ -225,8 +226,7 @@ namespace Hydro
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 
-		// The image-acquired semaphore is waited on at COLOR_ATTACHMENT_OUTPUT, so the layout
-		// transition and the clear must not start before that stage.
+		// The acquire semaphore is waited on at COLOR_ATTACHMENT_OUTPUT: the transition and clear must not start before.
 		VkSubpassDependency dependency{};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependency.dstSubpass = 0;

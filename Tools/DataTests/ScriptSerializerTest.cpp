@@ -1,10 +1,11 @@
 // Tools/DataTests/ScriptSerializerTest.cpp
 // Script bindings in scene files (ScriptSerializer): former names (SC1), saved values no property reads (#143), and
-// references and one script of a class per entity (SC4).
+// references and one script of a class per entity (SC4); lists, enums and structs as script properties (Nov 3, 2026).
 // Built into DataRoundTripTest by scripts/test_data.sh; no scene, window or GPU.
 
 #include "hypch.h"
 #include "Hydro/Scene/Scripting/ScriptSerializer.h"
+#include "DataTestTypes.h"
 
 #include <cstdio>
 
@@ -22,6 +23,16 @@ namespace Hydro
 	public:
 		EntityRef Target;
 		ComponentRef<TestDoorScript> Door;
+	};
+
+	class TestRouteScript : public ScriptableEntity
+	{
+	public:
+		ItemKind Kind = ItemKind::Equipment;
+		std::vector<EntityRef> Stops;
+		std::vector<ShopEntry> Stock;
+		DialogueLine Line;
+		std::vector<float> Waits{ 1.0f, 2.0f };
 	};
 
 	static int s_ScriptFailures = 0;
@@ -171,6 +182,85 @@ namespace Hydro
 		NativeScriptComponent once;
 		once.Bind("TestLever").Bind("TestLever").Bind<TestLeverScript>().Bind<TestDoorScript>();
 		SCRIPT_CHECK(once.Scripts.size() == 2 && once.Has("TestLever") && once.Has("TestDoor"));
+
+		// ---- Lists, enums and structs (Nov 3, 2026) ---------------------------------------------------------------
+		std::printf("Script bindings: lists, enums and structs\n");
+		ScriptRegistry::Register<TestRouteScript>("TestRoute")
+			.Property("Kind", "Kind", &TestRouteScript::Kind)
+			.Property("Stops", "Stops", &TestRouteScript::Stops)
+			.Property("Stock", "Stock", &TestRouteScript::Stock).DataTypeFilter("ItemDefinition")
+			.Property("Line", "Line", &TestRouteScript::Line)
+			.Property("Waits", "Waits", &TestRouteScript::Waits).Range(0.0f, 10.0f);
+		const ScriptTypeInfo* route = ScriptRegistry::FindType("TestRoute");
+		SCRIPT_CHECK(route != nullptr && route->Properties.size() == 5);
+		if (route == nullptr || route->Properties.size() != 5)
+		{
+			return s_ScriptFailures;
+		}
+		for (const ScriptProperty& property : route->Properties)
+		{
+			SCRIPT_CHECK(property.Type == ScriptPropertyType::Data && std::get<ScriptDataValue>(property.DefaultValue).IsSet());
+		}
+		const auto dataOf = [](const NativeScriptComponent::Script& script, const char* name) -> const ScriptDataValue*
+		{
+			auto it = script.Properties.find(name);
+			return it != script.Properties.end() ? std::get_if<ScriptDataValue>(&it->second) : nullptr;
+		};
+		const std::vector<float>* defaultWaits = std::get<ScriptDataValue>(route->Properties[4].DefaultValue).As<std::vector<float>>();
+		SCRIPT_CHECK(defaultWaits != nullptr && defaultWaits->size() == 2 && (*defaultWaits)[1] == 2.0f);
+
+		NativeScriptComponent routes;
+		ScriptSerializer::Read(YAML::Load(
+			"- Name: TestRoute\n"
+			"  Properties:\n"
+			"    Kind: KeyItem\n"
+			"    Stops: [11, 22]\n"
+			"    Stock:\n"
+			"      - Item: { Table: 5, Row: Potion }\n"
+			"        PriceOverride: 3\n"
+			"    Line: { Speaker: Elder, Text: Hi }\n"), routes, "Test");
+		SCRIPT_CHECK(routes.Scripts.size() == 1);
+		const NativeScriptComponent::Script& routeBinding = routes.Scripts[0];
+		const ScriptDataValue* kind = dataOf(routeBinding, "Kind");
+		const ScriptDataValue* stops = dataOf(routeBinding, "Stops");
+		const ScriptDataValue* stock = dataOf(routeBinding, "Stock");
+		const ScriptDataValue* line = dataOf(routeBinding, "Line");
+		const ScriptDataValue* waits = dataOf(routeBinding, "Waits");
+		SCRIPT_CHECK(kind != nullptr && kind->As<ItemKind>() != nullptr && *kind->As<ItemKind>() == ItemKind::KeyItem);
+		SCRIPT_CHECK(stops != nullptr && stops->As<std::vector<EntityRef>>() != nullptr && stops->As<std::vector<EntityRef>>()->size() == 2
+			&& (*stops->As<std::vector<EntityRef>>())[1].GetId() == UUID(22));
+		SCRIPT_CHECK(stock != nullptr && stock->As<std::vector<ShopEntry>>() != nullptr && stock->As<std::vector<ShopEntry>>()->size() == 1
+			&& (*stock->As<std::vector<ShopEntry>>())[0].Item.Row == "Potion" && (*stock->As<std::vector<ShopEntry>>())[0].PriceOverride == 3);
+		SCRIPT_CHECK(line != nullptr && line->As<DialogueLine>() != nullptr && line->As<DialogueLine>()->Speaker == "Elder");
+		SCRIPT_CHECK(waits != nullptr && waits->As<std::vector<float>>() != nullptr && waits->As<std::vector<float>>()->size() == 2); // not saved: the default
+
+		const std::string routeText = WriteBindings(routes);
+		std::printf("%s", routeText.c_str());
+		SCRIPT_CHECK(routeText.find("Kind: KeyItem") != std::string::npos && routeText.find("Stops: [11, 22]") != std::string::npos
+			&& routeText.find("Row: Potion") != std::string::npos && routeText.find("Waits: [1, 2]") != std::string::npos);
+		NativeScriptComponent routesAgain;
+		ScriptSerializer::Read(YAML::Load(routeText), routesAgain, "Test");
+		SCRIPT_CHECK(WriteBindings(routesAgain) == routeText);
+
+		// Apply puts the values into the fields; Read gives them back; copies are deep.
+		TestRouteScript walker;
+		for (const ScriptProperty& property : route->Properties)
+		{
+			property.Apply(walker, routeBinding.Properties.at(property.Name));
+		}
+		SCRIPT_CHECK(walker.Kind == ItemKind::KeyItem && walker.Stops.size() == 2 && walker.Stops[0].GetId() == UUID(11)
+			&& walker.Stock.size() == 1 && walker.Line.Text == "Hi" && walker.Waits.size() == 2);
+		walker.Stops.push_back(EntityRef(UUID(33)));
+		const ScriptPropertyValue readBack = route->Properties[1].Read(walker);
+		SCRIPT_CHECK(std::get<ScriptDataValue>(readBack).As<std::vector<EntityRef>>()->size() == 3 && stops->As<std::vector<EntityRef>>()->size() == 2);
+		const ScriptPropertyMap copy = routeBinding.Properties; // as Scene::CopyScripts copies a binding
+		SCRIPT_CHECK(std::get<ScriptDataValue>(copy.at("Stops")).Get() != stops->Get()
+			&& std::get<ScriptDataValue>(copy.at("Stops")).As<std::vector<EntityRef>>()->size() == 2);
+
+		// A value that can't be read keeps the default (and is reported).
+		NativeScriptComponent bad;
+		ScriptSerializer::Read(YAML::Load("- Name: TestRoute\n  Properties: { Kind: Bogus, Stops: oops }\n"), bad, "Test");
+		SCRIPT_CHECK(*dataOf(bad.Scripts[0], "Kind")->As<ItemKind>() == ItemKind::Equipment && dataOf(bad.Scripts[0], "Stops")->As<std::vector<EntityRef>>()->empty());
 
 		return s_ScriptFailures;
 	}

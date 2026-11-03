@@ -48,7 +48,8 @@ namespace Hydro
 		GameSession::Stop();
 	}
 
-	SceneTransition::Type SceneStack::ProcessTransition(const std::filesystem::path& scenesDirectory, uint32_t viewportWidth, uint32_t viewportHeight)
+	SceneTransition::Type SceneStack::ProcessTransition(const std::filesystem::path& scenesDirectory, uint32_t viewportWidth,
+		uint32_t viewportHeight)
 	{
 		const SceneTransition::Request request = SceneTransition::Take();
 		if (request.Kind == SceneTransition::Type::None || m_Active == nullptr)

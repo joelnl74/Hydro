@@ -12,8 +12,8 @@
 
 namespace Hydro
 {
-	// Keeps the last Log::MaxKeptMessages messages of both loggers in memory (a ring buffer), so the
-	// application can show them. spdlog calls sink_it_ with the sink's mutex held.
+	// The last Log::MaxKeptMessages messages of both loggers (a ring buffer), for the application to show. spdlog
+	// calls sink_it_ with the sink's mutex held.
 	class LogHistorySink : public spdlog::sinks::base_sink<std::mutex>
 	{
 	public:
@@ -88,7 +88,6 @@ namespace Hydro
 
 	void Log::Init()
 	{
-		// Create "logs" directory if doesn't exist
 		std::string logsDirectory = "logs";
 		if (std::filesystem::exists(logsDirectory) == false)
 		{

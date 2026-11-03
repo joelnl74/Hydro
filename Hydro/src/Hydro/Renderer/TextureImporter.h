@@ -16,18 +16,14 @@ namespace Hydro
 		TextureImportConfig Config;         // what the file's .hymeta (or the fallback) asked for, sliced when needed
 	};
 
-	// Decodes an image file (PNG, JPG, TGA, BMP; any channel count, converted to RGBA8) the way its
-	// "<file>.hymeta" says: colour key, and slicing of a sheet that has slicing settings but no sprite
-	// list. Never touches Vulkan, so it can run anywhere (a loader thread, later).
+	// Decodes an image file into RGBA8 as its .hymeta says (colour key, slicing). No Vulkan, so it can run anywhere.
 	class TextureImporter
 	{
 	public:
-		// `fallback` is used when the file has no .hymeta (or it has no TextureImport section).
-		// Returns false (logged) when the image can't be read or decoded.
+		// `fallback` is used when the file has no .hymeta. False (logged) when the image can't be read or decoded.
 		static bool Import(const std::filesystem::path& absolutePath, const TextureImportConfig& fallback, ImportedTexture& imported);
 
-		// The .hymeta's modification time, 0 when the image has none: part of a texture's version, so
-		// saving new import settings makes the texture load again.
+		// The .hymeta's modification time (0 without one): part of a texture's version, so new settings reload it.
 		static int64_t GetImportConfigVersion(const std::filesystem::path& absolutePath);
 	};
 }

@@ -9,8 +9,7 @@ namespace Hydro
 	// Indexed by LogLevel.
 	static const char* const LevelNames[5] = { "Trace", "Info", "Warn", "Error", "Fatal" };
 
-	// Trace and Info follow the theme's text colours; warnings and errors are darker on a light theme
-	// so they stay readable.
+	// Trace and Info follow the theme's text colours; warnings and errors are darker on a light theme to stay readable.
 	static ImVec4 GetLevelColor(int level)
 	{
 		const ImGuiStyle& style = ImGui::GetStyle();
@@ -37,23 +36,33 @@ namespace Hydro
 		m_Incoming.clear();
 		m_LastSequence = Log::GetMessagesSince(m_LastSequence, m_Incoming);
 		if (m_Incoming.empty())
+		{
 			return;
+		}
 
 		for (LogMessage& message : m_Incoming)
+		{
 			m_Messages.push_back(std::move(message));
+		}
 
 		while (m_Messages.size() > Log::MaxKeptMessages)
+		{
 			m_Messages.pop_front();
+		}
 
 	}
 
 	bool ConsoleWindow::PassesFilter(const LogMessage& message) const
 	{
 		if (m_ShowLevel[(int)message.Level] == false)
+		{
 			return false;
+		}
 
 		if (m_TextFilter.IsActive() == false)
+		{
 			return true;
+		}
 
 		return m_TextFilter.PassFilter(message.Text.c_str()) || m_TextFilter.PassFilter(message.Source.c_str());
 	}
@@ -64,13 +73,17 @@ namespace Hydro
 		PullNewMessages();
 
 		if (m_Open == false)
+		{
 			return;
+		}
 
 		// First time only (no saved layout for it yet): dock as a tab next to the Project window.
 		if (ImGuiWindow* project = ImGui::FindWindowByName("Project"))
 		{
 			if (project->DockId != 0)
+			{
 				ImGui::SetNextWindowDockID(project->DockId, ImGuiCond_FirstUseEver);
+			}
 		}
 
 		if (ImGui::Begin("Console", &m_Open) == false)
@@ -81,7 +94,9 @@ namespace Hydro
 
 		// ---- Toolbar ------------------------------------------------------------------
 		if (ImGui::Button("Clear"))
+		{
 			Clear();
+		}
 
 		ImGui::SameLine();
 		ImGui::Checkbox("Auto-scroll", &settings.AutoScroll);
@@ -89,7 +104,9 @@ namespace Hydro
 		// Level toggles with counts.
 		uint32_t counts[5] = {};
 		for (const LogMessage& message : m_Messages)
+		{
 			counts[(int)message.Level]++;
+		}
 
 		for (int level = 0; level < 5; level++)
 		{
@@ -105,7 +122,9 @@ namespace Hydro
 		ImGui::SameLine();
 		m_TextFilter.Draw("##Filter", -1.0f);
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("Filter text. \"a,b\" shows lines with a or b; \"-a\" hides lines with a.");
+		}
 
 		ImGui::Separator();
 
@@ -118,7 +137,9 @@ namespace Hydro
 		for (const LogMessage& message : m_Messages)
 		{
 			if (PassesFilter(message))
+			{
 				visible.push_back(&message);
+			}
 		}
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4.0f, 1.0f });
@@ -139,9 +160,13 @@ namespace Hydro
 					ImGui::SameLine();
 				}
 				if (settings.ShowSource)
+				{
 					ImGui::TextColored(color, "%-5s %s:", levelName, message.Source.c_str());
+				}
 				else
+				{
 					ImGui::TextColored(color, "%-5s", levelName);
+				}
 				ImGui::SameLine();
 				ImGui::PushStyleColor(ImGuiCol_Text, color);
 				ImGui::TextUnformatted(message.Text.c_str());
@@ -151,7 +176,9 @@ namespace Hydro
 				if (ImGui::BeginPopupContextItem("##Line"))
 				{
 					if (ImGui::MenuItem("Copy"))
+					{
 						ImGui::SetClipboardText(message.Text.c_str());
+					}
 					ImGui::EndPopup();
 				}
 				ImGui::PopID();
@@ -162,7 +189,9 @@ namespace Hydro
 
 		// Follow new messages while scrolled to the bottom; scrolling up to read stops following.
 		if (settings.AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+		{
 			ImGui::SetScrollHereY(1.0f);
+		}
 
 		ImGui::EndChild();
 		ImGui::End();

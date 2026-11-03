@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/EquipmentView.h
 #pragma once
 
 #include "Hydro.h"
@@ -14,12 +13,8 @@
 
 namespace Hydro
 {
-	// The field menu's Equipment page (the Menu plan's M5, after Octopath's equipment screen; "Page Equipment" in
-	// "Field Menu Canvas"; built by scripts/ui/build_game_ui.py). Owned by FieldMenuView. What the hero wears per slot
-	// on the left ("Gear Slot 0" to "5", EquipPosition), the stats below ("Gear Stat N": now, and with the focused
-	// choice, gold when better, red when worse), and the bag's items that fit the slot last focused on the right
-	// ("Gear Choice 0" to "9"; row 0 takes off what is worn). Enter on a slot moves to the choices; Enter on a choice
-	// equips it (PartyRules::Equip: one comes out of the inventory, what was worn goes back) and goes back to the slot.
+	// The field menu's Equipment page: what the hero wears per slot, the stats now and with the focused choice, and the bag's
+	// items that fit the slot. Choosing one equips it (PartyRules::Equip) and returns to the slot.
 	class EquipmentView
 	{
 	public:
@@ -62,14 +57,13 @@ namespace Hydro
 
 		bool IsChoosing() const { return m_Choosing; }
 
-		// The hero whose equipment the page shows (FieldMenuView's Q / E).
 		void SetHero(int hero)
 		{
 			m_Hero = std::clamp(hero, 0, HeroCount - 1);
 			Present();
 		}
 
-		// Whether something was put on or taken off since the last call (the menu then refreshes the other pages).
+		// True once after something was put on or taken off (the menu then refreshes the other pages).
 		bool TakeChanged()
 		{
 			const bool changed = m_Changed;
@@ -169,7 +163,7 @@ namespace Hydro
 			return item.IsValid() ? item->Name : "Missing: " + reference.Row;
 		}
 
-		// The choices for the slot last focused: "Take off", then the bag's items that fit it.
+		// "Take off", then the bag's items that fit the slot last focused.
 		void PresentChoices()
 		{
 			const EquipPosition position = (EquipPosition)std::clamp(m_Slot, 0, SlotRows - 1);
@@ -197,7 +191,7 @@ namespace Hydro
 			}
 		}
 
-		// The stats with choice `row` worn in the slot, and the help line (the item's description).
+		// The stats with choice `row` worn, and its description on the help line.
 		void PresentChoice(int row)
 		{
 			std::array<DataRowRef, SlotRows> preview = Worn();
@@ -208,7 +202,7 @@ namespace Hydro
 			UI::SetText(EntityOf(m_Help), definition.IsValid() ? definition->Description : std::string("Take off what is worn here."));
 		}
 
-		// Now (what is worn) against `with`: gold where `with` is better, red where it is worse.
+		// Gold where `with` is better than what is worn, red where it is worse.
 		void PresentStats(const std::array<DataRowRef, SlotRows>& with)
 		{
 			const int level = std::max(1, BattleState::Get().HeroLevel[m_Hero]);
@@ -223,12 +217,13 @@ namespace Hydro
 				UI::SetText(value, std::to_string(b[i]));
 				if (UITextComponent* text = value.IsValid() ? value.TryGetComponent<UITextComponent>() : nullptr)
 				{
-					text->Color = b[i] > a[i] ? glm::vec4(1.0f, 0.84f, 0.5f, 1.0f) : (b[i] < a[i] ? glm::vec4(0.95f, 0.45f, 0.38f, 1.0f) : glm::vec4(0.95f, 0.91f, 0.83f, 1.0f));
+					text->Color = b[i] > a[i] ? glm::vec4(1.0f, 0.84f, 0.5f, 1.0f)
+						: (b[i] < a[i] ? glm::vec4(0.95f, 0.45f, 0.38f, 1.0f) : glm::vec4(0.95f, 0.91f, 0.83f, 1.0f));
 				}
 			}
 		}
 
-		// Wears choice `row` (or takes off, row 0), then back to the slot.
+		// Row 0 takes off. Then back to the slot.
 		void Choose(int row)
 		{
 			const EquipPosition position = (EquipPosition)std::clamp(m_Slot, 0, SlotRows - 1);

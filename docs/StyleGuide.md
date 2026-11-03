@@ -52,11 +52,11 @@ This layer is what makes the art read as HD-2D; without it the same assets look 
 | Local light | Lanterns, windows and braziers are point lights in lantern amber `#F2A43A`; magic and spirits are cool `#45C7E8`. Place a light wherever the art shows a source. | done |
 | HDR and bloom | Bloom only on emissive sources and the brightest highlights; never a general haze. PBR Neutral tonemap keeps the palette intact below the highlights. | done |
 | Fog | Distance haze measured from the focus point, coloured by the time of day (warm at dusk, blue at night). | done |
-| Depth of field | **Tilt-shift:** sharp band on the player's plane; foreground and background blur with distance. Never blur the active gameplay plane, UI or the selected target. | to do, #135 |
-| Vignette | Subtle darkening at the screen corners on every field camera. | to do (H9) |
-| Colour grading | One grade per region and time of day (render profiles, then a LUT). | profiles done; LUT to do, #137 |
-| Atmosphere | Light shafts through trees and windows, dust motes, falling petals or leaves, chimney smoke. | to do (H9) |
-| Pixel stability | Sprite and texture pixels must not shimmer while the camera moves. | to do, #136 |
+| Depth of field | **Tilt-shift:** sharp band on the player's plane; foreground and background blur with distance. Never blur the active gameplay plane, UI or the selected target. | done, #135 |
+| Vignette | Subtle darkening at the screen corners on every field camera. | done (render profiles) |
+| Colour grading | One grade per region and time of day (render profiles, then a LUT). | profiles with lift / gamma / gain, saturation, white balance done; LUT to do, #137 |
+| Atmosphere | Light shafts through trees and windows, dust motes, falling petals or leaves, chimney smoke. | light shafts faked with additive sprites (Shrine Glade, Nov 3, 2026; `shrine_glade_light_shafts.py`), fireflies, petals and leaves as particles; volumetric light, smoke to do |
+| Pixel stability | Sprite and texture pixels must not shimmer while the camera moves. | done, #136 (Render Settings > Pixel snap: the Game view's camera moves in whole pixels, lighting and shadows step texel by texel) |
 | Player occlusion | When a roof, awning, tree or other foreground object covers the player, it fades or dithers out around her, so Miko is never lost behind scenery. | to do |
 | Water | Animated stream and pond shader: depth ramp, moving highlights and glints, edge line, reflection of banks and bridge, darker under bridges. | to do |
 

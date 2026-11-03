@@ -11,18 +11,8 @@
 
 namespace Hydro
 {
-	// Colour, optional depth and optional entity-ID images rendered with dynamic rendering
-	// (vkCmdBeginRendering), one set per frame in flight, so a frame never writes images that an
-	// earlier, still-running frame is reading.
-	//
-	// A resource: made from a RenderTargetSpecification, non-copyable, held in a Scope. Its images free
-	// themselves through Renderer::SubmitResourceFree, so it can be resized or destroyed mid-frame.
-	//
-	// Layouts are tracked per image. Begin moves every attachment to its attachment layout; End ends
-	// rendering and leaves the colour attachments (entity ID included) in SHADER_READ_ONLY_OPTIMAL,
-	// which is what everything that reads them expects (ImGui, the light composite, captures), and the
-	// depth attachment in DEPTH_STENCIL_ATTACHMENT_OPTIMAL (SHADER_READ_ONLY_OPTIMAL with SampledDepth: a
-	// shadow map). A target may have no colour attachments (depth only).
+	// Colour, optional depth and entity-ID images for dynamic rendering, one set per frame in flight. End leaves colour
+	// in SHADER_READ_ONLY_OPTIMAL and depth in DEPTH_STENCIL_ATTACHMENT_OPTIMAL (shader-read with SampledDepth).
 	class VulkanRenderTarget
 	{
 	public:
@@ -32,20 +22,18 @@ namespace Hydro
 		VulkanRenderTarget(const VulkanRenderTarget&) = delete;
 		VulkanRenderTarget& operator=(const VulkanRenderTarget&) = delete;
 
-		// Makes new images of the new size; the old ones go through the deletion queue (frames in flight
-		// may still use them). Anything that refers to them (an ImGui texture) must be pointed at the new
-		// ones. Does nothing when the size is unchanged; 0 is not allowed (callers skip minimised views).
+		// New images of the new size; the old ones go through the deletion queue, so whatever refers to them (an ImGui
+		// texture) must be updated. No-op when unchanged; 0 is not allowed.
 		void Resize(uint32_t width, uint32_t height);
 
-		// Transitions `frame`'s attachments and begins rendering into all of them. `colorTarget` (the HDR scene
-		// colour, P1): draw into that target's colour images instead of this one's, with this target's depth and
-		// entity ID; it must be the same size. Its images' layouts are tracked by it, as always.
-		void Begin(VkCommandBuffer commandBuffer, uint32_t frame, const RenderTargetBeginInfo& info, VulkanRenderTarget* colorTarget = nullptr);
-		// Ends rendering; colour attachments (`colorTarget`'s when one was given to Begin) go to
-		// SHADER_READ_ONLY_OPTIMAL (see the class comment).
+		// `colorTarget` (the HDR scene colour): draw into its colour images with this target's depth and entity ID;
+		// it must be the same size.
+		void Begin(VkCommandBuffer commandBuffer, uint32_t frame, const RenderTargetBeginInfo& info,
+			VulkanRenderTarget* colorTarget = nullptr);
+		// Colour attachments (`colorTarget`'s when given to Begin) go to SHADER_READ_ONLY_OPTIMAL.
 		void End(VkCommandBuffer commandBuffer, uint32_t frame, VulkanRenderTarget* colorTarget = nullptr);
 
-		// Colour attachment 0 of `frame` (what views show and capture).
+		// Colour attachment 0 (what views show and capture).
 		const VulkanImage& GetImage(uint32_t frame) const { return *m_Frames[frame].Colors[0]; }
 		const VulkanImage& GetColorImage(uint32_t frame, uint32_t index) const { return *m_Frames[frame].Colors[index]; }
 		// Null when the target has no depth / entity-ID attachment.
@@ -57,9 +45,8 @@ namespace Hydro
 		uint32_t GetHeight() const { return m_Specification.Height; }
 		VkExtent2D GetExtent() const { return { m_Specification.Width, m_Specification.Height }; }
 
-		// The attachment layout pipelines are built for: colour formats in order (the entity ID last when
-		// there is one) and the depth format. Two targets with equal layouts share pipelines.
-		// With `colorTarget`: the layout of a pass begun with it (its colour formats, this target's entity ID).
+		// Colour formats in order (entity ID last) for building pipelines; equal layouts share pipelines. With
+		// `colorTarget`: the layout of a pass begun with it.
 		std::vector<ImageFormat> GetPipelineColorFormats(const VulkanRenderTarget* colorTarget = nullptr) const;
 		ImageFormat GetPipelineDepthFormat() const { return m_Specification.DepthFormat; }
 

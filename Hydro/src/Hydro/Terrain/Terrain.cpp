@@ -13,8 +13,9 @@ namespace Hydro
 		return CellSize == other.CellSize && StepHeight == other.StepHeight && BaseLevel == other.BaseLevel && Seed == other.Seed
 			&& SplatResolution == other.SplatResolution && Jitter == other.Jitter && JitterSmooth == other.JitterSmooth
 			&& JitterScale == other.JitterScale && EdgeClusterSize == other.EdgeClusterSize && EdgePixelNoise == other.EdgePixelNoise
-			&& Layers == other.Layers && WallLayers == other.WallLayers && LipWidth == other.LipWidth && LipFaceHeight == other.LipFaceHeight
-			&& WallLean == other.WallLean && WallNoise == other.WallNoise && WallLight == other.WallLight && CapStoneMaterial == other.CapStoneMaterial
+			&& Layers == other.Layers && WallLayers == other.WallLayers && LipWidth == other.LipWidth
+			&& LipFaceHeight == other.LipFaceHeight && WallLean == other.WallLean && WallNoise == other.WallNoise
+			&& WallLight == other.WallLight && CapStoneMaterial == other.CapStoneMaterial
 			&& CapPitch == other.CapPitch && CapJoint == other.CapJoint && CapDepth == other.CapDepth && CapHeight == other.CapHeight
 			&& CapSizeJitter == other.CapSizeJitter && CapPositionJitter == other.CapPositionJitter && CapYawJitter == other.CapYawJitter
 			&& CapMissing == other.CapMissing && Decor == other.Decor;
@@ -150,8 +151,7 @@ namespace Hydro
 			m_WeightsChanged = true;
 		}
 
-		// The cells under the texels: their decor follows the layers (TR5). Their geometry does too where they
-		// have walls (the fringe follows the winning layer, TR2); TR1 terrains have none.
+		// The cells under the texels: their decor follows the layers, and so does the fringe where they have walls.
 		const float texelsPerCell = m_Settings.CellSize * (float)m_Settings.SplatResolution;
 		TerrainRect cells;
 		cells.Min = glm::uvec2(glm::vec2(clamped.Min) / texelsPerCell);

@@ -7,9 +7,8 @@
 
 namespace Hydro
 {
-	// Owns the Vulkan instance, debug messenger, window surface and device. A part of the Renderer,
-	// which starts and stops it; reach it with Renderer::GetRendererContext(), and the device with
-	// Renderer::GetVulkanDevice().
+	// Owns the Vulkan instance, debug messenger, window surface and device; a part of the Renderer
+	// (Renderer::GetRendererContext, Renderer::GetVulkanDevice).
 	class VulkanRendererContext
 	{
 	public:
@@ -31,12 +30,10 @@ namespace Hydro
 		void CreateVulkanInstance();
 		void CreateSurface(Window& window);
 
-		// Debug messaging.
 		static VkDebugUtilsMessengerCreateInfoEXT MakeDebugMessengerCreateInfo();
 		void SetupDebugMessenger();
 		void DestroyDebugMessenger();
 
-		// Validation layers.
 		static bool CheckValidationLayerSupport();
 
 	private:

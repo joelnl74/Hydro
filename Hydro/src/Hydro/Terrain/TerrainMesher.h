@@ -15,8 +15,8 @@ namespace Hydro
 	struct TerrainMeshBuilder;      // TerrainMesher.cpp
 	struct TerrainCollisionBuilder; // TerrainMesher.cpp
 
-	// The sub-meshes of a chunk's Parts mesh: SubMesh::MaterialSlot says what each one is, so the renderer can pick
-	// its material (TerrainMesher::GetPartKind). Walls, lip faces and fringes have one slot per layer.
+	// The sub-meshes of a chunk's Parts mesh, by SubMesh::MaterialSlot (GetPartKind). Walls, lip faces and fringes
+	// have one slot per layer.
 	enum class TerrainPartKind : uint32_t
 	{
 		Wall = 0,  // a wall layer's material
@@ -29,25 +29,15 @@ namespace Hydro
 	// One chunk's meshes, in the terrain's own space (Z up, metres, corner (0, 0) at the origin).
 	struct TerrainChunkMesh
 	{
-		// The tops (bands, lips, ramps): one sub-mesh, drawn with the terrain surface shader. UV = the position (x, y).
+		// Bands, lips and ramps, drawn with the terrain surface shader. UV = the position (x, y).
 		MeshData Tops;
-		// Everything drawn with Standard materials: walls, lip faces, fringes, cap stones, decor. UVs in metres
-		// (the material's Tiling is per metre; v = -z, as images have v = 0 at the top), fringes and decor sprites 0..1
-		// (v = 0 at the top).
+		// Walls, lip faces, fringes, cap stones and decor (Standard materials). UVs in metres with v = -z; fringes and
+		// decor sprites 0..1.
 		MeshData Parts;
 	};
 
-	// Turns a terrain's data into meshes (Terrain plan, "Shape"; scripts/terrain/terrain_mesher.py is the reference:
-	// same data, same hashes, same rules).
-	//
-	// Making one analyses the whole terrain once: the ramp runs and every wall segment with its distance along the
-	// outline (so wall textures and cap stones run on across cells and chunks). Then BuildChunk meshes any chunk and
-	// BuildCollision the whole terrain, both from that analysis. The analysis depends on the levels, ramps, wall
-	// materials and settings only (not the painted weights): the TerrainCache keeps one per terrain and makes a new
-	// one when Terrain::GetCollisionRevision changes.
-	//
-	//   TerrainMesher mesher(*terrain);
-	//   TerrainChunkMesh chunk = mesher.BuildChunk(x, y);
+	// Turns a terrain's data into chunk meshes and collision, following scripts/terrain/terrain_mesher.py (same
+	// hashes and rules). Built once per shape revision: the analysis ignores the painted weights.
 	class TerrainMesher
 	{
 	public:
@@ -85,8 +75,7 @@ namespace Hydro
 
 		// The chunk's tops and parts. The fringe and decor follow the painted weights as they are now.
 		TerrainChunkMesh BuildChunk(uint32_t chunkX, uint32_t chunkY) const;
-		// The whole terrain's collision (Terrain plan, "Component, rendering and collision"): tops, ramps and walls
-		// (Hidden ones too); not the lip, fringe, caps or decor.
+		// Tops, ramps and walls (Hidden ones too); not the lip, fringe, caps or decor.
 		void BuildCollision(std::vector<glm::vec3>& positions, std::vector<uint32_t>& indices) const;
 
 		// What the analysis found wrong (an invalid ramp run is drawn as a cliff), for the inspector.
@@ -104,11 +93,14 @@ namespace Hydro
 		float GetHeightAt(const glm::vec2& position) const;
 
 		// A Parts sub-mesh's slot: its kind and an index (the wall or top layer; for decor, rule * 256 + sprite).
-		static uint32_t GetPartSlot(TerrainPartKind kind, uint32_t index) { return ((uint32_t)kind << 16) | (index & 0xFFFF); }
+		static uint32_t GetPartSlot(TerrainPartKind kind, uint32_t index)
+		{
+			return ((uint32_t)kind << 16) | (index & 0xFFFF);
+		}
 		static TerrainPartKind GetPartKind(uint32_t slot) { return (TerrainPartKind)(slot >> 16); }
 		static uint32_t GetPartIndex(uint32_t slot) { return slot & 0xFFFF; }
 
-		// The top layer that wins at a point of the terrain's space: the pixel splat of terrain.frag on the CPU.
+		// The top layer that wins at a point: terrain.frag's pixel splat on the CPU.
 		static uint32_t GetTopLayerAt(const Terrain& terrain, const glm::vec2& position);
 		// terrain_mesher.hash_u32 (negative values wrap as uint32), and the same as 0..1.
 		static uint32_t Hash(std::initializer_list<int64_t> values);

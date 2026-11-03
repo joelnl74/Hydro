@@ -8,9 +8,10 @@
 
 namespace Hydro
 {
-	// Adds a flat quad (corners counter-clockwise seen from where `normal` points). UVs come from the two
-	// axes of the face that aren't along the normal, in world units.
-	static void AddQuad(MeshData& mesh, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& d, const glm::vec3& normal)
+	// A flat quad, counter-clockwise seen from where `normal` points. UVs come from the face's two other axes, in
+	// world units.
+	static void AddQuad(MeshData& mesh, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& d,
+		const glm::vec3& normal)
 	{
 		const glm::vec3 corners[4] = { a, b, c, d };
 		const uint32_t first = (uint32_t)mesh.Vertices.size();
@@ -133,8 +134,7 @@ namespace Hydro
 		const float y0 = -size.y * 0.5f;
 		for (uint32_t i = 0; i < steps; i++)
 		{
-			// Step i covers the depth from its front edge to the back of the stairs, so the blocks together
-			// are solid with no hidden faces inside except where they overlap (cheap and watertight).
+			// Each step reaches to the back of the stairs, so the blocks are solid and watertight.
 			const glm::vec3 min{ -size.x * 0.5f, y0 + depth * (float)i, 0.0f };
 			const glm::vec3 max{ size.x * 0.5f, y0 + depth * (float)(i + 1), rise * (float)(i + 1) };
 			AddBlock(mesh, min, max, true);
@@ -159,8 +159,8 @@ namespace Hydro
 			const float a1 = step * (float)(i + 1);
 			const glm::vec3 p0{ std::cos(a0) * rx, std::sin(a0) * ry, 0.0f };
 			const glm::vec3 p1{ std::cos(a1) * rx, std::sin(a1) * ry, 0.0f };
-			const glm::vec3 normal = glm::normalize(glm::vec3(std::cos((a0 + a1) * 0.5f) / std::max(rx, 1.0e-4f), std::sin((a0 + a1) * 0.5f) / std::max(ry, 1.0e-4f), 0.0f));
-
+			const glm::vec3 normal = glm::normalize(glm::vec3(std::cos((a0 + a1) * 0.5f) / std::max(rx, 1.0e-4f),
+				std::sin((a0 + a1) * 0.5f) / std::max(ry, 1.0e-4f), 0.0f));
 			// Side: UV u runs around the circumference in metres.
 			const uint32_t first = (uint32_t)mesh.Vertices.size();
 			const float u0 = circumference * (float)i / (float)segments;

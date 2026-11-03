@@ -25,7 +25,7 @@ namespace Hydro
 		out << YAML::BeginMap;
 		out << YAML::Key << AssetMetaSerializer::HandleKey << YAML::Value << (uint64_t)handle;
 		out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
-		// Only written when the scene overrides the project's render features, so 2D scenes stay as they were.
+		// Only written when the scene overrides the project's render features.
 		const SceneRenderSettings& renderSettings = m_Scene->GetRenderSettings();
 		if (renderSettings.OverrideProject)
 		{
@@ -35,7 +35,7 @@ namespace Hydro
 			RenderFeatureSerializer::Serialize(out, renderSettings.Features);
 			out << YAML::EndMap;
 		}
-		// Only written when the scene uses a render profile (post-processing plan P4).
+		// Only written when the scene uses a render profile.
 		const SceneLook& look = m_Scene->GetLook();
 		if (look != SceneLook{})
 		{
@@ -48,15 +48,14 @@ namespace Hydro
 			out << YAML::Key << "PostProcess" << YAML::Value << RenderProfileSerializer::LookSourceToString(look.PostProcess);
 			out << YAML::EndMap;
 		}
-		// The scene's own values, also when the look takes them from a profile (they come back when it
-		// stops). Only written when the scene sets its own ambient and fog (forward lighting, M6).
+		// The scene's own ambient and fog, also when a profile overrides them. Only written when the scene sets them.
 		const SceneEnvironment& environment = m_Scene->GetEnvironment();
 		if (environment.Override)
 		{
 			out << YAML::Key << "Environment" << YAML::Value;
 			RenderProfileSerializer::SerializeEnvironment(out, environment);
 		}
-		// Only when it differs from the defaults, so scenes that don't use it are saved as before.
+		// Only when it differs from the defaults.
 		const ScenePostProcess& postProcess = m_Scene->GetPostProcess();
 		if (postProcess != ScenePostProcess{})
 		{
@@ -65,9 +64,7 @@ namespace Hydro
 		}
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-		// The scene's list order (what the hierarchy shows). Only "real" entities (made through
-		// CreateEntity) are in it; raw registry entities without an ID, like the editor's demo
-		// galaxy stars, are runtime-only.
+		// List order. Raw registry entities without an ID are runtime-only and not saved.
 		const std::vector<entt::entity>& entities = m_Scene->GetEntityOrder();
 
 		for (entt::entity handle : entities)
@@ -137,7 +134,7 @@ namespace Hydro
 		m_Scene->SetEnvironment(RenderProfileSerializer::DeserializeEnvironment(data["Environment"]));
 		m_Scene->SetPostProcess(RenderProfileSerializer::DeserializePostProcess(data["PostProcess"]));
 
-		// Missing: no profile, the scene's own values (scenes from before P4).
+		// Missing: no profile, the scene's own values.
 		SceneLook look;
 		YAML::Node lookNode = data["Look"];
 		if (lookNode && lookNode.IsMap())
@@ -181,9 +178,8 @@ namespace Hydro
 			}
 		}
 
-		// Every entity exists now, so every parent can be found: put the list in depth-first order and make
-		// entities with impossible parents (missing, themselves, a cycle) roots, with a warning. A file Hydro
-		// wrote comes out unchanged.
+		// Every entity exists now: make the list depth-first and impossible parents roots (warned). A file Hydro wrote
+		// comes out unchanged.
 		m_Scene->RepairHierarchy();
 
 		HY_CORE_INFO("Loaded scene '{}' ({} entities) from {}", m_Scene->GetName(), count, filepath.string());

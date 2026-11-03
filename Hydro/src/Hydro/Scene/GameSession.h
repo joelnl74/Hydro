@@ -7,20 +7,8 @@
 
 namespace Hydro
 {
-	// The state of one run of the game (Scripting plan SC2). A session is made when a game starts and destroyed when
-	// it ends (SceneStack::Start / Stop: the editor's Play and Stop, the standalone player's start and quit), and
-	// survives every scene change on the scene stack in between. So a new run always starts fresh, and nothing a
-	// run leaves behind survives Stop and Play.
-	//
-	// The game derives its own session type, registers it once at startup (like its scripts) and keeps its run state
-	// there: the party, the inventory, the quest log, the battle hand-off.
-	//
-	//     class RpgSession : public GameSession { public: QuestLog Quests; ... };
-	//     GameSession::Register<RpgSession>();               // OnInit
-	//     GameSession::Get<RpgSession>().Quests.Start(...);  // while the game runs
-	//
-	// It holds run state and run-scoped game infrastructure only. It is not a service locator: rendering, input,
-	// assets, audio and scenes keep their own engine APIs. One session type per game.
+	// The state of one run of the game (party, inventory, quests), made at SceneStack::Start and destroyed at Stop, so
+	// every run starts fresh. The game derives and registers its own type (docs/Scripting.md). Not a service locator.
 	class GameSession
 	{
 	public:
@@ -34,13 +22,13 @@ namespace Hydro
 			SetFactory([]() -> GameSession* { return new T(); });
 		}
 
-		// The running session as the game's type. Only while a game runs (scripts' OnCreate, OnUpdate, OnDestroy
-		// of a running scene, UI and physics events); asserts otherwise.
+		// The running session as the game's type. Only while a game runs; asserts otherwise.
 		template<typename T>
 		static T& Get()
 		{
 			T* session = dynamic_cast<T*>(GetActive());
-			HY_CORE_ASSERT(session != nullptr, "GameSession::Get: no game is running, or its session isn't of this type (GameSession::Register)");
+			HY_CORE_ASSERT(session != nullptr,
+				"GameSession::Get: no game is running, or its session isn't of this type (GameSession::Register)");
 			return *session;
 		}
 
@@ -52,8 +40,7 @@ namespace Hydro
 		}
 
 	protected:
-		// Called when the run starts, before the first scene's scripts are created, and when it ends, after every
-		// scene of the run is gone.
+		// When the run starts (before the first scene's scripts) and ends (after every scene of the run is gone).
 		virtual void OnStart() {}
 		virtual void OnStop() {}
 

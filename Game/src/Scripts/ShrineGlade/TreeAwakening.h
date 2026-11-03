@@ -1,4 +1,3 @@
-// Game/src/Scripts/ShrineGlade/TreeAwakening.h
 #pragma once
 
 #include "Hydro.h"
@@ -9,10 +8,8 @@
 
 namespace Hydro
 {
-	// The Shrine Glade's Sacred Tree waking (Scripting plan SC8g, split out of the quest script): the awake overlay and
-	// the vein glow fading in ("Sacred Tree Awake", "Sacred Tree Glow" over "Sacred Tree"), the light it gives and the
-	// motes rising round its trunk (made the first time, then kept: the tree stays awake), and the leaves and root dust
-	// the tremor shakes loose. What happens, not when: ShrineQuestScript drives it.
+	// The Sacred Tree waking: the awake overlay and vein glow, its light and rising motes, and what the tremor shakes loose.
+	// What happens, not when: ShrineQuestScript drives it.
 	class TreeAwakening
 	{
 	public:
@@ -28,13 +25,12 @@ namespace Hydro
 			}
 		}
 
-		// The tree's foot on its terrace.
 		glm::vec3 GetFoot(Scene& scene) const
 		{
 			return Foot(scene, m_Tree);
 		}
 
-		// The light the waking tree gives, and the motes rising round its trunk (both stay: the tree stays awake).
+		// Both stay once made: the tree stays awake.
 		void CreateEffects(Scene& scene)
 		{
 			const glm::vec3 foot = Foot(scene, m_Tree);
@@ -52,14 +48,13 @@ namespace Hydro
 			if (m_Motes.IsValid() == false)
 			{
 				m_Motes = scene.CreateEntity("Sacred Tree Motes");
-				// View-space particles are placed up the standing tree, along the camera's up (DioramaView::Above).
+				// View-space particles are placed up the standing tree, along the camera's up.
 				m_Motes.AddComponent<TransformComponent>().Translation = DioramaView::Above(foot + glm::vec3(0.0f, -0.6f, 0.0f), 0.8f);
 				m_Motes.AddComponent<ParticleEmitter2DComponent>(Motes(0.0f));
 			}
 		}
 
-		// `amount` 0..1 of the waking (the overlay and the glow fade in, the light and motes grow); `time` drives
-		// the breathing.
+		// `amount` 0..1 of the waking; `time` drives the breathing.
 		void Set(float amount, float time)
 		{
 			const float breath = 0.5f + 0.5f * std::sin(time * 1.6f);
@@ -85,7 +80,6 @@ namespace Hydro
 			}
 		}
 
-		// Leaves shaken loose from the canopy, and dust kicked up at its roots.
 		void ShakeLoose(Scene& scene)
 		{
 			const glm::vec3 foot = Foot(scene, m_Tree);
@@ -93,7 +87,7 @@ namespace Hydro
 			PlayEffect(scene, "Effect Root Dust", DioramaView::Above(foot + glm::vec3(0.0f, -0.6f, 0.0f), 0.2f), RootDust());
 		}
 
-		// Where an Upright sprite stands: its entity sits at its middle, its feet half its height towards -Y.
+		// An Upright sprite's entity sits at its middle, its feet half its height towards -Y.
 		static glm::vec3 Foot(Scene& scene, Entity entity)
 		{
 			if (entity.IsValid() == false)
@@ -106,9 +100,9 @@ namespace Hydro
 		}
 
 	private:
-		// ---- Effects (plain component values, like the battle's) -------------------------------------------
+		// ---- Effects ---------------------------------------------------------------------------------------
 
-		// The cyan motes rising round the trunk; Rate is set every frame (SetTreeAwake).
+		// Rate is set every frame.
 		ParticleEmitter2DComponent Motes(float rate) const
 		{
 			ParticleEmitter2DComponent motes;
@@ -187,7 +181,7 @@ namespace Hydro
 			return dust;
 		}
 
-		// A one-shot effect entity at `position` (a new entity is a root, so this is its place in the world).
+		// A new entity is a root, so `position` is its place in the world.
 		static void PlayEffect(Scene& scene, const char* name, const glm::vec3& position, const ParticleEmitter2DComponent& settings)
 		{
 			Entity effect = scene.CreateEntity(name);

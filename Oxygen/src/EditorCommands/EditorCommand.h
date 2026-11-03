@@ -7,16 +7,8 @@
 
 namespace Hydro
 {
-	// One undoable edit in the editor (issue #165, started by the Terrain plan's TR1). Recorded after it happened:
-	// the edit is already applied when the command is pushed, so Redo puts it back after an Undo.
-	//
-	//   commands.Push(CreateScope<TerrainStrokeCommand>(...)); // after the stroke changed the terrain
-	//   commands.Undo();                                        // Ctrl+Z
-	//   commands.Redo();                                        // Ctrl+Y / Ctrl+Shift+Z
-	//
-	// A command keeps what it needs to apply itself either way (before and after values), and refers to what it
-	// changed by something stable (an asset handle, an entity UUID), never by a pointer that a reload or a new scene
-	// would leave dangling.
+	// One undoable edit (#165), pushed after it was applied. It keeps before and after values and refers to what it
+	// changed by something stable (an asset handle, an entity UUID), never by a pointer.
 	class EditorCommand
 	{
 	public:
@@ -28,9 +20,8 @@ namespace Hydro
 		virtual const char* GetName() const = 0;
 	};
 
-	// The editor's undo history: commands done, and those undone that can be redone. Pushing a new command drops the
-	// redo list. Keeps at most MaxCommands; the oldest go first. Owned by EditorLayer; cleared when another scene or
-	// project is opened.
+	// The undo history: pushing drops the redo list; keeps at most MaxCommands. Owned by EditorLayer, cleared when
+	// another scene or project opens.
 	class EditorCommandStack
 	{
 	public:

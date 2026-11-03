@@ -14,6 +14,7 @@ RenderSettings:
     HDR: true
     Bloom: true
     DepthOfField: true
+    PixelSnap: true
 Look:
   ProfileHandle: 8644953574432083781
   Environment: Profile

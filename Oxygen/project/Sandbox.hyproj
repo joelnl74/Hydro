@@ -26,3 +26,4 @@ Renderer:
     HDR: true
     Bloom: true
     DepthOfField: true
+    PixelSnap: true

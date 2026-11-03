@@ -1,4 +1,3 @@
-// Game/src/Data/BattleDefinitions.h
 #pragma once
 
 #include "Hydro/Asset/Asset.h"
@@ -13,13 +12,11 @@
 #include <string>
 #include <vector>
 
-// The battle's numbers (the Definitions plan's D5, #172; the Scripting plan's SC7): the hero (Assets/Data/Characters/
-// <Hero>.hydef), the enemies (Enemies.hytable), who fights together (Encounters.hytable), every ability, the plain
-// attack included (Abilities.hytable), and the level curve (Characters/LevelCurve.hydef). Only what the battle reads;
-// the rules that use them are State/BattleState.h, Rules/ and the battle script.
+// The battle's numbers: heroes, enemies, encounters, abilities and the level curve. The rules that use them are
+// State/BattleState.h, Rules/ and the battle script.
 namespace Hydro
 {
-	// What a hit is made of; enemies are weak to or resist some. The order is the battle's icons' (BattleIcon).
+	// The order is the battle's icons' (BattleIcon).
 	HY_ENUM()
 	enum class DamageType : uint8_t
 	{
@@ -52,7 +49,6 @@ namespace Hydro
 		bool Approach = true;
 	};
 
-	// An ability a hero learns on reaching a level.
 	HY_DATA()
 	struct LearnedAbility
 	{
@@ -62,7 +58,7 @@ namespace Hydro
 		DataRowRef Ability;
 	};
 
-	// A hero: one file each (Assets/Data/Characters/<Hero>.hydef).
+	// One file per hero (Assets/Data/Characters/<Hero>.hydef).
 	HY_DATA(Definition)
 	struct HeroDefinition
 	{
@@ -92,7 +88,7 @@ namespace Hydro
 		int PortraitSprite = 0;
 	};
 
-	// An ability an enemy may use, and how often compared with its others.
+	// How often, compared with the enemy's other abilities.
 	HY_DATA()
 	struct EnemyAbility
 	{
@@ -102,8 +98,7 @@ namespace Hydro
 		float Weight = 1.0f;
 	};
 
-	// An enemy: a row of Enemies.hytable. A new enemy is a row here and one in an encounter: the battle's enemy slots
-	// play its animations, and the field's EnemyChaseScript names it (or its encounter).
+	// A new enemy is a row here and one in an encounter.
 	HY_DATA(Table, DisplayField(Name))
 	struct EnemyDefinition
 	{
@@ -133,7 +128,7 @@ namespace Hydro
 		int Money = 0;
 		HY_PROPERTY(DataRow(LootTableDefinition), Tooltip("Rolled once the battle is won (Loot.hytable); unset: nothing"))
 		DataRowRef Loot;
-		// How it looks and moves (presentation, not rules).
+		// Presentation, not rules.
 		HY_PROPERTY(Range(0, 3), Tooltip("Metres it floats above the floor, bobbing (0: it stands); floating ones also sway in the field"))
 		float FloatHeight = 0.0f;
 		HY_PROPERTY(Range(0, 3), Tooltip("Its field speeds times this (wandering, chasing, going home)"))
@@ -146,7 +141,7 @@ namespace Hydro
 		glm::vec3 SmokeColor{ 0.85f, 0.9f, 0.8f };
 	};
 
-	// Who fights together: a row of Encounters.hytable, up to three enemies in slot order.
+	// Up to three enemies in slot order.
 	HY_DATA(Table)
 	struct EncounterDefinition
 	{
@@ -156,7 +151,7 @@ namespace Hydro
 		DataRowRef Loot;
 	};
 
-	// The experience each level takes (Assets/Data/Characters/LevelCurve.hydef), shared by the heroes.
+	// Shared by the heroes.
 	HY_DATA(Definition)
 	struct LevelCurve
 	{

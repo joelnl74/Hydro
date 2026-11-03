@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/InventoryView.h
 #pragma once
 
 #include "Hydro.h"
@@ -11,10 +10,8 @@
 
 namespace Hydro
 {
-	// The field menu's Inventory page ("Page Inventory" in "Field Menu Canvas": rows "Item 0" to "Item 19" and the
-	// selected item's details; scripts/ui/build_game_ui.py builds it). A view (Scripting plan SC8f) owned by
-	// FieldMenuView: it shows the run's Inventory, keeps the selection, and turns its rows' UI events into what the
-	// player asked for; the director uses the item (Rules/ItemRules.h).
+	// The field menu's Inventory page: shows the run's Inventory, keeps the selection, and turns its rows' events into
+	// requests; the director uses the item (Rules/ItemRules.h).
 	class InventoryView
 	{
 	public:
@@ -42,7 +39,7 @@ namespace Hydro
 			return Inventory::Get().Slots.empty() == false;
 		}
 
-		// Moves the focus into the list, on the selection (kept between opens).
+		// On the selection, kept between opens.
 		void Focus()
 		{
 			m_Selected = std::clamp(m_Selected, 0, std::max(0, std::min((int)Inventory::Get().Slots.size(), MaxRows) - 1));
@@ -51,8 +48,7 @@ namespace Hydro
 
 		int GetSelected() const { return m_Selected; }
 
-		// A row's events (they bubble up to the director, which hands them to the menu, which hands them here): the
-		// focus selects, Submit asks to use, Cancel to go back to the tabs. Returns whether the event was a row's.
+		// Focus selects, Submit asks to use, Cancel goes back to the tabs. Returns whether the event was a row's.
 		bool HandleEvent(const UIEvent& event, Request& request)
 		{
 			request = Request::None;
@@ -82,9 +78,8 @@ namespace Hydro
 			return false;
 		}
 
-		// The rows: one per item (rows past the list are hidden, so the panel fits it), name and count; items that
-		// can't be used here are greyed, items used up dimmer still. An item whose row is gone from the table shows as
-		// "Missing: <id>". Then the details.
+		// Rows past the list are hidden, so the panel fits it. Items that can't be used here are greyed, used-up ones dimmer;
+		// a row gone from the table shows as "Missing: <id>".
 		void Present(bool help = true)
 		{
 			if (m_Scene == nullptr)
@@ -116,8 +111,7 @@ namespace Hydro
 			PresentDetails(help);
 		}
 
-		// The selected item's name and description, and (`help`) the help line; also when the page is shown from the
-		// tabs.
+		// Also when the page is shown from the tabs.
 		void PresentDetails(bool help = true)
 		{
 			if (m_Selected < 0 || m_Selected >= (int)Inventory::Get().Slots.size())
@@ -142,7 +136,8 @@ namespace Hydro
 			UI::SetText(EntityOf(m_DetailText), item->Description);
 			if (help)
 			{
-				UI::SetText(EntityOf(m_Help), item->CanUseInField() ? (slot.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
+				UI::SetText(EntityOf(m_Help),
+					item->CanUseInField() ? (slot.Count > 0 ? "Use it now." : "None left.") : "Can't be used here.");
 			}
 		}
 

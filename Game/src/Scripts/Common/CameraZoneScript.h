@@ -4,13 +4,8 @@
 
 #include <algorithm>
 
-// Camera zones (Nov 1, 2026): an area of a field scene with its own camera framing. Put CameraZoneScript on an empty
-// entity; its position is the zone's centre on the ground and Size its width and depth. While the player stands in
-// it, the follow camera (CameraFollowScript) looks the zone's way, at its tilt and zoom, leads and rises by its
-// amounts and pans only inside PanMin..PanMax, blending there over BlendSeconds; outside every zone it uses the
-// scene's framing (the director, FieldSceneScript). Overlapping zones: the highest Priority wins, then the smallest.
-// Typical use: a street framed along its length, a stair pulled back and higher, a plaza centred on its gate.
-// Scene builders write the zones (scripts/japanese_city/build_city_slice.py).
+// An area of a field scene with its own camera framing: while the player stands in it, the follow camera takes its
+// framing and pan area. Overlapping zones: the highest Priority wins, then the smallest.
 namespace Hydro
 {
 	HY_SCRIPT()

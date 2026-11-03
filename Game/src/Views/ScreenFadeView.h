@@ -1,12 +1,10 @@
-// Game/src/Views/ScreenFadeView.h
 #pragma once
 
 #include "Views/ViewHelpers.h"
 
 namespace Hydro
 {
-	// The black over the whole view ("Fade" on the field's topmost canvas, scripts/ui/build_game_ui.py): 0 clear,
-	// 1 black; hidden while clear. A view (Scripting plan SC8f): it shows what it is told, the director decides when.
+	// The black over the whole view: 0 clear, 1 black; hidden while clear. The director decides when.
 	class ScreenFadeView
 	{
 	public:

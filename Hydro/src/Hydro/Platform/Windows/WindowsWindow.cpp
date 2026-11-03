@@ -214,7 +214,8 @@ namespace Hydro
 		}
 		else
 		{
-			glfwSetWindowMonitor(m_Window, nullptr, m_WindowedX, m_WindowedY, std::max(1, m_WindowedWidth), std::max(1, m_WindowedHeight), 0);
+			glfwSetWindowMonitor(m_Window, nullptr, m_WindowedX, m_WindowedY, std::max(1, m_WindowedWidth), std::max(1, m_WindowedHeight),
+				0);
 		}
 
 		m_Fullscreen = fullscreen;

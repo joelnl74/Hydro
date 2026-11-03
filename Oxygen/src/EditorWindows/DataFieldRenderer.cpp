@@ -21,8 +21,7 @@
 
 namespace Hydro
 {
-	// The colours the editor already uses for problems (the inspector's and Project window's red), readable on
-	// the dark and the light themes; EditorStyle has no error or warning colour yet.
+	// The colours the editor already uses for problems, readable on dark and light themes.
 	static const ImVec4 s_ErrorColor = { 0.9f, 0.4f, 0.4f, 1.0f };
 	static const ImVec4 s_WarningColor = { 0.9f, 0.7f, 0.3f, 1.0f };
 
@@ -60,8 +59,8 @@ namespace Hydro
 		return out.c_str();
 	}
 
-	// Int / Float / vector components into the field's Range once the field is left (files are not clamped:
-	// validation warns about them instead).
+	// Clamps Int / Float / vector components into the field's Range once the field is left. Files are not clamped:
+	// validation warns about them instead.
 	static bool ClampOnLeave(const DataField& field, float* components, int count)
 	{
 		if (ImGui::IsItemDeactivatedAfterEdit() == false || field.HasRange() == false)
@@ -80,6 +79,8 @@ namespace Hydro
 
 	static bool DrawRecord(const DataTypeInfo& type, void* object, DataKeptValues& kept, bool readOnly);
 
+	static DataFieldRenderer::EntityRefWidget s_EntityRefWidget;
+
 	// The widget for a value of a "flat" kind (everything but Struct and List), filling the current item width.
 	static bool DrawValueWidget(const DataField& field, const DataValueType& valueType, void* value)
 	{
@@ -93,7 +94,8 @@ namespace Hydro
 				bool changed = ImGui::InputInt("##value", &current);
 				if (ImGui::IsItemDeactivatedAfterEdit() && field.HasRange())
 				{
-					const int clamped = (int)std::clamp((float)current, std::max(field.Min, (float)INT_MIN), std::min(field.Max, (float)INT_MAX));
+					const int clamped = (int)std::clamp((float)current, std::max(field.Min, (float)INT_MIN),
+						std::min(field.Max, (float)INT_MAX));
 					changed |= clamped != current;
 					current = clamped;
 				}
@@ -170,6 +172,16 @@ namespace Hydro
 			}
 			case DataFieldKind::RowRef:
 				return DataFieldRenderer::DrawRowRefWidget(*static_cast<DataRowRef*>(value), field.DataTypeFilter, ImGui::CalcItemWidth());
+			case DataFieldKind::EntityRef:
+			{
+				EntityRef& reference = *static_cast<EntityRef*>(value);
+				if (s_EntityRefWidget != nullptr)
+				{
+					return s_EntityRefWidget(reference);
+				}
+				ImGui::TextDisabled("entity %llu", (unsigned long long)(uint64_t)reference.GetId());
+				return false;
+			}
 			case DataFieldKind::Struct:
 			case DataFieldKind::List:
 				break;
@@ -247,8 +259,8 @@ namespace Hydro
 		return button * 3.0f + 4.0f + style.ItemSpacing.x;
 	}
 
-	// A list field: a foldout with its entries (struct entries are foldouts of their own), each with up, down
-	// and remove, and Add at the end. The kept values of struct entries move with them (DataEditing).
+	// A list field: a foldout with its entries, each with up, down and remove, and Add at the end. The kept values
+	// of struct entries move with them.
 	static bool DrawList(const char* label, const DataField& field, void* list, DataKeptValues& kept, bool readOnly)
 	{
 		const DataListOps& ops = *field.Type.List;
@@ -256,7 +268,8 @@ namespace Hydro
 		const size_t size = ops.Size(list);
 		bool changed = false;
 
-		const bool open = ImGui::TreeNodeEx("##list", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth, "%s  (%zu)", label, size);
+		const bool open = ImGui::TreeNodeEx("##list", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth,
+			"%s  (%zu)", label, size);
 		if (field.Tooltip.empty() == false && ImGui::IsItemHovered())
 		{
 			ImGui::SetTooltip("%s", field.Tooltip.c_str());
@@ -276,8 +289,8 @@ namespace Hydro
 			ListAction entryAction = ListAction::None;
 			if (structType != nullptr)
 			{
-				const bool entryOpen = ImGui::TreeNodeEx("##entry", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth, "[%zu] %s", i,
-					SummarizeStruct(*structType, entry).c_str());
+				const bool entryOpen = ImGui::TreeNodeEx("##entry", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth,
+					"[%zu] %s", i, SummarizeStruct(*structType, entry).c_str());
 				if (readOnly == false)
 				{
 					ImGui::SameLine(std::max(ImGui::GetCursorPosX(), ImGui::GetWindowContentRegionMax().x - EntryButtonsWidth()));
@@ -347,7 +360,7 @@ namespace Hydro
 		return changed;
 	}
 
-	static bool DrawField(const DataField& field, void* object, DataKeptValues& kept, bool readOnly)
+	static bool DrawOneField(const DataField& field, void* object, DataKeptValues& kept, bool readOnly)
 	{
 		if (field.HideInInspector)
 		{
@@ -416,7 +429,7 @@ namespace Hydro
 		bool changed = false;
 		for (const DataField& field : type.Fields)
 		{
-			changed |= DrawField(field, object, kept, readOnly);
+			changed |= DrawOneField(field, object, kept, readOnly);
 		}
 
 		// Keys the file has that the type doesn't (a field renamed or removed in C++): kept and written back.
@@ -451,6 +464,16 @@ namespace Hydro
 	bool DataFieldRenderer::DrawFields(const DataTypeInfo& type, void* object, DataKeptValues& kept, bool readOnly)
 	{
 		return DrawRecord(type, object, kept, readOnly);
+	}
+
+	bool DataFieldRenderer::DrawField(const DataField& field, void* object, DataKeptValues& kept, bool readOnly)
+	{
+		return DrawOneField(field, object, kept, readOnly);
+	}
+
+	void DataFieldRenderer::SetEntityRefWidget(EntityRefWidget widget)
+	{
+		s_EntityRefWidget = std::move(widget);
 	}
 
 	bool DataFieldRenderer::DrawRowRefWidget(DataRowRef& ref, const std::string& rowType, float width)
@@ -489,7 +512,8 @@ namespace Hydro
 			const AssetMetadata* metadata = AssetManager::GetMetadata(ref.Table);
 			if (ref.IsSet())
 			{
-				ImGui::SetTooltip("%s : %s%s", metadata != nullptr ? metadata->Path.generic_u8string().c_str() : "(table not in the project)",
+				ImGui::SetTooltip("%s : %s%s", metadata != nullptr ? metadata->Path.generic_u8string().c_str()
+					: "(table not in the project)",
 					ref.Row.c_str(), missing ? "\nThe row (or its table) is gone: pick another." : "");
 			}
 			else
@@ -543,7 +567,8 @@ namespace Hydro
 				for (const auto& [id, row] : candidate->GetData().Rows)
 				{
 					const std::string rowLabel = DataEditing::GetRowLabel(row, id);
-					if (search.empty() == false && ToLower(rowLabel).find(search) == std::string::npos && ToLower(id).find(search) == std::string::npos)
+					if (search.empty() == false && ToLower(rowLabel).find(search) == std::string::npos
+						&& ToLower(id).find(search) == std::string::npos)
 					{
 						continue;
 					}

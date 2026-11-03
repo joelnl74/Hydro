@@ -100,7 +100,7 @@ namespace Hydro
 		{
 			postProcess.BloomRadius = radius.as<float>(postProcess.BloomRadius);
 		}
-		// Saved before depth of field (#135): no keys, the defaults.
+		// Older files have no depth of field keys: the defaults.
 		if (auto depthOfField = node["DepthOfField"])
 		{
 			postProcess.DepthOfField = depthOfField.as<bool>(postProcess.DepthOfField);
@@ -121,7 +121,7 @@ namespace Hydro
 		{
 			postProcess.DofMaxRadius = maxRadius.as<float>(postProcess.DofMaxRadius);
 		}
-		// Saved before the vignette (Nov 3, 2026): no keys, none.
+		// Older files have no vignette keys: none.
 		if (auto vignette = node["VignetteIntensity"])
 		{
 			postProcess.VignetteIntensity = vignette.as<float>(postProcess.VignetteIntensity);
@@ -134,7 +134,7 @@ namespace Hydro
 		{
 			postProcess.VignetteSoftness = vignetteSoftness.as<float>(postProcess.VignetteSoftness);
 		}
-		// Saved before colour grading (#137, Nov 3, 2026): no keys, the defaults (which change nothing).
+		// Older files have no grading keys: the defaults, which change nothing.
 		postProcess.Grading = node["Grading"].as<bool>(postProcess.Grading);
 		postProcess.Temperature = node["Temperature"].as<float>(postProcess.Temperature);
 		postProcess.Tint = node["Tint"].as<float>(postProcess.Tint);

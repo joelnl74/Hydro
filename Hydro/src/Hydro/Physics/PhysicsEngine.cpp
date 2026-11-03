@@ -65,9 +65,8 @@ namespace Hydro
 
 		HY_CORE_INFO("Physics: Box2D {0}", GetVersion());
 
-		// Jolt's globals: the allocator, the trace and assert hooks, the type factory and the shape types.
-		// RegisterTypes also checks that this file and the Jolt library were compiled with the same
-		// defines (see JoltDefines in Dependencies.lua).
+		// Jolt's globals. RegisterTypes also checks that Jolt was compiled with the same defines (JoltDefines in
+		// Dependencies.lua).
 		JPH::RegisterDefaultAllocator();
 		JPH::Trace = OnJoltTrace;
 #ifdef JPH_ENABLE_ASSERTS

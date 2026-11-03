@@ -13,10 +13,9 @@ namespace Hydro
 		}
 	}
 
-	// A layout transition of one whole image (one mip, one layer). The stages and accesses cover every
-	// way the targets are used: drawn into, sampled by fragment shaders (ImGui, the composite) and
-	// copied (captures, ID readback).
-	static VkImageMemoryBarrier2 MakeTransition(VkImage image, VkImageAspectFlags aspect, VkImageLayout from, VkImageLayout to)
+	// A layout transition of one whole image, covering every use of the targets: drawing, fragment sampling, copies.
+	static VkImageMemoryBarrier2 MakeTransition(VkImage image, VkImageAspectFlags aspect, VkImageLayout from,
+		VkImageLayout to)
 	{
 		VkImageMemoryBarrier2 barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
@@ -84,11 +83,12 @@ namespace Hydro
 		vkCmdPipelineBarrier2(commandBuffer, &dependency);
 	}
 
-	// Depth images use DEPTH_STENCIL_ATTACHMENT_OPTIMAL (valid for depth-only formats too):
-	// DEPTH_ATTACHMENT_OPTIMAL would need the separateDepthStencilLayouts feature.
+	// DEPTH_STENCIL_ATTACHMENT_OPTIMAL works for depth-only formats; DEPTH_ATTACHMENT_OPTIMAL would need the
+	// separateDepthStencilLayouts feature.
 	static VkImageAspectFlags GetDepthAspect(ImageFormat format)
 	{
-		return format == ImageFormat::DEPTH24STENCIL8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
+		return format == ImageFormat::DEPTH24STENCIL8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
+			: VK_IMAGE_ASPECT_DEPTH_BIT;
 	}
 
 	VulkanRenderTarget::VulkanRenderTarget(const RenderTargetSpecification& specification)
@@ -152,7 +152,8 @@ namespace Hydro
 
 	std::vector<ImageFormat> VulkanRenderTarget::GetPipelineColorFormats(const VulkanRenderTarget* colorTarget) const
 	{
-		std::vector<ImageFormat> formats = colorTarget != nullptr ? colorTarget->m_Specification.ColorFormats : m_Specification.ColorFormats;
+		std::vector<ImageFormat> formats =
+			colorTarget != nullptr ? colorTarget->m_Specification.ColorFormats : m_Specification.ColorFormats;
 		if (m_Specification.EntityID)
 		{
 			formats.push_back(ImageFormat::R32I);
@@ -160,7 +161,8 @@ namespace Hydro
 		return formats;
 	}
 
-	void VulkanRenderTarget::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex, const RenderTargetBeginInfo& info, VulkanRenderTarget* colorTarget)
+	void VulkanRenderTarget::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex, const RenderTargetBeginInfo& info,
+		VulkanRenderTarget* colorTarget)
 	{
 		HY_CORE_ASSERT(frameIndex < MAX_FRAMES_IN_FLIGHT, "VulkanRenderTarget::Begin: frame index out of range");
 		HY_CORE_ASSERT(colorTarget == nullptr || (colorTarget->GetWidth() == GetWidth() && colorTarget->GetHeight() == GetHeight()),
@@ -174,7 +176,8 @@ namespace Hydro
 
 		const auto addColor = [&](const VulkanImage& image, VkImageLayout& layout, AttachmentLoadOp loadOp, const VkClearValue& clear)
 		{
-			barriers.push_back(MakeTransition(image.GetVulkanImageInfo().Image, VK_IMAGE_ASPECT_COLOR_BIT, layout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+			barriers.push_back(MakeTransition(image.GetVulkanImageInfo().Image, VK_IMAGE_ASPECT_COLOR_BIT, layout,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 			layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 			VkRenderingAttachmentInfo attachment{};

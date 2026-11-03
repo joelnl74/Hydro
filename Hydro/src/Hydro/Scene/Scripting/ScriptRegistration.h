@@ -60,11 +60,17 @@ namespace Hydro
 		{
 			return ScriptPropertyType::EntityRef;
 		}
+		else if constexpr (std::is_enum_v<Field> || DataIsList<Field>::value || DataIsStruct<Field>)
+		{
+			// An HY_ENUM, an HY_DATA struct or a std::vector: a ScriptDataValue (MakeDataValueType checks the rest).
+			return ScriptPropertyType::Data;
+		}
 		else
 		{
 			static_assert(
 				ScriptAlwaysFalse<Field>,
-				"Unsupported script property type: bool, int, float, glm::vec2/3/4, std::string, AssetHandle, DataRowRef, EntityRef or ComponentRef<T>");
+				"Unsupported script property type: bool, int, float, glm::vec2/3/4, std::string, AssetHandle, DataRowRef, EntityRef, "
+				"ComponentRef<T>, an HY_ENUM enum class, an HY_DATA struct or a std::vector of a data kind");
 			return ScriptPropertyType::Float;
 		}
 	}
@@ -83,14 +89,8 @@ namespace Hydro
 		}
 	}
 
-	// What ScriptRegistry::Register<T> returns. Each .Property(...) adds a field; the modifiers after it
-	// (.Range, .Tooltip, .Color, .AssetFilter, .DataTypeFilter, .ReadOnly, .Hidden, .FormerName, .Required, .TargetType)
-	// change the property added last:
-	//
-	//     ScriptRegistry::Register<DoorScript>("DoorScript")
-	//         .Property("OpenSpeed", "Open Speed", &DoorScript::OpenSpeed).Range(0.0f, 10.0f).Tooltip("Metres per second")
-	//         .Property("Glow", "Glow", &DoorScript::Glow).Color()
-	//         .Property("Sign", "Sign", &DoorScript::Sign).AssetFilter(AssetType::Texture2D);
+	// What ScriptRegistry::Register<T> returns. Each .Property(...) adds a field; the modifiers after it (.Range,
+	// .Tooltip, .Color, ...) change the property added last.
 	template<typename T>
 	class ScriptRegistration
 	{
@@ -126,7 +126,7 @@ namespace Hydro
 			property.DisplayName = displayName;
 			property.Type = GetScriptPropertyType<Field>();
 
-			// References (SC4): the value is an EntityRef; the field gets it with its script's scene.
+			// References: the value is an EntityRef; the field gets it with its script's scene.
 			if constexpr (std::is_same_v<Field, EntityRef> || IsComponentRef<Field>::value)
 			{
 				property.DefaultValue = EntityRef(ReferenceIdOf(m_DefaultInstance.*member));
@@ -166,6 +166,39 @@ namespace Hydro
 				{
 					const T& script = static_cast<const T&>(base);
 					return ScriptPropertyValue(EntityRef(ReferenceIdOf(script.*member)));
+				};
+			}
+			else if constexpr (GetScriptPropertyType<Field>() == ScriptPropertyType::Data)
+			{
+				// Lists, enums and structs: an owned copy of the C++ value; EntityRefs inside get the script's scene when applied.
+				property.DefaultValue = ScriptDataValue::Make(m_DefaultInstance.*member);
+
+				property.Apply =
+					[member](
+						ScriptableEntity& base,
+						const ScriptPropertyValue& value)
+				{
+					const ScriptDataValue* saved = std::get_if<ScriptDataValue>(&value);
+					const Field* typed = saved != nullptr ? saved->As<Field>() : nullptr;
+					if (typed == nullptr)
+					{
+						return;
+					}
+					T& script = static_cast<T&>(base);
+					script.*member = *typed;
+					Scene* scene = script.GetEntity().GetScene();
+					ForEachEntityRef(GetScriptDataOps<Field>().Type, &(script.*member), [scene](EntityRef& reference)
+					{
+						reference.SetScene(scene);
+					});
+				};
+
+				property.Read =
+					[member](
+						const ScriptableEntity& base) -> ScriptPropertyValue
+				{
+					const T& script = static_cast<const T&>(base);
+					return ScriptPropertyValue(ScriptDataValue::Make(script.*member));
 				};
 			}
 			else
@@ -238,8 +271,9 @@ namespace Hydro
 		ScriptRegistration& Color()
 		{
 			ScriptProperty& property = Last();
-			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Vec3 || property.Type == ScriptPropertyType::Vec4,
-				"Color() is for glm::vec3 / glm::vec4 properties");
+			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Vec3 || property.Type == ScriptPropertyType::Vec4
+				|| property.Type == ScriptPropertyType::Data,
+				"Color() is for glm::vec3 / glm::vec4 properties (or a list of them)");
 			property.IsColor = true;
 			return *this;
 		}
@@ -248,7 +282,8 @@ namespace Hydro
 		ScriptRegistration& AssetFilter(AssetType type)
 		{
 			ScriptProperty& property = Last();
-			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset, "AssetFilter() is for AssetHandle properties");
+			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset || property.Type == ScriptPropertyType::Data,
+				"AssetFilter() is for AssetHandle properties (or a list of them)");
 			property.AssetFilter = type;
 			return *this;
 		}
@@ -258,8 +293,9 @@ namespace Hydro
 		ScriptRegistration& DataTypeFilter(const std::string& typeName)
 		{
 			ScriptProperty& property = Last();
-			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset || property.Type == ScriptPropertyType::RowRef,
-				"DataTypeFilter() is for AssetHandle and DataRowRef properties");
+			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset || property.Type == ScriptPropertyType::RowRef
+				|| property.Type == ScriptPropertyType::Data,
+				"DataTypeFilter() is for AssetHandle and DataRowRef properties (or a list of them)");
 			property.DataTypeFilter = typeName;
 			return *this;
 		}
@@ -280,7 +316,8 @@ namespace Hydro
 		ScriptRegistration& Required()
 		{
 			ScriptProperty& property = Last();
-			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset || property.Type == ScriptPropertyType::RowRef || property.Type == ScriptPropertyType::EntityRef,
+			HY_CORE_ASSERT(property.Type == ScriptPropertyType::Asset || property.Type == ScriptPropertyType::RowRef
+				|| property.Type == ScriptPropertyType::EntityRef,
 				"Required() is for AssetHandle, DataRowRef, EntityRef and ComponentRef<T> properties");
 			property.Required = true;
 			return *this;
@@ -292,6 +329,13 @@ namespace Hydro
 			ScriptProperty& property = Last();
 			HY_CORE_ASSERT(property.Type == ScriptPropertyType::EntityRef, "TargetType() is for EntityRef / ComponentRef<T> properties");
 			property.TargetType = typeName;
+			return *this;
+		}
+
+		// The class overrides ScriptableEntity::OnDrawGizmos, so the Editor view collects what it draws.
+		ScriptRegistration& DrawsGizmos()
+		{
+			m_TypeInfo.DrawsGizmos = true;
 			return *this;
 		}
 

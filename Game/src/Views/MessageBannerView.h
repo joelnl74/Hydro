@@ -1,4 +1,3 @@
-// Game/src/Views/MessageBannerView.h
 #pragma once
 
 #include "Views/ViewHelpers.h"
@@ -7,8 +6,7 @@
 
 namespace Hydro
 {
-	// The field's message box ("Field Message Panel" and its "Field Message Text"): a line or two shown for a while,
-	// fading out over its last 0.3 s. A view (Scripting plan SC8f): the director says what and for how long.
+	// The field's message box: a line or two shown for a while, fading out over its last 0.3 s.
 	class MessageBannerView
 	{
 	public:

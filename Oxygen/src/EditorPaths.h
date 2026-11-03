@@ -6,9 +6,8 @@
 
 namespace Hydro
 {
-	// Where the editor saves scenes and prefabs.
-	// Uses the active project's directories when a project is open, otherwise the "project" folder
-	// next to the editor's working directory (Oxygen/project when running from Visual Studio).
+	// Where the editor saves scenes and prefabs: the active project's folders, else the "project" folder next to the
+	// working directory.
 	class EditorPaths
 	{
 	public:
@@ -27,7 +26,9 @@ namespace Hydro
 		static std::filesystem::path GetProjectDirectory()
 		{
 			if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
+			{
 				return project->GetProjectDirectory();
+			}
 
 			return GetDefaultProjectDirectory();
 		}
@@ -35,7 +36,9 @@ namespace Hydro
 		static std::filesystem::path GetAssetsDirectory()
 		{
 			if (auto project = Project::GetActive(); project != nullptr && project->GetProjectDirectory().empty() == false)
+			{
 				return project->GetAssetDirectory();
+			}
 
 			return GetDefaultProjectDirectory() / "Assets";
 		}

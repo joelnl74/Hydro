@@ -12,29 +12,20 @@ namespace Hydro
 	class SpriteAnimationSet;
 	struct SystemContext;
 
-	// System (play mode, after physics and before transforms): advances every SpriteAnimatorComponent by
-	// context.DeltaTime * Speed and writes the current frame into the entity's SpriteRendererComponent
-	// (Texture, SpriteIndex, FlipX). Starts PlayOnStart animators on their first update.
-	// Does nothing unless context.IsPlaying.
+	// Play mode, after physics and before transforms: advances every SpriteAnimatorComponent and writes the current
+	// frame into its SpriteRendererComponent (Texture, SpriteIndex, FlipX). Starts PlayOnStart animators.
 	void UpdateSpriteAnimations(Scene& scene, const SystemContext& context);
 
-	// Clears every animator's playback (SpriteAnimatorState), so the game starts from PlayOnStart and
-	// StartClip whatever the editor scene's copy held. Scene::OnRuntimeStart calls it.
+	// Clears every animator's playback so the game starts from PlayOnStart / StartClip. Scene::OnRuntimeStart calls it.
 	void ResetSpriteAnimations(Scene& scene);
 
-	// Controls an entity's SpriteAnimatorComponent from scripts and game code:
-	//
-	//     SpriteAnimator::Play(GetEntity(), moving ? "WalkLeft" : "IdleLeft");
-	//
-	// Plain functions over the component (no state of its own); entities without a
-	// SpriteAnimatorComponent or without an animation set are ignored. The new frame shows when
-	// UpdateSpriteAnimations runs, which is later in the same frame when called from a script.
+	// Controls an entity's SpriteAnimatorComponent from game code (SpriteAnimator::Play(GetEntity(), "WalkLeft")).
+	// No state of its own; entities without an animator or set are ignored. Shows at the next UpdateSpriteAnimations.
 	class SpriteAnimator
 	{
 	public:
-		// Starts the clip from its first frame. Already playing that clip: it carries on, so this is
-		// safe to call every frame, unless `restart`. A paused or finished clip starts again. An
-		// unknown name logs a warning (once per name) and returns false.
+		// Starts the clip from its first frame; a clip already playing carries on unless `restart`, so it is safe every
+		// frame. An unknown name warns once and returns false.
 		static bool Play(Entity entity, std::string_view clip, bool restart = false);
 		static bool Play(Entity entity, uint32_t clipIndex, bool restart = false);
 		// Stops and goes back to the clip's first frame (which stays on screen).
@@ -51,16 +42,13 @@ namespace Hydro
 		static std::string_view GetCurrentClip(Entity entity);
 		// The frame of the current clip that is showing (0 when nothing was started).
 		static uint32_t GetFrameIndex(Entity entity);
-		// Sets the saved Speed (clamped to 0 or more). Meant for play mode, where the scene is a copy:
-		// called on the editor scene it changes what is saved.
+		// Sets the saved Speed (at least 0). Meant for play mode: on the editor scene it changes what is saved.
 		static void SetSpeed(Entity entity, float speed);
 
-		// Clears the playback, as if the animator had never started (the animation set changed in the
-		// inspector). Works without a loaded set.
+		// Clears the playback as if it never started (the set changed in the inspector). Works without a loaded set.
 		static void ResetPlayback(Entity entity);
-		// After the entity's animation set was reloaded (edited and saved in the Animation window):
-		// keeps the clip with the same name as the one that was playing in `before`, from its first
-		// frame, or starts over (PlayOnStart) when the new set has no such clip.
+		// After the set was reloaded: keeps the clip named as the one playing in `before` (from its first frame), or
+		// starts over when the new set has no such clip.
 		static void RestartAfterReload(Entity entity, const SpriteAnimationSet* before);
 	};
 }

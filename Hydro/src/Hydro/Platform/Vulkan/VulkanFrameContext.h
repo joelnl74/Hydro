@@ -10,9 +10,8 @@ namespace Hydro
 {
 	constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
-	// Everything that exists once per frame in flight: the command buffer the frame is recorded into,
-	// the fence that says the GPU is done with it, and the semaphore signalled when a swapchain image
-	// has been acquired for it.
+	// What exists once per frame in flight: its command buffer, the fence that says the GPU is done with it, and
+	// the semaphore signalled when a swapchain image is acquired for it.
 	class VulkanFrameContext
 	{
 	public:
@@ -20,9 +19,9 @@ namespace Hydro
 		void Init(VulkanDevice& device);
 		void Shutdown();
 
-		// Blocks until the GPU has finished the last submission that used the current frame's resources.
+		// Until the GPU has finished the last submission that used this frame's resources.
 		void WaitForFrame();
-		// Only reset the fence once we are sure this frame will be submitted (after a successful acquire).
+		// Only once this frame will be submitted (after a successful acquire).
 		void ResetFence();
 
 		VkCommandBuffer BeginCommandBuffer();

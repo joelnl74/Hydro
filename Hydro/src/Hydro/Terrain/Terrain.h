@@ -10,9 +10,8 @@
 
 namespace Hydro
 {
-	// Terrain plan (wiki Terrain-Plan): a terraced terrain. Corners hold whole-step levels, cells hold ramp
-	// directions and wall materials, a weight map holds the top layers. The reference for every rule is
-	// scripts/terrain/terrain_mesher.py and splat.py (TR0).
+	// A terraced terrain: corners hold whole-step levels, cells hold ramps and wall materials, a weight map
+	// holds the top layers. The reference for its rules is scripts/terrain/terrain_mesher.py and splat.py.
 	static constexpr uint32_t MaxTerrainLayers = 4;      // top layers: one RGBA8 weight map
 	static constexpr uint32_t MaxTerrainWallLayers = 4;
 	static constexpr uint32_t TerrainChunkCells = 32;    // a chunk is 32 x 32 cells (16 m at 0.5 m cells)
@@ -22,7 +21,7 @@ namespace Hydro
 	static constexpr uint32_t MaxTerrainDecorSprites = 64; // per rule
 	static constexpr uint32_t TerrainDecorAnyLayer = 255;  // a wall decor rule for every wall layer
 
-	// A cell's ramp: which way it rises (TR3). Runs of cells with the same direction are one ramp.
+	// A cell's ramp: which way it rises. Runs of cells with the same direction are one ramp.
 	enum class TerrainRamp : uint8_t
 	{
 		None = 0,
@@ -37,33 +36,32 @@ namespace Hydro
 	{
 		AssetHandle Material = 0;    // a MaterialAsset (.hymat): albedo, tint, tiling, filter; 0 = white
 		float EdgeRoughness = 0.9f;  // edge noise in weight units (0 = clean border, 1 = very ragged)
-		// Blending (Oct 31): the width, in weight units, of the band where this layer's colour is mixed with the
-		// runner-up's (in two steps, 75 % and 50 %, so it stays pixel art); 0 = hard pixel borders.
+		// Width, in weight units, of the band mixed with the runner-up layer (75 % and 50 % steps, so it stays
+		// pixel art); 0 = hard pixel borders.
 		float Blend = 0.5f;
-		// How much the layer's own texture decides the border: its brightness at the pixel raises its score, so
-		// bright grass blades and stones stand out into the neighbour and dark gaps let it through. 0 = off.
+		// How much the layer's texture brightness raises its score at the border (bright blades stand out, dark
+		// gaps let the neighbour through); 0 = off.
 		float HeightBlend = 1.0f;
-		AssetHandle Fringe = 0;      // TR2: the cut-out strip hanging over walls below this layer (a .hymat); 0 = none
-		float FringeLength = 7.0f;   // TR2: art pixels
+		AssetHandle Fringe = 0;      // cut-out strip hanging over the walls below this layer (a .hymat); 0 = none
+		float FringeLength = 7.0f;   // art pixels
 
 		bool operator==(const TerrainLayer& other) const
 		{
-			return Material == other.Material && EdgeRoughness == other.EdgeRoughness && Blend == other.Blend && HeightBlend == other.HeightBlend
+			return Material == other.Material && EdgeRoughness == other.EdgeRoughness && Blend == other.Blend
+				&& HeightBlend == other.HeightBlend
 				&& Fringe == other.Fringe && FringeLength == other.FringeLength;
 		}
 		bool operator!=(const TerrainLayer& other) const { return (*this == other) == false; }
 	};
 
-	// One wall layer (TR2): what the walls of the cells painted with it look like.
+	// One wall layer: what the walls of the cells painted with it look like.
 	struct TerrainWallLayer
 	{
 		AssetHandle Material = 0;
-		// Scales the outline jitter and wall noise (0..1). An edge takes the calmer of its two cells' values,
-		// so it stays a function of the edge and the data. Approved: stone 0.65, earth bank 0.57.
+		// Scales the outline jitter and wall noise (0..1). An edge takes the calmer of its two cells' values.
 		float Variation = 1.0f;
 		bool CapStones = false; // a coping row along the wall tops (stone walls)
-		// Oct 31: how far the wall's foot steps out per metre of height (0 = upright). Earth banks 0.4 to 0.55: a
-		// grassy slope that still reads as a bank and stays steeper than a character can walk (50 degrees). An edge
+		// How far the wall's foot steps out per metre of height (0 = upright; earth banks 0.4 to 0.55). An edge
 		// takes the smaller of its two cells' values, so neighbouring walls meet without a crack.
 		float Slope = 0.0f;
 
@@ -74,7 +72,7 @@ namespace Hydro
 		bool operator!=(const TerrainWallLayer& other) const { return (*this == other) == false; }
 	};
 
-	// Where a decor rule places its instances (TR5).
+	// Where a decor rule places its instances.
 	enum class TerrainDecorPlace : uint8_t
 	{
 		Layer = 0,   // scattered where the top layer wins
@@ -83,7 +81,6 @@ namespace Hydro
 		WallFoot     // along the foot of walls, on the lower ground, per metre of wall
 	};
 
-	// What a decor instance is.
 	enum class TerrainDecorShape : uint8_t
 	{
 		Upright = 0, // a sprite standing up, facing south (the field cameras look north): tufts, flowers, ferns
@@ -91,11 +88,11 @@ namespace Hydro
 		Stone        // a small box textured with the sprite's image: pebbles
 	};
 
-	// Small repeated dressing generated from the terrain (TR5): no entities, the same on every load, follows edits.
+	// Small repeated dressing generated from the terrain: no entities, the same on every load, follows edits.
 	struct TerrainDecorRule
 	{
 		TerrainDecorPlace Place = TerrainDecorPlace::Layer;
-		uint32_t Layer = 0; // the top layer (Layer, LayerBorder) or wall layer (WallTop, WallFoot; TerrainDecorAnyLayer = all)
+		uint32_t Layer = 0; // top layer (Layer, LayerBorder) or wall layer (WallTop, WallFoot; TerrainDecorAnyLayer = all)
 		TerrainDecorShape Shape = TerrainDecorShape::Upright;
 		std::vector<AssetHandle> Sprites; // textures (cut out at alpha 0.5); each instance picks one
 		float Density = 1.0f;             // per square metre (Layer, LayerBorder) or per metre of wall
@@ -103,14 +100,14 @@ namespace Hydro
 
 		bool operator==(const TerrainDecorRule& other) const
 		{
-			return Place == other.Place && Layer == other.Layer && Shape == other.Shape && Sprites == other.Sprites && Density == other.Density
+			return Place == other.Place && Layer == other.Layer && Shape == other.Shape && Sprites == other.Sprites
+				&& Density == other.Density
 				&& Scale == other.Scale;
 		}
 		bool operator!=(const TerrainDecorRule& other) const { return (*this == other) == false; }
 	};
 
-	// How a terrain is built and looks. Plain data, saved in its .hyterrain. Defaults are the approved TR1
-	// look (TR0 preset "tr1"); lengths in metres unless they say art pixels.
+	// How a terrain is built and looks; saved in its .hyterrain. Lengths in metres unless they say art pixels.
 	struct TerrainSettings
 	{
 		float CellSize = 0.5f;
@@ -119,7 +116,7 @@ namespace Hydro
 		uint32_t Seed = 1234;        // outline jitter, edge noise and decor; the same seed rebuilds the same terrain
 		uint32_t SplatResolution = 8; // weight map texels per metre
 
-		// Outline jitter (TR2): a share of a cell, from a smooth field plus a little per-edge noise.
+		// Outline jitter: a share of a cell, from a smooth field plus a little per-edge noise.
 		float Jitter = 0.38f;
 		float JitterSmooth = 0.75f; // share of the jitter from the smooth field
 		float JitterScale = 2.0f;   // metres between the smooth field's lattice points
@@ -131,16 +128,16 @@ namespace Hydro
 		std::vector<TerrainLayer> Layers;         // 1..MaxTerrainLayers
 		std::vector<TerrainWallLayer> WallLayers; // 0..MaxTerrainWallLayers
 
-		// Edges (TR2), art pixels.
+		// Edges, in art pixels.
 		float LipWidth = 3.0f;
 		float LipFaceHeight = 2.0f;
 		float WallLean = 1.0f;  // art pixels per metre of wall height
 		float WallNoise = 1.5f; // art pixels, outwards only
-		// Oct 31: walls are lit with their normal turned this far (0..1) towards straight up, so faces turned from the
-		// sun aren't near-black slabs (painted JRPG walls catch the light). Only the drawing: collision is untouched.
+		// Walls are lit with their normal turned this far (0..1) towards straight up, so faces turned from the sun
+		// aren't near-black. Drawing only: collision is untouched.
 		float WallLight = 0.35f;
 
-		// Coping stones (TR2).
+		// Coping stones.
 		AssetHandle CapStoneMaterial = 0;
 		float CapPitch = 0.28f;
 		float CapJoint = 0.015f;
@@ -151,13 +148,13 @@ namespace Hydro
 		float CapYawJitter = 3.0f; // degrees
 		float CapMissing = 0.08f;
 
-		std::vector<TerrainDecorRule> Decor; // 0..MaxTerrainDecorRules (TR5)
+		std::vector<TerrainDecorRule> Decor; // 0..MaxTerrainDecorRules
 
 		bool operator==(const TerrainSettings& other) const;
 		bool operator!=(const TerrainSettings& other) const { return (*this == other) == false; }
 	};
 
-	// A terrain's collision triangles in its own space (Terrain::GetCollisionMesh), welded so shared edges are shared.
+	// A terrain's collision triangles in its own space, welded so shared edges are shared.
 	struct TerrainCollisionMesh
 	{
 		std::vector<glm::vec3> Positions;
@@ -171,16 +168,8 @@ namespace Hydro
 		glm::uvec2 Max{ 0 };
 	};
 
-	// A terrain asset (.hyterrain, TerrainSerializer): the grid and the painted weights. Shared by every entity
-	// whose TerrainComponent names its handle; loaded and kept by the AssetManager (GetAsset<Terrain>).
-	//
-	// Editable like a MaterialAsset: the editor's brushes change it in place (it is only data), mark what they
-	// changed (MarkWeightsChanged, MarkCellsChanged) so the TerrainCache rebuilds only that, and the editor writes
-	// the file when the scene is saved (IsModified).
-	//
-	// Layout: corner (x, y) is at (x * CellSize, y * CellSize) in the terrain's own space, row-major from the
-	// south-west corner; cell (x, y) lies between corners (x, y) and (x + 1, y + 1). The weight map's texel
-	// (x, y) covers [x, x + 1] / SplatResolution metres, rows from the south (y = 0) as well.
+	// A terrain asset (.hyterrain): the grid and the painted weights, shared by every TerrainComponent naming it.
+	// Corner (x, y) is at (x, y) * CellSize, rows from the south-west; see docs/Architecture.md, Terrains.
 	class Terrain : public Asset
 	{
 	public:
@@ -190,29 +179,25 @@ namespace Hydro
 		Terrain(const Terrain&) = delete;
 		Terrain& operator=(const Terrain&) = delete;
 
-		// Reads a .hyterrain file, without sharing: every call makes a new asset. nullptr (logged) when the file
-		// can't be read. The AssetManager's loader calls this.
+		// Reads a .hyterrain file into a new asset (no sharing); nullptr (logged) when it can't be read.
 		static Ref<Terrain> LoadUncached(const std::filesystem::path& path);
 
 		static AssetType GetStaticType() { return AssetType::Terrain; }
 		AssetType GetType() const override { return GetStaticType(); }
 
 		const TerrainSettings& GetSettings() const { return m_Settings; }
-		// Every chunk's geometry and decor change; the weight map keeps its size (a new SplatResolution or
-		// CellSize needs a new terrain).
+		// Changes every chunk's geometry and decor; the weight map keeps its size.
 		void SetSettings(const TerrainSettings& settings);
 
 		uint32_t GetCornerCountX() const { return m_CornersX; }
 		uint32_t GetCornerCountY() const { return m_CornersY; }
 		uint32_t GetCellCountX() const { return m_CornersX - 1; }
 		uint32_t GetCellCountY() const { return m_CornersY - 1; }
-		// Metres covered by the cells.
 		glm::vec2 GetSize() const;
 		uint32_t GetChunkCountX() const { return (GetCellCountX() + TerrainChunkCells - 1) / TerrainChunkCells; }
 		uint32_t GetChunkCountY() const { return (GetCellCountY() + TerrainChunkCells - 1) / TerrainChunkCells; }
 
-		// Corner levels in whole steps: a corner is at z = (level - BaseLevel) * StepHeight. The caller marks what it
-		// changed (MarkCellsChanged).
+		// Corner levels in whole steps: a corner is at z = (level - BaseLevel) * StepHeight.
 		int8_t GetLevel(uint32_t x, uint32_t y) const { return m_Levels[(size_t)y * m_CornersX + x]; }
 		void SetLevel(uint32_t x, uint32_t y, int8_t level) { m_Levels[(size_t)y * m_CornersX + x] = level; }
 		const std::vector<int8_t>& GetLevels() const { return m_Levels; }
@@ -222,8 +207,14 @@ namespace Hydro
 		const std::vector<uint8_t>& GetRamps() const { return m_Ramps; }
 
 		// 0..MaxTerrainWallLayers - 1, or TerrainWallHidden.
-		uint8_t GetWallMaterial(uint32_t cellX, uint32_t cellY) const { return m_WallMaterials[(size_t)cellY * GetCellCountX() + cellX]; }
-		void SetWallMaterial(uint32_t cellX, uint32_t cellY, uint8_t material) { m_WallMaterials[(size_t)cellY * GetCellCountX() + cellX] = material; }
+		uint8_t GetWallMaterial(uint32_t cellX, uint32_t cellY) const
+		{
+			return m_WallMaterials[(size_t)cellY * GetCellCountX() + cellX];
+		}
+		void SetWallMaterial(uint32_t cellX, uint32_t cellY, uint8_t material)
+		{
+			m_WallMaterials[(size_t)cellY * GetCellCountX() + cellX] = material;
+		}
 		const std::vector<uint8_t>& GetWallMaterials() const { return m_WallMaterials; }
 
 		// The weight map: RGBA8, one channel per top layer (layer 0 = R). Painting keeps the channels summing to 255.
@@ -233,11 +224,9 @@ namespace Hydro
 		glm::u8vec4 GetWeight(uint32_t x, uint32_t y) const;
 		void SetWeight(uint32_t x, uint32_t y, const glm::u8vec4& weight);
 
-		// The caller changed these texels: the GPU copy is updated before the next draw, and the decor of the
-		// chunks under them changes (TR5). Marks the terrain modified.
+		// The caller changed these texels: they are uploaded before the next draw and their chunks' decor changes.
 		void MarkWeightsChanged(const TerrainRect& texels);
-		// The caller changed levels, ramps or wall materials in these cells: their chunks' geometry, collision and
-		// decor are rebuilt. Marks the terrain modified.
+		// The caller changed levels, ramps or wall materials in these cells: their chunks are rebuilt.
 		void MarkCellsChanged(const TerrainRect& cells);
 
 		// Change tracking for the TerrainCache: revisions only grow. A chunk index is y * GetChunkCountX() + x.
@@ -247,21 +236,20 @@ namespace Hydro
 		// The texels changed since the last call (their union), for uploading; false when none did.
 		bool TakeChangedWeights(TerrainRect& texels);
 
-		// The collision triangles (TerrainMesher::BuildCollision: tops, ramps and walls, Hidden ones too), built when
-		// first asked for after the shape changed. PhysicsScene3D makes one static mesh body from them at Play.
+		// Tops, ramps and walls (Hidden ones too), rebuilt on first use after the shape changed.
 		const TerrainCollisionMesh& GetCollisionMesh() const;
 
-		// Changed since it was loaded or last saved (the editor saves modified terrains with the scene).
+		// Changed since it was loaded or last saved.
 		bool IsModified() const { return m_Modified; }
 		void SetModified(bool modified) { m_Modified = modified; }
 
-		// The serializer builds a terrain from saved data; false (nothing changed) when the sizes don't fit.
+		// Builds the terrain from saved data; false (nothing changed) when the sizes don't fit.
 		bool SetData(std::vector<int8_t> levels, std::vector<uint8_t> ramps, std::vector<uint8_t> wallMaterials,
 			std::vector<uint8_t> weights, uint32_t weightsWidth, uint32_t weightsHeight);
 
-		// The weight map's size for a terrain of `cellsX` x `cellsY` cells (at least 1 x 1 texel).
+		// At least 1 x 1 texel.
 		static glm::uvec2 GetWeightMapSize(const TerrainSettings& settings, uint32_t cellsX, uint32_t cellsY);
-		// Default settings for a new terrain: two layers (grass and path, say), no wall layers.
+		// Two layers, no wall layers.
 		static TerrainSettings GetDefaultSettings();
 
 	private:

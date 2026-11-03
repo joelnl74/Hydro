@@ -9,16 +9,13 @@
 
 namespace Hydro
 {
-	// A look (post-processing plan P4): the values a scene's frame is coloured with, apart from how it is
-	// built (the render features). Plain data: a scene's own values, or a render profile's.
+	// A look: the values a scene's frame is coloured with, apart from the render features. A scene's own or a profile's.
 	struct RenderProfileData
 	{
-		// Ambient and fog under forward lighting. Override false: no environment of its own (the scene's
-		// Global lights are the ambient light, no fog).
+		// Ambient and fog under forward lighting. Override off: the Global lights are the ambient, no fog.
 		SceneEnvironment Environment;
 		// Exposure and bloom of HDR views.
 		ScenePostProcess PostProcess;
-
 		bool operator==(const RenderProfileData& other) const { return Environment == other.Environment && PostProcess == other.PostProcess; }
 		bool operator!=(const RenderProfileData& other) const { return (*this == other) == false; }
 	};
@@ -30,25 +27,18 @@ namespace Hydro
 		Profile    // the scene's render profile; its own values while the profile isn't loaded
 	};
 
-	// Which render profile a scene uses and for which sections (saved in the scene as "Look", copied on
-	// Play). The default uses none: the scene's own values, as before profiles.
+	// Which render profile a scene uses and for which sections. The default uses none (the scene's own values).
 	struct SceneLook
 	{
 		AssetHandle Profile = 0; // a RenderProfile (.hyrender); 0 = none
 		RenderLookSource Environment = RenderLookSource::Scene;
 		RenderLookSource PostProcess = RenderLookSource::Scene;
-
 		bool operator==(const SceneLook& other) const { return Profile == other.Profile && Environment == other.Environment && PostProcess == other.PostProcess; }
 		bool operator!=(const SceneLook& other) const { return (*this == other) == false; }
 	};
 
-	// A render profile asset (plan P4): a .hyrender file (RenderProfileSerializer) holding one
-	// RenderProfileData, shared by every scene that names its handle, so scenes with the same mood (every
-	// town at dusk) keep the same values. The AssetManager loads it (AssetManager::GetAsset<RenderProfile>)
-	// and keeps it until the project closes or the file changes.
-	//
-	// Editable like a MaterialAsset: only data, resolved by the scene every frame (Scene::GetActiveEnvironment,
-	// GetActivePostProcess), so SetData changes every scene using it at once; the editor then saves the file.
+	// A .hyrender profile asset shared by every scene that names it, so scenes with the same mood keep the same values.
+	// Only data, resolved by the scene every frame, so SetData changes every scene using it at once.
 	class RenderProfile : public Asset
 	{
 	public:
@@ -58,8 +48,7 @@ namespace Hydro
 		RenderProfile(const RenderProfile&) = delete;
 		RenderProfile& operator=(const RenderProfile&) = delete;
 
-		// Reads a .hyrender file, without sharing: every call makes a new asset. nullptr (logged) when the
-		// file can't be read. The AssetManager's loader calls this.
+		// Reads a .hyrender, unshared (the AssetManager's loader). nullptr (logged) when it can't be read.
 		static Ref<RenderProfile> LoadUncached(const std::filesystem::path& path);
 
 		static AssetType GetStaticType() { return AssetType::RenderProfile; }

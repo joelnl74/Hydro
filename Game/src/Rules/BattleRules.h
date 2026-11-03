@@ -1,4 +1,3 @@
-// Game/src/Rules/BattleRules.h
 #pragma once
 
 #include "Data/BattleDefinitions.h"
@@ -11,9 +10,8 @@
 
 namespace Hydro
 {
-	// The battle's rules as plain functions on data and numbers (Scripting plan SC8d; the Diorama RPG's J1): no scene,
-	// no UI, no randomness of their own. Every random draw is passed in (0 to 1) or comes from a function the caller
-	// gives, so a test can fix them. The battle script (Scripts/Battle/BattleScript.h) calls them and shows the result.
+	// The battle's rules as plain functions on data and numbers: no scene, no UI and no randomness of their own. Random
+	// draws (0 to 1) are passed in, so a test can fix them.
 	class BattleRules
 	{
 	public:
@@ -29,14 +27,13 @@ namespace Hydro
 			bool Weak = false;
 			bool Resisted = false;
 			bool Critical = false;
-			int WeakSlot = -1; // which of the target's first three weaknesses it hit (revealed), or -1
+			int WeakSlot = -1; // which of the target's first three weaknesses it hit, or -1
 		};
 
-		// A hit on an enemy: `stat` (the attacker's Attack or Magic) times `power` (the ability's, with any boost),
-		// 1.5x on a weakness (one of its first three), 0.5x when resisted (wins over a weakness), 1.5x on a critical
-		// (`criticalRoll` below CriticalChance), 2x while broken, then a spread of 0.9 to 1.1 (`spreadRoll`). At
-		// least 1.
-		static HitResult ResolveHit(const EnemyDefinition& target, DamageType type, float stat, float power, bool broken, float criticalRoll, float spreadRoll)
+		// `stat` times `power`, 1.5x on a weakness (one of the first three), 0.5x when resisted (wins over a weakness), 1.5x on a
+		// critical, 2x while broken, then a 0.9 to 1.1 spread. At least 1.
+		static HitResult ResolveHit(const EnemyDefinition& target, DamageType type, float stat, float power, bool broken, float criticalRoll,
+			float spreadRoll)
 		{
 			HitResult result;
 			float multiplier = 1.0f;
@@ -70,14 +67,13 @@ namespace Hydro
 			return result;
 		}
 
-		// A heal: the ability's power times the healer's Magic times the boost, with a spread of 0.9 to 1.1.
+		// The ability's power times the healer's Magic times the boost, with a 0.9 to 1.1 spread.
 		static int ResolveHeal(float power, int magic, float boost, float spreadRoll)
 		{
 			return std::max(0, (int)std::lround(power * (float)magic * boost * (0.9f + 0.2f * spreadRoll)));
 		}
 
-		// An enemy's plain attack: its Attack times the attack's power, with a spread of 0.85 to 1.25; halved (at
-		// least 1) when the target guards.
+		// Attack times the attack's power, with a 0.85 to 1.25 spread; halved (at least 1) when the target guards.
 		static int EnemyAttackDamage(int attack, float power, bool guarding, float spreadRoll)
 		{
 			int damage = (int)std::lround((float)attack * power * (0.85f + 0.4f * spreadRoll));
@@ -88,14 +84,13 @@ namespace Hydro
 			return damage;
 		}
 
-		// Broken while the round is at most the one the break lasts to.
 		static bool IsBroken(int brokenUntilRound, int round)
 		{
 			return brokenUntilRound >= 0 && brokenUntilRound >= round;
 		}
 
-		// Who acts in what order this round: the actors' speeds plus up to 3 of luck (`random` once per actor, in
-		// order), fastest first. Returns the actors' indices into `speeds`; a negative speed leaves an actor out.
+		// Speeds plus up to 3 of luck (`random` once per actor, in order), fastest first. Returns indices into `speeds`; a
+		// negative speed leaves an actor out.
 		static std::vector<int> TurnOrder(const std::vector<int>& speeds, const std::function<float()>& random)
 		{
 			std::vector<std::pair<float, int>> rolled;
@@ -115,8 +110,7 @@ namespace Hydro
 			return order;
 		}
 
-		// What an enemy does: its plain attack or one of its abilities, by weight (the plain attack weighs 1).
-		// `roll` is 0 to 1. Returns the ability's row (the plain attack's when it has no others).
+		// By weight (the plain attack weighs 1); `roll` is 0 to 1. Returns the ability's row.
 		static DataRowRef ChooseEnemyAction(const EnemyDefinition& enemy, float roll)
 		{
 			float total = 1.0f;
@@ -142,7 +136,7 @@ namespace Hydro
 			return enemy.BasicAttack;
 		}
 
-		// The level a total of experience reaches on a curve ([0]: the total for level 2, ...).
+		// [0] of the curve is the total for level 2.
 		static int LevelFor(const std::vector<int>& experienceToLevel, int experience)
 		{
 			int level = 1;
@@ -153,7 +147,7 @@ namespace Hydro
 			return level;
 		}
 
-		// A hero's numbers at a level: Base + GrowthPerLevel for every level above 1 (HP at least 1, the rest 0).
+		// Base + GrowthPerLevel for every level above 1 (HP at least 1, the rest 0).
 		static CombatStats StatsAt(const HeroDefinition& hero, int level)
 		{
 			const int steps = std::max(0, level - 1);

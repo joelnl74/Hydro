@@ -4,6 +4,7 @@
 #include "Renderer2D.h"
 #include "Renderer.h"
 #include "Renderer3D.h"
+#include "Hydro/Scene/Scripting/Gizmos.h"
 #include "TerrainCache.h"
 #include "Hydro/Terrain/TerrainMesher.h"
 #include <glm/ext/matrix_transform.hpp>
@@ -38,9 +39,8 @@ namespace Hydro
 		const glm::vec3 forward = -glm::normalize(rotation[2]);
 		basis.Forward = forward;
 
-		// The direction "into the screen" along the ground. Up's ground part points the same way as
-		// forward's for a camera without roll, and still exists when the camera looks straight down
-		// (forward has no ground part then); a camera looking along the ground has no up on the ground.
+		// "Into the screen" along the ground. Up's ground part still exists when the camera looks straight down
+		// (forward has none then); a camera looking along the ground has no up on the ground.
 		glm::vec2 ground{ up.x, up.y };
 		const float upOnGround = glm::length(ground);
 		if (upOnGround < 1.0e-4f)
@@ -50,11 +50,8 @@ namespace Hydro
 		const float groundLength = glm::length(ground);
 		basis.GroundForward = groundLength < 1.0e-4f ? glm::vec2(0.0f, 1.0f) : ground / groundLength;
 
-		// An Upright quad turns about Z to face the camera (yaw), then stands up about its bottom edge (lean:
-		// 0 lies flat, 90 degrees stands straight up). Rz(yaw) maps +Y onto GroundForward; Rx(lean) maps +Y onto
-		// (0, cos, sin). LeanToCamera: up to the camera's up (0 for a top-down camera, 90 looking along the
-		// ground), so the quad faces the camera fully. Vertical: straight up once the camera is tilted 30
-		// degrees, rising with the tilt before that so a top-down view still shows it.
+		// An Upright quad turns about Z to face the camera (yaw), then leans up about its bottom edge (0 flat, 90 standing).
+		// LeanToCamera leans to the camera's up; Vertical stands straight once the camera tilts 30 degrees.
 		const float yaw = std::atan2(-basis.GroundForward.x, basis.GroundForward.y);
 		const float cameraLean = std::atan2(up.z, upOnGround);
 		const float standsUpAt = glm::radians(30.0f);
@@ -87,8 +84,7 @@ namespace Hydro
 		m_Camera.Position = glm::vec3(cameraWorld[3]);
 		PrepareSunShadowCasting();
 		Renderer2D::BeginScene(view, camera.GetViewProjection());
-		// The Editor view shows the scene's depth of field, bloom, vignette and fog only when asked (EditorOverlay), so
-		// it stays sharp and evenly lit to edit in; the Game view always does.
+		// The Editor view shows depth of field, bloom, vignette and fog only when asked, so it stays easy to edit in.
 		ScenePostProcess postProcess = m_Scene->GetActivePostProcess();
 		if (overlay.PostProcessing == false)
 		{
@@ -118,7 +114,7 @@ namespace Hydro
 		Entity cameraEntity = m_Scene->GetPrimaryCameraEntity();
 		if ((bool)cameraEntity == false)
 		{
-			// Nothing to look through: begin the view anyway so it is cleared, not left stale. The UI doesn't need a camera.
+			// Begin the view anyway so it is cleared, not left stale. The UI doesn't need a camera.
 			Renderer2D::BeginScene(view, glm::mat4(1.0f));
 			SubmitUI();
 			Renderer2D::EndScene();
@@ -132,16 +128,20 @@ namespace Hydro
 			const WorldTransformComponent& transform = cameraEntity.GetComponent<WorldTransformComponent>();
 			cameraTransform = glm::translate(glm::mat4(1.0f), transform.Translation) * glm::toMat4(transform.Rotation);
 		}
+		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
+		if (GetEffectiveRenderFeatures().PixelSnap)
+		{
+			SnapCameraToPixels(cameraTransform, sceneCamera, view.GetHeight());
+		}
 		m_Camera = MakeCameraBasis(glm::mat3(cameraTransform), GetEffectiveRenderFeatures().UprightSprites);
 		m_Camera.Position = glm::vec3(cameraTransform[3]);
 		PrepareSunShadowCasting();
 		m_Fog = true;
 
-		const SceneCamera& sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
 		Renderer2D::BeginScene(view, Camera(sceneCamera.GetProjection(m_Scene->GetViewportAspectRatio())), cameraTransform);
 		Renderer2D::SetPostProcess(m_Scene->GetActivePostProcess());
-		// The depth of field focuses on what the camera looks at when it says how far that is (SceneCamera::FocusDistance),
-		// else on its point on the ground. The fog keeps measuring from the ground (FogOrigin).
+		// The depth of field focuses at SceneCamera::FocusDistance when set, else on the ground focus.
+		// The fog keeps measuring from the ground (FogOrigin).
 		const glm::vec3 focus = sceneCamera.FocusDistance > 0.0f ? m_Camera.Position + m_Camera.Forward * sceneCamera.FocusDistance
 			: m_Camera.GetGroundFocus();
 		Renderer2D::SetViewFocus(focus, m_Camera.Forward);
@@ -156,6 +156,52 @@ namespace Hydro
 		return true;
 	}
 
+	void SceneRenderer::SnapCameraToPixels(glm::mat4& cameraTransform, const SceneCamera& camera, uint32_t viewHeight)
+	{
+		if (viewHeight == 0)
+		{
+			return;
+		}
+		const glm::vec3 right = glm::normalize(glm::vec3(cameraTransform[0]));
+		const glm::vec3 up = glm::normalize(glm::vec3(cameraTransform[1]));
+		const glm::vec3 forward = -glm::normalize(glm::vec3(cameraTransform[2]));
+		const glm::vec3 position = glm::vec3(cameraTransform[3]);
+
+		// One screen pixel in metres where the camera looks (at its focus point for a perspective camera).
+		// Nearer and farther things still slide by fractions of a pixel (parallax).
+		float pixel = 0.0f;
+		if (camera.Projection == ProjectionType::Orthographic)
+		{
+			pixel = camera.OrthographicSize / (float)viewHeight;
+		}
+		else
+		{
+			float distance = camera.FocusDistance;
+			if (distance <= 0.0f && forward.z < -0.05f)
+			{
+				distance = -position.z / forward.z;
+			}
+			if (distance <= 0.0f)
+			{
+				return;
+			}
+			pixel = 2.0f * distance * std::tan(glm::radians(camera.PerspectiveFOV) * 0.5f) / (float)viewHeight;
+		}
+		if (pixel <= 1e-6f)
+		{
+			return;
+		}
+
+		// Round across and up the screen to whole pixels; along the view it is kept, so the camera doesn't zoom.
+		// The image then moves by whole pixels and every texel keeps its shape.
+		const float across = glm::dot(position, right);
+		const float upward = glm::dot(position, up);
+		const float snappedAcross = std::round(across / pixel) * pixel;
+		const float snappedUpward = std::round(upward / pixel) * pixel;
+		const glm::vec3 snapped = position + right * (snappedAcross - across) + up * (snappedUpward - upward);
+		cameraTransform[3] = glm::vec4(snapped, 1.0f);
+	}
+
 	void SceneRenderer::SubmitSprites()
 	{
 		auto view = m_Scene->m_Registry.view<WorldTransformComponent, SpriteRendererComponent>();
@@ -165,9 +211,8 @@ namespace Hydro
 		const bool viewDepthSorting = features.SpriteSorting == SpriteSortMode::ViewDepth;
 		const bool cutoutByDefault = features.DefaultSpriteAlpha == SpriteAlphaDefault::Cutout;
 
-		// SpriteSortMode::SortOrder (the 2D preset, today's order kept bit for bit): SortOrder; then Flat
-		// before standing (Upright, Billboard, particles); Flat by Z, standing from far to near along the
-		// camera's ground direction (Depth, larger = further away); then storage order.
+		// SortOrder sorting (the 2D preset): SortOrder; then flat before standing; flat by Z, standing from far to near
+		// along the camera's ground direction; then storage order.
 		const auto drawsBefore = [](const SpriteDrawItem& a, const SpriteDrawItem& b)
 		{
 			if (a.SortOrder != b.SortOrder)
@@ -192,10 +237,8 @@ namespace Hydro
 			return a.Index < b.Index;
 		};
 
-		// SpriteSortMode::ViewDepth (3D): the ground decals first (Flat sprites, by SortOrder, then Z, then
-		// storage order), then everything standing back to front by its distance along the camera's view
-		// direction; SortOrder only breaks ties, so a high number can't pull an effect over a nearer sprite.
-		// Cut-out sprites don't depend on this order (the depth buffer sorts them); translucent ones do.
+		// View-depth sorting (3D): flat decals first, then everything standing back to front along the view direction.
+		// SortOrder only breaks ties, so a high number can't pull an effect over a nearer sprite.
 		const auto drawsBeforeByViewDepth = [](const SpriteDrawItem& a, const SpriteDrawItem& b)
 		{
 			if (a.Standing != b.Standing)
@@ -231,8 +274,7 @@ namespace Hydro
 			return viewDepthSorting ? drawsBeforeByViewDepth(a, b) : drawsBefore(a, b);
 		};
 
-		// Collect sort keys. Most scenes are already in order (all SortOrder 0, same Z), so the sort
-		// is skipped unless an item is out of order.
+		// Most scenes are already in order, so the sort is skipped unless an item is out of order.
 		m_SpriteQueue.clear();
 		bool inOrder = true;
 		uint32_t index = 0;
@@ -263,6 +305,7 @@ namespace Hydro
 			// Standing sprites take the view's default; flat ones are ground decals unless marked Cut-out.
 			const SpriteAlphaMode defaultMode = (item.Standing && cutoutByDefault) ? SpriteAlphaMode::Cutout : SpriteAlphaMode::Translucent;
 			item.Cutout = (sprite.AlphaMode == SpriteAlphaMode::Default ? defaultMode : sprite.AlphaMode) == SpriteAlphaMode::Cutout;
+			item.Additive = sprite.AlphaMode == SpriteAlphaMode::Additive;
 
 			if (inOrder && m_SpriteQueue.empty() == false && isBefore(item, m_SpriteQueue.back()))
 			{
@@ -271,8 +314,7 @@ namespace Hydro
 			m_SpriteQueue.push_back(item);
 		}
 
-		// Lit emitters with live particles join the same order (only while the game runs: there is no
-		// ParticleScene while editing).
+		// Lit emitters join the same order (only while the game runs: there is no ParticleScene while editing).
 		const ParticleScene* particles = m_Scene->GetParticleScene();
 		if (particles != nullptr)
 		{
@@ -292,6 +334,7 @@ namespace Hydro
 				item.Index = index++;
 				item.Entity = entity;
 				item.IsEmitter = true;
+				item.Additive = emitter.Blend == ParticleBlend::Additive;
 				// Particles are billboards (see SubmitParticles), sorted by where the emitter is.
 				item.Standing = true;
 				item.Depth = glm::dot(glm::vec2(transform.Translation), m_Camera.GroundForward);
@@ -310,19 +353,19 @@ namespace Hydro
 			std::sort(m_SpriteQueue.begin(), m_SpriteQueue.end(), isBefore);
 		}
 
-		// Shared depth: cut-out sprites (Cutout, their own or the view's default for standing ones) go to the
-		// cut-out list; flat sprites before the first standing item (the ground, roads, decals: with view-depth
-		// sorting every flat one) are decals, drawn first in this order; everything else (particles,
-		// translucent sprites, flat sprites layered above standing ones in SortOrder sorting) is translucent,
-		// drawn after the cut-outs in this order. Without shared depth Renderer2D ignores the modes and draws
-		// everything in this order, as before.
+		// Shared depth: cut-outs go to the cut-out list, flat sprites before the first standing item are decals, and the
+		// rest is translucent, drawn after the cut-outs in this order. Without shared depth only Additive is kept.
 		bool reachedStanding = false;
 
 		for (const SpriteDrawItem& item : m_SpriteQueue)
 		{
-			if (sharedDepth)
+			reachedStanding = reachedStanding || item.Standing;
+			if (item.Additive)
 			{
-				reachedStanding = reachedStanding || item.Standing;
+				Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Additive);
+			}
+			else if (sharedDepth)
+			{
 				SpriteDrawMode mode = SpriteDrawMode::Translucent;
 				if (item.IsEmitter == false && item.Cutout)
 				{
@@ -335,30 +378,29 @@ namespace Hydro
 				}
 				Renderer2D::SetSpriteDrawMode(mode);
 			}
+			else
+			{
+				Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Translucent);
+			}
 
-			// An entity's sprite carries its ID (the Editor view writes it for click-to-select); particles don't,
-			// so clicks pass through them.
+			// Sprites carry their entity ID for click-to-select; particles don't, so clicks pass through them.
 			Renderer2D::SetEntityID(item.IsEmitter ? -1 : (int32_t)(uint32_t)item.Entity);
 
 			if (item.IsEmitter)
 			{
 				const ParticleEmitter2DComponent& emitter = m_Scene->m_Registry.get<ParticleEmitter2DComponent>(item.Entity);
-				SubmitParticles(emitter, *particles->Find(item.Entity), m_Scene->m_Registry.get<WorldTransformComponent>(item.Entity).Translation, m_Camera);
+				SubmitParticles(emitter, *particles->Find(item.Entity),
+					m_Scene->m_Registry.get<WorldTransformComponent>(item.Entity).Translation, m_Camera);
 				continue;
 			}
 			const auto [transform, sprite] = view.get<WorldTransformComponent, SpriteRendererComponent>(item.Entity);
-			// Sun shadows (R14): cut-out standing sprites cast (the depth buffer holds them, so their shadow
-			// matches what is drawn); translucent ones and particles don't.
+			// Cut-out standing sprites cast sun shadows (the depth buffer holds them, so the shadow matches what is drawn).
 			const bool castsShadow = m_SunShadows.Sprites && sharedDepth && item.Cutout && item.Standing && sprite.CastShadows;
 			SubmitSprite(transform.Matrix, sprite, m_Camera, castsShadow);
 		}
 		Renderer2D::SetEntityID(-1);
 		Renderer2D::SetEmission(glm::vec3(0.0f));
-
-		if (sharedDepth)
-		{
-			Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Translucent);
-		}
+		Renderer2D::SetSpriteDrawMode(SpriteDrawMode::Translucent);
 
 		// The casters queued above, in one block (one draw call per texture set).
 		if (m_ShadowCasters.empty() == false)
@@ -394,9 +436,8 @@ namespace Hydro
 		m_SunShadows.Sprites = true;
 		m_SunShadows.Mode = features.SpriteShadows;
 
-		// FaceSun: the caster stands straight up (lean 90 degrees), turned about Z so the light hits it face on.
-		// Of the two ways round that do, the one closer to how the camera sees the sprite, so its left side
-		// casts on the left (a sun straight overhead: the camera's way round).
+		// FaceSun: the caster stands up, turned about Z so the light hits it face on, the way round closest to how
+		// the camera sees the sprite (so its left side casts on the left).
 		const glm::vec3 travel = sun.GetComponent<WorldTransformComponent>().Rotation * glm::vec3(0.0f, 0.0f, -1.0f);
 		glm::vec2 ground{ travel.x, travel.y };
 		const float groundLength = glm::length(ground);
@@ -410,8 +451,7 @@ namespace Hydro
 			* glm::mat3(glm::rotate(glm::mat4(1.0f), glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)));
 	}
 
-	// What a mesh slot draws with: its material asset when it is loaded (scene loading and the inspector load
-	// it), else its inline settings.
+	// A mesh slot's material asset when it is loaded, else its inline settings.
 	static MaterialData ResolveMaterial(const MeshMaterialSlot& slot)
 	{
 		if ((uint64_t)slot.Material != 0)
@@ -519,8 +559,8 @@ namespace Hydro
 			material.EdgePixelNoise = settings.EdgePixelNoise;
 			material.Seed = settings.Seed;
 
-			// The parts' materials (TerrainMesher::GetPartKind): walls and their lip faces (20 % darker), fringes, cap
-			// stones, decor sprites (cut out).
+			// The parts' materials (TerrainMesher::GetPartKind): walls and their lip faces (20 % darker), fringes,
+			// cap stones, decor sprites (cut out).
 			auto loadedMaterial = [](AssetHandle handle)
 			{
 				const Ref<MaterialAsset> asset = (uint64_t)handle != 0 ? AssetManager::GetLoadedAsset<MaterialAsset>(handle) : nullptr;
@@ -561,7 +601,7 @@ namespace Hydro
 				return MaterialData{};
 			};
 
-			// Only the position: terrains are axis-aligned and unscaled (v1).
+			// Only the position: terrains are axis-aligned and unscaled.
 			const glm::mat4 world = glm::translate(glm::mat4(1.0f), transform.Translation);
 			const int32_t entityID = (int32_t)(uint32_t)entity;
 			for (const TerrainChunkDraw& chunk : data->Chunks)
@@ -575,7 +615,8 @@ namespace Hydro
 					const std::vector<SubMesh>& subMeshes = chunk.Parts->GetSubMeshes();
 					for (uint32_t i = 0; i < (uint32_t)subMeshes.size(); i++)
 					{
-						Renderer3D::DrawMesh(chunk.Parts, i, partMaterial(subMeshes[i].MaterialSlot), world, entityID, terrainComponent.CastShadows);
+						Renderer3D::DrawMesh(chunk.Parts, i, partMaterial(subMeshes[i].MaterialSlot), world, entityID,
+							terrainComponent.CastShadows);
 					}
 				}
 			}
@@ -661,8 +702,8 @@ namespace Hydro
 		return glm::round(metrics.Offset + point * metrics.Scale);
 	}
 
-	// A quad in view pixels cut to clipMin..clipMax (a scroll view's rect), its texture rect cut with it. The rect's
-	// Min goes with the quad's left and top edge (texture rows run down, view pixels up), as everywhere in the UI.
+	// A view-pixel quad cut to clipMin..clipMax (a scroll view's rect), its texture rect cut with it.
+	// The rect's Min is the quad's left and top edge (texture rows run down, view pixels up).
 	static void DrawClippedQuad(const glm::vec2& viewMin, const glm::vec2& viewMax, const Ref<Texture2D>& texture, const TextureRect& rect,
 		const glm::vec4& color, const glm::vec2& clipMin, const glm::vec2& clipMax)
 	{
@@ -688,8 +729,7 @@ namespace Hydro
 		Renderer2D::DrawQuad(GetPixelQuadTransform(min, max), texture, cut, color);
 	}
 
-	// A one-pixel outline just inside a view-pixel rect, as four thin quads (Renderer2D's lines go through the scene's
-	// camera, which screen space doesn't use).
+	// A one-pixel outline just inside a view-pixel rect, as four thin quads (lines would go through the scene camera).
 	static void DrawPixelOutline(const glm::vec2& min, const glm::vec2& max, const glm::vec4& color)
 	{
 		if (max.x - min.x < 1.0f || max.y - min.y < 1.0f)
@@ -773,7 +813,7 @@ namespace Hydro
 				}
 				skipBelow = UINT32_MAX;
 
-				// The tint and state of the button this element belongs to: the stack holds the buttons above it, by depth.
+				// The tint and state of the button this element belongs to (the stack holds the buttons above it).
 				while (m_UIButtons.empty() == false && m_UIButtons.back().Depth >= depth)
 				{
 					m_UIButtons.pop_back();
@@ -849,8 +889,8 @@ namespace Hydro
 		}
 		Renderer2D::EndScreenOverlay();
 	}
-
-	void SceneRenderer::SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+	void SceneRenderer::SubmitUIImage(const UIImageComponent& image, const glm::vec2& min, const glm::vec2& max,
+		const UICanvasMetrics& metrics, const glm::vec4& tint,
 		const glm::vec2& clipMin, const glm::vec2& clipMax)
 	{
 		// Never loads: whoever assigned the handle loaded it. No texture (or one not loaded) is a flat colour.
@@ -893,9 +933,10 @@ namespace Hydro
 		}
 
 		UINineSliceCell cells[9];
-		const uint32_t count = UILayout::BuildNineSlice(min, max, sourcePosition, sourceSize, image.NineSlice, image.FlipX, image.FlipY, cells);
+		const uint32_t count = UILayout::BuildNineSlice(min, max, sourcePosition, sourceSize, image.NineSlice, image.FlipX,
+			image.FlipY, cells);
 		const glm::vec2 imageSize = glm::max(glm::vec2((float)texture->GetWidth(), (float)texture->GetHeight()), glm::vec2(1.0f));
-		// A thousandth of a texel in from every edge of a cell, so nearest sampling at its edge never reads the next cell.
+		// Inset a thousandth of a texel so nearest sampling at a cell's edge never reads the next cell.
 		const glm::vec2 inset = glm::vec2(0.001f) / imageSize;
 		for (uint32_t i = 0; i < count; i++)
 		{
@@ -916,8 +957,8 @@ namespace Hydro
 			DrawClippedQuad(viewMin, viewMax, texture, rect, image.Color * tint, clipMin, clipMax);
 		}
 	}
-
-	void SceneRenderer::SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max, const UICanvasMetrics& metrics, const glm::vec4& tint,
+	void SceneRenderer::SubmitUIText(const UITextComponent& text, const glm::vec2& min, const glm::vec2& max,
+		const UICanvasMetrics& metrics, const glm::vec4& tint,
 		const glm::vec2& clipMin, const glm::vec2& clipMax)
 	{
 		// Never loads, like images: whoever assigned the handle loaded the font.
@@ -981,11 +1022,11 @@ namespace Hydro
 			}
 		}
 	}
-
-	void SceneRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime, const glm::vec3& origin, const CameraBasis& camera)
+	void SceneRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime,
+		const glm::vec3& origin, const CameraBasis& camera)
 	{
-		// The emitter's texture when it is loaded (whoever assigned it loaded it), else the soft dot.
-		// TODO(V4): ParticleBlend::Additive needs the premultiplied quad pipeline; until then it draws alpha.
+		// The emitter's texture when it is loaded, else the soft dot. Lit additive emitters draw additive (SubmitSprites);
+		// unlit ones go through the overlay, which has no additive pipeline: TODO they still draw alpha.
 		const Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(emitter.Texture);
 		const Ref<Texture2D>& texture = loaded != nullptr ? loaded : Renderer2D::GetSoftDotTexture();
 		TextureRect rect;
@@ -994,7 +1035,7 @@ namespace Hydro
 			rect = loaded->GetSpriteUVRect(emitter.SpriteIndex);
 		}
 
-		// Emission (plan P3): each particle's own colour times the emitter's intensity.
+		// Each particle's own colour times the emitter's intensity.
 		Renderer2D::SetEmission(glm::vec3(std::max(emitter.EmissionIntensity, 0.0f)));
 
 		const ParticleScene::ParticleBuffer& buffer = runtime.Particles;
@@ -1012,8 +1053,7 @@ namespace Hydro
 				Renderer2D::DrawQuad(glm::vec3(buffer.Position[i], z), glm::vec2(size), buffer.Rotation[i], texture, rect, color);
 				continue;
 			}
-			// A tilted camera: each particle faces it (a billboard), moving on the ground plane (Ground; H10
-			// gives particles a height) or in the plane facing the camera (View).
+			// A tilted camera: each particle faces it, moving on the ground plane (Ground) or facing the camera (View).
 			const glm::vec3 position = viewSpace
 				? origin + camera.Rotation[0] * (buffer.Position[i].x - origin.x) + camera.Rotation[1] * (buffer.Position[i].y - origin.y)
 				: glm::vec3(buffer.Position[i], z);
@@ -1045,13 +1085,12 @@ namespace Hydro
 			}
 			else if (light.Type == Light2DType::Spot)
 			{
-				// Forward lighting only (the light buffer's cone is Roadmap D1).
+				// Forward lighting only: the light buffer has no cone.
 				continue;
 			}
 			else
 			{
-				// A light with a height sits that far up an Upright sprite: along the camera's up as Upright
-				// quads lean (straight up the screen when looking down, up the standing sprite when tilted).
+				// A light with a height sits that far up an Upright sprite: along the camera's up as Upright quads lean.
 				const glm::vec3 position = transform.Translation + m_Camera.Upright[1] * light.Height;
 				Renderer2D::DrawLight(position, light.Radius, light.Color, light.Intensity);
 			}
@@ -1070,12 +1109,10 @@ namespace Hydro
 	{
 		SceneLighting lighting;
 		lighting.CameraPosition = m_Camera.Position;
-		// Fog is measured from where the camera's view meets the ground (z = 0), so it doesn't depend on how far
-		// away the camera is: a top-down editor camera high above the scene isn't fogged out. A camera looking
-		// level or up measures from itself. The depth of field measures from the same point (SetViewFocus).
+		// Measured from where the view meets the ground, so a top-down editor camera high above isn't fogged out.
+		// The depth of field measures from the same point (SetViewFocus).
 		lighting.FogOrigin = m_Camera.GetGroundFocus();
 
-		// The sun.
 		Entity sun = m_Scene->GetMainLight();
 		if ((bool)sun && sun.HasComponent<WorldTransformComponent>())
 		{
@@ -1159,7 +1196,8 @@ namespace Hydro
 			{
 				const glm::mat4 quad = glm::translate(glm::mat4(1.0f), position + glm::vec3(0.0f, 0.0f, 0.01f))
 					* glm::scale(glm::mat4(1.0f), glm::vec3(shadow.Size, 1.0f));
-				Renderer2D::DrawQuad(quad, Renderer2D::GetBlobShadowTexture(), 1.0f, glm::vec4(0.0f, 0.0f, 0.0f, std::clamp(shadow.Strength, 0.0f, 1.0f)));
+				Renderer2D::DrawQuad(quad, Renderer2D::GetBlobShadowTexture(), 1.0f,
+					glm::vec4(0.0f, 0.0f, 0.0f, std::clamp(shadow.Strength, 0.0f, 1.0f)));
 				continue;
 			}
 			Renderer2D::DrawShadow(position, shadow.Size, shadow.Strength);
@@ -1173,8 +1211,7 @@ namespace Hydro
 
 	Ref<Texture2D> SceneRenderer::GetSpriteImage(const SpriteRendererComponent& sprite, TextureRect& rect)
 	{
-		// No texture, or one that isn't loaded, draws the white texture, i.e. a plain coloured quad. This
-		// never loads from disk: whoever assigned the handle loaded the asset (see the component).
+		// No texture, or one not loaded, draws a plain coloured quad. Never loads: whoever assigned the handle loaded it.
 		Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
 		rect = TextureRect{};
 		if (loaded != nullptr && loaded->GetSpriteMode() == SpriteMode::Multiple)
@@ -1197,17 +1234,17 @@ namespace Hydro
 		}
 		return loaded;
 	}
-
-	void SceneRenderer::SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const CameraBasis& camera, bool shadowCaster)
+	void SceneRenderer::SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite,
+		const CameraBasis& camera, bool shadowCaster)
 	{
 		TextureRect rect;
 		const Ref<Texture2D> texture = GetSpriteImage(sprite, rect);
 		const glm::mat4 quad = GetSpriteQuadTransform(transform, texture.get(), sprite.SpriteIndex);
 		const glm::mat4 drawn = ApplyFacing(quad, sprite.Facing, camera);
-		// Emission (plan P3) travels in the vertices; the casters queued below are drawn later, after it is reset.
+		// Emission travels in the vertices; the casters queued below are drawn later, after it is reset.
 		Renderer2D::SetEmission(sprite.EmissionColor * std::max(sprite.EmissionIntensity, 0.0f));
-		// Opacity in the quad's alpha: blended for translucent sprites, the screen-door fade's amount for faded
-		// cut-out ones (SpriteDrawMode::FadedCutout). Shadow casters keep the sprite's own colour: the shadow stays.
+		// Opacity in the alpha: blended for translucent sprites, the fade amount for faded cut-outs.
+		// Shadow casters keep the sprite's own colour, so the shadow stays.
 		glm::vec4 color = sprite.Color;
 		color.a *= std::clamp(sprite.Opacity, 0.0f, 1.0f);
 		if (shadowCaster == false || m_SunShadows.Sprites == false)
@@ -1257,14 +1294,25 @@ namespace Hydro
 		Entity selected = overlay.Selected; // a copy: Entity::GetScene is not const
 		const bool drawSelected = overlay.SelectionOutline && selected.IsValid()
 			&& selected.GetScene() == m_Scene.get() && selected.HasComponent<WorldTransformComponent>();
-		if (drawSelected == false && overlay.Colliders == false && overlay.TerrainBrush == false && overlay.TerrainPath.empty())
+		const bool scriptGizmos = overlay.ScriptGizmos != nullptr && overlay.ScriptGizmos->GetLines().empty() == false;
+		if (drawSelected == false && overlay.Colliders == false && overlay.TerrainBrush == false && overlay.TerrainPath.empty()
+			&& scriptGizmos == false)
 		{
 			return;
 		}
 
 		Renderer2D::BeginOverlay();
 
-		// The Terrain tool's brush: a circle on the (flat, TR1) ground under the cursor, drawn over everything.
+		// What scripts draw for the Editor view (OnDrawGizmos), over everything.
+		if (scriptGizmos)
+		{
+			for (const Gizmos::LineItem& line : overlay.ScriptGizmos->GetLines())
+			{
+				Renderer2D::DrawLine3D(line.Start, line.End, line.Color, line.Thickness);
+			}
+		}
+
+		// The Terrain tool's brush: a circle on the ground under the cursor, drawn over everything.
 		if (overlay.TerrainBrush)
 		{
 			const uint32_t segments = 48;
@@ -1348,7 +1396,8 @@ namespace Hydro
 			{
 				const SpriteRendererComponent& sprite = selected.GetComponent<SpriteRendererComponent>();
 				const Ref<Texture2D> loaded = AssetManager::GetLoadedAsset<Texture2D>(sprite.Texture);
-				Renderer2D::DrawRect(ApplyFacing(GetSpriteQuadTransform(matrix, loaded.get(), sprite.SpriteIndex), sprite.Facing, m_Camera), selectionColor, thickness);
+				Renderer2D::DrawRect(ApplyFacing(GetSpriteQuadTransform(matrix, loaded.get(), sprite.SpriteIndex), sprite.Facing, m_Camera),
+					selectionColor, thickness);
 			}
 			else
 			{
@@ -1378,7 +1427,8 @@ namespace Hydro
 	}
 
 	// A circle of 3D lines about `centre` in the plane spanned by `u` and `v` (unit vectors).
-	static void DrawCircle3D(const glm::vec3& centre, const glm::vec3& u, const glm::vec3& v, float radius, const glm::vec4& color, uint32_t segments = 48)
+	static void DrawCircle3D(const glm::vec3& centre, const glm::vec3& u, const glm::vec3& v, float radius, const glm::vec4& color,
+		uint32_t segments = 48)
 	{
 		glm::vec3 previous = centre + u * radius;
 		for (uint32_t i = 1; i <= segments; i++)
@@ -1420,7 +1470,8 @@ namespace Hydro
 					const glm::vec3 local{ (i & 1) ? high.x : low.x, (i & 2) ? high.y : low.y, (i & 4) ? high.z : low.z };
 					corners[i] = glm::vec3(world * glm::vec4(local, 1.0f));
 				}
-				const int edges[12][2] = { { 0, 1 }, { 2, 3 }, { 4, 5 }, { 6, 7 }, { 0, 2 }, { 1, 3 }, { 4, 6 }, { 5, 7 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 } };
+				const int edges[12][2] = { { 0, 1 }, { 2, 3 }, { 4, 5 }, { 6, 7 }, { 0, 2 }, { 1, 3 }, { 4, 6 }, { 5, 7 }, { 0, 4 },
+					{ 1, 5 }, { 2, 6 }, { 3, 7 } };
 				for (const auto& edge : edges)
 				{
 					Renderer2D::DrawLine3D(corners[edge[0]], corners[edge[1]], boundsColor);
@@ -1481,8 +1532,7 @@ namespace Hydro
 		Renderer2D::EndDebugLines();
 	}
 
-	// One collider shape's edges. `world` places the shape's space (the entity's translation and rotation; the shape
-	// already carries the scale).
+	// One collider shape's edges. `world` places the shape's space (translation and rotation; the shape has the scale).
 	static void DrawColliderShape(const glm::mat4& world, const ColliderShape& shape, const glm::vec4& color)
 	{
 		const auto toWorld = [&world](const glm::vec3& local) { return glm::vec3(world * glm::vec4(local, 1.0f)); };
@@ -1500,7 +1550,8 @@ namespace Hydro
 					const glm::vec3 sign{ (i & 1) ? 1.0f : -1.0f, (i & 2) ? 1.0f : -1.0f, (i & 4) ? 1.0f : -1.0f };
 					corners[i] = toWorld(shape.Centre + sign * shape.HalfExtents);
 				}
-				const int edges[12][2] = { { 0, 1 }, { 2, 3 }, { 4, 5 }, { 6, 7 }, { 0, 2 }, { 1, 3 }, { 4, 6 }, { 5, 7 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 } };
+				const int edges[12][2] = { { 0, 1 }, { 2, 3 }, { 4, 5 }, { 6, 7 }, { 0, 2 }, { 1, 3 }, { 4, 6 }, { 5, 7 }, { 0, 4 },
+					{ 1, 5 }, { 2, 6 }, { 3, 7 } };
 				for (const auto& edge : edges)
 				{
 					Renderer2D::DrawLine3D(corners[edge[0]], corners[edge[1]], color);
@@ -1542,7 +1593,7 @@ namespace Hydro
 			case ColliderShapeType::ConvexHull:
 			case ColliderShapeType::TriangleMesh:
 			{
-				// A model's collision node: its triangles' edges (shared edges drawn twice; cheap enough for proxies).
+				// A model's collision node: its triangles' edges (shared edges drawn twice; cheap for proxies).
 				for (size_t i = 0; i + 2 < shape.Indices.size(); i += 3)
 				{
 					const glm::vec3 a = toWorld(shape.Points[shape.Indices[i]]);
@@ -1572,7 +1623,7 @@ namespace Hydro
 
 	void SceneRenderer::SubmitColliderDebugLines()
 	{
-		// The same colours as the 2D outlines: static green, game-moved cyan, triggers yellow; characters magenta.
+		// The 2D outlines' colours: static green, game-moved cyan, triggers yellow; characters magenta.
 		const glm::vec4 staticColor{ 0.3f, 0.9f, 0.3f, 1.0f };
 		const glm::vec4 kinematicColor{ 0.3f, 0.9f, 0.9f, 1.0f };
 		const glm::vec4 triggerColor{ 1.0f, 0.9f, 0.2f, 1.0f };

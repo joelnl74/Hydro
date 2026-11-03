@@ -1,4 +1,3 @@
-// Game/src/Scripts/Common/FoliageSwayScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -9,11 +8,8 @@
 
 namespace Hydro
 {
-	// Wind in the young bamboo and maples (Nov 3, 2026): the children of the entity this script is on lean a little
-	// to either side about their feet, each on its own phase, with a slow gust over the group. An upright sprite card
-	// leans in its own plane: the Z rotation turns the flat card about its foot before it stands up, so the top moves
-	// and the foot stays. Put it on a group of foliage cards (no colliders on them: those would turn too). Runs while
-	// playing only; the saved scene keeps the cards as placed.
+	// Wind in foliage: the children lean a little about their feet, each on its own phase, with a slow gust over the group.
+	// An upright card leans in its own plane. Runs while playing only; no colliders on the cards (they would turn too).
 	HY_SCRIPT()
 	class FoliageSwayScript : public ScriptableEntity
 	{
@@ -49,7 +45,8 @@ namespace Hydro
 			m_Time += deltaTime;
 			const float omega = 6.2831853f / std::max(Period, 0.5f);
 			// The gust: a slow swell, never below calm, sometimes up to (1 + Gust) times the breeze.
-			const float gust = 1.0f + Gust * (0.5f + 0.5f * std::sin(m_Time * omega * 0.21f)) * (0.6f + 0.4f * std::sin(m_Time * omega * 0.53f + 1.3f));
+			const float gust = 1.0f + Gust * (0.5f + 0.5f * std::sin(m_Time * omega * 0.21f))
+				* (0.6f + 0.4f * std::sin(m_Time * omega * 0.53f + 1.3f));
 			const float amplitude = glm::radians(Degrees) / (1.0f + Gust) * gust;
 			for (Card& card : m_Cards)
 			{
@@ -57,7 +54,8 @@ namespace Hydro
 				{
 					continue;
 				}
-				const float sway = 0.75f * std::sin(m_Time * omega + card.Phase) + 0.25f * std::sin(m_Time * omega * 2.3f + card.Phase * 1.7f);
+				const float sway = 0.75f * std::sin(m_Time * omega + card.Phase)
+					+ 0.25f * std::sin(m_Time * omega * 2.3f + card.Phase * 1.7f);
 				card.Item.GetComponent<TransformComponent>().Rotation.z = card.Rest + amplitude * sway;
 			}
 		}

@@ -1,4 +1,3 @@
-// Game/src/Views/DialogueScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -11,17 +10,10 @@
 #include <string>
 #include <vector>
 
-// A dialogue box on the runtime UI (UI5): lines typed in one by one, each with its speaker's name. What is said is
-// data (a DialogueDefinition: Assets/Data/Dialogue/); field NPCs open it through the MVP director (FieldDirectorScript, E
-// near an "Npc <Name>"), quests with their own conversations (ShrineQuestScript).
-
 namespace Hydro
 {
-	// On "Dialogue Canvas" (hidden, captures input, no buttons): its children "Dialogue Name" (text), "Dialogue
-	// Text" (text, wrapped) and "Dialogue Next" (the blinking arrow). Open() shows it; while it is shown the player
-	// can't walk or interact (UI::CapturesInput). Submit (Enter / Space / Z, sent to the canvas since nothing is
-	// focused) shows the whole line when it is still typing, else the next line; after the last it closes. Cancel
-	// (Esc / Backspace / X) closes it at once.
+	// A dialogue box on "Dialogue Canvas": lines typed in one by one under the speaker's name. While open the player can't
+	// walk or interact; Submit finishes or advances a line, Cancel closes it.
 	HY_SCRIPT()
 	class DialogueScript : public ScriptableEntity
 	{
@@ -35,8 +27,7 @@ namespace Hydro
 			std::string Text;
 		};
 
-		// The lines of `dialogue`, each under its own speaker, else the dialogue's, else `speaker` (who opened it:
-		// the NPC's name).
+		// Each line under its own speaker, else the dialogue's, else `speaker` (who opened it).
 		static std::vector<Line> GetLines(const DialogueDefinition& dialogue, const std::string& speaker = {})
 		{
 			const std::string& fallback = dialogue.Speaker.empty() ? speaker : dialogue.Speaker;
@@ -89,7 +80,6 @@ namespace Hydro
 				// Typed in by count: the line is laid out in full from the start, so nothing re-wraps as it grows.
 				text.GetComponent<UITextComponent>().VisibleCharacters = shown >= m_Length ? -1 : shown;
 			}
-			// The arrow blinks once the line is out.
 			m_Blink += deltaTime;
 			UI::SetVisible(Child(scene, "Dialogue Next"), shown >= m_Length && std::fmod(m_Blink, 0.8f) < 0.5f);
 		}
@@ -142,7 +132,7 @@ namespace Hydro
 			UI::SetVisible(Child(scene, "Dialogue Next"), false);
 		}
 
-		// What UITextComponent::VisibleCharacters counts: characters (UTF-8 code points), not spaces or line breaks.
+		// As UITextComponent::VisibleCharacters counts: UTF-8 code points, not spaces or line breaks.
 		static int CountVisible(const std::string& text)
 		{
 			int count = 0;
@@ -174,7 +164,7 @@ namespace Hydro
 
 		std::vector<Line> m_Lines;
 		int m_Line = 0;
-		int m_Length = 0;     // the current line's characters (as VisibleCharacters counts them)
+		int m_Length = 0;     // the current line's characters, as VisibleCharacters counts them
 		float m_Typed = 0.0f; // how many are shown
 		float m_Blink = 0.0f;
 	};

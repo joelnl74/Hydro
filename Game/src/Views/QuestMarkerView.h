@@ -1,4 +1,3 @@
-// Game/src/Views/QuestMarkerView.h
 #pragma once
 
 #include "Hydro.h"
@@ -7,17 +6,15 @@
 
 namespace Hydro
 {
-	// The look of the marker that floats over a quest giver (Nov 3, 2026): black on yellow, as quest markers are
-	// everywhere: "!" while the giver has a quest to offer, "?" when one can be turned in. The two images carry their
-	// own colours, so the marker's image is drawn untinted. Used by QuestGiverScript and ShrineQuestScript; the moving
-	// and the showing stay with them.
+	// The marker over a quest giver: "!" with a quest to offer, "?" when one can be turned in. The images carry their own
+	// colours, so the marker is drawn untinted.
 	class QuestMarkerView
 	{
 	public:
 		static constexpr uint64_t DefaultOfferMark = 2768530010260909562ull;  // Assets/Sprites/UI/QuestMark_Offer.png
 		static constexpr uint64_t DefaultReturnMark = 4835287365312174536ull; // Assets/Sprites/UI/QuestMark_Return.png
 
-		// Shows the offer or the turn-in mark on the marker's image (an entity with a UIImageComponent).
+		// `image` is an entity with a UIImageComponent.
 		static void Present(Entity image, bool turnIn, AssetHandle offerMark, AssetHandle returnMark)
 		{
 			if (image.IsValid() == false || image.HasComponent<UIImageComponent>() == false)

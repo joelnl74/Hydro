@@ -50,13 +50,19 @@ void ShadeStandardMesh()
 	{
 		normal = -normal;
 	}
+	// Pixel snap (#136): light, shadow and fog at the centre of the albedo texel, so they step with the art's pixels.
+	vec3 position = fragWorldPos;
+	if (SnapsToTexels())
+	{
+		position += TexelCentreOffset(derivatives, uv, vec2(textureSize(albedoTexture, 0)));
+	}
 	// The shadow lookup keeps the surface's own normal (its offset is about the geometry); the light uses the map's.
-	float sun = SunShadowSurface(fragWorldPos, normal);
+	float sun = SunShadowSurface(position, normal);
 	if (material.normalStrength > 0.0)
 	{
 		normal = PerturbNormal(normal, derivatives, texture(normalTexture, uv).rgb, material.normalStrength);
 	}
-	vec3 lit = albedo.rgb * ComputeLighting(fragWorldPos, normal, 0.5, sun) + emissive;
-	outColor = vec4(ApplyFog(lit, fragWorldPos), 1.0);
+	vec3 lit = albedo.rgb * ComputeLighting(position, normal, 0.5, sun) + emissive;
+	outColor = vec4(ApplyFog(lit, position), 1.0);
 	outEntityID = entityID;
 }

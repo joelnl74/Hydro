@@ -9,11 +9,8 @@
 
 namespace Hydro
 {
-	// "Build" window (File > Build...): makes a standalone build of the open project. A thin UI over
-	// scripts/Package.bat, which builds the Runtime (Release or Dist), names it after the project and copies
-	// the project's files into Builds/<Project>-<Kind>/; the window shows the script's output while it runs
-	// and runs the game or opens its folder when it is done. The build runs in the background: the editor
-	// stays usable, and a build still running when the editor closes is stopped.
+	// The "Build" window: runs scripts/Package.bat in the background to make a standalone build of the open project,
+	// shows its output, and runs the game or opens its folder when it is done.
 	class BuildWindow
 	{
 	public:
@@ -21,8 +18,7 @@ namespace Hydro
 
 		bool& IsOpen() { return m_Open; }
 
-		// Called just before a build starts. The build packages what is on disk, so the editor saves the
-		// project and the open scene here.
+		// Called before a build starts, so the editor can save the project and the open scene (the build packages what is on disk).
 		std::function<void()> OnBeforeBuild;
 
 	private:
@@ -34,7 +30,7 @@ namespace Hydro
 		void RunGame();
 		void OpenFolder();
 
-		// The project's file name without extension: the exe and the Builds folder are named after it.
+		// The project's file name without extension; the exe and the Builds folder are named after it.
 		std::string GetProjectName() const;
 		std::filesystem::path GetOutputDirectory() const;
 		static const char* GetKindName(BuildKind kind);
@@ -44,7 +40,7 @@ namespace Hydro
 		BuildKind m_Kind = BuildKind::Release;
 		BuildState m_State = BuildState::Idle;
 
-		// The repository (where scripts/Package.bat is), found when the window first opens.
+		// Where scripts/Package.bat is, found when the window first opens.
 		std::filesystem::path m_RepositoryRoot;
 		bool m_RepositorySearched = false;
 

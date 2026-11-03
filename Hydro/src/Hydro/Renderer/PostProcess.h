@@ -4,13 +4,11 @@
 
 namespace Hydro
 {
-	// A scene's post-processing (post-processing plan P1, P2; render profiles in P4; depth of field #135; colour grading #137), saved in the scene
-	// (SceneSerializer, "PostProcess") only when it differs from the defaults, and copied on Play. Read by views
-	// whose render features have HDR (and Bloom, DepthOfField) on; the 8-bit path (the 2D preset) ignores it.
+	// A scene's post-processing, saved only when it differs from the defaults and copied on Play. Read by views with
+	// HDR on (and Bloom, DepthOfField); the 8-bit path of the 2D preset ignores it.
 	struct ScenePostProcess
 	{
-		// Manual exposure in EV (stops): the HDR scene colour is multiplied by 2^Exposure before the tonemap.
-		// 0 = as lit; +1 twice as bright, -1 half.
+		// Manual exposure in EV: the HDR colour is multiplied by 2^Exposure before the tonemap (0 = as lit).
 		float Exposure = 0.0f;
 
 		// Bloom (with the Bloom render feature): a glow around pixels brighter than BloomThreshold.
@@ -20,28 +18,22 @@ namespace Hydro
 		float BloomIntensity = 0.6f;  // how much of the glow is added
 		float BloomRadius = 1.0f;     // how far each level spreads (the upsample filter's size), 0.5..2
 
-		// Depth of field (with the DepthOfField render feature): what lies far in front of or behind the camera's
-		// focus point blurs, so the band the player walks in stays sharp and the foreground and background soften
-		// (the tilt-shift look of a photographed diorama). Distances are metres along the view direction from where
-		// the camera's view meets the ground (z = 0), measured as the fog is (lighting.glsl ApplyFog), but on both
-		// sides: in front of that point (towards the camera) and behind it.
+		// Depth of field: what lies far in front of or behind the focus point blurs (the tilt-shift diorama look).
+		// Distances are metres along the view from where the view meets the ground, on both sides of it.
 		bool DepthOfField = true;  // a quick off switch for comparisons; the feature stays on
 		float DofNearStart = 8.0f; // metres in front of the focus point that stay sharp
 		float DofFarStart = 6.0f;  // metres behind the focus point that stay sharp
 		float DofRange = 10.0f;    // metres beyond either start over which the blur grows to its largest
 		float DofMaxRadius = 0.6f; // the largest blur radius, in percent of the view's height (0.6 = 6.5 px at 1080 lines)
 
-		// Vignette (Nov 3, 2026): the frame's edges and corners darken, drawing the eye to the middle (the framed
-		// look of an HD-2D diorama). Applied by the tonemap after the roll-off. The Editor view leaves it out unless
-		// Editor > Effects > Post-Processing is on (SceneRenderer::RenderEditor), so the editor stays workable.
+		// Vignette, applied by the tonemap after the roll-off. The Editor view leaves it out unless Effects > Post-Processing
+		// is on.
 		float VignetteIntensity = 0.0f; // how dark the corners get (0 = none, 1 = black)
 		float VignetteRadius = 0.55f;   // where the darkening starts: 0 = the centre, 1 = the corners
 		float VignetteSoftness = 0.5f;  // over how much further it reaches its full darkness
 
-		// Colour grading (#137, Nov 3, 2026), in the Tonemap pass. The defaults change nothing, so a scene keeps its look
-		// until it is graded. White balance and contrast act on the exposed HDR colour before the roll-off (contrast in
-		// log space around middle grey, so it never clips); lift, gamma, gain and saturation on the rolled-off colour
-		// after it, before the vignette.
+		// Colour grading in the Tonemap pass (#137); the defaults change nothing. White balance and contrast act before the
+		// roll-off (contrast in log space, so it never clips); lift, gamma, gain and saturation after it.
 		bool Grading = true;      // a quick off switch for comparisons
 		float Temperature = 0.0f; // -1 (cooler, bluer) .. 1 (warmer, more orange)
 		float Tint = 0.0f;        // -1 (greener) .. 1 (more magenta)

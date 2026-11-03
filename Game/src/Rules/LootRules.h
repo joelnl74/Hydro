@@ -1,4 +1,3 @@
-// Game/src/Rules/LootRules.h
 #pragma once
 
 #include "Data/LootDefinition.h"
@@ -10,8 +9,7 @@
 
 namespace Hydro
 {
-	// What a loot table gives: plain rules on data, no scene (the Scripting plan's Rules/ layer). `random` returns 0
-	// to 1 (the battle's own generator, so a test can pass a fixed sequence).
+	// What a loot table gives: plain rules on data, no scene. `random` returns 0 to 1, so a test can pass a fixed sequence.
 	class LootRules
 	{
 	public:
@@ -21,7 +19,7 @@ namespace Hydro
 			int Count = 0;
 		};
 
-		// An item's rarity (the game asks the items table; a test answers itself).
+		// The game asks the items table; a test answers itself.
 		using RarityLookup = std::function<ItemRarity(const DataRowRef&)>;
 
 		// Rolls the table Rolls times; drops of the same item are added together, in the order first found.
@@ -60,7 +58,7 @@ namespace Hydro
 			return drops;
 		}
 
-		// The aster the table gives besides its items: MinMoney to MaxMoney, one draw (0 when both are 0).
+		// MinMoney to MaxMoney in one draw (0 when both are 0).
 		static int RollMoney(const LootTableDefinition& table, const std::function<float()>& random)
 		{
 			const int low = std::max(0, std::min(table.MinMoney, table.MaxMoney));
@@ -79,9 +77,9 @@ namespace Hydro
 			return item.IsValid() ? item->Rarity : ItemRarity::Common;
 		}
 
-		// A rarity by its share among the table's rarities that have items, then one of its items; without
-		// rarities, any item.
-		static const LootEntry* PickEntry(const LootTableDefinition& table, const std::function<float()>& random, const RarityLookup& rarityOf)
+		// A rarity by its share among the table's rarities that have items, then one of its items; without rarities, any item.
+		static const LootEntry* PickEntry(const LootTableDefinition& table, const std::function<float()>& random,
+			const RarityLookup& rarityOf)
 		{
 			if (table.Items.empty())
 			{
@@ -91,7 +89,8 @@ namespace Hydro
 			float total = 0.0f;
 			for (const RarityChance& chance : table.Rarities)
 			{
-				const bool hasItems = std::any_of(table.Items.begin(), table.Items.end(), [&](const LootEntry& entry) { return rarityOf(entry.Item) == chance.Rarity; });
+				const bool hasItems = std::any_of(table.Items.begin(), table.Items.end(),
+					[&](const LootEntry& entry) { return rarityOf(entry.Item) == chance.Rarity; });
 				if (hasItems && chance.Percent > 0.0f)
 				{
 					present.push_back(&chance);

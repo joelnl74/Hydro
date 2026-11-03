@@ -61,12 +61,10 @@ namespace Hydro
 		events.Subscribe(EventType::MouseMoved, HY_BIND_EVENT_FN(Application::OnEvent));
 		events.Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
 
-		// 6. Assets: the open project's assets by handle (after Renderer: it will create GPU textures).
-		//    Empty until the application opens a project (AssetManager::OnProjectOpened).
+		// 6. Assets: the open project's assets by handle (empty until OnProjectOpened); creates GPU textures.
 		AssetManager::Init();
 
-		// 7. Physics: Box2D's global setup (assert hook, length unit). Scenes create their own physics
-		//    worlds while they play. After Assets, because colliders will come from scenes and assets.
+		// 7. Physics: the libraries' global setup. Scenes make their own worlds while they play.
 		PhysicsEngine::Init();
 
 		// 8. ImGui: an overlay, so it sits on top of every application layer.
@@ -168,9 +166,7 @@ namespace Hydro
 			// rendering (and don't spin the CPU) until it is restored.
 			if (m_Minimized == false)
 			{
-				// One command buffer for the frame: Renderer2D's offscreen pass, then the
-				// swapchain pass with ImGui, then submit + present. The renderer reports the
-				// Render and Present phases to Time itself.
+				// One command buffer: the offscreen views, then the swapchain pass with ImGui, then submit and present.
 				Renderer::RenderFrame();
 			}
 			else

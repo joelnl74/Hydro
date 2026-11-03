@@ -1,4 +1,3 @@
-// Game/src/Views/ViewHelpers.h
 #pragma once
 
 #include "Hydro.h"
@@ -8,12 +7,11 @@
 
 namespace Hydro
 {
-	// Small runtime-UI helpers the views share (Scripting plan SC8f): finding a view's entities by tag (until the UI
-	// builder sets references), an element's alpha, a bar's fill.
+	// Small runtime-UI helpers the views share.
 	class ViewHelpers
 	{
 	public:
-		// The first entity tagged `tag`, or entt::null with a warning naming `owner` (the view looking for it).
+		// Else entt::null with a warning naming `owner` (the view looking for it).
 		static entt::entity Find(Scene& scene, const std::string& tag, const char* owner)
 		{
 			auto view = scene.m_Registry.view<TagComponent>();
@@ -28,7 +26,6 @@ namespace Hydro
 			return entt::null;
 		}
 
-		// The alpha of a UI element's image and text.
 		static void SetAlpha(Entity entity, float alpha)
 		{
 			if (entity.IsValid() == false)
@@ -45,7 +42,7 @@ namespace Hydro
 			}
 		}
 
-		// A UI bar's fill, anchored to the bar's left edge, as wide as the fraction.
+		// Anchored to the bar's left edge, as wide as the fraction.
 		static void SetBarFill(Entity fill, float fraction)
 		{
 			if (UIRectComponent* rect = fill.IsValid() ? fill.TryGetComponent<UIRectComponent>() : nullptr)

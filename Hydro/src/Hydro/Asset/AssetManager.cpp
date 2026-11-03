@@ -22,8 +22,7 @@
 
 namespace Hydro
 {
-	// One cache entry: the loaded object (null when loading failed) and what it was loaded from, so a
-	// later request can tell the file changed or moved.
+	// One cache entry: the loaded object (null when loading failed) and what it was loaded from.
 	struct LoadedAsset
 	{
 		Ref<Asset> Object;
@@ -107,8 +106,7 @@ namespace Hydro
 			return;
 		}
 
-		// Frees the loaded assets (their GPU images go through the renderer's deletion queue); objects
-		// still held elsewhere live on until their holders let go.
+		// GPU images go through the renderer's deletion queue; objects held elsewhere live on.
 		s_Data->Loaded.clear();
 		s_Data->AssetDirectory.clear();
 		s_Data->Registry.Clear();
@@ -239,8 +237,7 @@ namespace Hydro
 				{
 					info.NewHandles++;
 				}
-				// On failure (logged) the file is still registered for this session; it gets another handle
-				// next time.
+				// On failure (logged) the file stays registered for this session and gets another handle next time.
 			}
 
 			AssetMetadata metadata;
@@ -272,15 +269,15 @@ namespace Hydro
 			file.replace_extension();
 			if (std::filesystem::exists(file, ec) == false)
 			{
-				HY_CORE_WARN("AssetManager: '{}' has no file next to it (moved without its .hymeta?)", sidecar.lexically_relative(root).generic_u8string());
+				HY_CORE_WARN("AssetManager: '{}' has no file next to it (moved without its .hymeta?)",
+					sidecar.lexically_relative(root).generic_u8string());
 				info.OrphanSidecars++;
 			}
 		}
 
 		s_Data->Registry = std::move(registry);
 
-		// Assets whose file is gone are no longer kept. (A moved file keeps its cache entry: the next
-		// GetAsset sees its path changed and loads it again from the new place.)
+		// Assets whose file is gone are dropped. A moved file keeps its entry: the next GetAsset reloads it.
 		for (auto it = s_Data->Loaded.begin(); it != s_Data->Loaded.end();)
 		{
 			it = IsAssetHandleValid(it->first) ? std::next(it) : s_Data->Loaded.erase(it);
@@ -576,8 +573,7 @@ namespace Hydro
 		return s_Data->AssetDirectory / metadata->Path;
 	}
 
-	// The version of what an asset is loaded from: its file's and (for images) its .hymeta's modification
-	// times, so saving either one makes the next GetAsset load again.
+	// The file's and (for images) its .hymeta's modification times, so saving either reloads the asset.
 	static uint64_t GetSourceVersion(const std::filesystem::path& absolute, AssetType type)
 	{
 		std::error_code ec;
@@ -592,7 +588,6 @@ namespace Hydro
 		return version;
 	}
 
-	// Decodes and creates the object for one asset file. nullptr (logged) when it can't be.
 	static Ref<Asset> LoadFromDisk(const std::filesystem::path& absolute, AssetType type)
 	{
 		switch (type)
@@ -608,7 +603,7 @@ namespace Hydro
 			}
 			case AssetType::SpriteAnimation:
 			{
-				// Reads its texture through Texture2D::LoadFromFile, i.e. this manager.
+				// Its texture comes through this manager (Texture2D::LoadFromFile).
 				return SpriteAnimationSet::LoadUncached(absolute);
 			}
 			case AssetType::Prefab:
@@ -692,8 +687,7 @@ namespace Hydro
 		entry.Object = LoadFromDisk(absolute, type);
 		entry.Type = type;
 		entry.Path = pathKey;
-		// Read again after loading: an importer may have written the .hymeta (a model records the handles of
-		// the textures and materials it made), which must not count as a change.
+		// Read again after loading: an importer may have written the .hymeta, which must not count as a change.
 		entry.Version = GetSourceVersion(absolute, type);
 		entry.Failed = entry.Object == nullptr;
 		if (entry.Object != nullptr)
@@ -702,9 +696,8 @@ namespace Hydro
 		}
 		else
 		{
-			// A file that was fine and is now broken (a save in progress, a bad edit): keep showing the
-			// last good object. The state says Failed until the file is fixed. (Looked up again: loading
-			// may have loaded other assets, such as the texture of an animation set, and moved the table.)
+			// A file that was fine and is now broken (a save in progress, a bad edit) keeps its last good object. Looked
+			// up again: loading may have loaded other assets and moved the table.
 			auto previous = s_Data->Loaded.find(handle);
 			if (previous != s_Data->Loaded.end())
 			{

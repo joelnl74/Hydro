@@ -53,9 +53,8 @@ namespace Hydro
 		static void Init();
 		static void Shutdown();
 
-		// Appends every message logged after `afterSequence` (0 = all that are kept) to `out`, oldest
-		// first, and returns the sequence of the newest one (or `afterSequence` if there are none).
-		// The last MaxKeptMessages messages are kept. Safe to call from any thread.
+		// Appends the messages logged after `afterSequence` (0 = all kept, at most MaxKeptMessages), oldest first;
+		// returns the newest sequence (or `afterSequence`). Thread-safe.
 		static uint64_t GetMessagesSince(uint64_t afterSequence, std::vector<LogMessage>& out);
 		static constexpr size_t MaxKeptMessages = 5000;
 

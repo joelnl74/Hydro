@@ -5,14 +5,8 @@
 
 namespace Hydro
 {
-	// A reference to a component or a script on another entity (Scripting plan SC4): an EntityRef whose target must
-	// have a T. In the editor the picker lists only entities that have one (a script bound there counts), and a
-	// target without one shows in the warning colour. Get() finds the entity and its T each call, so it is never
-	// stale: nullptr when the reference is empty, the entity is gone, or it has no T (a script only while playing).
-	//
-	//     HY_PROPERTY(Required) ComponentRef<DialogueScript> Dialogue;
-	//     ...
-	//     if (DialogueScript* dialogue = Dialogue.Get()) { dialogue->Open(lines); }
+	// A reference to a component or script on another entity: an EntityRef whose target must have a T. Get() looks it
+	// up each call: null when empty, gone, or without a T (a script only while playing).
 	template<typename T>
 	class ComponentRef
 	{

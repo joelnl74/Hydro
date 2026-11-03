@@ -1,4 +1,3 @@
-// Game/src/Scripts/Battle/BattleEffects.h
 #pragma once
 
 #include "Hydro.h"
@@ -6,15 +5,12 @@
 
 namespace Hydro
 {
-	// The battle's particle effects as presets (Scripting plan SC8e, split out of the battle script): plain component
-	// values for a short-lived entity, one burst, then it destroys itself (DestroyWhenFinished); prefabs later (V5).
-	// Sizes and speeds are in layout units, like the rest of the battle: BattleScript::PlayEffect scales them to metres.
+	// The battle's particle effects as presets for a short-lived entity: one burst, then it destroys itself. Sizes and
+	// speeds are in layout units, like the rest of the battle; BattleScript::PlayEffect scales them to metres.
 	class BattleEffects
 	{
 	public:
-		// Sparks where a hit lands, coloured by the damage type. Lit but glowing (emission, so they bloom), sprayed
-		// in the plane facing the camera (PlayEffect makes battle effects View space). Sizes and speeds are in
-		// layout units, like the rest of the battle: PlayEffect scales them to metres.
+		// Lit but glowing (emission, so they bloom), sprayed in the plane facing the camera.
 		static ParticleEmitter2DComponent HitSparks(DamageType type, bool strong)
 		{
 			ParticleEmitter2DComponent sparks;
@@ -35,7 +31,7 @@ namespace Hydro
 			sparks.Drag = 3.0f;
 			sparks.Lighting = ParticleLighting::Lit;
 			sparks.EmissionIntensity = 3.0f;
-			sparks.Blend = ParticleBlend::Additive; // drawn alpha until the additive pipeline (Roadmap V4)
+			sparks.Blend = ParticleBlend::Additive;
 			sparks.SortOrder = 200;
 			sparks.DestroyWhenFinished = true;
 			switch (type)
@@ -56,7 +52,7 @@ namespace Hydro
 			return sparks;
 		}
 
-		// A puff of smoke where a defeated enemy was. Lit: smoke is a thing in the scene, not a light.
+		// Lit: smoke is a thing in the scene, not a light.
 		static ParticleEmitter2DComponent DefeatPuff(const EnemyDefinition& enemy)
 		{
 			ParticleEmitter2DComponent puff;
@@ -79,13 +75,13 @@ namespace Hydro
 			puff.Drag = 1.5f;
 			puff.SortOrder = 25;
 			puff.DestroyWhenFinished = true;
-			// Its smoke colour (Enemies.hytable), darkening as it fades.
+			// Darkening as it fades.
 			puff.StartColor = glm::vec4(enemy.SmokeColor, 0.8f);
 			puff.EndColor = glm::vec4(enemy.SmokeColor * 0.75f, 0.0f);
 			return puff;
 		}
 
-		// Dust kicked up by a footstep (the hero setting off and stopping). On the floor (Ground space).
+		// On the floor (Ground space), when the hero sets off and stops.
 		static ParticleEmitter2DComponent StepDust()
 		{
 			ParticleEmitter2DComponent dust;
@@ -110,7 +106,6 @@ namespace Hydro
 			return dust;
 		}
 
-		// A bigger burst of dust and grass bits where a kick lands.
 		static ParticleEmitter2DComponent KickDust()
 		{
 			ParticleEmitter2DComponent dust = StepDust();
@@ -123,7 +118,6 @@ namespace Hydro
 			return dust;
 		}
 
-		// Green motes rising from a healed hero.
 		static ParticleEmitter2DComponent HealMotes()
 		{
 			ParticleEmitter2DComponent motes;
@@ -149,6 +143,5 @@ namespace Hydro
 			motes.DestroyWhenFinished = true;
 			return motes;
 		}
-
 	};
 }

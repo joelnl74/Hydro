@@ -19,57 +19,45 @@ namespace Hydro
 
 	enum class BlendMode
 	{
-		None = 0,  // Opaque: source overwrites the target.
-		Alpha,     // Standard alpha blending (src * a + dst * (1 - a)). Use for sprites.
-		Additive,  // src * a + dst. Use for glows and particles.
-		Multiply2x, // dst * src * 2: a src of 0.5 leaves the target as it is, 1 doubles it. Use to apply a light buffer.
-		Darken,     // dst * (1 - a): the source's alpha darkens the target, its colour is ignored. Use for shadows.
+		None = 0,  // opaque: source overwrites the target
+		Alpha,     // src * a + dst * (1 - a): sprites
+		Additive,  // src * a + dst: glows and particles
+		Multiply2x, // dst * src * 2 (0.5 keeps the target): applying a light buffer
+		Darken,     // dst * (1 - a), colour ignored: shadows
 	};
 
 	struct PipelineSpecification
 	{
-		// Not owned. Only read while the pipeline is created (shader modules aren't needed after that),
-		// so the shader may be destroyed or replaced afterwards.
+		// Not owned; only read at creation, so the shader may be destroyed or replaced afterwards.
 		VulkanShader* Shader = nullptr;
-		// Descriptor sets in set-index order (element 0 is set = 0). Empty = the pipeline uses none.
-		// Not owned: their layouts are read at creation; BindDescriptorSets binds them, so they must
-		// outlive the pipeline when that is used.
+		// In set-index order; empty = none. Not owned: they must outlive the pipeline when BindDescriptorSets is used.
 		std::vector<VulkanDescriptorBuilder*> DescriptorSets;
-		// Used instead when DescriptorSets is empty: the set layouts in set-index order (from
-		// VulkanDescriptorAllocator::GetLayout), for pipelines whose sets come from elsewhere (materials).
+		// Used when DescriptorSets is empty: set layouts in set-index order, for sets that come from elsewhere.
 		std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
 
 		VertexBufferLayout Layout;
-		// The attachments the pipeline draws into (dynamic rendering, no VkRenderPass): the colour formats
-		// in attachment order and the depth format, as the target reports them
-		// (VulkanRenderTarget::GetPipelineColorFormats / GetPipelineDepthFormat). Must match the target
-		// exactly. Integer formats (R32I, the entity ID) are never blended. Empty with a DepthFormat: a
-		// depth-only pipeline (shadow maps).
+		// The target's attachment formats (dynamic rendering), colour in attachment order; must match exactly.
+		// Integer formats are never blended. Empty with a DepthFormat: a depth-only pipeline (shadow maps).
 		std::vector<ImageFormat> ColorFormats = { ImageFormat::SRGB };
 		ImageFormat DepthFormat = ImageFormat::None;
-		// Bytes of push constants, visible to the vertex and fragment stages. 0 = none. At most
-		// RendererCapabilities::MaxPushConstantsSize; keep it within 128, the guaranteed minimum.
+		// Bytes of push constants for the vertex and fragment stages; 0 = none. Keep it within 128 (the guaranteed minimum).
 		uint32_t PushConstantSize = 0;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
 		bool BackfaceCulling = true;
 		bool DepthTest = true;
 		bool DepthWrite = true;
-		// Depth bias (both 0 = off): moves the drawn depth by Constant units of the depth format plus Slope
-		// times the polygon's depth slope. Negative = towards the camera (forward Z). Ground decals use it.
+		// Depth bias (both 0 = off): Constant depth units plus Slope times the depth slope; negative = towards the camera.
 		float DepthBiasConstant = 0.0f;
 		float DepthBiasSlope = 0.0f;
 		bool Wireframe = false;
-		float LineWidth = 1.0f; // Values other than 1 need the GPU's wideLines feature.
+		float LineWidth = 1.0f; // other values need the wideLines feature
 		BlendMode Blend = BlendMode::None;
-		// Integer colour attachments (the entity ID) are never blended. False: they aren't written at all
-		// (write mask 0), so draws that must not change them (particles, overlays, the light composite,
-		// shaders without an ID output) keep what earlier draws wrote.
+		// False: integer colour attachments (the entity ID) aren't written, so draws without an ID keep what earlier
+		// draws wrote.
 		bool WriteIntegerAttachments = true;
 	};
 
-	// A graphics pipeline and its layout. A resource: owns both (freed through
-	// Renderer::SubmitResourceFree when it is destroyed, so a pipeline can be replaced mid-frame
-	// without waiting for the GPU) and is non-copyable; hold it in a Scope.
+	// A graphics pipeline and its layout, freed through Renderer::SubmitResourceFree so it can be replaced mid-frame.
 	class VulkanPipeline
 	{
 	public:
@@ -79,23 +67,20 @@ namespace Hydro
 		VulkanPipeline(const VulkanPipeline&) = delete;
 		VulkanPipeline& operator=(const VulkanPipeline&) = delete;
 
-		// Binds the pipeline and sets viewport/scissor to cover `extent` (the current render target).
+		// Also sets the viewport and scissor to `extent`.
 		void Bind(VkCommandBuffer commandBuffer, VkExtent2D extent);
-		// Binds this frame's set of every DescriptorSets entry. Does nothing when there are none.
+		// This frame's set of every DescriptorSets entry.
 		void BindDescriptorSets(VkCommandBuffer commandBuffer);
-		// Binds this frame's set of `descriptorSet` at set index `setIndex` instead of the one in the
-		// specification. Its layout must be defined identically to that entry's (e.g. built the same way).
+		// Binds this frame's set of `descriptorSet` at `setIndex` instead; its layout must match the specification's.
 		void BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VulkanDescriptorBuilder& descriptorSet);
-		// Binds `set` (e.g. one from VulkanDescriptorAllocator::AllocateFrame) at `setIndex`; its layout must be
-		// the one this pipeline was built with for that set.
+		// `set`'s layout must be the one this pipeline was built with for that index.
 		void BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VkDescriptorSet set);
-		// Writes `size` bytes of push constants from offset 0 (at most PipelineSpecification::PushConstantSize).
+		// From offset 0, at most PipelineSpecification::PushConstantSize bytes.
 		void PushConstants(VkCommandBuffer commandBuffer, const void* data, uint32_t size);
 
 		VkPipelineLayout GetPipeLineLayout() { return m_PipelineLayout; }
 		VkPipeline GetPipeLine() { return m_GraphicsPipeline;  }
-		// Shader is null here: it is only used while the pipeline is created. Set it again before
-		// building a new pipeline from a copy of this specification.
+		// Shader is null here; set it again before building a pipeline from a copy.
 		const PipelineSpecification& GetSpecification() const { return m_PipelineSpecification; }
 
 	private:

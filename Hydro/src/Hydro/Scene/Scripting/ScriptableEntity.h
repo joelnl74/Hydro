@@ -17,6 +17,7 @@
 namespace Hydro
 {
 	class Scene;
+	class Gizmos;
 	struct SystemContext;
 
 	class ScriptableEntity
@@ -27,8 +28,8 @@ namespace Hydro
 
 		virtual ~ScriptableEntity() = default;
 
-		// This entity's components and scripts (see Entity::GetComponent: a script type finds the entity's running
-		// script of that class). Another entity's: `other.GetComponent<T>()` on that Entity.
+		// This entity's components and scripts (a script type finds its running script of that class). For another
+		// entity, call `other.GetComponent<T>()`.
 		template<typename T>
 		T& GetComponent()
 		{
@@ -52,16 +53,14 @@ namespace Hydro
 			return m_Entity;
 		}
 
-		// Where the entity is in the world, whatever its parents. TransformComponent::Translation is relative to the
-		// parent, so a script that places things in the world, or compares positions, uses these; for another entity,
-		// Scene::GetWorldPosition / SetWorldPosition.
+		// The world position, whatever the parents (TransformComponent::Translation is relative to the parent). For
+		// another entity: Scene::GetWorldPosition / SetWorldPosition.
 		glm::vec3 GetWorldPosition()
 		{
 			return m_Entity.GetScene()->GetWorldPosition(m_Entity);
 		}
 
-		// Moves the entity so its world position becomes `position`; only its local Translation changes (see
-		// Scene::SetWorldPosition). False, moving nothing, without a TransformComponent.
+		// Only the local Translation changes. False, moving nothing, without a TransformComponent.
 		bool SetWorldPosition(const glm::vec3& position)
 		{
 			return m_Entity.GetScene()->SetWorldPosition(m_Entity, position);
@@ -77,16 +76,20 @@ namespace Hydro
 		virtual void OnTriggerEnter([[maybe_unused]] Entity other) {}
 		virtual void OnTriggerExit([[maybe_unused]] Entity other) {}
 
-		// The runtime UI (UI3a): Submit / Cancel / FocusEnter / FocusExit for event.Target or a UI element below this
-		// entity. Return true to stop it there; false lets it go on to the scripts of this entity's parent. Runs in
-		// stage 0, before OnUpdate, inside a stage (DestroyEntity is deferred as usual).
+		// A UI event (Submit, Cancel, FocusEnter, FocusExit) for this entity or a UI element below it. Return true to stop
+		// it here, false to pass it to the parent's scripts. Runs at stage 0, before OnUpdate.
 		virtual bool OnUIEvent([[maybe_unused]] const UIEvent& event) { return false; }
+
+		// Editor-view lines and text, also outside Play (Gizmos.h). Outside Play it runs on a fresh instance with saved
+		// properties and no OnCreate, so draw from properties and the scene. The generator registers overriders.
+		virtual void OnDrawGizmos([[maybe_unused]] Gizmos& gizmos) {}
 
 	private:
 		Entity m_Entity;
 
 		friend class Scene;
 		friend void UpdateScripts(Scene&, const SystemContext&);
+		friend void CollectScriptGizmos(Scene&, const Entity&, Gizmos&);
 	};
 
 	struct NativeScriptComponent
@@ -99,20 +102,11 @@ namespace Hydro
 
 			std::unique_ptr<ScriptableEntity> Instance;
 
-			// Values belonging to this particular component instance.
-			//
-			// Example:
-			//
-			// EnemyController
-			//     MoveSpeed = 8
-			//     Health = 250
-			//
-			// These exist even when Instance == nullptr.
+			// This binding's property values (MoveSpeed = 8, Health = 250); they exist even when Instance is null.
 			ScriptPropertyMap Properties;
 
-			// Saved values no property of the script reads (the script isn't registered, or a property was renamed
-			// or removed): key -> the value as YAML text. Kept so saving the scene doesn't lose them (#143), and
-			// written back after Properties. ScriptSerializer fills them.
+			// Saved values no property reads (unregistered script, renamed or removed property), as YAML text by key. Kept
+			// so saving doesn't lose them (#143); ScriptSerializer fills them.
 			std::map<std::string, std::string> KeptProperties;
 
 			bool PendingRemove = false;
@@ -120,8 +114,8 @@ namespace Hydro
 
 		std::vector<Script> Scripts;
 
-		// Binds a script. An entity holds one script of a class (Scripting plan SC4; scripts of different classes
-		// deriving from one base are fine): binding a class it already has is refused with a warning.
+		// Binds a script. An entity holds one script per class (different classes sharing a base are fine); binding a
+		// class it already has is refused with a warning.
 		template<typename T>
 		NativeScriptComponent& Bind()
 		{
@@ -151,8 +145,7 @@ namespace Hydro
 				}
 			}
 
-			// If this is registered, populate its editable
-			// properties with the C++ defaults.
+			// A registered script starts with the C++ defaults as its editable properties.
 			if (script.Name.empty() == false)
 			{
 				ScriptRegistry::InitializeProperties(
@@ -189,8 +182,7 @@ namespace Hydro
 				return *this;
 			}
 
-			// Unknown scripts remain valid entries,
-			// but registered ones get their defaults.
+			// Unknown scripts stay valid entries; registered ones get their defaults.
 			ScriptRegistry::InitializeProperties(
 				script.Name,
 				script.Properties);
@@ -268,7 +260,7 @@ namespace Hydro
 				found = instance;
 				continue;
 			}
-			// Two scripts are a T: only a base class can match twice (an entity has one script of a class, SC4).
+			// Two scripts are a T: only a base class can match twice (one script per class).
 			static bool s_Warned = false;
 			if (s_Warned == false)
 			{

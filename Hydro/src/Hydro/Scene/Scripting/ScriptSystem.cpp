@@ -37,10 +37,8 @@ namespace Hydro
 
 		scene.BeginStage();
 
-		// The creation order (Scripting plan SC3): first every new script of this frame is made and given its
-		// properties, then their OnCreate run, then every script's OnUpdate. So an OnCreate can find another
-		// entity's script (Entity::GetComponent<T>) whatever the order of the entities, with its properties set
-		// (its own OnCreate may not have run yet).
+		// All new scripts are made and given their properties, then their OnCreate run, then every OnUpdate. So an
+		// OnCreate can find another entity's script with its properties set, whatever the entity order.
 		struct NewScript
 		{
 			entt::entity Handle;
@@ -53,7 +51,8 @@ namespace Hydro
 		{
 			const Entity entity{ entityHandle, &scene };
 
-			if (scene.m_Registry.valid(entityHandle) == false || scene.m_Registry.has<NativeScriptComponent>(entityHandle) == false || scene.IsPendingDestroy(entity))
+			if (scene.m_Registry.valid(entityHandle) == false || scene.m_Registry.has<NativeScriptComponent>(entityHandle) == false
+				|| scene.IsPendingDestroy(entity))
 			{
 				continue;
 			}
@@ -114,17 +113,18 @@ namespace Hydro
 			}
 		}
 
-		// The script at (handle, index) is still the one made above: an earlier OnCreate may have destroyed its
-		// entity or removed it.
+		// Still the script made above: an earlier OnCreate may have destroyed its entity or removed it.
 		auto stillThere = [&scene](const NewScript& item) -> bool
 		{
 			const Entity entity{ item.Handle, &scene };
-			if (scene.m_Registry.valid(item.Handle) == false || scene.m_Registry.has<NativeScriptComponent>(item.Handle) == false || scene.IsPendingDestroy(entity))
+			if (scene.m_Registry.valid(item.Handle) == false || scene.m_Registry.has<NativeScriptComponent>(item.Handle) == false
+				|| scene.IsPendingDestroy(entity))
 			{
 				return false;
 			}
 			const auto& scripts = scene.m_Registry.get<NativeScriptComponent>(item.Handle).Scripts;
-			return item.Index < scripts.size() && scripts[item.Index].PendingRemove == false && scripts[item.Index].Instance.get() == item.Instance;
+			return item.Index < scripts.size() && scripts[item.Index].PendingRemove == false
+				&& scripts[item.Index].Instance.get() == item.Instance;
 		};
 
 		for (const NewScript& item : created)
@@ -139,7 +139,8 @@ namespace Hydro
 		{
 			const Entity entity{ entityHandle, &scene };
 
-			if (scene.m_Registry.valid(entityHandle) == false || scene.m_Registry.has<NativeScriptComponent>(entityHandle) == false || scene.IsPendingDestroy(entity))
+			if (scene.m_Registry.valid(entityHandle) == false || scene.m_Registry.has<NativeScriptComponent>(entityHandle) == false
+				|| scene.IsPendingDestroy(entity))
 			{
 				continue;
 			}

@@ -14,6 +14,7 @@ RenderSettings:
     HDR: true
     Bloom: true
     DepthOfField: true
+    PixelSnap: true
 Look:
   ProfileHandle: 7825868437817689624
   Environment: Profile
@@ -20611,3 +20612,230 @@ Entities:
             Clearance: 0.6
             Patience: 4
 
+
+  - Entity: 8202754410421920520
+    TagComponent:
+      Tag: Light Shafts
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    NativeScriptComponent:
+      Scripts:
+        - Name: LightShaftScript
+          Properties:
+            Breathe: 0.3
+            Period: 7
+            HiddenBelow: 0.25
+            FullFrom: 0.7
+            FollowSunColor: true
+
+  - Entity: 4025050686263332483
+    TagComponent:
+      Tag: Light Shaft Shrine Left
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [-3.90046, 6.92826, 3]
+      Rotation: [0, 0, 0.34]
+      Scale: [1.5, 6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.24]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 5741768156250822746
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 9020337183049210982
+    TagComponent:
+      Tag: Light Shaft Shrine Right
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [1.48291, 6.29258, 3]
+      Rotation: [0, 0, 0.34]
+      Scale: [0.825, 5.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.2]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 4811548822370089798
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 5102087002286998753
+    TagComponent:
+      Tag: Light Shaft Sacred Crown
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [-6.08656, 11.266, 3]
+      Rotation: [0, 0, 0.3]
+      Scale: [2, 6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.26]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 647569359707893468
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 6892113750944542824
+    TagComponent:
+      Tag: Light Shaft Sacred Side
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [-9.26492, 11.4495, 3]
+      Rotation: [0, 0, 0.3]
+      Scale: [0.675, 4.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.18]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 4811548822370089798
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 1761417092002406622
+    TagComponent:
+      Tag: Light Shaft Woods Left
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [-16.7625, 13.6885, 3]
+      Rotation: [0, 0, 0.36]
+      Scale: [2.2, 6.6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.22]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 647569359707893468
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 6849185318075746275
+    TagComponent:
+      Tag: Light Shaft Woods Left Far
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [-20.2807, 14.7397, 3]
+      Rotation: [0, 0, 0.36]
+      Scale: [0.75, 5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.16]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 4811548822370089798
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 8389583736338872921
+    TagComponent:
+      Tag: Light Shaft Woods Left Edge
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [-14.1486, 8.18878, 3]
+      Rotation: [0, 0, 0.36]
+      Scale: [0.6375, 4.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.18]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 4811548822370089798
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 4469364002448471552
+    TagComponent:
+      Tag: Light Shaft Woods Right
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [14.0375, 12.9885, 3]
+      Rotation: [0, 0, 0.36]
+      Scale: [2.2, 6.6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.22]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 647569359707893468
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 2837453698466031378
+    TagComponent:
+      Tag: Light Shaft Woods Right Far
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [18.1432, 15.4077, 3]
+      Rotation: [0, 0, 0.36]
+      Scale: [1.5, 6, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.16]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 5741768156250822746
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false
+
+  - Entity: 3055278524049046930
+    TagComponent:
+      Tag: Light Shaft Woods Right Edge
+    RelationshipComponent:
+      Parent: 8202754410421920520
+    TransformComponent:
+      Translation: [12.4514, 7.58878, 3]
+      Rotation: [0, 0, 0.36]
+      Scale: [0.6375, 4.25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.18]
+      TilingFactor: 1
+      SortOrder: 3
+      TextureHandle: 4811548822370089798
+      SpriteIndex: 0
+      FlipX: false
+      FlipY: false
+      Facing: Upright
+      AlphaMode: Additive
+      CastShadows: false

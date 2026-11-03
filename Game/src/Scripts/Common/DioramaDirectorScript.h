@@ -1,4 +1,3 @@
-// Game/src/Scripts/Common/DioramaDirectorScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -14,11 +13,6 @@
 
 namespace Hydro
 {
-	// One time of day for a diorama scene is a LightingPreset (Data/SceneLightingDefinition.h): the sun's colour and
-	// strength, how much of their strength the lanterns and the lit windows keep, and its render profile
-	// (post-processing plan P5: the ambient, fog, exposure and bloom). The scenes' presets are data
-	// (Assets/Data/Lighting/<Scene>.hydef); the scene template's director builds its own from its fields.
-
 	// A scene's camera framing in the tilted view (DioramaView's Scene* settings).
 	struct DioramaSceneFraming
 	{
@@ -32,16 +26,8 @@ namespace Hydro
 		float ViewScale = 0.0f;  // times the camera's OrthographicSize, 0 = 1
 	};
 
-	// On a diorama scene's director entity: the scene's framing and its light. A scene's director derives from
-	// it and gives its framing and three presets (ShrineGladeScript, FarmVillageScript).
-	//   - Starts in the tilted diorama view with the scene's framing; reset when the scene ends.
-	//   - Owns the light (forward lit, M6): the render profile (environment and post-processing), the main
-	//     light (the sun's DirectionalLightComponent), every point light whose tag starts "Light Lantern" or
-	//     "Light Fire" (flickering amber pools, scaled by the preset's LanternFactor) and every one whose tag starts
-	//     "Light Window" (lit windows, scaled by its WindowFactor: dark by day, lit at dusk and night; an interior
-	//     also tints them with the sun, WindowsTakeSunColor). Keys 1 / 2 / 3 switch the presets, L the lanterns.
-	//   - The last preset applied is shared (LastPreset(), on the game session), so an interior can start in the light of the scene the
-	//     player came in from (FollowsOutsideLight).
+	// Base of a diorama scene's director: the tilted view with the scene's framing, and its light (three time-of-day presets
+	// on keys 1 / 2 / 3, flickering lanterns, lit windows; L toggles the lanterns).
 	class DioramaDirectorScript : public ScriptableEntity
 	{
 	protected:
@@ -51,16 +37,13 @@ namespace Hydro
 		// index 0..2: keys 1, 2 and 3
 		virtual const LightingPreset& GetPreset(int index) const = 0;
 		virtual int GetStartPreset() const { return 1; }
-		// An interior starts in the time of day of the scene it was entered from (when there is one).
+		// An interior starts in the time of day of the scene it was entered from.
 		virtual bool FollowsOutsideLight() const { return false; }
-		// The "Light Window *" lights take the preset's sun colour (an interior: the daylight through its windows)
-		// instead of keeping their own (a house seen from outside: its lamps behind the glass).
+		// "Light Window" lights take the sun's colour (an interior's daylight) instead of their own (lamps behind the glass).
 		virtual bool WindowsTakeSunColor() const { return false; }
-		// After a preset is applied.
 		virtual void OnPresetApplied([[maybe_unused]] const LightingPreset& preset) {}
 
-		// Preset `index` of a scene's lighting definition (Assets/Data/Lighting/<Scene>.hydef), looked up again on
-		// every call (an edit shows at the next preset switch). A missing file or preset: plain white light, warned.
+		// Looked up again on every call, so an edit shows at the next preset switch. A missing file or preset: white light, warned.
 		const LightingPreset& GetLightingPreset(AssetHandle lighting, int index) const
 		{
 			m_Lighting = Data::Get<SceneLightingDefinition>(lighting);
@@ -78,8 +61,7 @@ namespace Hydro
 			DioramaView::Blend = 1.0f;
 			ApplyFraming();
 
-			// The first scene of a run starts from its own preset (the session's LastPreset is -1 then); one entered
-			// from another may follow its light.
+			// The first scene of a run starts from its own preset; one entered from another may follow its light.
 			Scene& scene = *GetEntity().GetScene();
 			auto lights = scene.m_Registry.view<TagComponent, Light2DComponent>();
 			for (auto entity : lights)
@@ -109,7 +91,7 @@ namespace Hydro
 
 		void OnUpdate(float deltaTime) override
 		{
-			// Every frame, so the director's framing fields can be tuned in the inspector while playing.
+			// Every frame, so the framing can be tuned in the inspector while playing.
 			ApplyFraming();
 			m_Time += deltaTime;
 			const KeyCode keys[3] = { KeyCode::D1, KeyCode::D2, KeyCode::D3 };
@@ -178,8 +160,7 @@ namespace Hydro
 			Scene& scene = *GetEntity().GetScene();
 			const LightingPreset& preset = GetPreset(m_Preset);
 
-			// The look: the preset's render profile for the environment and post-processing. A script loads a
-			// handle before giving it to the scene (the scene never loads).
+			// A script loads a handle before giving it to the scene (the scene never loads).
 			const AssetHandle profile = preset.Profile;
 			if ((uint64_t)profile != 0 && AssetManager::GetAsset<RenderProfile>(profile) != nullptr)
 			{
@@ -211,7 +192,6 @@ namespace Hydro
 				light.Color = preset.SunColor;
 				light.Intensity = preset.SunIntensity;
 			}
-			// The lit windows: their strength as placed times the preset's WindowFactor.
 			const bool sunColored = WindowsTakeSunColor();
 			for (const WindowLight& window : m_Windows)
 			{
@@ -237,8 +217,7 @@ namespace Hydro
 			return pressed;
 		}
 
-		// The preset of the director that applied one last (-1: none this run): the running session's
-		// (RpgSession::LastLightingPreset, Scripting plan SC2).
+		// The preset of the director that applied one last (-1: none this run), on the game session.
 		static int& LastPreset();
 		// Keeps the lighting definition GetLightingPreset read from alive while its preset is used.
 		mutable DataView<SceneLightingDefinition> m_Lighting;
@@ -251,19 +230,15 @@ namespace Hydro
 		float m_Time = 0.0f;
 	};
 
-	// On the director entity of a field scene made from the project's scene template
-	// (Assets/Scenes/Templates/Field.hyscene, see docs/TestBed.md "Scene template"). The same director as the Shrine
-	// Glade's, but with everything as fields instead of code, so a new scene gets the shrine's framing and its day /
-	// dusk / night light without writing a script: the three render profiles (RenderProfiles/Field/*.hyrender, copies
-	// of the shrine's; point a scene at its own copies to give it its own mood), the sun and how strongly the lanterns
-	// and lit windows burn in each. The defaults are the Shrine Glade's values; tune the framing while playing.
+	// The director of a field scene made from the scene template (docs/TestBed.md, "Scene template"): the Shrine Glade's
+	// framing and light as fields, so a new scene needs no script. The defaults are the Shrine Glade's values.
 	HY_SCRIPT()
 	class FieldSceneScript : public DioramaDirectorScript
 	{
 	public:
 		HY_PROPERTY(Tooltip("The scene's name in the log"))
 		std::string SceneName = "Field";
-		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		// Applied every frame, so it can be tuned while playing.
 		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
 		float TiltDegrees = 70.0f;
 		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))
@@ -283,7 +258,6 @@ namespace Hydro
 		HY_PROPERTY(Range(0, 2), Tooltip("The light at the start: 0 day, 1 dusk, 2 night (keys 1 / 2 / 3)"))
 		int StartPreset = 1;
 
-		// The three times of day.
 		HY_PROPERTY(Asset(RenderProfile), Tooltip("Day: ambient, fog, bloom and depth of field"))
 		AssetHandle DayProfile = 0;
 		HY_PROPERTY(Color, Tooltip("Day: the sun's colour"))
@@ -328,8 +302,8 @@ namespace Hydro
 			return { TiltDegrees, FieldOfView, FocusLead, FocusRise, BoundsMin, BoundsMax, YawDegrees, ViewScale };
 		}
 		int GetStartPreset() const override { return StartPreset; }
-		// Built from the fields on every call, so edits in the inspector apply at the next preset switch. The
-		// ambient and fog colours are the Shrine Glade's, used only when a profile is missing.
+		// Built from the fields on every call, so inspector edits apply at the next preset switch. The ambient and fog colours
+		// are the Shrine Glade's, used only when a profile is missing.
 		const LightingPreset& GetPreset(int index) const override
 		{
 			const int i = std::clamp(index, 0, 2);
@@ -337,15 +311,18 @@ namespace Hydro
 			const AssetHandle profile = profiles[i];
 			if (i == 0)
 			{
-				m_Presets[i] = { "Day", profile, DaySunColor, DaySunIntensity, { 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, DayLanterns, DayWindows };
+				m_Presets[i] = { "Day", profile, DaySunColor, DaySunIntensity,
+					{ 0.55f, 0.6f, 0.68f }, { 0.2f, 0.19f, 0.16f }, { 0.7f, 0.74f, 0.78f }, DayLanterns, DayWindows };
 			}
 			else if (i == 1)
 			{
-				m_Presets[i] = { "Dusk", profile, DuskSunColor, DuskSunIntensity, { 0.198f, 0.154f, 0.176f }, { 0.066f, 0.0495f, 0.044f }, { 0.66f, 0.44f, 0.36f }, DuskLanterns, DuskWindows };
+				m_Presets[i] = { "Dusk", profile, DuskSunColor, DuskSunIntensity,
+					{ 0.198f, 0.154f, 0.176f }, { 0.066f, 0.0495f, 0.044f }, { 0.66f, 0.44f, 0.36f }, DuskLanterns, DuskWindows };
 			}
 			else
 			{
-				m_Presets[i] = { "Night", profile, NightSunColor, NightSunIntensity, { 0.036f, 0.045f, 0.078f }, { 0.012f, 0.012f, 0.018f }, { 0.08f, 0.1f, 0.18f }, NightLanterns, NightWindows };
+				m_Presets[i] = { "Night", profile, NightSunColor, NightSunIntensity,
+					{ 0.036f, 0.045f, 0.078f }, { 0.012f, 0.012f, 0.018f }, { 0.08f, 0.1f, 0.18f }, NightLanterns, NightWindows };
 			}
 			return m_Presets[i];
 		}

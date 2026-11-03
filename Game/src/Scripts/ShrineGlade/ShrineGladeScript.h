@@ -1,4 +1,3 @@
-// Game/src/Scripts/ShrineGlade/ShrineGladeScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -13,17 +12,13 @@
 
 namespace Hydro
 {
-	// On the Shrine Glade's director entity. Starts much lower than the other field scenes (70 degrees from
-	// straight down, 20 below the horizon, with a wider 35 degree lens): the terrace walls, the steps and the
-	// shrine face the camera and the sunset shows over the valley's pines, as in the concept. The follow camera
-	// looks 3 m ahead up the stairs and 2.2 m above the player's ground. Keep in step with
-	// scripts/shrine_glade/preview.py (TILT_DEGREES, FOV_DEGREES, FOCUS_LEAD, FOCUS_RISE, BOUNDS). Presets: day,
-	// golden dusk (the default, the concept's), night.
+	// The Shrine Glade's director: a much lower camera than the other field scenes, so the terrace walls, steps and shrine
+	// face it and the sunset shows over the valley. Keep in step with scripts/shrine_glade/preview.py.
 	HY_SCRIPT()
 	class ShrineGladeScript : public DioramaDirectorScript
 	{
 	public:
-		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		// Applied every frame, so it can be tuned while playing.
 		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
 		float TiltDegrees = 70.0f;
 		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))

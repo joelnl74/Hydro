@@ -25,8 +25,10 @@ namespace Hydro
 	class UIScene;
 	struct UIEvent;
 	class ScriptableEntity;
+	class Gizmos;
 	struct SystemContext;
 
+	// A world of entities and their components, with the update stages that run it (editing or playing).
 	class Scene
 	{
 	public:
@@ -35,39 +37,28 @@ namespace Hydro
 
 		void Init();
 
-		// A copy of `source` to run (play mode): every entity made with CreateEntity, with the same
-		// UUIDs, its CopyableComponents, and its native scripts' bindings (the script instances are
-		// created fresh on the copy's first OnUpdateRuntime). Raw registry entities without an
-		// IDComponent are not copied. Also copies the name and the viewport size.
+		// A play-mode copy of `source`: every CreateEntity entity with the same UUIDs, its CopyableComponents and
+		// script bindings (instances are created fresh), plus the name and viewport size.
 		static Ref<Scene> Copy(const Ref<Scene>& source);
 
-		// The game starts / stops running this scene: creates / destroys its 2D and 3D physics worlds (see
-		// PhysicsScene and PhysicsScene3D for which entities become bodies) and its ParticleScene; starting also resets
-		// every animator's playback (ResetSpriteAnimations). OnUpdateRuntime starts it by itself, before its first stage,
-		// if it was not started, and the destructor stops it; the editor calls both around Play and Stop.
+		// Creates / destroys the physics worlds and the ParticleScene and resets animator playback. OnUpdateRuntime
+		// starts it if needed and the destructor stops it; the editor calls both around Play and Stop.
 		void OnRuntimeStart();
 		void OnRuntimeStop();
-		// The running physics world, or null while editing / before OnRuntimeStart.
+		// Null while editing or before OnRuntimeStart, like the three below.
 		PhysicsScene* GetPhysicsScene() { return m_Physics.get(); }
-		// The running 3D physics world (Jolt), or null while editing / before OnRuntimeStart.
 		PhysicsScene3D* GetPhysicsScene3D() { return m_Physics3D.get(); }
-		// The live particles (ParticleScene), or null while editing / before OnRuntimeStart.
 		ParticleScene* GetParticleScene() { return m_Particles.get(); }
-		// The running UI's state (focus, keys; UIScene), or null while editing / before OnRuntimeStart.
 		UIScene* GetUIScene() { return m_UI.get(); }
 
-		// Runtime (the game is running): builds a SystemContext (IsPlaying = true) and runs the
-		// stages in order: UI input, scripts, physics, sprite animation, transforms, particles, UI layout.
+		// Runs the stages in order: UI input, scripts, physics, sprite animation, transforms, particles, UI layout.
 		void OnUpdateRuntime(float deltaTime);
-		// Editing: builds a SystemContext (IsPlaying = false) and runs only the stages that keep the
-		// scene consistent while editing (transforms), without scripts or animation.
+		// Runs only the stages that keep the scene consistent while editing (transforms).
 		void OnUpdateEditor(float deltaTime);
 		void OnRender();
 
-		// Where the pointer is over the view the game is shown in (the Game window), for the runtime UI (UI3b): view
-		// pixels from its bottom-left corner (Y up, the scene's viewport), whether it is over the view, and whether the
-		// primary button is down. The layer sets it every frame it shows the view, before OnUpdateRuntime, the way it
-		// calls OnViewportResize; UIScene reads it at stage 0.
+		// The pointer over the Game view for the runtime UI: view pixels from the bottom-left (Y up), over or not,
+		// primary button. The layer sets it every frame before OnUpdateRuntime; UIScene reads it at stage 0.
 		struct UIPointer
 		{
 			glm::vec2 Position{ 0.0f, 0.0f };
@@ -77,195 +68,138 @@ namespace Hydro
 		void SetUIPointer(const glm::vec2& position, bool inside, bool down) { m_UIPointer = { position, inside, down }; }
 		const UIPointer& GetUIPointer() const { return m_UIPointer; }
 
-		// The size the scene is viewed at; scene cameras take their aspect ratio from it.
+		// Scene cameras take their aspect ratio from this size.
 		void OnViewportResize(uint32_t width, uint32_t height);
 		uint32_t GetViewportWidth() const { return m_ViewportWidth; }
 		uint32_t GetViewportHeight() const { return m_ViewportHeight; }
 		float GetViewportAspectRatio() const { return (float)m_ViewportWidth / (float)m_ViewportHeight; }
 
-		// The first entity with a CameraComponent marked Primary, or an empty Entity.
 		Entity GetPrimaryCameraEntity();
 
 		Entity CreateEntity(const std::string& name = std::string());
-		// A UUID already used by an entity of this scene is an error (logged); the new entity then gets
-		// a fresh UUID instead, so one bad file can't make two entities share an identity.
+		// A UUID already in use is logged and replaced by a fresh one, so a bad file can't make two entities share one.
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 
-		// The entity with this UUID, or an empty Entity (converts to false) when there is none, e.g.
-		// it was destroyed. Use it instead of keeping an Entity across frames, and to carry a
-		// reference over to another scene: Play makes a copy of the scene with the same UUIDs.
-		// An entity pending destruction is still found; check Entity::IsValid for that.
+		// An empty Entity when none (destroyed). Keep UUIDs rather than Entities across frames and scenes (Play copies
+		// keep UUIDs). Entities pending destruction are still found: check Entity::IsValid.
 		Entity GetEntityByUUID(UUID uuid);
-		// The first entity in list order (the hierarchy's order) whose tag is `tag`, or an empty Entity. Tags aren't
-		// unique: prefer an EntityRef property set in the editor, or Entity::FindChild for the inside of a view or
-		// prefab (Scripting plan SC4). It walks the whole list: look it up once (OnCreate), not every frame.
+		// The first entity in list order with this tag. Tags aren't unique: prefer an EntityRef property or
+		// Entity::FindChild. Walks the whole list, so look it up once (OnCreate), not every frame.
 		Entity FindEntityByTag(const std::string& tag);
-		// Destroys the entity and its whole subtree (children first). During a stage the whole subtree stops
-		// running at once and is removed when the stage ends (see below).
+		// Destroys the entity and its subtree (children first). During a stage it is removed when the stage ends.
 		void DestroyEntity(Entity entity);
 
-		// Every entity made with CreateEntity, in list order: the order the hierarchy shows them,
-		// scenes save them and Copy recreates them. The list is the hierarchy in depth-first order: a
-		// parent comes before its children and its whole subtree follows it directly (see "Hierarchy"
-		// below). New entities go last, as roots. The reference is invalidated by creating, destroying,
-		// moving or reparenting entities.
+		// The hierarchy in depth-first order (each parent directly followed by its subtree; new entities go last as
+		// roots). Invalidated by creating, destroying, moving or reparenting entities.
 		const std::vector<entt::entity>& GetEntityOrder();
 
-		// Moves `entity` with its subtree directly before `target` (or, with placeAfter, directly after
-		// target's subtree), as target's sibling: it takes target's parent, keeping its place in the world
-		// (as SetParent with keepWorldTransform). Ignored (logged) when target is inside entity's subtree.
-		// Don't call it while iterating GetEntityOrder().
+		// Moves `entity` and its subtree directly before `target` (or after target's subtree) as its sibling, keeping its
+		// world placement. Ignored (logged) when target is inside entity's subtree. Not while iterating GetEntityOrder().
 		void MoveEntity(Entity entity, Entity target, bool placeAfter);
 
-		// A copy of the entity and its whole subtree: new entities (new UUIDs, same names) with copies of
-		// their CopyableComponents and native script bindings, placed right after the original's subtree
-		// with the same parent. References inside the copied set (children's parents) point to the copies;
-		// references to entities outside it are kept. Returns the copy of `entity`, or an empty Entity if
-		// `entity` isn't an entity of this scene's list. Don't call it while iterating the registry.
+		// Copies the entity and its subtree (new UUIDs) right after the original, with the same parent; references
+		// inside the copied set point to the copies. Empty when `entity` isn't in this scene. Not while iterating.
 		Entity DuplicateEntity(Entity entity);
 
-		// Entities copied together (DuplicateEntity, prefab instantiation) get new UUIDs. This makes every
-		// reference from one of `entities` to another entity of the copied set follow the copy (`remap`: old
-		// UUID -> new UUID); references to entities outside the set stay as they are. It covers every component
-		// field that holds an entity's UUID (today RelationshipComponent::Parent).
+		// After copying a set of entities (`remap`: old UUID -> new UUID), makes references inside the set follow the
+		// copies, in every component field and script property holding an entity UUID.
 		void RemapEntityReferences(const std::vector<Entity>& entities, const std::unordered_map<UUID, UUID>& remap);
 
-		// ---- Hierarchy (Roadmap S3) -------------------------------------------------------------
-		// An entity's parent is its RelationshipComponent (none = a root). The entity list is the tree in
-		// depth-first pre-order, and these functions keep it that way: change parents only through
-		// SetParent and MoveEntity. The tree's rules and layout are SceneHierarchy; the scene maps entities
-		// to list indices. docs/SceneAndECS.md#hierarchy.
+		// ---- Hierarchy (docs/SceneAndECS.md#hierarchy) --------------------------------------------
+		// Parents are RelationshipComponents; the entity list stays depth-first, so reparent only through these.
 
-		// Makes `child` the last child of `parent` (an empty Entity makes it a root, last in the list); its
-		// whole subtree moves with it. With keepWorldTransform the child's local transform is rewritten so it
-		// stays where it is in the world (see SetWorldTransform); without, the local values are kept and it
-		// moves with its new parent. Refused (logged, false) when `parent` is `child` or inside its subtree,
-		// or either isn't an entity of this scene. Don't call it while iterating GetEntityOrder().
+		// Makes `child` the last child of `parent` (empty = a root), with its subtree. keepWorldTransform rewrites the
+		// local transform so it stays put. False (logged) for a cycle or a foreign entity. Not while iterating.
 		bool SetParent(Entity child, Entity parent, bool keepWorldTransform = true);
-		// Its parent, or an empty Entity for a root (or an entity that isn't in the list).
+		// Empty for a root or an entity that isn't in the list.
 		Entity GetParent(Entity entity);
-		// Its direct children, in list order (cleared first).
+		// Direct children in list order; clears `children` first.
 		void GetChildren(Entity entity, std::vector<Entity>& children);
 		bool HasChildren(Entity entity);
-		// The entity and every descendant, in list order, the entity first (cleared first).
+		// The entity first, then every descendant in list order; clears `subtree` first.
 		void GetSubtree(Entity entity, std::vector<Entity>& subtree);
-		// True when `entity` is somewhere below `ancestor` (not when they are the same entity).
+		// False when they are the same entity.
 		bool IsAncestorOf(Entity ancestor, Entity entity);
-		// 0 for a root.
 		uint32_t GetDepth(Entity entity);
 
-		// Restores the rule after entities were added with their parents already set (loading a scene):
-		// a missing parent, an entity that is its own parent and one entity of every cycle become roots
-		// (each logged), and the list is rebuilt depth-first, keeping roots and each entity's children in
-		// their current order. A list that already keeps the rule is left as it is.
+		// Makes the list depth-first again after loading entities with parents already set: missing parents, self
+		// parents and one entity per cycle become roots (logged); the existing order is kept where possible.
 		void RepairHierarchy();
-		// Checks the rule and logs every entity that breaks it; true when it holds. Debug builds also run
-		// it after every edit of the hierarchy (create, destroy, move, reparent, duplicate, repair).
+		// Logs every entity that breaks the hierarchy rule. Debug builds run it after every hierarchy edit.
 		bool ValidateHierarchy();
 
 		// ---- World transforms ---------------------------------------------------------------------
-		// TransformComponent is local (relative to the parent); WorldTransformComponent is the result of the
-		// whole chain. An entity without a TransformComponent passes its parent's world on to its children.
+		// TransformComponent is local; an entity without one passes its parent's world on to its children.
 
-		// Writes every WorldTransformComponent from the TransformComponents, parents first: one pass over the
-		// entity list, no dirty flags. Runs as stage 4 in both updates, at the start of the game (before the
-		// physics worlds are built from it) and at the start of SceneRenderer::RenderEditor / RenderRuntime
-		// (application systems run after the scene update). Entities outside the list are roots.
+		// Writes every WorldTransformComponent, parents first, in one pass. Runs as stage 4, at game start and at the
+		// start of rendering.
 		void ResolveTransforms();
-		// The entity's world transform computed now from its chain of parents: always current, unlike
-		// WorldTransformComponent. Identity for an empty entity.
+		// Computed now from the parent chain, unlike WorldTransformComponent. Identity for an empty entity.
 		glm::mat4 GetWorldTransform(Entity entity);
-		// Writes the entity's TransformComponent so its world transform becomes `world`. Under a rotated parent
-		// with non-uniform scale `world` may need shear, which a TransformComponent can't hold: then the
-		// closest translation / rotation / scale is written, a warning is logged (once per entity) and it
-		// returns false. Also false, writing nothing, without a TransformComponent or under a parent with a
-		// zero scale. Its WorldTransformComponent catches up at the next ResolveTransforms.
+		// Writes the TransformComponent so the world transform becomes `world`. False when that needs shear (the closest
+		// fit is written, warned once) or there is no TransformComponent or a zero-scale parent (nothing written).
 		bool SetWorldTransform(Entity entity, const glm::mat4& world);
-		// Its position in the world now (GetWorldTransform's translation).
 		glm::vec3 GetWorldPosition(Entity entity);
-		// Moves it so its position in the world becomes `position`, changing only its local Translation: its
-		// rotation and scale are left exactly as they are (no shear can appear). For a root this is a plain write of
-		// Translation. False, writing nothing, without a TransformComponent or under a parent with a zero scale.
-		// Physics writes positions back through it.
+		// Changes only the local Translation (rotation and scale untouched, so no shear). False, writing nothing,
+		// without a TransformComponent or under a zero-scale parent. Physics writes positions back through it.
 		bool SetWorldPosition(Entity entity, const glm::vec3& position);
 
-		// ---- Runtime UI (#164) ----------------------------------------------------------------------
-		// Writes every UIResolvedRectComponent from the UIRectComponents, in canvas pixels: one pass over the entity
-		// list, parents first, like ResolveTransforms (a UILayoutGroupComponent places its children when it is reached,
-		// before them). A canvas (UICanvasComponent) covers the viewport at its scale
-		// (UILayout::GetCanvasMetrics); each element resolves against its nearest UI ancestor's rect (entities without
-		// a rect in between pass it on). An element with no canvas above it, or under a canvas that is itself under
-		// another canvas (not supported: logged once), gets Canvas = 0 and isn't drawn. Runs as stage 6 in both
-		// updates, at the start of the game and at the start of SceneRenderer::RenderEditor / RenderRuntime, after
-		// ResolveTransforms. docs/SceneAndECS.md#runtime-ui.
-		// UI6: a World canvas is placed where the primary camera sees its entity (hidden behind it or without a camera);
-		// after the pass, each UIScrollViewComponent scrolls its content (keeping the focus in view) and clips it.
+		// ---- Runtime UI (#164, docs/SceneAndECS.md#runtime-ui) ------------------------------------
+		// Lays out every UIResolvedRectComponent in canvas pixels, parents first. Stage 6, after ResolveTransforms.
 		void ResolveUILayout();
-		// Where the last ResolveUILayout put a top-level canvas in the view (scale, size, offset), by the canvas's
-		// UUID. False for a canvas it didn't place (hidden, nested, a World canvas off screen or without a camera).
+		// Where the last layout put a top-level canvas in the view. False for one it didn't place (hidden, nested, a
+		// World canvas off screen or without a camera).
 		bool GetUICanvasMetrics(UUID canvas, UICanvasMetrics& metrics) const;
 
-		// Removes one of the entity's native scripts (or its whole NativeScriptComponent), calling
-		// OnDestroy on scripts that are running.
+		// Removes one native script (or the whole component), calling OnDestroy on running scripts.
 		void RemoveScript(Entity entity, size_t index);
 		void RemoveScripts(Entity entity);
 
-		// Safe to call from script callbacks. While a stage runs (scripts, later physics),
-		// DestroyEntity, RemoveScript and RemoveScripts don't act at once: the entity or script stops
-		// running immediately and is really removed (OnDestroy called) when the stage ends. Outside a
-		// stage (the editor's hierarchy and inspector) they act at once. Entities created during a
-		// stage exist at once, but their scripts start on the next update.
-		// True from DestroyEntity being called during a stage until the stage ends.
+		// Safe from script callbacks: during a stage, destroying entities and removing scripts is deferred to the stage's
+		// end (they stop running at once). True from such a DestroyEntity until the stage ends.
 		bool IsPendingDestroy(Entity entity) const;
 
 		const std::string& GetName() const { return m_Name; }
 		void SetName(const std::string& name) { m_Name = name; }
 
-		// How the scene is rendered: the project's render features, or its own (saved, copied on Play).
+		// The project's render features or the scene's own (saved, copied on Play).
 		const SceneRenderSettings& GetRenderSettings() const { return m_RenderSettings; }
 		void SetRenderSettings(const SceneRenderSettings& settings) { m_RenderSettings = settings; }
-		// The scene's own ambient and fog under forward lighting (M6; saved, copied on Play). What is drawn
-		// is GetActiveEnvironment: these, or its render profile's.
+		// The scene's own ambient and fog for forward lighting. What is drawn is GetActiveEnvironment.
 		const SceneEnvironment& GetEnvironment() const { return m_Environment; }
 		void SetEnvironment(const SceneEnvironment& environment) { m_Environment = environment; }
-		// The scene's own exposure and bloom of HDR views (post-processing plan P1, P2; saved, copied on Play).
-		// What is drawn is GetActivePostProcess.
+		// The scene's own exposure and bloom for HDR views. What is drawn is GetActivePostProcess.
 		const ScenePostProcess& GetPostProcess() const { return m_PostProcess; }
 		void SetPostProcess(const ScenePostProcess& postProcess) { m_PostProcess = postProcess; }
-		// Its render profile and which sections come from it (plan P4; saved as "Look", copied on Play).
+		// Its render profile and which sections come from it (saved as "Look").
 		const SceneLook& GetLook() const { return m_Look; }
 		void SetLook(const SceneLook& look) { m_Look = look; }
-		// Switches the profile (0 = none), keeping which sections use it: a script changes the look this way
-		// (day, dusk, night). Load the profile first (AssetManager::GetAsset<RenderProfile>), like any handle
-		// a component is given: the scene never loads.
+		// Switches the profile (0 = none), as a script does for day and night. Load it first
+		// (AssetManager::GetAsset<RenderProfile>): the scene never loads.
 		void SetRenderProfile(AssetHandle profile) { m_Look.Profile = profile; }
-		// The profile if it is loaded, else nullptr (none, missing or not loaded yet).
+		// Null when none, missing or not loaded yet.
 		Ref<RenderProfile> GetRenderProfile() const;
-		// What the frame uses: the profile's section when the look takes it from a loaded profile, else the
-		// scene's own values.
-		// Copies: the profile can be reloaded (its file changed) while the caller still holds the values.
+		// The profile's section when the look takes it from a loaded profile, else the scene's own values. Copies,
+		// because the profile can reload while the caller holds them.
 		SceneEnvironment GetActiveEnvironment() const;
 		ScenePostProcess GetActivePostProcess() const;
-		// The scene's sun (DirectionalLightComponent): the one marked IsMainLight, else the first in entity
-		// order; invalid when there is none. More than one marked logs a warning once.
+		// The DirectionalLightComponent marked IsMainLight, else the first; invalid when none. Warns once about several.
 		Entity GetMainLight();
 
 	public:
-		// THIS SHOULD BE PRIVATE AND EXPOSE A METHOD TO GET COMPONENTS/ENTITIES FROM REGISTRY.
+		// TODO: make this private and expose ways to get components and entities from the registry.
 		entt::registry m_Registry;
 
 	private:
-		// Delivers the physics steps' collision and trigger events (2D and 3D) to the entities' scripts (inside a stage).
+		// Delivers the physics steps' collision and trigger events to the entities' scripts (inside a stage).
 		void DispatchPhysicsEvents();
-		// Delivers the UI's events (stage 0) to the scripts of each target and then its ancestors, until one handles it;
-		// clears `events`.
+		// Delivers UI events to each target's scripts, then its ancestors', until one handles it; clears `events`.
 		void DispatchUIEvents(std::vector<UIEvent>& events);
 		// Calls one ScriptableEntity hook on every running script of `self`, with `other` as the argument.
 		void NotifyScripts(entt::entity self, entt::entity other, void (ScriptableEntity::*hook)(Entity));
 
-		// Stages that run user code (scripts, later physics callbacks) bracket their work with these.
-		// While a stage is open, structural changes that would pull an entity or script out from under
-		// the running code are queued; EndStage applies them once the outermost stage ends.
+		// Stages that run user code bracket it with these: structural changes are queued while a stage is open and
+		// applied when the outermost one ends.
 		void BeginStage();
 		void EndStage();
 		void ApplyDeferred();
@@ -280,41 +214,37 @@ namespace Hydro
 			entt::entity Handle{ entt::null };
 		};
 
-		// A layout group's part of ResolveUILayout: places the visible UI children of list entry `index` (m_UIDriven) and,
-		// with FitContent, resizes the group's own rect (min, max).
-		void ArrangeUIChildren(size_t index, const UIRectComponent& rect, const UILayoutGroupComponent& group, glm::vec2& min, glm::vec2& max);
-		// ResolveUILayout's last part (UI6): list entry `index` is a scroll view; moves its content, clips it, sizes
-		// its scrollbar.
+		// Places the visible UI children of layout group entry `index` and, with FitContent, resizes the group (min, max).
+		void ArrangeUIChildren(size_t index, const UIRectComponent& rect, const UILayoutGroupComponent& group,
+			glm::vec2& min, glm::vec2& max);
+		// Moves, clips and sizes the scrollbar of scroll view entry `index`.
 		void ScrollUIView(size_t index);
-		// The canvas at list entry `index` in this view: false when it isn't shown (a World canvas behind the camera).
+		// False when canvas entry `index` isn't shown (a World canvas behind the camera).
 		bool PlaceUICanvas(size_t index, const UICanvasComponent& canvas, const glm::vec2& viewSize, UICanvasMetrics& metrics);
-		// Rebuilds m_EntityMap from the registry: drops entries for entities destroyed behind the
-		// scene's back and adds ones that got an IDComponent without CreateEntity.
+		// Drops entries for entities destroyed behind the scene's back and adds IDComponents made without CreateEntity.
 		void RebuildEntityMap();
 
-		// Hierarchy: m_Hierarchy is the layout of m_EntityOrder, rebuilt (with m_OrderIndex) on first use
-		// after anything changed the list or a parent (m_HierarchyDirty).
+		// m_Hierarchy lays out m_EntityOrder; rebuilt with m_OrderIndex on first use after a change (m_HierarchyDirty).
 		void EnsureHierarchy();
 		std::vector<SceneHierarchy::Node> MakeHierarchyNodes();
-		// The entity's index in m_EntityOrder, or -1. Rebuilds the layout first if needed.
+		// -1 when not in the list.
 		int32_t GetOrderIndex(entt::entity handle);
-		// Sets or (parent 0) removes the RelationshipComponent; doesn't move anything in the list.
+		// Parent 0 removes the RelationshipComponent; nothing moves in the list.
 		void SetParentUUID(entt::entity handle, UUID parent);
-		// Moves the subtree at `index` to `insertAt` (an index in the list before the move: from
-		// SceneHierarchy::GetLastChildInsertIndex / GetSiblingInsertIndex).
+		// `insertAt` is an index from before the move (SceneHierarchy::GetLastChildInsertIndex / GetSiblingInsertIndex).
 		void MoveSubtree(size_t index, size_t insertAt);
-		// Debug builds: ValidateHierarchy after an edit. Release: nothing.
+		// Debug builds: ValidateHierarchy. Release: nothing.
 		void CheckHierarchyAfterEdit();
-		// Destroys one entity (not its children) at once: DestroyEntityNow's body before hierarchies.
+		// Destroys one entity at once, not its children.
 		void DestroySingleEntityNow(Entity entity);
 
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
 		SceneHierarchy m_Hierarchy;
 		std::unordered_map<entt::entity, uint32_t> m_OrderIndex;
 		bool m_HierarchyDirty = true;
-		// ResolveTransforms' world matrix per list entry (kept so the pass allocates nothing once warm).
+		// Kept between passes so the pass allocates nothing once warm.
 		std::vector<glm::mat4> m_WorldMatrices;
-		// ResolveUILayout's rect per list entry: what that entry's UI children resolve against.
+		// The rect a list entry's UI children resolve against.
 		struct UILayoutEntry
 		{
 			glm::vec2 Min{ 0.0f, 0.0f };
@@ -324,7 +254,7 @@ namespace Hydro
 			UUID Canvas = 0;       // the canvas its UI children are drawn on (0 = none)
 		};
 		std::vector<UILayoutEntry> m_UILayout;
-		// ResolveUILayout's layout groups (UI4): the rect a group placed each list entry at, and scratch lists.
+		// The rect a layout group placed each entry at, and scratch lists.
 		struct UIDrivenRect
 		{
 			glm::vec2 Min{ 0.0f, 0.0f };
@@ -335,14 +265,13 @@ namespace Hydro
 		std::vector<size_t> m_UIChildIndices;
 		std::vector<UILayoutItem> m_UIItems;
 		std::vector<size_t> m_UIItemIndices;
-		// Where each placed canvas sits in the view (by UUID), and the primary camera's world-to-view-pixels matrix
-		// for World canvases (worked out once per pass, when one needs it).
+		// Placed canvases by UUID, and the primary camera's world-to-view-pixels matrix for World canvases (once per pass).
 		std::unordered_map<uint64_t, UICanvasMetrics> m_UICanvasMetrics;
 		glm::mat4 m_UIWorldToView{ 1.0f };
 		int m_UIWorldToViewState = 0; // 0 not worked out this pass, 1 ready, -1 no camera
-		// Nested canvases already warned about, so the log isn't flooded.
+		// Already warned about, so the log isn't flooded.
 		std::unordered_set<entt::entity> m_NestedCanvasWarned;
-		// Entities SetWorldTransform already warned about (shear), so the log isn't flooded.
+		// Already warned about shear, so the log isn't flooded.
 		std::unordered_set<entt::entity> m_ShearWarned;
 		int m_StageDepth = 0;
 		std::vector<DeferredCommand> m_Deferred;
@@ -368,5 +297,6 @@ namespace Hydro
 		friend class Entity;
 		friend class SceneRenderer;
 		friend void UpdateScripts(Scene&, const SystemContext&);
+		friend void CollectScriptGizmos(Scene&, const Entity&, Gizmos&);
 	};
 }

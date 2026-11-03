@@ -20,12 +20,8 @@ namespace Hydro
 	class DefinitionAsset;
 	class DataTableAsset;
 
-	// One record of data: a definition's values (Data::Get) or one table row (Data::GetRow). Read-only: data is
-	// content; the game's progress (counts, flags, "talked to") is game state and lives elsewhere.
-	//
-	// A DataView keeps its source asset alive, so it stays safe to read when the asset is reloaded.
-	// A view kept across a reload still shows the old data: store the AssetHandle or DataRowRef for
-	// anything long-lived, and look it up again when you need the current data.
+	// One read-only record: a definition's values (Data::Get) or a table row (Data::GetRow). It keeps its asset alive,
+	// but shows old data after a reload: keep the AssetHandle or DataRowRef and look it up again.
 	template<typename T>
 	class DataView
 	{
@@ -36,8 +32,7 @@ namespace Hydro
 		{
 		}
 
-		// false when there was nothing to find (handle 0, an empty row reference) or the asset, table or row is
-		// missing or of another type (warned once).
+		// False for handle 0, an empty row reference, or a missing or mistyped asset, table or row (warned once).
 		bool IsValid() const { return m_Value != nullptr; }
 		const T* Get() const { return m_Value; }
 
@@ -58,12 +53,8 @@ namespace Hydro
 		const T* m_Value = nullptr;
 	};
 
-	// The rows of a data table, by row ID (Data::GetTable). Row order means nothing to gameplay: rows come sorted
-	// by ID; where order matters (a shop's stock), store it as a list of DataRowRef.
-	//
-	// A DataTableView keeps its source asset alive, so it stays safe to read when the asset is reloaded.
-	// A view kept across a reload still shows the old data: store the AssetHandle or DataRowRef for
-	// anything long-lived, and look it up again when you need the current data.
+	// A data table's rows by ID, sorted (Data::GetTable). Like DataView it keeps its asset alive but shows old data
+	// after a reload: keep the handle and look it up again.
 	template<typename T>
 	class DataTableView
 	{
@@ -119,7 +110,7 @@ namespace Hydro
 		{
 		}
 
-		// false when the handle is 0, or the table is missing or of another row type (warned once).
+		// False when the handle is 0, or the table is missing or of another row type (warned once).
 		bool IsValid() const { return m_Rows != nullptr; }
 		AssetHandle GetHandle() const { return m_Owner != nullptr ? m_Owner->GetHandle() : AssetHandle(0); }
 		size_t GetRowCount() const { return m_Rows != nullptr ? m_Rows->size() : 0; }
@@ -145,19 +136,8 @@ namespace Hydro
 		const RowMap* m_Rows = nullptr;
 	};
 
-	// Game data: definitions (.hydef) and data tables (.hytable) of HY_DATA types, by handle. Scripts keep the
-	// AssetHandle or DataRowRef (an HY_PROPERTY with Asset(Definition, T), Asset(DataTable, T) or DataRow(T)) and
-	// ask here when they need the data; never a view between frames. Synchronous: it goes through
-	// AssetManager::GetAsset, which reads the file again when it changed, so an edit shows on the next call.
-	//
-	//     HY_PROPERTY(Asset(Definition, DialogueDefinition))
-	//     AssetHandle Dialogue = 0;
-	//
-	//     const DataView<DialogueDefinition> dialogue = Data::Get<DialogueDefinition>(Dialogue);
-	//     if (dialogue.IsValid())
-	//     {
-	//         Open(*dialogue);
-	//     }
+	// Game data: definitions (.hydef) and data tables (.hytable) by handle. Keep the AssetHandle or DataRowRef and ask
+	// here when you need the data, never a view between frames; edits show on the next call.
 	class Data
 	{
 	public:
@@ -191,9 +171,7 @@ namespace Hydro
 		// The data type a .hydef or .hytable holds; nullptr for other assets and files that can't be read.
 		static const DataTypeInfo* GetDataType(AssetHandle handle);
 
-		// Every problem of a definition or table: the file's own (a newer version, duplicates), its values' (kept
-		// values, values outside their Range, empty display fields) and its references (assets and rows that are
-		// missing or of the wrong type). Loads what it refers to.
+		// Every problem of a definition or table: the file's own, its values' and its references'. Loads what it refers to.
 		static DataReport Validate(AssetHandle handle);
 
 	private:

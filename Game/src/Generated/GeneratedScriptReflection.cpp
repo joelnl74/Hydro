@@ -3,6 +3,7 @@
 
 #include "GeneratedScriptReflection.h"
 #include "Hydro/Scene/Scripting/ScriptRegistry.h"
+#include "Hydro/Scene/ComponentRegistry.h"
 
 #include "Scripts/Battle/BattleScript.h"
 #include "Scripts/Common/CameraFollowScript.h"
@@ -10,6 +11,7 @@
 #include "Scripts/Common/DioramaDirectorScript.h"
 #include "Scripts/Common/DioramaWalkScript.h"
 #include "Scripts/Common/FoliageSwayScript.h"
+#include "Scripts/Common/LightShaftScript.h"
 #include "Scripts/Common/OccluderFadeScript.h"
 #include "Scripts/Countryside/CountrysideQuestScript.h"
 #include "Scripts/Examples/SpawnerScript.h"
@@ -21,7 +23,7 @@
 #include "Scripts/Field/NpcRouteScript.h"
 #include "Scripts/Field/NpcWanderScript.h"
 #include "Scripts/Field/QuestGiverScript.h"
-#include "Scripts/Field/WaypointScript.h"
+#include "Scripts/Field/WaypointComponent.h"
 #include "Scripts/Interiors/InteriorScript.h"
 #include "Scripts/ShrineGlade/ShrineGladeScript.h"
 #include "Scripts/ShrineGlade/ShrineQuestScript.h"
@@ -109,6 +111,13 @@ namespace Hydro
 			.Property("Period", "Period", &FoliageSwayScript::Period).Range(0.5f, 20.0f).Tooltip("Seconds of one sway")
 			.Property("Gust", "Gust", &FoliageSwayScript::Gust).Range(0.0f, 1.0f).Tooltip("How much a slow gust over the whole group adds (0 = a steady breeze)");
 
+		ScriptRegistry::Register<LightShaftScript>("LightShaftScript")
+			.Property("Breathe", "Breathe", &LightShaftScript::Breathe).Range(0.0f, 1.0f).Tooltip("How much a shaft's strength swells and fades (0 = steady)")
+			.Property("Period", "Period", &LightShaftScript::Period).Range(1.0f, 30.0f).Tooltip("Seconds of one breath")
+			.Property("HiddenBelow", "Hidden Below", &LightShaftScript::HiddenBelow).Range(0.0f, 4.0f).Tooltip("Sun intensity at or below which the shafts are gone (night)")
+			.Property("FullFrom", "Full From", &LightShaftScript::FullFrom).Range(0.0f, 4.0f).Tooltip("Sun intensity from which the shafts show fully")
+			.Property("FollowSunColor", "Follow Sun Color", &LightShaftScript::FollowSunColor).Tooltip("Tint the shafts with the main sun's colour");
+
 		ScriptRegistry::Register<OccluderFadeScript>("OccluderFadeScript")
 			.Property("Target", "Target", &OccluderFadeScript::Target).Tooltip("The one kept in sight (the player)")
 			.Property("FadedOpacity", "Faded Opacity", &OccluderFadeScript::FadedOpacity).Range(0.0f, 1.0f).Tooltip("How much of a mesh in the way still shows (0: gone, 1: no fade)")
@@ -192,8 +201,9 @@ namespace Hydro
 			.Property("Player", "Player", &NpcLookAroundScript::Player).Tooltip("The player: it watches her while she is near")
 			.Property("WatchRange", "Watch Range", &NpcLookAroundScript::WatchRange).Range(0.0f, 10.0f).Tooltip("Metres: closer than this it faces the player (0: never)");
 
-		ScriptRegistry::Register<NpcRouteScript>("NpcRouteScript")
-			.Property("Route", "Route", &NpcRouteScript::Route).Tooltip("The route: an entity whose children are the waypoints (WaypointScript), in order").Required()
+		ScriptRegistry::Register<NpcRouteScript>("NpcRouteScript").DrawsGizmos()
+			.Property("Waypoints", "Waypoints", &NpcRouteScript::Waypoints).Tooltip("The waypoints in the order they are walked (any entities, in any order in the hierarchy); empty: the Route's children")
+			.Property("Route", "Route", &NpcRouteScript::Route).Tooltip("Used when Waypoints is empty: an entity whose children are the waypoints, in the hierarchy's order")
 			.Property("Mode", "Mode", &NpcRouteScript::Mode).Tooltip("Loop (back to the first), PingPong (there and back), Once (then stays), Restart (reappears at the first)")
 			.Property("Speed", "Speed", &NpcRouteScript::Speed).Range(0.0f, 5.0f).Tooltip("Metres per second (the player walks at about 3.5)")
 			.Property("StartAt", "Start At", &NpcRouteScript::StartAt).Range(0.0f, 64.0f).Tooltip("The waypoint it starts at (it is placed there), so a crowd on one route is spread out")
@@ -224,14 +234,6 @@ namespace Hydro
 			.Property("QuestTable", "Quest Table", &QuestGiverScript::QuestTable).Tooltip("The quests; its Defeat and Collect rows whose giver is in this scene are offered").AssetFilter(AssetType::DataTable).DataTypeFilter("QuestDefinition")
 			.Property("OfferMark", "Offer Mark", &QuestGiverScript::OfferMark).Tooltip("The marker over a giver with a quest to offer").AssetFilter(AssetType::Texture2D)
 			.Property("ReturnMark", "Return Mark", &QuestGiverScript::ReturnMark).Tooltip("The marker over a giver when a quest can be turned in").AssetFilter(AssetType::Texture2D);
-
-		ScriptRegistry::Register<WaypointScript>("WaypointScript")
-			.Property("WaitMin", "Wait Min", &WaypointScript::WaitMin).Range(0.0f, 120.0f).Tooltip("Seconds it stands here, at least (0 and WaitMax 0: walks straight on)")
-			.Property("WaitMax", "Wait Max", &WaypointScript::WaitMax).Range(0.0f, 120.0f).Tooltip("Seconds it stands here, at most")
-			.Property("StopChance", "Stop Chance", &WaypointScript::StopChance).Range(0.0f, 1.0f).Tooltip("Chance it stops here at all on a pass (1: every time)")
-			.Property("Facing", "Facing", &WaypointScript::Facing).Tooltip("While standing: Up (away from the camera), Down, Left or Right; empty: the way it arrived")
-			.Property("LookAt", "Look At", &WaypointScript::LookAt).Tooltip("While standing: face this entity instead (a shop's merchant, a noticeboard)")
-			.Property("Action", "Action", &WaypointScript::Action).Tooltip("The clip prefix played while standing (\"Work\" plays Work<Facing>); empty: Idle<Facing>");
 
 		ScriptRegistry::Register<InteriorScript>("InteriorScript")
 			.Property("RoomName", "Room Name", &InteriorScript::RoomName).Tooltip("The interior's name in the log")
@@ -282,5 +284,7 @@ namespace Hydro
 		ScriptRegistry::Register<QuestTrackerScript>("QuestTrackerScript")
 			.Property("BannerHoldTime", "Banner Hold Time", &QuestTrackerScript::BannerHoldTime).Range(0.5f, 20.0f).Tooltip("Seconds a banner stays fully shown")
 			.Property("BannerOpenTime", "Banner Open Time", &QuestTrackerScript::BannerOpenTime).Range(0.05f, 5.0f).Tooltip("Seconds a banner takes to open (and a little longer to fade out)");
+
+		ComponentRegistry::Register<WaypointComponent>("WaypointComponent", "Waypoint");
 	}
 }

@@ -1,4 +1,3 @@
-// Game/src/Views/LetterboxView.h
 #pragma once
 
 #include "Views/ViewHelpers.h"
@@ -7,8 +6,7 @@
 
 namespace Hydro
 {
-	// The cutscene bars ("Cinematic Canvas" with "Letterbox Top" and "Letterbox Bottom"; scripts/ui/build_game_ui.py):
-	// shown for a cutscene, sliding in from off screen. A view (Scripting plan SC8g): the cutscene says how far.
+	// The cutscene bars, sliding in from off screen. The cutscene says how far.
 	class LetterboxView
 	{
 	public:

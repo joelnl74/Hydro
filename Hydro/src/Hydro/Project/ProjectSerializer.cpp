@@ -134,7 +134,7 @@ namespace Hydro
 				{
 					renderer.ShaderHotReload = node.as<bool>();
 				}
-				// Projects saved before 2D lighting have none of these keys: they keep the defaults.
+				// Older projects have none of these keys: they keep the defaults.
 				if (auto node = rendererNode["Lighting"])
 				{
 					renderer.Lighting = node.as<bool>(renderer.Lighting);
@@ -152,7 +152,7 @@ namespace Hydro
 				{
 					renderer.Shadows = node.as<bool>(renderer.Shadows);
 				}
-				// Projects saved before sun shadows (R14) keep the defaults.
+				// Older projects keep the defaults.
 				if (auto node = rendererNode["SunShadowMapSize"])
 				{
 					renderer.SunShadowMapSize = node.as<uint32_t>(renderer.SunShadowMapSize);

@@ -14,19 +14,16 @@ namespace Hydro
 	struct SystemContext;
 	struct ParticleEmitter2DComponent;
 
-	// The live particles of one scene: per emitter entity, a buffer of particles and the playback state
-	// (component state rule 3 in docs/SceneAndECS.md: ParticleEmitter2DComponent holds settings only).
-	// A per-scene counterpart like PhysicsScene: Scene::OnRuntimeStart makes it, OnRuntimeStop and the
-	// scene's destructor drop it, so Play starts empty and nothing is saved or copied.
-	// UpdateParticles advances it; SceneRenderer reads it; Particles2D controls it from game code.
+	// The live particles and playback state of one running scene, per emitter entity (the component holds settings
+	// only). Exists while the game runs; UpdateParticles advances it, SceneRenderer reads it, Particles2D controls it.
 	class ParticleScene
 	{
 	public:
-		// Live particles of all emitters together, at most (new particles past it are dropped and counted).
+		// Across all emitters; new particles past it are dropped and counted.
 		static constexpr uint32_t MaxLiveParticles = 8192;
 
-		// One emitter's particles, structure of arrays. Live particles are packed at [0, Count); a dead
-		// one is replaced by the last (swap-remove), so their order changes. Capacity is the arrays' size.
+		// One emitter's particles, structure of arrays. Live ones are packed at [0, Count); a dead one is swapped with
+		// the last, so order changes.
 		struct ParticleBuffer
 		{
 			std::vector<glm::vec2> Position;  // world units
@@ -68,15 +65,14 @@ namespace Hydro
 		ParticleScene(const ParticleScene&) = delete;
 		ParticleScene& operator=(const ParticleScene&) = delete;
 
-		// Emits, simulates and retires particles for every ParticleEmitter2DComponent, then destroys the
-		// finished DestroyWhenFinished entities (after the view loop) and drops entries of emitters
-		// that no longer exist. Called by UpdateParticles.
+		// Emits, simulates and retires every emitter's particles, then destroys finished DestroyWhenFinished entities
+		// and drops entries of emitters that are gone.
 		void Update(Scene& scene, const SystemContext& context);
 
 		// Drops every emitter's particles and playback; buffers are kept for reuse.
 		void Clear();
 
-		// Game control (Particles2D). Work before the emitter's first update too.
+		// Game control (Particles2D); works before the emitter's first update too.
 		void Play(entt::entity emitter);
 		void Stop(entt::entity emitter, bool clear);
 		void Burst(entt::entity emitter, uint32_t count);
@@ -89,8 +85,7 @@ namespace Hydro
 
 	private:
 		EmitterRuntime& GetOrCreate(entt::entity emitter);
-		// Makes sure the buffer holds `capacity` particles, keeping the live ones. May allocate (an
-		// emitter's first update or a larger MaxParticles), never in the steady state.
+		// Grows the buffer to `capacity`, keeping live particles. Allocates only on growth, never in the steady state.
 		void Reserve(EmitterRuntime& runtime, uint32_t capacity);
 		void ReleaseBuffer(ParticleBuffer& buffer);
 		// Emits `count` particles at `origin` (the entity's world position). Returns how many were dropped.
@@ -106,16 +101,11 @@ namespace Hydro
 		Statistics m_Stats;
 	};
 
-	// System, stage 5 (after transforms, play mode only): ParticleScene::Update on the scene's
-	// ParticleScene. Does nothing while editing (editor previews are Roadmap V6) or without one.
+	// Stage 5 (after transforms, play mode only): updates the scene's ParticleScene.
 	void UpdateParticles(Scene& scene, const SystemContext& context);
 
-	// Controls an entity's ParticleEmitter2DComponent from scripts and game code, like Physics2D and
-	// SpriteAnimator: plain functions that route to the scene's ParticleScene. Entities without an emitter,
-	// or a scene that isn't running, are ignored. The effect shows at the next UpdateParticles, later the
-	// same frame when called from a script.
-	//
-	//     Particles2D::Burst(GetEntity(), 20);
+	// Controls an entity's ParticleEmitter2DComponent from game code (Particles2D::Burst(GetEntity(), 20)).
+	// Ignored without an emitter or a running scene; shows at the next UpdateParticles.
 	class Particles2D
 	{
 	public:

@@ -13,6 +13,8 @@
 #include "Data/LootDefinition.h"
 #include "Data/QuestDefinition.h"
 #include "Data/SceneLightingDefinition.h"
+#include "Rules/RouteRules.h"
+#include "Scripts/Field/WaypointComponent.h"
 
 namespace Hydro
 {
@@ -58,6 +60,12 @@ namespace Hydro
 			.Value("Story", QuestKind::Story)
 			.Value("Defeat", QuestKind::Defeat)
 			.Value("Collect", QuestKind::Collect);
+
+		DataTypeRegistry::RegisterEnum<RouteMode>("RouteMode")
+			.Value("Loop", RouteMode::Loop)
+			.Value("PingPong", RouteMode::PingPong)
+			.Value("Once", RouteMode::Once)
+			.Value("Restart", RouteMode::Restart);
 
 		DataTypeRegistry::Register<AbilityDefinition>("AbilityDefinition", "Ability")
 			.Table()
@@ -228,5 +236,13 @@ namespace Hydro
 		DataTypeRegistry::Register<SceneLightingDefinition>("SceneLightingDefinition", "Scene Lighting")
 			.Definition()
 			.Field<&SceneLightingDefinition::Presets>("Presets", "Presets").Tooltip("Day, dusk (golden hour, evening), night: keys 1 / 2 / 3");
+
+		DataTypeRegistry::Register<WaypointComponent>("WaypointComponent", "Waypoint")
+			.Field<&WaypointComponent::WaitMin>("WaitMin", "Wait Min").Range(0.0f, 120.0f).Tooltip("Seconds it stands here, at least (0 and WaitMax 0: walks straight on)")
+			.Field<&WaypointComponent::WaitMax>("WaitMax", "Wait Max").Range(0.0f, 120.0f).Tooltip("Seconds it stands here, at most")
+			.Field<&WaypointComponent::StopChance>("StopChance", "Stop Chance").Range(0.0f, 1.0f).Tooltip("Chance it stops here at all on a pass (1: every time)")
+			.Field<&WaypointComponent::Facing>("Facing", "Facing").Tooltip("While standing: Up (away from the camera), Down, Left or Right; empty: the way it arrived")
+			.Field<&WaypointComponent::LookAt>("LookAt", "Look At").Tooltip("While standing: face this entity instead (a shop's merchant, a noticeboard)")
+			.Field<&WaypointComponent::Action>("Action", "Action").Tooltip("The clip prefix played while standing (\"Work\" plays Work<Facing>); empty: Idle<Facing>");
 	}
 }

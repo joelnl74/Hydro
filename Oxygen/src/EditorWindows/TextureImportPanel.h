@@ -8,21 +8,18 @@
 
 namespace Hydro
 {
-	// The inspector's view of an image file selected in the Project window: a preview and its import
-	// settings (TextureImportConfig: format, filter, wrap, colour key, sprite mode, pixels per unit).
-	// Apply writes "<image>.hymeta" and asks the editor to re-import; slicing a sheet is done in the
-	// Sprite Editor window.
+	// The inspector's view of an image file: a preview and its import settings. Apply writes "<image>.hymeta"
+	// and asks the editor to re-import it.
 	class TextureImportPanel
 	{
 	public:
-		// Set by the editor layer.
 		std::function<void(const std::filesystem::path&)> OnReimported;     // the .hymeta was saved
 		std::function<void(const std::filesystem::path&)> OnOpenSpriteEditor;
 
 		void OnImguiRender(const std::filesystem::path& imagePath);
 
 	private:
-		// Reads the file's current settings (and drops unapplied edits).
+		// Reads the file's current settings and drops unapplied edits.
 		void Load(const std::filesystem::path& imagePath);
 		void Apply();
 

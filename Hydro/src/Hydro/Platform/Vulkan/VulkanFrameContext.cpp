@@ -32,7 +32,7 @@ namespace Hydro
 
 			VkFenceCreateInfo fenceInfo{};
 			fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-			fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // First WaitForFrame must not block.
+			fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // the first WaitForFrame must not block
 			VK_CHECK_RESULT(vkCreateFence(vkDevice, &fenceInfo, nullptr, &frame.InFlightFence));
 
 			VkSemaphoreCreateInfo semaphoreInfo{};
@@ -54,7 +54,7 @@ namespace Hydro
 		{
 			vkDestroySemaphore(vkDevice, frame.ImageAvailable, nullptr);
 			vkDestroyFence(vkDevice, frame.InFlightFence, nullptr);
-			vkDestroyCommandPool(vkDevice, frame.CommandPool, nullptr); // Frees its command buffer too.
+			vkDestroyCommandPool(vkDevice, frame.CommandPool, nullptr); // frees its command buffer too
 			frame = FrameData{};
 		}
 

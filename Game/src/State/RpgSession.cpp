@@ -4,7 +4,7 @@
 
 namespace Hydro
 {
-	// The run state types reach the running session through these until SC8 moves them to State/.
+	// Each run state's Get() returns the running session's.
 
 	BattleState& BattleState::Get()
 	{

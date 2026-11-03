@@ -2,9 +2,8 @@
 #include "Hydro/Core/Base.h"
 #include "Hydro/Core/Log.h"
 
-// HY_CORE_ASSERT(condition, message...): in Debug builds, logs and breaks into the debugger when
-// the condition is false. Compiled out in Release and Dist.
-// Logs only while the Log subsystem is up, so it is safe to hit after Log::Shutdown.
+// HY_CORE_ASSERT(condition, message...): in Debug builds, logs and breaks into the debugger when the condition is false
+// (logging only while Log is up). Compiled out in Release and Dist.
 #ifdef HY_ENABLE_ASSERTS
 	#define HY_CORE_ASSERT(condition, ...) \
 		{ \

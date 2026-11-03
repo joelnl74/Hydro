@@ -12,8 +12,7 @@ namespace Hydro
 		uint32_t Height = 720;
 	};
 
-	// Window subsystem. Window::Create only picks the platform implementation; nothing is opened
-	// until Init, and everything is released in Shutdown (never in the destructor).
+	// Window subsystem. Create only picks the platform implementation; Init opens it, Shutdown releases it.
 	class Window
 	{
 	public:
@@ -29,9 +28,8 @@ namespace Hydro
 
 		virtual void* GetNativeWindow() const = 0;
 
-		// Full screen on the monitor the window is on (the monitor's own resolution and refresh rate);
-		// false goes back to the windowed size and position it had before. Posts a WindowResizeEvent
-		// like any other resize, so the swapchain follows.
+		// Full screen on the window's monitor at its own resolution; false restores the windowed size and position.
+		// Posts a WindowResizeEvent like any resize.
 		virtual void SetFullscreen(bool fullscreen) = 0;
 		virtual bool IsFullscreen() const = 0;
 

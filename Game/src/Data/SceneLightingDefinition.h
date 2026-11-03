@@ -1,4 +1,3 @@
-// Game/src/Data/SceneLightingDefinition.h
 #pragma once
 
 #include "Hydro/Asset/Asset.h"
@@ -9,9 +8,8 @@
 #include <string>
 #include <vector>
 
-// A diorama scene's times of day (keys 1 / 2 / 3: day, dusk, night), one file per scene in Assets/Data/Lighting/,
-// used by its director (DioramaDirectorScript, Scripts/Common/DioramaDirectorScript.h). The ambient and fog colours are the fallback when
-// the render profile is missing; keep them in step with the profiles.
+// A diorama scene's times of day (keys 1 / 2 / 3), one file per scene, used by its DioramaDirectorScript. The ambient and
+// fog colours are the fallback when the render profile is missing; keep them in step with the profiles.
 namespace Hydro
 {
 	HY_DATA()

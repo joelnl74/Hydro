@@ -5,10 +5,8 @@
 
 namespace Hydro
 {
-	// Plays a project without the editor: opens it, runs its start scene on a SceneStack (scripts switch
-	// scenes and quit through SceneTransition) and shows the game over the whole window. V1 shows the
-	// game's RenderView with one full-window ImGui::Image, the same path as the editor's Game view;
-	// presenting straight to the swapchain is a later optimisation.
+	// Plays a project without the editor: runs its start scene on a SceneStack and shows the game over the whole
+	// window, through one full-window ImGui::Image like the editor's Game view.
 	class RuntimeLayer : public Layer
 	{
 	public:

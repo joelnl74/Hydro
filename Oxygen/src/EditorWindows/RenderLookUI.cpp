@@ -8,8 +8,8 @@
 
 namespace Hydro
 {
-	// The profile changed in memory and not written yet (0: none). One for the whole editor: Render Settings
-	// and the inspector may both edit profiles.
+	// The profile changed in memory and not written yet (0: none). Shared because Render Settings and the inspector
+	// may both edit profiles.
 	static AssetHandle s_UnsavedProfile = 0;
 
 	static void HelpMarker(const char* text)
@@ -35,7 +35,8 @@ namespace Hydro
 			changed |= ImGui::Checkbox("Fog", &environment.Fog);
 			ImGui::BeginDisabled(environment.Fog == false);
 			changed |= ImGui::ColorEdit3("Fog color", &environment.FogColor.x, ImGuiColorEditFlags_Float);
-			changed |= ImGui::DragFloatRange2("Fog distance", &environment.FogStart, &environment.FogEnd, 0.25f, 0.0f, 10000.0f, "%.1f m", "%.1f m");
+			changed |= ImGui::DragFloatRange2("Fog distance", &environment.FogStart, &environment.FogEnd, 0.25f, 0.0f, 10000.0f,
+				"%.1f m", "%.1f m");
 			HelpMarker("Metres from what the camera looks at: where fog starts, and where it hides everything.");
 			ImGui::EndDisabled();
 		}
@@ -49,7 +50,7 @@ namespace Hydro
 		bool changed = ImGui::DragFloat("Exposure", &postProcess.Exposure, 0.05f, -8.0f, 8.0f, "%.2f EV");
 		HelpMarker("HDR views only (render features: HDR). In stops: +1 twice as bright, -1 half. 0 = as lit.");
 
-		// A plain separator and label: the vendored ImGui (1.89 WIP) has no SeparatorText.
+		// The vendored ImGui has no SeparatorText.
 		ImGui::Separator();
 		ImGui::TextDisabled("Bloom");
 		changed |= ImGui::Checkbox("Bloom on", &postProcess.Bloom);

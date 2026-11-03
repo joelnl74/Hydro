@@ -21,10 +21,8 @@ namespace Hydro
 		static TerrainSnapshot Take(const Terrain& terrain);
 	};
 
-	// One brush stroke on a terrain (Terrain plan, "Editing"): the corners, cells and weight texels it changed, before
-	// and after, each kept only over the rectangle that changed. Refers to the terrain by its asset handle and applies
-	// to whatever object is loaded for it, so an undo after a save (which reloads the asset) still edits the terrain
-	// that is drawn.
+	// One brush stroke on a terrain: what it changed, before and after, over the changed rectangle only. Refers to the
+	// terrain by handle, so an undo after a save (which reloads it) still edits the drawn terrain.
 	class TerrainStrokeCommand : public EditorCommand
 	{
 	public:

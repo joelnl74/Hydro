@@ -1,5 +1,6 @@
 #include "hypch.h"
 #include "DataType.h"
+#include "DataTypeRegistry.h"
 
 #include <algorithm>
 
@@ -21,8 +22,43 @@ namespace Hydro
 			case DataFieldKind::Struct: return "Struct";
 			case DataFieldKind::List: return "List";
 			case DataFieldKind::RowRef: return "RowRef";
+			case DataFieldKind::EntityRef: return "EntityRef";
 		}
 		return "Unknown";
+	}
+
+	void ForEachEntityRef(const DataValueType& type, void* value, const std::function<void(EntityRef&)>& visit)
+	{
+		switch (type.Kind)
+		{
+			case DataFieldKind::EntityRef:
+				visit(*static_cast<EntityRef*>(value));
+				break;
+			case DataFieldKind::Struct:
+			{
+				const DataTypeInfo* nested = DataTypeRegistry::Find(type.CppType);
+				if (nested != nullptr)
+				{
+					for (const DataField& field : nested->Fields)
+					{
+						ForEachEntityRef(field.Type, field.Get(value), visit);
+					}
+				}
+				break;
+			}
+			case DataFieldKind::List:
+			{
+				const DataListOps& list = *type.List;
+				const size_t size = list.Size(value);
+				for (size_t i = 0; i < size; i++)
+				{
+					ForEachEntityRef(list.Element, list.At(value, i), visit);
+				}
+				break;
+			}
+			default:
+				break;
+		}
 	}
 
 	const DataField* DataTypeInfo::FindField(const std::string& name) const

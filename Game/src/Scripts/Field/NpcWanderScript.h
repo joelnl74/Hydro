@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/NpcWanderScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -11,18 +10,8 @@
 
 namespace Hydro
 {
-	// A townsperson who walks: back and forth along a line through where it was placed (Axis X: along the street,
-	// Y: towards and away from the camera), stopping for a while at each end and sometimes in between, playing the
-	// sheet's Walk<Facing> clips while moving and Idle<Facing> while standing. With WorkClip set (for example "Work",
-	// the temple monk's sweeping) it plays Work<Facing> instead of standing still, one pause in WorkEvery; with
-	// WorkStartClip / WorkEndClip (Once clips) it plays those first and last, the shrine cat lying down to sleep and
-	// getting up again (Nov 3, 2026).
-	// Moves the transform directly (no physics body): its collider follows, so the player still bumps into it.
-	// It keeps Clearance metres ahead free: when the Player or another townsperson (a collider on the Npc layer)
-	// stands there, it stops and waits, facing that way; after Patience seconds it turns back (a round walker, Loop,
-	// goes on through instead).
-	// Put it on an NPC entity with a SpriteAnimatorComponent whose sheet has Walk<Facing> clips; without them the
-	// idle plays while it moves, which is better than a frozen frame.
+	// A townsperson who walks back and forth along a line through where it was placed, pausing (or working) at the ends and
+	// sometimes between. Moves the transform directly; waits while the way ahead is blocked.
 	HY_SCRIPT()
 	class NpcWanderScript : public ScriptableEntity
 	{
@@ -158,8 +147,7 @@ namespace Hydro
 			}
 		}
 
-		// True (standing, facing the way) while the player or another townsperson is within Clearance ahead; after
-		// Patience seconds of that it turns back, or (Loop) walks on through for a moment.
+		// True while someone is within Clearance ahead; after Patience seconds it turns back, or (Loop) walks on through.
 		bool WaitWhileBlocked(float direction, float deltaTime)
 		{
 			if (m_PassThrough > 0.0f)
@@ -226,7 +214,7 @@ namespace Hydro
 			return false;
 		}
 
-		// Where to walk next: the other end of the line, or (StopChance) a spot between here and there.
+		// The other end of the line, or (StopChance) a spot between here and there.
 		void PickNextTarget()
 		{
 			if (Loop)
@@ -260,8 +248,7 @@ namespace Hydro
 			SetWorldPosition(position);
 		}
 
-		// Standing: the work clip at one stop in WorkEvery (facing the camera, where the broom shows, unless
-		// WorkFacesCamera is off), after WorkStartClip when it has one, else idle.
+		// The work clip at one stop in WorkEvery, after WorkStartClip when it has one, else idle.
 		void PlayStanding()
 		{
 			if (WorkClip.empty() == false && WorkEvery > 0 && (m_Stops % WorkEvery) == 0)
@@ -289,7 +276,7 @@ namespace Hydro
 			return played;
 		}
 
-		// A clip prefix in the way it faces, else facing the camera; from its first frame.
+		// In the way it faces, else facing the camera; from its first frame.
 		bool PlayFacing(const std::string& prefix)
 		{
 			if (SpriteAnimator::Play(GetEntity(), prefix + m_Facing, true))

@@ -6,9 +6,8 @@
 
 namespace Hydro
 {
-	// A scene's look under forward lighting (plan M6), saved in the scene (SceneSerializer, "Environment")
-	// and copied on Play. Without it (Override false) the scene's Global lights are its ambient light (sky
-	// and ground alike) and there is no fog, so a 2D scene switched to the 3D preset keeps its mood.
+	// A scene's look under forward lighting, saved in the scene. Without it (Override off) its Global lights are the
+	// ambient and there is no fog, so a 2D scene switched to the 3D preset keeps its mood.
 	struct SceneEnvironment
 	{
 		bool Override = false;
@@ -28,7 +27,7 @@ namespace Hydro
 		bool operator!=(const SceneEnvironment& other) const { return (*this == other) == false; }
 	};
 
-	// Point and spot lights one view is lit with: the nearest to the camera are kept (Renderer2D warns once).
+	// The lights one view is lit with: those reaching nearest to the camera's ground focus are kept (warned once).
 	constexpr uint32_t MaxForwardLightsPerView = 64;
 
 	enum class ForwardLightType : uint32_t
@@ -49,17 +48,14 @@ namespace Hydro
 		float CosOuter = 1.0f;
 	};
 
-	// Everything a view is lit with this frame: SceneRenderer gathers it from the scene and hands it to
-	// Renderer2D::SetSceneLighting, which uploads it into the view's set 0 (VulkanGPUData.h,
-	// FrameLightingUniform and the light storage buffer).
+	// Everything a view is lit with this frame, gathered by SceneRenderer and uploaded by Renderer2D::SetSceneLighting.
 	struct SceneLighting
 	{
 		glm::vec3 CameraPosition{ 0.0f };
 		bool HasSun = false;
 		glm::vec3 SunDirection{ 0.0f, 0.0f, -1.0f }; // where the light travels
 		glm::vec3 SunColor{ 0.0f };                   // times the intensity
-		// Sun shadows (DirectionalLightComponent): drawn when the view has the SunShadows render feature.
-		// The shadow map covers ShadowDistance metres around FogOrigin (what the camera looks at).
+		// Drawn when the view has the SunShadows feature; the map covers ShadowDistance metres around FogOrigin.
 		bool SunShadows = false;
 		float ShadowStrength = 1.0f;
 		float ShadowDistance = 24.0f;
@@ -68,8 +64,7 @@ namespace Hydro
 		glm::vec3 GroundAmbient{ 0.0f };
 		bool Fog = false;
 		glm::vec3 FogColor{ 0.0f };
-		// Fog distance is measured from here, not from the camera: the point on the ground the camera looks at.
-		// So a camera far above the scene (the editor's top-down view) sees it as clearly as the tilted one.
+		// Fog is measured from the ground point the camera looks at, so a camera far above sees as clearly as a tilted one.
 		glm::vec3 FogOrigin{ 0.0f };
 		float FogStart = 0.0f;
 		float FogEnd = 1.0f;

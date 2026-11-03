@@ -57,8 +57,7 @@ namespace Hydro
 			return grid;
 		}
 
-		// Gaps between sprites are the large ones; a gap under a third of the largest is a hole
-		// inside a sprite (between legs, say), so those runs are joined.
+		// A gap under a third of the largest is a hole inside a sprite (between legs, say), so those runs are joined.
 		uint32_t largestGap = 0;
 		for (size_t i = 1; i < runs.size(); i++)
 		{
@@ -88,14 +87,12 @@ namespace Hydro
 			return grid;
 		}
 
-		// Even spacing from the first and last sprite's centres, so sprites of different widths
-		// still give the right step.
+		// Even spacing from the first and last sprites' centres, so sprites of different widths still give the right step.
 		const float firstCentre = 0.5f * (float)(merged.front().Start + merged.front().End + 1);
 		const float lastCentre = 0.5f * (float)(merged.back().Start + merged.back().End + 1);
 		grid.Cell = std::max(1u, (uint32_t)std::lround((lastCentre - firstCentre) / (float)(grid.Count - 1)));
 
-		// The first cell is centred on the first sprite, but never so far in that the last cell
-		// falls off the image (sheets usually start at 0 with sprites not centred in their cells).
+		// The first cell is centred on the first sprite, but never so far in that the last cell falls off the image.
 		const float centredOffset = firstCentre - 0.5f * (float)grid.Cell;
 		uint32_t offset = centredOffset > 0.0f ? (uint32_t)std::lround(centredOffset) : 0u;
 		const uint64_t gridSize = (uint64_t)grid.Count * grid.Cell;
@@ -106,8 +103,8 @@ namespace Hydro
 		grid.Offset = offset;
 		return grid;
 	}
-
-	std::vector<SpriteRegion> SpriteSlicer::SliceGrid(uint32_t width, uint32_t height, const SpriteSlicingConfig& slicing, const std::string& baseName)
+	std::vector<SpriteRegion> SpriteSlicer::SliceGrid(uint32_t width, uint32_t height, const SpriteSlicingConfig& slicing,
+		const std::string& baseName)
 	{
 		std::vector<SpriteRegion> sprites;
 		if (slicing.CellSize.x == 0 || slicing.CellSize.y == 0)
@@ -155,8 +152,8 @@ namespace Hydro
 
 		return sprites;
 	}
-
-	bool SpriteSlicer::DetectGrid(const uint8_t* rgba, uint32_t width, uint32_t height, const TextureImportConfig& config, SpriteSlicingConfig& slicing)
+	bool SpriteSlicer::DetectGrid(const uint8_t* rgba, uint32_t width, uint32_t height, const TextureImportConfig& config,
+		SpriteSlicingConfig& slicing)
 	{
 		if (rgba == nullptr || width == 0 || height == 0)
 		{

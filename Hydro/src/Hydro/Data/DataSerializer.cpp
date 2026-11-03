@@ -98,6 +98,7 @@ namespace Hydro
 			case DataFieldKind::Struct: return "a map of fields";
 			case DataFieldKind::List: return "a list";
 			case DataFieldKind::RowRef: return "{ Table: <handle>, Row: <id> }";
+			case DataFieldKind::EntityRef: return "an entity's UUID (a number, 0 = none)";
 		}
 		return "a value";
 	}
@@ -113,6 +114,8 @@ namespace Hydro
 		// Value problems (unreadable values, unknown keys) are reported by CheckRecord, not while loading, so the
 		// same check serves a record in memory; it reads the kept value again with this on to say why.
 		bool ReportValues = false;
+		// A record keeps what it can't read (DataKeptValues); a value read on its own (ReadValue) doesn't.
+		bool KeepsValues = true;
 	};
 
 	static void ReadStruct(const YAML::Node& node, const DataTypeInfo& type, void* object, DataKeptValues& kept,
@@ -154,8 +157,8 @@ namespace Hydro
 		}
 	}
 
-	// Reads `node` into `value`. false when it can't be read (reported here); the caller keeps the file's
-	// value and the field its default. `kept` is the enclosing record's, `keptKey` this value's key in it.
+	// False when unreadable (reported here); the caller keeps the file's value and the field its default. `kept` is
+	// the enclosing record's kept values, `keptKey` this value's key in it.
 	static bool ReadValue(const YAML::Node& node, const DataValueType& valueType, void* value, DataKeptValues& kept,
 		const std::string& keptKey, const std::string& path, DataReadContext& context)
 	{
@@ -163,7 +166,8 @@ namespace Hydro
 		{
 			if (context.ReportValues)
 			{
-				context.Report->AddError(context.Row, path, reason + " (the file's value is kept until the field is set)");
+				context.Report->AddError(context.Row, path, reason
+					+ (context.KeepsValues ? " (the file's value is kept until the field is set)" : ""));
 			}
 			return false;
 		};
@@ -347,6 +351,17 @@ namespace Hydro
 				*static_cast<DataRowRef*>(value) = std::move(result);
 				return true;
 			}
+			case DataFieldKind::EntityRef:
+			{
+				uint64_t id = 0;
+				if (ReadScalar(node, id) == false)
+				{
+					return expected();
+				}
+				// The scene is set when the value is applied to a script (ForEachEntityRef).
+				*static_cast<EntityRef*>(value) = EntityRef(UUID(id));
+				return true;
+			}
 		}
 		return expected();
 	}
@@ -377,13 +392,13 @@ namespace Hydro
 			const DataField* field = type.FindField(key);
 			if (field == nullptr)
 			{
-				// A former name (HY_PROPERTY(FormerName("..."))): its value is the field's, unless the record also has
-				// one under the field's name (or another former name); then that one wins and this one is kept as an
-				// unknown key.
+				// A former name: its value is the field's unless the record also has one under the field's name (or another
+				// former name), which then wins; this one is kept as an unknown key.
 				field = type.FindFieldByFormerName(key);
 				if (field != nullptr && node[field->Name].IsDefined() == false && read.count(field) == 0)
 				{
-					context.Report->AddWarning(context.Row, fieldPath, "saved under " + field->Name + "'s former name; saving the file writes '" + field->Name + "'");
+					context.Report->AddWarning(context.Row, fieldPath, "saved under " + field->Name
+						+ "'s former name; saving the file writes '" + field->Name + "'");
 				}
 				else
 				{
@@ -404,8 +419,7 @@ namespace Hydro
 				continue; // "Speaker:" with nothing after it: the default
 			}
 
-			// What the file had that can't be used is kept under the field's current name (also when it was read
-			// under a former one), which is where saving writes the field.
+			// What can't be used is kept under the field's current name, where saving writes the field.
 			if (ReadValue(entry.second, field->Type, field->Get(object), kept, field->Name, JoinPath(path, field->Name), context) == false)
 			{
 				// The field keeps its default; a list may have been half read, so put its default back.
@@ -438,7 +452,8 @@ namespace Hydro
 		}
 	}
 
-	static void CheckStruct(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row, DataReport& report);
+	static void CheckStruct(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row,
+		DataReport& report);
 
 	static void CheckValue(const DataField& field, const DataValueType& valueType, const void* value, const std::string& path,
 		const std::string& row, DataReport& report)
@@ -497,7 +512,8 @@ namespace Hydro
 		}
 	}
 
-	static void CheckStruct(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row, DataReport& report)
+	static void CheckStruct(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row,
+		DataReport& report)
 	{
 		for (const DataField& field : type.Fields)
 		{
@@ -523,9 +539,10 @@ namespace Hydro
 		}
 	}
 
-	// What a record keeps from its file: unknown keys (warnings) and unreadable values (errors, with the reason found
-	// by reading the kept value again into a scratch instance), at every level of nesting.
-	static void CheckKept(const DataKeptValues& kept, const DataTypeInfo& type, const std::string& path, const std::string& row, DataReport& report)
+	// What a record kept from its file, at every level: unknown keys (warnings) and unreadable values (errors, with
+	// the reason found by reading them again into a scratch instance).
+	static void CheckKept(const DataKeptValues& kept, const DataTypeInfo& type, const std::string& path, const std::string& row,
+		DataReport& report)
 	{
 		if (kept.Unknown.IsMap())
 		{
@@ -564,7 +581,8 @@ namespace Hydro
 				if (readable && report.GetMessages().size() == before)
 				{
 					// It reads now (an enumerator was added back, say): it is used once the file is loaded again.
-					report.AddWarning(row, fieldPath, "the file's value " + Describe(entry.second) + " is kept but not used until the file is loaded again");
+					report.AddWarning(row, fieldPath, "the file's value " + Describe(entry.second)
+						+ " is kept but not used until the file is loaded again");
 				}
 			}
 		}
@@ -660,7 +678,8 @@ namespace Hydro
 	}
 
 	// Keys the format doesn't know, at the top of the file or in its section: reported, not kept.
-	static void ReportUnknownKeys(const YAML::Node& map, const std::vector<std::string>& known, const std::string& where, DataReport& report)
+	static void ReportUnknownKeys(const YAML::Node& map, const std::vector<std::string>& known, const std::string& where,
+		DataReport& report)
 	{
 		for (const auto& entry : map)
 		{
@@ -713,12 +732,14 @@ namespace Hydro
 			type = DataTypeRegistry::FindByFormerName(node.Scalar());
 			if (type != nullptr)
 			{
-				report.AddWarning("", "Type", "'" + node.Scalar() + "' is " + type->Name + "'s former name; saving the file writes '" + type->Name + "'");
+				report.AddWarning("", "Type", "'" + node.Scalar() + "' is " + type->Name + "'s former name; saving the file writes '"
+					+ type->Name + "'");
 			}
 		}
 		if (type == nullptr)
 		{
-			report.AddError("", "Type", "unknown data type '" + node.Scalar() + "' (was the struct renamed without a FormerName, or its HY_DATA removed?)");
+			report.AddError("", "Type", "unknown data type '" + node.Scalar()
+				+ "' (was the struct renamed without a FormerName, or its HY_DATA removed?)");
 		}
 		return type;
 	}
@@ -846,7 +867,8 @@ namespace Hydro
 				const std::string id = entry.first.Scalar();
 				if (data.Rows.find(id) != data.Rows.end())
 				{
-					report.AddError(id, "", "duplicate row ID: the second row is ignored and the file is read-only until it is fixed in a text editor");
+					report.AddError(id, "",
+						"duplicate row ID: the second row is ignored and the file is read-only until it is fixed in a text editor");
 					structureBroken = true;
 					continue;
 				}
@@ -980,7 +1002,9 @@ namespace Hydro
 				}
 				// Lists of numbers on one line ([10, 20]); text, enums, structs and references one entry per line.
 				const DataFieldKind element = list.Element.Kind;
-				const bool oneLine = element == DataFieldKind::Bool || element == DataFieldKind::Int || element == DataFieldKind::Float || element == DataFieldKind::Asset;
+				const bool oneLine = element == DataFieldKind::Bool || element == DataFieldKind::Int || element == DataFieldKind::Float
+					|| element == DataFieldKind::Asset
+					|| element == DataFieldKind::EntityRef;
 				if (oneLine)
 				{
 					out << YAML::Flow;
@@ -1002,6 +1026,9 @@ namespace Hydro
 				out << YAML::EndMap;
 				break;
 			}
+			case DataFieldKind::EntityRef:
+				out << (uint64_t)static_cast<const EntityRef*>(value)->GetId();
+				break;
 		}
 	}
 
@@ -1109,5 +1136,30 @@ namespace Hydro
 			out << YAML::EndMap;
 		}
 		return EndFile(out, text);
+	}
+
+	bool DataSerializer::ReadValue(const YAML::Node& node, const DataValueType& type, void* value, DataReport& report,
+		const std::string& path)
+	{
+		// A value outside a record: what can't be read is reported, not kept, and so are a struct's unknown keys.
+		DataKeptValues kept;
+		DataReadContext context;
+		context.Report = &report;
+		context.ReportValues = true;
+		context.KeepsValues = false;
+		const bool read = ::Hydro::ReadValue(node, type, value, kept, "", path, context);
+		if (kept.Unknown.IsMap() && kept.Unknown.size() > 0)
+		{
+			for (const auto& entry : kept.Unknown)
+			{
+				report.AddWarning("", JoinPath(path, entry.first.Scalar()), "unknown field (dropped when saved)");
+			}
+		}
+		return read;
+	}
+
+	void DataSerializer::WriteValue(YAML::Emitter& out, const DataValueType& type, const void* value)
+	{
+		::Hydro::WriteValue(out, type, value, nullptr, "");
 	}
 }

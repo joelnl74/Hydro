@@ -11,14 +11,8 @@ namespace Hydro
 		Orthographic = 1
 	};
 
-	// A projection matrix. The base of EditorCamera, and what SceneRenderer builds from a scene's
-	// CameraComponent (SceneCamera::GetProjection) to call Renderer2D::BeginScene.
-	//
-	// Every projection in Hydro is built by the static functions below, so the Vulkan clip-space
-	// conventions are handled once, here:
-	//  - depth range [0, 1] (GLM's *_ZO functions; no GLM_FORCE_DEPTH_ZERO_TO_ONE needed),
-	//  - Y flip: Vulkan's clip-space Y points down; world +Y points up on screen.
-	// Right-handed: the camera looks down -Z, +X is right, +Y is up.
+	// A projection matrix. Every projection is built by the functions below, so Vulkan's clip space (depth 0..1, Y down)
+	// is handled once, here. Right-handed: the camera looks down -Z.
 	class Camera
 	{
 	public:

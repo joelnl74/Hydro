@@ -1,4 +1,3 @@
-// Game/src/Scripts/Battle/BattleScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -21,30 +20,8 @@
 #include <random>
 #include <unordered_map>
 
-// Native scripts of the Diorama RPG battle prototype (docs/DioramaRPG.md): enemies that wander and chase the
-// player in the village (Assets/Scenes/StatueVillage.hyscene: slimes in the Slime Field, spirit wisps in the
-// meadow and the field), and the party battle they start (Assets/Scenes/Battle.hyscene). The village is pushed
-// down on the scene stack while the battle runs (SceneTransition) and carries on when it ends.
-//
-// The party: the shrine maiden Miko (Characters/Player/Miko: BattleIdle, Walk*, Punch, Kick, Death) and, once he
-// has joined (BattleState::InParty), Orin Kenshi (Characters/Player/Orin, a stand-in sheet for now); a hero not in the
-// party is hidden and left out of the turn order, the enemies' targets and the result. Each hero has "Hero <Id>",
-// "Hero <Id> Shadow" (scripts/battle/party_slots.py) and "Status <Id>" (scripts/ui/build_game_ui.py) in the scene,
-// so another hero is a file in BattleData::HeroFiles, a name in HeroIds, its entities and HeroCount + 1. The battle
-// is a 3D forest arena. The numbers are data (the Scripting plan's SC7): the hero (Data/Characters/Miko.hydef),
-// the enemies (Enemies.hytable), who fights together (Encounters.hytable), the abilities (Abilities.hytable) and the
-// level curve (Characters/LevelCurve.hydef), read through BattleData.
-//
-// Quick prototype code for play testing: the rules and the presentation live together here. The HUD is
-// runtime UI on the 1920 x 1080 canvas (scripts/ui/build_game_ui.py builds it): "Battle UI Canvas", a child of the
-// Battle Director so its buttons' events reach this script, holds the turn order, the party's status, the message
-// banner and the command and target lists; each enemy's shield and weaknesses are a World canvas ("Enemy <i> Info")
-// pinned under its feet. The damage numbers, the target cursor and the turn marker are still sprites in the world.
-//
-// Battle keys: Up / Down (W / S) pick a command and Enter / Space / Z uses it (or click it). An attack or a
-// damaging skill then opens the target list: Up / Down or Left / Right (A / D) move the cursor over the enemies,
-// Enter (or a click) strikes, Esc / Backspace / X goes back to the commands. E / Q raise and lower the boost
-// (spend Momentum: more hits or a stronger skill).
+// The party battle (Battle.hyscene) started by enemies in the field scenes: turn order, commands, targets, strikes and the HUD.
+// Prototype code: rules and presentation live together here. Numbers come from data via BattleData (docs/Scripting.md).
 
 namespace Hydro
 {
@@ -56,8 +33,7 @@ namespace Hydro
 	{
 	public:
 
-		// The stage camera (see "Stage camera" below). The scene's positions were baked with these values by
-		// scripts/battle/build_arena.py (keep its CAMERA in step); changing them moves the view, the HUD stays put.
+		// The stage camera. scripts/battle/build_arena.py baked the scene with these values (keep its CAMERA in step).
 		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down (the field's is 50 to 70)"))
 		float CameraTilt = 73.0f;
 		HY_PROPERTY(Range(5, 90), Tooltip("Vertical field of view in degrees"))
@@ -67,7 +43,7 @@ namespace Hydro
 		HY_PROPERTY(Range(1, 100), Tooltip("Metres seen from the bottom of the screen to the top at the focus point"))
 		float ViewHeight = 10.0f;
 
-		// The hero's strikes: she walks up to the target, strikes on the clip's contact frame and walks back.
+		// The hero's strikes: walk up to the target, strike on the clip's contact frame, walk back.
 		HY_PROPERTY(Range(0.5, 30), Tooltip("Metres per second walking up to the target"))
 		float WalkSpeed = 4.5f;
 		HY_PROPERTY(Range(0.5, 30), Tooltip("Metres per second walking back"))
@@ -90,7 +66,7 @@ namespace Hydro
 	protected:
 		void OnCreate() override
 		{
-			BattleState::Get().StartParty(); // the battle played on its own
+			BattleState::Get().StartParty(); // the Battle scene played on its own
 			if (FullPartyWhenAlone && SceneTransition::GetDepth() == 0)
 			{
 				for (int h = 0; h < HeroCount; h++)
@@ -108,7 +84,6 @@ namespace Hydro
 				Hero& hero = m_Heroes[h];
 				hero.Sprite = Find(scene, prefix);
 				hero.Shadow = Find(scene, prefix + " Shadow");
-				// Her status on the right (runtime UI): "Status <Name>" ...
 				const std::string status = std::string("Status ") + BattleData::HeroIds[h];
 				hero.StatusName = Find(scene, status + " Name");
 				hero.StatusHP = Find(scene, status + " HP");
@@ -125,7 +100,7 @@ namespace Hydro
 				hero.Momentum = 1;
 				if (BattleState::Get().InParty(h) == false)
 				{
-					// Not in the party (yet): no sprite, shadow or status; ActorAlive leaves it out of everything.
+					// Not in the party: hidden, and ActorAlive leaves it out of everything.
 					SetColor(scene, hero.Sprite, glm::vec4(0.0f));
 					SetShadowStrength(scene, hero.Shadow, 0.0f);
 					UI::SetVisible(EntityOf(Find(scene, status)), false);
@@ -143,7 +118,6 @@ namespace Hydro
 				const std::string prefix = "Enemy " + std::to_string(e);
 				Enemy& enemy = m_Enemies[e];
 				enemy.Row = BattleState::Get().Encounter[e];
-				// A slot: "Enemy <i>" plays the enemy's animations, "Enemy <i> Shadow" is its contact shadow.
 				enemy.Sprite = Find(scene, prefix);
 				enemy.Shadow = Find(scene, prefix + " Shadow");
 				enemy.Light = Find(scene, prefix + " Light");
@@ -174,7 +148,7 @@ namespace Hydro
 				m_CommandNames[c] = Find(scene, "Command " + std::to_string(c) + " Name");
 				m_CommandCosts[c] = Find(scene, "Command " + std::to_string(c) + " Cost");
 			}
-			// The sub-menu (the Menu plan's M2): the hero's ability slots, or the items usable in battle.
+			// The sub-menu: the hero's ability slots, or the items usable in battle.
 			m_SubPanel = Find(scene, "Sub Panel");
 			m_SubTitle = Find(scene, "Sub Title");
 			m_SubHelp = Find(scene, "Sub Help");
@@ -212,7 +186,6 @@ namespace Hydro
 			}
 			m_MessagePanel = Find(scene, "Battle Message Panel");
 			m_MessageText = Find(scene, "Battle Message Text");
-			// The menu opens on the hero's first turn (Present).
 			UI::SetVisible(EntityOf(m_CommandPanel), false);
 			UI::SetVisible(EntityOf(m_TargetPanel), false);
 			UI::SetVisible(EntityOf(m_SubPanel), false);
@@ -277,7 +250,6 @@ namespace Hydro
 					UpdateAction(scene);
 					break;
 				case Phase::Victory:
-					// "Victory!", then the experience and the level ups, ResultTime apart.
 					if (m_NextResult < (int)m_Results.size() && m_PhaseTime >= ResultTime * (float)(m_NextResult + 1))
 					{
 						ShowMessage(m_Results[(size_t)m_NextResult], ResultTime);
@@ -302,10 +274,8 @@ namespace Hydro
 			Present(scene);
 		}
 
-		// The menus' buttons ("Command 0" to "Command 4", "Sub Command 0" to "Sub Command 7", "Target 0" to "Target 2")
-		// bubble their events up to the Battle Director: a command, a sub-menu row, the enemy under the cursor (focus),
-		// the target chosen, or Cancel (back: from the targets to where they were opened from, from a sub-menu to the
-		// commands).
+		// The menus' buttons bubble their events up to the Battle Director: a command, a sub-menu row, the focused or chosen
+		// target, or Cancel.
 		bool OnUIEvent(const UIEvent& event) override
 		{
 			const bool targeting = m_Phase == Phase::Command && m_Targeting;
@@ -366,7 +336,7 @@ namespace Hydro
 				}
 				if (event.Type == UIEventType::FocusEnter)
 				{
-					m_HelpCommand = c; // the help line follows the focus
+					m_HelpCommand = c;
 				}
 				else if (event.Type == UIEventType::Submit && m_Phase == Phase::Command)
 				{
@@ -379,24 +349,22 @@ namespace Hydro
 
 	private:
 		enum class Phase : uint8_t { Intro, NextTurn, Command, EnemyThink, Acting, Victory, Defeat, Fleeing, Done };
-		// The command list's rows (Attack to Run), then what an action is: an ability from a slot, an item, an
-		// enemy's attack.
+		// The command list's rows (Attack to Run), then the kinds of action.
 		enum class Command : uint8_t { Attack = 0, Abilities, Items, Guard, Run, Skill, Item, EnemyAttack };
 		static constexpr int CommandCount = 5;
-		static constexpr int SubRows = BattleState::AbilitySlotCount; // the sub-menu's rows (8 ability slots)
+		static constexpr int SubRows = BattleState::AbilitySlotCount;
 		enum class SubMenu : uint8_t { None, Abilities, Items };
 
 		struct Hero
 		{
 			entt::entity Sprite = entt::null;
-			entt::entity Shadow = entt::null; // "<name> Shadow": the contact shadow on the floor under her feet
-			// Her status (runtime UI): name, HP and MP texts, the bars' fills (their width is the fraction), boost pips.
+			entt::entity Shadow = entt::null; // the contact shadow on the floor
 			entt::entity StatusName = entt::null, StatusHP = entt::null, StatusMP = entt::null;
 			entt::entity StatusHPFill = entt::null, StatusMPFill = entt::null;
 			entt::entity StatusPips[BattleState::MaxMomentum] = { entt::null, entt::null, entt::null, entt::null, entt::null };
-			glm::vec2 Base{ 0.0f };   // where she stands, in layout units (see "Stage camera")
-			glm::vec2 Offset{ 0.0f }; // from Base while she walks up to a target and back (layout units)
-			float Size = 2.4f;        // the sprite's height in metres
+			glm::vec2 Base{ 0.0f };   // where she stands, in layout units
+			glm::vec2 Offset{ 0.0f }; // from Base while she walks to a target and back
+			float Size = 2.4f;        // sprite height in metres
 			int Momentum = 1;
 			bool BoostedLastRound = false;
 			bool Guarding = false;
@@ -405,15 +373,15 @@ namespace Hydro
 
 		struct Enemy
 		{
-			std::string Row;                 // its row of Enemies.hytable; empty: the slot isn't used
-			entt::entity Sprite = entt::null; // "Enemy <i>": plays the enemy's animations
-			entt::entity Shadow = entt::null; // "Enemy <i> Shadow": its contact shadow on the floor
+			std::string Row;                 // its row of Enemies.hytable; empty: the slot is unused
+			entt::entity Sprite = entt::null;
+			entt::entity Shadow = entt::null;
 			entt::entity Light = entt::null;
-			// Its info (a World canvas pinned under its feet): shield badge and count, the weakness label and icons, HP.
+			// Its info: a World canvas pinned under its feet.
 			entt::entity Info = entt::null, HPFill = entt::null, ShieldIcon = entt::null, ShieldCount = entt::null, WeakLabel = entt::null;
 			entt::entity WeakIcons[3] = { entt::null, entt::null, entt::null };
 			glm::vec2 Base{ 0.0f };
-			float Size = 1.3f;               // the sprite's height in metres
+			float Size = 1.3f;               // sprite height in metres
 			int HP = 0;
 			int Shield = 0;
 			int BrokenUntilRound = -1; // broken while m_Round <= this
@@ -431,7 +399,7 @@ namespace Hydro
 			float Time = 10.0f;
 		};
 
-		// Actors: the heroes first (0 to HeroCount - 1), then the enemies.
+		// Actors: the heroes first, then the enemies.
 		static constexpr int ActorCount = HeroCount + BattleState::MaxEnemies;
 		static bool IsHero(int actor) { return actor < HeroCount; }
 		static int EnemyIndex(int actor) { return actor - HeroCount; }
@@ -440,26 +408,24 @@ namespace Hydro
 		{
 			int Actor = 0;
 			Command Kind = Command::Attack;
-			int Target = 0;    // enemy index for attacks and damaging skills, hero index for heals and enemy attacks
-			int Slot = 0;      // Skill: the ability slot
-			DataRowRef Item;   // Item: what is used
+			int Target = 0;    // an enemy for attacks, a hero for heals and enemy attacks
+			int Slot = 0;
+			DataRowRef Item;
 			int Boost = 0;
 			int HitsDone = 0;
 			int Hits = 1;
 
-			// A hero's strike sequence (UpdateHeroStrikes): walk up, strikes, walk back.
 			enum class Stage : uint8_t { Approach, Strike, Return };
 			Stage Step = Stage::Strike;
 			float StepTime = 0.0f;
 			float StepDuration = 0.0f;
-			int Strike = 0;          // strikes started
+			int Strike = 0;
 			bool EffectStarted = false;
 			bool Landed = false;
 			glm::vec2 From{ 0.0f };  // the hero's offset at the start of a walk
 			glm::vec2 To{ 0.0f };    // and at its end
 		};
 
-		// What a strike looks like: the hero's clip, and the effect that goes with it.
 		enum class StrikeMove : uint8_t { Punch, Kick };
 
 		// ---- Flow -----------------------------------------------------------------------------------------
@@ -468,7 +434,7 @@ namespace Hydro
 		{
 			m_Phase = phase;
 			m_PhaseTime = 0.0f;
-			m_Targeting = false; // a new phase (or the next hero's turn) starts on the commands
+			m_Targeting = false; // a new phase or turn starts on the commands
 			m_SubMenu = SubMenu::None;
 			m_ChosenSub = -1;
 			m_CancelSub = false;
@@ -477,7 +443,6 @@ namespace Hydro
 		void StartRound()
 		{
 			m_Round++;
-			// Momentum, and shields come back once a break has run its course.
 			for (int h = 0; h < HeroCount; h++)
 			{
 				Hero& hero = m_Heroes[h];
@@ -497,7 +462,6 @@ namespace Hydro
 				}
 			}
 
-			// Fastest first, with a little luck (BattleRules::TurnOrder; -1 leaves a fallen actor out).
 			std::vector<int> speeds;
 			for (int actor = 0; actor < ActorCount; actor++)
 			{
@@ -565,9 +529,7 @@ namespace Hydro
 			{
 				ShowMessage(BattleLabel::Victory);
 				HY_INFO("Battle: victory!");
-				// Experience from every enemy of the encounter (Enemies.hytable: Experience), then a line for each
-				// level up, shown one after the other before the battle closes.
-				// Each defeat also counts for the side quests asking for it (QuestRules), and each drops its aster.
+				// Each defeat also counts for the side quests asking for it (QuestRules) and drops its aster.
 				int experience = 0;
 				int money = 0;
 				for (const Enemy& enemy : m_Enemies)
@@ -624,7 +586,6 @@ namespace Hydro
 			}
 			else if (m_Phase == Phase::Defeat)
 			{
-				// Down: the village sees the party back on their feet.
 				BattleState::Get().RestoreParty();
 				BattleState::Get().Outcome = BattleState::Result::Lost;
 			}
@@ -633,7 +594,6 @@ namespace Hydro
 				BattleState::Get().Outcome = BattleState::Result::Fled;
 			}
 
-			// Fallen heroes get up with 1 HP after a won or fled battle.
 			for (int h = 0; h < HeroCount; h++)
 			{
 				BattleState::Get().HeroHP[h] = std::max(1, BattleState::Get().HeroHP[h]);
@@ -642,8 +602,7 @@ namespace Hydro
 			SceneTransition::Pop();
 		}
 
-		// The loot of a won battle (Loot.hytable): each enemy's table, then the encounter's, into the run's inventory,
-		// and a "Found ..." line for the results.
+		// The loot of a won battle (Loot.hytable): each enemy's table, then the encounter's.
 		void GiveLoot()
 		{
 			std::vector<LootRules::Drop> drops;
@@ -651,7 +610,8 @@ namespace Hydro
 			const std::function<float()> random = [this]() { return Random01(); };
 			auto rollTable = [&drops, &money, &random](const DataRowRef& reference)
 			{
-				const DataView<LootTableDefinition> table = reference.IsSet() ? Data::GetRow<LootTableDefinition>(reference) : DataView<LootTableDefinition>();
+				const DataView<LootTableDefinition> table = reference.IsSet() ? Data::GetRow<LootTableDefinition>(reference)
+					: DataView<LootTableDefinition>();
 				if (table.IsValid() == false)
 				{
 					return;
@@ -695,7 +655,7 @@ namespace Hydro
 				HY_INFO("Battle: found {}", found);
 				m_Results.push_back("Found " + found + ".");
 			}
-			if (money > 0) // a table's coins (none of the battle tables has any yet)
+			if (money > 0)
 			{
 				Inventory::Get().Money += money;
 				m_Results.push_back("Found " + std::to_string(money) + " " + CurrencyName + " more.");
@@ -709,7 +669,7 @@ namespace Hydro
 			const int h = m_Action.Actor;
 			Hero& hero = m_Heroes[h];
 
-			// Up / Down move the menu's focus (the runtime UI), so the boost has keys of its own.
+			// Up / Down move the menu's focus, so the boost has keys of its own.
 			if (Pressed(10, KeyCode::E))
 			{
 				m_Action.Boost = std::min({ 3, hero.Momentum, m_Action.Boost + 1 });
@@ -719,13 +679,12 @@ namespace Hydro
 				m_Action.Boost = std::max(0, m_Action.Boost - 1);
 			}
 
-			// Choosing the target (the target list is open): Left / Right step the cursor along the enemies as they
-			// stand (the list follows), Up / Down move it through the list (OnUIEvent), Enter strikes, Esc goes back.
+			// Choosing the target: Left / Right step along the enemies as they stand, Up / Down move through the list.
 			const int chosenTarget = m_ChosenTarget;
 			const bool cancel = m_CancelTarget;
 			m_ChosenTarget = -1;
 			m_CancelTarget = false;
-			// (read every frame, so a key held since the commands doesn't fire when the list opens)
+			// Read every frame, so a key held since the commands doesn't fire when the list opens.
 			const bool leftArrow = Pressed(6, KeyCode::Left);
 			const bool leftKey = Pressed(7, KeyCode::A);
 			const bool rightArrow = Pressed(8, KeyCode::Right);
@@ -741,7 +700,7 @@ namespace Hydro
 				}
 				if (cancel)
 				{
-					m_Targeting = false; // back to the sub-menu or the commands it was opened from
+					m_Targeting = false; // back to the sub-menu or the commands
 					m_ChosenCommand = -1;
 					return;
 				}
@@ -755,7 +714,6 @@ namespace Hydro
 				return;
 			}
 
-			// A sub-menu is open: an ability slot or an item, or back to the commands.
 			if (m_SubMenu != SubMenu::None)
 			{
 				const int sub = m_ChosenSub;
@@ -807,7 +765,6 @@ namespace Hydro
 				return;
 			}
 
-			// The command the menu submitted (OnUIEvent), once.
 			const int chosen = m_ChosenCommand;
 			m_ChosenCommand = -1;
 			if (chosen < 0 || chosen >= CommandCount)
@@ -818,7 +775,6 @@ namespace Hydro
 			switch ((Command)chosen)
 			{
 				case Command::Attack:
-					// An attack picks its enemy first.
 					m_Targeting = true;
 					m_TargetCommand = Command::Attack;
 					m_Action.Target = std::max(0, FirstLivingEnemy(m_Action.Target));
@@ -837,15 +793,15 @@ namespace Hydro
 			}
 		}
 
-		// The battle's usable items: lines of the run's inventory that restore HP or MP and are not used up, in the
-		// inventory's order (indices into Inventory::Slots), at most SubRows.
+		// Lines of the run's inventory that restore HP or MP, as indices into Inventory::Slots, at most SubRows.
 		std::vector<int> BattleItems() const
 		{
 			std::vector<int> found;
 			const std::vector<Inventory::Slot>& slots = Inventory::Get().Slots;
 			for (int i = 0; i < (int)slots.size() && (int)found.size() < SubRows; i++)
 			{
-				const DataView<ItemDefinition> item = slots[(size_t)i].Count > 0 ? Data::GetRow<ItemDefinition>(slots[(size_t)i].Item) : DataView<ItemDefinition>();
+				const DataView<ItemDefinition> item = slots[(size_t)i].Count > 0 ? Data::GetRow<ItemDefinition>(slots[(size_t)i].Item)
+					: DataView<ItemDefinition>();
 				if (item.IsValid() && item->Kind == ItemKind::Consumable && (item->RestoreHP > 0 || item->RestoreMP > 0))
 				{
 					found.push_back(i);
@@ -859,8 +815,7 @@ namespace Hydro
 			return BattleData::Skill(m_Action.Actor, m_Action.Slot);
 		}
 
-		// Carries out an action for the hero whose turn it is, on m_Action.Target (an enemy for attacks and damaging
-		// abilities, chosen by the target list; the most hurt hero for heals and items).
+		// The target is an enemy chosen by the target list for attacks, the most hurt hero for heals and items.
 		void UseAction(Command command)
 		{
 			const int h = m_Action.Actor;
@@ -958,14 +913,13 @@ namespace Hydro
 		}
 
 		// ---- The hero's strikes -----------------------------------------------------------------------------
-		// Attack and the strike skills: walk up to the target (Walk<Facing>), one strike per hit on the clip's
-		// contact frame (Punch / Kick), walk back, Idle. Spells (Holy Palm) strike from where she stands.
+		// Spells (Holy Palm) strike from where she stands; Attack and the strike skills walk up to the target first.
 
 		StrikeMove CurrentMove() const
 		{
 			if (m_Action.Kind == Command::Attack)
 			{
-				return m_Action.Strike % 2 == 0 ? StrikeMove::Punch : StrikeMove::Kick; // punch, kick, punch, kick
+				return m_Action.Strike % 2 == 0 ? StrikeMove::Punch : StrikeMove::Kick;
 			}
 			return ActionSkill().Clip == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
 		}
@@ -983,14 +937,14 @@ namespace Hydro
 		float ImpactTime(StrikeMove move) const { return move == StrikeMove::Punch ? PunchImpactTime : KickImpactTime; }
 		float StrikeLength(StrikeMove move) const { return std::max(move == StrikeMove::Punch ? PunchLength : KickLength, ImpactTime(move) + 0.05f); }
 
-		// Where the hero stands to strike the target: StrikeDistance to its right, on the floor.
+		// StrikeDistance to the target's right, on the floor.
 		glm::vec2 StrikeOffset(int target) const
 		{
 			const glm::vec3 enemy = GroundPoint(m_Enemies[target].Base);
 			return LayoutOf(enemy + glm::vec3(StrikeDistance, 0.0f, 0.0f)) - m_Heroes[m_Action.Actor].Base;
 		}
 
-		// Seconds to walk between two offsets of the hero at `speed` metres per second (measured on the floor).
+		// Measured on the floor; `speed` in metres per second.
 		float WalkTime(const glm::vec2& from, const glm::vec2& to, float speed) const
 		{
 			const glm::vec2 base = m_Heroes[m_Action.Actor].Base;
@@ -1017,8 +971,7 @@ namespace Hydro
 			m_Action.StepTime = 0.0f;
 			m_Action.EffectStarted = false;
 			m_Action.Landed = false;
-			// A skill plays its own clip (Holy Palm: DoublePunch); Attack alternates Punch and Kick. A sheet without the
-			// skill's clip falls back to the move's.
+			// A sheet without the skill's own clip falls back to the move's.
 			const Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
 			const char* moveClip = CurrentMove() == StrikeMove::Punch ? "Punch" : "Kick";
 			std::string clip = moveClip;
@@ -1069,7 +1022,7 @@ namespace Hydro
 				{
 					const StrikeMove move = CurrentMove();
 					const float impact = ImpactTime(move);
-					// The effect's sprite starts early enough that its burst frame meets the impact.
+					// Start the effect early enough that its burst frame meets the impact.
 					if (m_Action.EffectStarted == false && m_Action.StepTime >= impact - EffectLead(move, CurrentDamageType()))
 					{
 						m_Action.EffectStarted = true;
@@ -1092,7 +1045,6 @@ namespace Hydro
 						{
 							if (next != m_Action.Target)
 							{
-								// The target fell: walk over to the next one.
 								m_Action.Target = next;
 								BeginApproach();
 							}
@@ -1127,7 +1079,6 @@ namespace Hydro
 			return m_Action.Kind == Command::Skill && ActionSkill().Heals;
 		}
 
-		// The strike lands: damage (or a heal), the impact's particles, light and shake.
 		void LandStrike(StrikeMove move)
 		{
 			const HeroStats& definition = GetHero(m_Action.Actor);
@@ -1157,7 +1108,8 @@ namespace Hydro
 			else
 			{
 				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-				const float stat = type == DamageType::Light || type == DamageType::Fire ? (float)std::max(definition.Magic, definition.Attack) : (float)definition.Attack;
+				const float stat = type == DamageType::Light || type == DamageType::Fire ? (float)std::max(definition.Magic, definition.Attack)
+					: (float)definition.Attack;
 				strong = HitEnemy(m_Action.Target, type, stat, ActionSkill().Power * boost);
 			}
 			m_Action.HitsDone++;
@@ -1166,7 +1118,6 @@ namespace Hydro
 
 		void BeginEnemyAction()
 		{
-			// A random living hero.
 			int living = 0;
 			for (int h = 0; h < HeroCount; h++)
 			{
@@ -1212,7 +1163,8 @@ namespace Hydro
 					{
 						if (item->RestoreMP > 0)
 						{
-							BattleState::Get().HeroMP[m_Action.Target] = std::min(GetHero(m_Action.Target).MaxMP, BattleState::Get().HeroMP[m_Action.Target] + item->RestoreMP);
+							BattleState::Get().HeroMP[m_Action.Target] = std::min(GetHero(m_Action.Target).MaxMP,
+								BattleState::Get().HeroMP[m_Action.Target] + item->RestoreMP);
 						}
 						if (item->RestoreHP > 0)
 						{
@@ -1229,7 +1181,6 @@ namespace Hydro
 
 			if (hero)
 			{
-				// Guard.
 				if (m_PhaseTime >= 0.6f)
 				{
 					EndAction();
@@ -1237,13 +1188,11 @@ namespace Hydro
 				return;
 			}
 
-			// An enemy lunges at its target.
 			if (m_Action.HitsDone == 0 && m_PhaseTime >= 0.45f)
 			{
 				m_Action.HitsDone = 1;
 				const Enemy& enemy = m_Enemies[EnemyIndex(m_Action.Actor)];
-				// Its plain attack or one of its abilities, by weight (BattleRules::ChooseEnemyAction): its Attack times
-				// the ability's Power (Abilities.hytable). Enemies only strike for now: an ability's other effects wait.
+				// Enemies only strike for now: an ability's other effects are not applied yet.
 				const EnemyDefinition& attacker = GetEnemy(enemy.Row);
 				const DataRowRef action = attacker.Abilities.empty() ? attacker.BasicAttack : BattleRules::ChooseEnemyAction(attacker, Random01());
 				const float power = action.IsSet() ? BattleData::Ability(action).Power : 1.0f;
@@ -1252,7 +1201,8 @@ namespace Hydro
 				BattleState::Get().HeroHP[m_Action.Target] = std::max(0, BattleState::Get().HeroHP[m_Action.Target] - damage);
 				target.Flash = 0.35f;
 				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, BattleEffects::HitSparks(DamageType::Blunt, target.Guarding == false), ParticleSpace::View);
+				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, BattleEffects::HitSparks(DamageType::Blunt, target.Guarding == false),
+					ParticleSpace::View);
 				Shake(target.Guarding ? 0.04f : 0.08f);
 				Entity sprite = EntityOf(target.Sprite);
 				if (BattleState::Get().HeroHP[m_Action.Target] <= 0)
@@ -1290,13 +1240,12 @@ namespace Hydro
 			SetPhase(Phase::NextTurn);
 		}
 
-		// Damage to an enemy, its popup and, when it falls, the defeat puff. Returns whether the hit was strong
-		// (weak or critical): the impact effects (PlayImpact) are bigger then.
+		// Returns whether the hit was strong (weak or critical), which makes the impact effects bigger.
 		bool HitEnemy(int index, DamageType type, float stat, float power)
 		{
 			Enemy& enemy = m_Enemies[index];
 			const EnemyDefinition& definition = GetEnemy(enemy.Row);
-			// The rules (BattleRules::ResolveHit); the rolls in a fixed order: the critical, then the spread.
+			// The rolls in a fixed order: the critical, then the spread.
 			const float criticalRoll = Random01();
 			const float spreadRoll = Random01();
 			const BattleRules::HitResult hit = BattleRules::ResolveHit(definition, type, stat, power, IsBroken(enemy), criticalRoll, spreadRoll);
@@ -1348,11 +1297,8 @@ namespace Hydro
 			return weak || critical;
 		}
 
-		// One-shot effect sprites (Battle.hyscene: "FX Strike", "FX Heal"): billboards in the world, placed,
-		// restarted and shown while their clip runs; a point light on the same entity flares with them
-		// (PresentSpriteEffect fades both), so the impact lights the floor and the actors around it (V9: a strong
-		// effect alters the scene around it). They play alongside the particle effects below: the sprite gives the
-		// authored shape, the particles the spray.
+		// One-shot effect sprites ("FX Strike", "FX Heal") with a point light on the same entity that flares with them.
+		// They play alongside the particle effects: the sprite gives the authored shape, the particles the spray.
 		struct SpriteEffect
 		{
 			entt::entity Entity = entt::null;
@@ -1400,8 +1346,7 @@ namespace Hydro
 			}
 		}
 
-		// The clip on FX Strike (Battle/FX_Strikes.hyanim, scripts/battle/fx_strikes.py) for a strike: the punch's
-		// starburst or the kick's swoosh, in fire for Fire (Flame Kick), as light for Light (Holy Palm).
+		// The clip on FX Strike for a strike (Battle/FX_Strikes.hyanim, made by scripts/battle/fx_strikes.py).
 		static const char* StrikeClip(StrikeMove move, DamageType type)
 		{
 			if (type == DamageType::Light)
@@ -1415,8 +1360,7 @@ namespace Hydro
 			return type == DamageType::Fire ? "Flame" : "Punch";
 		}
 
-		// Seconds the effect's sprite starts before the impact, so its burst frame meets it: the kick's swoosh
-		// first follows the leg over the top (4 frames at 14 fps), the punch's burst is on its second frame.
+		// The kick's swoosh first follows the leg over the top (4 frames at 14 fps); the punch's burst is on its second frame.
 		static float EffectLead(StrikeMove move, DamageType type)
 		{
 			const std::string clip = StrikeClip(move, type);
@@ -1427,8 +1371,8 @@ namespace Hydro
 			return clip == "Holy" ? 1.0f / 12.0f : 1.0f / 14.0f;
 		}
 
-		// The effect's sprite at the target, lifted towards the camera so it is drawn over the enemy. The kick's
-		// burst is left of its cell's centre (where the leg lands), so the cell sits a little to the right.
+		// Lifted towards the camera so it draws over the enemy. The kick's burst is left of its cell's centre, so the cell
+		// sits a little to the right.
 		void PlayStrikeEffect(StrikeMove move, DamageType type, int target)
 		{
 			const std::string clip = StrikeClip(move, type);
@@ -1459,8 +1403,7 @@ namespace Hydro
 			}
 		}
 
-		// The moment of impact: sparks in the effect's colours, the light flaring on the floor, a dust kick for a
-		// kick, and the camera shake (stronger for weak and critical hits and for skills).
+		// Sparks, the light flaring on the floor, a dust kick for a kick, and the camera shake (stronger when `strong`).
 		void PlayImpact(StrikeMove move, DamageType type, int target, bool strong)
 		{
 			const Enemy& enemy = m_Enemies[target];
@@ -1547,11 +1490,7 @@ namespace Hydro
 			return best;
 		}
 
-		// The command menu (runtime UI): open with the focus on the hero's last command while she chooses, closed
-		// otherwise. Five commands (Attack, Abilities, Items, Guard, Run); Abilities and Items open the sub-menu in
-		// the commands' place (like the target list): the hero's 8 ability slots (MP cost; the ones she can't pay for, or empty, greyed
-		// out: not Interactable, so neither the keys nor the pointer can pick them), or the usable items with their
-		// counts.
+		// Empty slots and abilities she can't pay for are greyed out (not Interactable), so neither keys nor the pointer pick them.
 		void PresentCommandMenu(int hero, bool choosing)
 		{
 			const HeroStats& definition = GetHero(hero);
@@ -1566,10 +1505,11 @@ namespace Hydro
 				UI::SetInteractable(EntityOf(m_Commands[c]), usable[c]);
 			}
 			UI::SetText(EntityOf(m_CommandHeader), definition.Name);
-			UI::SetText(EntityOf(m_CommandBoost), m_Action.Boost > 0 ? "Boost " + std::to_string(m_Action.Boost) + "   (E / Q)" : std::string("E  Boost"));
+			UI::SetText(EntityOf(m_CommandBoost),
+				m_Action.Boost > 0 ? "Boost " + std::to_string(m_Action.Boost) + "   (E / Q)" : std::string("E  Boost"));
 			UI::SetText(EntityOf(m_CommandHelp), GetCommandHelp(hero, std::clamp(m_HelpCommand, 0, CommandCount - 1)));
 
-			// The sub-menu's rows: the ability slots, or the items (rows past the list hidden, so it closes up).
+			// Rows past the list are hidden, so the list closes up.
 			bool subUsable[SubRows] = {};
 			if (m_SubMenu != SubMenu::None)
 			{
@@ -1611,8 +1551,7 @@ namespace Hydro
 				UI::SetText(EntityOf(m_SubHelp), GetSubHelp(hero, std::clamp(m_HelpSub, 0, SubRows - 1), items));
 			}
 
-			// The target list: one row per enemy still standing (the others are hidden, so the list closes up), with
-			// a letter when two share a name, and their HP. Its header names the command.
+			// One row per enemy still standing (the others are hidden, so the list closes up), with a letter when two share a name.
 			for (int e = 0; e < BattleState::MaxEnemies; e++)
 			{
 				const Enemy& enemy = m_Enemies[e];
@@ -1649,7 +1588,7 @@ namespace Hydro
 				UI::SetText(EntityOf(m_TargetHeader), m_TargetCommand == Command::Skill ? BattleData::Skill(hero, m_Action.Slot).Name : labels[0]);
 			}
 
-			// Which list is open: the commands, a sub-menu or the targets (each in the commands' place), or none.
+			// Each list opens in the commands' place.
 			const bool showCommands = choosing && m_Targeting == false && m_SubMenu == SubMenu::None;
 			const bool showSub = choosing && m_Targeting == false && m_SubMenu != SubMenu::None;
 			const bool showTargets = choosing && m_Targeting;
@@ -1668,8 +1607,7 @@ namespace Hydro
 				m_TargetsShown = showTargets;
 				UI::SetVisible(EntityOf(m_TargetPanel), showTargets);
 			}
-			// Opening a list (hiding the other drops its focus), or the focus was taken away meanwhile (another menu
-			// closed over it): on the hero's last command, or on the enemy under the cursor.
+			// Opening a list, or another menu took the focus away: put it on the hero's last command or the enemy under the cursor.
 			if (choosing && (bool)UI::GetFocused(*GetEntity().GetScene()) == false)
 			{
 				if (m_Targeting)
@@ -1693,7 +1631,6 @@ namespace Hydro
 			}
 		}
 
-		// The help line under the commands: what command c does for this hero.
 		std::string GetCommandHelp(int hero, int c) const
 		{
 			(void)hero;
@@ -1714,7 +1651,6 @@ namespace Hydro
 			}
 		}
 
-		// The sub-menu's help line: the focused ability's or item's description, or what it does.
 		std::string GetSubHelp(int hero, int row, const std::vector<int>& items) const
 		{
 			if (m_SubMenu == SubMenu::Abilities)
@@ -1766,7 +1702,6 @@ namespace Hydro
 			m_MessageTime = seconds;
 		}
 
-		// A message of its own words (a skill's name from data).
 		void ShowMessage(const std::string& text, float seconds = 1.2f)
 		{
 			m_MessageLabel = BattleLabel::Attack; // no special tint
@@ -1785,12 +1720,10 @@ namespace Hydro
 		}
 
 		// ---- Effects (particles) ----------------------------------------------------------------------------
-		// Each effect is a short-lived entity with a ParticleEmitter2DComponent: one burst, then it destroys
-		// itself (DestroyWhenFinished). The presets are plain component values (Roadmap: prefabs later, V5).
+		// Each effect is a short-lived entity with one particle burst that destroys itself when finished.
 
-		// Creates the effect entity `height` metres above `ground` (layout units), a little towards the camera.
-		// The preset's lengths are layout units: scaled to metres here. Creating entities is allowed while scripts
-		// run; the emitter starts in this frame's particle stage.
+		// Creates the effect `height` metres above `ground` (layout units), a little towards the camera.
+		// The preset's lengths are layout units and are scaled to metres here.
 		void PlayEffect(const char* name, const glm::vec2& ground, float height, ParticleEmitter2DComponent settings, ParticleSpace space)
 		{
 			const float k = m_Stage.Scale;
@@ -1811,8 +1744,7 @@ namespace Hydro
 		bool Pressed(int index, KeyCode key)
 		{
 			const bool down = Input::IsKeyPressed(key);
-			// While a runtime UI canvas captures the keyboard (a menu or dialogue, UI::CapturesInput) the battle's keys
-			// don't count; they are still tracked, so a key held when it closes doesn't fire then.
+			// Keys don't count while a UI canvas captures the keyboard, but are still tracked so a held key doesn't fire when it closes.
 			const bool pressed = down && m_Previous[index] == false && UI::CapturesInput(*GetEntity().GetScene()) == false;
 			m_Previous[index] = down;
 			return pressed;
@@ -1843,26 +1775,19 @@ namespace Hydro
 		}
 
 		// ---- Stage camera -----------------------------------------------------------------------------------
-		// The battle keeps its rules and its HUD in layout units (L): the 2D layout it had before the 3D stage,
-		// LayoutHeight units from the bottom of the screen to the top, (0, 0) in the middle. The stage camera maps
-		// them to the world every frame (scripts/battle/stage.py does the same for the builder):
-		//   - HUD sprites (Overlay) sit on the plane facing the camera through the focus point (ScreenPoint), so
-		//     they stay on screen whatever the camera does (shake, a changed tilt);
-		//   - actors stand where the camera ray through their layout point meets the floor (GroundPoint), so they
-		//     stand where the 2D battle had them on screen, on the 3D floor;
-		//   - effects and popups go a height in metres above an actor (Above, ScreenAbove).
+
+		// Rules and HUD work in layout units (LayoutHeight tall, (0, 0) mid-screen), mapped to the world each frame: the HUD on
+		// the view plane, actors where the camera ray meets the floor (scripts/battle/stage.py does the same for the builder).
 		static constexpr float LayoutHeight = 18.0f;
 		static constexpr float HudLift = 1.0f;       // metres from the view plane towards the camera
-		static constexpr float GroundHeight = 0.0f;  // the arena floor
-		// Where the feet are in a cell, as a fraction of its height from the bottom, and the sheet's pivot (its
-		// .hymeta): Characters/Player/Miko, Characters/Enemy (slime, wisp). An Upright sprite stands on its quad's
-		// bottom edge, which a pivot moves back by Pivot x height, so StandOffset moves the sprite until the
-		// feet are on the floor at its ground point (keep in step with scripts/battle/build_arena.py).
+		static constexpr float GroundHeight = 0.0f;
+		// The feet's height in a cell (fraction from the bottom) and the sheet's pivot, for StandOffset.
+		// Keep in step with scripts/battle/build_arena.py.
 		static constexpr float HeroFoot = 15.0f / 96.0f;
 		static constexpr float HeroPivot = 0.5f;
 		static constexpr float EnemyFoot = 4.0f / 32.0f;
 		static constexpr float EnemyPivot = 0.125f;
-		// Metres above the floor: damage numbers, the turn marker and the target cursor.
+		// Metres above the floor.
 		static constexpr float HeroPopupHeight = 1.7f;
 		static constexpr float HeroMarkerHeight = 2.05f;
 		static constexpr float EnemyPopupHeight = 1.35f;
@@ -1880,7 +1805,7 @@ namespace Hydro
 			float Scale = 1.0f; // metres per layout unit at the focus point
 		};
 
-		// Places the camera from the properties (and the shake) and sets up the mapping for this frame.
+		// Places the camera from the properties and the shake, and sets up this frame's mapping.
 		void UpdateStageCamera(Scene& scene)
 		{
 			const float tilt = glm::radians(std::clamp(CameraTilt, 0.0f, 89.0f));
@@ -1895,7 +1820,7 @@ namespace Hydro
 			stage.Focus = CameraFocus;
 			if (m_ShakeTime > 0.0f)
 			{
-				// A short, decaying jitter of the whole view (the HUD moves with the camera, so it stays still).
+				// The HUD moves with the camera, so the shake leaves it still on screen.
 				const float amount = m_ShakeAmount * (m_ShakeTime / ShakeTime);
 				stage.Focus += stage.Right * (std::sin(m_Time * 91.0f) * amount) + stage.Up * (std::cos(m_Time * 73.0f) * amount * 0.6f);
 			}
@@ -1936,7 +1861,7 @@ namespace Hydro
 			return m_Stage.Position + direction * t;
 		}
 
-		// Any world point back to layout units: where it shows on screen.
+		// Where a world point shows on screen, in layout units.
 		glm::vec2 LayoutOf(const glm::vec3& world) const
 		{
 			const glm::vec3 direction = world - m_Stage.Position;
@@ -1949,15 +1874,13 @@ namespace Hydro
 			return glm::vec2(glm::dot(offset, m_Stage.Right), glm::dot(offset, m_Stage.Up)) / m_Stage.Scale;
 		}
 
-		// A point on (or lifted off) the view plane back to layout units.
 		glm::vec2 PlaneLayoutOf(const glm::vec3& world) const
 		{
 			const glm::vec3 offset = world - m_Stage.Focus;
 			return glm::vec2(glm::dot(offset, m_Stage.Right), glm::dot(offset, m_Stage.Up)) / m_Stage.Scale;
 		}
 
-		// `metres` above where an actor at `ground` (layout units) stands: up the standing sprite (Upright sprites
-		// turn to face the camera, so their up is the camera's up).
+		// Upright sprites face the camera, so their up is the camera's up.
 		glm::vec3 Above(const glm::vec2& ground, float metres) const
 		{
 			return GroundPoint(ground) + m_Stage.Up * metres;
@@ -1968,14 +1891,12 @@ namespace Hydro
 			return LayoutOf(Above(ground, metres));
 		}
 
-		// From the point an Upright sprite's feet should stand on to its entity's position: back by the pivot,
-		// then down the leaning sprite (the camera's up) by the feet's height in the cell. `size` in metres.
+		// Back by the pivot, then down the leaning sprite by the feet's height in the cell. `size` in metres.
 		glm::vec3 StandOffset(float foot, float pivot, float size) const
 		{
 			return glm::vec3(0.0f, pivot * size, 0.0f) - m_Stage.Up * (foot * size);
 		}
 
-		// Where an actor stands (its feet on the floor), in layout units; and its sprite's height in metres.
 		glm::vec2 ActorLayout(Scene& scene, entt::entity entity, float foot, float pivot) const
 		{
 			if (Alive(scene, entity) == false)
@@ -1992,10 +1913,7 @@ namespace Hydro
 			return Alive(scene, entity) ? scene.m_Registry.get<TransformComponent>(entity).Scale.y : 1.0f;
 		}
 
-		// An enemy slot shows the enemy it holds (SC7): the slot's sprite plays the enemy's animations from its idle
-		// clip, and the slot's light takes its glow colour. Without animations the sprite keeps what the scene gave it.
-		// The animator only plays sets already loaded (it never loads from disk), and the scene names only the slime's,
-		// so the enemy's set is loaded here.
+		// The animator only plays sets already loaded and the scene names only the slime's, so the enemy's set is loaded here.
 		static void DressEnemySlot(Scene& scene, Enemy& enemy, const EnemyDefinition& definition)
 		{
 			if (Alive(scene, enemy.Sprite) && scene.m_Registry.has<SpriteAnimatorComponent>(enemy.Sprite) && (uint64_t)definition.Animations != 0)
@@ -2016,8 +1934,7 @@ namespace Hydro
 			}
 		}
 
-		// An actor's sprite with its feet at `ground` (layout units), `lift` metres up (a wisp floats); its contact
-		// shadow (an entity of its own, so it stays on the floor) under the feet.
+		// The contact shadow is an entity of its own so it stays on the floor while the sprite lifts (a floating wisp).
 		void PlaceActor(Scene& scene, entt::entity entity, entt::entity shadow, const glm::vec2& ground, float lift, float foot, float pivot)
 		{
 			const glm::vec3 feet = GroundPoint(ground);
@@ -2032,7 +1949,6 @@ namespace Hydro
 			}
 		}
 
-		// Every HUD sprite (Overlay) with its place and size in layout units, read from where the builder put it.
 		struct LayoutItem
 		{
 			glm::vec2 Position{ 0.0f };
@@ -2063,7 +1979,6 @@ namespace Hydro
 			return found != m_Layout.end() ? found->second : LayoutItem{};
 		}
 
-		// Puts every HUD sprite at its layout place for this frame's camera (last in Present).
 		void ApplyLayout(Scene& scene)
 		{
 			for (const auto& [entity, item] : m_Layout)
@@ -2103,7 +2018,7 @@ namespace Hydro
 			}
 		}
 
-		// Moves a HUD sprite to `position` (layout units); ApplyLayout puts it in the world.
+		// ApplyLayout puts it in the world.
 		void SetPosition([[maybe_unused]] Scene& scene, entt::entity entity, const glm::vec2& position)
 		{
 			const auto found = m_Layout.find(entity);
@@ -2113,7 +2028,7 @@ namespace Hydro
 			}
 		}
 
-		// A UI bar's fill: anchored to the bar's left edge, as wide as the fraction (UI rect anchors), in `color`.
+		// Anchored to the bar's left edge, as wide as the fraction.
 		static void SetFill(Entity fill, float fraction, const glm::vec4& color)
 		{
 			if (fill.IsValid() == false || fill.HasComponent<UIRectComponent>() == false)
@@ -2128,7 +2043,6 @@ namespace Hydro
 			SetUIColor(fill, color);
 		}
 
-		// A UI element's image and text colour.
 		static void SetUIColor(Entity element, const glm::vec4& color)
 		{
 			if (element.IsValid() == false)
@@ -2145,7 +2059,7 @@ namespace Hydro
 			}
 		}
 
-		// A number as up to three digit sprites, centred on `centre`; unused digits are hidden.
+		// Up to three digit sprites centred on `centre`; unused digits are hidden.
 		void SetNumber(Scene& scene, const entt::entity (&digits)[3], int value, const glm::vec2& centre, float spacing, const glm::vec4& color)
 		{
 			const std::string text = std::to_string(std::clamp(value, 0, 999));
@@ -2172,7 +2086,6 @@ namespace Hydro
 			const bool acting = m_Phase == Phase::Acting;
 			const int actor = m_Action.Actor;
 
-			// Heroes: where their strikes take them (UpdateHeroStrikes), a shake when hit.
 			for (int h = 0; h < HeroCount; h++)
 			{
 				if (BattleState::Get().InParty(h) == false)
@@ -2189,24 +2102,27 @@ namespace Hydro
 				const float heat = std::clamp(hero.Flash / 0.35f, 0.0f, 1.0f);
 				SetColor(scene, hero.Sprite, glm::vec4(1.0f, 1.0f - 0.6f * heat, 1.0f - 0.6f * heat, 1.0f));
 
-				// Her status: HP and MP as numbers and bars (sage, amber below half, red below a quarter), boost points.
+				// Bars are sage, amber below half, red below a quarter.
 				const HeroStats& definition = GetHero(h);
 				const float hpFraction = (float)BattleState::Get().HeroHP[h] / (float)definition.MaxHP;
-				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.5f, 0.72f, 0.4f, 1.0f) : hpFraction > 0.25f ? glm::vec4(0.92f, 0.72f, 0.3f, 1.0f) : glm::vec4(0.86f, 0.3f, 0.24f, 1.0f);
+				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.5f, 0.72f, 0.4f, 1.0f)
+					: hpFraction > 0.25f ? glm::vec4(0.92f, 0.72f, 0.3f, 1.0f)
+					: glm::vec4(0.86f, 0.3f, 0.24f, 1.0f);
 				UI::SetText(EntityOf(hero.StatusHP), std::to_string(BattleState::Get().HeroHP[h]) + " / " + std::to_string(definition.MaxHP));
 				UI::SetText(EntityOf(hero.StatusMP), std::to_string(BattleState::Get().HeroMP[h]) + " / " + std::to_string(definition.MaxMP));
 				SetFill(EntityOf(hero.StatusHPFill), hpFraction, hpColor);
-				SetFill(EntityOf(hero.StatusMPFill), (float)BattleState::Get().HeroMP[h] / (float)definition.MaxMP, glm::vec4(0.38f, 0.6f, 0.9f, 1.0f));
+				SetFill(EntityOf(hero.StatusMPFill), (float)BattleState::Get().HeroMP[h] / (float)definition.MaxMP,
+					glm::vec4(0.38f, 0.6f, 0.9f, 1.0f));
 				for (int p = 0; p < BattleState::MaxMomentum; p++)
 				{
 					// Full points are gold; the ones the boost is about to spend pulse.
 					const bool spending = m_Phase == Phase::Command && actor == h && p >= hero.Momentum - m_Action.Boost && p < hero.Momentum;
 					const float pulse = spending ? 0.55f + 0.45f * std::sin(m_Time * 10.0f) : 1.0f;
-					SetUIColor(EntityOf(hero.StatusPips[p]), p < hero.Momentum ? glm::vec4(1.0f, 0.8f * pulse + 0.2f, 0.42f * pulse, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 0.22f));
+					SetUIColor(EntityOf(hero.StatusPips[p]),
+						p < hero.Momentum ? glm::vec4(1.0f, 0.8f * pulse + 0.2f, 0.42f * pulse, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 0.22f));
 				}
 			}
 
-			// Enemies: the one in use is shown, the others hidden; a lunge when attacking, a fade when defeated.
 			for (int e = 0; e < BattleState::MaxEnemies; e++)
 			{
 				Enemy& enemy = m_Enemies[e];
@@ -2228,7 +2144,6 @@ namespace Hydro
 				{
 					offset.x += std::sin(m_Time * 70.0f) * 0.2f;
 				}
-				// A floating one (a wisp, FloatHeight) bobs metres above the floor; its contact shadow stays on the ground.
 				const float bob = definition.FloatHeight > 0.0f ? definition.FloatHeight + std::sin(m_Time * 2.2f + (float)e) * 0.12f : 0.0f;
 				if (Alive(scene, enemy.Shadow) && scene.m_Registry.has<Shadow2DComponent>(enemy.Shadow))
 				{
@@ -2239,15 +2154,18 @@ namespace Hydro
 				const bool broken = IsBroken(enemy) && enemy.HP > 0;
 				PlaceActor(scene, enemy.Sprite, enemy.Shadow, enemy.Base + offset, bob, EnemyFoot, EnemyPivot);
 				const float tint = broken ? 0.65f : 1.0f;
-				SetColor(scene, enemy.Sprite, present ? glm::vec4(tint + (1.0f - tint) * heat, tint * (1.0f - 0.6f * heat), tint * (1.0f - 0.6f * heat), enemy.Fade) : glm::vec4(0.0f));
+				SetColor(scene, enemy.Sprite, present
+					? glm::vec4(tint + (1.0f - tint) * heat, tint * (1.0f - 0.6f * heat), tint * (1.0f - 0.6f * heat), enemy.Fade)
+					: glm::vec4(0.0f));
 				if (Alive(scene, enemy.Light) && scene.m_Registry.has<Light2DComponent>(enemy.Light))
 				{
 					PlaceActor(scene, enemy.Light, entt::null, enemy.Base + offset, bob, 0.0f, 0.0f);
-					scene.m_Registry.get<Light2DComponent>(enemy.Light).Intensity = present ? definition.GlowIntensity * enemy.Fade * (0.85f + 0.15f * std::sin(m_Time * 3.0f)) : 0.0f;
+					scene.m_Registry.get<Light2DComponent>(enemy.Light).Intensity = present
+						? definition.GlowIntensity * enemy.Fade * (0.85f + 0.15f * std::sin(m_Time * 3.0f))
+						: 0.0f;
 				}
 
-				// Its info under its feet (a World canvas): the shield (a "Break" label while broken), the weaknesses
-				// found so far ("?" for the rest), HP.
+				// The shield (a "Break" label while broken), the weaknesses found so far ("?" for the rest), and HP.
 				Entity info = EntityOf(enemy.Info);
 				const bool showInfo = present && enemy.HP > 0;
 				if (UI::IsVisible(info) != showInfo)
@@ -2260,7 +2178,8 @@ namespace Hydro
 				}
 				if (showInfo)
 				{
-					SetFill(EntityOf(enemy.HPFill), (float)enemy.HP / (float)std::max(1, definition.Stats.MaxHP), glm::vec4(0.86f, 0.36f, 0.28f, 1.0f));
+					SetFill(EntityOf(enemy.HPFill), (float)enemy.HP / (float)std::max(1, definition.Stats.MaxHP),
+						glm::vec4(0.86f, 0.36f, 0.28f, 1.0f));
 					SetUIColor(EntityOf(enemy.ShieldIcon), broken ? glm::vec4(0.75f, 0.32f, 0.28f, 1.0f) : glm::vec4(1.0f));
 					UI::SetText(EntityOf(enemy.ShieldCount), broken ? std::string() : std::to_string(enemy.Shield));
 					UI::SetText(EntityOf(enemy.WeakLabel), broken ? "BREAK" : "WEAK");
@@ -2284,13 +2203,13 @@ namespace Hydro
 				}
 			}
 
-			// The hero whose turn it is, the target, the commands and the boost.
 			const bool choosing = m_Phase == Phase::Command;
 			if (Alive(scene, m_TurnMarker))
 			{
 				const bool show = (choosing || acting) && IsHero(actor);
 				const Hero& marked = m_Heroes[std::min(actor, HeroCount - 1)];
-				SetPosition(scene, m_TurnMarker, ScreenAbove(marked.Base + marked.Offset, HeroMarkerHeight) + glm::vec2(0.0f, 0.15f * std::sin(m_Time * 6.0f)));
+				SetPosition(scene, m_TurnMarker,
+					ScreenAbove(marked.Base + marked.Offset, HeroMarkerHeight) + glm::vec2(0.0f, 0.15f * std::sin(m_Time * 6.0f)));
 				SetColor(scene, m_TurnMarker, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
 			}
 			if (Alive(scene, m_Cursor))
@@ -2303,8 +2222,7 @@ namespace Hydro
 
 			PresentCommandMenu(std::min(actor, HeroCount - 1), choosing);
 
-			// The turn order (runtime UI, top left): from the one acting now (the big first chip) to the end of the
-			// round, each chip showing its actor's sprite; enemies' chips are reddish. Unused chips are hidden.
+			// From the actor acting now (the big first chip) to the end of the round; enemies' chips are reddish.
 			const int first = std::max(m_Turn, 0);
 			int shown = 0;
 			for (int index = first; index < (int)m_Order.size() && shown < 6; index++)
@@ -2323,7 +2241,8 @@ namespace Hydro
 				const bool now = index == m_Turn;
 				SetUIColor(chip, IsHero(who) ? (now ? glm::vec4(1.0f, 0.9f, 0.62f, 1.0f) : glm::vec4(1.0f)) : glm::vec4(1.0f, 0.72f, 0.66f, 1.0f));
 				Entity portrait = EntityOf(m_OrderActors[shown]);
-				if (portrait.IsValid() && portrait.HasComponent<UIImageComponent>() && Alive(scene, sprite) && scene.m_Registry.has<SpriteRendererComponent>(sprite))
+				if (portrait.IsValid() && portrait.HasComponent<UIImageComponent>() && Alive(scene, sprite)
+					&& scene.m_Registry.has<SpriteRendererComponent>(sprite))
 				{
 					const SpriteRendererComponent& renderer = scene.m_Registry.get<SpriteRendererComponent>(sprite);
 					UIImageComponent& image = portrait.GetComponent<UIImageComponent>();
@@ -2345,7 +2264,6 @@ namespace Hydro
 			PresentSpriteEffect(scene, m_StrikeEffect);
 			PresentSpriteEffect(scene, m_HealEffect);
 
-			// The message box (runtime UI), damage numbers and the fade.
 			const bool ending = m_Phase == Phase::Victory || m_Phase == Phase::Defeat || m_Phase == Phase::Fleeing || m_Phase == Phase::Done;
 			const bool showMessage = m_MessageTime > 0.0f || ending;
 			Entity messagePanel = EntityOf(m_MessagePanel);
@@ -2399,7 +2317,7 @@ namespace Hydro
 		SpriteEffect m_StrikeEffect;
 		SpriteEffect m_HealEffect;
 
-		// A potion is used this far into its (BattleIdle) clip; the heal sprite's clip lasts HealEffectTime.
+		// A potion is used this far into its clip; the heal sprite's clip lasts HealEffectTime.
 		static constexpr float ItemTime = 0.35f;
 		static constexpr float HealEffectTime = 0.66f;
 		static constexpr float ShakeTime = 0.22f;
@@ -2418,8 +2336,7 @@ namespace Hydro
 		std::array<Popup, 3> m_Popups;
 		int m_NextPopup = 0;
 		BattleLabel m_MessageLabel = BattleLabel::Attack;
-		std::string m_MessageWords; // what the message box says
-		// After a victory: the experience gained and the level ups, shown one by one (ResultTime apart).
+		std::string m_MessageWords;
 		static constexpr float ResultTime = 1.3f;
 		std::vector<std::string> m_Results;
 		int m_NextResult = 0;
@@ -2427,7 +2344,6 @@ namespace Hydro
 		bool m_Previous[14] = {};
 		std::mt19937 m_Random{ std::random_device{}() };
 
-		// The command menu and the message box (runtime UI under "Battle UI Canvas").
 		entt::entity m_Commands[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
 		entt::entity m_CommandNames[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
 		entt::entity m_CommandCosts[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
@@ -2435,7 +2351,7 @@ namespace Hydro
 		entt::entity m_CommandHeader = entt::null;
 		entt::entity m_CommandBoost = entt::null;
 		entt::entity m_CommandHelp = entt::null;
-		int m_HelpCommand = 0;              // the command the help line describes (the focused one)
+		int m_HelpCommand = 0;              // the focused command, for the help line
 		entt::entity m_MessagePanel = entt::null;
 		entt::entity m_MessageText = entt::null;
 		entt::entity m_TargetPanel = entt::null;
@@ -2448,10 +2364,9 @@ namespace Hydro
 		bool m_Targeting = false;           // the target list is open for m_TargetCommand
 		Command m_TargetCommand = Command::Attack;
 		int m_ChosenTarget = -1;            // submitted by the target list
-		bool m_CancelTarget = false;        // Cancel in the target list: back to where it was opened from
+		bool m_CancelTarget = false;        // back to where the target list was opened from
 		bool m_CommandsShown = false;
 		bool m_TargetsShown = false;
-		// The sub-menu ("Sub Panel"): the hero's ability slots or the battle items.
 		SubMenu m_SubMenu = SubMenu::None;
 		entt::entity m_SubPanel = entt::null;
 		entt::entity m_SubTitle = entt::null;
@@ -2459,9 +2374,9 @@ namespace Hydro
 		entt::entity m_SubButtons[SubRows] = {};
 		entt::entity m_SubNames[SubRows] = {};
 		entt::entity m_SubCosts[SubRows] = {};
-		int m_HelpSub = 0;                  // the focused row (the help line follows it)
+		int m_HelpSub = 0;                  // the focused row, for the help line
 		int m_ChosenSub = -1;               // submitted by the sub-menu
-		bool m_CancelSub = false;           // Cancel in the sub-menu: back to the commands
+		bool m_CancelSub = false;           // back to the commands
 		bool m_SubShown = false;
 		int m_LastSub[HeroCount] = {};      // the ability slot each hero used last
 		entt::entity m_OrderChips[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };

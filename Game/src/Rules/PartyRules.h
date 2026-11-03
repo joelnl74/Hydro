@@ -1,4 +1,3 @@
-// Game/src/Rules/PartyRules.h
 #pragma once
 
 #include "Data/CombatStats.h"
@@ -11,7 +10,7 @@
 
 namespace Hydro
 {
-	// Where each equipment slot of a hero is (BattleState::HeroEquipment), the Menu plan's six.
+	// Each hero's six equipment positions (BattleState::HeroEquipment).
 	enum class EquipPosition : uint8_t
 	{
 		Weapon = 0,
@@ -23,9 +22,8 @@ namespace Hydro
 		Count
 	};
 
-	// The party's rules for equipment and ability slots (the Menu plan's M1): plain functions on the run's state and
-	// the items' data, no UI. The state is passed in pieces (a hero's slots, the inventory's add / remove) so tests
-	// need no session.
+	// The party's rules for equipment and ability slots on the run's state and the items' data. State is passed in pieces
+	// so tests need no session.
 	class PartyRules
 	{
 	public:
@@ -34,7 +32,7 @@ namespace Hydro
 			return CombatStats{ a.MaxHP + b.MaxHP, a.MaxMP + b.MaxMP, a.Attack + b.Attack, a.Magic + b.Magic, a.Speed + b.Speed };
 		}
 
-		// Whether an item of `slot` goes in `position` (an accessory in either accessory position).
+		// An accessory fits either accessory position.
 		static bool Fits(EquipSlot slot, EquipPosition position)
 		{
 			switch (slot)
@@ -62,10 +60,11 @@ namespace Hydro
 			}
 		}
 
-		// Puts `item` (one taken from the inventory: `take` returns false when there is none) in `position`; what
-		// was there goes back to the inventory (`give`). False, changing nothing, when it doesn't fit or none is held.
+		// `take` takes one from the inventory, `give` returns what was worn. False, changing nothing, when it doesn't fit or
+		// none is held.
 		template<size_t N, typename Take, typename Give>
-		static bool Equip(std::array<DataRowRef, N>& equipment, EquipPosition position, const DataRowRef& item, EquipSlot itemSlot, Take take, Give give)
+		static bool Equip(std::array<DataRowRef, N>& equipment, EquipPosition position, const DataRowRef& item, EquipSlot itemSlot,
+			Take take, Give give)
 		{
 			const size_t index = (size_t)position;
 			if (index >= N || item.IsSet() == false || Fits(itemSlot, position) == false)
@@ -88,7 +87,7 @@ namespace Hydro
 			return true;
 		}
 
-		// Takes off what is in `position`, back to the inventory.
+		// Back to the inventory.
 		template<size_t N, typename Give>
 		static void Unequip(std::array<DataRowRef, N>& equipment, EquipPosition position, Give give)
 		{
@@ -100,10 +99,11 @@ namespace Hydro
 			}
 		}
 
-		// Puts a known ability in a battle slot; if it already sits in another slot, the two swap. False when the
-		// hero doesn't know it. An unset `ability` empties the slot.
+		// If it already sits in another slot, the two swap. False when the hero doesn't know it; an unset `ability` empties
+		// the slot.
 		template<size_t N>
-		static bool SetAbilitySlot(std::array<DataRowRef, N>& slots, const std::vector<DataRowRef>& known, size_t slot, const DataRowRef& ability)
+		static bool SetAbilitySlot(std::array<DataRowRef, N>& slots, const std::vector<DataRowRef>& known, size_t slot,
+			const DataRowRef& ability)
 		{
 			if (slot >= N)
 			{

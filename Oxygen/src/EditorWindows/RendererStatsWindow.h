@@ -2,8 +2,7 @@
 
 namespace Hydro
 {
-	// Renderer2D statistics. Drawn as the "Rendering" tab of the Stats window
-	// (StatsWindow), so it has no ImGui window of its own.
+	// The Renderer2D statistics, drawn as the "Rendering" tab of the Stats window.
 	class RendererStatsPanel
 	{
 	public:

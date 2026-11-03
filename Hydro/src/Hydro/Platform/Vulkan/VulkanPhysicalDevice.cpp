@@ -78,8 +78,7 @@ namespace Hydro
 		features13 = {};
 		features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
 
-		// A struct is only chained when the device has its version (the validation layers object to
-		// a 1.3 struct on a 1.2 device). The 1.2 struct needs 1.2.
+		// A struct is only chained when the device has its version (validation objects to a 1.3 struct on 1.2).
 		VkPhysicalDeviceFeatures2 features2{};
 		features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 		if (properties.apiVersion >= VK_API_VERSION_1_2)
@@ -124,8 +123,7 @@ namespace Hydro
 			return "no synchronization2";
 		}
 
-		// A graphics queue, a queue that can present, the swapchain extension and at least one
-		// surface format and present mode.
+		// A graphics queue, a present queue, the swapchain extension, a surface format and a present mode.
 		if (FindQueueFamilies(device, surface).IsComplete() == false)
 		{
 			return "no queue that can draw and present to this window";

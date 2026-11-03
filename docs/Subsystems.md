@@ -66,7 +66,7 @@ Inside `Renderer::Init`, and reversed in `Renderer::Shutdown`:
 | 2 | `VulkanSwapChain` (constructor + `Create`) | Swapchain, present render pass |
 | 3 | `VulkanFrameContext::Init` | Per-frame command buffers, fences, semaphores |
 | 4 | `VulkanAllocator::Init` | VMA allocator |
-| 5 | `Renderer2D::Init` | Quad pipeline, shader + hot reload, shared index buffer, white texture, timestamps. Targets, cameras and batches belong to `RenderView`s, which the application creates |
+| 5 | `Renderer2D::Init` | Starts `ViewRenderer` (quad batcher, shadow map resources, view pipeline cache with shader hot reload, the passes' resources, timestamps), then its own textures. Targets, cameras and batches belong to `RenderView`s, which the application creates |
 | 6 | `Renderer3D::Init` | Static meshes: samplers, the Standard and terrain surface material layouts; material and shape caches |
 | 7 | `TerrainCache::Init` | Terrains on the GPU (Terrain plan): weight maps and chunk meshes per terrain asset. Shut down first, before `Renderer3D` |
 

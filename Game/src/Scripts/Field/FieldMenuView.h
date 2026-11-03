@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/FieldMenuView.h
 #pragma once
 
 #include "Hydro.h"
@@ -15,12 +14,8 @@
 
 namespace Hydro
 {
-	// The field menu (Tab; the Menu plan's M3, Octopath-style): "Field Menu Canvas" with a column of tab ribbons
-	// ("Tab 0" to "Tab 4": Inventory, Quests, Character, Abilities, Equipment), the selected tab's page ("Page <Tab>"),
-	// the party's status ("Menu Status Miko") and a help bar ("Help Text", "Help Keys"); scripts/ui/build_game_ui.py
-	// builds it. A view: it opens on the tabs; moving over a tab shows its page, Enter (or a click) moves into the page,
-	// Esc goes back to the tabs and from the tabs closes the menu. The pages: InventoryView, QuestsView,
-	// CharacterView (M4; it takes no focus: Enter stays on the tabs), AbilitiesView and EquipmentView (M5).
+	// The field menu (Tab): a column of tabs and the selected tab's page, the party's status and a help bar. Enter moves into
+	// a page, Esc goes back to the tabs and from there closes the menu.
 	class FieldMenuView
 	{
 	public:
@@ -47,7 +42,7 @@ namespace Hydro
 			m_Keys = ViewHelpers::Find(scene, "Help Keys", owner);
 			for (int h = 0; h < HeroCount; h++)
 			{
-				// "Menu Status <Id>": one block per hero who can be in the party; those not in it are hidden.
+				// One block per hero who can be in the party; those not in it are hidden.
 				const std::string status = std::string("Menu Status ") + BattleData::HeroIds[h];
 				Status& block = m_Status[h];
 				block.Root = ViewHelpers::Find(scene, status, owner);
@@ -86,7 +81,7 @@ namespace Hydro
 			return m_Scene != nullptr && UI::IsVisible(EntityOf(m_Canvas));
 		}
 
-		// Opens on the tabs (the tab chosen last time selected and focused) or closes.
+		// Opens on the tab chosen last time.
 		void SetOpen(bool open)
 		{
 			Entity canvas = EntityOf(m_Canvas);
@@ -103,8 +98,7 @@ namespace Hydro
 			}
 		}
 
-		// The menu's events (they bubble up to the director, which hands them here). Returns whether the event was the
-		// menu's; request says what the director has to do.
+		// Returns whether the event was the menu's; `request` says what the director has to do.
 		bool HandleEvent(const UIEvent& event, Request& request)
 		{
 			request = Request::None;
@@ -216,8 +210,7 @@ namespace Hydro
 			return false;
 		}
 
-		// Everything shown: the party's status (a block per hero in the party; the one the hero pages show has a gold
-		// name) and the pages' contents.
+		// The hero the hero pages show has a gold name.
 		void Present()
 		{
 			if (m_Scene == nullptr)
@@ -264,8 +257,7 @@ namespace Hydro
 			}
 		}
 
-		// Q / E on the Character, Abilities and Equipment pages: the next or previous hero in the party. The focus
-		// stays where it is (a page's list keeps its row).
+		// The next or previous hero in the party; the focus stays where it is.
 		void CycleHero(int direction)
 		{
 			const BattleState& party = BattleState::Get();
@@ -297,7 +289,6 @@ namespace Hydro
 			return m_Selected == Tab::Character || m_Selected == Tab::Abilities || m_Selected == Tab::Equipment;
 		}
 
-		// Selects a tab: its page shown (the others hidden), its mark shown and name gilded, the title.
 		void ShowTab(Tab tab)
 		{
 			m_Selected = tab;
@@ -326,8 +317,7 @@ namespace Hydro
 			PresentTabHelp();
 		}
 
-		// Enter on a tab: into its page's list (items, quests); a page without one (Character, the pages still to
-		// come) leaves the focus on the tabs.
+		// A page without a list (Character) leaves the focus on the tabs.
 		void EnterPage()
 		{
 			if (m_Selected == Tab::Inventory && m_Items.HasItems())
@@ -395,7 +385,8 @@ namespace Hydro
 				{
 					keys = "Enter  Use        Esc  Back        Tab  Close";
 				}
-				else if ((m_Selected == Tab::Abilities && m_Abilities.IsChoosing()) || (m_Selected == Tab::Equipment && m_Equipment.IsChoosing()))
+				else if ((m_Selected == Tab::Abilities && m_Abilities.IsChoosing())
+					|| (m_Selected == Tab::Equipment && m_Equipment.IsChoosing()))
 				{
 					keys = "Enter  Choose        Esc  Back        Tab  Close";
 				}
@@ -411,7 +402,7 @@ namespace Hydro
 			UI::SetText(EntityOf(m_Keys), HeroKeys() + (opens ? "Enter  Open        Esc / Tab  Close" : "Esc / Tab  Close"));
 		}
 
-		// "Q / E  Hero" on the hero pages while the party has more than one.
+		// Shown on the hero pages while the party has more than one hero.
 		std::string HeroKeys() const
 		{
 			return IsHeroPage() && BattleState::Get().PartySize() > 1 ? std::string("Q / E  Hero        ") : std::string();

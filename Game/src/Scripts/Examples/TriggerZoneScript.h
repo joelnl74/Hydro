@@ -1,17 +1,11 @@
-// Game/src/Scripts/Examples/TriggerZoneScript.h
 #pragma once
 
 #include "Hydro.h"
 
 #include <string>
 
-// An example (Scripting plan SC8b, rewritten from the deleted village's zone script): a trigger zone. It shows a
-// script reacting to physics triggers, references set in the editor instead of names looked up in code, and state
-// that belongs to the zone itself (who is inside) rather than to a static.
-//
-// Put it on an entity with a sensor collider (a 3D one with IsTrigger, or a 2D one). When an entity with the
-// Watched tag (the player) enters, the Target entity is shown; when the last one leaves, it is hidden again. Leave
-// Target empty to only log, which is enough to see triggers working.
+// Example: a trigger zone. When an entity with the Watched tag enters the sensor, Target is shown; when the last one
+// leaves, it is hidden again. With no Target it only logs.
 namespace Hydro
 {
 	HY_SCRIPT()
@@ -62,7 +56,7 @@ namespace Hydro
 			return other.IsValid() && other.HasComponent<TagComponent>() && other.GetComponent<TagComponent>().Tag == Watched;
 		}
 
-		// A sprite's alpha, or a light's intensity (kept from the scene, so the zone only switches it).
+		// A sprite's alpha or a light's intensity, kept from the scene so the zone only switches it.
 		void SetTargetShown(bool shown)
 		{
 			Entity target = Target.Get();

@@ -197,8 +197,8 @@ namespace Hydro
 	{
 		return DrawFiltered(id, current, type, {}, detail, width);
 	}
-
-	AssetPickerResult AssetPicker::DrawDataField(const char* id, AssetHandle current, AssetType type, const std::string& dataType, float width)
+	AssetPickerResult AssetPicker::DrawDataField(const char* id, AssetHandle current, AssetType type,
+		const std::string& dataType, float width)
 	{
 		const DataTypeInfo* held = static_cast<uint64_t>(current) != 0 ? Data::GetDataType(current) : nullptr;
 		std::string detail = "Holds " + (held != nullptr ? held->Name : std::string("nothing readable"));
@@ -208,8 +208,8 @@ namespace Hydro
 		}
 		return DrawFiltered(id, current, type, dataType, static_cast<uint64_t>(current) != 0 ? detail : std::string(), width);
 	}
-
-	AssetPickerResult AssetPicker::DrawFiltered(const char* id, AssetHandle current, AssetType type, const std::string& dataType, const std::string& detail, float width)
+	AssetPickerResult AssetPicker::DrawFiltered(const char* id, AssetHandle current, AssetType type, const std::string& dataType,
+		const std::string& detail, float width)
 	{
 		AssetPickerResult result;
 		ImGui::PushID(id);

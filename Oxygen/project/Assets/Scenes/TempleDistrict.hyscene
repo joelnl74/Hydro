@@ -24398,16 +24398,13 @@ Entities:
       Translation: [1.79999995, 13.5, 3.75]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: Work
-            Facing: Down
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 9
-            WaitMin: 4
+    WaypointComponent:
+      Action: Work
+      Facing: Down
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 9
+      WaitMin: 4
   - Entity: 7338914121668635524
     TagComponent:
       Tag: Waypoint 2
@@ -24417,16 +24414,13 @@ Entities:
       Translation: [1.79999995, 10.5, 2.25]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: Work
-            Facing: Down
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 9
-            WaitMin: 4
+    WaypointComponent:
+      Action: Work
+      Facing: Down
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 9
+      WaitMin: 4
   - Entity: 3201672064429293638
     TagComponent:
       Tag: Waypoint 3
@@ -24436,16 +24430,13 @@ Entities:
       Translation: [1.79999995, 7.19999981, 0.600000024]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: Work
-            Facing: Down
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 9
-            WaitMin: 4
+    WaypointComponent:
+      Action: Work
+      Facing: Down
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 9
+      WaitMin: 4
   - Entity: 5196345903613428269
     TagComponent:
       Tag: Npc TempleMonk 830
@@ -24509,16 +24500,13 @@ Entities:
       Translation: [-4, -3.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: Work
-            Facing: Down
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 9
-            WaitMin: 4
+    WaypointComponent:
+      Action: Work
+      Facing: Down
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 9
+      WaitMin: 4
   - Entity: 2590675929316527465
     TagComponent:
       Tag: Waypoint 2
@@ -24528,16 +24516,13 @@ Entities:
       Translation: [3, -4.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: Work
-            Facing: Down
-            LookAt: 0
-            StopChance: 0.699999988
-            WaitMax: 9
-            WaitMin: 4
+    WaypointComponent:
+      Action: Work
+      Facing: Down
+      LookAt: 0
+      StopChance: 0.699999988
+      WaitMax: 9
+      WaitMin: 4
   - Entity: 3527571172337369700
     TagComponent:
       Tag: Waypoint 3
@@ -24547,16 +24532,13 @@ Entities:
       Translation: [8, -2, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: Work
-            Facing: Down
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 9
-            WaitMin: 4
+    WaypointComponent:
+      Action: Work
+      Facing: Down
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 9
+      WaitMin: 4
   - Entity: 7638398811884602706
     TagComponent:
       Tag: Npc TempleMonk 831
@@ -24620,16 +24602,13 @@ Entities:
       Translation: [19, -2, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 7372819546321403467
     TagComponent:
       Tag: Waypoint 2
@@ -24639,16 +24618,13 @@ Entities:
       Translation: [-9.02999973, -0.150000006, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Up
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 5
-            WaitMin: 3
+    WaypointComponent:
+      Action: ""
+      Facing: Up
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 5
+      WaitMin: 3
   - Entity: 2401083197795638094
     TagComponent:
       Tag: Waypoint 3
@@ -24658,16 +24634,13 @@ Entities:
       Translation: [-1, 5.4000001, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 5170466022100420822
     TagComponent:
       Tag: Waypoint 4
@@ -24677,16 +24650,13 @@ Entities:
       Translation: [-1, 15, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 5389833174644256508
     TagComponent:
       Tag: Waypoint 5
@@ -24696,16 +24666,13 @@ Entities:
       Translation: [-1.29999995, 18.6000004, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 4892477434009733285
     TagComponent:
       Tag: Waypoint 6
@@ -24715,16 +24682,13 @@ Entities:
       Translation: [-1.04999995, 21, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Right
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 6
-            WaitMin: 3
+    WaypointComponent:
+      Action: ""
+      Facing: Right
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 6
+      WaitMin: 3
   - Entity: 7730851536864103757
     TagComponent:
       Tag: Waypoint 7
@@ -24734,16 +24698,13 @@ Entities:
       Translation: [-1.29999995, 22.5, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 4963621087805810775
     TagComponent:
       Tag: Waypoint 8
@@ -24753,16 +24714,13 @@ Entities:
       Translation: [-0.800000012, 23.2999992, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 1824989087108315773
     TagComponent:
       Tag: Waypoint 9
@@ -24772,16 +24730,13 @@ Entities:
       Translation: [-0.800000012, 27.2000008, 6]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 1355231968411739589
     TagComponent:
       Tag: Waypoint 10
@@ -24791,16 +24746,13 @@ Entities:
       Translation: [-0.800000012, 28, 6]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Up
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 10
-            WaitMin: 6
+    WaypointComponent:
+      Action: ""
+      Facing: Up
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 10
+      WaitMin: 6
   - Entity: 4753171235165312154
     TagComponent:
       Tag: Npc Townswoman 832
@@ -24864,16 +24816,13 @@ Entities:
       Translation: [19, -1.39999998, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 594972652024963199
     TagComponent:
       Tag: Waypoint 2
@@ -24883,16 +24832,13 @@ Entities:
       Translation: [-7.82999992, -0.150000006, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Up
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 5
-            WaitMin: 3
+    WaypointComponent:
+      Action: ""
+      Facing: Up
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 5
+      WaitMin: 3
   - Entity: 9143278444674759079
     TagComponent:
       Tag: Waypoint 3
@@ -24902,16 +24848,13 @@ Entities:
       Translation: [0.200000003, 5.4000001, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 3081547608057841988
     TagComponent:
       Tag: Waypoint 4
@@ -24921,16 +24864,13 @@ Entities:
       Translation: [0.200000003, 15, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 2308778234059349916
     TagComponent:
       Tag: Waypoint 5
@@ -24940,16 +24880,13 @@ Entities:
       Translation: [1.29999995, 18.6000004, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 3325473011595364213
     TagComponent:
       Tag: Waypoint 6
@@ -24959,16 +24896,13 @@ Entities:
       Translation: [1.04999995, 21, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Left
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 6
-            WaitMin: 3
+    WaypointComponent:
+      Action: ""
+      Facing: Left
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 6
+      WaitMin: 3
   - Entity: 8481473988800661241
     TagComponent:
       Tag: Waypoint 7
@@ -24978,16 +24912,13 @@ Entities:
       Translation: [1.29999995, 22.5, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 5440825933971165738
     TagComponent:
       Tag: Waypoint 8
@@ -24997,16 +24928,13 @@ Entities:
       Translation: [0.400000006, 23.2999992, 4.5]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 1969781225840908577
     TagComponent:
       Tag: Waypoint 9
@@ -25016,16 +24944,13 @@ Entities:
       Translation: [0.400000006, 27.2000008, 6]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 6099258887805481460
     TagComponent:
       Tag: Waypoint 10
@@ -25035,16 +24960,13 @@ Entities:
       Translation: [0.400000006, 28, 6]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Up
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 10
-            WaitMin: 6
+    WaypointComponent:
+      Action: ""
+      Facing: Up
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 10
+      WaitMin: 6
   - Entity: 5719204301353692728
     TagComponent:
       Tag: Npc OldWoman 833
@@ -25108,16 +25030,13 @@ Entities:
       Translation: [19, -1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 5615634474049004301
     TagComponent:
       Tag: Waypoint 2
@@ -25127,16 +25046,13 @@ Entities:
       Translation: [12.6000004, 1.60000002, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Up
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 7
-            WaitMin: 4
+    WaypointComponent:
+      Action: ""
+      Facing: Up
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 7
+      WaitMin: 4
   - Entity: 4547441283968247396
     TagComponent:
       Tag: Waypoint 3
@@ -25146,16 +25062,13 @@ Entities:
       Translation: [4.3499999, 2.45000005, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Up
-            LookAt: 0
-            StopChance: 0.800000012
-            WaitMax: 7
-            WaitMin: 4
+    WaypointComponent:
+      Action: ""
+      Facing: Up
+      LookAt: 0
+      StopChance: 0.800000012
+      WaitMax: 7
+      WaitMin: 4
   - Entity: 7517504453049112361
     TagComponent:
       Tag: Waypoint 4
@@ -25165,16 +25078,13 @@ Entities:
       Translation: [-17.7999992, -5.9000001, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: Down
-            LookAt: 0
-            StopChance: 0.699999988
-            WaitMax: 9
-            WaitMin: 5
+    WaypointComponent:
+      Action: ""
+      Facing: Down
+      LookAt: 0
+      StopChance: 0.699999988
+      WaitMax: 9
+      WaitMin: 5
   - Entity: 4189154733408330096
     TagComponent:
       Tag: Waypoint 5
@@ -25184,16 +25094,13 @@ Entities:
       Translation: [2, -9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    NativeScriptComponent:
-      Scripts:
-        - Name: WaypointScript
-          Properties:
-            Action: ""
-            Facing: ""
-            LookAt: 0
-            StopChance: 1
-            WaitMax: 0
-            WaitMin: 0
+    WaypointComponent:
+      Action: ""
+      Facing: ""
+      LookAt: 0
+      StopChance: 1
+      WaitMax: 0
+      WaitMin: 0
   - Entity: 4545594682867784249
     TagComponent:
       Tag: Npc Merchant 834

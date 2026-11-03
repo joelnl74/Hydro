@@ -14,39 +14,12 @@ namespace Hydro
 	class Entity;
 	struct SystemContext;
 
-	// The 2D physics world of one running Scene (Box2D). Scene creates it when the game starts
-	// (Scene::OnRuntimeStart) and destroys it when it stops, so a world only exists while playing and
-	// the editor scene never has one.
-	//
-	// Which entities become bodies (built once, when the world is created): every entity with a
-	// TransformComponent and a Rigidbody2DComponent, BoxCollider2DComponent or CircleCollider2DComponent.
-	//  - No Rigidbody2D: a static body (it never moves).
-	//  - Static / Dynamic / Kinematic as the Rigidbody2D says.
-	// Entities that get such components after the start (spawned by a script, DuplicateEntity, a prefab)
-	// get their body at the start of the next physics step, or at once when game code asks for it
-	// (Physics2D::SetLinearVelocity / HasBody). The components are read when the body is made: changing
-	// them later has no effect on the body.
-	// Position (x, y), angle about Z and scale come from the entity's place in the world when the body is made: a
-	// root's TransformComponent (Translation.xy, Rotation.z), a child's world transform (Scene::GetWorldTransform,
-	// current even before the transforms stage). Z, and the sprite, are never touched. Results are written back to
-	// a root's TransformComponent, and to a child through Scene::SetWorldTransform.
-	//
-	// Who owns the transform while playing:
-	//  - Dynamic: the simulation. After each update the transform is overwritten with the body's.
-	//    To move a dynamic body, set its velocity (Physics2D::SetLinearVelocity); writing the transform
-	//    has no effect on the body.
-	//  - Kinematic: the game. Write its transform (a script, Bob, WaypointWalk); the body is carried to
-	//    it with the right velocity, so it pushes dynamic bodies instead of teleporting through them.
-	//  - Static: nobody. Moving the transform in play mode does not move the collider.
-	//
-	// The simulation runs in fixed steps of SystemContext::FixedDeltaTime (60 Hz): a frame runs as many
-	// whole steps as its time allows (at most MaxStepsPerFrame, the rest of a long frame is dropped).
-	// There is no interpolation between steps yet, so a frame that runs no step shows the last result.
+	// The 2D physics world (Box2D) of one running Scene, made at Scene::OnRuntimeStart. Dynamic bodies own their
+	// transform, kinematic ones follow it, static ones ignore it; see docs/SceneAndECS.md, Physics.
 	class PhysicsScene
 	{
 	public:
-		// Box2D settings: world units are metres, gravity points down -Y (give a body GravityScale 0 for
-		// a top-down game).
+		// World units are metres; gravity points down -Y (GravityScale 0 for a top-down game).
 		static constexpr int SubStepCount = 4;
 		static constexpr int MaxStepsPerFrame = 4;
 		static constexpr float Gravity = -9.81f;
@@ -56,9 +29,8 @@ namespace Hydro
 		PhysicsScene(const PhysicsScene&) = delete;
 		PhysicsScene& operator=(const PhysicsScene&) = delete;
 
-		// What happened in this update's steps, for Scene to deliver to scripts. Collision events are
-		// between two solid shapes starting / stopping to touch; trigger events are a sensor (A) and
-		// another shape (B) starting / stopping to overlap. Rebuilt by every Step.
+		// This update's collision events (two solid shapes) and trigger events (a sensor A and a shape B), for
+		// Scene to deliver to scripts. Rebuilt by every Step.
 		struct Event
 		{
 			enum class Type : uint8_t { CollisionBegin, CollisionEnd, TriggerBegin, TriggerEnd };
@@ -68,30 +40,26 @@ namespace Hydro
 		};
 		const std::vector<Event>& GetEvents() const { return m_Events; }
 
-		// Physics stage of a runtime update: moves kinematic bodies to their transforms, runs the fixed
-		// steps this frame's time allows, then writes the dynamic bodies' results to their transforms.
+		// Moves kinematic bodies to their transforms, runs the fixed steps, writes dynamic bodies back.
 		void Step(const SystemContext& context);
 
-		// Scene::DestroyEntity calls this so a destroyed entity's body goes with it.
 		void OnEntityDestroyed(entt::entity handle);
 
 		bool HasBody(entt::entity handle) const;
-		// Makes the entity's body now if it has the components for one and none yet (an entity spawned this
-		// frame). True when it has a body afterwards.
+		// Makes the entity's body now if it should have one (spawned this frame). True when it has a body.
 		bool EnsureBody(entt::entity handle);
 		size_t GetBodyCount() const;
 
-		// Dynamic and kinematic bodies only (false otherwise). World units per second.
+		// Dynamic and kinematic bodies only. World units per second.
 		bool SetLinearVelocity(entt::entity handle, const glm::vec2& velocity);
 		bool GetLinearVelocity(entt::entity handle, glm::vec2& velocity);
 
 	private:
 		struct Data;
-		// Builds the body of one entity (false when it has none to make or already has it).
+		// False when it has no body to make or already has one.
 		bool CreateBody(entt::entity handle);
-		// Builds bodies for entities that got physics components since the last step.
 		void CreateNewBodies();
-		// Reads Box2D's contact and sensor events of the step that just ran into m_Events.
+		// Box2D's contact and sensor events of the step that just ran, into m_Events.
 		void CollectEvents();
 
 		Scope<Data> m_Data;
@@ -99,9 +67,7 @@ namespace Hydro
 		Scene* m_Scene = nullptr;
 	};
 
-	// What game code uses: the entity's body in its scene's running world. All of them do nothing (and
-	// return false) when the game isn't running or the entity has no body. A class of static functions, like
-	// Physics3D (namespace Hydro only).
+	// Game code's access to an entity's 2D body. Does nothing (returns false) when not playing or without a body.
 	class Physics2D
 	{
 	public:

@@ -11,7 +11,7 @@ namespace Hydro
 			std::vector<YAML::Node> entities;
 			if (data["Prefab"].IsDefined())
 			{
-				// Entities: the root and its subtree (Oct 29, 2026); Entity: one entity (older prefabs).
+				// Entities: the root and its subtree; Entity: one entity (older prefabs).
 				if (auto list = data["Entities"]; list && list.IsSequence())
 				{
 					for (const YAML::Node& node : list)

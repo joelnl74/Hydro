@@ -1,4 +1,3 @@
-// Game/src/Scripts/FarmVillage/FarmVillageScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -13,16 +12,13 @@
 
 namespace Hydro
 {
-	// On the Farm Village's director entity (Assets/Scenes/FarmVillage.hyscene, scripts/farm_village/build.py).
-	// A higher camera than the shrine's (55 degrees from straight down, a 30 degree lens), so the fields, the
-	// square and the roofs read like the concept art; the focus stays on the village (the lane from the bridge to
-	// the forest path). Keep in step with scripts/farm_village/build.py (BOUNDS_MIN, BOUNDS_MAX, CAMERA_ORTHO).
-	// Presets: day, golden hour (the default), night.
+	// The Farm Village's director: a higher camera than the shrine's, so the fields, square and roofs read like the concept
+	// art. Keep in step with scripts/farm_village/build.py (BOUNDS_MIN, BOUNDS_MAX, CAMERA_ORTHO).
 	HY_SCRIPT()
 	class FarmVillageScript : public DioramaDirectorScript
 	{
 	public:
-		// The camera framing (DioramaView): applied every frame, so it can be tuned while playing.
+		// Applied every frame, so it can be tuned while playing.
 		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down"))
 		float TiltDegrees = 55.0f;
 		HY_PROPERTY(Range(5, 120), Tooltip("Vertical field of view in degrees (perspective)"))

@@ -16,13 +16,12 @@ namespace Hydro
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
-	// Presentation only: the swapchain images, their views and framebuffers, the render pass that
-	// draws into them, and acquire/present. Per-frame command buffers and fences live in
-	// VulkanFrameContext; the surface lives in VulkanRendererContext.
+	// Presentation only: the swapchain images, views and framebuffers, their render pass, acquire and present.
+	// Per-frame command buffers live in VulkanFrameContext, the surface in VulkanRendererContext.
 	class VulkanSwapChain
 	{
 	public:
-		// `device` must outlive the swapchain (both belong to Renderer, which shuts this down first).
+		// `device` must outlive the swapchain.
 		VulkanSwapChain(VulkanDevice& device, VkSurfaceKHR surface);
 
 		// Returns false when the surface is currently 0x0 (minimised); call Recreate later.
@@ -48,8 +47,7 @@ namespace Hydro
 		uint32_t GetImageCount() const { return (uint32_t)m_Images.size(); }
 		uint32_t GetMinImageCount() const { return m_MinImageCount; }
 
-		// One per swapchain image: the presentation engine may still hold an image's semaphore
-		// while other frames are being recorded, so these must not be shared per frame in flight.
+		// One per swapchain image, not per frame in flight: presentation may still hold an image's semaphore.
 		VkSemaphore GetRenderFinishedSemaphore(uint32_t imageIndex) const { return m_RenderFinishedSemaphores[imageIndex]; }
 
 	private:

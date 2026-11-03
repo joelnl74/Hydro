@@ -34,7 +34,8 @@ namespace Hydro
 		drawList->PathFillConvex(color);
 
 		// A small highlight, like light on water.
-		drawList->AddCircleFilled(ImVec2(centre.x - radius * 0.35f, centre.y - radius * 0.2f), radius * 0.28f, IM_COL32(255, 255, 255, 90), 12);
+		drawList->AddCircleFilled(ImVec2(centre.x - radius * 0.35f, centre.y - radius * 0.2f), radius * 0.28f,
+			IM_COL32(255, 255, 255, 90), 12);
 	}
 
 	void EditorChrome::DrawBrand(const ImVec4& accent)
@@ -50,13 +51,19 @@ namespace Hydro
 
 		ImFont* bold = GetBoldFont();
 		if (bold != nullptr)
+		{
 			ImGui::PushFont(bold);
+		}
 		ImGui::TextUnformatted("Oxygen");
 		if (bold != nullptr)
+		{
 			ImGui::PopFont();
+		}
 
 		if (ImGui::IsItemHovered())
+		{
 			ImGui::SetTooltip("Oxygen editor - Hydro engine");
+		}
 	}
 
 	void EditorChrome::DrawMenuBarWaterline(const ImVec4& color)
@@ -89,7 +96,8 @@ namespace Hydro
 				ImVec2(centre.x + s, centre.y), color);
 			break;
 		case ToolbarIcon::Stop:
-			drawList->AddRectFilled(ImVec2(centre.x - s * 0.85f, centre.y - s * 0.85f), ImVec2(centre.x + s * 0.85f, centre.y + s * 0.85f), color, 1.5f);
+			drawList->AddRectFilled(ImVec2(centre.x - s * 0.85f, centre.y - s * 0.85f),
+				ImVec2(centre.x + s * 0.85f, centre.y + s * 0.85f), color, 1.5f);
 			break;
 		case ToolbarIcon::Pause:
 			drawList->AddRectFilled(ImVec2(centre.x - s * 0.8f, centre.y - s), ImVec2(centre.x - s * 0.25f, centre.y + s), color, 1.0f);
@@ -102,8 +110,8 @@ namespace Hydro
 			break;
 		}
 	}
-
-	bool EditorChrome::IconButton(const char* id, ToolbarIcon icon, float size, bool highlighted, const ImVec4& highlightColor, const char* tooltip)
+	bool EditorChrome::IconButton(const char* id, ToolbarIcon icon, float size, bool highlighted, const ImVec4& highlightColor,
+		const char* tooltip)
 	{
 		if (highlighted)
 		{
@@ -116,18 +124,24 @@ namespace Hydro
 		const bool pressed = ImGui::Button(id, ImVec2(size, ImGui::GetFrameHeight()));
 
 		if (highlighted)
+		{
 			ImGui::PopStyleColor(3);
+		}
 
 		// Dark icon on a bright highlight, the text colour otherwise (dimmed when disabled).
 		const float luminance = 0.2126f * highlightColor.x + 0.7152f * highlightColor.y + 0.0722f * highlightColor.z;
 		ImU32 color = ImGui::GetColorU32(ImGuiCol_Text);
 		if (highlighted)
+		{
 			color = luminance > 0.55f ? IM_COL32(12, 16, 22, 255) : IM_COL32(255, 255, 255, 255);
+		}
 
 		DrawIcon(ImGui::GetWindowDrawList(), icon, ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), color);
 
 		if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+		{
 			ImGui::SetTooltip("%s", tooltip);
+		}
 
 		return pressed;
 	}
@@ -145,7 +159,9 @@ namespace Hydro
 	{
 		s_PushedTintColors = 0;
 		if (playing == false || settings.Tint == false || settings.TintStrength <= 0.0f)
+		{
 			return;
+		}
 
 		const ImGuiCol tinted[] =
 		{
@@ -164,7 +180,9 @@ namespace Hydro
 	void EditorChrome::PopPlayModeTint()
 	{
 		if (s_PushedTintColors > 0)
+		{
 			ImGui::PopStyleColor(s_PushedTintColors);
+		}
 		s_PushedTintColors = 0;
 	}
 }

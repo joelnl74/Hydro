@@ -17,6 +17,7 @@ namespace Hydro
 			case ScriptPropertyType::Asset: return "AssetHandle";
 			case ScriptPropertyType::RowRef: return "DataRowRef";
 			case ScriptPropertyType::EntityRef: return "EntityRef";
+			case ScriptPropertyType::Data: return "data";
 		}
 		return "unknown";
 	}

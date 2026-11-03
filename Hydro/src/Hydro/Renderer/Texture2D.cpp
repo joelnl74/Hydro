@@ -11,14 +11,13 @@
 
 namespace Hydro
 {
-	// Textures loaded from files outside the asset folder that are still alive, so many sprites using one
-	// file share one texture. Weak: the cache never keeps a texture (or GPU memory) alive by itself.
-	// Images inside the asset folder are shared by the AssetManager instead.
+	// Live textures from files outside the asset folder, so sprites using one file share one texture. Weak, so the
+	// cache never keeps one alive.
 	static std::unordered_map<std::string, std::weak_ptr<Texture2D>> s_LoadedTextures;
 
-	// The .hymeta's modification time is part of the key, so a re-saved import config re-imports
-	// (sprites still holding the old texture keep it until they are given the new one).
-	static std::string MakeCacheKey(const std::filesystem::path& path, const TextureProperties& properties, ImageFormat format, int64_t importFileTime)
+	// The .hymeta's modification time is part of the key, so a re-saved import config re-imports.
+	static std::string MakeCacheKey(const std::filesystem::path& path, const TextureProperties& properties, ImageFormat format,
+		int64_t importFileTime)
 	{
 		return path.generic_u8string() + "|" + std::to_string((int)format) + "|" +
 			std::to_string((int)properties.SamplerFilter) + "|" + std::to_string((int)properties.SamplerWrap) + "|" +
@@ -87,8 +86,7 @@ namespace Hydro
 			absolutePath = path;
 		}
 
-		// An image in the open project's asset folder is an asset: the AssetManager loads it once and
-		// shares it (its .hymeta decides how), until the project closes.
+		// An image in the project's asset folder is an asset: the AssetManager loads and shares it.
 		const AssetHandle handle = AssetManager::ImportAsset(absolutePath);
 		if ((uint64_t)handle != 0)
 		{
@@ -220,8 +218,7 @@ namespace Hydro
 		}
 
 		const glm::vec2 imageSize = { (float)std::max(m_Specification.Width, 1u), (float)std::max(m_Specification.Height, 1u) };
-		// 1/1000 of a texel in from each edge: invisible, but keeps nearest sampling at the very edge
-		// of the quad inside this sprite.
+		// A thousandth of a texel in from each edge keeps nearest sampling at the quad's edge inside this sprite.
 		const glm::vec2 inset = glm::vec2(0.001f) / imageSize;
 		TextureRect rect;
 		rect.Min = glm::vec2(sprite.Position) / imageSize + inset;

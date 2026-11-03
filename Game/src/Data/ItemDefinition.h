@@ -1,4 +1,3 @@
-// Game/src/Data/ItemDefinition.h
 #pragma once
 
 #include "Data/CombatStats.h"
@@ -8,11 +7,10 @@
 #include <cstdint>
 #include <string>
 
-// The game's items as data (the Definitions plan's D4, #171): one row per item in Assets/Data/Items.hytable,
-// edited in a text editor until the inspector can (D3). The party's inventory stores rows (DataRowRef) and counts.
+// The game's items as data: one row per item in Assets/Data/Items.hytable. The inventory stores rows and counts.
 namespace Hydro
 {
-	// What kind of thing an item is (the inventory can sort or filter by it later). Saved by name.
+	// Saved by name.
 	HY_ENUM()
 	enum class ItemKind : uint8_t
 	{
@@ -22,8 +20,7 @@ namespace Hydro
 		Material
 	};
 
-	// Where a piece of equipment goes (the Menu plan's six slots: Accessory fits either accessory slot; Off-hand is
-	// a shield, a tome or a book). None: not equipment.
+	// Accessory fits either accessory position; Off-hand is a shield, a tome or a book. None: not equipment.
 	HY_ENUM()
 	enum class EquipSlot : uint8_t
 	{
@@ -35,7 +32,7 @@ namespace Hydro
 		Accessory
 	};
 
-	// How rare an item is: loot tables (LootTableDefinition) pick a rarity by its chance, then an item of it.
+	// Loot tables pick a rarity by its chance, then an item of it.
 	HY_ENUM()
 	enum class ItemRarity : uint8_t
 	{
@@ -70,7 +67,6 @@ namespace Hydro
 		HY_PROPERTY(Tooltip("Equipment: added to the wearer's numbers"))
 		CombatStats Bonus{ 0, 0, 0, 0, 0 };
 
-		// Whether using it from the field inventory does anything.
 		bool CanUseInField() const
 		{
 			return UsableInField && (RestoreHP > 0 || RestoreMP > 0);

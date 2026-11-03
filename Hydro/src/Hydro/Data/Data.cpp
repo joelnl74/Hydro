@@ -55,7 +55,8 @@ namespace Hydro
 		if (metadata->Type != expected)
 		{
 			WarnOnce(std::string("kind:") + what + ":" + HandleText(handle),
-				std::string(what) + ": '" + path + "' is a " + AssetTypeToString(metadata->Type) + ", not a " + AssetTypeToString(expected));
+				std::string(what) + ": '" + path + "' is a " + AssetTypeToString(metadata->Type) + ", not a "
+					+ AssetTypeToString(expected));
 			return nullptr;
 		}
 		return metadata;
@@ -128,7 +129,8 @@ namespace Hydro
 		if (definition->GetDataType()->CppType != cppType)
 		{
 			WarnOnce("type:" + HandleText(handle) + ":" + TypeNameOf(cppType),
-				"Data::Get: '" + metadata->Path.generic_u8string() + "' holds a " + definition->GetDataType()->Name + ", not a " + TypeNameOf(cppType));
+				"Data::Get: '" + metadata->Path.generic_u8string() + "' holds a " + definition->GetDataType()->Name + ", not a "
+					+ TypeNameOf(cppType));
 			return nullptr;
 		}
 		owner = definition;
@@ -154,7 +156,8 @@ namespace Hydro
 		if (table->GetRowType()->CppType != cppType)
 		{
 			WarnOnce("type:" + HandleText(handle) + ":" + TypeNameOf(cppType),
-				"Data::GetTable: '" + metadata->Path.generic_u8string() + "' has rows of " + table->GetRowType()->Name + ", not " + TypeNameOf(cppType));
+				"Data::GetTable: '" + metadata->Path.generic_u8string() + "' has rows of " + table->GetRowType()->Name + ", not "
+					+ TypeNameOf(cppType));
 			return nullptr;
 		}
 		owner = table;
@@ -178,7 +181,8 @@ namespace Hydro
 		{
 			const AssetMetadata* metadata = AssetManager::GetMetadata(row.Table);
 			WarnOnce("row:" + HandleText(row.Table) + ":" + row.Row,
-				"Data::GetRow: '" + (metadata != nullptr ? metadata->Path.generic_u8string() : HandleText(row.Table)) + "' has no row '" + row.Row + "'");
+				"Data::GetRow: '" + (metadata != nullptr ? metadata->Path.generic_u8string() : HandleText(row.Table)) + "' has no row '"
+					+ row.Row + "'");
 			return nullptr;
 		}
 		owner = std::move(table);
@@ -192,10 +196,12 @@ namespace Hydro
 		return parent.empty() ? child : parent + "." + child;
 	}
 
-	static void CheckReferences(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row, DataReport& report);
+	static void CheckReferences(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row,
+		DataReport& report);
 
 	// An asset reference: registered, its file there, of the field's asset type and, for data, of its data type.
-	static void CheckAssetReference(const DataField& field, AssetHandle handle, const std::string& path, const std::string& row, DataReport& report)
+	static void CheckAssetReference(const DataField& field, AssetHandle handle, const std::string& path, const std::string& row,
+		DataReport& report)
 	{
 		if ((uint64_t)handle == 0)
 		{
@@ -215,7 +221,8 @@ namespace Hydro
 		}
 		if (field.AssetFilter != AssetType::None && metadata->Type != field.AssetFilter)
 		{
-			report.AddError(row, path, "'" + file + "' is a " + AssetTypeToString(metadata->Type) + ", not a " + AssetTypeToString(field.AssetFilter));
+			report.AddError(row, path, "'" + file + "' is a " + AssetTypeToString(metadata->Type) + ", not a "
+				+ AssetTypeToString(field.AssetFilter));
 			return;
 		}
 		if (field.DataTypeFilter.empty() == false && (metadata->Type == AssetType::Definition || metadata->Type == AssetType::DataTable))
@@ -233,7 +240,8 @@ namespace Hydro
 	}
 
 	// A row reference: both halves set, the table there and of the field's row type, the row in it.
-	static void CheckRowReference(const DataField& field, const DataRowRef& ref, const std::string& path, const std::string& row, DataReport& report)
+	static void CheckRowReference(const DataField& field, const DataRowRef& ref, const std::string& path, const std::string& row,
+		DataReport& report)
 	{
 		const bool hasTable = (uint64_t)ref.Table != 0;
 		const bool hasRow = ref.Row.empty() == false;
@@ -310,7 +318,8 @@ namespace Hydro
 		}
 	}
 
-	static void CheckReferences(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row, DataReport& report)
+	static void CheckReferences(const DataTypeInfo& type, const void* object, const std::string& path, const std::string& row,
+		DataReport& report)
 	{
 		for (const DataField& field : type.Fields)
 		{
@@ -387,7 +396,8 @@ namespace Hydro
 			return report;
 		}
 
-		report.AddError("", "", "'" + metadata->Path.generic_u8string() + "' is a " + AssetTypeToString(metadata->Type) + ", not a definition or data table");
+		report.AddError("", "", "'" + metadata->Path.generic_u8string() + "' is a " + AssetTypeToString(metadata->Type)
+			+ ", not a definition or data table");
 		return report;
 	}
 }

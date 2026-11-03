@@ -21,7 +21,7 @@ namespace Hydro
 		case ShaderDataType::Int3:      return VK_FORMAT_R32G32B32_SINT;
 		case ShaderDataType::Int4:      return VK_FORMAT_R32G32B32A32_SINT;
 		case ShaderDataType::Bool:      return VK_FORMAT_R8_UINT;
-		case ShaderDataType::Mat3:      // A matrix takes one attribute location per column: not supported yet.
+		case ShaderDataType::Mat3:      // a matrix needs one attribute location per column: not supported
 		case ShaderDataType::Mat4:
 		case ShaderDataType::None:      break;
 		}
@@ -114,7 +114,6 @@ namespace Hydro
 			throw std::runtime_error("PipelineSpecification has neither ColorFormats nor a DepthFormat.");
 		}
 
-		// Setup vertex data.
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
@@ -123,7 +122,6 @@ namespace Hydro
 		vertexInputBinding.stride = (uint32_t)spec.Layout.GetStride();
 		vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-		// Inpute attribute bindings describe shader attribute locations and memory layouts
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributs(spec.Layout.GetElementCount());
 
 		uint32_t location = 0;
@@ -142,9 +140,6 @@ namespace Hydro
 		vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributs.size();
 		vertexInputInfo.pVertexBindingDescriptions = &vertexInputBinding;
 		vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributs.data();
-
-
-		// End setup vertex data.
 
 		std::vector<VkDynamicState> dynamicStates =
 		{
@@ -168,7 +163,6 @@ namespace Hydro
 		viewportState.viewportCount = 1;
 		viewportState.scissorCount = 1;
 
-		// Rasterizer
 		VkPipelineRasterizationStateCreateInfo rasterizer{};
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizer.depthClampEnable = VK_FALSE;
@@ -296,8 +290,10 @@ namespace Hydro
 		renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
 		renderingInfo.colorAttachmentCount = (uint32_t)colorFormats.size();
 		renderingInfo.pColorAttachmentFormats = colorFormats.data();
-		renderingInfo.depthAttachmentFormat = spec.DepthFormat != ImageFormat::None ? VulkanImage::GetImageFormat(spec.DepthFormat) : VK_FORMAT_UNDEFINED;
-		renderingInfo.stencilAttachmentFormat = spec.DepthFormat == ImageFormat::DEPTH24STENCIL8 ? VulkanImage::GetImageFormat(spec.DepthFormat) : VK_FORMAT_UNDEFINED;
+		renderingInfo.depthAttachmentFormat =
+			spec.DepthFormat != ImageFormat::None ? VulkanImage::GetImageFormat(spec.DepthFormat) : VK_FORMAT_UNDEFINED;
+		renderingInfo.stencilAttachmentFormat =
+			spec.DepthFormat == ImageFormat::DEPTH24STENCIL8 ? VulkanImage::GetImageFormat(spec.DepthFormat) : VK_FORMAT_UNDEFINED;
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -315,12 +311,11 @@ namespace Hydro
 		pipelineInfo.renderPass = VK_NULL_HANDLE;
 		pipelineInfo.subpass = 0;
 		pipelineInfo.pDepthStencilState = &depthStencil;
-		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-		pipelineInfo.basePipelineIndex = -1; // Optional
+		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+		pipelineInfo.basePipelineIndex = -1;
 
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline));
 
-		// The shader is only needed above.
 		m_PipelineSpecification.Shader = nullptr;
 	}
 
@@ -375,7 +370,8 @@ namespace Hydro
 			descriptorSets.push_back(descriptorSet->GetDescriptorSet(currentFrame));
 		}
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, (uint32_t)descriptorSets.size(),
+			descriptorSets.data(), 0, nullptr);
 	}
 
 	void VulkanPipeline::BindDescriptorSet(VkCommandBuffer commandBuffer, uint32_t setIndex, VulkanDescriptorBuilder& descriptorSet)
@@ -391,7 +387,8 @@ namespace Hydro
 
 	void VulkanPipeline::PushConstants(VkCommandBuffer commandBuffer, const void* data, uint32_t size)
 	{
-		HY_CORE_ASSERT(size <= m_PipelineSpecification.PushConstantSize, "VulkanPipeline::PushConstants: more bytes than the pipeline declares");
+		HY_CORE_ASSERT(size <= m_PipelineSpecification.PushConstantSize,
+			"VulkanPipeline::PushConstants: more bytes than the pipeline declares");
 		vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
 	}
 }

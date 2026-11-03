@@ -4,10 +4,8 @@
 
 namespace Hydro
 {
-	// Which render features a view uses (3D renderer MVP plan, "Render features and presets"). The engine
-	// has no rendering modes named after a kind of game: a 2D game, a 3D game and pixel-art sprites in a
-	// 3D world are combinations of these settings. The project's default lives in RendererSettings::Features
-	// (saved in the .hyproj); a scene may override it (SceneRenderSettings).
+	// Which render features a view uses; a 2D game, a 3D game and sprites in a 3D world are combinations of them.
+	// The project's default is RendererSettings::Features; a scene may override it (SceneRenderSettings).
 
 	// Depth shared by sprites and meshes.
 	enum class DepthMode : uint8_t
@@ -30,15 +28,15 @@ namespace Hydro
 		Forward        // directional, point and spot lights in the sprite and mesh shaders
 	};
 
-	// How the sprites submitted next are drawn in a view with shared depth (Renderer2D::SetSpriteDrawMode).
-	// Ignored, and everything drawn Translucent, without shared depth, so the 2D preset is unchanged.
+	// How the sprites submitted next are drawn with shared depth (Renderer2D::SetSpriteDrawMode). Without shared
+	// depth everything is drawn Translucent, except Additive.
 	enum class SpriteDrawMode : uint8_t
 	{
 		Translucent = 0, // depth test, no depth write, alpha blended, after the cut-out sprites (particles, effects)
 		Decal,           // the same, but before the cut-out sprites: ground, roads, flat decals in painter's order
 		Cutout,          // depth test and write; pixels with alpha under 0.5 are discarded (standing sprites)
-		FadedCutout      // Cutout for sprites being faded (SpriteRendererComponent::Opacity below 1): the texture's alpha
-		                 // cuts out, the quad's alpha screen-door fades (sprite_fade.frag); drawn after the cut-outs
+		FadedCutout,     // Cutout with the quad's alpha as a screen-door fade (Opacity below 1); after the cut-outs
+		Additive         // colour times alpha added onto what is behind: among the translucent ones, depth tested, unlit
 	};
 
 	// The alpha mode of sprites that don't choose one.
@@ -48,7 +46,7 @@ namespace Hydro
 		Cutout
 	};
 
-	// Cast shadows (Roadmap R14, Diorama RPG H6). Needs forward lighting and shared depth.
+	// Cast shadows. Needs forward lighting and shared depth.
 	enum class ShadowMode : uint8_t
 	{
 		Off = 0,
@@ -63,14 +61,12 @@ namespace Hydro
 		FaceSun   // the quad turned about its feet to face the sun, so its shadow is always as wide as the sprite
 	};
 
-	// How Upright sprites stand in a tilted view (decided Oct 30, 2026, after Octopath Traveler's standees).
+	// How Upright sprites stand in a tilted view.
 	enum class UprightSpriteMode : uint8_t
 	{
-		LeanToCamera = 0, // lean back with the camera's tilt so the quad faces it fully (the first 3D look); the
-		                  // battle stage places its actors for this
-		Vertical          // stand straight up and only turn about Z, like a cardboard standee in a model: trees and
-		                  // people stand in the scene instead of lying back over what is behind them. Near a
-		                  // top-down camera (under 30 degrees of tilt) they still lean, so they never turn edge-on
+		LeanToCamera = 0, // lean back with the camera's tilt so the quad faces it fully (the battle stage expects it)
+		Vertical          // stand straight up and only turn about Z, like a cardboard standee; under 30 degrees of tilt
+		                  // they still lean, so they never turn edge-on
 	};
 
 	struct RenderFeatureSettings
@@ -83,30 +79,32 @@ namespace Hydro
 		ShadowMode Shadows = ShadowMode::Off; // needs Lighting = Forward and Depth = Shared
 		SpriteShadowMode SpriteShadows = SpriteShadowMode::FaceSun; // only read with Shadows on
 		UprightSpriteMode UprightSprites = UprightSpriteMode::LeanToCamera;
-		// HDR scene colour (post-processing plan P1): the scene renders into RGBA16F and a Tonemap pass (exposure,
-		// PBR Neutral) writes the view's sRGB colour; the overlay and debug lines are drawn after it.
+		// HDR scene colour: the scene renders into RGBA16F and a Tonemap pass writes the view's sRGB colour; the overlay
+		// and debug lines are drawn after it.
 		bool HDR = false;
-		// Bloom (post-processing plan P2): a soft glow around what is brighter than the scene's threshold, added
-		// to the HDR scene colour before the tonemap. Needs HDR.
+		// A soft glow around what is brighter than the scene's threshold, added before the tonemap. Needs HDR.
 		bool Bloom = false;
-		// Depth of field (#135): a half-resolution blur of what lies far in front of or behind the camera's focus
-		// point (the scene's DofNearStart / DofFarStart), mixed into the HDR scene colour before the tonemap.
-		// Needs HDR and Depth = Shared (the circle of confusion comes from the shared depth).
+		// A half-resolution blur of what lies far from the camera's focus, mixed in before the tonemap (#135).
+		// Needs HDR and Depth = Shared.
 		bool DepthOfField = false;
+		// Keeps pixel-art textures from shimmering (#136): the Game camera moves in whole screen pixels, and lighting is
+		// taken at texel centres so it steps with the art's pixels. The second half needs Lighting = Forward.
+		bool PixelSnap = false;
 
 		bool operator==(const RenderFeatureSettings& other) const
 		{
 			return Depth == other.Depth && SpriteSorting == other.SpriteSorting && Lighting == other.Lighting
 				&& DefaultSpriteAlpha == other.DefaultSpriteAlpha && Meshes == other.Meshes
 				&& Shadows == other.Shadows && SpriteShadows == other.SpriteShadows && UprightSprites == other.UprightSprites
-				&& HDR == other.HDR && Bloom == other.Bloom && DepthOfField == other.DepthOfField;
+				&& HDR == other.HDR && Bloom == other.Bloom && DepthOfField == other.DepthOfField
+				&& PixelSnap == other.PixelSnap;
 		}
 		bool operator!=(const RenderFeatureSettings& other) const { return (*this == other) == false; }
 
-		// Today's frame: painter's order, the 2D light buffer, no depth.
+		// Painter's order, the 2D light buffer, no depth.
 		static RenderFeatureSettings Preset2D() { return {}; }
-		// Shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows with
-		// sun-facing sprite shadows, HDR with the Neutral tonemap, bloom, depth of field.
+		// Shared depth, view-depth sorting, forward lights, cut-out sprites, meshes, sun shadows, HDR, bloom, depth of
+		// field, pixel snap.
 		static RenderFeatureSettings Preset3D()
 		{
 			RenderFeatureSettings settings;
@@ -120,6 +118,7 @@ namespace Hydro
 			settings.HDR = true;
 			settings.Bloom = true;
 			settings.DepthOfField = true;
+			settings.PixelSnap = true;
 			return settings;
 		}
 		// "2D", "3D" or "Custom".

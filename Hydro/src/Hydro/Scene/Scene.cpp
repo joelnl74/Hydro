@@ -1,6 +1,8 @@
 #include <hypch.h>
 #include "Scene.h"
 #include "Entity.h"
+#include "EntityReferences.h"
+#include "ComponentRegistry.h"
 #include "Scripting/ScriptableEntity.h"
 #include "Scripting/ScriptSystem.h"
 #include "SpriteAnimator.h"
@@ -57,9 +59,8 @@ namespace Hydro
 
 	Scene::~Scene()
 	{
-		// Give scripts a chance to clean up while the registry and their entities still exist. A stage
-		// is open so that anything a script's OnDestroy asks for (DestroyEntity...) is queued and then
-		// dropped instead of changing the registry under this loop.
+		// Scripts clean up while the registry still exists. The open stage queues (and then drops) whatever their
+		// OnDestroy asks for, so the registry doesn't change under this loop.
 		m_StageDepth++;
 
 		auto view = m_Registry.view<NativeScriptComponent>();
@@ -161,6 +162,11 @@ namespace Hydro
 		}
 
 		CopyComponents(CopyableComponents{}, copy->m_Registry, sourceRegistry, entityMap);
+		// The game's own components (HY_COMPONENT, ComponentRegistry).
+		for (const ComponentTypeInfo& type : ComponentRegistry::GetTypes())
+		{
+			type.CopyAll(copy->m_Registry, sourceRegistry, entityMap);
+		}
 
 		// Native scripts: copy the bindings, not the instances (those belong to the source scene).
 		auto scripts = sourceRegistry.view<const NativeScriptComponent>();
@@ -188,7 +194,8 @@ namespace Hydro
 	}
 
 	template<typename... Component>
-	static void CopyComponentsOfEntity(ComponentGroup<Component...>, entt::registry& registry, entt::entity source, entt::entity destination)
+	static void CopyComponentsOfEntity(ComponentGroup<Component...>, entt::registry& registry, entt::entity source,
+		entt::entity destination)
 	{
 		([&]()
 		{
@@ -224,58 +231,25 @@ namespace Hydro
 
 	void Scene::RemapEntityReferences(const std::vector<Entity>& entities, const std::unordered_map<UUID, UUID>& remap)
 	{
-		auto remapped = [&remap](UUID id)
-		{
-			const auto found = remap.find(id);
-			return found != remap.end() ? found->second : id;
-		};
-
-		// One line per field that refers to an entity; the component registry (Roadmap A6) will let each component
-		// register its own instead.
 		for (Entity entity : entities)
 		{
 			if (m_Registry.valid(entity) == false)
 			{
 				continue;
 			}
-			if (m_Registry.has<RelationshipComponent>(entity))
+			EntityReferences::ForEach(entity, [&](UUID& id, const EntityReference& reference)
 			{
-				RelationshipComponent& relationship = m_Registry.get<RelationshipComponent>(entity);
-				const UUID parent = remapped(relationship.Parent);
-				if (parent != relationship.Parent)
+				const auto found = remap.find(id);
+				if (found == remap.end() || found->second == id)
 				{
-					relationship.Parent = parent;
+					return;
+				}
+				id = found->second;
+				if (reference.Kind == EntityReferenceKind::Parent)
+				{
 					m_HierarchyDirty = true;
 				}
-			}
-			if (m_Registry.has<UIButtonComponent>(entity))
-			{
-				UIButtonComponent& button = m_Registry.get<UIButtonComponent>(entity);
-				button.Up = remapped(button.Up);
-				button.Down = remapped(button.Down);
-				button.Left = remapped(button.Left);
-				button.Right = remapped(button.Right);
-			}
-			if (m_Registry.has<UIScrollViewComponent>(entity))
-			{
-				UIScrollViewComponent& scroll = m_Registry.get<UIScrollViewComponent>(entity);
-				scroll.Scrollbar = remapped(scroll.Scrollbar);
-			}
-			// Scripts' EntityRef / ComponentRef<T> properties (SC4): the saved values. A running instance's fields
-			// are set from them when it is created (copies are made before their scripts run).
-			if (m_Registry.has<NativeScriptComponent>(entity))
-			{
-				for (NativeScriptComponent::Script& script : m_Registry.get<NativeScriptComponent>(entity).Scripts)
-				{
-					for (auto& property : script.Properties)
-					{
-						if (EntityRef* reference = std::get_if<EntityRef>(&property.second))
-						{
-							*reference = EntityRef(remapped(reference->GetId()));
-						}
-					}
-				}
-			}
+			});
 		}
 	}
 
@@ -313,6 +287,10 @@ namespace Hydro
 		{
 			Entity copy = CreateEntity(original.GetName());
 			CopyComponentsOfEntity(CopyableComponents{}, m_Registry, original, copy);
+			for (const ComponentTypeInfo& type : ComponentRegistry::GetTypes())
+			{
+				type.CopyOne(m_Registry, original, copy);
+			}
 			CopyScriptBindings(m_Registry, original, copy);
 			remap[original.GetUUID()] = copy.GetUUID();
 			copies.push_back(copy);
@@ -691,7 +669,8 @@ namespace Hydro
 
 			const glm::mat4 local = m_Registry.get<TransformComponent>(handle).GetTransform();
 			m_WorldMatrices[i] = parent >= 0 ? parentWorld * local : local;
-			HY_CORE_ASSERT(m_Registry.has<WorldTransformComponent>(handle), "Scene: an entity has a TransformComponent but no WorldTransformComponent");
+			HY_CORE_ASSERT(m_Registry.has<WorldTransformComponent>(handle),
+				"Scene: an entity has a TransformComponent but no WorldTransformComponent");
 			WriteWorldTransform(m_Registry.get<WorldTransformComponent>(handle), m_WorldMatrices[i]);
 			written++;
 		}
@@ -737,7 +716,8 @@ namespace Hydro
 					// Nested canvases aren't supported: this one and everything on it is left out.
 					if (m_NestedCanvasWarned.insert(handle).second)
 					{
-						const std::string name = m_Registry.has<TagComponent>(handle) ? m_Registry.get<TagComponent>(handle).Tag : std::string("?");
+						const std::string name = m_Registry.has<TagComponent>(handle) ? m_Registry.get<TagComponent>(handle).Tag
+							: std::string("?");
 						HY_CORE_WARN("UI: canvas '{}' is inside another canvas; nested canvases aren't supported, it isn't drawn", name);
 					}
 					entry.Canvas = 0;
@@ -779,7 +759,8 @@ namespace Hydro
 				continue;
 			}
 
-			HY_CORE_ASSERT(m_Registry.has<UIResolvedRectComponent>(handle), "Scene: an entity has a UIRectComponent but no UIResolvedRectComponent");
+			HY_CORE_ASSERT(m_Registry.has<UIResolvedRectComponent>(handle),
+				"Scene: an entity has a UIRectComponent but no UIResolvedRectComponent");
 			const UIRectComponent& rect = m_Registry.get<UIRectComponent>(handle);
 			UIResolvedRectComponent& resolved = m_Registry.get<UIResolvedRectComponent>(handle);
 			if ((uint64_t)inherited.Canvas == 0)
@@ -995,13 +976,15 @@ namespace Hydro
 		const UIResolvedRectComponent& trackRect = track.GetComponent<UIResolvedRectComponent>();
 		const float trackHeight = trackRect.Max.y - trackRect.Min.y;
 		const float viewHeight = view.Max.y - view.Min.y;
-		const float thumbHeight = std::round(std::clamp(trackHeight * viewHeight / std::max(viewHeight + maxScroll, 1.0f), std::min(8.0f, trackHeight), trackHeight));
+		const float thumbHeight = std::round(std::clamp(trackHeight * viewHeight / std::max(viewHeight + maxScroll, 1.0f),
+			std::min(8.0f, trackHeight), trackHeight));
 		const float top = trackRect.Max.y - std::round((trackHeight - thumbHeight) * (position / maxScroll));
 		thumbRect.Max.y = top;
 		thumbRect.Min.y = top - thumbHeight;
 	}
 
-	void Scene::ArrangeUIChildren(size_t index, const UIRectComponent& rect, const UILayoutGroupComponent& group, glm::vec2& min, glm::vec2& max)
+	void Scene::ArrangeUIChildren(size_t index, const UIRectComponent& rect, const UILayoutGroupComponent& group, glm::vec2& min,
+		glm::vec2& max)
 	{
 		// The visible UI children (not nested canvases), at the sizes their own rects give them in the group's rect.
 		m_Hierarchy.GetChildIndices(index, m_UIChildIndices);
@@ -1199,8 +1182,7 @@ namespace Hydro
 				m_EntityMap.erase(found);
 			}
 
-			// A miss: unless the map matches the registry exactly, an entity may have gotten an
-			// IDComponent without CreateEntity, so look at the registry once before saying no.
+			// A miss: an entity may have got an IDComponent without CreateEntity, so check the registry once before saying no.
 			if (attempt == 0)
 			{
 				if (m_EntityMap.size() == m_Registry.size<IDComponent>())
@@ -1234,9 +1216,8 @@ namespace Hydro
 
 		if (m_StageDepth > 0)
 		{
-			// A script may be running on this very entity or one of its children: stop the whole subtree
-			// from running again, remove it later. Each member gets its own command (the root first, which
-			// takes the rest with it), so a child moved out of the subtree before the stage ends still goes.
+			// A script may be running on this entity or its children: stop the whole subtree now, remove it later. Each
+			// member gets its own command, so a child moved out of the subtree before the stage ends still goes.
 			std::vector<Entity> subtree;
 			GetSubtree(entity, subtree);
 			if (subtree.empty())
@@ -1270,9 +1251,8 @@ namespace Hydro
 			return;
 		}
 
-		// The whole subtree, children first (the reverse of list order). Taken up front: the hooks that run
-		// while an entity goes (OnDestroy, trigger exits) may change the list. Each is checked again before
-		// it goes, since a hook may already have destroyed it.
+		// Children first, taken up front because the hooks that run while an entity goes may change the list; each is
+		// checked again before it goes.
 		std::vector<Entity> subtree;
 		GetSubtree(entity, subtree);
 		if (subtree.empty())
@@ -1302,9 +1282,8 @@ namespace Hydro
 		}
 		if (m_Physics3D != nullptr)
 		{
-			// A character destroyed inside triggers leaves them (#150): their scripts get OnTriggerExit now, while the
-			// character is still valid. Like a deferred stage, what they do to the scene is queued (applied by the
-			// ApplyDeferred round this runs in, or by DestroyEntity), so the entity can't be destroyed twice.
+			// Triggers a destroyed character was inside get OnTriggerExit now, while it is still valid (#150). What their
+			// scripts do is queued, so the entity can't be destroyed twice.
 			const std::vector<entt::entity> triggersLeft = m_Physics3D->OnEntityDestroyed((entt::entity)entity);
 			m_StageDepth++;
 			for (entt::entity trigger : triggersLeft)
@@ -1676,8 +1655,8 @@ namespace Hydro
 
 	void Scene::OnUpdateEditor([[maybe_unused]] float deltaTime)
 	{
-		// Only the stages that keep the scene consistent while editing: no scripts, physics or animation.
-		// 4. Transforms (world transforms from the hierarchy).
+		// Only the stages that keep the scene consistent while editing.
+		// 4. Transforms.
 		ResolveTransforms();
 		// 6. UI layout.
 		ResolveUILayout();

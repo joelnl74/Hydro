@@ -6,18 +6,8 @@
 
 namespace Hydro
 {
-	// Saves / loads a whole scene as YAML (.hyscene). The first line is the file's asset handle
-	// (AssetManager::ImportAsset keeps it when the file is saved again); loading ignores it.
-	//
-	// Handle: 9876543210
-	// Scene: Untitled
-	// Entities:
-	//   - Entity: 1234567890
-	//     TagComponent:
-	//       Tag: Player
-	//     TransformComponent:
-	//       Translation: [0, 0, 0]
-	//       ...
+	// Saves and loads a whole scene as YAML (.hyscene: Handle, Scene, Entities). The handle line is kept by
+	// AssetManager::ImportAsset when the file is saved again; loading ignores it.
 	class SceneSerializer
 	{
 	public:

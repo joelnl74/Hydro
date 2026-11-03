@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/QuestsView.h
 #pragma once
 
 #include "Hydro.h"
@@ -12,10 +11,7 @@
 
 namespace Hydro
 {
-	// The field menu's Quests page (the Menu plan's M4; "Page Quests" in "Field Menu Canvas": rows "Quest 0" to
-	// "Quest 9", the focused quest's details and steps; scripts/ui/build_game_ui.py builds it). Owned by FieldMenuView.
-	// It shows the run's QuestLog: unfinished quests first, then finished ones ("Done"), newest first in each; the
-	// focus selects one, and the right shows its title, state, current objective (with its count) and the steps so far.
+	// The field menu's Quests page: the run's quests, unfinished first and newest first, and the selected one's details.
 	class QuestsView
 	{
 	public:
@@ -51,14 +47,14 @@ namespace Hydro
 			return m_Order.empty() == false;
 		}
 
-		// Moves the focus into the list, on the selection.
+		// On the selection.
 		void Focus()
 		{
 			m_Selected = std::clamp(m_Selected, 0, std::max(0, (int)m_Order.size() - 1));
 			UI::Focus(EntityOf(m_Row[m_Selected]));
 		}
 
-		// A row's events: the focus selects, Cancel asks to go back to the tabs. Returns whether the event was a row's.
+		// Focus selects, Cancel asks to go back to the tabs. Returns whether the event was a row's.
 		bool HandleEvent(const UIEvent& event, Request& request)
 		{
 			request = Request::None;
@@ -82,7 +78,6 @@ namespace Hydro
 			return false;
 		}
 
-		// The list (rows past it hidden) and the selected quest's details.
 		void Present()
 		{
 			if (m_Scene == nullptr)
@@ -120,7 +115,7 @@ namespace Hydro
 			PresentDetails();
 		}
 
-		// The selected quest's title, state, objective and steps (the stages up to the current one; finished ones dim).
+		// The steps are the stages up to the current one; finished ones dim.
 		void PresentDetails()
 		{
 			const QuestLog& log = QuestLog::Get();
@@ -187,7 +182,7 @@ namespace Hydro
 		entt::entity m_Steps[MaxSteps] = {};
 		entt::entity m_Count = entt::null, m_Title = entt::null, m_Status = entt::null, m_Objective = entt::null;
 		entt::entity m_ObjectiveLabel = entt::null, m_StepsLabel = entt::null;
-		std::vector<int> m_Order; // the rows' quests (indices into QuestLog::Quests)
+		std::vector<int> m_Order; // the rows' quests, as indices into QuestLog::Quests
 		int m_Selected = 0;
 	};
 }

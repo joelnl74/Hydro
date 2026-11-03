@@ -1,4 +1,3 @@
-// Game/src/Scripts/Field/NpcLookAroundScript.h
 #pragma once
 
 #include "Hydro.h"
@@ -11,10 +10,8 @@
 
 namespace Hydro
 {
-	// A townsperson who stands but looks around now and then (the gate guards): it plays Idle<Facing> for each facing
-	// of Facings in turn ("Down Left Down Right"), holding each for HoldMin to HoldMax seconds; while the Player is
-	// within WatchRange it faces her instead. Put it on an NPC whose sheet has Idle<Facing> clips; a facing the sheet
-	// lacks is skipped.
+	// A townsperson who stands and looks around (the gate guards): Idle<Facing> for each of Facings in turn, held a while,
+	// facing the player while she is within WatchRange. A facing the sheet lacks is skipped.
 	HY_SCRIPT()
 	class NpcLookAroundScript : public ScriptableEntity
 	{

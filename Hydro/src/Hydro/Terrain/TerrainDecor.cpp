@@ -46,10 +46,10 @@ namespace Hydro
 		return true;
 	}
 
-	// One instance: rule `ruleIndex`'s sprite picked by `pick`, scaled by `size01` within the rule's range, at `position`
-	// (z = the ground), mirrored or turned by `turn`.
-	static void AddInstance(const TerrainDecorRule& rule, uint32_t ruleIndex, const glm::vec3& position, float pick, float size01, float turn,
-		TerrainMeshBuilder& parts)
+	// One instance of rule `ruleIndex` at `position` (z = the ground): sprite picked by `pick`, scaled by `size01`
+	// within the rule's range, mirrored or turned by `turn`.
+	static void AddInstance(const TerrainDecorRule& rule, uint32_t ruleIndex, const glm::vec3& position, float pick, float size01,
+		float turn, TerrainMeshBuilder& parts)
 	{
 		const uint32_t count = std::min((uint32_t)rule.Sprites.size(), MaxTerrainDecorSprites);
 		if (count == 0)
@@ -93,13 +93,15 @@ namespace Hydro
 				const glm::vec3 p1(position.x + ax.x - ay.x, position.y + ax.y - ay.y, z);
 				const glm::vec3 p2(position.x + ax.x + ay.x, position.y + ax.y + ay.y, z);
 				const glm::vec3 p3(position.x - ax.x + ay.x, position.y - ax.y + ay.y, z);
-				parts.Quad(slot, p0, p1, p2, p3, glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f), &up);
+				parts.Quad(slot, p0, p1, p2, p3, glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f),
+					glm::vec2(0.0f, 0.0f), &up);
 				break;
 			}
 			case TerrainDecorShape::Stone:
 			{
 				const float width = size.x;
-				parts.Box(slot, position, glm::vec2(1.0f, 0.0f), turn * glm::pi<float>(), width, width * 0.75f, std::max(size.y * 0.5f, 0.02f));
+				parts.Box(slot, position, glm::vec2(1.0f, 0.0f), turn * glm::pi<float>(), width, width * 0.75f,
+					std::max(size.y * 0.5f, 0.02f));
 				break;
 			}
 		}
@@ -128,7 +130,8 @@ namespace Hydro
 		return false;
 	}
 
-	void TerrainDecor::AddChunk(const Terrain& terrain, const TerrainMesher& mesher, uint32_t chunkX, uint32_t chunkY, TerrainMeshBuilder& parts)
+	void TerrainDecor::AddChunk(const Terrain& terrain, const TerrainMesher& mesher, uint32_t chunkX, uint32_t chunkY,
+		TerrainMeshBuilder& parts)
 	{
 		const TerrainSettings& settings = terrain.GetSettings();
 		const uint32_t minX = chunkX * TerrainChunkCells;
@@ -193,8 +196,7 @@ namespace Hydro
 					{
 						const TerrainMesher::WallSegment& segment = segments[s];
 						const bool top = rule.Place == TerrainDecorPlace::WallTop;
-						// A Hidden wall is where a mesh stands in for the terrain's wall (stairs, a building's
-						// footing): nothing grows along it, on top or at its foot, or the plants would line the steps.
+						// A Hidden wall is where a mesh stands in (stairs, a building's footing): nothing grows along it.
 						if (segment.Material == TerrainWallHidden || (top && segment.IsTop == false)
 							|| (rule.Layer != TerrainDecorAnyLayer && segment.Material != rule.Layer))
 						{
@@ -240,7 +242,8 @@ namespace Hydro
 									continue;
 								}
 							}
-							AddInstance(rule, ruleIndex, glm::vec3(position, top ? a.z : mesher.GetHeightAt(position)), r[2], r[3], r[4], parts);
+							AddInstance(rule, ruleIndex, glm::vec3(position, top ? a.z : mesher.GetHeightAt(position)), r[2], r[3],
+								r[4], parts);
 						}
 					}
 				}

@@ -9,31 +9,28 @@
 
 namespace Hydro
 {
-	// Edits a .hyanim (a SpriteAnimationSet): its sheet, the clips (name, loop mode, flip, frames with
-	// durations, events) and the default clip, with a live preview and a sprite picker (click a
-	// sprite to add it as a frame). Save writes the file and asks the editor to reload the animators
-	// that use it. Opened by double-clicking a .hyanim or from its inspector.
+	// Edits a .hyanim: its sheet, clips (loop mode, flip, frames, events) and default clip, with a live preview.
+	// Save writes the file and asks the editor to reload the animators that use it.
 	class SpriteAnimationWindow
 	{
 	public:
-		// Set by the editor layer: the .hyanim was saved.
+		// Called after the .hyanim was saved.
 		std::function<void(const std::filesystem::path&)> OnSaved;
 
-		// Shows `path` (asks first when the open one has unsaved changes).
+		// Shows `path`, asking first when the open one has unsaved changes.
 		void Open(const std::filesystem::path& path);
 		void OnImguiRender();
 		bool& IsOpen() { return m_Open; }
 
-		// The Project window renamed or moved a file or folder: the .hyanim shown follows it.
+		// The .hyanim shown follows a rename or move in the Project window.
 		void OnAssetMoved(const std::filesystem::path& from, const std::filesystem::path& to);
-		// The Project window deleted a file: the window closes if it was editing it (Save would write it back).
+		// Closes the window when its file was deleted, so Save doesn't write it back.
 		void OnAssetDeleted(const std::filesystem::path& path);
 
-		// One clip per group of sprites named "<group>_<number>" (e.g. Farmer_Left_0..5 -> "Farmer_Left"),
-		// frames in sprite order, each lasting 1 / frameRate seconds. Also used by the Project window's
-		// "Create Sprite Animation".
+		// One clip per group of sprites named "<group>_<number>" (Farmer_Left_0..5 -> "Farmer_Left"), each frame
+		// lasting 1 / frameRate seconds.
 		static std::vector<SpriteAnimationClip> MakeClipsFromSpriteNames(const Texture2D& texture, float frameRate);
-		// The frame a preview shows `time` seconds into the clip, following its loop mode.
+		// The frame shown `time` seconds into the clip, following its loop mode.
 		static uint32_t GetFrameAtTime(const SpriteAnimationClip& clip, float time);
 
 	private:
