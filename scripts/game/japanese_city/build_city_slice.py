@@ -60,6 +60,12 @@ VIGNETTE = {"Day": (0.3, 0.45, 0.6), "Dusk": (0.5, 0.42, 0.6), "Night": (0.6, 0.
 # wind (Nov 3): the trees of each kind stand under a group that sways them (FoliageSwayScript; the tall ones less)
 SWAY = {"cherry": ("Swaying Cherries", 0.8, 5.5, 0.5), "maple": ("Swaying Maples", 1.0, 5.0, 0.5),
         "bamboo": ("Swaying Bamboo", 1.6, 4.2, 0.6)}
+LANDING_TILT, LANDING_LEAD = 60.0, 2.5   # the landing zone (Nov 3: 56 / 62 with a lead of 5 put Miko at or past the frame's bottom)
+# entities the user moved in Oxygen whose place comes from generic code (Nov 3, 14:34): tag -> (x, y, z or None to
+# keep the built z); main() applies them after the build and says if one is not found (the tags count up, so an edit
+# earlier in the build can shift the numbers: check the diff, bin-int/claude_city_semdiff.py)
+USER_PLACED = {"Lantern_Paper_Red_A 63": (-9.45358658, 0.35, None),          # a paper lantern by the shop left of the stairs
+               "Prop_SakeBarrelStraw_A 199": (9.10019779, 0.421431422, 0.00760507956)}   # the sake shop's barrel
 WALK_END_X = -34.4      # the wall walk ends here for the player (Nov 3: an invisible wall; the chest stands before it)
 STAIR_TOP_X, LANDING_X = -10.6, -12.4   # the wall stairs' top step and the far end of the landing above it (Nov 3)
 
@@ -194,7 +200,7 @@ def tinted_material(texture, name, tint, tiling=0.25):
     return h
 
 
-def step_material(name, w_px, h_px, cutoff=0.5, emission=None, tint=(1, 1, 1), wrap="Repeat"):
+def step_material(name, w_px, h_px, cutoff=0.5, emission=None, tint=(1, 1, 1), wrap="Repeat", name_suffix=""):
     """A material on a prepared step 1 / 2 image (STEP12/<name>.png, copied to Textures/JapaneseCity). Tiling makes
     one image cover w_px / 32 by h_px / 32 metres of a box face; emission makes a backdrop light itself."""
     os.makedirs(city.TEX_DIR, exist_ok=True)
@@ -206,8 +212,8 @@ def step_material(name, w_px, h_px, cutoff=0.5, emission=None, tint=(1, 1, 1), w
             f.write("Handle: %d\nType: Texture2D\nTextureImport:\n  Format: SRGB\n  Filter: Nearest\n  Wrap: %s\n"
                     "  SpriteMode: Single\n  PixelsPerUnit: 32\n" % (city.stable_handle("tex:" + name), wrap))
     tex = kit.handle_of(png + ".hymeta")
-    mat = os.path.join(city.MAT_DIR, name + ".hymat")
-    h = kit.handle_of(mat) if os.path.exists(mat) else city.stable_handle("mat:" + name)
+    mat = os.path.join(city.MAT_DIR, name + name_suffix + ".hymat")
+    h = kit.handle_of(mat) if os.path.exists(mat) else city.stable_handle("mat:" + name + name_suffix)
     em = ("  EmissiveHandle: %d\n" % tex) if emission else ""
     ec = emission or (0, 0, 0)
     city.write_material(mat, "Handle: %d\nMaterial:\n  Type: Standard\n  AlbedoHandle: %d\n%s  Tint: [%g, %g, %g, 1]\n  Tiling: [%g, %g]\n"
@@ -327,11 +333,12 @@ def life(c):
             Drag=0.35, Turbulence=0.8, TextureHandle=None if small else texture, SpriteIndex=index))
     red, orange, petal = (1.0, 0.5, 0.4), (1.0, 0.64, 0.36), (1.0, 0.88, 0.92)
     # the two weeping cherries on the landing and the one in the plaza bed: sakura leaves and pale petals
-    for (k, x, y, z) in ((1, -9.0, 13.5, Z1), (2, 10.0, 13.0, Z1), (3, -9.0, 18.4, Z2 + 0.45)):
+    for (k, x, y, z) in ((1, -9.0, 13.5, Z1), (3, -9.0, 18.4, Z2 + 0.45)):
         fall("Petals Cherry %d" % k, x + 0.4, y - 1.6, z + 2.6, (4.5, 0.8), 1.6, 14, None, tint=petal, small=True)
         fall("Leaves Cherry %d" % k, x - 0.3, y - 1.4, z + 3.0, (3.5, 0.8), 0.6, 6, sakura, 2 if k % 2 else 21)
-    for (k, x, y, tint) in ((1, 17.5, 15.0, red), (2, -24.0, 14.5, orange)):           # the landing's maples
-        fall("Leaves Maple %d" % k, x, y - 1.5, Z1 + 3.0, (2.8, 0.6), 0.5, 6, pink, tint=tint)
+    fall("Leaves Maple 1", 10.0, 11.4, Z1 + 3.4, (4.0, 0.8), 0.8, 9, pink, tint=red)      # the big maple by the stairs
+    fall("Leaves Maple 1b", 10.6, 11.6, Z1 + 4.6, (3.0, 0.8), 0.5, 6, pink, tint=orange)
+    fall("Leaves Maple 2", -24.0, 13.0, Z1 + 3.0, (2.8, 0.6), 0.5, 6, pink, tint=orange)    # the landing's left maple
     for (k, x, y) in ((3, -17.8, 70.5), (4, 22.0, 70.5)):                              # the farm maples beyond the wall
         fall("Leaves Maple %d" % k, x, y - 1.5, Z2 + 2.6, (2.4, 0.6), 0.4, 5, pink, tint=red)
 
@@ -469,6 +476,7 @@ def countryside(c):
 
 class Slice(city.City):
     sway = None             # the sway groups made so far (sway_group)
+    tea_x = []              # the teahouses' centres along the street (place_row)
     outside_grass = None    # the ground material beyond the wall (countryside)
 
     def __init__(self, *args, **kwargs):
@@ -695,11 +703,16 @@ def ground_dressing(c):
     autumn trees. Decals are 1 cm boxes in layers (worn 6 mm, dirt 9, puddles 11, grime 13, moss 15, leaves 30)."""
     rnd = random.Random(7)
     D = c.group("Ground Dressing")
-    worn = [step_material("JP_Decal_SettsWorn_%d" % k, 128, 128)[0] for k in (1, 2, 3)]
-    dirt = step_material("JP_Decal_DirtPatch", 128, 128)[0]
-    puddle = step_material("JP_Decal_Puddle", 96, 48)[0]
-    grime = step_material("JP_Decal_WallGrime", 128, 32)[0]
-    moss = step_material("JP_Decal_MossEdge", 128, 32)[0]
+    # (Nov 3: a decal box's top face takes its UVs from the box's centre (MeshFactory), so a box exactly one image in
+    # size showed the image cut through the middle with its halves swapped: the dark squares on the street. The
+    # "_R" copies in step12_prepared are rolled by half an image (as gen_temple_tex.py does for the temple), so those
+    # boxes show the image whole: the worn setts, dirt and puddles (one image each way), the grime and moss strips
+    # (one image high). The petals stay as they are (their 8 m boxes are two images: whole already).)
+    worn = [step_material("JP_Decal_SettsWorn_%d_R" % k, 128, 128)[0] for k in (1, 2, 3)]
+    dirt = step_material("JP_Decal_DirtPatch_R", 128, 128, tint=(1.3, 1.26, 1.2), name_suffix="_Light")[0]   # whole now: lighter
+    puddle = step_material("JP_Decal_Puddle_R", 96, 48)[0]
+    grime = step_material("JP_Decal_WallGrime_R", 128, 32)[0]
+    moss = step_material("JP_Decal_MossEdge_R", 128, 32)[0]
     petals = step_material("JP_Decal_Petals", 128, 128)[0]
     leaves = step_material("JP_Decal_MapleLeaves", 128, 128)[0]
 
@@ -736,8 +749,9 @@ def ground_dressing(c):
         c.decal(D, moss, (x0 + x1) / 2, 32.5, x1 - x0, 1.0, Z2 + 0.015)
 
     # petals under the cherries (and blown onto the street and the landing), maple leaves under the autumn trees
-    for (x, y, z) in ((-27.0, -12.5, Z0), (21.0, -13.0, Z0), (-9.0, 13.5, Z1), (10.0, 13.0, Z1), (-9.0, 18.4, Z2)):
+    for (x, y, z) in ((-27.0, -12.5, Z0), (21.0, -13.0, Z0), (-9.0, 13.5, Z1), (-6.653, 21.978, Z2)):   # (the last: the user's, Nov 3)
         c.decal(D, petals, x, y, 8.0, 8.0, z + 0.03)
+    c.decal(D, leaves, 10.0, 12.5, 8.0, 8.0, Z1 + 0.03)                  # under the big maple by the stairs (Nov 3)
     c.decal(D, petals, 0.0, -1.6, 8.0, 3.0, Z0 + 0.03)
     c.decal(D, petals, 0.0, 9.5, 7.0, 3.0, Z1 + 0.03)
     for (x, y, z, w_, h_) in ((17.5, 15.0, Z1, 8.0, 5.0), (-24.0, 14.5, Z1, 8.0, 5.0), (12.0, -6.5, Z0, 4.0, 4.0), (-18.0, -4.8, Z0, 4.0, 3.0)):
@@ -790,6 +804,7 @@ def build(c, args):
     tg = os.path.join(city.MAT_DIR, "JP_Ground_TempleGrass.hymat")
     c.outside_grass = kit.handle_of(tg) if os.path.exists(tg) else grass
     c.sway = {}
+    c.tea_x = []
     c.slab(G, c.outside_grass, -160, 160, 46.0, 100.0, Z2, 4.0)
     c.slab(G, road, -2.6, 2.6, 34.0, 100.0, Z2 + 0.02, 0.5)
     c.slab(G, grass, -140, -44, -20, 17.5, Z0, 2.0)
@@ -800,6 +815,7 @@ def build(c, args):
     ground_dressing(c)
 
     S = c.group("Stair Street")
+    L_FRINGE = c.group("Plaza Wall Plants")
     # flight 1 from the street to the landing, flight 2 from the landing to the plaza, stone cheek walls along both
     c.stairs(S, granite, 0.0, 1.0, 8.0, Z0, Z1, riser=riser)
     c.stairs(S, granite, 0.0, 11.0, 17.5, Z1, Z2, riser=riser)
@@ -814,6 +830,34 @@ def build(c, args):
             c.model(S, "Props/JP_Prop_StoneLantern_A", s_ * (gap + 0.7), ly, lz)
             d.lantern(S, s_ * (gap + 0.7), ly, lz + 1.15, 0.9, 3.0)
         c.model(S, "Modules/JP_Railing_Stone_2m", s_ * (gap + 1.2), 17.9, Z2)
+    # (Nov 3: the grey stone mass seen from the landing: ferns and grass in the joints where the steps meet the cheek
+    # walls and on the copings, mossy stones and ferns at the walls' feet, and a fringe of plants along the top of the
+    # plaza's front wall either side of the stairs, hanging over it)
+    jr = random.Random(5)
+    small = ("JP_Shrub_Fern", "JP_Shrub_Mondo", "JP_Shrub_Fern_V2", "JP_Shrub_Mondo_V2")
+    tufts = ["GrassTuft%02d" % k for k in range(1, 25)]
+    for s_ in (-1, 1):
+        for (y0, y1, z0, z1) in ((1.0, 8.0, Z0, Z1), (11.0, 17.5, Z1, Z2)):
+            y = y0 + jr.uniform(0.6, 1.4)
+            while y < y1 - 0.5:
+                z = z0 + (y - y0) / (y1 - y0) * (z1 - z0)
+                if jr.random() < 0.6:                    # in the joint between a step and the cheek wall
+                    c.plant(S, jr.choice(small), s_ * (half - 0.25), y, z + 0.05)
+                if jr.random() < 0.5:                    # on the coping
+                    c.plant(S, jr.choice(tufts), s_ * (half + 0.5 + jr.uniform(-0.3, 0.3)), y, z1 + 0.62)
+                y += jr.uniform(1.2, 2.2)
+        c.plant(S, "JP_Shrub_MossStone", s_ * (half + 0.4), 10.75, Z1)       # at the upper cheek walls' feet
+        c.plant(S, jr.choice(small), s_ * (gap - 0.3), 10.8, Z1)
+    for s_ in (-1, 1):
+        x = gap + 1.9
+        while x < 15.0:
+            if abs(x - 9.2) < 2.0:                       # the plaza's tree beds stand there
+                x += 0.8
+                continue
+            c.plant(L_FRINGE, jr.choice(("JP_Shrub_Sasa", "JP_Shrub_Fern", "JP_Shrub_Sasa_V2", "JP_Shrub_Mondo")), s_ * x, 17.62, Z2)
+            if jr.random() < 0.6:
+                c.plant(L_FRINGE, jr.choice(("JP_Shrub_Fern", "JP_Shrub_MossStone", "JP_Shrub_Mondo_V2")), s_ * (x + 0.6), 17.25, Z1)
+            x += jr.uniform(1.3, 2.1)
 
     # ---------------------------------------------------------------- merchant street (kit v3, Nov 1)
     # Two continuous rows of attached machiya (JP_Row_*: shared eave and ridge lines, no gaps, no overlaps) either side
@@ -823,7 +867,9 @@ def build(c, args):
     # (Nov 3, 13:50: the roofline: a storehouse, gable end to the street, in the left row where House_A was, so the
     # row breaks into two; a fire watchtower stands up behind the right row, in the garden)
     left_row = ("House_C", "House_B", "Shop_A", "Kura:JP_Rich_Storehouse_B", "House_B", "Shop_B")    # x -43.5 .. -3.5
-    right_row = ("House_A", "Shop_B", "House_C", "House_B", "Shop_A", "House_A")                # x 3.5 .. 41.5
+    # (Nov 3, 14:15: the right row's first house, beside the stairs, is a low single-storey teahouse: a second break
+    # in the roofline, lower than the storehouse's, opening the view to the garden and the watchtower behind)
+    right_row = ("Tea:JP_Poor_House_A", "Shop_B", "House_C", "House_B", "Shop_A", "House_A")    # x 3.5 .. 41.5
     shops = []
 
     def place_row(types, x_start, x_end):
@@ -832,17 +878,32 @@ def build(c, args):
         x = x_start
         n = len(types)
         for i, t in enumerate(types):
+            if t.startswith("Tea:"):
+                tea = t[4:]
+                w = c.summary.get(tea, {}).get("width", 6.0)
+                cx = x + w / 2
+                c.building(M, tea, cx, 1.6, Z0)
+                # (the bench under the eave, the jar against the wall and the lantern left of the door: the user's, Nov 3)
+                c.model(M, "Props/JP_Prop_TeaBench_A", cx + 0.628, 1.185, Z0, 0)
+                c.model(M, "Props/JP_Prop_WaterJar_A", cx + 2.2, 1.128, Z0, 0, collider=False)
+                info = c.summary.get(tea, {})
+                d.sprite(M, "JP_Lantern_Paper_Red_A", cx - 2.246, 1.3, Z0 + info.get("head_z", 2.17) + 0.35, hanging=True, sort=3, ppm=26.0)
+                c.tea_x.append(cx)
+                x += w
+                continue
             if t.startswith("Kura:"):
                 kura = t[5:]
                 w = c.summary.get(kura, {}).get("width", 6.0)
-                c.building(M, kura, x + w / 2, 1.4, Z0)        # set back a little from the house fronts
-                c.model(M, "Props/JP_Prop_StoragePots_A", x + w - 0.9, 0.7, Z0, 0, collider=False)
-                c.model(M, "Props/JP_Prop_RainBarrel_A", x + 0.8, 0.8, Z0, 0, collider=False)
+                # set back from the house fronts (the user pushed it back a little further, and its pots and barrel
+                # with it, for some depth between the buildings, Nov 3)
+                c.building(M, kura, x + w / 2, 1.438, Z0)
+                c.model(M, "Props/JP_Prop_StoragePots_A", x + w - 0.9, 0.862, Z0, 0, collider=False)
+                c.model(M, "Props/JP_Prop_RainBarrel_A", x + 0.8, 1.037, Z0, 0, collider=False)
                 x += w
                 continue
             w = c.summary.get("JP_Row_%s_F" % t, {}).get("width", 6.0)
-            start = i == 0 or types[i - 1].startswith("Kura:")
-            end = i == n - 1 or types[i + 1].startswith("Kura:")
+            start = i == 0 or ":" in types[i - 1]
+            end = i == n - 1 or ":" in types[i + 1]
             suffix = "F" if (start and end) else "L" if start else "R" if end else "M"
             name = "JP_Row_%s_%s" % (t, suffix)
             cx = x + w / 2
@@ -896,7 +957,7 @@ def build(c, args):
         c.model(M, "Props/" + name, x, y, Z0, r)
     # the Shrine Glade's 3D broom (Models/Props/MonkBroom) leans by the rain barrel instead of the broom card
     c.model(M, "../Props/MonkBroom", -6.3, 0.35, Z0, 0, collider=False)
-    for (name, x, y) in (("JP_Prop_BasketStack", -23.0, 0.3), ("JP_Display_PlantShelf", 23.4, 0.4),
+    for (name, x, y) in (("JP_Prop_BasketStack", -22.802, 0.63), ("JP_Display_PlantShelf", 23.4, 0.4),
                          ("JP_Prop_Firewood", 37.4, 0.25), ("JP_Display_Persimmons", -35.4, 0.4), ("JP_Display_BasketRack", 19.4, 0.35),
                          ("JP_Display_SandalRack", -40.0, 0.45)):
         prop_card(c, M, name, x, y, Z0)
@@ -904,6 +965,10 @@ def build(c, args):
     for x in (-17.0, 16.0, -34.5, 35.5):
         c.model(M, "Props/JP_Prop_LampPost_A", x, -0.6, Z0)
         d.lantern(M, x + 0.62, -0.6, Z0 + 2.36)
+    # (Nov 3) warm pools of light on the street before each open shop and the teahouse, low (1 m) so they lie on the
+    # setts; the houses and the storehouse between stay darker
+    for cx in c.shop_x + c.tea_x:
+        d.lantern(M, cx, -1.3, Z0 + 1.0, 1.7, 4.6, kind="Lantern Pool")
     # a lantern line along the shopfronts: poles every 8 m with a sagging rope, lanterns on its cords
     c.lantern_line(M, -25.5, -1.45, Z0, 7, every=3)
     # the street's floor: setts, a flagstone path down the middle, a stone curb and gutter along the shopfronts
@@ -948,8 +1013,10 @@ def build(c, args):
     L = c.group("Gardens")
     # (Nov 3: the delivered Japanese maples and pine instead of the tinted lindens and the field's pine; the cherries
     # and maples sway)
-    for (name, x, y, cls, ppm) in (("SakuraWeeping", -9.0, 13.5, "cherry", 32.0), ("SakuraWeeping", 10.0, 13.0, "cherry", 32.0),
-                                   ("JP_Tree_BlackPine_A", -16.0, 15.5, None, 25.6), ("JP_Tree_Maple_Red_A", 17.5, 15.0, "maple", 25.6),
+    # (Nov 3, 14:15: the right weeping cherry is a big red maple now, and the maple beside it a black pine: the two
+    # huge pink cherries mirrored each other across the stairs)
+    for (name, x, y, cls, ppm) in (("SakuraWeeping", -9.0, 13.5, "cherry", 32.0), ("JP_Tree_Maple_Red_B_Large", 10.0, 13.0, "maple", 33.5),
+                                   ("JP_Tree_BlackPine_A", -16.0, 15.5, None, 25.6), ("JP_Tree_BlackPine_B", 17.5, 15.0, None, 25.6),
                                    ("JP_Tree_BlackPine_Small", 5.6, 15.8, None, 32.0), ("JP_Tree_Maple_Red_B", -24.0, 14.5, "maple", 25.6)):
         c.plant(sway_group(c, L, cls) if cls else L, name, x, y, Z1, TREES, ppm=ppm)
     # a fire watchtower (hinomi-yagura) in the right garden, standing up out of the roofline (Nov 3)
@@ -1065,7 +1132,7 @@ def build(c, args):
     c.model(P, "Props/JP_Prop_SpearRack_A", 8.8, 32.2, Z2)          # moved off the wall stairs
     c.model(P, "Props/JP_Prop_WarDrum_A", 6.4, 32.0, Z2)
     # plaza dressing: well and tea bench near the corners, stone lanterns along the path, cherry and pine
-    for (name, x, y, r) in (("JP_Prop_Well_A", -7.6, 20.2, 0), ("JP_Prop_TeaBench_A", 7.4, 20.0, 0), ("JP_Prop_SakeBarrelStack_A", -8.0, 29.4, 90),
+    for (name, x, y, r) in (("JP_Prop_Well_A", -7.6, 20.549, 0), ("JP_Prop_TeaBench_A", 7.4, 20.0, 0), ("JP_Prop_SakeBarrelStack_A", -8.0, 29.4, 90),
                             ("JP_Prop_Crate_A", 9.8, 30.0, 0), ("JP_Prop_Barrel_A", 10.0, 29.2, 0)):
         c.model(P, "Props/" + name, x, y, Z2, r)
     # (Nov 2, the gate plaza sheet): the noticeboard beside the gate, a pair of paper lanterns under the gatehouse's
@@ -1089,9 +1156,14 @@ def build(c, args):
     earth = r3_material("JP_Ground_PackedDirt_B", (0.25, 0.25), (0.86, 0.82, 0.76), "JP_Ground_TempleEarth")
     for (name, x, y, w, dd) in (("SakuraWeeping", -9.0, 18.4, 3.2, 2.4), ("JP_Tree_BlackPine_A", 9.4, 18.6, 3.0, 2.4)):   # in stone beds
         top = tree_bed(c, P, ishi, earth, x, y, Z2, w, dd)
-        c.plant(sway_group(c, P, "cherry") if name == "SakuraWeeping" else P, name, x, y, top, TREES,
-                ppm=32.0 if name == "SakuraWeeping" else 25.6)
-        c.model(P, "Props/JP_Prop_BenchMat_A", x, y - dd / 2 - 0.7, Z2)                   # a bench before each bed
+        if name == "SakuraWeeping":
+            # (the user's, Nov 3: the cherry stands lower and further right, rising from below the plaza's edge)
+            c.plant(sway_group(c, P, "cherry"), name, -7.035, y, 3.033, TREES, ppm=32.0)
+        else:
+            c.plant(P, name, x, y, top, TREES, ppm=25.6)
+        # (no bench before the beds: at y - dd / 2 - 0.7 they stood beyond the plaza's edge, in the air; the user
+        # removed the left one, Nov 3, and the right one hung there the same way)
+        c._n("Prop_BenchMat_A")     # (still counted, so the tags and ids after them stay those of the user's saves)
     for (name, x, y, folder) in (("JP_Shrub_Azalea_B", -5.6, 19.0, PLANTS), ("JP_Shrub_Azalea_B_V2", 5.6, 19.0, PLANTS)):
         c.plant(P, name, x, y, Z2, folder)
     # beyond the wall: the pagoda, forest
@@ -1227,6 +1299,10 @@ def build(c, args):
            rise=args.street_rise,
            pan_min=(-20.0, -1.2), pan_max=(20.0, -0.6), blend=1.4)
     # the stairs: pulled back and higher, aiming up the flight so the landing and the next level show
+    # the landing and the upper flight (Nov 3): steeper and looking further ahead, so the two rooftops nearest the
+    # camera drop out of the frame's bottom corners and the gate, the plaza wall and the gardens fill it
+    c.zone(Zg, "Landing", 0.0, 13.0, (7.0, 9.0), priority=2, tilt=LANDING_TILT, fov=30, scale=0.9, lead=LANDING_LEAD, rise=3.2,
+           pan_min=(0.0, -2.5), pan_max=(0.0, 4.5), blend=1.4)
     c.zone(Zg, "Stairs", 0.0, 9.25, (7.0, 17.5), priority=1, tilt=72, fov=30, scale=0.9, lead=3.5, rise=3.2,
            pan_min=(0.0, -6.0), pan_max=(0.0, 8.5), blend=1.6)
     # the wall walk (left of the gate): a little higher, sliding along the wall
@@ -1236,6 +1312,19 @@ def build(c, args):
     c.zone(Zg, "Plaza", 0.0, 25.5, (26.0, 16.5), tilt=77, yaw=args.plaza_yaw, fov=30, scale=1.0, lead=2.0, rise=3.6,
            pan_min=(-5.0, -5.0), pan_max=(5.0, -2.0), blend=1.4)
     life(c)
+
+
+def place_user_edits(lines):
+    """Moves the USER_PLACED entities to where the user put them."""
+    for tag, (x, y, z) in USER_PLACED.items():
+        try:
+            i = lines.index("      Tag: %s" % tag)
+        except ValueError:
+            print("user edit not applied (no entity tagged %r)" % tag)
+            continue
+        j = next(k for k in range(i, len(lines)) if lines[k].startswith("      Translation: "))
+        old = [v.strip() for v in lines[j].split("[", 1)[1].rstrip("]").split(",")]
+        lines[j] = "      Translation: [%g, %g, %s]" % (x, y, old[2] if z is None else "%g" % z)
 
 
 def main():
@@ -1289,6 +1378,7 @@ def main():
         "    DirectionalLightComponent:\n      Color: [1, 0.86, 0.7]\n      Intensity: 0.8\n      IsMainLight: true\n      CastShadows: true\n"
         "      ShadowStrength: 0.85\n      ShadowDistance: 45\n      ShadowBias: 1\n"))
     build(c, args)
+    place_user_edits(w.lines)
     if args.fg:
         foreground_branches(w)
     header = (
