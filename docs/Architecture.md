@@ -74,13 +74,14 @@ The rules, the vocabulary (subsystem, part, layer, system, resource) and how to 
 | `Events` | Event types and the dispatcher | Core |
 | `Platform/Windows` | GLFW window, input, file dialogs | Core, Events |
 | `Platform/Vulkan` | Everything that talks to Vulkan | Core; `Renderer.h` for the device (`Renderer::GetVulkanDevice()`), the deletion queue and the frame index |
+| `Platform/Jolt`, `Platform/Box2D` | What only talks to a physics library: its globals and self test, layers, shapes and conversions (`JoltLibrary`, `JoltLayers`, `JoltShapes`, `JoltMath`, `Box2DLibrary`, `Box2DShapes`); `Physics/` keeps the engine-facing classes and the worlds built with them | Core, Scene (collider components) |
 | `Renderer` | Engine-facing rendering API (`Renderer`, `RendererSettings`, `Renderer2D`, `RenderView`, `Texture2D`, `SceneRenderer`, `Camera`, `SceneCamera`, `EditorCamera`, `Image.h`) | Core, Platform/Vulkan |
 | `Scene` | Scene, entities, components, scripts and `ScriptRegistry`, scene copy for play mode, scene and prefab saving (yaml-cpp) | Core, Utils, Renderer (submission, and `Texture2D` for sprites). Until the asset system, `EntitySerializer` also loads sprite textures and reads `Project` for the asset folder (see [Asset system](#asset-system)) |
 | `Project` | Project file (`.hyproj`, YAML) and settings | Core, Utils, Renderer (`RendererSettings` only) |
 | `Utils` | Platform file dialogs, shared YAML conversions for glm types | Core |
 | `ImGUI` | ImGui layer | Core, Renderer |
 
-Applications include `Hydro.h` and should not include `Platform/Vulkan` headers directly.
+Applications include `Hydro.h` and should not include `Platform/Vulkan`, `Platform/Jolt` or `Platform/Box2D` headers directly.
 
 ## Projects and settings
 

@@ -2,6 +2,9 @@
 #include "PhysicsScene3D.h"
 
 #include "Hydro/Core/Assert.h"
+#include "Hydro/Platform/Jolt/JoltLayers.h"
+#include "Hydro/Platform/Jolt/JoltMath.h"
+#include "Hydro/Platform/Jolt/JoltShapes.h"
 #include "Hydro/Scene/ColliderShapes.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/SystemContext.h"
@@ -18,14 +21,9 @@
 #include <Jolt/Physics/Collision/CollideShape.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/RayCast.h>
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
-#include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
-#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
-#include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
-#include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
 #include <glm/gtc/quaternion.hpp>
@@ -38,117 +36,6 @@
 
 namespace Hydro
 {
-	// ---- Layers ----------------------------------------------------------------------------------------------
-
-	// A Jolt object layer is the PhysicsLayer and whether the body moves: layer * 2 + moving. Broad-phase layers
-	// keep what never moves, what does, and triggers (only queries look at those) in separate trees.
-
-	static constexpr JPH::uint s_PhysicsLayerCount = 4;
-	static constexpr JPH::uint s_ObjectLayerCount = s_PhysicsLayerCount * 2;
-	static constexpr JPH::uint8 s_BroadPhaseStatic = 0;
-	static constexpr JPH::uint8 s_BroadPhaseMoving = 1;
-	static constexpr JPH::uint8 s_BroadPhaseTrigger = 2;
-
-	static JPH::ObjectLayer ToObjectLayer(PhysicsLayer layer, bool moving)
-	{
-		return (JPH::ObjectLayer)((uint32_t)layer * 2 + (moving ? 1u : 0u));
-	}
-
-	static PhysicsLayer ToPhysicsLayer(JPH::ObjectLayer layer)
-	{
-		return (PhysicsLayer)(layer / 2);
-	}
-
-	static bool IsMoving(JPH::ObjectLayer layer)
-	{
-		return (layer % 2) == 1;
-	}
-
-	class PhysicsScene3DBroadPhaseLayers final : public JPH::BroadPhaseLayerInterface
-	{
-	public:
-		JPH::uint GetNumBroadPhaseLayers() const override
-		{
-			return 3;
-		}
-
-		JPH::BroadPhaseLayer GetBroadPhaseLayer(JPH::ObjectLayer layer) const override
-		{
-			if (ToPhysicsLayer(layer) == PhysicsLayer::Trigger)
-			{
-				return JPH::BroadPhaseLayer(s_BroadPhaseTrigger);
-			}
-			return JPH::BroadPhaseLayer(IsMoving(layer) ? s_BroadPhaseMoving : s_BroadPhaseStatic);
-		}
-
-#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
-		const char* GetBroadPhaseLayerName(JPH::BroadPhaseLayer layer) const override
-		{
-			switch (layer.GetValue())
-			{
-				case s_BroadPhaseStatic: return "Static";
-				case s_BroadPhaseMoving: return "Moving";
-				default: return "Trigger";
-			}
-		}
-#endif
-	};
-
-	// Which object layers meet, during the simulation and for characters. Triggers meet nothing (queries find them),
-	// the world doesn't meet itself (static and game-moved bodies never push each other), everything else meets.
-	static bool LayersMeet(JPH::ObjectLayer a, JPH::ObjectLayer b)
-	{
-		const PhysicsLayer layerA = ToPhysicsLayer(a);
-		const PhysicsLayer layerB = ToPhysicsLayer(b);
-		if (layerA == PhysicsLayer::Trigger || layerB == PhysicsLayer::Trigger)
-		{
-			return false;
-		}
-		return (layerA == PhysicsLayer::World && layerB == PhysicsLayer::World) == false;
-	}
-
-	class PhysicsScene3DObjectLayerPairFilter final : public JPH::ObjectLayerPairFilter
-	{
-	public:
-		bool ShouldCollide(JPH::ObjectLayer a, JPH::ObjectLayer b) const override
-		{
-			return LayersMeet(a, b);
-		}
-	};
-
-	class PhysicsScene3DObjectVsBroadPhaseFilter final : public JPH::ObjectVsBroadPhaseLayerFilter
-	{
-	public:
-		bool ShouldCollide(JPH::ObjectLayer layer, JPH::BroadPhaseLayer broadPhaseLayer) const override
-		{
-			const PhysicsLayer physicsLayer = ToPhysicsLayer(layer);
-			if (physicsLayer == PhysicsLayer::Trigger || broadPhaseLayer.GetValue() == s_BroadPhaseTrigger)
-			{
-				return false;
-			}
-			// The world only meets what moves and isn't world; LayersMeet sorts out the rest.
-			return physicsLayer != PhysicsLayer::World || broadPhaseLayer.GetValue() == s_BroadPhaseMoving;
-		}
-	};
-
-	// Queries: the object layers whose PhysicsLayer is in a mask (bit 1 << layer).
-	class PhysicsScene3DLayerMaskFilter final : public JPH::ObjectLayerFilter
-	{
-	public:
-		explicit PhysicsScene3DLayerMaskFilter(uint32_t mask)
-			: m_Mask(mask)
-		{
-		}
-
-		bool ShouldCollide(JPH::ObjectLayer layer) const override
-		{
-			return ((m_Mask >> (uint32_t)ToPhysicsLayer(layer)) & 1u) != 0;
-		}
-
-	private:
-		uint32_t m_Mask = 0;
-	};
-
 	// ---- Data ------------------------------------------------------------------------------------------------
 
 	struct PhysicsScene3D::Data
@@ -184,9 +71,9 @@ namespace Hydro
 		}
 
 		// The layer interfaces must outlive the PhysicsSystem (it keeps references): declared first.
-		PhysicsScene3DBroadPhaseLayers BroadPhaseLayers;
-		PhysicsScene3DObjectVsBroadPhaseFilter ObjectVsBroadPhaseFilter;
-		PhysicsScene3DObjectLayerPairFilter ObjectLayerPairFilter;
+		JoltBroadPhaseLayers BroadPhaseLayers;
+		JoltObjectVsBroadPhaseFilter ObjectVsBroadPhaseFilter;
+		JoltObjectLayerPairFilter ObjectLayerPairFilter;
 		JPH::TempAllocatorImpl TempAllocator;
 		JPH::JobSystemSingleThreaded JobSystem;
 		JPH::PhysicsSystem System;
@@ -202,32 +89,7 @@ namespace Hydro
 		float Accumulator = 0.0f;
 	};
 
-	// ---- Conversions -----------------------------------------------------------------------------------------
-
-	static JPH::Vec3 ToJolt(const glm::vec3& value)
-	{
-		return JPH::Vec3(value.x, value.y, value.z);
-	}
-
-	static JPH::RVec3 ToJoltPosition(const glm::vec3& value)
-	{
-		return JPH::RVec3(value.x, value.y, value.z);
-	}
-
-	static glm::vec3 ToGlm(JPH::Vec3Arg value)
-	{
-		return { value.GetX(), value.GetY(), value.GetZ() };
-	}
-
-	static glm::vec3 ToGlmPosition(JPH::RVec3Arg value)
-	{
-		return { (float)value.GetX(), (float)value.GetY(), (float)value.GetZ() };
-	}
-
-	static JPH::Quat ToJoltRotation(const glm::quat& rotation)
-	{
-		return JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w).Normalized();
-	}
+	// ---- Helpers ---------------------------------------------------------------------------------------------
 
 	// An entity's world pose now: a root's TransformComponent, a child's Scene::GetWorldTransform (the
 	// WorldTransformComponent is from the last transforms stage, after physics).
@@ -264,119 +126,6 @@ namespace Hydro
 	static entt::entity GetBodyEntity(const JPH::BodyInterface& bodies, const JPH::BodyID& id)
 	{
 		return (entt::entity)(uint32_t)bodies.GetUserData(id);
-	}
-
-	// Jolt's capsules and cylinders stand along Y; Hydro's along Z.
-	static JPH::Quat StandUp()
-	{
-		return JPH::Quat::sRotation(JPH::Vec3::sAxisX(), 0.5f * JPH::JPH_PI);
-	}
-
-	// A convex radius rounds a shape's edges; it must fit inside the shape.
-	static float ConvexRadiusFor(float smallestHalfSize)
-	{
-		return std::min(JPH::cDefaultConvexRadius, 0.5f * smallestHalfSize);
-	}
-
-	// The Jolt shape of the entity's shapes that are (or aren't) triggers, or null when there are none.
-	static JPH::ShapeRefC MakeShape(const std::vector<ColliderShape>& shapes, bool triggers, const char* entityName)
-	{
-		JPH::StaticCompoundShapeSettings compound;
-		uint32_t count = 0;
-		for (const ColliderShape& shape : shapes)
-		{
-			if (shape.IsTrigger != triggers)
-			{
-				continue;
-			}
-
-			JPH::Quat rotation = JPH::Quat::sIdentity();
-			JPH::Vec3 position = ToJolt(shape.Centre);
-			JPH::Ref<JPH::Shape> part;
-			switch (shape.Type)
-			{
-				case ColliderShapeType::Box:
-				{
-					const float smallest = std::min(shape.HalfExtents.x, std::min(shape.HalfExtents.y, shape.HalfExtents.z));
-					part = new JPH::BoxShape(ToJolt(shape.HalfExtents), ConvexRadiusFor(smallest));
-					break;
-				}
-				case ColliderShapeType::Sphere:
-					part = new JPH::SphereShape(shape.Radius);
-					break;
-				case ColliderShapeType::Capsule:
-					part = new JPH::CapsuleShape(shape.HalfHeight, shape.Radius);
-					rotation = StandUp();
-					break;
-				case ColliderShapeType::Cylinder:
-					part = new JPH::CylinderShape(shape.HalfHeight, shape.Radius,
-						ConvexRadiusFor(std::min(shape.HalfHeight, shape.Radius)));
-					rotation = StandUp();
-					break;
-				case ColliderShapeType::TriangleMesh:
-				{
-					// Walkable ground as modelled (a bridge's arch, a slope): hollow triangles, allowed for static and
-					// game-moved bodies only.
-					JPH::VertexList vertices;
-					vertices.reserve(shape.Points.size());
-					for (const glm::vec3& point : shape.Points)
-					{
-						vertices.push_back(JPH::Float3(point.x, point.y, point.z));
-					}
-					JPH::IndexedTriangleList triangles;
-					triangles.reserve(shape.Indices.size() / 3);
-					for (size_t i = 0; i + 2 < shape.Indices.size(); i += 3)
-					{
-						triangles.push_back(JPH::IndexedTriangle(shape.Indices[i], shape.Indices[i + 1], shape.Indices[i + 2]));
-					}
-					position = JPH::Vec3::sZero();
-					const JPH::ShapeSettings::ShapeResult result =
-						JPH::MeshShapeSettings(std::move(vertices), std::move(triangles)).Create();
-					if (result.HasError())
-					{
-						HY_CORE_WARN("Physics 3D: '{}': a walk mesh could not be built ({})", entityName, result.GetError().c_str());
-						continue;
-					}
-					part = result.Get();
-					break;
-				}
-				case ColliderShapeType::Prism:
-				case ColliderShapeType::ConvexHull:
-				{
-					JPH::Array<JPH::Vec3> points;
-					for (const glm::vec3& point : shape.Points)
-					{
-						points.push_back(ToJolt(point));
-					}
-					// The points are where the shape is: no extra offset. A sharp hull (no rounding) keeps ramps exact.
-					position = JPH::Vec3::sZero();
-					const JPH::ShapeSettings::ShapeResult result = JPH::ConvexHullShapeSettings(points, 0.0f).Create();
-					if (result.HasError())
-					{
-						HY_CORE_WARN("Physics 3D: '{}': a collision shape could not be built ({})", entityName, result.GetError().c_str());
-						continue;
-					}
-					part = result.Get();
-					break;
-				}
-			}
-
-			compound.AddShape(position, rotation, part);
-			count++;
-		}
-
-		if (count == 0)
-		{
-			return nullptr;
-		}
-
-		const JPH::ShapeSettings::ShapeResult result = compound.Create();
-		if (result.HasError())
-		{
-			HY_CORE_WARN("Physics 3D: '{}': its collision shapes could not be combined ({})", entityName, result.GetError().c_str());
-			return nullptr;
-		}
-		return result.Get();
 	}
 
 	// ---- PhysicsScene3D --------------------------------------------------------------------------------------
@@ -461,11 +210,12 @@ namespace Hydro
 			character.Height = std::max(component.Height, 2.0f * character.Radius + 0.05f);
 			character.StepHeight = std::max(component.StepHeight, 0.0f);
 			character.StaysOnLedges = component.StaysOnLedges;
-			character.Layer = ToObjectLayer(component.Layer == PhysicsLayer::Trigger ? PhysicsLayer::Player : component.Layer, true);
+			const PhysicsLayer layer = component.Layer == PhysicsLayer::Trigger ? PhysicsLayer::Player : component.Layer;
+			character.Layer = JoltLayers::ToObjectLayer(layer, true);
 
 			const float cylinderHalfHeight = 0.5f * character.Height - character.Radius;
 			const JPH::ShapeSettings::ShapeResult shape = JPH::RotatedTranslatedShapeSettings(
-				JPH::Vec3(0.0f, 0.0f, 0.5f * character.Height), StandUp(),
+				JPH::Vec3(0.0f, 0.0f, 0.5f * character.Height), JoltMath::StandUp(),
 				new JPH::CapsuleShape(cylinderHalfHeight, character.Radius)).Create();
 			if (shape.HasError())
 			{
@@ -485,7 +235,7 @@ namespace Hydro
 			character.Current = pose.Translation;
 			character.Previous = pose.Translation;
 			character.Written = pose.Translation;
-			character.Body = new JPH::CharacterVirtual(&settings, ToJoltPosition(pose.Translation), JPH::Quat::sIdentity(),
+			character.Body = new JPH::CharacterVirtual(&settings, JoltMath::ToJoltPosition(pose.Translation), JPH::Quat::sIdentity(),
 				(JPH::uint64)(uint32_t)handle, &m_Data->System);
 
 			m_Data->CharacterIndex[handle] = m_Data->Characters.size();
@@ -516,8 +266,8 @@ namespace Hydro
 		}
 
 		const bool kinematic = registry.has<NativeScriptComponent>(handle);
-		const JPH::RVec3 position = ToJoltPosition(pose.Translation);
-		const JPH::Quat rotation = ToJoltRotation(pose.Rotation);
+		const JPH::RVec3 position = JoltMath::ToJoltPosition(pose.Translation);
+		const JPH::Quat rotation = JoltMath::ToJoltRotation(pose.Rotation);
 		JPH::BodyInterface& bodies = m_Data->System.GetBodyInterface();
 
 		Data::EntityBodies entry;
@@ -527,7 +277,7 @@ namespace Hydro
 
 		for (bool triggers : { false, true })
 		{
-			const JPH::ShapeRefC shape = MakeShape(shapes, triggers, name);
+			const JPH::ShapeRefC shape = JoltShapes::Make(shapes, triggers, name);
 			if (shape == nullptr)
 			{
 				continue;
@@ -542,7 +292,7 @@ namespace Hydro
 			}
 
 			JPH::BodyCreationSettings settings(shape, position, rotation,
-				kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Static, ToObjectLayer(layer, kinematic));
+				kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Static, JoltLayers::ToObjectLayer(layer, kinematic));
 			settings.mIsSensor = triggers;
 			settings.mUserData = (JPH::uint64)(uint32_t)handle;
 			if (kinematic)
@@ -630,8 +380,8 @@ namespace Hydro
 			}
 
 			// The game moved it (or its parent). It pushes nothing, so no velocity is needed.
-			const JPH::RVec3 position = ToJoltPosition(pose.Translation);
-			const JPH::Quat rotation = ToJoltRotation(pose.Rotation);
+			const JPH::RVec3 position = JoltMath::ToJoltPosition(pose.Translation);
+			const JPH::Quat rotation = JoltMath::ToJoltRotation(pose.Rotation);
 			for (const JPH::BodyID& id : { entry.Solid, entry.Trigger })
 			{
 				if (id.IsInvalid() == false)
@@ -712,7 +462,7 @@ namespace Hydro
 				tryWalk(glm::vec2(0.0f));
 			}
 
-			character.Current = ToGlmPosition(body.GetPosition());
+			character.Current = JoltMath::ToGlmPosition(body.GetPosition());
 		}
 	}
 
@@ -720,7 +470,7 @@ namespace Hydro
 	{
 		const JPH::NarrowPhaseQuery& query = m_Data->System.GetNarrowPhaseQuery();
 		const JPH::BodyInterface& bodies = m_Data->System.GetBodyInterface();
-		const PhysicsScene3DLayerMaskFilter triggersOnly(1u << (uint32_t)PhysicsLayer::Trigger);
+		const JoltLayerMaskFilter triggersOnly(1u << (uint32_t)PhysicsLayer::Trigger);
 
 		for (Data::Character& character : m_Data->Characters)
 		{
@@ -798,7 +548,7 @@ namespace Hydro
 			const glm::vec3 translation = m_Scene->GetWorldPosition(Entity{ character.Handle, m_Scene });
 			if (glm::length(translation - character.Written) > 1.0e-4f)
 			{
-				character.Body->SetPosition(ToJoltPosition(translation));
+				character.Body->SetPosition(JoltMath::ToJoltPosition(translation));
 				character.Body->SetLinearVelocity(JPH::Vec3::sZero());
 				character.Previous = translation;
 				character.Current = translation;
@@ -929,7 +679,7 @@ namespace Hydro
 		ground.IsGrounded = body.GetGroundState() == JPH::CharacterBase::EGroundState::OnGround;
 		if (body.GetGroundState() != JPH::CharacterBase::EGroundState::InAir)
 		{
-			ground.Normal = ToGlm(body.GetGroundNormal());
+			ground.Normal = JoltMath::ToGlm(body.GetGroundNormal());
 			ground.SlopeDegrees = glm::degrees(std::acos(std::clamp(ground.Normal.z, -1.0f, 1.0f)));
 			if (body.GetGroundBodyID().IsInvalid() == false)
 			{
@@ -961,9 +711,9 @@ namespace Hydro
 			return false;
 		}
 
-		const JPH::RRayCast ray{ ToJoltPosition(from), ToJolt(direction) };
+		const JPH::RRayCast ray{ JoltMath::ToJoltPosition(from), JoltMath::ToJolt(direction) };
 		JPH::RayCastResult result;
-		const PhysicsScene3DLayerMaskFilter layers(layerMask);
+		const JoltLayerMaskFilter layers(layerMask);
 		if (m_Data->System.GetNarrowPhaseQuery().CastRay(ray, result, JPH::BroadPhaseLayerFilter(), layers) == false)
 		{
 			return false;
@@ -971,14 +721,14 @@ namespace Hydro
 
 		const JPH::RVec3 point = ray.GetPointOnRay(result.mFraction);
 		hit = RaycastHit3D();
-		hit.Point = ToGlmPosition(point);
+		hit.Point = JoltMath::ToGlmPosition(point);
 		hit.Distance = result.mFraction * glm::length(direction);
 
 		const JPH::BodyLockRead lock(m_Data->System.GetBodyLockInterface(), result.mBodyID);
 		if (lock.Succeeded())
 		{
 			const JPH::Body& body = lock.GetBody();
-			hit.Normal = ToGlm(body.GetWorldSpaceSurfaceNormal(result.mSubShapeID2, point));
+			hit.Normal = JoltMath::ToGlm(body.GetWorldSpaceSurfaceNormal(result.mSubShapeID2, point));
 			hit.HitEntity = Entity{ (entt::entity)(uint32_t)body.GetUserData(), m_Scene };
 		}
 		return true;
@@ -994,8 +744,9 @@ namespace Hydro
 		JPH::SphereShape sphere(radius);
 		sphere.SetEmbedded(); // on the stack: never reference counted
 		JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> collector;
-		const PhysicsScene3DLayerMaskFilter layers(layerMask);
-		m_Data->System.GetNarrowPhaseQuery().CollideShape(&sphere, JPH::Vec3::sOne(), JPH::RMat44::sTranslation(ToJoltPosition(centre)),
+		const JoltLayerMaskFilter layers(layerMask);
+		m_Data->System.GetNarrowPhaseQuery().CollideShape(&sphere, JPH::Vec3::sOne(),
+			JPH::RMat44::sTranslation(JoltMath::ToJoltPosition(centre)),
 			JPH::CollideShapeSettings(), JPH::RVec3::sZero(), collector, JPH::BroadPhaseLayerFilter(), layers);
 
 		const JPH::BodyInterface& bodies = m_Data->System.GetBodyInterface();

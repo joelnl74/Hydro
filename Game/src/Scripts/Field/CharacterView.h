@@ -25,6 +25,7 @@ namespace Hydro
 			m_Name = ViewHelpers::Find(scene, "Character Name", owner);
 			m_Portrait = ViewHelpers::Find(scene, "Character Portrait", owner);
 			m_Level = ViewHelpers::Find(scene, "Character Level", owner);
+			m_Place = ViewHelpers::Find(scene, "Character Place", owner);
 			m_Experience = ViewHelpers::Find(scene, "Character Experience", owner);
 			m_Next = ViewHelpers::Find(scene, "Character Next", owner);
 			m_ExperienceFill = ViewHelpers::Find(scene, "Character Experience Fill", owner);
@@ -61,6 +62,11 @@ namespace Hydro
 			const HeroStats bare = BattleData::StatsAt(member.Hero, level); // without
 			UI::SetText(EntityOf(m_Name), worn.Name);
 			UI::SetText(EntityOf(m_Level), "Level " + std::to_string(level));
+			// Where the member is and which of how many (Q / E go through them all).
+			const int size = PartyState::Get().GetSize();
+			const std::string place = member.Reserve ? "Reserve" : "Line-up";
+			const int position = std::clamp(index, 0, std::max(0, size - 1)) + 1;
+			UI::SetText(EntityOf(m_Place), place + "   " + std::to_string(position) + " / " + std::to_string(size));
 			UI::SetText(EntityOf(m_Experience), "Experience " + std::to_string(member.Experience));
 
 			// The marks are totals since level 1: [level - 2] reached this level, [level - 1] reaches the next.
@@ -107,6 +113,7 @@ namespace Hydro
 
 		Scene* m_Scene = nullptr;
 		entt::entity m_Portrait = entt::null;
+		entt::entity m_Place = entt::null;
 		entt::entity m_Name = entt::null, m_Level = entt::null, m_Experience = entt::null, m_Next = entt::null,
 			m_ExperienceFill = entt::null;
 		entt::entity m_Stats[StatCount] = {};

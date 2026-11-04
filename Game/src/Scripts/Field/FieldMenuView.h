@@ -5,6 +5,7 @@
 #include "Scripts/Field/CharacterView.h"
 #include "Scripts/Field/EquipmentView.h"
 #include "Scripts/Field/InventoryView.h"
+#include "Scripts/Field/PartyView.h"
 #include "Scripts/Field/QuestsView.h"
 #include "State/PartyState.h"
 #include "Views/ViewHelpers.h"
@@ -19,11 +20,11 @@ namespace Hydro
 	class FieldMenuView
 	{
 	public:
-		enum class Tab : uint8_t { Inventory = 0, Quests, Character, Abilities, Equipment };
-		static constexpr int TabCount = 5;
+		enum class Tab : uint8_t { Inventory = 0, Quests, Character, Abilities, Equipment, Party };
+		static constexpr int TabCount = 6;
 
 		enum class Request : uint8_t { None, UseItem, Close };
-		// The party's status column: the front of the party (the hero pages also reach the reserve).
+		// The party's status column: the line-up (the hero pages also reach the reserve).
 		static constexpr int StatusRows = PartyState::MaxFighters;
 
 		void Bind(Scene& scene)
@@ -61,6 +62,7 @@ namespace Hydro
 			m_Character.Bind(scene);
 			m_Abilities.Bind(scene);
 			m_Equipment.Bind(scene);
+			m_Party.Bind(scene);
 		}
 
 		static const char* GetTabName(Tab tab)
@@ -72,6 +74,7 @@ namespace Hydro
 			case Tab::Character: return "Character";
 			case Tab::Abilities: return "Abilities";
 			case Tab::Equipment: return "Equipment";
+			case Tab::Party: return "Party";
 			default: return "";
 			}
 		}
@@ -162,6 +165,26 @@ namespace Hydro
 				return true;
 			}
 
+			PartyView::Request party = PartyView::Request::None;
+			if (m_Party.HandleEvent(event, party))
+			{
+				m_InPage = true;
+				if (party == PartyView::Request::Back)
+				{
+					BackToTabs();
+				}
+				else
+				{
+					if (party == PartyView::Request::Changed)
+					{
+						// The status column shows the new line-up.
+						Present();
+					}
+					PresentKeys();
+				}
+				return true;
+			}
+
 			QuestsView::Request quest = QuestsView::Request::None;
 			if (m_Quests.HandleEvent(event, quest))
 			{
@@ -224,7 +247,7 @@ namespace Hydro
 			for (int s = 0; s < StatusRows; s++)
 			{
 				const Status& block = m_Status[s];
-				const bool shown = s < party.GetSize();
+				const bool shown = s < party.GetLineupSize();
 				ViewHelpers::SetVisible(EntityOf(block.Root), shown);
 				if (shown == false)
 				{
@@ -251,6 +274,7 @@ namespace Hydro
 			m_Character.Present(m_Hero);
 			m_Abilities.SetHero(m_Hero);
 			m_Equipment.SetHero(m_Hero);
+			m_Party.Present();
 			if (m_InPage == false)
 			{
 				PresentTabHelp();
@@ -336,6 +360,12 @@ namespace Hydro
 				m_Equipment.Focus();
 				PresentKeys();
 			}
+			else if (m_Selected == Tab::Party)
+			{
+				m_InPage = true;
+				m_Party.Focus();
+				PresentKeys();
+			}
 		}
 
 		void BackToTabs()
@@ -364,6 +394,10 @@ namespace Hydro
 			case Tab::Equipment:
 				UI::SetText(EntityOf(m_Help), "Change what is worn.");
 				break;
+			case Tab::Party:
+				UI::SetText(EntityOf(m_Help),
+					"Choose who fights: up to " + std::to_string(PartyState::GetLineupLimit()) + " in the line-up.");
+				break;
 			}
 			PresentKeys();
 		}
@@ -376,6 +410,11 @@ namespace Hydro
 				if (m_Selected == Tab::Inventory)
 				{
 					keys = "Enter  Use        Esc  Back        Tab  Close";
+				}
+				else if (m_Selected == Tab::Party)
+				{
+					UI::SetText(EntityOf(m_Keys), std::string(m_Party.GetEnterKey()) + "Esc  Back        Tab  Close");
+					return;
 				}
 				else if ((m_Selected == Tab::Abilities && m_Abilities.IsChoosing())
 					|| (m_Selected == Tab::Equipment && m_Equipment.IsChoosing()))
@@ -390,7 +429,7 @@ namespace Hydro
 				return;
 			}
 			const bool opens = (m_Selected == Tab::Inventory && m_Items.HasItems()) || (m_Selected == Tab::Quests && m_Quests.HasQuests())
-				|| m_Selected == Tab::Abilities || m_Selected == Tab::Equipment;
+				|| m_Selected == Tab::Abilities || m_Selected == Tab::Equipment || m_Selected == Tab::Party;
 			UI::SetText(EntityOf(m_Keys), HeroKeys() + (opens ? "Enter  Open        Esc / Tab  Close" : "Esc / Tab  Close"));
 		}
 
@@ -408,6 +447,7 @@ namespace Hydro
 		CharacterView m_Character;
 		AbilitiesView m_Abilities;
 		EquipmentView m_Equipment;
+		PartyView m_Party;
 		entt::entity m_Canvas = entt::null;
 		entt::entity m_Title = entt::null;
 		entt::entity m_Tabs[TabCount] = {};

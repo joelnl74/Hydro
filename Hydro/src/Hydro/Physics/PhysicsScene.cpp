@@ -2,6 +2,7 @@
 #include "PhysicsScene.h"
 
 #include "Hydro/Core/Assert.h"
+#include "Hydro/Platform/Box2D/Box2DShapes.h"
 #include "Hydro/Scene/Entity.h"
 #include "Hydro/Scene/Scene.h"
 #include "Hydro/Scene/SystemContext.h"
@@ -18,8 +19,6 @@
 namespace Hydro
 {
 	static constexpr float Pi = 3.14159265358979f;
-	// Box2D asserts on shapes thinner than its linear slop (0.005), so colliders are never smaller.
-	static constexpr float MinHalfExtent = 0.01f;
 
 	static float WrapAngle(float radians)
 	{
@@ -87,51 +86,6 @@ namespace Hydro
 		float Accumulator = 0.0f;
 	};
 
-	// Adds the entity's collider components as shapes of the body.
-	static void CreateShapes(b2BodyId body, b2BodyType bodyType, entt::registry& registry, entt::entity handle,
-		const glm::vec2& scale)
-	{
-		const float scaleX = std::abs(scale.x);
-		const float scaleY = std::abs(scale.y);
-
-		const auto makeShapeDef = [bodyType](const PhysicsMaterial2D& material, bool isSensor)
-		{
-			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			shapeDef.density = material.Density;
-			shapeDef.material.friction = material.Friction;
-			shapeDef.material.restitution = material.Restitution;
-			shapeDef.isSensor = isSensor;
-			// Box2D has both kinds of events off by default. Sensors need them to work; a shape is seen by sensors when
-			// it can move (a static wall never triggers a zone).
-			shapeDef.enableSensorEvents = isSensor || bodyType != b2_staticBody;
-			shapeDef.enableContactEvents = isSensor == false;
-			return shapeDef;
-		};
-
-		if (registry.has<BoxCollider2DComponent>(handle))
-		{
-			const BoxCollider2DComponent& box = registry.get<BoxCollider2DComponent>(handle);
-			const float halfWidth = std::max(0.5f * std::abs(box.Size.x) * scaleX, MinHalfExtent);
-			const float halfHeight = std::max(0.5f * std::abs(box.Size.y) * scaleY, MinHalfExtent);
-			const b2Vec2 centre{ box.Offset.x * scaleX, box.Offset.y * scaleY };
-
-			const b2Polygon polygon = b2MakeOffsetBox(halfWidth, halfHeight, centre, b2MakeRot(0.0f));
-			const b2ShapeDef shapeDef = makeShapeDef(box.Material, box.IsSensor);
-			b2CreatePolygonShape(body, &shapeDef, &polygon);
-		}
-
-		if (registry.has<CircleCollider2DComponent>(handle))
-		{
-			const CircleCollider2DComponent& circle = registry.get<CircleCollider2DComponent>(handle);
-
-			b2Circle shape;
-			shape.center = { circle.Offset.x * scaleX, circle.Offset.y * scaleY };
-			shape.radius = std::max(std::abs(circle.Radius) * std::max(scaleX, scaleY), MinHalfExtent);
-			const b2ShapeDef shapeDef = makeShapeDef(circle.Material, circle.IsSensor);
-			b2CreateCircleShape(body, &shapeDef, &shape);
-		}
-	}
-
 	PhysicsScene::PhysicsScene(Scene& scene)
 		: m_Data(CreateScope<Data>()), m_Scene(&scene)
 	{
@@ -191,7 +145,7 @@ namespace Hydro
 		bodyDef.userData = reinterpret_cast<void*>(static_cast<std::uintptr_t>(static_cast<uint32_t>(handle)));
 
 		const b2BodyId body = b2CreateBody(m_Data->World, &bodyDef);
-		CreateShapes(body, bodyDef.type, registry, handle, pose.Scale);
+		Box2DShapes::Create(body, bodyDef.type, registry, handle, pose.Scale);
 
 		Data::Body entry;
 		entry.Handle = handle;

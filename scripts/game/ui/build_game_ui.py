@@ -299,7 +299,7 @@ def build_field(scene_name, director, b=None):
     return b
 
 
-MENU_TABS = ["Inventory", "Quests", "Character", "Abilities", "Equipment"]
+MENU_TABS = ["Inventory", "Quests", "Character", "Abilities", "Equipment", "Party"]
 PAGE_X, PAGE_WIDTH = 392, 1000
 
 
@@ -345,6 +345,7 @@ def build_field_menu(b, director):
     build_character_page(b, menu)
     build_abilities_page(b, menu)
     build_equipment_page(b, menu)
+    build_party_page(b, menu)
 
     party = b.add("Menu Party", menu, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
     for s, (hero, hp, mp) in enumerate(PARTY):
@@ -407,7 +408,8 @@ def build_character_page(b, menu):
     portrait = b.add("Character Portrait Frame", panel, UIRectComponent=rect((0, 1), None, (0, 1), (40, -36), (232, 222)), UIImageComponent=image("Frame"))
     b.add("Character Portrait", portrait, UIRectComponent=fill((20, 16, 20, 16)), UIImageComponent=image(None, texture=MIKO_FIELD, sprite=0))
     page_text(b, "Character Name", panel, (304, -44), (640, 52), "Miko", FONT_TITLE, GOLD)
-    page_text(b, "Character Level", panel, (306, -102), (640, 40), "Level 1", FONT_BODY)
+    page_text(b, "Character Level", panel, (306, -102), (300, 40), "Level 1", FONT_BODY)
+    page_text(b, "Character Place", panel, (606, -102), (330, 40), "Line-up   1 / 2", FONT_SMALL, DIM, "Right")
     page_text(b, "Character Experience", panel, (306, -150), (300, 34), "Experience 0", FONT_SMALL, DIM)
     page_text(b, "Character Next", panel, (606, -150), (330, 34), "Next level: 30", FONT_SMALL, DIM, "Right")
     back = b.add("Character Experience Back", panel, UIRectComponent=rect((0, 1), None, (0, 1), (306, -196), (630, 8)), UIImageComponent=image(None, (0, 0, 0, 0.6)))
@@ -481,6 +483,22 @@ def build_equipment_page(b, menu):
               UITextComponent=text("\u00bb", FONT_BODY, DIM, "Center"))
         b.add("Gear Stat %d New" % i, row, UIRectComponent=rect((1, 0.5), None, (1, 0.5), (-12, 0), (90, 40)),
               UITextComponent=text(["90", "32", "14", "8", "9"][i], FONT_BODY, CREAM, "Right"))
+
+
+def build_party_page(b, menu):
+    """The Party page (PartyView, Game/src/Scripts/Field/PartyView.h): the line-up (who fights, up to four; empty places
+    show "-") on the left, the reserve on the right, the focused member's level, HP and MP and what Enter does below.
+    Enter moves a member between the two."""
+    page = b.add("Page Party", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+    lineup = [("Miko", "Lv 1"), ("Orin", "Lv 1"), ("-", ""), ("-", "")]
+    list_panel(b, "Party Lineup Panel", page, (0, 0), (480, 400), "Line-up", "2 / 4", 4, "Lineup Member", 420, 56, "LineupMember", lineup)
+    reserve = [("Lila", "Lv 1")]
+    list_panel(b, "Party Reserve Panel", page, (500, 0), (500, 600), "Reserve", "1", 8, "Reserve Member", 440, 52, "ReserveMember", reserve)
+    detail = b.add("Party Detail Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, -620), (PAGE_WIDTH, 180)), UIImageComponent=image("Frame"))
+    page_text(b, "Party Detail Name", detail, (36, -26), (420, 46), "Miko", FONT_TITLE, GOLD)
+    page_text(b, "Party Detail Info", detail, (456, -30), (508, 40), "Lv 1   HP 90 / 90   MP 32 / 32", FONT_SMALL, DIM, "Right")
+    page_text(b, "Party Detail Text", detail, (36, -84), (928, 70), "In the line-up: fights in battle. Enter moves them to the reserve.",
+              FONT_BODY, CREAM, wrap=True)
 
 
 def build_quest_canvas(b, director):

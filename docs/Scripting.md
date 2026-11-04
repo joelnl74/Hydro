@@ -155,7 +155,7 @@ public:
 
 Each state struct has a `Get()` that reads the running session (`QuestLog::Get()`, `Inventory::Get()`, `PartyState::Get()`, `BattleState::Get()`), valid while a game runs; `GameSession::IsRunning()` says whether one does (the editor's inspector, a scene not playing). Stop and Play start a fresh run with no reset code anywhere: that is the point. What must cross scenes (who started a battle, who won, a quest's stage) is state; a scene left on the scene stack is suspended, not destroyed, and reads the state when it resumes (`EnemyChaseScript` reads `BattleState::Outcome`).
 
-**The party** (`PartyState`) holds the members in the order they joined, looked up by hero ID (a row of `Assets/Data/Characters/Heroes.hytable`); `Party.hydef` sets who starts and how many fight (the first ones; the rest wait in reserve, and the field menu reaches them all). A new hero is a row (stats, abilities, `BattleAnimations`, portrait) and a `PartyState::Get().Join("<Id>")` where the story says so; nothing else changes. The battle (`Scripts/Battle/`) puts the fighters and the encounter's enemies into `Combatants` (one list with stable IDs, so actors can join mid-battle), runs `BattleFlow` (the rules' course, no entities) and shows it through `BattleStage`, `BattleActors` and its views; `BattleScript` only conducts.
+**The party** (`PartyState`) holds the members in the order they joined, looked up by hero ID (a row of `Assets/Data/Characters/Heroes.hytable`); `Party.hydef` sets who starts and how many fight (the line-up, chosen on the field menu's Party page; the rest wait in reserve, and the menu's hero pages reach them all). A new hero is a row (stats, abilities, `BattleAnimations`, portrait) and a `PartyState::Get().Join("<Id>")` where the story says so; nothing else changes. The battle (`Scripts/Battle/`) puts the fighters and the encounter's enemies into `Combatants` (one list with stable IDs, so actors can join mid-battle), runs `BattleFlow` (the rules' course, no entities) and shows it through `BattleStage`, `BattleActors` and its views; `BattleScript` only conducts.
 
 State shown by a retained view may keep a `Revision` its changing methods bump (`QuestLog::Revision`: the tracker flashes when it moves).
 
@@ -338,7 +338,7 @@ A header can be checked on its own by including it from a temporary `.cpp` under
 - **3D physics sends trigger events only**; no contact points or hit speed.
 - **Compiled in:** a change needs a rebuild and an editor restart; no game DLL or hot reload (E7).
 - **The field camera** (`DioramaView`) still keeps static state.
-- **The party's order** can't be changed in the game yet (no formation page): the first members to join fight. Guests and actors joining mid-battle fit the model (`Combatants::AddHero` / `AddEnemy`) but no data drives them yet; `Battle.hyscene` has four party slots and three enemy slots.
+- **The line-up's order** can't be changed yet: the field menu's Party page moves members in and out (a returning member goes last). Guests and actors joining mid-battle fit the model (`Combatants::AddHero` / `AddEnemy`) but no data drives them yet; `Battle.hyscene` has four party slots and three enemy slots.
 
 ## Adding a hook
 

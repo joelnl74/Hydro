@@ -31,6 +31,7 @@ namespace Hydro
 		std::array<DataRowRef, EquipSlotCount> Equipment;
 		int LastCommand = 0; // where its battle command list opens
 		int LastAbility = 0; // the ability slot it used last
+		bool Reserve = false; // waits out of the line-up (the field menu's Party page)
 
 		bool IsStanding() const { return HP > 0; }
 		const HeroDefinition& GetData() const { return BattleData::HeroData(Hero); }
@@ -45,13 +46,14 @@ namespace Hydro
 		}
 	};
 
-	// The members in the order they joined; the first GetFighterCount() fight, the rest wait in reserve. One per run.
+	// The line-up first, in battle order, then the reserve; the first GetFighterCount() fight. One per run.
 	struct PartyState
 	{
 		// Only while a game runs.
 		static PartyState& Get();
 
-		// The party slots in Battle.hyscene (scripts/game/battle/party_slots.py); Party.hydef's BattleSize is at most this.
+		// The party slots in Battle.hyscene (scripts/game/battle/party_slots.py) and the most in the line-up;
+		// Party.hydef's BattleSize is at most this.
 		static constexpr int MaxFighters = 4;
 
 		std::vector<PartyMember> Members;
@@ -69,7 +71,9 @@ namespace Hydro
 			{
 				if (hero.IsSet() && Find(hero.Row) == nullptr)
 				{
-					Members.push_back(MakeMember(hero.Row, 1));
+					PartyMember member = MakeMember(hero.Row, 1);
+					member.Reserve = IsLineupFull();
+					Add(std::move(member));
 				}
 			}
 			if (Members.empty())
@@ -116,12 +120,50 @@ namespace Hydro
 		const PartyMember& GetMember(int index) const { return const_cast<PartyState*>(this)->GetMember(index); }
 		int GetSize() const { return (int)Members.size(); }
 
-		int GetFighterCount() const
+		// The most the line-up holds: Party.hydef's BattleSize, at most MaxFighters.
+		static int GetLineupLimit() { return std::clamp(BattleData::Party().BattleSize, 1, MaxFighters); }
+
+		// Members out of the reserve; they come first in Members.
+		int GetLineupSize() const
 		{
-			return std::min({ GetSize(), std::max(1, BattleData::Party().BattleSize), MaxFighters });
+			return (int)std::count_if(Members.begin(), Members.end(), [](const PartyMember& member) { return member.Reserve == false; });
 		}
 
+		int GetFighterCount() const { return std::min(GetLineupSize(), GetLineupLimit()); }
 		bool IsFighter(int index) const { return index >= 0 && index < GetFighterCount(); }
+		bool IsLineupFull() const { return GetLineupSize() >= GetLineupLimit(); }
+
+		// Into the line-up at its end (false when it is full), or out to the reserve (false for the last one in it).
+		bool SetReserve(int index, bool reserve)
+		{
+			if (index < 0 || index >= GetSize() || Members[(size_t)index].Reserve == reserve)
+			{
+				return false;
+			}
+			if ((reserve && GetLineupSize() <= 1) || (reserve == false && IsLineupFull()))
+			{
+				return false;
+			}
+			PartyMember member = Members[(size_t)index];
+			Members.erase(Members.begin() + index);
+			member.Reserve = reserve;
+			HY_INFO("Party: {} {}", member.GetStats().Name, reserve ? "waits in reserve" : "joins the line-up");
+			Add(std::move(member));
+			return true;
+		}
+
+		// Where a member now sits in Members (it moves when it changes sides); -1 when gone.
+		int IndexOf(const std::string& hero) const
+		{
+			for (int m = 0; m < GetSize(); m++)
+			{
+				if (Members[(size_t)m].Hero == hero)
+				{
+					return m;
+				}
+			}
+			return -1;
+		}
 
 		// Joins at the back, at the party's highest level, knowing what its levels so far teach, with full HP and MP.
 		// False when already in or not in Heroes.hytable.
@@ -137,12 +179,14 @@ namespace Hydro
 			{
 				level = std::max(level, member.Level);
 			}
-			Members.push_back(MakeMember(hero, level));
-			HY_INFO("Party: {} joins at level {}", Members.back().GetStats().Name, level);
+			PartyMember member = MakeMember(hero, level);
+			member.Reserve = IsLineupFull();
+			HY_INFO("Party: {} joins at level {}{}", member.GetStats().Name, level, member.Reserve ? ", in reserve" : "");
+			Add(std::move(member));
 			return true;
 		}
 
-		// For a guest who only fought one battle. The starting members always stay.
+		// For a guest who only fought one battle. The starting members always stay; a reserve member steps into a gap.
 		bool Leave(const std::string& hero)
 		{
 			for (const DataRowRef& starter : BattleData::Party().StartingMembers)
@@ -159,6 +203,10 @@ namespace Hydro
 				return false;
 			}
 			Members.erase(found);
+			for (int m = 0; m < GetSize() && GetLineupSize() == 0; m++)
+			{
+				SetReserve(m, false);
+			}
 			return true;
 		}
 
@@ -186,6 +234,17 @@ namespace Hydro
 		}
 
 	private:
+		// The line-up stays first: a member of it goes after the last one in it, a reserve member at the end.
+		void Add(PartyMember member)
+		{
+			if (member.Reserve)
+			{
+				Members.push_back(std::move(member));
+				return;
+			}
+			Members.insert(Members.begin() + GetLineupSize(), std::move(member));
+		}
+
 		// The experience of that level's mark, the abilities up to it in the battle slots, nothing worn, full HP and MP.
 		static PartyMember MakeMember(const std::string& hero, int level)
 		{
