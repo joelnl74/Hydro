@@ -13096,7 +13096,7 @@ Entities:
       SizeDelta: [480, 60]
       Visible: true
     UITextComponent:
-      Text: Inventory
+      Text: Journal
       FontHandle: 8758314776354146223
       Color: [0.95, 0.91, 0.83, 1]
       Scale: 1
@@ -13241,7 +13241,7 @@ Entities:
       SizeDelta: [-122, 0]
       Visible: true
     UITextComponent:
-      Text: Inventory
+      Text: Journal
       FontHandle: 3816504584097973210
       Color: [0.95, 0.91, 0.83, 1]
       Scale: 1
@@ -13287,7 +13287,7 @@ Entities:
       Pivot: [0, 0.5]
       AnchoredPosition: [0, 0]
       SizeDelta: [44, 44]
-      Visible: true
+      Visible: false
     UIImageComponent:
       TextureHandle: 6879306219909375526
       SpriteIndex: 0
@@ -13391,7 +13391,7 @@ Entities:
       SizeDelta: [-122, 0]
       Visible: true
     UITextComponent:
-      Text: Quests
+      Text: Inventory
       FontHandle: 3816504584097973210
       Color: [0.95, 0.91, 0.83, 1]
       Scale: 1
@@ -14206,7 +14206,7 @@ Entities:
       Pivot: [0, 1]
       AnchoredPosition: [392, -130]
       SizeDelta: [1000, 800]
-      Visible: true
+      Visible: false
   - Entity: 3264831376940398621
     TagComponent:
       Tag: Inventory Panel
@@ -17070,9 +17070,9 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 4136283439684457820
+  - Entity: 1832804176175384971
     TagComponent:
-      Tag: Page Quests
+      Tag: Page Journal
     RelationshipComponent:
       Parent: 7687550157243419494
     UIRectComponent:
@@ -17081,12 +17081,12 @@ Entities:
       Pivot: [0, 1]
       AnchoredPosition: [392, -130]
       SizeDelta: [1000, 800]
-      Visible: false
+      Visible: true
   - Entity: 7534281432166330961
     TagComponent:
       Tag: Quest Panel
     RelationshipComponent:
-      Parent: 4136283439684457820
+      Parent: 1832804176175384971
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -17133,7 +17133,7 @@ Entities:
       SizeDelta: [-56, 0]
       Visible: true
     UITextComponent:
-      Text: Quests
+      Text: Journal
       FontHandle: 3816504584097973210
       Color: [1.0, 0.84, 0.5, 1]
       Scale: 1
@@ -18501,7 +18501,7 @@ Entities:
     TagComponent:
       Tag: Quest Detail Panel
     RelationshipComponent:
-      Parent: 4136283439684457820
+      Parent: 1832804176175384971
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -18930,6 +18930,7 @@ Entities:
       Visible: true
     UIImageComponent:
       TextureHandle: 5407845820862445765
+      Sprite: Miko_0
       SpriteIndex: 0
       Color: [1, 1, 1, 1]
       NineSlice: [0, 0, 0, 0]
