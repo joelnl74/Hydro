@@ -157,6 +157,8 @@ Each state struct has a `Get()` that reads the running session (`QuestLog::Get()
 
 **The party** (`PartyState`) holds the members in the order they joined, looked up by hero ID (a row of `Assets/Data/Characters/Heroes.hytable`); `Party.hydef` sets who starts and how many fight (the line-up, chosen on the field menu's Party page; the rest wait in reserve, and the menu's hero pages reach them all). A new hero is a row (stats, abilities, `BattleAnimations`, portrait) and a `PartyState::Get().Join("<Id>")` where the story says so; nothing else changes. The battle (`Scripts/Battle/`) puts the fighters and the encounter's enemies into `Combatants` (one list with stable IDs, so actors can join mid-battle), runs `BattleFlow` (the rules' course, no entities) and shows it through `BattleStage`, `BattleActors` and its views; `BattleScript` only conducts.
 
+**Saving** is game code too (`State/SaveGame.*`, yaml-cpp): `SaveGame::Write` puts the session's state (party, inventory, quest log, weaknesses found, time of day) and where the player stands in `<project folder>/Saves/Slot1.hysave`; `Load` reads it into the running session and the director asks for `SceneTransition::Replace(<saved scene>)`, whose field director places the player (`SaveGame::TakeArrival`). New run state that should survive a save gets a line in `Write` and one in `Load`. The field menu's System page (and the save points, `Save <name>`) save, load, restart the run (`SceneTransition::Restart`) and delete the save, in every build.
+
 State shown by a retained view may keep a `Revision` its changing methods bump (`QuestLog::Revision`: the tracker flashes when it moves).
 
 ## Rules, views and data
@@ -338,6 +340,7 @@ A header can be checked on its own by including it from a temporary `.cpp` under
 - **3D physics sends trigger events only**; no contact points or hit speed.
 - **Compiled in:** a change needs a rebuild and an editor restart; no game DLL or hot reload (E7).
 - **The field camera** (`DioramaView`) still keeps static state.
+- **Saves:** one slot, and no title screen with Continue yet: a run starts fresh and loads from the System page.
 - **The line-up's order** can't be changed yet: the field menu's Party page moves members in and out (a returning member goes last). Guests and actors joining mid-battle fit the model (`Combatants::AddHero` / `AddEnemy`) but no data drives them yet; `Battle.hyscene` has four party slots and three enemy slots.
 
 ## Adding a hook

@@ -7,6 +7,7 @@
 #include "Scripts/Field/InventoryView.h"
 #include "Scripts/Field/PartyView.h"
 #include "Scripts/Field/QuestsView.h"
+#include "Scripts/Field/SystemView.h"
 #include "State/PartyState.h"
 #include "Views/ViewHelpers.h"
 
@@ -20,10 +21,11 @@ namespace Hydro
 	class FieldMenuView
 	{
 	public:
-		enum class Tab : uint8_t { Inventory = 0, Quests, Character, Abilities, Equipment, Party };
-		static constexpr int TabCount = 6;
+		enum class Tab : uint8_t { Inventory = 0, Quests, Character, Abilities, Equipment, Party, System };
+		static constexpr int TabCount = 7;
 
-		enum class Request : uint8_t { None, UseItem, Close };
+		// What the director has to do: use the chosen item, close the menu, or the System page's save, load and restart.
+		enum class Request : uint8_t { None, UseItem, Close, Save, Load, Restart };
 		// The party's status column: the line-up (the hero pages also reach the reserve).
 		static constexpr int StatusRows = PartyState::MaxFighters;
 
@@ -63,6 +65,7 @@ namespace Hydro
 			m_Abilities.Bind(scene);
 			m_Equipment.Bind(scene);
 			m_Party.Bind(scene);
+			m_System.Bind(scene);
 		}
 
 		static const char* GetTabName(Tab tab)
@@ -75,11 +78,13 @@ namespace Hydro
 			case Tab::Abilities: return "Abilities";
 			case Tab::Equipment: return "Equipment";
 			case Tab::Party: return "Party";
+			case Tab::System: return "System";
 			default: return "";
 			}
 		}
 
 		InventoryView& Items() { return m_Items; }
+		SystemView& System() { return m_System; }
 
 		bool IsOpen() const
 		{
@@ -161,6 +166,21 @@ namespace Hydro
 				{
 					// The status, the Character page and the bag's counts follow what is worn.
 					Present();
+				}
+				return true;
+			}
+
+			SystemView::Request system = SystemView::Request::None;
+			if (m_System.HandleEvent(event, system))
+			{
+				m_InPage = true;
+				switch (system)
+				{
+				case SystemView::Request::Back: BackToTabs(); break;
+				case SystemView::Request::Save: request = Request::Save; break;
+				case SystemView::Request::Load: request = Request::Load; break;
+				case SystemView::Request::Restart: request = Request::Restart; break;
+				default: PresentKeys(); break;
 				}
 				return true;
 			}
@@ -275,6 +295,10 @@ namespace Hydro
 			m_Abilities.SetHero(m_Hero);
 			m_Equipment.SetHero(m_Hero);
 			m_Party.Present();
+			if (m_Selected == Tab::System)
+			{
+				m_System.Present(); // reads the save slot's file
+			}
 			if (m_InPage == false)
 			{
 				PresentTabHelp();
@@ -366,6 +390,12 @@ namespace Hydro
 				m_Party.Focus();
 				PresentKeys();
 			}
+			else if (m_Selected == Tab::System)
+			{
+				m_InPage = true;
+				m_System.Focus();
+				PresentKeys();
+			}
 		}
 
 		void BackToTabs()
@@ -394,6 +424,9 @@ namespace Hydro
 			case Tab::Equipment:
 				UI::SetText(EntityOf(m_Help), "Change what is worn.");
 				break;
+			case Tab::System:
+				UI::SetText(EntityOf(m_Help), "Save, load or start over.");
+				break;
 			case Tab::Party:
 				UI::SetText(EntityOf(m_Help),
 					"Choose who fights: up to " + std::to_string(PartyState::GetLineupLimit()) + " in the line-up.");
@@ -410,6 +443,10 @@ namespace Hydro
 				if (m_Selected == Tab::Inventory)
 				{
 					keys = "Enter  Use        Esc  Back        Tab  Close";
+				}
+				else if (m_Selected == Tab::System)
+				{
+					keys = "Enter  Choose        Esc  Back        Tab  Close";
 				}
 				else if (m_Selected == Tab::Party)
 				{
@@ -429,7 +466,7 @@ namespace Hydro
 				return;
 			}
 			const bool opens = (m_Selected == Tab::Inventory && m_Items.HasItems()) || (m_Selected == Tab::Quests && m_Quests.HasQuests())
-				|| m_Selected == Tab::Abilities || m_Selected == Tab::Equipment || m_Selected == Tab::Party;
+				|| m_Selected == Tab::Abilities || m_Selected == Tab::Equipment || m_Selected == Tab::Party || m_Selected == Tab::System;
 			UI::SetText(EntityOf(m_Keys), HeroKeys() + (opens ? "Enter  Open        Esc / Tab  Close" : "Esc / Tab  Close"));
 		}
 
@@ -448,6 +485,7 @@ namespace Hydro
 		AbilitiesView m_Abilities;
 		EquipmentView m_Equipment;
 		PartyView m_Party;
+		SystemView m_System;
 		entt::entity m_Canvas = entt::null;
 		entt::entity m_Title = entt::null;
 		entt::entity m_Tabs[TabCount] = {};

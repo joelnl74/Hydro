@@ -14,6 +14,7 @@
 #include "State/PartyState.h"
 #include "State/Inventory.h"
 #include "State/QuestLog.h"
+#include "State/SaveGame.h"
 #include "Views/DialogueScript.h"
 #include "Views/InteractPromptView.h"
 #include "Views/MessageBannerView.h"
@@ -39,7 +40,7 @@ namespace Hydro
 	{
 		Inventory, EnterUse, EscClose,
 		PromptRead, PromptOpen, PromptEnter, PromptSave, PromptLeave, PromptTalk,
-		ChestEmpty, Rested, RestedLine2, NoSaveSlot, RoadGoesOn, ToTheVillage,
+		ChestEmpty, Rested, RestedLine2, Saved, SaveFailed, NothingToLoad, RoadGoesOn, ToTheVillage,
 		UsedPotion, NotUsableHere, NoneLeft, SignBlank,
 		Count
 	};
@@ -60,7 +61,9 @@ namespace Hydro
 		case FieldLabel::ChestEmpty: return "The chest is empty.";
 		case FieldLabel::Rested: return "You feel rested.";
 		case FieldLabel::RestedLine2: return "HP and MP restored.";
-		case FieldLabel::NoSaveSlot: return "No save slot yet.";
+		case FieldLabel::Saved: return "Progress saved.";
+		case FieldLabel::SaveFailed: return "The game could not be saved.";
+		case FieldLabel::NothingToLoad: return "There is no save to load.";
 		case FieldLabel::RoadGoesOn: return "The road goes on...";
 		case FieldLabel::ToTheVillage: return "To the village.";
 		case FieldLabel::UsedPotion: return "Used an item.";
@@ -202,7 +205,15 @@ namespace Hydro
 				HY_INFO("Field: {} items in the inventory", inventory.Slots.size());
 			}
 
-			PlaceArrival(scene);
+			glm::vec3 saved{ 0.0f };
+			if (SaveGame::TakeArrival(scene.GetName(), saved) && Alive(scene, m_Player))
+			{
+				scene.SetWorldPosition(Entity{ m_Player, &scene }, saved); // just loaded: where the save was made
+			}
+			else
+			{
+				PlaceArrival(scene);
+			}
 			m_Menu.SetOpen(false);
 			m_PromptView.Hide();
 			// Arriving (just loaded, or the player came back): fade in from black.
@@ -286,6 +297,21 @@ namespace Hydro
 			else if (request == FieldMenuView::Request::Close)
 			{
 				OpenMenu(false);
+			}
+			else if (request == FieldMenuView::Request::Save)
+			{
+				const bool saved = SaveHere();
+				m_Menu.Present();
+				m_Menu.System().SetNotice(GetFieldText(saved ? FieldLabel::Saved : FieldLabel::SaveFailed));
+			}
+			else if (request == FieldMenuView::Request::Load)
+			{
+				LoadSave();
+			}
+			else if (request == FieldMenuView::Request::Restart)
+			{
+				OpenMenu(false); // a new run: a fresh session and the scene the run started in
+				SceneTransition::Restart();
 			}
 			return true;
 		}
@@ -483,9 +509,7 @@ namespace Hydro
 					Rest();
 					break;
 				case Kind::Save:
-					// Save slots are not written yet: the save point only says so.
-					ShowMessage(FieldLabel::NoSaveSlot);
-					HY_INFO("Field: save point: saving is not implemented yet (DioramaRPG.md J5)");
+					ShowMessage(SaveHere() ? FieldLabel::Saved : FieldLabel::SaveFailed);
 					break;
 				case Kind::Exit:
 					if (nearest->Target.empty())
@@ -699,6 +723,33 @@ namespace Hydro
 		// ---- The field menu --------------------------------------------------------------------------------
 
 		// The prompt hides while the menu is open.
+		// The run's state and where the player stands, to the save slot (SaveGame: game code, YAML).
+		bool SaveHere()
+		{
+			Scene& scene = *GetEntity().GetScene();
+			SavePlace place;
+			place.Scene = scene.GetName();
+			if (Alive(scene, m_Player))
+			{
+				place.Position = scene.GetWorldPosition(Entity{ m_Player, &scene });
+			}
+			return SaveGame::Write(place);
+		}
+
+		// The saved state replaces the session's, then the saved scene replaces every scene; its director puts the player
+		// where the save was made.
+		void LoadSave()
+		{
+			SavePlace place;
+			if (SaveGame::Load(1, place) == false)
+			{
+				m_Menu.System().SetNotice(GetFieldText(FieldLabel::NothingToLoad));
+				return;
+			}
+			OpenMenu(false);
+			SceneTransition::Replace(place.Scene);
+		}
+
 		void OpenMenu(bool open)
 		{
 			if (open)

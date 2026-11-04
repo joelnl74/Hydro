@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <filesystem>
+#include <string>
 #include <vector>
 
 #include "Hydro/Core/Base.h"
@@ -20,8 +21,8 @@ namespace Hydro
 		// Stops the running scene and drops every scene, top first. Nothing happens when not running.
 		void Stop();
 
-		// Does the pending SceneTransition: Push loads <scenesDirectory>/<name>.hyscene on top, Pop drops the top scene,
-		// Quit is only reported. Returns what was done (None when there was no request or it failed).
+		// Does the pending SceneTransition (scenes are <scenesDirectory>/<name>.hyscene; Quit is only reported). Returns
+		// what was done: None when there was no request or it failed, leaving the scenes as they were.
 		SceneTransition::Type ProcessTransition(const std::filesystem::path& scenesDirectory, uint32_t viewportWidth,
 			uint32_t viewportHeight);
 
@@ -34,7 +35,12 @@ namespace Hydro
 		std::vector<Ref<Scene>> GetScenes() const;
 
 	private:
+		// Read and Init'ed, or null (with a warning) when the file can't be read.
+		static Ref<Scene> LoadScene(const std::filesystem::path& scenesDirectory, const std::string& name);
+		void DropScenes();
+
 		Ref<Scene> m_Active;
+		std::string m_FirstScene; // the scene the run started in (Restart's default)
 		std::vector<Ref<Scene>> m_Suspended; // bottom first
 	};
 }

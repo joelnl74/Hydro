@@ -5,12 +5,12 @@
 
 namespace Hydro
 {
-	// How game code asks the host (Play mode, the Runtime) to switch scenes: Push a scene on top of the stack, Pop back,
-	// or Quit. The host takes the last request after the frame's update. Names are scene file names ("Battle").
+	// How game code asks the host (Play mode, the Runtime) to switch scenes, restart the run or quit. The host takes the
+	// last request after the frame's update. Names are scene file names ("Battle").
 	class SceneTransition
 	{
 	public:
-		enum class Type : uint8_t { None, Push, Pop, Quit };
+		enum class Type : uint8_t { None, Push, Pop, Replace, Restart, Quit };
 
 		struct Request
 		{
@@ -28,6 +28,21 @@ namespace Hydro
 		{
 			s_Request.Kind = Type::Pop;
 			s_Request.SceneName.clear();
+		}
+
+		// Drops every scene of the run and loads `sceneName` as its only one; the game session stays (a loaded save).
+		static void Replace(const std::string& sceneName)
+		{
+			s_Request.Kind = Type::Replace;
+			s_Request.SceneName = sceneName;
+		}
+
+		// Ends the run and starts a new one, with a fresh game session, on `sceneName`; empty: the scene the run
+		// started in.
+		static void Restart(const std::string& sceneName = std::string())
+		{
+			s_Request.Kind = Type::Restart;
+			s_Request.SceneName = sceneName;
 		}
 
 		static void Quit()

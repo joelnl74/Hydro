@@ -26,3 +26,5 @@ scripts/terrain/out/
 **/__pycache__/
 # Standalone builds (scripts/Package.bat, Oxygen File > Build)
 Builds/
+# Save slots the game writes next to its project (SaveGame)
+**/Saves/

@@ -299,7 +299,7 @@ def build_field(scene_name, director, b=None):
     return b
 
 
-MENU_TABS = ["Inventory", "Quests", "Character", "Abilities", "Equipment", "Party"]
+MENU_TABS = ["Inventory", "Quests", "Character", "Abilities", "Equipment", "Party", "System"]
 PAGE_X, PAGE_WIDTH = 392, 1000
 
 
@@ -346,6 +346,7 @@ def build_field_menu(b, director):
     build_abilities_page(b, menu)
     build_equipment_page(b, menu)
     build_party_page(b, menu)
+    build_system_page(b, menu)
 
     party = b.add("Menu Party", menu, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
     for s, (hero, hp, mp) in enumerate(PARTY):
@@ -498,6 +499,22 @@ def build_party_page(b, menu):
     page_text(b, "Party Detail Name", detail, (36, -26), (420, 46), "Miko", FONT_TITLE, GOLD)
     page_text(b, "Party Detail Info", detail, (456, -30), (508, 40), "Lv 1   HP 90 / 90   MP 32 / 32", FONT_SMALL, DIM, "Right")
     page_text(b, "Party Detail Text", detail, (36, -84), (928, 70), "In the line-up: fights in battle. Enter moves them to the reserve.",
+              FONT_BODY, CREAM, wrap=True)
+
+
+def build_system_page(b, menu):
+    """The System page (SystemView, Game/src/Scripts/Field/SystemView.h): save, load, restart and delete the save on
+    the left, what the save slot holds on the right, what the focused option does (or asks to confirm) below."""
+    page = b.add("Page System", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+    options = [("Save", ""), ("Load", ""), ("Restart", ""), ("Delete save", "")]
+    list_panel(b, "System Option Panel", page, (0, 0), (480, 400), "System", "", 4, "System Option", 420, 56, "SystemOption", options)
+    slot = b.add("System Slot Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (500, 0), (500, 400)), UIImageComponent=image("Frame"))
+    head = b.add("System Slot Header", slot, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
+    b.add("System Slot Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Save slot", FONT_LABEL, GOLD))
+    page_text(b, "System Slot Info", slot, (40, -96), (420, 270), "2026-11-04 11:58\nFarmVillage\nMiko Lv 3, Orin Lv 2\n120 Aster",
+              FONT_BODY, CREAM, wrap=True)
+    detail = b.add("System Detail Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, -420), (PAGE_WIDTH, 140)), UIImageComponent=image("Frame"))
+    page_text(b, "System Detail Text", detail, (36, -30), (928, 80), "Write the party, items, quests and where you stand to the save slot.",
               FONT_BODY, CREAM, wrap=True)
 
 
