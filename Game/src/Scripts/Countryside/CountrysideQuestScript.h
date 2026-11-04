@@ -6,6 +6,7 @@
 #include "Data/QuestDefinition.h"
 #include "Scripts/Common/DioramaCamera.h"
 #include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "State/QuestLog.h"
 #include "Views/DialogueScript.h"
 
@@ -25,7 +26,7 @@ namespace Hydro
 		static constexpr uint64_t DefaultQuestTable = 5008924285669857658ull;     // Assets/Data/Quests.hytable
 		static constexpr uint64_t DefaultDialogueTable = 5304418617221955049ull;  // Assets/Data/Dialogue/Leyline.hytable
 		static constexpr uint64_t DefaultEncounterTable = 5637391413083366177ull; // Assets/Data/Encounters.hytable
-		static constexpr int OrinHero = 1;                                         // BattleData::HeroIds
+		static constexpr const char* OrinHero = "Orin";                            // his row of Heroes.hytable
 
 		HY_PROPERTY(Asset(DataTable, QuestDefinition), Tooltip("The quests: rows GuardiansDuty and AlongTheLeyline"))
 		AssetHandle QuestTable = DefaultQuestTable;
@@ -79,22 +80,22 @@ namespace Hydro
 			}
 			QuestLog::Get().Claim(OrinName);
 
-			BattleState& party = BattleState::Get();
-			party.StartParty();
+			PartyState& party = PartyState::Get();
+			party.Start();
 			if (StartQuestWhenAlone && SceneTransition::GetDepth() == 0 && QuestLog::Get().Find(DutyQuest()) == nullptr
-				&& party.InParty(OrinHero) == false)
+				&& party.Has(OrinHero) == false)
 			{
 				QuestLog::Get().Start(DutyQuest());
 				QuestLog::Get().SetStage(DutyQuest(), 1);
 				HY_INFO("Countryside quest: played on its own, so the duty starts at the leyline");
 			}
 			const QuestLog::Quest* duty = QuestLog::Get().Find(DutyQuest());
-			if (party.InParty(OrinHero) || duty == nullptr || duty->Done)
+			if (party.Has(OrinHero) || duty == nullptr || duty->Done)
 			{
 				// Orin travels with Miko already, or the shrine hasn't sent her yet: nothing happens here (an opened way stays open).
 				RemoveEncounter(scene);
 				m_Step = Step::Done;
-				if (party.InParty(OrinHero) && QuestLog::Get().Find(LeylineQuest()) != nullptr)
+				if (party.Has(OrinHero) && QuestLog::Get().Find(LeylineQuest()) != nullptr)
 				{
 					CreateEffects(scene);
 					OpenGate(scene, true);
@@ -340,14 +341,13 @@ namespace Hydro
 		void StartBattle()
 		{
 			const DataView<EncounterDefinition> encounter = Data::GetRow<EncounterDefinition>(Encounter);
-			BattleState& party = BattleState::Get();
-			if (encounter.IsValid() == false || party.BeginEncounter((uint64_t)GetEntity().GetUUID(), *encounter) == false)
+			if (encounter.IsValid() == false || BattleState::Get().BeginEncounter((uint64_t)GetEntity().GetUUID(), *encounter) == false)
 			{
 				HY_WARN("Countryside quest: can't start the battle at the tree (Encounter unset, or a battle is pending)");
 				m_Step = Step::Retry;
 				return;
 			}
-			party.Join(OrinHero); // he only stays if they win
+			PartyState::Get().Join(OrinHero); // he only stays if they win
 			m_Step = Step::Battle;
 			HY_INFO("Countryside quest: the battle at the ancient tree starts");
 			SceneTransition::Push("Battle");
@@ -356,8 +356,7 @@ namespace Hydro
 		// The scene resumes under the popped battle: take its result once.
 		void UpdateBattleResult([[maybe_unused]] Scene& scene)
 		{
-			BattleState& party = BattleState::Get();
-			const BattleState::Result outcome = party.TakeOutcome((uint64_t)GetEntity().GetUUID());
+			const BattleState::Result outcome = BattleState::Get().TakeOutcome((uint64_t)GetEntity().GetUUID());
 			if (outcome == BattleState::Result::None)
 			{
 				return;
@@ -368,7 +367,7 @@ namespace Hydro
 				m_Step = Step::Joining;
 				return;
 			}
-			party.Leave(OrinHero);
+			PartyState::Get().Leave(OrinHero);
 			m_Step = Step::Retry;
 			HY_INFO("Countryside quest: the spirits are still there; talk to Orin to try again");
 		}

@@ -2,38 +2,37 @@
 
 #include "Hydro.h"
 #include "Data/BattleDefinitions.h"
-#include "Rules/BattleRules.h"
-#include "Scripts/Battle/BattleEffects.h"
+#include "Scripts/Battle/ActionSequence.h"
+#include "Scripts/Battle/BattleActors.h"
+#include "Scripts/Battle/BattleFlow.h"
+#include "Scripts/Battle/BattleOverlay.h"
+#include "Scripts/Battle/BattleResults.h"
+#include "Scripts/Battle/BattleStage.h"
 #include "Scripts/Battle/BattleText.h"
-#include "Rules/LootRules.h"
-#include "Scripts/Common/DioramaCamera.h"
+#include "Scripts/Battle/Combatants.h"
+#include "Scripts/Battle/CommandMenuView.h"
+#include "Scripts/Battle/PartyStatusView.h"
+#include "Scripts/Battle/StrikeEffects.h"
+#include "Scripts/Battle/TurnOrderView.h"
 #include "State/BattleState.h"
-#include "State/Inventory.h"
-#include "State/QuestLog.h"
+#include "State/PartyState.h"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <cstdint>
+#include <random>
 #include <string>
 #include <vector>
-#include <random>
-#include <unordered_map>
 
-// The party battle (Battle.hyscene) started by enemies in the field scenes: turn order, commands, targets, strikes and the HUD.
-// Prototype code: rules and presentation live together here. Numbers come from data via BattleData (docs/Scripting.md).
+// The party battle (Battle.hyscene) started by enemies in the field scenes. It conducts: the fighters and enemies
+// (Combatants) go through BattleFlow, timed to the animations, and the stage and views show them (docs/Scripting.md).
 
 namespace Hydro
 {
-	// ---------------------------------------------------------------------------------------------------------
-	// Data
-
 	HY_SCRIPT()
 	class BattleScript : public ScriptableEntity
 	{
 	public:
-
-		// The stage camera. scripts/battle/build_arena.py baked the scene with these values (keep its CAMERA in step).
+		// The stage camera. scripts/game/battle/build_arena.py baked the scene with these values (keep its CAMERA in step).
 		HY_PROPERTY(Range(0, 89), Tooltip("Camera tilt in degrees from straight down (the field's is 50 to 70)"))
 		float CameraTilt = 73.0f;
 		HY_PROPERTY(Range(5, 90), Tooltip("Vertical field of view in degrees"))
@@ -43,7 +42,7 @@ namespace Hydro
 		HY_PROPERTY(Range(1, 100), Tooltip("Metres seen from the bottom of the screen to the top at the focus point"))
 		float ViewHeight = 10.0f;
 
-		// The hero's strikes: walk up to the target, strike on the clip's contact frame, walk back.
+		// The heroes' strikes: walk up to the target, strike on the clip's contact frame, walk back.
 		HY_PROPERTY(Range(0.5, 30), Tooltip("Metres per second walking up to the target"))
 		float WalkSpeed = 4.5f;
 		HY_PROPERTY(Range(0.5, 30), Tooltip("Metres per second walking back"))
@@ -66,824 +65,187 @@ namespace Hydro
 	protected:
 		void OnCreate() override
 		{
-			BattleState::Get().StartParty(); // the Battle scene played on its own
+			PartyState& party = PartyState::Get();
+			party.Start(); // the Battle scene played on its own
 			if (FullPartyWhenAlone && SceneTransition::GetDepth() == 0)
 			{
-				for (int h = 0; h < HeroCount; h++)
+				for (const std::string& id : BattleData::HeroIds())
 				{
-					BattleState::Get().Join(h);
+					party.Join(id);
 				}
 			}
+
 			Scene& scene = *GetEntity().GetScene();
-			m_Camera = Find(scene, "Camera");
-			UpdateStageCamera(scene);
-			CaptureLayout(scene);
-			for (int h = 0; h < HeroCount; h++)
-			{
-				const std::string prefix = std::string("Hero ") + BattleData::HeroIds[h];
-				Hero& hero = m_Heroes[h];
-				hero.Sprite = Find(scene, prefix);
-				hero.Shadow = Find(scene, prefix + " Shadow");
-				const std::string status = std::string("Status ") + BattleData::HeroIds[h];
-				hero.StatusName = Find(scene, status + " Name");
-				hero.StatusHP = Find(scene, status + " HP");
-				hero.StatusMP = Find(scene, status + " MP");
-				hero.StatusHPFill = Find(scene, status + " HP Fill");
-				hero.StatusMPFill = Find(scene, status + " MP Fill");
-				for (int p = 0; p < BattleState::MaxMomentum; p++)
-				{
-					hero.StatusPips[p] = Find(scene, status + " Pip " + std::to_string(p));
-				}
-				UI::SetText(EntityOf(hero.StatusName), GetHero(h).Name);
-				hero.Base = ActorLayout(scene, hero.Sprite, HeroFoot, HeroPivot);
-				hero.Size = ActorSize(scene, hero.Sprite);
-				hero.Momentum = 1;
-				if (BattleState::Get().InParty(h) == false)
-				{
-					// Not in the party: hidden, and ActorAlive leaves it out of everything.
-					SetColor(scene, hero.Sprite, glm::vec4(0.0f));
-					SetShadowStrength(scene, hero.Shadow, 0.0f);
-					UI::SetVisible(EntityOf(Find(scene, status)), false);
-					continue;
-				}
-				if (BattleState::Get().HeroHP[h] <= 0)
-				{
-					BattleState::Get().HeroHP[h] = 1;
-				}
-			}
+			m_Stage.Bind(scene);
+			m_Stage.Update(GetStageSettings(), 0.0f, 0.0f);
+			m_Stage.CaptureLayout();
+			m_Actors.Bind(scene, m_Stage);
 
-			int count = 0;
-			for (int e = 0; e < BattleState::MaxEnemies; e++)
+			// The fighters take the party slots in party order (a fallen one gets up for the battle); the enemies theirs.
+			for (int m = 0; m < party.GetFighterCount(); m++)
 			{
-				const std::string prefix = "Enemy " + std::to_string(e);
-				Enemy& enemy = m_Enemies[e];
-				enemy.Row = BattleState::Get().Encounter[e];
-				enemy.Sprite = Find(scene, prefix);
-				enemy.Shadow = Find(scene, prefix + " Shadow");
-				enemy.Light = Find(scene, prefix + " Light");
-				enemy.Info = Find(scene, prefix + " Info");
-				enemy.HPFill = Find(scene, prefix + " HP Fill");
-				enemy.ShieldIcon = Find(scene, prefix + " Shield");
-				enemy.ShieldCount = Find(scene, prefix + " Shield Count");
-				enemy.WeakLabel = Find(scene, prefix + " Weak Label");
-				for (int w = 0; w < 3; w++)
+				party.Members[(size_t)m].HP = std::max(1, party.Members[(size_t)m].HP);
+				m_Combatants.AddHero(m, m);
+			}
+			const std::vector<std::string>& encounter = BattleState::Get().Encounter;
+			int enemies = 0;
+			for (int e = 0; e < BattleState::MaxEnemies && e < (int)encounter.size(); e++)
+			{
+				if (encounter[(size_t)e].empty() == false)
 				{
-					enemy.WeakIcons[w] = Find(scene, prefix + " Weak " + std::to_string(w));
-				}
-				enemy.Base = ActorLayout(scene, enemy.Sprite, EnemyFoot, EnemyPivot);
-				enemy.Size = ActorSize(scene, enemy.Sprite);
-				if (enemy.Row.empty() == false)
-				{
-					const EnemyDefinition& definition = GetEnemy(enemy.Row);
-					enemy.HP = definition.Stats.MaxHP;
-					enemy.Shield = definition.Shield;
-					DressEnemySlot(scene, enemy, definition);
-					count++;
+					m_Combatants.AddEnemy(encounter[(size_t)e], e);
+					enemies++;
 				}
 			}
+			m_Actors.Dress(m_Combatants);
 
-			for (int c = 0; c < CommandCount; c++)
-			{
-				m_Commands[c] = Find(scene, "Command " + std::to_string(c));
-				m_CommandNames[c] = Find(scene, "Command " + std::to_string(c) + " Name");
-				m_CommandCosts[c] = Find(scene, "Command " + std::to_string(c) + " Cost");
-			}
-			// The sub-menu: the hero's ability slots, or the items usable in battle.
-			m_SubPanel = Find(scene, "Sub Panel");
-			m_SubTitle = Find(scene, "Sub Title");
-			m_SubHelp = Find(scene, "Sub Help");
-			for (int r = 0; r < SubRows; r++)
-			{
-				m_SubButtons[r] = Find(scene, "Sub Command " + std::to_string(r));
-				m_SubNames[r] = Find(scene, "Sub Command " + std::to_string(r) + " Name");
-				m_SubCosts[r] = Find(scene, "Sub Command " + std::to_string(r) + " Cost");
-			}
-			for (int c = 0; c < 6; c++)
-			{
-				m_OrderChips[c] = Find(scene, "Order Chip " + std::to_string(c));
-				m_OrderActors[c] = Find(scene, "Order Chip " + std::to_string(c) + " Actor");
-			}
-			for (int p = 0; p < 3; p++)
-			{
-				for (int d = 0; d < 3; d++)
-				{
-					m_Popups[p].Digits[d] = Find(scene, "Popup " + std::to_string(p) + " Digit " + std::to_string(d));
-				}
-			}
-			m_Cursor = Find(scene, "Target Cursor");
-			m_TurnMarker = Find(scene, "Turn Marker");
-			m_CommandPanel = Find(scene, "Command Panel");
-			m_CommandHeader = Find(scene, "Command Hero");
-			m_CommandHelp = Find(scene, "Command Help");
-			m_CommandBoost = Find(scene, "Command Boost");
-			m_TargetPanel = Find(scene, "Target Panel");
-			m_TargetHeader = Find(scene, "Target Command");
-			for (int e = 0; e < BattleState::MaxEnemies; e++)
-			{
-				m_TargetButtons[e] = Find(scene, "Target " + std::to_string(e));
-				m_TargetNames[e] = Find(scene, "Target " + std::to_string(e) + " Name");
-				m_TargetHP[e] = Find(scene, "Target " + std::to_string(e) + " HP");
-			}
-			m_MessagePanel = Find(scene, "Battle Message Panel");
-			m_MessageText = Find(scene, "Battle Message Text");
-			UI::SetVisible(EntityOf(m_CommandPanel), false);
-			UI::SetVisible(EntityOf(m_TargetPanel), false);
-			UI::SetVisible(EntityOf(m_SubPanel), false);
-			UI::SetVisible(EntityOf(m_MessagePanel), false);
-			m_Overlay = Find(scene, "Battle Overlay");
-			m_StrikeEffect.Entity = Find(scene, "FX Strike");
-			m_HealEffect.Entity = Find(scene, "FX Heal");
-
-			// Keys held when the battle opens (the player was still walking) do not count.
-			for (bool& previous : m_Previous)
-			{
-				previous = true;
-			}
-
-			HY_INFO("Battle: {} enemies! (Up/Down + Enter or click: command, then target; Esc back; E/Q boost)", count);
-			SetPhase(Phase::Intro);
+			m_Status.Bind(scene);
+			m_TurnOrder.Bind(scene);
+			m_Menu.Bind(scene);
+			m_Overlay.Bind(scene, m_Stage);
+			m_Effects.Bind(scene, m_Stage);
+			HY_INFO("Battle: {} heroes, {} enemies! (Up/Down + Enter or click: command, then target; Esc back; E/Q boost)",
+				party.GetFighterCount(), enemies);
+			m_Flow.SetPhase(BattleFlow::Phase::Intro);
 		}
 
 		void OnUpdate(float deltaTime) override
 		{
-			Scene& scene = *GetEntity().GetScene();
 			m_Time += deltaTime;
 			m_DeltaTime = deltaTime;
-			m_ShakeTime = std::max(0.0f, m_ShakeTime - deltaTime);
-			UpdateStageCamera(scene);
-			m_PhaseTime += deltaTime;
-			m_MessageTime = std::max(0.0f, m_MessageTime - deltaTime);
-			for (Hero& hero : m_Heroes)
-			{
-				hero.Flash = std::max(0.0f, hero.Flash - deltaTime);
-			}
-			for (Enemy& enemy : m_Enemies)
-			{
-				enemy.Flash = std::max(0.0f, enemy.Flash - deltaTime);
-			}
-			for (Popup& popup : m_Popups)
-			{
-				popup.Time += deltaTime;
-			}
+			m_Stage.Update(GetStageSettings(), m_Time, deltaTime);
+			m_Flow.AddTime(deltaTime);
+			m_Overlay.Tick(deltaTime);
+			m_Actors.Tick(deltaTime);
 
-			switch (m_Phase)
+			const float phaseTime = m_Flow.GetPhaseTime();
+			switch (m_Flow.GetPhase())
 			{
-				case Phase::Intro:
-					if (m_PhaseTime >= 1.0f)
+				case BattleFlow::Phase::Intro:
+					if (phaseTime >= 1.0f)
 					{
-						StartRound();
+						m_Flow.StartRound();
 					}
 					break;
-				case Phase::NextTurn:
-					NextTurn();
+				case BattleFlow::Phase::NextTurn:
+					if (m_Flow.NextTurn() == BattleFlow::TurnStart::Ended)
+					{
+						OnEnded();
+					}
 					break;
-				case Phase::Command:
+				case BattleFlow::Phase::Command:
 					UpdateCommand();
 					break;
-				case Phase::EnemyThink:
-					if (m_PhaseTime >= 0.45f)
+				case BattleFlow::Phase::EnemyThink:
+					if (phaseTime >= 0.45f)
 					{
-						BeginEnemyAction();
+						m_Flow.BeginEnemyAction();
 					}
 					break;
-				case Phase::Acting:
-					UpdateAction(scene);
+				case BattleFlow::Phase::Acting:
+					UpdateAction();
 					break;
-				case Phase::Victory:
-					if (m_NextResult < (int)m_Results.size() && m_PhaseTime >= ResultTime * (float)(m_NextResult + 1))
+				case BattleFlow::Phase::Victory:
+					if (m_NextResult < (int)m_Results.size() && phaseTime >= ResultTime * (float)(m_NextResult + 1))
 					{
-						ShowMessage(m_Results[(size_t)m_NextResult], ResultTime);
+						m_Overlay.ShowMessage(m_Results[(size_t)m_NextResult], ResultTime);
 						m_NextResult++;
 					}
-					if (m_PhaseTime >= std::max(2.0f, ResultTime * (float)(m_Results.size() + 1)))
+					if (phaseTime >= std::max(2.0f, ResultTime * (float)(m_Results.size() + 1)))
 					{
 						Finish();
 					}
 					break;
-				case Phase::Defeat:
-				case Phase::Fleeing:
-					if (m_PhaseTime >= (m_Phase == Phase::Fleeing ? 0.9f : 2.0f))
+				case BattleFlow::Phase::Defeat:
+				case BattleFlow::Phase::Fleeing:
+					if (phaseTime >= (m_Flow.GetPhase() == BattleFlow::Phase::Fleeing ? 0.9f : 2.0f))
 					{
 						Finish();
 					}
 					break;
-				case Phase::Done:
+				case BattleFlow::Phase::Done:
 					break;
 			}
 
-			Present(scene);
+			// A new phase or turn starts on the commands.
+			if (m_Flow.GetPhaseCount() != m_PhasesSeen)
+			{
+				m_PhasesSeen = m_Flow.GetPhaseCount();
+				m_Menu.ResetChoice();
+			}
+			Present();
 		}
 
-		// The menus' buttons bubble their events up to the Battle Director: a command, a sub-menu row, the focused or chosen
-		// target, or Cancel.
 		bool OnUIEvent(const UIEvent& event) override
 		{
-			const bool targeting = m_Phase == Phase::Command && m_Targeting;
-			if (event.Type == UIEventType::Cancel)
-			{
-				if (targeting)
-				{
-					m_CancelTarget = true;
-					return true;
-				}
-				if (m_Phase == Phase::Command && m_SubMenu != SubMenu::None)
-				{
-					m_CancelSub = true;
-					return true;
-				}
-				return false;
-			}
-			for (int r = 0; r < SubRows; r++)
-			{
-				if ((entt::entity)event.Target != m_SubButtons[r])
-				{
-					continue;
-				}
-				if (event.Type == UIEventType::FocusEnter)
-				{
-					m_HelpSub = r;
-				}
-				else if (event.Type == UIEventType::Submit && m_Phase == Phase::Command)
-				{
-					m_ChosenSub = r;
-				}
-				return true;
-			}
-			for (int e = 0; e < BattleState::MaxEnemies; e++)
-			{
-				if ((entt::entity)event.Target != m_TargetButtons[e])
-				{
-					continue;
-				}
-				if (targeting && m_Enemies[e].Alive())
-				{
-					if (event.Type == UIEventType::FocusEnter)
-					{
-						m_Action.Target = e; // the cursor follows the focus (keys or the pointer)
-					}
-					else if (event.Type == UIEventType::Submit)
-					{
-						m_ChosenTarget = e;
-					}
-				}
-				return true;
-			}
-			for (int c = 0; c < CommandCount; c++)
-			{
-				if ((entt::entity)event.Target != m_Commands[c])
-				{
-					continue;
-				}
-				if (event.Type == UIEventType::FocusEnter)
-				{
-					m_HelpCommand = c;
-				}
-				else if (event.Type == UIEventType::Submit && m_Phase == Phase::Command)
-				{
-					m_ChosenCommand = c;
-				}
-				return true;
-			}
-			return false;
+			return m_Menu.HandleEvent(event, m_Flow.GetPhase() == BattleFlow::Phase::Command, m_Flow.GetAction(), m_Combatants);
 		}
 
 	private:
-		enum class Phase : uint8_t { Intro, NextTurn, Command, EnemyThink, Acting, Victory, Defeat, Fleeing, Done };
-		// The command list's rows (Attack to Run), then the kinds of action.
-		enum class Command : uint8_t { Attack = 0, Abilities, Items, Guard, Run, Skill, Item, EnemyAttack };
-		static constexpr int CommandCount = 5;
-		static constexpr int SubRows = BattleState::AbilitySlotCount;
-		enum class SubMenu : uint8_t { None, Abilities, Items };
-
-		struct Hero
+		BattleStage::Settings GetStageSettings() const
 		{
-			entt::entity Sprite = entt::null;
-			entt::entity Shadow = entt::null; // the contact shadow on the floor
-			entt::entity StatusName = entt::null, StatusHP = entt::null, StatusMP = entt::null;
-			entt::entity StatusHPFill = entt::null, StatusMPFill = entt::null;
-			entt::entity StatusPips[BattleState::MaxMomentum] = { entt::null, entt::null, entt::null, entt::null, entt::null };
-			glm::vec2 Base{ 0.0f };   // where she stands, in layout units
-			glm::vec2 Offset{ 0.0f }; // from Base while she walks to a target and back
-			float Size = 2.4f;        // sprite height in metres
-			int Momentum = 1;
-			bool BoostedLastRound = false;
-			bool Guarding = false;
-			float Flash = 0.0f;
-		};
-
-		struct Enemy
-		{
-			std::string Row;                 // its row of Enemies.hytable; empty: the slot is unused
-			entt::entity Sprite = entt::null;
-			entt::entity Shadow = entt::null;
-			entt::entity Light = entt::null;
-			// Its info: a World canvas pinned under its feet.
-			entt::entity Info = entt::null, HPFill = entt::null, ShieldIcon = entt::null, ShieldCount = entt::null, WeakLabel = entt::null;
-			entt::entity WeakIcons[3] = { entt::null, entt::null, entt::null };
-			glm::vec2 Base{ 0.0f };
-			float Size = 1.3f;               // sprite height in metres
-			int HP = 0;
-			int Shield = 0;
-			int BrokenUntilRound = -1; // broken while m_Round <= this
-			float Flash = 0.0f;
-			float Fade = 1.0f;         // 1 alive, falls to 0 when defeated
-			bool Alive() const { return Row.empty() == false && HP > 0; }
-		};
-
-		struct Popup
-		{
-			entt::entity Digits[3] = { entt::null, entt::null, entt::null };
-			glm::vec2 Position{ 0.0f };
-			int Value = 0;
-			glm::vec4 Color{ 1.0f };
-			float Time = 10.0f;
-		};
-
-		// Actors: the heroes first, then the enemies.
-		static constexpr int ActorCount = HeroCount + BattleState::MaxEnemies;
-		static bool IsHero(int actor) { return actor < HeroCount; }
-		static int EnemyIndex(int actor) { return actor - HeroCount; }
-
-		struct Action
-		{
-			int Actor = 0;
-			Command Kind = Command::Attack;
-			int Target = 0;    // an enemy for attacks, a hero for heals and enemy attacks
-			int Slot = 0;
-			DataRowRef Item;
-			int Boost = 0;
-			int HitsDone = 0;
-			int Hits = 1;
-
-			enum class Stage : uint8_t { Approach, Strike, Return };
-			Stage Step = Stage::Strike;
-			float StepTime = 0.0f;
-			float StepDuration = 0.0f;
-			int Strike = 0;
-			bool EffectStarted = false;
-			bool Landed = false;
-			glm::vec2 From{ 0.0f };  // the hero's offset at the start of a walk
-			glm::vec2 To{ 0.0f };    // and at its end
-		};
-
-		enum class StrikeMove : uint8_t { Punch, Kick };
-
-		// ---- Flow -----------------------------------------------------------------------------------------
-
-		void SetPhase(Phase phase)
-		{
-			m_Phase = phase;
-			m_PhaseTime = 0.0f;
-			m_Targeting = false; // a new phase or turn starts on the commands
-			m_SubMenu = SubMenu::None;
-			m_ChosenSub = -1;
-			m_CancelSub = false;
+			BattleStage::Settings settings;
+			settings.Tilt = CameraTilt;
+			settings.FieldOfView = CameraFieldOfView;
+			settings.Focus = CameraFocus;
+			settings.ViewHeight = ViewHeight;
+			settings.ShakeStrength = ShakeStrength;
+			return settings;
 		}
 
-		void StartRound()
-		{
-			m_Round++;
-			for (int h = 0; h < HeroCount; h++)
-			{
-				Hero& hero = m_Heroes[h];
-				if (hero.BoostedLastRound == false && m_Round > 1)
-				{
-					hero.Momentum = std::min(BattleState::MaxMomentum, hero.Momentum + 1);
-				}
-				hero.BoostedLastRound = false;
-			}
-			for (Enemy& enemy : m_Enemies)
-			{
-				if (enemy.Alive() && enemy.BrokenUntilRound >= 0 && m_Round > enemy.BrokenUntilRound)
-				{
-					enemy.BrokenUntilRound = -1;
-					enemy.Shield = GetEnemy(enemy.Row).Shield;
-					HY_INFO("Battle: {} recovers its shield", GetEnemy(enemy.Row).Name);
-				}
-			}
-
-			std::vector<int> speeds;
-			for (int actor = 0; actor < ActorCount; actor++)
-			{
-				const int speed = IsHero(actor) ? GetHero(actor).Speed : GetEnemy(m_Enemies[EnemyIndex(actor)].Row).Stats.Speed;
-				speeds.push_back(ActorAlive(actor) ? std::max(0, speed) : -1);
-			}
-			m_Order = BattleRules::TurnOrder(speeds, [this]() { return Random01(); });
-			m_Turn = -1;
-			HY_INFO("Battle: round {}", m_Round);
-			SetPhase(Phase::NextTurn);
-		}
-
-		void NextTurn()
-		{
-			if (CheckEnd())
-			{
-				return;
-			}
-
-			m_Turn++;
-			if (m_Turn >= (int)m_Order.size())
-			{
-				StartRound();
-				return;
-			}
-
-			const int actor = m_Order[m_Turn];
-			if (ActorAlive(actor) == false)
-			{
-				return; // next frame takes the next one
-			}
-
-			if (IsHero(actor))
-			{
-				m_Heroes[actor].Guarding = false;
-				m_Action = Action{};
-				m_Action.Actor = actor;
-				m_Action.Target = FirstLivingEnemy(m_Target);
-				m_Action.Boost = 0;
-				SetPhase(Phase::Command);
-				return;
-			}
-
-			Enemy& enemy = m_Enemies[EnemyIndex(actor)];
-			if (IsBroken(enemy))
-			{
-				HY_INFO("Battle: {} is broken and cannot act", GetEnemy(enemy.Row).Name);
-				return;
-			}
-
-			m_Action = Action{};
-			m_Action.Actor = actor;
-			m_Action.Kind = Command::EnemyAttack;
-			SetPhase(Phase::EnemyThink);
-		}
-
-		bool CheckEnd()
-		{
-			bool enemiesLeft = false;
-			for (const Enemy& enemy : m_Enemies)
-			{
-				enemiesLeft = enemiesLeft || enemy.Alive();
-			}
-			if (enemiesLeft == false)
-			{
-				ShowMessage(BattleLabel::Victory);
-				HY_INFO("Battle: victory!");
-				// Each defeat also counts for the side quests asking for it (QuestRules) and drops its aster.
-				int experience = 0;
-				int money = 0;
-				for (const Enemy& enemy : m_Enemies)
-				{
-					if (enemy.Row.empty())
-					{
-						continue;
-					}
-					experience += GetEnemy(enemy.Row).Experience;
-					money += GetEnemy(enemy.Row).Money;
-					QuestLog::Get().RecordDefeat(enemy.Row);
-				}
-				m_Results.clear();
-				m_NextResult = 0;
-				if (experience > 0)
-				{
-					m_Results.push_back("Gained " + std::to_string(experience) + " experience.");
-					for (const std::string& line : BattleState::Get().GainExperience(experience))
-					{
-						m_Results.push_back(line);
-					}
-				}
-				if (money > 0)
-				{
-					Inventory::Get().Money += money;
-					m_Results.push_back("Found " + std::to_string(money) + " " + CurrencyName + ".");
-				}
-				GiveLoot();
-				SetPhase(Phase::Victory);
-				return true;
-			}
-
-			bool heroesLeft = false;
-			for (int h = 0; h < HeroCount; h++)
-			{
-				heroesLeft = heroesLeft || BattleState::Get().IsStanding(h);
-			}
-			if (heroesLeft == false)
-			{
-				ShowMessage(BattleLabel::Defeated);
-				HY_INFO("Battle: the party is defeated...");
-				SetPhase(Phase::Defeat);
-				return true;
-			}
-
-			return false;
-		}
-
-		void Finish()
-		{
-			if (m_Phase == Phase::Victory)
-			{
-				BattleState::Get().Outcome = BattleState::Result::Won;
-			}
-			else if (m_Phase == Phase::Defeat)
-			{
-				BattleState::Get().RestoreParty();
-				BattleState::Get().Outcome = BattleState::Result::Lost;
-			}
-			else
-			{
-				BattleState::Get().Outcome = BattleState::Result::Fled;
-			}
-
-			for (int h = 0; h < HeroCount; h++)
-			{
-				BattleState::Get().HeroHP[h] = std::max(1, BattleState::Get().HeroHP[h]);
-			}
-			SetPhase(Phase::Done);
-			SceneTransition::Pop();
-		}
-
-		// The loot of a won battle (Loot.hytable): each enemy's table, then the encounter's.
-		void GiveLoot()
-		{
-			std::vector<LootRules::Drop> drops;
-			int money = 0;
-			const std::function<float()> random = [this]() { return Random01(); };
-			auto rollTable = [&drops, &money, &random](const DataRowRef& reference)
-			{
-				const DataView<LootTableDefinition> table = reference.IsSet() ? Data::GetRow<LootTableDefinition>(reference)
-					: DataView<LootTableDefinition>();
-				if (table.IsValid() == false)
-				{
-					return;
-				}
-				money += LootRules::RollMoney(*table, random);
-				for (const LootRules::Drop& drop : LootRules::Roll(*table, random))
-				{
-					auto found = std::find_if(drops.begin(), drops.end(), [&](const LootRules::Drop& other) { return other.Item == drop.Item; });
-					if (found == drops.end())
-					{
-						drops.push_back(drop);
-					}
-					else
-					{
-						found->Count += drop.Count;
-					}
-				}
-			};
-			for (const Enemy& enemy : m_Enemies)
-			{
-				if (enemy.Row.empty() == false)
-				{
-					rollTable(GetEnemy(enemy.Row).Loot);
-				}
-			}
-			rollTable(BattleState::Get().EncounterLoot);
-
-			std::string found;
-			for (const LootRules::Drop& drop : drops)
-			{
-				const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(drop.Item);
-				if (item.IsValid() == false)
-				{
-					continue;
-				}
-				Inventory::Get().Add(drop.Item, drop.Count);
-				found += (found.empty() ? "" : ", ") + item->Name + (drop.Count > 1 ? " x" + std::to_string(drop.Count) : std::string());
-			}
-			if (found.empty() == false)
-			{
-				HY_INFO("Battle: found {}", found);
-				m_Results.push_back("Found " + found + ".");
-			}
-			if (money > 0)
-			{
-				Inventory::Get().Money += money;
-				m_Results.push_back("Found " + std::to_string(money) + " " + CurrencyName + " more.");
-			}
-		}
-
-		// ---- Hero input -----------------------------------------------------------------------------------
+		// ---- Turns ---------------------------------------------------------------------------------------
 
 		void UpdateCommand()
 		{
-			const int h = m_Action.Actor;
-			Hero& hero = m_Heroes[h];
-
-			// Up / Down move the menu's focus, so the boost has keys of its own.
-			if (Pressed(10, KeyCode::E))
+			const CommandMenuView::Result result = m_Menu.Update(m_Flow.GetAction(), m_Combatants);
+			if (result.Kind == CommandMenuView::Choice::NoMP)
 			{
-				m_Action.Boost = std::min({ 3, hero.Momentum, m_Action.Boost + 1 });
+				m_Overlay.ShowMessage(BattleLabel::NoMP);
 			}
-			if (Pressed(12, KeyCode::Q))
+			else if (result.Kind == CommandMenuView::Choice::Use)
 			{
-				m_Action.Boost = std::max(0, m_Action.Boost - 1);
-			}
-
-			// Choosing the target: Left / Right step along the enemies as they stand, Up / Down move through the list.
-			const int chosenTarget = m_ChosenTarget;
-			const bool cancel = m_CancelTarget;
-			m_ChosenTarget = -1;
-			m_CancelTarget = false;
-			// Read every frame, so a key held since the commands doesn't fire when the list opens.
-			const bool leftArrow = Pressed(6, KeyCode::Left);
-			const bool leftKey = Pressed(7, KeyCode::A);
-			const bool rightArrow = Pressed(8, KeyCode::Right);
-			const bool rightKey = Pressed(9, KeyCode::D);
-			const bool left = leftArrow || leftKey;
-			const bool right = rightArrow || rightKey;
-			if (m_Targeting)
-			{
-				if (left || right)
-				{
-					m_Action.Target = StepTarget(m_Action.Target, left ? -1 : 1);
-					UI::Focus(EntityOf(m_TargetButtons[m_Action.Target]));
-				}
-				if (cancel)
-				{
-					m_Targeting = false; // back to the sub-menu or the commands
-					m_ChosenCommand = -1;
-					return;
-				}
-				if (chosenTarget >= 0 && m_Enemies[chosenTarget].Alive())
-				{
-					m_Targeting = false;
-					m_SubMenu = SubMenu::None;
-					m_Action.Target = chosenTarget;
-					UseAction(m_TargetCommand);
-				}
-				return;
-			}
-
-			if (m_SubMenu != SubMenu::None)
-			{
-				const int sub = m_ChosenSub;
-				const bool back = m_CancelSub;
-				m_ChosenSub = -1;
-				m_CancelSub = false;
-				if (back)
-				{
-					m_SubMenu = SubMenu::None;
-					return;
-				}
-				if (sub < 0)
-				{
-					return;
-				}
-				if (m_SubMenu == SubMenu::Abilities)
-				{
-					const AbilityDefinition& skill = BattleData::Skill(h, sub);
-					if (skill.Name.empty())
-					{
-						return; // an empty slot
-					}
-					if (BattleState::Get().HeroMP[h] < skill.Cost)
-					{
-						ShowMessage(BattleLabel::NoMP);
-						return;
-					}
-					m_Action.Slot = sub;
-					m_LastSub[h] = sub;
-					if (skill.Heals == false)
-					{
-						m_Targeting = true; // a damaging ability picks its enemy first
-						m_TargetCommand = Command::Skill;
-						m_Action.Target = std::max(0, FirstLivingEnemy(m_Action.Target));
-						return;
-					}
-					m_SubMenu = SubMenu::None;
-					UseAction(Command::Skill);
-					return;
-				}
-				const std::vector<int> items = BattleItems();
-				if (sub >= (int)items.size())
-				{
-					return;
-				}
-				m_Action.Item = Inventory::Get().Slots[(size_t)items[(size_t)sub]].Item;
-				m_SubMenu = SubMenu::None;
-				UseAction(Command::Item);
-				return;
-			}
-
-			const int chosen = m_ChosenCommand;
-			m_ChosenCommand = -1;
-			if (chosen < 0 || chosen >= CommandCount)
-			{
-				return;
-			}
-			m_LastCommand[h] = chosen;
-			switch ((Command)chosen)
-			{
-				case Command::Attack:
-					m_Targeting = true;
-					m_TargetCommand = Command::Attack;
-					m_Action.Target = std::max(0, FirstLivingEnemy(m_Action.Target));
-					return;
-				case Command::Abilities:
-					m_SubMenu = SubMenu::Abilities;
-					m_HelpSub = m_LastSub[h];
-					return;
-				case Command::Items:
-					m_SubMenu = SubMenu::Items;
-					m_HelpSub = 0;
-					return;
-				default:
-					UseAction((Command)chosen);
-					return;
+				UseCommand(result.Command);
 			}
 		}
 
-		// Lines of the run's inventory that restore HP or MP, as indices into Inventory::Slots, at most SubRows.
-		std::vector<int> BattleItems() const
+		void UseCommand(BattleCommand command)
 		{
-			std::vector<int> found;
-			const std::vector<Inventory::Slot>& slots = Inventory::Get().Slots;
-			for (int i = 0; i < (int)slots.size() && (int)found.size() < SubRows; i++)
+			switch (m_Flow.Use(command))
 			{
-				const DataView<ItemDefinition> item = slots[(size_t)i].Count > 0 ? Data::GetRow<ItemDefinition>(slots[(size_t)i].Item)
-					: DataView<ItemDefinition>();
-				if (item.IsValid() && item->Kind == ItemKind::Consumable && (item->RestoreHP > 0 || item->RestoreMP > 0))
-				{
-					found.push_back(i);
-				}
+				case BattleFlow::UseResult::NoMP:
+					m_Overlay.ShowMessage(BattleLabel::NoMP);
+					return;
+				case BattleFlow::UseResult::NoItem:
+					m_Overlay.ShowMessage(BattleLabel::NoPotions);
+					return;
+				case BattleFlow::UseResult::Escaped:
+					m_Overlay.ShowMessage(BattleLabel::Escaped);
+					return;
+				case BattleFlow::UseResult::NoEscape:
+					m_Overlay.ShowMessage(BattleLabel::NoEscape);
+					return;
+				case BattleFlow::UseResult::Begun:
+					BeginHeroAction();
+					return;
 			}
-			return found;
 		}
 
-		const AbilityDefinition& ActionSkill() const
-		{
-			return BattleData::Skill(m_Action.Actor, m_Action.Slot);
-		}
-
-		// The target is an enemy chosen by the target list for attacks, the most hurt hero for heals and items.
-		void UseAction(Command command)
-		{
-			const int h = m_Action.Actor;
-			Hero& hero = m_Heroes[h];
-			if (command == Command::Skill)
-			{
-				const AbilityDefinition& skill = ActionSkill();
-				if (BattleState::Get().HeroMP[h] < skill.Cost)
-				{
-					ShowMessage(BattleLabel::NoMP);
-					return;
-				}
-				BattleState::Get().HeroMP[h] -= skill.Cost;
-				if (skill.Heals)
-				{
-					m_Action.Target = MostHurtHero();
-				}
-			}
-			else if (command == Command::Item)
-			{
-				if (Inventory::Get().Remove(m_Action.Item, 1) == false)
-				{
-					ShowMessage(BattleLabel::NoPotions);
-					return;
-				}
-				m_Action.Target = MostHurtHero();
-			}
-			else if (command == Command::Run)
-			{
-				if (Random01() < 0.5f)
-				{
-					ShowMessage(BattleLabel::Escaped);
-					HY_INFO("Battle: the party got away");
-					SetPhase(Phase::Fleeing);
-					return;
-				}
-				ShowMessage(BattleLabel::NoEscape);
-				HY_INFO("Battle: could not escape");
-				SetPhase(Phase::NextTurn);
-				return;
-			}
-
-			m_Action.Kind = command;
-			if (m_Action.Boost > 0)
-			{
-				hero.Momentum -= m_Action.Boost;
-				hero.BoostedLastRound = true;
-			}
-			m_Action.Hits = command == Command::Attack ? 1 + m_Action.Boost : 1;
-			m_Action.HitsDone = 0;
-			m_Target = m_Action.Target;
-			BeginHeroAction();
-		}
-
+		// Spells (Holy Palm) strike from where the hero stands; Attack and the strike skills walk up to the target first.
 		void BeginHeroAction()
 		{
-			const int h = m_Action.Actor;
-			Entity sprite = EntityOf(m_Heroes[h].Sprite);
-			const HeroStats& definition = GetHero(h);
-			switch (m_Action.Kind)
+			const BattleAction& action = m_Flow.GetAction();
+			const Entity sprite = m_Actors.SpriteOf(m_Combatants.Get(action.Actor));
+			const HeroStats hero = m_Combatants.GetHeroStats(action.Actor);
+			m_Sequence.Reset();
+			switch (action.Kind)
 			{
-				case Command::Attack:
+				case BattleCommand::Attack:
 					BeginApproach();
 					break;
-				case Command::Skill:
+				case BattleCommand::Skill:
 				{
-					const AbilityDefinition& skill = ActionSkill();
-					ShowMessage(skill.Name, 0.9f);
+					const AbilityDefinition& skill = m_Flow.GetActionSkill();
+					m_Overlay.ShowMessage(skill.Name, 0.9f);
 					if (skill.Heals == false && skill.Approach)
 					{
 						BeginApproach();
@@ -894,1495 +256,359 @@ namespace Hydro
 					}
 					break;
 				}
-				case Command::Item:
+				case BattleCommand::Item:
 				{
-					SpriteAnimator::Play(sprite, definition.ItemClip, true);
-					const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(m_Action.Item);
-					ShowMessage(item.IsValid() ? item->Name : std::string(GetLabelText(BattleLabel::Potion)), 0.9f);
+					SpriteAnimator::Play(sprite, hero.ItemClip, true);
+					const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(action.Item);
+					m_Overlay.ShowMessage(item.IsValid() ? item->Name : std::string(GetLabelText(BattleLabel::Potion)), 0.9f);
 					break;
 				}
-				case Command::Guard:
-					m_Heroes[h].Guarding = true;
-					SpriteAnimator::Play(sprite, definition.IdleClip, true);
-					ShowMessage(BattleLabel::Guarding, 0.7f);
+				case BattleCommand::Guard:
+					SpriteAnimator::Play(sprite, hero.IdleClip, true);
+					m_Overlay.ShowMessage(BattleLabel::Guarding, 0.7f);
 					break;
 				default:
 					break;
 			}
-			SetPhase(Phase::Acting);
 		}
 
-		// ---- The hero's strikes -----------------------------------------------------------------------------
-		// Spells (Holy Palm) strike from where she stands; Attack and the strike skills walk up to the target first.
-
-		StrikeMove CurrentMove() const
+		void UpdateAction()
 		{
-			if (m_Action.Kind == Command::Attack)
+			const BattleAction& action = m_Flow.GetAction();
+			const float phaseTime = m_Flow.GetPhaseTime();
+			if (m_Combatants.Get(action.Actor).IsHero())
 			{
-				return m_Action.Strike % 2 == 0 ? StrikeMove::Punch : StrikeMove::Kick;
+				if (action.Kind == BattleCommand::Attack || action.Kind == BattleCommand::Skill)
+				{
+					UpdateHeroStrikes();
+					return;
+				}
+				if (action.Kind == BattleCommand::Item && action.HitsDone == 0 && phaseTime >= ItemTime)
+				{
+					UseItem();
+				}
+				// An item's clip plays out; a guard only takes a moment.
+				if (phaseTime >= (action.Kind == BattleCommand::Item ? 1.0f : 0.6f))
+				{
+					EndAction();
+				}
+				return;
 			}
-			return ActionSkill().Clip == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
+
+			if (action.HitsDone == 0 && phaseTime >= 0.45f)
+			{
+				const BattleFlow::EnemyStrike strike = m_Flow.StrikeHero();
+				if (m_Combatants.IsValid(strike.Target))
+				{
+					BattleActors::Actor& target = m_Actors.Of(m_Combatants.Get(strike.Target));
+					target.Flash = 0.35f;
+					m_Overlay.SpawnPopup(m_Stage.ScreenAbove(target.Base, BattleActors::HeroPopupHeight), strike.Damage, glm::vec4(1.0f));
+					m_Effects.PlayBlow(target.Base, strike.Guarded);
+					if (strike.Fell)
+					{
+						SpriteAnimator::Play(m_Actors.SpriteOf(m_Combatants.Get(strike.Target)), "Death", true);
+					}
+				}
+			}
+			if (phaseTime >= 1.0f)
+			{
+				EndAction();
+			}
 		}
 
-		DamageType CurrentDamageType() const
+		// The item restores its MP and the HP of its target, if standing.
+		void UseItem()
 		{
-			const HeroStats& definition = GetHero(m_Action.Actor);
-			if (m_Action.Kind == Command::Attack)
+			BattleAction& action = m_Flow.GetAction();
+			action.HitsDone = 1;
+			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(action.Item);
+			if (item.IsValid() == false)
 			{
-				return definition.WeaponType;
+				return;
 			}
-			return ActionSkill().Type;
+			if (item->RestoreMP > 0)
+			{
+				m_Flow.RestoreMP(action.Target, item->RestoreMP);
+			}
+			if (item->RestoreHP > 0)
+			{
+				ShowHeal(action.Target, m_Flow.Heal(action.Target, item->RestoreHP));
+			}
+		}
+
+		// The acting hero back in their stance, everyone standing too, and the next turn.
+		void EndAction()
+		{
+			const int actor = m_Flow.GetAction().Actor;
+			const Combatant& combatant = m_Combatants.Get(actor);
+			if (combatant.IsHero())
+			{
+				m_Actors.Of(combatant).Offset = glm::vec2(0.0f);
+				if (m_Combatants.IsAlive(actor))
+				{
+					SpriteAnimator::Play(m_Actors.SpriteOf(combatant), m_Combatants.GetHeroStats(actor).IdleClip);
+				}
+			}
+			m_Actors.PlayIdle(m_Combatants, actor);
+			m_Flow.SetPhase(BattleFlow::Phase::NextTurn);
+		}
+
+		// ---- The heroes' strikes ---------------------------------------------------------------------------
+
+		// Attack alternates punches and kicks; a skill strikes with its clip's move.
+		StrikeMove MoveFor(int strike) const
+		{
+			if (m_Flow.GetAction().Kind == BattleCommand::Attack)
+			{
+				return strike % 2 == 0 ? StrikeMove::Punch : StrikeMove::Kick;
+			}
+			return m_Flow.GetActionSkill().Clip == "Kick" ? StrikeMove::Kick : StrikeMove::Punch;
 		}
 
 		float ImpactTime(StrikeMove move) const { return move == StrikeMove::Punch ? PunchImpactTime : KickImpactTime; }
-		float StrikeLength(StrikeMove move) const { return std::max(move == StrikeMove::Punch ? PunchLength : KickLength, ImpactTime(move) + 0.05f); }
+		float StrikeLength(StrikeMove move) const { return move == StrikeMove::Punch ? PunchLength : KickLength; }
+
+		BattleActors::Actor& ActingHero() { return m_Actors.Of(m_Combatants.Get(m_Flow.GetAction().Actor)); }
 
 		// StrikeDistance to the target's right, on the floor.
-		glm::vec2 StrikeOffset(int target) const
+		glm::vec2 StrikeOffset(int target)
 		{
-			const glm::vec3 enemy = GroundPoint(m_Enemies[target].Base);
-			return LayoutOf(enemy + glm::vec3(StrikeDistance, 0.0f, 0.0f)) - m_Heroes[m_Action.Actor].Base;
+			const glm::vec3 enemy = m_Stage.GroundPoint(m_Actors.Of(m_Combatants.Get(target)).Base);
+			return m_Stage.LayoutOf(enemy + glm::vec3(StrikeDistance, 0.0f, 0.0f)) - ActingHero().Base;
 		}
 
 		// Measured on the floor; `speed` in metres per second.
-		float WalkTime(const glm::vec2& from, const glm::vec2& to, float speed) const
+		float WalkTime(const glm::vec2& from, const glm::vec2& to, float speed)
 		{
-			const glm::vec2 base = m_Heroes[m_Action.Actor].Base;
-			const float metres = glm::length(GroundPoint(base + to) - GroundPoint(base + from));
+			const glm::vec2 base = ActingHero().Base;
+			const float metres = glm::length(m_Stage.GroundPoint(base + to) - m_Stage.GroundPoint(base + from));
 			return metres / std::max(speed, 0.1f);
 		}
 
 		void BeginApproach()
 		{
-			Hero& hero = m_Heroes[m_Action.Actor];
-			m_Action.Step = Action::Stage::Approach;
-			m_Action.StepTime = 0.0f;
-			m_Action.From = hero.Offset;
-			m_Action.To = StrikeOffset(m_Action.Target);
-			m_Action.StepDuration = WalkTime(m_Action.From, m_Action.To, WalkSpeed);
-			const glm::vec2 direction = m_Action.To - m_Action.From;
-			SpriteAnimator::Play(EntityOf(hero.Sprite), direction.x <= 0.0f ? "WalkLeft" : "WalkRight", true);
-			PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, BattleEffects::StepDust(), ParticleSpace::Ground);
+			BattleActors::Actor& hero = ActingHero();
+			const glm::vec2 to = StrikeOffset(m_Flow.GetAction().Target);
+			m_Sequence.BeginApproach(hero.Offset, to, WalkTime(hero.Offset, to, WalkSpeed));
+			SpriteAnimator::Play(Entity{ hero.Sprite, GetEntity().GetScene() }, to.x - hero.Offset.x <= 0.0f ? "WalkLeft" : "WalkRight",
+				true);
+			m_Effects.PlayStepDust(hero.Base + hero.Offset);
 		}
 
+		// A sheet without the skill's own clip falls back to the move's. The strike is timed and drawn as the move after
+		// the clip's (on Attack the first punch lands with the kick's timing), as the battle has always done.
 		void BeginStrike()
 		{
-			m_Action.Step = Action::Stage::Strike;
-			m_Action.StepTime = 0.0f;
-			m_Action.EffectStarted = false;
-			m_Action.Landed = false;
-			// A sheet without the skill's own clip falls back to the move's.
-			const Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
-			const char* moveClip = CurrentMove() == StrikeMove::Punch ? "Punch" : "Kick";
-			std::string clip = moveClip;
-			if (m_Action.Kind == Command::Skill)
-			{
-				clip = ActionSkill().Clip;
-			}
+			const BattleAction& action = m_Flow.GetAction();
+			const Entity sprite{ ActingHero().Sprite, GetEntity().GetScene() };
+			const char* moveClip = MoveFor(m_Sequence.GetStrikes()) == StrikeMove::Punch ? "Punch" : "Kick";
+			const std::string clip = action.Kind == BattleCommand::Skill ? m_Flow.GetActionSkill().Clip : std::string(moveClip);
 			if (SpriteAnimator::Play(sprite, clip, true) == false)
 			{
 				SpriteAnimator::Play(sprite, moveClip, true);
 			}
-			m_Action.Strike++;
+			m_StrikeMove = MoveFor(m_Sequence.GetStrikes() + 1);
+			const float impact = ImpactTime(m_StrikeMove);
+			const float lead = StrikeEffects::EffectLead(m_StrikeMove, m_Flow.GetActionDamageType());
+			m_Sequence.BeginStrike(impact - lead, impact, StrikeLength(m_StrikeMove));
 		}
 
 		void BeginReturn()
 		{
-			Hero& hero = m_Heroes[m_Action.Actor];
-			m_Action.Step = Action::Stage::Return;
-			m_Action.StepTime = 0.0f;
-			m_Action.From = hero.Offset;
-			m_Action.To = glm::vec2(0.0f);
-			m_Action.StepDuration = WalkTime(m_Action.From, m_Action.To, ReturnSpeed);
-			if (m_Action.StepDuration > 0.01f)
+			BattleActors::Actor& hero = ActingHero();
+			const float duration = WalkTime(hero.Offset, glm::vec2(0.0f), ReturnSpeed);
+			m_Sequence.BeginReturn(hero.Offset, duration);
+			if (duration > 0.01f)
 			{
-				SpriteAnimator::Play(EntityOf(hero.Sprite), m_Action.From.x > 0.0f ? "WalkLeft" : "WalkRight", true);
+				SpriteAnimator::Play(Entity{ hero.Sprite, GetEntity().GetScene() }, hero.Offset.x > 0.0f ? "WalkLeft" : "WalkRight", true);
 			}
 		}
 
 		void UpdateHeroStrikes()
 		{
-			Hero& hero = m_Heroes[m_Action.Actor];
-			m_Action.StepTime += m_DeltaTime;
-			const float k = m_Action.StepDuration > 0.0f ? std::clamp(m_Action.StepTime / m_Action.StepDuration, 0.0f, 1.0f) : 1.0f;
-			switch (m_Action.Step)
+			BattleAction& action = m_Flow.GetAction();
+			BattleActors::Actor& hero = ActingHero();
+			const ActionSequence::Events events = m_Sequence.Update(m_DeltaTime, hero.Offset);
+			if (events.Arrived)
 			{
-				case Action::Stage::Approach:
-				{
-					const float eased = 1.0f - (1.0f - k) * (1.0f - k); // brisk start, settles into place
-					hero.Offset = m_Action.From + (m_Action.To - m_Action.From) * eased;
-					if (k >= 1.0f)
-					{
-						PlayEffect("Effect Dust", hero.Base + hero.Offset, 0.1f, BattleEffects::StepDust(), ParticleSpace::Ground);
-						BeginStrike();
-					}
-					break;
-				}
-				case Action::Stage::Strike:
-				{
-					const StrikeMove move = CurrentMove();
-					const float impact = ImpactTime(move);
-					// Start the effect early enough that its burst frame meets the impact.
-					if (m_Action.EffectStarted == false && m_Action.StepTime >= impact - EffectLead(move, CurrentDamageType()))
-					{
-						m_Action.EffectStarted = true;
-						const int target = m_Enemies[m_Action.Target].Alive() ? m_Action.Target : FirstLivingEnemy(m_Action.Target);
-						if (target >= 0 && IsHealing() == false)
-						{
-							PlayStrikeEffect(move, CurrentDamageType(), target);
-						}
-					}
-					if (m_Action.Landed == false && m_Action.StepTime >= impact)
-					{
-						m_Action.Landed = true;
-						LandStrike(move);
-					}
-					if (m_Action.StepTime >= StrikeLength(move))
-					{
-						const bool moreHits = m_Action.Kind == Command::Attack && m_Action.HitsDone < m_Action.Hits;
-						const int next = FirstLivingEnemy(m_Action.Target);
-						if (moreHits && next >= 0)
-						{
-							if (next != m_Action.Target)
-							{
-								m_Action.Target = next;
-								BeginApproach();
-							}
-							else
-							{
-								BeginStrike();
-							}
-						}
-						else
-						{
-							BeginReturn();
-						}
-					}
-					break;
-				}
-				case Action::Stage::Return:
-				{
-					const float eased = k * k * (3.0f - 2.0f * k);
-					hero.Offset = m_Action.From + (m_Action.To - m_Action.From) * eased;
-					if (k >= 1.0f)
-					{
-						hero.Offset = glm::vec2(0.0f);
-						EndAction();
-					}
-					break;
-				}
-			}
-		}
-
-		bool IsHealing() const
-		{
-			return m_Action.Kind == Command::Skill && ActionSkill().Heals;
-		}
-
-		void LandStrike(StrikeMove move)
-		{
-			const HeroStats& definition = GetHero(m_Action.Actor);
-			if (IsHealing())
-			{
-				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-				HealHero(m_Action.Target, BattleRules::ResolveHeal(ActionSkill().Power, definition.Magic, boost, Random01()));
-				m_Action.HitsDone++;
+				m_Effects.PlayStepDust(hero.Base + hero.Offset);
+				BeginStrike();
 				return;
 			}
-
-			if (m_Enemies[m_Action.Target].Alive() == false)
+			if (events.EffectDue && m_Flow.IsHealing() == false)
 			{
-				m_Action.Target = FirstLivingEnemy(m_Action.Target);
-				if (m_Action.Target < 0)
+				const int target = m_Combatants.FirstLiving(Side::Enemy, action.Target);
+				if (target >= 0)
 				{
-					return;
+					const BattleActors::Actor& enemy = m_Actors.Of(m_Combatants.Get(target));
+					m_Effects.PlayStrike(m_StrikeMove, m_Flow.GetActionDamageType(), enemy.Base, enemy.Size);
 				}
 			}
-
-			bool strong = false;
-			const DamageType type = CurrentDamageType();
-			if (m_Action.Kind == Command::Attack)
+			if (events.Impact)
 			{
-				strong = HitEnemy(m_Action.Target, type, (float)definition.Attack, 1.0f);
+				LandStrike();
 			}
-			else
+			if (events.StrikeOver)
 			{
-				const float boost = 1.0f + 0.6f * (float)m_Action.Boost;
-				const float stat = type == DamageType::Light || type == DamageType::Fire ? (float)std::max(definition.Magic, definition.Attack)
-					: (float)definition.Attack;
-				strong = HitEnemy(m_Action.Target, type, stat, ActionSkill().Power * boost);
-			}
-			m_Action.HitsDone++;
-			PlayImpact(move, type, m_Action.Target, strong);
-		}
-
-		void BeginEnemyAction()
-		{
-			int living = 0;
-			for (int h = 0; h < HeroCount; h++)
-			{
-				living += BattleState::Get().IsStanding(h) ? 1 : 0;
-			}
-			int pick = std::min(living - 1, (int)(Random01() * (float)living));
-			int target = 0;
-			for (int h = 0; h < HeroCount; h++)
-			{
-				if (BattleState::Get().IsStanding(h))
+				const bool moreHits = action.Kind == BattleCommand::Attack && action.HitsDone < action.Hits;
+				const int next = m_Combatants.FirstLiving(Side::Enemy, action.Target);
+				if (moreHits && next >= 0 && next != action.Target)
 				{
-					if (pick == 0)
-					{
-						target = h;
-						break;
-					}
-					pick--;
+					action.Target = next;
+					BeginApproach();
+				}
+				else if (moreHits && next >= 0)
+				{
+					BeginStrike();
+				}
+				else
+				{
+					BeginReturn();
 				}
 			}
-			m_Action.Target = target;
-			m_Action.Hits = 1;
-			SetPhase(Phase::Acting);
-		}
-
-		// ---- Resolving --------------------------------------------------------------------------------------
-
-		void UpdateAction(Scene& scene)
-		{
-			const bool hero = IsHero(m_Action.Actor);
-			if (hero && (m_Action.Kind == Command::Attack || m_Action.Kind == Command::Skill))
-			{
-				UpdateHeroStrikes();
-				return;
-			}
-
-			if (hero && m_Action.Kind == Command::Item)
-			{
-				if (m_Action.HitsDone == 0 && m_PhaseTime >= ItemTime)
-				{
-					m_Action.HitsDone = 1;
-					const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(m_Action.Item);
-					if (item.IsValid())
-					{
-						if (item->RestoreMP > 0)
-						{
-							BattleState::Get().HeroMP[m_Action.Target] = std::min(GetHero(m_Action.Target).MaxMP,
-								BattleState::Get().HeroMP[m_Action.Target] + item->RestoreMP);
-						}
-						if (item->RestoreHP > 0)
-						{
-							HealHero(m_Action.Target, item->RestoreHP);
-						}
-					}
-				}
-				if (m_PhaseTime >= 1.0f)
-				{
-					EndAction();
-				}
-				return;
-			}
-
-			if (hero)
-			{
-				if (m_PhaseTime >= 0.6f)
-				{
-					EndAction();
-				}
-				return;
-			}
-
-			if (m_Action.HitsDone == 0 && m_PhaseTime >= 0.45f)
-			{
-				m_Action.HitsDone = 1;
-				const Enemy& enemy = m_Enemies[EnemyIndex(m_Action.Actor)];
-				// Enemies only strike for now: an ability's other effects are not applied yet.
-				const EnemyDefinition& attacker = GetEnemy(enemy.Row);
-				const DataRowRef action = attacker.Abilities.empty() ? attacker.BasicAttack : BattleRules::ChooseEnemyAction(attacker, Random01());
-				const float power = action.IsSet() ? BattleData::Ability(action).Power : 1.0f;
-				Hero& target = m_Heroes[m_Action.Target];
-				const int damage = BattleRules::EnemyAttackDamage(attacker.Stats.Attack, power, target.Guarding, Random01());
-				BattleState::Get().HeroHP[m_Action.Target] = std::max(0, BattleState::Get().HeroHP[m_Action.Target] - damage);
-				target.Flash = 0.35f;
-				SpawnPopup(ScreenAbove(target.Base, HeroPopupHeight), damage, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-				PlayEffect("Effect Hit Sparks", target.Base, 0.9f, BattleEffects::HitSparks(DamageType::Blunt, target.Guarding == false),
-					ParticleSpace::View);
-				Shake(target.Guarding ? 0.04f : 0.08f);
-				Entity sprite = EntityOf(target.Sprite);
-				if (BattleState::Get().HeroHP[m_Action.Target] <= 0)
-				{
-					SpriteAnimator::Play(sprite, "Death", true);
-					HY_INFO("Battle: {} falls!", GetHero(m_Action.Target).Name);
-				}
-				HY_INFO("Battle: {} hits {} for {}{}", attacker.Name, GetHero(m_Action.Target).Name, damage, target.Guarding ? " (guarded)" : "");
-			}
-			if (m_PhaseTime >= 1.0f)
+			if (events.Returned)
 			{
 				EndAction();
 			}
-			(void)scene;
 		}
 
-		void EndAction()
+		// Weak and Break, Resist or Critical, the number, the defeat puff, and the impact (bigger when strong).
+		void LandStrike()
 		{
-			if (IsHero(m_Action.Actor))
+			const BattleFlow::Hit hit = m_Flow.LandStrike();
+			if (m_Flow.IsHealing())
 			{
-				Entity sprite = EntityOf(m_Heroes[m_Action.Actor].Sprite);
-				m_Heroes[m_Action.Actor].Offset = glm::vec2(0.0f);
-				if (BattleState::Get().HeroHP[m_Action.Actor] > 0)
-				{
-					SpriteAnimator::Play(sprite, GetHero(m_Action.Actor).IdleClip);
-				}
+				ShowHeal(hit.Target, hit.Damage);
+				return;
 			}
-			for (int h = 0; h < HeroCount; h++)
+			if (hit.Target < 0)
 			{
-				if (BattleState::Get().IsStanding(h) && (h != m_Action.Actor || IsHero(m_Action.Actor) == false))
-				{
-					SpriteAnimator::Play(EntityOf(m_Heroes[h].Sprite), GetHero(h).IdleClip);
-				}
+				return;
 			}
-			SetPhase(Phase::NextTurn);
-		}
-
-		// Returns whether the hit was strong (weak or critical), which makes the impact effects bigger.
-		bool HitEnemy(int index, DamageType type, float stat, float power)
-		{
-			Enemy& enemy = m_Enemies[index];
-			const EnemyDefinition& definition = GetEnemy(enemy.Row);
-			// The rolls in a fixed order: the critical, then the spread.
-			const float criticalRoll = Random01();
-			const float spreadRoll = Random01();
-			const BattleRules::HitResult hit = BattleRules::ResolveHit(definition, type, stat, power, IsBroken(enemy), criticalRoll, spreadRoll);
-			const bool weak = hit.Weak;
-			const bool resisted = hit.Resisted;
-			const bool critical = hit.Critical;
-			const int damage = hit.Damage;
-			if (hit.WeakSlot >= 0)
-			{
-				BattleState::Get().Revealed[enemy.Row][(size_t)hit.WeakSlot] = true;
-			}
-			enemy.HP = std::max(0, enemy.HP - damage);
-			enemy.Flash = 0.3f;
-
-			glm::vec4 color{ 1.0f, 1.0f, 1.0f, 1.0f };
-			if (weak && IsBroken(enemy) == false)
+			glm::vec4 color{ 1.0f };
+			if (hit.Weak)
 			{
 				color = { 1.0f, 0.7f, 0.25f, 1.0f };
-				enemy.Shield = std::max(0, enemy.Shield - 1);
-				if (enemy.Shield == 0 && enemy.HP > 0)
+				if (hit.Broke)
 				{
-					enemy.BrokenUntilRound = m_Round + 1;
-					ShowMessage(BattleLabel::Break);
-					HY_INFO("Battle: {} is BROKEN!", definition.Name);
+					m_Overlay.ShowMessage(BattleLabel::Break);
 				}
 				else
 				{
-					ShowMessage(BattleLabel::Weak, 0.6f);
+					m_Overlay.ShowMessage(BattleLabel::Weak, 0.6f);
 				}
 			}
-			else if (resisted)
+			else if (hit.Resisted)
 			{
 				color = { 0.6f, 0.7f, 0.85f, 1.0f };
-				ShowMessage(BattleLabel::Resist, 0.6f);
+				m_Overlay.ShowMessage(BattleLabel::Resist, 0.6f);
 			}
-			else if (critical)
+			else if (hit.Critical)
 			{
-				ShowMessage(BattleLabel::Critical, 0.6f);
+				m_Overlay.ShowMessage(BattleLabel::Critical, 0.6f);
 			}
-
-			SpawnPopup(ScreenAbove(enemy.Base, EnemyPopupHeight), damage, color);
-			HY_INFO("Battle: {} takes {}{}{}{} ({} HP left, shield {})", definition.Name, damage, weak ? " (weak)" : "", resisted ? " (resisted)" : "",
-				critical ? " (critical)" : "", enemy.HP, enemy.Shield);
-			if (enemy.HP <= 0)
+			const Combatant& target = m_Combatants.Get(hit.Target);
+			BattleActors::Actor& enemy = m_Actors.Of(target);
+			enemy.Flash = 0.3f;
+			m_Overlay.SpawnPopup(m_Stage.ScreenAbove(enemy.Base, BattleActors::EnemyPopupHeight), hit.Damage, color);
+			if (hit.Defeated)
 			{
-				HY_INFO("Battle: {} is defeated", definition.Name);
-				PlayEffect("Effect Defeat Puff", enemy.Base, 0.5f, BattleEffects::DefeatPuff(definition), ParticleSpace::View);
+				m_Effects.PlayDefeat(enemy.Base, Combatants::EnemyOf(target));
 			}
-			return weak || critical;
+			const bool skill = m_Flow.GetAction().Kind != BattleCommand::Attack;
+			m_Effects.PlayImpact(m_StrikeMove, m_Flow.GetActionDamageType(), enemy.Base, enemy.Size, hit.Strong, skill);
 		}
 
-		// One-shot effect sprites ("FX Strike", "FX Heal") with a point light on the same entity that flares with them.
-		// They play alongside the particle effects: the sprite gives the authored shape, the particles the spray.
-		struct SpriteEffect
+		// A green number and the heal's sprite and motes; nothing for a fallen hero (`amount` -1).
+		void ShowHeal(int hero, int amount)
 		{
-			entt::entity Entity = entt::null;
-			float Time = 0.0f;     // seconds left
-			float Duration = 1.0f;
-			float LightPeak = 0.0f;  // the light's intensity at its flare
-			float LightTime = 0.0f;  // seconds left of the flare
-		};
-
-		static constexpr float LightFlareTime = 0.35f;
-
-		void PlaySpriteEffect(SpriteEffect& effect, const glm::vec3& position, const char* clip, float duration,
-			const glm::vec3& lightColor = glm::vec3(1.0f), float lightIntensity = 0.0f)
-		{
-			Scene& scene = *GetEntity().GetScene();
-			if (Alive(scene, effect.Entity) == false)
+			if (amount < 0 || m_Combatants.IsValid(hero) == false)
 			{
 				return;
 			}
-			scene.SetWorldPosition(EntityOf(effect.Entity), position);
-			SpriteAnimator::Play(EntityOf(effect.Entity), clip, true);
-			effect.Time = duration;
-			effect.Duration = duration;
-			effect.LightPeak = lightIntensity;
-			effect.LightTime = lightIntensity > 0.0f ? LightFlareTime : 0.0f;
-			if (scene.m_Registry.has<Light2DComponent>(effect.Entity))
+			const BattleActors::Actor& actor = m_Actors.Of(m_Combatants.Get(hero));
+			m_Overlay.SpawnPopup(m_Stage.ScreenAbove(actor.Base, BattleActors::HeroPopupHeight), amount, glm::vec4(0.45f, 1.0f, 0.55f,
+				1.0f));
+			m_Effects.PlayHeal(actor.Base);
+		}
+
+		// ---- The end ------------------------------------------------------------------------------------------
+
+		void OnEnded()
+		{
+			if (m_Flow.GetPhase() == BattleFlow::Phase::Victory)
 			{
-				scene.m_Registry.get<Light2DComponent>(effect.Entity).Color = lightColor;
+				m_Overlay.ShowMessage(BattleLabel::Victory);
+				m_Results = BattleResults::Give(m_Combatants, [this]() { return Random01(); });
+				m_NextResult = 0;
+			}
+			else
+			{
+				m_Overlay.ShowMessage(BattleLabel::Defeated);
 			}
 		}
 
-		void PresentSpriteEffect(Scene& scene, SpriteEffect& effect)
+		// Tells the field how it went and goes back to it. A lost battle restores the party; no one leaves with 0 HP.
+		void Finish()
 		{
-			if (Alive(scene, effect.Entity) == false)
+			BattleState& battle = BattleState::Get();
+			if (m_Flow.GetPhase() == BattleFlow::Phase::Victory)
 			{
-				return;
+				battle.Outcome = BattleState::Result::Won;
 			}
-			effect.Time = std::max(0.0f, effect.Time - m_DeltaTime);
-			effect.LightTime = std::max(0.0f, effect.LightTime - m_DeltaTime);
-			SetColor(scene, effect.Entity, glm::vec4(1.0f, 1.0f, 1.0f, effect.Time > 0.0f ? 1.0f : 0.0f));
-			if (scene.m_Registry.has<Light2DComponent>(effect.Entity))
+			else if (m_Flow.GetPhase() == BattleFlow::Phase::Defeat)
 			{
-				const float k = effect.LightTime / LightFlareTime;
-				scene.m_Registry.get<Light2DComponent>(effect.Entity).Intensity = effect.LightPeak * k * k;
+				PartyState::Get().Restore();
+				battle.Outcome = BattleState::Result::Lost;
 			}
+			else
+			{
+				battle.Outcome = BattleState::Result::Fled;
+			}
+			for (PartyMember& member : PartyState::Get().Members)
+			{
+				member.HP = std::max(1, member.HP);
+			}
+			m_Flow.SetPhase(BattleFlow::Phase::Done);
+			SceneTransition::Pop();
 		}
 
-		// The clip on FX Strike for a strike (Battle/FX_Strikes.hyanim, made by scripts/battle/fx_strikes.py).
-		static const char* StrikeClip(StrikeMove move, DamageType type)
+		// ---- Presentation ---------------------------------------------------------------------------------
+
+		void Present()
 		{
-			if (type == DamageType::Light)
-			{
-				return "Holy";
-			}
-			if (move == StrikeMove::Kick)
-			{
-				return type == DamageType::Fire ? "Flame" : "Kick";
-			}
-			return type == DamageType::Fire ? "Flame" : "Punch";
-		}
-
-		// The kick's swoosh first follows the leg over the top (4 frames at 14 fps); the punch's burst is on its second frame.
-		static float EffectLead(StrikeMove move, DamageType type)
-		{
-			const std::string clip = StrikeClip(move, type);
-			if (clip == "Kick" || clip == "Flame")
-			{
-				return 4.0f / 14.0f;
-			}
-			return clip == "Holy" ? 1.0f / 12.0f : 1.0f / 14.0f;
-		}
-
-		// Lifted towards the camera so it draws over the enemy. The kick's burst is left of its cell's centre, so the cell
-		// sits a little to the right.
-		void PlayStrikeEffect(StrikeMove move, DamageType type, int target)
-		{
-			const std::string clip = StrikeClip(move, type);
-			const Enemy& enemy = m_Enemies[target];
-			const float size = enemy.Size;
-			glm::vec3 position = Above(enemy.Base, 0.55f * size) + m_Stage.Back * 0.6f;
-			float duration = 6.0f / 14.0f;
-			if (clip == "Kick" || clip == "Flame")
-			{
-				position += m_Stage.Right * 0.5f;
-				duration = 7.0f / 14.0f;
-			}
-			else if (clip == "Holy")
-			{
-				position = Above(enemy.Base, 0.75f * size) + m_Stage.Back * 0.6f;
-				duration = 8.0f / 12.0f;
-			}
-			PlaySpriteEffect(m_StrikeEffect, position, clip.c_str(), duration, StrikeLightColor(type, move), 0.0f);
-		}
-
-		static glm::vec3 StrikeLightColor(DamageType type, StrikeMove move)
-		{
-			switch (type)
-			{
-				case DamageType::Fire: return { 1.0f, 0.55f, 0.2f };
-				case DamageType::Light: return { 1.0f, 0.93f, 0.7f };
-				default: return move == StrikeMove::Kick ? glm::vec3(0.85f, 0.95f, 1.0f) : glm::vec3(1.0f, 0.85f, 0.55f);
-			}
-		}
-
-		// Sparks, the light flaring on the floor, a dust kick for a kick, and the camera shake (stronger when `strong`).
-		void PlayImpact(StrikeMove move, DamageType type, int target, bool strong)
-		{
-			const Enemy& enemy = m_Enemies[target];
-			const float size = enemy.Size;
-			PlayEffect("Effect Hit Sparks", enemy.Base, 0.55f * size, BattleEffects::HitSparks(type, strong), ParticleSpace::View);
-			if (move == StrikeMove::Kick)
-			{
-				PlayEffect("Effect Dust", enemy.Base, 0.05f, BattleEffects::KickDust(), ParticleSpace::Ground);
-			}
-			const bool skill = m_Action.Kind != Command::Attack;
-			m_StrikeEffect.LightPeak = (skill ? 7.0f : 4.0f) * (strong ? 1.3f : 1.0f);
-			m_StrikeEffect.LightTime = LightFlareTime;
-			float shake = move == StrikeMove::Kick ? 0.09f : 0.06f;
-			shake *= skill ? 1.8f : 1.0f;
-			Shake(strong ? shake * 1.4f : shake);
-		}
-
-		void HealHero(int h, int amount)
-		{
-			if (BattleState::Get().HeroHP[h] <= 0)
-			{
-				return;
-			}
-			const int before = BattleState::Get().HeroHP[h];
-			BattleState::Get().HeroHP[h] = std::min(GetHero(h).MaxHP, BattleState::Get().HeroHP[h] + amount);
-			SpawnPopup(ScreenAbove(m_Heroes[h].Base, HeroPopupHeight), BattleState::Get().HeroHP[h] - before, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
-			PlayEffect("Effect Heal", m_Heroes[h].Base, 0.35f, BattleEffects::HealMotes(), ParticleSpace::View);
-			PlaySpriteEffect(m_HealEffect, Above(m_Heroes[h].Base, 0.6f) + m_Stage.Back * 0.6f, "Heal", HealEffectTime,
-				glm::vec3(0.55f, 1.0f, 0.6f), 2.5f);
-			HY_INFO("Battle: {} recovers {} HP", GetHero(h).Name, BattleState::Get().HeroHP[h] - before);
-		}
-
-		// ---- Helpers ----------------------------------------------------------------------------------------
-
-		bool ActorAlive(int actor) const
-		{
-			return IsHero(actor) ? BattleState::Get().IsStanding(actor) : m_Enemies[EnemyIndex(actor)].Alive();
-		}
-
-		bool IsBroken(const Enemy& enemy) const { return BattleRules::IsBroken(enemy.BrokenUntilRound, m_Round); }
-
-		int FirstLivingEnemy(int preferred) const
-		{
-			if (preferred >= 0 && preferred < BattleState::MaxEnemies && m_Enemies[preferred].Alive())
-			{
-				return preferred;
-			}
-			for (int e = 0; e < BattleState::MaxEnemies; e++)
-			{
-				if (m_Enemies[e].Alive())
-				{
-					return e;
-				}
-			}
-			return -1;
-		}
-
-		int StepTarget(int current, int direction) const
-		{
-			for (int step = 1; step <= BattleState::MaxEnemies; step++)
-			{
-				const int e = (current + direction * step + BattleState::MaxEnemies * 2) % BattleState::MaxEnemies;
-				if (m_Enemies[e].Alive())
-				{
-					return e;
-				}
-			}
-			return current;
-		}
-
-		int MostHurtHero() const
-		{
-			int best = 0;
-			float lowest = 2.0f;
-			for (int h = 0; h < HeroCount; h++)
-			{
-				const float fraction = (float)BattleState::Get().HeroHP[h] / (float)GetHero(h).MaxHP;
-				if (BattleState::Get().IsStanding(h) && fraction < lowest)
-				{
-					lowest = fraction;
-					best = h;
-				}
-			}
-			return best;
-		}
-
-		// Empty slots and abilities she can't pay for are greyed out (not Interactable), so neither keys nor the pointer pick them.
-		void PresentCommandMenu(int hero, bool choosing)
-		{
-			const HeroStats& definition = GetHero(hero);
-			const std::string labels[CommandCount] = { GetLabelText(BattleLabel::Attack), GetLabelText(BattleLabel::Abilities),
-				GetLabelText(BattleLabel::Items), GetLabelText(BattleLabel::Guard), GetLabelText(BattleLabel::Run) };
-			const std::vector<int> items = BattleItems();
-			bool usable[CommandCount] = { true, true, items.empty() == false, true, true };
-			for (int c = 0; c < CommandCount; c++)
-			{
-				UI::SetText(EntityOf(m_CommandNames[c]), labels[c]);
-				UI::SetText(EntityOf(m_CommandCosts[c]), c == (int)Command::Items ? "x" + std::to_string(items.size()) : std::string());
-				UI::SetInteractable(EntityOf(m_Commands[c]), usable[c]);
-			}
-			UI::SetText(EntityOf(m_CommandHeader), definition.Name);
-			UI::SetText(EntityOf(m_CommandBoost),
-				m_Action.Boost > 0 ? "Boost " + std::to_string(m_Action.Boost) + "   (E / Q)" : std::string("E  Boost"));
-			UI::SetText(EntityOf(m_CommandHelp), GetCommandHelp(hero, std::clamp(m_HelpCommand, 0, CommandCount - 1)));
-
-			// Rows past the list are hidden, so the list closes up.
-			bool subUsable[SubRows] = {};
-			if (m_SubMenu != SubMenu::None)
-			{
-				const Inventory& inventory = Inventory::Get();
-				for (int r = 0; r < SubRows; r++)
-				{
-					std::string name;
-					std::string cost;
-					bool shown = true;
-					if (m_SubMenu == SubMenu::Abilities)
-					{
-						const AbilityDefinition& skill = BattleData::Skill(hero, r);
-						name = skill.Name.empty() ? std::string("-") : skill.Name;
-						cost = skill.Name.empty() ? std::string() : std::to_string(skill.Cost) + " MP";
-						subUsable[r] = skill.Name.empty() == false && BattleState::Get().HeroMP[hero] >= skill.Cost;
-					}
-					else if (r < (int)items.size())
-					{
-						const Inventory::Slot& slot = inventory.Slots[(size_t)items[(size_t)r]];
-						const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(slot.Item);
-						name = item.IsValid() ? item->Name : std::string("?");
-						cost = "x" + std::to_string(slot.Count);
-						subUsable[r] = true;
-					}
-					else
-					{
-						shown = false;
-					}
-					Entity row = EntityOf(m_SubButtons[r]);
-					if (UI::IsVisible(row) != shown)
-					{
-						UI::SetVisible(row, shown);
-					}
-					UI::SetText(EntityOf(m_SubNames[r]), name);
-					UI::SetText(EntityOf(m_SubCosts[r]), cost);
-					UI::SetInteractable(row, subUsable[r]);
-				}
-				UI::SetText(EntityOf(m_SubTitle), labels[m_SubMenu == SubMenu::Abilities ? (int)Command::Abilities : (int)Command::Items]);
-				UI::SetText(EntityOf(m_SubHelp), GetSubHelp(hero, std::clamp(m_HelpSub, 0, SubRows - 1), items));
-			}
-
-			// One row per enemy still standing (the others are hidden, so the list closes up), with a letter when two share a name.
-			for (int e = 0; e < BattleState::MaxEnemies; e++)
-			{
-				const Enemy& enemy = m_Enemies[e];
-				Entity row = EntityOf(m_TargetButtons[e]);
-				if (UI::IsVisible(row) != enemy.Alive())
-				{
-					UI::SetVisible(row, enemy.Alive());
-				}
-				if (enemy.Alive() == false)
-				{
-					continue;
-				}
-				int same = 0;
-				int before = 0;
-				for (int other = 0; other < BattleState::MaxEnemies; other++)
-				{
-					if (m_Enemies[other].Row == enemy.Row && m_Enemies[other].Row.empty() == false)
-					{
-						same++;
-						before += other < e ? 1 : 0;
-					}
-				}
-				const EnemyDefinition& enemyData = GetEnemy(enemy.Row);
-				std::string name = enemyData.ShortName.empty() ? enemyData.Name : enemyData.ShortName;
-				if (same > 1)
-				{
-					name += std::string(" ") + (char)('A' + before);
-				}
-				UI::SetText(EntityOf(m_TargetNames[e]), name);
-				UI::SetText(EntityOf(m_TargetHP[e]), "HP " + std::to_string(enemy.HP));
-			}
-			if (m_Targeting)
-			{
-				UI::SetText(EntityOf(m_TargetHeader), m_TargetCommand == Command::Skill ? BattleData::Skill(hero, m_Action.Slot).Name : labels[0]);
-			}
-
-			// Each list opens in the commands' place.
-			const bool showCommands = choosing && m_Targeting == false && m_SubMenu == SubMenu::None;
-			const bool showSub = choosing && m_Targeting == false && m_SubMenu != SubMenu::None;
-			const bool showTargets = choosing && m_Targeting;
-			if (showSub != m_SubShown)
-			{
-				m_SubShown = showSub;
-				UI::SetVisible(EntityOf(m_SubPanel), showSub);
-			}
-			if (showCommands != m_CommandsShown)
-			{
-				m_CommandsShown = showCommands;
-				UI::SetVisible(EntityOf(m_CommandPanel), showCommands);
-			}
-			if (showTargets != m_TargetsShown)
-			{
-				m_TargetsShown = showTargets;
-				UI::SetVisible(EntityOf(m_TargetPanel), showTargets);
-			}
-			// Opening a list, or another menu took the focus away: put it on the hero's last command or the enemy under the cursor.
-			if (choosing && (bool)UI::GetFocused(*GetEntity().GetScene()) == false)
-			{
-				if (m_Targeting)
-				{
-					UI::Focus(EntityOf(m_TargetButtons[std::clamp(m_Action.Target, 0, BattleState::MaxEnemies - 1)]));
-				}
-				else if (m_SubMenu != SubMenu::None)
-				{
-					int row = std::clamp(m_HelpSub, 0, SubRows - 1);
-					if (subUsable[row] == false)
-					{
-						row = (int)(std::find(subUsable, subUsable + SubRows, true) - subUsable) % SubRows;
-					}
-					UI::Focus(EntityOf(m_SubButtons[row]));
-				}
-				else
-				{
-					const int last = std::clamp(m_LastCommand[hero], 0, CommandCount - 1);
-					UI::Focus(EntityOf(m_Commands[usable[last] ? last : 0]));
-				}
-			}
-		}
-
-		std::string GetCommandHelp(int hero, int c) const
-		{
-			(void)hero;
-			switch ((Command)c)
-			{
-			case Command::Attack:
-				return "Strike one foe with your weapon. Boost: more blows.";
-			case Command::Abilities:
-				return "Use one of your abilities (Abilities in the menu sets them).";
-			case Command::Items:
-				return "Use an item from the bag on the most hurt ally.";
-			case Command::Guard:
-				return "Brace yourself: less damage until your next turn.";
-			case Command::Run:
-				return "Try to get away. Works half the time.";
-			default:
-				return "";
-			}
-		}
-
-		std::string GetSubHelp(int hero, int row, const std::vector<int>& items) const
-		{
-			if (m_SubMenu == SubMenu::Abilities)
-			{
-				const AbilityDefinition& skill = BattleData::Skill(hero, row);
-				if (skill.Name.empty())
-				{
-					return "An empty slot.";
-				}
-				if (skill.Description.empty() == false)
-				{
-					return skill.Description;
-				}
-				if (skill.Heals)
-				{
-					return "Restore the most hurt ally's HP.";
-				}
-				return std::string(GetDamageTypeName(skill.Type)) + " damage to one foe. Boost: stronger.";
-			}
-			if (row >= (int)items.size())
-			{
-				return "";
-			}
-			const DataView<ItemDefinition> item = Data::GetRow<ItemDefinition>(Inventory::Get().Slots[(size_t)items[(size_t)row]].Item);
-			if (item.IsValid() == false)
-			{
-				return "";
-			}
-			return item->Description;
-		}
-
-		static const char* GetDamageTypeName(DamageType type)
-		{
-			switch (type)
-			{
-			case DamageType::Slash: return "Slashing";
-			case DamageType::Pierce: return "Piercing";
-			case DamageType::Blunt: return "Blunt";
-			case DamageType::Fire: return "Fire";
-			case DamageType::Light: return "Light";
-			default: return "No";
-			}
-		}
-
-		void ShowMessage(BattleLabel label, float seconds = 1.2f)
-		{
-			m_MessageLabel = label;
-			m_MessageWords = GetLabelText(label);
-			m_MessageTime = seconds;
-		}
-
-		void ShowMessage(const std::string& text, float seconds = 1.2f)
-		{
-			m_MessageLabel = BattleLabel::Attack; // no special tint
-			m_MessageWords = text;
-			m_MessageTime = seconds;
-		}
-
-		void SpawnPopup(const glm::vec2& position, int value, const glm::vec4& color)
-		{
-			Popup& popup = m_Popups[m_NextPopup];
-			m_NextPopup = (m_NextPopup + 1) % 3;
-			popup.Position = position;
-			popup.Value = std::clamp(value, 0, 999);
-			popup.Color = color;
-			popup.Time = 0.0f;
-		}
-
-		// ---- Effects (particles) ----------------------------------------------------------------------------
-		// Each effect is a short-lived entity with one particle burst that destroys itself when finished.
-
-		// Creates the effect `height` metres above `ground` (layout units), a little towards the camera.
-		// The preset's lengths are layout units and are scaled to metres here.
-		void PlayEffect(const char* name, const glm::vec2& ground, float height, ParticleEmitter2DComponent settings, ParticleSpace space)
-		{
-			const float k = m_Stage.Scale;
-			settings.Space = space;
-			settings.ShapeSize *= k;
-			settings.Speed.Min *= k;
-			settings.Speed.Max *= k;
-			settings.StartSize.Min *= k;
-			settings.StartSize.Max *= k;
-			settings.Gravity *= k;
-			settings.Turbulence *= k;
-			Entity effect = GetEntity().GetScene()->CreateEntity(name);
-			// A new entity is a root, so its Translation is its place in the world.
-			effect.AddComponent<TransformComponent>().Translation = Above(ground, height) + m_Stage.Back * 0.4f;
-			effect.AddComponent<ParticleEmitter2DComponent>(settings);
-		}
-
-		bool Pressed(int index, KeyCode key)
-		{
-			const bool down = Input::IsKeyPressed(key);
-			// Keys don't count while a UI canvas captures the keyboard, but are still tracked so a held key doesn't fire when it closes.
-			const bool pressed = down && m_Previous[index] == false && UI::CapturesInput(*GetEntity().GetScene()) == false;
-			m_Previous[index] = down;
-			return pressed;
+			const bool choosing = m_Flow.GetPhase() == BattleFlow::Phase::Command;
+			m_Actors.Present(m_Combatants, m_Flow, m_Time, m_DeltaTime, m_Stage);
+			m_Status.Present(m_Combatants, m_Flow, m_Time);
+			m_Menu.Present(m_Flow.GetAction(), m_Combatants, choosing);
+			m_TurnOrder.Present(m_Flow, m_Combatants, m_Actors);
+			m_Overlay.Present(m_Flow, m_Combatants, m_Actors, m_Menu.IsTargeting(), m_Time);
+			m_Effects.Present(m_DeltaTime);
+			m_Stage.ApplyLayout();
 		}
 
 		float Random01() { return (float)(m_Random() & 0xFFFFFF) / (float)0x1000000; }
 
-		Entity EntityOf(entt::entity entity) { return Entity{ entity, GetEntity().GetScene() }; }
+		// An item is used this far into its clip; each victory line shows this long.
+		static constexpr float ItemTime = 0.35f;
+		static constexpr float ResultTime = 1.3f;
 
-		static entt::entity Find(Scene& scene, const std::string& tag)
-		{
-			auto view = scene.m_Registry.view<TagComponent>();
-			for (auto entity : view)
-			{
-				if (view.get<TagComponent>(entity).Tag == tag)
-				{
-					return entity;
-				}
-			}
-
-			HY_WARN("Battle: the scene has no entity tagged \"{}\"", tag);
-			return entt::null;
-		}
-
-		static bool Alive(Scene& scene, entt::entity entity)
-		{
-			return entity != entt::null && scene.m_Registry.valid(entity);
-		}
-
-		// ---- Stage camera -----------------------------------------------------------------------------------
-
-		// Rules and HUD work in layout units (LayoutHeight tall, (0, 0) mid-screen), mapped to the world each frame: the HUD on
-		// the view plane, actors where the camera ray meets the floor (scripts/battle/stage.py does the same for the builder).
-		static constexpr float LayoutHeight = 18.0f;
-		static constexpr float HudLift = 1.0f;       // metres from the view plane towards the camera
-		static constexpr float GroundHeight = 0.0f;
-		// The feet's height in a cell (fraction from the bottom) and the sheet's pivot, for StandOffset.
-		// Keep in step with scripts/battle/build_arena.py.
-		static constexpr float HeroFoot = 15.0f / 96.0f;
-		static constexpr float HeroPivot = 0.5f;
-		static constexpr float EnemyFoot = 4.0f / 32.0f;
-		static constexpr float EnemyPivot = 0.125f;
-		// Metres above the floor.
-		static constexpr float HeroPopupHeight = 1.7f;
-		static constexpr float HeroMarkerHeight = 2.05f;
-		static constexpr float EnemyPopupHeight = 1.35f;
-		static constexpr float EnemyCursorHeight = 1.5f;
-
-		struct StageCamera
-		{
-			glm::vec3 Focus{ 0.0f };
-			glm::vec3 Right{ 1.0f, 0.0f, 0.0f };
-			glm::vec3 Up{ 0.0f, 1.0f, 0.0f };
-			glm::vec3 Forward{ 0.0f, 0.0f, -1.0f };
-			glm::vec3 Back{ 0.0f, 0.0f, 1.0f };
-			glm::vec3 Position{ 0.0f };
-			float Distance = 1.0f;
-			float Scale = 1.0f; // metres per layout unit at the focus point
-		};
-
-		// Places the camera from the properties and the shake, and sets up this frame's mapping.
-		void UpdateStageCamera(Scene& scene)
-		{
-			const float tilt = glm::radians(std::clamp(CameraTilt, 0.0f, 89.0f));
-			const float fieldOfView = std::clamp(CameraFieldOfView, 5.0f, 90.0f);
-			StageCamera& stage = m_Stage;
-			stage.Forward = { 0.0f, std::sin(tilt), -std::cos(tilt) };
-			stage.Up = { 0.0f, std::cos(tilt), std::sin(tilt) };
-			stage.Right = { 1.0f, 0.0f, 0.0f };
-			stage.Back = -stage.Forward;
-			stage.Distance = std::max(ViewHeight, 0.1f) / (2.0f * std::tan(glm::radians(fieldOfView) * 0.5f));
-			stage.Scale = std::max(ViewHeight, 0.1f) / LayoutHeight;
-			stage.Focus = CameraFocus;
-			if (m_ShakeTime > 0.0f)
-			{
-				// The HUD moves with the camera, so the shake leaves it still on screen.
-				const float amount = m_ShakeAmount * (m_ShakeTime / ShakeTime);
-				stage.Focus += stage.Right * (std::sin(m_Time * 91.0f) * amount) + stage.Up * (std::cos(m_Time * 73.0f) * amount * 0.6f);
-			}
-			stage.Position = stage.Focus - stage.Forward * stage.Distance;
-
-			if (Alive(scene, m_Camera) && scene.m_Registry.has<CameraComponent>(m_Camera))
-			{
-				DioramaView::PlaceInWorld(Entity{ m_Camera, &scene }, stage.Position, { tilt, 0.0f, 0.0f });
-				SceneCamera& camera = scene.m_Registry.get<CameraComponent>(m_Camera).Camera;
-				camera.Projection = ProjectionType::Perspective;
-				camera.PerspectiveFOV = fieldOfView;
-				camera.PerspectiveNear = 0.5f;
-				camera.PerspectiveFar = stage.Distance + 200.0f;
-				camera.OrthographicSize = ViewHeight;
-			}
-		}
-
-		void Shake(float metres)
-		{
-			m_ShakeAmount = std::max(m_ShakeAmount * (m_ShakeTime / ShakeTime), metres * ShakeStrength);
-			m_ShakeTime = ShakeTime;
-		}
-
-		glm::vec3 ScreenPoint(const glm::vec2& layout, float lift = HudLift) const
-		{
-			return m_Stage.Focus + (m_Stage.Right * layout.x + m_Stage.Up * layout.y) * m_Stage.Scale + m_Stage.Back * lift;
-		}
-
-		glm::vec3 GroundPoint(const glm::vec2& layout) const
-		{
-			const glm::vec3 onPlane = ScreenPoint(layout, 0.0f);
-			const glm::vec3 direction = onPlane - m_Stage.Position;
-			if (std::abs(direction.z) < 1.0e-5f)
-			{
-				return onPlane;
-			}
-			const float t = (GroundHeight - m_Stage.Position.z) / direction.z;
-			return m_Stage.Position + direction * t;
-		}
-
-		// Where a world point shows on screen, in layout units.
-		glm::vec2 LayoutOf(const glm::vec3& world) const
-		{
-			const glm::vec3 direction = world - m_Stage.Position;
-			const float along = glm::dot(direction, m_Stage.Forward);
-			if (std::abs(along) < 1.0e-5f)
-			{
-				return glm::vec2(0.0f);
-			}
-			const glm::vec3 offset = m_Stage.Position + direction * (m_Stage.Distance / along) - m_Stage.Focus;
-			return glm::vec2(glm::dot(offset, m_Stage.Right), glm::dot(offset, m_Stage.Up)) / m_Stage.Scale;
-		}
-
-		glm::vec2 PlaneLayoutOf(const glm::vec3& world) const
-		{
-			const glm::vec3 offset = world - m_Stage.Focus;
-			return glm::vec2(glm::dot(offset, m_Stage.Right), glm::dot(offset, m_Stage.Up)) / m_Stage.Scale;
-		}
-
-		// Upright sprites face the camera, so their up is the camera's up.
-		glm::vec3 Above(const glm::vec2& ground, float metres) const
-		{
-			return GroundPoint(ground) + m_Stage.Up * metres;
-		}
-
-		glm::vec2 ScreenAbove(const glm::vec2& ground, float metres) const
-		{
-			return LayoutOf(Above(ground, metres));
-		}
-
-		// Back by the pivot, then down the leaning sprite by the feet's height in the cell. `size` in metres.
-		glm::vec3 StandOffset(float foot, float pivot, float size) const
-		{
-			return glm::vec3(0.0f, pivot * size, 0.0f) - m_Stage.Up * (foot * size);
-		}
-
-		glm::vec2 ActorLayout(Scene& scene, entt::entity entity, float foot, float pivot) const
-		{
-			if (Alive(scene, entity) == false)
-			{
-				return glm::vec2(0.0f);
-			}
-			const TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
-			const glm::vec3 feet = scene.GetWorldPosition(Entity{ entity, &scene }) - StandOffset(foot, pivot, transform.Scale.y);
-			return LayoutOf(glm::vec3(feet.x, feet.y, GroundHeight));
-		}
-
-		static float ActorSize(Scene& scene, entt::entity entity)
-		{
-			return Alive(scene, entity) ? scene.m_Registry.get<TransformComponent>(entity).Scale.y : 1.0f;
-		}
-
-		// The animator only plays sets already loaded and the scene names only the slime's, so the enemy's set is loaded here.
-		static void DressEnemySlot(Scene& scene, Enemy& enemy, const EnemyDefinition& definition)
-		{
-			if (Alive(scene, enemy.Sprite) && scene.m_Registry.has<SpriteAnimatorComponent>(enemy.Sprite) && (uint64_t)definition.Animations != 0)
-			{
-				if (AssetManager::GetAsset<SpriteAnimationSet>(definition.Animations) == nullptr)
-				{
-					HY_WARN("Battle: {}'s animations ({}) couldn't be loaded", definition.Name, (uint64_t)definition.Animations);
-				}
-				SpriteAnimatorComponent& animator = scene.m_Registry.get<SpriteAnimatorComponent>(enemy.Sprite);
-				animator.Animations = definition.Animations;
-				animator.StartClip = definition.IdleClip;
-				animator.PlayOnStart = true;
-				SpriteAnimator::ResetPlayback(Entity{ enemy.Sprite, &scene });
-			}
-			if (Alive(scene, enemy.Light) && scene.m_Registry.has<Light2DComponent>(enemy.Light))
-			{
-				scene.m_Registry.get<Light2DComponent>(enemy.Light).Color = definition.GlowColor;
-			}
-		}
-
-		// The contact shadow is an entity of its own so it stays on the floor while the sprite lifts (a floating wisp).
-		void PlaceActor(Scene& scene, entt::entity entity, entt::entity shadow, const glm::vec2& ground, float lift, float foot, float pivot)
-		{
-			const glm::vec3 feet = GroundPoint(ground);
-			if (Alive(scene, entity))
-			{
-				const float size = scene.m_Registry.get<TransformComponent>(entity).Scale.y;
-				scene.SetWorldPosition(Entity{ entity, &scene }, feet + StandOffset(foot, pivot, size) + glm::vec3(0.0f, 0.0f, lift));
-			}
-			if (Alive(scene, shadow))
-			{
-				scene.SetWorldPosition(Entity{ shadow, &scene }, feet);
-			}
-		}
-
-		struct LayoutItem
-		{
-			glm::vec2 Position{ 0.0f };
-			glm::vec2 Size{ 1.0f };
-		};
-
-		void CaptureLayout(Scene& scene)
-		{
-			m_Layout.clear();
-			auto view = scene.m_Registry.view<TransformComponent, SpriteRendererComponent>();
-			for (auto entity : view)
-			{
-				if (view.get<SpriteRendererComponent>(entity).Overlay == false)
-				{
-					continue;
-				}
-				const TransformComponent& transform = view.get<TransformComponent>(entity);
-				LayoutItem item;
-				item.Position = PlaneLayoutOf(scene.GetWorldPosition(Entity{ entity, &scene }));
-				item.Size = glm::vec2(transform.Scale) / m_Stage.Scale;
-				m_Layout[entity] = item;
-			}
-		}
-
-		LayoutItem LayoutItemOf(entt::entity entity) const
-		{
-			const auto found = m_Layout.find(entity);
-			return found != m_Layout.end() ? found->second : LayoutItem{};
-		}
-
-		void ApplyLayout(Scene& scene)
-		{
-			for (const auto& [entity, item] : m_Layout)
-			{
-				if (Alive(scene, entity) == false)
-				{
-					continue;
-				}
-				scene.SetWorldPosition(Entity{ entity, &scene }, ScreenPoint(item.Position));
-				TransformComponent& transform = scene.m_Registry.get<TransformComponent>(entity);
-				transform.Scale.x = item.Size.x * m_Stage.Scale;
-				transform.Scale.y = item.Size.y * m_Stage.Scale;
-			}
-		}
-
-		static void SetShadowStrength(Scene& scene, entt::entity shadow, float strength)
-		{
-			if (Alive(scene, shadow) && scene.m_Registry.has<Shadow2DComponent>(shadow))
-			{
-				scene.m_Registry.get<Shadow2DComponent>(shadow).Strength = strength;
-			}
-		}
-
-		static void SetColor(Scene& scene, entt::entity entity, const glm::vec4& color)
-		{
-			if (Alive(scene, entity) && scene.m_Registry.has<SpriteRendererComponent>(entity))
-			{
-				scene.m_Registry.get<SpriteRendererComponent>(entity).Color = color;
-			}
-		}
-
-		static void SetSprite(Scene& scene, entt::entity entity, uint32_t index)
-		{
-			if (Alive(scene, entity) && scene.m_Registry.has<SpriteRendererComponent>(entity))
-			{
-				scene.m_Registry.get<SpriteRendererComponent>(entity).SpriteIndex = index;
-			}
-		}
-
-		// ApplyLayout puts it in the world.
-		void SetPosition([[maybe_unused]] Scene& scene, entt::entity entity, const glm::vec2& position)
-		{
-			const auto found = m_Layout.find(entity);
-			if (found != m_Layout.end())
-			{
-				found->second.Position = position;
-			}
-		}
-
-		// Anchored to the bar's left edge, as wide as the fraction.
-		static void SetFill(Entity fill, float fraction, const glm::vec4& color)
-		{
-			if (fill.IsValid() == false || fill.HasComponent<UIRectComponent>() == false)
-			{
-				return;
-			}
-			UIRectComponent& rect = fill.GetComponent<UIRectComponent>();
-			rect.AnchorMin = { 0.0f, 0.0f };
-			rect.AnchorMax = { std::clamp(fraction, 0.0f, 1.0f), 1.0f };
-			rect.SizeDelta = { 0.0f, 0.0f };
-			rect.AnchoredPosition = { 0.0f, 0.0f };
-			SetUIColor(fill, color);
-		}
-
-		static void SetUIColor(Entity element, const glm::vec4& color)
-		{
-			if (element.IsValid() == false)
-			{
-				return;
-			}
-			if (element.HasComponent<UIImageComponent>())
-			{
-				element.GetComponent<UIImageComponent>().Color = color;
-			}
-			if (element.HasComponent<UITextComponent>())
-			{
-				element.GetComponent<UITextComponent>().Color = color;
-			}
-		}
-
-		// Up to three digit sprites centred on `centre`; unused digits are hidden.
-		void SetNumber(Scene& scene, const entt::entity (&digits)[3], int value, const glm::vec2& centre, float spacing, const glm::vec4& color)
-		{
-			const std::string text = std::to_string(std::clamp(value, 0, 999));
-			const int count = (int)text.size();
-			for (int d = 0; d < 3; d++)
-			{
-				if (d < count)
-				{
-					SetSprite(scene, digits[d], BattleIcon::DigitBase + (uint32_t)(text[d] - '0'));
-					SetPosition(scene, digits[d], centre + glm::vec2(((float)d - 0.5f * (float)(count - 1)) * spacing, 0.0f));
-					SetColor(scene, digits[d], color);
-				}
-				else
-				{
-					SetColor(scene, digits[d], glm::vec4(0.0f));
-				}
-			}
-		}
-
-		// ---- Presentation -----------------------------------------------------------------------------------
-
-		void Present(Scene& scene)
-		{
-			const bool acting = m_Phase == Phase::Acting;
-			const int actor = m_Action.Actor;
-
-			for (int h = 0; h < HeroCount; h++)
-			{
-				if (BattleState::Get().InParty(h) == false)
-				{
-					continue;
-				}
-				Hero& hero = m_Heroes[h];
-				glm::vec2 offset = hero.Offset;
-				if (hero.Flash > 0.0f)
-				{
-					offset.x += std::sin(m_Time * 70.0f) * 0.2f;
-				}
-				PlaceActor(scene, hero.Sprite, hero.Shadow, hero.Base + offset, 0.0f, HeroFoot, HeroPivot);
-				const float heat = std::clamp(hero.Flash / 0.35f, 0.0f, 1.0f);
-				SetColor(scene, hero.Sprite, glm::vec4(1.0f, 1.0f - 0.6f * heat, 1.0f - 0.6f * heat, 1.0f));
-
-				// Bars are sage, amber below half, red below a quarter.
-				const HeroStats& definition = GetHero(h);
-				const float hpFraction = (float)BattleState::Get().HeroHP[h] / (float)definition.MaxHP;
-				const glm::vec4 hpColor = hpFraction > 0.5f ? glm::vec4(0.5f, 0.72f, 0.4f, 1.0f)
-					: hpFraction > 0.25f ? glm::vec4(0.92f, 0.72f, 0.3f, 1.0f)
-					: glm::vec4(0.86f, 0.3f, 0.24f, 1.0f);
-				UI::SetText(EntityOf(hero.StatusHP), std::to_string(BattleState::Get().HeroHP[h]) + " / " + std::to_string(definition.MaxHP));
-				UI::SetText(EntityOf(hero.StatusMP), std::to_string(BattleState::Get().HeroMP[h]) + " / " + std::to_string(definition.MaxMP));
-				SetFill(EntityOf(hero.StatusHPFill), hpFraction, hpColor);
-				SetFill(EntityOf(hero.StatusMPFill), (float)BattleState::Get().HeroMP[h] / (float)definition.MaxMP,
-					glm::vec4(0.38f, 0.6f, 0.9f, 1.0f));
-				for (int p = 0; p < BattleState::MaxMomentum; p++)
-				{
-					// Full points are gold; the ones the boost is about to spend pulse.
-					const bool spending = m_Phase == Phase::Command && actor == h && p >= hero.Momentum - m_Action.Boost && p < hero.Momentum;
-					const float pulse = spending ? 0.55f + 0.45f * std::sin(m_Time * 10.0f) : 1.0f;
-					SetUIColor(EntityOf(hero.StatusPips[p]),
-						p < hero.Momentum ? glm::vec4(1.0f, 0.8f * pulse + 0.2f, 0.42f * pulse, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 0.22f));
-				}
-			}
-
-			for (int e = 0; e < BattleState::MaxEnemies; e++)
-			{
-				Enemy& enemy = m_Enemies[e];
-				const bool present = enemy.Row.empty() == false;
-				const EnemyDefinition& definition = GetEnemy(enemy.Row);
-				if (present && enemy.HP <= 0)
-				{
-					enemy.Fade = std::max(0.0f, enemy.Fade - m_DeltaTime * 2.5f);
-				}
-
-				glm::vec2 offset{ 0.0f };
-				if (acting && actor == HeroCount + e)
-				{
-					const float t = std::clamp((m_PhaseTime - 0.2f) / 0.6f, 0.0f, 1.0f);
-					const glm::vec2 goal = m_Heroes[m_Action.Target].Base + glm::vec2(-3.0f, 0.0f);
-					offset = (goal - enemy.Base) * std::sin(t * 3.1415927f) * 0.85f;
-				}
-				if (enemy.Flash > 0.0f)
-				{
-					offset.x += std::sin(m_Time * 70.0f) * 0.2f;
-				}
-				const float bob = definition.FloatHeight > 0.0f ? definition.FloatHeight + std::sin(m_Time * 2.2f + (float)e) * 0.12f : 0.0f;
-				if (Alive(scene, enemy.Shadow) && scene.m_Registry.has<Shadow2DComponent>(enemy.Shadow))
-				{
-					scene.m_Registry.get<Shadow2DComponent>(enemy.Shadow).Strength = present ? 0.45f * enemy.Fade : 0.0f;
-				}
-
-				const float heat = std::clamp(enemy.Flash / 0.3f, 0.0f, 1.0f);
-				const bool broken = IsBroken(enemy) && enemy.HP > 0;
-				PlaceActor(scene, enemy.Sprite, enemy.Shadow, enemy.Base + offset, bob, EnemyFoot, EnemyPivot);
-				const float tint = broken ? 0.65f : 1.0f;
-				SetColor(scene, enemy.Sprite, present
-					? glm::vec4(tint + (1.0f - tint) * heat, tint * (1.0f - 0.6f * heat), tint * (1.0f - 0.6f * heat), enemy.Fade)
-					: glm::vec4(0.0f));
-				if (Alive(scene, enemy.Light) && scene.m_Registry.has<Light2DComponent>(enemy.Light))
-				{
-					PlaceActor(scene, enemy.Light, entt::null, enemy.Base + offset, bob, 0.0f, 0.0f);
-					scene.m_Registry.get<Light2DComponent>(enemy.Light).Intensity = present
-						? definition.GlowIntensity * enemy.Fade * (0.85f + 0.15f * std::sin(m_Time * 3.0f))
-						: 0.0f;
-				}
-
-				// The shield (a "Break" label while broken), the weaknesses found so far ("?" for the rest), and HP.
-				Entity info = EntityOf(enemy.Info);
-				const bool showInfo = present && enemy.HP > 0;
-				if (UI::IsVisible(info) != showInfo)
-				{
-					UI::SetVisible(info, showInfo);
-				}
-				if (showInfo && info.IsValid() && info.HasComponent<TransformComponent>())
-				{
-					scene.SetWorldPosition(info, GroundPoint(enemy.Base + offset));
-				}
-				if (showInfo)
-				{
-					SetFill(EntityOf(enemy.HPFill), (float)enemy.HP / (float)std::max(1, definition.Stats.MaxHP),
-						glm::vec4(0.86f, 0.36f, 0.28f, 1.0f));
-					SetUIColor(EntityOf(enemy.ShieldIcon), broken ? glm::vec4(0.75f, 0.32f, 0.28f, 1.0f) : glm::vec4(1.0f));
-					UI::SetText(EntityOf(enemy.ShieldCount), broken ? std::string() : std::to_string(enemy.Shield));
-					UI::SetText(EntityOf(enemy.WeakLabel), broken ? "BREAK" : "WEAK");
-					SetUIColor(EntityOf(enemy.WeakLabel), broken ? glm::vec4(1.0f, 0.5f, 0.38f, 1.0f) : glm::vec4(1.0f, 0.84f, 0.5f, 1.0f));
-					for (int w = 0; w < 3; w++)
-					{
-						const std::vector<DamageType>& weak = definition.Weak;
-						const DamageType type = w < (int)weak.size() ? weak[(size_t)w] : DamageType::None;
-						const bool used = type != DamageType::None;
-						const bool known = used && BattleState::Get().IsRevealed(enemy.Row, w);
-						Entity icon = EntityOf(enemy.WeakIcons[w]);
-						if (UI::IsVisible(icon) != used)
-						{
-							UI::SetVisible(icon, used);
-						}
-						if (icon.IsValid() && icon.HasComponent<UIImageComponent>())
-						{
-							icon.GetComponent<UIImageComponent>().SpriteIndex = known ? BattleIcon::ForType(type) : BattleIcon::Unknown;
-						}
-					}
-				}
-			}
-
-			const bool choosing = m_Phase == Phase::Command;
-			if (Alive(scene, m_TurnMarker))
-			{
-				const bool show = (choosing || acting) && IsHero(actor);
-				const Hero& marked = m_Heroes[std::min(actor, HeroCount - 1)];
-				SetPosition(scene, m_TurnMarker,
-					ScreenAbove(marked.Base + marked.Offset, HeroMarkerHeight) + glm::vec2(0.0f, 0.15f * std::sin(m_Time * 6.0f)));
-				SetColor(scene, m_TurnMarker, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
-			}
-			if (Alive(scene, m_Cursor))
-			{
-				const bool show = choosing && m_Targeting && m_Action.Target >= 0 && m_Enemies[m_Action.Target].Alive();
-				const glm::vec2 base = m_Action.Target >= 0 ? m_Enemies[m_Action.Target].Base : glm::vec2(0.0f);
-				SetPosition(scene, m_Cursor, ScreenAbove(base, EnemyCursorHeight) + glm::vec2(0.0f, 0.15f * std::sin(m_Time * 8.0f)));
-				SetColor(scene, m_Cursor, glm::vec4(1.0f, 1.0f, 1.0f, show ? 1.0f : 0.0f));
-			}
-
-			PresentCommandMenu(std::min(actor, HeroCount - 1), choosing);
-
-			// From the actor acting now (the big first chip) to the end of the round; enemies' chips are reddish.
-			const int first = std::max(m_Turn, 0);
-			int shown = 0;
-			for (int index = first; index < (int)m_Order.size() && shown < 6; index++)
-			{
-				const int who = m_Order[index];
-				if (ActorAlive(who) == false)
-				{
-					continue;
-				}
-				const entt::entity sprite = IsHero(who) ? m_Heroes[who].Sprite : m_Enemies[EnemyIndex(who)].Sprite;
-				Entity chip = EntityOf(m_OrderChips[shown]);
-				if (UI::IsVisible(chip) == false)
-				{
-					UI::SetVisible(chip, true);
-				}
-				const bool now = index == m_Turn;
-				SetUIColor(chip, IsHero(who) ? (now ? glm::vec4(1.0f, 0.9f, 0.62f, 1.0f) : glm::vec4(1.0f)) : glm::vec4(1.0f, 0.72f, 0.66f, 1.0f));
-				Entity portrait = EntityOf(m_OrderActors[shown]);
-				if (portrait.IsValid() && portrait.HasComponent<UIImageComponent>() && Alive(scene, sprite)
-					&& scene.m_Registry.has<SpriteRendererComponent>(sprite))
-				{
-					const SpriteRendererComponent& renderer = scene.m_Registry.get<SpriteRendererComponent>(sprite);
-					UIImageComponent& image = portrait.GetComponent<UIImageComponent>();
-					image.Texture = renderer.Texture;
-					image.SpriteIndex = renderer.SpriteIndex;
-					image.Color = glm::vec4(1.0f);
-				}
-				shown++;
-			}
-			for (int c = shown; c < 6; c++)
-			{
-				Entity chip = EntityOf(m_OrderChips[c]);
-				if (UI::IsVisible(chip))
-				{
-					UI::SetVisible(chip, false);
-				}
-			}
-
-			PresentSpriteEffect(scene, m_StrikeEffect);
-			PresentSpriteEffect(scene, m_HealEffect);
-
-			const bool ending = m_Phase == Phase::Victory || m_Phase == Phase::Defeat || m_Phase == Phase::Fleeing || m_Phase == Phase::Done;
-			const bool showMessage = m_MessageTime > 0.0f || ending;
-			Entity messagePanel = EntityOf(m_MessagePanel);
-			if (UI::IsVisible(messagePanel) != showMessage)
-			{
-				UI::SetVisible(messagePanel, showMessage);
-			}
-			Entity messageText = EntityOf(m_MessageText);
-			UI::SetText(messageText, m_MessageWords);
-			if (messageText.IsValid() && messageText.HasComponent<UITextComponent>())
-			{
-				const glm::vec3 messageTint = m_MessageLabel == BattleLabel::Break ? glm::vec3(1.0f, 0.45f, 0.3f)
-					: m_MessageLabel == BattleLabel::Weak ? glm::vec3(1.0f, 0.75f, 0.3f) : glm::vec3(0.95f, 0.9f, 0.78f);
-				messageText.GetComponent<UITextComponent>().Color = glm::vec4(messageTint, 1.0f);
-			}
-
-			for (Popup& popup : m_Popups)
-			{
-				const float t = popup.Time / 0.9f;
-				const float alpha = t < 1.0f ? std::min(1.0f, 3.0f * (1.0f - t)) : 0.0f;
-				SetNumber(scene, popup.Digits, popup.Value, popup.Position + glm::vec2(0.0f, 0.9f * std::min(t, 1.0f)), 0.55f,
-					glm::vec4(popup.Color.r, popup.Color.g, popup.Color.b, alpha));
-			}
-
-			float overlay = 0.0f;
-			if (m_Phase == Phase::Intro)
-			{
-				overlay = 1.0f - std::min(1.0f, m_PhaseTime / 0.6f);
-			}
-			else if (m_Phase == Phase::Victory || m_Phase == Phase::Defeat)
-			{
-				overlay = std::clamp((m_PhaseTime - 1.2f) / 0.7f, 0.0f, 1.0f);
-			}
-			else if (m_Phase == Phase::Fleeing)
-			{
-				overlay = std::clamp((m_PhaseTime - 0.3f) / 0.5f, 0.0f, 1.0f);
-			}
-			else if (m_Phase == Phase::Done)
-			{
-				overlay = 1.0f;
-			}
-			SetColor(scene, m_Overlay, m_Phase == Phase::Defeat ? glm::vec4(0.35f, 0.0f, 0.0f, overlay) : glm::vec4(0.0f, 0.0f, 0.0f, overlay));
-
-			ApplyLayout(scene);
-		}
-
-		Phase m_Phase = Phase::Intro;
-		float m_PhaseTime = 0.0f;
+		std::mt19937 m_Random{ std::random_device{}() };
+		Combatants m_Combatants;
+		BattleFlow m_Flow{ m_Combatants, [this]() { return Random01(); } };
+		ActionSequence m_Sequence;
+		StrikeMove m_StrikeMove = StrikeMove::Punch; // the move the current strike is timed and drawn as
+		BattleStage m_Stage;
+		BattleActors m_Actors;
+		StrikeEffects m_Effects;
+		CommandMenuView m_Menu;
+		PartyStatusView m_Status;
+		TurnOrderView m_TurnOrder;
+		BattleOverlay m_Overlay;
 		float m_Time = 0.0f;
 		float m_DeltaTime = 0.0f;
-		SpriteEffect m_StrikeEffect;
-		SpriteEffect m_HealEffect;
-
-		// A potion is used this far into its clip; the heal sprite's clip lasts HealEffectTime.
-		static constexpr float ItemTime = 0.35f;
-		static constexpr float HealEffectTime = 0.66f;
-		static constexpr float ShakeTime = 0.22f;
-		float m_ShakeTime = 0.0f;
-		float m_ShakeAmount = 0.0f;
-		entt::entity m_Camera = entt::null;
-		StageCamera m_Stage;
-		std::unordered_map<entt::entity, LayoutItem> m_Layout;
-		int m_Round = 0;
-		int m_Turn = -1;
-		int m_Target = 0;   // the last target, kept for the next hero
-		std::vector<int> m_Order;
-		Action m_Action;
-		std::array<Hero, HeroCount> m_Heroes;
-		std::array<Enemy, BattleState::MaxEnemies> m_Enemies;
-		std::array<Popup, 3> m_Popups;
-		int m_NextPopup = 0;
-		BattleLabel m_MessageLabel = BattleLabel::Attack;
-		std::string m_MessageWords;
-		static constexpr float ResultTime = 1.3f;
+		int m_PhasesSeen = 0;
 		std::vector<std::string> m_Results;
 		int m_NextResult = 0;
-		float m_MessageTime = 0.0f;
-		bool m_Previous[14] = {};
-		std::mt19937 m_Random{ std::random_device{}() };
-
-		entt::entity m_Commands[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_CommandNames[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_CommandCosts[CommandCount] = { entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_CommandPanel = entt::null;
-		entt::entity m_CommandHeader = entt::null;
-		entt::entity m_CommandBoost = entt::null;
-		entt::entity m_CommandHelp = entt::null;
-		int m_HelpCommand = 0;              // the focused command, for the help line
-		entt::entity m_MessagePanel = entt::null;
-		entt::entity m_MessageText = entt::null;
-		entt::entity m_TargetPanel = entt::null;
-		entt::entity m_TargetHeader = entt::null;
-		entt::entity m_TargetButtons[BattleState::MaxEnemies] = {};
-		entt::entity m_TargetNames[BattleState::MaxEnemies] = {};
-		entt::entity m_TargetHP[BattleState::MaxEnemies] = {};
-		int m_ChosenCommand = -1;           // submitted by the menu, used by the next UpdateCommand
-		int m_LastCommand[HeroCount] = {};  // where each hero's menu opens
-		bool m_Targeting = false;           // the target list is open for m_TargetCommand
-		Command m_TargetCommand = Command::Attack;
-		int m_ChosenTarget = -1;            // submitted by the target list
-		bool m_CancelTarget = false;        // back to where the target list was opened from
-		bool m_CommandsShown = false;
-		bool m_TargetsShown = false;
-		SubMenu m_SubMenu = SubMenu::None;
-		entt::entity m_SubPanel = entt::null;
-		entt::entity m_SubTitle = entt::null;
-		entt::entity m_SubHelp = entt::null;
-		entt::entity m_SubButtons[SubRows] = {};
-		entt::entity m_SubNames[SubRows] = {};
-		entt::entity m_SubCosts[SubRows] = {};
-		int m_HelpSub = 0;                  // the focused row, for the help line
-		int m_ChosenSub = -1;               // submitted by the sub-menu
-		bool m_CancelSub = false;           // back to the commands
-		bool m_SubShown = false;
-		int m_LastSub[HeroCount] = {};      // the ability slot each hero used last
-		entt::entity m_OrderChips[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_OrderActors[6] = { entt::null, entt::null, entt::null, entt::null, entt::null, entt::null };
-		entt::entity m_Cursor = entt::null;
-		entt::entity m_TurnMarker = entt::null;
-		entt::entity m_Overlay = entt::null;
 	};
 }

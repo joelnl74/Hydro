@@ -3,7 +3,7 @@
 #include "Hydro.h"
 #include "Data/ItemDefinition.h"
 #include "Rules/PartyRules.h"
-#include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "Views/ViewHelpers.h"
 
 #include <algorithm>
@@ -32,20 +32,22 @@ namespace Hydro
 			{
 				m_Stats[i] = ViewHelpers::Find(scene, "Character Stat " + std::to_string(i) + " Value", owner);
 			}
-			for (int i = 0; i < BattleState::EquipSlotCount; i++)
+			for (int i = 0; i < PartyMember::EquipSlotCount; i++)
 			{
 				m_SlotNames[i] = ViewHelpers::Find(scene, "Character Equip " + std::to_string(i) + " Name", owner);
 				m_Equipped[i] = ViewHelpers::Find(scene, "Character Equip " + std::to_string(i) + " Value", owner);
 			}
 		}
 
-		void Present(int h)
+		// `index` into the party.
+		void Present(int index)
 		{
 			if (m_Scene == nullptr)
 			{
 				return;
 			}
-			const HeroDefinition& data = BattleData::HeroData(h);
+			const PartyMember& member = PartyState::Get().GetMember(index);
+			const HeroDefinition& data = member.GetData();
 			Entity portrait = EntityOf(m_Portrait);
 			UIImageComponent* image = portrait.IsValid() ? portrait.TryGetComponent<UIImageComponent>() : nullptr;
 			if (image != nullptr && (uint64_t)data.Portrait != 0)
@@ -54,13 +56,12 @@ namespace Hydro
 				image->Texture = data.Portrait;
 				image->SpriteIndex = (uint32_t)std::max(0, data.PortraitSprite);
 			}
-			const BattleState& party = BattleState::Get();
-			const int level = std::max(1, party.HeroLevel[h]);
-			const HeroStats& worn = GetHero(h);                     // with equipment
-			const HeroStats bare = BattleData::StatsAt(h, level);   // without
+			const int level = std::max(1, member.Level);
+			const HeroStats worn = member.GetStats();                       // with equipment
+			const HeroStats bare = BattleData::StatsAt(member.Hero, level); // without
 			UI::SetText(EntityOf(m_Name), worn.Name);
 			UI::SetText(EntityOf(m_Level), "Level " + std::to_string(level));
-			UI::SetText(EntityOf(m_Experience), "Experience " + std::to_string(party.HeroExperience[h]));
+			UI::SetText(EntityOf(m_Experience), "Experience " + std::to_string(member.Experience));
 
 			// The marks are totals since level 1: [level - 2] reached this level, [level - 1] reaches the next.
 			const std::vector<int>& curve = BattleData::ExperienceToLevel();
@@ -68,9 +69,9 @@ namespace Hydro
 			{
 				const int from = level >= 2 ? curve[(size_t)(level - 2)] : 0;
 				const int to = curve[(size_t)(level - 1)];
-				UI::SetText(EntityOf(m_Next), "Next level: " + std::to_string(std::max(0, to - party.HeroExperience[h])));
+				UI::SetText(EntityOf(m_Next), "Next level: " + std::to_string(std::max(0, to - member.Experience)));
 				ViewHelpers::SetBarFill(EntityOf(m_ExperienceFill),
-					(float)(party.HeroExperience[h] - from) / (float)std::max(1, to - from));
+					(float)(member.Experience - from) / (float)std::max(1, to - from));
 			}
 			else
 			{
@@ -91,10 +92,10 @@ namespace Hydro
 				UI::SetText(EntityOf(m_Stats[i]), value);
 			}
 
-			for (int i = 0; i < BattleState::EquipSlotCount; i++)
+			for (int i = 0; i < PartyMember::EquipSlotCount; i++)
 			{
 				UI::SetText(EntityOf(m_SlotNames[i]), PartyRules::GetPositionName((EquipPosition)i));
-				const DataRowRef& item = party.HeroEquipment[h][(size_t)i];
+				const DataRowRef& item = member.Equipment[(size_t)i];
 				const DataView<ItemDefinition> definition = item.IsSet() ? Data::GetRow<ItemDefinition>(item) : DataView<ItemDefinition>();
 				UI::SetText(EntityOf(m_Equipped[i]),
 					definition.IsValid() ? definition->Name : (item.IsSet() ? "Missing: " + item.Row : std::string("-")));
@@ -109,7 +110,7 @@ namespace Hydro
 		entt::entity m_Name = entt::null, m_Level = entt::null, m_Experience = entt::null, m_Next = entt::null,
 			m_ExperienceFill = entt::null;
 		entt::entity m_Stats[StatCount] = {};
-		entt::entity m_SlotNames[BattleState::EquipSlotCount] = {};
-		entt::entity m_Equipped[BattleState::EquipSlotCount] = {};
+		entt::entity m_SlotNames[PartyMember::EquipSlotCount] = {};
+		entt::entity m_Equipped[PartyMember::EquipSlotCount] = {};
 	};
 }

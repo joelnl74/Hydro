@@ -11,6 +11,7 @@
 #include "Scripts/Common/DioramaCamera.h"
 #include "Scripts/Field/FieldMenuView.h"
 #include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "State/Inventory.h"
 #include "State/QuestLog.h"
 #include "Views/DialogueScript.h"
@@ -142,7 +143,7 @@ namespace Hydro
 			m_Menu.Bind(scene);
 			m_DialogueCanvas = Find(scene, "Dialogue Canvas");
 
-			BattleState::Get().StartParty();
+			PartyState::Get().Start();
 
 			auto view = scene.m_Registry.view<TagComponent, TransformComponent>();
 			for (auto entity : view)
@@ -634,7 +635,7 @@ namespace Hydro
 		// A dip to black and back that restores the party (a bed, the inn).
 		void Rest()
 		{
-			BattleState::Get().RestoreParty();
+			PartyState::Get().Restore();
 			m_Resting = RestTime;
 			ShowMessage(FieldLabel::Rested, FieldLabel::RestedLine2);
 			HY_INFO("Field: the party rests: HP and MP restored");
@@ -795,7 +796,7 @@ namespace Hydro
 				ShowMessage(FieldLabel::NotUsableHere);
 				return;
 			}
-			switch (ItemRules::UseInField(slot, *item, BattleState::Get()))
+			switch (ItemRules::UseInField(slot, *item, PartyState::Get()))
 			{
 				case ItemRules::UseResult::NotUsableHere:
 					ShowMessage(FieldLabel::NotUsableHere);
@@ -807,7 +808,7 @@ namespace Hydro
 					break;
 			}
 			ShowMessage(FieldLabel::UsedPotion);
-			HY_INFO("Field: used {} ({} left): {} {} HP {} MP", item->Name, slot.Count, GetHero(0).Name, BattleState::Get().HeroHP[0], BattleState::Get().HeroMP[0]);
+			HY_INFO("Field: used {} ({} left)", item->Name, slot.Count);
 			m_Menu.Present();
 		}
 

@@ -4,7 +4,7 @@
 #include "Data/QuestDefinition.h"
 #include "Rules/QuestRules.h"
 #include "Scripts/Common/DioramaCamera.h"
-#include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "State/Inventory.h"
 #include "State/QuestLog.h"
 #include "Views/DialogueScript.h"
@@ -174,7 +174,7 @@ namespace Hydro
 			if (quest.RewardExperience > 0)
 			{
 				rewards.push_back({ std::string(), "Gained " + std::to_string(quest.RewardExperience) + " experience." });
-				for (const std::string& line : BattleState::Get().GainExperience(quest.RewardExperience))
+				for (const std::string& line : PartyState::Get().GainExperience(quest.RewardExperience))
 				{
 					rewards.push_back({ std::string(), line });
 				}

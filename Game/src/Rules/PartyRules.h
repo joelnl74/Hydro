@@ -10,7 +10,7 @@
 
 namespace Hydro
 {
-	// Each hero's six equipment positions (BattleState::HeroEquipment).
+	// Each hero's six equipment positions (PartyMember::Equipment).
 	enum class EquipPosition : uint8_t
 	{
 		Weapon = 0,

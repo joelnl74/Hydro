@@ -58,8 +58,8 @@ namespace Hydro
 		DataRowRef Ability;
 	};
 
-	// One file per hero (Assets/Data/Characters/<Hero>.hydef).
-	HY_DATA(Definition)
+	// A row of Assets/Data/Characters/Heroes.hytable per hero; its ID is the hero's (PartyState, the quest scripts).
+	HY_DATA(Table, DisplayField(Name))
 	struct HeroDefinition
 	{
 		HY_PROPERTY(Tooltip("Shown in the battle's status and log, and in the field's menu"))
@@ -78,6 +78,8 @@ namespace Hydro
 		std::vector<DataRowRef> StartingAbilities;
 		HY_PROPERTY(Tooltip("Abilities levels teach (known from then on; each goes into the first empty battle slot)"))
 		std::vector<LearnedAbility> Learns;
+		HY_PROPERTY(Asset(SpriteAnimation), Tooltip("Its battle animations (its party slot's sprite plays them)"))
+		AssetHandle BattleAnimations = 0;
 		HY_PROPERTY(Tooltip("The fighting-stance loop between actions (and while guarding)"))
 		std::string IdleClip = "BattleIdle";
 		HY_PROPERTY(Tooltip("The clip played when using an item"))
@@ -149,6 +151,18 @@ namespace Hydro
 		std::vector<DataRowRef> Enemies;
 		HY_PROPERTY(DataRow(LootTableDefinition), Tooltip("Rolled once the battle is won, on top of each enemy's own loot"))
 		DataRowRef Loot;
+	};
+
+	// Who a run starts with and how many fight (Assets/Data/Characters/Party.hydef).
+	HY_DATA(Definition)
+	struct PartyDefinition
+	{
+		HY_PROPERTY(DataRow(HeroDefinition), Tooltip("In the party from the start of a run, in this order; they never leave"))
+		std::vector<DataRowRef> StartingMembers;
+		HY_PROPERTY(Range(1, 4), Tooltip("Members who fight, from the front of the party; the others wait in reserve"))
+		int BattleSize = 4;
+		HY_PROPERTY(Range(0, 1), Tooltip("Share of a won battle's experience the members in reserve get"))
+		float ReserveExperience = 0.5f;
 	};
 
 	// Shared by the heroes.

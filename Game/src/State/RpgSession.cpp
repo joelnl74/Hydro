@@ -6,6 +6,11 @@ namespace Hydro
 {
 	// Each run state's Get() returns the running session's.
 
+	PartyState& PartyState::Get()
+	{
+		return RpgSession::Get().Party;
+	}
+
 	BattleState& BattleState::Get()
 	{
 		return RpgSession::Get().Battle;

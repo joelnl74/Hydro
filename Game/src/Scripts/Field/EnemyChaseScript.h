@@ -261,20 +261,19 @@ namespace Hydro
 			BattleState::Get().Active = true;
 			BattleState::Get().EnemyId = (uint64_t)self.GetUUID();
 			BattleState::Get().Outcome = BattleState::Result::None;
-			std::array<std::string, BattleState::MaxEnemies>& slots = BattleState::Get().Encounter;
-			slots = { m_Row, std::string(), std::string() };
-			int count = 1;
+			std::vector<std::string>& slots = BattleState::Get().Encounter;
+			slots = { m_Row };
 			const DataView<EncounterDefinition> encounter = Encounter.IsSet() ? Data::GetRow<EncounterDefinition>(Encounter)
 				: DataView<EncounterDefinition>();
 			BattleState::Get().EncounterLoot = encounter.IsValid() ? encounter->Loot : DataRowRef();
 			if (encounter.IsValid() && encounter->Enemies.empty() == false)
 			{
-				count = 0;
+				slots.clear();
 				for (const DataRowRef& member : encounter->Enemies)
 				{
-					if (count < BattleState::MaxEnemies && member.IsSet())
+					if ((int)slots.size() < BattleState::MaxEnemies && member.IsSet())
 					{
-						slots[(size_t)count++] = member.Row;
+						slots.push_back(member.Row);
 					}
 				}
 			}
@@ -285,13 +284,12 @@ namespace Hydro
 				const int extra = roll < 0.3f ? 0 : (roll < 0.75f ? 1 : 2);
 				for (int i = 1; i <= extra; i++)
 				{
-					slots[(size_t)i] = Random01() < (m_Row == "Wisp" ? 0.5f : 0.3f) ? "Wisp" : "Slime";
+					slots.push_back(Random01() < (m_Row == "Wisp" ? 0.5f : 0.3f) ? "Wisp" : "Slime");
 				}
-				count = 1 + extra;
 			}
 
 			Physics2D::SetLinearVelocity(self, glm::vec2(0.0f));
-			HY_INFO("{}: touched the player, battle starts ({} enemies)", GetEnemy(m_Row).Name, count);
+			HY_INFO("{}: touched the player, battle starts ({} enemies)", GetEnemy(m_Row).Name, slots.size());
 			SceneTransition::Push("Battle");
 		}
 

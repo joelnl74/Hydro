@@ -6,7 +6,7 @@
 #include "Scripts/Field/EquipmentView.h"
 #include "Scripts/Field/InventoryView.h"
 #include "Scripts/Field/QuestsView.h"
-#include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "Views/ViewHelpers.h"
 
 #include <algorithm>
@@ -23,6 +23,8 @@ namespace Hydro
 		static constexpr int TabCount = 5;
 
 		enum class Request : uint8_t { None, UseItem, Close };
+		// The party's status column: the front of the party (the hero pages also reach the reserve).
+		static constexpr int StatusRows = PartyState::MaxFighters;
 
 		void Bind(Scene& scene)
 		{
@@ -40,11 +42,11 @@ namespace Hydro
 			}
 			m_Help = ViewHelpers::Find(scene, "Help Text", owner);
 			m_Keys = ViewHelpers::Find(scene, "Help Keys", owner);
-			for (int h = 0; h < HeroCount; h++)
+			for (int s = 0; s < StatusRows; s++)
 			{
-				// One block per hero who can be in the party; those not in it are hidden.
-				const std::string status = std::string("Menu Status ") + BattleData::HeroIds[h];
-				Status& block = m_Status[h];
+				// One block per place at the front of the party; empty places are hidden.
+				const std::string status = "Menu Status " + std::to_string(s);
+				Status& block = m_Status[s];
 				block.Root = ViewHelpers::Find(scene, status, owner);
 				block.Name = ViewHelpers::Find(scene, status + " Name", owner);
 				block.HP = ViewHelpers::Find(scene, status + " HP", owner);
@@ -217,30 +219,28 @@ namespace Hydro
 			{
 				return;
 			}
-			const BattleState& party = BattleState::Get();
-			if (party.InParty(m_Hero) == false)
+			const PartyState& party = PartyState::Get();
+			m_Hero = std::clamp(m_Hero, 0, std::max(0, party.GetSize() - 1));
+			for (int s = 0; s < StatusRows; s++)
 			{
-				m_Hero = 0;
-			}
-			for (int h = 0; h < HeroCount; h++)
-			{
-				const Status& block = m_Status[h];
-				const bool shown = party.InParty(h);
+				const Status& block = m_Status[s];
+				const bool shown = s < party.GetSize();
 				ViewHelpers::SetVisible(EntityOf(block.Root), shown);
 				if (shown == false)
 				{
 					continue;
 				}
-				const HeroStats& hero = GetHero(h);
+				const PartyMember& member = party.Members[(size_t)s];
+				const HeroStats hero = member.GetStats();
 				UI::SetText(EntityOf(block.Name), hero.Name);
-				UI::SetText(EntityOf(block.HP), std::to_string(party.HeroHP[h]) + " / " + std::to_string(hero.MaxHP));
-				UI::SetText(EntityOf(block.MP), std::to_string(party.HeroMP[h]) + " / " + std::to_string(hero.MaxMP));
-				ViewHelpers::SetBarFill(EntityOf(block.HPFill), (float)party.HeroHP[h] / (float)std::max(1, hero.MaxHP));
-				ViewHelpers::SetBarFill(EntityOf(block.MPFill), (float)party.HeroMP[h] / (float)std::max(1, hero.MaxMP));
+				UI::SetText(EntityOf(block.HP), std::to_string(member.HP) + " / " + std::to_string(hero.MaxHP));
+				UI::SetText(EntityOf(block.MP), std::to_string(member.MP) + " / " + std::to_string(hero.MaxMP));
+				ViewHelpers::SetBarFill(EntityOf(block.HPFill), (float)member.HP / (float)std::max(1, hero.MaxHP));
+				ViewHelpers::SetBarFill(EntityOf(block.MPFill), (float)member.MP / (float)std::max(1, hero.MaxMP));
 				Entity name = EntityOf(block.Name);
 				if (UITextComponent* text = name.IsValid() ? name.TryGetComponent<UITextComponent>() : nullptr)
 				{
-					const bool marked = h == m_Hero && IsHeroPage() && party.PartySize() > 1;
+					const bool marked = s == m_Hero && IsHeroPage() && party.GetSize() > 1;
 					text->Color = marked ? glm::vec4(1.0f, 0.84f, 0.5f, 1.0f) : glm::vec4(0.95f, 0.91f, 0.83f, 1.0f);
 				}
 			}
@@ -257,23 +257,15 @@ namespace Hydro
 			}
 		}
 
-		// The next or previous hero in the party; the focus stays where it is.
+		// The next or previous member, reserve included; the focus stays where it is.
 		void CycleHero(int direction)
 		{
-			const BattleState& party = BattleState::Get();
-			if (IsOpen() == false || IsHeroPage() == false || party.PartySize() < 2)
+			const int size = PartyState::Get().GetSize();
+			if (IsOpen() == false || IsHeroPage() == false || size < 2)
 			{
 				return;
 			}
-			for (int step = 1; step <= HeroCount; step++)
-			{
-				const int next = ((m_Hero + direction * step) % HeroCount + HeroCount) % HeroCount;
-				if (party.InParty(next))
-				{
-					m_Hero = next;
-					break;
-				}
-			}
+			m_Hero = ((m_Hero + direction) % size + size) % size;
 			Present();
 			PresentKeys();
 		}
@@ -405,7 +397,7 @@ namespace Hydro
 		// Shown on the hero pages while the party has more than one hero.
 		std::string HeroKeys() const
 		{
-			return IsHeroPage() && BattleState::Get().PartySize() > 1 ? std::string("Q / E  Hero        ") : std::string();
+			return IsHeroPage() && PartyState::Get().GetSize() > 1 ? std::string("Q / E  Hero        ") : std::string();
 		}
 
 		Entity EntityOf(entt::entity entity) const { return Entity{ entity, m_Scene }; }
@@ -423,9 +415,9 @@ namespace Hydro
 		entt::entity m_TabMarks[TabCount] = {};
 		entt::entity m_Pages[TabCount] = {};
 		entt::entity m_Help = entt::null, m_Keys = entt::null;
-		Status m_Status[HeroCount];
+		Status m_Status[StatusRows];
 		entt::entity m_MoneyLabel = entt::null, m_Money = entt::null;
-		int m_Hero = 0;                  // whose page the hero pages show (Q / E)
+		int m_Hero = 0;                  // whose page the hero pages show (Q / E): an index into the party
 		Tab m_Selected = Tab::Inventory; // kept between opens
 		bool m_InPage = false;           // the focus is in the page, not on the tabs
 	};

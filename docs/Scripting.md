@@ -29,7 +29,7 @@ Every example on this page is a file that compiles with the game; open it next t
 | Piece | What it is | Owns | Example |
 | --- | --- | --- | --- |
 | **Script** | A `ScriptableEntity` on one entity: behaviour that runs every frame and reacts to events | Its entity's behaviour; orchestration | `Game/src/Scripts/Field/EnemyChaseScript.h` |
-| **State** | Plain structs on the run's game session (`RpgSession`): what the run remembers | The truth: party, inventory, quests, the battle hand-off | `Game/src/State/QuestLog.h`, `State/BattleState.h` |
+| **State** | Plain structs on the run's game session (`RpgSession`): what the run remembers | The truth: party, inventory, quests, the battle hand-off | `Game/src/State/QuestLog.h`, `State/PartyState.h`, `State/BattleState.h` |
 | **Rule** | Plain static functions over state and data that return results | Calculations: damage, levels, loot, equipment | `Game/src/Rules/BattleRules.h`, `Rules/PartyRules.h` |
 | **View** | A plain class a script owns: finds its UI entities once, writes them from state | Presentation of one screen or panel | `Game/src/Scripts/Field/FieldMenuView.h`, `Views/MessageBannerView.h` |
 | **View script** | A view on its own canvas when it has its own update or input, or several scripts use it | A reusable box with a life of its own | `Game/src/Views/DialogueScript.h`, `Views/QuestTrackerScript.h` |
@@ -145,14 +145,17 @@ class RpgSession : public GameSession
 {
 public:
 	static RpgSession& Get() { return GameSession::Get<RpgSession>(); }
-	BattleState Battle;     // the party and the battle hand-off
+	PartyState Party;       // who has joined, by hero ID; the first ones fight
+	BattleState Battle;     // the battle hand-off
 	QuestLog Quests;
 	Inventory Items;        // the party's items
 	...
 };
 ```
 
-Each state struct has a `Get()` that reads the running session (`QuestLog::Get()`, `Inventory::Get()`, `BattleState::Get()`), valid while a game runs; `GameSession::IsRunning()` says whether one does (the editor's inspector, a scene not playing). Stop and Play start a fresh run with no reset code anywhere: that is the point. What must cross scenes (who started a battle, who won, a quest's stage) is state; a scene left on the scene stack is suspended, not destroyed, and reads the state when it resumes (`EnemyChaseScript` reads `BattleState::Outcome`).
+Each state struct has a `Get()` that reads the running session (`QuestLog::Get()`, `Inventory::Get()`, `PartyState::Get()`, `BattleState::Get()`), valid while a game runs; `GameSession::IsRunning()` says whether one does (the editor's inspector, a scene not playing). Stop and Play start a fresh run with no reset code anywhere: that is the point. What must cross scenes (who started a battle, who won, a quest's stage) is state; a scene left on the scene stack is suspended, not destroyed, and reads the state when it resumes (`EnemyChaseScript` reads `BattleState::Outcome`).
+
+**The party** (`PartyState`) holds the members in the order they joined, looked up by hero ID (a row of `Assets/Data/Characters/Heroes.hytable`); `Party.hydef` sets who starts and how many fight (the first ones; the rest wait in reserve, and the field menu reaches them all). A new hero is a row (stats, abilities, `BattleAnimations`, portrait) and a `PartyState::Get().Join("<Id>")` where the story says so; nothing else changes. The battle (`Scripts/Battle/`) puts the fighters and the encounter's enemies into `Combatants` (one list with stable IDs, so actors can join mid-battle), runs `BattleFlow` (the rules' course, no entities) and shows it through `BattleStage`, `BattleActors` and its views; `BattleScript` only conducts.
 
 State shown by a retained view may keep a `Revision` its changing methods bump (`QuestLog::Revision`: the tracker flashes when it moves).
 
@@ -183,7 +186,7 @@ The test is who uses the file: used by more than one area or scene, it goes in t
 ```
 Game/src/
   Data/          data types (HY_DATA)
-  State/         run state on the session: BattleState, Inventory, QuestLog, RpgSession
+  State/         run state on the session: PartyState, BattleState, Inventory, QuestLog, RpgSession; BattleData (numbers from data)
   Rules/         rules and their results: BattleRules, ItemRules, LootRules, PartyRules
   Views/         reusable views and view scripts: ViewHelpers, MessageBannerView, ScreenFadeView,
                  InteractPromptView, LetterboxView, DialogueScript, QuestTrackerScript
@@ -191,7 +194,9 @@ Game/src/
     Common/      reusable behaviour: DioramaWalkScript, CameraFollowScript, CameraZoneScript, DioramaCamera,
                  DioramaDirectorScript and FieldSceneScript
     Field/       the field scenes' gameplay: FieldDirectorScript, EnemyChaseScript, the field menu's views
-    Battle/      the battle: BattleScript, BattleEffects, BattleText
+    Battle/      the battle: BattleScript (conducts), Combatants and BattleFlow (the model and its course), ActionSequence,
+                 BattleStage, BattleActors, StrikeEffects, the views (CommandMenuView, PartyStatusView, TurnOrderView,
+                 BattleOverlay), BattleResults, BattleEffects, BattleText
     ShrineGlade/ FarmVillage/ Interiors/ Countryside/   one area each
     Examples/    small, complete examples (TriggerZoneScript, SpawnerScript)
     Tests/       test scripts for the runtime UI
@@ -265,7 +270,7 @@ All `protected virtual` on `ScriptableEntity`, empty by default.
 | Its entity | `GetEntity()`, `GetComponent<T>()`, `TryGetComponent<T>()` |
 | Positions | `GetWorldPosition()`, `SetWorldPosition(p)`; another entity: `scene->GetWorldPosition(entity)`. `Translation` is relative to the parent: use the world functions for anything compared or placed |
 | The scene | `Scene& scene = *GetEntity().GetScene();` then `CreateEntity`, `DuplicateEntity`, `GetEntityByUUID`, `DestroyEntity`, `RemoveScript`, `FindEntityByTag` |
-| Run state | `QuestLog::Get()`, `Inventory::Get()`, `BattleState::Get()` ([above](#run-state-the-game-session)) |
+| Run state | `QuestLog::Get()`, `Inventory::Get()`, `PartyState::Get()`, `BattleState::Get()` ([above](#run-state-the-game-session)) |
 | Data | `Data::Get<T>`, `Data::GetRow<T>`, `Data::GetTable<T>` |
 | Input | `Input::IsKeyPressed(KeyCode::E)` (polling; "pressed this frame" is your own edge: `SpawnerScript`); ignore keys while `UI::CapturesInput(scene)` |
 | Physics | `Physics2D::SetLinearVelocity` / `GetLinearVelocity`; `Physics3D::Raycast`, `Physics3D::OverlapSphere` (`FieldDirectorScript`: line of sight and exits) |
@@ -333,6 +338,7 @@ A header can be checked on its own by including it from a temporary `.cpp` under
 - **3D physics sends trigger events only**; no contact points or hit speed.
 - **Compiled in:** a change needs a rebuild and an editor restart; no game DLL or hot reload (E7).
 - **The field camera** (`DioramaView`) still keeps static state.
+- **The party's order** can't be changed in the game yet (no formation page): the first members to join fight. Guests and actors joining mid-battle fit the model (`Combatants::AddHero` / `AddEnemy`) but no data drives them yet; `Battle.hyscene` has four party slots and three enemy slots.
 
 ## Adding a hook
 

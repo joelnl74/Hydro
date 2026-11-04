@@ -89,6 +89,45 @@ namespace Hydro
 			return brokenUntilRound >= 0 && brokenUntilRound >= round;
 		}
 
+		static constexpr float EscapeChance = 0.5f;
+		static constexpr int MaxBoost = 3;
+
+		// A boosted skill or heal: +60% per point spent.
+		static float BoostMultiplier(int boost)
+		{
+			return 1.0f + 0.6f * (float)std::max(0, boost);
+		}
+
+		// A boosted Attack strikes once more per point spent.
+		static int AttackHits(int boost)
+		{
+			return 1 + std::max(0, boost);
+		}
+
+		// Fire and light skills strike with the better of Magic and Attack, the rest with Attack.
+		static float SkillStat(DamageType type, int attack, int magic)
+		{
+			return type == DamageType::Light || type == DamageType::Fire ? (float)std::max(magic, attack) : (float)attack;
+		}
+
+		// A point back every round after the first, unless the hero boosted in the round before.
+		static int RegainMomentum(int momentum, bool boostedLastRound, int round, int maxMomentum)
+		{
+			return boostedLastRound == false && round > 1 ? std::min(maxMomentum, momentum + 1) : momentum;
+		}
+
+		// One of `count` by a roll of 0 to 1 (the last for a roll of 1); -1 when there are none.
+		static int PickByRoll(int count, float roll)
+		{
+			return count <= 0 ? -1 : std::clamp((int)(roll * (float)count), 0, count - 1);
+		}
+
+		// A share of a reward, rounded (the reserve's experience).
+		static int ShareOf(int amount, float share)
+		{
+			return (int)std::lround((float)amount * std::clamp(share, 0.0f, 1.0f));
+		}
+
 		// Speeds plus up to 3 of luck (`random` once per actor, in order), fastest first. Returns indices into `speeds`; a
 		// negative speed leaves an actor out.
 		static std::vector<int> TurnOrder(const std::vector<int>& speeds, const std::function<float()>& random)

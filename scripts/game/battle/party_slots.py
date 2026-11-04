@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Adds the party's other heroes to Battle.hyscene next to Miko: "Hero <Id>" and "Hero <Id> Shadow" in the Party folder.
+"""Writes the party's battle slots into Battle.hyscene: "Party Slot <i>" and "Party Slot <i> Shadow" in the Party folder.
 
     python scripts/game/battle/party_slots.py
 
-BattleScript finds a hero by "Hero <Id>" (its sprite, standing upright on the floor like "Hero Miko") and
-"Hero <Id> Shadow" (its contact shadow), and hides heroes not in the party. Miko's entities are the model: the same
-scale and sprite settings, its texture and animations swapped for the hero's, standing at FEET (the floor point,
-in metres; Miko stands at about (3.2, -0.9), the enemies on the left). The status block ("Status <Id>") is runtime
-UI: scripts/game/ui/build_game_ui.py battle.
+BattleScript puts the party's fighters into these slots in party order (PartyState: the first members fight) and plays
+each hero's battle animations (HeroDefinition::BattleAnimations) on its slot's sprite; empty slots are hidden. The
+slots stand upright on the floor like the hero model they are copied from, at FEET (floor points in metres; the
+enemies stand on the left). Move them in the editor freely: the script reads where each slot stands when the battle
+starts. The status blocks ("Status <i>") are runtime UI: scripts/game/ui/build_game_ui.py battle.
 
-Idempotent: the entities it wrote before are replaced (their IDs come from their tags); nothing else in the file
-changes. The rest of the arena was built by build_arena.py, which is out of date (its asset paths moved).
+The model is the first of "Party Slot 0" and the old "Hero Miko". Idempotent: the slots it wrote before and the old
+per-hero entities ("Hero Miko", "Hero Orin" and their shadows) are replaced; nothing else in the file changes.
 """
 from __future__ import annotations
 
@@ -23,10 +23,12 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 SCENE = ROOT / "Oxygen" / "project" / "Assets" / "Scenes" / "Battle.hyscene"
 
-# Id, battle texture, battle animations, the floor point its feet stand on.
-HEROES = [
-    ("Orin", 7924613408950187331, 3182937116204411939, (4.55, 1.05)),
-]
+# PartyState::MaxFighters slots: the floor point each one's feet stand on, and the sheet it shows in the editor
+# (texture, animations, sprite name); the battle dresses it from the hero's data.
+MIKO = (16527506524077974322, 9503405222623168017, "Miko_64", 64)
+ORIN = (7924613408950187331, 3182937116204411939, "Orin_0", 0)
+FEET = [((3.1759, -0.8897), MIKO), ((4.55, 1.05), ORIN), ((3.9, -2.4), MIKO), ((5.9, 2.4), ORIN)]
+OLD = ["Hero Miko", "Hero Miko Shadow", "Hero Orin", "Hero Orin Shadow"]
 
 
 def uid(tag: str) -> int:
@@ -43,43 +45,54 @@ def main() -> int:
     head, body = text[: match.start()], text[match.start():]
     blocks = re.split(r"\n(?=%s- Entity: )" % indent, body.rstrip("\n"))
     parsed = [yaml.safe_load(block[len(indent):].replace("\n" + indent, "\n"))[0] for block in blocks]
+    by_tag = {entity["TagComponent"]["Tag"]: (block, entity) for block, entity in zip(blocks, parsed)}
 
-    ours = {uid("Hero %s" % hero) for hero, *_ in HEROES} | {uid("Hero %s Shadow" % hero) for hero, *_ in HEROES}
-    kept = [(block, entity) for block, entity in zip(blocks, parsed) if entity["Entity"] not in ours]
-    by_tag = {entity["TagComponent"]["Tag"]: (block, entity) for block, entity in kept}
-    miko_block, miko = by_tag["Hero Miko"]
-    shadow_block, miko_shadow = by_tag["Hero Miko Shadow"]
-    # Miko's sprite stands this far from her feet (BattleScript StandOffset at her scale).
-    feet = miko_shadow["TransformComponent"]["Translation"]
-    stand = [miko["TransformComponent"]["Translation"][i] - feet[i] for i in range(3)]
+    model_tag = "Party Slot 0" if "Party Slot 0" in by_tag else "Hero Miko"
+    model_block, model = by_tag[model_tag]
+    shadow_block, model_shadow = by_tag[model_tag + " Shadow"]
+    # The sprite stands this far from its feet (BattleScript StandOffset at its scale).
+    feet = model_shadow["TransformComponent"]["Translation"]
+    stand = [model["TransformComponent"]["Translation"][i] - feet[i] for i in range(3)]
 
-    added = []
-    for hero, texture, animations, (x, y) in HEROES:
-        block = miko_block
-        block = block.replace("- Entity: %d" % miko["Entity"], "- Entity: %d" % uid("Hero %s" % hero))
-        block = block.replace("Tag: Hero Miko", "Tag: Hero %s" % hero)
-        block = re.sub(r"Translation: \[[^\]]*\]", "Translation: [%s, %s, %s]" % (round(x + stand[0], 4), round(y + stand[1], 4), round(stand[2], 4)), block, count=1)
+    slots = []
+    for s, ((x, y), (texture, animations, sprite, index)) in enumerate(FEET):
+        tag = "Party Slot %d" % s
+        block = model_block
+        block = block.replace("- Entity: %d" % model["Entity"], "- Entity: %d" % uid(tag))
+        block = block.replace("Tag: %s" % model_tag, "Tag: %s" % tag)
+        block = re.sub(r"Translation: \[[^\]]*\]", "Translation: [%s, %s, %s]" % (round(x + stand[0], 4), round(y + stand[1], 4),
+                                                                                 round(stand[2], 4)), block, count=1)
         block = re.sub(r"TextureHandle: \d+", "TextureHandle: %d" % texture, block)
-        block = re.sub(r"Sprite: \w+", "Sprite: Orin_0" if hero == "Orin" else "Sprite: %s_0" % hero, block, count=1)
-        block = re.sub(r"SpriteIndex: \d+", "SpriteIndex: 0", block)
+        block = re.sub(r"Sprite: \w+", "Sprite: %s" % sprite, block, count=1)
+        block = re.sub(r"SpriteIndex: \d+", "SpriteIndex: %d" % index, block)
         block = re.sub(r"AnimationsHandle: \d+", "AnimationsHandle: %d" % animations, block)
-        added.append(block)
+        slots.append(block)
         shadow = shadow_block
-        shadow = shadow.replace("- Entity: %d" % miko_shadow["Entity"], "- Entity: %d" % uid("Hero %s Shadow" % hero))
-        shadow = shadow.replace("Tag: Hero Miko Shadow", "Tag: Hero %s Shadow" % hero)
+        shadow = shadow.replace("- Entity: %d" % model_shadow["Entity"], "- Entity: %d" % uid(tag + " Shadow"))
+        shadow = shadow.replace("Tag: %s Shadow" % model_tag, "Tag: %s Shadow" % tag)
         shadow = re.sub(r"Translation: \[[^\]]*\]", "Translation: [%s, %s, 0]" % (x, y), shadow, count=1)
-        added.append(shadow)
+        slots.append(shadow)
 
-    # After Miko's shadow, in the Party folder (the blocks keep Miko's parent).
+    ours = {uid("Party Slot %d" % s) for s in range(len(FEET))} | {uid("Party Slot %d Shadow" % s) for s in range(len(FEET))}
+    replaced = {entity["Entity"] for entity in parsed if entity["Entity"] in ours or entity["TagComponent"]["Tag"] in OLD}
+    for block, entity in zip(blocks, parsed):
+        if entity["Entity"] in replaced:
+            continue
+        stale = replaced.intersection(int(number) for number in re.findall(r"\b\d+\b", block))
+        if stale:
+            raise SystemExit("Battle.hyscene: a kept entity still refers to replaced %d:\n%s" % (min(stale), block[:300]))
+
+    # Where the model's shadow was, in the Party folder (the blocks keep the model's parent).
     out = []
-    for block, entity in kept:
-        out.append(block)
-        if entity["Entity"] == miko_shadow["Entity"]:
-            out.extend(added)
+    for block, entity in zip(blocks, parsed):
+        if entity["Entity"] == model_shadow["Entity"]:
+            out.extend(slots)
+        if entity["Entity"] not in replaced:
+            out.append(block)
     new = head + "\n".join(out) + ("\n" if ends_newline else "")
     yaml.safe_load(new)
     SCENE.write_bytes(new.replace("\n", "\r\n").encode("utf-8"))
-    print("Battle.hyscene: %s" % ", ".join("Hero %s" % hero for hero, *_ in HEROES))
+    print("Battle.hyscene: %s" % ", ".join("Party Slot %d" % s for s in range(len(FEET))))
     return 0
 
 

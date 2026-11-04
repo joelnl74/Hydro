@@ -1,0 +1,8 @@
+Handle: 192385608043738560
+Definition:
+  Version: 1
+  Type: PartyDefinition
+  Values:
+    StartingMembers: [{Table: 8210482519817847920, Row: Miko}]
+    BattleSize: 4
+    ReserveExperience: 0.5

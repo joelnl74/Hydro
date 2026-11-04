@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Data/ItemDefinition.h"
-#include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "State/Inventory.h"
 
 namespace Hydro
@@ -13,7 +13,7 @@ namespace Hydro
 		enum class UseResult : uint8_t { Used, NotUsableHere, NoneLeft };
 
 		// Restores every party member's MP, and the HP of those standing.
-		static UseResult UseInField(Inventory::Slot& slot, const ItemDefinition& item, BattleState& party)
+		static UseResult UseInField(Inventory::Slot& slot, const ItemDefinition& item, PartyState& party)
 		{
 			if (item.CanUseInField() == false)
 			{
@@ -24,16 +24,13 @@ namespace Hydro
 				return UseResult::NoneLeft;
 			}
 			slot.Count -= 1;
-			for (int h = 0; h < HeroCount; h++)
+			for (PartyMember& member : party.Members)
 			{
-				if (party.InParty(h) == false)
+				const HeroStats stats = member.GetStats();
+				member.MP = std::min(stats.MaxMP, member.MP + item.RestoreMP);
+				if (member.IsStanding())
 				{
-					continue;
-				}
-				party.HeroMP[h] = std::min(GetHero(h).MaxMP, party.HeroMP[h] + item.RestoreMP);
-				if (party.HeroHP[h] > 0)
-				{
-					party.HeroHP[h] = std::min(GetHero(h).MaxHP, party.HeroHP[h] + item.RestoreHP);
+					member.HP = std::min(stats.MaxHP, member.HP + item.RestoreHP);
 				}
 			}
 			return UseResult::Used;

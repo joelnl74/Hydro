@@ -77,6 +77,22 @@ namespace Hydro
 		// Speeds 9, 4, (fallen), 7 with no luck: 0, 3, 1. Luck can swap close ones: 4 + 3 beats 6 + 0.
 		RULE_CHECK((BattleRules::TurnOrder({ 9, 4, -1, 7 }, Rolls({ 0.0f, 0.0f, 0.0f })) == std::vector<int>{ 0, 3, 1 }));
 		RULE_CHECK((BattleRules::TurnOrder({ 6, 4 }, Rolls({ 0.0f, 1.0f })) == std::vector<int>{ 1, 0 }));
+		// A full field: four heroes and three enemies, one fallen; the order covers everyone standing, fastest first.
+		const std::vector<int> crowd = BattleRules::TurnOrder({ 9, 11, 5, 7, 4, -1, 10 }, Rolls({}));
+		RULE_CHECK((crowd == std::vector<int>{ 1, 6, 0, 3, 2, 4 }));
+
+		// Boosts, momentum and picks.
+		RULE_CHECK(BattleRules::AttackHits(0) == 1 && BattleRules::AttackHits(3) == 4);
+		RULE_CHECK(std::abs(BattleRules::BoostMultiplier(2) - 2.2f) < 1.0e-5f && BattleRules::BoostMultiplier(-1) == 1.0f);
+		RULE_CHECK(BattleRules::SkillStat(DamageType::Fire, 10, 14) == 14.0f && BattleRules::SkillStat(DamageType::Slash, 10, 14) == 10.0f);
+		RULE_CHECK(BattleRules::SkillStat(DamageType::Light, 12, 4) == 12.0f);
+		RULE_CHECK(BattleRules::RegainMomentum(1, false, 1, 5) == 1);  // not in the first round
+		RULE_CHECK(BattleRules::RegainMomentum(1, false, 2, 5) == 2);
+		RULE_CHECK(BattleRules::RegainMomentum(3, true, 2, 5) == 3);   // boosted in the round before
+		RULE_CHECK(BattleRules::RegainMomentum(5, false, 4, 5) == 5);  // full
+		RULE_CHECK(BattleRules::PickByRoll(0, 0.5f) == -1 && BattleRules::PickByRoll(4, 0.0f) == 0);
+		RULE_CHECK(BattleRules::PickByRoll(4, 0.99f) == 3 && BattleRules::PickByRoll(4, 1.0f) == 3 && BattleRules::PickByRoll(3, 0.5f) == 1);
+		RULE_CHECK(BattleRules::ShareOf(15, 0.5f) == 8 && BattleRules::ShareOf(15, 0.0f) == 0 && BattleRules::ShareOf(15, 2.0f) == 15);
 
 		EnemyDefinition caster;
 		caster.BasicAttack = DataRowRef{ 1, "Attack" };

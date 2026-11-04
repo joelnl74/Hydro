@@ -142,8 +142,9 @@ def ribbon_row(b, tag, parent, width, height, name, detail="", event="", name_fo
     return row
 
 
-# The heroes who can be in the party (BattleData::HeroIds), with sample numbers; the scripts hide those not in it.
-PARTY = [("Miko", "90 / 90", "32 / 32"), ("Orin", "82 / 82", "20 / 20")]
+# One status block per place at the front of the party (PartyState::MaxFighters), with sample names and numbers; the
+# scripts fill them from the party and hide the empty ones.
+PARTY = [("Miko", "90 / 90", "32 / 32"), ("Orin", "82 / 82", "20 / 20"), ("Lila", "76 / 76", "40 / 40"), ("Juno", "88 / 88", "24 / 24")]
 
 
 def status_block(b, tag, parent, hero="Miko", hp="90 / 90", mp="32 / 32"):
@@ -181,6 +182,10 @@ BATTLE_REMOVE = {
   | {"Enemy %d %s" % (e, n) for e in range(3) for n in ("HP Back", "HP Fill", "Shield", "Shield Digit", "Weak 0", "Weak 1", "Weak 2")}
 
 
+ORDER_CHIPS = 8  # BattleScript's OrderChips: a round of four heroes and three enemies, plus one
+COMMAND_X = 30  # the lists' left edge from the middle, in pixels: they end left of the party's status column
+
+
 def build_battle(director):
     b = Builder("Battle")
     root = b.add("Battle UI Canvas", director, UICanvasComponent=canvas(0))
@@ -189,7 +194,7 @@ def build_battle(director):
     b.add("Turn Order Rule", root, UIRectComponent=rect((0, 1), None, (0, 0.5), (36, -82), (760, 12)), UIImageComponent=image("Divider"))
     order = b.add("Turn Order", root, UIRectComponent=rect((0, 1), None, (0, 1), (40, -36), (760, 92)),
                   UILayoutGroupComponent=group("Horizontal", 14, fit=False, stretch=False, align="Start"))
-    for c in range(6):
+    for c in range(ORDER_CHIPS):
         chip = b.add("Order Chip %d" % c, order, UIRectComponent=rect(size=(92, 92) if c == 0 else (76, 76)), UIImageComponent=image("Chip", nine=False))
         b.add("Order Chip %d Actor" % c, chip, UIRectComponent=fill((14, 14, 14, 14)), UIImageComponent=image(None, (1, 1, 1, 0)))
     b.add("Turn Order Label", root, UIRectComponent=rect((0, 1), None, (0, 1), (150, -112), (300, 30)),
@@ -197,15 +202,15 @@ def build_battle(director):
 
     # The party, top right.
     party = b.add("Party Status", root, UIRectComponent=rect((1, 1), None, (1, 1), (-36, -24), (440, 10)), UILayoutGroupComponent=group(spacing=10))
-    for hero, hp, mp in PARTY:
-        status_block(b, "Status " + hero, party, hero, hp, mp)
+    for s, (hero, hp, mp) in enumerate(PARTY):
+        status_block(b, "Status %d" % s, party, hero, hp, mp)
 
     # The skill / message banner, top middle.
     banner = b.add("Battle Message Panel", root, UIRectComponent=rect((0.5, 1), None, (0.5, 1), (0, -168), (600, 72)), UIImageComponent=image("Banner"))
     b.add("Battle Message Text", banner, UIRectComponent=fill((40, 0, 40, 0)), UITextComponent=text("Flame Kick", FONT_BODY, CREAM, "Center"))
 
-    # The command list, right of the middle, and the target list in its place.
-    commands = b.add("Command Panel", root, UIRectComponent=rect((0.5, 0), None, (0, 1), (150, 560), (440, 10)), UILayoutGroupComponent=group(spacing=4))
+    # The command list, right of the middle, and the target list in its place; left of the four status blocks.
+    commands = b.add("Command Panel", root, UIRectComponent=rect((0.5, 0), None, (0, 1), (COMMAND_X, 560), (440, 10)), UILayoutGroupComponent=group(spacing=4))
     header = b.add("Command Header", commands, UIRectComponent=rect(size=(440, 46)), UIImageComponent=image("Plate"))
     b.add("Command Hero", header, UIRectComponent=fill((60, 0, 20, 0)), UITextComponent=text("Miko", FONT_LABEL, GOLD))
     b.add("Command Boost", header, UIRectComponent=fill((60, 0, 24, 0)), UITextComponent=text("E: boost", FONT_SMALL, CREAM, "Right"))
@@ -215,7 +220,7 @@ def build_battle(director):
     helpbar = b.add("Command Help Bar", commands, UIRectComponent=rect(size=(440, 48)), UIImageComponent=image("Fade", nine=False))
     b.add("Command Help", helpbar, UIRectComponent=fill((24, 0, 12, 0)), UITextComponent=text("Strike one foe.", FONT_SMALL, CREAM))
 
-    targets = b.add("Target Panel", root, UIRectComponent=rect((0.5, 0), None, (0, 1), (150, 560), (440, 10)), UILayoutGroupComponent=group(spacing=4))
+    targets = b.add("Target Panel", root, UIRectComponent=rect((0.5, 0), None, (0, 1), (COMMAND_X, 560), (440, 10)), UILayoutGroupComponent=group(spacing=4))
     theader = b.add("Target Header", targets, UIRectComponent=rect(size=(440, 46)), UIImageComponent=image("Plate"))
     b.add("Target Command", theader, UIRectComponent=fill((60, 0, 20, 0)), UITextComponent=text("Attack", FONT_LABEL, GOLD))
     b.add("Target Hint", theader, UIRectComponent=fill((60, 0, 24, 0)), UITextComponent=text("Esc: back", FONT_SMALL, CREAM, "Right"))
@@ -223,7 +228,7 @@ def build_battle(director):
         ribbon_row(b, "Target %d" % e, targets, 440, 56, "Slime " + "ABC"[e], "HP 40", "Target")
 
     # The sub-menu (Abilities: the hero's 8 ability slots; Items: the usable items), also in the commands' place.
-    sub = b.add("Sub Panel", root, UIRectComponent=rect((0.5, 0), None, (0, 1), (150, 560), (440, 10)), UILayoutGroupComponent=group(spacing=4))
+    sub = b.add("Sub Panel", root, UIRectComponent=rect((0.5, 0), None, (0, 1), (COMMAND_X, 560), (440, 10)), UILayoutGroupComponent=group(spacing=4))
     sheader = b.add("Sub Header", sub, UIRectComponent=rect(size=(440, 46)), UIImageComponent=image("Plate"))
     b.add("Sub Title", sheader, UIRectComponent=fill((60, 0, 20, 0)), UITextComponent=text("Abilities", FONT_LABEL, GOLD))
     b.add("Sub Hint", sheader, UIRectComponent=fill((60, 0, 24, 0)), UITextComponent=text("Esc: back", FONT_SMALL, CREAM, "Right"))
@@ -342,8 +347,8 @@ def build_field_menu(b, director):
     build_equipment_page(b, menu)
 
     party = b.add("Menu Party", menu, UIRectComponent=rect((1, 1), None, (1, 1), (-40, -130), (440, 10)), UILayoutGroupComponent=group(spacing=10))
-    for hero, hp, mp in PARTY:
-        status_block(b, "Menu Status " + hero, party, hero, hp, mp)
+    for s, (hero, hp, mp) in enumerate(PARTY):
+        status_block(b, "Menu Status %d" % s, party, hero, hp, mp)
     # The party's money (aster, the world's currency), above the help bar on the right.
     purse = b.add("Menu Money", menu, UIRectComponent=rect((1, 0), None, (1, 0), (-40, 104), (440, 52)), UIImageComponent=image("Fade", (1, 1, 1, 0.9), flip_x=True, nine=False))
     b.add("Menu Money Label", purse, UIRectComponent=fill((26, 0, 24, 0)), UITextComponent=text("Aster", FONT_LABEL, GOLD))
@@ -558,7 +563,11 @@ def rebuild(scene_file, remove_tags, make, director_tags=("Battle Director", "MV
         if stale:
             sys.exit("%s: a kept entity still refers to removed %d:\n%s" % (scene_file, min(stale), block[:300]))
 
-    new = head + "\n".join(block for block, _ in kept) + "\n" + added + ("\n" if ends_newline else "")
+    # Where the old UI began, so a rerun leaves the file's order (and its diff) alone; the end of the file the first time.
+    at = next((i for i, e in enumerate(parsed) if e["Entity"] in removed), len(parsed))
+    before = [block for block, e in zip(blocks[:at], parsed[:at]) if e["Entity"] not in removed]
+    after = [block for block, e in zip(blocks[at:], parsed[at:]) if e["Entity"] not in removed]
+    new = head + "\n".join(before + [added] + after) + ("\n" if ends_newline else "")
     yaml.safe_load(new)  # still a valid file
     if crlf:
         new = new.replace("\n", "\r\n")

@@ -14172,9 +14172,9 @@ Entities:
       ChildAlignment: Start
       StretchCrossAxis: true
       FitContent: true
-  - Entity: 4789878682710129734
+  - Entity: 5405252977173865674
     TagComponent:
-      Tag: Menu Status Miko
+      Tag: Menu Status 0
     RelationshipComponent:
       Parent: 1725518289325515750
     UIRectComponent:
@@ -14184,11 +14184,11 @@ Entities:
       AnchoredPosition: [0, 0]
       SizeDelta: [440, 176]
       Visible: true
-  - Entity: 7680827711896070533
+  - Entity: 3329085158995856596
     TagComponent:
-      Tag: Menu Status Miko Back
+      Tag: Menu Status 0 Back
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
@@ -14203,11 +14203,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: true
       FlipY: false
-  - Entity: 6325326825154006142
+  - Entity: 5157134915133283947
     TagComponent:
-      Tag: Menu Status Miko Name
+      Tag: Menu Status 0 Name
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14227,11 +14227,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 8008013447075649066
+  - Entity: 7872174157108327479
     TagComponent:
-      Tag: Menu Status Miko Pips
+      Tag: Menu Status 0 Pips
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [1, 1]
       AnchorMax: [1, 1]
@@ -14246,11 +14246,11 @@ Entities:
       ChildAlignment: End
       StretchCrossAxis: false
       FitContent: false
-  - Entity: 1739656384817621251
+  - Entity: 6890089557055629060
     TagComponent:
-      Tag: Menu Status Miko Pip 0
+      Tag: Menu Status 0 Pip 0
     RelationshipComponent:
-      Parent: 8008013447075649066
+      Parent: 7872174157108327479
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14265,11 +14265,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 8076333152468970368
+  - Entity: 8762561044116872536
     TagComponent:
-      Tag: Menu Status Miko Pip 1
+      Tag: Menu Status 0 Pip 1
     RelationshipComponent:
-      Parent: 8008013447075649066
+      Parent: 7872174157108327479
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14284,11 +14284,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 715644799234599415
+  - Entity: 1410397549204269864
     TagComponent:
-      Tag: Menu Status Miko Pip 2
+      Tag: Menu Status 0 Pip 2
     RelationshipComponent:
-      Parent: 8008013447075649066
+      Parent: 7872174157108327479
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14303,11 +14303,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 697513816502192557
+  - Entity: 6068693840961200128
     TagComponent:
-      Tag: Menu Status Miko Pip 3
+      Tag: Menu Status 0 Pip 3
     RelationshipComponent:
-      Parent: 8008013447075649066
+      Parent: 7872174157108327479
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14322,11 +14322,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 6149831264126475488
+  - Entity: 5950069923138725780
     TagComponent:
-      Tag: Menu Status Miko Pip 4
+      Tag: Menu Status 0 Pip 4
     RelationshipComponent:
-      Parent: 8008013447075649066
+      Parent: 7872174157108327479
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14341,11 +14341,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 6248251923232156486
+  - Entity: 3067333728204100023
     TagComponent:
-      Tag: Menu Status Miko HP Label
+      Tag: Menu Status 0 HP Label
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -14365,11 +14365,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 4435114704460086153
+  - Entity: 2102019609156846519
     TagComponent:
-      Tag: Menu Status Miko HP
+      Tag: Menu Status 0 HP
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14389,11 +14389,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 1755515297433811388
+  - Entity: 8957124357302442244
     TagComponent:
-      Tag: Menu Status Miko HP Back
+      Tag: Menu Status 0 HP Back
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14407,11 +14407,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 5431788053808521017
+  - Entity: 9187685357106077159
     TagComponent:
-      Tag: Menu Status Miko HP Fill
+      Tag: Menu Status 0 HP Fill
     RelationshipComponent:
-      Parent: 1755515297433811388
+      Parent: 8957124357302442244
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
@@ -14425,11 +14425,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 7367748971674396279
+  - Entity: 3275961796635133955
     TagComponent:
-      Tag: Menu Status Miko MP Label
+      Tag: Menu Status 0 MP Label
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -14449,11 +14449,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 4626775630282046885
+  - Entity: 4155530459029410333
     TagComponent:
-      Tag: Menu Status Miko MP
+      Tag: Menu Status 0 MP
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14473,11 +14473,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 8479538747936431985
+  - Entity: 5229045287236640287
     TagComponent:
-      Tag: Menu Status Miko MP Back
+      Tag: Menu Status 0 MP Back
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14491,11 +14491,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 5135805563480574342
+  - Entity: 44387511332050427
     TagComponent:
-      Tag: Menu Status Miko MP Fill
+      Tag: Menu Status 0 MP Fill
     RelationshipComponent:
-      Parent: 8479538747936431985
+      Parent: 5229045287236640287
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
@@ -14509,11 +14509,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 8738083806423024886
+  - Entity: 5261749201693812348
     TagComponent:
-      Tag: Menu Status Miko Rule
+      Tag: Menu Status 0 Rule
     RelationshipComponent:
-      Parent: 4789878682710129734
+      Parent: 5405252977173865674
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 0]
@@ -14528,9 +14528,9 @@ Entities:
       NineSlice: [14, 0, 14, 0]
       FlipX: false
       FlipY: false
-  - Entity: 8972071798196430748
+  - Entity: 2096143824707040707
     TagComponent:
-      Tag: Menu Status Orin
+      Tag: Menu Status 1
     RelationshipComponent:
       Parent: 1725518289325515750
     UIRectComponent:
@@ -14540,11 +14540,11 @@ Entities:
       AnchoredPosition: [0, 0]
       SizeDelta: [440, 176]
       Visible: true
-  - Entity: 3878840488697984519
+  - Entity: 8353903665810666590
     TagComponent:
-      Tag: Menu Status Orin Back
+      Tag: Menu Status 1 Back
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
@@ -14559,11 +14559,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: true
       FlipY: false
-  - Entity: 5994952455626189002
+  - Entity: 390558622068113621
     TagComponent:
-      Tag: Menu Status Orin Name
+      Tag: Menu Status 1 Name
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14583,11 +14583,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 3809685348751738694
+  - Entity: 5305207922332375969
     TagComponent:
-      Tag: Menu Status Orin Pips
+      Tag: Menu Status 1 Pips
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [1, 1]
       AnchorMax: [1, 1]
@@ -14602,11 +14602,11 @@ Entities:
       ChildAlignment: End
       StretchCrossAxis: false
       FitContent: false
-  - Entity: 3760192653433722037
+  - Entity: 317108423962765298
     TagComponent:
-      Tag: Menu Status Orin Pip 0
+      Tag: Menu Status 1 Pip 0
     RelationshipComponent:
-      Parent: 3809685348751738694
+      Parent: 5305207922332375969
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14621,11 +14621,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 5730634514876352461
+  - Entity: 152542298091337614
     TagComponent:
-      Tag: Menu Status Orin Pip 1
+      Tag: Menu Status 1 Pip 1
     RelationshipComponent:
-      Parent: 3809685348751738694
+      Parent: 5305207922332375969
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14640,11 +14640,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 377555329380316513
+  - Entity: 345877232778476683
     TagComponent:
-      Tag: Menu Status Orin Pip 2
+      Tag: Menu Status 1 Pip 2
     RelationshipComponent:
-      Parent: 3809685348751738694
+      Parent: 5305207922332375969
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14659,11 +14659,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 6813628617175775666
+  - Entity: 7198625385687134521
     TagComponent:
-      Tag: Menu Status Orin Pip 3
+      Tag: Menu Status 1 Pip 3
     RelationshipComponent:
-      Parent: 3809685348751738694
+      Parent: 5305207922332375969
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14678,11 +14678,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 3472434682815518631
+  - Entity: 6731227857110376682
     TagComponent:
-      Tag: Menu Status Orin Pip 4
+      Tag: Menu Status 1 Pip 4
     RelationshipComponent:
-      Parent: 3809685348751738694
+      Parent: 5305207922332375969
     UIRectComponent:
       AnchorMin: [0.5, 0.5]
       AnchorMax: [0.5, 0.5]
@@ -14697,11 +14697,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 2593630237335646914
+  - Entity: 4883902340981217680
     TagComponent:
-      Tag: Menu Status Orin HP Label
+      Tag: Menu Status 1 HP Label
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -14721,11 +14721,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 5721748227965124873
+  - Entity: 66901432514264561
     TagComponent:
-      Tag: Menu Status Orin HP
+      Tag: Menu Status 1 HP
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14745,11 +14745,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 2756015087963804265
+  - Entity: 7081289940079460684
     TagComponent:
-      Tag: Menu Status Orin HP Back
+      Tag: Menu Status 1 HP Back
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14763,11 +14763,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 6842407318587391403
+  - Entity: 4960215849135001793
     TagComponent:
-      Tag: Menu Status Orin HP Fill
+      Tag: Menu Status 1 HP Fill
     RelationshipComponent:
-      Parent: 2756015087963804265
+      Parent: 7081289940079460684
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
@@ -14781,11 +14781,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 4911494986681158358
+  - Entity: 4662818334490427450
     TagComponent:
-      Tag: Menu Status Orin MP Label
+      Tag: Menu Status 1 MP Label
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [0, 1]
@@ -14805,11 +14805,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 8982467211651346917
+  - Entity: 1573027400273324176
     TagComponent:
-      Tag: Menu Status Orin MP
+      Tag: Menu Status 1 MP
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14829,11 +14829,11 @@ Entities:
       VisibleCharacters: -1
       ShadowColor: [0, 0, 0, 0.8]
       ShadowOffset: [2, -2]
-  - Entity: 2767468647046140040
+  - Entity: 1749420398056188414
     TagComponent:
-      Tag: Menu Status Orin MP Back
+      Tag: Menu Status 1 MP Back
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
     UIRectComponent:
       AnchorMin: [0, 1]
       AnchorMax: [1, 1]
@@ -14847,11 +14847,11 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 5358577680889686264
+  - Entity: 8347407390845475086
     TagComponent:
-      Tag: Menu Status Orin MP Fill
+      Tag: Menu Status 1 MP Fill
     RelationshipComponent:
-      Parent: 2767468647046140040
+      Parent: 1749420398056188414
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 1]
@@ -14865,11 +14865,723 @@ Entities:
       NineSlice: [0, 0, 0, 0]
       FlipX: false
       FlipY: false
-  - Entity: 7248486733747875399
+  - Entity: 3961978938542630556
     TagComponent:
-      Tag: Menu Status Orin Rule
+      Tag: Menu Status 1 Rule
     RelationshipComponent:
-      Parent: 8972071798196430748
+      Parent: 2096143824707040707
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 0]
+      Pivot: [0.5, 0]
+      AnchoredPosition: [0, 2]
+      SizeDelta: [-16, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.8]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 7325638805458169438
+    TagComponent:
+      Tag: Menu Status 2
+    RelationshipComponent:
+      Parent: 1725518289325515750
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [440, 176]
+      Visible: true
+  - Entity: 2586449772662856053
+    TagComponent:
+      Tag: Menu Status 2 Back
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 7877762661020090692
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.9]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: true
+      FlipY: false
+  - Entity: 3344735043195390103
+    TagComponent:
+      Tag: Menu Status 2 Name
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -6]
+      SizeDelta: [-48, 46]
+      Visible: true
+    UITextComponent:
+      Text: Lila
+      FontHandle: 8758314776354146223
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2753065275581167312
+    TagComponent:
+      Tag: Menu Status 2 Pips
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-24, -20]
+      SizeDelta: [150, 20]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Horizontal
+      Spacing: 6
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: End
+      StretchCrossAxis: false
+      FitContent: false
+  - Entity: 7042071998627542264
+    TagComponent:
+      Tag: Menu Status 2 Pip 0
+    RelationshipComponent:
+      Parent: 2753065275581167312
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8972649374652263398
+    TagComponent:
+      Tag: Menu Status 2 Pip 1
+    RelationshipComponent:
+      Parent: 2753065275581167312
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 7780785595037567588
+    TagComponent:
+      Tag: Menu Status 2 Pip 2
+    RelationshipComponent:
+      Parent: 2753065275581167312
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 1106829245630824258
+    TagComponent:
+      Tag: Menu Status 2 Pip 3
+    RelationshipComponent:
+      Parent: 2753065275581167312
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6000951681928305633
+    TagComponent:
+      Tag: Menu Status 2 Pip 4
+    RelationshipComponent:
+      Parent: 2753065275581167312
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 7089518040138451012
+    TagComponent:
+      Tag: Menu Status 2 HP Label
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [26, -58]
+      SizeDelta: [70, 40]
+      Visible: true
+    UITextComponent:
+      Text: HP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 4776057148428686207
+    TagComponent:
+      Tag: Menu Status 2 HP
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -58]
+      SizeDelta: [-48, 40]
+      Visible: true
+    UITextComponent:
+      Text: 76 / 76
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6999260853388683599
+    TagComponent:
+      Tag: Menu Status 2 HP Back
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -98]
+      SizeDelta: [-48, 6]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 2387406247290570840
+    TagComponent:
+      Tag: Menu Status 2 HP Fill
+    RelationshipComponent:
+      Parent: 6999260853388683599
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.5, 0.72, 0.4, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8097535091976391852
+    TagComponent:
+      Tag: Menu Status 2 MP Label
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [26, -112]
+      SizeDelta: [70, 40]
+      Visible: true
+    UITextComponent:
+      Text: MP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 7705604033510808375
+    TagComponent:
+      Tag: Menu Status 2 MP
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -112]
+      SizeDelta: [-48, 40]
+      Visible: true
+    UITextComponent:
+      Text: 40 / 40
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 6977723598517456306
+    TagComponent:
+      Tag: Menu Status 2 MP Back
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -152]
+      SizeDelta: [-48, 6]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6341367355289939459
+    TagComponent:
+      Tag: Menu Status 2 MP Fill
+    RelationshipComponent:
+      Parent: 6977723598517456306
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.38, 0.6, 0.9, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 96321307504664868
+    TagComponent:
+      Tag: Menu Status 2 Rule
+    RelationshipComponent:
+      Parent: 7325638805458169438
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 0]
+      Pivot: [0.5, 0]
+      AnchoredPosition: [0, 2]
+      SizeDelta: [-16, 12]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 5603354313062246253
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.8]
+      NineSlice: [14, 0, 14, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 2711378275348456311
+    TagComponent:
+      Tag: Menu Status 3
+    RelationshipComponent:
+      Parent: 1725518289325515750
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [440, 176]
+      Visible: true
+  - Entity: 4733017663238986012
+    TagComponent:
+      Tag: Menu Status 3 Back
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0.0, 0.0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 7877762661020090692
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.9]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: true
+      FlipY: false
+  - Entity: 6266202403131620349
+    TagComponent:
+      Tag: Menu Status 3 Name
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -6]
+      SizeDelta: [-48, 46]
+      Visible: true
+    UITextComponent:
+      Text: Juno
+      FontHandle: 8758314776354146223
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2833358336391913921
+    TagComponent:
+      Tag: Menu Status 3 Pips
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [1, 1]
+      AnchorMax: [1, 1]
+      Pivot: [1, 1]
+      AnchoredPosition: [-24, -20]
+      SizeDelta: [150, 20]
+      Visible: true
+    UILayoutGroupComponent:
+      Direction: Horizontal
+      Spacing: 6
+      Padding: [0, 0, 0, 0]
+      ChildAlignment: End
+      StretchCrossAxis: false
+      FitContent: false
+  - Entity: 68214381852388884
+    TagComponent:
+      Tag: Menu Status 3 Pip 0
+    RelationshipComponent:
+      Parent: 2833358336391913921
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 7754127302557304355
+    TagComponent:
+      Tag: Menu Status 3 Pip 1
+    RelationshipComponent:
+      Parent: 2833358336391913921
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4514810376280287713
+    TagComponent:
+      Tag: Menu Status 3 Pip 2
+    RelationshipComponent:
+      Parent: 2833358336391913921
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 4303505525678167365
+    TagComponent:
+      Tag: Menu Status 3 Pip 3
+    RelationshipComponent:
+      Parent: 2833358336391913921
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 5537343572592859230
+    TagComponent:
+      Tag: Menu Status 3 Pip 4
+    RelationshipComponent:
+      Parent: 2833358336391913921
+    UIRectComponent:
+      AnchorMin: [0.5, 0.5]
+      AnchorMax: [0.5, 0.5]
+      Pivot: [0.5, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [18, 18]
+      Visible: true
+    UIImageComponent:
+      TextureHandle: 2720744306691098621
+      SpriteIndex: 0
+      Color: [1, 1, 1, 0.25]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 3201393799770438148
+    TagComponent:
+      Tag: Menu Status 3 HP Label
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [26, -58]
+      SizeDelta: [70, 40]
+      Visible: true
+    UITextComponent:
+      Text: HP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5198627053107309618
+    TagComponent:
+      Tag: Menu Status 3 HP
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -58]
+      SizeDelta: [-48, 40]
+      Visible: true
+    UITextComponent:
+      Text: 88 / 88
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 5091953140625080939
+    TagComponent:
+      Tag: Menu Status 3 HP Back
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -98]
+      SizeDelta: [-48, 6]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 8803572119202607817
+    TagComponent:
+      Tag: Menu Status 3 HP Fill
+    RelationshipComponent:
+      Parent: 5091953140625080939
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.5, 0.72, 0.4, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 1058184312327775876
+    TagComponent:
+      Tag: Menu Status 3 MP Label
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [0, 1]
+      Pivot: [0, 1]
+      AnchoredPosition: [26, -112]
+      SizeDelta: [70, 40]
+      Visible: true
+    UITextComponent:
+      Text: MP
+      FontHandle: 3816504584097973210
+      Color: [1.0, 0.84, 0.5, 1]
+      Scale: 1
+      AlignH: Left
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 9095293693187814645
+    TagComponent:
+      Tag: Menu Status 3 MP
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -112]
+      SizeDelta: [-48, 40]
+      Visible: true
+    UITextComponent:
+      Text: 24 / 24
+      FontHandle: 3308760100462523854
+      Color: [0.95, 0.91, 0.83, 1]
+      Scale: 1
+      AlignH: Right
+      AlignV: Middle
+      Wrap: false
+      LineSpacing: 1.0
+      VisibleCharacters: -1
+      ShadowColor: [0, 0, 0, 0.8]
+      ShadowOffset: [2, -2]
+  - Entity: 2293323198103716538
+    TagComponent:
+      Tag: Menu Status 3 MP Back
+    RelationshipComponent:
+      Parent: 2711378275348456311
+    UIRectComponent:
+      AnchorMin: [0, 1]
+      AnchorMax: [1, 1]
+      Pivot: [0.5, 1]
+      AnchoredPosition: [0, -152]
+      SizeDelta: [-48, 6]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0, 0, 0, 0.6]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6388503936769205616
+    TagComponent:
+      Tag: Menu Status 3 MP Fill
+    RelationshipComponent:
+      Parent: 2293323198103716538
+    UIRectComponent:
+      AnchorMin: [0, 0]
+      AnchorMax: [1, 1]
+      Pivot: [0, 0.5]
+      AnchoredPosition: [0, 0]
+      SizeDelta: [0, 0]
+      Visible: true
+    UIImageComponent:
+      SpriteIndex: 0
+      Color: [0.38, 0.6, 0.9, 1]
+      NineSlice: [0, 0, 0, 0]
+      FlipX: false
+      FlipY: false
+  - Entity: 6755678197895887809
+    TagComponent:
+      Tag: Menu Status 3 Rule
+    RelationshipComponent:
+      Parent: 2711378275348456311
     UIRectComponent:
       AnchorMin: [0, 0]
       AnchorMax: [1, 0]

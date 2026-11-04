@@ -111,7 +111,8 @@ namespace Hydro
 			.Field<&EnemyDefinition::SmokeColor>("SmokeColor", "Smoke Color").Tooltip("The puff of smoke it leaves when defeated").Color();
 
 		DataTypeRegistry::Register<HeroDefinition>("HeroDefinition", "Hero")
-			.Definition()
+			.Table()
+			.DisplayField("Name")
 			.Field<&HeroDefinition::Name>("Name", "Name").Tooltip("Shown in the battle's status and log, and in the field's menu")
 			.Field<&HeroDefinition::ShortName>("ShortName", "Short Name").Tooltip("Shown where there is little room; empty = Name")
 			.Field<&HeroDefinition::Base>("Base", "Base").Tooltip("The numbers at level 1")
@@ -120,6 +121,7 @@ namespace Hydro
 			.Field<&HeroDefinition::BasicAttack>("BasicAttack", "Basic Attack").Tooltip("The Attack command (its name; its type when not None)").DataTypeFilter("AbilityDefinition")
 			.Field<&HeroDefinition::StartingAbilities>("StartingAbilities", "Starting Abilities").Tooltip("Known from level 1, in this order; they fill the first battle ability slots").DataTypeFilter("AbilityDefinition")
 			.Field<&HeroDefinition::Learns>("Learns", "Learns").Tooltip("Abilities levels teach (known from then on; each goes into the first empty battle slot)")
+			.Field<&HeroDefinition::BattleAnimations>("BattleAnimations", "Battle Animations").Tooltip("Its battle animations (its party slot's sprite plays them)").AssetFilter(AssetType::SpriteAnimation)
 			.Field<&HeroDefinition::IdleClip>("IdleClip", "Idle Clip").Tooltip("The fighting-stance loop between actions (and while guarding)")
 			.Field<&HeroDefinition::ItemClip>("ItemClip", "Item Clip").Tooltip("The clip played when using an item")
 			.Field<&HeroDefinition::Portrait>("Portrait", "Portrait").Tooltip("A sprite sheet the field menu's Character page shows a frame of as the portrait").AssetFilter(AssetType::Texture2D)
@@ -132,6 +134,12 @@ namespace Hydro
 		DataTypeRegistry::Register<LevelCurve>("LevelCurve", "Level Curve")
 			.Definition()
 			.Field<&LevelCurve::ExperienceToLevel>("ExperienceToLevel", "Experience To Level").Tooltip("Total experience to reach level 2, 3, ... in order; its length + 1 is the level cap");
+
+		DataTypeRegistry::Register<PartyDefinition>("PartyDefinition", "Party")
+			.Definition()
+			.Field<&PartyDefinition::StartingMembers>("StartingMembers", "Starting Members").Tooltip("In the party from the start of a run, in this order; they never leave").DataTypeFilter("HeroDefinition")
+			.Field<&PartyDefinition::BattleSize>("BattleSize", "Battle Size").Range(1.0f, 4.0f).Tooltip("Members who fight, from the front of the party; the others wait in reserve")
+			.Field<&PartyDefinition::ReserveExperience>("ReserveExperience", "Reserve Experience").Range(0.0f, 1.0f).Tooltip("Share of a won battle's experience the members in reserve get");
 
 		DataTypeRegistry::Register<CombatStats>("CombatStats", "Combat Stats")
 			.Field<&CombatStats::MaxHP>("MaxHP", "Max HP").Range(0.0f, 9999.0f)

@@ -3,7 +3,7 @@
 #include "Hydro.h"
 #include "Data/ItemDefinition.h"
 #include "Rules/PartyRules.h"
-#include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "State/Inventory.h"
 #include "Views/ViewHelpers.h"
 
@@ -18,7 +18,7 @@ namespace Hydro
 	class EquipmentView
 	{
 	public:
-		static constexpr int SlotRows = BattleState::EquipSlotCount;
+		static constexpr int SlotRows = PartyMember::EquipSlotCount;
 		static constexpr int ChoiceRows = 10; // row 0 takes off, then up to 9 items
 		static constexpr int StatCount = 5;
 
@@ -59,7 +59,7 @@ namespace Hydro
 
 		void SetHero(int hero)
 		{
-			m_Hero = std::clamp(hero, 0, HeroCount - 1);
+			m_Hero = std::clamp(hero, 0, std::max(0, PartyState::Get().GetSize() - 1));
 			Present();
 		}
 
@@ -140,7 +140,7 @@ namespace Hydro
 				return;
 			}
 			const std::array<DataRowRef, SlotRows>& worn = Worn();
-			UI::SetText(EntityOf(m_SlotHeader), GetHero(m_Hero).Name);
+			UI::SetText(EntityOf(m_SlotHeader), Member().GetStats().Name);
 			for (int i = 0; i < SlotRows; i++)
 			{
 				UI::SetText(EntityOf(m_SlotNames[i]), PartyRules::GetPositionName((EquipPosition)i));
@@ -151,7 +151,8 @@ namespace Hydro
 		}
 
 	private:
-		std::array<DataRowRef, SlotRows>& Worn() { return BattleState::Get().HeroEquipment[m_Hero]; }
+		PartyMember& Member() { return PartyState::Get().GetMember(m_Hero); }
+		std::array<DataRowRef, SlotRows>& Worn() { return Member().Equipment; }
 
 		static std::string NameOf(const DataRowRef& reference, const char* none)
 		{
@@ -205,9 +206,10 @@ namespace Hydro
 		// Gold where `with` is better than what is worn, red where it is worse.
 		void PresentStats(const std::array<DataRowRef, SlotRows>& with)
 		{
-			const int level = std::max(1, BattleState::Get().HeroLevel[m_Hero]);
-			const HeroStats now = BattleData::StatsWith(m_Hero, level, Worn());
-			const HeroStats then = BattleData::StatsWith(m_Hero, level, with);
+			const PartyMember& member = Member();
+			const int level = std::max(1, member.Level);
+			const HeroStats now = BattleData::StatsWith(member.Hero, level, Worn());
+			const HeroStats then = BattleData::StatsWith(member.Hero, level, with);
 			const int a[StatCount] = { now.MaxHP, now.MaxMP, now.Attack, now.Magic, now.Speed };
 			const int b[StatCount] = { then.MaxHP, then.MaxMP, then.Attack, then.Magic, then.Speed };
 			for (int i = 0; i < StatCount; i++)
@@ -244,10 +246,11 @@ namespace Hydro
 				}
 			}
 			// A lower maximum can't leave more HP or MP than it allows.
-			BattleState& party = BattleState::Get();
-			party.HeroHP[m_Hero] = std::min(party.HeroHP[m_Hero], GetHero(m_Hero).MaxHP);
-			party.HeroMP[m_Hero] = std::min(party.HeroMP[m_Hero], GetHero(m_Hero).MaxMP);
-			HY_INFO("Menu: {}'s {} = {}", GetHero(m_Hero).Name, PartyRules::GetPositionName(position), NameOf(Worn()[(size_t)position], "(nothing)"));
+			PartyMember& member = Member();
+			const HeroStats stats = member.GetStats();
+			member.HP = std::min(member.HP, stats.MaxHP);
+			member.MP = std::min(member.MP, stats.MaxMP);
+			HY_INFO("Menu: {}'s {} = {}", stats.Name, PartyRules::GetPositionName(position), NameOf(Worn()[(size_t)position], "(nothing)"));
 			m_Choosing = false;
 			m_Changed = true;
 			Present();

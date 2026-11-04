@@ -2,7 +2,7 @@
 
 #include "Hydro.h"
 #include "Rules/PartyRules.h"
-#include "State/BattleState.h"
+#include "State/PartyState.h"
 #include "Views/ViewHelpers.h"
 
 #include <algorithm>
@@ -16,7 +16,7 @@ namespace Hydro
 	class AbilitiesView
 	{
 	public:
-		static constexpr int SlotRows = BattleState::AbilitySlotCount;
+		static constexpr int SlotRows = PartyMember::AbilitySlotCount;
 		static constexpr int KnownRows = 10; // row 0 empties the slot, then up to 9 known abilities
 
 		enum class Request : uint8_t { None, Back };
@@ -53,7 +53,7 @@ namespace Hydro
 
 		void SetHero(int hero)
 		{
-			m_Hero = std::clamp(hero, 0, HeroCount - 1);
+			m_Hero = std::clamp(hero, 0, std::max(0, PartyState::Get().GetSize() - 1));
 			Present();
 		}
 
@@ -135,7 +135,8 @@ namespace Hydro
 				UI::SetText(EntityOf(m_SlotNames[i]), set ? ability.Name : std::string("-"));
 				UI::SetText(EntityOf(m_SlotCosts[i]), set ? std::to_string(ability.Cost) + " MP" : std::string());
 			}
-			UI::SetText(EntityOf(m_SlotCount), GetHero(m_Hero).Name + "   " + std::to_string(filled) + " / " + std::to_string(SlotRows));
+			const std::string count = std::to_string(filled) + " / " + std::to_string(SlotRows);
+			UI::SetText(EntityOf(m_SlotCount), Member().GetStats().Name + "   " + count);
 
 			const std::vector<DataRowRef>& known = Known();
 			UI::SetText(EntityOf(m_KnownCount), std::to_string(known.size()));
@@ -162,8 +163,9 @@ namespace Hydro
 		}
 
 	private:
-		std::array<DataRowRef, SlotRows>& Slots() { return BattleState::Get().HeroAbilitySlots[m_Hero]; }
-		const std::vector<DataRowRef>& Known() { return BattleState::Get().HeroAbilities[m_Hero]; }
+		PartyMember& Member() { return PartyState::Get().GetMember(m_Hero); }
+		std::array<DataRowRef, SlotRows>& Slots() { return Member().AbilitySlots; }
+		const std::vector<DataRowRef>& Known() { return Member().Abilities; }
 
 		// 0, the "empty" row, for an unset or unknown ability.
 		int RowOf(const DataRowRef& ability)
@@ -183,7 +185,7 @@ namespace Hydro
 		void Assign(const DataRowRef& ability)
 		{
 			PartyRules::SetAbilitySlot(Slots(), Known(), (size_t)std::clamp(m_Slot, 0, SlotRows - 1), ability);
-			HY_INFO("Menu: {}'s ability slot {} = {}", GetHero(m_Hero).Name, m_Slot + 1,
+			HY_INFO("Menu: {}'s ability slot {} = {}", Member().GetStats().Name, m_Slot + 1,
 				ability.IsSet() ? BattleData::Ability(ability).Name : std::string("(empty)"));
 			m_Choosing = false;
 			Present();
@@ -237,7 +239,7 @@ namespace Hydro
 		entt::entity m_KnownSlots[KnownRows] = {};
 		entt::entity m_SlotCount = entt::null, m_KnownCount = entt::null;
 		entt::entity m_DetailName = entt::null, m_DetailInfo = entt::null, m_DetailText = entt::null, m_Help = entt::null;
-		int m_Hero = 0;          // whose slots
+		int m_Hero = 0;          // whose slots: an index into the party
 		int m_Slot = 0;          // the slot last focused: where a chosen ability goes
 		bool m_Choosing = false; // the focus is in the known list
 	};
