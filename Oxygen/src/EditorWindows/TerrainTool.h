@@ -7,6 +7,8 @@
 #include <Hydro/Scene/Scene.h>
 #include <Hydro/Terrain/Terrain.h>
 
+#include "Terrain/TerrainBrushes.h"
+
 #include <glm/glm.hpp>
 
 #include <cstdint>
@@ -58,32 +60,18 @@ namespace Hydro
 
 	private:
 		void BeginStroke(const Ref<Terrain>& terrain, AssetHandle handle);
-		// One dab at `centre` (the terrain's space, metres) for `deltaTime` seconds.
-		void Paint(Terrain& terrain, const glm::vec2& centre, bool lower, float deltaTime);
-		// Raise / Lower (`step` +1 or -1, each corner once per stroke) or Flatten to m_FlattenLevel.
-		void ChangeLevels(Terrain& terrain, const glm::vec2& centre, int32_t step, bool flatten);
-		void PaintWalls(Terrain& terrain, const glm::vec2& centre);
-		// Gives the cells under the brush the direction from the stroke's start to `centre`, or none.
-		void PaintRamps(Terrain& terrain, const glm::vec2& centre, bool clear);
 		// Paints m_Layer along the curve through m_PathPoints as one stroke.
 		void ApplyPath(const Ref<Terrain>& terrain, AssetHandle handle, EditorCommandStack& commands);
 		// A new .hyterrain in Assets/Terrains, named after the entity, assigned to `component`.
 		void CreateTerrainAsset(Entity entity, TerrainComponent& component);
 
 		void DrawBrush(const Ref<Terrain>& terrain);
-		void DrawTerrainSettings(const Ref<Terrain>& terrain);
 
 	private:
 		// Brush settings, for this session only.
 		bool m_Editing = false;
 		TerrainBrush m_Brush = TerrainBrush::Paint;
-		uint32_t m_Layer = 1;      // Paint and Path: the layer
-		uint8_t m_WallLayer = 0;   // Wall: 0..3 or TerrainWallHidden
-		float m_Radius = 1.0f;     // metres
-		float m_Strength = 0.5f;   // Paint: how fast a dab reaches full weight (0..1)
-		float m_Hardness = 0.5f;   // Paint: share of the radius at full strength; the rest fades out
-		float m_PathWidth = 1.6f;  // Path: metres
-		float m_PathWander = 0.15f; // Path: how far the edges wander in and out, metres
+		TerrainBrushSettings m_BrushSettings;
 		glm::vec2 m_NewTerrainSize{ 32.0f, 32.0f }; // metres, for Create Terrain
 
 		// Under the cursor.

@@ -617,7 +617,7 @@ namespace Hydro
 		UIImageComponent(const UIImageComponent&) = default;
 	};
 
-	// Text in the element's rect in a bitmap font (laid out by TextLayout, drawn by SceneRenderer::SubmitUI).
+	// Text in the element's rect in a bitmap font (laid out by TextLayout, drawn by SceneUIRenderer::Submit).
 	struct UITextComponent
 	{
 		std::string Text;                   // UTF-8; \n breaks a line

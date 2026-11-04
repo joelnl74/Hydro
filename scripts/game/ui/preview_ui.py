@@ -1,4 +1,4 @@
-"""Draw a scene's runtime UI offline, the way Scene::ResolveUILayout and SceneRenderer::SubmitUI do, to check a layout
+"""Draw a scene's runtime UI offline, the way Scene::ResolveUILayout and SceneUIRenderer::Submit do, to check a layout
 without the engine (a cloud session, a quick look at a builder's output).
 
     python scripts/game/ui/preview_ui.py Oxygen/project/Assets/Scenes/Battle.hyscene --out preview.png
