@@ -2,6 +2,7 @@
 
 #include "Hydro/Data/DataType.h"
 #include "Hydro/Scene/Entity.h"
+#include "Hydro/Utils/YAMLConversions.h"
 
 #include <entt.hpp>
 
@@ -36,6 +37,26 @@ namespace Hydro
 		void (*CopyOne)(entt::registry& registry, entt::entity source, entt::entity destination) = nullptr;
 	};
 
+	// An engine component (Components.h): saved with its own YAML (ComponentSerializers), copied on Play and Duplicate.
+	struct EngineComponentInfo
+	{
+		// The saved key ("TransformComponent").
+		std::string Name;
+		std::type_index CppType = typeid(void);
+
+		bool (*Has)(const Entity& entity) = nullptr;
+		// The component's keys, inside the map EntitySerializer opens under Name. Null for one EntitySerializer writes and
+		// reads itself (RelationshipComponent).
+		void (*Save)(YAML::Emitter& out, const Entity& entity) = nullptr;
+		// Adds the component and reads it from the map saved under Name.
+		void (*Load)(const YAML::Node& node, Entity& entity) = nullptr;
+		void (*CopyAll)(entt::registry& destination, const entt::registry& source,
+			const std::unordered_map<entt::entity, entt::entity>& entityMap) = nullptr;
+		void (*CopyOne)(entt::registry& registry, entt::entity source, entt::entity destination) = nullptr;
+	};
+
+	// Every component type that is saved and copied: the engine's own (ComponentSerializers::RegisterEngineComponents) and
+	// the game's (HY_COMPONENT, generated). EntitySerializer, Scene::Copy and DuplicateEntity loop over both lists.
 	class ComponentRegistry
 	{
 	public:
@@ -49,9 +70,89 @@ namespace Hydro
 		static const ComponentTypeInfo* Find(const std::string& name);
 		static const ComponentTypeInfo* Find(std::type_index type);
 
+		// The engine's components, in the order entities save them; registered on first use.
+		static const std::vector<EngineComponentInfo>& GetEngineTypes();
+		// An engine component saved with `Save` and read with `Load` (ComponentSerializers).
+		template<typename T, void (*Save)(YAML::Emitter&, const T&), void (*Load)(const YAML::Node&, T&)>
+		static void RegisterEngine(const std::string& name);
+		// One that is copied but saved and read by EntitySerializer itself.
+		template<typename T>
+		static void RegisterEngineCopyOnly(const std::string& name);
+
 	private:
 		static void Add(ComponentTypeInfo&& info);
+		static void AddEngine(EngineComponentInfo&& info);
+
+		template<typename T>
+		static void CopyAllOf(entt::registry& destination, const entt::registry& source,
+			const std::unordered_map<entt::entity, entt::entity>& entityMap);
+		template<typename T>
+		static void CopyOneOf(entt::registry& registry, entt::entity source, entt::entity destination);
 	};
+
+	template<typename T>
+	void ComponentRegistry::CopyAllOf(entt::registry& destination, const entt::registry& source,
+		const std::unordered_map<entt::entity, entt::entity>& entityMap)
+	{
+		auto view = source.view<const T>();
+		for (auto sourceEntity : view)
+		{
+			auto it = entityMap.find(sourceEntity);
+			if (it != entityMap.end())
+			{
+				destination.emplace_or_replace<T>(it->second, view.template get<const T>(sourceEntity));
+			}
+		}
+	}
+
+	template<typename T>
+	void ComponentRegistry::CopyOneOf(entt::registry& registry, entt::entity source, entt::entity destination)
+	{
+		if (registry.has<T>(source))
+		{
+			// Copy first: emplacing can reallocate the pool the source lives in.
+			T copy = registry.get<T>(source);
+			registry.emplace_or_replace<T>(destination, std::move(copy));
+		}
+	}
+
+	template<typename T>
+	void ComponentRegistry::RegisterEngineCopyOnly(const std::string& name)
+	{
+		EngineComponentInfo info;
+		info.Name = name;
+		info.CppType = typeid(T);
+		info.Has = [](const Entity& entity) -> bool
+		{
+			return entity.HasComponent<T>();
+		};
+		info.CopyAll = &CopyAllOf<T>;
+		info.CopyOne = &CopyOneOf<T>;
+		AddEngine(std::move(info));
+	}
+
+	template<typename T, void (*Save)(YAML::Emitter&, const T&), void (*Load)(const YAML::Node&, T&)>
+	void ComponentRegistry::RegisterEngine(const std::string& name)
+	{
+		EngineComponentInfo info;
+		info.Name = name;
+		info.CppType = typeid(T);
+		info.Has = [](const Entity& entity) -> bool
+		{
+			return entity.HasComponent<T>();
+		};
+		info.Save = [](YAML::Emitter& out, const Entity& entity)
+		{
+			Save(out, entity.GetComponent<T>());
+		};
+		info.Load = [](const YAML::Node& node, Entity& entity)
+		{
+			Load(node, entity.AddComponent<T>());
+		};
+		info.CopyAll = &CopyAllOf<T>;
+		info.CopyOne = &CopyOneOf<T>;
+		AddEngine(std::move(info));
+	}
 
 	template<typename T>
 	void ComponentRegistry::Register(const std::string& name, const std::string& displayName, std::vector<std::string> formerNames)
@@ -87,28 +188,8 @@ namespace Hydro
 				entity.RemoveComponent<T>();
 			}
 		};
-		info.CopyAll = [](entt::registry& destination, const entt::registry& source,
-			const std::unordered_map<entt::entity, entt::entity>& entityMap)
-		{
-			auto view = source.view<const T>();
-			for (auto sourceEntity : view)
-			{
-				auto it = entityMap.find(sourceEntity);
-				if (it != entityMap.end())
-				{
-					destination.emplace_or_replace<T>(it->second, view.template get<const T>(sourceEntity));
-				}
-			}
-		};
-		info.CopyOne = [](entt::registry& registry, entt::entity source, entt::entity destination)
-		{
-			if (registry.has<T>(source))
-			{
-				// Copy first: emplacing can reallocate the pool the source lives in.
-				T copy = registry.get<T>(source);
-				registry.emplace_or_replace<T>(destination, std::move(copy));
-			}
-		};
+		info.CopyAll = &CopyAllOf<T>;
+		info.CopyOne = &CopyOneOf<T>;
 		Add(std::move(info));
 	}
 }

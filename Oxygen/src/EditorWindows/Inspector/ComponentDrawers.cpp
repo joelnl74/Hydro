@@ -1,5 +1,7 @@
 #include "ComponentDrawers.h"
 
+#include <Hydro/Scene/ComponentRegistry.h>
+
 #include <algorithm>
 #include <cstring>
 
@@ -15,6 +17,17 @@ namespace Hydro
 			AddMeshDrawers(drawers);
 			AddPhysicsDrawers(drawers);
 			AddUIDrawers(drawers);
+
+			// Every saved engine component should have a section (the parent is the hierarchy's).
+			for (const EngineComponentInfo& type : ComponentRegistry::GetEngineTypes())
+			{
+				const bool drawn = std::any_of(drawers.begin(), drawers.end(),
+					[&](const ComponentDrawer& drawer) { return drawer.CppType == type.CppType; });
+				if (drawn == false && type.Save != nullptr)
+				{
+					HY_WARN("Inspector: engine component {} has no drawer (Inspector/<Family>ComponentDrawers.cpp)", type.Name);
+				}
+			}
 			return drawers;
 		}();
 		return s_Drawers;

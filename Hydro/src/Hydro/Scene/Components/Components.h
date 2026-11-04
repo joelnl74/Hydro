@@ -692,19 +692,4 @@ namespace Hydro
 		UIFocusVisibilityComponent() = default;
 		UIFocusVisibilityComponent(const UIFocusVisibilityComponent&) = default;
 	};
-
-	template<typename... Component>
-	struct ComponentGroup
-	{
-	};
-
-	// Engine components that are plain copyable data (not Tag or ID, which every entity has). Scene::Copy copies
-	// these: add new copyable components here.
-	using CopyableComponents = ComponentGroup<
-		RelationshipComponent, TransformComponent, SpriteRendererComponent, CameraComponent, SpriteAnimatorComponent,
-		Light2DComponent, Shadow2DComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
-		ParticleEmitter2DComponent, MeshComponent, DirectionalLightComponent, BoxColliderComponent,
-		SphereColliderComponent, CapsuleColliderComponent, CylinderColliderComponent, MeshColliderComponent,
-		CharacterBodyComponent, TerrainComponent, UICanvasComponent, UIRectComponent, UIImageComponent,
-		UIButtonComponent, UITextComponent, UILayoutGroupComponent, UIScrollViewComponent, UIFocusVisibilityComponent>;
 }

@@ -63,24 +63,6 @@ namespace Hydro
 
 	}
 
-	template<typename... Component>
-	static void CopyComponents(ComponentGroup<Component...>, entt::registry& destination, const entt::registry& source,
-		const std::unordered_map<entt::entity, entt::entity>& entityMap)
-	{
-		([&]()
-		{
-			auto view = source.view<const Component>();
-			for (auto sourceEntity : view)
-			{
-				auto it = entityMap.find(sourceEntity);
-				if (it != entityMap.end())
-				{
-					destination.emplace_or_replace<Component>(it->second, view.template get<const Component>(sourceEntity));
-				}
-			}
-		}(), ...);
-	}
-
 	Ref<RenderProfile> Scene::GetRenderProfile() const
 	{
 		return (uint64_t)m_Look.Profile != 0 ? AssetManager::GetLoadedAsset<RenderProfile>(m_Look.Profile) : nullptr;
@@ -136,8 +118,11 @@ namespace Hydro
 			entityMap[sourceEntity] = copy->CreateEntityWithUUID(uuid, name);
 		}
 
-		CopyComponents(CopyableComponents{}, copy->m_Registry, sourceRegistry, entityMap);
-		// The game's own components (HY_COMPONENT, ComponentRegistry).
+		// The engine's components and the game's own (HY_COMPONENT), both from ComponentRegistry.
+		for (const EngineComponentInfo& type : ComponentRegistry::GetEngineTypes())
+		{
+			type.CopyAll(copy->m_Registry, sourceRegistry, entityMap);
+		}
 		for (const ComponentTypeInfo& type : ComponentRegistry::GetTypes())
 		{
 			type.CopyAll(copy->m_Registry, sourceRegistry, entityMap);
@@ -166,21 +151,6 @@ namespace Hydro
 		}
 
 		return copy;
-	}
-
-	template<typename... Component>
-	static void CopyComponentsOfEntity(ComponentGroup<Component...>, entt::registry& registry, entt::entity source,
-		entt::entity destination)
-	{
-		([&]()
-		{
-			if (registry.has<Component>(source))
-			{
-				// Copy first: emplacing can reallocate the pool the source component lives in.
-				Component copy = registry.get<Component>(source);
-				registry.emplace_or_replace<Component>(destination, std::move(copy));
-			}
-		}(), ...);
 	}
 
 	// Native scripts: copies the bindings, not the instances (those belong to the source entity).
@@ -261,7 +231,10 @@ namespace Hydro
 		for (Entity original : originals)
 		{
 			Entity copy = CreateEntity(original.GetName());
-			CopyComponentsOfEntity(CopyableComponents{}, m_Registry, original, copy);
+			for (const EngineComponentInfo& type : ComponentRegistry::GetEngineTypes())
+			{
+				type.CopyOne(m_Registry, original, copy);
+			}
 			for (const ComponentTypeInfo& type : ComponentRegistry::GetTypes())
 			{
 				type.CopyOne(m_Registry, original, copy);

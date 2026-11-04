@@ -39,7 +39,7 @@ namespace Hydro
 
 		void Init();
 
-		// A play-mode copy of `source`: every CreateEntity entity with the same UUIDs, its CopyableComponents and
+		// A play-mode copy of `source`: every CreateEntity entity with the same UUIDs, its registered components and
 		// script bindings (instances are created fresh), plus the name and viewport size.
 		static Ref<Scene> Copy(const Ref<Scene>& source);
 

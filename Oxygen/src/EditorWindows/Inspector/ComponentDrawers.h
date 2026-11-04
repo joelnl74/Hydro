@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 
 #include <functional>
+#include <typeindex>
 #include <vector>
 
 namespace Hydro
@@ -27,6 +28,7 @@ namespace Hydro
 	struct ComponentDrawer
 	{
 		const char* Name = "";
+		std::type_index CppType = typeid(void);
 		// The Add Component submenu ("" = the top level) and the item's label there.
 		const char* Menu = "";
 		const char* MenuLabel = "";
@@ -95,6 +97,7 @@ namespace Hydro
 		{
 			ComponentDrawer drawer;
 			drawer.Name = name;
+			drawer.CppType = typeid(T);
 			drawer.Menu = menu;
 			drawer.MenuLabel = menuLabel != nullptr ? menuLabel : name;
 			drawer.Has = &Has<T>;
