@@ -21,7 +21,7 @@ namespace Hydro
 	class FieldMenuView
 	{
 	public:
-		enum class Tab : uint8_t { Inventory = 0, Quests, Character, Abilities, Equipment, Party, System };
+		enum class Tab : uint8_t { Journal = 0, Inventory, Character, Abilities, Equipment, Party, System };
 		static constexpr int TabCount = 7;
 
 		// What the director has to do: use the chosen item, close the menu, or the System page's save, load and restart.
@@ -72,8 +72,8 @@ namespace Hydro
 		{
 			switch (tab)
 			{
+			case Tab::Journal: return "Journal";
 			case Tab::Inventory: return "Inventory";
-			case Tab::Quests: return "Quests";
 			case Tab::Character: return "Character";
 			case Tab::Abilities: return "Abilities";
 			case Tab::Equipment: return "Equipment";
@@ -337,7 +337,6 @@ namespace Hydro
 			{
 				const bool selected = t == (int)tab;
 				ViewHelpers::SetVisible(EntityOf(m_Pages[t]), selected);
-				ViewHelpers::SetVisible(EntityOf(m_TabMarks[t]), selected);
 				Entity name = EntityOf(m_TabNames[t]);
 				if (UITextComponent* text = name.IsValid() ? name.TryGetComponent<UITextComponent>() : nullptr)
 				{
@@ -349,12 +348,22 @@ namespace Hydro
 			{
 				m_Items.PresentDetails();
 			}
-			else if (tab == Tab::Quests)
+			else if (tab == Tab::Journal)
 			{
 				m_Quests.PresentDetails();
 			}
 			Present();
 			PresentTabHelp();
+		}
+
+		// The selected tab keeps a dim cursor only while the focus is in its page; on the tabs the focus cursor is the
+		// only one, so a mark can never sit on a different row from the focus.
+		void PresentMarks()
+		{
+			for (int t = 0; t < TabCount; t++)
+			{
+				ViewHelpers::SetVisible(EntityOf(m_TabMarks[t]), m_InPage && t == (int)m_Selected);
+			}
 		}
 
 		// A page without a list (Character) leaves the focus on the tabs.
@@ -366,7 +375,7 @@ namespace Hydro
 				m_Items.Focus();
 				PresentKeys();
 			}
-			else if (m_Selected == Tab::Quests && m_Quests.HasQuests())
+			else if (m_Selected == Tab::Journal && m_Quests.HasQuests())
 			{
 				m_InPage = true;
 				m_Quests.Focus();
@@ -412,7 +421,7 @@ namespace Hydro
 			case Tab::Inventory:
 				UI::SetText(EntityOf(m_Help), m_Items.HasItems() ? "Look through and use your items." : "The bag is empty.");
 				break;
-			case Tab::Quests:
+			case Tab::Journal:
 				UI::SetText(EntityOf(m_Help), m_Quests.HasQuests() ? "Look back over your quests." : "No quests yet.");
 				break;
 			case Tab::Character:
@@ -437,6 +446,7 @@ namespace Hydro
 
 		void PresentKeys()
 		{
+			PresentMarks();
 			if (m_InPage)
 			{
 				const char* keys = "Esc  Back        Tab  Close";
@@ -465,7 +475,7 @@ namespace Hydro
 				UI::SetText(EntityOf(m_Keys), HeroKeys() + keys);
 				return;
 			}
-			const bool opens = (m_Selected == Tab::Inventory && m_Items.HasItems()) || (m_Selected == Tab::Quests && m_Quests.HasQuests())
+			const bool opens = (m_Selected == Tab::Inventory && m_Items.HasItems()) || (m_Selected == Tab::Journal && m_Quests.HasQuests())
 				|| m_Selected == Tab::Abilities || m_Selected == Tab::Equipment || m_Selected == Tab::Party || m_Selected == Tab::System;
 			UI::SetText(EntityOf(m_Keys), HeroKeys() + (opens ? "Enter  Open        Esc / Tab  Close" : "Esc / Tab  Close"));
 		}
@@ -496,7 +506,7 @@ namespace Hydro
 		Status m_Status[StatusRows];
 		entt::entity m_MoneyLabel = entt::null, m_Money = entt::null;
 		int m_Hero = 0;                  // whose page the hero pages show (Q / E): an index into the party
-		Tab m_Selected = Tab::Inventory; // kept between opens
+		Tab m_Selected = Tab::Journal;   // kept between opens
 		bool m_InPage = false;           // the focus is in the page, not on the tabs
 	};
 }

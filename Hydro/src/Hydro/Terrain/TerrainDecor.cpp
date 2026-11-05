@@ -110,7 +110,7 @@ namespace Hydro
 	// Whether the top layer at `position` is `layer` and, for a border, another layer wins close by.
 	static bool LayerMatches(const Terrain& terrain, const TerrainDecorRule& rule, const glm::vec2& position)
 	{
-		if (TerrainMesher::GetTopLayerAt(terrain, position) != rule.Layer)
+		if (TerrainAnalysis::GetTopLayerAt(terrain, position) != rule.Layer)
 		{
 			return false;
 		}
@@ -122,7 +122,7 @@ namespace Hydro
 		const glm::vec2 around[4] = { { reach, 0.0f }, { -reach, 0.0f }, { 0.0f, reach }, { 0.0f, -reach } };
 		for (const glm::vec2& offset : around)
 		{
-			if (TerrainMesher::GetTopLayerAt(terrain, position + offset) != rule.Layer)
+			if (TerrainAnalysis::GetTopLayerAt(terrain, position + offset) != rule.Layer)
 			{
 				return true;
 			}
@@ -130,7 +130,7 @@ namespace Hydro
 		return false;
 	}
 
-	void TerrainDecor::AddChunk(const Terrain& terrain, const TerrainMesher& mesher, uint32_t chunkX, uint32_t chunkY,
+	void TerrainDecor::AddChunk(const Terrain& terrain, const TerrainAnalysis& analysis, uint32_t chunkX, uint32_t chunkY,
 		TerrainMeshBuilder& parts)
 	{
 		const TerrainSettings& settings = terrain.GetSettings();
@@ -139,7 +139,7 @@ namespace Hydro
 		const uint32_t maxX = std::min(minX + TerrainChunkCells, terrain.GetCellCountX());
 		const uint32_t maxY = std::min(minY + TerrainChunkCells, terrain.GetCellCountY());
 		const float cell = settings.CellSize;
-		const std::vector<TerrainMesher::WallSegment>& segments = mesher.GetWallSegments();
+		const std::vector<TerrainAnalysis::WallSegment>& segments = analysis.GetWallSegments();
 
 		const uint32_t ruleCount = std::min((uint32_t)settings.Decor.size(), MaxTerrainDecorRules);
 		for (uint32_t ruleIndex = 0; ruleIndex < ruleCount; ruleIndex++)
@@ -165,7 +165,7 @@ namespace Hydro
 							float r[6];
 							for (int n = 0; n < 6; n++)
 							{
-								r[n] = TerrainMesher::Hash01({ settings.Seed, i, j, ruleIndex, k * 8 + n, TagDecor });
+								r[n] = TerrainAnalysis::Hash01({ settings.Seed, i, j, ruleIndex, k * 8 + n, TagDecor });
 							}
 							if (r[0] >= keep)
 							{
@@ -176,7 +176,7 @@ namespace Hydro
 							{
 								continue;
 							}
-							AddInstance(rule, ruleIndex, glm::vec3(position, mesher.GetHeightAt(position)), r[3], r[4], r[5], parts);
+							AddInstance(rule, ruleIndex, glm::vec3(position, analysis.GetHeightAt(position)), r[3], r[4], r[5], parts);
 						}
 					}
 				}
@@ -191,10 +191,10 @@ namespace Hydro
 				{
 					uint32_t first = 0;
 					uint32_t end = 0;
-					mesher.GetCellSegments(i, j, first, end);
+					analysis.GetCellSegments(i, j, first, end);
 					for (uint32_t s = first; s < end; s++)
 					{
-						const TerrainMesher::WallSegment& segment = segments[s];
+						const TerrainAnalysis::WallSegment& segment = segments[s];
 						const bool top = rule.Place == TerrainDecorPlace::WallTop;
 						// A Hidden wall is where a mesh stands in (stairs, a building's footing): nothing grows along it.
 						if (segment.Material == TerrainWallHidden || (top && segment.IsTop == false)
@@ -204,7 +204,7 @@ namespace Hydro
 						}
 						glm::vec3 a;
 						glm::vec3 b;
-						mesher.GetSegmentLine(segment, top ? segment.Level : segment.Level - 1, a, b);
+						analysis.GetSegmentLine(segment, top ? segment.Level : segment.Level - 1, a, b);
 						const glm::vec2 edge(b.x - a.x, b.y - a.y);
 						const float length = glm::length(edge);
 						if (length < 1e-5f)
@@ -219,7 +219,7 @@ namespace Hydro
 							float r[6];
 							for (int m = 0; m < 6; m++)
 							{
-								r[m] = TerrainMesher::Hash01({ settings.Seed, n, segment.Level, ruleIndex, m, TagDecor + 1 });
+								r[m] = TerrainAnalysis::Hash01({ settings.Seed, n, segment.Level, ruleIndex, m, TagDecor + 1 });
 							}
 							const float along = ((float)n + 0.5f) * spacing + (r[0] - 0.5f) * spacing * 0.8f;
 							const float f = (along - segment.U) / length;
@@ -237,12 +237,12 @@ namespace Hydro
 							{
 								// On the lower ground, only where it is ground (not a ledge of a taller wall).
 								position = onLine - inward * (0.04f + r[1] * 0.1f);
-								if (std::abs(mesher.GetHeightAt(position) - a.z) > 0.02f)
+								if (std::abs(analysis.GetHeightAt(position) - a.z) > 0.02f)
 								{
 									continue;
 								}
 							}
-							AddInstance(rule, ruleIndex, glm::vec3(position, top ? a.z : mesher.GetHeightAt(position)), r[2], r[3],
+							AddInstance(rule, ruleIndex, glm::vec3(position, top ? a.z : analysis.GetHeightAt(position)), r[2], r[3],
 								r[4], parts);
 						}
 					}

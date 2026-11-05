@@ -131,7 +131,7 @@ class Grid:
         return tm.Terrain(levels=self.levels.copy(), ramps=self.ramps.copy(), wall_material=self.walls.copy(), seed=seed, settings=settings)
 
     def height_at(self, terrain, x, y):
-        """The ground's height at world (x, y): the band (or ramp) under it, as the engine's TerrainMesher::GetHeightAt."""
+        """The ground's height at world (x, y): the band (or ramp) under it, as the engine's TerrainAnalysis::GetHeightAt."""
         lx = (x - self.x0) / self.cell
         ly = (y - self.y0) / self.cell
         i = int(min(max(math.floor(lx), 0), self.nx - 2))

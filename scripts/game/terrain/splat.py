@@ -8,7 +8,7 @@ so painted areas stay clean and only borders go ragged.
 Blending (Oct 31; terrain.frag follows bake_blended): each layer's score also gets its texture's brightness
 (HeightBlend: bright blades and stones reach into the neighbour, dark gaps let it through), and inside the blend
 band (Blend, weight units) the winner's colour is mixed with the runner-up's in steps of 25 % (50 % at a tie).
-The CPU winner (winners(), TerrainMesher::GetTopLayerAt: fringe and decor) has no textures and ignores the height.
+The CPU winner (winners(), TerrainAnalysis::GetTopLayerAt: fringe and decor) has no textures and ignores the height.
 """
 
 from dataclasses import dataclass

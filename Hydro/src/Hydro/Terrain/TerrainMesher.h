@@ -1,19 +1,17 @@
 #pragma once
 #include "Hydro/Renderer/Mesh.h"
 #include "Hydro/Terrain/Terrain.h"
+#include "Hydro/Terrain/TerrainAnalysis.h"
 
 #include <glm/glm.hpp>
 
 #include <cstdint>
-#include <initializer_list>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace Hydro
 {
-	struct TerrainMeshBuilder;      // TerrainMesher.cpp
-	struct TerrainCollisionBuilder; // TerrainMesher.cpp
+	struct TerrainMeshBuilder;      // TerrainMeshBuilder.h
+	struct TerrainCollisionBuilder; // TerrainMeshBuilder.h
 
 	// The sub-meshes of a chunk's Parts mesh, by SubMesh::MaterialSlot (GetPartKind). Walls, lip faces and fringes
 	// have one slot per layer.
@@ -36,40 +34,10 @@ namespace Hydro
 		MeshData Parts;
 	};
 
-	// Turns a terrain's data into chunk meshes and collision, following scripts/terrain/terrain_mesher.py (same
-	// hashes and rules). Built once per shape revision: the analysis ignores the painted weights.
+	// Turns a terrain's data into chunk meshes and collision from its TerrainAnalysis. Built once per shape revision:
+	// the analysis ignores the painted weights.
 	class TerrainMesher
 	{
-	public:
-		// A corner or a crossing point on a cell's boundary. Key is global and canonical: the corner (i, j), or the
-		// grid edge (i, j, H) from corner (i, j) to (i + 1, j) or (i, j, V) from (i, j) to (i, j + 1).
-		struct BoundaryPoint
-		{
-			uint64_t Key = 0;
-			uint8_t Slot = 0; // in the cell's 8-slot cycle, counter-clockwise from the south-west corner (even = corners)
-			int32_t Lo = 0;
-			int32_t Hi = 0;
-		};
-
-		// A wall's piece in one cell: the outline of Region(>= Level) from A to B (the region on the left).
-		struct WallSegment
-		{
-			int32_t Level = 0;
-			BoundaryPoint A;
-			BoundaryPoint B;
-			glm::uvec2 Cell{ 0 };
-			uint8_t Material = 0;
-			bool IsTop = false; // the highest wall at this outline: gets the lip, fringe and caps
-			float U = 0.0f;     // distance along the outline at A (metres)
-		};
-
-		// A validated ramp cell: the heights (in levels, fractional) of its corners SW, SE, NE, NW.
-		struct RampCell
-		{
-			bool Valid = false;
-			float Heights[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		};
-
 	public:
 		explicit TerrainMesher(const Terrain& terrain);
 
@@ -78,19 +46,8 @@ namespace Hydro
 		// Tops, ramps and walls (Hidden ones too); not the lip, fringe, caps or decor.
 		void BuildCollision(std::vector<glm::vec3>& positions, std::vector<uint32_t>& indices) const;
 
-		// What the analysis found wrong (an invalid ramp run is drawn as a cliff), for the inspector.
-		const std::vector<std::string>& GetProblems() const { return m_Problems; }
-		// Whether the chunk has walls (painting there changes its fringe).
-		bool ChunkHasWalls(uint32_t chunkX, uint32_t chunkY) const;
-
-		// For the decor (TerrainDecor): every wall segment, cell by cell; the segments of cell (x, y); where a segment
-		// runs at a level (its top is at segment.Level, its foot at segment.Level - 1); whether a cell is a valid ramp.
-		const std::vector<WallSegment>& GetWallSegments() const;
-		void GetCellSegments(uint32_t cellX, uint32_t cellY, uint32_t& first, uint32_t& end) const;
-		void GetSegmentLine(const WallSegment& segment, int32_t level, glm::vec3& a, glm::vec3& b) const;
-		bool IsRamp(uint32_t cellX, uint32_t cellY) const { return GetRamp(cellX, cellY).Valid; }
-		// The ground's height at a point (the band or ramp under it; the top of a wall's shelf on the wall line).
-		float GetHeightAt(const glm::vec2& position) const;
+		// What the meshes are built from: problems for the inspector, wall segments and heights for the decor.
+		const TerrainAnalysis& GetAnalysis() const { return m_Analysis; }
 
 		// A Parts sub-mesh's slot: its kind and an index (the wall or top layer; for decor, rule * 256 + sprite).
 		static uint32_t GetPartSlot(TerrainPartKind kind, uint32_t index)
@@ -100,29 +57,11 @@ namespace Hydro
 		static TerrainPartKind GetPartKind(uint32_t slot) { return (TerrainPartKind)(slot >> 16); }
 		static uint32_t GetPartIndex(uint32_t slot) { return slot & 0xFFFF; }
 
-		// The top layer that wins at a point: terrain.frag's pixel splat on the CPU.
-		static uint32_t GetTopLayerAt(const Terrain& terrain, const glm::vec2& position);
-		// terrain_mesher.hash_u32 (negative values wrap as uint32), and the same as 0..1.
-		static uint32_t Hash(std::initializer_list<int64_t> values);
-		static float Hash01(std::initializer_list<int64_t> values);
-
 	private:
-		void FindRampRuns();
-		void CollectWallSegments();
-		void ComputeOutlineDistances();
+		using BoundaryPoint = TerrainAnalysis::BoundaryPoint;
+		using WallSegment = TerrainAnalysis::WallSegment;
 
-		int32_t Level(int64_t i, int64_t j) const;
-		float LevelZ(float level) const;
-		uint32_t CellCycle(uint32_t i, uint32_t j, BoundaryPoint* points) const;
-		float EdgeVariation(uint32_t orient, int64_t i, int64_t j) const;
-		float EdgeSlope(uint32_t orient, int64_t i, int64_t j) const;
-		float CrossingParam(uint32_t orient, int64_t i, int64_t j) const;
-		glm::vec3 EdgePoint(uint32_t orient, int64_t i, int64_t j, int32_t level) const;
-		glm::vec2 EdgeDownDirection(uint32_t orient, int64_t i, int64_t j) const;
-		glm::vec3 PointAt(const BoundaryPoint& point, int32_t level) const;
-		glm::vec3 WallPointAt(const BoundaryPoint& point, int32_t level) const;
-		const RampCell& GetRamp(uint32_t i, uint32_t j) const { return m_RampCells[(size_t)j * m_CellsX + i]; }
-
+		// An edge's heights along it (0..1) between its two corners, through its crossings: what a ramp's side meets.
 		void EdgeProfile(uint32_t orient, int64_t i, int64_t j, std::vector<glm::vec2>& profile) const;
 
 		void AddTops(uint32_t i, uint32_t j, TerrainMeshBuilder* tops, TerrainCollisionBuilder* collision) const;
@@ -134,11 +73,8 @@ namespace Hydro
 
 	private:
 		const Terrain& m_Terrain;
+		TerrainAnalysis m_Analysis;
 		uint32_t m_CellsX = 0;
 		uint32_t m_CellsY = 0;
-		std::vector<RampCell> m_RampCells;
-		std::vector<WallSegment> m_Segments;          // every wall segment, cell by cell (row-major)
-		std::vector<uint32_t> m_FirstSegment;         // per cell: its segments are [first[c], first[c + 1])
-		std::vector<std::string> m_Problems;
 	};
 }

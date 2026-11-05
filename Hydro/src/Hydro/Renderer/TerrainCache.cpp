@@ -122,7 +122,7 @@ namespace Hydro
 			{
 				entry.Mesher = CreateScope<TerrainMesher>(terrain);
 				entry.MesherRevision = terrain.GetCollisionRevision();
-				entry.Data.Problems = entry.Mesher->GetProblems();
+				entry.Data.Problems = entry.Mesher->GetAnalysis().GetProblems();
 			}
 
 			TerrainChunkMesh mesh = entry.Mesher->BuildChunk(chunk % chunksX, chunk / chunksX);

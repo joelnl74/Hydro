@@ -97,11 +97,13 @@ def fill(inset=(0, 0, 0, 0), visible=True):
     return rect((0, 0), (1, 1), (0.5, 0.5), ((l - r) / 2, (b - t) / 2), (-(l + r), -(b + t)), visible)
 
 
-def image(art=None, color=(1, 1, 1, 1), sprite=0, texture=None, flip_x=False, nine=True):
+def image(art=None, color=(1, 1, 1, 1), sprite=0, texture=None, flip_x=False, nine=True, sprite_name=None):
     i = {"SpriteIndex": sprite, "Color": list(color), "NineSlice": BORDERS.get(art, [0, 0, 0, 0]) if (art and nine) else [0, 0, 0, 0], "FlipX": flip_x, "FlipY": False}
     handle = texture if texture is not None else (ART[art] if art else None)
     if handle:
-        i = {"TextureHandle": handle, **i}
+        # A sheet's sprites are saved by name as well, as the editor saves them (the name wins when the sheet changes).
+        named = {"Sprite": sprite_name} if sprite_name else {}
+        i = {"TextureHandle": handle, **named, **i}
     return i
 
 
@@ -299,30 +301,30 @@ def build_field(scene_name, director, b=None):
     return b
 
 
-MENU_TABS = ["Inventory", "Quests", "Character", "Abilities", "Equipment", "Party", "System"]
+MENU_TABS = ["Journal", "Inventory", "Character", "Abilities", "Equipment", "Party", "System"]  # FieldMenuView::Tab's order
 PAGE_X, PAGE_WIDTH = 392, 1000
 
 
 def build_field_menu(b, director):
     """The field menu (Tab; the Menu plan, Octopath-style; FieldMenuView, Game/src/Scripts/Field/FieldMenuView.h): over a
     dimmed scene, the tab ribbons in a column on the left (the selected one marked), the tab's page in the middle, the
-    party's status on the right and a help bar with the keys at the bottom. Pages are "Page <Tab>"; the Inventory page
-    holds the item list (InventoryView); the other tabs' pages come with M4 and M5."""
+    party's status on the right and a help bar with the keys at the bottom. Pages are "Page <Tab>" (the Journal page is
+    QuestsView, the Inventory page InventoryView, ...); the menu opens on the Journal."""
     menu = b.add("Field Menu Canvas", director, UICanvasComponent=canvas(10, visible=False, captures=True))
     b.add("Menu Dim", menu, UIRectComponent=fill(), UIImageComponent=image(None, (0.03, 0.04, 0.06, 0.62)))
-    b.add("Menu Title", menu, UIRectComponent=rect((0, 1), None, (0, 1), (72, -40), (480, 60)), UITextComponent=text("Inventory", FONT_TITLE, CREAM))
+    b.add("Menu Title", menu, UIRectComponent=rect((0, 1), None, (0, 1), (72, -40), (480, 60)), UITextComponent=text("Journal", FONT_TITLE, CREAM))
     b.add("Menu Title Rule", menu, UIRectComponent=rect((0, 1), None, (0, 1), (56, -100), (560, 12)), UIImageComponent=image("Divider"))
 
     # The tabs: ribbon rows like the battle's commands; the script shows the selected one's mark and gilds its name.
     tabs = b.add("Menu Tabs", menu, UIRectComponent=rect((0, 1), None, (0, 1), (56, -130), (300, 10)), UILayoutGroupComponent=group(spacing=6))
     for t, name in enumerate(MENU_TABS):
         row = ribbon_row(b, "Tab %d" % t, tabs, 300, 60, name, "", "Tab", name_font=FONT_LABEL)
-        # The selected tab while the focus is in its page: a dimmer cursor where the focused one sits.
-        b.add("Tab %d Mark" % t, row, UIRectComponent=rect((0, 0.5), None, (0, 0.5), (0, 0), (44, 44), visible=t == 0),
+        # The selected tab while the focus is in its page: a dimmer cursor where the focused one sits (shown by the script).
+        b.add("Tab %d Mark" % t, row, UIRectComponent=rect((0, 0.5), None, (0, 0.5), (0, 0), (44, 44), visible=False),
               UIImageComponent=image("Cursor", (1, 1, 1, 0.55)))
 
     # The Inventory page: the list (scrolling) in a frame, and the selected item's details beside it.
-    page = b.add("Page Inventory", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800)))
+    page = b.add("Page Inventory", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
     frame = b.add("Inventory Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (560, 800)), UIImageComponent=image("Frame"))
     head = b.add("Inventory Header", frame, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
     b.add("Inventory Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Items", FONT_LABEL, GOLD))
@@ -373,12 +375,13 @@ def page_text(b, tag, parent, position, size, value, font=FONT_BODY, color=CREAM
 
 
 def build_quests_page(b, menu):
-    """The Quests page (QuestsView, Game/src/Scripts/Field/QuestsView.h): the run's quests on the left (unfinished
-    first, newest first; "Done" on finished ones), the focused one's title, state, objective and steps on the right."""
-    page = b.add("Page Quests", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
+    """The Journal page (QuestsView, Game/src/Scripts/Field/QuestsView.h): the run's quests on the left (unfinished
+    first, newest first; "Done" on finished ones), the focused one's title, state, objective and steps on the right.
+    The first tab, so it is the page shown when the menu first opens."""
+    page = b.add("Page Journal", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800)))
     frame = b.add("Quest Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (420, 800)), UIImageComponent=image("Frame"))
     head = b.add("Quest Header", frame, UIRectComponent=rect((0, 1), (1, 1), (0.5, 1), (0, -26), (-52, 44)), UIImageComponent=image("Plate"))
-    b.add("Quest Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Quests", FONT_LABEL, GOLD))
+    b.add("Quest Header Text", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("Journal", FONT_LABEL, GOLD))
     b.add("Quest Header Count", head, UIRectComponent=fill((28, 0, 28, 0)), UITextComponent=text("1 active", FONT_SMALL, DIM, "Right"))
     rows = b.add("Quest List", frame, UIRectComponent=rect((0, 1), None, (0, 1), (14, -96), (370, 10)), UILayoutGroupComponent=group(spacing=4))
     sample = [("The Sleeping Tree", ""), ("Lost Lantern", "Done")]
@@ -407,7 +410,7 @@ def build_character_page(b, menu):
     page = b.add("Page Character", menu, UIRectComponent=rect((0, 1), None, (0, 1), (PAGE_X, -130), (PAGE_WIDTH, 800), visible=False))
     panel = b.add("Character Panel", page, UIRectComponent=rect((0, 1), None, (0, 1), (0, 0), (PAGE_WIDTH, 800)), UIImageComponent=image("Frame"))
     portrait = b.add("Character Portrait Frame", panel, UIRectComponent=rect((0, 1), None, (0, 1), (40, -36), (232, 222)), UIImageComponent=image("Frame"))
-    b.add("Character Portrait", portrait, UIRectComponent=fill((20, 16, 20, 16)), UIImageComponent=image(None, texture=MIKO_FIELD, sprite=0))
+    b.add("Character Portrait", portrait, UIRectComponent=fill((20, 16, 20, 16)), UIImageComponent=image(None, texture=MIKO_FIELD, sprite=0, sprite_name="Miko_0"))
     page_text(b, "Character Name", panel, (304, -44), (640, 52), "Miko", FONT_TITLE, GOLD)
     page_text(b, "Character Level", panel, (306, -102), (300, 40), "Level 1", FONT_BODY)
     page_text(b, "Character Place", panel, (606, -102), (330, 40), "Line-up   1 / 2", FONT_SMALL, DIM, "Right")

@@ -5,7 +5,7 @@
 
 namespace Hydro
 {
-	class TerrainMesher;
+	class TerrainAnalysis;
 	struct TerrainMeshBuilder;
 
 	// Generated terrain decor: the instances of a terrain's decor rules, placed from the seed and the data (nothing
@@ -14,7 +14,7 @@ namespace Hydro
 	{
 	public:
 		// A rule whose sprites aren't loaded is skipped.
-		static void AddChunk(const Terrain& terrain, const TerrainMesher& mesher, uint32_t chunkX, uint32_t chunkY,
+		static void AddChunk(const Terrain& terrain, const TerrainAnalysis& analysis, uint32_t chunkX, uint32_t chunkY,
 			TerrainMeshBuilder& parts);
 		// So a chunk built now has all its decor.
 		static bool AreSpritesLoaded(const Terrain& terrain);
