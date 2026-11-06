@@ -56,7 +56,7 @@ namespace Hydro
 		m_InspectorWindow = CreateRef<InspectorWindow>();
 		m_ProjectWindow = CreateRef<ProjectWindow>();
 		m_ProjectWindow->OnOpenScene = [this](const std::filesystem::path& path) { OpenScene(path); };
-		m_ProjectWindow->OnEntityCreated = [this](Entity entity) { m_Context.Selection = entity; };
+		m_ProjectWindow->OnInstantiatePrefab = [this](const std::filesystem::path& path) { InstantiatePrefab(path); };
 		m_HierarchyWindow->OnEntityFocus = [this](Entity entity) { m_EditorViewport.FocusEntity(entity); };
 		m_ProjectWindow->OnPathRenamed = [this](const std::filesystem::path& from, const std::filesystem::path& to) { OnPathRenamed(from, to); };
 		m_ProjectWindow->OnPathDeleted = [this](const std::filesystem::path& path) { OnPathDeleted(path); };
@@ -72,6 +72,7 @@ namespace Hydro
 		m_InspectorWindow->OnOpenAnimation = [this](const std::filesystem::path& path) { OpenAsset(path); };
 		m_InspectorWindow->OnSelectEntity = [this](Entity entity) { m_Context.Selection = entity; };
 		m_InspectorWindow->SetTerrainTool(&m_Context.Terrain);
+		m_Context.Terrain.SetCommands(&m_Context.Commands);
 		m_SpriteEditorWindow = CreateRef<SpriteEditorWindow>();
 		m_SpriteEditorWindow->OnReimported = [this](const std::filesystem::path& path) { OnTextureReimported(path); };
 		m_SpriteAnimationWindow = CreateRef<SpriteAnimationWindow>();
@@ -268,6 +269,9 @@ namespace Hydro
 
 		m_EditorViewport.OnImGuiRender();
 		m_GameViewport.OnImGuiRender();
+
+		// After every window: inspector and gizmo edits of the selection, and render settings, become undo steps.
+		m_EditWatcher.Update(m_Context);
 
 		// A window opened or closed: remember it now, not only on close, so it holds when the debugger stops the editor.
 		if (StoreOpenWindows())
@@ -856,6 +860,7 @@ namespace Hydro
 		{
 			std::error_code ec;
 			m_Context.Settings.Session.LastScene = std::filesystem::absolute(m_Context.EditorScenePath, ec);
+			m_Context.Commands.MarkSaved();
 		}
 	}
 
@@ -886,6 +891,7 @@ namespace Hydro
 
 			std::error_code ec;
 			m_Context.Settings.Session.LastScene = std::filesystem::absolute(path, ec);
+			m_Context.Commands.MarkSaved();
 		}
 	}
 
@@ -920,10 +926,7 @@ namespace Hydro
 
 		if (extension == PrefabSerializer::FileExtension)
 		{
-			if (Entity entity = PrefabSerializer::Instantiate(*m_Context.ActiveScene, path))
-			{
-				m_Context.Selection = entity;
-			}
+			InstantiatePrefab(path);
 		}
 		else if (extension == SceneSerializer::FileExtension)
 		{
@@ -939,6 +942,7 @@ namespace Hydro
 				return;
 			}
 
+			SceneEditScope undo = m_Context.BeginSceneEdit("Place " + path.stem().u8string());
 			Entity entity = m_Context.ActiveScene->CreateEntity(path.stem().u8string());
 			const glm::vec3 focus = m_EditorViewport.GetCamera().GetFocalPoint();
 			entity.AddComponent<TransformComponent>().Translation = { focus.x, focus.y, 0.0f };
@@ -946,6 +950,23 @@ namespace Hydro
 			mesh.Model = handle;
 			mesh.Materials.clear();
 			m_Context.Selection = entity;
+			m_Context.FinishSceneEdit(undo);
 		}
+	}
+
+	Entity EditorLayer::InstantiatePrefab(const std::filesystem::path& path)
+	{
+		if (m_Context.ActiveScene == nullptr)
+		{
+			return {};
+		}
+		SceneEditScope undo = m_Context.BeginSceneEdit("Instantiate " + path.stem().u8string());
+		Entity entity = PrefabSerializer::Instantiate(*m_Context.ActiveScene, path);
+		if (entity)
+		{
+			m_Context.Selection = entity;
+		}
+		m_Context.FinishSceneEdit(undo);
+		return entity;
 	}
 }

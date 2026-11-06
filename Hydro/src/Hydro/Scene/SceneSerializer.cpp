@@ -25,43 +25,7 @@ namespace Hydro
 		out << YAML::BeginMap;
 		out << YAML::Key << AssetMetaSerializer::HandleKey << YAML::Value << (uint64_t)handle;
 		out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
-		// Only written when the scene overrides the project's render features.
-		const SceneRenderSettings& renderSettings = m_Scene->GetRenderSettings();
-		if (renderSettings.OverrideProject)
-		{
-			out << YAML::Key << "RenderSettings" << YAML::Value << YAML::BeginMap;
-			out << YAML::Key << "OverrideProject" << YAML::Value << true;
-			out << YAML::Key << "Features" << YAML::Value;
-			RenderFeatureSerializer::Serialize(out, renderSettings.Features);
-			out << YAML::EndMap;
-		}
-		// Only written when the scene uses a render profile.
-		const SceneLook& look = m_Scene->GetLook();
-		if (look != SceneLook{})
-		{
-			out << YAML::Key << "Look" << YAML::Value << YAML::BeginMap;
-			if ((uint64_t)look.Profile != 0)
-			{
-				out << YAML::Key << "ProfileHandle" << YAML::Value << (uint64_t)look.Profile;
-			}
-			out << YAML::Key << "Environment" << YAML::Value << RenderProfileSerializer::LookSourceToString(look.Environment);
-			out << YAML::Key << "PostProcess" << YAML::Value << RenderProfileSerializer::LookSourceToString(look.PostProcess);
-			out << YAML::EndMap;
-		}
-		// The scene's own ambient and fog, also when a profile overrides them. Only written when the scene sets them.
-		const SceneEnvironment& environment = m_Scene->GetEnvironment();
-		if (environment.Override)
-		{
-			out << YAML::Key << "Environment" << YAML::Value;
-			RenderProfileSerializer::SerializeEnvironment(out, environment);
-		}
-		// Only when it differs from the defaults.
-		const ScenePostProcess& postProcess = m_Scene->GetPostProcess();
-		if (postProcess != ScenePostProcess{})
-		{
-			out << YAML::Key << "PostProcess" << YAML::Value;
-			RenderProfileSerializer::SerializePostProcess(out, postProcess);
-		}
+		SerializeSettings(out, *m_Scene);
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
 		// List order. Raw registry entities without an ID are runtime-only and not saved.
@@ -114,51 +78,7 @@ namespace Hydro
 
 		m_Scene->SetName(data["Scene"].as<std::string>());
 
-		// Missing: the scene uses the project's render features.
-		SceneRenderSettings renderSettings;
-		YAML::Node renderNode = data["RenderSettings"];
-		if (renderNode && renderNode.IsMap())
-		{
-			if (auto overrideNode = renderNode["OverrideProject"])
-			{
-				renderSettings.OverrideProject = overrideNode.as<bool>(false);
-			}
-			if (auto featuresNode = renderNode["Features"])
-			{
-				RenderFeatureSerializer::Deserialize(featuresNode, renderSettings.Features);
-			}
-		}
-		m_Scene->SetRenderSettings(renderSettings);
-
-		// Missing: the Global lights are the ambient light and there is no fog.
-		m_Scene->SetEnvironment(RenderProfileSerializer::DeserializeEnvironment(data["Environment"]));
-		m_Scene->SetPostProcess(RenderProfileSerializer::DeserializePostProcess(data["PostProcess"]));
-
-		// Missing: no profile, the scene's own values.
-		SceneLook look;
-		YAML::Node lookNode = data["Look"];
-		if (lookNode && lookNode.IsMap())
-		{
-			if (auto profileNode = lookNode["ProfileHandle"])
-			{
-				look.Profile = AssetHandle(profileNode.as<uint64_t>(0));
-			}
-			if (auto environmentSource = lookNode["Environment"])
-			{
-				look.Environment = RenderProfileSerializer::LookSourceFromString(environmentSource.as<std::string>("Scene"));
-			}
-			if (auto postProcessSource = lookNode["PostProcess"])
-			{
-				look.PostProcess = RenderProfileSerializer::LookSourceFromString(postProcessSource.as<std::string>("Scene"));
-			}
-		}
-		// Loaded now (a profile that can't be loaded is logged by the manager), so the renderer finds it.
-		// The handle is kept either way: the scene's own values are drawn until the file is back.
-		if ((uint64_t)look.Profile != 0)
-		{
-			AssetManager::GetAsset<RenderProfile>(look.Profile);
-		}
-		m_Scene->SetLook(look);
+		DeserializeSettings(data, *m_Scene);
 
 		size_t count = 0;
 		if (auto entities = data["Entities"])
@@ -184,5 +104,95 @@ namespace Hydro
 
 		HY_CORE_INFO("Loaded scene '{}' ({} entities) from {}", m_Scene->GetName(), count, filepath.string());
 		return true;
+	}
+
+	void SceneSerializer::SerializeSettings(YAML::Emitter& out, const Scene& scene)
+	{
+		// Only written when the scene overrides the project's render features.
+		const SceneRenderSettings& renderSettings = scene.GetRenderSettings();
+		if (renderSettings.OverrideProject)
+		{
+			out << YAML::Key << "RenderSettings" << YAML::Value << YAML::BeginMap;
+			out << YAML::Key << "OverrideProject" << YAML::Value << true;
+			out << YAML::Key << "Features" << YAML::Value;
+			RenderFeatureSerializer::Serialize(out, renderSettings.Features);
+			out << YAML::EndMap;
+		}
+		// Only written when the scene uses a render profile.
+		const SceneLook& look = scene.GetLook();
+		if (look != SceneLook{})
+		{
+			out << YAML::Key << "Look" << YAML::Value << YAML::BeginMap;
+			if ((uint64_t)look.Profile != 0)
+			{
+				out << YAML::Key << "ProfileHandle" << YAML::Value << (uint64_t)look.Profile;
+			}
+			out << YAML::Key << "Environment" << YAML::Value << RenderProfileSerializer::LookSourceToString(look.Environment);
+			out << YAML::Key << "PostProcess" << YAML::Value << RenderProfileSerializer::LookSourceToString(look.PostProcess);
+			out << YAML::EndMap;
+		}
+		// The scene's own ambient and fog, also when a profile overrides them. Only written when the scene sets them.
+		const SceneEnvironment& environment = scene.GetEnvironment();
+		if (environment.Override)
+		{
+			out << YAML::Key << "Environment" << YAML::Value;
+			RenderProfileSerializer::SerializeEnvironment(out, environment);
+		}
+		// Only when it differs from the defaults.
+		const ScenePostProcess& postProcess = scene.GetPostProcess();
+		if (postProcess != ScenePostProcess{})
+		{
+			out << YAML::Key << "PostProcess" << YAML::Value;
+			RenderProfileSerializer::SerializePostProcess(out, postProcess);
+		}
+	}
+
+	void SceneSerializer::DeserializeSettings(const YAML::Node& data, Scene& scene)
+	{
+		// Missing: the scene uses the project's render features.
+		SceneRenderSettings renderSettings;
+		YAML::Node renderNode = data["RenderSettings"];
+		if (renderNode && renderNode.IsMap())
+		{
+			if (auto overrideNode = renderNode["OverrideProject"])
+			{
+				renderSettings.OverrideProject = overrideNode.as<bool>(false);
+			}
+			if (auto featuresNode = renderNode["Features"])
+			{
+				RenderFeatureSerializer::Deserialize(featuresNode, renderSettings.Features);
+			}
+		}
+		scene.SetRenderSettings(renderSettings);
+
+		// Missing: the Global lights are the ambient light and there is no fog.
+		scene.SetEnvironment(RenderProfileSerializer::DeserializeEnvironment(data["Environment"]));
+		scene.SetPostProcess(RenderProfileSerializer::DeserializePostProcess(data["PostProcess"]));
+
+		// Missing: no profile, the scene's own values.
+		SceneLook look;
+		YAML::Node lookNode = data["Look"];
+		if (lookNode && lookNode.IsMap())
+		{
+			if (auto profileNode = lookNode["ProfileHandle"])
+			{
+				look.Profile = AssetHandle(profileNode.as<uint64_t>(0));
+			}
+			if (auto environmentSource = lookNode["Environment"])
+			{
+				look.Environment = RenderProfileSerializer::LookSourceFromString(environmentSource.as<std::string>("Scene"));
+			}
+			if (auto postProcessSource = lookNode["PostProcess"])
+			{
+				look.PostProcess = RenderProfileSerializer::LookSourceFromString(postProcessSource.as<std::string>("Scene"));
+			}
+		}
+		// Loaded now (a profile that can't be loaded is logged by the manager), so the renderer finds it.
+		// The handle is kept either way: the scene's own values are drawn until the file is back.
+		if ((uint64_t)look.Profile != 0)
+		{
+			AssetManager::GetAsset<RenderProfile>(look.Profile);
+		}
+		scene.SetLook(look);
 	}
 }

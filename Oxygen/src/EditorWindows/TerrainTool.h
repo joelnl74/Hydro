@@ -52,6 +52,9 @@ namespace Hydro
 		// The brush circle and the Path brush's points for the Editor view's overlay.
 		void FillOverlay(SceneRenderer::EditorOverlay& overlay) const;
 
+		// Where changes to a terrain's settings go as undo steps (EditorContext::Commands).
+		void SetCommands(EditorCommandStack* commands) { m_Commands = commands; }
+
 		bool IsPainting() const { return m_Editing; }
 		void SetPainting(bool editing) { m_Editing = editing; }
 
@@ -66,12 +69,19 @@ namespace Hydro
 		void CreateTerrainAsset(Entity entity, TerrainComponent& component);
 
 		void DrawBrush(const Ref<Terrain>& terrain);
+		// The settings panel's changes this frame, as one TerrainSettingsCommand per interaction.
+		void RecordSettingsEdit(AssetHandle terrain, const TerrainSettings& before, const TerrainSettings& now);
 
 	private:
 		// Brush settings, for this session only.
 		bool m_Editing = false;
 		TerrainBrush m_Brush = TerrainBrush::Paint;
 		TerrainBrushSettings m_BrushSettings;
+		EditorCommandStack* m_Commands = nullptr;
+		// A settings edit in progress: the terrain and its settings from before it.
+		bool m_SettingsEditing = false;
+		AssetHandle m_SettingsTerrain = 0;
+		TerrainSettings m_SettingsBefore;
 		glm::vec2 m_NewTerrainSize{ 32.0f, 32.0f }; // metres, for Create Terrain
 
 		// Under the cursor.

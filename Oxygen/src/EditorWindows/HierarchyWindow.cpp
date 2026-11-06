@@ -198,10 +198,12 @@ namespace Hydro
 
 			if (ImGui::MenuItem("Create Camera"))
 			{
+				SceneEditScope undo = m_Context.BeginSceneEdit("Create Camera");
 				m_Context.Selection = scene->CreateEntity("Camera");
 				m_Context.Selection.AddComponent<TransformComponent>();
 				// Only the first camera in a scene is primary by default.
 				m_Context.Selection.AddComponent<CameraComponent>().Primary = (bool)scene->GetPrimaryCameraEntity() == false;
+				m_Context.FinishSceneEdit(undo);
 			}
 
 			ImGui::Separator();
@@ -216,6 +218,16 @@ namespace Hydro
 			}
 
 			ImGui::EndPopup();
+		}
+
+		// Delete / Ctrl+D the selection while the hierarchy has focus; applied below, after the list.
+		if (m_Pending.Kind == PendingEdit::Type::None && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+		{
+			const int key = m_Context.GetEntityKey();
+			if (key != 0)
+			{
+				m_Pending = PendingEdit::Of(key == 1 ? PendingEdit::Type::Delete : PendingEdit::Type::Duplicate, m_Context.Selection);
+			}
 		}
 
 		ImGui::End();
@@ -549,6 +561,23 @@ namespace Hydro
 		return entity;
 	}
 
+	const char* HierarchyWindow::GetTemplateName(PendingEdit::Template kind)
+	{
+		switch (kind)
+		{
+		case PendingEdit::Template::Empty: return "Empty Entity";
+		case PendingEdit::Template::Sprite: return "Sprite";
+		case PendingEdit::Template::Light: return "Light";
+		case PendingEdit::Template::UICanvas: return "UI Canvas";
+		case PendingEdit::Template::UIPanel: return "UI Panel";
+		case PendingEdit::Template::UIImage: return "UI Image";
+		case PendingEdit::Template::UIText: return "UI Text";
+		case PendingEdit::Template::UIButton: return "UI Button";
+		case PendingEdit::Template::UIList: return "UI List";
+		}
+		return "Entity";
+	}
+
 	void HierarchyWindow::ApplyPendingEdit(Scene& scene)
 	{
 		const PendingEdit edit = m_Pending;
@@ -557,38 +586,53 @@ namespace Hydro
 		{
 		case PendingEdit::Type::MoveBefore:
 		case PendingEdit::Type::MoveAfter:
-			scene.MoveEntity(edit.Subject, edit.Target, edit.Kind == PendingEdit::Type::MoveAfter);
-			break;
 		case PendingEdit::Type::MakeChild:
-			scene.SetParent(edit.Subject, edit.Target);
-			break;
 		case PendingEdit::Type::MakeRoot:
-			scene.SetParent(edit.Subject, {});
-			break;
-		case PendingEdit::Type::Duplicate:
-			if (Entity duplicate = scene.DuplicateEntity(edit.Subject))
+		{
+			// Only the subject changes (its parent, its place and, under a new parent, its local transform); its
+			// subtree moves with it.
+			const char* verb = edit.Kind == PendingEdit::Type::MakeChild ? "Reparent "
+				: (edit.Kind == PendingEdit::Type::MakeRoot ? "Unparent " : "Move ");
+			SceneEditScope undo = m_Context.BeginSceneEdit(verb + edit.Subject.GetName());
+			undo.Capture(edit.Subject, false);
+			if (edit.Kind == PendingEdit::Type::MakeChild)
 			{
-				m_Context.Selection = duplicate;
+				scene.SetParent(edit.Subject, edit.Target);
 			}
+			else if (edit.Kind == PendingEdit::Type::MakeRoot)
+			{
+				scene.SetParent(edit.Subject, {});
+			}
+			else
+			{
+				scene.MoveEntity(edit.Subject, edit.Target, edit.Kind == PendingEdit::Type::MoveAfter);
+			}
+			m_Context.FinishSceneEdit(undo);
+			break;
+		}
+		case PendingEdit::Type::Duplicate:
+			m_Context.DuplicateEntity(edit.Subject);
 			break;
 		case PendingEdit::Type::Delete:
-			// Its children go with it, so the selection may be one of them.
-			if (m_Context.Selection
-				&& (m_Context.Selection == edit.Subject || scene.IsAncestorOf(edit.Subject, m_Context.Selection)))
-			{
-				m_Context.Selection = {};
-			}
-			scene.DestroyEntity(edit.Subject);
+			m_Context.DeleteEntity(edit.Subject);
 			break;
 		case PendingEdit::Type::CreateChild:
+		{
+			SceneEditScope undo = m_Context.BeginSceneEdit(std::string("Create ") + GetTemplateName(edit.Create));
 			m_Context.Selection = CreateFromTemplate(scene, edit.Create, edit.Target);
+			m_Context.FinishSceneEdit(undo);
 			break;
+		}
 		case PendingEdit::Type::InstantiatePrefab:
+		{
+			SceneEditScope undo = m_Context.BeginSceneEdit("Instantiate " + edit.Prefab.stem().u8string());
 			if (Entity instance = PrefabSerializer::Instantiate(scene, edit.Prefab, edit.Target))
 			{
 				m_Context.Selection = instance;
 			}
+			m_Context.FinishSceneEdit(undo);
 			break;
+		}
 		default:
 			break;
 		}

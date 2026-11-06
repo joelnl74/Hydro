@@ -25,7 +25,8 @@ namespace Hydro
 
 		// Called after the window has finished drawing.
 		std::function<void(const std::filesystem::path&)> OnOpenScene;
-		std::function<void(Entity)> OnEntityCreated;
+		// A prefab to instantiate in the scene (double-click, Instantiate): the editor layer does it as an undo step.
+		std::function<void(const std::filesystem::path&)> OnInstantiatePrefab;
 		// A folder or asset was renamed (from, to); the editor layer moves the paths it holds that point into it.
 		std::function<void(const std::filesystem::path&, const std::filesystem::path&)> OnPathRenamed;
 		// A file was deleted; windows editing it let go of it.

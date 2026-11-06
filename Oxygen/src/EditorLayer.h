@@ -3,6 +3,7 @@
 #include "EditorContext.h"
 #include "EditorLaunch.h"
 #include "EditorMenuBar.h"
+#include "EditorCommands/EditWatcher.h"
 #include "Viewports/EditorViewport.h"
 #include "Viewports/GameViewport.h"
 #include "EditorWindows/HierarchyWindow.h"
@@ -86,6 +87,8 @@ namespace Hydro
 
 		// A prefab or scene dropped from the Project window onto the Editor or Game window.
 		void OnAssetDropped(const std::filesystem::path& path);
+		// The prefab's instance in the active scene, selected, as one undo step.
+		Entity InstantiatePrefab(const std::filesystem::path& path);
 		// A path renamed in the Project window: the open scene, the session scene, the inspected asset and the sprite
 		// windows' files follow it.
 		void OnPathRenamed(const std::filesystem::path& from, const std::filesystem::path& to);
@@ -109,6 +112,7 @@ namespace Hydro
 		EditorViewport m_EditorViewport{ m_Context };
 		GameViewport m_GameViewport{ m_Context };
 		EditorMenuBar m_MenuBar{ m_Context };
+		EditWatcher m_EditWatcher;
 		// What the command line asked for (unattended runs).
 		EditorLaunch m_Launch;
 		SceneStack m_GameScenes; // the scenes that run while playing (a copy of the editor scene at the bottom); empty in Edit

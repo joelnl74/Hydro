@@ -65,7 +65,10 @@ namespace Hydro
 		void DrawRow(Scene& scene, Entity entity, bool searching, bool& open);
 		void DrawRowDropTarget(Scene& scene, Entity entity);
 		void DrawRowContextMenu(Scene& scene, Entity entity);
+		// The edit as one undo step (Delete and Duplicate through EditorContext).
 		void ApplyPendingEdit(Scene& scene);
+		// What the Edit menu calls a created template ("UI Button").
+		static const char* GetTemplateName(PendingEdit::Template kind);
 		Entity CreateFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent);
 		// A UI canvas, or an element under `parent`; an element without a canvas above it gets a new root canvas.
 		Entity CreateUIFromTemplate(Scene& scene, PendingEdit::Template kind, Entity parent);

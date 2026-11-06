@@ -96,7 +96,7 @@ namespace Hydro
 		if (m_Visible && m_Fullscreen)
 		{
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + 8.0f, ImGui::GetCursorPosY() + 8.0f));
-			ImGui::TextDisabled("The game is in full screen. F11 or Escape to leave.");
+			ImGui::TextDisabled("The game is in full screen. F11 to leave.");
 		}
 		else if (m_Visible)
 		{
@@ -164,19 +164,13 @@ namespace Hydro
 
 	void GameViewport::UpdateKeys()
 	{
-		// Polled like the editor's other keys; F11 toggles, Escape only leaves.
+		// Polled like the editor's other keys. Only F11: Escape is the game's Back (menus, dialogue).
 		const bool f11 = Input::IsKeyPressed(KeyCode::F11);
-		const bool escape = Input::IsKeyPressed(KeyCode::Escape);
 		if (f11 && m_FullscreenKeyDown == false)
 		{
 			SetFullscreen(m_Fullscreen == false);
 		}
-		else if (escape && m_EscapeKeyDown == false && m_Fullscreen)
-		{
-			SetFullscreen(false);
-		}
 		m_FullscreenKeyDown = f11;
-		m_EscapeKeyDown = escape;
 	}
 
 	void GameViewport::DrawFullscreen()
@@ -217,7 +211,7 @@ namespace Hydro
 		if (m_FullscreenHintTime > 0.0f)
 		{
 			const float alpha = std::min(1.0f, m_FullscreenHintTime / 0.5f);
-			const char* hint = "Full screen: F11 or Escape to leave";
+			const char* hint = "Full screen: F11 to leave";
 			const ImVec2 textSize = ImGui::CalcTextSize(hint);
 			const ImVec2 position = { imagePosition.x + 0.5f * (size.x - textSize.x), imagePosition.y + 24.0f };
 			drawList->AddRectFilled({ position.x - 12.0f, position.y - 6.0f },

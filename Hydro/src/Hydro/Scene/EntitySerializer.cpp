@@ -99,6 +99,40 @@ namespace Hydro
 			}
 		}
 
+		LoadComponents(entityNode, entity, name);
+		return entity;
+	}
+
+	void EntitySerializer::ReplaceComponents(const YAML::Node& entityNode, Entity entity)
+	{
+		Scene& scene = *entity.GetScene();
+		const std::string name = entityNode["TagComponent"] ? entityNode["TagComponent"]["Tag"].as<std::string>("") : std::string();
+		if (entity.HasComponent<TagComponent>())
+		{
+			entity.GetComponent<TagComponent>().Tag = name;
+		}
+
+		for (const EngineComponentInfo& type : ComponentRegistry::GetEngineTypes())
+		{
+			if (type.Remove != nullptr && type.Has(entity))
+			{
+				type.Remove(entity);
+			}
+		}
+		for (const ComponentTypeInfo& type : ComponentRegistry::GetTypes())
+		{
+			if (type.Has(entity))
+			{
+				type.Remove(entity);
+			}
+		}
+		scene.RemoveScripts(entity);
+
+		LoadComponents(entityNode, entity, name);
+	}
+
+	void EntitySerializer::LoadComponents(const YAML::Node& entityNode, Entity entity, const std::string& name)
+	{
 		// The engine's components: missing keys keep the defaults; values that would break a system are pulled into range.
 		for (const EngineComponentInfo& type : ComponentRegistry::GetEngineTypes())
 		{
@@ -144,7 +178,5 @@ namespace Hydro
 			auto& scripts = entity.AddComponent<NativeScriptComponent>();
 			ScriptSerializer::Read(scriptNode["Scripts"], scripts, entity.GetName());
 		}
-
-		return entity;
 	}
 }

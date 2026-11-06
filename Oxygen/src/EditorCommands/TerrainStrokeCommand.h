@@ -35,6 +35,10 @@ namespace Hydro
 		void Undo() override;
 		void Redo() override;
 		const char* GetName() const override { return m_Name.c_str(); }
+		size_t GetMemorySize() const override
+		{
+			return m_LevelsBefore.size() * 2 + (m_RampsBefore.size() + m_WallsBefore.size() + m_WeightsBefore.size()) * 2 + m_Name.size();
+		}
 
 	private:
 		// The values of `rect` in a row-major array `width` wide, `channels` values per element.

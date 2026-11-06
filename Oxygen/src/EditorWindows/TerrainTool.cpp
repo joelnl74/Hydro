@@ -3,6 +3,7 @@
 #include "Terrain/TerrainSettingsPanel.h"
 
 #include "EditorCommands/EditorCommand.h"
+#include "EditorCommands/TerrainSettingsCommand.h"
 #include "EditorCommands/TerrainStrokeCommand.h"
 #include "Utilities/AssetPicker.h"
 
@@ -124,7 +125,34 @@ namespace Hydro
 		}
 
 		DrawBrush(terrain);
+		const TerrainSettings settingsBefore = terrain->GetSettings();
 		TerrainSettingsPanel::Draw(terrain);
+		RecordSettingsEdit(component.Terrain, settingsBefore, terrain->GetSettings());
+	}
+
+	void TerrainTool::RecordSettingsEdit(AssetHandle terrain, const TerrainSettings& before, const TerrainSettings& now)
+	{
+		if (m_Commands == nullptr)
+		{
+			return;
+		}
+		// The first change of an interaction keeps the settings from before it; the step is pushed once no widget is
+		// active, so a drag is one step.
+		if (m_SettingsEditing == false && now != before)
+		{
+			m_SettingsEditing = true;
+			m_SettingsTerrain = terrain;
+			m_SettingsBefore = before;
+		}
+		if (m_SettingsEditing && ImGui::IsAnyItemActive() == false)
+		{
+			m_SettingsEditing = false;
+			const Ref<Terrain> edited = AssetManager::GetLoadedAsset<Terrain>(m_SettingsTerrain);
+			if (edited != nullptr && edited->GetSettings() != m_SettingsBefore)
+			{
+				m_Commands->Push(CreateScope<TerrainSettingsCommand>(m_SettingsTerrain, m_SettingsBefore, edited->GetSettings()));
+			}
+		}
 	}
 
 	void TerrainTool::DrawBrush(const Ref<Terrain>& terrain)

@@ -27,7 +27,7 @@ namespace Hydro
 		void OnImGuiRender();
 		// Over everything else, so call it last in the frame.
 		void DrawFullscreen();
-		// F11 toggles full screen, Escape only leaves it.
+		// F11 toggles full screen (not Escape: the game uses it for Back).
 		void UpdateKeys();
 
 		void SetFullscreen(bool fullscreen);
@@ -55,7 +55,6 @@ namespace Hydro
 		bool m_WindowFullscreenByGame = false; // the editor's window went full screen for the game, and goes back with it
 		int m_PendingWindowFullscreen = -1;    // -1 nothing, 0 / 1: change the window in OnUpdate, outside the ImGui frame
 		bool m_FullscreenKeyDown = false;      // F11 last frame, so holding it toggles once
-		bool m_EscapeKeyDown = false;
 		float m_FullscreenHintTime = 0.0f;     // seconds left to show how to leave full screen
 	};
 }

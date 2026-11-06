@@ -50,6 +50,8 @@ namespace Hydro
 		void (*Save)(YAML::Emitter& out, const Entity& entity) = nullptr;
 		// Adds the component and reads it from the map saved under Name.
 		void (*Load)(const YAML::Node& node, Entity& entity) = nullptr;
+		// Removes it (the editor's undo replaces an entity's components). Null with Save.
+		void (*Remove)(Entity& entity) = nullptr;
 		void (*CopyAll)(entt::registry& destination, const entt::registry& source,
 			const std::unordered_map<entt::entity, entt::entity>& entityMap) = nullptr;
 		void (*CopyOne)(entt::registry& registry, entt::entity source, entt::entity destination) = nullptr;
@@ -148,6 +150,10 @@ namespace Hydro
 		info.Load = [](const YAML::Node& node, Entity& entity)
 		{
 			Load(node, entity.AddComponent<T>());
+		};
+		info.Remove = [](Entity& entity)
+		{
+			entity.RemoveComponent<T>();
 		};
 		info.CopyAll = &CopyAllOf<T>;
 		info.CopyOne = &CopyOneOf<T>;

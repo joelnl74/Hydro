@@ -44,6 +44,7 @@ namespace Hydro
 		}
 		DrawCreateMenu();
 		DrawPlayControls();
+		DrawSceneName();
 
 		// The waterline: the accent while editing, the play-mode tint while playing.
 		const bool tinted = m_Context.Playing && m_Context.Settings.PlayMode.Tint;
@@ -124,83 +125,75 @@ namespace Hydro
 			{
 				Redo();
 			}
+			ImGui::Separator();
+			const bool canEdit = m_Context.Playing == false && (uint64_t)m_Context.GetSelectedUUID() != 0;
+			if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, canEdit))
+			{
+				m_Context.DuplicateEntity(m_Context.Selection);
+			}
+			if (ImGui::MenuItem("Delete", "Delete", false, canEdit))
+			{
+				m_Context.DeleteEntity(m_Context.Selection);
+			}
 			ImGui::EndMenu();
 		}
 	}
 
 	void EditorMenuBar::DrawCreateMenu()
 	{
-		if (ImGui::BeginMenu("Create"))
+		if (ImGui::BeginMenu("Create") == false)
 		{
-			if (ImGui::MenuItem("Empty Entity"))
+			return;
+		}
+		// Each one an undo step that selects the new entity.
+		auto create = [this](const char* name, const std::function<void(Entity&)>& setup)
+		{
+			SceneEditScope undo = m_Context.BeginSceneEdit(std::string("Create ") + name);
+			Entity entity = m_Context.ActiveScene->CreateEntity(name);
+			entity.AddComponent<TransformComponent>();
+			if (setup)
 			{
-				Entity entity = m_Context.ActiveScene->CreateEntity("Entity");
-				m_Context.Selection = entity;
+				setup(entity);
 			}
-			if (ImGui::MenuItem("Sprite"))
-			{
-				Entity entity = m_Context.ActiveScene->CreateEntity("Sprite");
-				entity.AddComponent<TransformComponent>();
-				entity.AddComponent<SpriteRendererComponent>();
-				m_Context.Selection = entity;
-			}
-			if (ImGui::MenuItem("Camera"))
-			{
-				Entity entity = m_Context.ActiveScene->CreateEntity("Camera");
-				entity.AddComponent<TransformComponent>();
-				entity.AddComponent<CameraComponent>();
-				m_Context.Selection = entity;
-			}
-			if (ImGui::MenuItem("Light"))
-			{
-				Entity entity = m_Context.ActiveScene->CreateEntity("Light");
-				entity.AddComponent<TransformComponent>();
-				m_Context.Selection = entity;
-			}
-			if (ImGui::BeginMenu("Meshes"))
-			{
-				if (ImGui::MenuItem("Box"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Box");
-					entity.AddComponent<TransformComponent>();
-					entity.AddComponent<MeshComponent>().Shape = MeshShape::Box;
-					m_Context.Selection = entity;
-				}
-				if (ImGui::MenuItem("Cylinder"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Cylinder");
-					entity.AddComponent<TransformComponent>();
-					entity.AddComponent<MeshComponent>().Shape = MeshShape::Cylinder;
-					m_Context.Selection = entity;
-				}
-				if (ImGui::MenuItem("Plane"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Plane");
-					entity.AddComponent<TransformComponent>();
-					entity.AddComponent<MeshComponent>().Shape = MeshShape::Plane;
-					m_Context.Selection = entity;
-				}
-				if (ImGui::MenuItem("Stairs"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Stairs");
-					entity.AddComponent<TransformComponent>();
-					entity.AddComponent<MeshComponent>().Shape = MeshShape::Stairs;
-					m_Context.Selection = entity;
-				}
-				if (ImGui::MenuItem("Ramp"))
-				{
-					Entity entity = m_Context.ActiveScene->CreateEntity("Ramp");
-					entity.AddComponent<TransformComponent>();
-					entity.AddComponent<MeshComponent>().Shape = MeshShape::Ramp;
-					m_Context.Selection = entity;
-				}
+			m_Context.Selection = entity;
+			m_Context.FinishSceneEdit(undo);
+		};
+		auto mesh = [&](const char* name, MeshShape shape)
+		{
+			create(name, [shape](Entity& entity) { entity.AddComponent<MeshComponent>().Shape = shape; });
+		};
 
-
-				ImGui::EndMenu();
+		if (ImGui::MenuItem("Empty Entity"))
+		{
+			create("Entity", nullptr);
+		}
+		if (ImGui::MenuItem("Sprite"))
+		{
+			create("Sprite", [](Entity& entity) { entity.AddComponent<SpriteRendererComponent>(); });
+		}
+		if (ImGui::MenuItem("Camera"))
+		{
+			create("Camera", [](Entity& entity) { entity.AddComponent<CameraComponent>(); });
+		}
+		if (ImGui::MenuItem("Light"))
+		{
+			create("Light", [](Entity& entity) { entity.AddComponent<Light2DComponent>(); });
+		}
+		if (ImGui::BeginMenu("Meshes"))
+		{
+			const std::pair<const char*, MeshShape> shapes[] = { { "Box", MeshShape::Box }, { "Cylinder", MeshShape::Cylinder },
+				{ "Plane", MeshShape::Plane }, { "Stairs", MeshShape::Stairs }, { "Ramp", MeshShape::Ramp } };
+			for (const auto& [name, shape] : shapes)
+			{
+				if (ImGui::MenuItem(name))
+				{
+					mesh(name, shape);
+				}
 			}
-
 			ImGui::EndMenu();
 		}
+
+		ImGui::EndMenu();
 	}
 
 	void EditorMenuBar::DrawPlayControls()
@@ -278,12 +271,57 @@ namespace Hydro
 	void EditorMenuBar::Undo()
 	{
 		m_Context.Terrain.EndStroke(m_Context.Commands);
-		m_Context.Commands.Undo();
+		const UUID selected = m_Context.GetSelectedUUID();
+		const EditorCommand* command = m_Context.Commands.PeekUndo();
+		if (m_Context.Commands.Undo())
+		{
+			FollowSelection(command, false, selected);
+		}
 	}
 
 	void EditorMenuBar::Redo()
 	{
 		m_Context.Terrain.EndStroke(m_Context.Commands);
-		m_Context.Commands.Redo();
+		const UUID selected = m_Context.GetSelectedUUID();
+		const EditorCommand* command = m_Context.Commands.PeekRedo();
+		if (m_Context.Commands.Redo())
+		{
+			FollowSelection(command, true, selected);
+		}
+	}
+
+	void EditorMenuBar::FollowSelection(const EditorCommand* command, bool afterEdit, UUID previous)
+	{
+		// The step's own selection; otherwise the same entity found again (an undo may have recreated it).
+		m_Context.Select(command != nullptr && command->HasSelection() ? command->GetSelection(afterEdit) : previous);
+	}
+
+	void EditorMenuBar::DrawSceneName()
+	{
+		if (m_Context.EditorScene == nullptr)
+		{
+			return;
+		}
+		const std::string name = m_Context.EditorScenePath.empty() ? m_Context.EditorScene->GetName()
+			: m_Context.EditorScenePath.stem().u8string();
+		const bool modified = m_Context.Commands.IsModified();
+		const std::string label = modified ? name + " *" : name;
+		const float x = ImGui::GetWindowWidth() - ImGui::CalcTextSize(label.c_str()).x - 2.0f * ImGui::GetStyle().ItemSpacing.x;
+		if (x > ImGui::GetCursorPosX())
+		{
+			ImGui::SetCursorPosX(x);
+		}
+		if (modified)
+		{
+			ImGui::TextUnformatted(label.c_str());
+		}
+		else
+		{
+			ImGui::TextDisabled("%s", label.c_str());
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("%s", modified ? "Unsaved changes (Ctrl+S saves the scene)" : "Saved");
+		}
 	}
 }

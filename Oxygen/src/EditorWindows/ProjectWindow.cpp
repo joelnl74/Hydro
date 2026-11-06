@@ -559,15 +559,9 @@ namespace Hydro
 
 	void ProjectWindow::InstantiatePrefab(const std::filesystem::path& path, const Ref<Scene>& scene)
 	{
-		if (scene == nullptr)
+		if (scene != nullptr && OnInstantiatePrefab)
 		{
-			return;
-		}
-
-		Entity entity = PrefabSerializer::Instantiate(*scene, path);
-		if (entity && OnEntityCreated)
-		{
-			OnEntityCreated(entity);
+			OnInstantiatePrefab(path);
 		}
 	}
 

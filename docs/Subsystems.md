@@ -123,6 +123,7 @@ Every current name was checked against the table. Only one changed:
 | `SpriteBounds` | New (Nov 2, 2026) | The sprite counterpart of `MeshBounds` (static functions: the drawn quad, where a standing sprite stands) |
 | `Terrain`, `TerrainSerializer`, `TerrainMesher`, `TerrainAnalysis`, `TerrainSettings`, `TerrainSurfaceMaterial` | New (Terrain plan TR1; `TerrainAnalysis` split from the mesher Nov 5, 2026) | The asset (domain noun), its file reader / writer and its mesh builder (doers), what the mesher reads from the shape (the analysis: data about the terrain, not a doer), its settings (live data with `Get` / `SetSettings`), the material Renderer3D draws its tops with |
 | `EditorCommand`, `EditorCommandStack`, `TerrainStrokeCommand` | New (TR1, the start of #165) | The Command pattern's usual names: one undoable edit, the history of them, the terrain brush's edit |
+| `SceneEditCommand`, `SceneSettingsCommand`, `TerrainSettingsCommand`, `EntityState`, `SceneEditScope`, `EditWatcher` | New (Nov 5, 2026, #165) | `<What>Command` for each undoable edit; `EntityState` is data (one entity at one moment); `SceneEditScope` brackets one edit (a scope, like ImGui's Begin / End pairs); `EditWatcher` watches for edits nobody records (not `EditManager` / `UndoHandler`: banned suffixes) |
 | `TerrainTool` | New (TR1) | An editor tool (not a window: it draws into the inspector and acts in the Editor view) |
 | `EventDispatcher` | Keep | A doer: dispatches posted events to subscribers |
 | `Log`, `Time`, `Window`, `Input` | Keep | Domain facades |

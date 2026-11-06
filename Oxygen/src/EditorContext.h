@@ -1,5 +1,6 @@
 #pragma once
 #include "EditorCommands/EditorCommand.h"
+#include "EditorCommands/SceneEditCommand.h"
 #include "EditorSettings.h"
 #include "EditorWindows/TerrainTool.h"
 
@@ -57,5 +58,20 @@ namespace Hydro
 
 		// Makes the last ImGui item take those drops.
 		void AcceptAssetDrop();
+
+		// The selected entity's UUID, 0 when nothing (alive) is selected.
+		UUID GetSelectedUUID();
+		// Selects the entity with this UUID in ActiveScene; nothing when it isn't there.
+		void Select(UUID id);
+
+		// Undo for one structural edit of the editor scene: begin, make the edit and tell the scope what it touched,
+		// then finish to push the step. While playing nothing is recorded (the running copy isn't undone).
+		SceneEditScope BeginSceneEdit(std::string name);
+		void FinishSceneEdit(SceneEditScope& edit);
+		// Delete and duplicate an entity with its subtree as one undo step (the hierarchy, the Edit menu and their keys).
+		void DeleteEntity(Entity entity);
+		Entity DuplicateEntity(Entity entity);
+		// Delete or Ctrl+D pressed for the selection (edit mode, not while typing): 1 delete, 2 duplicate, 0 neither.
+		int GetEntityKey();
 	};
 }

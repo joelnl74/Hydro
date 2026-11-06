@@ -145,6 +145,20 @@ namespace Hydro
 			UpdateGizmoKeys();
 			m_Context.AcceptAssetDrop();
 
+			// Delete / Ctrl+D the selection while the view is under the mouse or focused, each an undo step.
+			if (m_Hovered || ImGui::IsWindowFocused())
+			{
+				const int key = m_Context.GetEntityKey();
+				if (key == 1)
+				{
+					m_Context.DeleteEntity(m_Context.Selection);
+				}
+				else if (key == 2)
+				{
+					m_Context.DuplicateEntity(m_Context.Selection);
+				}
+			}
+
 			// F: look at the selected entity (edit mode only; play mode scripts may use F).
 			const bool focusKey = Input::IsKeyPressed(KeyCode::F);
 			if (focusKey && m_FocusKeyDown == false && m_Hovered && m_Context.Playing == false && ImGui::GetIO().WantTextInput == false)
