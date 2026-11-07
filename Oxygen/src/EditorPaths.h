@@ -12,14 +12,33 @@ namespace Hydro
 	class EditorPaths
 	{
 	public:
+		// An environment variable's value; empty when it isn't set. (_dupenv_s on Windows: getenv is deprecated there.)
+		static std::string ReadEnvironment(const char* name)
+		{
+#if defined(_WIN32)
+			char* value = nullptr;
+			size_t size = 0;
+			if (_dupenv_s(&value, &size, name) != 0 || value == nullptr)
+			{
+				return std::string();
+			}
+			const std::string result = value;
+			std::free(value);
+			return result;
+#else
+			const char* value = std::getenv(name);
+			return value != nullptr ? std::string(value) : std::string();
+#endif
+		}
+
 		// Per user, not per repository or project: %APPDATA%/Hydro/Oxygen (the editor settings, imgui.ini).
 		static std::filesystem::path GetUserDirectory()
 		{
-			if (const char* appData = std::getenv("APPDATA"); appData != nullptr && appData[0] != '\0')
+			if (const std::string appData = ReadEnvironment("APPDATA"); appData.empty() == false)
 			{
 				return std::filesystem::path(appData) / "Hydro" / "Oxygen";
 			}
-			if (const char* home = std::getenv("HOME"); home != nullptr && home[0] != '\0')
+			if (const std::string home = ReadEnvironment("HOME"); home.empty() == false)
 			{
 				return std::filesystem::path(home) / ".config" / "Hydro" / "Oxygen";
 			}
