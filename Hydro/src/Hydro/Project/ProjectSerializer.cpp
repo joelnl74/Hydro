@@ -78,6 +78,36 @@ namespace Hydro
 		return true;
 	}
 
+	bool ProjectSerializer::ReadGame(const std::filesystem::path& filepath, GameInfo& game)
+	{
+		try
+		{
+			const YAML::Node data = YAML::LoadFile(filepath.string());
+			const YAML::Node projectNode = data["Project"];
+			if (projectNode.IsDefined() == false)
+			{
+				return false;
+			}
+			game = GameInfo();
+			if (const YAML::Node node = projectNode["Game"])
+			{
+				if (auto id = node["Id"])
+				{
+					game.Id = id.as<std::string>(std::string());
+				}
+				if (auto name = node["Name"])
+				{
+					game.Name = name.as<std::string>(std::string());
+				}
+			}
+			return true;
+		}
+		catch (const YAML::Exception&)
+		{
+			return false;
+		}
+	}
+
 	bool ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
 		YAML::Node data;

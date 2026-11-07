@@ -73,8 +73,7 @@ namespace Hydro
 				for (const RecentProject& entry : m_RecentProjects->GetEntries())
 				{
 					std::error_code ec;
-					const bool usable = entry.GetCompatibility() != ProjectCompatibility::OtherGame &&
-						std::filesystem::exists(entry.Path, ec);
+					const bool usable = std::filesystem::exists(entry.Path, ec);
 					const std::string name = entry.Name.empty() ? entry.Path.stem().string() : entry.Name;
 					const std::string label = name + "##" + entry.Path.generic_string();
 					if (ImGui::MenuItem(label.c_str(), nullptr, false, usable))
@@ -340,7 +339,9 @@ namespace Hydro
 		const std::string name = m_Context.EditorScenePath.empty() ? m_Context.EditorScene->GetName()
 			: m_Context.EditorScenePath.stem().u8string();
 		const bool modified = m_Context.Commands.IsModified();
-		const std::string label = modified ? name + " *" : name;
+		const Ref<Project> project = Project::GetActive();
+		const std::string readOnly = project != nullptr && project->IsReadOnly() ? "  (read-only project)" : "";
+		const std::string label = (modified ? name + " *" : name) + readOnly;
 		const float x = ImGui::GetWindowWidth() - ImGui::CalcTextSize(label.c_str()).x - 2.0f * ImGui::GetStyle().ItemSpacing.x;
 		if (x > ImGui::GetCursorPosX())
 		{

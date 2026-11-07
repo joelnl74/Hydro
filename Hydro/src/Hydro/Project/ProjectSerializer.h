@@ -13,6 +13,9 @@ namespace Hydro
 		bool Serialize(const std::filesystem::path& filepath);
 		bool Deserialize(const std::filesystem::path& filepath);
 
+		// Only the project's game, without opening it (empty Id: generic). False when the file can't be read.
+		static bool ReadGame(const std::filesystem::path& filepath, GameInfo& game);
+
 	private:
 		Ref<Project> m_Project;
 	};

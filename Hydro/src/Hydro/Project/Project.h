@@ -64,6 +64,17 @@ namespace Hydro
 		// Releases the active project. Applications call this when they shut down.
 		static void Close();
 
+		// Opened by an editor built for another game: nothing of the project may be written, since saving would drop the
+		// game's components it can't read. Not saved; the scene, prefab, data, terrain, animation and project writers check it.
+		void SetReadOnly(bool readOnly) { m_ReadOnly = readOnly; }
+		bool IsReadOnly() const { return m_ReadOnly; }
+		// True (logged) when the active project is read-only, so `what` at `file` must not be written.
+		static bool RefusesWrite(const char* what, const std::filesystem::path& file);
+
+		// A file about to be saved uses the game's types (scripts, game components, data): a generic project becomes the
+		// compiled game's (its .hyproj is saved, logged). Nothing happens for a project that already has a game.
+		static void OnGameContentSaved();
+
 		// The game compiled into this executable (set by the game's RegisterGame); generic when there is none.
 		static void SetCompiledGame(const GameInfo& game) { s_CompiledGame = game; }
 		static const GameInfo& GetCompiledGame() { return s_CompiledGame; }
@@ -72,6 +83,7 @@ namespace Hydro
 		ProjectConfig m_Config;
 		std::filesystem::path m_ProjectDirectory;
 		std::filesystem::path m_ProjectFilePath;
+		bool m_ReadOnly = false;
 
 		inline static Ref<Project> s_ActiveProject;
 		inline static GameInfo s_CompiledGame;

@@ -96,6 +96,8 @@ namespace Hydro
 		m_EditorSettingsWindow->OnSave = [this]() { SaveEditorSettings(); };
 		m_EditorSettingsWindow->OnRevert = [this]() { RevertEditorSettings(); };
 
+		m_GameMismatch = CreateRef<GameMismatchDialog>();
+		m_GameMismatch->OnOpenReadOnly = [this](const std::filesystem::path& path) { OpenProject(path, true); };
 		m_ProjectHub = CreateRef<ProjectHubWindow>();
 		m_ProjectHub->OnOpenProject = [this](const std::filesystem::path& path) { OpenProject(path); };
 		m_ProjectHub->OnNewProject = [this](const std::string& name, const std::filesystem::path& location) { NewProject(name, location); };
@@ -143,6 +145,7 @@ namespace Hydro
 
 		// Released here, not in the destructor: Application::Shutdown detaches layers while the renderer is alive.
 		m_ProjectHub = nullptr;
+		m_GameMismatch = nullptr;
 		m_SpriteAnimationWindow = nullptr;
 		m_SpriteEditorWindow = nullptr;
 		m_EditorSettingsWindow = nullptr;
@@ -205,6 +208,8 @@ namespace Hydro
 		CaptureControls::UpdateKeys(m_Context.Captures);
 		m_MenuBar.UpdateKeys();
 		m_Launch.Update();
+
+		m_GameMismatch->OnImguiRender(m_RecentProjects);
 
 		// No project (or File > Project Hub): the hub fills the window instead of the dockspace.
 		const bool projectOpen = Project::GetActive() != nullptr;
@@ -459,13 +464,28 @@ namespace Hydro
 		return true;
 	}
 
-	void EditorLayer::OpenProject(const std::filesystem::path& path)
+	void EditorLayer::OpenProject(const std::filesystem::path& path, bool readOnly)
 	{
+		// Another game's project: saving it here would drop that game's components, so never editable.
+		GameInfo game;
+		if (readOnly == false && ProjectSerializer::ReadGame(path, game) && game.IsGeneric() == false &&
+			game.Id != Project::GetCompiledGame().Id)
+		{
+			if (m_Launch.IsAutomated() == false)
+			{
+				m_GameMismatch->Open(path, game);
+				return;
+			}
+			HY_WARN("{} belongs to {}: opened read-only", path.filename().string(), game.Name);
+			readOnly = true;
+		}
+
 		Ref<Project> project = Project::Load(path);
 		if (project == nullptr)
 		{
 			return; // Already logged; the current project stays open.
 		}
+		project->SetReadOnly(readOnly);
 
 		std::error_code pathError;
 		m_Context.Settings.Session.LastProject = std::filesystem::absolute(path, pathError);
@@ -697,7 +717,9 @@ namespace Hydro
 	void EditorLayer::UpdateAutosave(float deltaTime)
 	{
 		const AutosaveSettings& autosave = m_Context.Settings.Autosave;
-		if (autosave.Enabled == false || IsPlaying() || m_Context.EditorScenePath.empty())
+		const Ref<Project> project = Project::GetActive();
+		const bool readOnly = project != nullptr && project->IsReadOnly();
+		if (autosave.Enabled == false || IsPlaying() || m_Context.EditorScenePath.empty() || readOnly)
 		{
 			m_AutosaveTimer = 0.0f;
 			return;

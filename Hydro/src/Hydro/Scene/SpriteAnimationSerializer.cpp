@@ -3,6 +3,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
+#include "Hydro/Project/Project.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -71,6 +72,11 @@ namespace Hydro
 
 	bool SpriteAnimationSerializer::Serialize(const std::filesystem::path& filepath, const SpriteAnimationSet& set)
 	{
+		if (Project::RefusesWrite("the animation set", filepath))
+		{
+			return false;
+		}
+
 		const Ref<Texture2D>& texture = set.GetTexture();
 		if (texture == nullptr || texture->GetPath().empty())
 		{

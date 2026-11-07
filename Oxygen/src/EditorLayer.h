@@ -18,6 +18,7 @@
 #include "EditorWindows/SpriteEditorWindow.h"
 #include "EditorWindows/SpriteAnimationWindow.h"
 #include "EditorWindows/ProjectHubWindow.h"
+#include "EditorWindows/GameMismatchDialog.h"
 #include "RecentProjects.h"
 
 namespace Hydro
@@ -46,7 +47,8 @@ namespace Hydro
 		// <location>/<name>/<name>.hyproj with the standard folders; generic until it uses a game type.
 		void NewProject(const std::string& name, const std::filesystem::path& location);
 		bool OpenProject();
-		void OpenProject(const std::filesystem::path& path);
+		// Another game's project asks first (GameMismatchDialog); unattended runs open it read-only.
+		void OpenProject(const std::filesystem::path& path, bool readOnly = false);
 		// Copies the live render settings into the project, then writes the .hyproj.
 		void SaveProject();
 		// Saves the session, closes the project and shows the hub.
@@ -137,6 +139,7 @@ namespace Hydro
 		Hydro::Ref<SpriteEditorWindow> m_SpriteEditorWindow;
 		Hydro::Ref<SpriteAnimationWindow> m_SpriteAnimationWindow;
 		Hydro::Ref<ProjectHubWindow> m_ProjectHub;
+		Hydro::Ref<GameMismatchDialog> m_GameMismatch;
 		RecentProjects m_RecentProjects;
 		entt::entity m_LastSelectedEntity = entt::null;
 		float m_AutosaveTimer = 0.0f; // seconds since the last save

@@ -2,6 +2,7 @@
 #include "EntitySerializer.h"
 #include "ComponentRegistry.h"
 #include "Hydro/Data/DataSerializer.h"
+#include "Hydro/Project/Project.h"
 #include "Scripting/ScriptableEntity.h"
 #include "Scripting/ScriptSerializer.h"
 
@@ -51,6 +52,7 @@ namespace Hydro
 		{
 			if (const void* data = type.Get(entity))
 			{
+				Project::OnGameContentSaved();
 				out << YAML::Key << type.Name << YAML::Value;
 				DataSerializer::WriteValue(out, type.Type, data);
 			}
@@ -58,6 +60,11 @@ namespace Hydro
 
 		if (entity.HasComponent<NativeScriptComponent>())
 		{
+			// Scripts and game components are the game's code: a generic project that saves one becomes that game's.
+			if (entity.GetComponent<NativeScriptComponent>().Scripts.empty() == false)
+			{
+				Project::OnGameContentSaved();
+			}
 			out << YAML::Key << "NativeScriptComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Scripts" << YAML::Value;

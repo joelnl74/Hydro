@@ -175,7 +175,8 @@ namespace Hydro
 		const std::string id = entry.Path.generic_string();
 
 		ImGui::PushID(id.c_str());
-		ImGui::BeginDisabled(missing || otherGame);
+		// Another game's project can still be opened: EditorLayer asks first and offers read-only.
+		ImGui::BeginDisabled(missing);
 		const std::string label = entry.Name.empty() ? entry.Path.stem().string() : entry.Name;
 		if (ImGui::Selectable(label.c_str(), false, ImGuiSelectableFlags_None, ImVec2(260.0f, 0.0f)))
 		{

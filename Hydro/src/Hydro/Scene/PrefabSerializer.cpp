@@ -4,6 +4,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
+#include "Hydro/Project/Project.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/Scene.h"
 
@@ -14,6 +15,11 @@ namespace Hydro
 {
 	bool PrefabSerializer::Save(Entity entity, const std::filesystem::path& filepath)
 	{
+		if (Project::RefusesWrite("the prefab", filepath))
+		{
+			return false;
+		}
+
 		if ((bool)entity == false || entity.HasComponent<IDComponent>() == false)
 		{
 			HY_CORE_ERROR("PrefabSerializer: can only save entities created with Scene::CreateEntity");

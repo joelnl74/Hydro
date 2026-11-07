@@ -68,6 +68,7 @@ SOURCES=(
 	"$ROOT/Tools/DataTests/ScriptSerializerTest.cpp"
 	"$ROOT/Tools/DataTests/GameRulesTest.cpp"
 	"$ROOT/Tools/DataTests/TestAssetManager.cpp"
+	"$ROOT/Tools/DataTests/TestProject.cpp"
 )
 
 log "Building the round-trip test"

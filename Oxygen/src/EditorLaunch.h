@@ -43,6 +43,8 @@ namespace Hydro
 		// Every frame: counts frames for --frames, then captures (--capture) and quits (--exit).
 		void Update();
 
+		bool IsAutomated() const { return m_Options.IsAutomated(); }
+
 	private:
 		// A scene by name (in the project's Assets/Scenes) or path; empty when there is none.
 		static std::filesystem::path FindScene(const std::string& nameOrPath);
