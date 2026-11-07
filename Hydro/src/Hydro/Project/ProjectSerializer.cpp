@@ -21,6 +21,13 @@ namespace Hydro
 
 		out << YAML::Key << "Project" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "Name" << YAML::Value << config.Name;
+		if (config.Game.IsGeneric() == false)
+		{
+			out << YAML::Key << "Game" << YAML::Value << YAML::BeginMap;
+			out << YAML::Key << "Id" << YAML::Value << config.Game.Id;
+			out << YAML::Key << "Name" << YAML::Value << config.Game.Name;
+			out << YAML::EndMap;
+		}
 		out << YAML::Key << "AssetDirectory" << YAML::Value << config.AssetDirectory.generic_string();
 		if ((uint64_t)config.StartScene != 0)
 		{
@@ -97,6 +104,17 @@ namespace Hydro
 			if (auto node = projectNode["Name"])
 			{
 				config.Name = node.as<std::string>();
+			}
+			if (auto node = projectNode["Game"])
+			{
+				if (auto id = node["Id"])
+				{
+					config.Game.Id = id.as<std::string>();
+				}
+				if (auto name = node["Name"])
+				{
+					config.Game.Name = name.as<std::string>();
+				}
 			}
 			if (auto node = projectNode["AssetDirectory"])
 			{

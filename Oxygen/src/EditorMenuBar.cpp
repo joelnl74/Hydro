@@ -66,6 +66,41 @@ namespace Hydro
 			{
 				Run(OnOpenProject);
 			}
+			const bool hasRecent = m_RecentProjects != nullptr && m_RecentProjects->GetEntries().empty() == false;
+			if (ImGui::BeginMenu("Recent Projects", hasRecent))
+			{
+				std::filesystem::path chosen;
+				for (const RecentProject& entry : m_RecentProjects->GetEntries())
+				{
+					std::error_code ec;
+					const bool usable = entry.GetCompatibility() != ProjectCompatibility::OtherGame &&
+						std::filesystem::exists(entry.Path, ec);
+					const std::string name = entry.Name.empty() ? entry.Path.stem().string() : entry.Name;
+					const std::string label = name + "##" + entry.Path.generic_string();
+					if (ImGui::MenuItem(label.c_str(), nullptr, false, usable))
+					{
+						chosen = entry.Path;
+					}
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+					{
+						ImGui::SetTooltip("%s", entry.Path.string().c_str());
+					}
+				}
+				ImGui::EndMenu();
+				// After the loop: opening a project reorders the list.
+				if (chosen.empty() == false && OnOpenRecentProject)
+				{
+					OnOpenRecentProject(chosen);
+				}
+			}
+			if (ImGui::MenuItem("Project Hub..."))
+			{
+				Run(OnProjectHub);
+			}
+			if (ImGui::MenuItem("Close Project", nullptr, false, Project::GetActive() != nullptr))
+			{
+				Run(OnCloseProject);
+			}
 			if (ImGui::MenuItem("Save Project", nullptr, false, Project::GetActive() != nullptr))
 			{
 				Run(OnSaveProject);

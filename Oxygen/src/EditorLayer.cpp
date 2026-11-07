@@ -15,6 +15,7 @@
 #include "Utilities/PathFollower.h"
 
 #include <algorithm>
+#include <fstream>
 #include <map>
 
 namespace Hydro
@@ -95,7 +96,18 @@ namespace Hydro
 		m_EditorSettingsWindow->OnSave = [this]() { SaveEditorSettings(); };
 		m_EditorSettingsWindow->OnRevert = [this]() { RevertEditorSettings(); };
 
-		m_MenuBar.OnNewProject = [this]() { NewProject(); };
+		m_ProjectHub = CreateRef<ProjectHubWindow>();
+		m_ProjectHub->OnOpenProject = [this](const std::filesystem::path& path) { OpenProject(path); };
+		m_ProjectHub->OnNewProject = [this](const std::string& name, const std::filesystem::path& location) { NewProject(name, location); };
+		m_ProjectHub->OnBrowseProject = [this]() { OpenProject(); };
+		m_ProjectHub->OnRecentChanged = [this]() { m_RecentProjects.Save(EditorPaths::GetRecentProjectsPath()); };
+		m_RecentProjects.Load(EditorPaths::GetRecentProjectsPath());
+		m_MenuBar.SetRecentProjects(&m_RecentProjects);
+		m_MenuBar.OnOpenRecentProject = [this](const std::filesystem::path& path) { OpenProject(path); };
+		m_MenuBar.OnCloseProject = [this]() { CloseProject(); };
+		m_MenuBar.OnProjectHub = [this]() { m_ProjectHub->Open(); };
+
+		m_MenuBar.OnNewProject = [this]() { m_ProjectHub->Open(true); };
 		m_MenuBar.OnOpenProject = [this]() { OpenProject(); };
 		m_MenuBar.OnSaveProject = [this]() { SaveProject(); };
 		m_MenuBar.OnBuild = [this]() { m_BuildWindow->IsOpen() = true; };
@@ -130,6 +142,7 @@ namespace Hydro
 		StoreOpenWindows();
 
 		// Released here, not in the destructor: Application::Shutdown detaches layers while the renderer is alive.
+		m_ProjectHub = nullptr;
 		m_SpriteAnimationWindow = nullptr;
 		m_SpriteEditorWindow = nullptr;
 		m_EditorSettingsWindow = nullptr;
@@ -192,6 +205,17 @@ namespace Hydro
 		CaptureControls::UpdateKeys(m_Context.Captures);
 		m_MenuBar.UpdateKeys();
 		m_Launch.Update();
+
+		// No project (or File > Project Hub): the hub fills the window instead of the dockspace.
+		const bool projectOpen = Project::GetActive() != nullptr;
+		if (projectOpen == false || m_ProjectHub->IsOpen())
+		{
+			m_ProjectHub->OnImguiRender(m_RecentProjects, projectOpen);
+			if (Project::GetActive() == nullptr || m_ProjectHub->IsOpen())
+			{
+				return;
+			}
+		}
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -389,29 +413,35 @@ namespace Hydro
 		m_Context.Selection = {};
 	}
 
-	void EditorLayer::NewProject()
+	void EditorLayer::NewProject(const std::string& name, const std::filesystem::path& location)
 	{
-		std::string directory = FileDialogs::OpenDirectory();
-
-		if (directory.empty())
+		const std::filesystem::path directory = location / EditorPaths::ToFileName(name);
+		const std::filesystem::path file = directory / (EditorPaths::ToFileName(name) + Project::FileExtension);
+		std::error_code ec;
+		if (std::filesystem::exists(file, ec))
 		{
+			HY_ERROR("New Project: {} already exists", file.string());
 			return;
 		}
 
-		// <directory>/<directory name>.hyproj, with the standard asset folders.
-		const std::filesystem::path projectDirectory = directory;
-		const std::string name = EditorPaths::ToFileName(projectDirectory.filename().string());
-		Ref<Project> project = Project::New(projectDirectory / (name + Project::FileExtension));
-		m_Context.Settings.Session.LastProject = projectDirectory / (name + Project::FileExtension);
-
-		std::error_code ec;
+		StopScene();
+		Ref<Project> project = Project::New(file);
+		project->GetConfig().Name = name;
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Scenes", ec);
 		std::filesystem::create_directories(project->GetAssetDirectory() / "Prefabs", ec);
+		// Caches, saves and builds stay out of the project's git.
+		if (std::ofstream ignore(directory / ".gitignore"); ignore.is_open())
+		{
+			ignore << ".hydro/\nSaves/\nBuilds/\n";
+		}
 		AssetManager::OnProjectOpened(project->GetAssetDirectory());
 
-		// A new project starts from the default render settings.
+		// A new project starts from the default render settings and belongs to no game until it uses a game type.
 		Renderer::SetSettings(project->GetConfig().Renderer);
 		SaveProject();
+		m_Context.Settings.Session.LastProject = file;
+		RememberProject();
+		m_ProjectHub->Close();
 		NewScene();
 	}
 
@@ -439,6 +469,8 @@ namespace Hydro
 
 		std::error_code pathError;
 		m_Context.Settings.Session.LastProject = std::filesystem::absolute(path, pathError);
+		RememberProject();
+		m_ProjectHub->Close();
 		Renderer::SetSettings(project->GetConfig().Renderer);
 		// Gives every asset file without a handle one (written into the file or a .hymeta next to it).
 		AssetManager::OnProjectOpened(project->GetAssetDirectory());
@@ -694,11 +726,6 @@ namespace Hydro
 			OpenProject(session.LastProject);
 		}
 
-		if (Project::GetActive() == nullptr)
-		{
-			OpenDefaultProject();
-		}
-
 		// The project's own last scene; settings from older editors kept it in the user's file.
 		std::filesystem::path lastScene = session.LastScene;
 		EditorProjectState state;
@@ -745,27 +772,41 @@ namespace Hydro
 		EditorSettingsSerializer::Save(m_Context.Settings, EditorPaths::GetEditorSettingsPath());
 	}
 
-	void EditorLayer::OpenDefaultProject()
+	void EditorLayer::CloseProject()
 	{
-		const std::filesystem::path directory = EditorPaths::GetDefaultProjectDirectory();
-
-		std::error_code ec;
-		for (const auto& entry : std::filesystem::directory_iterator(directory, ec))
+		if (Project::GetActive() == nullptr)
 		{
-			if (entry.is_regular_file() && entry.path().extension().string() == Project::FileExtension)
-			{
-				OpenProject(entry.path());
-				if (Project::GetActive() != nullptr)
-				{
-					return;
-				}
-			}
+			return;
 		}
 
-		// None found (or it failed to load): an unsaved project in the default folder, so the editor always has one.
-		Ref<Project> project = Project::New(directory / "Sandbox.hyproj");
-		AssetManager::OnProjectOpened(project->GetAssetDirectory());
-		HY_INFO("No project found in {}; started an unsaved one", directory.string());
+		StopScene();
+		SaveSession();
+		AssetManager::OnProjectClosed();
+		Project::Close();
+		// Closed on purpose: the next start shows the hub instead of reopening it.
+		m_Context.Settings.Session.LastProject.clear();
+		m_Context.Settings.Session.LastScene.clear();
+		SaveSession();
+		NewEmptyScene();
+		HY_INFO("Project closed");
+	}
+
+	void EditorLayer::RememberProject()
+	{
+		const Ref<Project> project = Project::GetActive();
+		if (project == nullptr)
+		{
+			return;
+		}
+
+		RecentProject entry;
+		std::error_code ec;
+		entry.Path = std::filesystem::absolute(project->GetProjectFilePath(), ec).lexically_normal();
+		entry.Name = project->GetConfig().Name;
+		entry.Game = project->GetConfig().Game;
+		entry.Editor = Process::GetExecutablePath();
+		m_RecentProjects.Add(entry);
+		m_RecentProjects.Save(EditorPaths::GetRecentProjectsPath());
 	}
 
 	void EditorLayer::SetEditorScene(const Ref<Scene>& scene)

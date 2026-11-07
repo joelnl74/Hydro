@@ -21,6 +21,17 @@ namespace Hydro
 	{
 		EditorLaunchOptions options;
 		options.Project = commandLine.Get("--project");
+		// A bare .hyproj (double-clicked, dropped on the exe, or another game's editor launched by the hub).
+		for (size_t i = 0; options.Project.empty() && i < commandLine.Arguments.size(); i++)
+		{
+			const std::filesystem::path argument = commandLine.Arguments[i];
+			const std::string previous = i > 0 ? commandLine.Arguments[i - 1] : std::string();
+			const bool isValue = previous == "--project" || previous == "--scene" || previous == "--frames" || previous == "--capture";
+			if (isValue == false && argument.extension().string() == Project::FileExtension)
+			{
+				options.Project = argument;
+			}
+		}
 		options.Scene = commandLine.Get("--scene");
 		options.Play = commandLine.Has("--play");
 		const std::string frames = commandLine.Get("--frames");
@@ -59,6 +70,14 @@ namespace Hydro
 			{
 				OnOpenScene(scene);
 			}
+		}
+
+		// Unattended runs never wait in the hub.
+		if (m_Options.IsAutomated() && Project::GetActive() == nullptr)
+		{
+			HY_ERROR("Unattended run without a project: pass --project <file.hyproj>");
+			Application::Get().Quit(2);
+			return;
 		}
 
 		if (m_Options.Validate)

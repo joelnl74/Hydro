@@ -33,10 +33,11 @@ Hydro::Application* Hydro::CreateApplication(const Hydro::ApplicationCommandLine
 	if (commandLine.Has("--help"))
 	{
 		// Before the log exists: plain output.
-		std::printf("Oxygen [--project <file.hyproj>] [--scene <name | file.hyscene>] [--play] [--frames <n>]\n"
+		std::printf("Oxygen [<file.hyproj> | --project <file.hyproj>] [--scene <name | file.hyscene>] [--play] [--frames <n>]\n"
 			"       [--capture <file.png>] [--validate] [--exit]\n"
 			"--capture saves the Game view (1280 x 720) after --frames frames (120); --validate loads every scene\n"
-			"of the project and exits with 1 when any warned; both imply --exit.\n");
+			"of the project and exits with 1 when any warned; both imply --exit. Without a project (and none to reopen)\n"
+			"the project hub shows; unattended runs exit with 2 instead.\n");
 	}
 	const Hydro::EditorLaunchOptions launch = Hydro::EditorLaunchOptions::Parse(commandLine);
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "EditorContext.h"
+#include "RecentProjects.h"
 
 #include <functional>
 #include <vector>
@@ -20,6 +21,9 @@ namespace Hydro
 
 		std::function<void()> OnNewProject;
 		std::function<void()> OnOpenProject;
+		std::function<void(const std::filesystem::path&)> OnOpenRecentProject;
+		std::function<void()> OnCloseProject;
+		std::function<void()> OnProjectHub;
 		std::function<void()> OnSaveProject;
 		std::function<void()> OnBuild;
 		std::function<void()> OnNewScene;
@@ -31,6 +35,9 @@ namespace Hydro
 		std::function<void()> OnStop;
 
 		explicit EditorMenuBar(EditorContext& context);
+
+		// File > Recent Projects lists these (the hub's list, owned by EditorLayer).
+		void SetRecentProjects(const RecentProjects* recent) { m_RecentProjects = recent; }
 
 		// Inside a window with ImGuiWindowFlags_MenuBar (the dockspace).
 		void Draw(const std::vector<ViewWindow>& viewWindows);
@@ -53,5 +60,6 @@ namespace Hydro
 
 	private:
 		EditorContext& m_Context;
+		const RecentProjects* m_RecentProjects = nullptr;
 	};
 }

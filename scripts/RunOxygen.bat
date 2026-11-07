@@ -1,6 +1,6 @@
 @echo off
-rem Starts the Oxygen editor the way Visual Studio does: working directory Oxygen\, so assets\ and
-rem project\ are found. Build first with scripts\Build.bat.
+rem Starts the built Oxygen editor. It finds its own files next to the exe and opens the last project (or shows
+rem the project hub), so the working directory doesn't matter. Build first with scripts\Build.bat.
 rem
 rem Usage: scripts\RunOxygen.bat [Debug|Release|Dist]   (default Debug)
 
@@ -13,6 +13,5 @@ if not exist "%EXE%" (
 	pause
 	exit /b 2
 )
-cd /d "%~dp0..\Oxygen"
-start "Oxygen (%CONFIG%)" "%EXE%"
+start "Oxygen (%CONFIG%)" "%EXE%" %2 %3 %4 %5 %6 %7 %8 %9
 exit /b 0

@@ -17,6 +17,8 @@
 #include "EditorWindows/EditorSettingsWindow.h"
 #include "EditorWindows/SpriteEditorWindow.h"
 #include "EditorWindows/SpriteAnimationWindow.h"
+#include "EditorWindows/ProjectHubWindow.h"
+#include "RecentProjects.h"
 
 namespace Hydro
 {
@@ -41,14 +43,17 @@ namespace Hydro
 
 	private:
 		// Projects (.hyproj). Opening one applies its render settings and opens its start scene.
-		void NewProject();
+		// <location>/<name>/<name>.hyproj with the standard folders; generic until it uses a game type.
+		void NewProject(const std::string& name, const std::filesystem::path& location);
 		bool OpenProject();
 		void OpenProject(const std::filesystem::path& path);
 		// Copies the live render settings into the project, then writes the .hyproj.
 		void SaveProject();
-		// Opens the first .hyproj in EditorPaths::GetDefaultProjectDirectory(), or starts an unsaved one there.
-		void OpenDefaultProject();
-		// At startup: the last project and scene (Editor Settings > Startup), else the default project.
+		// Saves the session, closes the project and shows the hub.
+		void CloseProject();
+		// The open project goes to the top of the hub's recent list (saved).
+		void RememberProject();
+		// At startup: the last project and scene (Editor Settings > Startup); without one the hub shows.
 		void OpenStartupProject();
 
 		// Editor settings (EditorSettings.yaml): loading applies them to ImGui and the editor camera.
@@ -131,6 +136,8 @@ namespace Hydro
 		Hydro::Ref<EditorSettingsWindow> m_EditorSettingsWindow;
 		Hydro::Ref<SpriteEditorWindow> m_SpriteEditorWindow;
 		Hydro::Ref<SpriteAnimationWindow> m_SpriteAnimationWindow;
+		Hydro::Ref<ProjectHubWindow> m_ProjectHub;
+		RecentProjects m_RecentProjects;
 		entt::entity m_LastSelectedEntity = entt::null;
 		float m_AutosaveTimer = 0.0f; // seconds since the last save
 	};
