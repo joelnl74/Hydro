@@ -44,6 +44,14 @@ Hydro::Application* Hydro::CreateApplication(const Hydro::ApplicationCommandLine
 	specification.Name = "Oxygen";
 	specification.MainWindow.Title = "Oxygen";
 
+	// Settings and window layout are per user; older editors kept them in the working directory (Oxygen/).
+#if defined(HY_EDITOR_DIR)
+	Hydro::EditorPaths::PrepareUserDirectory(HY_EDITOR_DIR);
+#else
+	Hydro::EditorPaths::PrepareUserDirectory(std::filesystem::current_path());
+#endif
+	specification.ImGui.IniFile = Hydro::EditorPaths::GetImGuiIniPath();
+
 	// The editor's UI font at the size saved in the editor settings. Runs before the log exists.
 	float fontSize = Hydro::EditorSettings().FontSize;
 	Hydro::EditorSettingsSerializer::ReadFontSize(Hydro::EditorPaths::GetEditorSettingsPath(), fontSize);

@@ -1,6 +1,7 @@
 #pragma once
 #include "Hydro.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 
@@ -11,11 +12,43 @@ namespace Hydro
 	class EditorPaths
 	{
 	public:
-		// The editor's own settings (theme, colours, sizes): per user, next to imgui.ini, not in a project.
-		static std::filesystem::path GetEditorSettingsPath()
+		// Per user, not per repository or project: %APPDATA%/Hydro/Oxygen (the editor settings, imgui.ini).
+		static std::filesystem::path GetUserDirectory()
 		{
-			return std::filesystem::current_path() / "EditorSettings.yaml";
+			if (const char* appData = std::getenv("APPDATA"); appData != nullptr && appData[0] != '\0')
+			{
+				return std::filesystem::path(appData) / "Hydro" / "Oxygen";
+			}
+			if (const char* home = std::getenv("HOME"); home != nullptr && home[0] != '\0')
+			{
+				return std::filesystem::path(home) / ".config" / "Hydro" / "Oxygen";
+			}
+			return std::filesystem::current_path() / ".hydro-user";
 		}
+
+		// The editor's own settings (theme, colours, sizes, the session): per user.
+		static std::filesystem::path GetEditorSettingsPath() { return GetUserDirectory() / "EditorSettings.yaml"; }
+		// ImGui's window positions and docking: per user.
+		static std::filesystem::path GetImGuiIniPath() { return GetUserDirectory() / "imgui.ini"; }
+
+		// Makes the user folder and, once, copies the files older editors kept next to the working directory (Oxygen/)
+		// into it. Runs in CreateApplication, before the log exists: never logs.
+		static void PrepareUserDirectory(const std::filesystem::path& legacyDirectory)
+		{
+			std::error_code ec;
+			std::filesystem::create_directories(GetUserDirectory(), ec);
+			for (const std::filesystem::path& target : { GetEditorSettingsPath(), GetImGuiIniPath() })
+			{
+				const std::filesystem::path legacy = legacyDirectory / target.filename();
+				if (std::filesystem::exists(target, ec) == false && std::filesystem::exists(legacy, ec))
+				{
+					std::filesystem::copy_file(legacy, target, ec);
+				}
+			}
+		}
+
+		// What the editor remembers about one project (its last scene): <project>/.hydro/Editor.yaml, not in git.
+		static std::filesystem::path GetProjectEditorStatePath() { return GetProjectDirectory() / ".hydro" / "Editor.yaml"; }
 
 		// The project the editor opens at startup: the first .hyproj in this folder.
 		static std::filesystem::path GetDefaultProjectDirectory()

@@ -54,6 +54,8 @@ namespace Hydro
 		// Editor settings (EditorSettings.yaml): loading applies them to ImGui and the editor camera.
 		void LoadEditorSettings();
 		void SaveEditorSettings();
+		// The session (user file) and the open project's editor state (its last scene).
+		void SaveSession();
 		// Revert in the Editor Settings window: reload the file, but keep what is open now.
 		void RevertEditorSettings();
 		// Saves the open scene every Autosave.IntervalMinutes while editing.

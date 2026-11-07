@@ -116,6 +116,8 @@ namespace Hydro
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		m_IniFile = m_Specification.IniFile.string();
+		io.IniFilename = m_IniFile.empty() ? nullptr : m_IniFile.c_str();
 
 		auto& window = Application::Get().GetWindow();
 		auto glfwWindow = static_cast<GLFWwindow*>(window.GetNativeWindow());

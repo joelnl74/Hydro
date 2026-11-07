@@ -150,7 +150,7 @@ namespace Hydro
 		m_EditorViewport.Shutdown();
 
 		// Remember what was open for the next start (only the session part of the file changes).
-		EditorSettingsSerializer::SaveSession(m_Context.Settings.Session, EditorPaths::GetEditorSettingsPath());
+		SaveSession();
 
 		// The editor opened the project, so it closes it.
 		AssetManager::OnProjectClosed();
@@ -276,7 +276,7 @@ namespace Hydro
 		// A window opened or closed: remember it now, not only on close, so it holds when the debugger stops the editor.
 		if (StoreOpenWindows())
 		{
-			EditorSettingsSerializer::SaveSession(m_Context.Settings.Session, EditorPaths::GetEditorSettingsPath());
+			SaveSession();
 		}
 
 		ImGui::End();
@@ -699,12 +699,45 @@ namespace Hydro
 			OpenDefaultProject();
 		}
 
-		// The project opened its start scene; the last scene replaces it if it was another one.
-		if (startup.ReopenLastScene && session.LastScene.empty() == false && session.LastScene != m_Context.EditorScenePath &&
-			std::filesystem::exists(session.LastScene, ec))
+		// The project's own last scene; settings from older editors kept it in the user's file.
+		std::filesystem::path lastScene = session.LastScene;
+		EditorProjectState state;
+		if (Ref<Project> project = Project::GetActive(); project != nullptr &&
+			EditorSettingsSerializer::LoadProjectState(EditorPaths::GetProjectEditorStatePath(), state) && state.LastScene.empty() == false)
 		{
-			OpenScene(session.LastScene);
+			lastScene = project->GetProjectDirectory() / state.LastScene;
 		}
+
+		// The project opened its start scene; the last scene replaces it if it was another one.
+		if (startup.ReopenLastScene && lastScene.empty() == false && lastScene != m_Context.EditorScenePath &&
+			std::filesystem::exists(lastScene, ec))
+		{
+			OpenScene(lastScene);
+		}
+	}
+
+	void EditorLayer::SaveSession()
+	{
+		EditorSettingsSerializer::SaveSession(m_Context.Settings.Session, EditorPaths::GetEditorSettingsPath());
+
+		const Ref<Project> project = Project::GetActive();
+		const std::filesystem::path& scene = m_Context.Settings.Session.LastScene;
+		if (project == nullptr || scene.empty())
+		{
+			return;
+		}
+
+		// Only a scene inside this project is remembered for it.
+		std::error_code ec;
+		const std::filesystem::path relative = std::filesystem::relative(scene, project->GetProjectDirectory(), ec);
+		if (ec || relative.empty() || *relative.begin() == "..")
+		{
+			return;
+		}
+
+		EditorProjectState state;
+		state.LastScene = relative;
+		EditorSettingsSerializer::SaveProjectState(state, EditorPaths::GetProjectEditorStatePath());
 	}
 
 	void EditorLayer::SaveEditorSettings()
