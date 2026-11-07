@@ -16,7 +16,7 @@ rem
 rem What it makes (Builds\ is not in git):
 rem   <Project>.exe            the Runtime, named after the project file
 rem   shaderc_shared.dll       compiles the engine's shaders when the game starts
-rem   assets\shaders\          the engine's shaders (Oxygen\assets\shaders)
+rem   assets\shaders\          the engine's shaders (Hydro\assets\shaders)
 rem   Project\<Project>.hyproj and Project\<asset folder>\   the project file and everything in its asset folder
 rem   build-info.txt           what was built, from which commit, when
 rem The game plays Project\<exe name>.hyproj, so the exe and the project file always share the name.
@@ -109,7 +109,7 @@ rem ---- 4. Copy: the exe as <Project>.exe, its DLL, the engine's shaders, the p
 echo [Package] Copying the game into !OUT!
 copy /b /y "!BIN!\Runtime.exe" "!OUT!\!PROJECT_NAME!.exe" >nul || goto copy_failed
 copy /b /y "!BIN!\shaderc_shared.dll" "!OUT!\shaderc_shared.dll" >nul || goto copy_failed
-robocopy "%ROOT%\Oxygen\assets\shaders" "!OUT!\assets\shaders" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >nul
+robocopy "%ROOT%\Hydro\assets\shaders" "!OUT!\assets\shaders" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >nul
 if errorlevel 8 goto copy_failed
 copy /y "!PROJECT_FILE!" "!OUT!\Project\!PROJECT_NAME!.hyproj" >nul || goto copy_failed
 rem Everything under the asset folder is copied: V1 knows nothing about individual assets.

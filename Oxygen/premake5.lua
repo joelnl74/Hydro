@@ -14,15 +14,7 @@ project "Oxygen"
 
 		-- ImGuizmo (the Editor window's transform gizmo) is editor-only, so it is compiled here, not into Hydro.
 		"%{wks.location}/Hydro/vendor/ImGuizmo/ImGuizmo.h",
-		"%{wks.location}/Hydro/vendor/ImGuizmo/ImGuizmo.cpp",
-
-		-- GLSL sources, compiled to SPIR-V by Visual Studio as part of the build (see filter below).
-		"assets/shaders/**.vert",
-		"assets/shaders/**.frag",
-		"assets/shaders/**.comp",
-		"assets/shaders/**.geom",
-		"assets/shaders/**.tesc",
-		"assets/shaders/**.tese"
+		"%{wks.location}/Hydro/vendor/ImGuizmo/ImGuizmo.cpp"
 	}
 
 	includedirs
@@ -60,17 +52,6 @@ project "Oxygen"
 		"Hydro"
 	}
 
-	-- Shader compilation: each shader is a custom build item, so it is only
-	-- recompiled when its source changes. Output: <name>.<stage>.spv next to the source,
-	-- e.g. assets/shaders/vertex.vert -> assets/shaders/vertex.vert.spv
-	filter "files:assets/shaders/**.vert or assets/shaders/**.frag or assets/shaders/**.comp or assets/shaders/**.geom or assets/shaders/**.tesc or assets/shaders/**.tese"
-		buildmessage "Compiling shader %{file.relpath}"
-		buildcommands
-		{
-			'"$(VULKAN_SDK)\\Bin\\glslc.exe" "%{file.relpath}" -o "%{file.relpath}.spv"'
-		}
-		buildoutputs { "%{file.relpath}.spv" }
-
 	-- Vendored sources compiled into Oxygen: no warnings from them.
 	filter "files:**/vendor/ImGuizmo/**.cpp"
 		warnings "Off"
@@ -79,7 +60,10 @@ project "Oxygen"
 	filter {}
 	postbuildcommands
 	{
-		'copy /B /Y "$(VULKAN_SDK)\\Bin\\shaderc_shared.dll" "$(OutDir)" > nul'
+		'copy /B /Y "$(VULKAN_SDK)\\Bin\\shaderc_shared.dll" "$(OutDir)" > nul',
+		-- The engine's and the editor's own files next to the exe (EngineResources): the exe works from any folder.
+		'xcopy /E /I /Y /Q "' .. HydroAssetsDir .. '" "$(OutDir)assets" > nul',
+		'xcopy /E /I /Y /Q "' .. OxygenAssetsDir .. '" "$(OutDir)assets" > nul'
 	}
 
 	filter "system:windows"
@@ -87,6 +71,7 @@ project "Oxygen"
 
 	filter "configurations:Debug"
 		defines "HY_DEBUG"
+		HydroSourceDirDefines()
 		runtime "Debug"
 		symbols "on"
 
@@ -96,6 +81,7 @@ project "Oxygen"
 
 	filter "configurations:Release"
 		defines "HY_RELEASE"
+		HydroSourceDirDefines()
 		runtime "Release"
 		optimize "on"
 

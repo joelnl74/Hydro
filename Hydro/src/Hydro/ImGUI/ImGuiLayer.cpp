@@ -5,6 +5,7 @@
 // Engine
 #include "Hydro/Renderer/Renderer.h"
 #include "Hydro/Core/Application.h"
+#include "Hydro/Core/EngineResources.h"
 
 #include "Hydro/Platform/Vulkan/VulkanUtils.h"
 
@@ -34,10 +35,11 @@ namespace Hydro
 
 		for (const ImGuiFontSpecification& font : m_Specification.Fonts)
 		{
+			const std::filesystem::path path = EngineResources::Resolve(font.Path);
 			std::error_code ec;
-			if (std::filesystem::exists(font.Path, ec) == false)
+			if (std::filesystem::exists(path, ec) == false)
 			{
-				HY_CORE_WARN("ImGui font '{}' not found: {}", font.Name, font.Path.string());
+				HY_CORE_WARN("ImGui font '{}' not found: {}", font.Name, path.string());
 				continue;
 			}
 
@@ -46,9 +48,9 @@ namespace Hydro
 			config.OversampleV = 1;
 			std::snprintf(config.Name, sizeof(config.Name), "%s", font.Name.c_str());
 
-			if (io.Fonts->AddFontFromFileTTF(font.Path.string().c_str(), font.Size, &config) == nullptr)
+			if (io.Fonts->AddFontFromFileTTF(path.string().c_str(), font.Size, &config) == nullptr)
 			{
-				HY_CORE_WARN("ImGui font '{}' could not be loaded from {}", font.Name, font.Path.string());
+				HY_CORE_WARN("ImGui font '{}' could not be loaded from {}", font.Name, path.string());
 			}
 		}
 

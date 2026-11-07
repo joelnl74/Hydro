@@ -52,7 +52,9 @@ project "Runtime"
 	-- Hydro compiles GLSL at runtime with shaderc: put its DLL next to the executable.
 	postbuildcommands
 	{
-		'copy /B /Y "$(VULKAN_SDK)\\Bin\\shaderc_shared.dll" "$(OutDir)" > nul'
+		'copy /B /Y "$(VULKAN_SDK)\\Bin\\shaderc_shared.dll" "$(OutDir)" > nul',
+		-- The engine's files next to the exe (EngineResources); the runtime never reads them from the source folders.
+		'xcopy /E /I /Y /Q "' .. HydroAssetsDir .. '" "$(OutDir)assets" > nul'
 	}
 
 	filter "system:windows"

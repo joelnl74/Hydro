@@ -15,7 +15,7 @@ namespace Hydro
 	struct ImGuiFontSpecification
 	{
 		std::string Name;           // looked up with ImGuiLayer::GetFont; at most 39 characters
-		std::filesystem::path Path; // .ttf / .otf, relative to the working directory
+		std::filesystem::path Path; // .ttf / .otf; relative = an engine resource (EngineResources::Resolve)
 		float Size = 16.0f;         // pixels
 	};
 

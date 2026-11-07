@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Quick checks that don't need Windows, MSVC or a GPU (for Linux, WSL or a CI/agent container):
 #   1. syntax check of engine and editor sources with g++ -fsyntax-only -Wall -Wextra
-#   2. compile every shader in Oxygen/assets/shaders to SPIR-V with glslang
+#   2. compile every shader in Hydro/assets/shaders to SPIR-V with glslang
 #   3. the code conventions (scripts/lint_conventions.py: `!`, braces, namespaces, m_ names; Hydro, Oxygen, Game and
 #      Runtime sources, or the given files there) and the project's scenes, prefabs and data (scripts/validate_project.py; needs PyYAML)
 # It is not a build: nothing links and Windows-only files are skipped. MSVC /W4 stays the real check.
@@ -62,7 +62,7 @@ fi
 check_shaders() {
 	log "Shaders"
 	local failed=0
-	for shader in "$ROOT"/Oxygen/assets/shaders/*.vert "$ROOT"/Oxygen/assets/shaders/*.frag; do
+	for shader in "$ROOT"/Hydro/assets/shaders/*.vert "$ROOT"/Hydro/assets/shaders/*.frag; do
 		[ -f "$shader" ] || continue
 		if "$GLSLANG" -V "$shader" -o "$CACHE/$(basename "$shader").$$.spv" > "$CACHE/shader.$$.log" 2>&1; then
 			echo "ok    ${shader#$ROOT/}"

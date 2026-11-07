@@ -49,14 +49,15 @@ delete app;                                           // destructor: no engine w
 | # | `Application::Init` | Needs | `Application::Shutdown` (reverse) |
 | --- | --- | --- | --- |
 | 1 | `Log::Init()` | — | `Log::Shutdown()`, last, so every step can still log |
-| 2 | `Time::Init()` | — | `Time::Shutdown()` |
-| 3 | `EventDispatcher::Init()` | — | `EventDispatcher::Shutdown()` |
-| 4 | `Window::Create()`, then `Window::Init(spec.MainWindow)` | Events (window callbacks post events) | `Window::Shutdown()`, then the `Scope` is reset |
-| 5 | `Renderer::Init(window)` | Window (surface) | `Renderer::Shutdown()` |
-| 6 | `AssetManager::Init()` | Renderer (it creates the GPU textures); empty until the application calls `OnProjectOpened` | `AssetManager::Shutdown()`, after the layers are detached |
-| 7 | `PhysicsEngine::Init()` | — (it sits after `AssetManager` because colliders will come from scenes and assets) | `PhysicsEngine::Shutdown()`, after the layers are detached: scenes own their physics worlds and are gone by then |
-| 8 | Push `ImGuiLayer` as an overlay (`OnAttach`) | Renderer, Window | `Renderer::WaitIdle()`, then `LayerStack::Clear()` detaches and deletes every layer, top-most first |
-| 9 | Client `OnInit()` (pushes the application's layers) | everything above | Client `OnShutdown()`, first, while everything is alive |
+| 2 | `EngineResources::Init(spec.Resources)` | Log (it reports the folders it uses) | `EngineResources::Shutdown()` |
+| 3 | `Time::Init()` | — | `Time::Shutdown()` |
+| 4 | `EventDispatcher::Init()` | — | `EventDispatcher::Shutdown()` |
+| 5 | `Window::Create()`, then `Window::Init(spec.MainWindow)` | Events (window callbacks post events) | `Window::Shutdown()`, then the `Scope` is reset |
+| 6 | `Renderer::Init(window)` | Window (surface) | `Renderer::Shutdown()` |
+| 7 | `AssetManager::Init()` | Renderer (it creates the GPU textures); empty until the application calls `OnProjectOpened` | `AssetManager::Shutdown()`, after the layers are detached |
+| 8 | `PhysicsEngine::Init()` | — (it sits after `AssetManager` because colliders will come from scenes and assets) | `PhysicsEngine::Shutdown()`, after the layers are detached: scenes own their physics worlds and are gone by then |
+| 9 | Push `ImGuiLayer` as an overlay (`OnAttach`) | Renderer, Window | `Renderer::WaitIdle()`, then `LayerStack::Clear()` detaches and deletes every layer, top-most first |
+| 10 | Client `OnInit()` (pushes the application's layers) | everything above | Client `OnShutdown()`, first, while everything is alive |
 
 Inside `Renderer::Init`, and reversed in `Renderer::Shutdown`:
 
@@ -116,6 +117,7 @@ Every current name was checked against the table. Only one changed:
 | Name | Verdict | Why |
 | --- | --- | --- |
 | `SceneGraph`, `SceneTransforms`, `SceneUILayout`, `SceneStage`, `EntityReferences`, `EditorContext`, `EditorViewport`, `GameViewport`, `CaptureControls`, `EditorMenuBar`, `EditorLaunch`, `ComponentDrawers`, `InspectorUI`, `ScriptFieldUI`, `MaterialEditor`, `DataAssetInspector` | New (Nov 3-4, 2026), splits by responsibility | Parts of `Scene`, `EditorLayer` and `InspectorWindow` that had grown past 1000 lines, each named for what it holds or does. `Scene...` parts are owned by `Scene`, which forwards its API; `...Viewport` is the window that shows a view; `...UI` classes are static ImGui helpers like `PropertyUI`; `ComponentDrawers` and `CaptureControls` are plural because they list several. No `Manager`, `System` or `Helper` |
+| `EngineResources` | New (Nov 8, 2026), domain facade | The engine's own files (shaders, the editor's fonts), not the project's assets (`AssetManager`); not `ResourceManager` (a registry of loaded objects is what `Manager` means here, and it loads nothing) nor `EnginePaths` (it also picks between the source folders and the copy next to the exe) |
 | `Renderer` | Keep (not `RenderEngine`) | It is a doer: layers submit draw calls and it renders them. `Engine` is for things that step a simulation or host a foreign runtime (audio mixer, script VM, physics world). `Renderer` is also the name every engine and every reader expects |
 | `Renderer2D`, `Renderer3D` | Keep | Parts of `Renderer`, named for the kind of drawing they do |
 | `TerrainCache` | New (Terrain plan TR1) | A part of `Renderer` that keeps terrains' GPU copies (`Cache`, like the material and shape caches); not `TerrainRenderer`: it draws nothing itself, `Renderer3D` does |
@@ -185,13 +187,14 @@ Every current name was checked against the table. Only one changed:
 | Area | Name | Status | Where it goes in the order |
 | --- | --- | --- | --- |
 | Logging | `Log` (engine + client loggers, terminal, `logs/*.log`, in-memory history for the editor Console) | Done | 1 |
-| Frame clock and timings | `Time` | Done | 2 |
-| Events | `EventDispatcher` | Done | 3 |
-| Window and OS input | `Window` (`WindowsWindow`) | Done | 4 |
-| Input queries | `Input` | Stateless today, no lifecycle. Becomes a subsystem (after `Window`) when it gains state such as gamepads or action maps | after 4 |
-| Rendering | `Renderer` (parts: `Renderer2D`, `Renderer3D`, `Vulkan*`) | Done | 5 |
-| Jobs / threads | `JobScheduler` | Planned | after 2: others may submit jobs from their `Init` |
-| Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache, components and the project's start scene by handle, move / delete that keep handles ([Asset system](Architecture.md#asset-system)) | 6, after `Renderer` (GPU assets need the device) |
+| Engine and editor files | `EngineResources` (shaders, editor fonts: found from the exe, not the working directory; [Shaders](Architecture.md#shaders)) | Done | 2 |
+| Frame clock and timings | `Time` | Done | 3 |
+| Events | `EventDispatcher` | Done | 4 |
+| Window and OS input | `Window` (`WindowsWindow`) | Done | 5 |
+| Input queries | `Input` | Stateless today, no lifecycle. Becomes a subsystem (after `Window`) when it gains state such as gamepads or action maps | after 5 |
+| Rendering | `Renderer` (parts: `Renderer2D`, `Renderer3D`, `Vulkan*`) | Done | 6 |
+| Jobs / threads | `JobScheduler` | Planned | after 3: others may submit jobs from their `Init` |
+| Assets | `AssetManager` | Started (Oct 24, 2026): handles, registry, scan, texture loading and cache, components and the project's start scene by handle, move / delete that keep handles ([Asset system](Architecture.md#asset-system)) | 7, after `Renderer` (GPU assets need the device) |
 | Audio | `AudioEngine` | Planned | after `AssetManager` |
 | Scripting | `ScriptEngine` | Planned | after `AssetManager`, before the client's `OnInit` |
 | Physics | `PhysicsEngine` (per scene: `PhysicsScene`, `PhysicsScene3D`) | Started (Oct 24, 2026): Box2D v3.1.1 linked, assert hook, length unit, a Debug-build self test. Jolt v5.6.0 (Oct 28, 2026): allocator, trace and assert hooks, type registration, a Debug-build self test. Each runtime scene owns a `PhysicsScene` and a `PhysicsScene3D` that step at a fixed 60 Hz and deliver collision and trigger events to scripts | after `AssetManager` (there is no `ScriptEngine` yet) |

@@ -2,6 +2,21 @@
 -- Hydro Dependencies
 VULKAN_SDK = os.getenv("VULKAN_SDK")
 
+-- The engine checkout (this file's folder), and the resource folders each exe gets a copy of (EngineResources).
+HydroRoot = path.getabsolute(_SCRIPT_DIR)
+HydroAssetsDir = path.translate(HydroRoot .. "/Hydro/assets", "\\")
+OxygenAssetsDir = path.translate(HydroRoot .. "/Oxygen/assets", "\\")
+
+-- Oxygen's development override (Debug and Release only): it reads shaders and fonts from the source folders
+-- when they exist, so shader hot reload edits the real files. Packaged and Dist builds use their own copy.
+function HydroSourceDirDefines()
+	defines
+	{
+		'HY_ENGINE_DIR="' .. HydroRoot .. '/Hydro"',
+		'HY_EDITOR_DIR="' .. HydroRoot .. '/Oxygen"'
+	}
+end
+
 IncludeDir = {}
 IncludeDir["GLFW"] = "%{wks.location}/Hydro/vendor/GLFW/include"
 IncludeDir["ImGui"] = "%{wks.location}/Hydro/vendor/ImGui"

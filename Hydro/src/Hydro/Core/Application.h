@@ -1,4 +1,5 @@
 #pragma once
+#include "Hydro/Core/EngineResources.h"
 #include "Hydro/Core/Window.h"
 #include "Hydro/Core/LayerStack.h"
 #include "Hydro/Events/EventDispatcher.h"
@@ -44,6 +45,7 @@ namespace Hydro
 		WindowSpecification MainWindow;
 		// The application's font files.
 		ImGuiLayerSpecification ImGui;
+		EngineResourcesSpecification Resources;
 	};
 
 	// Owns the subsystems and runs the loop: main() calls Init, Run and Shutdown (subsystems stop in reverse order;

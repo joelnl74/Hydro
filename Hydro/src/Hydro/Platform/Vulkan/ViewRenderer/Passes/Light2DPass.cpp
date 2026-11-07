@@ -76,13 +76,13 @@ namespace Hydro
 		// A missing or broken light shader leaves every view unlit instead of stopping the engine.
 		try
 		{
-			s_Data->LightPipeline = BuildLightPipeline(VulkanShaderLibrary::Load(LightShaderName, "assets/shaders/vertex.vert",
-				"assets/shaders/light.frag"),
+			s_Data->LightPipeline = BuildLightPipeline(VulkanShaderLibrary::Load(LightShaderName, "shaders/vertex.vert",
+				"shaders/light.frag"),
 				BlendMode::Additive);
 			s_Data->CompositeLayoutDescriptorSet = BuildLightBufferDescriptorSet();
 			s_Data->CompositePipeline = BuildCompositePipeline(VulkanShaderLibrary::Load(CompositeShaderName,
-				"assets/shaders/composite.vert",
-				"assets/shaders/composite.frag"));
+				"shaders/composite.vert",
+				"shaders/composite.frag"));
 		}
 		catch (const std::exception& e)
 		{
@@ -100,8 +100,8 @@ namespace Hydro
 
 		try
 		{
-			s_Data->ShadowPipeline = BuildLightPipeline(VulkanShaderLibrary::Load(ShadowShaderName, "assets/shaders/vertex.vert",
-				"assets/shaders/shadow.frag"), BlendMode::Darken);
+			s_Data->ShadowPipeline = BuildLightPipeline(VulkanShaderLibrary::Load(ShadowShaderName, "shaders/vertex.vert",
+				"shaders/shadow.frag"), BlendMode::Darken);
 		}
 		catch (const std::exception& e)
 		{

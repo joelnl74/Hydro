@@ -48,7 +48,13 @@ Hydro::Application* Hydro::CreateApplication(const Hydro::ApplicationCommandLine
 	float fontSize = Hydro::EditorSettings().FontSize;
 	Hydro::EditorSettingsSerializer::ReadFontSize(Hydro::EditorPaths::GetEditorSettingsPath(), fontSize);
 
-	const std::filesystem::path fonts = "assets/Fonts/opensans";
+#if defined(HY_ENGINE_DIR) && defined(HY_EDITOR_DIR)
+	// A development build reads shaders and fonts from the source folders (shader hot reload), else its own copy.
+	specification.Resources.DevelopmentDirectories = { HY_ENGINE_DIR, HY_EDITOR_DIR };
+#endif
+
+	// An engine resource (EngineResources::Resolve), like the shaders.
+	const std::filesystem::path fonts = "Fonts/opensans";
 	specification.ImGui.Fonts =
 	{
 		{ "Regular", fonts / "OpenSans-Regular.ttf", fontSize },

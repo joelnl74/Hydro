@@ -336,7 +336,7 @@ namespace Hydro
 			changed |= ImGui::Checkbox("Soft sun shadows", &settings.SoftSunShadows);
 			HelpMarker("On: filtered shadow edges.\nOff: one texel per sample, crisp steps that suit pixel art.");
 
-			ImGui::TextDisabled("The light curve is assets/shaders/light_falloff.glsl (both lighting modes).\nWith Shader hot reload on, saving it changes the look of the running editor.");
+			ImGui::TextDisabled("The light curve is Hydro/assets/shaders/light_falloff.glsl (both lighting modes).\nWith Shader hot reload on, saving it changes the look of the running editor.");
 		}
 
 		// ---- Render features (project default) ----------------------------------
