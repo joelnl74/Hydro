@@ -1,0 +1,4 @@
+{
+  "Game": { "Id": "hydro-sample", "Name": "Hydro Sample", "Target": "SampleGame", "CodeDirectory": "Game" },
+  "DefaultProject": "Project/Sample.hyproj"
+}

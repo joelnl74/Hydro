@@ -6,8 +6,8 @@ project "Runtime"
 	cppdialect "C++17"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (HydroWorkspaceDir .. "/bin/" .. outputdir .. "/%{prj.name}")
+	objdir (HydroWorkspaceDir .. "/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{
@@ -18,14 +18,14 @@ project "Runtime"
 	includedirs
 	{
 		"src",
-		"%{wks.location}/Hydro/src",
-		"%{wks.location}/Game/src"
+		HydroRoot .. "/Hydro/src",
+		HydroGameSourceDir
 	}
 
 	-- Vendored headers: no warnings from these (see ExternalIncludeDirs in Dependencies.lua).
 	ExternalIncludeDirs
 	{
-		"%{wks.location}/Hydro/vendor",
+		HydroRoot .. "/Hydro/vendor",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
@@ -45,7 +45,7 @@ project "Runtime"
 
 	links
 	{
-		"Game",
+		HydroWorkspace.Game.Target,
 		"Hydro"
 	}
 

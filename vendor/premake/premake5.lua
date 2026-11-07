@@ -1,16 +1,16 @@
 project "Premake"
 	kind "Utility"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (HydroWorkspaceDir .. "/bin/" .. outputdir .. "/%{prj.name}")
+	objdir (HydroWorkspaceDir .. "/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{
-		"%{wks.location}/**premake5.lua"
+		HydroWorkspaceDir .. "/**premake5.lua"
 	}
 
 	postbuildmessage "Regenerating project files with Premake5!"
 	postbuildcommands
 	{
-		"\"%{prj.location}bin/premake5\" %{_ACTION} --file=\"%{wks.location}premake5.lua\""
+		'"' .. HydroRoot .. '/vendor/premake/bin/premake5" %{_ACTION} --file="' .. HydroWorkspaceDir .. '/premake5.lua"'
 	}

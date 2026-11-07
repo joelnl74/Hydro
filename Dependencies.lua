@@ -17,19 +17,28 @@ function HydroSourceDirDefines()
 	}
 end
 
+-- Where Oxygen's File > Build finds the engine's scripts and the workspace it packages (every configuration).
+function HydroWorkspaceDefines()
+	defines
+	{
+		'HY_HYDRO_ROOT="' .. HydroRoot .. '"',
+		'HY_WORKSPACE_DIR="' .. HydroWorkspaceDir .. '"'
+	}
+end
+
 IncludeDir = {}
-IncludeDir["GLFW"] = "%{wks.location}/Hydro/vendor/GLFW/include"
-IncludeDir["ImGui"] = "%{wks.location}/Hydro/vendor/ImGui"
-IncludeDir["ImGuizmo"] = "%{wks.location}/Hydro/vendor/ImGuizmo" -- Oxygen only (transform gizmo)
-IncludeDir["glm"] = "%{wks.location}/Hydro/vendor/glm"
-IncludeDir["yaml_cpp"] = "%{wks.location}/Hydro/vendor/yaml-cpp/include"
-IncludeDir["box2d"] = "%{wks.location}/Hydro/vendor/box2d/include"
-IncludeDir["JoltPhysics"] = "%{wks.location}/Hydro/vendor/JoltPhysics" -- Jolt headers are included as <Jolt/Jolt.h>
-IncludeDir["VMA"] = "%{wks.location}/Hydro/vendor/VulkanMemoryAllocator"
-IncludeDir["entt"] = "%{wks.location}/Hydro/vendor/entt"
-IncludeDir["spdlog"] = "%{wks.location}/Hydro/vendor/spdlog/include"
-IncludeDir["stb"] = "%{wks.location}/Hydro/vendor/stb/include"
-IncludeDir["cgltf"] = "%{wks.location}/Hydro/vendor/cgltf"
+IncludeDir["GLFW"] = HydroRoot .. "/Hydro/vendor/GLFW/include"
+IncludeDir["ImGui"] = HydroRoot .. "/Hydro/vendor/ImGui"
+IncludeDir["ImGuizmo"] = HydroRoot .. "/Hydro/vendor/ImGuizmo" -- Oxygen only (transform gizmo)
+IncludeDir["glm"] = HydroRoot .. "/Hydro/vendor/glm"
+IncludeDir["yaml_cpp"] = HydroRoot .. "/Hydro/vendor/yaml-cpp/include"
+IncludeDir["box2d"] = HydroRoot .. "/Hydro/vendor/box2d/include"
+IncludeDir["JoltPhysics"] = HydroRoot .. "/Hydro/vendor/JoltPhysics" -- Jolt headers are included as <Jolt/Jolt.h>
+IncludeDir["VMA"] = HydroRoot .. "/Hydro/vendor/VulkanMemoryAllocator"
+IncludeDir["entt"] = HydroRoot .. "/Hydro/vendor/entt"
+IncludeDir["spdlog"] = HydroRoot .. "/Hydro/vendor/spdlog/include"
+IncludeDir["stb"] = HydroRoot .. "/Hydro/vendor/stb/include"
+IncludeDir["cgltf"] = HydroRoot .. "/Hydro/vendor/cgltf"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 
 -- Vendored include directories: searched like includedirs, but the compiler reports no warnings

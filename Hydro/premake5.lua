@@ -4,8 +4,8 @@ project "Hydro"
 	cppdialect "C++17"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (HydroWorkspaceDir .. "/bin/" .. outputdir .. "/%{prj.name}")
+	objdir (HydroWorkspaceDir .. "/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	-- Runs the "Premake" utility project first, so new/removed source files
 	-- are picked up automatically on build (no need to run Win-GenProjects.bat).

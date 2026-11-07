@@ -12,25 +12,6 @@ namespace Hydro
 	// Keeps the log readable and bounded: a full build writes thousands of lines.
 	static constexpr size_t MaxLogSize = 256 * 1024;
 
-	// Walks up from `start` to the first folder that has scripts/Package.bat.
-	static std::filesystem::path FindRepositoryRoot(std::filesystem::path start)
-	{
-		std::error_code ec;
-		start = std::filesystem::absolute(start, ec);
-		for (std::filesystem::path directory = start; directory.empty() == false; directory = directory.parent_path())
-		{
-			if (std::filesystem::exists(directory / "scripts" / "Package.bat", ec))
-			{
-				return directory;
-			}
-			if (directory == directory.parent_path())
-			{
-				break;
-			}
-		}
-		return std::filesystem::path();
-	}
-
 	const char* BuildWindow::GetKindName(BuildKind kind)
 	{
 		return kind == BuildKind::Release ? "Release" : "Distribution";
@@ -44,7 +25,7 @@ namespace Hydro
 
 	std::filesystem::path BuildWindow::GetOutputDirectory() const
 	{
-		return m_RepositoryRoot / "Builds" / (GetProjectName() + "-" + GetKindName(m_Kind));
+		return m_WorkspaceRoot / "Builds" / (GetProjectName() + "-" + GetKindName(m_Kind));
 	}
 
 	void BuildWindow::OnImguiRender()
@@ -57,16 +38,17 @@ namespace Hydro
 			return;
 		}
 
-		if (m_RepositorySearched == false)
+		if (m_RootsFound == false)
 		{
-			// The editor runs in Oxygen/ (Visual Studio, RunOxygen.bat) or from its exe in bin/.
+#if defined(HY_HYDRO_ROOT) && defined(HY_WORKSPACE_DIR)
 			std::error_code ec;
-			m_RepositoryRoot = FindRepositoryRoot(std::filesystem::current_path(ec));
-			if (m_RepositoryRoot.empty())
+			if (std::filesystem::exists(std::filesystem::path(HY_HYDRO_ROOT) / "scripts" / "Package.bat", ec))
 			{
-				m_RepositoryRoot = FindRepositoryRoot(Process::GetExecutablePath().parent_path());
+				m_EngineRoot = HY_HYDRO_ROOT;
+				m_WorkspaceRoot = HY_WORKSPACE_DIR;
 			}
-			m_RepositorySearched = true;
+#endif
+			m_RootsFound = true;
 		}
 
 		ImGui::SetNextWindowSize(ImVec2(620.0f, 460.0f), ImGuiCond_FirstUseEver);
@@ -84,9 +66,9 @@ namespace Hydro
 			ImGui::End();
 			return;
 		}
-		if (m_RepositoryRoot.empty())
+		if (m_EngineRoot.empty())
 		{
-			ImGui::TextWrapped("scripts/Package.bat was not found above the editor's folder: builds need the Hydro repository.");
+			ImGui::TextWrapped("The Hydro checkout this editor was built from (scripts/Package.bat) isn't there: builds need it.");
 			ImGui::End();
 			return;
 		}
@@ -177,15 +159,16 @@ namespace Hydro
 		const Ref<Project> project = Project::GetActive();
 		std::error_code ec;
 		const std::filesystem::path projectFile = std::filesystem::absolute(project->GetProjectFilePath(), ec);
-		const std::filesystem::path script = m_RepositoryRoot / "scripts" / "Package.bat";
+		const std::filesystem::path script = m_EngineRoot / "scripts" / "Package.bat";
 
 		// cmd /s /c "<line>" runs <line> as it is, quotes and all.
 		ProcessSpecification specification;
-		specification.CommandLine = "cmd.exe /d /s /c \"\"" + script.u8string() + "\" " + GetKindName(m_Kind) + " --project \""
-			+ projectFile.u8string() + "\" --no-pause\"";
-		specification.WorkingDirectory = m_RepositoryRoot;
+		specification.CommandLine = "cmd.exe /d /s /c \"\"" + script.u8string() + "\" " + GetKindName(m_Kind) + " --workspace \""
+			+ m_WorkspaceRoot.u8string() + "\" --project \"" + projectFile.u8string() + "\" --no-pause\"";
+		specification.WorkingDirectory = m_WorkspaceRoot;
 
-		m_Log = "> scripts\\Package.bat " + std::string(GetKindName(m_Kind)) + " --project " + projectFile.u8string() + "\n";
+		m_Log = "> scripts\\Package.bat " + std::string(GetKindName(m_Kind)) + " --workspace " + m_WorkspaceRoot.u8string()
+			+ " --project " + projectFile.u8string() + "\n";
 		m_Process = CreateScope<Process>(specification);
 		m_StartTime = Time::GetUptime();
 		m_BuiltDirectory = GetOutputDirectory();

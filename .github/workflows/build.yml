@@ -119,6 +119,12 @@ jobs:
         shell: cmd
         run: call scripts\Build.bat ${{ matrix.config }} --no-pause
 
+      # A second workspace (Sample/: the engine with its own small game) proves the game is a workspace parameter.
+      - name: Build the Sample workspace (Release)
+        if: matrix.config == 'Release'
+        shell: cmd
+        run: call scripts\Build.bat Release --workspace Sample --no-pause
+
       - name: Report errors and warnings
         if: always()
         shell: pwsh
@@ -188,7 +194,9 @@ jobs:
           python-version: "3.12"
 
       - name: Reflection is up to date
-        run: python Tools/ReflectionGenerator/generate_reflection.py . --check
+        run: |
+          python Tools/ReflectionGenerator/generate_reflection.py . --check
+          python Tools/ReflectionGenerator/generate_reflection.py . --check --source Hydro/src --source Sample/Game/src --output Sample/Game/src/Generated/GeneratedScriptReflection.cpp --data-output Sample/Game/src/Generated/GeneratedDataReflection.cpp
 
       - name: Code conventions
         run: python scripts/lint_conventions.py

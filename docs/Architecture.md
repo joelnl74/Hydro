@@ -14,7 +14,7 @@ Read this first, then:
 | Project | Kind | What it is |
 | --- | --- | --- |
 | `Hydro` | Static library | The engine: core, events, platform, renderer, scene, project |
-| `Game` | Static library | The game's own code: the Sandbox project's scripts and data types and their generated reflection (`RegisterGeneratedScriptReflection`, `RegisterGeneratedDataReflection`). Linked by every application that runs the game |
+| `<Game.Target>` (`EonloreGame`, `SampleGame`) | Static library | The workspace's game code (see [Workspaces](#workspaces)): its scripts and data types and their generated reflection (`RegisterGame()` in its `GameRegistration.h`), made by `HydroGameLibrary()` in `Engine.lua`. Linked by Oxygen and Runtime |
 | `Oxygen` | Executable | The editor. An `Application` subclass that registers the game's scripts and pushes an `EditorLayer` (see [The editor](#the-editor-oxygen)) |
 | `Runtime` | Executable | The standalone player: plays a project without the editor (see [Standalone builds](#standalone-builds)) |
 
@@ -36,6 +36,16 @@ Hydro::Application* Hydro::CreateApplication()
     return new MyApp(spec);
 }
 ```
+
+## Workspaces
+
+A **workspace** is the build and code environment of one game; a **project** (`.hyproj` with `Assets/`, `.hydro/`, `Saves/`) is content Oxygen opens. One workspace builds one Oxygen and one Runtime with its game linked in; that Oxygen can open any project of the same game (or a generic one) from anywhere.
+
+- **`hydro-workspace.json`** describes a workspace: `Game` (`Id`, the stable compatibility key stored in projects; `Name`, shown; `Target`, the C++ library; `CodeDirectory`, whose `src/` has the game code and `GameRegistration.h`) and `DefaultProject` (what `Package.bat` packages without `--project`). Premake, the scripts and CI read it.
+- **`Engine.lua`** (engine root) is included by every workspace's `premake5.lua`: `HydroLoadWorkspace(dir)`, `HydroWorkspaceDefaults()` inside `workspace "Hydro"`, then `HydroIncludeEngine()` (the dependencies, `Hydro`, the game library, `Oxygen`, `Runtime`). Engine source paths come from `HydroRoot` (the engine checkout), outputs (`bin/`, `bin-int/`) from the workspace. The engine repository's solution is `Hydro.sln` at its root; any other workspace's is `<workspace>/build/Hydro.sln`.
+- **`engine.lock`** (optional, one line: a Hydro commit): premake and `Build.bat` warn when the engine checkout is at another commit; CI checks that commit out.
+- The engine repository's own workspace builds the Eonlore game (`Game/`) for now; **`Sample/`** is a second workspace with the engine's own small game (`hydro-sample`) and project, built by CI.
+- `scripts/Build.bat --workspace <dir>` and `scripts/Package.bat --workspace <dir>` build and package any workspace (default: the engine repository); a game repository's wrapper scripts pass their own folder. Oxygen's **File > Build** uses the engine and workspace folders premake baked in (`HY_HYDRO_ROOT`, `HY_WORKSPACE_DIR`).
 
 ## Standalone builds
 

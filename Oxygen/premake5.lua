@@ -4,8 +4,8 @@ project "Oxygen"
 	cppdialect "C++17"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (HydroWorkspaceDir .. "/bin/" .. outputdir .. "/%{prj.name}")
+	objdir (HydroWorkspaceDir .. "/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{
@@ -13,21 +13,21 @@ project "Oxygen"
 		"src/**.cpp",
 
 		-- ImGuizmo (the Editor window's transform gizmo) is editor-only, so it is compiled here, not into Hydro.
-		"%{wks.location}/Hydro/vendor/ImGuizmo/ImGuizmo.h",
-		"%{wks.location}/Hydro/vendor/ImGuizmo/ImGuizmo.cpp"
+		HydroRoot .. "/Hydro/vendor/ImGuizmo/ImGuizmo.h",
+		HydroRoot .. "/Hydro/vendor/ImGuizmo/ImGuizmo.cpp"
 	}
 
 	includedirs
 	{
 		"src",
-		"%{wks.location}/Hydro/src",
-		"%{wks.location}/Game/src"
+		HydroRoot .. "/Hydro/src",
+		HydroGameSourceDir
 	}
 
 	-- Vendored headers: no warnings from these (see ExternalIncludeDirs in Dependencies.lua).
 	ExternalIncludeDirs
 	{
-		"%{wks.location}/Hydro/vendor",
+		HydroRoot .. "/Hydro/vendor",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.ImGuizmo}",
@@ -45,10 +45,11 @@ project "Oxygen"
 	{
 		"YAML_CPP_STATIC_DEFINE"
 	}
+	HydroWorkspaceDefines()
 
 	links
 	{
-		"Game",
+		HydroWorkspace.Game.Target,
 		"Hydro"
 	}
 

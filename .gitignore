@@ -1,6 +1,6 @@
 # Binaries
 **/bin/
-bin-int/
+**/bin-int/
 
 # Hazel files
 *.log
@@ -28,3 +28,4 @@ scripts/terrain/out/
 Builds/
 # Save slots the game writes next to its project (SaveGame)
 **/Saves/
+Sample/build/

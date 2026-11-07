@@ -1,14 +1,17 @@
 @echo off
 rem Makes a standalone build of a project: builds the Runtime project (Release or Dist), then copies what the
 rem game needs into Builds\<Project>-<Kind>\. V1 copies the project's raw files: no cooking, no packing.
-rem Oxygen's File > Build runs this script; it also works on its own (double-click: Release of the Sandbox).
+rem Oxygen's File > Build runs this script; it also works on its own (double-click: Release of the workspace's
+rem default project).
 rem
 rem Usage:
 rem   scripts\Package.bat [Release|Distribution] [options]
 rem
 rem Options:
-rem   --project <file.hyproj>  the project to package (default Oxygen\project\Sandbox.hyproj; a relative path
-rem                            is taken from the repository root)
+rem   --workspace <dir>        the workspace whose Runtime is built (a folder with hydro-workspace.json; default this
+rem                            repository); the package goes to <dir>\Builds\
+rem   --project <file.hyproj>  the project to package (default: the workspace's DefaultProject; a relative path is
+rem                            taken from the workspace folder)
 rem   --no-build               package the Runtime that is already built
 rem   --pause                  wait for a key at the end (default only when started by double-clicking)
 rem   --no-pause               never wait for a key at the end
@@ -16,7 +19,7 @@ rem
 rem What it makes (Builds\ is not in git):
 rem   <Project>.exe            the Runtime, named after the project file
 rem   shaderc_shared.dll       compiles the engine's shaders when the game starts
-rem   assets\shaders\          the engine's shaders (Hydro\assets\shaders)
+rem   assets\                  the engine's own files (the copy the Runtime build made next to Runtime.exe)
 rem   Project\<Project>.hyproj and Project\<asset folder>\   the project file and everything in its asset folder
 rem   build-info.txt           what was built, from which commit, when
 rem The game plays Project\<exe name>.hyproj, so the exe and the project file always share the name.
@@ -30,6 +33,7 @@ set "SCRIPT_DIR=%~dp0"
 
 set "KIND=Release"
 set "PROJECT="
+set "WORKSPACE="
 set "BUILD=1"
 
 rem Pause at the end only when started from Explorer and not on a CI machine (see Build.bat).
@@ -44,13 +48,18 @@ if /i "%~1"=="Distribution" (set "KIND=Distribution" & shift & goto parse)
 if /i "%~1"=="--no-build"   (set "BUILD=0"           & shift & goto parse)
 if /i "%~1"=="--pause"      (set "PAUSE_AT_END=1"    & shift & goto parse)
 if /i "%~1"=="--no-pause"   (set "PAUSE_AT_END=0"    & shift & goto parse)
+if /i "%~1"=="--workspace" (
+	if "%~2"=="" (echo [Package] --workspace needs a folder & set "EXIT_CODE=2" & goto finish)
+	set "WORKSPACE=%~f2"
+	shift & shift & goto parse
+)
 if /i "%~1"=="--project" (
 	if "%~2"=="" (echo [Package] --project needs a .hyproj file & set "EXIT_CODE=2" & goto finish)
 	set "PROJECT=%~2"
 	shift & shift & goto parse
 )
 echo [Package] Unknown argument: %~1
-echo [Package] Usage: scripts\Package.bat [Release^|Distribution] [--project ^<file.hyproj^>] [--no-build] [--pause^|--no-pause]
+echo [Package] Usage: scripts\Package.bat [Release^|Distribution] [--workspace ^<dir^>] [--project ^<file.hyproj^>] [--no-build] [--pause^|--no-pause]
 set "EXIT_CODE=2"
 goto finish
 :parsed
@@ -58,10 +67,24 @@ goto finish
 if /i "%KIND%"=="Release" (set "CONFIG=Release") else (set "CONFIG=Dist")
 
 pushd "%SCRIPT_DIR%.."
+set "ENGINE=%CD%"
+popd
+if not defined WORKSPACE set "WORKSPACE=%ENGINE%"
+if not exist "%WORKSPACE%\hydro-workspace.json" (
+	echo [Package] %WORKSPACE% has no hydro-workspace.json.
+	set "EXIT_CODE=2" & goto finish
+)
+pushd "%WORKSPACE%"
 set "ROOT=%CD%"
 
 rem ---- 1. The project -------------------------------------------------------------
-if not defined PROJECT set "PROJECT=Oxygen\project\Sandbox.hyproj"
+if not defined PROJECT (
+	for /f "usebackq delims=" %%p in (`py -c "import json, os; print(os.path.normpath(json.load(open('hydro-workspace.json'))['DefaultProject']))"`) do set "PROJECT=%%p"
+)
+if not defined PROJECT (
+	echo [Package] No --project and no DefaultProject in %ROOT%\hydro-workspace.json.
+	set "EXIT_CODE=2" & goto finish_popd
+)
 for %%P in ("%PROJECT%") do (
 	set "PROJECT_FILE=%%~fP"
 	set "PROJECT_DIR=%%~dpP"
@@ -88,7 +111,7 @@ echo [Package] !PROJECT_NAME! ^| %KIND% ^(%CONFIG%^) ^| !OUT!
 
 rem ---- 2. Build the Runtime (and only what it links, so Oxygen can stay open) -------
 if "%BUILD%"=="1" (
-	call "%SCRIPT_DIR%Build.bat" %CONFIG% --project Runtime --no-pause
+	call "%SCRIPT_DIR%Build.bat" %CONFIG% --workspace "%ROOT%" --project Runtime --no-pause
 	if errorlevel 2 (set "EXIT_CODE=2" & goto finish_popd)
 	if errorlevel 1 (set "EXIT_CODE=1" & goto finish_popd)
 )
@@ -109,7 +132,7 @@ rem ---- 4. Copy: the exe as <Project>.exe, its DLL, the engine's shaders, the p
 echo [Package] Copying the game into !OUT!
 copy /b /y "!BIN!\Runtime.exe" "!OUT!\!PROJECT_NAME!.exe" >nul || goto copy_failed
 copy /b /y "!BIN!\shaderc_shared.dll" "!OUT!\shaderc_shared.dll" >nul || goto copy_failed
-robocopy "%ROOT%\Hydro\assets\shaders" "!OUT!\assets\shaders" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >nul
+robocopy "!BIN!\assets" "!OUT!\assets" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >nul
 if errorlevel 8 goto copy_failed
 copy /y "!PROJECT_FILE!" "!OUT!\Project\!PROJECT_NAME!.hyproj" >nul || goto copy_failed
 rem Everything under the asset folder is copied: V1 knows nothing about individual assets.
@@ -119,10 +142,13 @@ if errorlevel 8 goto copy_failed
 rem ---- 5. build-info.txt ------------------------------------------------------------
 set "COMMIT=unknown"
 for /f %%c in ('git -C "%ROOT%" rev-parse --short HEAD 2^>nul') do set "COMMIT=%%c"
+set "ENGINE_COMMIT=unknown"
+for /f %%c in ('git -C "%ENGINE%" rev-parse --short HEAD 2^>nul') do set "ENGINE_COMMIT=%%c"
 > "%OUT%\build-info.txt" (
 	echo Project: !PROJECT_NAME!
 	echo Kind: %KIND% ^(%CONFIG% configuration^)
 	echo Commit: !COMMIT!
+	echo Hydro: !ENGINE_COMMIT!
 	echo Built: %DATE% %TIME%
 	echo Source: !PROJECT_FILE!
 )

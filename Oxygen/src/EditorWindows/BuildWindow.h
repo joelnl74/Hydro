@@ -40,9 +40,11 @@ namespace Hydro
 		BuildKind m_Kind = BuildKind::Release;
 		BuildState m_State = BuildState::Idle;
 
-		// Where scripts/Package.bat is, found when the window first opens.
-		std::filesystem::path m_RepositoryRoot;
-		bool m_RepositorySearched = false;
+		// The engine checkout (scripts/Package.bat) and the workspace whose Runtime is packaged (Builds/ goes there): both
+		// baked in by premake (HY_HYDRO_ROOT, HY_WORKSPACE_DIR), so nothing depends on the working directory.
+		std::filesystem::path m_EngineRoot;
+		std::filesystem::path m_WorkspaceRoot;
+		bool m_RootsFound = false;
 
 		Scope<Process> m_Process;
 		std::string m_Log;

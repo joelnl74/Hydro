@@ -9,7 +9,9 @@ rem Usage:
 rem   scripts\Build.bat [Debug|Release|Dist] [options]
 rem
 rem Options:
-rem   --project <name>  build one project of the solution (Hydro, Game, Oxygen or Runtime) instead of all of it
+rem   --workspace <dir> the workspace to build (a folder with hydro-workspace.json; default this repository); its
+rem                     solution is <dir>\build\Hydro.sln, logs and binaries in <dir>\bin\
+rem   --project <name>  build one project of the solution (Hydro, the game's target, Oxygen or Runtime) instead of all of it
 rem   --rebuild         rebuild instead of an incremental build
 rem   --no-generate     skip the premake step (use the existing Hydro.sln)
 rem   --action <name>   premake action, default vs2022 (also HYDRO_PREMAKE_ACTION)
@@ -28,6 +30,7 @@ set "CONFIG=Debug"
 set "GENERATE=1"
 set "TARGET=Build"
 set "PROJECT="
+set "WORKSPACE="
 set "ACTION=vs2022"
 if defined HYDRO_PREMAKE_ACTION set "ACTION=%HYDRO_PREMAKE_ACTION%"
 
@@ -51,19 +54,35 @@ if /i "%~1"=="--project" (
 	set "PROJECT=%~2"
 	shift & shift & goto parse
 )
+if /i "%~1"=="--workspace" (
+	if "%~2"=="" (echo [Build] --workspace needs a folder & set "EXIT_CODE=2" & goto finish)
+	set "WORKSPACE=%~f2"
+	shift & shift & goto parse
+)
 if /i "%~1"=="--action" (
 	if "%~2"=="" (echo [Build] --action needs a premake action, e.g. --action vs2022 & set "EXIT_CODE=2" & goto finish)
 	set "ACTION=%~2"
 	shift & shift & goto parse
 )
 echo [Build] Unknown argument: %~1
-echo [Build] Usage: scripts\Build.bat [Debug^|Release^|Dist] [--project ^<name^>] [--rebuild] [--no-generate] [--action ^<name^>] [--pause^|--no-pause]
+echo [Build] Usage: scripts\Build.bat [Debug^|Release^|Dist] [--workspace ^<dir^>] [--project ^<name^>] [--rebuild] [--no-generate] [--action ^<name^>] [--pause^|--no-pause]
 set "EXIT_CODE=2"
 goto finish
 :parsed
 
+rem The engine (this repository: premake, the tools) and the workspace being built (its solution, bin\ and logs).
 pushd "%SCRIPT_DIR%.."
+set "ENGINE=%CD%"
+popd
+if not defined WORKSPACE set "WORKSPACE=%ENGINE%"
+if not exist "%WORKSPACE%\hydro-workspace.json" (
+	echo [Build] %WORKSPACE% has no hydro-workspace.json.
+	set "EXIT_CODE=2" & goto finish
+)
+pushd "%WORKSPACE%"
 set "ROOT=%CD%"
+set "SOLUTION=build\Hydro.sln"
+if /i "%ROOT%"=="%ENGINE%" set "SOLUTION=Hydro.sln"
 set "LOGDIR=bin\logs"
 if not exist "%LOGDIR%" mkdir "%LOGDIR%"
 set "LOG=%LOGDIR%\Build-%CONFIG%.log"
@@ -88,20 +107,22 @@ if errorlevel 1 (
 
 rem ---- 1. Generate the solution -------------------------------------------------
 if "%GENERATE%"=="1" (
-	if not exist "vendor\premake\bin\premake5.exe" (
-		echo [Build] vendor\premake\bin\premake5.exe is missing. Run scripts\Setup.bat once to download it.
+	if not exist "%ENGINE%\vendor\premake\bin\premake5.exe" (
+		echo [Build] %ENGINE%\vendor\premake\bin\premake5.exe is missing. Run scripts\Setup.bat once to download it.
 		set "EXIT_CODE=2" & goto finish_popd
 	)
 	echo [Build] Generating the solution ^(premake5 %ACTION%^)
-	"vendor\premake\bin\premake5.exe" %ACTION% > "%LOGDIR%\premake.log" 2>&1
+	"%ENGINE%\vendor\premake\bin\premake5.exe" %ACTION% > "%LOGDIR%\premake.log" 2>&1
 	if errorlevel 1 (
 		type "%LOGDIR%\premake.log"
 		echo [Build] premake failed ^(log: %LOGDIR%\premake.log^)
 		set "EXIT_CODE=2" & goto finish_popd
 	)
+	rem engine.lock: a different Hydro checkout is only a warning locally (premake reports it).
+	findstr /c:"different Hydro revision" /c:"Required Hydro" /c:"Current Hydro" "%LOGDIR%\premake.log"
 )
-if not exist "Hydro.sln" (
-	echo [Build] Hydro.sln not found. Run without --no-generate to create it.
+if not exist "%SOLUTION%" (
+	echo [Build] %SOLUTION% not found. Run without --no-generate to create it.
 	set "EXIT_CODE=2" & goto finish_popd
 )
 
@@ -131,7 +152,7 @@ if defined PROJECT (
 	if /i "%TARGET%"=="Build" (set "MSBUILD_TARGET=%PROJECT%") else (set "MSBUILD_TARGET=%PROJECT%:%TARGET%")
 )
 echo [Build] %CONFIG% ^| target %MSBUILD_TARGET% ^| !MSBUILD!
-"!MSBUILD!" Hydro.sln -nologo -m -nodeReuse:false -t:%MSBUILD_TARGET% -p:Configuration=%CONFIG% -v:minimal -clp:Summary;ForceNoAlign -flp1:LogFile=%LOG%;Verbosity=normal -flp2:LogFile=%ERRLOG%;errorsonly -flp3:LogFile=%WARNLOG%;warningsonly
+"!MSBUILD!" "%SOLUTION%" -nologo -m -nodeReuse:false -t:%MSBUILD_TARGET% -p:Configuration=%CONFIG% -v:minimal -clp:Summary;ForceNoAlign -flp1:LogFile=%LOG%;Verbosity=normal -flp2:LogFile=%ERRLOG%;errorsonly -flp3:LogFile=%WARNLOG%;warningsonly
 set "BUILD_RESULT=%ERRORLEVEL%"
 
 set "ERRORS=0"
@@ -143,7 +164,7 @@ for /f "tokens=1" %%n in ('findstr /r /c:"^ *[0-9][0-9]* Error(s)" "%LOG%" 2^>nu
 echo.
 if "%BUILD_RESULT%"=="0" (
 	echo [Build] SUCCEEDED: %CONFIG%, %WARNINGS% warning^(s^)
-	echo [Build] Output: bin\%CONFIG%-windows-x86_64\
+	echo [Build] Output: %ROOT%\bin\%CONFIG%-windows-x86_64\
 	set "EXIT_CODE=0"
 ) else (
 	echo [Build] FAILED: %CONFIG%, %ERRORS% error^(s^), %WARNINGS% warning^(s^)
