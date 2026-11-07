@@ -57,6 +57,8 @@ project "Game"
 
 	filter "system:windows"
 		systemversion "latest"
+		-- The generated reflection file has more sections than the default object format allows.
+		buildoptions { "/bigobj" }
 
 	filter "configurations:Debug"
 		defines "HY_DEBUG"
