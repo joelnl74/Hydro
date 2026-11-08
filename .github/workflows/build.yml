@@ -196,7 +196,7 @@ jobs:
       - name: Reflection is up to date
         run: |
           python Tools/ReflectionGenerator/generate_reflection.py . --check
-          python Tools/ReflectionGenerator/generate_reflection.py . --check --source Hydro/src --source Sample/Game/src --output Sample/Game/src/Generated/GeneratedScriptReflection.cpp --data-output Sample/Game/src/Generated/GeneratedDataReflection.cpp
+          python Tools/ReflectionGenerator/generate_reflection.py . --check --workspace Sample
 
       - name: Code conventions
         run: python scripts/lint_conventions.py
@@ -207,7 +207,7 @@ jobs:
           python scripts/validate_project.py
 
       - name: Data and script-binding tests
-        run: bash scripts/test_data.sh
+        run: bash scripts/test_data.sh --game-tests Tools/DataTests/GameRulesTest.cpp
 
       - name: Wiki mirrors docs/ (warning only)
         run: |

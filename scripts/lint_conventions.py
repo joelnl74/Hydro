@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The engine's code conventions, checked (the hydro-engine-architecture skill has the rules).
 
-    python scripts/lint_conventions.py [--warnings] [files or folders...]   # default: Hydro/src, Oxygen/src, Game/src, Runtime/src
+    python scripts/lint_conventions.py [--warnings] [--workspace <dir>] [files or folders...]
+        # default: Hydro/src, Oxygen/src, Runtime/src and the workspace's game code (hydro-workspace.json)
 
 Reports file:line: rule: message for every break and exits 1 when there is one. Rules:
   not-operator  no `!` operator: write `== false` / `== nullptr` (`!=` is fine)
@@ -29,7 +30,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_ROOTS = [ROOT / "Hydro" / "src", ROOT / "Oxygen" / "src", ROOT / "Game" / "src", ROOT / "Runtime" / "src"]
+sys.path.insert(0, str(ROOT / "scripts"))
+import hydro_workspace  # noqa: E402
+
+
+def default_roots(workspace_directory: str | None) -> list[Path]:
+    game = hydro_workspace.load(workspace_directory).game_source
+    return [ROOT / "Hydro" / "src", ROOT / "Oxygen" / "src", game, ROOT / "Runtime" / "src"]
 SUFFIXES = {".h", ".hpp", ".cpp"}
 ALLOWED_NAMESPACES = {"Hydro", "std", "YAML"}
 # Game/src/Scripts/ folders every area may include (the rest are areas: one scene or a few of one kind).
@@ -228,8 +235,8 @@ def check_file(path: Path, report_line, warn_line=None) -> None:
                                     f"Scripts/{area}/ includes Scripts/{other.group(1)}/: share it through State/, Rules/, Views/ or Scripts/Common/")
 
 
-def iter_files(arguments: list[str]):
-    roots = [Path(a) for a in arguments] if arguments else DEFAULT_ROOTS
+def iter_files(arguments: list[str], workspace_directory: str | None = None):
+    roots = [Path(a) for a in arguments] if arguments else default_roots(workspace_directory)
     for root in roots:
         root = root if root.is_absolute() else (Path.cwd() / root)
         if root.is_file():
@@ -249,7 +256,8 @@ def shown_path(path: Path) -> str:
 
 
 def main() -> int:
-    arguments = [a for a in sys.argv[1:] if a != "--warnings"]
+    workspace_directory, rest = hydro_workspace.take_workspace_argument(sys.argv[1:])
+    arguments = [a for a in rest if a != "--warnings"]
     list_warnings = "--warnings" in sys.argv[1:]
     problems = 0
     warnings: dict[str, int] = {}
@@ -265,7 +273,7 @@ def main() -> int:
             print(f"{shown_path(path)}:{line}: warning: {rule}: {message}")
 
     count = 0
-    for path in iter_files(arguments):
+    for path in iter_files(arguments, workspace_directory):
         count += 1
         check_file(path, report_line, warn_line)
     summary = ", ".join(f"{n} {rule}" for rule, n in sorted(warnings.items()))
