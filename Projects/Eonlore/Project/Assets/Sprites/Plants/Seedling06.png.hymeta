@@ -1,8 +1,0 @@
-Handle: 812314011575804996
-Type: Texture2D
-TextureImport:
-  Format: SRGB
-  Filter: Nearest
-  Wrap: Clamp
-  SpriteMode: Single
-  PixelsPerUnit: 32

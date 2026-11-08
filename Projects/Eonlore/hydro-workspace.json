@@ -1,4 +1,0 @@
-{
-  "Game": { "Id": "eonlore", "Name": "Eonlore", "Target": "EonloreGame", "CodeDirectory": "Game" },
-  "DefaultProject": "Project/Eonlore.hyproj"
-}

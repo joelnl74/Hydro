@@ -120,17 +120,12 @@ jobs:
         shell: cmd
         run: call scripts\Build.bat ${{ matrix.config }} --no-pause
 
-      # Eonlore, a workspace of its own (Projects/Eonlore: its game code and project, built against this Hydro).
-      - name: Build the Eonlore workspace (${{ matrix.config }})
-        shell: cmd
-        run: call Projects\Eonlore\scripts\Build.bat ${{ matrix.config }} --no-pause
-
       - name: Report errors and warnings
         if: always()
         shell: pwsh
         run: |
           $config = "${{ matrix.config }}"
-          $logDirs = @("bin\logs", "Projects\Eonlore\bin\logs")
+          $logDirs = @("bin\logs")
           $workspace = ($env:GITHUB_WORKSPACE -replace '/', '\').TrimEnd('\') + '\'
           # MSVC: path(line[,col]): error C1234: message   (linker/MSBuild lines have no line number)
           $pattern = '^\s*(?<file>[^(]+?)\((?<line>\d+)(,(?<col>\d+))?\)\s*:\s*(fatal )?(?<kind>error|warning)\s+(?<code>\w+)\s*:\s*(?<msg>.*?)(\s*\[[^\]]+\])?$'
@@ -169,9 +164,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-logs-${{ matrix.config }}
-          path: |
-            bin/logs/
-            Projects/Eonlore/bin/logs/
+          path: bin/logs/
           retention-days: 14
           if-no-files-found: ignore
 
@@ -201,21 +194,17 @@ jobs:
       - name: Reflection is up to date
         run: |
           python Tools/ReflectionGenerator/generate_reflection.py . --check
-          python Tools/ReflectionGenerator/generate_reflection.py . --check --workspace Projects/Eonlore
 
       - name: Code conventions
-        run: |
-          python scripts/lint_conventions.py
-          python scripts/lint_conventions.py Projects/Eonlore/Game/src
+        run: python scripts/lint_conventions.py
 
       - name: Project validation
         run: |
           python -m pip install --quiet pyyaml
           python scripts/validate_project.py
-          python scripts/validate_project.py --workspace Projects/Eonlore
 
       - name: Data and script-binding tests
-        run: bash Projects/Eonlore/scripts/check.sh --tests
+        run: bash scripts/test_data.sh
 
       - name: Wiki mirrors docs/ (warning only)
         run: |
