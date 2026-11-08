@@ -236,7 +236,7 @@ Rules and reasons: [Architecture](Architecture.md), [Subsystems](Subsystems.md),
 
 ## Game code: in its workspace
 
-Game code is not part of the engine: each game's workspace has it in `<CodeDirectory>/src` ([Workspaces](Architecture.md#workspaces)). Eonlore's is `Projects/Eonlore/Game/src`, mapped in [its own code map](../Projects/Eonlore/docs/CodeMap.md) with its scene and art tools; the Sample's is `Sample/Game/src` (only `GameRegistration.*` and `Generated/`). Below, `Game/src/...` means a game's code folder.
+Game code is not part of the engine: each game's workspace has it in `<CodeDirectory>/src` ([Workspaces](Architecture.md#workspaces)). Eonlore's is `Game/src` in [its own repository](https://github.com/joelnl74/Eonlore), mapped in its `docs/CodeMap.md` with its scene and art tools; the Sample's is `Sample/Game/src` (only `GameRegistration.*` and `Generated/`). Below, `Game/src/...` means a game's code folder.
 
 ## Standalone runtime: `Runtime/src`
 
