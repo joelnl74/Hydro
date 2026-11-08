@@ -1,53 +1,41 @@
 # Qwen Code + local Ollama: Hydro / Oxygen setup
 
-These files give Qwen Code (with a local Ollama model) the same rules Claude uses in this repository, sized for small local models. They don't change Ollama, a model or Claude.
+These files give Qwen Code (with a local Ollama model, `qwen3.6-64k`) the rules Claude uses in this repository, sized for a local model. In this repository Qwen reads, explains and makes small edits; engine changes are handed to a frontier model. Game scripting is set up in Eonlore (`..\Eonlore\.qwen\INSTALL.md`).
 
 ## What's here
 
 | File | What it is | When it loads |
 | --- | --- | --- |
-| `QWEN.md` | Project instructions: what Qwen is used for (lightweight tasks) and which skill to pick | Always |
-| `.qwen/rules/hydro-cpp-conventions.md` | The C++ rules in short form (namespace, naming, no `!`, ownership, includes, YAML, format) | When Qwen reads or edits `.h` / `.hpp` / `.inl` / `.cpp` files |
-| `.qwen/skills/hydro-quick-edit/SKILL.md` | Small-task skill: what counts as small, the rules, recipes (component field, editor setting, YAML, UI colours), a checklist | When invoked (`/hydro-quick-edit`) or picked by the model |
-| `.qwen/skills/hydro-engine-architecture/SKILL.md` | The full architecture skill, the same text as Claude's `hydro-engine-architecture` skill | When invoked (`/hydro-engine-architecture`) or picked by the model |
+| `QWEN.md` (repository root) | Qwen's role here, where things are, how to check, when to hand off | Always |
+| `.qwen/rules/hydro-cpp-conventions.md` | The C++ rules in short form | When Qwen reads or edits `.h` / `.hpp` / `.inl` / `.cpp` files |
+| `.qwen/skills/hydro-quick-edit/SKILL.md` | Small edits: what counts as small, recipes, checklist | On demand |
+| `.qwen/skills/hydro-engine-architecture/SKILL.md` | The full architecture rules, the same text as Claude's skill (about 23 KB) | On demand: only to explain or review architecture |
+| `%USERPROFILE%\.qwen\skills\hydro-handoff\SKILL.md` | The brief for a frontier model (shared with Eonlore) | On demand |
 
-The full skill is large (about 27 KB). On small models prefer `hydro-quick-edit` and only load the full skill for architecture questions.
+Qwen Code reads `QWEN.md` from the folder it starts in, so start it in the repository root. Project rules and skills load only once the folder is trusted.
 
-## Install
+## Start
 
-Qwen Code looks for `.qwen/` and `QWEN.md` in the folder it starts in, so copy them next to `Hydro.sln` (this folder keeps the master copy):
-
-```bat
-cd /d C:\Users\joeln\Hydro
-xcopy /E /I /Y "QWEN Skills\.qwen" .qwen
-copy /Y "QWEN Skills\QWEN.md" QWEN.md
+```powershell
+cd C:\Users\joeln\Hydro
 qwen
 ```
 
-If `.qwen\settings.json` already exists, keep it; the copy only adds `rules\` and `skills\`. Instead of copying, you can point Qwen at this folder in `.qwen/settings.json`:
-
-```json
-{
-  "skills": {
-    "directories": ["C:/Users/joeln/Hydro/QWEN Skills/.qwen/skills"]
-  }
-}
-```
-
-Use either the copy or the setting, not both (the skills would be registered twice).
-
-In Qwen Code, `/skills` should list `hydro-quick-edit` and `hydro-engine-architecture`. Quick test:
+`/skills` should list `hydro-quick-edit`, `hydro-engine-architecture` and `hydro-handoff`. Quick tests:
 
 ```
-Use hydro-quick-edit: add an int SortOrder field (default 0) to SpriteRendererComponent, save/load it and show it in the inspector. Show the diff, don't build.
+Explain how a script's OnTriggerEnter gets called, from the physics step to the script. Don't edit.
 ```
+```
+Add a post-processing pass for bloom.
+```
+The second should end in a hand-off brief, not an edit.
 
 ## Keeping it in sync
 
-The full skill is a copy of the Claude skill. When the Claude skill or `docs/` change, update `.qwen/skills/hydro-engine-architecture/SKILL.md` with the same text and adjust the short rules and the quick-edit skill if a rule changed. Last synced: October 19, 2026 (agreed changes A1–A12, tooling, editor look and settings, YAML reading rule).
+`hydro-engine-architecture` is a copy of the Claude skill. When the Claude skill or `docs/` change, copy its text here (keep this file's frontmatter) and adjust `hydro-quick-edit` and the rules file if a rule changed. Last synced: November 8, 2026.
 
 ## Notes
 
 - Skills and rules are instructions read at run time; they don't retrain the model.
-- Small local models still miss rules sometimes: review the diff, format with `.clang-format`, and build with `/W4` before committing.
-- References: Qwen Code skills (https://qwenlm.github.io/qwen-code-docs/en/users/features/skills/), rules (https://qwenlm.github.io/qwen-code-docs/en/users/features/rules/), settings (https://qwenlm.github.io/qwen-code-docs/en/users/configuration/settings/).
+- Local models still miss rules: review the diff, run the linter and build with `/W4` before committing.
