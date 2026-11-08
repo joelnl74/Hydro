@@ -1,4 +1,4 @@
 {
-  "Game": { "Id": "eonlore", "Name": "Eonlore", "Target": "EonloreGame", "CodeDirectory": "Game" },
-  "DefaultProject": "Oxygen/project/Sandbox.hyproj"
+  "Game": { "Id": "hydro-sample", "Name": "Hydro Sample", "Target": "SampleGame", "CodeDirectory": "Sample/Game" },
+  "DefaultProject": "Sample/Project/Sample.hyproj"
 }

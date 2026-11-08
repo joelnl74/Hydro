@@ -28,4 +28,5 @@ scripts/terrain/out/
 Builds/
 # Save slots the game writes next to its project (SaveGame)
 **/Saves/
-Sample/build/
+# Solutions of workspaces other than the engine repository's
+**/build/

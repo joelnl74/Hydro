@@ -115,29 +115,32 @@ jobs:
           }
 
       # ---- Build ---------------------------------------------------------------------------------
+      # The engine repository's own workspace: Hydro, Oxygen and Runtime with the Sample game.
       - name: Build (${{ matrix.config }})
         shell: cmd
         run: call scripts\Build.bat ${{ matrix.config }} --no-pause
 
-      # A second workspace (Sample/: the engine with its own small game) proves the game is a workspace parameter.
-      - name: Build the Sample workspace (Release)
-        if: matrix.config == 'Release'
+      # Eonlore, a workspace of its own (Projects/Eonlore: its game code and project, built against this Hydro).
+      - name: Build the Eonlore workspace (${{ matrix.config }})
         shell: cmd
-        run: call scripts\Build.bat Release --workspace Sample --no-pause
+        run: call Projects\Eonlore\scripts\Build.bat ${{ matrix.config }} --no-pause
 
       - name: Report errors and warnings
         if: always()
         shell: pwsh
         run: |
           $config = "${{ matrix.config }}"
-          $errLog = "bin\logs\Build-$config-errors.log"
-          $warnLog = "bin\logs\Build-$config-warnings.log"
+          $logDirs = @("bin\logs", "Projects\Eonlore\bin\logs")
           $workspace = ($env:GITHUB_WORKSPACE -replace '/', '\').TrimEnd('\') + '\'
           # MSVC: path(line[,col]): error C1234: message   (linker/MSBuild lines have no line number)
           $pattern = '^\s*(?<file>[^(]+?)\((?<line>\d+)(,(?<col>\d+))?\)\s*:\s*(fatal )?(?<kind>error|warning)\s+(?<code>\w+)\s*:\s*(?<msg>.*?)(\s*\[[^\]]+\])?$'
           $errors = @(); $warnings = @()
-          if (Test-Path $errLog) { $errors = @(Get-Content $errLog | Where-Object { $_ -match ': (fatal )?error ' } | Sort-Object -Unique) }
-          if (Test-Path $warnLog) { $warnings = @(Get-Content $warnLog | Where-Object { $_ -match ': warning ' } | Sort-Object -Unique) }
+          foreach ($dir in $logDirs) {
+            $errLog = "$dir\Build-$config-errors.log"; $warnLog = "$dir\Build-$config-warnings.log"
+            if (Test-Path $errLog) { $errors += @(Get-Content $errLog | Where-Object { $_ -match ': (fatal )?error ' }) }
+            if (Test-Path $warnLog) { $warnings += @(Get-Content $warnLog | Where-Object { $_ -match ': warning ' }) }
+          }
+          $errors = @($errors | Sort-Object -Unique); $warnings = @($warnings | Sort-Object -Unique)
           foreach ($line in $errors) {
             if ($line -match $pattern) {
               $file = $Matches.file.Trim() -replace [regex]::Escape($workspace), ''
@@ -166,7 +169,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-logs-${{ matrix.config }}
-          path: bin/logs/
+          path: |
+            bin/logs/
+            Projects/Eonlore/bin/logs/
           retention-days: 14
           if-no-files-found: ignore
 
@@ -196,18 +201,21 @@ jobs:
       - name: Reflection is up to date
         run: |
           python Tools/ReflectionGenerator/generate_reflection.py . --check
-          python Tools/ReflectionGenerator/generate_reflection.py . --check --workspace Sample
+          python Tools/ReflectionGenerator/generate_reflection.py . --check --workspace Projects/Eonlore
 
       - name: Code conventions
-        run: python scripts/lint_conventions.py
+        run: |
+          python scripts/lint_conventions.py
+          python scripts/lint_conventions.py Projects/Eonlore/Game/src
 
       - name: Project validation
         run: |
           python -m pip install --quiet pyyaml
           python scripts/validate_project.py
+          python scripts/validate_project.py --workspace Projects/Eonlore
 
       - name: Data and script-binding tests
-        run: bash scripts/test_data.sh --game-tests Tools/DataTests/GameRulesTest.cpp
+        run: bash Projects/Eonlore/scripts/check.sh --tests
 
       - name: Wiki mirrors docs/ (warning only)
         run: |
