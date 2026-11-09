@@ -115,6 +115,7 @@ jobs:
           }
 
       # ---- Build ---------------------------------------------------------------------------------
+      # The engine repository's own workspace: Hydro, Oxygen and Runtime with the Sample game.
       - name: Build (${{ matrix.config }})
         shell: cmd
         run: call scripts\Build.bat ${{ matrix.config }} --no-pause
@@ -124,14 +125,17 @@ jobs:
         shell: pwsh
         run: |
           $config = "${{ matrix.config }}"
-          $errLog = "bin\logs\Build-$config-errors.log"
-          $warnLog = "bin\logs\Build-$config-warnings.log"
+          $logDirs = @("bin\logs")
           $workspace = ($env:GITHUB_WORKSPACE -replace '/', '\').TrimEnd('\') + '\'
           # MSVC: path(line[,col]): error C1234: message   (linker/MSBuild lines have no line number)
           $pattern = '^\s*(?<file>[^(]+?)\((?<line>\d+)(,(?<col>\d+))?\)\s*:\s*(fatal )?(?<kind>error|warning)\s+(?<code>\w+)\s*:\s*(?<msg>.*?)(\s*\[[^\]]+\])?$'
           $errors = @(); $warnings = @()
-          if (Test-Path $errLog) { $errors = @(Get-Content $errLog | Where-Object { $_ -match ': (fatal )?error ' } | Sort-Object -Unique) }
-          if (Test-Path $warnLog) { $warnings = @(Get-Content $warnLog | Where-Object { $_ -match ': warning ' } | Sort-Object -Unique) }
+          foreach ($dir in $logDirs) {
+            $errLog = "$dir\Build-$config-errors.log"; $warnLog = "$dir\Build-$config-warnings.log"
+            if (Test-Path $errLog) { $errors += @(Get-Content $errLog | Where-Object { $_ -match ': (fatal )?error ' }) }
+            if (Test-Path $warnLog) { $warnings += @(Get-Content $warnLog | Where-Object { $_ -match ': warning ' }) }
+          }
+          $errors = @($errors | Sort-Object -Unique); $warnings = @($warnings | Sort-Object -Unique)
           foreach ($line in $errors) {
             if ($line -match $pattern) {
               $file = $Matches.file.Trim() -replace [regex]::Escape($workspace), ''
@@ -188,7 +192,8 @@ jobs:
           python-version: "3.12"
 
       - name: Reflection is up to date
-        run: python Tools/ReflectionGenerator/generate_reflection.py . --check
+        run: |
+          python Tools/ReflectionGenerator/generate_reflection.py . --check
 
       - name: Code conventions
         run: python scripts/lint_conventions.py

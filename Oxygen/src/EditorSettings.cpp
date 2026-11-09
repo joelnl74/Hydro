@@ -225,7 +225,6 @@ namespace Hydro
 
 		out << YAML::Key << "Session" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "LastProject" << YAML::Value << settings.Session.LastProject.generic_string();
-		out << YAML::Key << "LastScene" << YAML::Value << settings.Session.LastScene.generic_string();
 		out << YAML::Key << "OpenWindows" << YAML::Value << YAML::BeginMap;
 		for (const auto& [name, open] : settings.Session.OpenWindows)
 		{
@@ -276,6 +275,49 @@ namespace Hydro
 			return false;
 		}
 		return true;
+	}
+
+	bool EditorSettingsSerializer::SaveProjectState(const EditorProjectState& state, const std::filesystem::path& path)
+	{
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "EditorProjectState" << YAML::Value << YAML::BeginMap;
+		out << YAML::Key << "LastScene" << YAML::Value << state.LastScene.generic_string();
+		out << YAML::EndMap;
+		out << YAML::EndMap;
+
+		std::error_code ec;
+		std::filesystem::create_directories(path.parent_path(), ec);
+		if (WriteFile(out.c_str(), path) == false)
+		{
+			HY_WARN("Could not write the project's editor state to {}", path.string());
+			return false;
+		}
+		return true;
+	}
+
+	bool EditorSettingsSerializer::LoadProjectState(const std::filesystem::path& path, EditorProjectState& state)
+	{
+		std::error_code ec;
+		if (std::filesystem::exists(path, ec) == false)
+		{
+			return false;
+		}
+
+		try
+		{
+			const YAML::Node root = YAML::LoadFile(path.string());
+			if (const YAML::Node node = root["EditorProjectState"])
+			{
+				ReadPath(node, "LastScene", state.LastScene);
+				return true;
+			}
+		}
+		catch (const YAML::Exception& e)
+		{
+			HY_WARN("Could not read the project's editor state {}: {}", path.string(), e.what());
+		}
+		return false;
 	}
 
 	bool EditorSettingsSerializer::Load(const std::filesystem::path& path, EditorSettings& settings)
@@ -394,6 +436,7 @@ namespace Hydro
 		if (const YAML::Node session = node["Session"])
 		{
 			ReadPath(session, "LastProject", loaded.Session.LastProject);
+			// Older files kept the last scene here; it is per project now (EditorProjectState). Read for the move.
 			ReadPath(session, "LastScene", loaded.Session.LastScene);
 
 			if (const YAML::Node windows = session["OpenWindows"]; windows.IsDefined() && windows.IsMap())

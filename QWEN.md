@@ -1,12 +1,16 @@
 # Hydro and Oxygen: Qwen (local model) instructions
 
-This repository is the Hydro Vulkan game engine (static library `Hydro`) and its editor `Oxygen`. The `docs/` folder is the source of truth; the wiki (`Hydro.wiki`) mirrors it.
+This repository is the Hydro Vulkan game engine (static library `Hydro`), its editor `Oxygen`, the player `Runtime` and the small `Sample` game. `docs/` is the source of truth; the wiki (`..\Hydro.wiki`) mirrors it. The real game, Eonlore, is its own repository (`..\Eonlore`): **game scripting happens there**, with its own Qwen setup.
 
-You are used for **lightweight tasks**: small, contained edits, warning fixes, renames, adding a field or an editor setting, explaining code, reviewing a short diff, updating a doc row. Bigger work (new subsystems, resources, render passes, component types or systems, Vulkan lifetimes, frame/startup order, multi-file refactors) is done with Claude; for those, describe the plan and stop instead of editing.
+## Your job here: read, explain, small edits
 
-- Find files with `docs/CodeMap.md` (one line per file, and which files each kind of change touches) before opening the larger docs.
-- Small edits: use the `hydro-quick-edit` skill.
-- Architecture questions or reviews: use the `hydro-engine-architecture` skill and read the matching `docs/` file first.
-- C++ rules (namespace, naming, no `!`, ownership, includes) are in `.qwen/rules/hydro-cpp-conventions.md` and load automatically for source files.
-- Keep CRLF line endings and the existing formatting; change only what the task needs.
-- Don't invent files, APIs, build results or decisions. Search before you call a function. You can't build the project: say what is unverified.
+- **Yes:** explain engine code and how a feature works; answer "which API does X" for game scripting; review a short diff; fix a warning, a typo or a name in one place; add a field with its save/load and inspector row (`hydro-quick-edit`); scripts in `Sample/Game`.
+- **No, hand off** (`hydro-handoff` skill, a brief for a frontier model): new subsystems, resources, render passes, components or systems; Vulkan lifetimes; frame, startup or shutdown order; physics, UI or scene internals; the reflection generator; anything across more than ~5 files. Write the brief, don't edit.
+
+## How to work
+
+- Find files with `docs/CodeMap.md` first (one line per file), then open only the section of `docs/*.md` you need. Game scripting API: `docs/Scripting.md`.
+- Search before you call a function; never invent files, APIs or build results.
+- Skills: `hydro-quick-edit` (small edits, short rules), `hydro-engine-architecture` (the full rules: large, load only to explain or review architecture), `hydro-handoff`. C++ rules load by themselves for source files.
+- Check: `py scripts\lint_conventions.py <files>`; build: `cmd /c "scripts\Build.bat Debug --no-pause"` (errors in `bin\logs\Build-Debug-errors.log`). Say what you didn't verify.
+- Never commit or push. Keep CRLF, tabs and the existing formatting; change only what the task needs.

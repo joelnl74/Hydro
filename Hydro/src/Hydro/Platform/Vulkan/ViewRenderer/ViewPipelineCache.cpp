@@ -106,22 +106,22 @@ namespace Hydro
 				specification.Shader = VulkanShaderLibrary::Get(SpriteShaderName);
 				if (key.Lit && (key.Kind == ViewPipelineKind::Sprite || key.Kind == ViewPipelineKind::Decal))
 				{
-					specification.Shader = &GetOrLoadShader(SpriteLitShaderName, "assets/shaders/vertex.vert",
-						"assets/shaders/fragment_lit.frag");
+					specification.Shader = &GetOrLoadShader(SpriteLitShaderName, "shaders/vertex.vert",
+						"shaders/fragment_lit.frag");
 				}
 				if (key.Kind == ViewPipelineKind::Cutout)
 				{
 					specification.Shader = key.Lit
-						? &GetOrLoadShader(SpriteCutoutLitShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_cutout_lit.frag")
-						: &GetOrLoadShader(SpriteCutoutShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_cutout.frag");
+						? &GetOrLoadShader(SpriteCutoutLitShaderName, "shaders/vertex.vert", "shaders/sprite_cutout_lit.frag")
+						: &GetOrLoadShader(SpriteCutoutShaderName, "shaders/vertex.vert", "shaders/sprite_cutout.frag");
 					// The shader writes alpha 1 where it keeps a pixel: nothing to blend.
 					specification.Blend = BlendMode::None;
 				}
 				if (key.Kind == ViewPipelineKind::FadedCutout)
 				{
 					specification.Shader = key.Lit
-						? &GetOrLoadShader(SpriteFadeLitShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_fade_lit.frag")
-						: &GetOrLoadShader(SpriteFadeShaderName, "assets/shaders/vertex.vert", "assets/shaders/sprite_fade.frag");
+						? &GetOrLoadShader(SpriteFadeLitShaderName, "shaders/vertex.vert", "shaders/sprite_fade_lit.frag")
+						: &GetOrLoadShader(SpriteFadeShaderName, "shaders/vertex.vert", "shaders/sprite_fade.frag");
 					specification.Blend = BlendMode::None;
 				}
 				if (key.Kind == ViewPipelineKind::Additive)
@@ -141,8 +141,8 @@ namespace Hydro
 			case ViewPipelineKind::ShadowCaster:
 				// Both faces (a sprite casts whichever way it is turned), pushed away from the sun against shadow acne.
 				specification = s_Data->QuadPipeline->GetSpecification();
-				specification.Shader = &GetOrLoadShader(SpriteShadowCasterShaderName, "assets/shaders/shadow_caster.vert",
-					"assets/shaders/shadow_caster.frag");
+				specification.Shader = &GetOrLoadShader(SpriteShadowCasterShaderName, "shaders/shadow_caster.vert",
+					"shaders/shadow_caster.frag");
 				specification.Blend = BlendMode::None;
 				specification.Wireframe = false;
 				specification.BackfaceCulling = false;
@@ -154,7 +154,7 @@ namespace Hydro
 
 			case ViewPipelineKind::Tonemap:
 				// No vertex buffer: composite.vert makes the triangle.
-				specification.Shader = &GetOrLoadShader(TonemapShaderName, "assets/shaders/composite.vert", "assets/shaders/tonemap.frag");
+				specification.Shader = &GetOrLoadShader(TonemapShaderName, "shaders/composite.vert", "shaders/tonemap.frag");
 				specification.DescriptorSetLayouts = { s_Data->TonemapLayout };
 				specification.PushConstantSize = (uint32_t)sizeof(TonemapPushConstants);
 				specification.Blend = BlendMode::None;
@@ -168,18 +168,18 @@ namespace Hydro
 			case ViewPipelineKind::BloomUp:
 				if (key.Kind == ViewPipelineKind::BloomPrefilter)
 				{
-					specification.Shader = &GetOrLoadShader(BloomPrefilterShaderName, "assets/shaders/composite.vert",
-						"assets/shaders/bloom_prefilter.frag");
+					specification.Shader = &GetOrLoadShader(BloomPrefilterShaderName, "shaders/composite.vert",
+						"shaders/bloom_prefilter.frag");
 				}
 				else if (key.Kind == ViewPipelineKind::BloomDown)
 				{
-					specification.Shader = &GetOrLoadShader(BloomDownShaderName, "assets/shaders/composite.vert",
-						"assets/shaders/bloom_down.frag");
+					specification.Shader = &GetOrLoadShader(BloomDownShaderName, "shaders/composite.vert",
+						"shaders/bloom_down.frag");
 				}
 				else
 				{
-					specification.Shader = &GetOrLoadShader(BloomUpShaderName, "assets/shaders/composite.vert",
-						"assets/shaders/bloom_up.frag");
+					specification.Shader = &GetOrLoadShader(BloomUpShaderName, "shaders/composite.vert",
+						"shaders/bloom_up.frag");
 				}
 				specification.DescriptorSetLayouts = { s_Data->BloomLayout };
 				specification.PushConstantSize = (uint32_t)sizeof(BloomPushConstants);
@@ -195,18 +195,18 @@ namespace Hydro
 			case ViewPipelineKind::DofBlur:
 				if (key.Kind == ViewPipelineKind::DofCoc)
 				{
-					specification.Shader = &GetOrLoadShader(DofCocShaderName, "assets/shaders/composite.vert",
-						"assets/shaders/dof_coc.frag");
+					specification.Shader = &GetOrLoadShader(DofCocShaderName, "shaders/composite.vert",
+						"shaders/dof_coc.frag");
 				}
 				else if (key.Kind == ViewPipelineKind::DofPrepare)
 				{
-					specification.Shader = &GetOrLoadShader(DofPrepareShaderName, "assets/shaders/composite.vert",
-						"assets/shaders/dof_prepare.frag");
+					specification.Shader = &GetOrLoadShader(DofPrepareShaderName, "shaders/composite.vert",
+						"shaders/dof_prepare.frag");
 				}
 				else
 				{
-					specification.Shader = &GetOrLoadShader(DofBlurShaderName, "assets/shaders/composite.vert",
-						"assets/shaders/dof_blur.frag");
+					specification.Shader = &GetOrLoadShader(DofBlurShaderName, "shaders/composite.vert",
+						"shaders/dof_blur.frag");
 				}
 				specification.DescriptorSetLayouts = { s_Data->DepthOfFieldLayout };
 				specification.PushConstantSize = (uint32_t)sizeof(DepthOfFieldPushConstants);
@@ -243,7 +243,7 @@ namespace Hydro
 		s_Data = new ViewPipelineCacheData();
 
 		// Required: throws when it doesn't compile. Every other shader is optional.
-		VulkanShaderLibrary::Load(SpriteShaderName, "assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
+		VulkanShaderLibrary::Load(SpriteShaderName, "shaders/vertex.vert", "shaders/fragment.frag");
 
 		// The tonemap's five inputs (scene colour, bloom, the depth of field's circle of confusion, blur and half-size
 		// colour), a bloom step's source and a depth of field step's two sources.

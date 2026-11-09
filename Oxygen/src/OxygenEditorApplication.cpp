@@ -33,10 +33,11 @@ Hydro::Application* Hydro::CreateApplication(const Hydro::ApplicationCommandLine
 	if (commandLine.Has("--help"))
 	{
 		// Before the log exists: plain output.
-		std::printf("Oxygen [--project <file.hyproj>] [--scene <name | file.hyscene>] [--play] [--frames <n>]\n"
+		std::printf("Oxygen [<file.hyproj> | --project <file.hyproj>] [--scene <name | file.hyscene>] [--play] [--frames <n>]\n"
 			"       [--capture <file.png>] [--validate] [--exit]\n"
 			"--capture saves the Game view (1280 x 720) after --frames frames (120); --validate loads every scene\n"
-			"of the project and exits with 1 when any warned; both imply --exit.\n");
+			"of the project and exits with 1 when any warned; both imply --exit. Without a project (and none to reopen)\n"
+			"the project hub shows; unattended runs exit with 2 instead.\n");
 	}
 	const Hydro::EditorLaunchOptions launch = Hydro::EditorLaunchOptions::Parse(commandLine);
 
@@ -44,11 +45,25 @@ Hydro::Application* Hydro::CreateApplication(const Hydro::ApplicationCommandLine
 	specification.Name = "Oxygen";
 	specification.MainWindow.Title = "Oxygen";
 
+	// Settings and window layout are per user; older editors kept them in the working directory (Oxygen/).
+#if defined(HY_EDITOR_DIR)
+	Hydro::EditorPaths::PrepareUserDirectory(HY_EDITOR_DIR);
+#else
+	Hydro::EditorPaths::PrepareUserDirectory(std::filesystem::current_path());
+#endif
+	specification.ImGui.IniFile = Hydro::EditorPaths::GetImGuiIniPath();
+
 	// The editor's UI font at the size saved in the editor settings. Runs before the log exists.
 	float fontSize = Hydro::EditorSettings().FontSize;
 	Hydro::EditorSettingsSerializer::ReadFontSize(Hydro::EditorPaths::GetEditorSettingsPath(), fontSize);
 
-	const std::filesystem::path fonts = "assets/Fonts/opensans";
+#if defined(HY_ENGINE_DIR) && defined(HY_EDITOR_DIR)
+	// A development build reads shaders and fonts from the source folders (shader hot reload), else its own copy.
+	specification.Resources.DevelopmentDirectories = { HY_ENGINE_DIR, HY_EDITOR_DIR };
+#endif
+
+	// An engine resource (EngineResources::Resolve), like the shaders.
+	const std::filesystem::path fonts = "Fonts/opensans";
 	specification.ImGui.Fonts =
 	{
 		{ "Regular", fonts / "OpenSans-Regular.ttf", fontSize },

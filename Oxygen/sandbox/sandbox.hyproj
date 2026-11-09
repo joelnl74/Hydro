@@ -1,9 +1,0 @@
-Project:
-  Name: sandbox
-  AssetDirectory: Assets
-  StartScene: ""
-Renderer:
-  ClearColor: [0, 0, 0, 1]
-  VSync: true
-  Wireframe: false
-  ShaderHotReload: true

@@ -1,6 +1,7 @@
 #include "hypch.h"
 #include "VulkanShaderLibrary.h"
 
+#include "Hydro/Core/EngineResources.h"
 #include "Hydro/Core/FileWatcher.h"
 
 #include <map>
@@ -55,7 +56,9 @@ namespace Hydro
 		HY_CORE_ASSERT(s_Library != nullptr, "VulkanShaderLibrary::Load before Init");
 
 		// Compiled first: a shader that doesn't compile throws and leaves the library as it was.
-		Scope<VulkanShader> shader = CreateScope<VulkanShader>(MakeSpecification(vertexPath, fragmentPath));
+		const std::string vertex = EngineResources::Resolve(vertexPath).string();
+		const std::string fragment = EngineResources::Resolve(fragmentPath).string();
+		Scope<VulkanShader> shader = CreateScope<VulkanShader>(MakeSpecification(vertex, fragment));
 		LibraryShader& entry = s_Library->Shaders[name];
 		entry.Watcher = FileWatcher(shader->GetSourceFiles());
 		entry.Shader = std::move(shader);

@@ -1,6 +1,7 @@
 #include "hypch.h"
 #include "Application.h"
 
+#include "Hydro/Core/EngineResources.h"
 #include "Hydro/Core/Time.h"
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Physics/PhysicsEngine.h"
@@ -36,17 +37,20 @@ namespace Hydro
 		Log::Init();
 		HY_CORE_INFO("Starting {0}", m_Specification.Name);
 
-		// 2. Time: the frame clock.
+		// 2. Engine resources: where shaders and fonts are, found from the exe (the renderer and ImGui load them).
+		EngineResources::Init(m_Specification.Resources);
+
+		// 3. Time: the frame clock.
 		Time::Init();
 
-		// 3. Events: must exist before the window, whose callbacks post into it.
+		// 4. Events: must exist before the window, whose callbacks post into it.
 		EventDispatcher::Init();
 
-		// 4. Window: OS window + input.
+		// 5. Window: OS window + input.
 		m_Window = Window::Create();
 		m_Window->Init(m_Specification.MainWindow);
 
-		// 5. Renderer: Vulkan context, swapchain, frames, allocator, Renderer2D/3D (needs the window).
+		// 6. Renderer: Vulkan context, swapchain, frames, allocator, Renderer2D/3D (needs the window).
 		Renderer::Init(*m_Window);
 
 		// The application listens to the events it handles itself and forwards them to layers.
@@ -61,20 +65,20 @@ namespace Hydro
 		events.Subscribe(EventType::MouseMoved, HY_BIND_EVENT_FN(Application::OnEvent));
 		events.Subscribe(EventType::MouseScrolled, HY_BIND_EVENT_FN(Application::OnEvent));
 
-		// 6. Assets: the open project's assets by handle (empty until OnProjectOpened); creates GPU textures.
+		// 7. Assets: the open project's assets by handle (empty until OnProjectOpened); creates GPU textures.
 		AssetManager::Init();
 
-		// 7. Physics: the libraries' global setup. Scenes make their own worlds while they play.
+		// 8. Physics: the libraries' global setup. Scenes make their own worlds while they play.
 		PhysicsEngine::Init();
 
-		// 8. ImGui: an overlay, so it sits on top of every application layer.
+		// 9. ImGui: an overlay, so it sits on top of every application layer.
 		m_ImGuiLayer = new ImGuiLayer(m_Specification.ImGui);
 		PushOverlay(m_ImGuiLayer);
 
 		HY_CORE_INFO("Engine initialized");
 		m_Running = true;
 
-		// 9. The client application: pushes its layers (and may already call Quit()).
+		// 10. The client application: pushes its layers (and may already call Quit()).
 		OnInit();
 	}
 
@@ -84,33 +88,36 @@ namespace Hydro
 	{
 		m_Running = false;
 
-		// 9. The client application, while everything is still alive.
+		// 10. The client application, while everything is still alive.
 		OnShutdown();
 
-		// 8. Layers (ImGui included) own GPU objects, and scenes with physics worlds: detach them once
+		// 9. Layers (ImGui included) own GPU objects, and scenes with physics worlds: detach them once
 		//    the GPU is idle, while the device still exists.
 		Renderer::WaitIdle();
 		m_LayerStack.Clear();
 		m_ImGuiLayer = nullptr;
 
-		// 7. Physics.
+		// 8. Physics.
 		PhysicsEngine::Shutdown();
 
-		// 6. Assets.
+		// 7. Assets.
 		AssetManager::Shutdown();
 
-		// 5. Renderer.
+		// 6. Renderer.
 		Renderer::Shutdown();
 
-		// 4. Window.
+		// 5. Window.
 		m_Window->Shutdown();
 		m_Window.reset();
 
-		// 3. Events.
+		// 4. Events.
 		EventDispatcher::Shutdown();
 
-		// 2. Time.
+		// 3. Time.
 		Time::Shutdown();
+
+		// 2. Engine resources.
+		EngineResources::Shutdown();
 
 		// 1. Log, last, so every step above can still log.
 		HY_CORE_INFO("Engine shut down");

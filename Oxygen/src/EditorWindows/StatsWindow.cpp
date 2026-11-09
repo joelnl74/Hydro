@@ -3,6 +3,7 @@
 
 #include <imgui/imgui.h>
 #include <Hydro/Core/Time.h>
+#include <Hydro/Renderer/Renderer.h>
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Scene/Scene.h>
 #include <Hydro/Scene/ParticleScene.h>
@@ -157,7 +158,8 @@ namespace Hydro
 			phase("Events", t.GetPhaseMs(FramePhase::Events));
 			phase("UI build (ImGui)", t.GetPhaseMs(FramePhase::ImGui));
 			phase("Update (scene)", t.GetPhaseMs(FramePhase::Update));
-			phase("Render 2D (CPU)", t.GetPhaseMs(FramePhase::Render));
+			phase("Wait (GPU / VSync)", t.GetPhaseMs(FramePhase::Wait));
+			phase("Render (CPU)", t.GetPhaseMs(FramePhase::Render));
 			phase("Present", t.GetPhaseMs(FramePhase::Present));
 			phase("Extra ImGui windows", t.GetPhaseMs(FramePhase::PlatformWindows));
 			StatsUI::Row("Total", "%.3f ms", t.FrameMs);
@@ -199,12 +201,19 @@ namespace Hydro
 			ImGui::EndTable();
 		}
 
-		// Present blocks on the swapchain fence and vsync, so when it dominates the CPU is waiting on the GPU or display.
+		// Drivers wait for the display in the acquire or in present, so both count as waiting. With VSync on and a GPU
+		// well under the frame time, the wait is the display's, not the GPU's.
 		ImGui::Spacing();
-		const bool waitingOnPresent = t.GetPhaseMs(FramePhase::Present) > 0.5f * frame;
-		ImGui::TextWrapped("Limited by: %s", waitingOnPresent
-			? "GPU or VSync (most of the frame is spent waiting in Present)"
-			: "CPU (Update / UI / Render 2D take most of the frame)");
+		const float waitMs = t.GetPhaseMs(FramePhase::Wait) + t.GetPhaseMs(FramePhase::Present);
+		const char* limitedBy = "CPU (UI, Update and Render take most of the frame)";
+		if (waitMs > 0.5f * frame)
+		{
+			const bool gpuHasTimeLeft = stats.GPUTimeMs >= 0.0f && stats.GPUTimeMs < 0.75f * frame;
+			limitedBy = Renderer::GetSettings().VSync && gpuHasTimeLeft
+				? "VSync (waiting for the display; turn VSync off in Render Settings to see the uncapped frame time)"
+				: "GPU (the CPU waits for the GPU to finish the previous frame)";
+		}
+		ImGui::TextWrapped("Limited by: %s", limitedBy);
 	}
 
 	void StatsWindow::DrawSceneTab(const Ref<Scene>& scene)

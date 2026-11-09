@@ -19,6 +19,9 @@ namespace Hydro
 	{
 	public:
 		explicit SceneGraph(Scene& scene);
+		~SceneGraph();
+		SceneGraph(const SceneGraph&) = delete;
+		SceneGraph& operator=(const SceneGraph&) = delete;
 
 		// A new entity: last in the list, as a root.
 		void Add(entt::entity handle);
@@ -28,7 +31,7 @@ namespace Hydro
 		void MarkDirty() { m_Dirty = true; }
 
 		// The list after dropping entities destroyed through the registry and picking up ones that got an IDComponent
-		// without CreateEntity.
+		// without CreateEntity. Scans the registry only after an IDComponent came or went, so per-row calls stay cheap.
 		const std::vector<entt::entity>& GetOrder();
 		// Brings the list and its layout up to date. GetList, GetLayout and IsListed are as of the last call.
 		void Ensure();
@@ -59,6 +62,8 @@ namespace Hydro
 		std::vector<SceneHierarchy::Node> MakeNodes();
 		// Parent 0 removes the RelationshipComponent; nothing moves in the list.
 		void SetParentUUID(entt::entity handle, UUID parent);
+		// Registry signal: an IDComponent was added or removed, so the next GetOrder compares the list with the registry.
+		void OnIDComponentChanged(entt::registry& registry, entt::entity handle);
 
 	private:
 		Scene& m_Scene;
@@ -67,5 +72,7 @@ namespace Hydro
 		SceneHierarchy m_Layout;
 		std::unordered_map<entt::entity, uint32_t> m_Index;
 		bool m_Dirty = true;
+		// An IDComponent came or went since GetOrder last compared m_List with the registry.
+		bool m_ListStale = true;
 	};
 }

@@ -21,6 +21,13 @@ namespace Hydro
 
 		out << YAML::Key << "Project" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "Name" << YAML::Value << config.Name;
+		if (config.Game.IsGeneric() == false)
+		{
+			out << YAML::Key << "Game" << YAML::Value << YAML::BeginMap;
+			out << YAML::Key << "Id" << YAML::Value << config.Game.Id;
+			out << YAML::Key << "Name" << YAML::Value << config.Game.Name;
+			out << YAML::EndMap;
+		}
 		out << YAML::Key << "AssetDirectory" << YAML::Value << config.AssetDirectory.generic_string();
 		if ((uint64_t)config.StartScene != 0)
 		{
@@ -71,6 +78,36 @@ namespace Hydro
 		return true;
 	}
 
+	bool ProjectSerializer::ReadGame(const std::filesystem::path& filepath, GameInfo& game)
+	{
+		try
+		{
+			const YAML::Node data = YAML::LoadFile(filepath.string());
+			const YAML::Node projectNode = data["Project"];
+			if (projectNode.IsDefined() == false)
+			{
+				return false;
+			}
+			game = GameInfo();
+			if (const YAML::Node node = projectNode["Game"])
+			{
+				if (auto id = node["Id"])
+				{
+					game.Id = id.as<std::string>(std::string());
+				}
+				if (auto name = node["Name"])
+				{
+					game.Name = name.as<std::string>(std::string());
+				}
+			}
+			return true;
+		}
+		catch (const YAML::Exception&)
+		{
+			return false;
+		}
+	}
+
 	bool ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
 		YAML::Node data;
@@ -97,6 +134,17 @@ namespace Hydro
 			if (auto node = projectNode["Name"])
 			{
 				config.Name = node.as<std::string>();
+			}
+			if (auto node = projectNode["Game"])
+			{
+				if (auto id = node["Id"])
+				{
+					config.Game.Id = id.as<std::string>();
+				}
+				if (auto name = node["Name"])
+				{
+					config.Game.Name = name.as<std::string>();
+				}
 			}
 			if (auto node = projectNode["AssetDirectory"])
 			{

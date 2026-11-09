@@ -747,7 +747,10 @@ namespace Hydro
 	}
 
 	int TestScriptSerializer(int& checks); // ScriptSerializerTest.cpp: returns its failures
-	int TestGameRules(int& checks); // GameRulesTest.cpp: returns its failures
+#if defined(HY_GAME_TESTS)
+	// A game's rule tests (test_data.sh --game-tests): returns its failures.
+	int TestGameRules(int& checks);
+#endif
 }
 
 int main()
@@ -768,7 +771,9 @@ int main()
 	Hydro::TestEditing();
 	Hydro::TestFormerNames();
 	Hydro::s_Failures += Hydro::TestScriptSerializer(Hydro::s_Checks);
+#if defined(HY_GAME_TESTS)
 	Hydro::s_Failures += Hydro::TestGameRules(Hydro::s_Checks);
+#endif
 
 	std::printf("\n%d checks, %d failed\n", Hydro::s_Checks, Hydro::s_Failures);
 	return Hydro::s_Failures == 0 ? 0 : 1;

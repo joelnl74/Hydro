@@ -73,11 +73,13 @@ namespace Hydro
 			Rescan();
 		}
 
-		ImGui::Begin("Project");
-
-		DrawToolbar();
-		ImGui::Separator();
-		DrawGrid(scene);
+		// Collapsed or a hidden tab: no toolbar or grid. Its open popups (rename, delete) still draw.
+		if (ImGui::Begin("Project"))
+		{
+			DrawToolbar();
+			ImGui::Separator();
+			DrawGrid(scene);
+		}
 		m_FileActions.DrawPopups();
 
 		ImGui::End();

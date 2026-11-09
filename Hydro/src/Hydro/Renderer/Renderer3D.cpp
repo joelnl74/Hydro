@@ -630,22 +630,22 @@ namespace Hydro
 			{
 				if (shadowCaster)
 				{
-					shader = &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "assets/shaders/mesh_shadow.vert",
-						"assets/shaders/mesh_shadow.frag");
+					shader = &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "shaders/mesh_shadow.vert",
+						"shaders/mesh_shadow.frag");
 				}
 				else if (key.TerrainSurface)
 				{
 					// The mesh vertex shader as it is: the tops' UVs are their positions in the terrain's space.
-					shader = &VulkanShaderLibrary::Load(TerrainSurfaceShaderName, "assets/shaders/mesh.vert",
-						"assets/shaders/terrain.frag");
+					shader = &VulkanShaderLibrary::Load(TerrainSurfaceShaderName, "shaders/mesh.vert",
+						"shaders/terrain.frag");
 				}
 				else if (key.Faded)
 				{
-					shader = &VulkanShaderLibrary::Load(MeshFadeShaderName, "assets/shaders/mesh.vert", "assets/shaders/mesh_fade.frag");
+					shader = &VulkanShaderLibrary::Load(MeshFadeShaderName, "shaders/mesh.vert", "shaders/mesh_fade.frag");
 				}
 				else
 				{
-					shader = &VulkanShaderLibrary::Load(MeshShaderName, "assets/shaders/mesh.vert", "assets/shaders/mesh.frag");
+					shader = &VulkanShaderLibrary::Load(MeshShaderName, "shaders/mesh.vert", "shaders/mesh.frag");
 				}
 			}
 

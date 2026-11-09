@@ -4,6 +4,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
+#include "Hydro/Project/Project.h"
 #include "Hydro/Renderer/RenderFeatureSerializer.h"
 #include "Hydro/Renderer/RenderProfileSerializer.h"
 #include "Hydro/Utils/YAMLConversions.h"
@@ -17,6 +18,11 @@ namespace Hydro
 
 	bool SceneSerializer::Serialize(const std::filesystem::path& filepath)
 	{
+		if (Project::RefusesWrite("the scene", filepath))
+		{
+			return false;
+		}
+
 		// The file's asset handle comes first (AssetMetaSerializer reads only the first line): the one it
 		// already has when the file is overwritten, a new one for a new file.
 		const AssetHandle handle = AssetManager::ImportAsset(filepath);

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Quick checks that don't need Windows, MSVC or a GPU (for Linux, WSL or a CI/agent container):
 #   1. syntax check of engine and editor sources with g++ -fsyntax-only -Wall -Wextra
-#   2. compile every shader in Oxygen/assets/shaders to SPIR-V with glslang
+#   2. compile every shader in Hydro/assets/shaders to SPIR-V with glslang
 #   3. the code conventions (scripts/lint_conventions.py: `!`, braces, namespaces, m_ names; Hydro, Oxygen, Game and
 #      Runtime sources, or the given files there) and the project's scenes, prefabs and data (scripts/validate_project.py; needs PyYAML)
 # It is not a build: nothing links and Windows-only files are skipped. MSVC /W4 stays the real check.
@@ -10,6 +10,8 @@
 #   scripts/check.sh                 # all sources + shaders
 #   scripts/check.sh <file.cpp>...   # only these sources (+ shaders)
 #   scripts/check.sh --shaders       # only shaders
+#   scripts/check.sh --workspace <dir> [...]   # another workspace's game code and project (hydro-workspace.json);
+#                                    # default HYDRO_WORKSPACE, else this repository
 #
 # Needs: git, g++ (C++17), cmake + a C++ compiler for glslang (built once).
 # Downloads (once, into $HYDRO_CHECK_CACHE, default /tmp/hydro-check): Vulkan-Headers, shaderc
@@ -20,6 +22,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# The workspace's game code (hydro-workspace.json); the Python tools read HYDRO_WORKSPACE too.
+args=()
+while [ $# -gt 0 ]; do
+	if [ "$1" = "--workspace" ] && [ $# -gt 1 ]; then export HYDRO_WORKSPACE="$(cd "$2" && pwd)"; shift 2; else args+=("$1"); shift; fi
+done
+set -- ${args[@]+"${args[@]}"}
+GAME_SRC="$(python3 "$ROOT/scripts/hydro_workspace.py" --get GameSource)"
 CACHE="${HYDRO_CHECK_CACHE:-/tmp/hydro-check}"
 JOBS="${JOBS:-$(nproc 2>/dev/null || echo 4)}"
 mkdir -p "$CACHE"
@@ -62,7 +72,7 @@ fi
 check_shaders() {
 	log "Shaders"
 	local failed=0
-	for shader in "$ROOT"/Oxygen/assets/shaders/*.vert "$ROOT"/Oxygen/assets/shaders/*.frag; do
+	for shader in "$ROOT"/Hydro/assets/shaders/*.vert "$ROOT"/Hydro/assets/shaders/*.frag; do
 		[ -f "$shader" ] || continue
 		if "$GLSLANG" -V "$shader" -o "$CACHE/$(basename "$shader").$$.spv" > "$CACHE/shader.$$.log" 2>&1; then
 			echo "ok    ${shader#$ROOT/}"
@@ -88,7 +98,7 @@ trap 'rm -rf "$SRC"' EXIT
 rm -rf "$SRC"; mkdir -p "$SRC"
 cp -r "$ROOT/Hydro/src" "$SRC/Hydro"
 cp -r "$ROOT/Oxygen/src" "$SRC/Oxygen"
-cp -r "$ROOT/Game/src" "$SRC/Game"
+cp -r "$GAME_SRC" "$SRC/Game"
 cp -r "$ROOT/Runtime/src" "$SRC/Runtime"
 sed -i 's/#error "Linux is not supported!"/#define HY_PLATFORM_LINUX/' "$SRC/Hydro/Hydro/Core/PlatformDetection.h"
 
@@ -119,11 +129,15 @@ files=()
 if [ $# -gt 0 ]; then
 	for f in "$@"; do files+=("$(cd "$(dirname "$f")" && pwd)/$(basename "$f")"); done
 else
-	while IFS= read -r f; do files+=("$f"); done < <(find "$ROOT/Hydro/src" "$ROOT/Oxygen/src" "$ROOT/Game/src" "$ROOT/Runtime/src" -name '*.cpp' | sort)
+	while IFS= read -r f; do files+=("$f"); done < <(find "$ROOT/Hydro/src" "$ROOT/Oxygen/src" "$GAME_SRC" "$ROOT/Runtime/src" -name '*.cpp' | sort)
 fi
 
 log "Sources (${#files[@]} files, $JOBS jobs)"
-printf '%s\n' "${files[@]}" | while IFS= read -r f; do skip "$f" || echo "${f#$ROOT/}"; done > "$CACHE/files.$$.txt"
+# Game code is shown as Game/src/... wherever the workspace keeps it.
+printf '%s\n' "${files[@]}" | while IFS= read -r f; do
+	skip "$f" && continue
+	case "$f" in "$GAME_SRC/"*) echo "Game/src/${f#$GAME_SRC/}" ;; *) echo "${f#$ROOT/}" ;; esac
+done > "$CACHE/files.$$.txt"
 
 check_one() {
 	local rel="$1" copy flags
@@ -149,7 +163,7 @@ log "Conventions"
 lint_status=0
 if [ $# -gt 0 ]; then
 	lint_files=()
-	for f in "$@"; do case "$(cd "$(dirname "$f")" && pwd)/" in "$ROOT/Hydro/src/"*|"$ROOT/Oxygen/src/"*|"$ROOT/Game/src/"*|"$ROOT/Runtime/src/"*) lint_files+=("$f") ;; esac; done
+	for f in "$@"; do case "$(cd "$(dirname "$f")" && pwd)/" in "$ROOT/Hydro/src/"*|"$ROOT/Oxygen/src/"*|"$GAME_SRC/"*|"$ROOT/Runtime/src/"*) lint_files+=("$f") ;; esac; done
 	if [ ${#lint_files[@]} -gt 0 ]; then python3 "$ROOT/scripts/lint_conventions.py" "${lint_files[@]}" || lint_status=1; fi
 else
 	python3 "$ROOT/scripts/lint_conventions.py" || lint_status=1

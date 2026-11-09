@@ -10,8 +10,9 @@ namespace Hydro
 		Events = 0,      // window/OS event polling
 		ImGui,           // building the UI (layers' OnImGuiRender)
 		Update,          // game/scene logic (layers' OnUpdate)
-		Render,          // frame fence wait + acquire + recording (reported by the Renderer)
-		Present,         // queue submit + present, includes the vsync wait (reported by the Renderer)
+		Wait,            // frame fence wait + swapchain acquire: waiting for the GPU or the display (reported by the Renderer)
+		Render,          // the renderer's own CPU work: recording the frame, freeing finished resources (reported by the Renderer)
+		Present,         // queue submit + present; some drivers wait for vsync here (reported by the Renderer)
 		PlatformWindows, // ImGui windows dragged outside the main window
 		Count
 	};

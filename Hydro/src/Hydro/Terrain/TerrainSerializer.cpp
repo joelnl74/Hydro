@@ -3,6 +3,7 @@
 
 #include "Hydro/Asset/AssetManager.h"
 #include "Hydro/Asset/AssetMetaSerializer.h"
+#include "Hydro/Project/Project.h"
 #include "Hydro/Renderer/ImageWriter.h"
 #include "Hydro/Utils/YAMLConversions.h"
 
@@ -211,6 +212,11 @@ namespace Hydro
 
 	bool TerrainSerializer::Serialize(const std::filesystem::path& filepath, const Terrain& terrain)
 	{
+		if (Project::RefusesWrite("the terrain", filepath))
+		{
+			return false;
+		}
+
 		const TerrainSettings& settings = terrain.GetSettings();
 		std::vector<uint8_t> png;
 		const std::vector<uint8_t> north = FlipRows(terrain.GetWeights(), terrain.GetWeightMapWidth(), terrain.GetWeightMapHeight());

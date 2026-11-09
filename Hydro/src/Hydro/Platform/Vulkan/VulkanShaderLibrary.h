@@ -14,7 +14,8 @@ namespace Hydro
 		static void Init();
 		static void Shutdown();
 
-		// Compiles the pair under `name`, replacing a shader of that name. Throws std::runtime_error when it doesn't
+		// Compiles the pair under `name`, replacing a shader of that name. Relative paths are engine resources
+		// ("shaders/mesh.vert", EngineResources::Resolve). Throws std::runtime_error when it doesn't
 		// compile (VulkanShader logs the output).
 		static VulkanShader& Load(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath);
 		static VulkanShader* Get(const std::string& name);

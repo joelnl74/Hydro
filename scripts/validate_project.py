@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Checks a project's scenes, prefabs and data files without the engine or a GPU (Scripting plan SC5).
 
-    python scripts/validate_project.py [project folder]      # default: Oxygen/project
+    python scripts/validate_project.py [--workspace <dir>] [project folder]   # default: the workspace's DefaultProject
 
 What scripts and data types exist comes from the code itself: the reflection generator reads the HY_SCRIPT,
-HY_PROPERTY and HY_DATA markers in Hydro/src and Game/src, as the build does. Then every scene (.hyscene), prefab
+HY_PROPERTY and HY_DATA markers in Hydro/src and the workspace's game code (hydro-workspace.json), as the build does. Then every scene (.hyscene), prefab
 (.hyprefab), definition (.hydef) and data table (.hytable) under the project's Assets/ is read.
 
 Errors (exit 1):
@@ -36,6 +36,11 @@ except ImportError:
     sys.exit(2)
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scripts"))
+import hydro_workspace  # noqa: E402
+
+WORKSPACE_DIRECTORY, ARGUMENTS = hydro_workspace.take_workspace_argument(sys.argv[1:])
+WORKSPACE = hydro_workspace.load(WORKSPACE_DIRECTORY)
 
 # AssetType by file extension (Hydro/src/Hydro/Asset/Asset.cpp, GetAssetTypeFromExtension).
 ASSET_TYPES = {
@@ -66,7 +71,7 @@ class Reflection:
 
 def read_reflection() -> Reflection:
     gen = load_generator()
-    roots = [ROOT / "Hydro" / "src", ROOT / "Game" / "src"]
+    roots = [ROOT / "Hydro" / "src", WORKSPACE.game_source]
     scripts, data_types, enums = [], [], []
     bases: dict[str, str] = {}
     for root in roots:
@@ -393,7 +398,10 @@ class Checker:
 
 
 def main() -> int:
-    project = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "Oxygen" / "project"
+    project = Path(ARGUMENTS[0]) if ARGUMENTS else WORKSPACE.project_folder
+    if project is None:
+        print("validate_project.py: no project folder given and the workspace has no DefaultProject", file=sys.stderr)
+        return 2
     assets = project / "Assets"
     if not assets.is_dir():
         print(f"validate_project.py: no Assets folder in {project}", file=sys.stderr)

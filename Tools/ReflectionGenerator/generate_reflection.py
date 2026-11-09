@@ -1241,13 +1241,19 @@ def main() -> int:
     parser.add_argument("--output", type=Path, help="the scripts' .cpp to write")
     parser.add_argument("--data-output", type=Path, help="the data types' .cpp to write")
     parser.add_argument("--check", action="store_true", help="write nothing; exit 1 when the output is out of date")
+    parser.add_argument("--workspace", type=Path, help="the workspace whose game is scanned and written by default "
+                        "(a folder with hydro-workspace.json; default HYDRO_WORKSPACE, else the repository)")
     args = parser.parse_args()
 
     repo_root: Path = args.repo_root.resolve()
-    default_roots = [repo_root / "Hydro" / "src", repo_root / "Game" / "src"]
+    # The game's code comes from the workspace's description (docs/Architecture.md, "Workspaces").
+    sys.path.insert(0, str(repo_root / "scripts"))
+    import hydro_workspace  # noqa: E402
+    game_source = hydro_workspace.load(args.workspace).game_source
+    default_roots = [repo_root / "Hydro" / "src", game_source]
     source_roots = [p.resolve() for p in args.source] or default_roots
     include_roots = default_roots + [p for p in source_roots if p not in default_roots]
-    generated = repo_root / "Game" / "src" / "Generated"
+    generated = game_source / "Generated"
     output: Path = (args.output or generated / "GeneratedScriptReflection.cpp").resolve()
     data_output: Path = (args.data_output or generated / "GeneratedDataReflection.cpp").resolve()
 

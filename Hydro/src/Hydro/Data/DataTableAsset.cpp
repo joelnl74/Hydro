@@ -1,6 +1,8 @@
 #include "hypch.h"
 #include "DataTableAsset.h"
 
+#include "Hydro/Project/Project.h"
+
 #include <fstream>
 #include <iterator>
 
@@ -51,6 +53,11 @@ namespace Hydro
 
 	bool DataTableAsset::Save(const std::filesystem::path& file, const DataTableData& data)
 	{
+		if (Project::RefusesWrite("the data table", file))
+		{
+			return false;
+		}
+
 		std::string text;
 		if (DataSerializer::WriteTable(data, text) == false)
 		{
@@ -65,6 +72,8 @@ namespace Hydro
 			return false;
 		}
 		out << text;
+		// Data types are the game's: a generic project that saves one becomes that game's.
+		Project::OnGameContentSaved();
 		return out.good();
 	}
 }

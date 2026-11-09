@@ -14,8 +14,8 @@ project "box2d"
 	language "C"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (HydroWorkspaceDir .. "/bin/" .. outputdir .. "/%{prj.name}")
+	objdir (HydroWorkspaceDir .. "/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{

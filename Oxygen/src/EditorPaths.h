@@ -1,27 +1,75 @@
 #pragma once
 #include "Hydro.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 
 namespace Hydro
 {
-	// Where the editor saves scenes and prefabs: the active project's folders, else the "project" folder next to the
-	// working directory.
+	// Where the editor keeps things: the active project's folders, and the user's own folder. Nothing depends on the working
+	// directory. Without a project (the hub shows) the project paths fall back to the user folder.
 	class EditorPaths
 	{
 	public:
-		// The editor's own settings (theme, colours, sizes): per user, next to imgui.ini, not in a project.
-		static std::filesystem::path GetEditorSettingsPath()
+		// An environment variable's value; empty when it isn't set. (_dupenv_s on Windows: getenv is deprecated there.)
+		static std::string ReadEnvironment(const char* name)
 		{
-			return std::filesystem::current_path() / "EditorSettings.yaml";
+#if defined(_WIN32)
+			char* value = nullptr;
+			size_t size = 0;
+			if (_dupenv_s(&value, &size, name) != 0 || value == nullptr)
+			{
+				return std::string();
+			}
+			const std::string result = value;
+			std::free(value);
+			return result;
+#else
+			const char* value = std::getenv(name);
+			return value != nullptr ? std::string(value) : std::string();
+#endif
 		}
 
-		// The project the editor opens at startup: the first .hyproj in this folder.
-		static std::filesystem::path GetDefaultProjectDirectory()
+		// Per user, not per repository or project: %APPDATA%/Hydro/Oxygen (the editor settings, imgui.ini).
+		static std::filesystem::path GetUserDirectory()
 		{
-			return std::filesystem::current_path() / "project";
+			if (const std::string appData = ReadEnvironment("APPDATA"); appData.empty() == false)
+			{
+				return std::filesystem::path(appData) / "Hydro" / "Oxygen";
+			}
+			if (const std::string home = ReadEnvironment("HOME"); home.empty() == false)
+			{
+				return std::filesystem::path(home) / ".config" / "Hydro" / "Oxygen";
+			}
+			return std::filesystem::current_path() / ".hydro-user";
 		}
+
+		// The editor's own settings (theme, colours, sizes, the session): per user.
+		static std::filesystem::path GetEditorSettingsPath() { return GetUserDirectory() / "EditorSettings.yaml"; }
+		// ImGui's window positions and docking: per user.
+		static std::filesystem::path GetImGuiIniPath() { return GetUserDirectory() / "imgui.ini"; }
+		// The project hub's recent projects: per user.
+		static std::filesystem::path GetRecentProjectsPath() { return GetUserDirectory() / "RecentProjects.yaml"; }
+
+		// Makes the user folder and, once, copies the files older editors kept next to the working directory (Oxygen/)
+		// into it. Runs in CreateApplication, before the log exists: never logs.
+		static void PrepareUserDirectory(const std::filesystem::path& legacyDirectory)
+		{
+			std::error_code ec;
+			std::filesystem::create_directories(GetUserDirectory(), ec);
+			for (const std::filesystem::path& target : { GetEditorSettingsPath(), GetImGuiIniPath() })
+			{
+				const std::filesystem::path legacy = legacyDirectory / target.filename();
+				if (std::filesystem::exists(target, ec) == false && std::filesystem::exists(legacy, ec))
+				{
+					std::filesystem::copy_file(legacy, target, ec);
+				}
+			}
+		}
+
+		// What the editor remembers about one project (its last scene): <project>/.hydro/Editor.yaml, not in git.
+		static std::filesystem::path GetProjectEditorStatePath() { return GetProjectDirectory() / ".hydro" / "Editor.yaml"; }
 
 		static std::filesystem::path GetProjectDirectory()
 		{
@@ -30,7 +78,7 @@ namespace Hydro
 				return project->GetProjectDirectory();
 			}
 
-			return GetDefaultProjectDirectory();
+			return GetUserDirectory();
 		}
 
 		static std::filesystem::path GetAssetsDirectory()
@@ -40,7 +88,7 @@ namespace Hydro
 				return project->GetAssetDirectory();
 			}
 
-			return GetDefaultProjectDirectory() / "Assets";
+			return GetUserDirectory() / "Assets";
 		}
 
 		static std::filesystem::path GetScenesDirectory() { return GetAssetsDirectory() / "Scenes"; }

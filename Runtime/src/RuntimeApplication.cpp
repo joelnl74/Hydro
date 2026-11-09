@@ -38,7 +38,7 @@ Hydro::Application* Hydro::CreateApplication(const Hydro::ApplicationCommandLine
 		std::printf("<Game>.exe [--project <file.hyproj>]\n"
 			"Without --project it plays Project/<exe name>.hyproj next to the exe (a packaged build, made by\n"
 			"scripts/Package.bat or File > Build in Oxygen) and runs in the exe's folder. With --project it runs in\n"
-			"the current folder, which must have the engine's assets/shaders (Oxygen/ in the repository).\n");
+			"the current folder. The engine's files (assets/shaders) are always the copy next to the exe.\n");
 	}
 
 	std::filesystem::path projectPath = commandLine.Get("--project");

@@ -1,6 +1,8 @@
 #include "hypch.h"
 #include "DefinitionAsset.h"
 
+#include "Hydro/Project/Project.h"
+
 #include <fstream>
 #include <iterator>
 
@@ -42,6 +44,11 @@ namespace Hydro
 
 	bool DefinitionAsset::Save(const std::filesystem::path& file, const DefinitionData& data)
 	{
+		if (Project::RefusesWrite("the definition", file))
+		{
+			return false;
+		}
+
 		std::string text;
 		if (DataSerializer::WriteDefinition(data, text) == false)
 		{
@@ -56,6 +63,8 @@ namespace Hydro
 			return false;
 		}
 		out << text;
+		// Data types are the game's: a generic project that saves one becomes that game's.
+		Project::OnGameContentSaved();
 		return out.good();
 	}
 }

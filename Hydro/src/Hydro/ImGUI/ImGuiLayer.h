@@ -15,7 +15,7 @@ namespace Hydro
 	struct ImGuiFontSpecification
 	{
 		std::string Name;           // looked up with ImGuiLayer::GetFont; at most 39 characters
-		std::filesystem::path Path; // .ttf / .otf, relative to the working directory
+		std::filesystem::path Path; // .ttf / .otf; relative = an engine resource (EngineResources::Resolve)
 		float Size = 16.0f;         // pixels
 	};
 
@@ -24,6 +24,8 @@ namespace Hydro
 	{
 		// Loaded in order; the first that loads is the default. Missing files are logged and skipped; none: ImGui's own.
 		std::vector<ImGuiFontSpecification> Fonts;
+		// Where ImGui keeps window positions and docking; empty = nowhere (nothing is saved).
+		std::filesystem::path IniFile = "imgui.ini";
 	};
 
 	class ImGuiLayer : public Layer
@@ -46,6 +48,7 @@ namespace Hydro
 
 	private:
 		ImGuiLayerSpecification m_Specification;
+		std::string m_IniFile; // io.IniFilename points into it
 		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
 	};
 }

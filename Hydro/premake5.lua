@@ -4,8 +4,8 @@ project "Hydro"
 	cppdialect "C++17"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (HydroWorkspaceDir .. "/bin/" .. outputdir .. "/%{prj.name}")
+	objdir (HydroWorkspaceDir .. "/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	-- Runs the "Premake" utility project first, so new/removed source files
 	-- are picked up automatically on build (no need to run Win-GenProjects.bat).
@@ -24,7 +24,16 @@ project "Hydro"
 		"vendor/VulkanMemoryAllocator/**.cpp",
 		"vendor/stb_image/**.h",
 		"vendor/stb_image/**.cpp",
-		"vendor/entt/**.hpp"
+		"vendor/entt/**.hpp",
+
+		-- The engine's GLSL, checked by compiling it to SPIR-V as part of the build (see the filter below). The
+		-- renderer compiles the sources itself at runtime (shaderc) from the copy next to the exe.
+		"assets/shaders/**.vert",
+		"assets/shaders/**.frag",
+		"assets/shaders/**.comp",
+		"assets/shaders/**.geom",
+		"assets/shaders/**.tesc",
+		"assets/shaders/**.tese"
 	}
 
 	defines
@@ -72,6 +81,17 @@ project "Hydro"
 
 		"%{Library.Vulkan}",
 	}
+
+	-- Each shader is a custom build item, recompiled only when its source changes: <name>.<stage>.spv next to it.
+	filter "files:assets/shaders/**.vert or assets/shaders/**.frag or assets/shaders/**.comp or assets/shaders/**.geom or assets/shaders/**.tesc or assets/shaders/**.tese"
+		buildmessage "Compiling shader %{file.relpath}"
+		buildcommands
+		{
+			'"$(VULKAN_SDK)\\Bin\\glslc.exe" "%{file.relpath}" -o "%{file.relpath}.spv"'
+		}
+		buildoutputs { "%{file.relpath}.spv" }
+
+	filter {}
 
 	-- Vendored sources compiled into Hydro, including the ImGui backend copies in Platform/Vulkan.
 	filter { "files:vendor/** or src/Hydro/Platform/Vulkan/imgui_impl_*.cpp" }

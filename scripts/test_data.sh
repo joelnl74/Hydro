@@ -4,11 +4,13 @@
 #   1. the reflection generator's HY_DATA / HY_ENUM checks (Tools/DataTests/test_generator.py)
 #   2. the generated registration of Tools/DataTests/DataTestTypes.h, then Tools/DataTests/DataRoundTripTest.cpp
 #      built with g++ against the engine's Data/ sources, yaml-cpp and spdlog and a stand-in AssetManager
-#      (Tools/DataTests/TestAssetManager.cpp), with Tools/DataTests/ScriptSerializerTest.cpp and GameRulesTest.cpp (the
-#      game's Rules/: battle and loot), and run
+#      (Tools/DataTests/TestAssetManager.cpp), with Tools/DataTests/ScriptSerializerTest.cpp and, when a game passes
+#      them, the game's own tests (its Rules/: a TestGameRules(int& checks) function), and run
 # No window, GPU, project or MSVC. MSVC /W4 stays the real compile check.
 #
-# Usage: scripts/test_data.sh
+# Usage: scripts/test_data.sh [--game-tests <file.cpp>... [--workspace <dir>]]
+#   A game's repository runs its rule tests here: --game-tests with its test files, compiled against its game code
+#   (the workspace's, see hydro-workspace.json; default HYDRO_WORKSPACE, else this repository).
 # Needs: python3, g++ (C++17). Builds yaml-cpp once into $HYDRO_CHECK_CACHE (default /tmp/hydro-check).
 set -euo pipefail
 
@@ -20,6 +22,16 @@ trap 'rm -rf "$OUT"' EXIT
 mkdir -p "$OUT"
 
 log() { printf '\033[1m== %s\033[0m\n' "$*"; }
+
+GAME_TESTS=()
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--workspace) export HYDRO_WORKSPACE="$(cd "$2" && pwd)"; shift 2 ;;
+		--game-tests) shift; while [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; do GAME_TESTS+=("$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"); shift; done ;;
+		*) echo "test_data.sh: unknown argument $1" >&2; exit 2 ;;
+	esac
+done
+GAME_SRC="$(python3 "$ROOT/scripts/hydro_workspace.py" --get GameSource)"
 
 V="$ROOT/Hydro/vendor"
 if [ -z "$(ls -A "$V/glm" 2>/dev/null)" ] || [ -z "$(ls -A "$V/spdlog" 2>/dev/null)" ]; then
@@ -46,14 +58,14 @@ python3 "$ROOT/Tools/DataTests/test_generator.py"
 log "Generating the test types' registration"
 python3 "$ROOT/Tools/ReflectionGenerator/generate_reflection.py" "$ROOT" --source "$ROOT/Tools/DataTests" \
 	--output "$OUT/gen/GeneratedScriptReflection.cpp" --data-output "$OUT/gen/GeneratedDataReflection.cpp"
-cp "$ROOT/Game/src/Generated/GeneratedDataReflection.h" "$OUT/gen/"
+cp "$ROOT/Sample/Game/src/Generated/GeneratedDataReflection.h" "$OUT/gen/"
 
 # The engine refuses to compile on Linux (PlatformDetection.h #error): build a copy with that line turned into a define.
 cp -r "$ROOT/Hydro/src" "$OUT/src"
 sed -i 's/#error "Linux is not supported!"/#define HY_PLATFORM_LINUX/' "$OUT/src/Hydro/Core/PlatformDetection.h"
 
 FLAGS=(-std=c++17 -O0 -g -Wall -Wextra -DHY_DEBUG -DYAML_CPP_STATIC_DEFINE
-	-I"$OUT/src" -I"$OUT/gen" -I"$ROOT/Tools/DataTests" -I"$ROOT/Game/src"
+	-I"$OUT/src" -I"$OUT/gen" -I"$ROOT/Tools/DataTests" -I"$GAME_SRC"
 	-isystem "$V/glm" -isystem "$V/spdlog/include" -isystem "$V/yaml-cpp/include" -isystem "$V/entt")
 SOURCES=(
 	"$OUT/src/Hydro/Core/Log.cpp"
@@ -66,9 +78,13 @@ SOURCES=(
 	"$OUT/src/Hydro/Scene/Scripting/ScriptSerializer.cpp"
 	"$ROOT/Tools/DataTests/DataRoundTripTest.cpp"
 	"$ROOT/Tools/DataTests/ScriptSerializerTest.cpp"
-	"$ROOT/Tools/DataTests/GameRulesTest.cpp"
 	"$ROOT/Tools/DataTests/TestAssetManager.cpp"
+	"$ROOT/Tools/DataTests/TestProject.cpp"
 )
+if [ ${#GAME_TESTS[@]} -gt 0 ]; then
+	FLAGS+=(-DHY_GAME_TESTS)
+	SOURCES+=("${GAME_TESTS[@]}")
+fi
 
 log "Building the round-trip test"
 mkdir -p "$OUT/obj"

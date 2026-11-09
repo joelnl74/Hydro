@@ -1,0 +1,6 @@
+Project:
+  Name: Sample
+  Game:
+    Id: hydro-sample
+    Name: Hydro Sample
+  AssetDirectory: Assets

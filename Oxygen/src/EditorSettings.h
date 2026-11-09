@@ -52,6 +52,7 @@ namespace Hydro
 	struct EditorSession
 	{
 		std::filesystem::path LastProject;
+		// The open project's last scene (absolute). Saved per project (EditorProjectState), not in the user's file.
 		std::filesystem::path LastScene;
 		// Open or closed per View menu window, by menu name. A window that isn't listed keeps its own default.
 		std::map<std::string, bool> OpenWindows;
@@ -81,6 +82,12 @@ namespace Hydro
 		EditorSession Session;
 	};
 
+	// What the editor remembers about one project, in <project>/.hydro/Editor.yaml (EditorPaths).
+	struct EditorProjectState
+	{
+		std::filesystem::path LastScene; // relative to the project folder
+	};
+
 	// Reads and writes EditorSettings as YAML. Missing keys keep their defaults.
 	class EditorSettingsSerializer
 	{
@@ -94,6 +101,10 @@ namespace Hydro
 
 		// Writes only the session, keeping the rest as saved, so unsaved Editor Settings edits aren't written.
 		static bool SaveSession(const EditorSession& session, const std::filesystem::path& path);
+
+		// A project's editor state; false (state unchanged) when the file is missing or unreadable.
+		static bool SaveProjectState(const EditorProjectState& state, const std::filesystem::path& path);
+		static bool LoadProjectState(const std::filesystem::path& path, EditorProjectState& state);
 
 		// Reads just the font size. Safe before the log exists (CreateApplication): never logs.
 		static bool ReadFontSize(const std::filesystem::path& path, float& fontSize);
