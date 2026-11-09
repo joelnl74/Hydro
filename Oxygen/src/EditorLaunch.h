@@ -44,6 +44,7 @@ namespace Hydro
 		void Update();
 
 		bool IsAutomated() const { return m_Options.IsAutomated(); }
+		bool HasProject() const { return m_Options.Project.empty() == false; }
 
 	private:
 		// A scene by name (in the project's Assets/Scenes) or path; empty when there is none.
