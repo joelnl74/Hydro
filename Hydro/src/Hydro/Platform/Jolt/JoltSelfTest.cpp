@@ -18,7 +18,7 @@
 #include <cmath>
 
 // Proves Jolt builds and links and that its Y-up defaults are all replaced for a Z-up world. The layer setup is
-// the smallest Jolt accepts. TODO(physics): remove once PhysicsScene3D has real tests.
+// the smallest Jolt accepts. TODO(physics): remove once PhysicsWorld3D has real tests.
 namespace Hydro
 {
 	static constexpr JPH::ObjectLayer s_SpikeLayerStatic = 0;

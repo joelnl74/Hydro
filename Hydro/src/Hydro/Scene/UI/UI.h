@@ -7,7 +7,7 @@ namespace Hydro
 {
 	class Scene;
 
-	// The runtime UI for scripts: plain functions for what touches the scene's UIScene (focus) or must stay
+	// The runtime UI for scripts: plain functions for what touches the scene's UIInteraction (focus) or must stay
 	// consistent. Focus only works while the game runs.
 	class UI
 	{

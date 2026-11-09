@@ -7,7 +7,7 @@
 #include "Hydro/Renderer/Font.h"
 #include "Hydro/Renderer/Texture2D.h"
 #include "Hydro/Scene/Scene.h"
-#include "Hydro/Scene/UI/UIScene.h"
+#include "Hydro/Scene/UI/UIInteraction.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -113,7 +113,7 @@ namespace Hydro
 
 		// Screen space in view pixels, Y up, origin at the bottom-left: the same viewport the layout was resolved for.
 		const glm::vec2 viewSize{ (float)scene.GetViewportWidth(), (float)scene.GetViewportHeight() };
-		const UIScene* ui = scene.GetUIScene();
+		const UIInteraction* ui = scene.GetUIInteraction();
 		Renderer2D::BeginScreenOverlay(Camera::Orthographic(0.0f, viewSize.x, 0.0f, viewSize.y, -1.0f, 1.0f));
 		const glm::vec4 canvasOutline{ 1.0f, 0.85f, 0.2f, 1.0f };
 		const glm::vec4 rectOutline{ 0.3f, 0.85f, 1.0f, 0.9f };

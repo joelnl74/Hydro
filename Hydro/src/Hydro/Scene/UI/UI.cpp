@@ -2,14 +2,14 @@
 #include "UI.h"
 
 #include "Hydro/Scene/Scene.h"
-#include "Hydro/Scene/UI/UIScene.h"
+#include "Hydro/Scene/UI/UIInteraction.h"
 
 namespace Hydro
 {
 	// The focused button is inside `entity`'s subtree (or is it).
 	static bool HoldsFocus(Scene& scene, Entity entity)
 	{
-		UIScene* ui = scene.GetUIScene();
+		UIInteraction* ui = scene.GetUIInteraction();
 		if (ui == nullptr)
 		{
 			return false;
@@ -73,7 +73,7 @@ namespace Hydro
 		{
 			return;
 		}
-		if (UIScene* ui = button.GetScene()->GetUIScene())
+		if (UIInteraction* ui = button.GetScene()->GetUIInteraction())
 		{
 			ui->Focus(*button.GetScene(), button);
 		}
@@ -81,7 +81,7 @@ namespace Hydro
 
 	void UI::ClearFocus(Scene& scene)
 	{
-		if (UIScene* ui = scene.GetUIScene())
+		if (UIInteraction* ui = scene.GetUIInteraction())
 		{
 			ui->ClearFocus(scene);
 		}
@@ -89,7 +89,7 @@ namespace Hydro
 
 	Entity UI::GetFocused(Scene& scene)
 	{
-		UIScene* ui = scene.GetUIScene();
+		UIInteraction* ui = scene.GetUIInteraction();
 		return ui != nullptr ? ui->GetFocused(scene) : Entity{};
 	}
 

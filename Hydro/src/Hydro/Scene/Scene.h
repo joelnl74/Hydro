@@ -22,10 +22,10 @@
 namespace Hydro
 {
 	class Entity;
-	class PhysicsScene;
-	class PhysicsScene3D;
-	class ParticleScene;
-	class UIScene;
+	class PhysicsWorld2D;
+	class PhysicsWorld3D;
+	class ParticleSimulation2D;
+	class UIInteraction;
 	struct UIEvent;
 	class ScriptableEntity;
 	class Gizmos;
@@ -43,15 +43,15 @@ namespace Hydro
 		// script bindings (instances are created fresh), plus the name and viewport size.
 		static Ref<Scene> Copy(const Ref<Scene>& source);
 
-		// Creates / destroys the physics worlds and the ParticleScene and resets animator playback. OnUpdateRuntime
+		// Creates / destroys the physics worlds and the ParticleSimulation2D and resets animator playback. OnUpdateRuntime
 		// starts it if needed and the destructor stops it; the editor calls both around Play and Stop.
 		void OnRuntimeStart();
 		void OnRuntimeStop();
 		// Null while editing or before OnRuntimeStart, like the three below.
-		PhysicsScene* GetPhysicsScene() { return m_Physics.get(); }
-		PhysicsScene3D* GetPhysicsScene3D() { return m_Physics3D.get(); }
-		ParticleScene* GetParticleScene() { return m_Particles.get(); }
-		UIScene* GetUIScene() { return m_UI.get(); }
+		PhysicsWorld2D* GetPhysicsWorld2D() { return m_Physics2D.get(); }
+		PhysicsWorld3D* GetPhysicsWorld3D() { return m_Physics3D.get(); }
+		ParticleSimulation2D* GetParticleSimulation2D() { return m_Particles.get(); }
+		UIInteraction* GetUIInteraction() { return m_UI.get(); }
 
 		// Runs every stage in order: UI input, scripts, physics, sprite animation, transforms, particles, UI layout.
 		void OnUpdateRuntime(float deltaTime);
@@ -62,7 +62,7 @@ namespace Hydro
 		void OnRender();
 
 		// The pointer over the Game view for the runtime UI: view pixels from the bottom-left (Y up), over or not,
-		// primary button. The layer sets it every frame before OnUpdateRuntime; UIScene reads it at stage 0.
+		// primary button. The layer sets it every frame before OnUpdateRuntime; UIInteraction reads it at stage 0.
 		struct UIPointer
 		{
 			glm::vec2 Position{ 0.0f, 0.0f };
@@ -233,10 +233,10 @@ namespace Hydro
 		std::vector<DeferredCommand> m_Deferred;
 		std::unordered_set<entt::entity> m_PendingDestroy;
 
-		Scope<PhysicsScene> m_Physics; // exists while the game runs this scene
-		Scope<PhysicsScene3D> m_Physics3D; // exists while the game runs this scene
-		Scope<ParticleScene> m_Particles; // exists while the game runs this scene
-		Scope<UIScene> m_UI; // exists while the game runs this scene
+		Scope<PhysicsWorld2D> m_Physics2D; // exists while the game runs this scene
+		Scope<PhysicsWorld3D> m_Physics3D; // exists while the game runs this scene
+		Scope<ParticleSimulation2D> m_Particles; // exists while the game runs this scene
+		Scope<UIInteraction> m_UI; // exists while the game runs this scene
 		std::vector<UIEvent> m_UIEvents; // this frame's, reused
 		UIPointer m_UIPointer;
 

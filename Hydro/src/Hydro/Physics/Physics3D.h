@@ -1,5 +1,5 @@
 #pragma once
-#include "Hydro/Physics/PhysicsScene3D.h"
+#include "Hydro/Physics/PhysicsWorld3D.h"
 #include "Hydro/Scene/Components/Components.h"
 
 #include <glm/glm.hpp>

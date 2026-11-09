@@ -6,7 +6,7 @@
 #include <Hydro/Renderer/Renderer.h>
 #include <Hydro/Renderer/Renderer2D.h>
 #include <Hydro/Scene/Scene.h>
-#include <Hydro/Scene/ParticleScene.h>
+#include <Hydro/Scene/ParticleSimulation2D.h>
 #include <Hydro/Scene/Scripting/ScriptableEntity.h>
 
 #include <algorithm>
@@ -238,10 +238,10 @@ namespace Hydro
 			}
 			StatsUI::Row("Native scripts", "%zu", scriptCount);
 			StatsUI::Row("Particle emitters", "%zu", (size_t)registry.view<ParticleEmitter2DComponent>().size());
-			if (const ParticleScene* particles = scene->GetParticleScene())
+			if (const ParticleSimulation2D* particles = scene->GetParticleSimulation2D())
 			{
-				const ParticleScene::Statistics& stats = particles->GetStats();
-				StatsUI::Row("  Live particles", "%u of %u", stats.LiveParticles, ParticleScene::MaxLiveParticles);
+				const ParticleSimulation2D::Statistics& stats = particles->GetStats();
+				StatsUI::Row("  Live particles", "%u of %u", stats.LiveParticles, ParticleSimulation2D::MaxLiveParticles);
 				StatsUI::Row("  Running emitters", "%u", stats.Emitters);
 				StatsUI::Row("  Reserved slots", "%u", stats.ReservedParticles);
 				StatsUI::Row("  Dropped (last update)", "%u", stats.DroppedParticles);

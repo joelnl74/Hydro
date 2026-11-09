@@ -7,7 +7,7 @@
 #include <Hydro/Scene/Scene.h>
 #include <Hydro/Scene/UI/UI.h>
 #include <Hydro/Scene/UI/UILayout.h>
-#include <Hydro/Scene/UI/UIScene.h>
+#include <Hydro/Scene/UI/UIInteraction.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -560,7 +560,7 @@ namespace Hydro
 			}
 
 			Scene& scene = *entity.GetScene();
-			if (const UIScene* ui = scene.GetUIScene())
+			if (const UIInteraction* ui = scene.GetUIInteraction())
 			{
 				const char* states[] = { "Normal", "Focused", "Pressed", "Disabled" };
 				ImGui::TextDisabled("Now: %s", states[(int)ui->GetState(scene, entity)]);

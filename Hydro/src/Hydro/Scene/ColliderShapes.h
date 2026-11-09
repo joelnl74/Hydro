@@ -21,7 +21,7 @@ namespace Hydro
 	};
 
 	// One collision shape in the entity's own space with its scale applied (the body adds rotation and position).
-	// Both PhysicsScene3D and the editor's outlines use it, so they always agree.
+	// Both PhysicsWorld3D and the editor's outlines use it, so they always agree.
 	struct ColliderShape
 	{
 		ColliderShapeType Type = ColliderShapeType::Box;

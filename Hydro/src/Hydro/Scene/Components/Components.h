@@ -404,7 +404,7 @@ namespace Hydro
 	};
 
 	// A character walking the 3D collision world (Jolt CharacterVirtual): a capsule on the entity's feet. Move it
-	// with CharacterBody::Move; runtime state lives in PhysicsScene3D.
+	// with CharacterBody::Move; runtime state lives in PhysicsWorld3D.
 	struct CharacterBodyComponent
 	{
 		float Radius = 0.25f;
@@ -461,7 +461,7 @@ namespace Hydro
 		float Max = 1.0f;
 	};
 
-	// Emits 2D particles in world space. Settings only: live particles will live in the scene's ParticleScene.
+	// Emits 2D particles in world space. Settings only: live particles will live in the scene's ParticleSimulation2D.
 	// Saved and edited, but nothing draws it yet.
 	struct ParticleEmitter2DComponent
 	{

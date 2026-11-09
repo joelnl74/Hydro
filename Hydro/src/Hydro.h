@@ -28,14 +28,14 @@
 #include "Hydro/Scene/SpriteAnimation.h"
 #include "Hydro/Scene/SpriteAnimationSerializer.h"
 #include "Hydro/Scene/SpriteAnimator.h"
-#include "Hydro/Scene/ParticleScene.h"
+#include "Hydro/Scene/ParticleSimulation2D.h"
 #include "Hydro/Scene/Prefab.h"
 #include "Hydro/Scene/MeshBounds.h"
 #include "Hydro/Scene/SpriteBounds.h"
 #include "Hydro/Scene/Vfx.h"
 #include "Hydro/Scene/UI/UI.h"
 #include "Hydro/Scene/UI/UIEvent.h"
-#include "Hydro/Scene/UI/UIScene.h"
+#include "Hydro/Scene/UI/UIInteraction.h"
 #include "Hydro/Scene/UI/UILayout.h"
 
 // Scripting
@@ -45,7 +45,7 @@
 #include "Hydro/Scene/ComponentRegistry.h"
 
 // PHYSICS.
-#include "Hydro/Physics/PhysicsScene.h"
+#include "Hydro/Physics/PhysicsWorld2D.h"
 #include "Hydro/Physics/Physics3D.h"
 
 // ASSETS.

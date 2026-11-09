@@ -169,15 +169,15 @@ namespace Hydro
 			m_SpriteQueue.push_back(item);
 		}
 
-		// Lit emitters join the same order (only while the game runs: there is no ParticleScene while editing).
-		const ParticleScene* particles = m_Scene->GetParticleScene();
+		// Lit emitters join the same order (only while the game runs: there is no ParticleSimulation2D while editing).
+		const ParticleSimulation2D* particles = m_Scene->GetParticleSimulation2D();
 		if (particles != nullptr)
 		{
 			auto emitters = m_Scene->m_Registry.view<WorldTransformComponent, ParticleEmitter2DComponent>();
 			for (auto entity : emitters)
 			{
 				const auto [transform, emitter] = emitters.get<WorldTransformComponent, ParticleEmitter2DComponent>(entity);
-				const ParticleScene::EmitterRuntime* runtime = particles->Find(entity);
+				const ParticleSimulation2D::EmitterRuntime* runtime = particles->Find(entity);
 				if (emitter.Lighting == ParticleLighting::Unlit || runtime == nullptr || runtime->Particles.Count == 0)
 				{
 					continue;
@@ -308,7 +308,7 @@ namespace Hydro
 
 	void SceneSpriteRenderer::SubmitUnlitParticles()
 	{
-		const ParticleScene* particles = m_Scene->GetParticleScene();
+		const ParticleSimulation2D* particles = m_Scene->GetParticleSimulation2D();
 		if (particles == nullptr)
 		{
 			return;
@@ -319,7 +319,7 @@ namespace Hydro
 		for (auto entity : emitters)
 		{
 			const auto [transform, emitter] = emitters.get<WorldTransformComponent, ParticleEmitter2DComponent>(entity);
-			const ParticleScene::EmitterRuntime* runtime = particles->Find(entity);
+			const ParticleSimulation2D::EmitterRuntime* runtime = particles->Find(entity);
 			if (emitter.Lighting != ParticleLighting::Unlit || runtime == nullptr || runtime->Particles.Count == 0)
 			{
 				continue;
@@ -372,8 +372,8 @@ namespace Hydro
 		Renderer2D::EndOverlay();
 	}
 
-	void SceneSpriteRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime,
-		const glm::vec3& origin, const SceneCameraBasis& camera)
+	void SceneSpriteRenderer::SubmitParticles(const ParticleEmitter2DComponent& emitter,
+		const ParticleSimulation2D::EmitterRuntime& runtime, const glm::vec3& origin, const SceneCameraBasis& camera)
 	{
 		// The emitter's texture when it is loaded, else the soft dot. Lit additive emitters draw additive (SubmitSprites);
 		// unlit ones go through the overlay, which has no additive pipeline: TODO they still draw alpha.
@@ -388,7 +388,7 @@ namespace Hydro
 		// Each particle's own colour times the emitter's intensity.
 		Renderer2D::SetEmission(glm::vec3(std::max(emitter.EmissionIntensity, 0.0f)));
 
-		const ParticleScene::ParticleBuffer& buffer = runtime.Particles;
+		const ParticleSimulation2D::ParticleBuffer& buffer = runtime.Particles;
 		const float z = origin.z;
 		// View space: a particle's offset from the emitter goes along the camera's right and up, so a burst
 		// sprays in the plane facing the camera (ParticleSpace).

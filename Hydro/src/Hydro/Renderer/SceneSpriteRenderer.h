@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Hydro/Scene/Components/Components.h"
-#include "Hydro/Scene/ParticleScene.h"
+#include "Hydro/Scene/ParticleSimulation2D.h"
 #include "Hydro/Renderer/RenderFeatures.h"
 #include "Hydro/Renderer/Texture2D.h"
 
@@ -112,7 +112,7 @@ namespace Hydro
 
 		void PrepareSunShadowCasting();
 		// One emitter's live particles, at the emitter's Z; billboards when the camera is tilted.
-		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleScene::EmitterRuntime& runtime,
+		static void SubmitParticles(const ParticleEmitter2DComponent& emitter, const ParticleSimulation2D::EmitterRuntime& runtime,
 			const glm::vec3& origin, const SceneCameraBasis& camera);
 		// One sprite, flipped and turned for its facing. `shadowCaster`: also queue its sun shadow caster.
 		void SubmitSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, const SceneCameraBasis& camera,

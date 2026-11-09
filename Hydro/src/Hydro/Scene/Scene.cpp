@@ -10,11 +10,11 @@
 #include "SceneUILayout.h"
 #include "SpriteAnimator.h"
 #include "SystemContext.h"
-#include "Hydro/Physics/PhysicsScene.h"
-#include "Hydro/Physics/PhysicsScene3D.h"
-#include "ParticleScene.h"
+#include "Hydro/Physics/PhysicsWorld2D.h"
+#include "Hydro/Physics/PhysicsWorld3D.h"
+#include "ParticleSimulation2D.h"
 #include "UI/UILayout.h"
-#include "UI/UIScene.h"
+#include "UI/UIInteraction.h"
 #include "Hydro/Renderer/Camera.h"
 
 #include "../Renderer/Renderer2D.h"
@@ -55,7 +55,7 @@ namespace Hydro
 		m_PendingDestroy.clear();
 		m_Particles.reset();
 		m_Physics3D.reset();
-		m_Physics.reset();
+		m_Physics2D.reset();
 	}
 
 	void Scene::Init()
@@ -493,9 +493,9 @@ namespace Hydro
 
 		m_PendingDestroy.erase((entt::entity)entity);
 		// Its physics body goes with it (a body whose entity is gone would be written back to nothing).
-		if (m_Physics != nullptr)
+		if (m_Physics2D != nullptr)
 		{
-			m_Physics->OnEntityDestroyed((entt::entity)entity);
+			m_Physics2D->OnEntityDestroyed((entt::entity)entity);
 		}
 		if (m_Physics3D != nullptr)
 		{
@@ -751,7 +751,7 @@ namespace Hydro
 
 	void Scene::DispatchPhysicsEvents()
 	{
-		const bool events2D = m_Physics != nullptr && m_Physics->GetEvents().empty() == false;
+		const bool events2D = m_Physics2D != nullptr && m_Physics2D->GetEvents().empty() == false;
 		const bool events3D = m_Physics3D != nullptr && m_Physics3D->GetEvents().empty() == false;
 		if (events2D == false && events3D == false)
 		{
@@ -759,36 +759,36 @@ namespace Hydro
 		}
 
 		// Copied: nothing may change the lists while scripts run, but a copy costs little and can't dangle.
-		const std::vector<PhysicsScene::Event> events = events2D ? m_Physics->GetEvents() : std::vector<PhysicsScene::Event>();
-		const std::vector<PhysicsScene3D::Event> events3DCopy = events3D ? m_Physics3D->GetEvents() : std::vector<PhysicsScene3D::Event>();
+		const std::vector<PhysicsWorld2D::Event> events = events2D ? m_Physics2D->GetEvents() : std::vector<PhysicsWorld2D::Event>();
+		const std::vector<PhysicsWorld3D::Event> events3DCopy = events3D ? m_Physics3D->GetEvents() : std::vector<PhysicsWorld3D::Event>();
 
 		BeginStage();
-		for (const PhysicsScene::Event& event : events)
+		for (const PhysicsWorld2D::Event& event : events)
 		{
 			switch (event.Kind)
 			{
-			case PhysicsScene::Event::Type::CollisionBegin:
+			case PhysicsWorld2D::Event::Type::CollisionBegin:
 				NotifyScripts(event.A, event.B, &ScriptableEntity::OnCollisionEnter);
 				NotifyScripts(event.B, event.A, &ScriptableEntity::OnCollisionEnter);
 				break;
-			case PhysicsScene::Event::Type::CollisionEnd:
+			case PhysicsWorld2D::Event::Type::CollisionEnd:
 				NotifyScripts(event.A, event.B, &ScriptableEntity::OnCollisionExit);
 				NotifyScripts(event.B, event.A, &ScriptableEntity::OnCollisionExit);
 				break;
-			case PhysicsScene::Event::Type::TriggerBegin:
+			case PhysicsWorld2D::Event::Type::TriggerBegin:
 				NotifyScripts(event.A, event.B, &ScriptableEntity::OnTriggerEnter);
 				NotifyScripts(event.B, event.A, &ScriptableEntity::OnTriggerEnter);
 				break;
-			case PhysicsScene::Event::Type::TriggerEnd:
+			case PhysicsWorld2D::Event::Type::TriggerEnd:
 				NotifyScripts(event.A, event.B, &ScriptableEntity::OnTriggerExit);
 				NotifyScripts(event.B, event.A, &ScriptableEntity::OnTriggerExit);
 				break;
 			}
 		}
 		// 3D: a character walking into or out of a trigger. Both get the hook, as in 2D.
-		for (const PhysicsScene3D::Event& event : events3DCopy)
+		for (const PhysicsWorld3D::Event& event : events3DCopy)
 		{
-			const bool begin = event.Kind == PhysicsScene3D::Event::Type::TriggerBegin;
+			const bool begin = event.Kind == PhysicsWorld3D::Event::Type::TriggerBegin;
 			void (ScriptableEntity::*hook)(Entity) = begin ? &ScriptableEntity::OnTriggerEnter : &ScriptableEntity::OnTriggerExit;
 			NotifyScripts(event.A, event.B, hook);
 			NotifyScripts(event.B, event.A, hook);
@@ -802,21 +802,21 @@ namespace Hydro
 		// laid out too, so the first frame's UI input works on real rects.
 		ResolveTransforms();
 		ResolveUILayout();
-		if (m_Physics == nullptr)
+		if (m_Physics2D == nullptr)
 		{
-			m_Physics = CreateScope<PhysicsScene>(*this);
+			m_Physics2D = CreateScope<PhysicsWorld2D>(*this);
 		}
 		if (m_Physics3D == nullptr)
 		{
-			m_Physics3D = CreateScope<PhysicsScene3D>(*this);
+			m_Physics3D = CreateScope<PhysicsWorld3D>(*this);
 		}
 		if (m_Particles == nullptr)
 		{
-			m_Particles = CreateScope<ParticleScene>();
+			m_Particles = CreateScope<ParticleSimulation2D>();
 		}
 		if (m_UI == nullptr)
 		{
-			m_UI = CreateScope<UIScene>();
+			m_UI = CreateScope<UIInteraction>();
 		}
 		// The play copy carries the editor scene's runtime state; the game starts from the saved settings.
 		ResetSpriteAnimations(*this);
@@ -828,7 +828,7 @@ namespace Hydro
 		m_UIEvents.clear();
 		m_Particles.reset();
 		m_Physics3D.reset();
-		m_Physics.reset();
+		m_Physics2D.reset();
 	}
 
 	const std::vector<SceneStage>& Scene::GetStages()
@@ -847,7 +847,7 @@ namespace Hydro
 			// go, before animation and transforms read the result. 2D (Box2D), then 3D (Jolt); their events together.
 			{ "Physics", false, [](Scene& scene, const SystemContext& context)
 			{
-				scene.m_Physics->Step(context);
+				scene.m_Physics2D->Step(context);
 				scene.m_Physics3D->Step(context);
 				scene.DispatchPhysicsEvents();
 			} },
@@ -876,7 +876,7 @@ namespace Hydro
 
 		// Nobody called OnRuntimeStart: do it before the first stage, so it can't undo what the
 		// scripts start in their first update (it resets the animators).
-		if (m_Physics == nullptr)
+		if (m_Physics2D == nullptr)
 		{
 			OnRuntimeStart();
 		}

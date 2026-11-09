@@ -4,7 +4,7 @@
 #include "Scene.h"
 #include "SceneGraph.h"
 #include "SceneTransforms.h"
-#include "UI/UIScene.h"
+#include "UI/UIInteraction.h"
 #include "Hydro/Renderer/Camera.h"
 
 #include <algorithm>
@@ -260,9 +260,9 @@ namespace Hydro
 		float position = scroll.ScrollPosition;
 
 		// The focused button inside the view stays whole in view.
-		if (scroll.FollowFocus && m_Scene.GetUIScene() != nullptr)
+		if (scroll.FollowFocus && m_Scene.GetUIInteraction() != nullptr)
 		{
-			const Entity focused = m_Scene.GetUIScene()->GetFocused(m_Scene);
+			const Entity focused = m_Scene.GetUIInteraction()->GetFocused(m_Scene);
 			if ((bool)focused && focused.HasComponent<UIResolvedRectComponent>())
 			{
 				const int32_t focusedIndex = m_Graph.GetIndex((entt::entity)focused);
