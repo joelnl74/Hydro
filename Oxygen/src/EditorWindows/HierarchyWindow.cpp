@@ -90,7 +90,12 @@ namespace Hydro
 		m_Pending = {};
 
 		// "###Hierachy" keeps the window's ImGui ID from before the rename, so saved docking layouts still find it.
-		ImGui::Begin("Hierarchy###Hierachy");
+		// Collapsed or a hidden tab: nothing to list.
+		if (ImGui::Begin("Hierarchy###Hierachy") == false)
+		{
+			ImGui::End();
+			return;
+		}
 
 		// Search: only rows whose name contains the text are listed (flat, without folding).
 		{
@@ -130,43 +135,32 @@ namespace Hydro
 
 		if (rootOpen)
 		{
-			// A copy: the scene's list must not change under the loop (edits wait in m_Pending anyway).
-			const std::vector<entt::entity> order = scene->GetEntityOrder();
-			// While folded rows' descendants are skipped: rows deeper than this are hidden.
-			uint32_t hideDeeperThan = UINT32_MAX;
-			for (entt::entity handle : order)
+			// Large scenes have thousands of rows: list them all, but draw only the ones in view.
+			CollectRows(*scene, searching);
+			ImGuiListClipper clipper;
+			clipper.Begin((int)m_Rows.size());
+			// A row being dragged stays submitted when it scrolls out of view, so its drag source keeps its preview.
+			const ImGuiPayload* dragged = ImGui::GetDragDropPayload();
+			if (dragged != nullptr && dragged->IsDataType(s_EntityPayloadType) && dragged->DataSize == sizeof(entt::entity))
 			{
-				if (scene->m_Registry.valid(handle) == false || scene->m_Registry.has<TagComponent>(handle) == false
-					|| scene->m_Registry.has<IDComponent>(handle) == false)
+				const entt::entity draggedHandle = *(const entt::entity*)dragged->Data;
+				for (size_t i = 0; i < m_Rows.size(); i++)
 				{
-					continue;
-				}
-
-				Entity entity{ handle, scene.get() };
-				const uint32_t depth = scene->GetDepth(entity);
-				if (searching)
-				{
-					if (MatchesSearch(entity.GetName()) == false)
+					if ((entt::entity)m_Rows[i].Item == draggedHandle)
 					{
-						continue;
+						clipper.ForceDisplayRangeByIndices((int)i, (int)i + 1);
+						break;
 					}
-				}
-				else
-				{
-					if (depth > hideDeeperThan)
-					{
-						continue;
-					}
-					hideDeeperThan = UINT32_MAX;
-				}
-
-				bool open = true;
-				DrawRow(*scene, entity, searching, open);
-				if (searching == false && open == false)
-				{
-					hideDeeperThan = depth;
 				}
 			}
+			while (clipper.Step())
+			{
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+				{
+					DrawRow(*scene, m_Rows[(size_t)i], searching);
+				}
+			}
+			clipper.End();
 
 			ImGui::TreePop();
 		}
@@ -235,12 +229,57 @@ namespace Hydro
 		ApplyPendingEdit(*scene);
 	}
 
-	void HierarchyWindow::DrawRow(Scene& scene, Entity entity, bool searching, bool& open)
+	void HierarchyWindow::CollectRows(Scene& scene, bool searching)
 	{
+		m_Rows.clear();
+
+		// Rows that aren't drawn can't ask TreeNodeEx whether they are open, so read the state it keeps (by the same ID
+		// as DrawRow's tree node; rows start open).
+		ImGuiStorage* foldState = ImGui::GetStateStorage();
+		// While folded rows' descendants are skipped: rows deeper than this are hidden.
+		uint32_t hideDeeperThan = UINT32_MAX;
+		for (entt::entity handle : scene.GetEntityOrder())
+		{
+			if (scene.m_Registry.valid(handle) == false || scene.m_Registry.has<TagComponent>(handle) == false
+				|| scene.m_Registry.has<IDComponent>(handle) == false)
+			{
+				continue;
+			}
+
+			const Entity entity{ handle, &scene };
+			if (searching)
+			{
+				if (MatchesSearch(entity.GetName()))
+				{
+					m_Rows.push_back({ entity, 0, false });
+				}
+				continue;
+			}
+
+			const uint32_t depth = scene.GetDepth(entity);
+			if (depth > hideDeeperThan)
+			{
+				continue;
+			}
+			hideDeeperThan = UINT32_MAX;
+
+			const bool hasChildren = scene.HasChildren(entity);
+			m_Rows.push_back({ entity, depth, hasChildren });
+			const uint64_t id = entity.GetUUID();
+			if (hasChildren && foldState->GetInt(ImGui::GetID((void*)id), 1) == 0)
+			{
+				hideDeeperThan = depth;
+			}
+		}
+	}
+
+	void HierarchyWindow::DrawRow(Scene& scene, const Row& row, bool searching)
+	{
+		Entity entity = row.Item;
 		const std::string& name = entity.GetName();
 		const uint64_t id = entity.GetUUID();
-		const uint32_t depth = searching ? 0 : scene.GetDepth(entity);
-		const bool hasChildren = scene.HasChildren(entity);
+		const uint32_t depth = row.Depth;
+		const bool hasChildren = row.HasChildren;
 
 		// The list is flat (depth-first), so rows are indented by their depth rather than nested tree nodes.
 		const float indent = (float)depth * ImGui::GetStyle().IndentSpacing;
@@ -260,8 +299,9 @@ namespace Hydro
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
 
-		// The ID is the entity's UUID, so a row stays folded or open while it moves around the tree.
-		open = ImGui::TreeNodeEx((void*)id, flags, "%s", name.c_str());
+		// The ID is the entity's UUID, so a row stays folded or open while it moves around the tree. Whether it is open
+		// is read back in CollectRows, next frame.
+		ImGui::TreeNodeEx((void*)id, flags, "%s", name.c_str());
 		// Clicking the arrow only folds or unfolds.
 		if (ImGui::IsItemClicked() && ImGui::IsItemToggledOpen() == false)
 		{

@@ -25,7 +25,13 @@ namespace Hydro
 {
 	void InspectorWindow::OnImguiRender(Entity entity, const std::filesystem::path& asset)
 	{
-		ImGui::Begin("Inspector");
+		// Collapsed or a hidden tab: draw nothing, but still save what was edited.
+		if (ImGui::Begin("Inspector") == false)
+		{
+			SaveEdits();
+			ImGui::End();
+			return;
+		}
 
 		const bool hasEntity = entity && entity.GetScene() != nullptr && entity.GetScene()->m_Registry.valid(entity);
 		if (hasEntity == false)

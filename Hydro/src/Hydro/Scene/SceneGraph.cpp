@@ -11,6 +11,20 @@ namespace Hydro
 	SceneGraph::SceneGraph(Scene& scene)
 		: m_Scene(scene)
 	{
+		m_Scene.m_Registry.on_construct<IDComponent>().connect<&SceneGraph::OnIDComponentChanged>(*this);
+		m_Scene.m_Registry.on_destroy<IDComponent>().connect<&SceneGraph::OnIDComponentChanged>(*this);
+	}
+
+	SceneGraph::~SceneGraph()
+	{
+		// The registry outlives the graph (it is declared first in Scene): it must not call into a destroyed graph.
+		m_Scene.m_Registry.on_construct<IDComponent>().disconnect(*this);
+		m_Scene.m_Registry.on_destroy<IDComponent>().disconnect(*this);
+	}
+
+	void SceneGraph::OnIDComponentChanged([[maybe_unused]] entt::registry& registry, [[maybe_unused]] entt::entity handle)
+	{
+		m_ListStale = true;
 	}
 
 	void SceneGraph::Add(entt::entity handle)
@@ -29,6 +43,12 @@ namespace Hydro
 
 	const std::vector<entt::entity>& SceneGraph::GetOrder()
 	{
+		if (m_ListStale == false)
+		{
+			return m_List;
+		}
+		m_ListStale = false;
+
 		// Drop entities that were destroyed straight through the registry.
 		const size_t listed = m_List.size();
 		m_List.erase(std::remove_if(m_List.begin(), m_List.end(), [&](entt::entity handle)

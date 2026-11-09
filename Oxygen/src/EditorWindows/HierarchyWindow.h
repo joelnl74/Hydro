@@ -6,7 +6,9 @@
 
 #include <filesystem>
 #include <functional>
+#include <cstdint>
 #include <string>
+#include <vector>
 
 namespace Hydro
 {
@@ -62,7 +64,17 @@ namespace Hydro
 			}
 		};
 
-		void DrawRow(Scene& scene, Entity entity, bool searching, bool& open);
+		// One listed row: the entity and what its row needs from the hierarchy.
+		struct Row
+		{
+			Entity Item;
+			uint32_t Depth = 0;
+			bool HasChildren = false;
+		};
+
+		// The rows to list: all matches while searching (flat), else the tree without the inside of folded rows.
+		void CollectRows(Scene& scene, bool searching);
+		void DrawRow(Scene& scene, const Row& row, bool searching);
 		void DrawRowDropTarget(Scene& scene, Entity entity);
 		void DrawRowContextMenu(Scene& scene, Entity entity);
 		// The edit as one undo step (Delete and Duplicate through EditorContext).
@@ -84,5 +96,7 @@ namespace Hydro
 		EditorContext& m_Context;
 		PendingEdit m_Pending;
 		char m_SearchBuffer[128] = {};
+		// Rebuilt every frame; a member so its memory is reused.
+		std::vector<Row> m_Rows;
 	};
 }

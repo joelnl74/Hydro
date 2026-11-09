@@ -87,7 +87,7 @@ float renderMs = t.GetPhaseMs(FramePhase::Render);
 float realDeltaMs = t.DeltaMs;                    // unclamped
 ```
 
-`Application::Run` calls `Time::BeginFrame`/`EndFrame` around each loop iteration and wraps each phase in `Time::BeginPhase`/`EndPhase`. The renderer reports the `Render` (fence wait, acquire, recording) and `Present` (submit, present) phases itself. `Layer::OnUpdate(deltaTime)` receives `Time::GetDeltaTime()`.
+`Application::Run` calls `Time::BeginFrame`/`EndFrame` around each loop iteration and wraps each phase in `Time::BeginPhase`/`EndPhase`. The renderer reports its phases itself: `Wait` (the frame fence and the swapchain acquire: waiting for the GPU or, with vsync, the display), `Render` (its own CPU work: recording, freeing finished resources, rebuilding the swapchain) and `Present` (submit, present; some drivers wait for vsync here instead). `Layer::OnUpdate(deltaTime)` receives `Time::GetDeltaTime()`.
 
 GPU-side numbers (draw calls, quads, GPU pass time, memory) stay with the renderer that produces them: `Renderer2D::GetStats()`.
 

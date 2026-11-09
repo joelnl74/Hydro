@@ -210,18 +210,16 @@ namespace Hydro
 	{
 		Renderer* renderer = s_Instance;
 
-		// Render = fence wait + acquire + recording; Present = submit + present (includes vsync).
-		Time::BeginPhase(FramePhase::Render);
-
+		// BeginFrame times itself (waits as Wait, its work as Render); recording is Render, submit + present is Present.
 		uint32_t imageIndex = 0;
 		if (renderer->BeginFrame(imageIndex) == false)
 		{
 			// Nothing will be drawn this frame; drop what was queued so it does not pile up.
 			Renderer2D::DiscardFrame();
-			Time::EndPhase(FramePhase::Render);
 			return;
 		}
 
+		Time::BeginPhase(FramePhase::Render);
 		VkCommandBuffer commandBuffer = renderer->m_Frames.BeginCommandBuffer();
 
 		// Offscreen scene passes first (dynamic rendering). Their targets end in SHADER_READ_ONLY_OPTIMAL,
@@ -248,21 +246,34 @@ namespace Hydro
 
 	bool Renderer::BeginFrame(uint32_t& outImageIndex)
 	{
+		// The fence wait and the acquire are timed apart from the work around them, so the Stats window can tell waiting
+		// for the GPU or vsync from the renderer's own CPU time.
+		Time::BeginPhase(FramePhase::Render);
+		bool ready = true;
 		if (m_SwapChainDirty)
 		{
-			if (RecreateSwapChain() == false)
-			{
-				return false;
-			}
+			ready = RecreateSwapChain();
+		}
+		Time::EndPhase(FramePhase::Render);
+		if (ready == false)
+		{
+			return false;
 		}
 
+		Time::BeginPhase(FramePhase::Wait);
 		m_Frames.WaitForFrame();
+		Time::EndPhase(FramePhase::Wait);
+
+		Time::BeginPhase(FramePhase::Render);
 		// The frame that used this slot before is done, and so is every frame before it.
 		FlushResourceFrees(false);
 		// Its per-frame descriptor sets can be handed out again.
 		VulkanDescriptorAllocator::ResetFrame(GetRenderFrame());
+		Time::EndPhase(FramePhase::Render);
 
+		Time::BeginPhase(FramePhase::Wait);
 		VkResult result = m_SwapChain->AcquireNextImage(m_Frames.GetImageAvailableSemaphore(), outImageIndex);
+		Time::EndPhase(FramePhase::Wait);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			m_SwapChainDirty = true;
