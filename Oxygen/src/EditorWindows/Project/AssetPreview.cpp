@@ -433,6 +433,15 @@ namespace Hydro
 					ImDrawFlags_RoundCornersBottom);
 				break;
 			}
+			case AssetItemType::Shader:
+			{
+				// A page: shader source.
+				DrawPageIcon(drawList, min, size);
+				// Violet strip = shader.
+				drawList->AddRectFilled(TilePoint(min, size, 0.0f, 0.94f), tileMax, ToColor(0.60f, 0.40f, 0.85f), rounding,
+					ImDrawFlags_RoundCornersBottom);
+				break;
+			}
 			case AssetItemType::Definition:
 			{
 				// A page: one record.
@@ -520,6 +529,9 @@ namespace Hydro
 				break;
 			case AssetItemType::Terrain:
 				ImGui::TextDisabled("Terrain - pick it in a Terrain component's Terrain field");
+				break;
+			case AssetItemType::Shader:
+				ImGui::TextDisabled("Material shader (fragment) - pick it in a material's Shader field");
 				break;
 			case AssetItemType::Definition:
 			case AssetItemType::DataTable:

@@ -25,7 +25,10 @@ namespace Hydro
 		Font,
 		Terrain,
 		Definition, // .hydef: one record of an HY_DATA type (Hydro/Data/DefinitionAsset.h)
-		DataTable   // .hytable: rows of an HY_DATA type by ID (Hydro/Data/DataTableAsset.h)
+		DataTable,  // .hytable: rows of an HY_DATA type by ID (Hydro/Data/DataTableAsset.h)
+		// .frag: a material's fragment shader (MaterialData::Shader). Only registered: Renderer3D compiles it from its file,
+		// so it is never loaded through the AssetManager.
+		Shader
 	};
 
 	// "None" for AssetType::None.

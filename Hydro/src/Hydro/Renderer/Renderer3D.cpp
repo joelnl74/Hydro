@@ -20,7 +20,10 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <filesystem>
 #include <map>
+#include <stdexcept>
+#include <string>
 #include <tuple>
 
 namespace Hydro
@@ -125,12 +128,13 @@ namespace Hydro
 		bool ShadowCaster = false; // depth only, into a sun shadow map
 		bool TerrainSurface = false; // terrain.frag with the terrain surface's set 1
 		bool Faded = false; // mesh_fade.frag: draws with an opacity below 1 (MeshComponent::Opacity)
+		uint64_t MaterialShader = 0; // MaterialData::Shader: a game's fragment shader asset (0 = the Standard one)
 
 		bool operator<(const MeshPipelineKey& other) const
 		{
-			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster, TerrainSurface, Faded)
+			return std::tie(ColorFormats, DepthFormat, WriteEntityID, Wireframe, ShadowCaster, TerrainSurface, Faded, MaterialShader)
 				< std::tie(other.ColorFormats, other.DepthFormat, other.WriteEntityID, other.Wireframe, other.ShadowCaster,
-					other.TerrainSurface, other.Faded);
+					other.TerrainSurface, other.Faded, other.MaterialShader);
 		}
 	};
 
@@ -140,6 +144,9 @@ namespace Hydro
 		std::vector<Scope<TerrainSurfaceGPU>> TerrainSurfaces;
 		std::vector<ShapeEntry> Shapes;
 		std::map<MeshPipelineKey, Scope<VulkanPipeline>> Pipelines; // a null entry failed to build (logged once)
+		// Material shaders that didn't compile, by handle: their file's time then. Never in the shader library, so hot
+		// reload doesn't watch them; a save of the file tries again.
+		std::map<uint64_t, std::filesystem::file_time_type> FailedMaterialShaders;
 
 		Ref<Texture2D> WhiteTexture;
 		Ref<Texture2D> FlatNormalTexture; // (0.5, 0.5, 1): what a material without a normal map binds
@@ -162,6 +169,8 @@ namespace Hydro
 	// The Standard material with a screen-door fade (a game effect: the camera's occluder fade), only for draws whose
 	// opacity is below 1, so the main mesh shader stays without it.
 	static constexpr const char* MeshFadeShaderName = "MeshFade";
+	// Material shaders (MaterialData::Shader) are kept in the shader library as "<prefix><asset handle>".
+	static constexpr const char* MaterialShaderNamePrefix = "MaterialShader:";
 	// Shapes and materials no frame has used for this many frames are freed (the GPU is long done with them).
 	static constexpr uint64_t UnusedFramesBeforeFree = 120;
 
@@ -241,6 +250,7 @@ namespace Hydro
 
 		// Everything frees itself through the deletion queue, which Renderer::Shutdown flushes next.
 		s_Data3D->Pipelines.clear();
+		s_Data3D->FailedMaterialShaders.clear();
 		s_Data3D->Materials.clear();
 		s_Data3D->TerrainSurfaces.clear();
 		s_Data3D->Shapes.clear();
@@ -600,9 +610,41 @@ namespace Hydro
 		return entry.MeshRef;
 	}
 
+	// A material shader's fragment stage with the engine's mesh.vert, compiled when first used. Throws (logged by the
+	// caller) when the asset isn't a shader in the project or doesn't compile.
+	static VulkanShader& LoadMaterialShader(const std::string& name, AssetHandle handle)
+	{
+		const AssetMetadata* metadata = AssetManager::GetMetadata(handle);
+		if (metadata == nullptr || metadata->IsMissing || metadata->Type != AssetType::Shader)
+		{
+			throw std::runtime_error("material shader " + std::to_string((uint64_t)handle) + " is not a shader asset of the project");
+		}
+		return VulkanShaderLibrary::Load(name, "shaders/mesh.vert", AssetManager::GetAbsolutePath(handle).string());
+	}
+
+	// A material shader that failed: has its file been saved since?
+	static bool MaterialShaderFileChanged(uint64_t handle)
+	{
+		auto failed = s_Data3D->FailedMaterialShaders.find(handle);
+		if (failed == s_Data3D->FailedMaterialShaders.end())
+		{
+			return false;
+		}
+		std::error_code ec;
+		const std::filesystem::path path = AssetManager::GetAbsolutePath(AssetHandle(handle));
+		const std::filesystem::file_time_type time = std::filesystem::last_write_time(path, ec);
+		if (ec || time == failed->second)
+		{
+			return false;
+		}
+		s_Data3D->FailedMaterialShaders.erase(failed);
+		return true;
+	}
+
 	// The mesh pipeline for `target` (the view's, or its shadow map for a shadow caster). `faded`: the fade variant.
+	// `materialShader`: MaterialData::Shader (0 = Standard); it also draws faded meshes, never casters or terrain.
 	static VulkanPipeline* GetPipeline(const RenderViewData& view, const VulkanRenderTarget& target, bool writeEntityID,
-		bool shadowCaster = false, bool terrainSurface = false, bool faded = false)
+		bool shadowCaster = false, bool terrainSurface = false, bool faded = false, uint64_t materialShader = 0)
 	{
 		MeshPipelineKey key;
 		// In the HDR scene pass the view's target draws into the scene colour.
@@ -612,23 +654,34 @@ namespace Hydro
 		key.Wireframe = Renderer::GetSettings().Wireframe && Renderer::GetCapabilities().Wireframe && shadowCaster == false;
 		key.ShadowCaster = shadowCaster;
 		key.TerrainSurface = terrainSurface && shadowCaster == false;
-		key.Faded = faded && shadowCaster == false && key.TerrainSurface == false;
+		key.MaterialShader = shadowCaster || key.TerrainSurface ? 0 : materialShader;
+		key.Faded = faded && shadowCaster == false && key.TerrainSurface == false && key.MaterialShader == 0;
 
 		auto it = s_Data3D->Pipelines.find(key);
 		if (it != s_Data3D->Pipelines.end())
 		{
-			return it->second.get();
+			if (it->second != nullptr || key.MaterialShader == 0 || MaterialShaderFileChanged(key.MaterialShader) == false)
+			{
+				return it->second.get();
+			}
+			s_Data3D->Pipelines.erase(it);
 		}
 
 		Scope<VulkanPipeline> pipeline;
 		try
 		{
+			const std::string materialShaderName = MaterialShaderNamePrefix + std::to_string(key.MaterialShader);
 			const char* shaderName = shadowCaster ? MeshShadowCasterShaderName
-				: (key.TerrainSurface ? TerrainSurfaceShaderName : (key.Faded ? MeshFadeShaderName : MeshShaderName));
+				: (key.TerrainSurface ? TerrainSurfaceShaderName
+					: (key.MaterialShader != 0 ? materialShaderName.c_str() : (key.Faded ? MeshFadeShaderName : MeshShaderName)));
 			VulkanShader* shader = VulkanShaderLibrary::Get(shaderName);
 			if (shader == nullptr)
 			{
-				if (shadowCaster)
+				if (key.MaterialShader != 0)
+				{
+					shader = &LoadMaterialShader(materialShaderName, AssetHandle(key.MaterialShader));
+				}
+				else if (shadowCaster)
 				{
 					shader = &VulkanShaderLibrary::Load(MeshShadowCasterShaderName, "shaders/mesh_shadow.vert",
 						"shaders/mesh_shadow.frag");
@@ -675,8 +728,19 @@ namespace Hydro
 		}
 		catch (const std::exception& e)
 		{
-			HY_CORE_ERROR("Renderer3D: the {} pipeline could not be built; it is skipped until the next shader change: {}",
-				key.TerrainSurface ? "terrain surface" : "mesh", e.what());
+			if (key.MaterialShader != 0)
+			{
+				std::error_code ec;
+				s_Data3D->FailedMaterialShaders[key.MaterialShader] =
+					std::filesystem::last_write_time(AssetManager::GetAbsolutePath(AssetHandle(key.MaterialShader)), ec);
+				HY_CORE_ERROR("Renderer3D: material shader '{}' can't be used; its meshes are drawn with the Standard shader until "
+					"it compiles: {}", AssetManager::GetAbsolutePath(AssetHandle(key.MaterialShader)).generic_string(), e.what());
+			}
+			else
+			{
+				HY_CORE_ERROR("Renderer3D: the {} pipeline could not be built; it is skipped until the next shader change: {}",
+					key.TerrainSurface ? "terrain surface" : "mesh", e.what());
+			}
 		}
 
 		VulkanPipeline* result = pipeline.get();
@@ -692,7 +756,8 @@ namespace Hydro
 			return;
 		}
 
-		// By pipeline (pickable or not, faded or not, Standard or terrain surface), then material, then front to back.
+		// By pipeline (pickable or not, faded or not, Standard or terrain surface, material shader), then material, then
+		// front to back.
 		std::sort(view.MeshDraws.begin(), view.MeshDraws.end(), [](const MeshDraw& a, const MeshDraw& b)
 		{
 			const bool aPickable = a.EntityID >= 0;
@@ -717,6 +782,10 @@ namespace Hydro
 			{
 				return a.TerrainSurface < b.TerrainSurface;
 			}
+			if ((uint64_t)a.Material->Data.Shader != (uint64_t)b.Material->Data.Shader)
+			{
+				return (uint64_t)a.Material->Data.Shader < (uint64_t)b.Material->Data.Shader;
+			}
 			if (a.Material != b.Material)
 			{
 				return a.Material < b.Material;
@@ -724,21 +793,35 @@ namespace Hydro
 			return a.SortDepth < b.SortDepth;
 		});
 
-		// [pickable][terrain surface][faded], built when first needed.
+		// The draws are sorted by pipeline, so it is looked up again only when the next draw needs another one. A material
+		// shader that can't be used falls back to the Standard pipeline (the error is logged once).
 		const bool hasEntityID = view.Target->GetSpecification().EntityID;
-		VulkanPipeline* pipelines[2][2][2] = {};
-		bool pipelinesFetched[2][2][2] = {};
+		bool havePipeline = false;
+		bool lastPickable = false;
+		bool lastTerrain = false;
+		bool lastFaded = false;
+		uint64_t lastShader = 0;
+		VulkanPipeline* lastPipeline = nullptr;
 		const auto pipelineFor = [&](const MeshDraw& draw)
 		{
-			const int pickable = draw.EntityID >= 0 && hasEntityID ? 1 : 0;
-			const int terrain = draw.TerrainSurface != nullptr ? 1 : 0;
-			const int faded = draw.Opacity < 1.0f && terrain == 0 ? 1 : 0;
-			if (pipelinesFetched[pickable][terrain][faded] == false)
+			const bool pickable = draw.EntityID >= 0 && hasEntityID;
+			const bool terrain = draw.TerrainSurface != nullptr;
+			const bool faded = draw.Opacity < 1.0f && terrain == false;
+			const uint64_t shader = terrain ? 0 : (uint64_t)draw.Material->Data.Shader;
+			if (havePipeline == false || pickable != lastPickable || terrain != lastTerrain || faded != lastFaded || shader != lastShader)
 			{
-				pipelines[pickable][terrain][faded] = GetPipeline(view, *view.Target, pickable == 1, false, terrain == 1, faded == 1);
-				pipelinesFetched[pickable][terrain][faded] = true;
+				lastPipeline = GetPipeline(view, *view.Target, pickable, false, terrain, faded, shader);
+				if (lastPipeline == nullptr && shader != 0)
+				{
+					lastPipeline = GetPipeline(view, *view.Target, pickable, false, terrain, faded);
+				}
+				havePipeline = true;
+				lastPickable = pickable;
+				lastTerrain = terrain;
+				lastFaded = faded;
+				lastShader = shader;
 			}
-			return pipelines[pickable][terrain][faded];
+			return lastPipeline;
 		};
 
 		VkCommandBuffer commandBuffer = context.CommandBuffer;
@@ -876,7 +959,7 @@ namespace Hydro
 	void Renderer3D::OnShaderReloaded(const std::string& name)
 	{
 		if (s_Data3D != nullptr && (name == MeshShaderName || name == MeshShadowCasterShaderName || name == TerrainSurfaceShaderName
-			|| name == MeshFadeShaderName))
+			|| name == MeshFadeShaderName || name.rfind(MaterialShaderNamePrefix, 0) == 0))
 		{
 			s_Data3D->Pipelines.clear();
 		}

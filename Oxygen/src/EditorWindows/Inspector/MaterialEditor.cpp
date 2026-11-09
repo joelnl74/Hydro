@@ -13,10 +13,29 @@
 
 namespace Hydro
 {
+	// The material's shader: none = Standard, or a game's .frag (MaterialData::Shader).
+	static void DrawShaderField(MaterialData& material)
+	{
+		const AssetMetadata* metadata = AssetManager::GetMetadata(material.Shader);
+		const std::string detail = (uint64_t)material.Shader != 0 && (metadata == nullptr || metadata->IsMissing)
+			? "The shader file is missing." : std::string();
+		const AssetPickerResult result = AssetPicker::DrawField("##MaterialShader", material.Shader, AssetType::Shader, detail);
+		if (result.Changed)
+		{
+			material.Shader = result.Handle;
+		}
+		if (ImGui::IsItemHovered() && (uint64_t)material.Shader == 0)
+		{
+			ImGui::SetTooltip("None = the Standard shader. A .frag in the project runs on the engine's mesh.vert with the fields below\n"
+				"(mesh_material.glsl); compile errors are in the console and the mesh stays Standard until it compiles.");
+		}
+	}
+
 	// The Standard material's fields (a mesh slot's inline settings or a material asset). True when something changed.
 	static bool DrawMaterialFields(MaterialData& material)
 	{
 		const MaterialData before = material;
+		InspectorUI::Row("Shader", [&]() { DrawShaderField(material); });
 		InspectorUI::Row("Albedo", [&]() { InspectorUI::TextureField("##MaterialAlbedo", material.Albedo); });
 		InspectorUI::Row("Tint", [&]() { ImGui::ColorEdit4("##MaterialTint", glm::value_ptr(material.Tint)); });
 		InspectorUI::Row("Tiling", [&]()

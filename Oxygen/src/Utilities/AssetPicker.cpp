@@ -222,7 +222,8 @@ namespace Hydro
 		std::string label = "None";
 		if (hasValue)
 		{
-			label = metadata == nullptr ? "(unknown asset)" : metadata->Path.filename().u8string() + (metadata->IsMissing ? " (missing)" : "");
+			label = metadata == nullptr ? (AssetManager::IsMemoryAsset(current) ? "(made at runtime)" : "(unknown asset)")
+				: metadata->Path.filename().u8string() + (metadata->IsMissing ? " (missing)" : "");
 		}
 
 		if (ImGui::Button(label.c_str(), { (width > 0.0f ? width : ImGui::GetContentRegionAvail().x) - clearWidth - spacing, 0.0f }))

@@ -544,6 +544,7 @@ namespace Hydro
 				break;
 			case ItemType::Font:
 			case ItemType::Terrain:
+			case ItemType::Shader:
 				break;
 			case ItemType::Material:
 			case ItemType::Model:
@@ -603,6 +604,9 @@ namespace Hydro
 				return true;
 			case AssetType::DataTable:
 				itemType = ItemType::DataTable;
+				return true;
+			case AssetType::Shader:
+				itemType = ItemType::Shader;
 				return true;
 			default:
 				return false;

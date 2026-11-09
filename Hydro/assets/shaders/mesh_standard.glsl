@@ -5,27 +5,7 @@
 // (plan M6; unlit otherwise) with the normal map's normal when it has one, plus emission, then fog; cut out below
 // AlphaCutoff.
 
-layout(location = 0) in vec2 fragUV;
-layout(location = 1) in vec4 fragColor;
-layout(location = 2) in vec3 fragNormal;
-layout(location = 3) flat in int entityID;
-layout(location = 4) in vec3 fragWorldPos;
-
-// Must match MaterialUniform in Renderer3D.cpp (std140, 48 bytes).
-layout(set = 1, binding = 0) uniform Material {
-    vec4 tint;
-    vec4 emission;   // rgb = colour * intensity
-    vec2 tiling;     // repeats per metre
-    float alphaCutoff;
-    float normalStrength; // 0 = no normal map (binding 3 is the flat one)
-} material;
-layout(set = 1, binding = 1) uniform sampler2D albedoTexture;
-layout(set = 1, binding = 2) uniform sampler2D emissiveTexture;
-layout(set = 1, binding = 3) uniform sampler2D normalTexture; // tangent space, RGBA (linear), green up
-
-layout(location = 0) out vec4 outColor;
-// The Editor view's entity-ID attachment; ignored in views without it.
-layout(location = 1) out int outEntityID;
+#include "mesh_material.glsl"
 
 void ShadeStandardMesh()
 {

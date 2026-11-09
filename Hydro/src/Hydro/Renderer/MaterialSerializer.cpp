@@ -17,6 +17,10 @@ namespace Hydro
 	// The fields of a material, inside a map the caller opened.
 	static void WriteFields(YAML::Emitter& out, const MaterialData& data)
 	{
+		if ((uint64_t)data.Shader != 0)
+		{
+			out << YAML::Key << "ShaderHandle" << YAML::Value << (uint64_t)data.Shader;
+		}
 		if ((uint64_t)data.Albedo != 0)
 		{
 			out << YAML::Key << "AlbedoHandle" << YAML::Value << (uint64_t)data.Albedo;
@@ -49,6 +53,7 @@ namespace Hydro
 	MaterialData MaterialSerializer::DeserializeData(const YAML::Node& node)
 	{
 		MaterialData data;
+		data.Shader = AssetHandle(node["ShaderHandle"].as<uint64_t>(0));
 		data.Albedo = AssetHandle(node["AlbedoHandle"].as<uint64_t>(0));
 		data.Emissive = AssetHandle(node["EmissiveHandle"].as<uint64_t>(0));
 		data.Normal = AssetHandle(node["NormalHandle"].as<uint64_t>(0));
