@@ -53,7 +53,8 @@ COLOR_KINDS = {"Vec3", "Vec4"}
 
 # AssetType enumerators (Hydro/src/Hydro/Asset/Asset.h) an Asset(...) argument may name.
 ASSET_TYPES = {
-    "Texture2D", "Scene", "Prefab", "SpriteAnimation", "Material", "Mesh", "RenderProfile", "Font", "Terrain", "Definition", "DataTable"
+    "Texture2D", "Scene", "Prefab", "SpriteAnimation", "Material", "Mesh", "RenderProfile", "Font", "Terrain", "Definition", "DataTable",
+    "Shader"
 }
 # Asset types that hold an HY_DATA type, named as the second argument: Asset(Definition, DialogueDefinition).
 DATA_ASSET_TYPES = {"Definition", "DataTable"}

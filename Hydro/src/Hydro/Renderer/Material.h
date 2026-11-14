@@ -13,6 +13,9 @@ namespace Hydro
 	// on a mesh slot or saved as a .hymat; Renderer3D caches GPU state per distinct MaterialData.
 	struct MaterialData
 	{
+		// A game's fragment shader (.frag asset) given these fields and textures instead of the Standard shader (0);
+		// runs on mesh.vert, interface in mesh_material.glsl (docs/Architecture.md, "Material shaders").
+		AssetHandle Shader = 0;
 		AssetHandle Albedo = 0;   // a Texture2D; 0 = white
 		AssetHandle Emissive = 0; // a Texture2D multiplied by EmissionColor * EmissionIntensity; 0 = white
 		// A tangent-space normal map (imported as RGBA data, green up the image, glTF style), sampled at the albedo's UV.
@@ -29,7 +32,8 @@ namespace Hydro
 
 		bool operator==(const MaterialData& other) const
 		{
-			return Albedo == other.Albedo && Emissive == other.Emissive && Normal == other.Normal && NormalStrength == other.NormalStrength
+			return Shader == other.Shader && Albedo == other.Albedo && Emissive == other.Emissive && Normal == other.Normal
+				&& NormalStrength == other.NormalStrength
 				&& Tint == other.Tint && Tiling == other.Tiling
 				&& EmissionColor == other.EmissionColor && EmissionIntensity == other.EmissionIntensity
 				&& AlphaCutoff == other.AlphaCutoff && Filter == other.Filter;

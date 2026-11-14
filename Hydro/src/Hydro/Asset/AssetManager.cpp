@@ -30,6 +30,7 @@ namespace Hydro
 		std::string Path;      // registry path (forward slashes) it was loaded from
 		uint64_t Version = 0;  // file + .hymeta modification times
 		bool Failed = false;
+		bool InMemory = false; // AddMemoryAsset: made in code, no file
 	};
 
 	struct AssetManagerData
@@ -277,10 +278,11 @@ namespace Hydro
 
 		s_Data->Registry = std::move(registry);
 
-		// Assets whose file is gone are dropped. A moved file keeps its entry: the next GetAsset reloads it.
+		// Assets whose file is gone are dropped. A moved file keeps its entry: the next GetAsset reloads it. Memory
+		// assets have no file and stay.
 		for (auto it = s_Data->Loaded.begin(); it != s_Data->Loaded.end();)
 		{
-			it = IsAssetHandleValid(it->first) ? std::next(it) : s_Data->Loaded.erase(it);
+			it = it->second.InMemory || IsAssetHandleValid(it->first) ? std::next(it) : s_Data->Loaded.erase(it);
 		}
 
 		HY_CORE_INFO("Assets: {} in {} ({} new handles, {} duplicates, {} missing)", info.AssetCount, root.string(),
@@ -655,6 +657,12 @@ namespace Hydro
 			return nullptr;
 		}
 
+		auto memory = s_Data->Loaded.find(handle);
+		if (memory != s_Data->Loaded.end() && memory->second.InMemory)
+		{
+			return memory->second.Type == type ? memory->second.Object : nullptr;
+		}
+
 		const AssetMetadata* metadata = s_Data->Registry.Get(handle);
 		if (metadata == nullptr)
 		{
@@ -742,8 +750,58 @@ namespace Hydro
 		found->second.Failed = false;
 	}
 
+	AssetHandle AssetManager::AddMemoryAsset(const Ref<Asset>& asset)
+	{
+		if (IsProjectOpen() == false || asset == nullptr)
+		{
+			return 0;
+		}
+
+		AssetHandle handle; // a new random UUID
+		while ((uint64_t)handle == 0 || s_Data->Registry.Get(handle) != nullptr || s_Data->Loaded.count(handle) != 0)
+		{
+			handle = AssetHandle();
+		}
+
+		asset->m_Handle = handle;
+		LoadedAsset entry;
+		entry.Object = asset;
+		entry.Type = asset->GetType();
+		entry.InMemory = true;
+		s_Data->Loaded[handle] = std::move(entry);
+		return handle;
+	}
+
+	void AssetManager::RemoveMemoryAsset(AssetHandle handle)
+	{
+		if (s_Data == nullptr)
+		{
+			return;
+		}
+		// GPU objects go through the renderer's deletion queue once the last holder lets go.
+		auto found = s_Data->Loaded.find(handle);
+		if (found != s_Data->Loaded.end() && found->second.InMemory)
+		{
+			s_Data->Loaded.erase(found);
+		}
+	}
+
+	bool AssetManager::IsMemoryAsset(AssetHandle handle)
+	{
+		if (s_Data == nullptr)
+		{
+			return false;
+		}
+		auto found = s_Data->Loaded.find(handle);
+		return found != s_Data->Loaded.end() && found->second.InMemory;
+	}
+
 	AssetLoadState AssetManager::GetLoadState(AssetHandle handle)
 	{
+		if (IsMemoryAsset(handle))
+		{
+			return AssetLoadState::Loaded;
+		}
 		if (IsAssetHandleValid(handle) == false)
 		{
 			return AssetLoadState::Missing;

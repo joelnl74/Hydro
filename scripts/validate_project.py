@@ -47,7 +47,7 @@ ASSET_TYPES = {
     ".png": "Texture2D", ".jpg": "Texture2D", ".jpeg": "Texture2D", ".tga": "Texture2D", ".bmp": "Texture2D",
     ".hyscene": "Scene", ".hyprefab": "Prefab", ".hyanim": "SpriteAnimation", ".hymat": "Material",
     ".gltf": "Mesh", ".glb": "Mesh", ".hyrender": "RenderProfile", ".fnt": "Font", ".hyterrain": "Terrain",
-    ".hydef": "Definition", ".hytable": "DataTable",
+    ".hydef": "Definition", ".hytable": "DataTable", ".frag": "Shader",
 }
 
 
@@ -130,7 +130,7 @@ def index_assets(assets: Path, report: Report):
                 handles[int(match.group(1))] = (source, ASSET_TYPES.get(source.suffix.lower(), "Unknown"))
             continue
         kind = ASSET_TYPES.get(path.suffix.lower())
-        if kind is None or kind in ("Texture2D", "Mesh", "Font"):
+        if kind is None or kind in ("Texture2D", "Mesh", "Font", "Shader"):
             continue  # imported files keep their handle in a .hymeta
         with open(path, encoding="utf-8", errors="replace") as file:
             head = "".join(file.readline() for _ in range(8))  # after any comment lines at the top

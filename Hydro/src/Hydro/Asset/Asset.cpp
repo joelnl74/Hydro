@@ -20,6 +20,7 @@ namespace Hydro
 			case AssetType::Terrain: return "Terrain";
 			case AssetType::Definition: return "Definition";
 			case AssetType::DataTable: return "DataTable";
+			case AssetType::Shader: return "Shader";
 			case AssetType::None: return "None";
 		}
 
@@ -71,6 +72,10 @@ namespace Hydro
 		if (name == "DataTable")
 		{
 			return AssetType::DataTable;
+		}
+		if (name == "Shader")
+		{
+			return AssetType::Shader;
 		}
 
 		return AssetType::None;
@@ -129,6 +134,11 @@ namespace Hydro
 		if (extension == ".hytable") // DataTableAsset::FileExtension
 		{
 			return AssetType::DataTable;
+		}
+		// Only fragment shaders: game material shaders run on the engine's mesh.vert. Included files (.glsl) aren't assets.
+		if (extension == ".frag")
+		{
+			return AssetType::Shader;
 		}
 
 		return AssetType::None;

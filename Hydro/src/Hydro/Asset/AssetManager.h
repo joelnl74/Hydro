@@ -103,6 +103,12 @@ namespace Hydro
 		// GetAsset doesn't reload the editor's own write.
 		static void MarkSaved(AssetHandle handle);
 
+		// An asset made in code (a texture a game fills) under a new handle that GetAsset/GetLoadedAsset return; no file:
+		// never scanned, reloaded or saved. Kept until RemoveMemoryAsset or the project closes. 0 without a project.
+		static AssetHandle AddMemoryAsset(const Ref<Asset>& asset);
+		static void RemoveMemoryAsset(AssetHandle handle);
+		static bool IsMemoryAsset(AssetHandle handle);
+
 		static AssetLoadState GetLoadState(AssetHandle handle);
 		// Loaded successfully.
 		static size_t GetLoadedAssetCount();

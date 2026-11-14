@@ -3,7 +3,10 @@
 
 #include "Hydro/Platform/Vulkan/ViewRenderer/ViewRenderer.h"
 #include "Hydro/Platform/Vulkan/VulkanRenderViewData.h"
+#include "Hydro/Core/Time.h"
 #include "Hydro/Renderer/Renderer.h"
+
+#include <cmath>
 
 namespace Hydro
 {
@@ -30,7 +33,7 @@ namespace Hydro
 			uniform.SkyAmbient = glm::vec4(lighting.SkyAmbient, 0.0f);
 			uniform.GroundAmbient = glm::vec4(lighting.GroundAmbient, 0.0f);
 			uniform.FogColor = glm::vec4(lighting.FogColor, lighting.Fog ? 1.0f : 0.0f);
-			uniform.FogOrigin = glm::vec4(lighting.FogOrigin, 1.0f);
+			uniform.FogOrigin = glm::vec4(lighting.FogOrigin, 0.0f);
 			const RendererSettings& settings = Renderer::GetSettings();
 			const float bands = settings.LightFalloff == LightFalloffStyle::Banded ? (float)std::clamp(settings.LightBands, 2u, 32u) : 0.0f;
 			uniform.FogParams = glm::vec4(lighting.FogStart, std::max(lighting.FogEnd, lighting.FogStart + 0.01f), bands, 0.0f);
@@ -90,6 +93,8 @@ namespace Hydro
 			stats.ForwardLightCount += count;
 		}
 
+		// Seconds for animated materials (water, wind), lit or not; wrapped every hour so a float keeps its precision.
+		uniform.FogOrigin.w = (float)std::fmod(Time::GetUptime(), 3600.0);
 		view.LightingBuffers[frame]->SetData(&uniform, sizeof(FrameLightingUniform));
 	}
 }

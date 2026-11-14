@@ -3,6 +3,7 @@
 
 #include "VulkanRendererContext.h"
 #include "VulkanUtils.h"
+#include "Hydro/Core/EngineResources.h"
 #include "Hydro/Renderer/Renderer.h"
 
 #include <shaderc/shaderc.hpp>
@@ -40,7 +41,8 @@ namespace Hydro
 		throw std::runtime_error("Unsupported shader stage for GLSL compilation.");
 	}
 
-	// Resolves #include relative to the including file and records every included path for hot reload.
+	// Resolves #include relative to the including file, else in the engine's shader folder (so a game's material shader
+	// can include "lighting.glsl" or "mesh_material.glsl"), and records every included path for hot reload.
 	class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface
 	{
 	public:
@@ -53,7 +55,12 @@ namespace Hydro
 			size_t /*includeDepth*/) override
 		{
 			auto* include = new IncludeData();
-			const std::filesystem::path path = (std::filesystem::path(requestingSource).parent_path() / requestedSource).lexically_normal();
+			std::filesystem::path path = (std::filesystem::path(requestingSource).parent_path() / requestedSource).lexically_normal();
+			std::error_code ec;
+			if (std::filesystem::exists(path, ec) == false)
+			{
+				path = EngineResources::Resolve(std::filesystem::path("shaders") / requestedSource).lexically_normal();
+			}
 			m_IncludedFiles->push_back(path);
 
 			if (ReadTextFile(path, include->Content))

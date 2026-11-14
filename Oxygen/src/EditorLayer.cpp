@@ -464,12 +464,16 @@ namespace Hydro
 		return true;
 	}
 
+	static bool BelongsToAnotherGame(const std::filesystem::path& path, GameInfo& game)
+	{
+		return ProjectSerializer::ReadGame(path, game) && game.IsGeneric() == false && game.Id != Project::GetCompiledGame().Id;
+	}
+
 	void EditorLayer::OpenProject(const std::filesystem::path& path, bool readOnly)
 	{
 		// Another game's project: saving it here would drop that game's components, so never editable.
 		GameInfo game;
-		if (readOnly == false && ProjectSerializer::ReadGame(path, game) && game.IsGeneric() == false &&
-			game.Id != Project::GetCompiledGame().Id)
+		if (readOnly == false && BelongsToAnotherGame(path, game))
 		{
 			if (m_Launch.IsAutomated() == false)
 			{
@@ -738,6 +742,12 @@ namespace Hydro
 
 	void EditorLayer::OpenStartupProject()
 	{
+		// The command line's project replaces the last one; EditorLaunch::Apply opens it next.
+		if (m_Launch.HasProject())
+		{
+			return;
+		}
+
 		const EditorStartupSettings& startup = m_Context.Settings.Startup;
 		// Copy: opening a project or scene updates the session.
 		const EditorSession session = m_Context.Settings.Session;
@@ -745,6 +755,12 @@ namespace Hydro
 		std::error_code ec;
 		if (startup.ReopenLastProject && session.LastProject.empty() == false && std::filesystem::exists(session.LastProject, ec))
 		{
+			// The settings are shared by every game's editor: another game's project waits in the hub, with no prompt at startup.
+			GameInfo game;
+			if (BelongsToAnotherGame(session.LastProject, game))
+			{
+				return;
+			}
 			OpenProject(session.LastProject);
 		}
 
