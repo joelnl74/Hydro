@@ -30,7 +30,8 @@ namespace Hydro
 		glm::vec4 FogParams{ 0.0f };        // x start, y end (metres from FogOrigin), z = falloff bands (0 = smooth)
 		glm::ivec4 Counts{ 0 };             // x = lights in the storage buffer, y = 1 when forward lit, z = 1 with a sun
 		                                    // shadow map, w = 1 when lighting snaps to texel centres (PixelSnap)
-		glm::vec4 FogOrigin{ 0.0f };        // xyz: where fog distance is measured from (what the camera looks at)
+		glm::vec4 FogOrigin{ 0.0f };        // xyz: where fog distance is measured from (what the camera looks at); w seconds
+		                                    // (Time::GetUptime, wrapped every hour), set lit or not, for animated materials
 		glm::mat4 ShadowMatrix{ 1.0f };     // world -> the sun shadow map's clip space (xy -1..1, z 0..1)
 		glm::vec4 ShadowParams{ 0.0f };     // x strength, y texel in UV, z = 1 soft (3 x 3), w normal offset (metres)
 	};

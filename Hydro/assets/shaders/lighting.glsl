@@ -26,6 +26,12 @@ bool IsForwardLit()
 	return lighting.counts.y == 1;
 }
 
+// Seconds since the engine started, wrapping every hour (fogOrigin.w): for animated materials (water, wind). Lit or not.
+float FrameSeconds()
+{
+	return lighting.fogOrigin.w;
+}
+
 // Pixel stability (#136, RenderFeatureSettings::PixelSnap): lighting, shadows and fog are taken at the centre of the
 // texel a pixel samples (TexelCentreOffset in surface_derivatives.glsl), so they step texel by texel like the art.
 bool SnapsToTexels()
